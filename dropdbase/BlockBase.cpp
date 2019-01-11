@@ -1,5 +1,5 @@
 #include "BlockBase.h"
-#include <exception>
+#include <stdexcept>
 
 template<class T>
 BlockBase<T>::BlockBase(const std::vector<T>& data, const ColumnBase<T>& column) :

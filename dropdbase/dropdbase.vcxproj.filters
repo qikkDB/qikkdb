@@ -19,6 +19,18 @@
     <Filter Include="Header Files\ProtoBuf">
       <UniqueIdentifier>{3147cbae-c3ec-466c-ad82-0248e8b4eb2b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Networking">
+      <UniqueIdentifier>{0fe5ab2a-7423-45db-930a-5d72ccde0750}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Networking">
+      <UniqueIdentifier>{9e272853-2ee1-40c0-96f0-013ba83d3da9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\DataImport">
+      <UniqueIdentifier>{e83ba530-ad39-404b-b935-0eb42b02b78e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DataImport">
+      <UniqueIdentifier>{002ad95e-aa5e-418b-82a7-d0d0f23c3c23}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IBlock.h">
@@ -60,6 +72,33 @@
     <ClInclude Include="NativeGeoPoint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TCPServer.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="Database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ITCPWorker.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="IClientHandler.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientPoolWorker.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkMessage.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="TCPClientHandler.h">
+      <Filter>Header Files\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVInMemoryImporter.h">
+      <Filter>Header Files\DataImport</Filter>
+    </ClInclude>
+    <ClInclude Include="Configuration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BlockBase.cpp">
@@ -96,6 +135,27 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PointFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Database.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ITCPWorker.cpp">
+      <Filter>Source Files\Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientPoolWorker.cpp">
+      <Filter>Source Files\Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkMessage.cpp">
+      <Filter>Source Files\Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="TCPClientHandler.cpp">
+      <Filter>Source Files\Networking</Filter>
+    </ClCompile>
+    <ClCompile Include="CSVInMemoryImporter.cpp">
+      <Filter>Source Files\DataImport</Filter>
+    </ClCompile>
+    <ClCompile Include="Configuration.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

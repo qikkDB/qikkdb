@@ -102,7 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -135,7 +135,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -146,30 +146,46 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BlockBase.h" />
+    <ClInclude Include="ClientPoolWorker.h" />
     <ClInclude Include="ColumnBase.h" />
     <ClInclude Include="ComplexPolygonFactory.h" />
+    <ClInclude Include="Configuration.h" />
+    <ClInclude Include="CSVInMemoryImporter.h" />
+    <ClInclude Include="Database.h" />
     <ClInclude Include="IBlock.h" />
+    <ClInclude Include="IClientHandler.h" />
+    <ClInclude Include="ITCPWorker.h" />
     <ClInclude Include="messages\CSVImportMessage.pb.h" />
     <ClInclude Include="messages\InfoMessage.pb.h" />
     <ClInclude Include="messages\QueryMessage.pb.h" />
     <ClInclude Include="messages\QueryResponseMessage.pb.h" />
     <ClInclude Include="messages\SetDatabaseMessage.pb.h" />
     <ClInclude Include="NativeGeoPoint.h" />
+    <ClInclude Include="NetworkMessage.h" />
     <ClInclude Include="PointFactory.h" />
+    <ClInclude Include="TCPClientHandler.h" />
+    <ClInclude Include="TCPServer.h" />
     <ClInclude Include="Types\ComplexPolygon.pb.h" />
     <ClInclude Include="Types\Point.pb.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BlockBase.cpp" />
+    <ClCompile Include="ClientPoolWorker.cpp" />
     <ClCompile Include="ColumnBase.cpp" />
     <ClCompile Include="ComplexPolygonFactory.cpp" />
+    <ClCompile Include="Configuration.cpp" />
+    <ClCompile Include="CSVInMemoryImporter.cpp" />
+    <ClCompile Include="Database.cpp" />
+    <ClCompile Include="ITCPWorker.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="messages\InfoMessage.pb.cc" />
     <ClCompile Include="messages\QueryMessage.pb.cc" />
     <ClCompile Include="messages\QueryResponseMessage.pb.cc" />
     <ClCompile Include="messages\SetDatabaseMessage.pb.cc" />
+    <ClCompile Include="NetworkMessage.cpp" />
     <ClCompile Include="PointFactory.cpp" />
+    <ClCompile Include="TCPClientHandler.cpp" />
     <ClCompile Include="Types\ComplexPolygon.pb.cc" />
     <ClCompile Include="Types\Point.pb.cc" />
   </ItemGroup>
