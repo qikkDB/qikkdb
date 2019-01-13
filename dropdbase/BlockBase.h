@@ -1,5 +1,6 @@
 #pragma once
 #include "IBlock.h"
+#include <stdexcept>
 
 template<class T>
 class ColumnBase;

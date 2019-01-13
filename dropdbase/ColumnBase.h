@@ -5,6 +5,8 @@
 
 #include "IBlock.h"
 #include "BlockBase.h"
+#include "Types/ComplexPolygon.pb.h"
+#include "Types/Point.pb.h"
 
 template<class T>
 class ColumnBase
