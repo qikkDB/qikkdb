@@ -49,10 +49,10 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleCSVImport(ITC
 	auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
 	try
 	{
-		auto importDB = Database::GetDatabaseByName(csvImportMessage.databasename);
+		auto importDB = Database::GetDatabaseByName(csvImportMessage.databasename());
 		if (importDB == nullptr)
 		{
-			importDB = std::make_shared<Database>(csvImportMessage.databasename, Configuration::BlockSize());
+			importDB = std::make_shared<Database>(csvImportMessage.databasename(), Configuration::BlockSize());
 			dataImporter.ImportTables(importDB);
 			Database::AddToInMemoryDatabaseList(importDB);
 		}
