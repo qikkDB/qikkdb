@@ -160,8 +160,6 @@
     <ClInclude Include="Types\Point.pb.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BlockBase.cpp" />
-    <ClCompile Include="ColumnBase.cpp" />
     <ClCompile Include="ComplexPolygonFactory.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="messages\CSVImportMessage.pb.cc" />
