@@ -3,6 +3,8 @@
 #include "../dropdbase/ClientPoolWorker.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 #include "../dropdbase/TCPServer.h"
+#include "../dropdbase/NetworkMessage.h"
+#include <boost/asio.hpp>
 #include <thread>
 
 class DummyClientHandler : IClientHandler
@@ -48,11 +50,29 @@ class DummyClientHandler : IClientHandler
 	}
 };
 
+boost::asio::ip::tcp::socket connectToTestServer(boost::asio::io_context& context)
+{
+	boost::asio::ip::tcp::socket sock(context);
+	boost::asio::connect(sock, boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address("127.0.0.1"), 12345));
+}
+
 TEST(TCPServer, ServerMessageInfo)
 {
 	TCPServer<DummyClientHandler,ClientPoolWorker> testServer("127.0.0.1", 12345);
 	auto future = std::async(std::launch::async, [&testServer]() {testServer.Run(); });
-	//ClientShit
+	boost::asio::io_context context;
+	auto sock = connectToTestServer(context);
+	ColmnarDB::NetworkClient::Message::InfoMessage hello;
+	hello.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::CONN_ESTABLISH);
+	hello.set_message("");
+	NetworkMessage::WriteToNetwork(hello, sock);
+	auto ret = NetworkMessage::ReadFromNetwork(sock);
+	ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+	ASSERT_TRUE(ret.UnpackTo(&infoMessage));
+	ASSERT_EQ(infoMessage.code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+	infoMessage.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::CONN_END);
+	infoMessage.set_message("");
+	NetworkMessage::WriteToNetwork(infoMessage, sock);
 	testServer.Abort();
 	ASSERT_NO_THROW(future.get());
 }
