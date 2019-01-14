@@ -67,7 +67,10 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 	std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> smallPayload;
 	if (sentRecords_ == 0)
 	{
-		std::copy(completeResult->timing().begin(), completeResult->timing().end(), std::inserter(*smallPayload->mutable_timing(), smallPayload->mutable_timing()->begin()));
+		for (const auto& timing : completeResult->timing()) 
+		{
+			smallPayload->mutable_timing()->insert(timing);
+		}
 	}
 
 	for(const auto& payload : completeResult->payloads())
