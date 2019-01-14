@@ -15,7 +15,7 @@ protected:
 	std::set<std::shared_ptr<ITCPWorker>>& activeWorkers_;
 	std::shared_ptr<ITCPWorker> GetSharedFromThis() { return shared_from_this(); }
 public:
-	ITCPWorker(std::set<std::shared_ptr<ITCPWorker>>& activeWorkers, std::unique_ptr<IClientHandler> clientHandler, boost::asio::ip::tcp::socket socket, int requestTimeout);
+	ITCPWorker(std::set<std::shared_ptr<ITCPWorker>>& activeWorkers, std::unique_ptr<IClientHandler>&& clientHandler, boost::asio::ip::tcp::socket socket, int requestTimeout);
 	virtual ~ITCPWorker();
 	virtual void HandleClient() = 0;
 	virtual void Abort();

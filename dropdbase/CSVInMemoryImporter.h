@@ -7,6 +7,6 @@ class CSVInMemoryImporter
 {
 public:
 	CSVInMemoryImporter(const std::string&, const std::string&);
-	void ImportTables(std::shared_ptr<Database>& database);
+	void ImportTables(Database& database);
 };
 

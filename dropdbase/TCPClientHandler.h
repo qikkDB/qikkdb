@@ -15,6 +15,7 @@ private:
 	std::mutex queryMutex_;
 	std::unique_ptr<google::protobuf::Message> GetNextQueryResult();
 	std::future<std::unique_ptr<google::protobuf::Message>> lastQueryResult_;
+	std::unique_ptr<google::protobuf::Message> lastResultMessage_;
 	std::unique_ptr<google::protobuf::Message> RunQuery(Database& database, const ColmnarDB::NetworkClient::Message::QueryMessage & queryMessage);
 
 public:

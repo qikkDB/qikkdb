@@ -22,7 +22,8 @@ private:
 		{
 			if (!ec)
 			{
-				std::make_shared<Worker>(activeWorkers_, std::unique_ptr<IClientHandler>(reinterpret_cast<IClientHandler*>(new ClientHandler())), std::move(socket), 60000)->HandleClient();
+				std::thread handlerThread([this]() { std::make_shared<Worker>(activeWorkers_, std::unique_ptr<IClientHandler>(dynamic_cast<IClientHandler*>(new ClientHandler())), std::move(socket), 60000)->HandleClient(); });
+				handlerThread.detach();
 			}
 			Listen();
 		});

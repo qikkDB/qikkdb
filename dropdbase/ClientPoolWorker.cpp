@@ -7,7 +7,7 @@
 #include "IClientHandler.h"
 
 
-ClientPoolWorker::ClientPoolWorker(std::set<std::shared_ptr<ITCPWorker>>& activeWorkers, std::unique_ptr<IClientHandler> clientHandler, boost::asio::ip::tcp::socket socket, int requestTimeout) 
+ClientPoolWorker::ClientPoolWorker(std::set<std::shared_ptr<ITCPWorker>>& activeWorkers, std::unique_ptr<IClientHandler>&& clientHandler, boost::asio::ip::tcp::socket socket, int requestTimeout) 
 	: ITCPWorker(activeWorkers, std::move(clientHandler), std::move(socket), requestTimeout)
 {
 	quit_ = false;
