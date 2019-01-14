@@ -13,8 +13,8 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS Types/Point.proto)
 find_package(gtest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
-find_package(log4cplus REQUIRED)
-include_directories(${LOG4CPLUS_INCLUDE_DIRS})
+find_package(spdlog REQUIRED)
+include_directories(${SPDLOG_INCLUDE_DIRS})
 
 
 set(CMAKE_PREFIX_PATH /usr/local/lib/cmake/antlr4)
@@ -44,9 +44,21 @@ antlr4_generate(
         "${ANTLR4_TOKEN_DIRECTORY_GpuSqlLexer}"
 )
 
+set(ANTLR_GENERATED
+        GpuSqlParser/GpuSqlLexer.h
+        GpuSqlParser/GpuSqlLexer.cpp
+        GpuSqlParser/GpuSqlParser.h
+        GpuSqlParser/GpuSqlParser.cpp
+        GpuSqlParser/GpuSqlParserBaseListener.h
+        GpuSqlParser/GpuSqlParserBaseListener.cpp
+        GpuSqlParser/GpuSqlParserListener.h
+        GpuSqlParser/GpuSqlParserListener.cpp)
+
 include_directories(.)
 include_directories(messages)
 include_directories(Types)
+
+
 
 add_executable(${PROJECT_NAME}
         messages/CSVImportMessage.pb.cc
@@ -71,9 +83,13 @@ add_executable(${PROJECT_NAME}
         main.cpp
         NativeGeoPoint.h
         PointFactory.cpp
-        PointFactory.h GpuSqlParser/GpuSqlCustomParser.cpp GpuSqlParser/GpuSqlCustomParser.h Database.cpp Database.h)
+        PointFactory.h
+        GpuSqlParser/GpuSqlCustomParser.cpp
+        GpuSqlParser/GpuSqlCustomParser.h
+        Database.cpp
+        Database.h
+        ${ANTLR_GENERATED})
 
 target_link_libraries(${PROJECT_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${LOG4CPLUS_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} antlr4_static)

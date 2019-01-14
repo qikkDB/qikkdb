@@ -1,9 +1,10 @@
 
 #include <cstdio>
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 int main(int argc, char** argv)
 {
-	std::cout << "Hello" << std::endl;
+	spdlog::info("Application Starting");
 	return 0;
 }
