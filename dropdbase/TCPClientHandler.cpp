@@ -135,7 +135,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 	
 }
 
-std::unique_ptr<google::protobuf::Message> TCPClientHandler::RunQuery(Database & database, const ColmnarDB::NetworkClient::Message::QueryMessage & queryMessage)
+std::unique_ptr<google::protobuf::Message> TCPClientHandler::RunQuery(std::shared_ptr<Database> database, const ColmnarDB::NetworkClient::Message::QueryMessage & queryMessage)
 {
 	try
 	{
@@ -180,7 +180,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleQuery(ITCPWor
 {
 	sentRecords_ = 0;
 	lastResultLen_ = 0;
-	lastQueryResult_ = std::async(std::launch::async, std::bind(&TCPClientHandler::RunQuery, this, *worker.currentDatabase_, queryMessage));
+	lastQueryResult_ = std::async(std::launch::async, std::bind(&TCPClientHandler::RunQuery, this, worker.currentDatabase_, queryMessage));
 	auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
 	resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::WAIT);
 	resultMessage->set_message("");

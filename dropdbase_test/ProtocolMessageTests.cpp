@@ -5,7 +5,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/any.pb.h>
 
-TEST(dropdbaseServer, protobufSerializeAndDeserialize)
+TEST(ProtocolMessageTests, ProtobufSerializeAndDeserialize)
 {
 	ColmnarDB::NetworkClient::Message::InfoMessage testMsg;
 	testMsg.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);

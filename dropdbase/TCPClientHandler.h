@@ -5,8 +5,9 @@
 #include <future>
 #include "IClientHandler.h"
 #include "Database.h"
+#include <memory>
 
-class TCPClientHandler final : IClientHandler
+class TCPClientHandler final : public IClientHandler
 {
 private:
 	const int FRAGMENT_SIZE = 1000;
@@ -16,7 +17,7 @@ private:
 	std::unique_ptr<google::protobuf::Message> GetNextQueryResult();
 	std::future<std::unique_ptr<google::protobuf::Message>> lastQueryResult_;
 	std::unique_ptr<google::protobuf::Message> lastResultMessage_;
-	std::unique_ptr<google::protobuf::Message> RunQuery(Database& database, const ColmnarDB::NetworkClient::Message::QueryMessage & queryMessage);
+	std::unique_ptr<google::protobuf::Message> RunQuery(std::shared_ptr<Database> database, const ColmnarDB::NetworkClient::Message::QueryMessage & queryMessage);
 
 public:
 	TCPClientHandler() {};

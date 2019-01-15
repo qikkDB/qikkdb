@@ -46,9 +46,6 @@
     <ClCompile Include="..\dropdbase\ITCPWorker.cpp">
       <Filter>Dropdbase sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\dropdbase\main.cpp">
-      <Filter>Dropdbase sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\dropdbase\NetworkMessage.cpp">
       <Filter>Dropdbase sources</Filter>
     </ClCompile>
@@ -58,6 +55,7 @@
     <ClCompile Include="..\dropdbase\TCPClientHandler.cpp">
       <Filter>Dropdbase sources</Filter>
     </ClCompile>
+    <ClCompile Include="ProtocolMessageTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\dropdbase\messages\InfoMessage.pb.h">
@@ -126,5 +124,8 @@
     <ClInclude Include="..\dropdbase\TCPServer.h">
       <Filter>Dropdbase sources</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

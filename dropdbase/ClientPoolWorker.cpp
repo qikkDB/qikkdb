@@ -7,8 +7,8 @@
 #include "IClientHandler.h"
 
 
-ClientPoolWorker::ClientPoolWorker(std::set<std::shared_ptr<ITCPWorker>>& activeWorkers, std::unique_ptr<IClientHandler>&& clientHandler, boost::asio::ip::tcp::socket socket, int requestTimeout) 
-	: ITCPWorker(activeWorkers, std::move(clientHandler), std::move(socket), requestTimeout)
+ClientPoolWorker::ClientPoolWorker(std::unique_ptr<IClientHandler>&& clientHandler, boost::asio::ip::tcp::socket socket, int requestTimeout) 
+	: ITCPWorker(std::move(clientHandler), std::move(socket), requestTimeout)
 {
 	quit_ = false;
 }
@@ -62,7 +62,7 @@ void ClientPoolWorker::HandleClient()
 					NetworkMessage::WriteToNetwork(*importResultMessage, socket_);
 				}
 			}
-			else if (recvMsg.UnpackTo(&csvImportMessage))
+			else if (recvMsg.UnpackTo(&setDatabaseMessage))
 			{
 				std::unique_ptr<google::protobuf::Message> setDatabaseResult = clientHandler_->HandleSetDatabase(*this, setDatabaseMessage);
 				if (setDatabaseResult != nullptr)
@@ -89,5 +89,4 @@ void ClientPoolWorker::Abort()
 {
 	quit_ = true;
 	socket_.close();
-	ITCPWorker::Abort();
 }

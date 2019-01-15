@@ -39,7 +39,6 @@
     <ClCompile Include="..\dropdbase\CSVInMemoryImporter.cpp" />
     <ClCompile Include="..\dropdbase\Database.cpp" />
     <ClCompile Include="..\dropdbase\ITCPWorker.cpp" />
-    <ClCompile Include="..\dropdbase\main.cpp" />
     <ClCompile Include="..\dropdbase\messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\InfoMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\QueryMessage.pb.cc" />

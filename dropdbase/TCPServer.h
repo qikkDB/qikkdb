@@ -15,23 +15,24 @@ class TCPServer final
 private:
 	boost::asio::io_context ioContext_;
 	boost::asio::ip::tcp::acceptor acceptor_;
-	std::set<std::shared_ptr<ITCPWorker>> activeWorkers_;
-	std::mutex workerMutex_;
 	void Listen()
 	{
 		acceptor_.async_accept([this](boost::system::error_code ec, boost::asio::ip::tcp::socket socket)
 		{
 			if (!ec)
 			{
-				std::thread handlerThread([this,&socket]() 
+				std::thread handlerThread([this](boost::asio::ip::tcp::socket sock)
 				{
-					std::shared_ptr<Worker> workerPtr;
+					try
 					{
-						std::lock_guard<std::mutex> workerLock(workerMutex_);
-						workerPtr = std::make_shared<Worker>(activeWorkers_, std::unique_ptr<IClientHandler>(dynamic_cast<IClientHandler*>(new ClientHandler())), std::move(socket), 60000)
+						Worker worker(std::make_unique<ClientHandler>(), std::move(sock), 60000);
+						worker.HandleClient();
 					}
-					workerPtr->HandleClient(); 
-				});
+					catch (std::exception& e)
+					{
+						printf("Exception in worker: %s", e.what());
+					}
+				}, std::move(socket));
 				handlerThread.detach();
 			}
 			Listen();

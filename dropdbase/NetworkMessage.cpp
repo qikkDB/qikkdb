@@ -8,23 +8,22 @@ void NetworkMessage::WriteToNetwork(const google::protobuf::Message & message, b
 	packedMsg.PackFrom(message);
 	int size = packedMsg.ByteSize();
 	boost::endian::native_to_little_inplace(size);
-	std::vector<char> serializedMessage;
-	serializedMessage.reserve(size);
-	packedMsg.SerializeToArray(serializedMessage.data(), size);
+	std::unique_ptr<char[]> serializedMessage(new char[size]);
+	packedMsg.SerializeToArray(serializedMessage.get(), size);
 	boost::asio::write(socket, boost::asio::buffer(&size, sizeof(size)));
-	boost::asio::write(socket, boost::asio::buffer(serializedMessage));
+	boost::asio::write(socket, boost::asio::buffer(serializedMessage.get(),size));
 }
 
 google::protobuf::Any NetworkMessage::ReadFromNetwork(boost::asio::ip::tcp::socket & socket)
 {
-	int readSize;
-	size_t read = boost::asio::read(socket, boost::asio::buffer(&readSize, sizeof(readSize)));
+	std::array<char, 4> readBuff;
+	size_t read = boost::asio::read(socket, boost::asio::buffer(readBuff, 4));
+	int32_t readSize = *(reinterpret_cast<int32_t*>(readBuff.data()));
 	boost::endian::little_to_native_inplace(readSize);
-	std::vector<char> messageBuffer;
-	messageBuffer.reserve(readSize);
-	boost::asio::read(socket, boost::asio::buffer(messageBuffer, readSize));
+	std::unique_ptr<char[]> serializedMessage(new char[readSize]);
+	boost::asio::read(socket, boost::asio::buffer(serializedMessage.get(), readSize));
 	google::protobuf::Any ret;
-	if (!ret.ParseFromArray(messageBuffer.data(), readSize))
+	if (!ret.ParseFromArray(serializedMessage.get(), readSize))
 	{
 		throw std::invalid_argument("Failed to parse message from stream");
 	}
