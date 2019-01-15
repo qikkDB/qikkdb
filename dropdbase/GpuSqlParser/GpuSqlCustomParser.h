@@ -5,19 +5,22 @@
 #ifndef DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 #define DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 
-#pragma once
 #include "GpuSqlParser/GpuSqlParser.h"
 #include "GpuSqlParser/GpuSqlLexer.h"
 #include "Database.h"
+#include "ParserExceptions.h"
 #include <string>
+#include <memory>
 
 class GpuSqlCustomParser {
 
 private:
-    Database database;
+    std::shared_ptr<Database> database;
+    std::string query;
 
 public:
-    GpuSqlCustomParser(const Database &database, const std::string &query);
+    GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query);
+    void parse();
 
 };
 

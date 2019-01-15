@@ -88,7 +88,13 @@ add_executable(${PROJECT_NAME}
         GpuSqlParser/GpuSqlCustomParser.h
         Database.cpp
         Database.h
-        ${ANTLR_GENERATED})
+        GpuSqlParser/ParserExceptions.h
+        GpuSqlParser/GpuSqlListener.cpp
+        GpuSqlParser/GpuSqlListener.h
+        GpuSqlParser/GpuSqlDispatcher.cpp
+        GpuSqlParser/GpuSqlDispatcher.h
+        GpuSqlParser/MemoryStream.h
+        ${ANTLR_GENERATED} GpuSqlParser/MemoryStream.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES})

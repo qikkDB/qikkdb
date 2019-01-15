@@ -1,0 +1,56 @@
+//
+// Created by Martin Staňo on 2019-01-15.
+//
+
+#ifndef DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
+#define DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
+
+#include <functional>
+#include <vector>
+#include "MemoryStream.h"
+
+class GpuSqlDispatcher {
+
+private:
+    std::vector<std::function<void()>> functions;
+    MemoryStream arguments;
+
+public:
+    void addFunction(std::function<void()> function);
+
+    void greater();
+
+    void less();
+
+    void greaterEqual();
+
+    void lessEqual();
+
+    void equal();
+
+    void notEqual();
+
+    void logicalAnd();
+
+    void logicalOr();
+
+    void mul();
+
+    void div();
+
+    void add();
+
+    void sub();
+
+    void mod();
+
+    void contains();
+
+//    template<typename T>
+//    void addArgument(T argument) {
+//        arguments.insert<T>(argument);
+//    }
+};
+
+
+#endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
