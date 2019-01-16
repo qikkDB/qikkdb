@@ -3,6 +3,12 @@
 
 #include "../IEngineCore.h"
 
+#include "GPUAggregation.h"
+#include "GPUArithmetic.h"
+#include "GPUArtihmeticConst.h"
+#include "GPUFilter.h"
+#include "GPUFilterConst.h"
+
 class GPUCore : public IEngineCore {
 private:
 	std::shared_ptr<IAggregation> iAggregation;
@@ -18,11 +24,11 @@ private:
 
 public:
 	GPUCore() :
-		iAggregation(),
-		iArithmetic(),
-		iArithmeticConst(),
-		iFilter(),
-		iFilterConst(),
+		iAggregation(std::shared_ptr<IAggregation>(new GPUAggregation())),
+		iArithmetic(std::shared_ptr<IArithmetic>(new GPUArithmetic())),
+		iArithmeticConst(std::shared_ptr<IArithmeticConst>(new GPUArtihmeticConst())),
+		iFilter(std::shared_ptr<IFilter>(new GPUFilter())),
+		iFilterConst(std::shared_ptr<IFilterConst>(new GPUFilterConst())),
 		iGroupBy(),
 		iLogic(),
 		iMemory(),

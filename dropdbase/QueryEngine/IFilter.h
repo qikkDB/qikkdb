@@ -3,6 +3,7 @@
 
 class IFilter {
 public:
+
 };
 
 #endif
