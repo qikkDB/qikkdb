@@ -16,7 +16,7 @@
 
 class IEngineCore {
 public:
-	virtual ~IEngineCore();
+	virtual ~IEngineCore() {}
 
 	virtual const std::shared_ptr<IAggregation>& getIAggregation() = 0;
 

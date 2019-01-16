@@ -99,6 +99,21 @@
     <ClInclude Include="QueryEngine\IReconstruct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUArtihmeticConst.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

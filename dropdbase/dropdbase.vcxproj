@@ -157,7 +157,12 @@
     <ClInclude Include="NativeGeoPoint.h" />
     <ClInclude Include="PointFactory.h" />
     <ClInclude Include="QueryEngine\CPUCore\CPUCore.h" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.h" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.h" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUArtihmeticConst.h" />
     <ClInclude Include="QueryEngine\GPUCore\GPUCore.h" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilter.h" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.h" />
     <ClInclude Include="QueryEngine\IAggregation.h" />
     <ClInclude Include="QueryEngine\IArithmetic.h" />
     <ClInclude Include="QueryEngine\IArtihmeticConst.h" />
