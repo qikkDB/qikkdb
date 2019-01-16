@@ -65,3 +65,43 @@ void GpuSqlDispatcher::mod() {
 void GpuSqlDispatcher::contains() {
 
 }
+
+void GpuSqlDispatcher::load() {
+
+}
+
+void GpuSqlDispatcher::ret() {
+
+}
+
+void GpuSqlDispatcher::between() {
+
+}
+
+void GpuSqlDispatcher::logicalNot() {
+
+}
+
+void GpuSqlDispatcher::minus() {
+
+}
+
+void GpuSqlDispatcher::min() {
+
+}
+
+void GpuSqlDispatcher::max() {
+
+}
+
+void GpuSqlDispatcher::sum() {
+
+}
+
+void GpuSqlDispatcher::count() {
+
+}
+
+void GpuSqlDispatcher::avg() {
+
+}

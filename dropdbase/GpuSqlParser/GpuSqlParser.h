@@ -617,8 +617,9 @@ public:
   public:
     MinusExpressionContext(ExpressionContext *ctx);
 
-    antlr4::tree::TerminalNode *MINUS();
+    antlr4::Token *op = nullptr;
     ExpressionContext *expression();
+    antlr4::tree::TerminalNode *MINUS();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };

@@ -18,6 +18,10 @@ private:
 public:
     void addFunction(std::function<void()> function);
 
+    void load();
+
+    void ret();
+
     void greater();
 
     void less();
@@ -46,10 +50,26 @@ public:
 
     void contains();
 
-//    template<typename T>
-//    void addArgument(T argument) {
-//        arguments.insert<T>(argument);
-//    }
+    void between();
+
+    void logicalNot();
+
+    void minus();
+
+    void min();
+
+    void max();
+
+    void sum();
+
+    void count();
+
+    void avg();
+
+    template<typename T>
+    void addArgument(T argument) {
+        arguments.insert<T>(argument);
+    }
 };
 
 

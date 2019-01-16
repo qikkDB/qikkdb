@@ -2345,12 +2345,12 @@ void GpuSqlParser::GeoReferenceContext::exitRule(tree::ParseTreeListener *listen
 }
 //----------------- MinusExpressionContext ------------------------------------------------------------------
 
-tree::TerminalNode* GpuSqlParser::MinusExpressionContext::MINUS() {
-  return getToken(GpuSqlParser::MINUS, 0);
-}
-
 GpuSqlParser::ExpressionContext* GpuSqlParser::MinusExpressionContext::expression() {
   return getRuleContext<GpuSqlParser::ExpressionContext>(0);
+}
+
+tree::TerminalNode* GpuSqlParser::MinusExpressionContext::MINUS() {
+  return getToken(GpuSqlParser::MINUS, 0);
 }
 
 GpuSqlParser::MinusExpressionContext::MinusExpressionContext(ExpressionContext *ctx) { copyFrom(ctx); }
@@ -2701,7 +2701,7 @@ GpuSqlParser::ExpressionContext* GpuSqlParser::expression(int precedence) {
         _ctx = _localctx;
         previousContext = _localctx;
         setState(287);
-        match(GpuSqlParser::MINUS);
+        dynamic_cast<MinusExpressionContext *>(_localctx)->op = match(GpuSqlParser::MINUS);
         setState(288);
         expression(6);
         break;

@@ -8,8 +8,10 @@
 #include "GpuSqlParserListener.h"
 #include "Database.h"
 #include "GpuSqlDispatcher.h"
-#include "DataTypes.h"
+#include "DataType.h"
 #include "ParserExceptions.h"
+#include "PointFactory.h"
+#include "ComplexPolygonFactory.h"
 #include <unordered_set>
 #include <functional>
 #include <string>
@@ -21,7 +23,7 @@ class GpuSqlListener : public GpuSqlParserListener {
 private:
     const std::shared_ptr<Database> database;
     const std::shared_ptr<GpuSqlDispatcher> dispatcher;
-    std::stack<std::string> parserStack;
+    std::stack<std::tuple<std::string,DataType>> parserStack;
     std::unordered_set<std::string> loadedTables;
     std::unordered_set<std::string> loadedColumns;
     std::unordered_set<std::string> groupByColumns;
@@ -29,13 +31,25 @@ private:
     bool usingGroupBy;
     bool insideAgg;
 
-    std::string stackTopAndPop();
+    int tempCounter;
+
+    std::tuple<std::string,DataType> stackTopAndPop();
     std::string generateAndValidateColumnName(GpuSqlParser::VarReferenceContext *ctx);
+    void pushTempResult();
+    bool isLong(const std::string &value);
+    bool isDouble(const std::string &value);
+    bool isPoint(const std::string &value);
+    bool isPolygon(const std::string &value);
+    void stringToUpper(std::string &str);
 
 public:
     GpuSqlListener(const std::shared_ptr<Database> &database, const std::shared_ptr<GpuSqlDispatcher> &dispatcher);
 
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) override;
+
+    void exitTernaryOperation(GpuSqlParser::TernaryOperationContext *ctx) override;
+
+    void exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) override;
 
     void exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx) override;
 
@@ -43,7 +57,15 @@ public:
 
     void exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx) override;
 
+    void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) override;
+
+    void exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx) override;
+
     void exitVarReference(GpuSqlParser::VarReferenceContext *ctx) override;
+
+    void exitAggregation(GpuSqlParser::AggregationContext *ctx) override;
+
+    void exitFromTables(GpuSqlParser::FromTablesContext *ctx) override;
 
 
 };

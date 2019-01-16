@@ -94,7 +94,7 @@ add_executable(${PROJECT_NAME}
         GpuSqlParser/GpuSqlDispatcher.cpp
         GpuSqlParser/GpuSqlDispatcher.h
         GpuSqlParser/MemoryStream.h
-        ${ANTLR_GENERATED} GpuSqlParser/MemoryStream.cpp GpuSqlParser/DataTypes.h)
+        ${ANTLR_GENERATED} GpuSqlParser/MemoryStream.cpp GpuSqlParser/DataType.h)
 
 target_link_libraries(${PROJECT_NAME} ${PROTOBUF_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES})
