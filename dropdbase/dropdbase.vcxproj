@@ -156,6 +156,19 @@
     <ClInclude Include="messages\SetDatabaseMessage.pb.h" />
     <ClInclude Include="NativeGeoPoint.h" />
     <ClInclude Include="PointFactory.h" />
+    <ClInclude Include="QueryEngine\CPUCore\CPUCore.h" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUCore.h" />
+    <ClInclude Include="QueryEngine\IAggregation.h" />
+    <ClInclude Include="QueryEngine\IArithmetic.h" />
+    <ClInclude Include="QueryEngine\IArtihmeticConst.h" />
+    <ClInclude Include="QueryEngine\IEngineCore.h" />
+    <ClInclude Include="QueryEngine\IFilter.h" />
+    <ClInclude Include="QueryEngine\IFilterConst.h" />
+    <ClInclude Include="QueryEngine\IGroupBy.h" />
+    <ClInclude Include="QueryEngine\ILogic.h" />
+    <ClInclude Include="QueryEngine\IMemory.h" />
+    <ClInclude Include="QueryEngine\IPolygon.h" />
+    <ClInclude Include="QueryEngine\IReconstruct.h" />
     <ClInclude Include="Types\ComplexPolygon.pb.h" />
     <ClInclude Include="Types\Point.pb.h" />
   </ItemGroup>
