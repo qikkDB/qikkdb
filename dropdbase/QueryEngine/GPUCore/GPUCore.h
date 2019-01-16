@@ -2,6 +2,11 @@
 #define GPU_CORE_H
 
 #include "../IEngineCore.h"
+#include "GPUGroupBy.h"
+#include "GPULogic.h"
+#include "GPUMemory.h"
+#include "GPUPolygon.h"
+#include "GPUReconstruct.h"
 
 class GPUCore : public IEngineCore {
 private:
@@ -23,11 +28,11 @@ public:
 		iArithmeticConst(),
 		iFilter(),
 		iFilterConst(),
-		iGroupBy(),
-		iLogic(),
-		iMemory(),
-		iPolygon(),
-		iReconstruct() {
+		iGroupBy(std::shared_ptr<IGroupBy>(new GPUGroupBy())),
+		iLogic(std::shared_ptr<ILogic>(new GPULogic())),
+		iMemory(std::shared_ptr<IMemory>(new GPUMemory())),
+		iPolygon(std::shared_ptr<IPolygon>(new GPUPolygon())),
+		iReconstruct(std::shared_ptr<IReconstruct>(new GPUReconstruct())) {
 
 
 
