@@ -8,11 +8,14 @@
 #include "GpuSqlParserListener.h"
 #include "Database.h"
 #include "GpuSqlDispatcher.h"
+#include "DataTypes.h"
+#include "ParserExceptions.h"
 #include <unordered_set>
 #include <functional>
 #include <string>
 #include <memory>
 #include <stack>
+#include <regex>
 
 class GpuSqlListener : public GpuSqlParserListener {
 private:
@@ -23,12 +26,24 @@ private:
     std::unordered_set<std::string> loadedColumns;
     std::unordered_set<std::string> groupByColumns;
 
+    bool usingGroupBy;
+    bool insideAgg;
+
     std::string stackTopAndPop();
+    std::string generateAndValidateColumnName(GpuSqlParser::VarReferenceContext *ctx);
 
 public:
     GpuSqlListener(const std::shared_ptr<Database> &database, const std::shared_ptr<GpuSqlDispatcher> &dispatcher);
 
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) override;
+
+    void exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx) override;
+
+    void exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx) override;
+
+    void exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx) override;
+
+    void exitVarReference(GpuSqlParser::VarReferenceContext *ctx) override;
 
 
 };

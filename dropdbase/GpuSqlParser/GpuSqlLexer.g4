@@ -77,8 +77,8 @@ NOT         : '!' ;
 OR          : O R;
 AND         : A N D;
 
-FLOATLIT    : '0.'[0-9]+|[1-9][0-9]* '.'[0-9]+;
-INTLIT      : '0'|[1-9][0-9]*;
+FLOATLIT    : ('-')?('0.'[0-9]+|[1-9][0-9]* '.'[0-9]+);
+INTLIT      : ('-')?('0'|[1-9][0-9]*);
 ID          : [_]*[A-Za-z0-9_][A-Za-z0-9_]* ;
 BOOLEANLIT  : ('True'|'False');
 STRINGLIT   : '"'ID'"';
