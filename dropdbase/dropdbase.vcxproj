@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClInclude Include="BlockBase.h" />
     <ClInclude Include="ColumnBase.h" />
+    <ClInclude Include="ColumnType.h" />
     <ClInclude Include="ComplexPolygonFactory.h" />
     <ClInclude Include="Database.h" />
     <ClInclude Include="IBlock.h" />
