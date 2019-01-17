@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <spdlog_setup/conf.h>
 
 int main(int argc, char** argv)
@@ -12,10 +13,10 @@ int main(int argc, char** argv)
 		log_->info("Application exited.");
 	}
 	catch (const spdlog_setup::setup_error &exception) { // log config file not found
-		printf("Cannot setup logger: %s", exception.what());
+		fprintf(stderr, "Cannot setup logger: %s\n", exception.what());
 	}
 	catch (const std::exception &exception) {
-		printf("Exception: %s", exception.what());
+		fprintf(stderr, "Exception: %s\n", exception.what());
 	}
 	return 0;
 }
