@@ -75,6 +75,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Users\David\source\repos\spdlog-1.x\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -148,6 +149,7 @@
     <ClInclude Include="BlockBase.h" />
     <ClInclude Include="ColumnBase.h" />
     <ClInclude Include="ComplexPolygonFactory.h" />
+    <ClInclude Include="Database.h" />
     <ClInclude Include="IBlock.h" />
     <ClInclude Include="messages\CSVImportMessage.pb.h" />
     <ClInclude Include="messages\InfoMessage.pb.h" />
@@ -156,11 +158,13 @@
     <ClInclude Include="messages\SetDatabaseMessage.pb.h" />
     <ClInclude Include="NativeGeoPoint.h" />
     <ClInclude Include="PointFactory.h" />
+    <ClInclude Include="Table.h" />
     <ClInclude Include="Types\ComplexPolygon.pb.h" />
     <ClInclude Include="Types\Point.pb.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp" />
+    <ClCompile Include="Database.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="messages\InfoMessage.pb.cc" />
@@ -168,6 +172,7 @@
     <ClCompile Include="messages\QueryResponseMessage.pb.cc" />
     <ClCompile Include="messages\SetDatabaseMessage.pb.cc" />
     <ClCompile Include="PointFactory.cpp" />
+    <ClCompile Include="Table.cpp" />
     <ClCompile Include="Types\ComplexPolygon.pb.cc" />
     <ClCompile Include="Types\Point.pb.cc" />
   </ItemGroup>
