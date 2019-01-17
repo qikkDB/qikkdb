@@ -18,7 +18,7 @@ class GpuSqlCustomParser
 {
 
 private:
-    std::shared_ptr<Database> database;
+    const std::shared_ptr<Database> &database;
     std::string query;
 
 public:

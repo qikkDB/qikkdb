@@ -15,6 +15,10 @@ private:
     std::vector<char> buffer;
 
 public:
+    MemoryStream(){
+        buffer.reserve(8192);
+    }
+
     template<typename T>
     void insert(T value)
     {

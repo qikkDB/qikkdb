@@ -1,14 +1,15 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.12)
 
 set(PROJECT_NAME dropdbase_instarea)
 project(${PROJECT_NAME})
 #enable_language(CUDA)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
+
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS Types/Point.proto)
 
 find_package(gtest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
@@ -23,26 +24,6 @@ set(ANTLR4_JAR_LOCATION /usr/local/lib/antlr-4.7.2-complete.jar)
 find_package(antlr4-runtime REQUIRED)
 include_directories(${ANTLR4_INCLUDE_DIR})
 find_package(antlr4-generator REQUIRED)
-
-antlr4_generate(
-        GpuSqlLexer
-        GpuSqlParser/GpuSqlLexer.g4
-        LEXER
-        FALSE
-        FALSE
-        "gpuSql"
-)
-
-antlr4_generate(
-        GpuSqlParser
-        GpuSqlParser/GpuSqlParser.g4
-        PARSER
-        FALSE
-        TRUE
-        "gpuSql"
-        "${ANTLR4_TOKEN_FILES_GpuSqlLexer}"
-        "${ANTLR4_TOKEN_DIRECTORY_GpuSqlLexer}"
-)
 
 set(ANTLR_GENERATED
         GpuSqlParser/GpuSqlLexer.h

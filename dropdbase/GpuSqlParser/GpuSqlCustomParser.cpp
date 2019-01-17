@@ -17,6 +17,7 @@ void GpuSqlCustomParser::parse()
     GpuSqlLexer sqlLexer(&sqlInputStream);
     antlr4::CommonTokenStream commonTokenStream(&sqlLexer);
     GpuSqlParser parser(&commonTokenStream);
+    parser.getInterpreter<antlr4::atn::ParserATNSimulator>()->setPredictionMode(antlr4::atn::PredictionMode::SLL);
     GpuSqlParser::SqlFileContext *sqlFileContext = parser.sqlFile();
 
     antlr4::tree::ParseTreeWalker walker;
@@ -24,7 +25,7 @@ void GpuSqlCustomParser::parse()
 
     for (auto statement : sqlFileContext->statement())
     {
-        GpuSqlDispatcher dispatcher;
+        GpuSqlDispatcher dispatcher(database);
         GpuSqlListener gpuSqlListener(database, dispatcher);
         if (statement->sqlSelect())
         {

@@ -6,18 +6,24 @@
 
 //TODO:Dispatch implementation
 
+
+GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) : database(database)
+{
+    blockIndex = 0;
+}
+
 void GpuSqlDispatcher::execute()
 {
-    for(auto &function : functions) {
+    for (auto &function : functions)
+    {
         function();
     }
 }
 
-
 void GpuSqlDispatcher::load()
 {
-    std::cout << "Load" << std::endl;
-
+    auto col(arguments.read<std::string>());
+    std::cout << "Load " << /*col <<*/ std::endl;
 }
 
 void GpuSqlDispatcher::fil()
@@ -37,7 +43,7 @@ void GpuSqlDispatcher::done()
 
 }
 
-void GpuSqlDispatcher::addFunction(std::function<void()> function)
+void GpuSqlDispatcher::addFunction(std::function<void()> &&function)
 {
     functions.emplace_back(function);
 }
@@ -65,7 +71,7 @@ void GpuSqlDispatcher::lessEqual()
 
 void GpuSqlDispatcher::equal()
 {
-    std::cout << "Equal" << std::endl;
+    std::cout << "Equal " << std::endl;
 }
 
 void GpuSqlDispatcher::notEqual()

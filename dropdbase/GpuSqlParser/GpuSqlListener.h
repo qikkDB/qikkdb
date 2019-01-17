@@ -51,7 +51,7 @@ private:
     void stringToUpper(std::string &str);
 
 public:
-    GpuSqlListener(std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
+    GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
 
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) override;
 

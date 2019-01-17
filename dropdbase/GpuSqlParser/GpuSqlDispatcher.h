@@ -8,7 +8,9 @@
 #include <functional>
 #include <vector>
 #include <iostream>
+#include <memory>
 #include "MemoryStream.h"
+#include "Database.h"
 
 class GpuSqlDispatcher
 {
@@ -16,11 +18,16 @@ class GpuSqlDispatcher
 private:
     std::vector<std::function<void()>> functions;
     MemoryStream arguments;
+    int blockIndex;
+    const std::shared_ptr<Database> &database;
+
 
 public:
+    GpuSqlDispatcher(const std::shared_ptr<Database> &database);
+
     void execute();
 
-    void addFunction(std::function<void()> function);
+    void addFunction(std::function<void()> &&function);
 
     void load();
 

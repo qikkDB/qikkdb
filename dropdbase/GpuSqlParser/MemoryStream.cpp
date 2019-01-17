@@ -4,12 +4,20 @@
 
 #include "MemoryStream.h"
 
+//template<>
+//void MemoryStream::insert(const char *value)
+//{
+//    int len = static_cast<int>(strlen(value));
+//    insert<int>(len);
+//    std::copy(value, value + len * sizeof(char), buffer.end());
+//}
+
 template<>
-void MemoryStream::insert(const char *value)
+void MemoryStream::insert(std::string &value)
 {
-    int len = static_cast<int>(strlen(value));
+    int len = static_cast<int>(value.length());
     insert<int>(len);
-    std::copy(value, value + len * sizeof(char), std::back_inserter(buffer));
+    std::copy(value.data(), value.data() + len * sizeof(char), buffer.end());
 }
 
 template<>

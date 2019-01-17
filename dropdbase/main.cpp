@@ -5,8 +5,7 @@
 #include <chrono>
 #include <spdlog/spdlog.h>
 #include <GpuSqlParser/GpuSqlCustomParser.h>
-
-//#include "GpuSqlParser/MemoryStream.h"
+#include "GpuSqlParser/MemoryStream.h"
 
 int main(int argc, char **argv)
 {
@@ -16,7 +15,7 @@ int main(int argc, char **argv)
 
     std::shared_ptr<Database> database(new Database());
 
-    GpuSqlCustomParser parser(database, "SELECT COUNT(ageId) FROM TargetLoc100M WHERE latitude  > 48.163267512773274 AND latitude < 48.17608989851882 AND longitude > 17.19991468973717 AND longitude < 17.221200700479358 GROUP BY ageId;");
+    GpuSqlCustomParser parser(database, "SELECT abc.b FROM abc WHERE ((abc.b = 1) AND (abc.b = 2)) OR (abc.b = 3);");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -24,6 +23,16 @@ int main(int argc, char **argv)
     std::chrono::duration<double> elapsed(end - start);
 
     std::cout << "Elapsed time: " << elapsed.count() << " s\n";
+
+    MemoryStream memoryStream;
+
+    memoryStream.insert<int>(5);
+    memoryStream.insert<float>(5.5f);
+    memoryStream.insert<std::string>("Hello guys");
+
+    std::cout << memoryStream.read<int>() << std::endl;
+    std::cout << memoryStream.read<float>() << std::endl;
+    std::cout << memoryStream.read<std::string>() << std::endl;
 
 
     return 0;
