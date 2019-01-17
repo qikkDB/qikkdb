@@ -7,6 +7,11 @@
 #include "IClientHandler.h"
 #include "ITCPWorker.h"
 
+/// <summary>
+/// TCP listener and client processor
+/// </summary>
+/// <param name="worker">Type of worker, must implement ITCPWorker</param>
+/// <param name="clientHander">Type of client handler, must implement IClientHandler</param>
 template <class ClientHandler, class Worker>
 class TCPServer final
 {
@@ -15,6 +20,10 @@ class TCPServer final
 private:
 	boost::asio::io_context ioContext_;
 	boost::asio::ip::tcp::acceptor acceptor_;
+	
+	/// <summary>
+	/// Listen for new client requests asynchronously
+	/// </summary>
 	void Listen()
 	{
 		acceptor_.async_accept([this](boost::system::error_code ec, boost::asio::ip::tcp::socket socket)
@@ -40,18 +49,28 @@ private:
 	}
 
 public:
-	TCPServer(const std::string& ipAddress, short port)
+	/// <summary>
+	/// Create new instance of TCPServer class.
+	/// </summary>
+	/// <param name="ipAddress">IPAddress on which to listen</param>
+	/// <param name="port">Port on which to listen</param>
+	TCPServer(const char* ipAddress, short port)
 		: ioContext_(), acceptor_(ioContext_, boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ipAddress), port)) 
 	{
 	};
-	
+
+	/// <summary>
+	/// Starts processing network requests in loop
+	/// </summary>
 	void Run() 
 	{
 		Listen();
 		ioContext_.run();
 	}
 
-
+	/// <summary>
+	/// Stop listening for client requests
+	/// </summary>
 	void Abort()
 	{
 		acceptor_.cancel();
