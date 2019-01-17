@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <any>
 
 class Table
 {
@@ -22,11 +23,6 @@ public:
 
 	Table(const std::shared_ptr<Database> database, std::string name);
 	void createColumn(std::string columnName, ColumnType columnType);
-
-	template<typename T>
-	void insertData(std::unordered_map<std::string, std::vector<T>> data) {
-			
-	}
-
-	bool containsColumn(std::string);
+	void insertData(const std::unordered_map<std::string, std::any> &data);
+	bool containsColumn(std::string column);
 };

@@ -1,8 +1,8 @@
 #pragma once
 
 enum ColumnType {
-	INT32,
-	INT64,
+	INT,
+	LONG,
 	DOUBLE,
 	FLOAT,
 	STRING,
