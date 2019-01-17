@@ -7,32 +7,42 @@
 
 #include <exception>
 
-struct DatabaseNotFoundException : public std::exception {
-    const char * what () const noexcept override {
+struct DatabaseNotFoundException : public std::exception
+{
+    const char *what() const noexcept override
+    {
         return "Database was not found.";
     }
 };
 
-struct TableNotFoundFromException : public std::exception {
-    const char * what () const noexcept override {
+struct TableNotFoundFromException : public std::exception
+{
+    const char *what() const noexcept override
+    {
         return "Table was not found in FROM clause.";
     }
 };
 
-struct ColumnAmbiguityException : public std::exception {
-    const char * what () const noexcept override {
+struct ColumnAmbiguityException : public std::exception
+{
+    const char *what() const noexcept override
+    {
         return "Column was found in more than one table.";
     }
 };
 
-struct ColumnNotFoundException : public std::exception {
-    const char * what () const noexcept override {
+struct ColumnNotFoundException : public std::exception
+{
+    const char *what() const noexcept override
+    {
         return "Column was not found in table.";
     }
 };
 
-struct ColumnGroupByException: public std::exception {
-    const char * what () const noexcept override {
+struct ColumnGroupByException : public std::exception
+{
+    const char *what() const noexcept override
+    {
         return "Column must appear in GROUP BY clause or be used in AGGREGATE function.";
     }
 };

@@ -5,7 +5,8 @@
 #ifndef DROPDBASE_INSTAREA_DATATYPE_H
 #define DROPDBASE_INSTAREA_DATATYPE_H
 
-enum DataType{
+enum DataType
+{
     INT = 1,
     LONG = 2,
     FLOAT = 3,

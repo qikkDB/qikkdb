@@ -7,20 +7,28 @@
 
 #include <functional>
 #include <vector>
+#include <iostream>
 #include "MemoryStream.h"
 
-class GpuSqlDispatcher {
+class GpuSqlDispatcher
+{
 
 private:
     std::vector<std::function<void()>> functions;
     MemoryStream arguments;
 
 public:
+    void execute();
+
     void addFunction(std::function<void()> function);
 
     void load();
 
     void ret();
+
+    void fil();
+
+    void done();
 
     void greater();
 
@@ -66,8 +74,11 @@ public:
 
     void avg();
 
+    void groupBy();
+
     template<typename T>
-    void addArgument(T argument) {
+    void addArgument(T argument)
+    {
         arguments.insert<T>(argument);
     }
 };

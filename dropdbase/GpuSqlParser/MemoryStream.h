@@ -8,20 +8,23 @@
 #include <vector>
 #include <string>
 
-class MemoryStream {
+class MemoryStream
+{
 
 private:
     std::vector<char> buffer;
 
 public:
     template<typename T>
-    void insert(T value) {
+    void insert(T value)
+    {
         char *valuePtr = reinterpret_cast<char *>(&value);
         std::copy(valuePtr, valuePtr + sizeof(T), std::back_inserter(buffer));
     }
 
     template<typename T>
-    T read() {
+    T read()
+    {
         T value = *reinterpret_cast<T *>(buffer.data());
         buffer.erase(buffer.begin(), buffer.begin() + sizeof(T));
         return value;

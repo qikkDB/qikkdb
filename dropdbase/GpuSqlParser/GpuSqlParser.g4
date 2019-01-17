@@ -53,7 +53,7 @@ expression : left=expression op=(DIVISION|ASTERISK) right=expression            
            | LPAREN expression RPAREN                                                     # parenExpression
            | columnId                                                                     # varReference
            | geometry                                                                     # geoReference
-           | op=MINUS expression                                                             # minusExpression
+           | op=MINUS expression                                                          # minusExpression
            | FLOATLIT                                                                     # decimalLiteral
            | INTLIT                                                                       # intLiteral
            | STRINGLIT                                                                    # stringLiteral

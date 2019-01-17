@@ -9,10 +9,13 @@
 #include "GpuSqlParser/GpuSqlLexer.h"
 #include "Database.h"
 #include "ParserExceptions.h"
+#include "QueryType.h"
+#include "GpuSqlListener.h"
 #include <string>
 #include <memory>
 
-class GpuSqlCustomParser {
+class GpuSqlCustomParser
+{
 
 private:
     std::shared_ptr<Database> database;
@@ -20,6 +23,7 @@ private:
 
 public:
     GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query);
+
     void parse();
 
 };

@@ -1,0 +1,17 @@
+//
+// Created by Martin Staňo on 2019-01-17.
+//
+
+#ifndef DROPDBASE_INSTAREA_QUERYTYPE_H
+#define DROPDBASE_INSTAREA_QUERYTYPE_H
+
+enum QueryType
+{
+    SQL_SELECT,
+    SQL_INSERT,
+    SQL_SHOW,
+    SQL_CREATE,
+    SQL_NOOP
+};
+
+#endif //DROPDBASE_INSTAREA_QUERYTYPE_H

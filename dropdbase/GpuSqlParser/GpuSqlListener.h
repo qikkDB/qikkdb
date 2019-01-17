@@ -5,7 +5,7 @@
 #ifndef DROPDBASE_INSTAREA_GPUSQLLISTENER_H
 #define DROPDBASE_INSTAREA_GPUSQLLISTENER_H
 
-#include "GpuSqlParserListener.h"
+#include "GpuSqlParserBaseListener.h"
 #include "Database.h"
 #include "GpuSqlDispatcher.h"
 #include "DataType.h"
@@ -19,11 +19,12 @@
 #include <stack>
 #include <regex>
 
-class GpuSqlListener : public GpuSqlParserListener {
+class GpuSqlListener : public GpuSqlParserBaseListener
+{
 private:
-    const std::shared_ptr<Database> database;
-    const std::shared_ptr<GpuSqlDispatcher> dispatcher;
-    std::stack<std::tuple<std::string,DataType>> parserStack;
+    const std::shared_ptr<Database> &database;
+    GpuSqlDispatcher &dispatcher;
+    std::stack<std::tuple<std::string, DataType>> parserStack;
     std::unordered_set<std::string> loadedTables;
     std::unordered_set<std::string> loadedColumns;
     std::unordered_set<std::string> groupByColumns;
@@ -33,17 +34,24 @@ private:
 
     int tempCounter;
 
-    std::tuple<std::string,DataType> stackTopAndPop();
-    std::string generateAndValidateColumnName(GpuSqlParser::VarReferenceContext *ctx);
+    std::tuple<std::string, DataType> stackTopAndPop();
+
+    std::string generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+
     void pushTempResult();
+
     bool isLong(const std::string &value);
+
     bool isDouble(const std::string &value);
+
     bool isPoint(const std::string &value);
+
     bool isPolygon(const std::string &value);
+
     void stringToUpper(std::string &str);
 
 public:
-    GpuSqlListener(const std::shared_ptr<Database> &database, const std::shared_ptr<GpuSqlDispatcher> &dispatcher);
+    GpuSqlListener(std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
 
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) override;
 
@@ -65,7 +73,15 @@ public:
 
     void exitAggregation(GpuSqlParser::AggregationContext *ctx) override;
 
+    void exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx) override;
+
+    void exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx) override;
+
     void exitFromTables(GpuSqlParser::FromTablesContext *ctx) override;
+
+    void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
+
+    void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
 
 
 };
