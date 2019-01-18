@@ -7,17 +7,24 @@
 
 enum DataType
 {
-    INT = 1,
-    LONG = 2,
-    FLOAT = 3,
-    DOUBLE = 4,
-    COLUMN = 5,
-    POINT = 6,
-    POLYGON = 7,
-    STRING = 8,
-    BOOLEAN = 9,
-    OP = 10,
-    REG = 11
+    INT = 0,
+    LONG = 1,
+    FLOAT = 2,
+    DOUBLE = 3,
+    POINT = 4,
+    POLYGON = 5,
+    STRING = 6,
+    BOOLEAN = 7,
+    REG = 8,
+    COLUMN_INT = 9,
+    COLUMN_LONG = 10,
+    COLUMN_FLOAT = 11,
+    COLUMN_DOUBLE = 12,
+    COLUMN_POINT = 13,
+    COLUMN_POLYGON = 14,
+    COLUMN_STRING = 15,
+    COLUMN_BOOL = 16,
+    DATA_TYPE_SIZE=17
 };
 
 #endif //DROPDBASE_INSTAREA_DATATYPE_H
