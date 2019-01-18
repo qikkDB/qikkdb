@@ -1,5 +1,5 @@
-#ifndef GPU_AGGREGATION_H
-#define GPU_AGGREGATION_H
+#ifndef GPU_AGGREGATION_CUH
+#define GPU_AGGREGATION_CUH
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"

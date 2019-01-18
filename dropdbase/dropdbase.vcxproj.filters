@@ -36,22 +36,37 @@
     <ClInclude Include="QueryEngine\CPUCore\CPUCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.h">
+    <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.h">
+    <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUArtihmeticConst.h">
+    <ClInclude Include="QueryEngine\GPUCore\GPUArtihmeticConst.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUCore.h">
+    <ClInclude Include="QueryEngine\GPUCore\GPUCore.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUFilter.h">
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.h">
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPULogic.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUMemory.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUPolygon.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUReconstruct.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QueryEngine\IAggregation.h">
