@@ -2,10 +2,10 @@
 
 #include <unordered_map>
 #include <spdlog/spdlog.h>
-#include <memory.h>
+#include <memory>
 
 #include "Table.h"
-#include "ColumnType.h"
+#include "DataType.h"
 
 /// <summary>
 /// The main class representing database containing tables with data
@@ -15,8 +15,9 @@ class Database
 private:
 	static std::unordered_map<std::string, std::shared_ptr<Database>> loadedDatabases_;
 	std::string name_;
-	int blockSize_;
+	unsigned int blockSize_;
 	std::unordered_map<std::string, Table> tables_;
+	std::shared_ptr<spdlog::logger> log_;
 
 public:
 	/// <summary>
@@ -24,14 +25,11 @@ public:
 	/// </summary>
 	/// <param name="databaseName">Database name.</param>
 	/// <param name="blockSize">Block size of all blocks in this database</param>
-	Database(std::string databaseName, int blockSize = 1024)
-	{
-		name_ = databaseName;
-		blockSize_ = blockSize;
-	}
+	Database(std::string databaseName, int blockSize = 1024);
 
 	~Database();
 
+	//getters:
 	static const std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases() { return loadedDatabases_; }
 	const std::string& GetName() const { return name_; }
 	int GetBlockSize() const { return blockSize_; }
@@ -59,8 +57,7 @@ public:
 	/// </summary>
 	/// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
 	/// <param name="path">Path to directory in which database files are.</param>
-	/// <returns>Instance of database.</returns>
-	static std::shared_ptr<Database>& LoadDatabase(std::string fileDbName, std::string path);
+	static void LoadDatabase(std::string fileDbName, std::string path);
 
 	/// <summary>
 	/// Load columns of a table into memory from disc.
@@ -73,16 +70,16 @@ public:
 	/// <summary>
 	/// Creates table with given name and columns.
 	/// </summary>
-	/// <returns>Newly created table</returns>
 	/// <param name="columns">Columns with types.</param>
 	/// <param name="tableName">Table name.</param>
-	Table& CreateTable(const std::unordered_map<std::string, ColumnType>& columns, const char* tableName);
+	/// <returns>Newly created table</returns>
+	Table& CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName);
 
 	/// <summary>
 	/// Add database to in memory list
 	/// </summary>
 	/// <param name="database">Database to add</param>
-	static void AddToInMemoryDatabaseList(std::shared_ptr<Database> database) { loadedDatabases_.insert({ database->name_, database }); }
+	static void AddToInMemoryDatabaseList(std::shared_ptr<Database> database);
 	
 	/// <summary>
 	/// Get database from in memory list
