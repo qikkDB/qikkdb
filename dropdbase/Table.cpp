@@ -28,7 +28,7 @@ Table::Table(const std::shared_ptr<Database> database, std::string name) : datab
 	//blockSize = database.GetBlockSize();
 }
 
-void Table::createColumn(std::string columnName, ColumnType columnType)
+void Table::createColumn(const std::string &columnName, ColumnType columnType)
 {
 	IColumn column;
 
@@ -52,7 +52,7 @@ void Table::createColumn(std::string columnName, ColumnType columnType)
 	{
 		ColumnBase<std::string> column(columnName, blockSize);
 	}
-	else if (columnType == COMPLEXPOLYGON)
+	else if (columnType == POLYGON)
 	{
 		ColumnBase<ColmnarDB::Types::ComplexPolygon> column(columnName, blockSize);
 	}

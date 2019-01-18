@@ -22,7 +22,7 @@ public:
 	const std::unordered_map<std::string, IColumn> &getColumns();
 
 	Table(const std::shared_ptr<Database> database, std::string name);
-	void createColumn(std::string columnName, ColumnType columnType);
+	void createColumn(const std::string &columnName, ColumnType columnType);
 	void insertData(const std::unordered_map<std::string, std::any> &data);
 	bool containsColumn(std::string column);
 };
