@@ -25,22 +25,16 @@ type = "color_stdout_sink_mt"
 name = "rotate_out"
 type = "rotating_file_sink_st"
 base_filename = "../log/rotate_info.log"
+create_parent_dir = true
 max_size = "1M"
 max_files = 10
 level = "info"
-
-# [[sink]]
-# name = "daily_out"
-# type = "daily_file_sink_st"
-# base_filename = "../log/info.log"
-# rotation_hour = 17
-# rotation_minute = 30
-# level = "info"
 
 [[sink]]
 name = "daily_err"
 type = "daily_file_sink_mt"
 base_filename = "../log/err.log"
+create_parent_dir = true
 rotation_hour = 17
 rotation_minute = 30
 level = "err"
