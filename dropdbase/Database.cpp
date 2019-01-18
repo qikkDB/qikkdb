@@ -11,12 +11,11 @@ Database::~Database()
 {
 }
 
-const std::shared_ptr<Database>& Database::GetDatabaseByName(const std::string & name)
+std::weak_ptr<Database> Database::GetDatabaseByName(const std::string & name) 
 {
-	std::shared_ptr<Database> db;
-	return db;
+	return std::weak_ptr<Database>();
 }
 
-void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database>&& database)
+void Database::AddToInMemoryDatabaseList(Database && database)
 {
 }

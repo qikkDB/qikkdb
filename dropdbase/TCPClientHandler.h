@@ -17,7 +17,7 @@ private:
 	std::unique_ptr<google::protobuf::Message> GetNextQueryResult();
 	std::future<std::unique_ptr<google::protobuf::Message>> lastQueryResult_;
 	std::unique_ptr<google::protobuf::Message> lastResultMessage_;
-	std::unique_ptr<google::protobuf::Message> RunQuery(std::shared_ptr<Database> database, const ColmnarDB::NetworkClient::Message::QueryMessage & queryMessage);
+	std::unique_ptr<google::protobuf::Message> RunQuery(const std::weak_ptr<Database>& database, const ColmnarDB::NetworkClient::Message::QueryMessage & queryMessage);
 
 public:
 	TCPClientHandler() {};

@@ -2,6 +2,7 @@
 #include <memory>
 #include <set>
 #include <boost/asio.hpp>
+#include <optional>
 #include "Database.h"
 
 class IClientHandler;
@@ -41,7 +42,7 @@ public:
 	/// <summary>
 	/// Current working database
 	/// </summary>
-	std::shared_ptr<Database> currentDatabase_;
+	std::weak_ptr<Database> currentDatabase_;
 
 };
 

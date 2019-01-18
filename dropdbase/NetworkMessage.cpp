@@ -8,7 +8,7 @@ void NetworkMessage::WriteToNetwork(const google::protobuf::Message & message, b
 	packedMsg.PackFrom(message);
 	int size = packedMsg.ByteSize();
 	boost::endian::native_to_little_inplace(size);
-	std::unique_ptr<char[]> serializedMessage(new char[size]);
+	std::unique_ptr<char[]> serializedMessage = std::make_unique<char[]>(size);
 	packedMsg.SerializeToArray(serializedMessage.get(), size);
 	boost::asio::write(socket, boost::asio::buffer(&size, sizeof(size)));
 	boost::asio::write(socket, boost::asio::buffer(serializedMessage.get(),size));
@@ -20,7 +20,7 @@ google::protobuf::Any NetworkMessage::ReadFromNetwork(boost::asio::ip::tcp::sock
 	size_t read = boost::asio::read(socket, boost::asio::buffer(readBuff, 4));
 	int32_t readSize = *(reinterpret_cast<int32_t*>(readBuff.data()));
 	boost::endian::little_to_native_inplace(readSize);
-	std::unique_ptr<char[]> serializedMessage(new char[readSize]);
+	std::unique_ptr<char[]> serializedMessage = std::make_unique<char[]>(readSize);
 	boost::asio::read(socket, boost::asio::buffer(serializedMessage.get(), readSize));
 	google::protobuf::Any ret;
 	if (!ret.ParseFromArray(serializedMessage.get(), readSize))

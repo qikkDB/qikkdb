@@ -14,13 +14,12 @@ class ColumnBase
 private:
 	std::string name_;
 	int blockSize_;
-	std::type_info dataType_;
-	std::vector<IBlock<T>> blocks_;
+	std::vector<std::unique_ptr<IBlock<T>>> blocks_;
 
 	std::vector<T> NullArray(int length);
 public:
 	ColumnBase(const std::string& name, int blockSize)	:
-		name_(name), blockSize_(blockSize), dataType_(typeid(T)), blocks_()
+		name_(name), blockSize_(blockSize), blocks_()
 	{
 	}
 
@@ -31,7 +30,7 @@ public:
 	/// Blocks getter
 	/// </summary>
 	/// <returns>List of blocks in current column</returns>
-	const std::vector<IBlock<T>>& GetBlocksList() const
+	const std::vector<std::unique_ptr<IBlock<T>>>& GetBlocksList() const
 	{
 		return blocks_;
 	};
@@ -42,8 +41,8 @@ public:
 	/// <returns>Last block of column</returns>
 	const BlockBase<T>& AddBlock()
 	{
-		blocks_.emplace_back(*this);
-		return blocks_.back();
+		blocks_.push_back(std::make_unique<BlockBase<T>>(*this));
+		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
 	}
 
 	/// <summary>
@@ -53,8 +52,8 @@ public:
 	/// <returns>Last block of column</returns>
 	const BlockBase<T>& AddBlock(const std::vector<T>& data)
 	{
-		blocks_.emplace_back(data, *this);
-		return blocks_.back();
+		blocks_.push_back(std::make_unique<BlockBase<T>>(data, *this));
+		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
 	}
 
 
@@ -65,16 +64,16 @@ public:
 	void InsertData(const std::vector<T>& columnData)
 	{
 		int startIdx = 0;
-		if (blocks_.size() > 0 && !blocks_.back().IsFull())
+		if (blocks_.size() > 0 && !blocks_.back()->IsFull())
 		{
 			auto & lastBlock = blocks_.back();
-			if (columnData.size() <= lastBlock.EmpyBlockSpace())
+			if (columnData.size() <= lastBlock->EmpyBlockSpace())
 			{
-				lastBlock.InsertData(columnData);
+				lastBlock->InsertData(columnData);
 				return;
 			}
-			int emptySpace = lastBlock.EmptyBlockSpace();
-			lastBlock.InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
+			int emptySpace = lastBlock->EmptyBlockSpace();
+			lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
 			startIdx += emptySpace;
 		}
 
@@ -98,7 +97,7 @@ public:
 		auto floatBlocks = GetBlocksList();
 		for (const auto & block : floatBlocks)
 		{
-			for (const auto & dataPoint : block.GetData())
+			for (const auto & dataPoint : block->GetData())
 			{
 				dataSet.insert(dataPoint);
 			}
@@ -119,9 +118,9 @@ public:
 	/// Returns type of ColumnBase
 	/// </summary>
 	/// <returns>Type of current column</returns>
-	std::type_info GetColumnType() const
+	constexpr const std::type_info& GetColumnType() const
 	{
-		return dataType_;
+		return typeid(T);
 	};
 };
 

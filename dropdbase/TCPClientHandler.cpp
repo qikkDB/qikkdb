@@ -135,7 +135,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 	
 }
 
-std::unique_ptr<google::protobuf::Message> TCPClientHandler::RunQuery(std::shared_ptr<Database> database, const ColmnarDB::NetworkClient::Message::QueryMessage & queryMessage)
+std::unique_ptr<google::protobuf::Message> TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database, const ColmnarDB::NetworkClient::Message::QueryMessage & queryMessage)
 {
 	try
 	{
@@ -193,16 +193,17 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleCSVImport(ITC
 	auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
 	try
 	{
-		auto& importDB = Database::GetDatabaseByName(csvImportMessage.databasename());
-		if (importDB == nullptr)
+		auto importDB = Database::GetDatabaseByName(csvImportMessage.databasename());
+		auto importDBShared = importDB.lock();
+		if (importDBShared == nullptr)
 		{
-			auto newImportDB = std::make_shared<Database>(csvImportMessage.databasename(), Configuration::BlockSize());
+			std::shared_ptr<Database> newImportDB = std::make_shared<Database>(csvImportMessage.databasename(), Configuration::BlockSize());
 			dataImporter.ImportTables(*newImportDB);
-			Database::AddToInMemoryDatabaseList(std::move(newImportDB));
+			Database::AddToInMemoryDatabaseList(newImportDB);
 		}
 		else
 		{
-			dataImporter.ImportTables(*importDB);
+			dataImporter.ImportTables(*importDBShared);
 		}
 	}
 	catch (std::exception& e)
@@ -214,11 +215,14 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleCSVImport(ITC
 
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleSetDatabase(ITCPWorker & worker, const ColmnarDB::NetworkClient::Message::SetDatabaseMessage & setDatabaseMessage)
 {
-	worker.currentDatabase_ = Database::GetDatabaseByName(setDatabaseMessage.databasename());
 	auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
-	resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
-	resultMessage->set_message("");
-	if (worker.currentDatabase_ == nullptr)
+	worker.currentDatabase_ = Database::GetDatabaseByName(setDatabaseMessage.databasename());
+	if (!worker.currentDatabase_.expired())
+	{
+		resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+		resultMessage->set_message("");
+	}
+	else
 	{
 		resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
 		resultMessage->set_message("No such database");
