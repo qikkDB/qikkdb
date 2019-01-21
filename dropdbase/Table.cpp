@@ -23,12 +23,12 @@ const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColum
 	return columns;
 }
 
-Table::Table(const std::shared_ptr<Database> database, std::string name) : database(database), name(name)
+Table::Table(const std::shared_ptr<Database> &database, const char* name) : database(database), name(name)
 {
 	//blockSize = database.GetBlockSize();
 }
 
-void Table::CreateColumn(const std::string &columnName, DataType columnType)
+void Table::CreateColumn(const char* columnName, DataType columnType)
 {
 	std::unique_ptr<IColumn> column;
 
@@ -112,7 +112,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 	}
 }
 
-bool Table::ContainsColumn(std::string column)
+bool Table::ContainsColumn(const char* column)
 {
 	auto search = columns.find(column);
 	if (search != columns.end()) {
