@@ -12,6 +12,12 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) : 
     blockIndex = 0;
 }
 
+std::array<std::function<void(GpuSqlDispatcher &)>,
+        DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> GpuSqlDispatcher::greaterFunctions = {
+        &mulConstConst<int, int>,
+};
+
+
 void GpuSqlDispatcher::execute()
 {
     for (auto &function : functions)
