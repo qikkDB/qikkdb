@@ -4,8 +4,9 @@
 #include <spdlog/spdlog.h>
 #include <memory>
 
-#include "Table.h"
 #include "DataType.h"
+
+class Table;
 
 /// <summary>
 /// The main class representing database containing tables with data

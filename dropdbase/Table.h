@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <any>
 
-class Table
+class Table 
 {
 private:
 	const std::shared_ptr<Database> database;

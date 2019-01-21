@@ -98,9 +98,9 @@ void Database::Persist(const char * path)
 						{
 							colFile.write(reinterpret_cast<char*>(&index), sizeof(unsigned int)); //write index
 							colFile.write(reinterpret_cast<char*>(dataLength), sizeof(unsigned int)); //write block length
-							for (auto entry : data)
+							for (const auto& entry : data)
 							{
-								colFile.write(reinterpret_cast<char*>(&entry), sizeof(int)); //write data of block
+								colFile.write(reinterpret_cast<const char*>(&entry), sizeof(int)); //write data of block
 							}
 							index += 1;
 						}
@@ -108,7 +108,7 @@ void Database::Persist(const char * path)
 
 					break;
 
-					//TODO tu pojdu vsetky cases
+					//TODO tu pojdu vsetky cases !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				}
 
 				//for (auto block : column.GetBlocks())
