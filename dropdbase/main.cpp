@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv)
 {
-	std::shared_ptr<Database> db = std::make_shared<Database>();
+	std::shared_ptr<Database> db = std::make_shared<Database>("abcd",1024);
 	Table tbl(db,"TestTbl");
 	tbl.CreateColumn("TestCol",COLUMN_INT);
 	std::unordered_map<std::string,std::any> data;

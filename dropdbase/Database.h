@@ -1,4 +1,96 @@
 #pragma once
-class Database {
 
+#include <unordered_map>
+#include "DataType.h"
+#include <memory>
+
+class Table;
+
+/// <summary>
+/// The main class representing database containing tables with data
+/// </summary>
+class Database
+{
+	friend class DatabaseGenerator;
+
+private:
+	static std::unordered_map<std::string, std::shared_ptr<Database>> loadedDatabases_;
+	std::string name_;
+	unsigned int blockSize_;
+	std::unordered_map<std::string, Table> tables_;
+
+public:
+	/// <summary>
+	/// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
+	/// </summary>
+	/// <param name="databaseName">Database name.</param>
+	/// <param name="blockSize">Block size of all blocks in this database</param>
+	Database(const char* databaseName, int blockSize = 1024);
+
+	~Database();
+
+	//getters:
+	static const std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases() { return loadedDatabases_; }
+	const std::string& GetName() const { return name_; }
+	int GetBlockSize() const { return blockSize_; }
+	const std::unordered_map<std::string, Table>& GetTables() const { return tables_; }
+
+	/// <summary>
+	/// Save database from memory to disk.
+	/// </summary>
+	/// <param name="path">Path to database storage directory</param>
+	void Persist(const char* path);
+
+	/// <summary>
+	/// Save all databases currently in memory to disk
+	/// </summary>
+	/// <param name="path">Path to database storage directory</param>
+	static void SaveAllToDisk(const char* path);
+
+	/// <summary>
+	/// Load databases from disk storage
+	/// </summary>
+	static void LoadDatabasesFromDisk();
+
+	/// <summary>
+	/// Load database from disc into memory.
+	/// </summary>
+	/// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
+	/// <param name="path">Path to directory in which database files are.</param>
+	static std::shared_ptr<Database> LoadDatabase(const char* fileDbName, const char* path);
+
+	/// <summary>
+	/// Load columns of a table into memory from disc.
+	/// </summary>
+	/// <param name="path">Path directory, where column files (*.col) are.</param>
+	/// <param name="table">Instance of table into which the columns should be added.</param>
+	/// <param name="columnNames">Names of particular columns.</param>
+	static void LoadColumns(const char* path, const char* dbName, Table table, const std::vector<std::string>& columnNames);
+
+	/// <summary>
+	/// Creates table with given name and columns.
+	/// </summary>
+	/// <param name="columns">Columns with types.</param>
+	/// <param name="tableName">Table name.</param>
+	/// <returns>Newly created table</returns>
+	Table& CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName);
+
+	/// <summary>
+	/// Add database to in memory list
+	/// </summary>
+	/// <param name="database">Database to add</param>
+	static void AddToInMemoryDatabaseList(std::shared_ptr<Database> database);
+
+	/// <summary>
+	/// Get database from in memory list
+	/// </summary>
+	/// <param name="databaseName">Name of database to get</param>
+	/// <returns>Database object or null</returns>
+	static std::shared_ptr<Database>& GetDatabaseByName(std::string databaseName) { return loadedDatabases_[databaseName]; }
+
+	/// <summary>
+	/// Remove database from in memory list
+	/// </summary>
+	/// <param name="databaseName">Name of database to be removed</param>
+	static void DestroyDatabase(const char* databaseName) { loadedDatabases_.erase(databaseName); }
 };

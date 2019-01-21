@@ -149,6 +149,7 @@
     <ClInclude Include="BlockBase.h" />
     <ClInclude Include="ColumnBase.h" />
     <ClInclude Include="ComplexPolygonFactory.h" />
+    <ClInclude Include="Configuration.h" />
     <ClInclude Include="Database.h" />
     <ClInclude Include="DatabaseGenerator.h" />
     <ClInclude Include="DataType.h" />

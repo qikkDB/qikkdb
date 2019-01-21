@@ -6,7 +6,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 	return DatabaseGenerator::GenerateDatabase(databaseName,blockCount, blockLenght, sameDataInBlocks, std::nullopt, std::nullopt);
 }
 
-std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * databaseName, int blockCount, int blockLenght, bool sameDataInBlocks, std::optional<const std::vector<std::string>&> tablesNames, std::optional<const std::vector<DataType>&> columnsTypes)
+std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * databaseName, int blockCount, int blockLenght, bool sameDataInBlocks, std::optional<const std::vector<std::string>> tablesNames, std::optional<const std::vector<DataType>> columnsTypes)
 {
 	std::vector<std::string> tableNames = { "TableA" };
 	std::vector<DataType> columnTypes = { COLUMN_INT };
@@ -20,11 +20,12 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 		columnTypes = columnsTypes.value();
 	}
 	//TODO dorob args
-	auto database = std::make_shared<Database>();
+	auto database = std::make_shared<Database>(databaseName, blockLenght);
 
 	for (const auto& tableName : tableNames)
 	{
-		Table table(database, tableName.c_str);
+		Table table(database, tableName.c_str());
+		//database->CreateTable
 
 	}
 
