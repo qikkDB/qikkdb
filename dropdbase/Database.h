@@ -12,6 +12,8 @@
 /// </summary>
 class Database
 {
+	friend class DatabaseGenerator;
+
 private:
 	static std::unordered_map<std::string, std::shared_ptr<Database>> loadedDatabases_;
 	std::string name_;
@@ -25,7 +27,7 @@ public:
 	/// </summary>
 	/// <param name="databaseName">Database name.</param>
 	/// <param name="blockSize">Block size of all blocks in this database</param>
-	Database(std::string databaseName, int blockSize = 1024);
+	Database(const char* databaseName, int blockSize = 1024);
 
 	~Database();
 
@@ -57,7 +59,7 @@ public:
 	/// </summary>
 	/// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
 	/// <param name="path">Path to directory in which database files are.</param>
-	static void LoadDatabase(std::string fileDbName, std::string path);
+	static std::shared_ptr<Database> LoadDatabase(const char* fileDbName, const char* path);
 
 	/// <summary>
 	/// Load columns of a table into memory from disc.
