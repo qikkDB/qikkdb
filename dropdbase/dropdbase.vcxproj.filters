@@ -33,9 +33,6 @@
     <ClInclude Include="PointFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\CPUCore\CPUCore.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -43,9 +40,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QueryEngine\GPUCore\GPUArtihmeticConst.cuh">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUCore.cuh">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh">
@@ -76,9 +70,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QueryEngine\IArtihmeticConst.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="QueryEngine\IEngineCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QueryEngine\IFilter.h">
@@ -122,6 +113,55 @@
     </ClInclude>
     <ClInclude Include="Types\Point.pb.h">
       <Filter>Header Files\ProtoBuf</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUCore.h" />
+    <ClInclude Include="QueryEngine\Context.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\EngineCore.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\QueryEngineError.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CPUCore\CPUAggregation.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CPUCore\CPUArithmetic.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CPUCore\CPUArtihmeticConst.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CPUCore\CPUFilter.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CPUCore\CPUFilterConst.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CPUCore\CPUGroupBy.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CPUCore\CPULogic.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CPUCore\CPUMemory.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CPUCore\CPUPolygon.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CPUCore\CPUReconstruct.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CPUCore\CPUTypeWidthManip.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUTypeWidthManip.cuh">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\ITypeWidthManip.cuh">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

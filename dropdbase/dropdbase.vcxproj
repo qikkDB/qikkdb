@@ -89,7 +89,19 @@
     <ClInclude Include="messages\SetDatabaseMessage.pb.h" />
     <ClInclude Include="NativeGeoPoint.h" />
     <ClInclude Include="PointFactory.h" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUCore.h" />
+    <ClInclude Include="QueryEngine\Context.cuh" />
+    <ClInclude Include="QueryEngine\CPUCore\CPUAggregation.cuh" />
+    <ClInclude Include="QueryEngine\CPUCore\CPUArithmetic.cuh" />
+    <ClInclude Include="QueryEngine\CPUCore\CPUArtihmeticConst.cuh" />
+    <ClInclude Include="QueryEngine\CPUCore\CPUFilter.cuh" />
+    <ClInclude Include="QueryEngine\CPUCore\CPUFilterConst.cuh" />
+    <ClInclude Include="QueryEngine\CPUCore\CPUGroupBy.cuh" />
+    <ClInclude Include="QueryEngine\CPUCore\CPULogic.cuh" />
+    <ClInclude Include="QueryEngine\CPUCore\CPUMemory.cuh" />
+    <ClInclude Include="QueryEngine\CPUCore\CPUPolygon.cuh" />
+    <ClInclude Include="QueryEngine\CPUCore\CPUReconstruct.cuh" />
+    <ClInclude Include="QueryEngine\CPUCore\CPUTypeWidthManip.cuh" />
+    <ClInclude Include="QueryEngine\EngineCore.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUArtihmeticConst.cuh" />
@@ -101,10 +113,10 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUMemory.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUPolygon.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUReconstruct.cuh" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUTypeWidthManip.cuh" />
     <ClInclude Include="QueryEngine\IAggregation.h" />
     <ClInclude Include="QueryEngine\IArithmetic.h" />
     <ClInclude Include="QueryEngine\IArtihmeticConst.h" />
-    <ClInclude Include="QueryEngine\IEngineCore.h" />
     <ClInclude Include="QueryEngine\IFilter.h" />
     <ClInclude Include="QueryEngine\IFilterConst.h" />
     <ClInclude Include="QueryEngine\IGroupBy.h" />
@@ -112,6 +124,8 @@
     <ClInclude Include="QueryEngine\IMemory.h" />
     <ClInclude Include="QueryEngine\IPolygon.h" />
     <ClInclude Include="QueryEngine\IReconstruct.h" />
+    <ClInclude Include="QueryEngine\ITypeWidthManip.cuh" />
+    <ClInclude Include="QueryEngine\QueryEngineError.h" />
     <ClInclude Include="Types\ComplexPolygon.pb.h" />
     <ClInclude Include="Types\Point.pb.h" />
   </ItemGroup>

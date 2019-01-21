@@ -1,7 +1,11 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-class Error {
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
+
+class QueryEngineError {
 public:
 	enum Type {
 		GPU_EXTENSION_SUCCESS,					// Return code for successful operations
@@ -13,14 +17,19 @@ public:
 		GPU_NOT_FOUND_ERROR,					// Return code for no detected GPU
 		GPU_MEMORY_MAPPING_NOT_SUPPORTED_ERROR,	// Return code for no memory mapping
 		GPU_DRIVER_NOT_FOUND_EXCEPTION			// Return code for not found nvidia driver
-	}
+	};
 
 private:
 	Type type_;
 	std::string text_;
 
 public:
-	void setType(Type type) {
+	void setCudaError(cudaError_t& cudaError) {
+		type_ = GPU_EXTENSION_ERROR;
+		text_ = cudaGetErrorString(cudaError);
+	}
+
+	void setType(Type& type) {
 		type_ = type;
 	}
 
@@ -29,11 +38,11 @@ public:
 	}
 
 	const Type& getType() const {
-		return lastType;
+		return type_;
 	}
 
 	const std::string& getText() const {
-		retrun text_;
+		return text_;
 	}
 
 };
