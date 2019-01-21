@@ -29,7 +29,7 @@ public:
 		data_.reserve(column_.GetBlockSize());
 	}
 
-	virtual std::vector<T> GetData() const override
+	virtual std::vector<T>& GetData() override
 	{
 		return data_;
 	}
