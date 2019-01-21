@@ -10,6 +10,8 @@
 #include <iostream>
 #include <memory>
 #include <array>
+#include "Types/ComplexPolygon.pb.h"
+#include "Types/Point.pb.h"
 #include "MemoryStream.h"
 #include "DataType.h"
 #include "Database.h"
@@ -452,6 +454,56 @@ void avgCol(GpuSqlDispatcher &dispatcher)
 
 }
 
+template<typename T, typename U>
+void invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher)
+{
+
+}
+
+template<typename T, typename U>
+void invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher)
+{
+
+}
+
+template<typename T, typename U>
+void invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher)
+{
+
+}
+
+
+template<typename T, typename U>
+void invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher)
+{
+
+}
+
+template<typename T, typename U>
+void invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher)
+{
+
+}
+
+template<typename T, typename U>
+void invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher)
+{
+
+}
+
+template<typename T, typename U>
+void invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher)
+{
+
+}
+
+template<typename T, typename U>
+void invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher)
+{
+
+}
+
+
 class GpuSqlDispatcher
 {
 
@@ -462,36 +514,47 @@ private:
     const std::shared_ptr<Database> &database;
 
     static std::array<std::function<void(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> greaterFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> lessFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
     static std::array<std::function<void(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> greaterEqualFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> lessFunctions;
     static std::array<std::function<void(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> lessEqualFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterEqualFunctions;
     static std::array<std::function<void(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> equalFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> lessEqualFunctions;
     static std::array<std::function<void(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> notEqualFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> equalFunctions;
     static std::array<std::function<void(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> logicalAndFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> notEqualFunctions;
     static std::array<std::function<void(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> logicalOrFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> mulFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> divFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> addFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> subFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logicalAndFunctions;
     static std::array<std::function<void(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> containsFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logicalOrFunctions;
     static std::array<std::function<void(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> logicalNotFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> mulFunctions;
     static std::array<std::function<void(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> minusFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> minFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> maxFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> sumFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> divFunctions;
     static std::array<std::function<void(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> countFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE * DATA_TYPE_SIZE> avgFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> addFunctions;
+    static std::array<std::function<void(GpuSqlDispatcher &)>,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> subFunctions;
+    static std::array<std::function<void(GpuSqlDispatcher &)>,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
+    static std::array<std::function<void(GpuSqlDispatcher &)>,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> containsFunctions;
+    static std::array<std::function<void(GpuSqlDispatcher &)>,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logicalNotFunctions;
+    static std::array<std::function<void(GpuSqlDispatcher &)>,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minusFunctions;
+    static std::array<std::function<void(GpuSqlDispatcher &)>,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minFunctions;
+    static std::array<std::function<void(GpuSqlDispatcher &)>,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxFunctions;
+    static std::array<std::function<void(GpuSqlDispatcher &)>,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumFunctions;
+    static std::array<std::function<void(GpuSqlDispatcher &)>,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countFunctions;
+    static std::array<std::function<void(GpuSqlDispatcher &)>,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgFunctions;
 
 
 public:
@@ -852,6 +915,30 @@ public:
 
 
     void groupBy();
+
+    template<typename T, typename U>
+    friend void invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend void invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend void invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend void invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend void invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend void invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend void invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend void invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher);
 
 
     template<typename T>
