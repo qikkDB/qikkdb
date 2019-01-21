@@ -17,7 +17,7 @@ private:
 	std::string name_;
 	unsigned int blockSize_;
 	std::unordered_map<std::string, Table> tables_;
-	std::shared_ptr<spdlog::logger> log_;
+	static std::shared_ptr<spdlog::logger> log_;
 
 public:
 	/// <summary>
