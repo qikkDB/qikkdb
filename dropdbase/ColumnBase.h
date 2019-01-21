@@ -25,7 +25,11 @@ public:
 	}
 
 	inline int GetBlockSize() const { return blockSize_; };
-	inline const std::string& GetName() const { return name_; };
+
+	virtual const std::string& GetName() const override
+	{
+		return name_;
+	}
 
 	/// <summary>
 	/// Blocks getter
