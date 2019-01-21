@@ -7,14 +7,14 @@
 #include "BlockBase.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
+#include "IColumn.h"
 
 template<class T>
-class ColumnBase
+class ColumnBase : public IColumn
 {
 private:
 	std::string name_;
 	int blockSize_;
-	type_info dataType_;
 	std::vector<std::unique_ptr<IBlock<T>>> blocks_;
 
 	std::vector<T> NullArray(int length);
@@ -116,12 +116,21 @@ public:
 	}
 
 	/// <summary>
-	/// Returns type of ColumnBase
-	/// </summary>
-	/// <returns>Type of current column</returns>
-	constexpr const std::type_info& GetColumnType() const
+/// Returns type of ColumnBase
+/// </summary>
+/// <returns>Type of current column</returns>
+	virtual DataType GetColumnType() const override
 	{
-		return typeid(T);
+		typedef typename std::conditional<std::is_same<T, int>::value, std::integral_constant<DataType, COLUMN_INT>,
+			std::conditional<std::is_same<T, int64_t>::value, std::integral_constant<DataType, COLUMN_LONG>,
+			std::conditional<std::is_same<T, float>::value, std::integral_constant<DataType, COLUMN_FLOAT>,
+			std::conditional<std::is_same<T, double>::value, std::integral_constant<DataType, COLUMN_DOUBLE>,
+			std::conditional<std::is_same<T, ColmnarDB::Types::Point>::value, std::integral_constant<DataType, COLUMN_POINT>,
+			std::conditional<std::is_same<T, ColmnarDB::Types::ComplexPolygon>::value, std::integral_constant<DataType, COLUMN_POLYGON>,
+			std::conditional<std::is_same<T, std::string>::value, std::integral_constant<DataType, COLUMN_STRING>,
+			std::conditional<std::is_same<T, bool>::value, std::integral_constant<DataType, COLUMN_BOOL>,
+			std::integral_constant<DataType, ERROR> >>>>>>>>::type retConst;
+		return retConst::value;
 	};
 };
 

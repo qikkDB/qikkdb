@@ -13,7 +13,7 @@ private:
 	std::vector<T> data_;
 	ColumnBase<T>& column_;
 public:
-	BlockBase(const std::vector<T>& data, const ColumnBase<T>& column) :
+	BlockBase(const std::vector<T>& data, ColumnBase<T>& column) :
 		column_(column), data_(data)
 	{
 		if (column_.GetBlockSize() - data.size() < 0)

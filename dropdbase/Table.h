@@ -1,7 +1,7 @@
 #pragma once
 #include "Database.h"
 #include "IColumn.h"
-#include "ColumnType.h"
+#include "DataType.h"
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -13,16 +13,16 @@ private:
 	const std::shared_ptr<Database> database;
 	std::string name;
 	int blockSize;
-	std::unordered_map<std::string, IColumn> columns;
+	std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
 
 public:
-	const std::shared_ptr<Database> &getDatabase();
-	const std::string &getName();
-	int getBlockSize();
-	const std::unordered_map<std::string, IColumn> &getColumns();
+	const std::shared_ptr<Database> &GetDatabase();
+	const std::string &GetName();
+	int GetBlockSize();
+	const std::unordered_map<std::string, std::unique_ptr<IColumn>> &GetColumns();
 
 	Table(const std::shared_ptr<Database> database, std::string name);
-	void createColumn(const std::string &columnName, ColumnType columnType);
-	void insertData(const std::unordered_map<std::string, std::any> &data);
-	bool containsColumn(std::string column);
+	void CreateColumn(const std::string &columnName, DataType columnType);
+	void InsertData(const std::unordered_map<std::string, std::any> &data);
+	bool ContainsColumn(std::string column);
 };

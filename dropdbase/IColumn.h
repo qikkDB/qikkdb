@@ -1,4 +1,7 @@
 #pragma once
+#include "DataType.h"
+
 class IColumn {
-	virtual void vf() {}
+public:
+	virtual DataType GetColumnType() const = 0;
 };

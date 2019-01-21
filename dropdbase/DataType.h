@@ -1,6 +1,7 @@
 #pragma once
 
-enum ColumnType {
+enum DataType {
+	ERROR = -1,
 	INT = 0,
 	LONG = 1,
 	FLOAT = 2,
