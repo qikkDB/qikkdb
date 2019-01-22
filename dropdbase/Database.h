@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include "DataType.h"
 #include <memory>
+#include <string>
 
 class Table;
 
