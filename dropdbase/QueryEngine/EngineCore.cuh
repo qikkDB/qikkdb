@@ -1,11 +1,9 @@
 #ifndef I_ENGINE_CORE_H
 #define I_ENGINE_CORE_H
 
-#include <memory>
-
 #include "GPUCore/GPUAggregation.cuh"
 #include "GPUCore/GPUArithmetic.cuh"
-#include "GPUCore/GPUArtihmeticConst.cuh"
+#include "GPUCore/GPUArithmeticConst.cuh"
 #include "GPUCore/GPUFilter.cuh"
 #include "GPUCore/GPUFilterConst.cuh"
 #include "GPUCore/GPUGroupBy.cuh"
