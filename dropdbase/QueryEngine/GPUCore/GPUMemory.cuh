@@ -4,7 +4,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include "../IMemory.h"
+#include "../InterfaceCore/IMemory.h"
 
 class GPUMemory : public IMemory {
 public:

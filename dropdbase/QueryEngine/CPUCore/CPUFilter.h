@@ -2,7 +2,7 @@
 #define CPU_FILTER_H
 
 #include "../Context.cuh"
-#include "../IFilter.h"
+#include "../InterfaceCore/IFilter.h"
 
 class CPUFilter : public IFilter {
 

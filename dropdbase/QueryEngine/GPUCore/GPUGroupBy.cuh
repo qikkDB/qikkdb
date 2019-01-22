@@ -4,7 +4,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include "../IGroupBy.h"
+#include "../InterfaceCore/IGroupBy.h"
 
 class GPUGroupBy : public IGroupBy {
 public:

@@ -3,17 +3,17 @@
 
 #include <memory>
 
-#include "IAggregation.h"
-#include "IArithmetic.h"
-#include "IArtihmeticConst.h"
-#include "IFilter.h"
-#include "IFilterConst.h"
-#include "IGroupBy.h"
-#include "ILogic.h"
-#include "IMemory.h"
-#include "IPolygon.h"
-#include "IReconstruct.h"
-#include "ITypeWidthManip.h"
+#include "InterfaceCore/IAggregation.h"
+#include "InterfaceCore/IArithmetic.h"
+#include "InterfaceCore/IArtihmeticConst.h"
+#include "InterfaceCore/IFilter.h"
+#include "InterfaceCore/IFilterConst.h"
+#include "InterfaceCore/IGroupBy.h"
+#include "InterfaceCore/ILogic.h"
+#include "InterfaceCore/IMemory.h"
+#include "InterfaceCore/IPolygon.h"
+#include "InterfaceCore/IReconstruct.h"
+#include "InterfaceCore/ITypeWidthManip.h"
 
 #include "GPUCore/GPUAggregation.cuh"
 #include "GPUCore/GPUArithmetic.cuh"

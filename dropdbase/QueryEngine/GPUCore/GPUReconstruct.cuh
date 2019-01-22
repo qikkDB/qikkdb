@@ -4,7 +4,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include "../IReconstruct.h"
+#include "../InterfaceCore/IReconstruct.h"
 
 class GPUReconstruct : public IReconstruct {
 public:

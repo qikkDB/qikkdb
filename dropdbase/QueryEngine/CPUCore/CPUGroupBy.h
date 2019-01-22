@@ -2,7 +2,7 @@
 #define CPU_GROUPBY_H
 
 #include "../Context.cuh"
-#include "../IGroupBy.h"
+#include "../InterfaceCore/IGroupBy.h"
 
 class CPUGroupBy : public IGroupBy {
 public:

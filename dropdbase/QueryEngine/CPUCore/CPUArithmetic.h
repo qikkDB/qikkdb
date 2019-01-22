@@ -2,7 +2,7 @@
 #define CPU_ARITHMETIC_H
 
 #include "../Context.cuh"
-#include "../IArithmetic.h"
+#include "../InterfaceCore/IArithmetic.h"
 
 class CPUArithmetic : public IArithmetic {
 

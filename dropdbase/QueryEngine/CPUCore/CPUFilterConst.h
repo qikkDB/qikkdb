@@ -2,7 +2,7 @@
 #define CPU_FILTER_CONST_H
 
 #include "../Context.cuh"
-#include "../IFilterConst.h"
+#include "../InterfaceCore/IFilterConst.h"
 
 class CPUFilterConst : public IFilterConst {
 

@@ -4,7 +4,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include "../IPolygon.h"
+#include "../InterfaceCore/IPolygon.h"
 
 class GPUPolygon : public IPolygon {
 public:

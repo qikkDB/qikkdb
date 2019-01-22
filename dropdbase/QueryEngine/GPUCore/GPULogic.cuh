@@ -4,7 +4,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include "../ILogic.h"
+#include "../InterfaceCore/ILogic.h"
 
 class GPULogic : public ILogic {
 public:

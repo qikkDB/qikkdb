@@ -2,7 +2,7 @@
 #define CPU_POLYGON_H
 
 #include "../Context.cuh"
-#include "../IPolygon.h"
+#include "../InterfaceCore/IPolygon.h"
 
 class CPUPolygon : public IPolygon {
 public:

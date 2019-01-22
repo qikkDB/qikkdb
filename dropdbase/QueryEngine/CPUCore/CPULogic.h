@@ -2,7 +2,7 @@
 #define CPU_LOGIC_H
 
 #include "../Context.cuh"
-#include "../ILogic.h"
+#include "../InterfaceCore/ILogic.h"
 
 class CPULogic : public ILogic {
 public:

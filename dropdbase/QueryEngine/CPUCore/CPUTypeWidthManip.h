@@ -2,7 +2,7 @@
 #define CPU_TYPE_WIDTH_MANIP_H
 
 #include "../Context.cuh"
-#include "../ITypeWidthManip.h"
+#include "../InterfaceCore/ITypeWidthManip.h"
 
 class CPUTypeWidthManip : public ITypeWidthManip{
 public:

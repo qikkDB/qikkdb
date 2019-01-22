@@ -2,7 +2,7 @@
 #define CPU_MEMORY_H
 
 #include "../Context.cuh"
-#include "../IMemory.h"
+#include "../InterfaceCore/IMemory.h"
 
 class CPUMemory : public IMemory {
 public:

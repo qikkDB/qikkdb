@@ -4,7 +4,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include "../IAggregation.h"
+#include "../InterfaceCore/IAggregation.h"
 
 class GPUAggregation : public IAggregation {
 

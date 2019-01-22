@@ -2,7 +2,7 @@
 #define CPU_RECONSTRUCT_H
 
 #include "../Context.cuh"
-#include "../IReconstruct.h"
+#include "../InterfaceCore/IReconstruct.h"
 
 class CPUReconstruct : public IReconstruct {
 public:

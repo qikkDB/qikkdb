@@ -2,7 +2,7 @@
 #define CPU_AGGREGATION_H
 
 #include "../Context.cuh"
-#include "../IAggregation.h"
+#include "../InterfaceCore/IAggregation.h"
 
 class CPUAggregation : public IAggregation {
 
