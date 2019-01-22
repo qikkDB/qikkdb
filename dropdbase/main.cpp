@@ -1,5 +1,9 @@
 #include <cstdio>
 #include <spdlog_setup/conf.h>
+#include <yaml-cpp\yaml.h>
+#include <conio.h>
+#include "Configuration.h"
+
 
 int main(int argc, char** argv)
 {
@@ -18,5 +22,11 @@ int main(int argc, char** argv)
 	catch (const std::exception &exception) {
 		fprintf(stderr, "Exception: %s\n", exception.what());
 	}
+
+	// configuration usage
+	fprintf(stdout, "Is using GPU? %d\n", Configuration::GetInstance().IsUsingGPU());
+		
+	_getch();
+
 	return 0;
 }

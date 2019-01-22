@@ -148,6 +148,7 @@
     <ClInclude Include="BlockBase.h" />
     <ClInclude Include="ColumnBase.h" />
     <ClInclude Include="ComplexPolygonFactory.h" />
+    <ClInclude Include="Configuration.h" />
     <ClInclude Include="IBlock.h" />
     <ClInclude Include="messages\CSVImportMessage.pb.h" />
     <ClInclude Include="messages\InfoMessage.pb.h" />
@@ -161,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp" />
+    <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="messages\InfoMessage.pb.cc" />
