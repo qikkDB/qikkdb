@@ -6,7 +6,6 @@
 #include <device_launch_parameters.h>
 
 #include "../Context.cuh"
-#include "../InterfaceCore/ITypeWidthManip.h"
 
 template<typename T, typename U>
 __global__ void kernel_convert_buffer(T *outData, U *inData, int32_t dataElementCount)
@@ -20,14 +19,11 @@ __global__ void kernel_convert_buffer(T *outData, U *inData, int32_t dataElement
 	}
 }
 
-class GPUTypeWidthManip : public ITypeWidthManip {
-private:
-
+class GPUTypeWidthManip {
 public:
 	template<typename T, typename U>
-	void ConvertBuffer(T *outData, U *inData, int32_t dataElementCount)
+	void ConvertBuffer(T *outData, U *inData, int32_t dataElementCount) override
 	{
-		
 		kernel_convert_buffer << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outData, inData, dataElementCount);
 	}

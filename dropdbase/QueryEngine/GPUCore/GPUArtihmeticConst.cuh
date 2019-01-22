@@ -4,9 +4,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#include "../InterfaceCore/IArtihmeticConst.h"
-
-class GPUArtihmeticConst : public IArithmeticConst {
+class GPUArtihmeticConst {
 
 };
 

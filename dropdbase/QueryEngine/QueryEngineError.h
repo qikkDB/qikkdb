@@ -24,12 +24,12 @@ private:
 	std::string text_;
 
 public:
-	void setCudaError(cudaError_t& cudaError) {
+	void setCudaError(cudaError_t cudaError) {
 		type_ = GPU_EXTENSION_ERROR;
 		text_ = cudaGetErrorString(cudaError);
 	}
 
-	void setType(Type& type) {
+	void setType(Type type) {
 		type_ = type;
 	}
 

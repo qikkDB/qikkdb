@@ -20,50 +20,44 @@ private:
 	static constexpr int32_t DEFAULT_BLOCK_DIMENSION = 1024;
 
 	// Number of opitimal threads per block queried for a specific GPU - currently bound to the context
-	int32_t queried_block_dimension;
+	int32_t queried_block_dimension_;
 
-	// Engine core interface for operations over the context
-	EngineCore engineCore;
+	// Engine core for operations over the context - GPU only
+	EngineCore engineCore_;
 
 	// Registry for holding the last error
-	QueryEngineError lastError;
+	QueryEngineError lastError_;
 
 	// The currently bound device and found devices and their metadata
-	int32_t boundDeviceID;
-	cudaDeviceProp boundDevice;
-	std::vector<cudaDeviceProp> devicesMetaInfo;
+	int32_t boundDeviceID_;
+	cudaDeviceProp boundDevice_;
+	std::vector<cudaDeviceProp> devicesMetaInfo_;
 
 	// Meyer's singleton
-	Context(EngineCore::Device device) : engineCore(device) {};
-	~Context() {}
+	Context() = default;
+	~Context() = default;
 	Context(const Context&) = delete;
 	Context& operator=(const Context&) = delete;
 
-	static Context& getInnerInstance(EngineCore::Device device = EngineCore::GPU)
+public:
+	// Get class instance, if class was not initialized prior a GPU instance is returned
+	static Context& getInstance()
 	{
 		// Static instance - constructor called only once
-		static Context instance(device);
+		static Context instance;
 		return instance;
 	}
 
-public:
-	// Initialize class
-	static void initGPUContext() { getInnerInstance(EngineCore::GPU); }
-	static void initCPUContext() { getInnerInstance(EngineCore::CPU); }
-
-	// Get class instance, if class was not initialized prior a GPU instance is returned
-	static Context& getInstance() { return getInnerInstance(); }
-
 	// Get the engine core interface for kernel operations
-	const EngineCore& getEngineCore() const { return engineCore; }
+	const EngineCore& getEngineCore() const { return engineCore_; }
 
 	// Get the last cuda error
-	const QueryEngineError& getLastError() const { return lastError; }
+	const QueryEngineError& getLastError() const { return lastError_; }
 
 	// Operations on the grid dimensions
 	int32_t calcGridDim(int32_t threadCount)
 	{
-		int blockCount = (threadCount + queried_block_dimension - 1) / queried_block_dimension;
+		int blockCount = (threadCount + queried_block_dimension_ - 1) / queried_block_dimension_;
 		if (blockCount >= (DEFAULT_GRID_DIMENSION_LIMIT + 1))
 		{
 			blockCount = DEFAULT_GRID_DIMENSION_LIMIT;
@@ -74,7 +68,7 @@ public:
 	int32_t getBlockDim() { return DEFAULT_BLOCK_DIMENSION; }
 
 	// Querying info about devices and rebinding devices to the context
-	const std::vector<cudaDeviceProp>& getDevicesMetaInfoList() const { return devicesMetaInfo; }
+	const std::vector<cudaDeviceProp>& getDevicesMetaInfoList() const { return devicesMetaInfo_; }
 
 	void bindDeviceToContext(int32_t deviceID)
 	{
