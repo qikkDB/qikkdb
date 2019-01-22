@@ -33,12 +33,9 @@ private:
 	cudaDeviceProp boundDevice;
 	std::vector<cudaDeviceProp> devicesMetaInfo;
 
-	// A vector to hold pointers to all allocated buffers on the GPU/CPU for cleanup
-	std::unordered_set<void*> bufferPointersGlobal;
-
 	// Meyer's singleton
 	Context(EngineCore::Device device) : engineCore(device) {};
-	~Context() {};
+	~Context() {}
 	Context(const Context&) = delete;
 	Context& operator=(const Context&) = delete;
 
@@ -63,33 +60,6 @@ public:
 	// Get the last cuda error
 	const QueryEngineError& getLastError() const { return lastError; }
 
-	// Operations on the garbage collected set of pointers
-	// Add the given pointer to the GC vector
-	void addPtrToGC(void** ptr)
-	{
-		bufferPointersGlobal.insert(*ptr);
-	}
-
-	// Check if the pointer is present
-	bool isPtrValid(void** ptr)
-	{
-		auto p = bufferPointersGlobal.find(*ptr);
-		if (p != bufferPointersGlobal.end() && (*p) != nullptr)
-		{
-			return true;
-		}
-		return false;
-	}
-
-	// If the pointer is present in the GC vector, the method removes it
-	void delPtrFromGC(void** ptr)
-	{
-		if (isPtrValid(ptr))
-		{
-			bufferPointersGlobal.erase(*ptr);
-		}
-	}
-
 	// Operations on the grid dimensions
 	int32_t calcGridDim(int32_t threadCount)
 	{
@@ -105,6 +75,7 @@ public:
 
 	// Querying info about devices and rebinding devices to the context
 	const std::vector<cudaDeviceProp>& getDevicesMetaInfoList() const { return devicesMetaInfo; }
+
 	void bindDeviceToContext(int32_t deviceID)
 	{
 		// TODO
