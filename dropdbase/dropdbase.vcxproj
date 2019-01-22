@@ -81,7 +81,6 @@
     <ClInclude Include="BlockBase.h" />
     <ClInclude Include="ColumnBase.h" />
     <ClInclude Include="ComplexPolygonFactory.h" />
-    <ClInclude Include="CudaTest.cuh" />
     <ClInclude Include="messages\CSVImportMessage.pb.h" />
     <ClInclude Include="messages\InfoMessage.pb.h" />
     <ClInclude Include="messages\QueryMessage.pb.h" />
@@ -118,9 +117,6 @@
     <ClCompile Include="QueryEngine\Context.cpp" />
     <ClCompile Include="Types\ComplexPolygon.pb.cc" />
     <ClCompile Include="Types\Point.pb.cc" />
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="CudaTest.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

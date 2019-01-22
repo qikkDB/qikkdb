@@ -6,8 +6,6 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include <string>
-
 class QueryEngineError {
 public:
 	enum Type {

@@ -84,7 +84,6 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUReconstruct.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="CudaTest.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
@@ -137,6 +136,5 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="CudaTest.cu" />
   </ItemGroup>
 </Project>
