@@ -2,6 +2,7 @@
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 #include "ColumnBase.h"
+#include <cstdint>
 
 const std::shared_ptr<Database>& Table::GetDatabase()
 {
@@ -18,7 +19,7 @@ int Table::GetBlockSize()
 	return blockSize;
 }
 
-const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColumns()
+const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColumns() const
 {
 	return columns;
 }

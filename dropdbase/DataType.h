@@ -1,14 +1,15 @@
 #pragma once
 
 enum DataType {
-	INT = 0,
-	LONG = 1,
-	FLOAT = 2,
-	DOUBLE = 3,
-	POINT = 4,
-	POLYGON = 5,
-	STRING = 6,
-	BOOLEAN = 7,
+	CONST_ERROR = -1,
+	CONST_INT = 0,
+	CONST_LONG = 1,
+	CONST_FLOAT = 2,
+	CONST_DOUBLE = 3,
+	CONST_POINT = 4,
+	CONST_POLYGON = 5,
+	CONST_STRING = 6,
+	CONST_BOOLEAN = 7,
 	REG = 8,
 	COLUMN_INT = 9,
 	COLUMN_LONG = 10,

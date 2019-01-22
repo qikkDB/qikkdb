@@ -19,7 +19,7 @@ public:
 	const std::shared_ptr<Database> &GetDatabase();
 	const std::string &GetName();
 	int GetBlockSize();
-	const std::unordered_map<std::string, std::unique_ptr<IColumn>> &GetColumns();
+	const std::unordered_map<std::string, std::unique_ptr<IColumn>> &GetColumns() const;
 
 	Table(const std::shared_ptr<Database> database, std::string name);
 	void CreateColumn(const std::string &columnName, DataType columnType);
