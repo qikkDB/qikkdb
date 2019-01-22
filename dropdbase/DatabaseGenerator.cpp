@@ -66,7 +66,11 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockLenght; k++)
 					{
+<<<<<<< HEAD
 						longData.push_back(sameDataInBlocks ? 1000000000000000000 : 2000000000000000000 + k % 1024);
+=======
+						integerData.push_back(sameDataInBlocks ? 1000000000000000000 : 2000000000000000000 + k % 1024);
+>>>>>>> fdb18e893882578c4bc43aecde90f92f6bb6e899
 					}
 					column.AddBlock(longData);
 				}
