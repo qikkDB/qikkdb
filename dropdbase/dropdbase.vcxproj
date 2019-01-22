@@ -88,8 +88,8 @@
     <ClInclude Include="messages\SetDatabaseMessage.pb.h" />
     <ClInclude Include="NativeGeoPoint.h" />
     <ClInclude Include="PointFactory.h" />
-    <ClInclude Include="QueryEngine\Context.cuh" />
-    <ClInclude Include="QueryEngine\EngineCore.cuh" />
+    <ClInclude Include="QueryEngine\Context.h" />
+    <ClInclude Include="QueryEngine\EngineCore.h" />
     <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh" />
