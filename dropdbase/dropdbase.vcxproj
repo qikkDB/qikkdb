@@ -168,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp" />
+    <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="DatabaseGenerator.cpp" />
     <ClCompile Include="main.cpp" />

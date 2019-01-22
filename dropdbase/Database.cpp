@@ -6,6 +6,7 @@
 #include "Database.h"
 #include "Configuration.h"
 #include "ColumnBase.h"
+#include "Table.h"
 
 std::unordered_map<std::string, std::shared_ptr<Database>> Database::loadedDatabases_;
 
@@ -14,7 +15,7 @@ std::unordered_map<std::string, std::shared_ptr<Database>> Database::loadedDatab
 /// </summary>
 /// <param name="databaseName">Database name.</param>
 /// <param name="blockSize">Block size of all blocks in this database</param>
-Database::Database(const char* databaseName, int blockSize) : log_(spdlog::get("root"))
+Database::Database(const char* databaseName, int blockSize)/* : log_(spdlog::get("root"))*/
 {
 	name_ = databaseName;
 	blockSize_ = blockSize;
@@ -30,7 +31,7 @@ void Database::Persist(const char * path)
 	auto name = GetName();
 	auto pathStr = std::string(path);
 
-	log_->info("Saving database with name: '{}' and {} tables.", name, tables.size());
+	//log_->info("Saving database with name: '{}' and {} tables.", name, tables.size());
 
 	if (std::filesystem::create_directory(path))
 	{
@@ -38,7 +39,7 @@ void Database::Persist(const char * path)
 		int tableSize = tables.size();
 
 		//write file .db
-		log_->debug("Saving .db file with name: '{}'", pathStr + name + ".db");
+		//log_->debug("Saving .db file with name: '{}'", pathStr + name + ".db");
 		std::ofstream dbFile(pathStr + name + ".db", std::ios::binary);
 
 		int dbNameLength = name.length();
@@ -72,7 +73,7 @@ void Database::Persist(const char * path)
 
 			for (const auto& column : columns)
 			{
-				log_->debug("Saving .col file with name: '{}'", pathStr + name + "_" + table.first + "_" + column.second->GetName() + ".col");
+				//log_->debug("Saving .col file with name: '{}'", pathStr + name + "_" + table.first + "_" + column.second->GetName() + ".col");
 
 				std::ofstream colFile(pathStr + name + "_" + table.first + "_" + column.second->GetName() + ".col", std::ios::binary);
 
@@ -89,7 +90,7 @@ void Database::Persist(const char * path)
 
 					for (const auto& block : colInt->GetBlocksList())
 					{
-						log_->debug("Saving block of Integer data with index = {}.", index);
+						//log_->debug("Saving block of Integer data with index = {}.", index);
 
 						auto& data = block->GetData();
 						int dataLength = data.size();
@@ -246,11 +247,11 @@ void Database::Persist(const char * path)
 			}
 		}
 
-		log_->info("Database '{}' was successfully saved to disc.", name);
+		//log_->info("Database '{}' was successfully saved to disc.", name);
 	}
 	else
 	{
-		log_->error("Failed to create directory when persisting database: '{}'.", name);
+		//log_->error("Failed to create directory when persisting database: '{}'.", name);
 	}
 }
 
@@ -271,7 +272,7 @@ void Database::SaveAllToDisk(const char * path)
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
-	auto path = Configuration::DatabaseDir();
+	/*auto path = Configuration::DatabaseDir();
 
 	if (std::filesystem::exists(path)) {
 		for (auto& p : std::filesystem::directory_iterator(path))
@@ -290,16 +291,16 @@ void Database::LoadDatabasesFromDisk()
 	}
 	else
 	{
-		log_->error("Directory {} does not exists.", path);
-	}
+		//log_->error("Directory {} does not exists.", path);
+	}*/
 }
 
 std::shared_ptr<Database> Database::LoadDatabase(const char * fileDbName, const char * path)
 {
-	log_->info("Loading database from directory: {} with file name: {}.", path, fileDbName);
+	//log_->info("Loading database from directory: {} with file name: {}.", path, fileDbName);
 
 	//read file .db
-	std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
+	/*std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
 
 	std::unique_ptr<char[]> dbName = std::make_unique<char[]>(length); //dynamic allocation
 	dbFile.read(dbName, 5);
@@ -313,7 +314,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char * fileDbName, const 
 		//TODO dorobit !!!!!!!!!!!!!!
 	}
 
-	return std::shared_ptr<Database>();
+	return std::shared_ptr<Database>();*/
 }
 
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
