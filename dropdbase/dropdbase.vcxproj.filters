@@ -13,6 +13,12 @@
     <Filter Include="Source Files\ProtoBuf">
       <UniqueIdentifier>{70c1280a-cbec-4ca7-af66-bfefc8e328f2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\QueryEngine">
+      <UniqueIdentifier>{2448cbe5-003b-4c2c-a856-bf54e406148f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\QueryEngine\GPUCore">
+      <UniqueIdentifier>{29f65e6d-cd7b-46b4-8982-1a2fefa07ab7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BlockBase.h">
@@ -51,42 +57,48 @@
     <ClInclude Include="Types\Point.pb.h">
       <Filter>Header Files\ProtoBuf</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUCore.h" />
-    <ClInclude Include="QueryEngine\InterfaceCore\IAggregation.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\InterfaceCore\IArithmetic.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\InterfaceCore\IArtihmeticConst.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\InterfaceCore\IFilter.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\InterfaceCore\IFilterConst.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\InterfaceCore\IGroupBy.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="QueryEngine\GPUCore\GPULogic.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\InterfaceCore\ILogic.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="QueryEngine\GPUCore\GPUMemory.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\InterfaceCore\IMemory.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="QueryEngine\GPUCore\GPUPolygon.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\InterfaceCore\IPolygon.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="QueryEngine\GPUCore\GPUReconstruct.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\InterfaceCore\IReconstruct.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="CudaTest.cuh" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\InterfaceCore\ITypeWidthManip.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="QueryEngine\GPUCore\GPUTypeWidthManip.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\Context.cuh">
+      <Filter>Header Files\QueryEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\EngineCore.cuh">
+      <Filter>Header Files\QueryEngine</Filter>
     </ClInclude>
     <ClInclude Include="QueryEngine\QueryEngineError.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\QueryEngine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -117,49 +129,14 @@
     <ClCompile Include="Types\Point.pb.cc">
       <Filter>Source Files\ProtoBuf</Filter>
     </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QueryEngine\Context.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="main.cu">
-      <Filter>Source Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\GPUCore\GPUTypeWidthManip.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\GPUCore\GPUReconstruct.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\GPUCore\GPUPolygon.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\GPUCore\GPUMemory.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\GPUCore\GPULogic.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\GPUCore\GPUFilter.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\GPUCore\GPUArithmetic.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\GPUCore\GPUAggregation.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\EngineCore.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="QueryEngine\Context.cuh">
-      <Filter>Header Files</Filter>
-    </CudaCompile>
+    <CudaCompile Include="CudaTest.cu" />
   </ItemGroup>
 </Project>

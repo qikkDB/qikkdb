@@ -1,6 +1,7 @@
 #ifndef ERROR_H
 #define ERROR_H
 
+#include <string>
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
