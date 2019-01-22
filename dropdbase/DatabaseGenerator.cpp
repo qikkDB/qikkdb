@@ -1,5 +1,7 @@
 #include "DatabaseGenerator.h"
 #include "Table.h"
+#include "ColumnBase.h"
+#include "BlockBase.h"
 
 std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * databaseName, int blockCount, int blockLenght, bool sameDataInBlocks)
 {
@@ -24,8 +26,71 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 	for (const auto& tableName : tableNames)
 	{
-		Table table(database, tableName.c_str());
-		//database->CreateTable
+		(*database).tables_.insert({ tableName, Table(database, tableName.c_str()) });
+		auto& table = database->tables_.at(tableName);
+
+		for (const auto& columnType : columnTypes)
+		{
+			switch (columnType)
+			{
+			case COLUMN_INT:
+			{
+				table.CreateColumn("colInteger", COLUMN_INT);
+				auto columns = table.GetColumns();
+				auto& column = dynamic_cast<ColumnBase<int32_t>&>(*columns.at("colInteger"));
+
+				for (int i = 0; i < blockCount; i++)
+				{
+					std::vector<int32_t> integerData;
+
+					for (int k = 0; k < blockLenght; k++)
+					{
+						integerData[k] = sameDataInBlocks ? 1 : k % 1024;
+					}
+					column.AddBlock(integerData);
+				}
+
+				break;
+			}
+			case COLUMN_LONG:
+			{
+				table.CreateColumn("colLong", COLUMN_LONG);
+				auto columns = table.GetColumns();
+				auto& column = dynamic_cast<ColumnBase<int64_t>&>(*columns.at("colLong"));
+
+				for (int i = 0; i < blockCount; i++)
+				{
+					std::vector<int64_t> integerData;
+
+					for (int k = 0; k < blockLenght; k++)
+					{
+						integerData[k] = sameDataInBlocks ? 1000000000000000000 : 2000000000000000000 + k % 1024;
+					}
+					column.AddBlock(integerData);
+				}
+
+				break;
+			}
+
+			case COLUMN_FLOAT:
+			{
+
+			}
+
+			case COLUMN_DOUBLE:
+
+			case COLUMN_POINT:
+
+			case COLUMN_POLYGON:
+
+			case COLUMN_STRING:
+
+			case COLUMN_BOOL:
+
+			default:
+				break;
+			}
+		}
 
 	}
 

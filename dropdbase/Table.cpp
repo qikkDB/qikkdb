@@ -2,6 +2,7 @@
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 #include "ColumnBase.h"
+#include <cstdint>
 
 const std::shared_ptr<Database>& Table::GetDatabase()
 {
@@ -18,7 +19,7 @@ int Table::GetBlockSize()
 	return blockSize;
 }
 
-const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColumns()
+const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColumns() const
 {
 	return columns;
 }
@@ -34,11 +35,11 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 
 	if (columnType == COLUMN_INT)
 	{
-		column = std::make_unique<ColumnBase<int>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<int32_t>>(columnName, blockSize);
 	}
 	else if (columnType == COLUMN_LONG)
 	{
-		column = std::make_unique<ColumnBase<long>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<int64_t>>(columnName, blockSize);
 	}
 	else if (columnType == COLUMN_DOUBLE)
 	{
@@ -76,13 +77,13 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 		if (search != data.end())
 		{
 			const auto &wrappedData = data.at(columnName);
-			if (wrappedData.type() == typeid(std::vector<int>))
+			if (wrappedData.type() == typeid(std::vector<int32_t>))
 			{
-				dynamic_cast<ColumnBase<int>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<int>>(wrappedData));
+				dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<int32_t>>(wrappedData));
 			}
-			else if (wrappedData.type() == typeid(std::vector<long>))
+			else if (wrappedData.type() == typeid(std::vector<int64_t>))
 			{
-				dynamic_cast<ColumnBase<long>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<long>>(wrappedData));
+				dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<int64_t>>(wrappedData));
 			}
 			else if (wrappedData.type() == typeid(std::vector<double>))
 			{

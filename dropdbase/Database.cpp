@@ -27,7 +27,7 @@ Database::~Database()
 
 void Database::Persist(const char * path)
 {
-	auto tables = GetTables();
+	auto& tables = GetTables();
 	auto name = GetName();
 	auto pathStr = std::string(path);
 
@@ -50,7 +50,7 @@ void Database::Persist(const char * path)
 		dbFile.write(reinterpret_cast<char*>(&tableSize), sizeof(int)); //write number of tables
 		for (auto& table : tables)
 		{
-			auto columns = table.second.GetColumns();
+			auto& columns = table.second.GetColumns();
 			int tableNameLength = table.first.length();
 
 			dbFile.write(reinterpret_cast<char*>(&tableNameLength), sizeof(int)); //write table name length
@@ -69,7 +69,7 @@ void Database::Persist(const char * path)
 		//write files .col
 		for (auto& table : tables)
 		{
-			auto columns = table.second.GetColumns();
+			auto& columns = table.second.GetColumns();
 
 			for (const auto& column : columns)
 			{
@@ -272,7 +272,7 @@ void Database::SaveAllToDisk(const char * path)
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
-	/*auto path = Configuration::DatabaseDir();
+	auto path = Configuration::DatabaseDir();
 
 	if (std::filesystem::exists(path)) {
 		for (auto& p : std::filesystem::directory_iterator(path))
@@ -292,7 +292,7 @@ void Database::LoadDatabasesFromDisk()
 	else
 	{
 		//log_->error("Directory {} does not exists.", path);
-	}*/
+	}
 }
 
 std::shared_ptr<Database> Database::LoadDatabase(const char * fileDbName, const char * path)
@@ -313,8 +313,8 @@ std::shared_ptr<Database> Database::LoadDatabase(const char * fileDbName, const 
 	{
 		//TODO dorobit !!!!!!!!!!!!!!
 	}
-
-	return std::shared_ptr<Database>();*/
+	*/
+	return std::shared_ptr<Database>();
 }
 
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
