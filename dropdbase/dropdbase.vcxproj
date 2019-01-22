@@ -88,31 +88,20 @@
     <ClInclude Include="messages\SetDatabaseMessage.pb.h" />
     <ClInclude Include="NativeGeoPoint.h" />
     <ClInclude Include="PointFactory.h" />
-    <ClInclude Include="QueryEngine\Context.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUAggregation.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUArithmetic.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUArtihmeticConst.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUFilter.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUFilterConst.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUGroupBy.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPULogic.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUMemory.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUPolygon.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUReconstruct.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUTypeWidthManip.cuh" />
-    <ClInclude Include="QueryEngine\EngineCore.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUArtihmeticConst.cuh" />
+    <CudaCompile Include="QueryEngine\Context.cuh" />
+    <CudaCompile Include="QueryEngine\EngineCore.cuh" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPUAggregation.cuh" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPUArithmetic.cuh" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUCore.h" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPULogic.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUMemory.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUPolygon.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUReconstruct.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUTypeWidthManip.cuh" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPUFilter.cuh" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPUFilterConst.cuh" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPUGroupBy.cuh" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPULogic.cuh" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPUMemory.cuh" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPUPolygon.cuh" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPUReconstruct.cuh" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPUTypeWidthManip.cuh" />
     <ClInclude Include="QueryEngine\InterfaceCore\IAggregation.h" />
     <ClInclude Include="QueryEngine\InterfaceCore\IArithmetic.h" />
     <ClInclude Include="QueryEngine\InterfaceCore\IArtihmeticConst.h" />
@@ -130,7 +119,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp" />
-    <ClCompile Include="main.cpp" />
+    <CudaCompile Include="main.cu">
+      <FileType>Document</FileType>
+    </CudaCompile>
     <ClCompile Include="messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="messages\InfoMessage.pb.cc" />
     <ClCompile Include="messages\QueryMessage.pb.cc" />

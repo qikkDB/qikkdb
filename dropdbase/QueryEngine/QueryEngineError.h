@@ -5,6 +5,8 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
+#include <string>
+
 class QueryEngineError {
 public:
 	enum Type {
@@ -25,8 +27,14 @@ private:
 
 public:
 	void setCudaError(cudaError_t cudaError) {
-		type_ = GPU_EXTENSION_ERROR;
-		text_ = cudaGetErrorString(cudaError);
+		switch (cudaError)
+		{
+		case cudaSuccess:
+			type_ = GPU_EXTENSION_SUCCESS;
+		default:
+			type_ = GPU_EXTENSION_ERROR;
+			text_ = cudaGetErrorString(cudaError);
+		}
 	}
 
 	void setType(Type type) {

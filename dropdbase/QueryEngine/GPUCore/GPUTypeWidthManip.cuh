@@ -1,6 +1,8 @@
 #ifndef GPU_TYPE_WIDTH_MANIP_H
 #define GPU_TYPE_WIDTH_MANIP_H
 
+#include <stdint.h>
+
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
@@ -22,7 +24,7 @@ __global__ void kernel_convert_buffer(T *outData, U *inData, int32_t dataElement
 class GPUTypeWidthManip {
 public:
 	template<typename T, typename U>
-	void ConvertBuffer(T *outData, U *inData, int32_t dataElementCount) override
+	void ConvertBuffer(T *outData, U *inData, int32_t dataElementCount) const
 	{
 		kernel_convert_buffer << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outData, inData, dataElementCount);
