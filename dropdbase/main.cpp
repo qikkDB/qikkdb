@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 
     std::shared_ptr<Database> database(new Database());
 
-    GpuSqlCustomParser parser(database, "SELECT abc.b FROM abc WHERE ((abc.b = 1) AND (abc.b = 2)) OR (abc.b = 3);");
+    GpuSqlCustomParser parser(database, "SELECT abc.b FROM abc WHERE ((abc.a = 1) AND (abc.b = 2)) OR (abc.c = 3);");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();
