@@ -30,7 +30,7 @@ Database::~Database()
 {
 }
 
-void Database::Persist(const char * path)
+void Database::Persist(const char* path)
 {
 	auto& tables = GetTables();
 	auto& name = GetName();
@@ -57,10 +57,11 @@ void Database::Persist(const char * path)
 		{
 			auto& columns = table.second.GetColumns();
 			int32_t tableNameLength = table.first.length();
+			int32_t columnNumber = columns.size();
 
 			dbFile.write(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); //write table name length
 			dbFile.write(table.first.c_str(), tableNameLength); //write table name
-			dbFile.write(reinterpret_cast<char*>(columns.size()), sizeof(int32_t)); //write number of columns of the table
+			dbFile.write(reinterpret_cast<char*>(&columnNumber), sizeof(int32_t)); //write number of columns of the table
 			for (const auto& column : columns)
 			{
 				int32_t columnNameLength = column.first.length();
@@ -296,48 +297,6 @@ void Database::Persist(const char * path)
 					throw std::exception("Unsupported data type (when persisting database).");
 					break;
 				}
-
-
-
-
-					//	//save block of type - Float:
-				//	else if (type == "Float")
-				//	{
-				//		log_->debug("Saving block of Float data with index = {}.", index);
-
-				//		auto data = block.GetData();
-
-				//		if (data != nullptr)
-				//		{
-				//			colFile.write(reinterpret_cast<char*>(&index), sizeof(unsigned int)); //write index
-				//			colFile.write(static_cast<char*>(data.length), sizeof(unsigned int)); //write block length
-				//			for (auto entry : data) //write data of block
-				//			{
-				//				colFile.write(static_cast<char*>(entry), sizeof(float));
-				//			}
-				//			index += 1;
-				//		}
-				//	//save block of type - Double:
-				//	else if (type == "Double")
-				//	{
-				//		log_->debug("Saving block of Double data with index = {}.", index);
-
-				//		auto data = block.GetData();
-
-				//		if (data != nullptr)
-				//		{
-				//			colFile.write(reinterpret_cast<char*>(&index), sizeof(unsigned int)); //write index
-				//			colFile.write(static_cast<char*>(data.length), sizeof(unsigned int)); //write block length
-				//			for (auto entry : data) //write data of block
-				//			{
-				//				colFile.write(static_cast<char*>(entry), sizeof(double));
-				//			}
-				//			index += 1;
-				//		}
-				//	}
-			
-				//	}
-				//}
 			}
 		}
 
@@ -355,7 +314,7 @@ void Database::Persist(const char * path)
 /// <param name="path">Path to database storage directory</param>
 void Database::SaveAllToDisk(const char * path)
 {
-	for (std::pair<std::string, std::shared_ptr<Database>> database : Database::loadedDatabases_)
+	for (auto& database : Database::loadedDatabases_)
 	{
 		database.second->Persist(path);
 	}
