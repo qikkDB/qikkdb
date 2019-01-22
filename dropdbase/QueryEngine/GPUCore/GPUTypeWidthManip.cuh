@@ -7,7 +7,7 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include "../Context.cuh"
+#include "../Context.h"
 
 template<typename T, typename U>
 __global__ void kernel_convert_buffer(T *outData, U *inData, int32_t dataElementCount)

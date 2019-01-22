@@ -84,20 +84,19 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUReconstruct.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="CudaTest.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
     <ClInclude Include="QueryEngine\GPUCore\GPUTypeWidthManip.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\Context.cuh">
-      <Filter>Header Files\QueryEngine</Filter>
-    </ClInclude>
-    <ClInclude Include="QueryEngine\EngineCore.cuh">
-      <Filter>Header Files\QueryEngine</Filter>
-    </ClInclude>
     <ClInclude Include="QueryEngine\QueryEngineError.h">
+      <Filter>Header Files\QueryEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\EngineCore.h">
+      <Filter>Header Files\QueryEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\Context.h">
       <Filter>Header Files\QueryEngine</Filter>
     </ClInclude>
   </ItemGroup>
@@ -135,8 +134,5 @@
     <ClCompile Include="QueryEngine\Context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="CudaTest.cu" />
   </ItemGroup>
 </Project>
