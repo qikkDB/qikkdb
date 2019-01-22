@@ -24,7 +24,7 @@ const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColum
 	return columns;
 }
 
-Table::Table(const std::shared_ptr<Database> database, std::string name) : database(database), name(name)
+Table::Table(const std::shared_ptr<Database> database, const char* name) : database(database), name(name)
 {
 	blockSize = database->GetBlockSize();
 }

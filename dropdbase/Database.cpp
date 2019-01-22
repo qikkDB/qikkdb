@@ -348,31 +348,79 @@ void Database::LoadDatabasesFromDisk()
 	}
 }
 
-std::shared_ptr<Database> Database::LoadDatabase(const char * fileDbName, const char * path)
+/// <summary>
+/// Load database from disc into memory.
+/// </summary>
+/// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
+/// <param name="path">Path to directory in which database files are.</param>
+/// <returns>Shared pointer of database.</returns>
+std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const char* path)
 {
-	//log_->info("Loading database from directory: {} with file name: {}.", path, fileDbName);
+	log_->info("Loading database from directory: {} with file name: {}.", path, fileDbName);
 
-	////read file .db
-	//std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
-	//
-	//std::unique_ptr<char[]> dbName = std::make_unique<char[]>(length); //dynamic allocation
-	//dbFile.read(dbName, 5);
-	//auto blockSize = dbFile.get();
-	//auto tablesCount = dbFile.get();
+	//read file .db
+	std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
+	
+	int32_t dbNameLength;
+	dbFile.read(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); //read db name length
 
-	//Database database(dbName, blockSize);
+	std::unique_ptr<char[]> dbName = std::make_unique<char[]>(dbNameLength);
+	dbFile.read(dbName.get(), dbNameLength); //read db name
 
-	//for (auto i = 0; i < tablesCount; i++)
-	//{
-	//	//TODO dorobit !!!!!!!!!!!!!!
-	//}
+	int32_t blockSize;
+	dbFile.read(reinterpret_cast<char*>(&blockSize), sizeof(int32_t)); //read block size
+
+	int32_t tablesCount;
+	dbFile.read(reinterpret_cast<char*>(&tablesCount), sizeof(int32_t)); //read number of tables
+
+	std::shared_ptr<Database> database = std::make_shared<Database>(dbName.get(), blockSize);
+
+	for (int32_t i = 0; i < tablesCount; i++)
+	{
+		int32_t tableNameLength;
+		dbFile.read(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); //read db name length
+
+		std::unique_ptr<char[]> tableName = std::make_unique<char[]>(tableNameLength);
+		dbFile.read(tableName.get(), tableNameLength); //read db name
+
+		database->tables_.insert( {tableName.get(), Table (database, tableName.get())} );
+
+		int32_t columnCount;
+		dbFile.read(reinterpret_cast<char*>(&columnCount), sizeof(int32_t)); //read number of columns
+
+		std::vector<std::string> columnNames;
+
+		for (int32_t j = 0; j < columnCount; j++)
+		{
+			int32_t columnNameLength;
+			dbFile.read(reinterpret_cast<char*>(&columnNameLength), sizeof(int32_t)); //read column name length
+
+			std::unique_ptr<char[]> columnName = std::make_unique<char[]>(columnNameLength);
+			dbFile.read(columnName.get(), columnNameLength); //read column name
+
+			columnNames.push_back(columnName.get());
+		}
+
+		auto& table = database->tables_.at(tableName.get());
+		LoadColumns(path, dbName.get(), table, columnNames); //read files .col
+	}
 
 	return std::shared_ptr<Database>();
 }
 
+/// <summary>
+/// Load columns of a table into memory from disc.
+/// </summary>
+/// <param name="path">Path directory, where column files (*.col) are.</param>
+/// <param name="table">Instance of table into which the columns should be added.</param>
+/// <param name="columnNames">Names of particular columns.</param>
+void Database::LoadColumns(const char* path, const char* dbName, Table& table, const std::vector<std::string>& columnNames)
+{
+	//TODO dorobit funkcionalitu !!!!!!!!!!!!!!!!
+}
+
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
-
 	loadedDatabases_.insert({ database->name_, database });
 }
 

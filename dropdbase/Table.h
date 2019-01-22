@@ -21,7 +21,7 @@ public:
 	int GetBlockSize();
 	const std::unordered_map<std::string, std::unique_ptr<IColumn>> &GetColumns() const;
 
-	Table(const std::shared_ptr<Database> database, std::string name);
+	Table(const std::shared_ptr<Database> database, const char* name);
 	void CreateColumn(const std::string &columnName, DataType columnType);
 	void InsertData(const std::unordered_map<std::string, std::any> &data);
 	bool ContainsColumn(std::string column);

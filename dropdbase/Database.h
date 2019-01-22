@@ -68,7 +68,7 @@ public:
 	/// <param name="path">Path directory, where column files (*.col) are.</param>
 	/// <param name="table">Instance of table into which the columns should be added.</param>
 	/// <param name="columnNames">Names of particular columns.</param>
-	static void LoadColumns(const char* path, const char* dbName, Table table, const std::vector<std::string>& columnNames);
+	static void LoadColumns(const char* path, const char* dbName, Table& table, const std::vector<std::string>& columnNames);
 
 	/// <summary>
 	/// Creates table with given name and columns.
