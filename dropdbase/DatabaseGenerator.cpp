@@ -36,7 +36,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 			case COLUMN_INT:
 			{
 				table.CreateColumn("colInteger", COLUMN_INT);
-				auto columns = table.GetColumns();
+				auto& columns = table.GetColumns();
 				auto& column = dynamic_cast<ColumnBase<int32_t>&>(*columns.at("colInteger"));
 
 				for (int i = 0; i < blockCount; i++)
@@ -45,7 +45,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockLenght; k++)
 					{
-						integerData[k] = sameDataInBlocks ? 1 : k % 1024;
+						integerData.push_back(sameDataInBlocks ? 1 : k % 1024);
 					}
 					column.AddBlock(integerData);
 				}
@@ -55,7 +55,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 			case COLUMN_LONG:
 			{
 				table.CreateColumn("colLong", COLUMN_LONG);
-				auto columns = table.GetColumns();
+				auto& columns = table.GetColumns();
 				auto& column = dynamic_cast<ColumnBase<int64_t>&>(*columns.at("colLong"));
 
 				for (int i = 0; i < blockCount; i++)
@@ -64,7 +64,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockLenght; k++)
 					{
-						integerData[k] = sameDataInBlocks ? 1000000000000000000 : 2000000000000000000 + k % 1024;
+						integerData.push_back(sameDataInBlocks ? 1000000000000000000 : 2000000000000000000 + k % 1024);
 					}
 					column.AddBlock(integerData);
 				}

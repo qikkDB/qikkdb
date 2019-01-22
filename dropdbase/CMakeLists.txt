@@ -17,7 +17,7 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 find_package(spdlog REQUIRED)
 include_directories(${SPDLOG_INCLUDE_DIRS})
 
-find_package(Boost 1.68.0 REQUIRED)
+find_package(Boost 1.68.0 COMPONENTS system filesystem REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 #set(CMAKE_PREFIX_PATH /usr/local/lib/cmake/antlr4)
@@ -74,6 +74,8 @@ add_executable(${PROJECT_NAME}
         IColumn.h
         Table.cpp
         Table.h
+        DatabaseGenerator.cpp
+        DatabaseGenerator.h
         #GpuSqlParser/ParserExceptions.h
         #GpuSqlParser/GpuSqlListener.cpp
         #GpuSqlParser/GpuSqlListener.h
@@ -84,6 +86,7 @@ add_executable(${PROJECT_NAME}
         ColumnBase.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}  ${Boost_FILESYSTEM_LIBRARY}
+        ${Boost_SYSTEM_LIBRARY})
 #target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES})
 #target_link_libraries(${PROJECT_NAME} antlr4_static)
