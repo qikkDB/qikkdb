@@ -7,8 +7,11 @@
 #include <vector>
 #include <unordered_set>
 
-#include "EngineCore.cuh"
+#include <memory>
+
 #include "QueryEngineError.h"
+
+class EngineCore;
 
 class Context {
 private:
@@ -23,7 +26,7 @@ private:
 	int32_t queried_block_dimension_;
 
 	// Engine core for operations over the context - GPU only
-	EngineCore engineCore_;
+	std::unique_ptr<EngineCore> engineCore_;
 
 	// Registry for holding the last error
 	QueryEngineError lastError_;
@@ -34,25 +37,22 @@ private:
 	std::vector<cudaDeviceProp> devicesMetaInfo_;
 
 	// Meyer's singleton
-	Context() = default;
+	Context(std::unique_ptr<EngineCore> engineCore)
+		: engineCore_(std::move(engineCore)) {}
 	~Context() = default;
 	Context(const Context&) = delete;
 	Context& operator=(const Context&) = delete;
 
 public:
+
 	// Get class instance, if class was not initialized prior a GPU instance is returned
-	static Context& getInstance()
-	{
-		// Static instance - constructor called only once
-		static Context instance;
-		return instance;
-	}
+	static Context& getInstance();
 
 	// Get the engine core interface for kernel operations
-	const EngineCore& getEngineCore() const { return engineCore_; }
+	const EngineCore& getEngineCore() const { return *engineCore_; }
 
 	// Get the last cuda error
-	const QueryEngineError& getLastError() const { return lastError_; }
+	QueryEngineError& getLastError() { return lastError_; }
 
 	// Operations on the grid dimensions
 	int32_t calcGridDim(int32_t threadCount)

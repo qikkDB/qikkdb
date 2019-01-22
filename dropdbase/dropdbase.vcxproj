@@ -81,6 +81,7 @@
     <ClInclude Include="BlockBase.h" />
     <ClInclude Include="ColumnBase.h" />
     <ClInclude Include="ComplexPolygonFactory.h" />
+    <ClInclude Include="CudaTest.cuh" />
     <ClInclude Include="messages\CSVImportMessage.pb.h" />
     <ClInclude Include="messages\InfoMessage.pb.h" />
     <ClInclude Include="messages\QueryMessage.pb.h" />
@@ -89,22 +90,10 @@
     <ClInclude Include="NativeGeoPoint.h" />
     <ClInclude Include="PointFactory.h" />
     <ClInclude Include="QueryEngine\Context.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUAggregation.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUArithmetic.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUArtihmeticConst.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUFilter.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUFilterConst.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUGroupBy.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPULogic.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUMemory.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUPolygon.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUReconstruct.cuh" />
-    <ClInclude Include="QueryEngine\CPUCore\CPUTypeWidthManip.cuh" />
     <ClInclude Include="QueryEngine\EngineCore.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUArtihmeticConst.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUCore.h" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh" />
@@ -113,17 +102,6 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUPolygon.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUReconstruct.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUTypeWidthManip.cuh" />
-    <ClInclude Include="QueryEngine\InterfaceCore\IAggregation.h" />
-    <ClInclude Include="QueryEngine\InterfaceCore\IArithmetic.h" />
-    <ClInclude Include="QueryEngine\InterfaceCore\IArtihmeticConst.h" />
-    <ClInclude Include="QueryEngine\InterfaceCore\IFilter.h" />
-    <ClInclude Include="QueryEngine\InterfaceCore\IFilterConst.h" />
-    <ClInclude Include="QueryEngine\InterfaceCore\IGroupBy.h" />
-    <ClInclude Include="QueryEngine\InterfaceCore\ILogic.h" />
-    <ClInclude Include="QueryEngine\InterfaceCore\IMemory.h" />
-    <ClInclude Include="QueryEngine\InterfaceCore\IPolygon.h" />
-    <ClInclude Include="QueryEngine\InterfaceCore\IReconstruct.h" />
-    <ClInclude Include="QueryEngine\InterfaceCore\ITypeWidthManip.h" />
     <ClInclude Include="QueryEngine\QueryEngineError.h" />
     <ClInclude Include="Types\ComplexPolygon.pb.h" />
     <ClInclude Include="Types\Point.pb.h" />
@@ -137,8 +115,12 @@
     <ClCompile Include="messages\QueryResponseMessage.pb.cc" />
     <ClCompile Include="messages\SetDatabaseMessage.pb.cc" />
     <ClCompile Include="PointFactory.cpp" />
+    <ClCompile Include="QueryEngine\Context.cpp" />
     <ClCompile Include="Types\ComplexPolygon.pb.cc" />
     <ClCompile Include="Types\Point.pb.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="CudaTest.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
