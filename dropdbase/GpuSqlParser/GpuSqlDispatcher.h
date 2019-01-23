@@ -15,6 +15,9 @@
 #include "../Types/Point.pb.h"
 #include "../DataType.h"
 #include "../Database.h"
+#include "../QueryEngine/GPUCore/GPUFilter.cuh"
+#include "../QueryEngine/GPUCore/GPUFilterConst.cuh"
+#include "../QueryEngine/GPUCore/GPUMemory.cuh"
 
 class GpuSqlDispatcher;
 
@@ -402,6 +405,8 @@ private:
     MemoryStream arguments;
     int blockIndex;
     const std::shared_ptr<Database> &database;
+	std::unordered_map<std::string, std::uintptr_t> columnPointers;
+	std::unordered_map<std::string, std::uintptr_t> registerPointers;
 
     static std::array<std::function<void(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -888,6 +893,10 @@ void loadCol(GpuSqlDispatcher &dispatcher)
 {
     auto colName = dispatcher.arguments.read<std::string>();
     std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
+
+	T * gpuPointer;
+	GPUMemory::alloc<T>(&gpuPointer, dispatcher.database->GetBlockSize());
+	dispatcher.columnPointers.insert({colName, reinterpret_cast<std::uintptr_t>(gpuPointer)});
 }
 
 void loadReg(GpuSqlDispatcher &dispatcher);
@@ -1025,6 +1034,10 @@ void equalColConst(GpuSqlDispatcher &dispatcher)
     U cnst = dispatcher.arguments.read<U>();
     auto colName = dispatcher.arguments.read<std::string>();
     std::cout << "EqualColConst: " << colName << " " << "const" << std::endl;
+	int8_t * mask;
+	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
+	dispatcher.registerPointers.insert({"R0", reinterpret_cast<std::uintptr_t>(mask)}); // TODO change R0 to something better
+	GPUFilterConst::eq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 }
 
 template<typename T, typename U>

@@ -3,11 +3,12 @@
 //
 
 #include "GpuSqlListener.h"
+#include "../Table.h"
 
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database> &database,
-                               GpuSqlDispatcher &dispatcher) : database(database), dispatcher(dispatcher)
+                               GpuSqlDispatcher &dispatcher) : database(database), dispatcher(dispatcher),
+								usingGroupBy(false), insideAgg(false), tempCounter(0)
 {
-    tempCounter = 0;
 }
 
 
@@ -166,7 +167,7 @@ void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
 
     for (auto table : ctx->table())
     {
-        if (false /* TODO: !_database.tables.ContainsKey(table.GetText())*/)
+        if (database->GetTables().find(table->getText()) == database->GetTables().end())
         {
             throw TableNotFoundFromException();
         }
@@ -187,8 +188,9 @@ void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx
 
     for (auto column : ctx->columnId())
     {
-        std::string tableColumn = generateAndValidateColumnName(column);
-        DataType columnType = DataType::COLUMN_INT;
+		std::tuple<std::string, DataType> tableColumnData = generateAndValidateColumnName(column);
+		const DataType columnType = std::get<1>(tableColumnData);
+		const std::string tableColumn = std::get<0>(tableColumnData);
 
         if (loadedColumns.find(tableColumn) == loadedColumns.end())
         {
@@ -243,8 +245,9 @@ void GpuSqlListener::exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx
 
 void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 {
-    std::string tableColumn = generateAndValidateColumnName(ctx->columnId());
-    DataType columnType = DataType::COLUMN_INT;
+    std::tuple<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
+    const DataType columnType = std::get<1>(tableColumnData);
+	const std::string tableColumn = std::get<0>(tableColumnData);
 
     if (loadedColumns.find(tableColumn) == loadedColumns.end())
     {
@@ -273,7 +276,7 @@ void GpuSqlListener::exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx)
 }
 
 
-std::string GpuSqlListener::generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx)
+std::tuple<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx)
 {
     std::string table;
     std::string column;
@@ -289,7 +292,7 @@ std::string GpuSqlListener::generateAndValidateColumnName(GpuSqlParser::ColumnId
         {
             throw TableNotFoundFromException();
         }
-        if (false /*TODO: !_database.tables[table].ContainsColumn(column) */)
+        if (database->GetTables().at(table).GetColumns().find(column) == database->GetTables().at(table).GetColumns().end())
         {
             throw ColumnNotFoundException();
         }
@@ -299,7 +302,7 @@ std::string GpuSqlListener::generateAndValidateColumnName(GpuSqlParser::ColumnId
         column = ctx->column()->getText();
         for (auto &tab : loadedTables)
         {
-            if (false /* TODO: _database.tables[tab].ContainsColumn(col)*/)
+            if (database->GetTables().at(tab).GetColumns().find(col) != database->GetTables().at(tab).GetColumns().end())
             {
                 table = tab;
                 column = col;
@@ -317,13 +320,14 @@ std::string GpuSqlListener::generateAndValidateColumnName(GpuSqlParser::ColumnId
     }
 
     std::string tableColumn = table + "." + column;
+	DataType columnType = database->GetTables().at(table).GetColumns().at(column)->GetColumnType();
 
     if (usingGroupBy && !insideAgg && groupByColumns.find(tableColumn) == groupByColumns.end())
     {
         throw ColumnGroupByException();
     }
 
-    return tableColumn;
+    return std::make_tuple(tableColumn, columnType);
 }
 
 std::tuple<std::string, DataType> GpuSqlListener::stackTopAndPop()

@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "QueryEngineError.h"
+#include "CudaMemAllocator.h"
 
 class Context {
 private:
@@ -34,6 +35,7 @@ private:
 	// Meyer's singleton
 	Context() : queried_block_dimension_(DEFAULT_BLOCK_DIMENSION) 
 	{
+		CudaMemAllocator::GetInstance();
 		// TODO - Add device detection
 	};
 	~Context() = default;
@@ -42,7 +44,7 @@ private:
 
 public:
 	// Get class instance, if class was not initialized prior a GPU instance is returned
-	static Context& Context::getInstance()
+	static Context& getInstance()
 	{
 		// Static instance - constructor called only once
 		static Context instance;
@@ -53,7 +55,7 @@ public:
 	QueryEngineError& getLastError() { return lastError_; }
 
 	// Operations on the grid dimensions
-	int32_t Context::calcGridDim(int32_t threadCount)
+	int32_t calcGridDim(int32_t threadCount)
 	{
 		int blockCount = (threadCount + queried_block_dimension_ - 1) / queried_block_dimension_;
 		if (blockCount >= (DEFAULT_GRID_DIMENSION_LIMIT + 1))

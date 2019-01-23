@@ -7,17 +7,21 @@
 #include <boost/log/sinks/text_file_backend.hpp>
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/console.hpp>
+#include "DatabaseGenerator.h"
+#include "QueryEngine/Context.h"
 
 int main(int argc, char **argv)
 {
+	Context::getInstance(); // Initialize CUDA context
+
     boost::log::add_file_log("../log/ColmnarDB.log");
     boost::log::add_console_log(std::cout);
 
-    auto start = std::chrono::high_resolution_clock::now();
+    std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb");
 
-    std::shared_ptr<Database> database(new Database("TestDb", 1024));
+	auto start = std::chrono::high_resolution_clock::now();
 
-    GpuSqlCustomParser parser(database, "SELECT abc.b FROM abc WHERE ((abc.a = 1) AND (abc.b = 2)) OR (abc.c = 3);");
+    GpuSqlCustomParser parser(database, "SELECT colInteger FROM TableA WHERE colInteger = 200;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();

@@ -36,7 +36,7 @@ private:
 
     std::tuple<std::string, DataType> stackTopAndPop();
 
-    std::string generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+    std::tuple<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
     void pushTempResult();
 
@@ -53,7 +53,7 @@ private:
     void stringToUpper(std::string &str);
 
 public:
-    GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
+	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
 
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) override;
 
