@@ -20,8 +20,8 @@
 /// <param name="BCol">block of the right input operands</param>
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <param name="errFlag">flag for error checking</param>
-template<typename T, typename U, typename V>
-__global__ void kernel_plus(T *output, U *ACol, V *BCol, int32_t dataElementCount, QueryEngineError::Type* errFlag)
+template<typename T, typename U, typename V, T min, T max>
+__global__ void kernel_plus(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errFlag)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -29,14 +29,14 @@ __global__ void kernel_plus(T *output, U *ACol, V *BCol, int32_t dataElementCoun
 	for (int i = idx; i < dataElementCount; i += stride)
 	{
 		// if none of the input operands are float
-		if (!std::is_floating_point<U> && !std::is_floating_point<V>)
+		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 		{
-			// Chech for overflow
-			if (((BCol[i] > V{}) && (ACol[i] > (std::numeric_limits<T>::max() - BCol[i]))) ||
-				((BCol[i] < V{}) && (ACol[i] < (std::numeric_limits<T>::min() - BCol[i]))))
+			// Check for overflow
+			if (((BCol[i] > V{}) && (ACol[i] > (max - BCol[i]))) ||
+				((BCol[i] < V{}) && (ACol[i] < (min - BCol[i]))))
 			{
-				atomicExch(errFlag, GPU_INTEGER_OVERFLOW_ERROR);
-				return;
+				atomicExch(errFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+				continue;
 			}
 		}
 		output[i] = ACol[i] + BCol[i];
@@ -51,8 +51,8 @@ __global__ void kernel_plus(T *output, U *ACol, V *BCol, int32_t dataElementCoun
 /// <param name="BCol">block of the right input operands</param>
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <param name="errFlag">flag for error checking</param>
-template<typename T, typename U, typename V>
-__global__ void kernel_minus(T *output, U *ACol, V *BCol, int32_t dataElementCount, QueryEngineError::Type* errFlag)
+template<typename T, typename U, typename V, T min, T max>
+__global__ void kernel_minus(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errFlag)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -60,14 +60,14 @@ __global__ void kernel_minus(T *output, U *ACol, V *BCol, int32_t dataElementCou
 	for (int i = idx; i < dataElementCount; i += stride)
 	{
 		// if none of the input operands are float
-		if (!std::is_floating_point<U> && !std::is_floating_point<V>)
+		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 		{
-			// Chech for overflow
-			if (((BCol[i] > V{}) && (ACol[i] < (std::numeric_limits<T>::min() + BCol[i]))) ||
-				((BCol[i] < V{}) && (ACol[i] > (std::numeric_limits<T>::max() + BCol[i]))))
+			// Check for overflow
+			if (((BCol[i] > V{}) && (ACol[i] < (min + BCol[i]))) ||
+				((BCol[i] < V{}) && (ACol[i] > (max + BCol[i]))))
 			{
-				atomicExch(errFlag, GPU_INTEGER_OVERFLOW_ERROR);
-				return;
+				atomicExch(errFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+				continue;
 			}
 		}
 		output[i] = ACol[i] - BCol[i];
@@ -82,8 +82,8 @@ __global__ void kernel_minus(T *output, U *ACol, V *BCol, int32_t dataElementCou
 /// <param name="BCol">block of the right input operands</param>
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <param name="errFlag">flag for error checking</param>
-template<typename T, typename U, typename V>
-__global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataElementCount, QueryEngineError::Type* errFlag)
+template<typename T, typename U, typename V, T min, T max>
+__global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errFlag)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -91,25 +91,25 @@ __global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataE
 	for (int i = idx; i < dataElementCount; i += stride)
 	{
 		// if none of the input operands are float
-		if (!std::is_floating_point<U> && !std::is_floating_point<V>)
+		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 		{
 			// Check for overflow
 			if (ACol[i] > U{})
 			{
 				if (BCol[i] > V{})
 				{
-					if (ACol[i] > (std::numeric_limits<T>::max() / BCol[i]))
+					if (ACol[i] > (max / BCol[i]))
 					{
-						atomicExch(errFlag, GPU_INTEGER_OVERFLOW_ERROR);
-						return;
+						atomicExch(errFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+						continue;
 					}
 				}
 				else
 				{
-					if (BCol[i] < (std::numeric_limits<T>::min() / ACol[i]))
+					if (BCol[i] < (min / ACol[i]))
 					{
-						atomicExch(errFlag, GPU_INTEGER_OVERFLOW_ERROR);
-						return;
+						atomicExch(errFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+						continue;
 					}
 				}
 			}
@@ -117,23 +117,22 @@ __global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataE
 			{
 				if (BCol[i] > V{})
 				{
-					if (ACol[i] < (std::numeric_limits<T>::min() / BCol[i]))
+					if (ACol[i] < (min / BCol[i]))
 					{
-						atomicExch(errFlag, GPU_INTEGER_OVERFLOW_ERROR);
-						return;
+						atomicExch(errFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+						continue;
 					}
 				}
 				else
 				{
-					if ((ACol[i] != U{}) && (BCol[i] < (std::numeric_limits<T>::max() / ACol[i])))
+					if ((ACol[i] != U{}) && (BCol[i] < (max / ACol[i])))
 					{
-						atomicExch(errFlag, GPU_INTEGER_OVERFLOW_ERROR);
-						return;
+						atomicExch(errFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+						continue;
 					}
 				}
 			}
 		}
-
 		output[i] = ACol[i] * BCol[i];
 	}
 }
@@ -147,7 +146,7 @@ __global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataE
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <param name="errFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
-__global__ void kernel_floor_division(T *output, U *ACol, V *BCol, int32_t dataElementCount, QueryEngineError::Type* errFlag)
+__global__ void kernel_floor_division(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errFlag)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -155,19 +154,21 @@ __global__ void kernel_floor_division(T *output, U *ACol, V *BCol, int32_t dataE
 	for (int i = idx; i < dataElementCount; i += stride)
 	{
 		// if none of the input operands are float
-		if (!std::is_floating_point<U> && !std::is_floating_point<V>)
+		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 		{
 			// Check for zero division
 			if (BCol[i] == V{})
 			{
-				atomicExch(errFlag, GPU_DIVISION_BY_ZERO_ERROR);
-				return;
+				atomicExch(errFlag, (int32_t)QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
 			}
-			output[i] = ACol[i] / BCol[i];
+			else
+			{
+				output[i] = ACol[i] / BCol[i];
+			}
 		}
 		else
 		{
-			output[i] = floor(ACol[i] / BCol[i]);
+			output[i] = floorf(ACol[i] / BCol[i]);
 		}
 	}
 }
@@ -181,7 +182,7 @@ __global__ void kernel_floor_division(T *output, U *ACol, V *BCol, int32_t dataE
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <param name="errFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
-__global__ void kernel_division(T *output, U *ACol, V *BCol, int32_t dataElementCount, QueryEngineError::Type* errFlag)
+__global__ void kernel_division(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errFlag)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -189,15 +190,17 @@ __global__ void kernel_division(T *output, U *ACol, V *BCol, int32_t dataElement
 	for (int i = idx; i < dataElementCount; i += stride)
 	{
 		// if none of the input operands are float
-		if (!std::is_floating_point<U> && !std::is_floating_point<V>)
+		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 		{
 			// Check for zero division
 			if (BCol[i] == V{})
 			{
-				atomicExch(errFlag, GPU_DIVISION_BY_ZERO_ERROR);
-				return;
+				atomicExch(errFlag, (int32_t)QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
 			}
-			output[i] = ACol[i] / (T)BCol[i]; // convert divisor to type T (should be floating point)
+			else
+			{
+				output[i] = ACol[i] / (T)BCol[i]; // convert divisor to type T (should be floating point)
+			}
 		}
 		else
 		{
@@ -215,7 +218,7 @@ __global__ void kernel_division(T *output, U *ACol, V *BCol, int32_t dataElement
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <param name="errFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
-__global__ void kernel_modulo(T *output, U *ACol, V *BCol, int32_t dataElementCount, QueryEngineError::Type* errFlag)
+__global__ void kernel_modulo(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errFlag)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -223,10 +226,9 @@ __global__ void kernel_modulo(T *output, U *ACol, V *BCol, int32_t dataElementCo
 	for (int i = idx; i < dataElementCount; i += stride)
 	{
 		// if at least one of the input operands is float
-		if (std::is_floating_point<U> || std::is_floating_point<V>)
+		if (std::is_floating_point<U>::value || std::is_floating_point<V>::value)
 		{
-			atomicExch(errFlag, GPU_UNSUPPORTED_DATA_TYPE);
-			return;
+			atomicExch(errFlag, (int32_t)QueryEngineError::GPU_UNSUPPORTED_DATA_TYPE);
 		}
 		// if none of the input operands are float
 		else
@@ -234,10 +236,12 @@ __global__ void kernel_modulo(T *output, U *ACol, V *BCol, int32_t dataElementCo
 			// Check for zero division
 			if (BCol[i] == V{})
 			{
-				atomicExch(errFlag, GPU_DIVISION_BY_ZERO_ERROR);
-				return;
+				atomicExch(errFlag, (int32_t)QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
 			}
-			output[i] = ACol[i] % BCol[i];
+			else
+			{
+				output[i] = ACol[i] % BCol[i];
+			}
 		}
 	}
 }
@@ -248,23 +252,23 @@ class GPUArithmetic
 {
 private:
 	// Malloc a new error flag and set to success
-	static QueryEngineError::Type * preKernel()
+	static int32_t * preKernel()
 	{
-		QueryEngineError::Type *errorFlagPointer = nullptr;
-		GPUMemory::allocAndSet(&errorFlagPointer, QueryEngineError::GPU_EXTENSION_SUCCESS, 1);
+		int32_t *errorFlagPointer = nullptr;
+		GPUMemory::allocAndSet(&errorFlagPointer, (int32_t)QueryEngineError::GPU_EXTENSION_SUCCESS, 1);
 		return errorFlagPointer;
 	}
 
 	// Read the error flag and set Context last error
-	static void postKernel(QueryEngineError::Type *errorFlagPointer)
+	static void postKernel(int32_t *errorFlagPointer)
 	{
-		QueryEngineError::Type errFlag;
+		int32_t errFlag;
 		GPUMemory::copyDeviceToHost(&errFlag, errorFlagPointer, 1);
 		GPUMemory::free(errorFlagPointer);
 
 		if (errFlag != QueryEngineError::GPU_EXTENSION_SUCCESS)
 		{
-			Context::getInstance().getLastError().setType(errFlag);
+			Context::getInstance().getLastError().setType((QueryEngineError::Type)errFlag);
 		}
 		else
 		{
@@ -276,9 +280,10 @@ public:
 	template<typename T, typename U, typename V>
 	static void plus(T *output, U *ACol, V *BCol, int32_t dataElementCount)
 	{
-		QueryEngineError::Type* errorFlagPointer = preKernel();
+		int32_t* errorFlagPointer = preKernel();
 
-		kernel_plus << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		kernel_plus <T, U, V, std::numeric_limits<T>::min(), std::numeric_limits<T>::max()>
+			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BCol, dataElementCount, errorFlagPointer);
 
 		cudaDeviceSynchronize();
@@ -289,9 +294,10 @@ public:
 	template<typename T, typename U, typename V>
 	static void minus(T *output, U *ACol, V *BCol, int32_t dataElementCount)
 	{
-		QueryEngineError::Type* errorFlagPointer = preKernel();
+		int32_t* errorFlagPointer = preKernel();
 
-		kernel_minus << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		kernel_minus <T, U, V, std::numeric_limits<T>::min(), std::numeric_limits<T>::max()>
+			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BCol, dataElementCount, errorFlagPointer);
 
 		cudaDeviceSynchronize();
@@ -302,9 +308,10 @@ public:
 	template<typename T, typename U, typename V>
 	static void multiplication(T *output, U *ACol, V *BCol, int32_t dataElementCount)
 	{
-		QueryEngineError::Type* errorFlagPointer = preKernel();
+		int32_t* errorFlagPointer = preKernel();
 
-		kernel_multiplication << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		kernel_multiplication <T, U, V, std::numeric_limits<T>::min(), std::numeric_limits<T>::max()>
+			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BCol, dataElementCount, errorFlagPointer);
 
 		cudaDeviceSynchronize();
@@ -315,7 +322,7 @@ public:
 	template<typename T, typename U, typename V>
 	static void floorDivision(T *output, U *ACol, V *BCol, int32_t dataElementCount)
 	{
-		QueryEngineError::Type* errorFlagPointer = preKernel();
+		int32_t* errorFlagPointer = preKernel();
 
 		kernel_floor_division << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BCol, dataElementCount, errorFlagPointer);
@@ -328,7 +335,7 @@ public:
 	template<typename T, typename U, typename V>
 	static void division(T *output, U *ACol, V *BCol, int32_t dataElementCount)
 	{
-		QueryEngineError::Type* errorFlagPointer = preKernel();
+		int32_t* errorFlagPointer = preKernel();
 
 		kernel_division << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BCol, dataElementCount, errorFlagPointer);
@@ -341,7 +348,7 @@ public:
 	template<typename T, typename U, typename V>
 	static void modulo(T *output, U *ACol, V *BCol, int32_t dataElementCount)
 	{
-		QueryEngineError::Type* errorFlagPointer = preKernel();
+		int32_t* errorFlagPointer = preKernel();
 
 		kernel_modulo << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BCol, dataElementCount, errorFlagPointer);
