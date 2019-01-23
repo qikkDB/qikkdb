@@ -26,7 +26,7 @@ const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColum
 
 Table::Table(const std::shared_ptr<Database> &database, const char* name) : database(database), name(name)
 {
-	//blockSize = database.GetBlockSize();
+	blockSize = database->GetBlockSize();
 }
 
 void Table::CreateColumn(const char* columnName, DataType columnType)
@@ -55,7 +55,7 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 	}
 	else if (columnType == COLUMN_POLYGON)
 	{
-		column = std::make_unique<ColumnBase<ColmnarDB::Types::Polygon>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<ColmnarDB::Types::ComplexPolygon>>(columnName, blockSize);
 	}
 	else if (columnType == COLUMN_POINT)
 	{

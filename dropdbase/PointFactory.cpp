@@ -13,6 +13,7 @@ ColmnarDB::Types::Point PointFactory::FromWkt(std::string wktPoint)
 	// remove POINT (  wkt prefix
 	wktPoint.erase(0, openBracePos + 1);
 	// remove )  wkt suffix
+	closeBracePos = wktPoint.find(')');
 	wktPoint.erase(wktPoint.begin() + closeBracePos, wktPoint.end());
 	std::istringstream wktInput(wktPoint);
 	ColmnarDB::Types::Point ret;
