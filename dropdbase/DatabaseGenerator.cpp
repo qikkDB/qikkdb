@@ -66,11 +66,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockLenght; k++)
 					{
-<<<<<<< HEAD
 						longData.push_back(sameDataInBlocks ? 1000000000000000000 : 2000000000000000000 + k % 1024);
-=======
-						integerData.push_back(sameDataInBlocks ? 1000000000000000000 : 2000000000000000000 + k % 1024);
->>>>>>> fdb18e893882578c4bc43aecde90f92f6bb6e899
 					}
 					column.AddBlock(longData);
 				}
@@ -143,18 +139,17 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 			{
 				table.CreateColumn("colPolygon", COLUMN_POLYGON);
 				auto& columns = table.GetColumns();
-				auto& column = dynamic_cast<ColumnBase<ColmnarDB::Types::Polygon>&>(*columns.at("colPoygon"));
+				auto& column = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*columns.at("colPoygon"));
 
 				for (int i = 0; i < blockCount; i++)
 				{
-					std::vector<ColmnarDB::Types::Polygon> polygonData;
+					std::vector<ColmnarDB::Types::ComplexPolygon> polygonData;
 
 					for (int k = 0; k < blockLenght; k++)
 					{
 						polygonData.push_back(sameDataInBlocks ? ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))") : 
-						ComplexPolygonFactory::FromWkt(std::string("POLYGON((10 11, ") + std::to_string(k % 1024) + " " + std::to_string(k % 1024) + ", 10 11),(21 30, " +
-							std::to_string(k % 1024 + 25.1111) + " " + std::to_string(k % 1024 + 26.1111) + ", " + std::to_string(k % 1024 + 28) + " " + std::to_string(k % 1024 + 29) +
-							", 21 30))"));
+							ComplexPolygonFactory::FromWkt(std::string("POLYGON((10 11, ") + std::to_string(k % 1024) + " " + std::to_string(k % 1024) + ", 10 11),(21 30, " + std::to_string(k % 1024 + 25.1111)
+								+ " " + std::to_string(k % 1024 + 26.1111) + ", " + std::to_string(k % 1024 + 28) + " " + std::to_string(k % 1024 + 29) + ", 21 30))"));
 					}
 					column.AddBlock(polygonData);
 				}
