@@ -72,7 +72,7 @@ void Database::Persist(const char* path)
 		}
 		dbFile.close();
 
-		//write files .col
+		//write files .col:
 		for (auto& table : tables)
 		{
 			auto& columns = table.second.GetColumns();
@@ -105,7 +105,7 @@ void Database::Persist(const char* path)
 						if (data.size() > 0)
 						{
 							colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length
+							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
 							for (const auto& entry : data)
 							{
 								int32_t entryByteLength = entry.ByteSize();
@@ -114,7 +114,7 @@ void Database::Persist(const char* path)
 								entry.SerializeToArray(byteArray.get(), entryByteLength);
 
 								colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
-								colFile.write(byteArray.get(), entryByteLength); //write data of block
+								colFile.write(byteArray.get(), entryByteLength); //write entry data
 							}
 							index += 1;
 						}
@@ -138,7 +138,7 @@ void Database::Persist(const char* path)
 						if (data.size() > 0)
 						{
 							colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length
+							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
 							for (const auto& entry : data)
 							{
 								int32_t entryByteLength = entry.ByteSize();
@@ -147,7 +147,7 @@ void Database::Persist(const char* path)
 								entry.SerializeToArray(byteArray.get(), entryByteLength);
 
 								colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
-								colFile.write(byteArray.get(), entryByteLength); //write data of block
+								colFile.write(byteArray.get(), entryByteLength); //write entry data
 							}
 							index += 1;
 						}
@@ -171,13 +171,13 @@ void Database::Persist(const char* path)
 						if (data.size() > 0)
 						{
 							colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length
+							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
 							for (const auto& entry : data)
 							{
 								int32_t entryByteLength = entry.length();
 
 								colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
-								colFile.write(entry.c_str(), entryByteLength); //write data of block
+								colFile.write(entry.c_str(), entryByteLength); //write entry data
 							}
 							index += 1;
 						}
@@ -201,10 +201,10 @@ void Database::Persist(const char* path)
 						if (data.size() > 0)
 						{
 							colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length
+							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
 							for (const auto& entry : data)
 							{
-								colFile.write(reinterpret_cast<const char*>(&entry), sizeof(int32_t)); //write data of block
+								colFile.write(reinterpret_cast<const char*>(&entry), sizeof(int32_t)); //write entry data
 							}
 							index += 1;
 						}
@@ -228,10 +228,10 @@ void Database::Persist(const char* path)
 						if (data.size() > 0)
 						{
 							colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length
+							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
 							for (const auto& entry : data)
 							{
-								colFile.write(reinterpret_cast<const char*>(&entry), sizeof(int64_t)); //write data of block
+								colFile.write(reinterpret_cast<const char*>(&entry), sizeof(int64_t)); //write entry data
 							}
 							index += 1;
 						}
@@ -255,10 +255,10 @@ void Database::Persist(const char* path)
 						if (data.size() > 0)
 						{
 							colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length
+							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
 							for (const auto& entry : data)
 							{
-								colFile.write(reinterpret_cast<const char*>(&entry), sizeof(float)); //write data of block
+								colFile.write(reinterpret_cast<const char*>(&entry), sizeof(float)); //write entry data
 							}
 							index += 1;
 						}
@@ -282,10 +282,10 @@ void Database::Persist(const char* path)
 						if (data.size() > 0)
 						{
 							colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length
+							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
 							for (const auto& entry : data)
 							{
-								colFile.write(reinterpret_cast<const char*>(&entry), sizeof(double)); //write data of block
+								colFile.write(reinterpret_cast<const char*>(&entry), sizeof(double)); //write entry data
 							}
 							index += 1;
 						}
@@ -297,6 +297,8 @@ void Database::Persist(const char* path)
 					throw std::exception("Unsupported data type (when persisting database).");
 					break;
 				}
+
+				colFile.close();
 			}
 		}
 
@@ -378,10 +380,10 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 	for (int32_t i = 0; i < tablesCount; i++)
 	{
 		int32_t tableNameLength;
-		dbFile.read(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); //read db name length
+		dbFile.read(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); //read table name length
 
 		std::unique_ptr<char[]> tableName = std::make_unique<char[]>(tableNameLength);
-		dbFile.read(tableName.get(), tableNameLength); //read db name
+		dbFile.read(tableName.get(), tableNameLength); //read table name
 
 		database->tables_.insert( {tableName.get(), Table (database, tableName.get())} );
 
@@ -405,6 +407,8 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 		LoadColumns(path, dbName.get(), table, columnNames); //read files .col
 	}
 
+	dbFile.close();
+
 	return std::shared_ptr<Database>();
 }
 
@@ -416,9 +420,380 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 /// <param name="columnNames">Names of particular columns.</param>
 void Database::LoadColumns(const char* path, const char* dbName, Table& table, const std::vector<std::string>& columnNames)
 {
-	//TODO dorobit funkcionalitu !!!!!!!!!!!!!!!!
+	for (const std::string& columnName : columnNames)
+	{
+		//read files .col:
+		std::string pathStr = std::string(path);
+
+		log_->debug("Loading .col file with name: '{}'", pathStr + dbName + "_" + table.GetName() + "_" + columnName + ".col");
+
+		std::ifstream colFile(pathStr + dbName + "_" + table.GetName() + "_" + columnName + ".col", std::ios::binary);
+
+		int32_t nullIndex = 0;
+
+		int32_t type;
+		colFile.read(reinterpret_cast<char*>(&type), sizeof(int32_t)); //read type of column
+
+		switch (type)
+		{
+			case COLUMN_POLYGON:
+			{
+				ColumnBase<ColmnarDB::Types::ComplexPolygon> columnPolygon(columnName, table.GetBlockSize());
+
+				table.CreateColumn(columnName, COLUMN_POLYGON);
+
+				while (!colFile.eof())
+				{
+					int32_t index;
+					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					int32_t dataLength;
+					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
+
+					if (index != nullIndex) //there is null block
+					{
+						columnPolygon.AddBlock(); //add empty block
+						log_->debug("Added empty block at index: " + nullIndex);
+					}
+					else //read data from block
+					{
+						std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+
+						for (int32_t j = 0; j < dataLength; j++)
+						{
+							int32_t entryByteLength;
+							colFile.read(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //read entry length
+
+							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
+							colFile.read(byteArray.get(), entryByteLength); //read entry data
+
+							ColmnarDB::Types::ComplexPolygon entryDataPolygon;
+
+							entryDataPolygon.ParseFromArray(byteArray.get(), entryByteLength);
+
+							dataPolygon.push_back(entryDataPolygon);
+						}
+
+						columnPolygon.AddBlock(dataPolygon);
+						log_->debug("Added ComplexPolygon block with data at index: " + nullIndex);
+					}
+
+					nullIndex += 1;
+				}
+			}
+			break;
+
+			case COLUMN_POINT:
+			{
+				ColumnBase<ColmnarDB::Types::Point> columnPoint(columnName, table.GetBlockSize());
+
+				table.CreateColumn(columnName, COLUMN_POINT);
+
+				while (!colFile.eof())
+				{
+					int32_t index;
+					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					int32_t dataLength;
+					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
+
+					if (index != nullIndex) //there is null block
+					{
+						columnPoint.AddBlock(); //add empty block
+						log_->debug("Added empty Point block at index: " + nullIndex);
+					}
+					else //read data from block
+					{
+						std::vector<ColmnarDB::Types::Point> dataPoint;
+
+						for (int32_t j = 0; j < dataLength; j++)
+						{
+							int32_t entryByteLength;
+							colFile.read(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //read entry length
+
+							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
+							colFile.read(byteArray.get(), entryByteLength); //read entry data
+
+							ColmnarDB::Types::Point entryDataPoint;
+
+							entryDataPoint.ParseFromArray(byteArray.get(), entryByteLength);
+
+							dataPoint.push_back(entryDataPoint);
+						}
+
+						columnPoint.AddBlock(dataPoint);
+						log_->debug("Added Point block with data at index: " + nullIndex);
+					}
+
+					nullIndex += 1;
+				}
+			}
+			break;
+
+			case COLUMN_STRING:
+			{
+				ColumnBase<std::string> columnString(columnName, table.GetBlockSize());
+
+				table.CreateColumn(columnName, COLUMN_STRING);
+
+				while (!colFile.eof())
+				{
+					int32_t index;
+					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					int32_t dataLength;
+					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
+
+					if (index != nullIndex) //there is null block
+					{
+						columnString.AddBlock(); //add empty block
+						log_->debug("Added empty String block at index: " + nullIndex);
+					}
+					else //read data from block
+					{
+						std::vector<std::string> dataString;
+
+						for (int32_t j = 0; j < dataLength; j++)
+						{
+							int32_t entryByteLength;
+							colFile.read(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //read entry length
+
+							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
+							colFile.read(byteArray.get(), entryByteLength); //read entry data
+
+							std::string entryDataString(byteArray.get());
+							dataString.push_back(entryDataString);
+						}
+
+						columnString.AddBlock(dataString);
+						log_->debug("Added String block with data at index: " + nullIndex);
+					}
+
+					nullIndex += 1;
+				}
+			}
+				break;
+
+			case COLUMN_INT:
+			{
+				ColumnBase<int32_t> columnInt(columnName, table.GetBlockSize());
+
+				table.CreateColumn(columnName, COLUMN_INT);
+
+				while (!colFile.eof())
+				{
+					int32_t index;
+					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					int32_t dataLength;
+					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
+
+					if (index != nullIndex) //there is null block
+					{
+						columnInt.AddBlock(); //add empty block
+						log_->debug("Added empty Int32 block at index: " + nullIndex);
+					}
+					else //read data from block
+					{
+						std::vector<int32_t> dataInt;
+
+						for (int32_t j = 0; j < dataLength; j++)
+						{
+							int32_t entryDataInt;
+							colFile.read(reinterpret_cast<char*>(&entryDataInt), sizeof(int32_t)); //read entry data
+
+							dataInt.push_back(entryDataInt);
+						}
+
+						columnInt.AddBlock(dataInt);
+						log_->debug("Added Int32 block with data at index: " + nullIndex);
+					}
+
+					nullIndex += 1;
+				}
+			}
+				break;
+
+			case COLUMN_LONG:
+			{
+				ColumnBase<int64_t> columnLong(columnName, table.GetBlockSize());
+
+				table.CreateColumn(columnName, COLUMN_LONG);
+
+				while (!colFile.eof())
+				{
+					int32_t index;
+					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					int32_t dataLength;
+					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
+
+					if (index != nullIndex) //there is null block
+					{
+						columnLong.AddBlock(); //add empty block
+						log_->debug("Added empty Int64 block at index: " + nullIndex);
+					}
+					else //read data from block
+					{
+						std::vector<int64_t> dataLong;
+
+						for (int32_t j = 0; j < dataLength; j++)
+						{
+							int64_t entryDataLong;
+							colFile.read(reinterpret_cast<char*>(&entryDataLong), sizeof(int64_t)); //read entry data
+
+							dataLong.push_back(entryDataLong);
+						}
+
+						columnLong.AddBlock(dataLong);
+						log_->debug("Added Int64 block with data at index: " + nullIndex);
+					}
+
+					nullIndex += 1;
+				}
+			}
+			break;
+
+			case COLUMN_FLOAT:
+			{
+				ColumnBase<float> columnFloat(columnName, table.GetBlockSize());
+
+				table.CreateColumn(columnName, COLUMN_FLOAT);
+
+				while (!colFile.eof())
+				{
+					int32_t index;
+					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					int32_t dataLength;
+					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
+
+					if (index != nullIndex) //there is null block
+					{
+						columnFloat.AddBlock(); //add empty block
+						log_->debug("Added empty Float block at index: " + nullIndex);
+					}
+					else //read data from block
+					{
+						std::vector<float> dataFloat;
+
+						for (int32_t j = 0; j < dataLength; j++)
+						{
+							float entryDataFloat;
+							colFile.read(reinterpret_cast<char*>(&entryDataFloat), sizeof(float)); //read entry data
+
+							dataFloat.push_back(entryDataFloat);
+						}
+
+						columnFloat.AddBlock(dataFloat);
+						log_->debug("Added Float block with data at index: " + nullIndex);
+					}
+
+					nullIndex += 1;
+				}
+			}
+				break;
+
+			case COLUMN_DOUBLE:
+			{
+				ColumnBase<double> columnDouble(columnName, table.GetBlockSize());
+
+				table.CreateColumn(columnName, COLUMN_DOUBLE);
+
+				while (!colFile.eof())
+				{
+					int32_t index;
+					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					int32_t dataLength;
+					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
+
+					if (index != nullIndex) //there is null block
+					{
+						columnDouble.AddBlock(); //add empty block
+						log_->debug("Added empty Double block at index: " + nullIndex);
+					}
+					else //read data from block
+					{
+						std::vector<double> dataDouble;
+
+						for (int32_t j = 0; j < dataLength; j++)
+						{
+							double entryDataDouble;
+							colFile.read(reinterpret_cast<char*>(&entryDataDouble), sizeof(double)); //read entry data
+
+							dataDouble.push_back(entryDataDouble);
+						}
+
+						columnDouble.AddBlock(dataDouble);
+						log_->debug("Added Double block with data at index: " + nullIndex);
+					}
+
+					nullIndex += 1;
+				}
+			}
+				break;
+
+			default:
+				throw std::exception("Unsupported data type (when loading database).");
+				break;
+		}
+
+		colFile.close();
+	}
 }
 
+/// <summary>
+/// Creates table with given name and columns.
+/// </summary>
+/// <returns>Newly created table</returns>
+/// <param name="columns">Columns with types.</param>
+/// <param name="tableName">Table name.</param>
+Table & Database::CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName)
+{
+	auto search = tables_.find(tableName);
+
+	if (search != tables_.end())
+	{
+		auto& table = search->second;
+
+		for (const auto& entry : columns)
+		{
+			if (table.ContainsColumn(entry.first))
+			{
+				auto& tableColumns = table.GetColumns();
+
+				if (tableColumns.at(entry.first)->GetColumnType() != entry.second)
+				{
+					throw std::exception("Column type in CreateTable does not match with existing column.");
+				}
+			}
+			else
+			{
+				table.CreateColumn(entry.first, entry.second);
+			}
+		}
+
+		return table;
+	}
+	else
+	{
+		tables_.insert({ tableName,Table(Database::GetDatabaseByName(name_), tableName) });
+		auto& table = tables_.at(tableName);
+
+		for (auto& entry : columns)
+		{
+			table.CreateColumn(entry.first, entry.second);
+		}
+
+		return table;
+	}
+}
+
+/// <summary>
+/// Add database to in memory list
+/// </summary>
+/// <param name="database">Database to add</param>
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
 	loadedDatabases_.insert({ database->name_, database });

@@ -23,7 +23,7 @@ public:
 		data_.reserve(column_.GetBlockSize());
 	}
 
-	explicit BlockBase(const ColumnBase<T>& column) :
+	explicit BlockBase(ColumnBase<T>& column) :
 		column_(column), data_()
 	{
 		data_.reserve(column_.GetBlockSize());
