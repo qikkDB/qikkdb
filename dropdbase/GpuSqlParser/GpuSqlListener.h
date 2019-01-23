@@ -40,6 +40,8 @@ private:
 
     void pushTempResult();
 
+    void pushArgument(const char *token, DataType dataType);
+
     bool isLong(const std::string &value);
 
     bool isDouble(const std::string &value);

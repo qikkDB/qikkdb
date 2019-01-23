@@ -896,12 +896,15 @@ void loadReg(GpuSqlDispatcher &dispatcher);
 template<typename T>
 void retConst(GpuSqlDispatcher &dispatcher)
 {
-
+    T cnst = dispatcher.arguments.read<T>();
+    std::cout << "RET: cnst" << typeid(T).name() << std::endl;
 }
 
 template<typename T>
 void retCol(GpuSqlDispatcher &dispatcher)
 {
+    auto col = dispatcher.arguments.read<std::string>();
+    std::cout << "RET: " << col << std::endl;
 
 }
 
@@ -1019,8 +1022,8 @@ void lessEqualRegReg(GpuSqlDispatcher &dispatcher);
 template<typename T, typename U>
 void equalColConst(GpuSqlDispatcher &dispatcher)
 {
-    auto colName = dispatcher.arguments.read<std::string>();
     U cnst = dispatcher.arguments.read<U>();
+    auto colName = dispatcher.arguments.read<std::string>();
     std::cout << "EqualColConst: " << colName << " " << "const" << std::endl;
 }
 

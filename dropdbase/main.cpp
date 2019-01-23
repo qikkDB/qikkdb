@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 
     memoryStream.insert<int>(5);
     memoryStream.insert<float>(5.5f);
-    memoryStream.insert<std::string>("Hello guys");
+    memoryStream.insert<const std::string&>("Hello guys");
 
     std::cout << memoryStream.read<int>() << std::endl;
     std::cout << memoryStream.read<float>() << std::endl;

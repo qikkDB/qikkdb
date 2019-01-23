@@ -213,6 +213,8 @@ void retReg(GpuSqlDispatcher &dispatcher){
 
 void fil(GpuSqlDispatcher &dispatcher)
 {
+    auto r1 = dispatcher.arguments.read<std::string>();
+    std::cout << "Filter: " << r1 << std::endl;
 
 }
 

@@ -13,11 +13,11 @@
 //}
 
 template<>
-void MemoryStream::insert(std::string &value)
+void MemoryStream::insert(const std::string &value)
 {
     int len = static_cast<int>(value.length());
     insert<int>(len);
-    std::copy(value.data(), value.data() + len * sizeof(char), buffer.end());
+    std::copy(value.begin(), value.end(), std::back_inserter(buffer));
 }
 
 template<>

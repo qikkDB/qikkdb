@@ -34,6 +34,12 @@ public:
         buffer.erase(buffer.begin(), buffer.begin() + sizeof(T));
         return value;
     }
+
 };
 
+template<>
+void MemoryStream::insert(const std::string &value);
+
+template<>
+std::string MemoryStream::read();
 #endif //DROPDBASE_INSTAREA_MEMORYSTREAM_H
