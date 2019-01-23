@@ -23,13 +23,15 @@ __global__ void kernel_reconstruct_col(T *outData, int32_t *outSize, T *ACol, in
 		// Select the elemnts that are "visible" in the mask
 		// If the mask is 1 for the output, use the prefix sum for array compaction
 		// The prefix sum includes values from the input array on the same element so the index has to be modified
-		if (inMask[i] && (prefixSum[i] - 1) >= 0) {
-			outData[prefixSum[i] - 1] = ACol)[i];
+		if (inMask[i] && (prefixSum[i] - 1) >= 0) 
+		{
+			outData[prefixSum[i] - 1] = ACol[i];
 		}
 	}
 
 	// Fetch the size of the output - the last item of the inclusive prefix sum
-	if (idx == 0) {
+	if (idx == 0) 
+	{
 		outSize[0] = prefixSum[dataElementCount - 1];
 	}
 }
@@ -39,11 +41,11 @@ public:
 	template<typename T>
 	static void reconstructCol(T *outData, int32_t *outSize, T *ACol, int8_t *inMask, int32_t dataElementCount)
 	{
-		const Context& context = Context::getInstance();
+		Context& context = Context::getInstance();
 
 		// Malloc a new buffer for the output vector -GPU side
 		T *outDataGPUPointer = nullptr;
-		GPUMemory::alloc(outDataGPUPointer, dataElementCount);
+		GPUMemory::alloc(&outDataGPUPointer, dataElementCount);
 
 		// Call reconstruct col keep
 		reconstructColKeep(outDataGPUPointer, outSize, ACol, inMask, dataElementCount);
@@ -61,7 +63,7 @@ public:
 	template<typename T>
 	static void reconstructColKeep(T *outCol, int32_t *outSize, T *ACol, int8_t *inMask, int32_t dataElementCount)
 	{
-		const Context& context = Context::getInstance();
+		Context& context = Context::getInstance();
 
 		// Typecasted array of bool elements of the inMask
 		int32_t* inMask32Pointer = nullptr;
@@ -73,7 +75,7 @@ public:
 
 		// Malloc a new buffer for the output size
 		int32_t* outSizePointer = nullptr;
-		GPUMemory::alloc(outSizePointer, 1);
+		GPUMemory::alloc(&outSizePointer, 1);
 
 		// Typecast the input mask array
 		GPUTypeWidthManip::convertBuffer(inMask32Pointer, inMask, dataElementCount);
@@ -85,7 +87,7 @@ public:
 
 		// Construct the output based on the prefix sum
 		kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-			(outCol, outSizePointer, ACol, prefixSumPointer, inMask, dataElementCount);
+			(outCol, outSizePointer, ACol, prefixSumPointer, inMask32Pointer, dataElementCount);
 		cudaDeviceSynchronize();
 
 		// Copy the generated output back from the GPU

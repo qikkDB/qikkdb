@@ -26,7 +26,7 @@ public:
 	template<typename T, typename U>
 	static void convertBuffer(T *outData, U *inData, int32_t dataElementCount)
 	{
-		const Context& context = Context::getInstance();
+		Context& context = Context::getInstance();
 
 		kernel_convert_buffer << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(outData, inData, dataElementCount);
