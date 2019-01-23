@@ -93,9 +93,6 @@
     <ClInclude Include="QueryEngine\QueryEngineError.h">
       <Filter>Header Files\QueryEngine</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\EngineCore.h">
-      <Filter>Header Files\QueryEngine</Filter>
-    </ClInclude>
     <ClInclude Include="QueryEngine\Context.h">
       <Filter>Header Files\QueryEngine</Filter>
     </ClInclude>
@@ -132,9 +129,6 @@
       <Filter>Source Files\ProtoBuf</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="QueryEngine\Context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

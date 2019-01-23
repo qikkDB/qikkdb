@@ -24,9 +24,11 @@ __global__ void kernel_convert_buffer(T *outData, U *inData, int32_t dataElement
 class GPUTypeWidthManip {
 public:
 	template<typename T, typename U>
-	void ConvertBuffer(T *outData, U *inData, int32_t dataElementCount) const
+	static void convertBuffer(T *outData, U *inData, int32_t dataElementCount)
 	{
-		kernel_convert_buffer << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		const Context& context = Context::getInstance();
+
+		kernel_convert_buffer << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(outData, inData, dataElementCount);
 	}
 };
