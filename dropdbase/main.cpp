@@ -1,32 +1,37 @@
 #include <cstdio>
-#include <spdlog_setup/conf.h>
-#include <yaml-cpp\yaml.h>
-#include <conio.h>
-#include "Configuration.h"
+#include <iostream>
+#include <chrono>
+#include <spdlog/spdlog.h>
+#include <GpuSqlParser/GpuSqlCustomParser.h>
+#include "GpuSqlParser/MemoryStream.h"
 
-
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-	try {
-		spdlog_setup::from_file("../configuration/log_config.toml"); // configure logger
-		auto log_ = spdlog::get("root"); // get logger
-		log_->info("Application started.");
+    spdlog::info("Application Starting");
 
-		// TODO main loop
+    auto start = std::chrono::high_resolution_clock::now();
 
-		log_->info("Application exited.");
-	}
-	catch (const spdlog_setup::setup_error &exception) { // log config file not found
-		fprintf(stderr, "Cannot setup logger: %s\n", exception.what());
-	}
-	catch (const std::exception &exception) {
-		fprintf(stderr, "Exception: %s\n", exception.what());
-	}
+    std::shared_ptr<Database> database(new Database());
 
-	// configuration usage
-	fprintf(stdout, "Is using GPU? %d\n", Configuration::GetInstance().IsUsingGPU());
-		
-	_getch();
+    GpuSqlCustomParser parser(database, "SELECT abc.b FROM abc WHERE ((abc.a = 1) AND (abc.b = 2)) OR (abc.c = 3);");
+    parser.parse();
 
-	return 0;
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double> elapsed(end - start);
+
+    std::cout << "Elapsed time: " << elapsed.count() << " s\n";
+
+    MemoryStream memoryStream;
+
+    memoryStream.insert<int>(5);
+    memoryStream.insert<float>(5.5f);
+    memoryStream.insert<const std::string&>("Hello guys");
+
+    std::cout << memoryStream.read<int>() << std::endl;
+    std::cout << memoryStream.read<float>() << std::endl;
+    std::cout << memoryStream.read<std::string>() << std::endl;
+
+
+    return 0;
 }
