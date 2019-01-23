@@ -126,7 +126,7 @@ class GPUFilterConst {
 public:
 	// Operator >
 	template<typename T, typename U>
-	void gt(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) const {
+	static void gt(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) {
 		kernel_gt_const<T, U> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
 		cudaDeviceSynchronize();
@@ -135,7 +135,7 @@ public:
 
 	// Operator <
 	template<typename T, typename U>
-	void lt(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) const {
+	static void lt(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) {
 		kernel_lt_const<T, U> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
 		cudaDeviceSynchronize();
@@ -144,7 +144,7 @@ public:
 
 	// Operator >=
 	template<typename T, typename U>
-	void gtEq(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) const {
+	static void gtEq(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) {
 		kernel_gt_eq_const<T, U> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
 		cudaDeviceSynchronize();
@@ -153,7 +153,7 @@ public:
 
 	// Operator <=
 	template<typename T, typename U>
-	void ltEq(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) const {
+	static void ltEq(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) {
 		kernel_lt_eq_const<T, U> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
 		cudaDeviceSynchronize();
@@ -162,7 +162,7 @@ public:
 
 	// Operator ==
 	template<typename T, typename U>
-	void eq(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) const {
+	static void eq(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) {
 		kernel_eq_const<T, U> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
 		cudaDeviceSynchronize();
@@ -171,7 +171,7 @@ public:
 
 	// Operator !=
 	template<typename T, typename U>
-	void nonEq(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) const {
+	static void nonEq(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount) {
 		kernel_non_eq_const<T, U> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
 		cudaDeviceSynchronize();
