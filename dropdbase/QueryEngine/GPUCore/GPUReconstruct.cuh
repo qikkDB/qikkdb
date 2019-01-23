@@ -1,12 +1,12 @@
 #ifndef GPU_RECONSTRUCT_CUH
 #define GPU_RECONSTRUCT_CUH
 
-#include "cuda.h"
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 
-#include "thrust/scan.h"
-#include "thrust/execution_policy.h"
+#include <thrust/scan.h>
+#include <thrust/execution_policy.h>
 
 #include "../Context.h"
 #include "GPUMemory.cuh"

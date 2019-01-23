@@ -1,11 +1,11 @@
 #ifndef GPU_LOGIC_CUH
 #define GPU_LOGIC_CUH
 
-#include <stdint.h>
+#include <cstdint>
 
-#include "cuda.h"
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 
 /// <summary>
 /// Bitwise AND operation kernel between query result Cols

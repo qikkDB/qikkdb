@@ -1,10 +1,11 @@
 #ifndef GPU_MEMORY_CUH
 #define GPU_MEMORY_CUH
 
-#include <stdint.h>
+#include <cstdint>
 
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
