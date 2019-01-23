@@ -32,7 +32,10 @@ private:
 	std::vector<cudaDeviceProp> devicesMetaInfo_;
 
 	// Meyer's singleton
-	Context() : queried_block_dimension_(DEFAULT_BLOCK_DIMENSION) {};
+	Context() : queried_block_dimension_(DEFAULT_BLOCK_DIMENSION) 
+	{
+		// TODO - Add device detection
+	};
 	~Context() = default;
 	Context(const Context&) = delete;
 	Context& operator=(const Context&) = delete;

@@ -66,9 +66,6 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
-      <Filter>Header Files\QueryEngine\GPUCore</Filter>
-    </ClInclude>
     <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
@@ -99,6 +96,9 @@
     <ClInclude Include="QueryEngine\CudaMemAllocator.h">
       <Filter>Header Files\QueryEngine</Filter>
     </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp">
@@ -128,13 +128,13 @@
     <ClCompile Include="Types\Point.pb.cc">
       <Filter>Source Files\ProtoBuf</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="QueryEngine\CudaMemAllocator.cu">
       <Filter>Header Files\QueryEngine</Filter>
+    </CudaCompile>
+    <CudaCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>
 </Project>
