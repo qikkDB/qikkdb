@@ -85,7 +85,7 @@ public:
 
 		// Construct the output based on the prefix sum
 		kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-			(outCol, outSizePointer, ACol, prefixSumPointer, inMask32, dataElementCount);
+			(outCol, outSizePointer, ACol, prefixSumPointer, inMask, dataElementCount);
 		cudaDeviceSynchronize();
 
 		// Copy the generated output back from the GPU
@@ -99,7 +99,6 @@ public:
 		// Get last error
 		context.getLastError().setCudaError(cudaGetLastError());
 	}
-
 };
 
 #endif

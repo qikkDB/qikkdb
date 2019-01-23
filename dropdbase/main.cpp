@@ -7,6 +7,7 @@ int main(int argc, char** argv)
 
 	int32_t *foo;
 	GPUMemory::alloc(&foo, 1);
+	GPUMemory::fill(foo, 0, 1);
 
 	GPUMemory::free(foo);
 
