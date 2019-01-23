@@ -14,6 +14,14 @@
 class GPUMemory {
 public:
 	// Memory allocation
+	/// <summary>
+	/// Memory allocation of block on the GPU with the respective size of the input parameter type
+	/// </summary>
+	/// <param name="p_Block">pointer to pointer wich will points to allocated memory block on the GPU</param>
+	/// <param name="dataType">type of the resulting buffer</param>
+	/// <param name="size">count of elements in the block</param>
+	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
+	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
 	template<typename T>
 	static void alloc(T **p_Block, int32_t dataElementCount)
 	{
@@ -22,6 +30,15 @@ public:
 	}
 
 	// malloc + memset
+	/// <summary>
+	/// Memory allocation of block on the GPU with the respective size of the input parameter type
+	/// </summary>
+	/// <param name="p_Block">pointer to pointer wich will points to allocated memory block on the GPU</param>
+	/// <param name="dataType">type of the resulting buffer</param>
+	/// <param name="size">count of elements in the block</param>
+	/// <param name="value">value to set the memory to (always has to be int, because of cudaMemset)</param>
+	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
+	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
 	template<typename T>
 	static void allocAndSet(T **p_Block, T value, int32_t dataElementCount)
 	{
@@ -42,6 +59,15 @@ public:
 	}
 
 	// Moving data from host to device
+		/// <summary>
+	/// Copy memory block with dataType numbers from host (RAM, CPU's memory) to device (GPU's memory).
+	/// </summary>
+	/// <param name="p_BlockDevice">pointer to memory block on device</param>
+	/// <param name="p_BlockHost">pointer to memory block on host</param>
+	/// <param name="dataType">type of the elements buffer</param>
+	/// <param name="size">count of int8_t numbers</param>
+	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
+	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
 	template<typename T>
 	static void copyHostToDevice(T *p_BlockDevice, T *p_BlockHost, int32_t dataElementCount)
 	{
@@ -50,6 +76,15 @@ public:
 	}
 
 	// Moving data from device to host
+		/// <summary>
+	/// Copy memory block with dataType numbers from device (GPU's memory) to host (RAM, CPU's memory).
+	/// </summary>
+	/// <param name="p_BlockHost">pointer to memory block on host</param>
+	/// <param name="p_BlockDevice">pointer to memory block on device</param>
+	/// <param name="dataType">type of the elements buffer</param>
+	/// <param name="size">count of int8_t numbers</param>
+	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
+	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
 	template<typename T>
 	static void copyDeviceToHost(T *p_BlockHost, T *p_BlockDevice, int32_t dataElementCount)
 	{
@@ -58,6 +93,12 @@ public:
 	}
 
 	// Freeing data
+		/// <summary>
+	/// Free memory block from GPU's memory
+	/// </summary>
+	/// <param name="p_Block">pointer to memory block (on GPU memory)</param>
+	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
+	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
 	template<typename T>
 	static void free(T *p_block)
 	{
