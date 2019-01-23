@@ -10,11 +10,11 @@
 #include <iostream>
 #include <memory>
 #include <array>
-#include "Types/ComplexPolygon.pb.h"
-#include "Types/Point.pb.h"
 #include "MemoryStream.h"
+#include "../Types/ComplexPolygon.pb.h"
+#include "../Types/Point.pb.h"
 #include "../DataType.h"
-#include "Database.h"
+#include "../Database.h"
 
 class GpuSqlDispatcher;
 

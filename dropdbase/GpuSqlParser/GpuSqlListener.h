@@ -6,12 +6,12 @@
 #define DROPDBASE_INSTAREA_GPUSQLLISTENER_H
 
 #include "GpuSqlParserBaseListener.h"
-#include "Database.h"
 #include "GpuSqlDispatcher.h"
-#include "../DataType.h"
 #include "ParserExceptions.h"
-#include "PointFactory.h"
-#include "ComplexPolygonFactory.h"
+#include "../Database.h"
+#include "../DataType.h"
+#include "../PointFactory.h"
+#include "../ComplexPolygonFactory.h"
 #include <unordered_set>
 #include <functional>
 #include <string>

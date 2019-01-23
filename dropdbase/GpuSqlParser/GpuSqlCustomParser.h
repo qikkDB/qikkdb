@@ -5,12 +5,12 @@
 #ifndef DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 #define DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 
-#include "GpuSqlParser/GpuSqlParser.h"
-#include "GpuSqlParser/GpuSqlLexer.h"
-#include "Database.h"
+#include "GpuSqlParser.h"
+#include "GpuSqlLexer.h"
+#include "GpuSqlListener.h"
 #include "ParserExceptions.h"
 #include "QueryType.h"
-#include "GpuSqlListener.h"
+#include "../Database.h"
 #include <string>
 #include <memory>
 

@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <iostream>
 #include <chrono>
-#include <GpuSqlParser/GpuSqlCustomParser.h>
+#include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "GpuSqlParser/MemoryStream.h"
 #include <boost/log/core.hpp>
 #include <boost/log/sinks/text_file_backend.hpp>
