@@ -9,7 +9,7 @@
 class QueryEngineError {
 public:
 	enum Type {
-		GPU_EXTENSION_SUCCESS,					// Return code for successful operations
+		GPU_EXTENSION_SUCCESS = 0,				// Return code for successful operations
 		GPU_EXTENSION_ERROR,					// Return code for all CUDA errors
 		GPU_DIVISION_BY_ZERO_ERROR,				// Return code for division by zero
 		GPU_INTEGER_OVERFLOW_ERROR,				// Return code for integer overflow
@@ -30,9 +30,11 @@ public:
 		{
 		case cudaSuccess:
 			type_ = GPU_EXTENSION_SUCCESS;
+			break;
 		default:
 			type_ = GPU_EXTENSION_ERROR;
 			text_ = cudaGetErrorString(cudaError);
+			break;
 		}
 	}
 

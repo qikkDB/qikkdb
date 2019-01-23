@@ -26,7 +26,7 @@ const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColum
 
 Table::Table(const std::shared_ptr<Database> &database, const char* name) : database(database), name(name)
 {
-	//blockSize = database.GetBlockSize();
+	blockSize = database->GetBlockSize();
 }
 
 void Table::CreateColumn(const char* columnName, DataType columnType)
