@@ -89,6 +89,7 @@
     <ClInclude Include="NativeGeoPoint.h" />
     <ClInclude Include="PointFactory.h" />
     <ClInclude Include="QueryEngine\Context.h" />
+    <ClInclude Include="QueryEngine\CudaMemAllocator.h" />
     <ClInclude Include="QueryEngine\EngineCore.h" />
     <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh" />
@@ -117,6 +118,9 @@
     <ClCompile Include="QueryEngine\Context.cpp" />
     <ClCompile Include="Types\ComplexPolygon.pb.cc" />
     <ClCompile Include="Types\Point.pb.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="QueryEngine\CudaMemAllocator.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

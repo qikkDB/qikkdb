@@ -99,6 +99,9 @@
     <ClInclude Include="QueryEngine\Context.h">
       <Filter>Header Files\QueryEngine</Filter>
     </ClInclude>
+    <ClInclude Include="QueryEngine\CudaMemAllocator.h">
+      <Filter>Header Files\QueryEngine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp">
@@ -134,5 +137,10 @@
     <ClCompile Include="QueryEngine\Context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="QueryEngine\CudaMemAllocator.cu">
+      <Filter>Header Files\QueryEngine</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
