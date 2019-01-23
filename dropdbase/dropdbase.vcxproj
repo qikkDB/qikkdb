@@ -100,9 +100,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -149,7 +150,11 @@
     <ClInclude Include="ColumnBase.h" />
     <ClInclude Include="ComplexPolygonFactory.h" />
     <ClInclude Include="Configuration.h" />
+    <ClInclude Include="Database.h" />
+    <ClInclude Include="DatabaseGenerator.h" />
+    <ClInclude Include="DataType.h" />
     <ClInclude Include="IBlock.h" />
+    <ClInclude Include="IColumn.h" />
     <ClInclude Include="messages\CSVImportMessage.pb.h" />
     <ClInclude Include="messages\InfoMessage.pb.h" />
     <ClInclude Include="messages\QueryMessage.pb.h" />
@@ -157,12 +162,15 @@
     <ClInclude Include="messages\SetDatabaseMessage.pb.h" />
     <ClInclude Include="NativeGeoPoint.h" />
     <ClInclude Include="PointFactory.h" />
+    <ClInclude Include="Table.h" />
     <ClInclude Include="Types\ComplexPolygon.pb.h" />
     <ClInclude Include="Types\Point.pb.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp" />
     <ClCompile Include="Configuration.cpp" />
+    <ClCompile Include="Database.cpp" />
+    <ClCompile Include="DatabaseGenerator.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="messages\InfoMessage.pb.cc" />
@@ -170,6 +178,7 @@
     <ClCompile Include="messages\QueryResponseMessage.pb.cc" />
     <ClCompile Include="messages\SetDatabaseMessage.pb.cc" />
     <ClCompile Include="PointFactory.cpp" />
+    <ClCompile Include="Table.cpp" />
     <ClCompile Include="Types\ComplexPolygon.pb.cc" />
     <ClCompile Include="Types\Point.pb.cc" />
   </ItemGroup>

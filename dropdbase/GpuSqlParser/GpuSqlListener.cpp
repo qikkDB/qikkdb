@@ -372,6 +372,7 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
             dispatcher.addArgument<const std::string&>(token);
             break;
         case DataType::DATA_TYPE_SIZE:
+        case DataType::ERROR:
             break;
     }
 

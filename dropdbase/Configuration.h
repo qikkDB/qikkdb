@@ -1,6 +1,7 @@
 #pragma once
-#include <yaml-cpp\yaml.h>
-#include <spdlog_setup/conf.h>
+#include <yaml-cpp/yaml.h>
+#include <boost/log/trivial.hpp>
+
 
 class Configuration
 {
@@ -13,12 +14,8 @@ public:
 
 private:
 	Configuration() {
-		log_ = spdlog::get("root");
 		this->LoadConfigurationFile();
 	}
-	
-	// logger
-	std::shared_ptr<spdlog::logger> log_;
 	
 	// parsed YAML file
 	YAML::Node yamlParsed_;
@@ -48,14 +45,14 @@ private:
 		if (yamlParsed_[entryKey]) {
 			try {
 				configurationValue = yamlParsed_[entryKey].as<T>();
-				log_->info("Configuration entry loaded. {}: {}", entryKey, configurationValue);
+				BOOST_LOG_TRIVIAL(info) << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
 			}
 			catch (YAML::TypedBadConversion<T>& e) {
-				log_->warn("Configuration entry wrong conversion, using default value.");
+				BOOST_LOG_TRIVIAL(warning) << "Configuration entry wrong conversion, using default value." << std::endl;
 			}			
 		}
 		else {
-			log_->warn("Configuration entry not found, using default value.");
+            BOOST_LOG_TRIVIAL(warning) << "Configuration entry not found, using default value." << std::endl;
 		}
 	}
 

@@ -4,7 +4,7 @@ template <class T>
 class IBlock
 {
 public:
-	virtual std::vector<T> GetData() const = 0;
+	virtual std::vector<T>& GetData() = 0;
 
 	virtual int EmptyBlockSpace() const = 0;
 

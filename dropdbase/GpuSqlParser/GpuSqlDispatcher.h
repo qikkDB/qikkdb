@@ -13,7 +13,7 @@
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 #include "MemoryStream.h"
-#include "DataType.h"
+#include "../DataType.h"
 #include "Database.h"
 
 class GpuSqlDispatcher;

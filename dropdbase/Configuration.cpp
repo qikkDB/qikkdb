@@ -1,5 +1,6 @@
 #include "Configuration.h"
 
+
 /// <summary>
 /// Loads configuration YAML file, parses it and sets configuration values
 /// </summary>
@@ -10,10 +11,10 @@ void Configuration::LoadConfigurationFile()
 		yamlParsed_ = YAML::LoadFile(this->configurationFile);
 	}
 	catch (YAML::ParserException& e) {
-		log_->info("Configuration file could not be parsed. Using default values.");
+		BOOST_LOG_TRIVIAL(info) << "Configuration file could not be parsed. Using default values." << std::endl;
 	}
 	catch (YAML::BadFile& e) {
-		log_->info("Configuration file could not found. Using default values.");
+		BOOST_LOG_TRIVIAL(info) << "Configuration file could not found. Using default values." << std::endl;
 	}
 
 	// setting particular YAML entries into configuration values
@@ -27,4 +28,3 @@ void Configuration::LoadConfigurationFile()
 	this->SetupConfigurationValue("ListenPort", this->listenPort_);
 	this->SetupConfigurationValue("Timeout", this->timeout_);
 }
-

@@ -8,7 +8,7 @@
 #include "GpuSqlParserBaseListener.h"
 #include "Database.h"
 #include "GpuSqlDispatcher.h"
-#include "DataType.h"
+#include "../DataType.h"
 #include "ParserExceptions.h"
 #include "PointFactory.h"
 #include "ComplexPolygonFactory.h"

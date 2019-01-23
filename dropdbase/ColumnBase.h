@@ -7,31 +7,35 @@
 #include "BlockBase.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
+#include "IColumn.h"
 
 template<class T>
-class ColumnBase
+class ColumnBase : public IColumn
 {
 private:
 	std::string name_;
 	int blockSize_;
-	std::type_info dataType_;
-	std::vector<IBlock<T>> blocks_;
+	std::vector<std::unique_ptr<IBlock<T>>> blocks_;
 
 	std::vector<T> NullArray(int length);
 public:
-	ColumnBase(const std::string& name, int blockSize)	:
-		name_(name), blockSize_(blockSize), dataType_(typeid(T)), blocks_()
+	ColumnBase(const std::string& name, int blockSize) :
+		name_(name), blockSize_(blockSize), blocks_()
 	{
 	}
 
 	inline int GetBlockSize() const { return blockSize_; };
-	inline const std::string& GetName() const { return name_; };
+
+	virtual const std::string& GetName() const override
+	{
+		return name_;
+	}
 
 	/// <summary>
 	/// Blocks getter
 	/// </summary>
 	/// <returns>List of blocks in current column</returns>
-	const std::vector<IBlock<T>>& GetBlocksList() const
+	const std::vector<std::unique_ptr<IBlock<T>>>& GetBlocksList() const
 	{
 		return blocks_;
 	};
@@ -42,8 +46,8 @@ public:
 	/// <returns>Last block of column</returns>
 	const BlockBase<T>& AddBlock()
 	{
-		blocks_.emplace_back(*this);
-		return blocks_.back();
+		blocks_.push_back(std::make_unique<BlockBase<T>>(*this));
+		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
 	}
 
 	/// <summary>
@@ -53,8 +57,8 @@ public:
 	/// <returns>Last block of column</returns>
 	const BlockBase<T>& AddBlock(const std::vector<T>& data)
 	{
-		blocks_.emplace_back(data, *this);
-		return blocks_.back();
+		blocks_.push_back(std::make_unique<BlockBase<T>>(data, *this));
+		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
 	}
 
 
@@ -65,16 +69,16 @@ public:
 	void InsertData(const std::vector<T>& columnData)
 	{
 		int startIdx = 0;
-		if (blocks_.size() > 0 && !blocks_.back().IsFull())
+		if (blocks_.size() > 0 && !blocks_.back()->IsFull())
 		{
 			auto & lastBlock = blocks_.back();
-			if (columnData.size() <= lastBlock.EmpyBlockSpace())
+			if (columnData.size() <= lastBlock->EmptyBlockSpace())
 			{
-				lastBlock.InsertData(columnData);
+				lastBlock->InsertData(columnData);
 				return;
 			}
-			int emptySpace = lastBlock.EmptyBlockSpace();
-			lastBlock.InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
+			int emptySpace = lastBlock->EmptyBlockSpace();
+			lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
 			startIdx += emptySpace;
 		}
 
@@ -98,7 +102,7 @@ public:
 		auto floatBlocks = GetBlocksList();
 		for (const auto & block : floatBlocks)
 		{
-			for (const auto & dataPoint : block.GetData())
+			for (const auto & dataPoint : block->GetData())
 			{
 				dataSet.insert(dataPoint);
 			}
@@ -116,47 +120,20 @@ public:
 	}
 
 	/// <summary>
-	/// Returns type of ColumnBase
-	/// </summary>
-	/// <returns>Type of current column</returns>
-	std::type_info GetColumnType() const
+/// Returns type of ColumnBase
+/// </summary>
+/// <returns>Type of current column</returns>
+	virtual DataType GetColumnType() const override
 	{
-		return dataType_;
+		typedef typename std::conditional<std::is_same<T, int>::value, std::integral_constant<DataType, COLUMN_INT>,
+			typename std::conditional<std::is_same<T, int64_t>::value, std::integral_constant<DataType, COLUMN_LONG>,
+			typename std::conditional<std::is_same<T, float>::value, std::integral_constant<DataType, COLUMN_FLOAT>,
+			typename std::conditional<std::is_same<T, double>::value, std::integral_constant<DataType, COLUMN_DOUBLE>,
+			typename std::conditional<std::is_same<T, ColmnarDB::Types::Point>::value, std::integral_constant<DataType, COLUMN_POINT>,
+			typename std::conditional<std::is_same<T, ColmnarDB::Types::ComplexPolygon>::value, std::integral_constant<DataType, COLUMN_POLYGON>,
+			typename std::conditional<std::is_same<T, std::string>::value, std::integral_constant<DataType, COLUMN_STRING>,
+			typename std::conditional<std::is_same<T, bool>::value, std::integral_constant<DataType, COLUMN_BOOL>,
+			std::integral_constant<DataType, ERROR> >::type>::type>::type>::type>::type>::type>::type>::type retConst;
+		return retConst::value;
 	};
 };
-
-template<>
-std::vector<int> ColumnBase<int>::NullArray(int length)
-{
-	return std::vector<int>(length, 0);
-}
-
-template<>
-std::vector<float> ColumnBase<float>::NullArray(int length)
-{
-	return std::vector<float>(length, 0);
-}
-
-template<>
-std::vector<long long> ColumnBase<long long>::NullArray(int length)
-{
-	return std::vector<long long>(length, 0);
-}
-
-template<>
-std::vector<double> ColumnBase<double>::NullArray(int length)
-{
-	return std::vector<double>(length, 0);
-}
-
-template<>
-std::vector<ColmnarDB::Types::Point> ColumnBase<ColmnarDB::Types::Point>::NullArray(int length)
-{
-	return std::vector<ColmnarDB::Types::Point>(length, ColmnarDB::Types::Point());
-}
-
-template<>
-std::vector<ColmnarDB::Types::ComplexPolygon> ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(int length)
-{
-	return std::vector<ColmnarDB::Types::ComplexPolygon>(length, ColmnarDB::Types::ComplexPolygon());
-}
