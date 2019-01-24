@@ -148,6 +148,23 @@
     <ClInclude Include="GpuSqlParser\QueryType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Table.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataType.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Configuration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IColumn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Configuration.h" />
+    <ClInclude Include="DataType.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp">
@@ -219,5 +236,8 @@
     <CudaCompile Include="QueryEngine\CudaMemAllocator.cu">
       <Filter>Header Files\QueryEngine</Filter>
     </CudaCompile>
+    <ClCompile Include="ColumnBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <yaml-cpp/yaml.h>
 #include <boost/log/trivial.hpp>
 

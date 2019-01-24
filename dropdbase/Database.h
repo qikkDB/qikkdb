@@ -1,9 +1,10 @@
 #pragma once
 
 #include <unordered_map>
-#include "DataType.h"
 #include <memory>
 #include <string>
+
+#include "DataType.h"
 
 class Table;
 
@@ -17,7 +18,7 @@ class Database
 private:
 	static std::unordered_map<std::string, std::shared_ptr<Database>> loadedDatabases_;
 	std::string name_;
-	unsigned int blockSize_;
+	int32_t blockSize_;
 	std::unordered_map<std::string, Table> tables_;
 
 public:
@@ -26,7 +27,7 @@ public:
 	/// </summary>
 	/// <param name="databaseName">Database name.</param>
 	/// <param name="blockSize">Block size of all blocks in this database</param>
-	Database(const char* databaseName, int blockSize = 1024);
+	Database(const char* databaseName, int32_t blockSize = 1024);
 
 	~Database();
 
@@ -66,7 +67,7 @@ public:
 	/// <param name="path">Path directory, where column files (*.col) are.</param>
 	/// <param name="table">Instance of table into which the columns should be added.</param>
 	/// <param name="columnNames">Names of particular columns.</param>
-	static void LoadColumns(const char* path, const char* dbName, Table table, const std::vector<std::string>& columnNames);
+	static void LoadColumns(const char* path, const char* dbName, Table& table, const std::vector<std::string>& columnNames);
 
 	/// <summary>
 	/// Creates table with given name and columns.

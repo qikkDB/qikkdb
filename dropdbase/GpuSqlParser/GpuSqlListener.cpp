@@ -211,10 +211,10 @@ void GpuSqlListener::exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx)
     std::string token = ctx->getText();
     if (isLong(token))
     {
-        parserStack.push(std::make_tuple(token, DataType::LONG));
+        parserStack.push(std::make_tuple(token, DataType::CONST_LONG));
     } else
     {
-        parserStack.push(std::make_tuple(token, DataType::INT));
+        parserStack.push(std::make_tuple(token, DataType::CONST_INT));
     }
 }
 
@@ -223,22 +223,22 @@ void GpuSqlListener::exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx
     std::string token = ctx->getText();
     if (isDouble(token))
     {
-        parserStack.push(std::make_tuple(token, DataType::DOUBLE));
+        parserStack.push(std::make_tuple(token, DataType::CONST_DOUBLE));
     } else
     {
-        parserStack.push(std::make_tuple(token, DataType::FLOAT));
+        parserStack.push(std::make_tuple(token, DataType::CONST_FLOAT));
     }
 }
 
 void GpuSqlListener::exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx)
 {
-    parserStack.push(std::make_tuple(ctx->getText(), DataType::STRING));
+    parserStack.push(std::make_tuple(ctx->getText(), DataType::CONST_STRING));
 }
 
 
 void GpuSqlListener::exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx)
 {
-    parserStack.push(std::make_tuple(ctx->getText(), DataType::BOOLEAN));
+    parserStack.push(std::make_tuple(ctx->getText(), DataType::CONST_BOOLEAN));
 }
 
 void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
@@ -265,10 +265,10 @@ void GpuSqlListener::exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx)
 
     if (isPolygon(geoValue))
     {
-        parserStack.push(std::make_tuple(geoValue, DataType::POLYGON));
+        parserStack.push(std::make_tuple(geoValue, DataType::CONST_POLYGON));
     } else if (isPoint(geoValue))
     {
-        parserStack.push(std::make_tuple(geoValue, DataType::POINT));
+        parserStack.push(std::make_tuple(geoValue, DataType::CONST_POINT));
     }
 }
 
@@ -344,22 +344,22 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
 {
     switch (dataType)
     {
-        case DataType::INT:
+        case DataType::CONST_INT:
             dispatcher.addArgument<int32_t>(std::stoi(token));
             break;
-        case DataType::LONG:
+        case DataType::CONST_LONG:
             dispatcher.addArgument<int64_t>(std::stol(token));
             break;
-        case DataType::FLOAT:
+        case DataType::CONST_FLOAT:
             dispatcher.addArgument<float>(std::stof(token));
             break;
-        case DataType::DOUBLE:
+        case DataType::CONST_DOUBLE:
             dispatcher.addArgument<double>(std::stod(token));
             break;
-        case DataType::POINT:
-        case DataType::POLYGON:
-        case DataType::STRING:
-        case DataType::BOOLEAN:
+        case DataType::CONST_POINT:
+        case DataType::CONST_POLYGON:
+        case DataType::CONST_STRING:
+        case DataType::CONST_BOOLEAN:
         case DataType::COLUMN_INT:
         case DataType::COLUMN_LONG:
         case DataType::COLUMN_FLOAT:
@@ -372,7 +372,7 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
             dispatcher.addArgument<const std::string&>(token);
             break;
         case DataType::DATA_TYPE_SIZE:
-        case DataType::ERROR:
+        case DataType::CONST_ERROR:
             break;
     }
 

@@ -27,4 +27,5 @@ void Configuration::LoadConfigurationFile()
 	this->SetupConfigurationValue("ListenIP", this->listenIP_);
 	this->SetupConfigurationValue("ListenPort", this->listenPort_);
 	this->SetupConfigurationValue("Timeout", this->timeout_);
+
 }

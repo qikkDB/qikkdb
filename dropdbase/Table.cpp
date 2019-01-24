@@ -70,7 +70,7 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 
 void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 {
-	for(const auto& column : columns)
+	for (const auto& column : columns)
 	{
 		std::string columnName = column.first;
 		auto search = data.find(columnName);

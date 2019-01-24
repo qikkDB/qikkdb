@@ -33,7 +33,7 @@ public:
 	{
 		return data_;
 	}
-	
+
 	virtual int EmptyBlockSpace() const override
 	{
 		return column_.GetBlockSize() - data_.size();

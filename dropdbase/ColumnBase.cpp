@@ -1,5 +1,5 @@
 //
-// Created by Jakub VeselÃ½ on 2019-01-21.
+// Created by Jakub Veselı on 2019-01-21.
 //
 #include "ColumnBase.h"
 

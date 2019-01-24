@@ -133,7 +133,7 @@ public:
 			typename std::conditional<std::is_same<T, ColmnarDB::Types::ComplexPolygon>::value, std::integral_constant<DataType, COLUMN_POLYGON>,
 			typename std::conditional<std::is_same<T, std::string>::value, std::integral_constant<DataType, COLUMN_STRING>,
 			typename std::conditional<std::is_same<T, bool>::value, std::integral_constant<DataType, COLUMN_BOOL>,
-			std::integral_constant<DataType, ERROR> >::type>::type>::type>::type>::type>::type>::type>::type retConst;
+			std::integral_constant<DataType, CONST_ERROR> >::type>::type>::type>::type>::type>::type>::type>::type retConst;
 		return retConst::value;
 	};
 };
