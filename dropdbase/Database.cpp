@@ -1,17 +1,16 @@
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <fstream>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <cstdint>
 #include <stdexcept>
+#include <boost/log/trivial.hpp>
 
 #include "Database.h"
 #include "Configuration.h"
 #include "ColumnBase.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Table.h"
-
-const std::shared_ptr<spdlog::logger>& Database::log_ = spdlog::get("root");
 
 std::unordered_map<std::string, std::shared_ptr<Database>> Database::loadedDatabases_;
 
@@ -36,15 +35,15 @@ void Database::Persist(const char* path)
 	auto& name = GetName();
 	auto pathStr = std::string(path);
 
-	log_->info("Saving database with name: '{}' and {} tables.", name, tables.size());
+	BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size() << "tables." << std::endl;
 
-	if (std::filesystem::create_directory(path))
+	if (boost::filesystem::create_directory(path))
 	{
 		int32_t blockSize = GetBlockSize();
 		int32_t tableSize = tables.size();
 
 		//write file .db
-		log_->debug("Saving .db file with name: '{}'", pathStr + name + ".db");
+		BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr + name << " .db" << std::endl;
 		std::ofstream dbFile(pathStr + name + ".db", std::ios::binary);
 
 		int32_t dbNameLength = name.length();
@@ -79,7 +78,7 @@ void Database::Persist(const char* path)
 
 			for (const auto& column : columns)
 			{
-				log_->debug("Saving .col file with name: '{}'", pathStr + name + "_" + table.first + "_" + column.second->GetName() + ".col");
+				BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr + name << "_" << table.first << "_" << column.second->GetName() << " .col" << std::endl;
 
 				std::ofstream colFile(pathStr + name + "_" + table.first + "_" + column.second->GetName() + ".col", std::ios::binary);
 
@@ -97,7 +96,7 @@ void Database::Persist(const char* path)
 
 					for (const auto& block : colPolygon.GetBlocksList())
 					{
-						log_->debug("Saving block of ComplexPolygon data with index = {}.", index);
+						BOOST_LOG_TRIVIAL(debug) << "Saving block of ComplexPolygon data with index = " << index << "." << std::endl;
 
 						auto& data = block->GetData();
 						int32_t dataLength = data.size();
@@ -130,7 +129,7 @@ void Database::Persist(const char* path)
 
 					for (const auto& block : colPoint.GetBlocksList())
 					{
-						log_->debug("Saving block of Point data with index = {}.", index);
+						BOOST_LOG_TRIVIAL(debug) << "Saving block of Point data with index = " << index << "." << std::endl;
 
 						auto& data = block->GetData();
 						int32_t dataLength = data.size();
@@ -163,7 +162,7 @@ void Database::Persist(const char* path)
 
 					for (const auto& block : colStr.GetBlocksList())
 					{
-						log_->debug("Saving block of String data with index = {}.", index);
+						BOOST_LOG_TRIVIAL(debug) << "Saving block of String data with index = " << index << "." << std::endl;
 
 						auto& data = block->GetData();
 						int32_t dataLength = data.size();
@@ -193,7 +192,7 @@ void Database::Persist(const char* path)
 
 					for (const auto& block : colInt.GetBlocksList())
 					{
-						log_->debug("Saving block of Int32 data with index = {}.", index);
+						BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index << "." << std::endl;
 
 						auto& data = block->GetData();
 						int32_t dataLength = data.size();
@@ -220,7 +219,7 @@ void Database::Persist(const char* path)
 
 					for (const auto& block : colLong.GetBlocksList())
 					{
-						log_->debug("Saving block of Int64 data with index = {}.", index);
+						BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index << "." << std::endl;
 
 						auto& data = block->GetData();
 						int32_t dataLength = data.size();
@@ -247,7 +246,7 @@ void Database::Persist(const char* path)
 
 					for (const auto& block : colFloat.GetBlocksList())
 					{
-						log_->debug("Saving block of Float data with index = {}.", index);
+						BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index << "." << std::endl;
 
 						auto& data = block->GetData();
 						int32_t dataLength = data.size();
@@ -274,7 +273,7 @@ void Database::Persist(const char* path)
 
 					for (const auto& block : colDouble.GetBlocksList())
 					{
-						log_->debug("Saving block of Double data with index = {}.", index);
+						BOOST_LOG_TRIVIAL(debug) << "Saving block of Double data with index = " << index << "." << std::endl;
 
 						auto& data = block->GetData();
 						int32_t dataLength = data.size();
@@ -302,11 +301,11 @@ void Database::Persist(const char* path)
 			}
 		}
 
-		log_->info("Database '{}' was successfully saved to disc.", name);
+		BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disc." << std::endl;
 	}
 	else
 	{
-		log_->error("Failed to create directory when persisting database: '{}'.", name);
+		BOOST_LOG_TRIVIAL(error) << "Failed to create directory when persisting database: " << name << "." << std::endl;
 	}
 }
 
@@ -329,8 +328,8 @@ void Database::LoadDatabasesFromDisk()
 {
 	auto path = Configuration::DatabaseDir();
 
-	if (std::filesystem::exists(path)) {
-		for (auto& p : std::filesystem::directory_iterator(path))
+	if (boost::filesystem::exists(path)) {
+		for (auto& p : boost::filesystem::directory_iterator(path))
 		{
 			auto extension = p.path().extension();
 			if (extension == ".db")
@@ -346,7 +345,7 @@ void Database::LoadDatabasesFromDisk()
 	}
 	else
 	{
-		log_->error("Directory {} does not exists.", path);
+		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists." << std::endl;
 	}
 }
 
@@ -358,7 +357,7 @@ void Database::LoadDatabasesFromDisk()
 /// <returns>Shared pointer of database.</returns>
 std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const char* path)
 {
-	log_->info("Loading database from directory: {} with file name: {}.", path, fileDbName);
+	BOOST_LOG_TRIVIAL(info) << "Loading database from directory: " << path << " with file name: " << fileDbName << "." << std::endl;
 
 	//read file .db
 	std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
@@ -425,7 +424,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 		//read files .col:
 		std::string pathStr = std::string(path);
 
-		log_->debug("Loading .col file with name: '{}'", pathStr + dbName + "_" + table.GetName() + "_" + columnName + ".col");
+		BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << pathStr + dbName << "_" << table.GetName() << "_" << columnName << ".col." << std::endl;
 
 		std::ifstream colFile(pathStr + dbName + "_" + table.GetName() + "_" + columnName + ".col", std::ios::binary);
 
@@ -438,9 +437,9 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 		{
 			case COLUMN_POLYGON:
 			{
-				ColumnBase<ColmnarDB::Types::ComplexPolygon> columnPolygon(columnName, table.GetBlockSize());
-
 				table.CreateColumn(columnName, COLUMN_POLYGON);
+
+				auto& columnPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*table.GetColumns().at(columnName));
 
 				while (!colFile.eof())
 				{
@@ -453,7 +452,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					if (index != nullIndex) //there is null block
 					{
 						columnPolygon.AddBlock(); //add empty block
-						log_->debug("Added empty block at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added empty ComplexPolygon block at index: " << nullIndex << "." << std::endl;
 					}
 					else //read data from block
 					{
@@ -475,7 +474,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnPolygon.AddBlock(dataPolygon);
-						log_->debug("Added ComplexPolygon block with data at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added ComplexPolygon block with data at index: " << nullIndex << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -485,9 +484,9 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 
 			case COLUMN_POINT:
 			{
-				ColumnBase<ColmnarDB::Types::Point> columnPoint(columnName, table.GetBlockSize());
-
 				table.CreateColumn(columnName, COLUMN_POINT);
+
+				auto& columnPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*table.GetColumns().at(columnName));
 
 				while (!colFile.eof())
 				{
@@ -500,7 +499,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					if (index != nullIndex) //there is null block
 					{
 						columnPoint.AddBlock(); //add empty block
-						log_->debug("Added empty Point block at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added empty Point block at index: " << nullIndex << "." << std::endl;
 					}
 					else //read data from block
 					{
@@ -522,7 +521,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnPoint.AddBlock(dataPoint);
-						log_->debug("Added Point block with data at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added Point block with data at index: " << nullIndex << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -532,9 +531,9 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 
 			case COLUMN_STRING:
 			{
-				ColumnBase<std::string> columnString(columnName, table.GetBlockSize());
-
 				table.CreateColumn(columnName, COLUMN_STRING);
+
+				auto& columnString = dynamic_cast<ColumnBase<std::string>&>(*table.GetColumns().at(columnName));
 
 				while (!colFile.eof())
 				{
@@ -547,7 +546,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					if (index != nullIndex) //there is null block
 					{
 						columnString.AddBlock(); //add empty block
-						log_->debug("Added empty String block at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added empty String block at index: " << nullIndex << "." << std::endl;
 					}
 					else //read data from block
 					{
@@ -566,7 +565,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnString.AddBlock(dataString);
-						log_->debug("Added String block with data at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added String block with data at index: " << nullIndex << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -576,9 +575,9 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 
 			case COLUMN_INT:
 			{
-				ColumnBase<int32_t> columnInt(columnName, table.GetBlockSize());
-
 				table.CreateColumn(columnName, COLUMN_INT);
+
+				auto& columnInt = dynamic_cast<ColumnBase<int32_t>&>(*table.GetColumns().at(columnName));
 
 				while (!colFile.eof())
 				{
@@ -591,7 +590,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					if (index != nullIndex) //there is null block
 					{
 						columnInt.AddBlock(); //add empty block
-						log_->debug("Added empty Int32 block at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added empty Int32 block at index: " << nullIndex << "." << std::endl;
 					}
 					else //read data from block
 					{
@@ -606,7 +605,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnInt.AddBlock(dataInt);
-						log_->debug("Added Int32 block with data at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added Int32 block with data at index: " << nullIndex << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -616,9 +615,9 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 
 			case COLUMN_LONG:
 			{
-				ColumnBase<int64_t> columnLong(columnName, table.GetBlockSize());
-
 				table.CreateColumn(columnName, COLUMN_LONG);
+
+				auto& columnLong = dynamic_cast<ColumnBase<int64_t>&>(*table.GetColumns().at(columnName));
 
 				while (!colFile.eof())
 				{
@@ -631,7 +630,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					if (index != nullIndex) //there is null block
 					{
 						columnLong.AddBlock(); //add empty block
-						log_->debug("Added empty Int64 block at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added empty Int64 block at index: " << nullIndex << "." << std::endl;
 					}
 					else //read data from block
 					{
@@ -646,7 +645,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnLong.AddBlock(dataLong);
-						log_->debug("Added Int64 block with data at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added Int64 block with data at index: " << nullIndex << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -656,9 +655,9 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 
 			case COLUMN_FLOAT:
 			{
-				ColumnBase<float> columnFloat(columnName, table.GetBlockSize());
-
 				table.CreateColumn(columnName, COLUMN_FLOAT);
+
+				auto& columnFloat = dynamic_cast<ColumnBase<float>&>(*table.GetColumns().at(columnName));
 
 				while (!colFile.eof())
 				{
@@ -671,7 +670,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					if (index != nullIndex) //there is null block
 					{
 						columnFloat.AddBlock(); //add empty block
-						log_->debug("Added empty Float block at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added empty Float block at index: " << nullIndex << "." << std::endl;
 					}
 					else //read data from block
 					{
@@ -686,7 +685,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnFloat.AddBlock(dataFloat);
-						log_->debug("Added Float block with data at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added Float block with data at index: " << nullIndex << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -696,9 +695,9 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 
 			case COLUMN_DOUBLE:
 			{
-				ColumnBase<double> columnDouble(columnName, table.GetBlockSize());
-
 				table.CreateColumn(columnName, COLUMN_DOUBLE);
+
+				auto& columnDouble = dynamic_cast<ColumnBase<double>&>(*table.GetColumns().at(columnName));
 
 				while (!colFile.eof())
 				{
@@ -711,7 +710,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					if (index != nullIndex) //there is null block
 					{
 						columnDouble.AddBlock(); //add empty block
-						log_->debug("Added empty Double block at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added empty Double block at index: " << nullIndex << "." << std::endl;
 					}
 					else //read data from block
 					{
@@ -726,7 +725,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnDouble.AddBlock(dataDouble);
-						log_->debug("Added Double block with data at index: " + nullIndex);
+						BOOST_LOG_TRIVIAL(debug) << "Added Double block with data at index: " << nullIndex << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -736,7 +735,6 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 
 			default:
 				throw std::exception("Unsupported data type (when loading database).");
-				break;
 		}
 
 		colFile.close();

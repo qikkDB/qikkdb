@@ -1,7 +1,6 @@
 #pragma once
 
 #include <unordered_map>
-#include <spdlog/spdlog.h>
 #include <memory>
 
 #include "DataType.h"
@@ -20,7 +19,6 @@ private:
 	std::string name_;
 	int32_t blockSize_;
 	std::unordered_map<std::string, Table> tables_;
-	static const std::shared_ptr<spdlog::logger>& log_;
 
 public:
 	/// <summary>
