@@ -15,10 +15,10 @@
 template<typename T>
 __global__ void kernel_reconstruct_col(T *outData, int32_t *outSize, T *ACol, int32_t *prefixSum, int32_t *inMask, int32_t dataElementCount)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		// Select the elemnts that are "visible" in the mask
 		// If the mask is 1 for the output, use the prefix sum for array compaction
