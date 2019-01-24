@@ -943,11 +943,13 @@ void retCol(GpuSqlDispatcher &dispatcher)
 {
     auto col = dispatcher.arguments.read<std::string>();
     std::cout << "RET: " << col << std::endl;
-	std::unique_ptr<T[]> outData = std::make_unique<T[]>(dispatcher.database->GetBlockSize());
-	
+	std::unique_ptr<T[]> outData (new T[dispatcher.database->GetBlockSize()]);
+	//ToDo: Podmienene zapnut podla velkost buffera
+	//GPUMemory::hostPin(outData.get(), dispatcher.database->GetBlockSize());
 	int32_t outSize;
 	T * ACol = reinterpret_cast<T*>(dispatcher.columnPointers.at(col));
 	GPUReconstruct::reconstructCol(outData.get(), &outSize, ACol, reinterpret_cast<int8_t*>(dispatcher.filter_), dispatcher.database->GetBlockSize());
+	//GPUMemory::hostUnregister(outData.get());
 	std::cout << "dataSize: " << outSize << std::endl;
 }
 

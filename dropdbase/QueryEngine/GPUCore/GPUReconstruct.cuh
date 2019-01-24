@@ -51,7 +51,7 @@ public:
 		reconstructColKeep(outDataGPUPointer, outSize, ACol, inMask, dataElementCount);
 
 		// Copy the generated output back from the GPU
-		GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, dataElementCount);
+		GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outSize);
 
 		// Free the memory
 		GPUMemory::free(outDataGPUPointer);
