@@ -10,12 +10,17 @@
 #include <iostream>
 #include <memory>
 #include <array>
+#include <string>
 #include "MemoryStream.h"
 #include "../DataType.h"
 #include "../Database.h"
+#include "../Table.h"
+#include "../ColumnBase.h"
+#include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/GPUFilter.cuh"
 #include "../QueryEngine/GPUCore/GPUFilterConst.cuh"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "../QueryEngine/GPUCore/GPUReconstruct.cuh"
 
 class GpuSqlDispatcher;
 
@@ -393,6 +398,14 @@ void invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher);
 template<typename T, typename U>
 void invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher);
 
+template<typename T>
+void invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+void invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+void invalidOperandTypesErrorHandlerReg(GpuSqlDispatcher &dispatcher);
 
 class GpuSqlDispatcher
 {
@@ -405,6 +418,7 @@ private:
     const std::shared_ptr<Database> &database;
 	std::unordered_map<std::string, std::uintptr_t> columnPointers;
 	std::unordered_map<std::string, std::uintptr_t> registerPointers;
+	std::uintptr_t filter_;
 
     static std::array<std::function<void(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -870,6 +884,15 @@ public:
     template<typename T, typename U>
     friend void invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher);
 
+	template<typename T>
+	friend void invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
+
+	template<typename T>
+	friend void invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
+
+	template<typename T>
+	friend void invalidOperandTypesErrorHandlerReg(GpuSqlDispatcher &dispatcher);
+
     template<typename T>
     void addArgument(T argument)
     {
@@ -895,6 +918,14 @@ void loadCol(GpuSqlDispatcher &dispatcher)
 	T * gpuPointer;
 	GPUMemory::alloc<T>(&gpuPointer, dispatcher.database->GetBlockSize());
 	dispatcher.columnPointers.insert({colName, reinterpret_cast<std::uintptr_t>(gpuPointer)});
+	// split colName to table and column name
+	const size_t endOfPolyIdx = colName.find(".");
+	const std::string table = colName.substr(0, endOfPolyIdx);
+	const std::string column = colName.substr(endOfPolyIdx + 1);
+	auto col = dynamic_cast<const ColumnBase<T>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
+	auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[0].get());
+	GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<T*>(block->GetData().data()),
+		dispatcher.database->GetBlockSize());
 }
 
 void loadReg(GpuSqlDispatcher &dispatcher);
@@ -912,7 +943,12 @@ void retCol(GpuSqlDispatcher &dispatcher)
 {
     auto col = dispatcher.arguments.read<std::string>();
     std::cout << "RET: " << col << std::endl;
-
+	std::unique_ptr<T[]> outData = std::make_unique<T[]>(dispatcher.database->GetBlockSize());
+	
+	int32_t outSize;
+	T * ACol = reinterpret_cast<T*>(dispatcher.columnPointers.at(col));
+	GPUReconstruct::reconstructCol(outData.get(), &outSize, ACol, reinterpret_cast<int8_t*>(dispatcher.filter_), dispatcher.database->GetBlockSize());
+	std::cout << "dataSize: " << outSize << std::endl;
 }
 
 void retReg(GpuSqlDispatcher &dispatcher);
@@ -1451,6 +1487,24 @@ void invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher)
 
 template<typename T, typename U>
 void invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher)
+{
+
+}
+
+template<typename T>
+void invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher)
+{
+
+}
+
+template<typename T>
+void invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher)
+{
+
+}
+
+template<typename T>
+void invalidOperandTypesErrorHandlerReg(GpuSqlDispatcher &dispatcher)
 {
 
 }
