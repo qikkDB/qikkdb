@@ -44,6 +44,7 @@
     <ClCompile Include="..\dropdbase\Types\Point.pb.cc">
       <Filter>dropdbase sources</Filter>
     </ClCompile>
+    <ClCompile Include="ColumnTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dropdbase sources">
@@ -113,5 +114,8 @@
     <Text Include="..\dropdbase\CMakeLists.txt">
       <Filter>dropdbase sources</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
