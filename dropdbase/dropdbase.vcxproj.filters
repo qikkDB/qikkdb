@@ -96,9 +96,6 @@
     <ClInclude Include="QueryEngine\CudaMemAllocator.h">
       <Filter>Header Files\QueryEngine</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
-      <Filter>Header Files\QueryEngine\GPUCore</Filter>
-    </ClInclude>
     <ClInclude Include="IColumn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -119,9 +116,6 @@
     </ClInclude>
     <ClInclude Include="IBlock.h" />
     <ClInclude Include="GpuSqlParser\GpuSqlCustomParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GpuSqlParser\GpuSqlDispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GpuSqlParser\GpuSqlLexer.h">
@@ -148,23 +142,16 @@
     <ClInclude Include="GpuSqlParser\QueryType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Database.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Table.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DataType.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Configuration.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="IColumn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="DataType.h" />
+
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSqlParser\GpuSqlDispatcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp">
@@ -210,9 +197,6 @@
     <ClCompile Include="GpuSqlParser\GpuSqlCustomParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GpuSqlParser\GpuSqlDispatcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GpuSqlParser\GpuSqlLexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -239,5 +223,8 @@
     <ClCompile Include="ColumnBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <CudaCompile Include="GpuSqlParser\GpuSqlDispatcher.cpp">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

@@ -89,10 +89,8 @@
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="DataType.h" />
     <ClInclude Include="ComplexPolygonFactory.h" />
-    <ClInclude Include="Configuration.h" />
     <ClInclude Include="Database.h" />
     <ClInclude Include="DatabaseGenerator.h" />
-    <ClInclude Include="DataType.h" />
     <ClInclude Include="GpuSqlParser\GpuSqlCustomParser.h" />
     <ClInclude Include="GpuSqlParser\GpuSqlDispatcher.h" />
     <ClInclude Include="GpuSqlParser\GpuSqlLexer.h" />
@@ -137,7 +135,7 @@
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="DatabaseGenerator.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlCustomParser.cpp" />
-    <ClCompile Include="GpuSqlParser\GpuSqlDispatcher.cpp" />
+    <CudaCompile Include="GpuSqlParser\GpuSqlDispatcher.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlLexer.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlListener.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlParser.cpp" />

@@ -67,7 +67,7 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 	}
 	columns.insert(std::make_pair(columnName, std::move(column)));
 }
-
+#ifndef __CUDACC__
 void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 {
 	for (const auto& column : columns)
@@ -112,6 +112,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 		}
 	}
 }
+#endif
 
 bool Table::ContainsColumn(const char* column)
 {

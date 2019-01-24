@@ -7,6 +7,8 @@
 
 #include <cstdint>
 
+#include "../Context.h"
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// <summary>
@@ -36,7 +38,7 @@ __global__ void kernel_gt_const(int8_t *outMask, T *ACol, U BConst, int32_t data
 /// <param name="BConst">block of the right input operands</param>
 /// <param name="dataElementCount">the count of elements in the input block</param>
 template<typename T, typename U>
-__global__ void kernel_lt_const(int8_t *outMask, T *ACol, U *BConst, int32_t dataElementCount)
+__global__ void kernel_lt_const(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -55,7 +57,7 @@ __global__ void kernel_lt_const(int8_t *outMask, T *ACol, U *BConst, int32_t dat
 /// <param name="BConst">block of the right input operands</param>
 /// <param name="dataElementCount">the count of elements in the input block</param>
 template<typename T, typename U>
-__global__ void kernel_gt_eq_const(int8_t *outMask, T *ACol, U *BConst, int32_t dataElementCount)
+__global__ void kernel_gt_eq_const(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -74,7 +76,7 @@ __global__ void kernel_gt_eq_const(int8_t *outMask, T *ACol, U *BConst, int32_t 
 /// <param name="BConst">block of the right input operands</param>
 /// <param name="dataElementCount">the count of elements in the input block</param>
 template<typename T, typename U>
-__global__ void kernel_lt_eq_const(int8_t *outMask, T *ACol, U *BConst, int32_t dataElementCount)
+__global__ void kernel_lt_eq_const(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -93,7 +95,7 @@ __global__ void kernel_lt_eq_const(int8_t *outMask, T *ACol, U *BConst, int32_t 
 /// <param name="BConst">block of the right input operands</param>
 /// <param name="dataElementCount">the count of elements in the input block</param>
 template<typename T, typename U>
-__global__ void kernel_eq_const(int8_t *outMask, T *ACol, U *BConst, int32_t dataElementCount)
+__global__ void kernel_eq_const(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -112,7 +114,7 @@ __global__ void kernel_eq_const(int8_t *outMask, T *ACol, U *BConst, int32_t dat
 /// <param name="BConst">block of the right input operands</param>
 /// <param name="dataElementCount">the count of elements in the input block</param>
 template<typename T, typename U>
-__global__ void kernel_non_eq_const(int8_t *outMask, T *ACol, U *BConst, int32_t dataElementCount)
+__global__ void kernel_non_eq_const(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount)
 {
 	int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int stride = blockDim.x * gridDim.x;
@@ -172,7 +174,7 @@ public:
 	template<typename T, typename U>
 	static void eq(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount)
 	{
-		kernel_eq_const << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		kernel_eq_const<T,U> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
 		cudaDeviceSynchronize();
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
