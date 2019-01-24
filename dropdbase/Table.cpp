@@ -55,7 +55,7 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 	}
 	else if (columnType == COLUMN_POLYGON)
 	{
-		column = std::make_unique<ColumnBase<ColmnarDB::Types::Polygon>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<ColmnarDB::Types::ComplexPolygon>>(columnName, blockSize);
 	}
 	else if (columnType == COLUMN_POINT)
 	{

@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\dropdbase\ColumnBase.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\ComplexPolygonFactory.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\Configuration.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\Database.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\DatabaseGenerator.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\PointFactory.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\Table.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TableTests.cpp" />
+    <ClCompile Include="..\dropdbase\messages\CSVImportMessage.pb.cc">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\messages\InfoMessage.pb.cc">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\messages\QueryMessage.pb.cc">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\messages\QueryResponseMessage.pb.cc">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\messages\SetDatabaseMessage.pb.cc">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\Types\ComplexPolygon.pb.cc">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\Types\Point.pb.cc">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ColumnTests.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="dropdbase sources">
+      <UniqueIdentifier>{6a0e3b05-6185-4cda-a591-3bc4ebac638b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\dropdbase\BlockBase.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\ColumnBase.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\ComplexPolygonFactory.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\Configuration.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\Database.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\DatabaseGenerator.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\DataType.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\IBlock.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\IColumn.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\NativeGeoPoint.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\PointFactory.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\Table.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\messages\CSVImportMessage.pb.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\messages\InfoMessage.pb.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\messages\QueryMessage.pb.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\messages\QueryResponseMessage.pb.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\messages\SetDatabaseMessage.pb.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\Types\ComplexPolygon.pb.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\Types\Point.pb.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\dropdbase\CMakeLists.txt">
+      <Filter>dropdbase sources</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>
