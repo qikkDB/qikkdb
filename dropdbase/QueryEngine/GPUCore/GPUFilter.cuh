@@ -21,10 +21,10 @@
 template<typename T, typename U>
 __global__ void kernel_gt(int8_t *outMask, T *ACol, U *BCol, int32_t dataElementCount)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		outMask[i] = ACol[i] > BCol[i];
 	}
@@ -40,10 +40,10 @@ __global__ void kernel_gt(int8_t *outMask, T *ACol, U *BCol, int32_t dataElement
 template<typename T, typename U>
 __global__ void kernel_lt(int8_t *outMask, T *ACol, U *BCol, int32_t dataElementCount)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		outMask[i] = ACol[i] < BCol[i];
 	}
@@ -59,10 +59,10 @@ __global__ void kernel_lt(int8_t *outMask, T *ACol, U *BCol, int32_t dataElement
 template<typename T, typename U>
 __global__ void kernel_gt_eq(int8_t *outMask, T *ACol, U *BCol, int32_t dataElementCount)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		outMask[i] = ACol[i] >= BCol[i];
 	}
@@ -78,10 +78,10 @@ __global__ void kernel_gt_eq(int8_t *outMask, T *ACol, U *BCol, int32_t dataElem
 template<typename T, typename U>
 __global__ void kernel_lt_eq(int8_t *outMask, T *ACol, U *BCol, int32_t dataElementCount)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		outMask[i] = ACol[i] <= BCol[i];
 	}
@@ -97,10 +97,10 @@ __global__ void kernel_lt_eq(int8_t *outMask, T *ACol, U *BCol, int32_t dataElem
 template<typename T, typename U>
 __global__ void kernel_eq(int8_t *outMask, T *ACol, U *BCol, int32_t dataElementCount)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		outMask[i] = ACol[i] == BCol[i];
 	}
@@ -116,10 +116,10 @@ __global__ void kernel_eq(int8_t *outMask, T *ACol, U *BCol, int32_t dataElement
 template<typename T, typename U>
 __global__ void kernel_non_eq(int8_t *outMask, T *ACol, U *BCol, int32_t dataElementCount)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		outMask[i] = ACol[i] != BCol[i];
 	}

@@ -25,10 +25,10 @@
 template<typename T, typename U, typename V, T min, T max>
 __global__ void kernel_plus(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		// if none of the input operands are float
 		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
@@ -56,10 +56,10 @@ __global__ void kernel_plus(T *output, U *ACol, V *BCol, int32_t dataElementCoun
 template<typename T, typename U, typename V, T min, T max>
 __global__ void kernel_minus(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		// if none of the input operands are float
 		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
@@ -87,10 +87,10 @@ __global__ void kernel_minus(T *output, U *ACol, V *BCol, int32_t dataElementCou
 template<typename T, typename U, typename V, T min, T max>
 __global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		// if none of the input operands are float
 		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
@@ -150,10 +150,10 @@ __global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataE
 template<typename T, typename U, typename V>
 __global__ void kernel_floor_division(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		// if none of the input operands are float
 		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
@@ -186,10 +186,10 @@ __global__ void kernel_floor_division(T *output, U *ACol, V *BCol, int32_t dataE
 template<typename T, typename U, typename V>
 __global__ void kernel_division(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		// if none of the input operands are float
 		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
@@ -222,10 +222,10 @@ __global__ void kernel_division(T *output, U *ACol, V *BCol, int32_t dataElement
 template<typename T, typename U, typename V>
 __global__ void kernel_modulo(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		// if at least one of the input operands is float
 		if (std::is_floating_point<U>::value || std::is_floating_point<V>::value)
@@ -255,7 +255,7 @@ class GPUArithmetic
 private:
 	class ErrorFlagSwapper {
 	private:
-		int32_t * errorFlagPointer;
+		int32_t *errorFlagPointer;
 
 	public:
 		ErrorFlagSwapper() {

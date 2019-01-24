@@ -19,10 +19,10 @@
 template<typename T, typename U, typename V>
 __global__ void kernel_operator_and(T *outCol, U *ACol, V *BCol, int32_t dataElementCount)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		outCol[i] = ACol[i] && BCol[i];
 	}
@@ -39,10 +39,10 @@ __global__ void kernel_operator_and(T *outCol, U *ACol, V *BCol, int32_t dataEle
 template<typename T, typename U, typename V>
 __global__ void kernel_operator_or(T *outCol, U *ACol, V *BCol, int32_t dataElementCount)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		outCol[i] = ACol[i] || BCol[i];
 	}
@@ -58,10 +58,10 @@ __global__ void kernel_operator_or(T *outCol, U *ACol, V *BCol, int32_t dataElem
 template<typename T, typename U>
 __global__ void kernel_operator_not(T *outCol, U *ACol, int32_t dataElementCount)
 {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int stride = blockDim.x * gridDim.x;
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
 
-	for (int i = idx; i < dataElementCount; i += stride)
+	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		outCol[i] = !ACol[i];
 	}
