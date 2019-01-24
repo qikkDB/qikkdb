@@ -59,8 +59,8 @@ TEST(TableTests, InsertData)
 	std::vector<int64_t> dataLong({1000000000000000000});
 	std::vector<float> dataFloat({(float) 0.1111});
 	std::vector<double> dataDouble({0.1111111});
-	//std::vector<ColmnarDB::Types::Point> dataPoint({ PointFactory::FromWkt("POINT(10.11 11.1)")});
-	//std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon({ ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))") });
+	std::vector<ColmnarDB::Types::Point> dataPoint({ PointFactory::FromWkt("POINT(10.11 11.1)")});
+	std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon({ ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))") });
 	std::vector<std::string> dataString({"randomString"});
 	std::vector<bool> dataBool({1});
 
@@ -68,8 +68,8 @@ TEST(TableTests, InsertData)
 	data.insert({"ColumnLong",dataLong});
 	data.insert({"ColumnFloat",dataFloat});
 	data.insert({"ColumnDouble",dataDouble});
-	//data.insert({"ColumnPoint",dataPoint});
-	//data.insert({"ColumnPolygon",dataPolygon});
+	data.insert({"ColumnPoint",dataPoint});
+	data.insert({"ColumnPolygon",dataPolygon});
 	data.insert({"ColumnString",dataString});
 	data.insert({"ColumnBool",dataBool});
 
@@ -87,11 +87,11 @@ TEST(TableTests, InsertData)
 	auto& blockDouble = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList();
 	ASSERT_EQ(blockDouble.front()->GetData()[0], 0.1111111);
 
-	//auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList();
-	//ASSERT_EQ(blockPoint.front()->GetData()[0], PointFactory::FromWkt("POINT(10.11 11.1)"));
+	auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList();
+	ASSERT_EQ(PointFactory::WktFromPoint(blockPoint.front()->GetData()[0]),"POINT(10.11 11.1)");
 
-	//auto& blockPolygon = dynamic_cast<ColumnBaseColmnarDB::Types::ComplexPolygon<>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList();
-	//ASSERT_EQ(blockPolygon.front()->GetData()[0], ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))"));
+	auto& blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList();
+	ASSERT_EQ(ComplexPolygonFactory::PolygonToWkt(blockPolygon.front()->GetData()[0]), "POLYGON((10 11,11.11 12.13,10 11),(21 30,35.55 36,30.11 20.26,21 30),(61 80.11,90 89.15,112.12 110,61 80.11))");
 
 	auto& blockString = dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList();
 	ASSERT_EQ(blockString.front()->GetData()[0], "randomString");

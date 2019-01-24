@@ -24,7 +24,7 @@ ColmnarDB::Types::Point PointFactory::FromWkt(std::string wktPoint)
 		throw std::invalid_argument("Invalid WKT format");
 	}
 	ret.mutable_geopoint()->set_latitude(latitude);
-	ret.mutable_geopoint()->set_longitude(latitude);
+	ret.mutable_geopoint()->set_longitude(longitude);
 	return ret;
 }
 
