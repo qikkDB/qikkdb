@@ -255,7 +255,7 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
         dispatcher.addArgument<const std::string&>(tableColumn);
         loadedColumns.insert(tableColumn);
     }
-    parserStack.push(std::make_tuple(ctx->getText(), columnType));
+    parserStack.push(std::make_tuple(tableColumn, columnType));
 }
 
 void GpuSqlListener::exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx)

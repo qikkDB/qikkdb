@@ -11,8 +11,6 @@
 #include <memory>
 #include <array>
 #include "MemoryStream.h"
-#include "../Types/ComplexPolygon.pb.h"
-#include "../Types/Point.pb.h"
 #include "../DataType.h"
 #include "../Database.h"
 #include "../QueryEngine/GPUCore/GPUFilter.cuh"

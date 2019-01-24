@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     boost::log::add_file_log("../log/ColmnarDB.log");
     boost::log::add_console_log(std::cout);
 
-    std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb");
+    std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, 1 << 24);
 
 	auto start = std::chrono::high_resolution_clock::now();
 
@@ -30,15 +30,6 @@ int main(int argc, char **argv)
 
     std::cout << "Elapsed time: " << elapsed.count() << " s\n";
 
-    MemoryStream memoryStream;
-
-    memoryStream.insert<int>(5);
-    memoryStream.insert<float>(5.5f);
-    memoryStream.insert<const std::string&>("Hello guys");
-
-    std::cout << memoryStream.read<int>() << std::endl;
-    std::cout << memoryStream.read<float>() << std::endl;
-    std::cout << memoryStream.read<std::string>() << std::endl;
 
 
     return 0;
