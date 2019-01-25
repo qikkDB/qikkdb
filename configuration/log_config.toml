@@ -1,0 +1,64 @@
+# level is optional for both sinks and loggers
+# level for error logging is 'err', not 'error'
+# _st => single threaded, _mt => multi threaded
+# syslog_sink is automatically thread-safe by default, no need for _mt suffix
+
+# max_size supports suffix
+# - T (terabyte)
+# - G (gigabyte)
+# - M (megabyte)
+# - K (kilobyte)
+# - or simply no suffix (byte)
+
+# check out https: // github.com/gabime/spdlog/wiki/3.-Custom-formatting
+global_pattern = "[%Y-%m-%d %T%z] %l: %v"
+
+[[sink]]
+name = "console_mt"
+type = "stdout_sink_mt"
+
+[[sink]]
+name = "color_console_mt"
+type = "color_stdout_sink_mt"
+
+[[sink]]
+name = "rotate_out"
+type = "rotating_file_sink_st"
+base_filename = "../log/rotate_info.log"
+create_parent_dir = true
+max_size = "1M"
+max_files = 10
+level = "info"
+
+[[sink]]
+name = "daily_err"
+type = "daily_file_sink_mt"
+base_filename = "../log/err.log"
+create_parent_dir = true
+rotation_hour = 17
+rotation_minute = 30
+level = "err"
+
+[[sink]]
+name = "null_sink_st"
+type = "null_sink_st"
+
+[[sink]]
+name = "null_sink_mt"
+type = "null_sink_mt"
+
+[[pattern]]
+name = "succient"
+value = "%c-%L: %v"
+
+[[logger]]
+name = "root"
+sinks = [
+    "color_console_mt", "daily_err",
+    "rotate_out"]
+level = "trace"
+
+[[logger]]
+name = "console"
+sinks = ["console_mt"]
+pattern = "succient"

@@ -1,57 +1,45 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Source Files\ProtoBuf">
-      <UniqueIdentifier>{f244d751-5e7d-45fb-8434-fcf33798244d}</UniqueIdentifier>
+      <UniqueIdentifier>{9eb7e7af-bd15-45a4-9118-700e306d6250}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\ProtoBuf">
-      <UniqueIdentifier>{3147cbae-c3ec-466c-ad82-0248e8b4eb2b}</UniqueIdentifier>
+      <UniqueIdentifier>{4e9a2bce-edb7-41c9-8bad-4af347da1877}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Networking">
-      <UniqueIdentifier>{0fe5ab2a-7423-45db-930a-5d72ccde0750}</UniqueIdentifier>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{444d1a23-9069-4296-9a2e-f939110f523c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Networking">
-      <UniqueIdentifier>{9e272853-2ee1-40c0-96f0-013ba83d3da9}</UniqueIdentifier>
+    <Filter Include="Source Files\ProtoBuf">
+      <UniqueIdentifier>{70c1280a-cbec-4ca7-af66-bfefc8e328f2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\DataImport">
-      <UniqueIdentifier>{e83ba530-ad39-404b-b935-0eb42b02b78e}</UniqueIdentifier>
+    <Filter Include="Header Files\QueryEngine">
+      <UniqueIdentifier>{2448cbe5-003b-4c2c-a856-bf54e406148f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\DataImport">
-      <UniqueIdentifier>{002ad95e-aa5e-418b-82a7-d0d0f23c3c23}</UniqueIdentifier>
+    <Filter Include="Header Files\QueryEngine\GPUCore">
+      <UniqueIdentifier>{29f65e6d-cd7b-46b4-8982-1a2fefa07ab7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="IBlock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BlockBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ColumnBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Types\ComplexPolygon.pb.h">
-      <Filter>Header Files\ProtoBuf</Filter>
+    <ClInclude Include="ComplexPolygonFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeGeoPoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PointFactory.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="messages\CSVImportMessage.pb.h">
       <Filter>Header Files\ProtoBuf</Filter>
     </ClInclude>
     <ClInclude Include="messages\InfoMessage.pb.h">
-      <Filter>Header Files\ProtoBuf</Filter>
-    </ClInclude>
-    <ClInclude Include="Types\Point.pb.h">
       <Filter>Header Files\ProtoBuf</Filter>
     </ClInclude>
     <ClInclude Include="messages\QueryMessage.pb.h">
@@ -63,57 +51,119 @@
     <ClInclude Include="messages\SetDatabaseMessage.pb.h">
       <Filter>Header Files\ProtoBuf</Filter>
     </ClInclude>
-    <ClInclude Include="ComplexPolygonFactory.h">
+    <ClInclude Include="Types\ComplexPolygon.pb.h">
+      <Filter>Header Files\ProtoBuf</Filter>
+    </ClInclude>
+    <ClInclude Include="Types\Point.pb.h">
+      <Filter>Header Files\ProtoBuf</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPULogic.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUMemory.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUPolygon.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUReconstruct.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUTypeWidthManip.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\QueryEngineError.h">
+      <Filter>Header Files\QueryEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\Context.h">
+      <Filter>Header Files\QueryEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\CudaMemAllocator.h">
+      <Filter>Header Files\QueryEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="IColumn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PointFactory.h">
+    <ClInclude Include="Table.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NativeGeoPoint.h">
+    <ClInclude Include="DataType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TCPServer.h">
-      <Filter>Header Files\Networking</Filter>
+    <ClInclude Include="DatabaseGenerator.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Database.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ITCPWorker.h">
-      <Filter>Header Files\Networking</Filter>
-    </ClInclude>
-    <ClInclude Include="IClientHandler.h">
-      <Filter>Header Files\Networking</Filter>
-    </ClInclude>
-    <ClInclude Include="ClientPoolWorker.h">
-      <Filter>Header Files\Networking</Filter>
-    </ClInclude>
-    <ClInclude Include="NetworkMessage.h">
-      <Filter>Header Files\Networking</Filter>
-    </ClInclude>
-    <ClInclude Include="TCPClientHandler.h">
-      <Filter>Header Files\Networking</Filter>
-    </ClInclude>
-    <ClInclude Include="CSVInMemoryImporter.h">
-      <Filter>Header Files\DataImport</Filter>
-    </ClInclude>
     <ClInclude Include="Configuration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IBlock.h" />
+    <ClInclude Include="GpuSqlParser\GpuSqlCustomParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSqlParser\GpuSqlLexer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSqlParser\GpuSqlListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSqlParser\GpuSqlParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSqlParser\GpuSqlParserBaseListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSqlParser\GpuSqlParserListener.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSqlParser\MemoryStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSqlParser\ParserExceptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSqlParser\QueryType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+
+    <ClInclude Include="Configuration.h" />
+    <ClInclude Include="DataType.h" />
+
+    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSqlParser\GpuSqlDispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="ComplexPolygonFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Types\ComplexPolygon.pb.cc">
-      <Filter>Source Files\ProtoBuf</Filter>
+    <ClCompile Include="PointFactory.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="messages\CSVImportMessage.pb.cc">
       <Filter>Source Files\ProtoBuf</Filter>
     </ClCompile>
     <ClCompile Include="messages\InfoMessage.pb.cc">
-      <Filter>Source Files\ProtoBuf</Filter>
-    </ClCompile>
-    <ClCompile Include="Types\Point.pb.cc">
       <Filter>Source Files\ProtoBuf</Filter>
     </ClCompile>
     <ClCompile Include="messages\QueryMessage.pb.cc">
@@ -125,35 +175,56 @@
     <ClCompile Include="messages\SetDatabaseMessage.pb.cc">
       <Filter>Source Files\ProtoBuf</Filter>
     </ClCompile>
-    <ClCompile Include="ComplexPolygonFactory.cpp">
+    <ClCompile Include="Types\ComplexPolygon.pb.cc">
+      <Filter>Source Files\ProtoBuf</Filter>
+    </ClCompile>
+    <ClCompile Include="Types\Point.pb.cc">
+      <Filter>Source Files\ProtoBuf</Filter>
+    </ClCompile>
+    <ClCompile Include="Table.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PointFactory.cpp">
+    <ClCompile Include="DatabaseGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Database.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ITCPWorker.cpp">
-      <Filter>Source Files\Networking</Filter>
-    </ClCompile>
-    <ClCompile Include="ClientPoolWorker.cpp">
-      <Filter>Source Files\Networking</Filter>
-    </ClCompile>
-    <ClCompile Include="NetworkMessage.cpp">
-      <Filter>Source Files\Networking</Filter>
-    </ClCompile>
-    <ClCompile Include="TCPClientHandler.cpp">
-      <Filter>Source Files\Networking</Filter>
-    </ClCompile>
-    <ClCompile Include="CSVInMemoryImporter.cpp">
-      <Filter>Source Files\DataImport</Filter>
-    </ClCompile>
     <ClCompile Include="Configuration.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="GpuSqlParser\GpuSqlCustomParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuSqlParser\GpuSqlLexer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuSqlParser\GpuSqlListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuSqlParser\GpuSqlParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuSqlParser\GpuSqlParserBaseListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuSqlParser\GpuSqlParserListener.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuSqlParser\MemoryStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="QueryEngine\CudaMemAllocator.cu">
+      <Filter>Header Files\QueryEngine</Filter>
+    </CudaCompile>
     <ClCompile Include="ColumnBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <CudaCompile Include="GpuSqlParser\GpuSqlDispatcher.cpp">
+      <Filter>Source Files</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

@@ -124,7 +124,7 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 			startIdx = endOfPolyIdx + 1;
 			endOfPolyIdx = polygon.find(',', startIdx);
 		}
-
+		points.push_back(polygon.substr(startIdx));
 		for (const auto& point : points)
 		{
 			ptrdiff_t coordCount = std::count(point.cbegin(), point.cend(), ' ') + 1;

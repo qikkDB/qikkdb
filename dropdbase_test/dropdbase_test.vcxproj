@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{a3cb16ea-82c9-47d3-bd9c-4c62ac1aabd8}</ProjectGuid>
+    <ProjectGuid>{542c3bd1-3696-47b5-a8a8-5f0f7cb34764}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <ConfigurationType>Application</ConfigurationType>
@@ -33,51 +33,49 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="..\dropdbase\ClientPoolWorker.cpp" />
+    <ClCompile Include="..\dropdbase\ColumnBase.cpp" />
     <ClCompile Include="..\dropdbase\ComplexPolygonFactory.cpp" />
     <ClCompile Include="..\dropdbase\Configuration.cpp" />
-    <ClCompile Include="..\dropdbase\CSVInMemoryImporter.cpp" />
     <ClCompile Include="..\dropdbase\Database.cpp" />
-    <ClCompile Include="..\dropdbase\ITCPWorker.cpp" />
+    <ClCompile Include="..\dropdbase\DatabaseGenerator.cpp" />
     <ClCompile Include="..\dropdbase\messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\InfoMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\QueryMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\QueryResponseMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\SetDatabaseMessage.pb.cc" />
-    <ClCompile Include="..\dropdbase\NetworkMessage.cpp" />
     <ClCompile Include="..\dropdbase\PointFactory.cpp" />
-    <ClCompile Include="..\dropdbase\TCPClientHandler.cpp" />
+    <ClCompile Include="..\dropdbase\Table.cpp" />
     <ClCompile Include="..\dropdbase\Types\ComplexPolygon.pb.cc" />
     <ClCompile Include="..\dropdbase\Types\Point.pb.cc" />
-    <ClCompile Include="ProtocolMessageTests.cpp" />
-    <ClCompile Include="TCPServerTests.cpp" />
+    <ClCompile Include="ColumnTests.cpp" />
+    <ClCompile Include="TableTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\dropdbase\BlockBase.h" />
-    <ClInclude Include="..\dropdbase\ClientPoolWorker.h" />
     <ClInclude Include="..\dropdbase\ColumnBase.h" />
     <ClInclude Include="..\dropdbase\ComplexPolygonFactory.h" />
     <ClInclude Include="..\dropdbase\Configuration.h" />
-    <ClInclude Include="..\dropdbase\CSVInMemoryImporter.h" />
     <ClInclude Include="..\dropdbase\Database.h" />
+    <ClInclude Include="..\dropdbase\DatabaseGenerator.h" />
+    <ClInclude Include="..\dropdbase\DataType.h" />
     <ClInclude Include="..\dropdbase\IBlock.h" />
-    <ClInclude Include="..\dropdbase\IClientHandler.h" />
-    <ClInclude Include="..\dropdbase\ITCPWorker.h" />
+    <ClInclude Include="..\dropdbase\IColumn.h" />
     <ClInclude Include="..\dropdbase\messages\CSVImportMessage.pb.h" />
     <ClInclude Include="..\dropdbase\messages\InfoMessage.pb.h" />
     <ClInclude Include="..\dropdbase\messages\QueryMessage.pb.h" />
     <ClInclude Include="..\dropdbase\messages\QueryResponseMessage.pb.h" />
     <ClInclude Include="..\dropdbase\messages\SetDatabaseMessage.pb.h" />
     <ClInclude Include="..\dropdbase\NativeGeoPoint.h" />
-    <ClInclude Include="..\dropdbase\NetworkMessage.h" />
     <ClInclude Include="..\dropdbase\PointFactory.h" />
-    <ClInclude Include="..\dropdbase\TCPClientHandler.h" />
-    <ClInclude Include="..\dropdbase\TCPServer.h" />
+    <ClInclude Include="..\dropdbase\Table.h" />
     <ClInclude Include="..\dropdbase\Types\ComplexPolygon.pb.h" />
     <ClInclude Include="..\dropdbase\Types\Point.pb.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\dropdbase\CMakeLists.txt" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -103,9 +101,10 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>X64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GTEST_LANG_CXX11;X64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -137,7 +136,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <PreprocessorDefinitions>X64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GTEST_LANG_CXX11;X64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>

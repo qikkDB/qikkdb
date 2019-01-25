@@ -4,7 +4,9 @@ template <class T>
 class IBlock
 {
 public:
-	virtual std::vector<T> GetData() const = 0;
+	//TODO delete IBlock at all and refactor dependend code !!!!!!!!!!!!!!!!!!!!
+
+	virtual std::vector<T>& GetData() = 0;
 
 	virtual int EmptyBlockSpace() const = 0;
 
