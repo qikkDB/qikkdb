@@ -82,6 +82,9 @@ for operation in operations_binary:
                 elif colVal == STRING or rowVal == STRING:
                     op = "invalidOperandTypesErrorHandler"
 
+                elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
+                    op = "invalidOperandTypesErrorHandler"
+
                 else:
                     op = operation
                 function = op + col + row + "<" + colVal + ", " + rowVal + ">"
