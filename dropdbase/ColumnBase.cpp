@@ -28,6 +28,18 @@ std::vector<double> ColumnBase<double>::NullArray(int length)
 }
 
 template<>
+std::vector<bool> ColumnBase<bool>::NullArray(int length)
+{
+	return std::vector<bool>(length, 0);
+}
+
+template<>
+std::vector<std::string> ColumnBase<std::string>::NullArray(int length)
+{
+	return std::vector<std::string>(length, "");
+}
+
+template<>
 std::vector<ColmnarDB::Types::Point> ColumnBase<ColmnarDB::Types::Point>::NullArray(int length)
 {
 	return std::vector<ColmnarDB::Types::Point>(length, ColmnarDB::Types::Point());

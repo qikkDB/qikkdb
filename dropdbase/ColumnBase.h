@@ -8,6 +8,31 @@
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 #include "IColumn.h"
+#include "ComplexPolygonFactory.h"
+
+namespace std {
+	template <> struct hash<ColmnarDB::Types::Point>
+	{
+		size_t operator()(const ColmnarDB::Types::Point & x) const
+		{
+			static_assert(sizeof(size_t) == 8, "size_t is not 8 bytes");
+			float latitude = x.geopoint().latitude();
+			float longitude = x.geopoint().longitude();
+			int32_t* iLatitude = reinterpret_cast<int32_t*>(&latitude);
+			int32_t* iLongitude = reinterpret_cast<int32_t*>(&longitude);
+			return static_cast<size_t>(*iLatitude) | (static_cast<size_t>(*iLongitude) << 32);
+		}
+	};
+
+	template <> struct hash<ColmnarDB::Types::ComplexPolygon>
+	{
+		size_t operator()(const ColmnarDB::Types::ComplexPolygon & x) const
+		{
+			std::string wkt = ComplexPolygonFactory::PolygonToWkt(x);
+			return std::hash<std::string>{}(wkt);
+		}
+	};
+}
 
 template<class T>
 class ColumnBase : public IColumn
@@ -99,7 +124,7 @@ public:
 	std::vector<T> GetUniqueBuckets() const
 	{
 		std::unordered_set<T> dataSet;
-		auto floatBlocks = GetBlocksList();
+		auto& floatBlocks = GetBlocksList();
 		for (const auto & block : floatBlocks)
 		{
 			for (const auto & dataPoint : block->GetData())
