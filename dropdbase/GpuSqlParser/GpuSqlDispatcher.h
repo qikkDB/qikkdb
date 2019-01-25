@@ -20,6 +20,8 @@
 #include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/GPUFilter.cuh"
 #include "../QueryEngine/GPUCore/GPUFilterConst.cuh"
+#include "../QueryEngine/GPUCore/GPUArithmetic.cuh"
+#include "../QueryEngine/GPUCore/GPUArithmeticConst.cuh"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../QueryEngine/GPUCore/GPUReconstruct.cuh"
 
@@ -1252,6 +1254,15 @@ int32_t mulColConst(GpuSqlDispatcher &dispatcher)
 template<typename T, typename U>
 int32_t mulConstCol(GpuSqlDispatcher &dispatcher)
 {
+	U cnst = dispatcher.arguments.read<U>();
+	auto colName = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "MulConstCol: " << colName << " const " << reg << std::endl;
+	int8_t * mask;
+	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
+	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
+	GPUFilterConst::eq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
+	GPUArithmeticConst::
 	return 0;
 }
 
