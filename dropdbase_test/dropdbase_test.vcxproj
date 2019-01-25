@@ -47,6 +47,7 @@
     <ClCompile Include="..\dropdbase\Table.cpp" />
     <ClCompile Include="..\dropdbase\Types\ComplexPolygon.pb.cc" />
     <ClCompile Include="..\dropdbase\Types\Point.pb.cc" />
+    <ClCompile Include="BlockTests.cpp" />
     <ClCompile Include="ColumnTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
   </ItemGroup>

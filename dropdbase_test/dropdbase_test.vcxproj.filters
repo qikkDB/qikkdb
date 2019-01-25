@@ -45,6 +45,7 @@
       <Filter>dropdbase sources</Filter>
     </ClCompile>
     <ClCompile Include="ColumnTests.cpp" />
+    <ClCompile Include="BlockTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dropdbase sources">
