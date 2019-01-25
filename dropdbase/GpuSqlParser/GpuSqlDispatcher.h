@@ -551,6 +551,7 @@ public:
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
 
+	int8_t* allocateRegister(std::string reg);
 
     template<typename T>
     friend int32_t loadConst(GpuSqlDispatcher &dispatcher);
@@ -1001,9 +1002,7 @@ int32_t greaterColConst(GpuSqlDispatcher &dispatcher)
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 	std::cout << "GtColConst: " << colName << " const " << reg << std::endl;
-	int8_t * mask;
-	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
-	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
+	int8_t * mask = dispatcher.allocateRegister(reg);
 	GPUFilterConst::gt<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
@@ -1011,18 +1010,44 @@ int32_t greaterColConst(GpuSqlDispatcher &dispatcher)
 template<typename T, typename U>
 int32_t greaterConstCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colName = dispatcher.arguments.read<std::string>();
+	U cnst = dispatcher.arguments.read<U>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "GtConstCol: " << colName << " const " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilterConst::lt<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t greaterColCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colNameRight = dispatcher.arguments.read<std::string>();
+	auto colNameLeft = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "GtColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilter::gt<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colNameLeft)), reinterpret_cast<U*>(dispatcher.columnPointers.at(colNameRight)), dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t greaterConstConst(GpuSqlDispatcher &dispatcher)
 {
+	U constRight = dispatcher.arguments.read<U>();
+	T constLeft = dispatcher.arguments.read<T>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "GtConstConst: " << constLeft << " " << constRight << " " << reg << std::endl;
+	int8_t * mask;
+	if (constLeft > constRight)
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(1), dispatcher.database->GetBlockSize());
+	}
+	else
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(0), dispatcher.database->GetBlockSize());
+	}
+	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
 	return 0;
 }
 
@@ -1035,9 +1060,7 @@ int32_t lessColConst(GpuSqlDispatcher &dispatcher)
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 	std::cout << "LtColConst: " << colName << " const " << reg << std::endl;
-	int8_t * mask;
-	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
-	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
+	int8_t * mask = dispatcher.allocateRegister(reg);
 	GPUFilterConst::lt<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
@@ -1049,16 +1072,20 @@ int32_t lessConstCol(GpuSqlDispatcher &dispatcher)
 	U cnst = dispatcher.arguments.read<U>();
 	auto reg = dispatcher.arguments.read<std::string>();
 	std::cout << "LtConstCol: " << colName << " const " << reg << std::endl;
-	int8_t * mask;
-	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
-	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
-	GPUFilterConst::lt<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilterConst::gt<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t lessColCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colNameRight = dispatcher.arguments.read<std::string>();
+	auto colNameLeft = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "LtColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilter::lt<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colNameLeft)), reinterpret_cast<U*>(dispatcher.columnPointers.at(colNameRight)), dispatcher.database->GetBlockSize());
 	return 0;
 }
 
@@ -1067,24 +1094,56 @@ int32_t lessRegReg(GpuSqlDispatcher &dispatcher);
 template<typename T, typename U>
 int32_t lessConstConst(GpuSqlDispatcher &dispatcher)
 {
+	U constRight = dispatcher.arguments.read<U>();
+	T constLeft = dispatcher.arguments.read<T>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "LtConstConst: " << constLeft << " " << constRight << " " << reg << std::endl;
+	int8_t * mask;
+	if (constLeft < constRight)
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(1), dispatcher.database->GetBlockSize());
+	}
+	else
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(0), dispatcher.database->GetBlockSize());
+	}
+	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t greaterEqualColConst(GpuSqlDispatcher &dispatcher)
 {
+	U cnst = dispatcher.arguments.read<U>();
+	auto colName = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "GtEqColConst: " << colName << " const " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilterConst::gtEq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t greaterEqualConstCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colName = dispatcher.arguments.read<std::string>();
+	U cnst = dispatcher.arguments.read<U>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "GtEqConstCol: " << colName << " const " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilterConst::ltEq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t greaterEqualColCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colNameRight = dispatcher.arguments.read<std::string>();
+	auto colNameLeft = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "GtEqColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilter::gtEq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colNameLeft)), reinterpret_cast<U*>(dispatcher.columnPointers.at(colNameRight)), dispatcher.database->GetBlockSize());
 	return 0;
 }
 
@@ -1092,6 +1151,20 @@ int32_t greaterEqualColCol(GpuSqlDispatcher &dispatcher)
 template<typename T, typename U>
 int32_t greaterEqualConstConst(GpuSqlDispatcher &dispatcher)
 {
+	U constRight = dispatcher.arguments.read<U>();
+	T constLeft = dispatcher.arguments.read<T>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "GtEqConstConst: " << constLeft << " " << constRight << " " << reg << std::endl;
+	int8_t * mask;
+	if (constLeft >= constRight)
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(1), dispatcher.database->GetBlockSize());
+	}
+	else
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(0), dispatcher.database->GetBlockSize());
+	}
+	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
 	return 0;
 }
 
@@ -1100,24 +1173,56 @@ int32_t greaterEqualRegReg(GpuSqlDispatcher &dispatcher);
 template<typename T, typename U>
 int32_t lessEqualColConst(GpuSqlDispatcher &dispatcher)
 {
+	U cnst = dispatcher.arguments.read<U>();
+	auto colName = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "LtEqColConst: " << colName << " const " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilterConst::ltEq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t lessEqualConstCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colName = dispatcher.arguments.read<std::string>();
+	U cnst = dispatcher.arguments.read<U>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "LtEqConstCol: " << colName << " const " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilterConst::gtEq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t lessEqualColCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colNameRight = dispatcher.arguments.read<std::string>();
+	auto colNameLeft = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "LtEqColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilter::ltEq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colNameLeft)), reinterpret_cast<U*>(dispatcher.columnPointers.at(colNameRight)), dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t lessEqualConstConst(GpuSqlDispatcher &dispatcher)
 {
+	U constRight = dispatcher.arguments.read<U>();
+	T constLeft = dispatcher.arguments.read<T>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "LtEqConstConst: " << constLeft << " " << constRight << " " << reg << std::endl;
+	int8_t * mask;
+	if (constLeft <= constRight)
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(1), dispatcher.database->GetBlockSize());
+	}
+	else
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(0), dispatcher.database->GetBlockSize());
+	}
+	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
 	return 0;
 }
 
@@ -1129,10 +1234,8 @@ int32_t equalColConst(GpuSqlDispatcher &dispatcher)
     U cnst = dispatcher.arguments.read<U>();
     auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
-    std::cout << "EqualColConst: " << colName << " const " << reg <<  std::endl;
-	int8_t * mask;
-	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
-	dispatcher.registerPointers.insert({reg, reinterpret_cast<std::uintptr_t>(mask)});
+    std::cout << "EqColConst: " << colName << " const " << reg <<  std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
 	GPUFilterConst::eq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
@@ -1143,10 +1246,8 @@ int32_t equalConstCol(GpuSqlDispatcher &dispatcher)
 	auto colName = dispatcher.arguments.read<std::string>();
 	U cnst = dispatcher.arguments.read<U>();
 	auto reg = dispatcher.arguments.read<std::string>();
-	std::cout << "EqualConstCol: " << colName << " const " << reg << std::endl;
-	int8_t * mask;
-	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
-	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
+	std::cout << "EqConstCol: " << colName << " const " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
 	GPUFilterConst::eq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
@@ -1154,12 +1255,32 @@ int32_t equalConstCol(GpuSqlDispatcher &dispatcher)
 template<typename T, typename U>
 int32_t equalColCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colNameRight = dispatcher.arguments.read<std::string>();
+	auto colNameLeft = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "EqColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilter::eq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colNameLeft)), reinterpret_cast<U*>(dispatcher.columnPointers.at(colNameRight)), dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t equalConstConst(GpuSqlDispatcher &dispatcher)
 {
+	U constRight = dispatcher.arguments.read<U>();
+	T constLeft = dispatcher.arguments.read<T>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "EqConstConst: " << constLeft << " " << constRight << " " << reg << std::endl;
+	int8_t * mask;
+	if (constLeft == constRight)
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(1), dispatcher.database->GetBlockSize());
+	}
+	else
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(0), dispatcher.database->GetBlockSize());
+	}
+	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
 	return 0;
 }
 
@@ -1168,24 +1289,56 @@ int32_t equalRegReg(GpuSqlDispatcher &dispatcher);
 template<typename T, typename U>
 int32_t notEqualColConst(GpuSqlDispatcher &dispatcher)
 {
+	U cnst = dispatcher.arguments.read<U>();
+	auto colName = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "NotEqColConst: " << colName << " const " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilterConst::nonEq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t notEqualConstCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colName = dispatcher.arguments.read<std::string>();
+	U cnst = dispatcher.arguments.read<U>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "NotEqConstCol: " << colName << " const " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilterConst::nonEq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t notEqualColCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colNameRight = dispatcher.arguments.read<std::string>();
+	auto colNameLeft = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "NotEqColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+	int8_t * mask = dispatcher.allocateRegister(reg);
+	GPUFilter::nonEq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colNameLeft)), reinterpret_cast<U*>(dispatcher.columnPointers.at(colNameRight)), dispatcher.database->GetBlockSize());
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t notEqualConstConst(GpuSqlDispatcher &dispatcher)
 {
+	U constRight = dispatcher.arguments.read<U>();
+	T constLeft = dispatcher.arguments.read<T>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "NotEqConstConst: " << constLeft << " " << constRight << " " << reg << std::endl;
+	int8_t * mask;
+	if (constLeft != constRight)
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(1), dispatcher.database->GetBlockSize());
+	}
+	else
+	{
+		GPUMemory::allocAndSet<int8_t>(&mask, static_cast<int8_t>(0), dispatcher.database->GetBlockSize());
+	}
+	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
 	return 0;
 }
 

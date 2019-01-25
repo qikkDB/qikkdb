@@ -229,6 +229,14 @@ void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType o
     //TODO: Between
 }
 
+int8_t * GpuSqlDispatcher::allocateRegister(std::string reg)
+{
+	int8_t * mask;
+	GPUMemory::alloc<int8_t>(&mask, database->GetBlockSize());
+	registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
+	return mask;
+}
+
 int32_t loadReg(GpuSqlDispatcher &dispatcher)
 {
 	return 0;
