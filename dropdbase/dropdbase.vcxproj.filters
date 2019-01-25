@@ -142,16 +142,21 @@
     <ClInclude Include="GpuSqlParser\QueryType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="DataType.h" />
-
     <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
     <ClInclude Include="GpuSqlParser\GpuSqlDispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="IClientHandler.h" />
+    <ClInclude Include="ITCPWorker.h" />
+    <ClInclude Include="NetworkMessage.h" />
+    <ClInclude Include="TCPClientHandler.h" />
+    <ClInclude Include="TCPServer.h" />
+    <ClInclude Include="ClientPoolWorker.h" />
+    <ClInclude Include="CSVInMemoryImporter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp">
@@ -215,6 +220,11 @@
     <ClCompile Include="GpuSqlParser\MemoryStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ITCPWorker.cpp" />
+    <ClCompile Include="NetworkMessage.cpp" />
+    <ClCompile Include="TCPClientHandler.cpp" />
+    <ClCompile Include="ClientPoolWorker.cpp" />
+    <ClCompile Include="CSVInMemoryImporter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="QueryEngine\CudaMemAllocator.cu">

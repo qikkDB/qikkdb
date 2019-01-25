@@ -33,44 +33,58 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="..\dropdbase\ClientPoolWorker.cpp" />
     <ClCompile Include="..\dropdbase\ColumnBase.cpp" />
     <ClCompile Include="..\dropdbase\ComplexPolygonFactory.cpp" />
     <ClCompile Include="..\dropdbase\Configuration.cpp" />
+    <ClCompile Include="..\dropdbase\CSVInMemoryImporter.cpp" />
     <ClCompile Include="..\dropdbase\Database.cpp" />
     <ClCompile Include="..\dropdbase\DatabaseGenerator.cpp" />
+    <ClCompile Include="..\dropdbase\ITCPWorker.cpp" />
     <ClCompile Include="..\dropdbase\messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\InfoMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\QueryMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\QueryResponseMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\SetDatabaseMessage.pb.cc" />
+    <ClCompile Include="..\dropdbase\NetworkMessage.cpp" />
     <ClCompile Include="..\dropdbase\PointFactory.cpp" />
     <ClCompile Include="..\dropdbase\Table.cpp" />
+    <ClCompile Include="..\dropdbase\TCPClientHandler.cpp" />
     <ClCompile Include="..\dropdbase\Types\ComplexPolygon.pb.cc" />
     <ClCompile Include="..\dropdbase\Types\Point.pb.cc" />
     <ClCompile Include="ColumnTests.cpp" />
+    <ClCompile Include="ProtocolMessageTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
+    <ClCompile Include="TCPServerTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\dropdbase\BlockBase.h" />
+    <ClInclude Include="..\dropdbase\ClientPoolWorker.h" />
     <ClInclude Include="..\dropdbase\ColumnBase.h" />
     <ClInclude Include="..\dropdbase\ComplexPolygonFactory.h" />
     <ClInclude Include="..\dropdbase\Configuration.h" />
+    <ClInclude Include="..\dropdbase\CSVInMemoryImporter.h" />
     <ClInclude Include="..\dropdbase\Database.h" />
     <ClInclude Include="..\dropdbase\DatabaseGenerator.h" />
     <ClInclude Include="..\dropdbase\DataType.h" />
     <ClInclude Include="..\dropdbase\IBlock.h" />
+    <ClInclude Include="..\dropdbase\IClientHandler.h" />
     <ClInclude Include="..\dropdbase\IColumn.h" />
+    <ClInclude Include="..\dropdbase\ITCPWorker.h" />
     <ClInclude Include="..\dropdbase\messages\CSVImportMessage.pb.h" />
     <ClInclude Include="..\dropdbase\messages\InfoMessage.pb.h" />
     <ClInclude Include="..\dropdbase\messages\QueryMessage.pb.h" />
     <ClInclude Include="..\dropdbase\messages\QueryResponseMessage.pb.h" />
     <ClInclude Include="..\dropdbase\messages\SetDatabaseMessage.pb.h" />
     <ClInclude Include="..\dropdbase\NativeGeoPoint.h" />
+    <ClInclude Include="..\dropdbase\NetworkMessage.h" />
     <ClInclude Include="..\dropdbase\PointFactory.h" />
     <ClInclude Include="..\dropdbase\Table.h" />
+    <ClInclude Include="..\dropdbase\TCPClientHandler.h" />
+    <ClInclude Include="..\dropdbase\TCPServer.h" />
     <ClInclude Include="..\dropdbase\Types\ComplexPolygon.pb.h" />
     <ClInclude Include="..\dropdbase\Types\Point.pb.h" />
   </ItemGroup>

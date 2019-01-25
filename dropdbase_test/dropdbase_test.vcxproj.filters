@@ -45,6 +45,23 @@
       <Filter>dropdbase sources</Filter>
     </ClCompile>
     <ClCompile Include="ColumnTests.cpp" />
+    <ClCompile Include="ProtocolMessageTests.cpp" />
+    <ClCompile Include="TCPServerTests.cpp" />
+    <ClCompile Include="..\dropdbase\ClientPoolWorker.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\ITCPWorker.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\NetworkMessage.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\TCPClientHandler.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\CSVInMemoryImporter.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dropdbase sources">
@@ -107,6 +124,27 @@
       <Filter>dropdbase sources</Filter>
     </ClInclude>
     <ClInclude Include="..\dropdbase\Types\Point.pb.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\ClientPoolWorker.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\IClientHandler.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\ITCPWorker.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\NetworkMessage.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\TCPClientHandler.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\TCPServer.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\CSVInMemoryImporter.h">
       <Filter>dropdbase sources</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,3 +1,4 @@
+#include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "TCPClientHandler.h"
 #include "ITCPWorker.h"
 #include "CSVInMemoryImporter.h"
@@ -6,6 +7,7 @@
 #include <stdexcept>
 #include <boost/timer/timer.hpp>
 #include "messages/QueryResponseMessage.pb.h"
+
 
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult()
 {
@@ -140,13 +142,13 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::RunQuery(const std:
 	try
 	{
 		boost::timer::cpu_timer queryTimer;
-		//parser
 		auto elapsed = queryTimer.elapsed();
 		auto parserTime = elapsed.system + elapsed.user;
-		//executor
+		auto sharedDb = database.lock();
+		GpuSqlCustomParser parser(sharedDb, queryMessage.query());
 		{
 			std::lock_guard<std::mutex> queryLock(queryMutex_);
-			//execute
+			parser.parse();
 		}
 		return std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
 	}
@@ -194,16 +196,15 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleCSVImport(ITC
 	try
 	{
 		auto importDB = Database::GetDatabaseByName(csvImportMessage.databasename());
-		auto importDBShared = importDB.lock();
-		if (importDBShared == nullptr)
+		if (importDB == nullptr)
 		{
-			std::shared_ptr<Database> newImportDB = std::make_shared<Database>(csvImportMessage.databasename(), Configuration::BlockSize());
+			std::shared_ptr<Database> newImportDB = std::make_shared<Database>(csvImportMessage.databasename().c_str(), Configuration::GetInstance().GetBlockSize());
 			dataImporter.ImportTables(*newImportDB);
 			Database::AddToInMemoryDatabaseList(newImportDB);
 		}
 		else
 		{
-			dataImporter.ImportTables(*importDBShared);
+			dataImporter.ImportTables(*importDB);
 		}
 	}
 	catch (std::exception& e)
