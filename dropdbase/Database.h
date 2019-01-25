@@ -95,4 +95,6 @@ public:
 	/// </summary>
 	/// <param name="databaseName">Name of database to be removed</param>
 	static void DestroyDatabase(const char* databaseName) { loadedDatabases_.erase(databaseName); }
+
+	int GetBlockCount();
 };

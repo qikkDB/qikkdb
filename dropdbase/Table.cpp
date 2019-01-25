@@ -19,6 +19,15 @@ int Table::GetBlockSize()
 	return blockSize;
 }
 
+int32_t Table::GetBlockCount()
+{
+	for (auto& column : columns) 
+	{
+		return column.second.get()->GetBlockCount();
+	}
+	return 0;
+}
+
 const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColumns() const
 {
 	return columns;

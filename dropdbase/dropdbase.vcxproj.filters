@@ -142,14 +142,15 @@
     <ClInclude Include="GpuSqlParser\QueryType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="DataType.h" />
-
     <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
     <ClInclude Include="GpuSqlParser\GpuSqlDispatcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DispatcherErrorCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

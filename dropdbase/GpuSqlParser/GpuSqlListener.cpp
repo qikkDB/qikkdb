@@ -22,9 +22,12 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 
     DataType rightOperandType = std::get<1>(right);
     DataType leftOperandType = std::get<1>(left);
-
+	
     pushArgument(std::get<0>(right).c_str(), rightOperandType);
     pushArgument(std::get<0>(left).c_str(), leftOperandType);
+
+	std::string reg = std::string("R") + std::to_string(tempCounter);
+	pushArgument(reg.c_str(), DataType::REG);
 
     if (op == ">")
     {
@@ -90,6 +93,9 @@ void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext 
     pushArgument(std::get<0>(op2).c_str(), op2Type);
     pushArgument(std::get<0>(op3).c_str(), op3Type);
 
+	std::string reg = std::string("R") + std::to_string(tempCounter);
+	pushArgument(reg.c_str(), DataType::REG);
+
 
     if (op == "BETWEEN")
     {
@@ -108,6 +114,9 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     DataType operandType = std::get<1>(arg);
 
     pushArgument(std::get<0>(arg).c_str(), operandType);
+
+	std::string reg = std::string("R") + std::to_string(tempCounter);
+	pushArgument(reg.c_str(), DataType::REG);
 
     if (op == "!")
     {
@@ -129,6 +138,9 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     DataType operandType = std::get<1>(arg);
 
     pushArgument(std::get<0>(arg).c_str(), operandType);
+
+	std::string reg = std::string("R") + std::to_string(tempCounter);
+	pushArgument(reg.c_str(), DataType::REG);
 
     if (op == "MIN")
     {

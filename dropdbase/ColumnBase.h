@@ -136,4 +136,9 @@ public:
 			std::integral_constant<DataType, CONST_ERROR> >::type>::type>::type>::type>::type>::type>::type>::type retConst;
 		return retConst::value;
 	};
+
+	virtual int32_t GetBlockCount() const override
+	{
+		return blocks_.size();
+	}
 };

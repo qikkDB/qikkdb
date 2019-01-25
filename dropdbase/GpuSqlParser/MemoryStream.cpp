@@ -16,15 +16,15 @@ template<>
 void MemoryStream::insert(const std::string &value)
 {
     int len = static_cast<int>(value.length());
-    insert<int>(len);
+    insert<int32_t>(len);
     std::copy(value.begin(), value.end(), std::back_inserter(buffer));
 }
 
 template<>
 std::string MemoryStream::read()
 {
-    int len = read<int>();
-    std::string str(buffer.begin(), buffer.begin() + len);
-    buffer.erase(buffer.begin(), buffer.begin() + len);
+    int32_t len = read<int32_t>();
+    std::string str(buffer.begin() + readOffset, buffer.begin() + readOffset + len);
+	readOffset += len;
     return str;
 }

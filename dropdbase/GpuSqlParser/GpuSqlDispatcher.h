@@ -11,6 +11,7 @@
 #include <memory>
 #include <array>
 #include <string>
+#include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
 #include "../DataType.h"
 #include "../Database.h"
@@ -25,456 +26,476 @@
 class GpuSqlDispatcher;
 
 template<typename T>
-void loadConst(GpuSqlDispatcher &dispatcher);
+int32_t loadConst(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
-void loadCol(GpuSqlDispatcher &dispatcher);
+int32_t loadCol(GpuSqlDispatcher &dispatcher);
 
-void loadReg(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T>
-void retConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void retCol(GpuSqlDispatcher &dispatcher);
-
-void retReg(GpuSqlDispatcher &dispatcher);
-
-void fil(GpuSqlDispatcher &dispatcher);
-
-void done(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void greaterColConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void greaterConstCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void greaterColCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void greaterConstConst(GpuSqlDispatcher &dispatcher);
-
-void greaterRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void lessColConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void lessConstCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void lessColCol(GpuSqlDispatcher &dispatcher);
-
-void lessRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void lessConstConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void greaterEqualColConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void greaterEqualConstCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void greaterEqualColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void greaterEqualConstConst(GpuSqlDispatcher &dispatcher);
-
-void greaterEqualRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void lessEqualColConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void lessEqualConstCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void lessEqualColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void lessEqualConstConst(GpuSqlDispatcher &dispatcher);
-
-
-void lessEqualRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void equalColConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void equalConstCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void equalColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void equalConstConst(GpuSqlDispatcher &dispatcher);
-
-
-void equalRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void notEqualColConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void notEqualConstCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void notEqualColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void notEqualConstConst(GpuSqlDispatcher &dispatcher);
-
-
-void notEqualRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void logicalAndColConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void logicalAndConstCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void logicalAndColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void logicalAndConstConst(GpuSqlDispatcher &dispatcher);
-
-
-void logicalAndRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void logicalOrColConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void logicalOrConstCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void logicalOrColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void logicalOrConstConst(GpuSqlDispatcher &dispatcher);
-
-
-void logicalOrRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void mulColConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void mulConstCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void mulColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void mulConstConst(GpuSqlDispatcher &dispatcher);
-
-
-void mulRegReg(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void divColConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void divConstCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void divColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void divConstConst(GpuSqlDispatcher &dispatcher);
-
-
-void divRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void addColConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void addConstCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void addColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void addConstConst(GpuSqlDispatcher &dispatcher);
-
-
-void addRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void subColConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void subConstCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void subColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void subConstConst(GpuSqlDispatcher &dispatcher);
-
-
-void subRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void modColConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void modConstCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void modColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void modConstConst(GpuSqlDispatcher &dispatcher);
-
-
-void modRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void containsColConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void containsConstCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void containsColCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void containsConstConst(GpuSqlDispatcher &dispatcher);
-
-
-void containsRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void logicalNotCol(GpuSqlDispatcher &dispatcher);
+int32_t loadReg(GpuSqlDispatcher &dispatcher);
 
 
 template<typename T>
-void logicalNotConst(GpuSqlDispatcher &dispatcher);
-
-
-void logicalNotReg(GpuSqlDispatcher &dispatcher);
+int32_t retConst(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
-void minusCol(GpuSqlDispatcher &dispatcher);
+int32_t retCol(GpuSqlDispatcher &dispatcher);
 
+int32_t retReg(GpuSqlDispatcher &dispatcher);
 
-template<typename T>
-void minusConst(GpuSqlDispatcher &dispatcher);
+int32_t fil(GpuSqlDispatcher &dispatcher);
 
-
-void minusReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void minCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T>
-void minConst(GpuSqlDispatcher &dispatcher);
-
-
-void minReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void maxCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T>
-void maxConst(GpuSqlDispatcher &dispatcher);
-
-
-void maxReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void sumCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T>
-void sumConst(GpuSqlDispatcher &dispatcher);
-
-
-void sumReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void countCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T>
-void countConst(GpuSqlDispatcher &dispatcher);
-
-
-void countReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void avgCol(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T>
-void avgConst(GpuSqlDispatcher &dispatcher);
-
-
-void avgReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void groupByConst(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T>
-void groupByCol(GpuSqlDispatcher &dispatcher);
-
-
-void groupByReg(GpuSqlDispatcher &dispatcher);
+int32_t done(GpuSqlDispatcher &dispatcher);
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
+int32_t greaterColConst(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t greaterConstCol(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t greaterColCol(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t greaterConstConst(GpuSqlDispatcher &dispatcher);
+
+int32_t greaterRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t lessColConst(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t lessConstCol(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t lessColCol(GpuSqlDispatcher &dispatcher);
+
+int32_t lessRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t lessConstConst(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t greaterEqualColConst(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t greaterEqualConstCol(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t greaterEqualColCol(GpuSqlDispatcher &dispatcher);
 
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher);
+int32_t greaterEqualConstConst(GpuSqlDispatcher &dispatcher);
+
+int32_t greaterEqualRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t lessEqualColConst(GpuSqlDispatcher &dispatcher);
 
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
+int32_t lessEqualConstCol(GpuSqlDispatcher &dispatcher);
 
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
+int32_t lessEqualColCol(GpuSqlDispatcher &dispatcher);
 
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher);
+int32_t lessEqualConstConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t lessEqualRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t equalColConst(GpuSqlDispatcher &dispatcher);
 
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher);
+int32_t equalConstCol(GpuSqlDispatcher &dispatcher);
 
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher);
+int32_t equalColCol(GpuSqlDispatcher &dispatcher);
 
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher);
+int32_t equalConstConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t equalRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t notEqualColConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t notEqualConstCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t notEqualColCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t notEqualConstConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t notEqualRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t logicalAndColConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t logicalAndConstCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t logicalAndColCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t logicalAndConstConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t logicalAndRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t logicalOrColConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t logicalOrConstCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t logicalOrColCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t logicalOrConstConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t logicalOrRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t mulColConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t mulConstCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t mulColCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t mulConstConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t mulRegReg(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t divColConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t divConstCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t divColCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t divConstConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t divRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t addColConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t addConstCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t addColCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t addConstConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t addRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t subColConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t subConstCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t subColCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t subConstConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t subRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t modColConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t modConstCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t modColCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t modConstConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t modRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t containsColConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t containsConstCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t containsColCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t containsConstConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t containsRegReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
-void invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
+int32_t logicalNotCol(GpuSqlDispatcher &dispatcher);
+
 
 template<typename T>
-void invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
+int32_t logicalNotConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t logicalNotReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
-void invalidOperandTypesErrorHandlerReg(GpuSqlDispatcher &dispatcher);
+int32_t minusCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T>
+int32_t minusConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t minusReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t minCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T>
+int32_t minConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t minReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t maxCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T>
+int32_t maxConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t maxReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t sumCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T>
+int32_t sumConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t sumReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t countCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T>
+int32_t countConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t countReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t avgCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T>
+int32_t avgConst(GpuSqlDispatcher &dispatcher);
+
+
+int32_t avgReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t groupByConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T>
+int32_t groupByCol(GpuSqlDispatcher &dispatcher);
+
+
+int32_t groupByReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t invalidOperandTypesErrorHandlerReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<T[]> &data, int32_t dataSize);
+
+template<>
+void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<int32_t[]> &data, int32_t dataSize);
+
+
+template<>
+void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<int64_t[]> &data, int32_t dataSize);
+
+
+template<>
+void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<float[]> &data, int32_t dataSize);
+
+
+template<>
+void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<double[]> &data, int32_t dataSize);
 
 class GpuSqlDispatcher
 {
 
 private:
-    std::vector<std::function<void()>> functions;
-    std::vector<std::function<void(GpuSqlDispatcher &)>> dispatcherFunctions;
+    std::vector<std::function<int32_t(GpuSqlDispatcher &)>> dispatcherFunctions;
     MemoryStream arguments;
-    int blockIndex;
+	int32_t blockIndex;
     const std::shared_ptr<Database> &database;
 	std::unordered_map<std::string, std::uintptr_t> columnPointers;
 	std::unordered_map<std::string, std::uintptr_t> registerPointers;
+	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> lessFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterEqualFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> lessEqualFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> equalFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> notEqualFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logicalAndFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logicalOrFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> mulFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> divFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> addFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> subFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> containsFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> minusFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> minFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> maxFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> sumFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> countFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> avgFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> loadFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> retFunctions;
-    static std::array<std::function<void(GpuSqlDispatcher &)>,
+    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
-    static std::function<void(GpuSqlDispatcher &)> filFunction;
-    static std::function<void(GpuSqlDispatcher &)> doneFunction;
+    static std::function<int32_t(GpuSqlDispatcher &)> filFunction;
+    static std::function<int32_t(GpuSqlDispatcher &)> doneFunction;
 
 public:
     explicit GpuSqlDispatcher(const std::shared_ptr<Database> &database);
 
-    void execute();
+    ColmnarDB::NetworkClient::Message::QueryResponseMessage execute();
+
+	const ColmnarDB::NetworkClient::Message::QueryResponseMessage &getQueryResponseMessage();
 
     void addGreaterFunction(DataType left, DataType right);
 
@@ -532,366 +553,366 @@ public:
 
 
     template<typename T>
-    friend void loadConst(GpuSqlDispatcher &dispatcher);
+    friend int32_t loadConst(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void loadCol(GpuSqlDispatcher &dispatcher);
+    friend int32_t loadCol(GpuSqlDispatcher &dispatcher);
 
-    friend void loadReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend void retConst(GpuSqlDispatcher &dispatcher);
+    friend int32_t loadReg(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void retCol(GpuSqlDispatcher &dispatcher);
-
-    friend void retReg(GpuSqlDispatcher &dispatcher);
-
-    friend void fil(GpuSqlDispatcher &dispatcher);
-
-    friend void done(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void greaterColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void greaterConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void greaterColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void greaterConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void greaterRegReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void lessColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void lessConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void lessColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void lessConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void lessRegReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void greaterEqualColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void greaterEqualConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void greaterEqualColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void greaterEqualConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void greaterEqualRegReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void lessEqualColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void lessEqualConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void lessEqualColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void lessEqualConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void lessEqualRegReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void equalColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void equalConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void equalColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void equalConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void equalRegReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void notEqualColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void notEqualConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void notEqualColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void notEqualConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void notEqualRegReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void logicalAndColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void logicalAndConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void logicalAndColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void logicalAndConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void logicalAndRegReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void logicalOrColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void logicalOrConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void logicalOrColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void logicalOrConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void logicalOrRegReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void mulColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void mulConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void mulColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void mulConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void mulRegReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void divColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void divConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void divColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void divConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void divRegReg(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void addColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void addConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void addColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void addConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void addRegReg(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void subColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void subConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void subColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void subConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void subRegReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void modColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void modConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void modColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void modConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void modRegReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend void containsColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void containsConstCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void containsColCol(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend void containsConstConst(GpuSqlDispatcher &dispatcher);
-
-    friend void containsRegReg(GpuSqlDispatcher &dispatcher);
-
-
-    void between();
+    friend int32_t retConst(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void logicalNotCol(GpuSqlDispatcher &dispatcher);
+    friend int32_t retCol(GpuSqlDispatcher &dispatcher);
 
+    friend int32_t retReg(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t fil(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t done(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t greaterColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t greaterConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t greaterColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t greaterConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t greaterRegReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t lessColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t lessConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t lessColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t lessConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t lessRegReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t greaterEqualColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t greaterEqualConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t greaterEqualColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t greaterEqualConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t greaterEqualRegReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t lessEqualColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t lessEqualConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t lessEqualColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t lessEqualConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t lessEqualRegReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t equalColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t equalConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t equalColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t equalConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t equalRegReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t notEqualColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t notEqualConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t notEqualColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t notEqualConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t notEqualRegReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t logicalAndColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t logicalAndConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t logicalAndColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t logicalAndConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t logicalAndRegReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t logicalOrColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t logicalOrConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t logicalOrColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t logicalOrConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t logicalOrRegReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t mulColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t mulConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t mulColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t mulConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t mulRegReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t divColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t divConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t divColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t divConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t divRegReg(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t addColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t addConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t addColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t addConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t addRegReg(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t subColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t subConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t subColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t subConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t subRegReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t modColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t modConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t modColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t modConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t modRegReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T, typename U>
+    friend int32_t containsColConst(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t containsConstCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t containsColCol(GpuSqlDispatcher &dispatcher);
+
+
+    template<typename T, typename U>
+    friend int32_t containsConstConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t containsRegReg(GpuSqlDispatcher &dispatcher);
+
+
+    int32_t between();
 
     template<typename T>
-    friend void logicalNotConst(GpuSqlDispatcher &dispatcher);
-
-    friend void logicalNotReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend void minusCol(GpuSqlDispatcher &dispatcher);
+    friend int32_t logicalNotCol(GpuSqlDispatcher &dispatcher);
 
 
     template<typename T>
-    friend void minusConst(GpuSqlDispatcher &dispatcher);
+    friend int32_t logicalNotConst(GpuSqlDispatcher &dispatcher);
 
-    friend void minusReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend void minCol(GpuSqlDispatcher &dispatcher);
+    friend int32_t logicalNotReg(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void minConst(GpuSqlDispatcher &dispatcher);
+    friend int32_t minusCol(GpuSqlDispatcher &dispatcher);
 
-    friend void minReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend void maxCol(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void maxConst(GpuSqlDispatcher &dispatcher);
+    friend int32_t minusConst(GpuSqlDispatcher &dispatcher);
 
-    friend void maxReg(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend void sumCol(GpuSqlDispatcher &dispatcher);
+    friend int32_t minusReg(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void sumConst(GpuSqlDispatcher &dispatcher);
-
-    friend void sumReg(GpuSqlDispatcher &dispatcher);
+    friend int32_t minCol(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void countCol(GpuSqlDispatcher &dispatcher);
+    friend int32_t minConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t minReg(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void countConst(GpuSqlDispatcher &dispatcher);
-
-    friend void countReg(GpuSqlDispatcher &dispatcher);
+    friend int32_t maxCol(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void avgCol(GpuSqlDispatcher &dispatcher);
+    friend int32_t maxConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t maxReg(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void avgConst(GpuSqlDispatcher &dispatcher);
-
-    friend void avgReg(GpuSqlDispatcher &dispatcher);
+    friend int32_t sumCol(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void groupByCol(GpuSqlDispatcher &dispatcher);
+    friend int32_t sumConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t sumReg(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
-    friend void groupByConst(GpuSqlDispatcher &dispatcher);
+    friend int32_t countCol(GpuSqlDispatcher &dispatcher);
 
-    friend void groupByReg(GpuSqlDispatcher &dispatcher);
+    template<typename T>
+    friend int32_t countConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t countReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T>
+    friend int32_t avgCol(GpuSqlDispatcher &dispatcher);
+
+    template<typename T>
+    friend int32_t avgConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t avgReg(GpuSqlDispatcher &dispatcher);
+
+    template<typename T>
+    friend int32_t groupByCol(GpuSqlDispatcher &dispatcher);
+
+    template<typename T>
+    friend int32_t groupByConst(GpuSqlDispatcher &dispatcher);
+
+    friend int32_t groupByReg(GpuSqlDispatcher &dispatcher);
 
     template<typename T, typename U>
-    friend void invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
+    friend int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
 
     template<typename T, typename U>
-    friend void invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher);
+    friend int32_t invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher);
 
     template<typename T, typename U>
-    friend void invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
+    friend int32_t invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
 
     template<typename T, typename U>
-    friend void invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
+    friend int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
 
     template<typename T, typename U>
-    friend void invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher);
+    friend int32_t invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher);
 
     template<typename T, typename U>
-    friend void invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher);
+    friend int32_t invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher);
 
     template<typename T, typename U>
-    friend void invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher);
+    friend int32_t invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher);
 
     template<typename T, typename U>
-    friend void invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher);
+    friend int32_t invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher);
 
 	template<typename T>
-	friend void invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
+	friend int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
 
 	template<typename T>
-	friend void invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
+	friend int32_t invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
 
 	template<typename T>
-	friend void invalidOperandTypesErrorHandlerReg(GpuSqlDispatcher &dispatcher);
+	friend int32_t invalidOperandTypesErrorHandlerReg(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
     void addArgument(T argument)
@@ -904,13 +925,13 @@ public:
 class GpuSqlDispatcher;
 
 template<typename T>
-void loadConst(GpuSqlDispatcher &dispatcher)
+int32_t loadConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T>
-void loadCol(GpuSqlDispatcher &dispatcher)
+int32_t loadCol(GpuSqlDispatcher &dispatcher)
 {
     auto colName = dispatcher.arguments.read<std::string>();
     std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
@@ -922,24 +943,32 @@ void loadCol(GpuSqlDispatcher &dispatcher)
 	const size_t endOfPolyIdx = colName.find(".");
 	const std::string table = colName.substr(0, endOfPolyIdx);
 	const std::string column = colName.substr(endOfPolyIdx + 1);
+
+	if (dispatcher.blockIndex >= dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount())
+	{
+		return 1;
+	}
+
 	auto col = dynamic_cast<const ColumnBase<T>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
 	auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[0].get());
 	GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<T*>(block->GetData().data()),
 		dispatcher.database->GetBlockSize());
+	return 0;
 }
 
-void loadReg(GpuSqlDispatcher &dispatcher);
+int32_t loadReg(GpuSqlDispatcher &dispatcher);
 
 
 template<typename T>
-void retConst(GpuSqlDispatcher &dispatcher)
+int32_t retConst(GpuSqlDispatcher &dispatcher)
 {
     T cnst = dispatcher.arguments.read<T>();
     std::cout << "RET: cnst" << typeid(T).name() << std::endl;
+	return 0;
 }
 
 template<typename T>
-void retCol(GpuSqlDispatcher &dispatcher)
+int32_t retCol(GpuSqlDispatcher &dispatcher)
 {
     auto col = dispatcher.arguments.read<std::string>();
     std::cout << "RET: " << col << std::endl;
@@ -951,565 +980,604 @@ void retCol(GpuSqlDispatcher &dispatcher)
 	GPUReconstruct::reconstructCol(outData.get(), &outSize, ACol, reinterpret_cast<int8_t*>(dispatcher.filter_), dispatcher.database->GetBlockSize());
 	//GPUMemory::hostUnregister(outData.get());
 	std::cout << "dataSize: " << outSize << std::endl;
+	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+	insertIntoPayload<T>(payload, outData, outSize);
+	ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
+	partialMessage.mutable_payloads()->insert({ col, payload });
+	dispatcher.responseMessage.MergeFrom(partialMessage);
+	return 0;
 }
 
-void retReg(GpuSqlDispatcher &dispatcher);
+int32_t retReg(GpuSqlDispatcher &dispatcher);
 
-void fil(GpuSqlDispatcher &dispatcher);
+int32_t fil(GpuSqlDispatcher &dispatcher);
 
-void done(GpuSqlDispatcher &dispatcher);
+int32_t done(GpuSqlDispatcher &dispatcher);
 
 template<typename T, typename U>
-void greaterColConst(GpuSqlDispatcher &dispatcher)
+int32_t greaterColConst(GpuSqlDispatcher &dispatcher)
 {
-
+	U cnst = dispatcher.arguments.read<U>();
+	auto colName = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "GtColConst: " << colName << " const " << reg << std::endl;
+	int8_t * mask;
+	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
+	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
+	GPUFilterConst::gt<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
+	return 0;
 }
 
 template<typename T, typename U>
-void greaterConstCol(GpuSqlDispatcher &dispatcher)
+int32_t greaterConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void greaterColCol(GpuSqlDispatcher &dispatcher)
+int32_t greaterColCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void greaterConstConst(GpuSqlDispatcher &dispatcher)
+int32_t greaterConstConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
-void greaterRegReg(GpuSqlDispatcher &dispatcher);
+int32_t greaterRegReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T, typename U>
-void lessColConst(GpuSqlDispatcher &dispatcher)
+int32_t lessColConst(GpuSqlDispatcher &dispatcher)
 {
-
+	U cnst = dispatcher.arguments.read<U>();
+	auto colName = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "LtColConst: " << colName << " const " << reg << std::endl;
+	int8_t * mask;
+	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
+	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
+	GPUFilterConst::lt<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
+	return 0;
 }
 
 template<typename T, typename U>
-void lessConstCol(GpuSqlDispatcher &dispatcher)
+int32_t lessConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	auto colName = dispatcher.arguments.read<std::string>();
+	U cnst = dispatcher.arguments.read<U>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "LtConstCol: " << colName << " const " << reg << std::endl;
+	int8_t * mask;
+	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
+	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
+	GPUFilterConst::lt<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
+	return 0;
 }
 
 template<typename T, typename U>
-void lessColCol(GpuSqlDispatcher &dispatcher)
+int32_t lessColCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
-void lessRegReg(GpuSqlDispatcher &dispatcher);
+int32_t lessRegReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T, typename U>
-void lessConstConst(GpuSqlDispatcher &dispatcher)
+int32_t lessConstConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void greaterEqualColConst(GpuSqlDispatcher &dispatcher)
+int32_t greaterEqualColConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void greaterEqualConstCol(GpuSqlDispatcher &dispatcher)
+int32_t greaterEqualConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void greaterEqualColCol(GpuSqlDispatcher &dispatcher)
+int32_t greaterEqualColCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 
 template<typename T, typename U>
-void greaterEqualConstConst(GpuSqlDispatcher &dispatcher)
+int32_t greaterEqualConstConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
-void greaterEqualRegReg(GpuSqlDispatcher &dispatcher);
+int32_t greaterEqualRegReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T, typename U>
-void lessEqualColConst(GpuSqlDispatcher &dispatcher)
+int32_t lessEqualColConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void lessEqualConstCol(GpuSqlDispatcher &dispatcher)
+int32_t lessEqualConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void lessEqualColCol(GpuSqlDispatcher &dispatcher)
+int32_t lessEqualColCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void lessEqualConstConst(GpuSqlDispatcher &dispatcher)
+int32_t lessEqualConstConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
-void lessEqualRegReg(GpuSqlDispatcher &dispatcher);
+int32_t lessEqualRegReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T, typename U>
-void equalColConst(GpuSqlDispatcher &dispatcher)
+int32_t equalColConst(GpuSqlDispatcher &dispatcher)
 {
     U cnst = dispatcher.arguments.read<U>();
     auto colName = dispatcher.arguments.read<std::string>();
-    std::cout << "EqualColConst: " << colName << " " << "const" << std::endl;
+	auto reg = dispatcher.arguments.read<std::string>();
+    std::cout << "EqualColConst: " << colName << " const " << reg <<  std::endl;
 	int8_t * mask;
 	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
-	dispatcher.registerPointers.insert({"R0", reinterpret_cast<std::uintptr_t>(mask)}); // TODO change R0 to something better
+	dispatcher.registerPointers.insert({reg, reinterpret_cast<std::uintptr_t>(mask)});
 	GPUFilterConst::eq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
+	return 0;
 }
 
 template<typename T, typename U>
-void equalConstCol(GpuSqlDispatcher &dispatcher)
+int32_t equalConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	auto colName = dispatcher.arguments.read<std::string>();
+	U cnst = dispatcher.arguments.read<U>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "EqualConstCol: " << colName << " const " << reg << std::endl;
+	int8_t * mask;
+	GPUMemory::alloc<int8_t>(&mask, dispatcher.database->GetBlockSize());
+	dispatcher.registerPointers.insert({ reg, reinterpret_cast<std::uintptr_t>(mask) });
+	GPUFilterConst::eq<T, U>(mask, reinterpret_cast<T*>(dispatcher.columnPointers.at(colName)), cnst, dispatcher.database->GetBlockSize());
+	return 0;
 }
 
 template<typename T, typename U>
-void equalColCol(GpuSqlDispatcher &dispatcher)
+int32_t equalColCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void equalConstConst(GpuSqlDispatcher &dispatcher)
+int32_t equalConstConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
-void equalRegReg(GpuSqlDispatcher &dispatcher);
+int32_t equalRegReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T, typename U>
-void notEqualColConst(GpuSqlDispatcher &dispatcher)
+int32_t notEqualColConst(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-template<typename T, typename U>
-void notEqualConstCol(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T, typename U>
-void notEqualColCol(GpuSqlDispatcher &dispatcher)
+int32_t notEqualConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void notEqualConstConst(GpuSqlDispatcher &dispatcher)
+int32_t notEqualColCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-void notEqualRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void logicalAndColConst(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T, typename U>
-void logicalAndConstCol(GpuSqlDispatcher &dispatcher)
+int32_t notEqualConstConst(GpuSqlDispatcher &dispatcher)
 {
+	return 0;
+}
 
+int32_t notEqualRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t logicalAndColConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
 }
 
 template<typename T, typename U>
-void logicalAndColCol(GpuSqlDispatcher &dispatcher)
+int32_t logicalAndConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void logicalAndConstConst(GpuSqlDispatcher &dispatcher)
+int32_t logicalAndColCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-void logicalAndRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void logicalOrColConst(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T, typename U>
-void logicalOrConstCol(GpuSqlDispatcher &dispatcher)
+int32_t logicalAndConstConst(GpuSqlDispatcher &dispatcher)
 {
+	return 0;
+}
 
+int32_t logicalAndRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t logicalOrColConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
 }
 
 template<typename T, typename U>
-void logicalOrColCol(GpuSqlDispatcher &dispatcher)
+int32_t logicalOrConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void logicalOrConstConst(GpuSqlDispatcher &dispatcher)
+int32_t logicalOrColCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-void logicalOrRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void mulColConst(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T, typename U>
-void mulConstCol(GpuSqlDispatcher &dispatcher)
+int32_t logicalOrConstConst(GpuSqlDispatcher &dispatcher)
 {
+	return 0;
+}
 
+int32_t logicalOrRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t mulColConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
 }
 
 template<typename T, typename U>
-void mulColCol(GpuSqlDispatcher &dispatcher)
+int32_t mulConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void mulConstConst(GpuSqlDispatcher &dispatcher)
+int32_t mulColCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-void mulRegReg(GpuSqlDispatcher &dispatcher);
-
-
-template<typename T, typename U>
-void divColConst(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T, typename U>
-void divConstCol(GpuSqlDispatcher &dispatcher)
+int32_t mulConstConst(GpuSqlDispatcher &dispatcher)
 {
+	return 0;
+}
 
+int32_t mulRegReg(GpuSqlDispatcher &dispatcher);
+
+
+template<typename T, typename U>
+int32_t divColConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
 }
 
 template<typename T, typename U>
-void divColCol(GpuSqlDispatcher &dispatcher)
+int32_t divConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void divConstConst(GpuSqlDispatcher &dispatcher)
+int32_t divColCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-void divRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void addColConst(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T, typename U>
-void addConstCol(GpuSqlDispatcher &dispatcher)
+int32_t divConstConst(GpuSqlDispatcher &dispatcher)
 {
+	return 0;
+}
 
+int32_t divRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t addColConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
 }
 
 template<typename T, typename U>
-void addColCol(GpuSqlDispatcher &dispatcher)
+int32_t addConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void addConstConst(GpuSqlDispatcher &dispatcher)
+int32_t addColCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-void addRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void subColConst(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T, typename U>
-void subConstCol(GpuSqlDispatcher &dispatcher)
+int32_t addConstConst(GpuSqlDispatcher &dispatcher)
 {
+	return 0;
+}
 
+int32_t addRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t subColConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
 }
 
 template<typename T, typename U>
-void subColCol(GpuSqlDispatcher &dispatcher)
+int32_t subConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void subConstConst(GpuSqlDispatcher &dispatcher)
+int32_t subColCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-void subRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void modColConst(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T, typename U>
-void modConstCol(GpuSqlDispatcher &dispatcher)
+int32_t subConstConst(GpuSqlDispatcher &dispatcher)
 {
+	return 0;
+}
 
+int32_t subRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t modColConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
 }
 
 template<typename T, typename U>
-void modColCol(GpuSqlDispatcher &dispatcher)
+int32_t modConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void modConstConst(GpuSqlDispatcher &dispatcher)
+int32_t modColCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-void modRegReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-void containsColConst(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T, typename U>
-void containsConstCol(GpuSqlDispatcher &dispatcher)
+int32_t modConstConst(GpuSqlDispatcher &dispatcher)
 {
+	return 0;
+}
 
+int32_t modRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t containsColConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
 }
 
 template<typename T, typename U>
-void containsColCol(GpuSqlDispatcher &dispatcher)
+int32_t containsConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void containsConstConst(GpuSqlDispatcher &dispatcher)
+int32_t containsColCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
-void containsRegReg(GpuSqlDispatcher &dispatcher);
+template<typename T, typename U>
+int32_t containsConstConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+int32_t containsRegReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
-void logicalNotCol(GpuSqlDispatcher &dispatcher)
+int32_t logicalNotCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-template<typename T>
-void logicalNotConst(GpuSqlDispatcher &dispatcher)
-{
-
-}
-
-void logicalNotReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void minusCol(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T>
-void minusConst(GpuSqlDispatcher &dispatcher)
+int32_t logicalNotConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
-void minusReg(GpuSqlDispatcher &dispatcher);
+int32_t logicalNotReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
-void minCol(GpuSqlDispatcher &dispatcher)
+int32_t minusCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-template<typename T>
-void minConst(GpuSqlDispatcher &dispatcher)
-{
-
-}
-
-void minReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void maxCol(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T>
-void maxConst(GpuSqlDispatcher &dispatcher)
+int32_t minusConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
-
-void maxReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void sumCol(GpuSqlDispatcher &dispatcher)
-{
-
-}
+int32_t minusReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
-void sumConst(GpuSqlDispatcher &dispatcher)
+int32_t minCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-void sumReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void countCol(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T>
-void countConst(GpuSqlDispatcher &dispatcher)
+int32_t minConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
-void countReg(GpuSqlDispatcher &dispatcher);
+int32_t minReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
-void avgCol(GpuSqlDispatcher &dispatcher)
+int32_t maxCol(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-template<typename T>
-void avgConst(GpuSqlDispatcher &dispatcher)
-{
-
-}
-
-void avgReg(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void groupByConst(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T>
-void groupByCol(GpuSqlDispatcher &dispatcher)
+int32_t maxConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
-void groupByReg(GpuSqlDispatcher &dispatcher);
+
+int32_t maxReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t sumCol(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+template<typename T>
+int32_t sumConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+int32_t sumReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t countCol(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+template<typename T>
+int32_t countConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+int32_t countReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t avgCol(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+template<typename T>
+int32_t avgConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+int32_t avgReg(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t groupByConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+template<typename T>
+int32_t groupByCol(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+int32_t groupByReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher)
+int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher)
 {
-
-}
-
-template<typename T, typename U>
-void invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher)
-{
-
-}
-
-template<typename T, typename U>
-void invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher)
-{
-
-}
-
-
-template<typename T, typename U>
-void invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher)
-{
-
+	return 0;
 }
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher)
+int32_t invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher)
+int32_t invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher)
 {
+	return 0;
+}
 
+
+template<typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
 }
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher)
+int32_t invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T, typename U>
-void invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher)
+int32_t invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher)
 {
+	return 0;
+}
 
+template<typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+template<typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
 }
 
 template<typename T>
-void invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher)
+int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T>
-void invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher)
+int32_t invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
 
 template<typename T>
-void invalidOperandTypesErrorHandlerReg(GpuSqlDispatcher &dispatcher)
+int32_t invalidOperandTypesErrorHandlerReg(GpuSqlDispatcher &dispatcher)
 {
-
+	return 0;
 }
-
 
 #endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
