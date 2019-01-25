@@ -587,8 +587,8 @@ TEST(ColumnTests, GetUniqueBuckets)
 	auto uniqueLong = (dynamic_cast<ColumnBase<int64_t>*>(columnLong.get()))->GetUniqueBuckets();
 	auto uniqueFloat = (dynamic_cast<ColumnBase<float>*>(columnFloat.get()))->GetUniqueBuckets();
 	auto uniqueDouble = (dynamic_cast<ColumnBase<double>*>(columnDouble.get()))->GetUniqueBuckets();
-//	auto uniquePoint = (dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get()))->GetUniqueBuckets();
-//	auto uniquePolygon = (dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get()))->GetUniqueBuckets();
+	auto uniquePoint = (dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get()))->GetUniqueBuckets();
+	auto uniquePolygon = (dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get()))->GetUniqueBuckets();
 	auto uniqueString = (dynamic_cast<ColumnBase<std::string>*>(columnString.get()))->GetUniqueBuckets();
 	auto uniqueBool = (dynamic_cast<ColumnBase<bool>*>(columnBool.get()))->GetUniqueBuckets();
 
@@ -596,8 +596,8 @@ TEST(ColumnTests, GetUniqueBuckets)
 	ASSERT_EQ(uniqueLong.size(), 2);
 	ASSERT_EQ(uniqueFloat.size(), 4);
 	ASSERT_EQ(uniqueDouble.size(), 2);
-//	ASSERT_EQ(uniquePoint.size(), 1);
-//	ASSERT_EQ(uniquePolygon.size(), 1);
+	ASSERT_EQ(uniquePoint.size(), 1);
+	ASSERT_EQ(uniquePolygon.size(), 1);
 	ASSERT_EQ(uniqueString.size(), 2);
 	ASSERT_EQ(uniqueBool.size(), 2);
 }

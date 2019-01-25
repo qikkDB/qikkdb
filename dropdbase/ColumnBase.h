@@ -32,6 +32,51 @@ namespace std {
 			return std::hash<std::string>{}(wkt);
 		}
 	};
+
+
+	template <> struct equal_to<ColmnarDB::Types::Point>
+	{
+		bool operator()(const ColmnarDB::Types::Point &lhs, const ColmnarDB::Types::Point &rhs) const
+		{
+			if (std::abs(lhs.geopoint().latitude() - rhs.geopoint().latitude()) >= 0.0001f ||
+				std::abs(lhs.geopoint().longitude() - rhs.geopoint().longitude()) >= 0.0001f)
+			{
+				return false;
+			}
+			return true;
+		}
+	};
+
+	template <> struct equal_to<ColmnarDB::Types::ComplexPolygon>
+	{
+		bool operator()(const ColmnarDB::Types::ComplexPolygon &lhs, const ColmnarDB::Types::ComplexPolygon &rhs) const
+		{
+			if (lhs.polygons_size() != rhs.polygons_size())
+			{
+				return false;
+			}
+
+			int32_t polySize = lhs.polygons_size();
+			for (int32_t i = 0; i < polySize; i++)
+			{
+				if (lhs.polygons(i).geopoints_size() != rhs.polygons(i).geopoints_size())
+				{
+					return false;
+				}
+				int32_t pointSize = lhs.polygons(i).geopoints_size();
+				for (int32_t j = 0; j < pointSize; j++)
+				{
+
+					if (std::abs(lhs.polygons(i).geopoints(j).latitude() - rhs.polygons(i).geopoints(j).latitude()) >= 0.0001f ||
+						std::abs(lhs.polygons(i).geopoints(j).longitude() - rhs.polygons(i).geopoints(j).longitude()) >= 0.0001f)
+					{
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+	};
 }
 
 template<class T>
