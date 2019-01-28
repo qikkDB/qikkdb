@@ -34,10 +34,10 @@ __global__ void kernel_plus(T *output, U *ACol, V *BCol, int32_t dataElementCoun
 		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 		{
 			// Check for overflow
-			if (((BCol[i] > V{0}) && (ACol[i] > (max - BCol[i]))) ||
-				((BCol[i] < V{0}) && (ACol[i] < (min - BCol[i]))))
+			if (((BCol[i] > V{ 0 }) && (ACol[i] > (max - BCol[i]))) ||
+				((BCol[i] < V{ 0 }) && (ACol[i] < (min - BCol[i]))))
 			{
-				atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+				atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
 				continue;
 			}
 		}
@@ -65,10 +65,10 @@ __global__ void kernel_minus(T *output, U *ACol, V *BCol, int32_t dataElementCou
 		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 		{
 			// Check for overflow
-			if (((BCol[i] > V{0}) && (ACol[i] < (min + BCol[i]))) ||
-				((BCol[i] < V{0}) && (ACol[i] > (max + BCol[i]))))
+			if (((BCol[i] > V{ 0 }) && (ACol[i] < (min + BCol[i]))) ||
+				((BCol[i] < V{ 0 }) && (ACol[i] > (max + BCol[i]))))
 			{
-				atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+				atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
 				continue;
 			}
 		}
@@ -96,13 +96,13 @@ __global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataE
 		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 		{
 			// Check for overflow
-			if (ACol[i] > U{0})
+			if (ACol[i] > U{ 0 })
 			{
-				if (BCol[i] > V{0})
+				if (BCol[i] > V{ 0 })
 				{
 					if (ACol[i] > (max / BCol[i]))
 					{
-						atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+						atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
 						continue;
 					}
 				}
@@ -110,26 +110,26 @@ __global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataE
 				{
 					if (BCol[i] < (min / ACol[i]))
 					{
-						atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+						atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
 						continue;
 					}
 				}
 			}
 			else
 			{
-				if (BCol[i] > V{0})
+				if (BCol[i] > V{ 0 })
 				{
 					if (ACol[i] < (min / BCol[i]))
 					{
-						atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+						atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
 						continue;
 					}
 				}
 				else
 				{
-					if ((ACol[i] != U{0}) && (BCol[i] < (max / ACol[i])))
+					if ((ACol[i] != U{ 0 }) && (BCol[i] < (max / ACol[i])))
 					{
-						atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+						atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
 						continue;
 					}
 				}
@@ -153,15 +153,15 @@ __global__ void kernel_floor_division(T *output, U *ACol, V *BCol, int32_t dataE
 	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int32_t stride = blockDim.x * gridDim.x;
 
-	for(int32_t i = idx; i < dataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		// if none of the input operands are float
 		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 		{
 			// Check for zero division
-			if (BCol[i] == V{0})
+			if (BCol[i] == V{ 0 })
 			{
-				atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
+				atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR));
 			}
 			else
 			{
@@ -194,15 +194,7 @@ __global__ void kernel_division(T *output, U *ACol, V *BCol, int32_t dataElement
 		// if none of the input operands are float
 		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 		{
-			// Check for zero division
-			if (BCol[i] == V{0})
-			{
-				atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
-			}
-			else
-			{
-				output[i] = ACol[i] / (T)BCol[i]; // convert divisor to type T (should be floating point)
-			}
+			output[i] = ACol[i] / static_cast<T>(BCol[i]); // convert divisor to type T (should be floating point)
 		}
 		else
 		{
@@ -225,25 +217,16 @@ __global__ void kernel_modulo(T *output, U *ACol, V *BCol, int32_t dataElementCo
 	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int32_t stride = blockDim.x * gridDim.x;
 
-	for(int32_t i = idx; i < dataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		// if at least one of the input operands is float
-		if (std::is_floating_point<U>::value || std::is_floating_point<V>::value)
+		// Check for zero division
+		if (BCol[i] == V{ 0 })
 		{
-			atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_UNSUPPORTED_DATA_TYPE);
+			atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR));
 		}
-		// if none of the input operands are float
 		else
 		{
-			// Check for zero division
-			if (BCol[i] == V{0})
-			{
-				atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
-			}
-			else
-			{
-				output[i] = ACol[i] % BCol[i];
-			}
+			output[i] = ACol[i] % BCol[i];
 		}
 	}
 }
@@ -259,7 +242,7 @@ private:
 
 	public:
 		ErrorFlagSwapper() {
-			GPUMemory::allocAndSet(&errorFlagPointer, (int32_t)QueryEngineError::GPU_EXTENSION_SUCCESS, 1);
+			GPUMemory::allocAndSet(&errorFlagPointer, static_cast<int32_t>(QueryEngineError::GPU_EXTENSION_SUCCESS), 1);
 		}
 
 		~ErrorFlagSwapper() {
@@ -292,7 +275,7 @@ public:
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BCol, dataElementCount, errorFlagSwapper.getFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-		
+
 		cudaDeviceSynchronize();
 	}
 
@@ -349,6 +332,10 @@ public:
 	template<typename T, typename U, typename V>
 	static void modulo(T *output, U *ACol, V *BCol, int32_t dataElementCount)
 	{
+		//modulo is not defined for floating point type
+		static_assert(!std::is_floating_point<U>::value && !std::is_floating_point<V>::value,
+			"None of the input columns of operation modulo cannot be floating point type!");
+
 		ErrorFlagSwapper errorFlagSwapper;
 
 		kernel_modulo <T, U, V>
