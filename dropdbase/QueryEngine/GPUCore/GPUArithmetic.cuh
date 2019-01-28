@@ -20,7 +20,7 @@
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
-/// <param name="dataElementCount">the size of the input blocks in bytes</param>
+/// <param name="dataElementCount">count of elements in the input blocks</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_plus(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
@@ -51,7 +51,7 @@ __global__ void kernel_plus(T *output, U *ACol, V *BCol, int32_t dataElementCoun
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
-/// <param name="dataElementCount">the size of the input blocks in bytes</param>
+/// <param name="dataElementCount">count of elements in the input blocks</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_minus(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
@@ -82,7 +82,7 @@ __global__ void kernel_minus(T *output, U *ACol, V *BCol, int32_t dataElementCou
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
-/// <param name="dataElementCount">the size of the input blocks in bytes</param>
+/// <param name="dataElementCount">count of elements in the input blocks</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
@@ -145,7 +145,7 @@ __global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataE
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
-/// <param name="dataElementCount">the size of the input blocks in bytes</param>
+/// <param name="dataElementCount">count of elements in the input blocks</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_floor_division(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
@@ -181,7 +181,7 @@ __global__ void kernel_floor_division(T *output, U *ACol, V *BCol, int32_t dataE
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
-/// <param name="dataElementCount">the size of the input blocks in bytes</param>
+/// <param name="dataElementCount">count of elements in the input blocks</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_division(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
@@ -204,12 +204,12 @@ __global__ void kernel_division(T *output, U *ACol, V *BCol, int32_t dataElement
 }
 
 /// <summary>
-/// Operation MODULO kernel
+/// Kernel MODULO - as U and V never use floating point type!
 /// </summary>
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
-/// <param name="dataElementCount">the size of the input blocks in bytes</param>
+/// <param name="dataElementCount">count of elements in the input blocks</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_modulo(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
