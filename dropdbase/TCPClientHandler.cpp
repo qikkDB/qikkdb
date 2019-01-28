@@ -66,7 +66,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 			return std::move(lastResultMessage_);
 		}
 	}
-	std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> smallPayload;
+	std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> smallPayload = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
 	if (sentRecords_ == 0)
 	{
 		for (const auto& timing : completeResult->timing()) 
@@ -148,9 +148,8 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::RunQuery(const std:
 		GpuSqlCustomParser parser(sharedDb, queryMessage.query());
 		{
 			std::lock_guard<std::mutex> queryLock(queryMutex_);
-			parser.parse();
+			return parser.parse();
 		}
-		return std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
 	}
 	catch (std::exception& e)
 	{
