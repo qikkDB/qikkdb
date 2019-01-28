@@ -46,7 +46,7 @@ std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::filFunction = &fil;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::doneFunction = &done;
 
 
-ColmnarDB::NetworkClient::Message::QueryResponseMessage GpuSqlDispatcher::execute()
+std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 {
 	int32_t err = 0;
 
@@ -66,7 +66,8 @@ ColmnarDB::NetworkClient::Message::QueryResponseMessage GpuSqlDispatcher::execut
 		blockIndex++;
 	}
 
-	return responseMessage;
+	//std::cout << responseMessage.DebugString() << std::endl;
+	return std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(std::move(responseMessage));
 }
 
 const ColmnarDB::NetworkClient::Message::QueryResponseMessage &GpuSqlDispatcher::getQueryResponseMessage()
