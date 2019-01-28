@@ -70,8 +70,7 @@ __global__ void kernel_operator_not(T *outCol, U *ACol, int32_t dataElementCount
 class GPULogic {
 public:
 	/// <summary>
-	/// Bitwise AND operation between query result Cols
-	/// Requires two int8_t block Cols
+	/// Bitwise AND operation between columns
 	/// </summary>
 	/// <param name="outCol">block of the result data</param>
 	/// <param name="ACol">block of the left input operands</param>
@@ -92,8 +91,7 @@ public:
 	}
 
 	/// <summary>
-	/// Bitwise OR operation between query result Cols
-	/// Requires two int8_t block Cols
+	/// Bitwise OR operation between columns
 	/// </summary>
 	/// <param name="outCol">block of the result data</param>
 	/// <param name="ACol">block of the left input operands</param>
@@ -114,7 +112,7 @@ public:
 	}
 
 	/// <summary>
-	/// NOT operation on a result Col
+	/// NOT operation on column
 	/// </summary>
 	/// <param name="outCol">block of the result data</param>
 	/// <param name="ACol">block of the input operands</param>
