@@ -227,23 +227,14 @@ __global__ void kernel_modulo(T *output, U *ACol, V *BCol, int32_t dataElementCo
 
 	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		// if at least one of the input operands is float
-		if (std::is_floating_point<U>::value || std::is_floating_point<V>::value)
+		// Check for zero division
+		if (BCol[i] == V{0})
 		{
-			atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_UNSUPPORTED_DATA_TYPE);
+			atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
 		}
-		// if none of the input operands are float
 		else
 		{
-			// Check for zero division
-			if (BCol[i] == V{0})
-			{
-				atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
-			}
-			else
-			{
-				output[i] = ACol[i] % BCol[i];
-			}
+			output[i] = ACol[i] % BCol[i];
 		}
 	}
 }
@@ -349,6 +340,7 @@ public:
 	template<typename T, typename U, typename V>
 	static void modulo(T *output, U *ACol, V *BCol, int32_t dataElementCount)
 	{
+		static_assert(!(std::is_floating_point<U>::value || std::is_floating_point<V>::value), "Modulo not supported with floating types");
 		ErrorFlagSwapper errorFlagSwapper;
 
 		kernel_modulo <T, U, V>
