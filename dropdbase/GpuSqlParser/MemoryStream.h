@@ -14,11 +14,19 @@ class MemoryStream
 
 private:
     std::vector<char> buffer;
+	int32_t readOffset;
 
 public:
-    MemoryStream(){
+    MemoryStream()
+	{
+		readOffset = 0;
         buffer.reserve(8192);
     }
+
+	void reset() 
+	{
+		readOffset = 0;
+	}
 
     template<typename T>
     void insert(T value)
@@ -30,8 +38,8 @@ public:
     template<typename T>
     T read()
     {
-        T value = *reinterpret_cast<T *>(buffer.data());
-        buffer.erase(buffer.begin(), buffer.begin() + sizeof(T));
+        T value = *reinterpret_cast<T *>(buffer.data() + readOffset);
+		readOffset += sizeof(T);
         return value;
     }
 

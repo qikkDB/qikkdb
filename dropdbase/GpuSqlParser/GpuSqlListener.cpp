@@ -22,54 +22,73 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 
     DataType rightOperandType = std::get<1>(right);
     DataType leftOperandType = std::get<1>(left);
-
+	
     pushArgument(std::get<0>(right).c_str(), rightOperandType);
     pushArgument(std::get<0>(left).c_str(), leftOperandType);
+
+	DataType returnDataType;
 
     if (op == ">")
     {
         dispatcher.addGreaterFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::REG;
     } else if (op == "<")
     {
         dispatcher.addLessFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::REG;
     } else if (op == ">=")
     {
         dispatcher.addGreaterEqualFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::REG;
     } else if (op == "<=")
     {
         dispatcher.addLessEqualFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::REG;
     } else if (op == "=")
     {
         dispatcher.addEqualFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::REG;
     } else if (op == "!=")
     {
         dispatcher.addNotEqualFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::REG;
     } else if (op == "AND")
     {
         dispatcher.addLogicalAndFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::REG;
     } else if (op == "OR")
     {
         dispatcher.addLogicalOrFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::REG;
     } else if (op == "*")
     {
         dispatcher.addMulFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     } else if (op == "/")
     {
         dispatcher.addDivFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     } else if (op == "+")
     {
         dispatcher.addAddFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     } else if (op == "-")
     {
         dispatcher.addSubFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     } else if (op == "%")
     {
         dispatcher.addModFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     } else if (op == "CONTAINS")
     {
         dispatcher.addContainsFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::REG;
     }
-    pushTempResult();
+
+	std::string reg = std::string("R") + std::to_string(tempCounter);
+	pushArgument(reg.c_str(), returnDataType);
+    pushTempResult(returnDataType);
 }
 
 
@@ -90,12 +109,14 @@ void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext 
     pushArgument(std::get<0>(op2).c_str(), op2Type);
     pushArgument(std::get<0>(op3).c_str(), op3Type);
 
-
     if (op == "BETWEEN")
     {
         dispatcher.addBetweenFunction(op1Type, op2Type, op3Type);
     }
-    pushTempResult();
+
+	std::string reg = std::string("R") + std::to_string(tempCounter);
+	pushArgument(reg.c_str(), DataType::REG);
+    pushTempResult(DataType::REG);
 }
 
 void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx)
@@ -106,17 +127,23 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     stringToUpper(op);
 
     DataType operandType = std::get<1>(arg);
-
     pushArgument(std::get<0>(arg).c_str(), operandType);
+
+	DataType returnDataType;
 
     if (op == "!")
     {
         dispatcher.addLogicalNotFunction(operandType);
+		returnDataType = DataType::REG;
     } else if (op == "-")
     {
         dispatcher.addMinusFunction(operandType);
+		returnDataType = operandType;
     }
-    pushTempResult();
+
+	std::string reg = std::string("R") + std::to_string(tempCounter);
+	pushArgument(reg.c_str(), returnDataType);
+    pushTempResult(returnDataType);
 }
 
 void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
@@ -127,7 +154,6 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     stringToUpper(op);
 
     DataType operandType = std::get<1>(arg);
-
     pushArgument(std::get<0>(arg).c_str(), operandType);
 
     if (op == "MIN")
@@ -146,7 +172,10 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     {
         dispatcher.addAvgFunction(operandType);
     }
-    pushTempResult();
+
+	std::string reg = std::string("R") + std::to_string(tempCounter);
+	pushArgument(reg.c_str(), colToConst(operandType));
+    pushTempResult(colToConst(operandType));
 }
 
 void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
@@ -337,11 +366,11 @@ std::tuple<std::string, DataType> GpuSqlListener::stackTopAndPop()
     return value;
 }
 
-void GpuSqlListener::pushTempResult()
+void GpuSqlListener::pushTempResult(DataType type)
 {
     std::string reg = std::string("R") + std::to_string(tempCounter);
     tempCounter++;
-    parserStack.push(std::make_tuple(reg, REG));
+    parserStack.push(std::make_tuple(reg, type));
 }
 
 void GpuSqlListener::pushArgument(const char *token, DataType dataType)
@@ -442,4 +471,14 @@ void GpuSqlListener::stringToUpper(std::string &str)
     {
         c = toupper(c);
     }
+}
+
+DataType GpuSqlListener::getReturnDataType(DataType left, DataType right)
+{
+	return std::max<DataType>(left,right);
+}
+
+DataType GpuSqlListener::colToConst(DataType type)
+{
+	return static_cast<DataType>(type - DataType::COLUMN_INT);
 }

@@ -797,3 +797,15 @@ void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 	loadedDatabases_.insert({ database->name_, database });
 }
 
+int Database::GetBlockCount()
+{
+	for (auto& table : tables_) 
+	{
+		for (auto &column : table.second.GetColumns()) 
+		{
+			return column.second.get()->GetBlockCount();
+		}
+	}
+	return 0;
+}
+

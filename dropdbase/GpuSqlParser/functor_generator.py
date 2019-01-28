@@ -40,6 +40,7 @@ filter_operations = ["greater", "less", "greaterEqual", "lessEqual", "equal", "n
 logical_operations = ["logicalAnd", "logicalOr"]
 
 numeric_types = [INT, LONG, FLOAT, DOUBLE]
+floating_types = [FLOAT, DOUBLE]
 geo_types = [POINT, POLYGON]
 bool_types = [BYTE, BOOL]
 
@@ -80,6 +81,12 @@ for operation in operations_binary:
                     op = "invalidOperandTypesErrorHandler"
 
                 elif colVal == STRING or rowVal == STRING:
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
+                    op = "invalidOperandTypesErrorHandler"
+                
+                elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
                     op = "invalidOperandTypesErrorHandler"
 
                 else:
