@@ -66,7 +66,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 		blockIndex++;
 	}
 
-	//std::cout << responseMessage.DebugString() << std::endl;
+	std::cout << responseMessage.DebugString() << std::endl;
 	return std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(std::move(responseMessage));
 }
 

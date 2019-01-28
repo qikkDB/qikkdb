@@ -1,5 +1,5 @@
-#ifndef GPU_LOGIC_CUH
-#define GPU_LOGIC_CUH
+#ifndef GPU_LOGIC_CONST_CUH
+#define GPU_LOGIC_CONST_CUH
 
 #include <cstdint>
 
