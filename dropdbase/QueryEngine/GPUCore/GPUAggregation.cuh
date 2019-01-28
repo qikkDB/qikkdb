@@ -27,19 +27,12 @@ public:
 	template<typename T>
 	static void min(T *outValue, T *ACol, int32_t dataElementCount)
 	{
-		// Malloc a new buffer for the output value
-		T *outValueGPUPointer = nullptr;
-		GPUMemory::alloc(&outValueGPUPointer, 1);
-
 		// Kernel call
-		outValueGPUPointer = thrust::min_element(thrust::device, ACol, ACol + dataElementCount);
+		T *outValueGPUPointer = thrust::min_element(thrust::device, ACol, ACol + dataElementCount);
 		cudaDeviceSynchronize();
 
 		// Copy the generated output to outValue (still in GPU)
 		cudaMemcpy(outValue, outValueGPUPointer, sizeof(T), cudaMemcpyDeviceToDevice);
-
-		// Free the memory
-		GPUMemory::free(outValueGPUPointer);
 
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
@@ -56,19 +49,12 @@ public:
 	template<typename T>
 	static void max(T *outValue, T *ACol, int32_t dataElementCount)
 	{
-		// Malloc a new buffer for the output value
-		T *outValueGPUPointer = nullptr;
-		GPUMemory::alloc(&outValueGPUPointer, 1);
-
-		// Kernel calls here
-		outValueGPUPointer = thrust::max_element(thrust::device, ACol, ACol + dataElementCount);
+		// Kernel call
+		T *outValueGPUPointer = thrust::max_element(thrust::device, ACol, ACol + dataElementCount);
 		cudaDeviceSynchronize();
 
 		// Copy the generated output to outValue (still in GPU)
 		cudaMemcpy(outValue, outValueGPUPointer, sizeof(T), cudaMemcpyDeviceToDevice);
-
-		// Free the memory
-		GPUMemory::free(outValueGPUPointer);
 
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
