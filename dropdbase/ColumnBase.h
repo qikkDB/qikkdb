@@ -3,7 +3,6 @@
 #include <typeinfo>
 #include <vector>
 
-#include "IBlock.h"
 #include "BlockBase.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
@@ -15,9 +14,15 @@ class ColumnBase : public IColumn
 private:
 	std::string name_;
 	int blockSize_;
-	std::vector<std::unique_ptr<IBlock<T>>> blocks_;
+	std::vector<std::unique_ptr<BlockBase<T>>> blocks_;
 
 	std::vector<T> NullArray(int length);
+
+	T min_;
+	T max_;
+	T avg_;
+	T sum_;
+
 public:
 	ColumnBase(const std::string& name, int blockSize) :
 		name_(name), blockSize_(blockSize), blocks_()
@@ -35,7 +40,7 @@ public:
 	/// Blocks getter
 	/// </summary>
 	/// <returns>List of blocks in current column</returns>
-	const std::vector<std::unique_ptr<IBlock<T>>>& GetBlocksList() const
+	const std::vector<std::unique_ptr<BlockBase<T>>>& GetBlocksList() const
 	{
 		return blocks_;
 	};
@@ -90,6 +95,24 @@ public:
 			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy));
 			startIdx += toCopy;
 		}
+		
+		setColumnStatistics();
+	}
+
+	void setColumnStatistics()
+	{
+		std::vector<T> maxs;
+		std::vector<T> mins;
+		std::vector<T> sums;
+
+		if (std::is_arithmetic<T>::value)
+		{
+			for (auto &block : blocks_)
+			{
+				
+			}
+		}
+		else {}
 	}
 
 	/// <summary>
