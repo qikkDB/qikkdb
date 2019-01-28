@@ -291,6 +291,11 @@ public:
 	template<typename T, typename U, typename V>
 	static void division(T *output, U *ACol, V BConst, int32_t dataElementCount)
 	{
+		// TODO Uncomment when dispatcher is ready for this
+		////result of this type of division operation is always floating point - so check type T
+		//static_assert(std::is_floating_point<T>::value,
+		//	"Output column of operation division has to be floating point type! For integer division use operation floorDivision.");
+
 		ErrorFlagSwapper errorFlagSwapper;
 
 		kernel_division_const <T, U, V>
