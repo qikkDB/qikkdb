@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	auto start = std::chrono::high_resolution_clock::now();
 	
 
-    GpuSqlCustomParser parser(database, "SELECT colInteger FROM TableA WHERE colInteger * colInteger <= 20 AND colInteger <= 5;");
+    GpuSqlCustomParser parser(database, "SELECT colInteger FROM TableA WHERE (colInteger + 2) * 2 <= 20;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();

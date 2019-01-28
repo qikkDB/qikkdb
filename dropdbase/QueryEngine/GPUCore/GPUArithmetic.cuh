@@ -220,15 +220,9 @@ __global__ void kernel_modulo(T *output, U *ACol, V *BCol, int32_t dataElementCo
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		// Check for zero division
-<<<<<<< HEAD
-		if (BCol[i] == V{0})
-		{
-			atomicExch(errorFlag, (int32_t)QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
-=======
 		if (BCol[i] == V{ 0 })
 		{
 			atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR));
->>>>>>> CUDA_refactor
 		}
 		else
 		{
@@ -313,14 +307,10 @@ public:
 	template<typename T, typename U, typename V>
 	static void modulo(T *output, U *ACol, V *BCol, int32_t dataElementCount)
 	{
-<<<<<<< HEAD
-		static_assert(!(std::is_floating_point<U>::value || std::is_floating_point<V>::value), "Modulo not supported with floating types");
-=======
 		//modulo is not defined for floating point type
 		static_assert(!std::is_floating_point<U>::value && !std::is_floating_point<V>::value,
 			"None of the input columns of operation modulo cannot be floating point type!");
 
->>>>>>> CUDA_refactor
 		ErrorFlagSwapper errorFlagSwapper;
 
 		kernel_modulo <T, U, V>
