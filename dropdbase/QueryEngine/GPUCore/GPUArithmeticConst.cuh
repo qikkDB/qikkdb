@@ -20,7 +20,7 @@
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BConst">right input operand</param>
-/// <param name="dataElementCount">the size of the input block</param>
+/// <param name="dataElementCount">count of elements in the input block</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_plus_const(T *output, U *ACol, V BConst, int32_t dataElementCount, int32_t* errorFlag, T minPossible, T maxPossible)
@@ -51,7 +51,7 @@ __global__ void kernel_plus_const(T *output, U *ACol, V BConst, int32_t dataElem
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BConst">block of the right input operands</param>
-/// <param name="dataElementCount">the size of the input blocks in bytes</param>
+/// <param name="dataElementCount">count of elements in the input block</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_minus_const(T *output, U *ACol, V BConst, int32_t dataElementCount, int32_t* errorFlag, T minPossible, T maxPossible)
@@ -82,7 +82,7 @@ __global__ void kernel_minus_const(T *output, U *ACol, V BConst, int32_t dataEle
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BConst">block of the right input operands</param>
-/// <param name="dataElementCount">the size of the input blocks in bytes</param>
+/// <param name="dataElementCount">count of elements in the input block</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_multiplication_const(T *output, U *ACol, V BConst, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
@@ -145,7 +145,7 @@ __global__ void kernel_multiplication_const(T *output, U *ACol, V BConst, int32_
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BConst">block of the right input operands</param>
-/// <param name="dataElementCount">the size of the input blocks in bytes</param>
+/// <param name="dataElementCount">count of elements in the input block</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_floor_division_const(T *output, U *ACol, V BConst, int32_t dataElementCount, int32_t* errorFlag)
@@ -181,7 +181,7 @@ __global__ void kernel_floor_division_const(T *output, U *ACol, V BConst, int32_
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BConst">block of the right input operands</param>
-/// <param name="dataElementCount">the size of the input blocks in bytes</param>
+/// <param name="dataElementCount">count of elements in the input block</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_division_const(T *output, U *ACol, V BConst, int32_t dataElementCount, int32_t* errorFlag)
@@ -209,7 +209,7 @@ __global__ void kernel_division_const(T *output, U *ACol, V BConst, int32_t data
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BConst">block of the right input operands</param>
-/// <param name="dataElementCount">the size of the input blocks in bytes</param>
+/// <param name="dataElementCount">count of elements in the input block</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename T, typename U, typename V>
 __global__ void kernel_modulo_const(T *output, U *ACol, V BConst, int32_t dataElementCount, int32_t* errorFlag)
