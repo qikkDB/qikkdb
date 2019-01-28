@@ -17,6 +17,7 @@ private:
 	std::vector<std::unique_ptr<BlockBase<T>>> blocks_;
 
 	std::vector<T> NullArray(int length);
+	void setColumnStatistics();
 
 	T min_;
 	T max_;
@@ -95,24 +96,7 @@ public:
 			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy));
 			startIdx += toCopy;
 		}
-		
 		setColumnStatistics();
-	}
-
-	void setColumnStatistics()
-	{
-		std::vector<T> maxs;
-		std::vector<T> mins;
-		std::vector<T> sums;
-
-		if (std::is_arithmetic<T>::value)
-		{
-			for (auto &block : blocks_)
-			{
-				
-			}
-		}
-		else {}
 	}
 
 	/// <summary>

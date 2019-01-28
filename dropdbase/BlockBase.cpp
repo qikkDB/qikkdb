@@ -1,6 +1,7 @@
 #include "BlockBase.h"
 #include "PointFactory.h"
 #include "ComplexPolygonFactory.h"
+
 #include <numeric>
 #include <algorithm>
 #include <cmath>
