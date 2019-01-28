@@ -71,6 +71,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <ShowIncludes>true</ShowIncludes>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -121,7 +122,7 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh" />
+    <ClCompile Include="QueryEngine\GPUCore\GPUGroupBy.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPULogic.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUMemory.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUPolygon.cuh" />
@@ -145,7 +146,9 @@
     <ClCompile Include="GpuSqlParser\GpuSqlParserBaseListener.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlParserListener.cpp" />
     <ClCompile Include="GpuSqlParser\MemoryStream.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="main.cpp">
+      <FileType>Document</FileType>
+    </ClCompile>
     <ClCompile Include="messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="messages\InfoMessage.pb.cc" />
     <ClCompile Include="messages\QueryMessage.pb.cc" />
