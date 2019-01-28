@@ -38,7 +38,7 @@ private:
 
     std::tuple<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
-    void pushTempResult();
+    void pushTempResult(DataType type);
 
     void pushArgument(const char *token, DataType dataType);
 
@@ -51,6 +51,9 @@ private:
     bool isPolygon(const std::string &value);
 
     void stringToUpper(std::string &str);
+
+	DataType getReturnDataType(DataType left, DataType right);
+	DataType colToConst(DataType type);
 
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
