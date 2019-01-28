@@ -9,9 +9,9 @@
 #include <limits>
 #include <type_traits>
 
+#include "ErrorFlagSwapper.h"
 #include "../Context.h"
 #include "../QueryEngineError.h"
-#include "GPUMemory.cuh"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>
@@ -235,36 +235,6 @@ __global__ void kernel_modulo(T *output, U *ACol, V *BCol, int32_t dataElementCo
 
 class GPUArithmetic
 {
-private:
-	class ErrorFlagSwapper {
-	private:
-		int32_t *errorFlagPointer;
-
-	public:
-		ErrorFlagSwapper() {
-			GPUMemory::allocAndSet(&errorFlagPointer, static_cast<int32_t>(QueryEngineError::GPU_EXTENSION_SUCCESS), 1);
-		}
-
-		~ErrorFlagSwapper() {
-			int32_t errorFlag;
-			GPUMemory::copyDeviceToHost(&errorFlag, errorFlagPointer, 1);
-			GPUMemory::free(errorFlagPointer);
-
-			if (errorFlag != QueryEngineError::GPU_EXTENSION_SUCCESS)
-			{
-				Context::getInstance().getLastError().setType((QueryEngineError::Type)errorFlag);
-			}
-			else
-			{
-				Context::getInstance().getLastError().setCudaError(cudaGetLastError());
-			}
-		}
-
-		int32_t * getFlagPointer() {
-			return errorFlagPointer;
-		}
-	};
-
 public:
 	template<typename T, typename U, typename V>
 	static void plus(T *output, U *ACol, V *BCol, int32_t dataElementCount)
