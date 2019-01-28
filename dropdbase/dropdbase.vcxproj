@@ -103,7 +103,7 @@
     <ClInclude Include="GpuSqlParser\MemoryStream.h" />
     <ClInclude Include="GpuSqlParser\ParserExceptions.h" />
     <ClInclude Include="GpuSqlParser\QueryType.h" />
-    <ClInclude Include="ErrorFlagSwapper.h" />
+    <ClInclude Include="QueryEngine\GPUCore\ErrorFlagSwapper.h" />
     <ClInclude Include="IBlock.h" />
     <ClInclude Include="IColumn.h" />
     <ClInclude Include="messages\CSVImportMessage.pb.h" />
