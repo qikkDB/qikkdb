@@ -23,6 +23,8 @@ public:
 	// Inherited via ITCPWorker
 	virtual void Abort() override;
 
+	inline bool HasStopped() { return quit_; }
+
 	ClientPoolWorker(const ClientPoolWorker&) = delete;
 	ClientPoolWorker& operator=(const ClientPoolWorker&) = delete;
 

@@ -35,7 +35,7 @@ public:
 	static const std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases() { return loadedDatabases_; }
 	const std::string& GetName() const { return name_; }
 	int GetBlockSize() const { return blockSize_; }
-	const std::unordered_map<std::string, Table>& GetTables() const { return tables_; }
+	std::unordered_map<std::string, Table>& GetTables() { return tables_; }
 
 	/// <summary>
 	/// Save database from memory to disk.
