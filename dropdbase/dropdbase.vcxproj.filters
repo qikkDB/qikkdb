@@ -156,7 +156,7 @@
     <ClInclude Include="QueryEngine\GPUCore\GPULogicConst.cuh">
 	      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="ErrorFlagSwapper.h">
+    <ClInclude Include="QueryEngine\GPUCore\ErrorFlagSwapper.h">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
   </ItemGroup>
