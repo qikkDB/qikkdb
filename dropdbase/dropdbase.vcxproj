@@ -146,9 +146,9 @@
     <ClCompile Include="GpuSqlParser\GpuSqlParserBaseListener.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlParserListener.cpp" />
     <ClCompile Include="GpuSqlParser\MemoryStream.cpp" />
-    <ClCompile Include="main.cpp">
+    <CudaCompile Include="main.cpp">
       <FileType>Document</FileType>
-    </ClCompile>
+    </CudaCompile>
     <ClCompile Include="messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="messages\InfoMessage.pb.cc" />
     <ClCompile Include="messages\QueryMessage.pb.cc" />

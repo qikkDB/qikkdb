@@ -221,7 +221,6 @@
     <ClCompile Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="QueryEngine\CudaMemAllocator.cu">
@@ -233,5 +232,6 @@
     <CudaCompile Include="GpuSqlParser\GpuSqlDispatcher.cpp">
       <Filter>Source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="main.cpp" />
   </ItemGroup>
 </Project>

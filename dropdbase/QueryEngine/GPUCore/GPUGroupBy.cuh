@@ -116,17 +116,19 @@ __global__ void group_by_kernel(
 		bool insertionSucceeded = false;
 		for (int j = 0; j < maxHashCount; j++) {
 			// Calculate hash - use type conversion because of float
-			int32_t hashIndex = static_cast<int32_t>(abs((keys[i] + j))) % maxHashCount;
-
+			int32_t hashIndex = static_cast<int32_t>(abs((inKeys[i] + j))) % maxHashCount;
+			//printf("kernel i: %d, hashIndex: %d\n", i, hashIndex);
+			printf("kernel indexTable[%d]: %d\n", hashIndex, indexTable[hashIndex]);
 			// Check if a place is empty for the key to insert into the hash table
 			if (indexTable[hashIndex] == EMPTY)
 			{
 				int32_t old = atomicCAS(&indexTable[hashIndex], EMPTY, *resultElementCount);
+				printf("kernel old: %d\n", old);
 				if (old != EMPTY || old != *resultElementCount)
 				{
 					continue;
 				}
-
+				printf("Add a new key and increment the table size\n");
 				// Add a new key and increment the table size
 				atomicExch(&keys[indexTable[hashIndex]], inKeys[i]);
 				atomicAdd(resultElementCount, 1);
@@ -142,6 +144,7 @@ __global__ void group_by_kernel(
 			// Atomic value modification based on agg function
 			AGG{}(&values[indexTable[hashIndex]], inValues[i]);
 			atomicAdd(&keyOccurenceCount[indexTable[hashIndex]], 1);
+			break;
 		}
 
 		// Set error flag if linear probing failed - hash table full
@@ -173,10 +176,10 @@ public:
 	GPUGroupBy(int32_t maxHashCount) :
 		maxHashCount_(maxHashCount)
 	{
-		GPUMemory::alloc(&keys_, hashElementCount);
-		GPUMemory::allocAndSet(&values_, AGG::getInitValue<V>(), hashElementCount);
-		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, hashElementCount);
-		GPUMemory::allocAndSet(&indexTable_, EMPTY, hashElementCount);
+		GPUMemory::alloc(&keys_, maxHashCount_);
+		GPUMemory::allocAndSet(&values_, AGG::template getInitValue<V>(), maxHashCount_);
+		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		GPUMemory::allocAndSet(&indexTable_, EMPTY, maxHashCount_);
 		GPUMemory::allocAndSet(&resultElementCount_, 0, 1);
 	}
 
@@ -216,16 +219,18 @@ public:
 		GPUMemory::copyDeviceToHost(outKeys, keys_, resultElementCount);
 
 		// Copy back the results based on the operation
-		if (std::is_same < AGG, min>::value || std::is_same < AGG, max>::value || std::is_same < AGG, sum>::value)
+		if (std::is_same < AGG, AggregationFunctions::min>::value || 
+			std::is_same < AGG, AggregationFunctions::max>::value || 
+			std::is_same < AGG, AggregationFunctions::sum>::value)
 		{
 			GPUMemory::copyDeviceToHost(outValues, values_, resultElementCount);
 		}
-		else if (std::is_same < AGG, avg>::value)
+		else if (std::is_same < AGG, AggregationFunctions::avg>::value)
 		{
 			GPUArithmetic::division(values_, values_, keyOccurenceCount_, resultElementCount);
 			GPUMemory::copyDeviceToHost(outValues, values_, resultElementCount);
 		}
-		else if (std::is_same < AGG, cnt>::value)
+		else if (std::is_same < AGG, AggregationFunctions::cnt>::value)
 		{
 			GPUMemory::copyDeviceToHost(outValues, keyOccurenceCount_, resultElementCount);
 		}
