@@ -14,7 +14,7 @@ public:
 		GPU_DIVISION_BY_ZERO_ERROR,				// Return code for division by zero
 		GPU_INTEGER_OVERFLOW_ERROR,				// Return code for integer overflow
 		GPU_UNSUPPORTED_DATA_TYPE,				// Return code for unsupported data type
-		GPU_BUFFER_TOO_BIG,						// Return code for too big buffer (e.g. at group by with too many buckets)
+		GPU_HASH_TABLE_FULL,					// Return code for exceeding hash table limit (e.g. at group by with too many buckets)
 		GPU_NOT_FOUND_ERROR,					// Return code for no detected GPU
 		GPU_MEMORY_MAPPING_NOT_SUPPORTED_ERROR,	// Return code for no memory mapping
 		GPU_DRIVER_NOT_FOUND_EXCEPTION			// Return code for not found nvidia driver
