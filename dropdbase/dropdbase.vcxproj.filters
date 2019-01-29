@@ -81,6 +81,7 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUReconstruct.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPUFiltersAll.cuh">
     <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
