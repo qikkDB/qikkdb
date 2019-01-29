@@ -11,6 +11,7 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "GPUTypeWidthManip.cuh"
+#include "../../../cub/cub.cuh"
 
 template<typename T>
 __global__ void kernel_reconstruct_col(T *outData, int32_t *outSize, T *ACol, int32_t *prefixSum, int32_t *inMask, int32_t dataElementCount)
@@ -83,8 +84,14 @@ public:
 		// Start the collumn reconstruction
 		// Calculate the prefix sum
 		// in-place scan
-		thrust::inclusive_scan(thrust::device, inMask32Pointer, inMask32Pointer + dataElementCount, prefixSumPointer);
-
+		void* tempBuffer = nullptr;
+		size_t tempBufferSize = 0;
+		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask32Pointer, prefixSumPointer, dataElementCount);
+		// Allocate temporary storage
+		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+		// Run exclusive prefix sum
+		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask32Pointer, prefixSumPointer, dataElementCount);
+		GPUMemory::free(tempBuffer);
 		// Construct the output based on the prefix sum
 		kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(outCol, outSizePointer, ACol, prefixSumPointer, inMask32Pointer, dataElementCount);
