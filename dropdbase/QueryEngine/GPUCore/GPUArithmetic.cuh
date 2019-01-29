@@ -13,223 +13,185 @@
 #include "../Context.h"
 #include "../QueryEngineError.h"
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-/// <summary>
-/// Kernel PLUS
-/// </summary>
-/// <param name="output">output result data block</param>
-/// <param name="ACol">block of the left input operands</param>
-/// <param name="BCol">block of the right input operands</param>
-/// <param name="dataElementCount">count of elements in the input blocks</param>
-/// <param name="errorFlag">flag for error checking</param>
-template<typename T, typename U, typename V>
-__global__ void kernel_plus(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
+
+namespace ArithmeticOperations
 {
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
-
-	for (int32_t i = idx; i < dataElementCount; i += stride)
+	struct add
 	{
-		// if none of the input operands are float
-		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
-			// Check for overflow
-			if (((BCol[i] > V{ 0 }) && (ACol[i] > (max - BCol[i]))) ||
-				((BCol[i] < V{ 0 }) && (ACol[i] < (min - BCol[i]))))
+			// if none of the input operands are float
+			if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 			{
-				atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
-				continue;
-			}
-		}
-		output[i] = ACol[i] + BCol[i];
-	}
-}
-
-/// <summary>
-/// Kernel MINUS
-/// </summary>
-/// <param name="output">output result data block</param>
-/// <param name="ACol">block of the left input operands</param>
-/// <param name="BCol">block of the right input operands</param>
-/// <param name="dataElementCount">count of elements in the input blocks</param>
-/// <param name="errorFlag">flag for error checking</param>
-template<typename T, typename U, typename V>
-__global__ void kernel_minus(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
-{
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
-
-	for (int32_t i = idx; i < dataElementCount; i += stride)
-	{
-		// if none of the input operands are float
-		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
-		{
-			// Check for overflow
-			if (((BCol[i] > V{ 0 }) && (ACol[i] < (min + BCol[i]))) ||
-				((BCol[i] < V{ 0 }) && (ACol[i] > (max + BCol[i]))))
-			{
-				atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
-				continue;
-			}
-		}
-		output[i] = ACol[i] - BCol[i];
-	}
-}
-
-/// <summary>
-/// Kernel MULTIPLICATION
-/// </summary>
-/// <param name="output">output result data block</param>
-/// <param name="ACol">block of the left input operands</param>
-/// <param name="BCol">block of the right input operands</param>
-/// <param name="dataElementCount">count of elements in the input blocks</param>
-/// <param name="errorFlag">flag for error checking</param>
-template<typename T, typename U, typename V>
-__global__ void kernel_multiplication(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
-{
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
-
-	for (int32_t i = idx; i < dataElementCount; i += stride)
-	{
-		// if none of the input operands are float
-		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
-		{
-			// Check for overflow
-			if (ACol[i] > U{ 0 })
-			{
-				if (BCol[i] > V{ 0 })
+				// Check for overflow
+				if (((b > V{ 0 }) && (a > (max - b))) ||
+					((b < V{ 0 }) && (a < (min - b))))
 				{
-					if (ACol[i] > (max / BCol[i]))
+					atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
+					continue;
+				}
+			}
+			return a + b;
+		}
+	};
+
+	struct sub
+	{
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		{
+			// if none of the input operands are float
+			if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
+			{
+				// Check for overflow
+				if (((b > V{ 0 }) && (a < (min + b))) ||
+					((b < V{ 0 }) && (a > (max + b))))
+				{
+					atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
+					continue;
+				}
+			}
+			return a - b;
+		}
+	};
+
+	struct mul
+	{
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		{
+			// if none of the input operands are float
+			if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
+			{
+				// Check for overflow
+				if (a > U{ 0 })
+				{
+					if (b > V{ 0 })
 					{
-						atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
-						continue;
+						if (a > (max / b))
+						{
+							atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
+							continue;
+						}
+					}
+					else
+					{
+						if (b < (min / a))
+						{
+							atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
+							continue;
+						}
 					}
 				}
 				else
 				{
-					if (BCol[i] < (min / ACol[i]))
+					if (b > V{ 0 })
 					{
-						atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
-						continue;
+						if (a < (min / b))
+						{
+							atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
+							continue;
+						}
 					}
+					else
+					{
+						if ((a != U{ 0 }) && (b < (max / a)))
+						{
+							atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
+							continue;
+						}
+					}
+				}
+			}
+			return a * b;
+		}
+	};
+
+	struct floorDiv
+	{
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		{
+			// if none of the input operands are float
+			if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
+			{
+				// Check for zero division
+				if (b == V{ 0 })
+				{
+					atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR));
+				}
+				else
+				{
+					return = a / b;
 				}
 			}
 			else
 			{
-				if (BCol[i] > V{ 0 })
-				{
-					if (ACol[i] < (min / BCol[i]))
-					{
-						atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
-						continue;
-					}
-				}
-				else
-				{
-					if ((ACol[i] != U{ 0 }) && (BCol[i] < (max / ACol[i])))
-					{
-						atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
-						continue;
-					}
-				}
+				return = floorf(a / b);
 			}
 		}
-		output[i] = ACol[i] * BCol[i];
-	}
-}
+	};
 
-/// <summary>
-/// Kernel FLOOR DIVISION
-/// </summary>
-/// <param name="output">output result data block</param>
-/// <param name="ACol">block of the left input operands</param>
-/// <param name="BCol">block of the right input operands</param>
-/// <param name="dataElementCount">count of elements in the input blocks</param>
-/// <param name="errorFlag">flag for error checking</param>
-template<typename T, typename U, typename V>
-__global__ void kernel_floor_division(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
-{
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
-
-	for (int32_t i = idx; i < dataElementCount; i += stride)
+	struct div
 	{
-		// if none of the input operands are float
-		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		{
+			// if none of the input operands are float
+			if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
+			{
+				return a / static_cast<T>(b); // convert divisor to type T (should be floating point)
+			}
+			else
+			{
+				return a / b;
+			}
+		}
+	};
+
+	struct mod
+	{
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			// Check for zero division
-			if (BCol[i] == V{ 0 })
+			if (b == V{ 0 })
 			{
 				atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR));
 			}
 			else
 			{
-				output[i] = ACol[i] / BCol[i];
+				return a % b;
 			}
+			return T{ 0 };
 		}
-		else
-		{
-			output[i] = floorf(ACol[i] / BCol[i]);
-		}
-	}
+	};
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
 /// <summary>
-/// Kernel DIVISION - as T always use some kind of floating point type!
+/// Kernel for arithmetic operation with column and column
+/// (For div as T always use some kind of floating point type!)
+/// (For mod as U and V never use floating point type!)
 /// </summary>
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
 /// <param name="dataElementCount">count of elements in the input blocks</param>
 /// <param name="errorFlag">flag for error checking</param>
-template<typename T, typename U, typename V>
-__global__ void kernel_division(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
+template<typename OP, typename T, typename U, typename V>
+__global__ void kernel_arithmetic_col_col(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
 {
 	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int32_t stride = blockDim.x * gridDim.x;
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		// if none of the input operands are float
-		if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
-		{
-			output[i] = ACol[i] / static_cast<T>(BCol[i]); // convert divisor to type T (should be floating point)
-		}
-		else
-		{
-			output[i] = ACol[i] / BCol[i];
-		}
+		output[i] = OP{}(ACol[i], BCol[i], errorFlag, min, max);
 	}
 }
 
-/// <summary>
-/// Kernel MODULO - as U and V never use floating point type!
-/// </summary>
-/// <param name="output">output result data block</param>
-/// <param name="ACol">block of the left input operands</param>
-/// <param name="BCol">block of the right input operands</param>
-/// <param name="dataElementCount">count of elements in the input blocks</param>
-/// <param name="errorFlag">flag for error checking</param>
-template<typename T, typename U, typename V>
-__global__ void kernel_modulo(T *output, U *ACol, V *BCol, int32_t dataElementCount, int32_t* errorFlag)
-{
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
-
-	for (int32_t i = idx; i < dataElementCount; i += stride)
-	{
-		// Check for zero division
-		if (BCol[i] == V{ 0 })
-		{
-			atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR));
-		}
-		else
-		{
-			output[i] = ACol[i] % BCol[i];
-		}
-	}
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
