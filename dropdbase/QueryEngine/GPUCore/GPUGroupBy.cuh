@@ -13,15 +13,17 @@
 
 #include "ErrorFlagSwapper.h"
 
+constexpr int32_t EMPTY = -1;
+
 // Generic agg function functors
 namespace AggregationFunctions
 {
 	struct min
 	{
 		template<typename T>
-		__device__ T operator()(T a, T b) const
+		__device__ void operator()(T *a, T b) const
 		{
-			return a < b ? a : b;
+			atomicMin(a, b);
 		}
 
 		template<typename T>
@@ -34,9 +36,9 @@ namespace AggregationFunctions
 	struct max
 	{
 		template<typename T>
-		__device__ T operator()(T a, T b) const
+		__device__ void operator()(T *a, T b) const
 		{
-			return a > b ? a : b;
+			atomicMax(a, b);
 		}
 
 		template<typename T>
@@ -49,9 +51,9 @@ namespace AggregationFunctions
 	struct sum
 	{
 		template<typename T>
-		__device__ T operator()(T a, T b) const
+		__device__ void operator()(T *a, T b) const
 		{
-			return a + b;
+			atomicAdd(a, b);
 		}
 
 		template<typename T>
@@ -64,9 +66,9 @@ namespace AggregationFunctions
 	struct avg
 	{
 		template<typename T>
-		__device__ T  operator()(T a, T b) const
+		__device__ void operator()(T *a, T b) const
 		{
-			return a + b;
+			atomicAdd(a, b);
 		}
 
 		template<typename T>
@@ -78,9 +80,9 @@ namespace AggregationFunctions
 	struct cnt
 	{
 		template<typename T>
-		__device__ T  operator()(T a, T b) const
+		__device__ void operator()(T *a, T b) const
 		{
-
+			// empty
 		}
 
 		template<typename T>
@@ -98,12 +100,55 @@ __global__ void group_by_kernel(
 	int32_t *keyOccurenceCount,
 	int32_t *indexTable,
 	int32_t *resultElementCount,
+	int32_t maxHashCount,
 	K *inKeys,
 	V *inValues,
 	int32_t dataElementCount,
-	int32_t *errorFlag)
-{
+	int32_t *errorFlag) {
 
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		// Linear probing
+		bool insertionSucceeded = false;
+		for (int j = 0; j < maxHashCount; j++) {
+			// Calculate hash - use type conversion because of float
+			int32_t hashIndex = static_cast<int32_t>(abs((keys[i] + j))) % maxHashCount;
+
+			// Check if a place is empty for the key to insert into the hash table
+			if (indexTable[hashIndex] == EMPTY)
+			{
+				int32_t old = atomicCAS(&indexTable[hashIndex], EMPTY, *resultElementCount);
+				if (old != EMPTY || old != *resultElementCount)
+				{
+					continue;
+				}
+
+				// Add a new key and increment the table size
+				atomicExch(&keys[indexTable[hashIndex]], inKeys[i]);
+				atomicAdd(resultElementCount, 1);
+			}
+			else if (keys[indexTable[hashIndex]] != inKeys[i])
+			{
+				continue;
+			}
+
+			// Insertion succeeded
+			insertionSucceeded = true;
+
+			// Atomic value modification based on agg function
+			AGG{}(&values[indexTable[hashIndex]], inValues[i]);
+			atomicAdd(&keyOccurenceCount[indexTable[hashIndex]], 1);
+		}
+
+		// Set error flag if linear probing failed - hash table full
+		if (insertionSucceeded == false) {
+			atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_HASH_TABLE_FULL));
+			break;
+		}
+	}
 }
 
 template<typename AGG, typename K, typename V>
@@ -116,21 +161,21 @@ private:
 	int32_t *indexTable_;			// Table for indexing keys to avoid reconstruct operation
 	int32_t *resultElementCount_;	// Counter that counts the size of the result hash table - incremented atomically
 
-	int32_t maxElementCount_;		// Maximum size of the result hash table
+	int32_t maxHashCount_;			// Maximum size of the result hash table
 
 	ErrorFlagSwapper errorFlagSwapper_;
 public:
 
 
 	// Constructor
-	// Allocates hash table of element count: hashElementCount
-	GPUGroupBy(int32_t hashElementCount) :
-		maxElementCount_(hashElementCount)
+	// Allocates hash table of element count: hashHashCount
+	GPUGroupBy(int32_t maxHashCount) :
+		maxHashCount_(maxHashCount)
 	{
 		GPUMemory::alloc(&keys_, hashElementCount);
 		GPUMemory::allocAndSet(&values_, AGG::getInitValue<V>(), hashElementCount);
 		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, hashElementCount);
-		GPUMemory::allocAndSet(&indexTable_, -1, hashElementCount);
+		GPUMemory::allocAndSet(&indexTable_, EMPTY, hashElementCount);
 		GPUMemory::allocAndSet(&resultElementCount_, 0, 1);
 	}
 
@@ -151,7 +196,7 @@ public:
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
 		group_by_kernel <AGG> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(keys_, values_, keyOccurenceCount_, indexTable_, resultElementCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+			(keys_, values_, keyOccurenceCount_, indexTable_, resultElementCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
 	}
 
 	// Get the final hash table results
