@@ -2,6 +2,9 @@
 // Created by Jakub Veselý on 2019-01-21.
 //
 #include "ColumnBase.h"
+#include "PointFactory.h"
+#include "ComplexPolygonFactory.h"
+
 #include <numeric>
 #include <algorithm>
 #include <cmath>
@@ -111,20 +114,68 @@ void ColumnBase<float>::setColumnStatistics()
 
 void ColumnBase<double>::setColumnStatistics()
 {
+	std::vector<double> mins;
+	std::vector<double> maxs;
+	std::vector<double> sums;
+
+	std::vector<int64_t> numOfDataInBlocks;
+
+	for (auto& block : blocks_)
+	{
+		mins.push_back(block->GetMin());
+		maxs.push_back(block->GetMax());
+		sums.push_back(block->GetSum());
+		numOfDataInBlocks.push_back(block->GetData().size());
+	}
+
+	min_ = *std::min_element(mins.begin(), mins.end());
+	max_ = *std::max_element(maxs.begin(), maxs.end());
+	sum_ = std::accumulate(sums.begin(), sums.end(), (double) 0.0);
+	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), (double) 0.0);
 }
 
 void ColumnBase<ColmnarDB::Types::Point>::setColumnStatistics()
 {
+	min_ = PointFactory::FromWkt("POINT(0 0)");
+	max_ = PointFactory::FromWkt("POINT(0 0)");
+	avg_ = PointFactory::FromWkt("POINT(0 0)");
+	sum_ = PointFactory::FromWkt("POINT(0 0)");
 }
 
 void ColumnBase<ColmnarDB::Types::ComplexPolygon>::setColumnStatistics()
 {
+	min_ = ComplexPolygonFactory::FromWkt("POLYGON()");
+	max_ = ComplexPolygonFactory::FromWkt("POLYGON()");
+	avg_ = ComplexPolygonFactory::FromWkt("POLYGON()");
+	sum_ = ComplexPolygonFactory::FromWkt("POLYGON()");
 }
 
 void ColumnBase<std::string>::setColumnStatistics()
 {
+	min_ = "";
+	max_ = "";
+	avg_ = "";
+	sum_ = "";
 }
 
 void ColumnBase<bool>::setColumnStatistics()
 {
+	std::vector<bool> mins;
+	std::vector<bool> maxs;
+	std::vector<bool> sums;
+
+	std::vector<int64_t> numOfDataInBlocks;
+
+	for (auto& block : blocks_)
+	{
+		mins.push_back(block->GetMin());
+		maxs.push_back(block->GetMax());
+		sums.push_back(block->GetSum());
+		numOfDataInBlocks.push_back(block->GetData().size());
+	}
+
+	min_ = *std::min_element(mins.begin(), mins.end());
+	max_ = *std::max_element(maxs.begin(), maxs.end());
+	sum_ = std::accumulate(sums.begin(), sums.end(), 0);
+	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), 0);
 }
