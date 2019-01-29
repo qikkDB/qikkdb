@@ -46,6 +46,10 @@
     </ClCompile>
     <ClCompile Include="ColumnTests.cpp" />
     <ClCompile Include="DatabaseTests.cpp" />
+    <ClCompile Include="..\dropdbase\BlockBase.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="BlockTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dropdbase sources">

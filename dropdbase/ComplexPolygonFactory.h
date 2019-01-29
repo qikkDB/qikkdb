@@ -12,4 +12,3 @@ public:
 	static ColmnarDB::Types::ComplexPolygon FromWkt(std::string wkt);
 	static std::string WktFromPolygon(const ColmnarDB::Types::ComplexPolygon& polygon);
 };
-

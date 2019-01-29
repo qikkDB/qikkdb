@@ -103,7 +103,6 @@
     <ClInclude Include="GpuSqlParser\ParserExceptions.h" />
     <ClInclude Include="GpuSqlParser\QueryType.h" />
     <ClInclude Include="ErrorFlagSwapper.h" />
-    <ClInclude Include="IBlock.h" />
     <ClInclude Include="IColumn.h" />
     <ClInclude Include="messages\CSVImportMessage.pb.h" />
     <ClInclude Include="messages\InfoMessage.pb.h" />
@@ -133,6 +132,7 @@
     <ClInclude Include="Types\Point.pb.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BlockBase.cpp" />
     <ClCompile Include="ColumnBase.cpp" />
     <ClCompile Include="ComplexPolygonFactory.cpp" />
     <ClCompile Include="Configuration.cpp" />

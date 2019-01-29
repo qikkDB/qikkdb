@@ -1,15 +1,23 @@
 #pragma once
-#include "IBlock.h"
 #include <stdexcept>
+#include <vector>
+#include "Types/ComplexPolygon.pb.h"
+#include "Types/Point.pb.h"
 
 template<class T>
 class ColumnBase;
 
 template<class T>
-class BlockBase :
-	public IBlock<T>
+class BlockBase
 {
 private:
+	T min_;
+	T max_;
+	float avg_;
+	T sum_;
+
+	void setBlockStatistics();
+
 	std::vector<T> data_;
 	ColumnBase<T>& column_;
 public:
@@ -21,6 +29,7 @@ public:
 			throw std::length_error("Attempted to insert data larger than remaining block size");
 		}
 		data_.reserve(column_.GetBlockSize());
+		setBlockStatistics();
 	}
 
 	explicit BlockBase(ColumnBase<T>& column) :
@@ -29,28 +38,48 @@ public:
 		data_.reserve(column_.GetBlockSize());
 	}
 
-	virtual std::vector<T>& GetData() override
+	T GetMax()
+	{
+		return max_;
+	}
+
+	T GetMin()
+	{
+		return min_;
+	}
+
+	float GetAvg()
+	{
+		return avg_;
+	}
+
+	T GetSum()
+	{
+		return sum_;
+	}
+
+	std::vector<T>& GetData()
 	{
 		return data_;
 	}
 
-	virtual int EmptyBlockSpace() const override
+	int EmptyBlockSpace() const
 	{
 		return column_.GetBlockSize() - data_.size();
 	}
 
-	virtual bool IsFull() const override
+	bool IsFull() const
 	{
 		return EmptyBlockSpace() == 0;
 	}
 
-	virtual void InsertData(const std::vector<T>& data) override
+	void InsertData(const std::vector<T>& data)
 	{
-		if (EmptyBlockSpace() - data.size() < 0)
+		if (EmptyBlockSpace() < data.size())
 		{
 			throw std::length_error("Attempted to insert data larger than remaining block size");
 		}
 		data_.insert(data_.end(), data.cbegin(), data.cend());
+		setBlockStatistics();
 	}
 };
-
