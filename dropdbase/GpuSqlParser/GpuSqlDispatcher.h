@@ -19,6 +19,7 @@
 #include "../ColumnBase.h"
 #include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/GPUFilter.cuh"
+#include "../QueryEngine/GPUCore/GPUFiltersAll.cuh"
 #include "../QueryEngine/GPUCore/GPUFilterConst.cuh"
 #include "../QueryEngine/GPUCore/GPUArithmetic.cuh"
 #include "../QueryEngine/GPUCore/GPUArithmeticConst.cuh"
@@ -50,6 +51,22 @@ int32_t retReg(GpuSqlDispatcher &dispatcher);
 int32_t fil(GpuSqlDispatcher &dispatcher);
 
 int32_t done(GpuSqlDispatcher &dispatcher);
+
+//// FILTERS WITH FUNCTORS
+
+template<typename OP, typename T, typename U>
+int32_t filterColConst(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T, typename U>
+int32_t filterConstCol(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T, typename U>
+int32_t filterColCol(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T, typename U>
+int32_t filterConstConst(GpuSqlDispatcher &dispatcher);
+
+////
 
 template<typename T, typename U>
 int32_t greaterColConst(GpuSqlDispatcher &dispatcher);
@@ -373,6 +390,43 @@ int32_t groupByCol(GpuSqlDispatcher &dispatcher);
 
 int32_t groupByReg(GpuSqlDispatcher &dispatcher);
 
+//// FUNCTOR ERROR HANDLERS
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
+
+template<typename OP>
+int32_t filterRegReg(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher);
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher);
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher);
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher);
+
+////
+
 template<typename T, typename U>
 int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
 
@@ -583,6 +637,25 @@ public:
     friend int32_t fil(GpuSqlDispatcher &dispatcher);
 
     friend int32_t done(GpuSqlDispatcher &dispatcher);
+
+	//// FILTERS WITH FUNCTORS
+
+	template<typename OP, typename T, typename U>
+	friend int32_t filterColConst(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T, typename U>
+	friend int32_t filterConstCol(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T, typename U>
+	friend int32_t filterColCol (GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T, typename U>
+	friend int32_t filterConstConst(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP>
+	friend int32_t filterRegReg(GpuSqlDispatcher &dispatcher);
+
+	////
 
     template<typename T, typename U>
     friend int32_t greaterColConst(GpuSqlDispatcher &dispatcher);
@@ -904,6 +977,42 @@ public:
     template<typename T, typename U>
     friend int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
 
+
+	//// FUNCTOR ERROR HANDLERS
+
+	template<typename OP, typename T, typename U>
+	friend int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
+
+
+	template<typename OP, typename T, typename U>
+	friend int32_t invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher);
+
+
+	template<typename OP, typename T, typename U>
+	friend int32_t invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
+
+
+	template<typename OP, typename T, typename U>
+	friend int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T, typename U>
+	friend int32_t invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher);
+
+
+	template<typename OP, typename T, typename U>
+	friend int32_t invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher);
+
+
+	template<typename OP, typename T, typename U>
+	friend int32_t invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher);
+
+
+	template<typename OP, typename T, typename U>
+	friend int32_t invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher);
+
+	////
+
+
     template<typename T, typename U>
     friend int32_t invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher);
 
@@ -1007,6 +1116,73 @@ int32_t retReg(GpuSqlDispatcher &dispatcher);
 int32_t fil(GpuSqlDispatcher &dispatcher);
 
 int32_t done(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T, typename U>
+int32_t filterColConst(GpuSqlDispatcher &dispatcher)
+{
+	U cnst = dispatcher.arguments.read<U>();
+	auto colName = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+	std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
+	int32_t retSize = std::get<1>(column);
+
+	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, retSize);
+	GPUFiltersAll::colConst<OP,T, U>(mask, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
+	return 0;
+}
+
+template<typename OP, typename T, typename U>
+int32_t filterConstCol(GpuSqlDispatcher &dispatcher)
+{
+	auto colName = dispatcher.arguments.read<std::string>();
+	T cnst = dispatcher.arguments.read<T>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+	std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
+	int32_t retSize = std::get<1>(column);
+
+	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, retSize);
+	GPUFiltersAll::constCol<OP, U, T>(mask, reinterpret_cast<U*>(std::get<0>(column)), cnst, retSize);
+	return 0;
+}
+
+template<typename OP, typename T, typename U>
+int32_t filterColCol(GpuSqlDispatcher &dispatcher)
+{
+	auto colNameRight = dispatcher.arguments.read<std::string>();
+	auto colNameLeft = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+	std::tuple<uintptr_t, int32_t> columnRight = dispatcher.allocatedPointers.at(colNameRight);
+	std::tuple<uintptr_t, int32_t> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
+	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+
+	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, retSize);
+
+	GPUFiltersAll::colCol<OP, T, U>(mask, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+	return 0;
+}
+
+
+template<typename OP, typename T, typename U>
+int32_t filterConstConst(GpuSqlDispatcher &dispatcher)
+{
+	U constRight = dispatcher.arguments.read<U>();
+	T constLeft = dispatcher.arguments.read<T>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, dispatcher.database->GetBlockSize());
+	GPUFiltersAll::constConst<OP, T, U>(mask, constLeft, constRight, dispatcher.database->GetBlockSize());
+	return 0;
+}
+
+template<typename OP>
+int32_t filterRegReg(GpuSqlDispatcher &dispatcher) 
+{
+
+}
+
 
 template<typename T, typename U>
 int32_t greaterColConst(GpuSqlDispatcher &dispatcher)
@@ -1464,6 +1640,7 @@ int32_t logicalAndConstCol(GpuSqlDispatcher &dispatcher)
 
 	int8_t * result = dispatcher.allocateRegister<int8_t>(reg, retSize);
 	GPULogicConst::and<int8_t, U, T>(result, reinterpret_cast<U*>(std::get<0>(column)), cnst, retSize);
+	return 0;
 }
 
 template<typename T, typename U>
@@ -2076,6 +2253,66 @@ int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher)
 {
 	return 0;
 }
+
+
+//// FUNCTOR ERROR HANDLERS
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+
+template<typename OP, typename T, typename U>
+int32_t invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+////
+
 
 template<typename T, typename U>
 int32_t invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher)

@@ -46,6 +46,7 @@ bool_types = [BYTE, BOOL]
 
 operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual", "logicalAnd", "logicalOr",
                      "mul", "div", "add", "sub", "mod", "contains"]
+operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg"]
 operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
@@ -203,7 +204,7 @@ for operation in operations_move:
     print('}')
     print('\n')
 
-for operation in operations_binary:
+for operation in operations_filter:
     declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
@@ -225,7 +226,7 @@ for operation in operations_binary:
                 row = "Reg"
 
             if row == "Reg" and col == "Reg":
-                function = operation + col + row
+                function = "filter" + col + row + "<FilterConditions::" + operation + ">"
             else:
                 if row == "Reg" or col == "Reg":
                     op = "invalidOperandTypesErrorHandler"
@@ -243,12 +244,12 @@ for operation in operations_binary:
                     op = "invalidOperandTypesErrorHandler"
 
                 else:
-                    op = operation
-                function = op + col + row + "<" + colVal + ", " + rowVal + ">"
+                    op = "filter"
+                function = op + col + row + "<FilterConditions::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
             else:
                 declaration += ("&" + function + ", ")
 
-    print(declaration) 
+    print(declaration)
