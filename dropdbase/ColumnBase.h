@@ -27,7 +27,7 @@ namespace std {
 	{
 		size_t operator()(const ColmnarDB::Types::ComplexPolygon & x) const
 		{
-			std::string wkt = ComplexPolygonFactory::PolygonToWkt(x);
+			std::string wkt = ComplexPolygonFactory::WktFromPolygon(x);
 			return std::hash<std::string>{}(wkt);
 		}
 	};
@@ -140,7 +140,7 @@ public:
 	/// Add new block in column
 	/// </summary>
 	/// <returns>Last block of column</returns>
-	const BlockBase<T>& AddBlock()
+	BlockBase<T>& AddBlock()
 	{
 		blocks_.push_back(std::make_unique<BlockBase<T>>(*this));
 		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
@@ -151,7 +151,7 @@ public:
 	/// </summary>
 	/// <param name="data">Data to be inserted</param>
 	/// <returns>Last block of column</returns>
-	const BlockBase<T>& AddBlock(const std::vector<T>& data)
+	BlockBase<T>& AddBlock(const std::vector<T>& data)
 	{
 		blocks_.push_back(std::make_unique<BlockBase<T>>(data, *this));
 		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));

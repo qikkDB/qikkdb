@@ -161,7 +161,7 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 /// Method that converts class to a string representation.
 /// </summary>
 /// <returns>ComplexPolygon in format of well known text.</returns>
-std::string ComplexPolygonFactory::PolygonToWkt(const ColmnarDB::Types::ComplexPolygon & complexPolygon)
+std::string ComplexPolygonFactory::WktFromPolygon(const ColmnarDB::Types::ComplexPolygon & complexPolygon)
 {
 	std::ostringstream wktStream;
 	wktStream << "POLYGON(";

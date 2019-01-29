@@ -29,14 +29,14 @@ TEST(BlockTests, InsertData)
 	auto& columnString = table.GetColumns().at("ColumnString");
 	auto& columnBool = table.GetColumns().at("ColumnBool");
 
-	auto blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
-	auto blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
-	auto blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
-	auto blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
-	auto blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
-	auto blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
-	auto blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
-	auto blockBool = dynamic_cast<ColumnBase<bool>*>(columnBool.get())->AddBlock();
+	auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+	auto& blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
+	auto& blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
+	auto& blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
+	auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
+	auto& blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
+	auto& blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
+	auto& blockBool = dynamic_cast<ColumnBase<bool>*>(columnBool.get())->AddBlock();
 
 	std::vector<int32_t> dataInt;
 	std::vector<int64_t> dataLong;
@@ -76,7 +76,7 @@ TEST(BlockTests, InsertData)
 		ASSERT_EQ(blockFloat.GetData()[i], dataFloat[i]);
 		ASSERT_EQ(blockDouble.GetData()[i], dataDouble[i]);
 		ASSERT_EQ(PointFactory::WktFromPoint(blockPoint.GetData()[i]), PointFactory::WktFromPoint(dataPoint[i]));
-		ASSERT_EQ(ComplexPolygonFactory::PolygonToWkt(blockPolygon.GetData()[i]), ComplexPolygonFactory::PolygonToWkt(dataPolygon[i]));
+		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetData()[i]), ComplexPolygonFactory::WktFromPolygon(dataPolygon[i]));
 		ASSERT_EQ(blockString.GetData()[i], dataString[i]);
 		ASSERT_EQ(blockBool.GetData()[i], dataBool[i]);
 	}
@@ -170,14 +170,14 @@ TEST(BlockTests, IsFull)
 	auto& columnString = table.GetColumns().at("ColumnString");
 	auto& columnBool = table.GetColumns().at("ColumnBool");
 
-	auto blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
-	auto blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
-	auto blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
-	auto blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
-	auto blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
-	auto blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
-	auto blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
-	auto blockBool = dynamic_cast<ColumnBase<bool>*>(columnBool.get())->AddBlock();
+	auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+	auto& blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
+	auto& blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
+	auto& blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
+	auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
+	auto& blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
+	auto& blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
+	auto& blockBool = dynamic_cast<ColumnBase<bool>*>(columnBool.get())->AddBlock();
 
 	ASSERT_FALSE(blockInt.IsFull());
 	ASSERT_FALSE(blockLong.IsFull());
@@ -269,14 +269,14 @@ TEST(BlockTests, EmptyBlockSpace)
 	auto& columnString = table.GetColumns().at("ColumnString");
 	auto& columnBool = table.GetColumns().at("ColumnBool");
 
-	auto blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
-	auto blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
-	auto blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
-	auto blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
-	auto blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
-	auto blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
-	auto blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
-	auto blockBool = dynamic_cast<ColumnBase<bool>*>(columnBool.get())->AddBlock();
+	auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+	auto& blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
+	auto& blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
+	auto& blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
+	auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
+	auto& blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
+	auto& blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
+	auto& blockBool = dynamic_cast<ColumnBase<bool>*>(columnBool.get())->AddBlock();
 
 	ASSERT_EQ(blockInt.EmptyBlockSpace(), database->GetBlockSize());
 	ASSERT_EQ(blockLong.EmptyBlockSpace(), database->GetBlockSize());
@@ -368,14 +368,14 @@ TEST(BlockTests, BlockStatistics)
 	auto& columnString = table.GetColumns().at("ColumnString");
 	auto& columnBool = table.GetColumns().at("ColumnBool");
 
-	auto blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
-	auto blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
-	auto blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
-	auto blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
-	auto blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
-	auto blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
-	auto blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
-	auto blockBool = dynamic_cast<ColumnBase<bool>*>(columnBool.get())->AddBlock();
+	auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+	auto& blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
+	auto& blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
+	auto& blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
+	auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
+	auto& blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
+	auto& blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
+	auto& blockBool = dynamic_cast<ColumnBase<bool>*>(columnBool.get())->AddBlock();
 
 	std::vector<int32_t> dataInt;
 	std::vector<int64_t> dataLong;
@@ -426,6 +426,26 @@ TEST(BlockTests, BlockStatistics)
 	ASSERT_DOUBLE_EQ(blockDouble.GetMax(), 0.1111);
 	ASSERT_DOUBLE_EQ(blockDouble.GetSum(), 0.2222);
 	ASSERT_FLOAT_EQ(blockDouble.GetAvg(), 0.1111);
+
+	ASSERT_EQ(PointFactory::WktFromPoint(blockPoint.GetMin()), "POINT(0 0)");
+	ASSERT_EQ(PointFactory::WktFromPoint(blockPoint.GetMax()), "POINT(0 0)");
+	ASSERT_EQ(PointFactory::WktFromPoint(blockPoint.GetSum()), "POINT(0 0)");
+	ASSERT_FLOAT_EQ(blockPoint.GetAvg(), 0);
+
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetMin()), "POLYGON((0 0),(0 0))");
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetMax()), "POLYGON((0 0),(0 0))");
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetSum()), "POLYGON((0 0),(0 0))");
+	ASSERT_FLOAT_EQ(blockPolygon.GetAvg(), 0);
+
+	ASSERT_EQ(blockString.GetMin(), "");
+	ASSERT_EQ(blockString.GetMax(), "");
+	ASSERT_EQ(blockString.GetSum(), "");
+	ASSERT_FLOAT_EQ(blockString.GetAvg(), 0);
+
+	ASSERT_EQ(blockBool.GetMin(), 0);
+	ASSERT_EQ(blockBool.GetMax(), 0);
+	ASSERT_EQ(blockBool.GetSum(), 0);
+	ASSERT_FLOAT_EQ(blockBool.GetAvg(), 0);
 
 	std::vector<int32_t> dataInt2;
 	std::vector<int64_t> dataLong2;
