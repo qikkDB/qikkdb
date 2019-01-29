@@ -51,7 +51,7 @@ operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
 
 for operation in operations_binary:
-    declaration = "std::array<std::function<void(GpuSqlDispatcher &)>," \
+    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -112,13 +112,13 @@ for operation in operations_binary:
     print('\n')
 
 for operation in operations_unary:
-    print("static std::array<std::function<void(GpuSqlDispatcher &)>, " \
+    print("static std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
           "DataType::DATA_TYPE_SIZE> " + operation + "Functions;")
 
 print('\n')
 
 for operation in operations_unary:
-    declaration = "std::array<std::function<void(GpuSqlDispatcher &)>, " \
+    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -133,7 +133,11 @@ for operation in operations_unary:
         if col == "Reg":
             function = operation + col
         else:
-            function = operation + col + "<" + colVal + ">"
+            if colVal in geo_types or colVal == STRING:
+                op = "invalidOperandTypesErrorHandler"
+            else:
+                op = operation
+            function = op + col + "<" + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")
@@ -156,13 +160,13 @@ for operation in operations_unary:
 print('\n')
 
 for operation in operations_move:
-    print("static std::array<std::function<void(GpuSqlDispatcher &)>, " \
+    print("static std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
           "DataType::DATA_TYPE_SIZE> " + operation + "Functions;")
 
 print('\n')
 
 for operation in operations_move:
-    declaration = "std::array<std::function<void(GpuSqlDispatcher &)>, " \
+    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -198,3 +202,53 @@ for operation in operations_move:
     print("\tdispatcherFunctions.push_back(" + operation + "Functions[type]);")
     print('}')
     print('\n')
+
+for operation in operations_binary:
+    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types) and colVal != BYTE:
+                col = "Col"
+            else:
+                col = "Reg"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types) and rowVal != BYTE:
+                row = "Col"
+            else:
+                row = "Reg"
+
+            if row == "Reg" and col == "Reg":
+                function = operation + col + row
+            else:
+                if row == "Reg" or col == "Reg":
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif colVal in geo_types or rowVal in geo_types:
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif colVal == STRING or rowVal == STRING:
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
+                    op = "invalidOperandTypesErrorHandler"
+
+                else:
+                    op = operation
+                function = op + col + row + "<" + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
+
+    print(declaration) 

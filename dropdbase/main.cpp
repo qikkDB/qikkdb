@@ -18,12 +18,12 @@ int main(int argc, char **argv)
     boost::log::add_file_log("../log/ColmnarDB.log");
     boost::log::add_console_log(std::cout);
 
-    std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 24);
+    std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, 1 << 3);
 	GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 
-    GpuSqlCustomParser parser(database, "SELECT colInteger FROM TableA WHERE (colInteger < 20) AND (colInteger > 10);");
+    GpuSqlCustomParser parser(database, "SELECT MAX(colInteger) FROM TableA;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();
