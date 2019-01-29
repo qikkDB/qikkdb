@@ -74,7 +74,7 @@ public:
 
 	void InsertData(const std::vector<T>& data)
 	{
-		if (EmptyBlockSpace() - data.size() < 0)
+		if (EmptyBlockSpace() < data.size())
 		{
 			throw std::length_error("Attempted to insert data larger than remaining block size");
 		}

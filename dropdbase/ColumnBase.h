@@ -7,6 +7,76 @@
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 #include "IColumn.h"
+#include "ComplexPolygonFactory.h"
+
+namespace std {
+	template <> struct hash<ColmnarDB::Types::Point>
+	{
+		size_t operator()(const ColmnarDB::Types::Point & x) const
+		{
+			static_assert(sizeof(size_t) == 8, "size_t is not 8 bytes");
+			float latitude = x.geopoint().latitude();
+			float longitude = x.geopoint().longitude();
+			int32_t* iLatitude = reinterpret_cast<int32_t*>(&latitude);
+			int32_t* iLongitude = reinterpret_cast<int32_t*>(&longitude);
+			return static_cast<size_t>(*iLatitude) | (static_cast<size_t>(*iLongitude) << 32);
+		}
+	};
+
+	template <> struct hash<ColmnarDB::Types::ComplexPolygon>
+	{
+		size_t operator()(const ColmnarDB::Types::ComplexPolygon & x) const
+		{
+			std::string wkt = ComplexPolygonFactory::PolygonToWkt(x);
+			return std::hash<std::string>{}(wkt);
+		}
+	};
+
+
+	template <> struct equal_to<ColmnarDB::Types::Point>
+	{
+		bool operator()(const ColmnarDB::Types::Point &lhs, const ColmnarDB::Types::Point &rhs) const
+		{
+			if (std::abs(lhs.geopoint().latitude() - rhs.geopoint().latitude()) >= 0.0001f ||
+				std::abs(lhs.geopoint().longitude() - rhs.geopoint().longitude()) >= 0.0001f)
+			{
+				return false;
+			}
+			return true;
+		}
+	};
+
+	template <> struct equal_to<ColmnarDB::Types::ComplexPolygon>
+	{
+		bool operator()(const ColmnarDB::Types::ComplexPolygon &lhs, const ColmnarDB::Types::ComplexPolygon &rhs) const
+		{
+			if (lhs.polygons_size() != rhs.polygons_size())
+			{
+				return false;
+			}
+
+			int32_t polySize = lhs.polygons_size();
+			for (int32_t i = 0; i < polySize; i++)
+			{
+				if (lhs.polygons(i).geopoints_size() != rhs.polygons(i).geopoints_size())
+				{
+					return false;
+				}
+				int32_t pointSize = lhs.polygons(i).geopoints_size();
+				for (int32_t j = 0; j < pointSize; j++)
+				{
+
+					if (std::abs(lhs.polygons(i).geopoints(j).latitude() - rhs.polygons(i).geopoints(j).latitude()) >= 0.0001f ||
+						std::abs(lhs.polygons(i).geopoints(j).longitude() - rhs.polygons(i).geopoints(j).longitude()) >= 0.0001f)
+					{
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+	};
+}
 
 template<class T>
 class ColumnBase : public IColumn
@@ -106,7 +176,7 @@ public:
 	std::vector<T> GetUniqueBuckets() const
 	{
 		std::unordered_set<T> dataSet;
-		auto floatBlocks = GetBlocksList();
+		auto& floatBlocks = GetBlocksList();
 		for (const auto & block : floatBlocks)
 		{
 			for (const auto & dataPoint : block->GetData())
