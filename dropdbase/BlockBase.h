@@ -29,6 +29,7 @@ public:
 			throw std::length_error("Attempted to insert data larger than remaining block size");
 		}
 		data_.reserve(column_.GetBlockSize());
+		setBlockStatistics();
 	}
 
 	explicit BlockBase(ColumnBase<T>& column) :

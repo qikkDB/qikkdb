@@ -771,3 +771,89 @@ TEST(ColumnTests, GetColumnType)
 	ASSERT_EQ(typeString, COLUMN_STRING);
 	ASSERT_EQ(typeBool, COLUMN_BOOL);
 }
+
+TEST(ColumnTests, ColumnStatistics)
+{
+	auto database = std::make_shared<Database>("testDatabase", 1024);
+	Table table(database, "testTable");
+
+	table.CreateColumn("ColumnInt", COLUMN_INT);
+	table.CreateColumn("ColumnLong", COLUMN_LONG);
+	table.CreateColumn("ColumnFloat", COLUMN_FLOAT);
+	table.CreateColumn("ColumnDouble", COLUMN_DOUBLE);
+	table.CreateColumn("ColumnPoint", COLUMN_POINT);
+	table.CreateColumn("ColumnPolygon", COLUMN_POLYGON);
+	table.CreateColumn("ColumnString", COLUMN_STRING);
+	table.CreateColumn("ColumnBool", COLUMN_BOOL);
+
+	auto& columnInt = table.GetColumns().at("ColumnInt");
+	auto& columnLong = table.GetColumns().at("ColumnLong");
+	auto& columnFloat = table.GetColumns().at("ColumnFloat");
+	auto& columnDouble = table.GetColumns().at("ColumnDouble");
+	auto& columnPoint = table.GetColumns().at("ColumnPoint");
+	auto& columnPolygon = table.GetColumns().at("ColumnPolygon");
+	auto& columnString = table.GetColumns().at("ColumnString");
+	auto& columnBool = table.GetColumns().at("ColumnBool");
+
+	std::vector<int32_t> dataInt;
+	std::vector<int64_t> dataLong;
+	std::vector<float> dataFloat;
+	std::vector<double> dataDouble;
+	std::vector<ColmnarDB::Types::Point> dataPoint;
+	std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+	std::vector<std::string> dataString;
+	std::vector<bool> dataBool;
+
+	for (int i = 0; i < database->GetBlockSize(); i++)
+	{
+		dataInt.push_back(1);
+		dataLong.push_back(100000);
+		dataFloat.push_back((float) 0.1111);
+		dataDouble.push_back((double) 0.1111);
+		dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
+		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))"));
+		dataString.push_back("abc");
+		dataBool.push_back(0);
+	}
+
+	for (int i = 0; i < database->GetBlockSize(); i++)
+	{
+		dataInt.push_back(5);
+		dataLong.push_back(500000);
+		dataFloat.push_back((float) 0.5555);
+		dataDouble.push_back((double) 0.5555);
+		dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
+		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))"));
+		dataString.push_back("abc");
+		dataBool.push_back(1);
+	}
+
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertData(dataInt);
+	dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->InsertData(dataLong);
+	dynamic_cast<ColumnBase<float>*>(columnFloat.get())->InsertData(dataFloat);
+	dynamic_cast<ColumnBase<double>*>(columnDouble.get())->InsertData(dataDouble);
+	dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->InsertData(dataPoint);
+	dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->InsertData(dataPolygon);
+	dynamic_cast<ColumnBase<std::string>*>(columnString.get())->InsertData(dataString);
+	dynamic_cast<ColumnBase<bool>*>(columnBool.get())->InsertData(dataBool);
+
+	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetMin(), 1);
+	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetMax(), 5);
+	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetSum(), database->GetBlockSize() + 5 * database->GetBlockSize());
+	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetAvg(), 3);
+
+	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->GetMin(), 100000);
+	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->GetMax(), 500000);
+	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->GetSum(), 100000 * database->GetBlockSize() + 500000 * database->GetBlockSize());
+	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->GetAvg(), 300000);
+
+	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetMin(), 0.1111);
+	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetMax(), 0.5555);
+	ASSERT_TRUE(std::abs(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetSum() - (0.6666 * database->GetBlockSize())) < std::abs(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetSum()) / 100000.0f);
+	ASSERT_TRUE(std::abs(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetAvg() - 0.3333) < std::abs(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetAvg()) / 100000.0f);
+
+	ASSERT_DOUBLE_EQ(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetMin(), 0.1111);
+	ASSERT_DOUBLE_EQ(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetMax(), 0.5555);
+	ASSERT_TRUE(std::abs(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetSum() - (0.6666 * database->GetBlockSize())) < std::abs(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetSum()) / 100000.0f);
+	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetAvg(), 0.3333);
+}

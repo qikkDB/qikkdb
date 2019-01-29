@@ -107,6 +107,26 @@ public:
 		return name_;
 	}
 
+	T GetMax()
+	{
+		return max_;
+	}
+
+	T GetMin()
+	{
+		return min_;
+	}
+
+	float GetAvg()
+	{
+		return avg_;
+	}
+
+	T GetSum()
+	{
+		return sum_;
+	}
+
 	/// <summary>
 	/// Blocks getter
 	/// </summary>
