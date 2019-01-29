@@ -91,7 +91,7 @@ private:
 
 	T min_;
 	T max_;
-	T avg_;
+	float avg_;
 	T sum_;
 
 public:

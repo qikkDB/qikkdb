@@ -13,7 +13,7 @@ class BlockBase
 private:
 	T min_;
 	T max_;
-	T avg_;
+	float avg_;
 	T sum_;
 
 	void setBlockStatistics();
@@ -47,7 +47,7 @@ public:
 		return min_;
 	}
 
-	T GetAvg()
+	float GetAvg()
 	{
 		return avg_;
 	}

@@ -77,7 +77,7 @@ void ColumnBase<int32_t>::setColumnStatistics()
 	min_ = *std::min_element(mins.begin(), mins.end());
 	max_ = *std::max_element(maxs.begin(), maxs.end());
 	sum_ = std::accumulate(sums.begin(), sums.end(), 0);
-	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(),numOfDataInBlocks.end(),0);
+	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(),numOfDataInBlocks.end(), (float) 0.0);
 }
 
 void ColumnBase<int64_t>::setColumnStatistics()
@@ -99,7 +99,7 @@ void ColumnBase<int64_t>::setColumnStatistics()
 	min_ = *std::min_element(mins.begin(), mins.end());
 	max_ = *std::max_element(maxs.begin(), maxs.end());
 	sum_ = std::accumulate(sums.begin(), sums.end(), 0);
-	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), 0);
+	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), (float) 0.0);
 }
 
 void ColumnBase<float>::setColumnStatistics()
@@ -143,30 +143,30 @@ void ColumnBase<double>::setColumnStatistics()
 	min_ = *std::min_element(mins.begin(), mins.end());
 	max_ = *std::max_element(maxs.begin(), maxs.end());
 	sum_ = std::accumulate(sums.begin(), sums.end(), (double) 0.0);
-	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), (double) 0.0);
+	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), (float) 0.0);
 }
 
 void ColumnBase<ColmnarDB::Types::Point>::setColumnStatistics()
 {
 	min_ = PointFactory::FromWkt("POINT(0 0)");
 	max_ = PointFactory::FromWkt("POINT(0 0)");
-	avg_ = PointFactory::FromWkt("POINT(0 0)");
+	avg_ = (float) 0.0;
 	sum_ = PointFactory::FromWkt("POINT(0 0)");
 }
 
 void ColumnBase<ColmnarDB::Types::ComplexPolygon>::setColumnStatistics()
 {
-	min_ = ComplexPolygonFactory::FromWkt("POLYGON()");
-	max_ = ComplexPolygonFactory::FromWkt("POLYGON()");
-	avg_ = ComplexPolygonFactory::FromWkt("POLYGON()");
-	sum_ = ComplexPolygonFactory::FromWkt("POLYGON()");
+	min_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0),(0 0))");
+	max_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0),(0 0))");
+	avg_ = (float) 0.0;
+	sum_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0),(0 0))");
 }
 
 void ColumnBase<std::string>::setColumnStatistics()
 {
 	min_ = "";
 	max_ = "";
-	avg_ = "";
+	avg_ = (float) 0.0;
 	sum_ = "";
 }
 
@@ -189,5 +189,5 @@ void ColumnBase<bool>::setColumnStatistics()
 	min_ = *std::min_element(mins.begin(), mins.end());
 	max_ = *std::max_element(maxs.begin(), maxs.end());
 	sum_ = std::accumulate(sums.begin(), sums.end(), 0);
-	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), 0);
+	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), (float) 0.0);
 }
