@@ -42,7 +42,7 @@ std::tuple<std::vector<NativeGeoPoint>, std::vector<int32_t>, std::vector<int32_
 			polyPoints.push_back({ 0,0 });
 		}
 	}
-	return std::make_tuple(polyPoints,pointIdx,pointCount,polyIdx,polyCount);
+	return std::make_tuple(polyPoints, pointIdx, pointCount, polyIdx, polyCount);
 }
 
 /// <summary>
@@ -63,7 +63,7 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 		wkt.erase(replaceIdx + 1, 1);
 		replaceIdx = wkt.find(", ");
 	}
-	
+
 	std::vector<std::string> polygons;
 	size_t startIdx = 0;
 	size_t endOfPolyIdx = wkt.find("),(");
@@ -81,7 +81,7 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 	}
 
 	std::regex wktRegex("((-?[0-9]+(\\.[0-9]+)?) (-?[0-9]+(\\.[0-9]+)?)(, ?)?)+");
-	
+
 	replaceIdx = polygons[0].find("POLYGON((");
 	if (replaceIdx != std::string::npos)
 	{
@@ -107,7 +107,7 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 		{
 			throw std::invalid_argument("Invalid WKT format - mismatched brace");
 		}
-		
+
 		if (!std::regex_match(polygon, wktMatch, wktRegex))
 		{
 			throw std::invalid_argument("Invalid WKT format");
@@ -138,7 +138,7 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 			float latitude, longitude;
 			std::istringstream coordStream(point);
 			coordStream >> latitude >> longitude;
-			
+
 			if (coordStream.fail())
 			{
 				throw std::invalid_argument("Invalid WKT format - coordinate parse error");
@@ -161,7 +161,7 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 /// Method that converts class to a string representation.
 /// </summary>
 /// <returns>ComplexPolygon in format of well known text.</returns>
-std::string ComplexPolygonFactory::PolygonToWkt(const ColmnarDB::Types::ComplexPolygon & complexPolygon)
+std::string ComplexPolygonFactory::WktFromPolygon(const ColmnarDB::Types::ComplexPolygon & complexPolygon)
 {
 	std::ostringstream wktStream;
 	wktStream << "POLYGON(";

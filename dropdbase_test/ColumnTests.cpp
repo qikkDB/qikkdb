@@ -7,7 +7,7 @@
 
 TEST(ColumnTests, AddBlock)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto& database = std::make_shared<Database>("testDatabase", 1024);
 	Table table(database, "testTable");
 
 	table.CreateColumn("ColumnInt", COLUMN_INT);
