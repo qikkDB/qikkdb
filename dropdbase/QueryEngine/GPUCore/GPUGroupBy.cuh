@@ -10,6 +10,7 @@
 
 #include "../Context.h"
 #include "GPUMemory.cuh"
+#include "GPUArithmetic.cuh"
 
 #include "ErrorFlagSwapper.h"
 
@@ -192,6 +193,13 @@ public:
 	GPUGroupBy(const GPUGroupBy &) = delete;
 	GPUGroupBy& operator=(const GPUGroupBy &) = delete;
 
+	// Ge the count of accumulated hash entries so far for result buffer allocation
+	int32_t getResultElementCount() {
+		int32_t temp;
+		GPUMemory::copyDeviceToHost(&temp, resultElementCount_, 1);
+		return temp;
+	}
+
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
@@ -199,11 +207,34 @@ public:
 			(keys_, values_, keyOccurenceCount_, indexTable_, resultElementCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
 	}
 
-	// Get the final hash table results
-	void getResults()
+	// Get the final hash table results - buffers need to be pre allocated
+	void getResults(K *outKeys, V *outValues)
 	{
-		// TODO Return results
-		// TODO calculate avg or return count
+		int32_t resultElementCount = getResultElementCount();
+
+		// Copy back the keys
+		GPUMemory::copyDeviceToHost(outKeys, keys_, resultElementCount);
+
+		// Copy back the results based on the operation
+		if (std::is_same < AGG, min>::value || std::is_same < AGG, max>::value || std::is_same < AGG, sum>::value)
+		{
+			GPUMemory::copyDeviceToHost(outValues, values_, resultElementCount);
+		}
+		else if (std::is_same < AGG, avg>::value)
+		{
+			GPUArithmetic::division(values_, values_, keyOccurenceCount_, resultElementCount);
+			GPUMemory::copyDeviceToHost(outValues, values_, resultElementCount);
+		}
+		else if (std::is_same < AGG, cnt>::value)
+		{
+			GPUMemory::copyDeviceToHost(outValues, keyOccurenceCount_, resultElementCount);
+		}
+		else
+		{
+			int32_t temp = QueryEngineError::GPU_UNKNOWN_AGG_FUN;
+			GPUMemory::copyHostToDevice(errorFlagSwapper_.getFlagPointer(), &temp, 1);
+			return;
+		}
 	}
 };
 
