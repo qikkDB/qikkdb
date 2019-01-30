@@ -153,6 +153,7 @@
     <ClCompile Include="Table.cpp" />
     <ClCompile Include="Types\ComplexPolygon.pb.cc" />
     <ClCompile Include="Types\Point.pb.cc" />
+    <CudaCompile Include="QueryEngine\GPUCore\GPUMemory.cu" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="QueryEngine\CudaMemAllocator.cu" />

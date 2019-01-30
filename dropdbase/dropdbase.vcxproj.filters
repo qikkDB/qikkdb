@@ -229,5 +229,8 @@
     <CudaCompile Include="GpuSqlParser\GpuSqlDispatcher.cpp">
       <Filter>Source Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="QueryEngine\GPUCore\GPUMemory.cu">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
