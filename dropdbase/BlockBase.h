@@ -30,7 +30,7 @@ public:
 			throw std::length_error("Attempted to insert data larger than remaining block size");
 		}
 		data_.reserve(column_.GetBlockSize());
-		GPUMemory::hostPin(data_.data(), data_.size()*sizeof(T));
+		GPUMemory::hostPin(data_.data(), data_.size());
 		setBlockStatistics();
 	}
 
@@ -38,7 +38,7 @@ public:
 		column_(column), data_()
 	{
 		data_.reserve(column_.GetBlockSize());
-		GPUMemory::hostPin(data_.data(), data_.size()* sizeof(T));
+		GPUMemory::hostPin(data_.data(), data_.size());
 	}
 
 	T GetMax()
