@@ -259,6 +259,7 @@ int32_t invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher);
 template<typename T, typename U>
 int32_t invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher);
 
+int32_t invalidOperandTypesErrorHandlerRegReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T, typename U>
 int32_t invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher);
@@ -637,6 +638,8 @@ public:
     template<typename T, typename U>
     friend int32_t invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher);
 
+	friend int32_t invalidOperandTypesErrorHandlerRegReg(GpuSqlDispatcher &dispatcher);
+
 	template<typename T>
 	friend int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
 
@@ -679,7 +682,7 @@ int32_t loadCol(GpuSqlDispatcher &dispatcher)
 	}
 
 	auto col = dynamic_cast<const ColumnBase<T>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
-	auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[0].get());
+	auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[dispatcher.blockIndex].get());
 
 	T * gpuPointer;
 	GPUMemory::alloc<T>(&gpuPointer, block->GetData().size());

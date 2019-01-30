@@ -75,12 +75,16 @@ for operation in operations_binary:
                 row = "Reg"
 
             if row == "Reg" and col == "Reg":
-                function = operation + col + row
+                if operation == 'contains':
+                    op = "invalidOperandTypesErrorHandler"
+                else:
+                    op = operation
+                function = op + col + row
             else:
                 if row == "Reg" or col == "Reg":
                     op = "invalidOperandTypesErrorHandler"
 
-                elif colVal in geo_types or rowVal in geo_types:
+                elif operation != 'contains' and (colVal in geo_types or rowVal in geo_types):
                     op = "invalidOperandTypesErrorHandler"
 
                 elif colVal == STRING or rowVal == STRING:
@@ -90,6 +94,9 @@ for operation in operations_binary:
                     op = "invalidOperandTypesErrorHandler"
                 
                 elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif operation == "contains" and (colVal != POLYGON or rowVal != POINT):
                     op = "invalidOperandTypesErrorHandler"
 
                 else:
