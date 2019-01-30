@@ -13,29 +13,14 @@
 #include "../Context.h"
 #include "../QueryEngineError.h"
 
-constexpr int COL_COL = 0;
-constexpr int COL_CONST = 1;
-constexpr int CONST_COL = 2;
-constexpr int CONST_CONST = 3;
-
-template <typename D>
-void errorExch(int32_t* errorFlag, QueryEngineError errorType)
-{
-	if (std::is_same<D, CONST_CONST>::value)
-	{
-		GPUMemory::copyHostToDevice(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
-	}
-	else
-	{
-		atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
-	}
-}
+constexpr int V_TYPE_COL = 0;
+constexpr int V_TYPE_CONST = 1;
 
 namespace ArithmeticOperations
 {
 	struct add
 	{
-		template<typename D, typename T, typename U, typename V>
+		template<int V_TYPE, typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			// if none of the input operands are float
@@ -45,7 +30,7 @@ namespace ArithmeticOperations
 				if (((b > V{ 0 }) && (a > (max - b))) ||
 					((b < V{ 0 }) && (a < (min - b))))
 				{
-					errorExch<D>(errorFlag, QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR);
+					atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_INTEGER_OVERFLOW_ERROR));
 					return T{ 0 };
 				}
 			}
@@ -55,7 +40,7 @@ namespace ArithmeticOperations
 
 	struct sub
 	{
-		template<typename D, typename T, typename U, typename V>
+		template<int V_TYPE, typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			// if none of the input operands are float
@@ -75,7 +60,7 @@ namespace ArithmeticOperations
 
 	struct mul
 	{
-		template<typename D, typename T, typename U, typename V>
+		template<int V_TYPE, typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			// if none of the input operands are float
@@ -127,13 +112,13 @@ namespace ArithmeticOperations
 
 	struct floorDiv
 	{
-		template<typename D, typename T, typename U, typename V>
+		template<int V_TYPE, typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			// if none of the input operands are float
 			if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 			{
-				if (std::is_same<D, COL_COL>::value || std::is_same<D, CONST_COL>::value)
+				if (V_TYPE == V_TYPE_COL)
 				{
 					// Check for zero division
 					if (b == V{ 0 })
@@ -153,7 +138,7 @@ namespace ArithmeticOperations
 
 	struct div
 	{
-		template<typename D, typename T, typename U, typename V>
+		template<int V_TYPE, typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			// TODO Uncomment when dispatcher is ready for this
@@ -175,14 +160,14 @@ namespace ArithmeticOperations
 
 	struct mod
 	{
-		template<typename D, typename T, typename U, typename V>
+		template<int V_TYPE, typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			//modulo is not defined for floating point type
 			static_assert(!std::is_floating_point<U>::value && !std::is_floating_point<V>::value,
 				"None of the input columns of operation modulo cannot be floating point type!");
 
-			if (std::is_same<D, COL_COL>::value || std::is_same<D, CONST_COL>::value)
+			if (V_TYPE == V_TYPE_COL)
 			{
 				// Check for zero division
 				if (b == V{ 0 })
@@ -216,7 +201,7 @@ __global__ void kernel_arithmetic_col_col(T *output, U *ACol, V *BCol, int32_t d
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		output[i] = OP{}(ACol[i], BCol[i], errorFlag, min, max);
+		output[i] = OP<V_TYPE_COL>{}(ACol[i], BCol[i], errorFlag, min, max);
 	}
 }
 
@@ -238,7 +223,7 @@ __global__ void kernel_arithmetic_col_const(T *output, U *ACol, V BConst, int32_
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		output[i] = OP{}(ACol[i], BConst, errorFlag, min, max);
+		output[i] = OP<V_TYPE_CONST>{}(ACol[i], BConst, errorFlag, min, max);
 	}
 }
 
@@ -260,29 +245,30 @@ __global__ void kernel_arithmetic_const_col(T *output, U AConst, V *BCol, int32_
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		output[i] = OP{}(AConst, BCol[i], errorFlag, min, max);
+		output[i] = OP<V_TYPE_COL>{}(AConst, BCol[i], errorFlag, min, max);
 	}
 }
 
 /// <summary>
-/// Kernel for arithmetic operation with constant and constant
+/// Kernel for arithmetic operation with constant and constant.
+/// So this kernel will fill full output block with the same value.
 /// (For div as T always use some kind of floating point type!)
 /// (For mod as U and V never use floating point type!)
 /// </summary>
 /// <param name="output">output result data block</param>
 /// <param name="AConst">left input operand</param>
-/// <param name="BCol">block of the right input operands</param>
+/// <param name="BConst">right input operand</param>
 /// <param name="dataElementCount">count of elements in the input blocks</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename OP, typename T, typename U, typename V>
-__global__ void kernel_arithmetic_const_col(T *output, U AConst, V *BCol, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
+__global__ void kernel_arithmetic_const_const(T *output, U AConst, V BConst, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
 {
 	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int32_t stride = blockDim.x * gridDim.x;
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		output[i] = OP{}(AConst, BCol[i], errorFlag, min, max);
+		output[i] = OP<V_TYPE_CONST>{}(AConst, BConst, errorFlag, min, max);
 	}
 }
 
@@ -312,8 +298,10 @@ public:
 			if (BConst == V{ 0 })
 			{
 				Context::getInstance().getLastError().setType(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
+				return;
 			}
 		}
+
 		ErrorFlagSwapper errorFlagSwapper;
 
 		kernel_arithmetic_col_const <OP, T, U, V>
@@ -345,11 +333,18 @@ public:
 			if (BConst == V{ 0 })
 			{
 				Context::getInstance().getLastError().setType(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
+				return;
 			}
 		}
+
 		ErrorFlagSwapper errorFlagSwapper;
 
-		return OP{}(AConst, BConst, errorFlag, min, max);
+		kernel_arithmetic_const_const <OP, T, U, V>
+			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+			(output, AConst, BConst, dataElementCount, errorFlagSwapper.getFlagPointer(),
+				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+
+		cudaDeviceSynchronize();
 	}
 };
 

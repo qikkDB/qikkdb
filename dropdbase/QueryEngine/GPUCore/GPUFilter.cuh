@@ -13,8 +13,8 @@ namespace FilterConditions
 {
 	struct greater
 	{
-		template<typename T>
-		__device__ int8_t operator()(T a, T b) const
+		template<typename T, typename U>
+		__device__ __host__ int8_t operator()(T a, U b) const
 		{
 			return a > b;
 		}
@@ -22,8 +22,8 @@ namespace FilterConditions
 
 	struct greaterEquals
 	{
-		template<typename T>
-		__device__ int8_t operator()(T a, T b) const
+		template<typename T, typename U>
+		__device__ __host__ int8_t operator()(T a, U b) const
 		{
 			return a >= b;
 		}
@@ -31,8 +31,8 @@ namespace FilterConditions
 
 	struct less
 	{
-		template<typename T>
-		__device__ int8_t operator()(T a, T b) const
+		template<typename T, typename U>
+		__device__ __host__ int8_t operator()(T a, U b) const
 		{
 			return a < b;
 		}
@@ -40,8 +40,8 @@ namespace FilterConditions
 
 	struct lessEqual
 	{
-		template<typename T>
-		__device__ int8_t operator()(T a, T b) const
+		template<typename T, typename U>
+		__device__ __host__ int8_t operator()(T a, U b) const
 		{
 			return a <= b;
 		}
@@ -49,8 +49,8 @@ namespace FilterConditions
 
 	struct equal
 	{
-		template<typename T>
-		__device__ int8_t operator()(T a, T b) const
+		template<typename T, typename U>
+		__device__ __host__ int8_t operator()(T a, U b) const
 		{
 			return a == b;
 		}
@@ -58,8 +58,8 @@ namespace FilterConditions
 
 	struct notEqual
 	{
-		template<typename T>
-		__device__ int8_t operator()(T a, T b) const
+		template<typename T, typename U>
+		__device__ __host__ int8_t operator()(T a, U b) const
 		{
 			return a != b;
 		}
@@ -161,7 +161,6 @@ public:
 	static void constConst(int8_t *outMask, T AConst, U BConst, int32_t dataElementCount)
 	{
 		GPUMemory::fill(outMask, FILTER{}(AConst, BConst), dataElementCount);
-		cudaDeviceSynchronize();
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 

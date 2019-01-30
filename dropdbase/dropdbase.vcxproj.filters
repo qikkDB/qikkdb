@@ -63,9 +63,6 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh">
-      <Filter>Header Files\QueryEngine\GPUCore</Filter>
-    </ClInclude>
     <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
