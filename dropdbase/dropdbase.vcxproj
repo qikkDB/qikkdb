@@ -117,7 +117,6 @@
     <ClInclude Include="QueryEngine\CudaMemAllocator.h" />
     <ClInclude Include="QueryEngine\GPUCore\GPUAggregation.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUFiltersAll.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh" />
