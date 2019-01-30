@@ -6,7 +6,6 @@
 #define DROPDBASE_INSTAREA_GPUSQLLISTENER_H
 
 #include "GpuSqlParserBaseListener.h"
-#include "GpuSqlDispatcher.h"
 #include "ParserExceptions.h"
 #include "../Database.h"
 #include "../DataType.h"
@@ -18,6 +17,8 @@
 #include <memory>
 #include <stack>
 #include <regex>
+
+class GpuSqlDispatcher;
 
 class GpuSqlListener : public GpuSqlParserBaseListener
 {

@@ -10,6 +10,5 @@ public:
 	static const int MAX_POLYGONS_NUMBER = 8;
 	static std::tuple<std::vector<NativeGeoPoint>, std::vector<int32_t>, std::vector<int32_t>, std::vector<int32_t>, std::vector<int32_t>> PrepareGPUPolygon(const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons);
 	static ColmnarDB::Types::ComplexPolygon FromWkt(std::string wkt);
-	static std::string PolygonToWkt(const ColmnarDB::Types::ComplexPolygon& polygon);
+	static std::string WktFromPolygon(const ColmnarDB::Types::ComplexPolygon& polygon);
 };
-

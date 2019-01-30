@@ -4,6 +4,7 @@
 
 #include "GpuSqlListener.h"
 #include "../Table.h"
+#include "GpuSqlDispatcher.h"
 
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database> &database,
                                GpuSqlDispatcher &dispatcher) : database(database), dispatcher(dispatcher),
@@ -125,7 +126,6 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 
     std::string op = ctx->op->getText();
     stringToUpper(op);
-
     DataType operandType = std::get<1>(arg);
     pushArgument(std::get<0>(arg).c_str(), operandType);
 
@@ -155,27 +155,33 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 
     DataType operandType = std::get<1>(arg);
     pushArgument(std::get<0>(arg).c_str(), operandType);
+	DataType returnDataType;
 
     if (op == "MIN")
     {
         dispatcher.addMinFunction(operandType);
+		returnDataType = operandType;
     } else if (op == "MAX")
     {
         dispatcher.addMaxFunction(operandType);
+		returnDataType = operandType;
     } else if (op == "SUM")
     {
         dispatcher.addSumFunction(operandType);
+		returnDataType = operandType;
     } else if (op == "COUNT")
     {
         dispatcher.addCountFunction(operandType);
+		returnDataType = DataType::COLUMN_INT;
     } else if (op == "AVG")
     {
         dispatcher.addAvgFunction(operandType);
+		returnDataType = operandType;
     }
 
 	std::string reg = std::string("R") + std::to_string(tempCounter);
-	pushArgument(reg.c_str(), colToConst(operandType));
-    pushTempResult(colToConst(operandType));
+	pushArgument(reg.c_str(), returnDataType);
+    pushTempResult(returnDataType);
 }
 
 void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)

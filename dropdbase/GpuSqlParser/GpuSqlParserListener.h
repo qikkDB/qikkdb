@@ -1,5 +1,5 @@
 
-// Generated from /Users/ms/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -113,9 +113,6 @@ public:
   virtual void enterGeoReference(GpuSqlParser::GeoReferenceContext *ctx) = 0;
   virtual void exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx) = 0;
 
-  virtual void enterMinusExpression(GpuSqlParser::MinusExpressionContext *ctx) = 0;
-  virtual void exitMinusExpression(GpuSqlParser::MinusExpressionContext *ctx) = 0;
-
   virtual void enterStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
   virtual void exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
 
@@ -136,6 +133,9 @@ public:
 
   virtual void enterUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) = 0;
   virtual void exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) = 0;
+
+  virtual void enterUnaryExpression(GpuSqlParser::UnaryExpressionContext *ctx) = 0;
+  virtual void exitUnaryExpression(GpuSqlParser::UnaryExpressionContext *ctx) = 0;
 
   virtual void enterBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;
   virtual void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;
