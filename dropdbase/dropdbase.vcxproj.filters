@@ -63,9 +63,6 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh">
-      <Filter>Header Files\QueryEngine\GPUCore</Filter>
-    </ClInclude>
     <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
@@ -81,7 +78,6 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUReconstruct.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUFiltersAll.cuh">
     <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
@@ -144,9 +140,6 @@
     </ClInclude>
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="DataType.h" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
-      <Filter>Header Files\QueryEngine\GPUCore</Filter>
-    </ClInclude>
     <ClInclude Include="GpuSqlParser\GpuSqlDispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -154,7 +147,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QueryEngine\GPUCore\GPULogicConst.cuh">
-	      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
     <ClInclude Include="ErrorFlagSwapper.h">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
