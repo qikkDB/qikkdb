@@ -53,6 +53,7 @@
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\MemoryStream.cpp" />
     <ClCompile Include="..\dropdbase\BlockBase.cpp" />
+    <ClCompile Include="IILExecutorTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dropdbase sources">
