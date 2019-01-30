@@ -3,6 +3,7 @@
 #include <vector>
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
+#include "QueryEngine/GPUCore/GPUMemory.cuh"
 
 template<class T>
 class ColumnBase;
@@ -24,11 +25,12 @@ public:
 	BlockBase(const std::vector<T>& data, ColumnBase<T>& column) :
 		column_(column), data_(data)
 	{
-		if (column_.GetBlockSize() - data.size() < 0)
+		if (column_.GetBlockSize() < data.size())
 		{
 			throw std::length_error("Attempted to insert data larger than remaining block size");
 		}
 		data_.reserve(column_.GetBlockSize());
+		GPUMemory::hostPin(data_.data(), data_.size());
 		setBlockStatistics();
 	}
 
@@ -36,6 +38,7 @@ public:
 		column_(column), data_()
 	{
 		data_.reserve(column_.GetBlockSize());
+		GPUMemory::hostPin(data_.data(), data_.size());
 	}
 
 	T GetMax()
