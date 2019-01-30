@@ -177,26 +177,6 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 				break;
 			}
 
-			case COLUMN_BOOL:
-			{
-				table.CreateColumn("colBool", COLUMN_BOOL);
-				auto& columns = table.GetColumns();
-				auto& column = dynamic_cast<ColumnBase<bool>&>(*columns.at("colBool"));
-
-				for (int i = 0; i < blockCount; i++)
-				{
-					std::vector<bool> boolData;
-
-					for (int k = 0; k < blockLenght; k++)
-					{
-						boolData.push_back(sameDataInBlocks ? 0 : k % 2);
-					}
-					column.AddBlock(boolData);
-				}
-
-				break;
-			}
-
 			default:
 			{
 				table.CreateColumn("colInteger", COLUMN_INT);

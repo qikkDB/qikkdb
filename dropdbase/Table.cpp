@@ -114,10 +114,6 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 			{
 				dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData));
 			}
-			else if (wrappedData.type() == typeid(std::vector<bool>))
-			{
-				dynamic_cast<ColumnBase<bool>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<bool>>(wrappedData));
-			}
 		}
 	}
 }
