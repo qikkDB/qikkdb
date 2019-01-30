@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	auto start = std::chrono::high_resolution_clock::now();
 	
 
-    GpuSqlCustomParser parser(database, "SELECT MAX(colInteger) FROM TableA;");
+    GpuSqlCustomParser parser(database, "SELECT colInteger FROM TableA WHERE 5 > 3;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();
