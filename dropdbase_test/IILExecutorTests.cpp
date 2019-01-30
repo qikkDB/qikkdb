@@ -5,7 +5,7 @@
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 
-std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, 1 << 10);
+std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 10);
 
 TEST(IILExecutorTests, GtColumnConst)
 {
@@ -17,14 +17,15 @@ TEST(IILExecutorTests, GtColumnConst)
 
 	std::vector<int32_t> expectedResult;
 
-	for (int i = 0; i < (1 << 10); i++)
+	for (int i = 0; i < 2; i++)
 	{
-		if ((i % 1024) > 5)
-		{
-			expectedResult.push_back(i % 1024);
-		}
+		for (int i = 0; i < (1 << 10); i++)
+			if ((i % 1024) > 5)
+			{
+				expectedResult.push_back(i % 1024);
+			}
 	}
-
+	
 	auto &payloads = result->payloads().at("TableA.colInteger");
 
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
