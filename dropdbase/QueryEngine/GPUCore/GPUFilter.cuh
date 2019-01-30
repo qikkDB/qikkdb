@@ -8,6 +8,7 @@
 #include <cstdint>
 
 #include "../Context.h"
+#include "GPUMemory.cuh"
 
 namespace FilterConditions
 {
@@ -20,7 +21,7 @@ namespace FilterConditions
 		}
 	};
 
-	struct greaterEquals
+	struct greaterEqual
 	{
 		template<typename T, typename U>
 		__device__ __host__ int8_t operator()(T a, U b) const

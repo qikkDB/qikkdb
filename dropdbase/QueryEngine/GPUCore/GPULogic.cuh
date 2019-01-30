@@ -9,7 +9,7 @@
 
 namespace LogicOperations
 {
-	struct and
+	struct logicalAnd
 	{
 		template<typename T, typename U, typename V>
 		__device__ T operator()(U a, V b)
@@ -19,7 +19,7 @@ namespace LogicOperations
 
 	};
 
-	struct or
+	struct logicalOr
 	{
 		template<typename T, typename U, typename V>
 		__device__ T operator()(U a, V b)
@@ -49,7 +49,7 @@ __global__ void kernel_logic_col_col(T *outCol, U *ACol, V *BCol, int32_t dataEl
 
 	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		outCol[i] = OP{}(ACol[i], BCol[i]);
+		outCol[i] =  OP{}.template operator()<T>(ACol[i], BCol[i]);
 	}
 }
 
@@ -61,7 +61,7 @@ __global__ void kernel_logic_col_const(T *outCol, U *ACol, V BConst, int32_t dat
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		outCol[i] = OP{}(ACol[i], BConst);
+		outCol[i] = OP{}.template operator()<T>(ACol[i], BConst);
 	}
 }
 
@@ -73,7 +73,7 @@ __global__ void kernel_logic_const_col(T *outCol, U AConst, V *BCol, int32_t dat
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		outCol[i] = OP{}(AConst, BCol[i]);
+		outCol[i] =  OP{}.template operator()<T>(AConst, BCol[i]);
 	}
 }
 
@@ -85,7 +85,7 @@ __global__ void kernel_logic_const_const(T *outCol, U AConst, V BConst, int32_t 
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		outCol[i] = OP{}(AConst, BConst);
+		outCol[i] = OP{}.template operator()<T>(AConst, BConst);
 	}
 }
 

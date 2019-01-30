@@ -47,6 +47,8 @@ bool_types = [BYTE, BOOL]
 operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual", "logicalAnd", "logicalOr",
                      "mul", "div", "add", "sub", "mod", "contains"]
 operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
+operations_logical = ["logicalAnd", "logicalOr"]
+operations_arithmetic = ["mul", "div", "add", "sub", "mod"]
 operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg"]
 operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
@@ -253,3 +255,101 @@ for operation in operations_filter:
                 declaration += ("&" + function + ", ")
 
     print(declaration)
+
+for operation in operations_logical:
+    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types) and colVal != BYTE:
+                col = "Col"
+            else:
+                col = "Reg"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types) and rowVal != BYTE:
+                row = "Col"
+            else:
+                row = "Reg"
+
+            if row == "Reg" and col == "Reg":
+                function = "logical" + col + row + "<LogicOperations::" + operation + ">"
+            else:
+                if row == "Reg" or col == "Reg":
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif colVal in geo_types or rowVal in geo_types:
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif colVal == STRING or rowVal == STRING:
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
+                    op = "invalidOperandTypesErrorHandler"
+
+                else:
+                    op = "logical"
+                function = op + col + row + "<LogicOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
+
+    print(declaration)
+
+for operation in operations_arithmetic:
+    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types) and colVal != BYTE:
+                col = "Col"
+            else:
+                col = "Reg"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types) and rowVal != BYTE:
+                row = "Col"
+            else:
+                row = "Reg"
+
+            if row == "Reg" and col == "Reg":
+                function = "arithmetic" + col + row + "<ArithmeticOperations::" + operation + ">"
+            else:
+                if row == "Reg" or col == "Reg":
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif colVal in geo_types or rowVal in geo_types:
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif colVal == STRING or rowVal == STRING:
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
+                    op = "invalidOperandTypesErrorHandler"
+
+                else:
+                    op = "arithmetic"
+                function = op + col + row + "<ArithmeticOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
+
+    print(declaration)
+

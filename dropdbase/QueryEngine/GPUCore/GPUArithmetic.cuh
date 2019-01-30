@@ -21,7 +21,7 @@ namespace ArithmeticOperations
 	struct add
 	{
 		template<int V_TYPE, typename T, typename U, typename V>
-		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			// if none of the input operands are float
 			if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
@@ -41,7 +41,7 @@ namespace ArithmeticOperations
 	struct sub
 	{
 		template<int V_TYPE, typename T, typename U, typename V>
-		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			// if none of the input operands are float
 			if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
@@ -61,7 +61,7 @@ namespace ArithmeticOperations
 	struct mul
 	{
 		template<int V_TYPE, typename T, typename U, typename V>
-		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			// if none of the input operands are float
 			if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
@@ -113,7 +113,7 @@ namespace ArithmeticOperations
 	struct floorDiv
 	{
 		template<int V_TYPE, typename T, typename U, typename V>
-		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			// if none of the input operands are float
 			if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
@@ -127,11 +127,11 @@ namespace ArithmeticOperations
 						return T{ 0 };
 					}
 				}
-				return = a / b;
+				return a / b;
 			}
 			else
 			{
-				return = floorf(a / b);
+				return floorf(a / b);
 			}
 		}
 	};
@@ -139,7 +139,7 @@ namespace ArithmeticOperations
 	struct div
 	{
 		template<int V_TYPE, typename T, typename U, typename V>
-		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			// TODO Uncomment when dispatcher is ready for this
 			////result of this type of division operation is always floating point - so check type T
@@ -161,7 +161,7 @@ namespace ArithmeticOperations
 	struct mod
 	{
 		template<int V_TYPE, typename T, typename U, typename V>
-		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			//modulo is not defined for floating point type
 			static_assert(!std::is_floating_point<U>::value && !std::is_floating_point<V>::value,
@@ -201,7 +201,7 @@ __global__ void kernel_arithmetic_col_col(T *output, U *ACol, V *BCol, int32_t d
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		output[i] = OP<V_TYPE_COL>{}(ACol[i], BCol[i], errorFlag, min, max);
+		output[i] = OP{}.template operator()<V_TYPE_COL>(ACol[i], BCol[i], errorFlag, min, max);
 	}
 }
 
@@ -223,7 +223,7 @@ __global__ void kernel_arithmetic_col_const(T *output, U *ACol, V BConst, int32_
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		output[i] = OP<V_TYPE_CONST>{}(ACol[i], BConst, errorFlag, min, max);
+		output[i] = OP{}.template operator()<V_TYPE_CONST>(ACol[i], BConst, errorFlag, min, max);
 	}
 }
 
@@ -245,7 +245,7 @@ __global__ void kernel_arithmetic_const_col(T *output, U AConst, V *BCol, int32_
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		output[i] = OP<V_TYPE_COL>{}(AConst, BCol[i], errorFlag, min, max);
+		output[i] = OP{}.template operator()<V_TYPE_COL>(AConst, BCol[i], errorFlag, min, max);
 	}
 }
 
@@ -268,7 +268,7 @@ __global__ void kernel_arithmetic_const_const(T *output, U AConst, V BConst, int
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		output[i] = OP<V_TYPE_CONST>{}(AConst, BConst, errorFlag, min, max);
+		output[i] = OP{}.template operator()<V_TYPE_CONST>(AConst, BConst, errorFlag, min, max);
 	}
 }
 
