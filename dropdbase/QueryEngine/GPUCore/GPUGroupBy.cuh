@@ -11,10 +11,9 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "GPUArithmetic.cuh"
+#include "GPUReconstruct.cuh"
 
 #include "ErrorFlagSwapper.h"
-
-constexpr int32_t EMPTY = -1;
 
 // Generic agg function functors
 namespace AggregationFunctions
@@ -62,6 +61,8 @@ namespace AggregationFunctions
 		{
 			return T{ 0 };
 		}
+
+
 	};
 
 	struct avg
@@ -94,13 +95,29 @@ namespace AggregationFunctions
 	};
 }
 
+// Universal null key calculator
+template<typename T>
+__device__ __host__ constexpr T getEmptyValue()
+{
+	static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
+		"Unsupported data type in group by agg function template");
+
+	if (std::is_integral<T>::value)
+	{
+		return std::numeric_limits<T>::min();
+	}
+	else if (std::is_floating_point<T>::value)
+	{
+		return std::numeric_limits<T>::quiet_NaN();
+	}
+}
+
+// Kernel
 template<typename AGG, typename K, typename V>
 __global__ void group_by_kernel(
 	K *keys,
 	V *values,
 	int32_t *keyOccurenceCount,
-	int32_t *indexTable,
-	int32_t *resultElementCount,
 	int32_t maxHashCount,
 	K *inKeys,
 	V *inValues,
@@ -112,45 +129,100 @@ __global__ void group_by_kernel(
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		// Linear probing
-		bool insertionSucceeded = false;
+		int32_t hash = abs(static_cast<int32_t>(inKeys[i]));
+		int32_t foundIndex = -1;
 		for (int j = 0; j < maxHashCount; j++) {
 			// Calculate hash - use type conversion because of float
-			int32_t hashIndex = static_cast<int32_t>(abs((inKeys[i] + j))) % maxHashCount;
-			//printf("kernel i: %d, hashIndex: %d\n", i, hashIndex);
-			printf("kernel indexTable[%d]: %d\n", hashIndex, indexTable[hashIndex]);
-			// Check if a place is empty for the key to insert into the hash table
-			if (indexTable[hashIndex] == EMPTY)
-			{
-				int32_t old = atomicCAS(&indexTable[hashIndex], EMPTY, *resultElementCount);
-				printf("kernel old: %d\n", old);
-				if (old != EMPTY || old != *resultElementCount)
-				{
-					continue;
-				}
-				printf("Add a new key and increment the table size\n");
-				// Add a new key and increment the table size
-				atomicExch(&keys[indexTable[hashIndex]], inKeys[i]);
-				atomicAdd(resultElementCount, 1);
-			}
-			else if (keys[indexTable[hashIndex]] != inKeys[i])
+			int32_t index = (hash + j) % maxHashCount;
+			
+			//Check if key is not empty and key is not equal to the currently inserted key
+			if (keys[index] != getEmptyValue<K>() && keys[index] != inKeys[i])
 			{
 				continue;
 			}
 
-			// Insertion succeeded
-			insertionSucceeded = true;
+			// If key is empty
+			if (keys[index] == getEmptyValue<K>())
+			{
+				// Compare key at index with Empty and if equals, store there inKey
+				K old = atomicCAS(&keys[index], getEmptyValue<K>(), inKeys[i]);
+				
+				// Check if some other thread stored different key to this index
+				if (old != getEmptyValue<K>() && old != inKeys[i])	
+				{
+					continue;  // Try to find another index
+				}
 
-			// Atomic value modification based on agg function
-			AGG{}(&values[indexTable[hashIndex]], inValues[i]);
-			atomicAdd(&keyOccurenceCount[indexTable[hashIndex]], 1);
+				/* // Explanation - all conditions explicitly defined
+				if (old != getEmptyValue<K>())
+				{
+					if (old == inKeys[i])
+					{ 
+						foundIndex = index;
+						printf("Existing key: %d\n", inKeys[i]);
+						break;
+					}
+					else // old != inKeys[i]
+					{
+						printf("Lost race: %d\n", inKeys[i]);
+						continue; // try to find another index
+					}
+				}
+				else // old == getEmptyValue<K>()
+				{
+					if (keys[index] == inKeys[i])
+					{
+						foundIndex = index;
+						printf("Added key: %d\n", inKeys[i]);
+						break;
+					}
+					else // keys[index] != inKeys[i]
+					{
+						printf("this will never happen: %d\n", inKeys[i]);
+						continue; // try to find another index
+					}
+				}*/
+			}
+			else if (keys[index] != inKeys[i])
+			{
+				continue;  // try to find another index
+			}
+
+			//The key was added or found as already existing
+			foundIndex = index;
 			break;
 		}
 
-		// Set error flag if linear probing failed - hash table full
-		if (insertionSucceeded == false) {
+		// If no index was found - the hash table is full 
+		// else if we found a valid index
+		if (foundIndex == -1)
+		{
 			atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_HASH_TABLE_FULL));
-			break;
+		}
+		else
+		{
+			// Use aggregation of values on the bucket and the corresponding counter
+			AGG{}(&values[foundIndex], inValues[i]);
+			atomicAdd(&keyOccurenceCount[foundIndex], 1);
+		}
+	}
+}
+
+template<typename K>
+__global__ void is_bucket_occupied_kernel(int32_t *occupancyMask, K *keys, int32_t maxHashCount)
+{
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < maxHashCount; i += stride)
+	{
+		if (keys[i] == getEmptyValue<K>())
+		{
+			occupancyMask[i] = 0;
+		}
+		else
+		{
+			occupancyMask[i] = 1;
 		}
 	}
 }
@@ -161,9 +233,7 @@ class GPUGroupBy
 private:
 	K *keys_;						// Keys
 	V *values_;						// Values
-	int32_t *keyOccurenceCount_;	// Count of occurrances of keys
-	int32_t *indexTable_;			// Table for indexing keys to avoid reconstruct operation
-	int32_t *resultElementCount_;	// Counter that counts the size of the result hash table - incremented atomically
+	int32_t *keyOccurenceCount_;	// Count of occurrances of keys		
 
 	int32_t maxHashCount_;			// Maximum size of the result hash table
 
@@ -177,10 +247,11 @@ public:
 		maxHashCount_(maxHashCount)
 	{
 		GPUMemory::alloc(&keys_, maxHashCount_);
-		GPUMemory::allocAndSet(&values_, AGG::template getInitValue<V>(), maxHashCount_);
+		GPUMemory::alloc(&values_, maxHashCount_);
 		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
-		GPUMemory::allocAndSet(&indexTable_, EMPTY, maxHashCount_);
-		GPUMemory::allocAndSet(&resultElementCount_, 0, 1);
+
+		GPUMemory::fillArray(keys_, getEmptyValue<K>(), maxHashCount_);
+		GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), maxHashCount_);
 	}
 
 	// Destructor
@@ -189,57 +260,59 @@ public:
 		GPUMemory::free(keys_);
 		GPUMemory::free(values_);
 		GPUMemory::free(keyOccurenceCount_);
-		GPUMemory::free(indexTable_);
-		GPUMemory::free(resultElementCount_);
 	}
 
 	GPUGroupBy(const GPUGroupBy &) = delete;
 	GPUGroupBy& operator=(const GPUGroupBy &) = delete;
 
-	// Ge the count of accumulated hash entries so far for result buffer allocation
-	int32_t getResultElementCount() {
-		int32_t temp;
-		GPUMemory::copyDeviceToHost(&temp, resultElementCount_, 1);
-		return temp;
-	}
-
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
 		group_by_kernel <AGG> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(keys_, values_, keyOccurenceCount_, indexTable_, resultElementCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
 	}
 
-	// Get the final hash table results - buffers need to be pre allocated
-	void getResults(K *outKeys, V *outValues)
+	// Get the final hash table results
+	void getResults(K *outKeys, V *outValues, int32_t *outDataElementCount)
 	{
-		int32_t resultElementCount = getResultElementCount();
+		static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value ||
+			std::is_integral<V>::value || std::is_floating_point<V>::value,
+			"Unsupported data type in group by get results function template");
 
-		// Copy back the keys
-		GPUMemory::copyDeviceToHost(outKeys, keys_, resultElementCount);
+		// Create buffer for bucket compression - reconstruct
+		int32_t *occupancyMask;
+		GPUMemory::allocAndSet(&occupancyMask, 0, maxHashCount_);
 
+		// Calculate fill mask
+		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+			(occupancyMask, keys_, maxHashCount_);
+
+		// Reconstruct the output
 		// Copy back the results based on the operation
-		if (std::is_same < AGG, AggregationFunctions::min>::value || 
-			std::is_same < AGG, AggregationFunctions::max>::value || 
+		if (std::is_same < AGG, AggregationFunctions::min>::value ||
+			std::is_same < AGG, AggregationFunctions::max>::value ||
 			std::is_same < AGG, AggregationFunctions::sum>::value)
 		{
-			GPUMemory::copyDeviceToHost(outValues, values_, resultElementCount);
+			GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask, maxHashCount_);
+			GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_, occupancyMask, maxHashCount_);
+
 		}
 		else if (std::is_same < AGG, AggregationFunctions::avg>::value)
 		{
-			GPUArithmetic::division(values_, values_, keyOccurenceCount_, resultElementCount);
-			GPUMemory::copyDeviceToHost(outValues, values_, resultElementCount);
+			// Divide by count to get average for buckets
+			GPUArithmetic::division(values_, values_, keyOccurenceCount_, maxHashCount_);
+
+			// TODO if V is integral outvalues should be float
+			GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask, maxHashCount_);
+			GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_, occupancyMask, maxHashCount_);
 		}
 		else if (std::is_same < AGG, AggregationFunctions::cnt>::value)
 		{
-			GPUMemory::copyDeviceToHost(outValues, keyOccurenceCount_, resultElementCount);
+			GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask, maxHashCount_);
+			GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, keyOccurenceCount_, occupancyMask, maxHashCount_);
 		}
-		else
-		{
-			int32_t temp = QueryEngineError::GPU_UNKNOWN_AGG_FUN;
-			GPUMemory::copyHostToDevice(errorFlagSwapper_.getFlagPointer(), &temp, 1);
-			return;
-		}
+
+		GPUMemory::free(occupancyMask);
 	}
 };
 

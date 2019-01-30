@@ -122,7 +122,7 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh" />
-    <ClCompile Include="QueryEngine\GPUCore\GPUGroupBy.cuh" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPULogic.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUMemory.cuh" />
     <ClInclude Include="QueryEngine\GPUCore\GPUPolygon.cuh" />
@@ -133,6 +133,7 @@
     <ClInclude Include="Types\Point.pb.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BlockBase.cpp" />
     <ClCompile Include="ColumnBase.cpp" />
     <ClCompile Include="ComplexPolygonFactory.cpp" />
     <ClCompile Include="Configuration.cpp" />

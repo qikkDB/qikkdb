@@ -10,6 +10,18 @@
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
 
+template<typename T>
+__global__ void kernel_fill_array(T *p_Block, T value, int32_t dataElementCount)
+{
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		p_Block[i] = value;
+	}
+}
+
 // Memory methods
 class GPUMemory {
 public:
@@ -55,6 +67,15 @@ public:
 	{
 		//cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));	// Async version, uncomment if needed
 		cudaMemset(p_Block, value, dataElementCount * sizeof(T));
+		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+	}
+
+	template<typename T>
+	static void fillArray(T *p_Block, T value, int32_t dataElementCount)
+	{
+		kernel_fill_array << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+			(p_Block, value, dataElementCount);
+
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 

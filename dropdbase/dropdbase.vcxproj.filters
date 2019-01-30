@@ -78,7 +78,6 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUReconstruct.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUFiltersAll.cuh">
     <ClInclude Include="QueryEngine\GPUCore\GPUFilter.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
@@ -156,6 +155,10 @@
     <ClInclude Include="QueryEngine\GPUCore\ErrorFlagSwapper.h">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
+    <ClInclude Include="IBlock.h" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp">
@@ -218,12 +221,7 @@
     <ClCompile Include="GpuSqlParser\MemoryStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
-      <Filter>Header Files\QueryEngine\GPUCore</Filter>
-    </ClCompile>
-    <ClCompile Include="BlockBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClCompile Include="BlockBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="QueryEngine\CudaMemAllocator.cu">
