@@ -22,11 +22,11 @@ int main(int argc, char **argv)
     boost::log::add_console_log(std::cout);
 
     std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, 1 << 10);
-	GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
+	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 
-    GpuSqlCustomParser parser(database, "SELECT colInteger FROM TableA WHERE colInteger >= 980;");
+    GpuSqlCustomParser parser(database, "SELECT colInteger FROM TableA WHERE colInteger > 5;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();

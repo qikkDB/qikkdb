@@ -71,7 +71,6 @@ TEST(TableTests, InsertData)
 	data.insert({"ColumnPoint",dataPoint});
 	data.insert({"ColumnPolygon",dataPolygon});
 	data.insert({"ColumnString",dataString});
-	data.insert({"ColumnBool",dataBool});
 
 	table.InsertData(data);
 
@@ -95,7 +94,4 @@ TEST(TableTests, InsertData)
 
 	auto& blockString = dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList();
 	ASSERT_EQ(blockString.front()->GetData()[0], "randomString");
-
-	auto& blockBool = dynamic_cast<ColumnBase<bool>*>(table.GetColumns().at("ColumnBool").get())->GetBlocksList();
-	ASSERT_EQ(blockBool.front()->GetData()[0], 1);
 }

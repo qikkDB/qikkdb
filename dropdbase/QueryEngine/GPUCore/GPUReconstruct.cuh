@@ -86,11 +86,11 @@ public:
 		// in-place scan
 		void* tempBuffer = nullptr;
 		size_t tempBufferSize = 0;
-		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask32Pointer, prefixSumPointer, dataElementCount);
+		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask32Pointer, prefixSumPointer, dataElementCount);
 		// Allocate temporary storage
 		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
 		// Run exclusive prefix sum
-		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask32Pointer, prefixSumPointer, dataElementCount);
+		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask32Pointer, prefixSumPointer, dataElementCount);
 		GPUMemory::free(tempBuffer);
 		// Construct the output based on the prefix sum
 		kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
@@ -127,11 +127,11 @@ public:
 		// in-place scan
 		void* tempBuffer = nullptr;
 		size_t tempBufferSize = 0;
-		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
+		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 		// Allocate temporary storage
 		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
 		// Run exclusive prefix sum
-		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
+		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 		GPUMemory::free(tempBuffer);
 		// Construct the output based on the prefix sum
 		kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
