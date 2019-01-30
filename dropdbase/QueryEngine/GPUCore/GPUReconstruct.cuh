@@ -11,6 +11,7 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "GPUTypeWidthManip.cuh"
+#include "../../../cub/cub.cuh"
 
 template<typename T>
 __global__ void kernel_reconstruct_col(T *outData, int32_t *outSize, T *ACol, int32_t *prefixSum, int32_t *inMask, int32_t dataElementCount)
@@ -83,8 +84,14 @@ public:
 		// Start the collumn reconstruction
 		// Calculate the prefix sum
 		// in-place scan
-		thrust::inclusive_scan(thrust::device, inMask32Pointer, inMask32Pointer + dataElementCount, prefixSumPointer);
-
+		void* tempBuffer = nullptr;
+		size_t tempBufferSize = 0;
+		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask32Pointer, prefixSumPointer, dataElementCount);
+		// Allocate temporary storage
+		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+		// Run exclusive prefix sum
+		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask32Pointer, prefixSumPointer, dataElementCount);
+		GPUMemory::free(tempBuffer);
 		// Construct the output based on the prefix sum
 		kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(outCol, outSizePointer, ACol, prefixSumPointer, inMask32Pointer, dataElementCount);
@@ -95,6 +102,46 @@ public:
 
 		// Free the memory
 		GPUMemory::free(inMask32Pointer);
+		GPUMemory::free(prefixSumPointer);
+		GPUMemory::free(outSizePointer);
+
+		// Get last error
+		context.getLastError().setCudaError(cudaGetLastError());
+	}
+
+	template<typename T>
+	static void reconstructColKeep(T *outCol, int32_t *outSize, T *ACol, int32_t *inMask, int32_t dataElementCount)
+	{
+		Context& context = Context::getInstance();
+
+		// Malloc a new buffer for the prefix sum vector
+		int32_t* prefixSumPointer = nullptr;
+		GPUMemory::alloc(&prefixSumPointer, dataElementCount);
+
+		// Malloc a new buffer for the output size
+		int32_t* outSizePointer = nullptr;
+		GPUMemory::alloc(&outSizePointer, 1);
+
+		// Start the collumn reconstruction
+		// Calculate the prefix sum
+		// in-place scan
+		void* tempBuffer = nullptr;
+		size_t tempBufferSize = 0;
+		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
+		// Allocate temporary storage
+		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+		// Run exclusive prefix sum
+		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
+		GPUMemory::free(tempBuffer);
+		// Construct the output based on the prefix sum
+		kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+			(outCol, outSizePointer, ACol, prefixSumPointer, inMask32Pointer, dataElementCount);
+		cudaDeviceSynchronize();
+
+		// Copy the generated output back from the GPU
+		GPUMemory::copyDeviceToHost(outSize, outSizePointer, 1);
+
+		// Free the memory
 		GPUMemory::free(prefixSumPointer);
 		GPUMemory::free(outSizePointer);
 

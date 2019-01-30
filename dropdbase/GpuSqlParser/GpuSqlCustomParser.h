@@ -5,11 +5,7 @@
 #ifndef DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 #define DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 
-#include "GpuSqlParser.h"
-#include "GpuSqlLexer.h"
-#include "GpuSqlListener.h"
-#include "ParserExceptions.h"
-#include "QueryType.h"
+#include <google/protobuf/message.h>
 #include "../Database.h"
 #include <string>
 #include <memory>

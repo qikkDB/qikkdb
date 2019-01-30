@@ -4,6 +4,7 @@
 
 #include "GpuSqlListener.h"
 #include "../Table.h"
+#include "GpuSqlDispatcher.h"
 
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database> &database,
                                GpuSqlDispatcher &dispatcher) : database(database), dispatcher(dispatcher),

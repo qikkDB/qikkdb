@@ -27,7 +27,9 @@
 #include "../QueryEngine/GPUCore/GPULogicConst.cuh"
 #include "../QueryEngine/GPUCore/GPUAggregation.cuh"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
+#ifdef __CUDACC__
 #include "../QueryEngine/GPUCore/GPUReconstruct.cuh"
+#endif
 
 class GpuSqlDispatcher;
 

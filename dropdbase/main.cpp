@@ -10,6 +10,9 @@
 #include "DatabaseGenerator.h"
 #include "QueryEngine/Context.h"
 #include "QueryEngine/GPUCore/GPUMemory.cuh"
+#include "ColumnBase.h"
+#include "Database.h"
+#include "Table.h"
 
 int main(int argc, char **argv)
 {
