@@ -12,14 +12,14 @@
 /// If there are more columns of the same type, each column will have a different data according to formula: k % (1024 * typeColumnCount).
 /// </summary>
 /// <param name="databaseName">Name of the database. There is no default value, must be specified.</param>
-/// <param name="blockCount">Number of blocks of data that will be in each column. Default value is set to 1024.</param>
-/// <param name="blockSize">Length of each block of data. Default value is set to 1024.</param>
+/// <param name="blockCount">Number of blocks of data that will be in each column. Default value is set to 2.</param>
+/// <param name="blockSize">Length of each block of data. Default value is set to 2^18.</param>
 /// <param name="sameDataInBlocks">If set to true, all rows will have the same data (because all blocks will have
 /// the same data), according to column types. If set to false, data in blocks (rows) will be different (per block),
 /// but all blocks will have the same data. Default value is set to false.</param>
 /// <param name="tablesNames">Names of tables and that implies the number of tables. Defailt value is one table with name 'TableA'.</param>
 /// <param name="columnsTypes">Types of columns in table and that implies the number of columns in each table. Default value is one column of type int32_t.</param>
-std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * databaseName, int blockCount = 1024, int blockSize = 1024, bool sameDataInBlocks = false)
+std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * databaseName, int blockCount, int blockSize, bool sameDataInBlocks)
 {
 	return DatabaseGenerator::GenerateDatabase(databaseName, blockCount, blockSize, sameDataInBlocks, std::nullopt, std::nullopt);
 }
@@ -31,14 +31,14 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 /// If there are more columns of the same type, each column will have a different data according to formula: k % (1024 * typeColumnCount).
 /// </summary>
 /// <param name="databaseName">Name of the database. There is no default value, must be specified.</param>
-/// <param name="blockCount">Number of blocks of data that will be in each column. Default value is set to 1024.</param>
-/// <param name="blockSize">Length of each block of data. Default value is set to 1024.</param>
+/// <param name="blockCount">Number of blocks of data that will be in each column. Default value is set to 2.</param>
+/// <param name="blockSize">Length of each block of data. Default value is set to 2^18.</param>
 /// <param name="sameDataInBlocks">If set to true, all rows will have the same data (because all blocks will have
 /// the same data), according to column types. If set to false, data in blocks (rows) will be different (per block),
 /// but all blocks will have the same data. Default value is set to false.</param>
 /// <param name="tablesNames">Names of tables and that implies the number of tables. Defailt value is one table with name 'TableA'.</param>
 /// <param name="columnsTypes">Types of columns in table and that implies the number of columns in each table. Default value is one column of type int32_t.</param>
-std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * databaseName, int blockCount = 1024, int blockSize = 1024, bool sameDataInBlocks = false, std::optional<const std::vector<std::string>> tablesNames, std::optional<const std::vector<DataType>> columnsTypes)
+std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * databaseName, int blockCount, int blockSize, bool sameDataInBlocks, std::optional<const std::vector<std::string>> tablesNames, std::optional<const std::vector<DataType>> columnsTypes)
 {
 	std::vector<std::string> tableNames = { "TableA" };
 	std::vector<DataType> columnTypes = { COLUMN_INT };
