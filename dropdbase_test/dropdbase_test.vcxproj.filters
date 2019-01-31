@@ -1,381 +1,100 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="TableTests.cpp" />
-    <ClCompile Include="ColumnTests.cpp" />
-    <ClCompile Include="IILExecutorTests.cpp" />
-    <ClCompile Include="..\dropdbase\BlockBase.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlLexer.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlListener.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParser.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserBaseListener.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\MemoryStream.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="DatabaseTests.cpp" />
-    <ClCompile Include="BlockTests.cpp" />
-    <ClCompile Include="..\dropdbase\ColumnBase.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\ComplexPolygonFactory.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\Configuration.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\Database.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\DatabaseGenerator.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\main.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\PointFactory.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\Table.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\Types\ComplexPolygon.pb.cc">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\Types\Point.pb.cc">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\messages\CSVImportMessage.pb.cc">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\messages\InfoMessage.pb.cc">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\messages\QueryMessage.pb.cc">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\messages\QueryResponseMessage.pb.cc">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\messages\SetDatabaseMessage.pb.cc">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\Types\ComplexPolygon.pb.cc">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\Types\Point.pb.cc">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
+    <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cpp" />
+    <CudaCompile Include="CudaTests.cu" />
+    <CudaCompile Include="..\dropdbase\QueryEngine\CudaMemAllocator.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\dropdbase\ClientPoolWorker.cpp" />
+    <ClCompile Include="..\dropdbase\BlockBase.cpp" />
+    <ClCompile Include="..\dropdbase\ColumnBase.cpp" />
+    <ClCompile Include="..\dropdbase\ComplexPolygonFactory.cpp" />
+    <ClCompile Include="..\dropdbase\Configuration.cpp" />
+    <ClCompile Include="..\dropdbase\CSVInMemoryImporter.cpp" />
+    <ClCompile Include="..\dropdbase\Database.cpp" />
+    <ClCompile Include="..\dropdbase\DatabaseGenerator.cpp" />
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.cpp" />
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlLexer.cpp" />
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlListener.cpp" />
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParser.cpp" />
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserBaseListener.cpp" />
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.cpp" />
+    <ClCompile Include="..\dropdbase\GpuSqlParser\MemoryStream.cpp" />
+    <ClCompile Include="..\dropdbase\ITCPWorker.cpp" />
+    <ClCompile Include="..\dropdbase\messages\CSVImportMessage.pb.cc" />
+    <ClCompile Include="..\dropdbase\messages\InfoMessage.pb.cc" />
+    <ClCompile Include="..\dropdbase\messages\QueryMessage.pb.cc" />
+    <ClCompile Include="..\dropdbase\messages\QueryResponseMessage.pb.cc" />
+    <ClCompile Include="..\dropdbase\messages\SetDatabaseMessage.pb.cc" />
+    <ClCompile Include="..\dropdbase\NetworkMessage.cpp" />
+    <ClCompile Include="..\dropdbase\PointFactory.cpp" />
+    <ClCompile Include="..\dropdbase\Table.cpp" />
+    <ClCompile Include="..\dropdbase\TCPClientHandler.cpp" />
+    <ClCompile Include="..\dropdbase\Types\ComplexPolygon.pb.cc" />
+    <ClCompile Include="..\dropdbase\Types\Point.pb.cc" />
+    <ClCompile Include="ClientHandlerTests.cpp" />
     <ClCompile Include="ColumnTests.cpp" />
     <ClCompile Include="ProtocolMessageTests.cpp" />
     <ClCompile Include="TCPServerTests.cpp" />
-    <ClCompile Include="..\dropdbase\ClientPoolWorker.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\ITCPWorker.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\NetworkMessage.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\TCPClientHandler.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\CSVInMemoryImporter.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="ClientHandlerTests.cpp" />
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlLexer.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlListener.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParser.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserBaseListener.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dropdbase\GpuSqlParser\MemoryStream.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
+    <ClCompile Include="BlockTests.cpp" />
+    <ClCompile Include="DatabaseTests.cpp" />
+    <ClCompile Include="IILExecutorTests.cpp" />
+    <ClCompile Include="TableTests.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="dropdbase sources">
-      <UniqueIdentifier>{6a0e3b05-6185-4cda-a591-3bc4ebac638b}</UniqueIdentifier>
-    </Filter>
+    <ClInclude Include="..\dropdbase\BlockBase.h" />
+    <ClInclude Include="..\dropdbase\ClientPoolWorker.h" />
+    <ClInclude Include="..\dropdbase\ColumnBase.h" />
+    <ClInclude Include="..\dropdbase\ComplexPolygonFactory.h" />
+    <ClInclude Include="..\dropdbase\Configuration.h" />
+    <ClInclude Include="..\dropdbase\CSVInMemoryImporter.h" />
+    <ClInclude Include="..\dropdbase\Database.h" />
+    <ClInclude Include="..\dropdbase\DatabaseGenerator.h" />
+    <ClInclude Include="..\dropdbase\DataType.h" />
+    <ClInclude Include="..\dropdbase\DispatcherErrorCode.h" />
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.h" />
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.h" />
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlLexer.h" />
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlListener.h" />
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParser.h" />
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParserBaseListener.h" />
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.h" />
+    <ClInclude Include="..\dropdbase\GpuSqlParser\MemoryStream.h" />
+    <ClInclude Include="..\dropdbase\GpuSqlParser\ParserExceptions.h" />
+    <ClInclude Include="..\dropdbase\GpuSqlParser\QueryType.h" />
+    <ClInclude Include="..\dropdbase\IClientHandler.h" />
+    <ClInclude Include="..\dropdbase\IColumn.h" />
+    <ClInclude Include="..\dropdbase\ITCPWorker.h" />
+    <ClInclude Include="..\dropdbase\messages\CSVImportMessage.pb.h" />
+    <ClInclude Include="..\dropdbase\messages\InfoMessage.pb.h" />
+    <ClInclude Include="..\dropdbase\messages\QueryMessage.pb.h" />
+    <ClInclude Include="..\dropdbase\messages\QueryResponseMessage.pb.h" />
+    <ClInclude Include="..\dropdbase\messages\SetDatabaseMessage.pb.h" />
+    <ClInclude Include="..\dropdbase\NativeGeoPoint.h" />
+    <ClInclude Include="..\dropdbase\NetworkMessage.h" />
+    <ClInclude Include="..\dropdbase\PointFactory.h" />
+    <ClInclude Include="..\dropdbase\QueryEngine\Context.h" />
+    <ClInclude Include="..\dropdbase\QueryEngine\CudaMemAllocator.h" />
+    <ClInclude Include="..\dropdbase\QueryEngine\QueryEngineError.h" />
+    <ClInclude Include="..\dropdbase\Table.h" />
+    <ClInclude Include="..\dropdbase\TCPClientHandler.h" />
+    <ClInclude Include="..\dropdbase\TCPServer.h" />
+    <ClInclude Include="..\dropdbase\Types\ComplexPolygon.pb.h" />
+    <ClInclude Include="..\dropdbase\Types\Point.pb.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\dropdbase\QueryEngine\Context.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlLexer.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlListener.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\QueryEngine\CudaMemAllocator.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParser.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParserBaseListener.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\MemoryStream.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\ParserExceptions.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\QueryEngine\QueryEngineError.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\QueryType.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\BlockBase.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\ColumnBase.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\ComplexPolygonFactory.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\Configuration.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\Database.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\DatabaseGenerator.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\DataType.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\DispatcherErrorCode.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\IColumn.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\NativeGeoPoint.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\PointFactory.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\Table.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\Types\ComplexPolygon.pb.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\Types\Point.pb.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\messages\CSVImportMessage.pb.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\messages\InfoMessage.pb.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\messages\QueryMessage.pb.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\messages\QueryResponseMessage.pb.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\messages\SetDatabaseMessage.pb.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUAggregation.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUArithmetic.cuh">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\ClientPoolWorker.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\IClientHandler.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\ITCPWorker.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\NetworkMessage.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\TCPClientHandler.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\TCPServer.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\CSVInMemoryImporter.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlLexer.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlListener.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParser.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParserBaseListener.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\MemoryStream.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\ParserExceptions.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\GpuSqlParser\QueryType.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\QueryEngine\Context.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\QueryEngine\CudaMemAllocator.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\QueryEngine\QueryEngineError.h">
-      <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUArithmeticConst.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUFilter.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUFilterConst.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUGroupBy.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPULogic.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUMemory.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUPolygon.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUReconstruct.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUTypeWidthManip.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="packages.config">
-      <Filter>dropdbase sources</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="..\dropdbase\QueryEngine\CudaMemAllocator.cu">
-      <Filter>dropdbase sources</Filter>
-    </CudaCompile>
-    <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cpp">
-      <Filter>dropdbase sources</Filter>
-    </CudaCompile>
-    <CudaCompile Include="CudaTests.cu" />
-  </ItemGroup>
-  <ItemGroup>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUAggregation.cuh" />
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUArithmetic.cuh" />
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUArithmeticConst.cuh" />
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUFilter.cuh" />
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUFilterConst.cuh" />
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUGroupBy.cuh" />
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPULogic.cuh" />
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUMemory.cuh" />
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUPolygon.cuh" />
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUReconstruct.cuh" />
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUTypeWidthManip.cuh" />
     <None Include="packages.config" />
-    <None Include="..\dropdbase\QueryEngine\CudaMemAllocator.cu">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUAggregation.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUArithmetic.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUArithmeticConst.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUFilter.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUFilterConst.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUGroupBy.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPULogic.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUMemory.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUPolygon.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUReconstruct.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUTypeWidthManip.cuh">
-      <Filter>dropdbase sources</Filter>
-    </None>
-    <Filter Include="dropdbase sources">
-      <UniqueIdentifier>{24dab276-075c-4cef-bcf1-992519894c78}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
 </Project>

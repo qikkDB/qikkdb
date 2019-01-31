@@ -7,6 +7,7 @@
 #include <boost/log/sinks/text_file_backend.hpp>
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/console.hpp>
+#include <boost/log/trivial.hpp>
 #include "DatabaseGenerator.h"
 #include "QueryEngine/Context.h"
 #include "QueryEngine/GPUCore/GPUMemory.cuh"
@@ -21,9 +22,10 @@ int main(int argc, char **argv)
 
     boost::log::add_file_log("../log/ColmnarDB.log");
     boost::log::add_console_log(std::cout);
-
+	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
 	Database::LoadDatabasesFromDisk();
 	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
+	tcpServer.Run();
 	Database::SaveAllToDisk(Configuration::GetInstance().GetDatabaseDir().c_str());
 
 

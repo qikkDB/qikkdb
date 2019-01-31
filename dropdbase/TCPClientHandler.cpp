@@ -7,10 +7,11 @@
 #include <stdexcept>
 #include <boost/timer/timer.hpp>
 #include "messages/QueryResponseMessage.pb.h"
-
+#include <boost/log/trivial.hpp>
 
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult()
 {
+	BOOST_LOG_TRIVIAL(debug) << "GetNextQueryResult()\n";
 	if (lastResultMessage_ == nullptr)
 	{
 		if (lastQueryResult_.valid())
@@ -21,7 +22,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 		{
 			auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
 			infoMessage->set_message("");
-			infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+			infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 			return infoMessage;
 		}
 	}
@@ -31,6 +32,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 		return std::move(lastResultMessage_);
 	}
 	auto* completeResult = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultMessage);
+	BOOST_LOG_TRIVIAL(debug) << "LastResultLen: " << lastResultLen_ << "\n";
 	if (lastResultLen_ == 0)
 	{
 		for (const auto& payload : completeResult->payloads())
@@ -60,6 +62,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 				break;
 			}
 		}
+		BOOST_LOG_TRIVIAL(debug) << "New LastResultLen: " << lastResultLen_ << "\n";
 		if (lastResultLen_ < FRAGMENT_SIZE)
 		{
 			lastResultLen_ = 0;
@@ -74,16 +77,19 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 			smallPayload->mutable_timing()->insert(timing);
 		}
 	}
-
+	BOOST_LOG_TRIVIAL(debug) << "Sent Records: " << sentRecords_ << "\n";
+	BOOST_LOG_TRIVIAL(debug) << "Inserting payloads...\n";
 	for(const auto& payload : completeResult->payloads())
 	{
 		int bufferSize = FRAGMENT_SIZE > (lastResultLen_ - sentRecords_) ? (lastResultLen_ - sentRecords_) : FRAGMENT_SIZE;
+		BOOST_LOG_TRIVIAL(debug) << "bufferSize: " << bufferSize << "\n";
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload finalPayload;
 		switch (payload.second.payload_case())
 		{
 		case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
 			for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
 			{
+				BOOST_LOG_TRIVIAL(debug) << "Inserting into int buffer payload index: " << i << "\n";
 				finalPayload.mutable_intpayload()->add_intdata(payload.second.intpayload().intdata()[i]);
 			}
 			break;
@@ -129,10 +135,12 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 	sentRecords_ += FRAGMENT_SIZE;
 	if (sentRecords_ >= lastResultLen_)
 	{
+		BOOST_LOG_TRIVIAL(debug) << "Last Block, cleaning up" << "\n";
 		sentRecords_ = 0;
 		lastResultLen_ = 0;
 		lastResultMessage_.reset();
 	}
+	BOOST_LOG_TRIVIAL(debug) << "Returning small payload \n";
 	return std::move(smallPayload);
 	
 }
@@ -172,7 +180,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleInfoMessage(I
 	}
 	else
 	{
-		//Log.WarnFormat("Invalid InfoMessage received, Code = {0}", infoMessage.Code);
+		BOOST_LOG_TRIVIAL(debug) <<"Invalid InfoMessage received, Code = " << infoMessage.code();
 	}
 	return nullptr;
 }

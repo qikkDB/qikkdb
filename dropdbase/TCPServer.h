@@ -4,6 +4,7 @@
 #include <mutex>
 #include <memory>
 #include <set>
+#include <boost/log/trivial.hpp>
 #include "IClientHandler.h"
 #include "ITCPWorker.h"
 
@@ -34,6 +35,7 @@ private:
 				{
 					try
 					{
+						BOOST_LOG_TRIVIAL(info) << "Accepting client " << sock.remote_endpoint().address().to_string() << "\n";
 						Worker worker(std::make_unique<ClientHandler>(), std::move(sock), 60000);
 						worker.HandleClient();
 					}

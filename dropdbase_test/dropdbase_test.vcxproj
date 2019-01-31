@@ -35,7 +35,6 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-
     <ClCompile Include="..\dropdbase\ClientPoolWorker.cpp" />
     <ClCompile Include="..\dropdbase\BlockBase.cpp" />
     <ClCompile Include="..\dropdbase\ColumnBase.cpp" />
@@ -53,7 +52,6 @@
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\MemoryStream.cpp" />
     <ClCompile Include="..\dropdbase\ITCPWorker.cpp" />
-    <ClCompile Include="..\dropdbase\main.cpp" />
     <ClCompile Include="..\dropdbase\messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\InfoMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\QueryMessage.pb.cc" />
