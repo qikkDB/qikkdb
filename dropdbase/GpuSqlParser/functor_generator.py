@@ -3,7 +3,7 @@ LONG = "int64_t"
 FLOAT = "float"
 DOUBLE = "double"
 POINT = "ColmnarDB::Types::Point"
-POLYGON = "ColmnarDB::Types::Polygon"
+POLYGON = "ColmnarDB::Types::ComplexPolygon"
 STRING = "std::string"
 BOOL = "bool"
 BYTE = "uint8_t"
@@ -190,7 +190,7 @@ for operation in operations_move:
 
         if col == "Reg":
             function = operation + col
-        elif colVal in geo_types or colVal == STRING or colVal == BOOL:
+        elif colVal == STRING or colVal == BOOL:
             function = "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         else:
             function = operation + col + "<" + colVal + ">"

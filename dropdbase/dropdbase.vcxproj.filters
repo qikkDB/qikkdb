@@ -152,7 +152,7 @@
     <ClInclude Include="ErrorFlagSwapper.h">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="GpuSqlDispatcherFriends.h">
+    <ClInclude Include="GpuSqlParser\GpuSqlDispatcherFriends.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -21,12 +21,15 @@ int main(int argc, char **argv)
     boost::log::add_file_log("../log/ColmnarDB.log");
     boost::log::add_console_log(std::cout);
 
-    std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, 1 << 10);
+	std::vector<std::string> tableNames = { "TableA" };
+	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON} };
+	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 5, 0, tableNames, columnTypes);
+
 	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 
-    GpuSqlCustomParser parser(database, "SELECT colInteger FROM TableA WHERE colInteger >= 20;");
+    GpuSqlCustomParser parser(database, "SELECT colFloat1 FROM TableA WHERE colPolygon1 CONTAINS POINT(10 11);");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();
