@@ -134,7 +134,7 @@ __global__ void group_by_kernel(
 		for (int j = 0; j < maxHashCount; j++) {
 			// Calculate hash - use type conversion because of float
 			int32_t index = (hash + j) % maxHashCount;
-			
+
 			//Check if key is not empty and key is not equal to the currently inserted key
 			if (keys[index] != getEmptyValue<K>() && keys[index] != inKeys[i])
 			{
@@ -146,9 +146,9 @@ __global__ void group_by_kernel(
 			{
 				// Compare key at index with Empty and if equals, store there inKey
 				K old = atomicCAS(&keys[index], getEmptyValue<K>(), inKeys[i]);
-				
+
 				// Check if some other thread stored different key to this index
-				if (old != getEmptyValue<K>() && old != inKeys[i])	
+				if (old != getEmptyValue<K>() && old != inKeys[i])
 				{
 					continue;  // Try to find another index
 				}
@@ -157,7 +157,7 @@ __global__ void group_by_kernel(
 				if (old != getEmptyValue<K>())
 				{
 					if (old == inKeys[i])
-					{ 
+					{
 						foundIndex = index;
 						printf("Existing key: %d\n", inKeys[i]);
 						break;
@@ -272,11 +272,11 @@ public:
 			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
 	}
 
-	// Get the final hash table results
+	// Get the final hash table results - for operations Min, Max and Sum
 	void getResults(K *outKeys, V *outValues, int32_t *outDataElementCount)
 	{
-		static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value ||
-			std::is_integral<V>::value || std::is_floating_point<V>::value,
+		static_assert((std::is_integral<K>::value || std::is_floating_point<K>::value) &&
+			(std::is_integral<V>::value || std::is_floating_point<V>::value),
 			"Unsupported data type in group by get results function template");
 
 		// Create buffer for bucket compression - reconstruct
@@ -289,31 +289,149 @@ public:
 
 		// Reconstruct the output
 		// Copy back the results based on the operation
-		if (std::is_same < AGG, AggregationFunctions::min>::value ||
-			std::is_same < AGG, AggregationFunctions::max>::value ||
-			std::is_same < AGG, AggregationFunctions::sum>::value)
-		{
-			GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask, maxHashCount_);
-			GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_, occupancyMask, maxHashCount_);
-
-		}
-		else if (std::is_same < AGG, AggregationFunctions::avg>::value)
-		{
-			// Divide by count to get average for buckets
-			GPUArithmetic::division(values_, values_, keyOccurenceCount_, maxHashCount_);
-
-			// TODO if V is integral outvalues should be float
-			GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask, maxHashCount_);
-			GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_, occupancyMask, maxHashCount_);
-		}
-		else if (std::is_same < AGG, AggregationFunctions::cnt>::value)
-		{
-			GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask, maxHashCount_);
-			GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, keyOccurenceCount_, occupancyMask, maxHashCount_);
-		}
+		GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask, maxHashCount_);
+		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_, occupancyMask, maxHashCount_);
 
 		GPUMemory::free(occupancyMask);
 	}
 };
 
+template<typename K, typename V>
+class GPUGroupBy<AggregationFunctions::avg, K, V>
+{
+private:
+	K *keys_;						// Keys
+	V *values_;						// Values
+	int32_t *keyOccurenceCount_;	// Count of occurrances of keys		
+
+	int32_t maxHashCount_;			// Maximum size of the result hash table
+
+	ErrorFlagSwapper errorFlagSwapper_;
+public:
+
+
+	// Constructor
+	// Allocates hash table of element count: hashHashCount
+	GPUGroupBy(int32_t maxHashCount) :
+		maxHashCount_(maxHashCount)
+	{
+		GPUMemory::alloc(&keys_, maxHashCount_);
+		GPUMemory::alloc(&values_, maxHashCount_);
+		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+
+		GPUMemory::fillArray(keys_, getEmptyValue<K>(), maxHashCount_);
+		GPUMemory::fillArray(values_, AggregationFunctions::avg::template getInitValue<V>(), maxHashCount_);
+	}
+
+	// Destructor
+	~GPUGroupBy()
+	{
+		GPUMemory::free(keys_);
+		GPUMemory::free(values_);
+		GPUMemory::free(keyOccurenceCount_);
+	}
+
+	GPUGroupBy(const GPUGroupBy &) = delete;
+	GPUGroupBy& operator=(const GPUGroupBy &) = delete;
+
+	// Group By - callable on the blocks of the input dataset
+	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
+	{
+		group_by_kernel <AggregationFunctions::avg> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+	}
+
+	// Get the final hash table results - for operation Average
+	void getResults(K *outKeys, V *outValues, int32_t *outDataElementCount)
+	{
+		static_assert((std::is_integral<K>::value || std::is_floating_point<K>::value) &&
+			(std::is_integral<V>::value || std::is_floating_point<V>::value),
+			"Unsupported data type in group by get results function template");
+
+		// Create buffer for bucket compression - reconstruct
+		int32_t *occupancyMask;
+		GPUMemory::allocAndSet(&occupancyMask, 0, maxHashCount_);
+
+		// Calculate fill mask
+		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+			(occupancyMask, keys_, maxHashCount_);
+
+		// Reconstruct the output
+		// Divide by count to get average for buckets
+		GPUArithmetic::division(values_, values_, keyOccurenceCount_, maxHashCount_);
+
+		// TODO if V is integral outvalues should be float
+		GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask, maxHashCount_);
+		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_, occupancyMask, maxHashCount_);
+
+		GPUMemory::free(occupancyMask);
+	}
+};
+
+template<typename K, typename V>
+class GPUGroupBy<AggregationFunctions::cnt, K, V>
+{
+private:
+	K *keys_;						// Keys
+	V *values_;						// Values
+	int32_t *keyOccurenceCount_;	// Count of occurrances of keys		
+
+	int32_t maxHashCount_;			// Maximum size of the result hash table
+
+	ErrorFlagSwapper errorFlagSwapper_;
+public:
+
+	// Constructor
+	// Allocates hash table of element count: hashHashCount
+	GPUGroupBy(int32_t maxHashCount) :
+		maxHashCount_(maxHashCount)
+	{
+		GPUMemory::alloc(&keys_, maxHashCount_);
+		GPUMemory::alloc(&values_, maxHashCount_);
+		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+
+		GPUMemory::fillArray(keys_, getEmptyValue<K>(), maxHashCount_);
+		GPUMemory::fillArray(values_, AggregationFunctions::cnt::template getInitValue<V>(), maxHashCount_);
+	}
+
+	// Destructor
+	~GPUGroupBy()
+	{
+		GPUMemory::free(keys_);
+		GPUMemory::free(values_);
+		GPUMemory::free(keyOccurenceCount_);
+	}
+
+	GPUGroupBy(const GPUGroupBy &) = delete;
+	GPUGroupBy& operator=(const GPUGroupBy &) = delete;
+
+	// Group By - callable on the blocks of the input dataset
+	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
+	{
+		group_by_kernel <AggregationFunctions::cnt> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+	}
+
+	// Get the final hash table results - for operation Count
+	void getResults(K *outKeys, V *outValues, int32_t *outDataElementCount)
+	{
+		static_assert((std::is_integral<K>::value || std::is_floating_point<K>::value) &&
+			(std::is_integral<V>::value || std::is_floating_point<V>::value),
+			"Unsupported data type in group by get results function template");
+
+		// Create buffer for bucket compression - reconstruct
+		int32_t *occupancyMask;
+		GPUMemory::allocAndSet(&occupancyMask, 0, maxHashCount_);
+
+		// Calculate fill mask
+		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+			(occupancyMask, keys_, maxHashCount_);
+
+		// Reconstruct the output
+		GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask, maxHashCount_);
+		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, keyOccurenceCount_, occupancyMask, maxHashCount_);
+
+		GPUMemory::free(occupancyMask);
+	}
+};
 #endif
