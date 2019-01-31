@@ -26,6 +26,24 @@ namespace AggregationFunctions
 			atomicMin(a, b);
 		}
 
+		// Specialized atomicMin for floats
+		__device__ void operator()(float *a, float b) const
+		{
+			float old = *a;
+			float expected;
+			if (old <= b)
+			{
+				return;
+			}
+
+			do
+			{
+				expected = old;
+				int32_t ret = atomicCAS((int32_t*)a, *(int32_t*)(&expected), *(int32_t*)(&b));
+				old = *(float*)&ret;
+			} while (old != expected && old > b);
+		}
+
 		template<typename T>
 		static constexpr T getInitValue()
 		{
@@ -39,6 +57,24 @@ namespace AggregationFunctions
 		__device__ void operator()(T *a, T b) const
 		{
 			atomicMax(a, b);
+		}
+
+		// Specialized atomicMax for floats
+		__device__ void operator()(float *a, float b) const
+		{
+			float old = *a;
+			float expected;
+			if (old >= b)
+			{
+				return;
+			}
+
+			do
+			{
+				expected = old;
+				int32_t ret = atomicCAS((int32_t*)a, *(int32_t*)(&expected), *(int32_t*)(&b));
+				old = *(float*)&ret;
+			} while (old != expected && old < b);
 		}
 
 		template<typename T>
@@ -238,9 +274,8 @@ private:
 	int32_t maxHashCount_;			// Maximum size of the result hash table
 
 	ErrorFlagSwapper errorFlagSwapper_;
+
 public:
-
-
 	// Constructor
 	// Allocates hash table of element count: hashHashCount
 	GPUGroupBy(int32_t maxHashCount) :
@@ -307,9 +342,8 @@ private:
 	int32_t maxHashCount_;			// Maximum size of the result hash table
 
 	ErrorFlagSwapper errorFlagSwapper_;
+
 public:
-
-
 	// Constructor
 	// Allocates hash table of element count: hashHashCount
 	GPUGroupBy(int32_t maxHashCount) :
@@ -374,13 +408,13 @@ class GPUGroupBy<AggregationFunctions::cnt, K, V>
 private:
 	K *keys_;						// Keys
 	V *values_;						// Values
-	int32_t *keyOccurenceCount_;	// Count of occurrances of keys		
+	int32_t *keyOccurenceCount_;			// Count of occurrances of keys		
 
 	int32_t maxHashCount_;			// Maximum size of the result hash table
 
 	ErrorFlagSwapper errorFlagSwapper_;
-public:
 
+public:
 	// Constructor
 	// Allocates hash table of element count: hashHashCount
 	GPUGroupBy(int32_t maxHashCount) :
