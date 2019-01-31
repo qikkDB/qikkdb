@@ -35,11 +35,9 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-<<<<<<< HEAD
+
     <ClCompile Include="..\dropdbase\ClientPoolWorker.cpp" />
-=======
     <ClCompile Include="..\dropdbase\BlockBase.cpp" />
->>>>>>> develop
     <ClCompile Include="..\dropdbase\ColumnBase.cpp" />
     <ClCompile Include="..\dropdbase\ComplexPolygonFactory.cpp" />
     <ClCompile Include="..\dropdbase\Configuration.cpp" />
