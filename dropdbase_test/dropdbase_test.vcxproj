@@ -61,7 +61,7 @@
     <ClCompile Include="BlockTests.cpp" />
     <ClCompile Include="ColumnTests.cpp" />
     <ClCompile Include="DatabaseTests.cpp" />
-    <ClCompile Include="IILExecutorTests.cpp" />
+    <ClCompile Include="DispatcherTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
   </ItemGroup>
   <ItemGroup>
