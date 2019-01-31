@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "DatabaseGenerator.h"
 #include "Table.h"
 #include "ColumnBase.h"
@@ -106,7 +108,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						longData.push_back(sameDataInBlocks ? 10 ^ 18 : 2 * (10 ^ 18) + k % (1024 * longColumnCount));
+						longData.push_back(sameDataInBlocks ? pow(10, 18) : 2 * pow(10, 18) + k % (1024 * longColumnCount));
 					}
 					column.AddBlock(longData);
 				}
