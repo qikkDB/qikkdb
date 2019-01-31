@@ -9,10 +9,25 @@
 
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
-
+#include "../../NativeGeoPoint.h"
 // Memory methods
 class GPUMemory {
 public:
+
+	struct GPUPolygon
+	{
+		// Points of polygons
+		NativeGeoPoint* polyPoints;
+		// Start indexes of each polygon in point array
+		int32_t* pointIdx;
+		// Number of points of each polygon
+		int32_t* pointCount;
+		// Start indexes of each complex polygon in polygon array
+		int32_t* polyIdx;
+		// Number of polygons of each complex polygon
+		int32_t* polyCount;
+	};
+
 	// Memory allocation
 	/// <summary>
 	/// Memory allocation of block on the GPU with the respective size of the input parameter type
