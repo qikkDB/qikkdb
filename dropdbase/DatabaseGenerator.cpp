@@ -76,9 +76,9 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 			case COLUMN_INT:
 			{
 				integerColumnCount++;
-				table.CreateColumn("colInteger", COLUMN_INT);
+				table.CreateColumn((std::string("colInteger") + std::to_string(integerColumnCount)).c_str(), COLUMN_INT);
 				auto& columns = table.GetColumns();
-				auto& column = dynamic_cast<ColumnBase<int32_t>&>(*columns.at("colInteger"));
+				auto& column = dynamic_cast<ColumnBase<int32_t>&>(*columns.at((std::string("colInteger") + std::to_string(integerColumnCount)).c_str()));
 
 				for (int i = 0; i < blockCount; i++)
 				{
@@ -96,9 +96,9 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 			case COLUMN_LONG:
 			{
 				longColumnCount++;
-				table.CreateColumn("colLong", COLUMN_LONG);
+				table.CreateColumn((std::string("colLong") + std::to_string(longColumnCount)).c_str(), COLUMN_LONG);
 				auto& columns = table.GetColumns();
-				auto& column = dynamic_cast<ColumnBase<int64_t>&>(*columns.at("colLong"));
+				auto& column = dynamic_cast<ColumnBase<int64_t>&>(*columns.at((std::string("colLong") + std::to_string(longColumnCount)).c_str()));
 
 				for (int i = 0; i < blockCount; i++)
 				{
@@ -117,9 +117,9 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 			case COLUMN_FLOAT:
 			{
 				floatColumnCount++;
-				table.CreateColumn("colFloat", COLUMN_FLOAT);
+				table.CreateColumn((std::string("colFloat") + std::to_string(floatColumnCount)).c_str(), COLUMN_FLOAT);
 				auto& columns = table.GetColumns();
-				auto& column = dynamic_cast<ColumnBase<float>&>(*columns.at("colFloat"));
+				auto& column = dynamic_cast<ColumnBase<float>&>(*columns.at((std::string("colFloat") + std::to_string(floatColumnCount)).c_str()));
 
 				for (int i = 0; i < blockCount; i++)
 				{
@@ -138,9 +138,9 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 			case COLUMN_DOUBLE:
 			{
 				doubleColumnCount++;
-				table.CreateColumn("colDouble", COLUMN_DOUBLE);
+				table.CreateColumn((std::string("colDouble") + std::to_string(doubleColumnCount)).c_str(), COLUMN_DOUBLE);
 				auto& columns = table.GetColumns();
-				auto& column = dynamic_cast<ColumnBase<double>&>(*columns.at("colDouble"));
+				auto& column = dynamic_cast<ColumnBase<double>&>(*columns.at((std::string("colDouble") + std::to_string(doubleColumnCount)).c_str()));
 
 				for (int i = 0; i < blockCount; i++)
 				{
@@ -159,9 +159,9 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 			case COLUMN_POINT:
 			{
 				pointColumnCount++;
-				table.CreateColumn("colPoint", COLUMN_POINT);
+				table.CreateColumn((std::string("colPoint") + std::to_string(pointColumnCount)).c_str(), COLUMN_POINT);
 				auto& columns = table.GetColumns();
-				auto& column = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*columns.at("colPoint"));
+				auto& column = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*columns.at((std::string("colPoint") + std::to_string(pointColumnCount)).c_str()));
 
 				for (int i = 0; i < blockCount; i++)
 				{
@@ -181,9 +181,9 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 			case COLUMN_POLYGON:
 			{
 				polygonColumnCount++;
-				table.CreateColumn("colPolygon", COLUMN_POLYGON);
+				table.CreateColumn((std::string("colPolygon") + std::to_string(polygonColumnCount)).c_str(), COLUMN_POLYGON);
 				auto& columns = table.GetColumns();
-				auto& column = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*columns.at("colPoygon"));
+				auto& column = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*columns.at((std::string("colPolygon") + std::to_string(polygonColumnCount)).c_str()));
 
 				for (int i = 0; i < blockCount; i++)
 				{
@@ -204,9 +204,9 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 			case COLUMN_STRING:
 			{
 				stringColumnCount++;
-				table.CreateColumn("colString", COLUMN_STRING);
+				table.CreateColumn((std::string("colString") + std::to_string(stringColumnCount)).c_str(), COLUMN_STRING);
 				auto& columns = table.GetColumns();
-				auto& column = dynamic_cast<ColumnBase<std::string>&>(*columns.at("colString"));
+				auto& column = dynamic_cast<ColumnBase<std::string>&>(*columns.at((std::string("colString") + std::to_string(stringColumnCount)).c_str()));
 
 				for (int i = 0; i < blockCount; i++)
 				{
@@ -225,9 +225,9 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 			default:
 			{
 				integerColumnCount++;
-				table.CreateColumn("colInteger", COLUMN_INT);
+				table.CreateColumn((std::string("colInteger") + std::to_string(integerColumnCount)).c_str(), COLUMN_INT);
 				auto& columns = table.GetColumns();
-				auto& column = dynamic_cast<ColumnBase<int32_t>&>(*columns.at("colInteger"));
+				auto& column = dynamic_cast<ColumnBase<int32_t>&>(*columns.at((std::string("colInteger") + std::to_string(integerColumnCount)).c_str()));
 
 				for (int i = 0; i < blockCount; i++)
 				{
