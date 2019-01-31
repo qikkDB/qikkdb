@@ -136,7 +136,6 @@ public:
 		CudaMemAllocator::GetInstance().Clear();
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
-
 };
 
 #endif

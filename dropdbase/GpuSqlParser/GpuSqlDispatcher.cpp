@@ -230,6 +230,58 @@ void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType o
     //TODO: Between
 }
 
+template <>
+int32_t loadCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
+{
+	auto colName = dispatcher.arguments.read<std::string>();
+	std::cout << "Load: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name() << std::endl;
+
+	// split colName to table and column name
+	const size_t endOfPolyIdx = colName.find(".");
+	const std::string table = colName.substr(0, endOfPolyIdx);
+	const std::string column = colName.substr(endOfPolyIdx + 1);
+
+	if (dispatcher.blockIndex >= dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount())
+	{
+		return 1;
+	}
+
+	auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
+	auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[dispatcher.blockIndex].get());
+
+	auto gpuPolygons = ComplexPolygonFactory::PrepareGPUPolygon(block->GetData());
+}
+
+template <>
+int32_t loadCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher)
+{
+	auto colName = dispatcher.arguments.read<std::string>();
+	std::cout << "Load: " << colName << " " << typeid(ColmnarDB::Types::Point).name() << std::endl;
+
+	// split colName to table and column name
+	const size_t endOfPolyIdx = colName.find(".");
+	const std::string table = colName.substr(0, endOfPolyIdx);
+	const std::string column = colName.substr(endOfPolyIdx + 1);
+
+	if (dispatcher.blockIndex >= dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount())
+	{
+		return 1;
+	}
+
+	auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
+	auto block = dynamic_cast<BlockBase<ColmnarDB::Types::Point>*>(col->GetBlocksList()[dispatcher.blockIndex].get());
+
+	std::vector<NativeGeoPoint> nativePoints;
+	std::transform(block->GetData().cbegin(), block->GetData().cend(), std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint { return NativeGeoPoint{ point.geopoint().latitude(), point.geopoint().longitude() }; });
+	
+	NativeGeoPoint * gpuPointer;
+
+	gpuPointer = dispatcher.allocateRegister<NativeGeoPoint>(colName, nativePoints.size());
+
+	GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<NativeGeoPoint*>(nativePoints.data()), nativePoints.size());
+	return 0;
+}
+
 int32_t loadReg(GpuSqlDispatcher &dispatcher)
 {
 	return 0;

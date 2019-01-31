@@ -685,11 +685,10 @@ int32_t loadCol(GpuSqlDispatcher &dispatcher)
 	auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[dispatcher.blockIndex].get());
 
 	T * gpuPointer;
-	GPUMemory::alloc<T>(&gpuPointer, block->GetData().size());
-	dispatcher.allocatedPointers.insert({colName, std::make_tuple(reinterpret_cast<std::uintptr_t>(gpuPointer), block->GetData().size())});
 
-	GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<T*>(block->GetData().data()),
-		block->GetData().size());
+	gpuPointer = dispatcher.allocateRegister<T>(colName, block->GetData().size());
+
+	GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<T*>(block->GetData().data()), block->GetData().size());
 	return 0;
 }
 
