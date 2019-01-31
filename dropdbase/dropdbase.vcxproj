@@ -92,6 +92,7 @@
     <ClInclude Include="Database.h" />
     <ClInclude Include="DatabaseGenerator.h" />
     <ClInclude Include="DispatcherErrorCode.h" />
+    <ClInclude Include="GpuSqlDispatcherFriends.h" />
     <ClInclude Include="GpuSqlParser\GpuSqlCustomParser.h" />
     <ClInclude Include="GpuSqlParser\GpuSqlDispatcher.h" />
     <ClInclude Include="GpuSqlParser\GpuSqlLexer.h" />
