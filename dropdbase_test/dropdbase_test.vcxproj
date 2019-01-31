@@ -49,7 +49,6 @@
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserBaseListener.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\MemoryStream.cpp" />
-    <ClCompile Include="..\dropdbase\main.cpp" />
     <ClCompile Include="..\dropdbase\messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\InfoMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\QueryMessage.pb.cc" />
@@ -64,7 +63,7 @@
     <ClCompile Include="DatabaseTests.cpp" />
     <ClCompile Include="IILExecutorTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
-    <CudaCompile Include="CudaTests.cu" />
+    <CudaCompile Include="GPUFilterTests.cu" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\dropdbase\QueryEngine\CudaMemAllocator.cu">
@@ -112,6 +111,8 @@
     <ClInclude Include="..\dropdbase\PointFactory.h" />
     <ClInclude Include="..\dropdbase\QueryEngine\Context.h" />
     <ClInclude Include="..\dropdbase\QueryEngine\CudaMemAllocator.h" />
+    <ClInclude Include="..\dropdbase\QueryEngine\GPUCore\ErrorFlagSwapper.h" />
+    <ClInclude Include="..\dropdbase\QueryEngine\GPUCore\GPULogicConst.cuh" />
     <ClInclude Include="..\dropdbase\QueryEngine\QueryEngineError.h" />
     <ClInclude Include="..\dropdbase\Table.h" />
     <ClInclude Include="..\dropdbase\Types\ComplexPolygon.pb.h" />

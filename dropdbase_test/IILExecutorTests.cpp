@@ -11,7 +11,7 @@ TEST(IILExecutorTests, GtColumnConst)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(database, "SELECT colInteger FROM TableA WHERE colInteger > 5;");
+	GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 5;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -25,7 +25,7 @@ TEST(IILExecutorTests, GtColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("TableA.colInteger");
+	auto &payloads = result->payloads().at("TableA.colInteger1");
 
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
