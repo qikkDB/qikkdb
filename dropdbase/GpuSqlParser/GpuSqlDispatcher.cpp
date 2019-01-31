@@ -249,7 +249,10 @@ int32_t loadCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 	auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
 	auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[dispatcher.blockIndex].get());
 
+	//TODO: struct unwrapping
 	auto gpuPolygons = ComplexPolygonFactory::PrepareGPUPolygon(block->GetData());
+	dispatcher.allocatedPointers.insert({colName, std::make_tuple(reinterpret_cast<std::uintptr_t>(&gpuPolygons), block->GetData().size) });
+	
 }
 
 template <>
