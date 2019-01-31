@@ -161,7 +161,7 @@ public:
 	template<typename FILTER, typename T, typename U>
 	static void constConst(int8_t *outMask, T AConst, U BConst, int32_t dataElementCount)
 	{
-		GPUMemory::fill(outMask, FILTER{}(AConst, BConst), dataElementCount);
+		GPUMemory::memset(outMask, FILTER{}(AConst, BConst), dataElementCount);
 		cudaDeviceSynchronize();
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
