@@ -68,10 +68,8 @@
     <ClCompile Include="ClientHandlerTests.cpp" />
     <ClCompile Include="ColumnTests.cpp" />
     <ClCompile Include="ProtocolMessageTests.cpp" />
-    <ClCompile Include="TableTests.cpp" />
     <ClCompile Include="TCPServerTests.cpp" />
     <ClCompile Include="BlockTests.cpp" />
-    <ClCompile Include="ColumnTests.cpp" />
     <ClCompile Include="DatabaseTests.cpp" />
     <ClCompile Include="IILExecutorTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
