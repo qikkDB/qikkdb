@@ -3,6 +3,12 @@
 //
 
 #include "GpuSqlCustomParser.h"
+#include "GpuSqlParser.h"
+#include "GpuSqlLexer.h"
+#include "GpuSqlListener.h"
+#include "GpuSqlDispatcher.h"
+#include "ParserExceptions.h"
+#include "QueryType.h"
 
 //TODO:parse()
 

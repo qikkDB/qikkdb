@@ -29,33 +29,37 @@ Database::~Database()
 {
 }
 
+/// <summary>
+/// Save database from memory to disk.
+/// </summary>
+/// <param name="path">Path to database storage directory</param>
 void Database::Persist(const char* path)
 {
 	auto& tables = GetTables();
 	auto& name = GetName();
 	auto pathStr = std::string(path);
 
-	BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size() << "tables." << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size() << " tables." << std::endl;
 
-	if (boost::filesystem::create_directory(path))
-	{
+	boost::filesystem::create_directory(path);
+	
 		int32_t blockSize = GetBlockSize();
 		int32_t tableSize = tables.size();
 
 		//write file .db
-		BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr + name << " .db" << std::endl;
+		BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << " .db" << std::endl;
 		std::ofstream dbFile(pathStr + name + ".db", std::ios::binary);
 
-		int32_t dbNameLength = name.length();
+		int32_t dbNameLength = name.length() + 1; // +1 because '\0'
 
 		dbFile.write(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); //write db name length
-		dbFile.write(name.c_str(), name.length()); //write db name
+		dbFile.write(name.c_str(), dbNameLength); //write db name
 		dbFile.write(reinterpret_cast<char*>(&blockSize), sizeof(int32_t)); //write block size
 		dbFile.write(reinterpret_cast<char*>(&tableSize), sizeof(int32_t)); //write number of tables
 		for (auto& table : tables)
 		{
 			auto& columns = table.second.GetColumns();
-			int32_t tableNameLength = table.first.length();
+			int32_t tableNameLength = table.first.length() + 1; // +1 because '\0'
 			int32_t columnNumber = columns.size();
 
 			dbFile.write(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); //write table name length
@@ -63,7 +67,7 @@ void Database::Persist(const char* path)
 			dbFile.write(reinterpret_cast<char*>(&columnNumber), sizeof(int32_t)); //write number of columns of the table
 			for (const auto& column : columns)
 			{
-				int32_t columnNameLength = column.first.length();
+				int32_t columnNameLength = column.first.length() + 1; // +1 because '\0'
 
 				dbFile.write(reinterpret_cast<char*>(&columnNameLength), sizeof(int32_t)); //write column name length
 				dbFile.write(column.first.c_str(), columnNameLength); //write column name
@@ -78,7 +82,7 @@ void Database::Persist(const char* path)
 
 			for (const auto& column : columns)
 			{
-				BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr + name << "_" << table.first << "_" << column.second->GetName() << " .col" << std::endl;
+				BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << "_" << table.first << "_" << column.second->GetName() << " .col" << std::endl;
 
 				std::ofstream colFile(pathStr + name + "_" + table.first + "_" + column.second->GetName() + ".col", std::ios::binary);
 
@@ -173,7 +177,7 @@ void Database::Persist(const char* path)
 							colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
 							for (const auto& entry : data)
 							{
-								int32_t entryByteLength = entry.length();
+								int32_t entryByteLength = entry.length() + 1; // +1 because '\0'
 
 								colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
 								colFile.write(entry.c_str(), entryByteLength); //write entry data
@@ -302,15 +306,10 @@ void Database::Persist(const char* path)
 		}
 
 		BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disc." << std::endl;
-	}
-	else
-	{
-		BOOST_LOG_TRIVIAL(error) << "Failed to create directory when persisting database: " << name << "." << std::endl;
-	}
 }
 
 /// <summary>
-/// Save all databases currently in memory to disk
+/// Save all databases currently in memory to disk. All databases will be saved in the same directory
 /// </summary>
 /// <param name="path">Path to database storage directory</param>
 void Database::SaveAllToDisk(const char * path)
@@ -322,7 +321,7 @@ void Database::SaveAllToDisk(const char * path)
 }
 
 /// <summary>
-/// Load databases from disk storage
+/// Load databases from disk storage. Databases .db and .col files have to be in the same directory, so all databases have to be in the same dorectory to be loaded using this procedure
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
@@ -357,7 +356,7 @@ void Database::LoadDatabasesFromDisk()
 /// <returns>Shared pointer of database.</returns>
 std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const char* path)
 {
-	BOOST_LOG_TRIVIAL(info) << "Loading database from directory: " << path << " with file name: " << fileDbName << "." << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "Loading database from: " << path << fileDbName << ".db." << std::endl;
 
 	//read file .db
 	std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
@@ -408,7 +407,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 
 	dbFile.close();
 
-	return std::shared_ptr<Database>();
+	return database;
 }
 
 /// <summary>
@@ -446,6 +445,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					int32_t index;
 					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
 
+					//this is needed because of how EOF is checked:
+					if (colFile.eof())
+					{
+						BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_" << columnName << ".col has finished successfully." << std::endl;
+						break;
+					}
+
 					int32_t dataLength;
 					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
 
@@ -474,7 +480,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnPolygon.AddBlock(dataPolygon);
-						BOOST_LOG_TRIVIAL(debug) << "Added ComplexPolygon block with data at index: " << nullIndex << "." << std::endl;
+						BOOST_LOG_TRIVIAL(debug) << "Added ComplexPolygon block with data at index: " << index << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -492,6 +498,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 				{
 					int32_t index;
 					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					//this is needed because of how EOF is checked:
+					if (colFile.eof())
+					{
+						BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_" << columnName << ".col has finished successfully." << std::endl;
+						break;
+					}
 
 					int32_t dataLength;
 					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
@@ -521,7 +534,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnPoint.AddBlock(dataPoint);
-						BOOST_LOG_TRIVIAL(debug) << "Added Point block with data at index: " << nullIndex << "." << std::endl;
+						BOOST_LOG_TRIVIAL(debug) << "Added Point block with data at index: " << index << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -539,6 +552,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 				{
 					int32_t index;
 					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					//this is needed because of how EOF is checked:
+					if (colFile.eof())
+					{
+						BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_" << columnName << ".col has finished successfully." << std::endl;
+						break;
+					}
 
 					int32_t dataLength;
 					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
@@ -565,7 +585,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnString.AddBlock(dataString);
-						BOOST_LOG_TRIVIAL(debug) << "Added String block with data at index: " << nullIndex << "." << std::endl;
+						BOOST_LOG_TRIVIAL(debug) << "Added String block with data at index: " << index << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -583,6 +603,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 				{
 					int32_t index;
 					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+					
+					//this is needed because of how EOF is checked:
+					if (colFile.eof())
+					{
+						BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_" << columnName << ".col has finished successfully." << std::endl;
+						break;
+					}
 
 					int32_t dataLength;
 					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
@@ -605,7 +632,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnInt.AddBlock(dataInt);
-						BOOST_LOG_TRIVIAL(debug) << "Added Int32 block with data at index: " << nullIndex << "." << std::endl;
+						BOOST_LOG_TRIVIAL(debug) << "Added Int32 block with data at index: " << index << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -623,6 +650,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 				{
 					int32_t index;
 					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					//this is needed because of how EOF is checked:
+					if (colFile.eof())
+					{
+						BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_" << columnName << ".col has finished successfully." << std::endl;
+						break;
+					}
 
 					int32_t dataLength;
 					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
@@ -645,7 +679,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnLong.AddBlock(dataLong);
-						BOOST_LOG_TRIVIAL(debug) << "Added Int64 block with data at index: " << nullIndex << "." << std::endl;
+						BOOST_LOG_TRIVIAL(debug) << "Added Int64 block with data at index: " << index << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -663,6 +697,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 				{
 					int32_t index;
 					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					//this is needed because of how EOF is checked:
+					if (colFile.eof())
+					{
+						BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_" << columnName << ".col has finished successfully." << std::endl;
+						break;
+					}
 
 					int32_t dataLength;
 					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
@@ -685,7 +726,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnFloat.AddBlock(dataFloat);
-						BOOST_LOG_TRIVIAL(debug) << "Added Float block with data at index: " << nullIndex << "." << std::endl;
+						BOOST_LOG_TRIVIAL(debug) << "Added Float block with data at index: " << index << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -703,6 +744,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 				{
 					int32_t index;
 					colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); //read block index
+
+					//this is needed because of how EOF is checked:
+					if (colFile.eof())
+					{
+						BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_" << columnName << ".col has finished successfully." << std::endl;
+						break;
+					}
 
 					int32_t dataLength;
 					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
@@ -725,7 +773,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						}
 
 						columnDouble.AddBlock(dataDouble);
-						BOOST_LOG_TRIVIAL(debug) << "Added Double block with data at index: " << nullIndex << "." << std::endl;
+						BOOST_LOG_TRIVIAL(debug) << "Added Double block with data at index: " << index << "." << std::endl;
 					}
 
 					nullIndex += 1;
@@ -742,12 +790,12 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 }
 
 /// <summary>
-/// Creates table with given name and columns.
+/// Creates table with given name and columns and adds it to database. If the table already existed, create missing columns if there are any missing.
 /// </summary>
 /// <returns>Newly created table</returns>
 /// <param name="columns">Columns with types.</param>
 /// <param name="tableName">Table name.</param>
-Table & Database::CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName)
+Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName)
 {
 	auto search = tables_.find(tableName);
 
@@ -797,6 +845,10 @@ void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 	loadedDatabases_.insert({ database->name_, database });
 }
 
+/// <summary>
+/// Get number of blocks
+/// </summary>
+/// <returns>Number of blocks</param>
 int Database::GetBlockCount()
 {
 	for (auto& table : tables_) 

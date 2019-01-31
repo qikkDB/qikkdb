@@ -35,7 +35,11 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+<<<<<<< HEAD
     <ClCompile Include="..\dropdbase\ClientPoolWorker.cpp" />
+=======
+    <ClCompile Include="..\dropdbase\BlockBase.cpp" />
+>>>>>>> develop
     <ClCompile Include="..\dropdbase\ColumnBase.cpp" />
     <ClCompile Include="..\dropdbase\ComplexPolygonFactory.cpp" />
     <ClCompile Include="..\dropdbase\Configuration.cpp" />
@@ -51,6 +55,7 @@
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\MemoryStream.cpp" />
     <ClCompile Include="..\dropdbase\ITCPWorker.cpp" />
+    <ClCompile Include="..\dropdbase\main.cpp" />
     <ClCompile Include="..\dropdbase\messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\InfoMessage.pb.cc" />
     <ClCompile Include="..\dropdbase\messages\QueryMessage.pb.cc" />
@@ -67,6 +72,12 @@
     <ClCompile Include="ProtocolMessageTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
     <ClCompile Include="TCPServerTests.cpp" />
+    <ClCompile Include="BlockTests.cpp" />
+    <ClCompile Include="ColumnTests.cpp" />
+    <ClCompile Include="DatabaseTests.cpp" />
+    <ClCompile Include="IILExecutorTests.cpp" />
+    <ClCompile Include="TableTests.cpp" />
+    <CudaCompile Include="CudaTests.cu" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\dropdbase\QueryEngine\CudaMemAllocator.cu">
@@ -95,6 +106,7 @@
     <ClInclude Include="..\dropdbase\Database.h" />
     <ClInclude Include="..\dropdbase\DatabaseGenerator.h" />
     <ClInclude Include="..\dropdbase\DataType.h" />
+    <ClInclude Include="..\dropdbase\DispatcherErrorCode.h" />
     <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.h" />
     <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.h" />
     <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlLexer.h" />
@@ -105,7 +117,6 @@
     <ClInclude Include="..\dropdbase\GpuSqlParser\MemoryStream.h" />
     <ClInclude Include="..\dropdbase\GpuSqlParser\ParserExceptions.h" />
     <ClInclude Include="..\dropdbase\GpuSqlParser\QueryType.h" />
-    <ClInclude Include="..\dropdbase\IBlock.h" />
     <ClInclude Include="..\dropdbase\IClientHandler.h" />
     <ClInclude Include="..\dropdbase\IColumn.h" />
     <ClInclude Include="..\dropdbase\ITCPWorker.h" />
@@ -125,9 +136,6 @@
     <ClInclude Include="..\dropdbase\TCPServer.h" />
     <ClInclude Include="..\dropdbase\Types\ComplexPolygon.pb.h" />
     <ClInclude Include="..\dropdbase\Types\Point.pb.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\dropdbase\CMakeLists.txt" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

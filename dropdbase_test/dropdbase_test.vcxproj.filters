@@ -1,6 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="TableTests.cpp" />
+    <ClCompile Include="ColumnTests.cpp" />
+    <ClCompile Include="IILExecutorTests.cpp" />
+    <ClCompile Include="..\dropdbase\BlockBase.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlLexer.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlListener.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParser.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserBaseListener.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\GpuSqlParser\MemoryStream.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="DatabaseTests.cpp" />
+    <ClCompile Include="BlockTests.cpp" />
     <ClCompile Include="..\dropdbase\ColumnBase.cpp">
       <Filter>dropdbase sources</Filter>
     </ClCompile>
@@ -16,13 +45,21 @@
     <ClCompile Include="..\dropdbase\DatabaseGenerator.cpp">
       <Filter>dropdbase sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\dropdbase\main.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
     <ClCompile Include="..\dropdbase\PointFactory.cpp">
       <Filter>dropdbase sources</Filter>
     </ClCompile>
     <ClCompile Include="..\dropdbase\Table.cpp">
       <Filter>dropdbase sources</Filter>
     </ClCompile>
-    <ClCompile Include="TableTests.cpp" />
+    <ClCompile Include="..\dropdbase\Types\ComplexPolygon.pb.cc">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dropdbase\Types\Point.pb.cc">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
     <ClCompile Include="..\dropdbase\messages\CSVImportMessage.pb.cc">
       <Filter>dropdbase sources</Filter>
     </ClCompile>
@@ -94,6 +131,45 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\dropdbase\QueryEngine\Context.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlLexer.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlListener.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\QueryEngine\CudaMemAllocator.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParser.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParserBaseListener.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\GpuSqlParser\GpuSqlParserListener.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\GpuSqlParser\MemoryStream.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\GpuSqlParser\ParserExceptions.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\QueryEngine\QueryEngineError.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\GpuSqlParser\QueryType.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
     <ClInclude Include="..\dropdbase\BlockBase.h">
       <Filter>dropdbase sources</Filter>
     </ClInclude>
@@ -115,7 +191,7 @@
     <ClInclude Include="..\dropdbase\DataType.h">
       <Filter>dropdbase sources</Filter>
     </ClInclude>
-    <ClInclude Include="..\dropdbase\IBlock.h">
+    <ClInclude Include="..\dropdbase\DispatcherErrorCode.h">
       <Filter>dropdbase sources</Filter>
     </ClInclude>
     <ClInclude Include="..\dropdbase\IColumn.h">
@@ -128,6 +204,12 @@
       <Filter>dropdbase sources</Filter>
     </ClInclude>
     <ClInclude Include="..\dropdbase\Table.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\Types\ComplexPolygon.pb.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\Types\Point.pb.h">
       <Filter>dropdbase sources</Filter>
     </ClInclude>
     <ClInclude Include="..\dropdbase\messages\CSVImportMessage.pb.h">
@@ -145,10 +227,12 @@
     <ClInclude Include="..\dropdbase\messages\SetDatabaseMessage.pb.h">
       <Filter>dropdbase sources</Filter>
     </ClInclude>
-    <ClInclude Include="..\dropdbase\Types\ComplexPolygon.pb.h">
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUAggregation.cuh">
       <Filter>dropdbase sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\dropdbase\Types\Point.pb.h">
+    </None>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUArithmetic.cuh">
       <Filter>dropdbase sources</Filter>
     </ClInclude>
     <ClInclude Include="..\dropdbase\ClientPoolWorker.h">
@@ -211,11 +295,46 @@
     <ClInclude Include="..\dropdbase\QueryEngine\QueryEngineError.h">
       <Filter>dropdbase sources</Filter>
     </ClInclude>
+    </None>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUArithmeticConst.cuh">
+      <Filter>dropdbase sources</Filter>
+    </None>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUFilter.cuh">
+      <Filter>dropdbase sources</Filter>
+    </None>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUFilterConst.cuh">
+      <Filter>dropdbase sources</Filter>
+    </None>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUGroupBy.cuh">
+      <Filter>dropdbase sources</Filter>
+    </None>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPULogic.cuh">
+      <Filter>dropdbase sources</Filter>
+    </None>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUMemory.cuh">
+      <Filter>dropdbase sources</Filter>
+    </None>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUPolygon.cuh">
+      <Filter>dropdbase sources</Filter>
+    </None>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUReconstruct.cuh">
+      <Filter>dropdbase sources</Filter>
+    </None>
+    <None Include="..\dropdbase\QueryEngine\GPUCore\GPUTypeWidthManip.cuh">
+      <Filter>dropdbase sources</Filter>
+    </None>
+    <None Include="packages.config">
+      <Filter>dropdbase sources</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\dropdbase\CMakeLists.txt">
+    <CudaCompile Include="..\dropdbase\QueryEngine\CudaMemAllocator.cu">
       <Filter>dropdbase sources</Filter>
-    </Text>
+    </CudaCompile>
+    <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cpp">
+      <Filter>dropdbase sources</Filter>
+    </CudaCompile>
+    <CudaCompile Include="CudaTests.cu" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -255,5 +374,8 @@
     <None Include="..\dropdbase\QueryEngine\GPUCore\GPUTypeWidthManip.cuh">
       <Filter>dropdbase sources</Filter>
     </None>
+    <Filter Include="dropdbase sources">
+      <UniqueIdentifier>{24dab276-075c-4cef-bcf1-992519894c78}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

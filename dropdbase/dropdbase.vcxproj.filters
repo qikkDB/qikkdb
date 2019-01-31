@@ -63,9 +63,6 @@
     <ClInclude Include="QueryEngine\GPUCore\GPUArithmetic.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
-    <ClInclude Include="QueryEngine\GPUCore\GPUArithmeticConst.cuh">
-      <Filter>Header Files\QueryEngine\GPUCore</Filter>
-    </ClInclude>
     <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
@@ -114,7 +111,6 @@
     <ClInclude Include="Configuration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IBlock.h" />
     <ClInclude Include="GpuSqlParser\GpuSqlCustomParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -144,9 +140,6 @@
     </ClInclude>
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="DataType.h" />
-    <ClInclude Include="QueryEngine\GPUCore\GPUFilterConst.cuh">
-      <Filter>Header Files\QueryEngine\GPUCore</Filter>
-    </ClInclude>
     <ClInclude Include="GpuSqlParser\GpuSqlDispatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -157,6 +150,15 @@
     <ClInclude Include="TCPServer.h" />
     <ClInclude Include="ClientPoolWorker.h" />
     <ClInclude Include="CSVInMemoryImporter.h" />
+    <ClInclude Include="DispatcherErrorCode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPULogicConst.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrorFlagSwapper.h">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComplexPolygonFactory.cpp">
@@ -225,6 +227,9 @@
     <ClCompile Include="TCPClientHandler.cpp" />
     <ClCompile Include="ClientPoolWorker.cpp" />
     <ClCompile Include="CSVInMemoryImporter.cpp" />
+    <ClCompile Include="BlockBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="QueryEngine\CudaMemAllocator.cu">

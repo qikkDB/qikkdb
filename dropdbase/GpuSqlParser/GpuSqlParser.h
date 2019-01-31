@@ -1,5 +1,5 @@
 
-// Generated from /Users/ms/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -613,17 +613,6 @@ public:
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
-  class  MinusExpressionContext : public ExpressionContext {
-  public:
-    MinusExpressionContext(ExpressionContext *ctx);
-
-    antlr4::Token *op = nullptr;
-    ExpressionContext *expression();
-    antlr4::tree::TerminalNode *MINUS();
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-  };
-
   class  StringLiteralContext : public ExpressionContext {
   public:
     StringLiteralContext(ExpressionContext *ctx);
@@ -713,6 +702,17 @@ public:
     antlr4::Token *op = nullptr;
     ExpressionContext *expression();
     antlr4::tree::TerminalNode *NOT();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  UnaryExpressionContext : public ExpressionContext {
+  public:
+    UnaryExpressionContext(ExpressionContext *ctx);
+
+    antlr4::Token *op = nullptr;
+    ExpressionContext *expression();
+    antlr4::tree::TerminalNode *MINUS();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
