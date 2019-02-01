@@ -1,6 +1,10 @@
 #include <boost/log/trivial.hpp>
 #include "CSVDataImporter.h"
 #include "../CSVParser.hpp"
+#include "Types/ComplexPolygon.pb.h"
+#include "Types/Point.pb.h"
+#include "PointFactory.h"
+#include "ComplexPolygonFactory.h"
 
 /// <summary>
 /// Parses CSV file, guess types, create table (if not exists) and fills the table with parsed data
@@ -48,8 +52,25 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 			v.reserve(database->GetBlockSize());
 			data[headers[i]] = v;
 		}
+		else if (dataTypes[i] == COLUMN_POINT)
+		{
+			std::vector<ColmnarDB::Types::Point> v;
+			v.reserve(database->GetBlockSize());
+			data[headers[i]] = v;
+		}
+		else if (dataTypes[i] == COLUMN_POLYGON)
+		{
+			std::vector<ColmnarDB::Types::ComplexPolygon> v;
+			v.reserve(database->GetBlockSize());
+			data[headers[i]] = v;
+		}
 		else if (dataTypes[i] == COLUMN_STRING)
 		{
+			std::vector<std::string> v;
+			v.reserve(database->GetBlockSize());
+			data[headers[i]] = v;
+		}
+		else {
 			std::vector<std::string> v;
 			v.reserve(database->GetBlockSize());
 			data[headers[i]] = v;
@@ -86,6 +107,12 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 						break;
 					case COLUMN_DOUBLE:
 						value = (double)std::stod(field);						
+						break;
+					case COLUMN_POINT:
+						value = PointFactory::FromWkt(field);
+						break;					
+					case COLUMN_POLYGON:
+						value = ComplexPolygonFactory::FromWkt(field);
 						break;
 					case COLUMN_STRING:
 						value = field;
@@ -124,6 +151,12 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 			case COLUMN_DOUBLE:
 				std::any_cast<std::vector<double>&>(wrappedData).push_back(std::any_cast<double>(field));
 				break;
+			case COLUMN_POINT:
+				std::any_cast<std::vector<ColmnarDB::Types::Point>&>(wrappedData).push_back(std::any_cast<ColmnarDB::Types::Point>(field));
+				break;
+			case COLUMN_POLYGON:
+				std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>&>(wrappedData).push_back(std::any_cast<ColmnarDB::Types::ComplexPolygon>(field));
+				break;
 			case COLUMN_STRING:
 				std::any_cast<std::vector<std::string>&>(wrappedData).push_back(std::any_cast<std::string>(field));
 				break;
@@ -157,6 +190,12 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 					break;
 				case COLUMN_DOUBLE:
 					std::any_cast<std::vector<double>&>(wrappedData).clear();
+					break;
+				case COLUMN_POINT:
+					std::any_cast<std::vector<ColmnarDB::Types::Point>&>(wrappedData).clear();
+					break;
+				case COLUMN_POLYGON:
+					std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>&>(wrappedData).clear();
 					break;
 				case COLUMN_STRING:
 					std::any_cast<std::vector<std::string>&>(wrappedData).clear();
@@ -252,6 +291,8 @@ DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues
 	std::vector<DataType> dataTypes;
 
 	for (auto& s : columnValues) {
+
+		// COLUMN_INT
 		try {
 			size_t position;
 			std::stol(s, &position);
@@ -265,6 +306,7 @@ DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues
 		catch (std::invalid_argument& e) {
 		}
 
+		// COLUMN_LONG
 		try {
 			size_t position;
 			std::stoll(s, &position);
@@ -278,7 +320,7 @@ DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues
 		catch (std::invalid_argument& e) {
 		}
 
-
+		// COLUMN_FLOAT
 		try {
 			size_t position;
 			std::stof(s, &position);
@@ -292,7 +334,7 @@ DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues
 		catch (std::invalid_argument& e) {
 		}
 
-
+		// COLUMN_DOUBLE
 		try {
 			size_t position;
 			std::stod(s, &position);
@@ -306,14 +348,38 @@ DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues
 		catch (std::invalid_argument& e) {
 		}
 
+		// COLUMN_POINT
+		try {
+			PointFactory::FromWkt(s);
+			dataTypes.push_back(COLUMN_POINT);
+			continue;			
+		}
+		catch (std::invalid_argument& e) {
+		}
 
+		// COLUMN_POLYGON
+		try {
+			ComplexPolygonFactory::FromWkt(s);
+			dataTypes.push_back(COLUMN_POLYGON);
+			continue;
+		}
+		catch (std::invalid_argument& e) {
+		}
+
+		// COLUMN_STRING
 		dataTypes.push_back(COLUMN_STRING);
 	}
 
 	if (dataTypes.size() > 0) {
 		DataType maxType = dataTypes[0];
 		for (auto t : dataTypes) {
-			if (t > maxType) {
+			if ((t == COLUMN_POINT && maxType != COLUMN_POINT) || (t != COLUMN_POINT && maxType == COLUMN_POINT)) {
+				maxType = COLUMN_STRING;
+			}
+			else if ((t == COLUMN_POLYGON && maxType != COLUMN_POLYGON) || (t != COLUMN_POLYGON && maxType == COLUMN_POLYGON)) {
+				maxType = COLUMN_STRING;
+			}
+			else if (t > maxType) {
 				maxType = t;
 			}
 		}

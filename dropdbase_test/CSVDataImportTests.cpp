@@ -111,3 +111,52 @@ TEST(CSVDataImportTests, ImportSkipRow)
 	ASSERT_EQ(100, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("invalid_row_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetData().size());	
 }
 
+TEST(CSVDataImportTests, WktTypes)
+{
+	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	Database::AddToInMemoryDatabaseList(database);
+
+	CSVDataImporter importer = CSVDataImporter("../../csv_tests/wkt_header.csv", true, ';');
+	importer.ImportTables(database);
+
+	ASSERT_EQ(COLUMN_POINT, database->GetTables().find("wkt_header")->second.GetColumns().find("p1")->second->GetColumnType());
+	ASSERT_EQ(COLUMN_POLYGON, database->GetTables().find("wkt_header")->second.GetColumns().find("p2")->second->GetColumnType());
+	ASSERT_EQ(COLUMN_INT, database->GetTables().find("wkt_header")->second.GetColumns().find("p3")->second->GetColumnType());
+	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header")->second.GetColumns().find("p4")->second->GetColumnType());
+}
+
+TEST(CSVDataImportTests, WktTypesMessedTypes)
+{
+	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	Database::AddToInMemoryDatabaseList(database);
+
+	CSVDataImporter importer = CSVDataImporter("../../csv_tests/wkt_header_messed_types.csv", true, ';');
+	importer.ImportTables(database);
+
+	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header_messed_types")->second.GetColumns().find("p1")->second->GetColumnType());
+	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header_messed_types")->second.GetColumns().find("p2")->second->GetColumnType());
+	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header_messed_types")->second.GetColumns().find("p3")->second->GetColumnType());
+	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header_messed_types")->second.GetColumns().find("p4")->second->GetColumnType());
+}
+
+TEST(CSVDataImportTests, WktImport)
+{
+	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	Database::AddToInMemoryDatabaseList(database);
+
+	CSVDataImporter importer = CSVDataImporter("../../csv_tests/wkt_header.csv", true, ';');
+	importer.ImportTables(database);
+
+	ASSERT_EQ(101, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetData().size());
+}
+
+TEST(CSVDataImportTests, WktImportInvalidRow)
+{
+	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	Database::AddToInMemoryDatabaseList(database);
+
+	CSVDataImporter importer = CSVDataImporter("../../csv_tests/wkt_header_invalid_row.csv", true, ';');
+	importer.ImportTables(database);
+
+	ASSERT_EQ(100, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header_invalid_row")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetData().size());
+}

@@ -62,6 +62,7 @@
     <ClCompile Include="..\dropdbase\Types\Point.pb.cc" />
     <ClCompile Include="BlockTests.cpp" />
     <ClCompile Include="ColumnTests.cpp" />
+    <ClCompile Include="CSVDataImportTests.cpp" />
     <ClCompile Include="DatabaseTests.cpp" />
     <ClCompile Include="IILExecutorTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
@@ -85,10 +86,12 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\CSVParser.hpp" />
     <ClInclude Include="..\dropdbase\BlockBase.h" />
     <ClInclude Include="..\dropdbase\ColumnBase.h" />
     <ClInclude Include="..\dropdbase\ComplexPolygonFactory.h" />
     <ClInclude Include="..\dropdbase\Configuration.h" />
+    <ClInclude Include="..\dropdbase\CSVDataImporter.h" />
     <ClInclude Include="..\dropdbase\Database.h" />
     <ClInclude Include="..\dropdbase\DatabaseGenerator.h" />
     <ClInclude Include="..\dropdbase\DataType.h" />
