@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "DatabaseGenerator.h"
 #include "Table.h"
 #include "ColumnBase.h"
@@ -61,7 +63,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 	int pointColumnCount = 0;
 	int polygonColumnCount = 0;
 	int stringColumnCount = 0;
-	
+
 	auto database = std::make_shared<Database>(databaseName, blockSize);
 
 	for (const auto& tableName : tableNames)
@@ -106,7 +108,8 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						longData.push_back(sameDataInBlocks ? 10^18 : 2*(10^18) + k % (1024 * longColumnCount));
+						int64_t result = (static_cast<int64_t>(2 * pow(10, 18))) + k % (1024 * longColumnCount);
+						longData.push_back(sameDataInBlocks ? static_cast<int64_t>(pow(10, 18)) : result);
 					}
 					column.AddBlock(longData);
 				}
@@ -191,7 +194,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						polygonData.push_back(sameDataInBlocks ? ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))") : 
+						polygonData.push_back(sameDataInBlocks ? ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))") :
 							ComplexPolygonFactory::FromWkt(std::string("POLYGON((10 11, ") + std::to_string(k % (1024 * polygonColumnCount)) + " " + std::to_string(k % (1024 * polygonColumnCount)) + ", 10 11),(21 30, " + std::to_string(k % (1024 * polygonColumnCount) + 25.1111)
 								+ " " + std::to_string(k % (1024 * polygonColumnCount) + 26.1111) + ", " + std::to_string(k % (1024 * polygonColumnCount) + 28) + " " + std::to_string(k % (1024 * polygonColumnCount) + 29) + ", 21 30))"));
 					}

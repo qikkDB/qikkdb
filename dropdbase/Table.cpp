@@ -70,10 +70,6 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 	{
 		column = std::make_unique<ColumnBase<ColmnarDB::Types::Point>>(columnName, blockSize);
 	}
-	else if (columnType == COLUMN_BOOL)
-	{
-		column = std::make_unique<ColumnBase<bool>>(columnName, blockSize);
-	}
 	columns.insert(std::make_pair(columnName, std::move(column)));
 }
 #ifndef __CUDACC__
