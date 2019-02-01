@@ -61,6 +61,7 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <AdditionalCompilerOptions>/bigobj</AdditionalCompilerOptions>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -134,10 +135,10 @@
     <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="DatabaseGenerator.cpp" />
-    <ClCompile Include="GpuSqlParser\GpuSqlCustomParser.cpp" />
+    <CudaCompile Include="GpuSqlParser\GpuSqlCustomParser.cpp" />
     <CudaCompile Include="GpuSqlParser\GpuSqlDispatcher.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlLexer.cpp" />
-    <ClCompile Include="GpuSqlParser\GpuSqlListener.cpp" />
+    <CudaCompile Include="GpuSqlParser\GpuSqlListener.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlParser.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlParserBaseListener.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlParserListener.cpp" />

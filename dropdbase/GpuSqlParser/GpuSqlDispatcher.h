@@ -18,12 +18,12 @@
 #include "../Table.h"
 #include "../ColumnBase.h"
 #include "../BlockBase.h"
+#include "../QueryEngine/GPUCore/GPUMemory.cuh"
+#ifdef __CUDACC__
 #include "../QueryEngine/GPUCore/GPUFilter.cuh"
 #include "../QueryEngine/GPUCore/GPUArithmetic.cuh"
 #include "../QueryEngine/GPUCore/GPULogic.cuh"
 #include "../QueryEngine/GPUCore/GPUAggregation.cuh"
-#include "../QueryEngine/GPUCore/GPUMemory.cuh"
-#ifdef __CUDACC__
 #include "../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #endif
 
