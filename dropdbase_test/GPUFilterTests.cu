@@ -8,16 +8,16 @@
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/GPUFilter.cuh"
 
+// Initialize random generators with a seed
+const int32_t SEED = 42;
+
+// Count of the testing data elements:
+const int32_t DATA_ELEMENT_COUNT = 1 << 18;
+
 
 template<typename T>
 void testColCol()
 {
-	// Initialize random generators
-	const int32_t SEED = 42;
-
-	// Size of data:
-	const int32_t DATA_ELEMENT_COUNT = 1 << 18;
-
 	// CPU data:
 	std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
 	std::unique_ptr<T[]> inputDataB = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
@@ -176,12 +176,6 @@ TEST(GPUFilterTests, FiltersColCol)
 template<typename T>
 void testColConst()
 {
-	// Initialize random generators
-	const int32_t SEED = 42;
-
-	// Size of data:
-	const int32_t DATA_ELEMENT_COUNT = 1 << 18;
-
 	// CPU data:
 	std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
 	T inputDataBConstant;
@@ -335,12 +329,6 @@ TEST(GPUFilterTests, FiltersColConst)
 template<typename T>
 void testConstCol()
 {
-	// Initialize random generators
-	const int32_t SEED = 42;
-
-	// Size of data:
-	const int32_t DATA_ELEMENT_COUNT = 1 << 18;
-
 	// CPU data:
 	std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
 	T inputDataBConstant;
@@ -495,12 +483,6 @@ TEST(GPUFilterTests, FiltersConstCol)
 template<typename T>
 void testConstConst()
 {
-	// Initialize random generators
-	const int32_t SEED = 42;
-
-	// Size of data:
-	const int32_t DATA_ELEMENT_COUNT = 1;
-
 	// CPU data:
 	T inputDataAConstant;
 	T inputDataBConstant;

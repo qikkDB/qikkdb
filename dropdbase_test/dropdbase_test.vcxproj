@@ -63,6 +63,7 @@
     <ClCompile Include="DatabaseTests.cpp" />
     <ClCompile Include="IILExecutorTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
+    <CudaCompile Include="GPUAggregationTests.cu" />
     <CudaCompile Include="GPUFilterTests.cu" />
   </ItemGroup>
   <ItemGroup>

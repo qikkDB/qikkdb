@@ -222,11 +222,19 @@
     <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cpp">
       <Filter>dropdbase sources</Filter>
     </CudaCompile>
-    <CudaCompile Include="GPUFilterTests.cu" />
+    <CudaCompile Include="GPUFilterTests.cu">
+      <Filter>GPUTests</Filter>
+    </CudaCompile>
+    <CudaCompile Include="GPUAggregationTests.cu">
+      <Filter>GPUTests</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dropdbase sources">
       <UniqueIdentifier>{24dab276-075c-4cef-bcf1-992519894c78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GPUTests">
+      <UniqueIdentifier>{9e6d175e-c1d8-4bb4-b6d1-6e62ece302b2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
