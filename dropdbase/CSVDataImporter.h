@@ -15,7 +15,7 @@ public:
 		this->delimiter = delimiter;
 		this->quotes = quotes;
 		this->decimal = decimal;
-		this->header = true;		
+		this->header = header;		
 	}
 
 	void ImportTables(std::shared_ptr<Database> database);
@@ -32,7 +32,6 @@ private:
 	std::vector<DataType> dataTypes;	
 	std::unordered_map<std::string, std::any> data;
 
-	DataType IndetifyDataType(std::vector<std::string> columnValues);
-	std::any CastStringToDataType(std::string s, DataType dataType);
+	DataType IndetifyDataType(std::vector<std::string> columnValues);	
 	std::string ExtractTableNameFromFileName(std::string fileName);
 };

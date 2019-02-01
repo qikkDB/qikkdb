@@ -1,11 +1,15 @@
+#include <boost/log/trivial.hpp>
 #include "CSVDataImporter.h"
-#include <CSVParser.hpp>
+#include "../CSVParser.hpp"
 
+/// <summary>
+/// Parses CSV file, guess types, create table (if not exists) and fills the table with parsed data
+/// </summary>
+/// <param name="database">Database where data will be imported</param>
 void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 {
-	if (this->header)
-		this->ExtractHeaders();
-
+	this->ExtractHeaders();
+	
 	this->ExtractTypes();
 
 	// prepares map columnName -> columnType
@@ -56,38 +60,79 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 	aria::csv::CsvParser parser = aria::csv::CsvParser(f).delimiter(delimiter).quote(quotes);
 
 	int position = 0;
+	std::vector<std::any> rowData;
+	rowData.reserve(headers.size());
 
 	// parses file and inserts data in batches of size of blockSize
 	for (auto& row : parser) {
-
+		
 		int columnIndex = 0;
-		for (auto& field : row) {
-						
-			if (position > 0) {
-				std::any &wrappedData = data.at(headers[columnIndex]);
-				
-				switch (dataTypes[columnIndex])
-				{
-				case COLUMN_INT:
-					std::any_cast<std::vector<int32_t>&>(wrappedData).push_back(std::stoi(field));
-					break;
-				case COLUMN_LONG:
-					std::any_cast<std::vector<int64_t>&>(wrappedData).push_back(std::stol(field));
-					break;
-				case COLUMN_FLOAT:
-					std::any_cast<std::vector<float>&>(wrappedData).push_back(std::stof(field));
-					break;
-				case COLUMN_DOUBLE:
-					std::any_cast<std::vector<double>&>(wrappedData).push_back(std::stod(field));
-					break;
-				case COLUMN_STRING:
-					std::any_cast<std::vector<std::string>&>(wrappedData).push_back(field);
-					break;
+		if (position > 0 || !this->header) {
+			// casts and puts data into row vector
+			// if casting fails, the line is ommited
+			try {
+				for (auto& field : row) {
+
+					std::any value;
+					switch (dataTypes[columnIndex]) {
+					case COLUMN_INT:
+						value = (int32_t)std::stol(field);
+						break;
+					case COLUMN_LONG:
+						value = (int64_t)std::stoll(field);
+						break;
+					case COLUMN_FLOAT:
+						value = (float)std::stof(field);						
+						break;
+					case COLUMN_DOUBLE:
+						value = (double)std::stod(field);						
+						break;
+					case COLUMN_STRING:
+						value = field;
+						break;
+					}
+					rowData.push_back(value);
+					columnIndex++;
 				}
 			}
-			
-			columnIndex++;
+			catch (std::out_of_range& e) {
+				BOOST_LOG_TRIVIAL(warning) << "Import of file " << fileName << " failed on line " << position << " (column " << columnIndex+1 << ")";
+				rowData.clear(); 
+			}
+			catch (std::invalid_argument& e) {
+				BOOST_LOG_TRIVIAL(warning) << "Import of file " << fileName << " failed on line " << position << " (column " << columnIndex+1 << ")";
+				rowData.clear();
+			}
 		}
+
+		// pushes values of row vector into corresponding columns
+		columnIndex = 0;
+		for (auto& field : rowData) {
+			std::any &wrappedData = data.at(headers[columnIndex]);
+			int v;
+			switch (dataTypes[columnIndex])
+			{
+			case COLUMN_INT:
+ 				std::any_cast<std::vector<int32_t>&>(wrappedData).push_back(std::any_cast<int32_t>(field));
+				break;
+			case COLUMN_LONG:
+				std::any_cast<std::vector<int64_t>&>(wrappedData).push_back(std::any_cast<int64_t>(field));
+				break;
+			case COLUMN_FLOAT:
+				std::any_cast<std::vector<float>&>(wrappedData).push_back(std::any_cast<float>(field));
+				break;
+			case COLUMN_DOUBLE:
+				std::any_cast<std::vector<double>&>(wrappedData).push_back(std::any_cast<double>(field));
+				break;
+			case COLUMN_STRING:
+				std::any_cast<std::vector<std::string>&>(wrappedData).push_back(std::any_cast<std::string>(field));
+				break;
+			}
+
+			columnIndex++;			
+		}
+
+		rowData.clear();
 		
 		position++;
 		
@@ -120,8 +165,14 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 			}
 		}
 	}
+	
+	// inserts remaing rows into table
+	table.InsertData(data);
 }
 
+/// <summary>
+/// Extracts column names from header. If there is no header, column names are created C0, C1,...
+/// </summary>
 void CSVDataImporter::ExtractHeaders()
 {
 	std::ifstream f(fileName);
@@ -134,7 +185,10 @@ void CSVDataImporter::ExtractHeaders()
 		for (auto& field : row) {
 
 			if (position == 0) {
-				this->headers.push_back(field);
+				if (this->header)
+					this->headers.push_back(field);
+				else
+					this->headers.push_back("C" + std::to_string(columnIndex));
 			}
 			
 			columnIndex++;
@@ -146,6 +200,9 @@ void CSVDataImporter::ExtractHeaders()
 	}	
 }
 
+/// <summary>
+/// Extracts types based on 100 leading rows
+/// </summary>
 void CSVDataImporter::ExtractTypes()
 {
 	std::vector<std::vector<std::string>> columnData;
@@ -184,6 +241,12 @@ void CSVDataImporter::ExtractTypes()
 	}
 }
 
+/// <summary>
+/// Identify data type based on vector of values. Returns maximum type from vector of types.
+/// COLUMN_INT < COLUMN_LONG < COLUMN_FLOAT < COLUMN_DOUBLE < COULMN_STRING
+/// </summary>
+/// <param name="columnValues">vector of string values</param>
+/// <returns>Suitable data type</returns>
 DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues)
 {
 	std::vector<DataType> dataTypes;
@@ -191,7 +254,7 @@ DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues
 	for (auto& s : columnValues) {
 		try {
 			size_t position;
-			std::stoi(s, &position);
+			std::stol(s, &position);
 			if (s.length() == position) {
 				dataTypes.push_back(COLUMN_INT);
 				continue;
@@ -199,10 +262,12 @@ DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues
 		}
 		catch (std::out_of_range& e) {
 		}
+		catch (std::invalid_argument& e) {
+		}
 
 		try {
 			size_t position;
-			std::stol(s, &position);
+			std::stoll(s, &position);
 			if (s.length() == position) {
 				dataTypes.push_back(COLUMN_LONG);
 				continue;
@@ -210,6 +275,9 @@ DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues
 		}
 		catch (std::out_of_range& e) {
 		}
+		catch (std::invalid_argument& e) {
+		}
+
 
 		try {
 			size_t position;
@@ -221,6 +289,9 @@ DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues
 		}
 		catch (std::out_of_range& e) {
 		}
+		catch (std::invalid_argument& e) {
+		}
+
 
 		try {
 			size_t position;
@@ -232,69 +303,30 @@ DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues
 		}
 		catch (std::out_of_range& e) {
 		}
+		catch (std::invalid_argument& e) {
+		}
+
 
 		dataTypes.push_back(COLUMN_STRING);
 	}
 
 	if (dataTypes.size() > 0) {
-		bool ok = true;
-		DataType type = dataTypes[0];
-		for (auto& t : dataTypes) {
-			if (type != t)
-				ok = false;
+		DataType maxType = dataTypes[0];
+		for (auto t : dataTypes) {
+			if (t > maxType) {
+				maxType = t;
+			}
 		}
-
-		if (ok)
-			return type;
-		else
-			return COLUMN_STRING;
+		return maxType;
 	}
 	return COLUMN_STRING;
 }
 
-
-std::any CSVDataImporter::CastStringToDataType(std::string s, DataType dataType) {
-	std::any value;
-	switch (dataType) {
-	case COLUMN_INT:
-		try {
-			value = std::stoi(s);			
-		}		
-		catch (std::out_of_range& e) {
-			value = 0;
-		}
-		break;
-	case COLUMN_LONG:
-		try {
-			value = std::stol(s);
-		}
-		catch (std::out_of_range& e) {
-			value = 0l;
-		}
-		break;
-	case COLUMN_FLOAT:
-		try {
-			value = std::stof(s);
-		}
-		catch (std::out_of_range& e) {
-			value = 0.0f;
-		}
-		break;
-	case COLUMN_DOUBLE:
-		try {
-			value = std::stod(s);
-		}
-		catch (std::out_of_range& e) {
-			value = 0.0;
-		}
-		break;
-	case COLUMN_STRING:
-		value = s;
-		break;
-	}
-	return value;
-}
-
+/// <summary>
+/// Extract filename without extension from file path
+/// </summary>
+/// <param name="polygons">Imported CSV file path</param>
+/// <returns>Name of file without extension</returns>
 std::string CSVDataImporter::ExtractTableNameFromFileName(std::string fileName)
 {
 	const size_t lastSlashIndex = fileName.find_last_of("\\/");
