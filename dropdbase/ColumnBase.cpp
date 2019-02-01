@@ -80,6 +80,7 @@ void ColumnBase<int32_t>::setColumnStatistics()
 	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(),numOfDataInBlocks.end(), (float) 0.0);
 }
 
+template<>
 void ColumnBase<int64_t>::setColumnStatistics()
 {
 	std::vector<int64_t> mins;
@@ -102,6 +103,7 @@ void ColumnBase<int64_t>::setColumnStatistics()
 	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), (float) 0.0);
 }
 
+template<>
 void ColumnBase<float>::setColumnStatistics()
 {
 	std::vector<float> mins;
@@ -124,6 +126,7 @@ void ColumnBase<float>::setColumnStatistics()
 	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), (float) 0.0);
 }
 
+template<>
 void ColumnBase<double>::setColumnStatistics()
 {
 	std::vector<double> mins;
@@ -146,6 +149,7 @@ void ColumnBase<double>::setColumnStatistics()
 	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), (float) 0.0);
 }
 
+template<>
 void ColumnBase<ColmnarDB::Types::Point>::setColumnStatistics()
 {
 	min_ = PointFactory::FromWkt("POINT(0 0)");
@@ -154,6 +158,7 @@ void ColumnBase<ColmnarDB::Types::Point>::setColumnStatistics()
 	sum_ = PointFactory::FromWkt("POINT(0 0)");
 }
 
+template<>
 void ColumnBase<ColmnarDB::Types::ComplexPolygon>::setColumnStatistics()
 {
 	min_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0),(0 0))");
@@ -162,6 +167,7 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::setColumnStatistics()
 	sum_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0),(0 0))");
 }
 
+template<>
 void ColumnBase<std::string>::setColumnStatistics()
 {
 	min_ = "";
@@ -170,6 +176,7 @@ void ColumnBase<std::string>::setColumnStatistics()
 	sum_ = "";
 }
 
+template<>
 void ColumnBase<bool>::setColumnStatistics()
 {
 	min_ = 0;

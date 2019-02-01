@@ -1,5 +1,4 @@
 #pragma once
-#include "Database.h"
 #include "IColumn.h"
 #include "DataType.h"
 #include <memory>
@@ -8,6 +7,8 @@
 #ifndef __CUDACC__
 #include <any>
 #endif
+
+class Database;
 
 class Table
 {

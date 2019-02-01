@@ -418,7 +418,7 @@ int32_t logicalNotCol(GpuSqlDispatcher &dispatcher)
 	int32_t retSize = std::get<1>(column);
 
 	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, retSize);
-	GPULogic::not<int8_t, T>(mask, reinterpret_cast<T*>(std::get<0>(column)), retSize);
+	GPULogic::not_col<int8_t, T>(mask, reinterpret_cast<T*>(std::get<0>(column)), retSize);
 	return 0;
 }
 

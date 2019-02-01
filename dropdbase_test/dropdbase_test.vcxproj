@@ -42,7 +42,6 @@
     <ClCompile Include="..\dropdbase\Database.cpp" />
     <ClCompile Include="..\dropdbase\DatabaseGenerator.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.cpp" />
-    <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlLexer.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlListener.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParser.cpp" />
@@ -63,6 +62,7 @@
     <ClCompile Include="DatabaseTests.cpp" />
     <ClCompile Include="DispatcherTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
+    <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cu" />
     <CudaCompile Include="CudaTests.cu" />
   </ItemGroup>
   <ItemGroup>

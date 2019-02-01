@@ -138,7 +138,7 @@
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="DatabaseGenerator.cpp" />
     <CudaCompile Include="GpuSqlParser\GpuSqlCustomParser.cpp" />
-    <CudaCompile Include="GpuSqlParser\GpuSqlDispatcher.cpp" />
+    <CudaCompile Include="GpuSqlParser\GpuSqlDispatcher.cu" />
     <ClCompile Include="GpuSqlParser\GpuSqlLexer.cpp" />
     <CudaCompile Include="GpuSqlParser\GpuSqlListener.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlParser.cpp" />

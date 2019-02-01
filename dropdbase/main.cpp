@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <iostream>
 #include <chrono>
+#include "Table.h"
 #include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "GpuSqlParser/MemoryStream.h"
 #include <boost/log/core.hpp>
@@ -12,7 +13,6 @@
 #include "QueryEngine/GPUCore/GPUMemory.cuh"
 #include "ColumnBase.h"
 #include "Database.h"
-#include "Table.h"
 
 int main(int argc, char **argv)
 {
