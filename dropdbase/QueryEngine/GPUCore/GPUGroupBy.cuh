@@ -40,7 +40,7 @@ namespace AggregationFunctions
 			do
 			{
 				expected = old;
-				int32_t ret = atomicCAS((int32_t*)a, *(int32_t*)(&expected), *(int32_t*)(&b));
+				int32_t ret = atomicCAS(reinterpret_cast<int32_t*>(a), *reinterpret_cast<int32_t*>(&expected), *reinterpret_cast<int32_t*>(&b));
 				old = *(float*)&ret;
 			} while (old != expected && old > b);
 		}
@@ -73,7 +73,7 @@ namespace AggregationFunctions
 			do
 			{
 				expected = old;
-				int32_t ret = atomicCAS((int32_t*)a, *(int32_t*)(&expected), *(int32_t*)(&b));
+				int32_t ret = atomicCAS(reinterpret_cast<int32_t*>(a), *reinterpret_cast<int32_t*>(&expected), *reinterpret_cast<int32_t*>(&b));
 				old = *(float*)&ret;
 			} while (old != expected && old < b);
 		}
@@ -168,7 +168,7 @@ __global__ void group_by_kernel(
 	{
 		int32_t hash = static_cast<int32_t>(inKeys[i]); // TODO maybe improve hashing for float
 		int32_t foundIndex = -1;
-		for (int j = 0; j < maxHashCount; j++) {
+		for (int32_t j = 0; j < maxHashCount; j++) {
 			// Calculate hash - use type conversion because of float
 			int32_t index = abs((hash + j) % maxHashCount);
 
@@ -240,7 +240,7 @@ __global__ void group_by_kernel(
 		{
 			// Use aggregation of values on the bucket and the corresponding counter
 			AGG{}(&values[foundIndex], inValues[i]);
-			atomicAdd((uint64_t*)&keyOccurenceCount[foundIndex], 1);
+			atomicAdd(reinterpret_cast<uint64_t*>(&keyOccurenceCount[foundIndex]), 1);
 		}
 	}
 }
