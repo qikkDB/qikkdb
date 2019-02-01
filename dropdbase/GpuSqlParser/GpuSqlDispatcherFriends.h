@@ -4,7 +4,6 @@
 #include "../QueryEngine/GPUCore/GPUFilter.cuh"
 #include "../QueryEngine/GPUCore/GPUArithmetic.cuh"
 #include "../QueryEngine/GPUCore/GPULogic.cuh"
-#include "../QueryEngine/GPUCore/GPULogicConst.cuh"
 #include "../QueryEngine/GPUCore/GPUAggregation.cuh"
 #include "../QueryEngine/GPUCore/GPUPolygon.cuh"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
@@ -12,7 +11,7 @@
 	
 
 template<typename T>
-T* GpuSqlDispatcher::allocateRegister(std::string reg, int32_t size)
+T* GpuSqlDispatcher::allocateRegister(const std::string& reg, int32_t size)
 {
 	T * mask;
 	GPUMemory::alloc<T>(&mask, size);
@@ -344,6 +343,21 @@ int32_t containsColConst(GpuSqlDispatcher &dispatcher)
 template<typename T, typename U>
 int32_t containsConstCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colName = dispatcher.arguments.read<std::string>();
+	auto constWkt = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+
+	std::cout << "Contains: " + constWkt << " " << colName << " " << reg << std::endl;
+
+	std::tuple<uintptr_t, int32_t> columnPoint = dispatcher.allocatedPointers.at(colName);
+	ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
+	GPUMemory::GPUPolygon gpuPolygon = dispatcher.insertConstPolygonGpu(polygonConst);
+
+	int32_t retSize = std::get<1>(columnPoint);
+
+	int8_t * result = dispatcher.allocateRegister<int8_t>(reg, retSize);
+	GPUPolygon::contains(result, reinterpret_cast<NativeGeoPoint*>(std::get<0>(columnPoint)), reinterpret_cast<NativeGeoPoint*>(gpuPolygon.polyPoints), reinterpret_cast<int32_t*>(gpuPolygon.polyIdx), reinterpret_cast<int32_t*>(gpuPolygon.polyCount), reinterpret_cast<int32_t*>(gpuPolygon.pointIdx), reinterpret_cast<int32_t*>(gpuPolygon.pointCount), retSize, 1);
 	return 0;
 }
 

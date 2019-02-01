@@ -114,10 +114,9 @@ public:
 	/// <param name="p_Block">pointer to memory block (on GPU memory)</param>
 	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
 	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
-	template<typename T>
-	static void free(T *p_block)
+	static void free(void *p_block)
 	{
-		CudaMemAllocator::GetInstance().deallocate(reinterpret_cast<int8_t*>(p_block), 0);
+		CudaMemAllocator::GetInstance().deallocate(static_cast<int8_t*>(p_block), 0);
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 

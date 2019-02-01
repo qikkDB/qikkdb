@@ -277,6 +277,14 @@ NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& p
 	return gpuPointer;
 }
 
+GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
+{
+	GPUMemory::GPUPolygon gpuPolygon = ComplexPolygonFactory::PrepareGPUPolygon({ polygon });
+	insertComplexPolygon("constPolygon" + std::to_string(constPolygonCounter), gpuPolygon, 1);
+	constPolygonCounter++;
+	return gpuPolygon;
+}
+
 template <>
 int32_t loadCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 {
@@ -353,6 +361,10 @@ int32_t fil(GpuSqlDispatcher &dispatcher)
 int32_t done(GpuSqlDispatcher &dispatcher)
 {
 	dispatcher.arguments.reset();
+	for (auto& ptr : dispatcher.allocatedPointers)
+	{
+		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(ptr.second)));
+	}
 	dispatcher.allocatedPointers.clear();
 	return 0;
 }

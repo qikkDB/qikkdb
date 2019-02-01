@@ -411,11 +411,12 @@ public:
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
 
 	template<typename T>
-	T* allocateRegister(std::string reg, int32_t size);
+	T* allocateRegister(const std::string& reg, int32_t size);
 
 	void insertComplexPolygon(std::string colName, GPUMemory::GPUPolygon polygon, int32_t size);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
+	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 
     template<typename T>
     friend int32_t loadConst(GpuSqlDispatcher &dispatcher);
