@@ -10,6 +10,7 @@
 #include <thrust/execution_policy.h>
 
 #include "../Context.h"
+#include "../CudaMemAllocator.h"
 #include "GPUMemory.cuh"
 
 class GPUAggregation {
@@ -28,7 +29,7 @@ public:
 	static void min(T *outValue, T *ACol, int32_t dataElementCount)
 	{
 		// Kernel call
-		T *outValueGPUPointer = thrust::min_element(thrust::device, ACol, ACol + dataElementCount);
+		T *outValueGPUPointer = thrust::min_element(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount);
 		cudaDeviceSynchronize();
 
 		// Copy the generated output to outValue (still in GPU)
@@ -50,7 +51,7 @@ public:
 	static void max(T *outValue, T *ACol, int32_t dataElementCount)
 	{
 		// Kernel call
-		T *outValueGPUPointer = thrust::max_element(thrust::device, ACol, ACol + dataElementCount);
+		T *outValueGPUPointer = thrust::max_element(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount);
 		cudaDeviceSynchronize();
 
 		// Copy the generated output to outValue (still in GPU)
@@ -72,7 +73,7 @@ public:
 	static void sum(T *outValue, T *ACol, int32_t dataElementCount)
 	{
 		// Kernel calls here
-		T outValueHost = thrust::reduce(thrust::device, ACol, ACol + dataElementCount, (T) 0, thrust::plus<T>());
+		T outValueHost = thrust::reduce(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount, (T) 0, thrust::plus<T>());
 		cudaDeviceSynchronize();
 
 		// Copy the generated output to outValue (still in GPU)
@@ -94,7 +95,7 @@ public:
 	static void avg(T *outValue, T *ACol, int32_t dataElementCount)
 	{
 		// Calculate the sum of all elements
-		T outValueHost = thrust::reduce(thrust::device, ACol, ACol + dataElementCount, (T)0, thrust::plus<T>());
+		T outValueHost = thrust::reduce(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount, (T)0, thrust::plus<T>());
 		outValueHost /= dataElementCount;
 		cudaDeviceSynchronize();
 
