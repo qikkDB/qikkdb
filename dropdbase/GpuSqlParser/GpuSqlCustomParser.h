@@ -5,12 +5,8 @@
 #ifndef DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 #define DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 
-#include "GpuSqlParser/GpuSqlParser.h"
-#include "GpuSqlParser/GpuSqlLexer.h"
-#include "Database.h"
-#include "ParserExceptions.h"
-#include "QueryType.h"
-#include "GpuSqlListener.h"
+#include <google/protobuf/message.h>
+#include "../Database.h"
 #include <string>
 #include <memory>
 
@@ -24,7 +20,7 @@ private:
 public:
     GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query);
 
-    void parse();
+	std::unique_ptr<google::protobuf::Message> parse();
 
 };
 

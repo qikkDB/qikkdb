@@ -1,7 +1,7 @@
 # db settings
 UsingGPU: true
-Dir: ../../../ColmnarDB
-DatabaseDir: ../../../ColmnarDB/databases
+Dir: ../dropdbase
+DatabaseDir: ../databases
 BlockSize: 262144
 BlockCount: 1024
 GroupByBuckets: 65536

@@ -13,6 +13,7 @@ ColmnarDB::Types::Point PointFactory::FromWkt(std::string wktPoint)
 	// remove POINT (  wkt prefix
 	wktPoint.erase(0, openBracePos + 1);
 	// remove )  wkt suffix
+	closeBracePos = wktPoint.find(')');
 	wktPoint.erase(wktPoint.begin() + closeBracePos, wktPoint.end());
 	std::istringstream wktInput(wktPoint);
 	ColmnarDB::Types::Point ret;
@@ -23,7 +24,7 @@ ColmnarDB::Types::Point PointFactory::FromWkt(std::string wktPoint)
 		throw std::invalid_argument("Invalid WKT format");
 	}
 	ret.mutable_geopoint()->set_latitude(latitude);
-	ret.mutable_geopoint()->set_longitude(latitude);
+	ret.mutable_geopoint()->set_longitude(longitude);
 	return ret;
 }
 

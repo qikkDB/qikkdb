@@ -1,9 +1,10 @@
 #pragma once
 
 #include <unordered_map>
-#include "DataType.h"
 #include <memory>
 #include <string>
+
+#include "DataType.h"
 
 class Table;
 
@@ -17,7 +18,7 @@ class Database
 private:
 	static std::unordered_map<std::string, std::shared_ptr<Database>> loadedDatabases_;
 	std::string name_;
-	unsigned int blockSize_;
+	int32_t blockSize_;
 	std::unordered_map<std::string, Table> tables_;
 
 public:
@@ -26,7 +27,7 @@ public:
 	/// </summary>
 	/// <param name="databaseName">Database name.</param>
 	/// <param name="blockSize">Block size of all blocks in this database</param>
-	Database(const char* databaseName, int blockSize = 1024);
+	Database(const char* databaseName, int32_t blockSize = 1024);
 
 	~Database();
 
@@ -43,13 +44,13 @@ public:
 	void Persist(const char* path);
 
 	/// <summary>
-	/// Save all databases currently in memory to disk
+	/// Save all databases currently in memory to disk. All databases will be saved in the same directory
 	/// </summary>
 	/// <param name="path">Path to database storage directory</param>
 	static void SaveAllToDisk(const char* path);
 
 	/// <summary>
-	/// Load databases from disk storage
+	/// Load databases from disk storage. Databases .db and .col files have to be in the same directory, so all databases have to be in the same dorectory to be loaded using this procedure
 	/// </summary>
 	static void LoadDatabasesFromDisk();
 
@@ -66,10 +67,10 @@ public:
 	/// <param name="path">Path directory, where column files (*.col) are.</param>
 	/// <param name="table">Instance of table into which the columns should be added.</param>
 	/// <param name="columnNames">Names of particular columns.</param>
-	static void LoadColumns(const char* path, const char* dbName, Table table, const std::vector<std::string>& columnNames);
+	static void LoadColumns(const char* path, const char* dbName, Table& table, const std::vector<std::string>& columnNames);
 
 	/// <summary>
-	/// Creates table with given name and columns.
+	/// Creates table with given name and columns and adds it to database. If the table already existed, create missing columns if there are any missing
 	/// </summary>
 	/// <param name="columns">Columns with types.</param>
 	/// <param name="tableName">Table name.</param>
@@ -94,4 +95,10 @@ public:
 	/// </summary>
 	/// <param name="databaseName">Name of database to be removed</param>
 	static void DestroyDatabase(const char* databaseName) { loadedDatabases_.erase(databaseName); }
+
+	/// <summary>
+	/// Get number of blocks
+	/// </summary>
+	/// <returns>Number of blocks</param>
+	int GetBlockCount();
 };

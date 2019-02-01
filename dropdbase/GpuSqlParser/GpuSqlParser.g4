@@ -39,21 +39,21 @@ limit               : INTLIT;
 offset              : INTLIT;
 columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT|);
 
-expression : left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
+expression : op=NOT expression                                                            # unaryOperation
+           | op=MINUS expression                                                          # unaryExpression
+           | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation
            | left=expression op=(GREATER|LESS) right=expression                           # binaryOperation
            | left=expression op=(GREATEREQ|LESSEQ) right=expression                       # binaryOperation
            | left=expression op=(EQUALS|NOTEQUALS) right=expression                       # binaryOperation
            | left=expression op=MODULO right=expression                                   # binaryOperation
            | left=expression op=GEO right=expression                                      # binaryOperation
-           | op=NOT expression                                                            # unaryOperation
            | expression op=BETWEEN expression op2=AND expression                          # ternaryOperation
            | left=expression op=AND right=expression                                      # binaryOperation
            | left=expression op=OR right=expression                                       # binaryOperation
            | LPAREN expression RPAREN                                                     # parenExpression
            | columnId                                                                     # varReference
            | geometry                                                                     # geoReference
-           | op=MINUS expression                                                          # minusExpression
            | FLOATLIT                                                                     # decimalLiteral
            | INTLIT                                                                       # intLiteral
            | STRINGLIT                                                                    # stringLiteral

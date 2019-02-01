@@ -6,18 +6,19 @@
 #define DROPDBASE_INSTAREA_GPUSQLLISTENER_H
 
 #include "GpuSqlParserBaseListener.h"
-#include "Database.h"
-#include "GpuSqlDispatcher.h"
-#include "../DataType.h"
 #include "ParserExceptions.h"
-#include "PointFactory.h"
-#include "ComplexPolygonFactory.h"
+#include "../Database.h"
+#include "../DataType.h"
+#include "../PointFactory.h"
+#include "../ComplexPolygonFactory.h"
 #include <unordered_set>
 #include <functional>
 #include <string>
 #include <memory>
 #include <stack>
 #include <regex>
+
+class GpuSqlDispatcher;
 
 class GpuSqlListener : public GpuSqlParserBaseListener
 {
@@ -36,9 +37,9 @@ private:
 
     std::tuple<std::string, DataType> stackTopAndPop();
 
-    std::string generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+    std::tuple<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
-    void pushTempResult();
+    void pushTempResult(DataType type);
 
     void pushArgument(const char *token, DataType dataType);
 
@@ -52,8 +53,11 @@ private:
 
     void stringToUpper(std::string &str);
 
+	DataType getReturnDataType(DataType left, DataType right);
+	DataType colToConst(DataType type);
+
 public:
-    GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
+	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
 
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) override;
 
