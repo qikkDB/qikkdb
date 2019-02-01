@@ -42,19 +42,23 @@ void kernel_point_in_polygon(int8_t *outMask,
 
 	for (int32_t i = idx; i < (pointCount > polygonCount ? pointCount : polygonCount); i += stride)
 	{
-		int32_t polyIdx = i;
 		NativeGeoPoint point;
 
 		if (pointCount == 1)
 		{
 			point = geoPointsInput[0];
-			polyIdx = 0;
 		}
 		else
 		{
 			point = geoPointsInput[i];
 		}
 
+		int32_t polyIdx = i;
+
+		if (polygonCount == 1)
+		{
+			polyIdx = 0;
+		}
 		int32_t subPolygonsStartIdx = complexPolygonIdx[polyIdx];
 		int32_t subPolygonsCount = complexPolygonCnt[polyIdx];
 		int8_t result = 0;
