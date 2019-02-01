@@ -21,7 +21,6 @@
 #include "../QueryEngine/GPUCore/GPUFilter.cuh"
 #include "../QueryEngine/GPUCore/GPUArithmetic.cuh"
 #include "../QueryEngine/GPUCore/GPULogic.cuh"
-#include "../QueryEngine/GPUCore/GPULogicConst.cuh"
 #include "../QueryEngine/GPUCore/GPUAggregation.cuh"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #ifdef __CUDACC__

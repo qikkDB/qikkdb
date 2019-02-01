@@ -111,7 +111,6 @@
     <ClInclude Include="messages\SetDatabaseMessage.pb.h" />
     <ClInclude Include="NativeGeoPoint.h" />
     <ClInclude Include="PointFactory.h" />
-    <ClInclude Include="QueryEngine\GPUCore\GPULogicConst.cuh" />
     <ClInclude Include="Table.h" />
     <ClInclude Include="QueryEngine\Context.h" />
     <ClInclude Include="QueryEngine\CudaMemAllocator.h" />
