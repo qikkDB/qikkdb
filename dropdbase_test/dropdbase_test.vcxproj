@@ -64,6 +64,7 @@
     <ClCompile Include="IILExecutorTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
     <CudaCompile Include="GPUAggregationTests.cu" />
+    <CudaCompile Include="GPUArtithmeticTests.cu" />
     <CudaCompile Include="GPUFilterTests.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +188,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

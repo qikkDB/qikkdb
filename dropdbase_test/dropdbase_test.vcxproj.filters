@@ -228,6 +228,9 @@
     <CudaCompile Include="GPUAggregationTests.cu">
       <Filter>GPUTests</Filter>
     </CudaCompile>
+    <CudaCompile Include="GPUArtithmeticTests.cu">
+      <Filter>GPUTests</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dropdbase sources">

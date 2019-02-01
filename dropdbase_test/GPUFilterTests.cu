@@ -16,7 +16,7 @@ const int32_t DATA_ELEMENT_COUNT = 1 << 18;
 
 
 template<typename T>
-void testColCol()
+void testColColFilter()
 {
 	// CPU data:
 	std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
@@ -166,15 +166,15 @@ TEST(GPUFilterTests, FiltersColCol)
 	// Initialize CUDA context:
 	Context::getInstance();
 
-	testColCol<int32_t>();
-	testColCol<int64_t>();
-	testColCol<float>();
+	testColColFilter<int32_t>();
+	testColColFilter<int64_t>();
+	testColColFilter<float>();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void testColConst()
+void testColConstFilter()
 {
 	// CPU data:
 	std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
@@ -319,15 +319,15 @@ TEST(GPUFilterTests, FiltersColConst)
 	// Initialize CUDA context:
 	Context::getInstance();
 
-	testColConst<int32_t>();
-	testColConst<int64_t>();
-	testColConst<float>();
+	testColConstFilter<int32_t>();
+	testColConstFilter<int64_t>();
+	testColConstFilter<float>();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void testConstCol()
+void testConstColFilter()
 {
 	// CPU data:
 	std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
@@ -472,16 +472,16 @@ TEST(GPUFilterTests, FiltersConstCol)
 	// Initialize CUDA context:
 	Context::getInstance();
 
-	testConstCol<int32_t>();
-	testConstCol<int64_t>();
-	testConstCol<float>();
+	testConstColFilter<int32_t>();
+	testConstColFilter<int64_t>();
+	testConstColFilter<float>();
 }
 
 
 //////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-void testConstConst()
+void testConstConstFilter()
 {
 	// CPU data:
 	T inputDataAConstant;
@@ -509,14 +509,14 @@ void testConstConst()
 	int8_t *outputBuffer;
 
 	// Alloc buffers in GPU memory:
-	GPUMemory::alloc(&outputBuffer, DATA_ELEMENT_COUNT);
+	GPUMemory::alloc(&outputBuffer, 1);
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	// Run kernels, copy back values and compare them
 
 	// Greater than
-	GPUFilter::constConst<FilterConditions::greater>(outputBuffer, inputDataAConstant, inputDataBConstant, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, DATA_ELEMENT_COUNT);
+	GPUFilter::constConst<FilterConditions::greater>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
+	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
 	if (std::is_integral<T>::value)
 	{
@@ -529,8 +529,8 @@ void testConstConst()
 
 
 	// Greater than equal
-	GPUFilter::constConst<FilterConditions::greaterEqual>(outputBuffer, inputDataAConstant, inputDataBConstant, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, DATA_ELEMENT_COUNT);
+	GPUFilter::constConst<FilterConditions::greaterEqual>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
+	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
 	if (std::is_integral<T>::value)
 	{
@@ -543,8 +543,8 @@ void testConstConst()
 
 
 	// Less than
-	GPUFilter::constConst<FilterConditions::less>(outputBuffer, inputDataAConstant, inputDataBConstant, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, DATA_ELEMENT_COUNT);
+	GPUFilter::constConst<FilterConditions::less>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
+	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
 	if (std::is_integral<T>::value)
 	{
@@ -557,8 +557,8 @@ void testConstConst()
 
 
 	// Less than equal
-	GPUFilter::constConst<FilterConditions::lessEqual>(outputBuffer, inputDataAConstant, inputDataBConstant, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, DATA_ELEMENT_COUNT);
+	GPUFilter::constConst<FilterConditions::lessEqual>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
+	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
 	if (std::is_integral<T>::value)
 	{
@@ -571,8 +571,8 @@ void testConstConst()
 
 
 	// Equal
-	GPUFilter::constConst<FilterConditions::equal>(outputBuffer, inputDataAConstant, inputDataBConstant, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, DATA_ELEMENT_COUNT);
+	GPUFilter::constConst<FilterConditions::equal>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
+	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
 	if (std::is_integral<T>::value)
 	{
@@ -585,8 +585,8 @@ void testConstConst()
 
 
 	// Non equal
-	GPUFilter::constConst<FilterConditions::notEqual>(outputBuffer, inputDataAConstant, inputDataBConstant, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, DATA_ELEMENT_COUNT);
+	GPUFilter::constConst<FilterConditions::notEqual>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
+	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
 	if (std::is_integral<T>::value)
 	{
@@ -610,7 +610,7 @@ TEST(GPUFilterTests, FiltersConstConst)
 	// Initialize CUDA context:
 	Context::getInstance();
 
-	testConstConst<int32_t>();
-	testConstConst<int64_t>();
-	testConstConst<float>();
+	testConstConstFilter<int32_t>();
+	testConstConstFilter<int64_t>();
+	testConstConstFilter<float>();
 }
