@@ -158,7 +158,7 @@ TEST(DispatcherTests, LongGtColumnConst)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (2 * pow(10, 18) + j % 1024 > 500000000)
+			if (static_cast<int64_t>(2 * pow(10, 18)) + j % 1024 > 500000000)
 			{
 				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
 			}
@@ -186,9 +186,9 @@ TEST(DispatcherTests, LongGtConstColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (500000000 > 2 * pow(10, 18) + j % 1024)
+			if (500000000 > static_cast<int64_t>(2 * pow(10, 18)) + j % 1024)
 			{
-				expectedResult.push_back(2 * pow(10, 18) + j % 1024);
+				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
 			}
 		}
 	}
@@ -215,7 +215,7 @@ TEST(DispatcherTests, LongGtColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if ((2 * pow(10, 18) + j % 2048) > (2 * pow(10, 18) + j % 1024))
+			if ((static_cast<int64_t>(2 * pow(10, 18)) + j % 2048) > (static_cast<int64_t>(2 * pow(10, 18)) + j % 1024))
 			{
 				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 2048);
 			}
@@ -530,7 +530,12 @@ TEST(DispatcherTests, DoubleGtConstConstFalse)
 	}
 }
 
-TEST(DispatcherTests, LtColumnConst)
+/////////////////////
+//   "<" operator
+/////////////////////
+
+//INT "<"
+TEST(DispatcherTests, IntLtColumnConst)
 {
 	Context::getInstance();
 
@@ -557,7 +562,7 @@ TEST(DispatcherTests, LtColumnConst)
 	}
 }
 
-TEST(DispatcherTests, LtConstColumn)
+TEST(DispatcherTests, IntLtConstColumn)
 {
 	Context::getInstance();
 
@@ -585,6 +590,466 @@ TEST(DispatcherTests, LtConstColumn)
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
 	}
 }
+
+TEST(DispatcherTests, IntLtColumnColumn)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE colInteger1 < colInteger2;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			if ((j % 1024) < (j % 2048))
+			{
+				expectedResult.push_back(j % 1024);
+			}
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colInteger1");
+
+	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, IntLtConstConstTrue)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE 5 < 10;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			expectedResult.push_back(j % 1024);
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colInteger1");
+
+	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, IntLtConstConstFalse)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE 10 < 5;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResult;
+
+	auto &payloads = result->payloads().at("TableA.colInteger1");
+
+	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
+	}
+}
+
+// LONG "<"
+TEST(DispatcherTests, LongLtColumnConst)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colLong1 FROM TableA WHERE colLong1 < 500000000;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int64_t> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+			if (2 * (10, 18) + j % 1024 < 500000000)
+			{
+				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
+			}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colLong1");
+
+	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
+	{
+		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
+	}
+}
+
+TEST(DispatcherTests, LongLtConstColumn)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colLong1 FROM TableA WHERE 500000000 < colLong1;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int64_t> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			if (500000000 < static_cast<int64_t>(2 * pow(10, 18)) + j % 1024)
+			{
+				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
+			}
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colLong1");
+
+	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
+	{
+		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
+	}
+}
+
+TEST(DispatcherTests, LongLtColumnColumn)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colLong1 FROM TableA WHERE colLong1 < colLong2;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int64_t> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			if ((static_cast<int64_t>(2 * pow(10, 18)) + j % 2048) > (static_cast<int64_t>(2 * pow(10, 18)) + j % 1024))
+			{
+				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
+			}
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colLong1");
+
+	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
+	{
+		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
+	}
+}
+
+TEST(DispatcherTests, LongLtConstConstTrue)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colLong1 FROM TableA WHERE 5 < 10;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int64_t> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colLong1");
+
+	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
+	{
+		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
+	}
+}
+
+TEST(DispatcherTests, LongLtConstConstFalse)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colLong1 FROM TableA WHERE 10 < 5;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int64_t> expectedResult;
+
+	auto &payloads = result->payloads().at("TableA.colLong1");
+
+	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
+	{
+		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
+	}
+}
+
+//FLOAT "<"
+TEST(DispatcherTests, FloatLtColumnConst)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colFloat1 FROM TableA WHERE colFloat1 < 5.5;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+			if (((float)(j % 1024 + 0.1111)) < 5.5)
+			{
+				expectedResult.push_back((float)(j % 1024 + 0.1111));
+			}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colFloat1");
+
+	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, FloatLtConstColumn)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colFloat1 FROM TableA WHERE 5.5 < colFloat1;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+			if (((float)(j % 1024 + 0.1111)) > 5.5)
+			{
+				expectedResult.push_back((float)(j % 1024 + 0.1111));
+			}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colFloat1");
+
+	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, FloatLtColumnColumn)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colFloat1 FROM TableA WHERE colFloat1 < colFloat2;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			if (((float)(j % 1024 + 0.1111)) < ((float)(j % 2048 + 0.1111)))
+			{
+				expectedResult.push_back((float)(j % 1024 + 0.1111));
+			}
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colFloat1");
+
+	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, FloatLtConstConstTrue)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colFloat1 FROM TableA WHERE 5 < 10;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			expectedResult.push_back((float)(j % 1024 + 0.1111));
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colFloat1");
+
+	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, FloatLtConstConstFalse)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colFloat1 FROM TableA WHERE 10 < 5;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResult;
+
+	auto &payloads = result->payloads().at("TableA.colFloat1");
+
+	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
+	}
+}
+
+//DOUBLE "<"
+TEST(DispatcherTests, DoubleLtColumnConst)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colDouble1 FROM TableA WHERE colDouble1 < 5.5;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<double> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+			if ((j % 1024 + 0.1111111) < 5.5)
+			{
+				expectedResult.push_back(j % 1024 + 0.1111111);
+			}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colDouble1");
+
+	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
+	{
+		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
+	}
+}
+
+TEST(DispatcherTests, DoubleLtConstColumn)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colDouble1 FROM TableA WHERE 5.5 < colDouble1;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<double> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+			if ((j % 1024 + 0.1111111) > 5.5)
+			{
+				expectedResult.push_back(j % 1024 + 0.1111111);
+			}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colDouble1");
+
+	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
+	{
+		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
+	}
+}
+
+TEST(DispatcherTests, DoubleLtColumnColumn)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colDouble1 FROM TableA WHERE colDouble1 < colDouble2;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<double> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			if ((j % 1024 + 0.1111111) < (j % 2048 + 0.1111111))
+			{
+				expectedResult.push_back(j % 1024 + 0.1111111);
+			}
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colDouble1");
+
+	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
+	{
+		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
+	}
+}
+
+TEST(DispatcherTests, DoubleLtConstConstTrue)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colDouble1 FROM TableA WHERE 5 < 10;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<double> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			expectedResult.push_back(j % 1024 + 0.1111111);
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colDouble1");
+
+	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
+	{
+		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
+	}
+}
+
+TEST(DispatcherTests, DoubleLtConstConstFalse)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colDouble1 FROM TableA WHERE 10 < 5;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<double> expectedResult;
+
+	auto &payloads = result->payloads().at("TableA.colDouble1");
+
+	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
+	{
+		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
+	}
+}
+
 
 TEST(DispatcherTests, IntAddColumnConst)
 {
@@ -705,7 +1170,7 @@ TEST(DispatcherTests, LongAddColumnConstGtConst)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((2 * pow(10, 18) + j % 1024) + 5) > 500)
+			if (((static_cast<int64_t>(2 * pow(10, 18)) + j % 1024) + 5) > 500)
 			{
 				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
 			}
@@ -733,9 +1198,9 @@ TEST(DispatcherTests, LongAddColumnConstLtConst)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((2 * pow(10, 18) + j % 1024) + 5) < 500)
+			if (((static_cast<int64_t>(2 * pow(10, 18)) + j % 1024) + 5) < 500)
 			{
-				expectedResult.push_back(2 * pow(10, 18) + j % 1024);
+				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
 			}
 		}
 	}
@@ -1029,7 +1494,7 @@ TEST(DispatcherTests, LongSubColumnConstGtConst)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((2 * pow(10, 18) + j % 1024) - 5) > 500)
+			if (((static_cast<int64_t>(2 * pow(10, 18)) + j % 1024) - 5) > 500)
 			{
 				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
 			}
@@ -1057,9 +1522,9 @@ TEST(DispatcherTests, LongSubColumnConstLtConst)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((2 * pow(10, 18) + j % 1024) - 5) < 500)
+			if (((static_cast<int64_t>(2 * pow(10, 18)) + j % 1024) - 5) < 500)
 			{
-				expectedResult.push_back(2 * pow(10, 18) + j % 1024);
+				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
 			}
 		}
 	}
