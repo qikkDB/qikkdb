@@ -75,6 +75,10 @@
     <ClCompile Include="..\dropdbase\messages\SetDatabaseMessage.pb.cc">
       <Filter>dropdbase sources</Filter>
     </ClCompile>
+    <ClCompile Include="CSVDataImportTests.cpp" />
+    <ClCompile Include="..\dropdbase\CSVDataImporter.cpp">
+      <Filter>dropdbase sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\dropdbase\QueryEngine\Context.h">
@@ -171,6 +175,12 @@
       <Filter>dropdbase sources</Filter>
     </ClInclude>
     <ClInclude Include="..\dropdbase\messages\SetDatabaseMessage.pb.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dropdbase\CSVDataImporter.h">
+      <Filter>dropdbase sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CSVParser.hpp">
       <Filter>dropdbase sources</Filter>
     </ClInclude>
   </ItemGroup>

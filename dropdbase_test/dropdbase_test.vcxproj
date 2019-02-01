@@ -39,6 +39,7 @@
     <ClCompile Include="..\dropdbase\ColumnBase.cpp" />
     <ClCompile Include="..\dropdbase\ComplexPolygonFactory.cpp" />
     <ClCompile Include="..\dropdbase\Configuration.cpp" />
+    <ClCompile Include="..\dropdbase\CSVDataImporter.cpp" />
     <ClCompile Include="..\dropdbase\Database.cpp" />
     <ClCompile Include="..\dropdbase\DatabaseGenerator.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.cpp" />
