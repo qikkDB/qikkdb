@@ -108,8 +108,8 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						int64_t result = (static_cast<int64_t>(2 * pow(10, 18))) + k % (1024 * longColumnCount);
-						longData.push_back(sameDataInBlocks ? static_cast<int64_t>(pow(10, 18)) : result);
+						int64_t result = (static_cast<int64_t>(2 * pow(10, k % 19))) + k % (1024 * longColumnCount);
+						longData.push_back(sameDataInBlocks ? static_cast<int64_t>(pow(10, k % 19)) : result);
 					}
 					column.AddBlock(longData);
 				}
