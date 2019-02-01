@@ -4640,9 +4640,6 @@ TEST(DispatcherTests, DoubleDivColumnConstLtConst)
 	}
 }
 
-////////////////////////////////////////////////
-///////////////////////////////////////////////
-
 TEST(DispatcherTests, IntDivColumnConstFloat)
 {
 	Context::getInstance();
@@ -4662,7 +4659,7 @@ TEST(DispatcherTests, IntDivColumnConstFloat)
 
 	auto &payloads = result->payloads().at("R0");
 
-//	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
@@ -4692,7 +4689,7 @@ TEST(DispatcherTests, IntDivColumnConstGtConstFloat)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
-//	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
@@ -4722,7 +4719,7 @@ TEST(DispatcherTests, IntDivColumnConstLtConstFloat)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
-//	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
@@ -4749,7 +4746,7 @@ TEST(DispatcherTests, LongDivColumnConstFloat)
 
 	auto &payloads = result->payloads().at("R0");
 
-//	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
@@ -4779,7 +4776,7 @@ TEST(DispatcherTests, LongDivColumnConstGtConstFloat)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
-//	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
@@ -4809,7 +4806,7 @@ TEST(DispatcherTests, LongDivColumnConstLtConstFloat)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
-//	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
