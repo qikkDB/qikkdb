@@ -326,7 +326,7 @@ int32_t containsColConst(GpuSqlDispatcher &dispatcher)
 	auto reg = dispatcher.arguments.read<std::string>();
 
 
-	std::cout << "Contains: " + colName << " " << constWkt << " " << reg << std::endl;
+	std::cout << "ContainsColConst: " + colName << " " << constWkt << " " << reg << std::endl;
 
 	auto polygonCol = dispatcher.findComplexPolygon(colName);
 	ColmnarDB::Types::Point pointConst = PointFactory::FromWkt(constWkt);
@@ -348,7 +348,7 @@ int32_t containsConstCol(GpuSqlDispatcher &dispatcher)
 	auto reg = dispatcher.arguments.read<std::string>();
 
 
-	std::cout << "Contains: " + constWkt << " " << colName << " " << reg << std::endl;
+	std::cout << "ContainsConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
 
 	std::tuple<uintptr_t, int32_t> columnPoint = dispatcher.allocatedPointers.at(colName);
 	ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
@@ -364,12 +364,44 @@ int32_t containsConstCol(GpuSqlDispatcher &dispatcher)
 template<typename T, typename U>
 int32_t containsColCol(GpuSqlDispatcher &dispatcher)
 {
+	auto colNamePoint = dispatcher.arguments.read<std::string>();
+	auto colNamePolygon = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+
+	std::cout << "ContainsColCol: " + colNamePolygon << " " << colNamePoint << " " << reg << std::endl;
+
+	std::tuple<uintptr_t, int32_t> pointCol = dispatcher.allocatedPointers.at(colNamePoint);
+	auto polygonCol = dispatcher.findComplexPolygon(colNamePolygon);
+	GPUMemory::GPUPolygon gpuPolygon = std::get<0>(polygonCol);
+
+	int32_t retSize = std::min(std::get<1>(pointCol), std::get<1>(polygonCol));
+
+	int8_t * result = dispatcher.allocateRegister<int8_t>(reg, retSize);
+	GPUPolygon::contains(result, reinterpret_cast<NativeGeoPoint*>(std::get<0>(pointCol)), reinterpret_cast<NativeGeoPoint*>(gpuPolygon.polyPoints), reinterpret_cast<int32_t*>(gpuPolygon.polyIdx), reinterpret_cast<int32_t*>(gpuPolygon.polyCount), reinterpret_cast<int32_t*>(gpuPolygon.pointIdx), reinterpret_cast<int32_t*>(gpuPolygon.pointCount), std::get<1>(pointCol), std::get<1>(polygonCol));
 	return 0;
 }
 
 template<typename T, typename U>
 int32_t containsConstConst(GpuSqlDispatcher &dispatcher)
 {
+	// TODO : Specialize kernel for all cases.
+	auto constPointWkt = dispatcher.arguments.read<std::string>();
+	auto constPolygonWkt = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+	std::cout << "ContainsConstConst: " + constPolygonWkt << " " << constPointWkt << " " << reg << std::endl;
+
+	ColmnarDB::Types::Point constPoint = PointFactory::FromWkt(constPointWkt);
+	ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constPolygonWkt);
+
+	NativeGeoPoint *constNativeGeoPoint = dispatcher.insertConstPointGpu(constPoint);
+	GPUMemory::GPUPolygon gpuPolygon = dispatcher.insertConstPolygonGpu(constPolygon);
+
+	int32_t retSize = dispatcher.database->GetBlockSize();
+
+	int8_t * result = dispatcher.allocateRegister<int8_t>(reg, retSize);
+	GPUPolygon::contains(result, constNativeGeoPoint, reinterpret_cast<NativeGeoPoint*>(gpuPolygon.polyPoints), reinterpret_cast<int32_t*>(gpuPolygon.polyIdx), reinterpret_cast<int32_t*>(gpuPolygon.polyCount), reinterpret_cast<int32_t*>(gpuPolygon.pointIdx), reinterpret_cast<int32_t*>(gpuPolygon.pointCount), 1, 1);
 	return 0;
 }
 
