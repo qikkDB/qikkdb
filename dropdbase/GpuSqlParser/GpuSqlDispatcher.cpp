@@ -353,6 +353,7 @@ int32_t fil(GpuSqlDispatcher &dispatcher)
 int32_t done(GpuSqlDispatcher &dispatcher)
 {
 	dispatcher.arguments.reset();
+	dispatcher.allocatedPointers.clear();
 	return 0;
 }
 
