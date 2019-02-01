@@ -9,7 +9,7 @@
 
 std::vector<std::string> tableNames = { "TableA" };
 std::vector<DataType> columnTypes = { {COLUMN_INT},{COLUMN_INT},{COLUMN_LONG},{COLUMN_LONG},{COLUMN_FLOAT},{COLUMN_FLOAT},{COLUMN_DOUBLE},{COLUMN_DOUBLE} };
-std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 11,0,tableNames,columnTypes);
+std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 11, false , tableNames, columnTypes);
 /////////////////////
 //   ">" operator
 /////////////////////
@@ -35,6 +35,8 @@ TEST(DispatcherTests, IntGtColumnConst)
 	}
 	
 	auto &payloads = result->payloads().at("TableA.colInteger1");
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
@@ -65,6 +67,8 @@ TEST(DispatcherTests, IntGtConstColumn)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -94,6 +98,8 @@ TEST(DispatcherTests, IntGtColumnColumn)
 
 	auto &payloads = result->payloads().at("TableA.colInteger2");
 
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -120,6 +126,8 @@ TEST(DispatcherTests, IntGtConstConstTrue)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -134,14 +142,9 @@ TEST(DispatcherTests, IntGtConstConstFalse)
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	std::vector<int32_t> expectedResult;
-
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
-	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
-	{
-		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
-	}
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);
 }
 
 // LONG ">"
@@ -165,6 +168,8 @@ TEST(DispatcherTests, LongGtColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
+
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
@@ -195,6 +200,8 @@ TEST(DispatcherTests, LongGtConstColumn)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
@@ -224,6 +231,8 @@ TEST(DispatcherTests, LongGtColumnColumn)
 
 	auto &payloads = result->payloads().at("TableA.colLong2");
 
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
@@ -250,6 +259,8 @@ TEST(DispatcherTests, LongGtConstConstTrue)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
@@ -268,10 +279,7 @@ TEST(DispatcherTests, LongGtConstConstFalse)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
-	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
-	{
-		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
-	}
+	ASSERT_EQ(payloads.int64payload().int64data_size(), 0);
 }
 
 //FLOAT ">"
@@ -295,6 +303,8 @@ TEST(DispatcherTests, FloatGtColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
+
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
@@ -322,6 +332,8 @@ TEST(DispatcherTests, FloatGtConstColumn)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
+
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
@@ -352,6 +364,8 @@ TEST(DispatcherTests, FloatGtColumnColumn)
 
 	auto &payloads = result->payloads().at("TableA.colFloat2");
 
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
 		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
@@ -378,6 +392,8 @@ TEST(DispatcherTests, FloatGtConstConstTrue)
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
 
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
 		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
@@ -396,10 +412,7 @@ TEST(DispatcherTests, FloatGtConstConstFalse)
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
 
-	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
-	{
-		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
-	}
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), 0);
 }
 
 //DOUBLE ">"
@@ -423,6 +436,8 @@ TEST(DispatcherTests, DoubleGtColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
+
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
@@ -450,6 +465,8 @@ TEST(DispatcherTests, DoubleGtConstColumn)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
+
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
@@ -480,6 +497,8 @@ TEST(DispatcherTests, DoubleGtColumnColumn)
 
 	auto &payloads = result->payloads().at("TableA.colDouble2");
 
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
 		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
@@ -506,6 +525,8 @@ TEST(DispatcherTests, DoubleGtConstConstTrue)
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
 
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
 		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
@@ -524,10 +545,7 @@ TEST(DispatcherTests, DoubleGtConstConstFalse)
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
 
-	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
-	{
-		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
-	}
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), 0);
 }
 
 /////////////////////
@@ -555,6 +573,8 @@ TEST(DispatcherTests, IntLtColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
@@ -585,6 +605,8 @@ TEST(DispatcherTests, IntLtConstColumn)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -614,6 +636,8 @@ TEST(DispatcherTests, IntLtColumnColumn)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -640,6 +664,8 @@ TEST(DispatcherTests, IntLtConstConstTrue)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -658,10 +684,7 @@ TEST(DispatcherTests, IntLtConstConstFalse)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
-	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
-	{
-		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
-	}
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);
 }
 
 // LONG "<"
@@ -685,6 +708,8 @@ TEST(DispatcherTests, LongLtColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
+
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
@@ -715,6 +740,8 @@ TEST(DispatcherTests, LongLtConstColumn)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
@@ -744,6 +771,8 @@ TEST(DispatcherTests, LongLtColumnColumn)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
@@ -770,6 +799,8 @@ TEST(DispatcherTests, LongLtConstConstTrue)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
@@ -788,10 +819,7 @@ TEST(DispatcherTests, LongLtConstConstFalse)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
-	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
-	{
-		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
-	}
+	ASSERT_EQ(payloads.int64payload().int64data_size(), 0);
 }
 
 //FLOAT "<"
@@ -815,6 +843,8 @@ TEST(DispatcherTests, FloatLtColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
+
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
@@ -842,6 +872,8 @@ TEST(DispatcherTests, FloatLtConstColumn)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
+
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
@@ -872,6 +904,8 @@ TEST(DispatcherTests, FloatLtColumnColumn)
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
 
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
 		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
@@ -898,6 +932,8 @@ TEST(DispatcherTests, FloatLtConstConstTrue)
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
 
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
 		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
@@ -916,10 +952,7 @@ TEST(DispatcherTests, FloatLtConstConstFalse)
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
 
-	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
-	{
-		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
-	}
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), 0);
 }
 
 //DOUBLE "<"
@@ -943,6 +976,8 @@ TEST(DispatcherTests, DoubleLtColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
+
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
@@ -970,6 +1005,8 @@ TEST(DispatcherTests, DoubleLtConstColumn)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
+
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
@@ -1000,6 +1037,8 @@ TEST(DispatcherTests, DoubleLtColumnColumn)
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
 
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
 		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
@@ -1026,6 +1065,8 @@ TEST(DispatcherTests, DoubleLtConstConstTrue)
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
 
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
 		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
@@ -1044,10 +1085,7 @@ TEST(DispatcherTests, DoubleLtConstConstFalse)
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
 
-	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
-	{
-		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
-	}
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), 0);
 }
 
 
@@ -1069,6 +1107,8 @@ TEST(DispatcherTests, IntAddColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("R0");
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
@@ -1098,6 +1138,8 @@ TEST(DispatcherTests, IntAddColumnConstGtConst)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -1126,6 +1168,8 @@ TEST(DispatcherTests, IntAddColumnConstLtConst)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -1150,6 +1194,8 @@ TEST(DispatcherTests, LongAddColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("R0");
+
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
@@ -1179,6 +1225,8 @@ TEST(DispatcherTests, LongAddColumnConstGtConst)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
@@ -1207,6 +1255,8 @@ TEST(DispatcherTests, LongAddColumnConstLtConst)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
@@ -1231,6 +1281,8 @@ TEST(DispatcherTests, FloatAddColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("R0");
+
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
@@ -1260,6 +1312,8 @@ TEST(DispatcherTests, FloatAddColumnConstGtConst)
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
 
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
 		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
@@ -1288,6 +1342,8 @@ TEST(DispatcherTests, FloatAddColumnConstLtConst)
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
 
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
 		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
@@ -1312,6 +1368,8 @@ TEST(DispatcherTests, DoubleAddColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("R0");
+
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
@@ -1341,6 +1399,8 @@ TEST(DispatcherTests, DoubleAddColumnConstGtConst)
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
 
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
 		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
@@ -1369,6 +1429,8 @@ TEST(DispatcherTests, DoubleAddColumnConstLtConst)
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
 
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
 		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
@@ -1393,6 +1455,8 @@ TEST(DispatcherTests, IntSubColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("R0");
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
@@ -1422,6 +1486,8 @@ TEST(DispatcherTests, IntSubColumnConstGtConst)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -1450,6 +1516,8 @@ TEST(DispatcherTests, IntSubColumnConstLtConst)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -1474,6 +1542,8 @@ TEST(DispatcherTests, LongSubColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("R0");
+
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
@@ -1503,6 +1573,8 @@ TEST(DispatcherTests, LongSubColumnConstGtConst)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
@@ -1531,6 +1603,8 @@ TEST(DispatcherTests, LongSubColumnConstLtConst)
 
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
+	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
@@ -1555,6 +1629,8 @@ TEST(DispatcherTests, FloatSubColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("R0");
+
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
@@ -1584,6 +1660,8 @@ TEST(DispatcherTests, FloatSubColumnConstGtConst)
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
 
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
 		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
@@ -1612,6 +1690,8 @@ TEST(DispatcherTests, FloatSubColumnConstLtConst)
 
 	auto &payloads = result->payloads().at("TableA.colFloat1");
 
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
 		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
@@ -1636,6 +1716,8 @@ TEST(DispatcherTests, DoubleSubColumnConst)
 	}
 
 	auto &payloads = result->payloads().at("R0");
+
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
@@ -1665,6 +1747,8 @@ TEST(DispatcherTests, DoubleSubColumnConstGtConst)
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
 
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
+
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
 		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
@@ -1692,6 +1776,8 @@ TEST(DispatcherTests, DoubleSubColumnConstLtConst)
 	}
 
 	auto &payloads = result->payloads().at("TableA.colDouble1");
+
+	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 
 	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
 	{
