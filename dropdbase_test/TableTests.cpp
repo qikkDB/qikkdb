@@ -18,7 +18,6 @@ TEST(TableTests, CreateColumn)
 	table.CreateColumn("ColumnPoint", COLUMN_POINT);
 	table.CreateColumn("ColumnPolygon", COLUMN_POLYGON);
 	table.CreateColumn("ColumnString", COLUMN_STRING);
-	table.CreateColumn("ColumnBool", COLUMN_BOOL);
 
 	auto columnTypeInt = table.GetColumns().at("ColumnInt")->GetColumnType();
 	auto columnTypeLong = table.GetColumns().at("ColumnLong")->GetColumnType();
@@ -27,7 +26,6 @@ TEST(TableTests, CreateColumn)
 	auto columnTypePoint = table.GetColumns().at("ColumnPoint")->GetColumnType();
 	auto columnTypePolygon = table.GetColumns().at("ColumnPolygon")->GetColumnType();
 	auto columnTypeString = table.GetColumns().at("ColumnString")->GetColumnType();
-	auto columnTypeBool = table.GetColumns().at("ColumnBool")->GetColumnType();
 	
 	ASSERT_EQ(columnTypeInt, COLUMN_INT);
 	ASSERT_EQ(columnTypeLong, COLUMN_LONG);
@@ -36,7 +34,6 @@ TEST(TableTests, CreateColumn)
 	ASSERT_EQ(columnTypePoint, COLUMN_POINT);
 	ASSERT_EQ(columnTypePolygon, COLUMN_POLYGON);
 	ASSERT_EQ(columnTypeString, COLUMN_STRING);
-	ASSERT_EQ(columnTypeBool, COLUMN_BOOL);
 }
 
 TEST(TableTests, InsertData)

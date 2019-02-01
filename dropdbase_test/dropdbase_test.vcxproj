@@ -61,7 +61,7 @@
     <ClCompile Include="BlockTests.cpp" />
     <ClCompile Include="ColumnTests.cpp" />
     <ClCompile Include="DatabaseTests.cpp" />
-    <ClCompile Include="IILExecutorTests.cpp" />
+    <ClCompile Include="DispatcherTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
     <CudaCompile Include="CudaTests.cu" />
   </ItemGroup>
@@ -187,6 +187,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

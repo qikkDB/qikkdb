@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="TableTests.cpp" />
     <ClCompile Include="ColumnTests.cpp" />
-    <ClCompile Include="IILExecutorTests.cpp" />
     <ClCompile Include="..\dropdbase\BlockBase.cpp">
       <Filter>dropdbase sources</Filter>
     </ClCompile>
@@ -72,6 +71,7 @@
     <ClCompile Include="..\dropdbase\messages\SetDatabaseMessage.pb.cc">
       <Filter>dropdbase sources</Filter>
     </ClCompile>
+    <ClCompile Include="DispatcherTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\dropdbase\QueryEngine\Context.h">
