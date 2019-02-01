@@ -190,7 +190,7 @@ for operation in operations_move:
 
         if col == "Reg":
             function = operation + col
-        elif colVal == STRING or colVal == BOOL:
+        elif colVal == STRING or colVal == BOOL or colVal in geo_types:
             function = "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         else:
             function = operation + col + "<" + colVal + ">"

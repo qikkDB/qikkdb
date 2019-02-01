@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	auto start = std::chrono::high_resolution_clock::now();
 	
 
-    GpuSqlCustomParser parser(database, "SELECT colFloat1 FROM TableA WHERE colPolygon1 CONTAINS POINT(10 11);");
+    GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE colInteger1 < 10;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();

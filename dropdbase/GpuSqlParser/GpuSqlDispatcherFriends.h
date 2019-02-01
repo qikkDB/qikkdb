@@ -327,9 +327,7 @@ int32_t containsColConst(GpuSqlDispatcher &dispatcher)
 	auto reg = dispatcher.arguments.read<std::string>();
 
 
-	std::cout << "Contains Point Const: " + constWkt << std::endl;
-	std::cout << "Contains Polygon Col: " + colName << std::endl;
-	std::cout << "Contains reg: " + reg << std::endl;
+	std::cout << "Contains: " + colName << " " << constWkt << " " << reg << std::endl;
 
 	auto polygonCol = dispatcher.findComplexPolygon(colName);
 	ColmnarDB::Types::Point pointConst = PointFactory::FromWkt(constWkt);
