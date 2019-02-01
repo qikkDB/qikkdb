@@ -45,9 +45,6 @@
     <ClCompile Include="..\dropdbase\DatabaseGenerator.cpp">
       <Filter>dropdbase sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\dropdbase\main.cpp">
-      <Filter>dropdbase sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\dropdbase\PointFactory.cpp">
       <Filter>dropdbase sources</Filter>
     </ClCompile>
