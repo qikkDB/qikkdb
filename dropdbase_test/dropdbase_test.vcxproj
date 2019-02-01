@@ -63,6 +63,7 @@
     <ClCompile Include="DatabaseTests.cpp" />
     <ClCompile Include="DispatcherTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
+    <CudaCompile Include="CudaTests.cu" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\dropdbase\QueryEngine\CudaMemAllocator.cu">

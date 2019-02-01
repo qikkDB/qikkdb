@@ -216,6 +216,7 @@
     <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cpp">
       <Filter>dropdbase sources</Filter>
     </CudaCompile>
+    <CudaCompile Include="CudaTests.cu" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dropdbase sources">

@@ -160,7 +160,7 @@ TEST(DispatcherTests, LongGtColumnConst)
 		for (int j = 0; j < (1 << 11); j++)
 			if (2 * pow(10, 18) + j % 1024 > 500000000)
 			{
-				expectedResult.push_back(2 * pow(10, 18) + j % 1024);
+				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
 			}
 	}
 
@@ -217,7 +217,7 @@ TEST(DispatcherTests, LongGtColumnColumn)
 		{
 			if ((2 * pow(10, 18) + j % 2048) > (2 * pow(10, 18) + j % 1024))
 			{
-				expectedResult.push_back(2 * pow(10, 18) + j % 2048);
+				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 2048);
 			}
 		}
 	}
@@ -244,7 +244,7 @@ TEST(DispatcherTests, LongGtConstConstTrue)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			expectedResult.push_back(2 * pow(10, 18) + j % 1024);
+			expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
 		}
 	}
 
@@ -680,7 +680,7 @@ TEST(DispatcherTests, LongAddColumnConst)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			expectedResult.push_back((2 * pow(10, 18) + j % 1024) + 5);
+			expectedResult.push_back((static_cast<int64_t>(2 * pow(10, 18)) + j % 1024) + 5);
 		}
 	}
 
@@ -707,7 +707,7 @@ TEST(DispatcherTests, LongAddColumnConstGtConst)
 		{
 			if (((2 * pow(10, 18) + j % 1024) + 5) > 500)
 			{
-				expectedResult.push_back(2 * pow(10, 18) + j % 1024);
+				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
 			}
 		}
 	}
@@ -1004,7 +1004,7 @@ TEST(DispatcherTests, LongSubColumnConst)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			expectedResult.push_back((2 * pow(10, 18) + j % 1024) - 5);
+			expectedResult.push_back((static_cast<int64_t>(2 * pow(10, 18)) + j % 1024) - 5);
 		}
 	}
 
@@ -1031,7 +1031,7 @@ TEST(DispatcherTests, LongSubColumnConstGtConst)
 		{
 			if (((2 * pow(10, 18) + j % 1024) - 5) > 500)
 			{
-				expectedResult.push_back(2 * pow(10, 18) + j % 1024);
+				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, 18)) + j % 1024);
 			}
 		}
 	}
@@ -1093,7 +1093,7 @@ TEST(DispatcherTests, FloatSubColumnConst)
 
 	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
-		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
+		ASSERT_TRUE(std::abs(expectedResult[i] - payloads.floatpayload().floatdata()[i]) < 0.00005);
 	}
 }
 
