@@ -85,4 +85,12 @@ public:
 		data_.insert(data_.end(), data.cbegin(), data.cend());
 		setBlockStatistics();
 	}
+	
+	~BlockBase()
+	{
+		GPUMemory::hostUnregister(data_.data());
+	}
+
+	BlockBase(const BlockBase&) = delete;
+	BlockBase& operator=(const BlockBase&) = delete;
 };
