@@ -136,6 +136,7 @@ TEST(TCPServer, ServerMessageInfo)
 {
 	try
 	{
+		printf("\nServerMessageInfo\n");
 		TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
 		auto future = std::thread([&testServer]() {testServer.Run(); });
 		boost::asio::io_context context;
@@ -144,6 +145,7 @@ TEST(TCPServer, ServerMessageInfo)
 		ASSERT_NO_THROW(disconnect(sock));
 		testServer.Abort();
 		future.join();
+		printf("\nServerMessageInfoEnd\n");
 	}
 	catch (std::exception& e)
 	{
@@ -155,6 +157,7 @@ TEST(TCPServer, ServerMessageSetDB)
 {
 	try
 	{
+		printf("\nServerMessageSetDB\n");
 		TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
 		auto future = std::thread([&testServer]() {testServer.Run(); });
 		boost::asio::io_context context;
@@ -164,6 +167,7 @@ TEST(TCPServer, ServerMessageSetDB)
 		ASSERT_NO_THROW(disconnect(sock));
 		testServer.Abort();
 		future.join();
+		printf("\nServerMessageSetDBEnd\n");
 	}
 	catch (std::exception& e)
 	{
@@ -175,6 +179,7 @@ TEST(TCPServer, ServerMessageQuery)
 {
 	try
 	{
+		printf("\nServerMessageQuery\n");
 		TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
 		auto future = std::thread([&testServer]() {testServer.Run(); });
 		boost::asio::io_context context;
@@ -187,6 +192,7 @@ TEST(TCPServer, ServerMessageQuery)
 		ASSERT_NO_THROW(disconnect(sock));
 		testServer.Abort();
 		future.join();
+		printf("\nServerMessageQueryEnd\n");
 	}
 	catch (std::exception& e)
 	{
@@ -198,6 +204,7 @@ TEST(TCPServer, ServerMessageCSV)
 {
 	try
 	{
+		printf("\nServerMessageCSV\n");
 		TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
 		auto future = std::thread([&testServer]() {testServer.Run(); });
 		boost::asio::io_context context;
@@ -207,6 +214,7 @@ TEST(TCPServer, ServerMessageCSV)
 		ASSERT_NO_THROW(disconnect(sock));
 		testServer.Abort();
 		future.join();
+		printf("\nServerMessageCSVEnd\n");
 	}
 	catch (std::exception& e)
 	{

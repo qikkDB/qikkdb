@@ -5,7 +5,7 @@
 #include "Configuration.h"
 #include <functional>
 #include <stdexcept>
-#include <boost/timer/timer.hpp>
+#include <chrono>
 #include "messages/QueryResponseMessage.pb.h"
 #include <boost/log/trivial.hpp>
 
@@ -149,14 +149,15 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::RunQuery(const std:
 {
 	try
 	{
-		boost::timer::cpu_timer queryTimer;
-		auto elapsed = queryTimer.elapsed();
-		auto parserTime = elapsed.system + elapsed.user;
+		auto start = std::chrono::high_resolution_clock::now();
 		auto sharedDb = database.lock();
 		GpuSqlCustomParser parser(sharedDb, queryMessage.query());
 		{
 			std::lock_guard<std::mutex> queryLock(queryMutex_);
-			return parser.parse();
+			auto ret = parser.parse();
+			auto end = std::chrono::high_resolution_clock::now();
+			BOOST_LOG_TRIVIAL(info) << "Elapsed: " << std::chrono::duration<double>(end-start).count() << " sec.";
+			return ret;
 		}
 	}
 	catch (std::exception& e)

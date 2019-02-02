@@ -1,5 +1,6 @@
 #pragma once
 #include <boost/asio.hpp>
+#include <thread>
 #include <condition_variable>
 #include <mutex>
 #include <memory>
@@ -31,7 +32,7 @@ private:
 		{
 			if (!ec)
 			{
-				std::thread handlerThread([this](boost::asio::ip::tcp::socket sock)
+				std::thread handlerThread([this](boost::asio::ip::tcp::socket&& sock)
 				{
 					try
 					{

@@ -1,16 +1,12 @@
 #include <cstdio>
 #include <iostream>
 #include <chrono>
-#include "GpuSqlParser/GpuSqlCustomParser.h"
-#include "GpuSqlParser/MemoryStream.h"
 #include <boost/log/core.hpp>
 #include <boost/log/sinks/text_file_backend.hpp>
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/trivial.hpp>
-#include "DatabaseGenerator.h"
 #include "QueryEngine/Context.h"
-#include "QueryEngine/GPUCore/GPUMemory.cuh"
 #include "Configuration.h"
 #include "TCPServer.h"
 #include "ClientPoolWorker.h"

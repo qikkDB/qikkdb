@@ -90,6 +90,10 @@ void ClientPoolWorker::HandleClient()
 	{
 		BOOST_LOG_TRIVIAL(error) << e.what() << std::endl;
 	}
+	if (!quit_)
+	{
+		Abort();
+	}
 }
 
 /// <summary>
