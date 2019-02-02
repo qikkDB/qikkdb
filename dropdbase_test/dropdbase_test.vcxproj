@@ -44,7 +44,6 @@
     <ClCompile Include="..\dropdbase\Database.cpp" />
     <ClCompile Include="..\dropdbase\DatabaseGenerator.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlCustomParser.cpp" />
-    <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlLexer.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlListener.cpp" />
     <ClCompile Include="..\dropdbase\GpuSqlParser\GpuSqlParser.cpp" />
@@ -69,8 +68,9 @@
     <ClCompile Include="TCPServerTests.cpp" />
     <ClCompile Include="BlockTests.cpp" />
     <ClCompile Include="DatabaseTests.cpp" />
-    <ClCompile Include="IILExecutorTests.cpp" />
+    <ClCompile Include="DispatcherTests.cpp" />
     <ClCompile Include="TableTests.cpp" />
+    <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cu" />
     <CudaCompile Include="CudaTests.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +171,9 @@
       <SubSystem>Console</SubSystem>
       <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <CudaCompile>
+      <AdditionalCompilerOptions>/bigobj</AdditionalCompilerOptions>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

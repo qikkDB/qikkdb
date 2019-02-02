@@ -334,7 +334,6 @@ std::tuple<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(
     } else
     {
         int uses = 0;
-        column = ctx->column()->getText();
         for (auto &tab : loadedTables)
         {
             if (database->GetTables().at(tab).GetColumns().find(col) != database->GetTables().at(tab).GetColumns().end())

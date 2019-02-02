@@ -3,7 +3,7 @@ LONG = "int64_t"
 FLOAT = "float"
 DOUBLE = "double"
 POINT = "ColmnarDB::Types::Point"
-POLYGON = "ColmnarDB::Types::Polygon"
+POLYGON = "ColmnarDB::Types::ComplexPolygon"
 STRING = "std::string"
 BOOL = "bool"
 BYTE = "uint8_t"
@@ -75,12 +75,16 @@ for operation in operations_binary:
                 row = "Reg"
 
             if row == "Reg" and col == "Reg":
-                function = operation + col + row
+                if operation == 'contains':
+                    op = "invalidOperandTypesErrorHandler"
+                else:
+                    op = operation
+                function = op + col + row
             else:
                 if row == "Reg" or col == "Reg":
                     op = "invalidOperandTypesErrorHandler"
 
-                elif colVal in geo_types or rowVal in geo_types:
+                elif operation != 'contains' and (colVal in geo_types or rowVal in geo_types):
                     op = "invalidOperandTypesErrorHandler"
 
                 elif colVal == STRING or rowVal == STRING:
@@ -90,6 +94,9 @@ for operation in operations_binary:
                     op = "invalidOperandTypesErrorHandler"
                 
                 elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
+                    op = "invalidOperandTypesErrorHandler"
+
+                elif operation == "contains" and (colVal != POLYGON or rowVal != POINT):
                     op = "invalidOperandTypesErrorHandler"
 
                 else:
@@ -183,7 +190,7 @@ for operation in operations_move:
 
         if col == "Reg":
             function = operation + col
-        elif colVal in geo_types or colVal == STRING or colVal == BOOL:
+        elif colVal == STRING or colVal == BOOL or colVal in geo_types:
             function = "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         else:
             function = operation + col + "<" + colVal + ">"

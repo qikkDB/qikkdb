@@ -9,7 +9,7 @@
 /// </summary>
 /// <param name="polygons">Polygons to convert</param>
 /// <returns>Tuple of array for the GPU</returns>
-std::tuple<std::vector<NativeGeoPoint>, std::vector<int32_t>, std::vector<int32_t>, std::vector<int32_t>, std::vector<int32_t>>  ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons)
+GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons)
 {
 	// Points of polygons
 	std::vector<NativeGeoPoint> polyPoints;
@@ -42,7 +42,22 @@ std::tuple<std::vector<NativeGeoPoint>, std::vector<int32_t>, std::vector<int32_
 			polyPoints.push_back({ 0, 0 });
 		}
 	}
-	return std::make_tuple(polyPoints, pointIdx, pointCount, polyIdx, polyCount);
+	GPUMemory::GPUPolygon retPointers;
+	GPUMemory::alloc(&retPointers.pointCount, pointCount.size());
+	GPUMemory::copyHostToDevice(retPointers.pointCount, pointCount.data(), pointCount.size());
+
+	GPUMemory::alloc(&retPointers.pointIdx, pointIdx.size());
+	GPUMemory::copyHostToDevice(retPointers.pointIdx, pointIdx.data(), pointIdx.size());
+
+	GPUMemory::alloc(&retPointers.polyCount, polyCount.size());
+	GPUMemory::copyHostToDevice(retPointers.polyCount, polyCount.data(), polyCount.size());
+
+	GPUMemory::alloc(&retPointers.polyIdx, polyIdx.size());
+	GPUMemory::copyHostToDevice(retPointers.polyIdx, polyIdx.data(), polyIdx.size());
+
+	GPUMemory::alloc(&retPointers.polyPoints, polyPoints.size());
+	GPUMemory::copyHostToDevice(retPointers.polyPoints, polyPoints.data(), polyPoints.size());
+	return retPointers;
 }
 
 /// <summary>

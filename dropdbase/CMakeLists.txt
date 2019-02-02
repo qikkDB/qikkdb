@@ -1,25 +1,51 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
+include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 
 set(PROJECT_NAME dropdbase_instarea)
-project(${PROJECT_NAME})
-#enable_language(CUDA)
+project(${PROJECT_NAME} LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 17)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+###### Google Protocol Buffers external project ########
 
-find_package(Protobuf REQUIRED)
-include_directories(${PROTOBUF_INCLUDE_DIRS})
+set(PROTOBUF_TAR_GZ https://github.com/protocolbuffers/protobuf/archive/v3.6.1.tar.gz)
 
-find_package(gtest REQUIRED)
-include_directories(${GTEST_INCLUDE_DIRS})
+ExternalProject_Add(
+  protobuf-external
+  PREFIX protobuf
+  URL ${PROTOBUF_TAR_GZ}
+  BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/protobuf
+  CMAKE_CACHE_ARGS
+    "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}"
+    "-Dprotobuf_BUILD_TESTS:BOOL=OFF"
+    "-Dprotobuf_BUILD_EXAMPLES:BOOL=OFF"
+    "-Dprotobuf_WITH_ZLIB:BOOL=OFF"
+    "-DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}"
+    # other project specific parameters
+  SOURCE_SUBDIR cmake
+  BUILD_ALWAYS 1
+  STEP_TARGETS build
+  INSTALL_COMMAND ""
+)
 
-set(CMAKE_PREFIX_PATH /usr/local/lib/cmake/antlr4)
-set(ANTLR4_JAR_LOCATION /usr/local/lib/antlr-4.7.2-complete.jar)
+EXternalProject_Get_Property(protobuf-external source_dir)
+include_directories(${source_dir}/src)
+link_directories(${CMAKE_CURRENT_BINARY_DIR}/protobuf)
 
-find_package(antlr4-runtime REQUIRED)
-include_directories(${ANTLR4_INCLUDE_DIR})
-find_package(antlr4-generator REQUIRED)
+###### Google Protocol Buffers external project end ########
+
+###### Antlr4 external project ########
+
+add_definitions(-DANTLR4CPP_STATIC)
+# add external build for antlrcpp
+include(ExternalAntlr4Cpp)
+# add antrl4cpp artifacts to project environment
+include_directories(${ANTLR4_INCLUDE_DIRS})
+
+###### Antlr4 external project ########
+
+
 
 SET(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.68.0 COMPONENTS system filesystem log REQUIRED)
@@ -48,12 +74,13 @@ add_executable(${PROJECT_NAME}
         Types/ComplexPolygon.pb.h
         Types/Point.pb.cc
         Types/Point.pb.h
+	QueryEngine/CudaMemAllocator.cu
         BlockBase.h
+        BlockBase.cpp
         ColumnBase.cpp
         ColumnBase.h
         ComplexPolygonFactory.cpp
         ComplexPolygonFactory.h
-        IBlock.h
         main.cpp
         NativeGeoPoint.h
         PointFactory.cpp
@@ -67,7 +94,7 @@ add_executable(${PROJECT_NAME}
         GpuSqlParser/ParserExceptions.h
         GpuSqlParser/GpuSqlListener.cpp
         GpuSqlParser/GpuSqlListener.h
-        GpuSqlParser/GpuSqlDispatcher.cpp
+        GpuSqlParser/GpuSqlDispatcher.cu
         GpuSqlParser/GpuSqlDispatcher.h
         GpuSqlParser/MemoryStream.h
         GpuSqlParser/MemoryStream.cpp
@@ -87,9 +114,19 @@ add_executable(${PROJECT_NAME}
         Table.h
         DatabaseGenerator.cpp
         DatabaseGenerator.h)
+if(WIN32)
+  set(prefix "")
+  set(suffix ".lib")
+elseif(APPLE)
+  set(prefix "lib")
+  set(suffix ".a")
+else()
+  set(prefix "lib")
+  set(suffix ".a")
+endif()
 
-target_link_libraries(${PROJECT_NAME} ${PROTOBUF_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${prefix}protobuf${suffix})
+#target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${YAML_CPP_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} antlr4_static)

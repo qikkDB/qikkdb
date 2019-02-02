@@ -29,7 +29,7 @@ public:
 		switch (cudaError)
 		{
 		case cudaSuccess:
-			type_ = GPU_EXTENSION_SUCCESS;
+			// Don't overwrite last error with success
 			break;
 		default:
 			type_ = GPU_EXTENSION_ERROR;
@@ -39,19 +39,22 @@ public:
 	}
 
 	void setType(Type type) {
-		type_ = type;
+		if (type != GPU_EXTENSION_SUCCESS)
+		{
+			type_ = type;
+		}
 	}
 
-	void setText(std::string& text) {
-		text_ = text;
+	const Type getType() {
+		Type last = type_;
+		type_ = GPU_EXTENSION_SUCCESS;
+		return last;
 	}
 
-	const Type& getType() const {
-		return type_;
-	}
-
-	const std::string& getText() const {
-		return text_;
+	const std::string getText() {
+		std::string last = text_;
+		text_ = "";
+		return last;
 	}
 
 };
