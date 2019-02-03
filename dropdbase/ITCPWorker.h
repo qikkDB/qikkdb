@@ -25,6 +25,7 @@ protected:
 	/// Instance of object responsible for handling messages
 	/// </summary>
 	std::unique_ptr<IClientHandler> clientHandler_;
+	static bool globalQuit_;
 public:
 	/// <summary>
 	/// Create new instance of ITCPWorker object
@@ -38,7 +39,8 @@ public:
 	virtual void Abort() = 0;
 	ITCPWorker(const ITCPWorker&) = delete;
 	ITCPWorker& operator=(const ITCPWorker&) = delete;
-	
+	static void AbortAllWorkers() { globalQuit_ = true; }
+	static void ResetGlobalQuitFlag() { globalQuit_ = false; }
 	/// <summary>
 	/// Current working database
 	/// </summary>

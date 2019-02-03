@@ -76,6 +76,7 @@ public:
 	/// </summary>
 	void Abort()
 	{
+		Worker::AbortAllWorkers();
 		acceptor_.cancel();
 		ioContext_.stop();
 	}

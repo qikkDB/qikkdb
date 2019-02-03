@@ -34,7 +34,7 @@ void ClientPoolWorker::HandleClient()
 	BOOST_LOG_TRIVIAL(debug) << "Hello to " << socket_.remote_endpoint().address().to_string() << "\n";
 	try
 	{
-		while (!quit_)
+		while (!quit_ && !globalQuit_)
 		{
 			BOOST_LOG_TRIVIAL(debug) << "Waiting for message from " << socket_.remote_endpoint().address().to_string() << "\n";
 			recvMsg = NetworkMessage::ReadFromNetwork(socket_);
