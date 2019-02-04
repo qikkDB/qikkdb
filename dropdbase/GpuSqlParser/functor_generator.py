@@ -312,21 +312,27 @@ for operation in operations_aggregation:
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
 
-        if colIdx < len(types):
-            col = "Const"
-        elif colIdx >= len(types):
-            col = "Col"
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
 
-        if colVal in geo_types or colVal == STRING:
-            op = "invalidOperandTypesErrorHandler"
-        else:
-            op = "aggregation"
-        function = op + col + "<AggregationFunctions::" + operation + ", " + colVal + ">"
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
 
-        if colIdx == len(all_types) - 1:
-            declaration += ("&" + function + "};")
-        else:
-            declaration += ("&" + function + ", ")
+            if (colVal in geo_types or colVal == STRING) or (rowVal in geo_types or rowVal == STRING):
+                op = "invalidOperandTypesErrorHandler"
+            else:
+                op = "aggregation"
+            function = op + col + row + "<AggregationFunctions::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
 
     print(declaration)

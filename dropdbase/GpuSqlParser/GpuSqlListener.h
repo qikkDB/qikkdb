@@ -28,7 +28,7 @@ private:
     std::stack<std::tuple<std::string, DataType>> parserStack;
     std::unordered_set<std::string> loadedTables;
     std::unordered_set<std::string> loadedColumns;
-    std::unordered_set<std::string> groupByColumns;
+    std::unordered_set<std::tuple<std::string, DataType>> groupByColumns;
 
     bool usingGroupBy;
     bool insideAgg;

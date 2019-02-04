@@ -78,11 +78,17 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher);
 template<typename OP, typename T, typename U>
 int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher);
 
-template<typename OP, typename T>
-int32_t aggregationCol(GpuSqlDispatcher &dispatcher);
+template<typename OP, typename T, typename U>
+int32_t aggregationColCol(GpuSqlDispatcher &dispatcher);
 
-template<typename OP, typename T>
-int32_t aggregationConst(GpuSqlDispatcher &dispatcher);
+template<typename OP, typename T, typename U>
+int32_t aggregationColConst(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T, typename U>
+int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T, typename U>
+int32_t aggregationConstConst(GpuSqlDispatcher &dispatcher);
 
 ////
 
@@ -185,6 +191,8 @@ private:
 	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t>> allocatedPointers;
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
+	bool usingGroupBy;
+	std::vector<std::string> groupByColumns;
 	std::unique_ptr<IGroupBy> groupByTable;
 
 
@@ -280,15 +288,15 @@ public:
 
     void addMinusFunction(DataType type);
 
-    void addMinFunction(DataType type);
+    void addMinFunction(DataType type, DataType groupByType);
 
-    void addMaxFunction(DataType type);
+    void addMaxFunction(DataType type, DataType groupByType);
 
-    void addSumFunction(DataType type);
+    void addSumFunction(DataType type, DataType groupByType);
 
-    void addCountFunction(DataType type);
+    void addCountFunction(DataType type, DataType groupByType);
 
-    void addAvgFunction(DataType type);
+    void addAvgFunction(DataType type, DataType groupByType);
 
     void addLoadFunction(DataType type);
 
@@ -366,11 +374,17 @@ public:
 	template<typename OP, typename T, typename U>
 	friend int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher);
 
-	template<typename OP, typename T>
-	friend int32_t aggregationCol(GpuSqlDispatcher &dispatcher);
+	template<typename OP, typename T, typename U>
+	friend int32_t aggregationColCol(GpuSqlDispatcher &dispatcher);
 
-	template<typename OP, typename T>
-	friend int32_t aggregationConst(GpuSqlDispatcher &dispatcher);
+	template<typename OP, typename T, typename U>
+	friend int32_t aggregationColConst(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T, typename U>
+	friend int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T, typename U>
+	friend int32_t aggregationConstConst(GpuSqlDispatcher &dispatcher);
 
 	////
 

@@ -157,25 +157,36 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     pushArgument(std::get<0>(arg).c_str(), operandType);
 	DataType returnDataType;
 
+	DataType groupByType;
+	if (usingGroupBy)
+	{
+		groupByType = std::get<1>(*(groupByColumns.begin()));
+	}
+	else
+	{
+		// TODO
+		groupByType = DataType::CONST_ERROR;
+	}
+
     if (op == "MIN")
     {
-        dispatcher.addMinFunction(operandType);
+        dispatcher.addMinFunction(operandType, groupByType);
 		returnDataType = operandType;
     } else if (op == "MAX")
     {
-        dispatcher.addMaxFunction(operandType);
+        dispatcher.addMaxFunction(operandType, groupByType);
 		returnDataType = operandType;
     } else if (op == "SUM")
     {
-        dispatcher.addSumFunction(operandType);
+        dispatcher.addSumFunction(operandType, groupByType);
 		returnDataType = operandType;
     } else if (op == "COUNT")
     {
-        dispatcher.addCountFunction(operandType);
+        dispatcher.addCountFunction(operandType, groupByType);
 		returnDataType = DataType::COLUMN_INT;
     } else if (op == "AVG")
     {
-        dispatcher.addAvgFunction(operandType);
+        dispatcher.addAvgFunction(operandType, groupByType);
 		returnDataType = operandType;
     }
 
@@ -233,9 +244,11 @@ void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx
             dispatcher.addArgument<const std::string&>(tableColumn);
             loadedColumns.insert(tableColumn);
         }
-        if (groupByColumns.find(tableColumn) == groupByColumns.end())
+        if (groupByColumns.find(tableColumnData) == groupByColumns.end())
         {
-            groupByColumns.insert(tableColumn);
+			dispatcher.addGroupByFunction(columnType);
+			dispatcher.addArgument<const std::string&>(tableColumn);
+            groupByColumns.insert(tableColumnData);
         }
     }
     usingGroupBy = true;
@@ -354,7 +367,7 @@ std::tuple<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(
     std::string tableColumn = table + "." + column;
 	DataType columnType = database->GetTables().at(table).GetColumns().at(column)->GetColumnType();
 
-    if (usingGroupBy && !insideAgg && groupByColumns.find(tableColumn) == groupByColumns.end())
+    if (usingGroupBy && !insideAgg && groupByColumns.find(std::make_tuple(tableColumn, columnType)) == groupByColumns.end())
     {
         throw ColumnGroupByException();
     }
