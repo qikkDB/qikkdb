@@ -170,11 +170,24 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 				{
 					std::vector<ColmnarDB::Types::Point> pointData;
 
-					for (int k = 0; k < blockSize; k++)
+					int k = 0;
+					while (k + 4 < blockSize / 4)
 					{
-						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(10.11 11.1)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(k % (1024 * pointColumnCount) + 200.2222) +
-							" " + std::to_string(k % (1024 * pointColumnCount) + 250) + ")"));
+						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(15 15.4)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(15 + 5 * pointColumnCount + ((k * 100) % 1024)) +
+							" " + std::to_string(15.4 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //inside
+						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(15.5 10.5)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(15.2 + 5 * pointColumnCount + ((k * 100) % 1024)) +
+							" " + std::to_string(10.3 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //on line
+						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(10.5 10.5)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(10.5 + 5 * pointColumnCount + ((k * 100) % 1024)) +
+							" " + std::to_string(10.5 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //same vertex
+						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(30 30.6)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(30 + 5 * pointColumnCount + ((k * 100) % 1024)) +
+							" " + std::to_string(30.6 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //outside
 					}
+					while (k < blockSize)
+					{
+						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(15 15.4)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(15 + 5 * pointColumnCount + ((k * 100) % 1024)) +
+							" " + std::to_string(15.4 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //inside
+					}
+
 					column.AddBlock(pointData);
 				}
 
@@ -194,9 +207,11 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						polygonData.push_back(sameDataInBlocks ? ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))") :
-							ComplexPolygonFactory::FromWkt(std::string("POLYGON((10 11, ") + std::to_string(k % (1024 * polygonColumnCount)) + " " + std::to_string(k % (1024 * polygonColumnCount)) + ", 10 11),(21 30, " + std::to_string(k % (1024 * polygonColumnCount) + 25.1111)
-								+ " " + std::to_string(k % (1024 * polygonColumnCount) + 26.1111) + ", " + std::to_string(k % (1024 * polygonColumnCount) + 28) + " " + std::to_string(k % (1024 * polygonColumnCount) + 29) + ", 21 30))"));
+						polygonData.push_back(sameDataInBlocks ? ComplexPolygonFactory::FromWkt("POLYGON((1 1, 2.5 2.5, 1 1),(5 15.5, 10.5 10.5, 20.5 10.5, 25 15.5, 20.5 20, 10.5 20, 5 15.5))") :
+							ComplexPolygonFactory::FromWkt(std::string("POLYGON((1 1, 2.5 2.5, 1 1),(") + std::to_string(5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " + std::to_string(15.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " +
+								std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(20.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " + std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(25 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " +
+								std::to_string(15.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(20.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " + std::to_string(20 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " +
+								std::to_string(20 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " + std::to_string(15.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + "))"));
 					}
 					column.AddBlock(polygonData);
 				}
