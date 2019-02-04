@@ -5717,7 +5717,7 @@ TEST(DispatcherTests, LongModColumnConstLtConst)
 }
 
 //contains tests:
-TEST(DispatcherTests, Constains)
+TEST(DispatcherTests, ConstainsAllPossibilities)
 {
 	Context::getInstance();
 
@@ -5730,11 +5730,14 @@ TEST(DispatcherTests, Constains)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			expectedResult.push_back(static_cast<int32_t>((j % 1024) / 5));
+			if (j % 4 != 0)
+			{
+				expectedResult.push_back(static_cast<int32_t>(j % 1024));
+			}
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("TableA.colInteger1");
 
 	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
