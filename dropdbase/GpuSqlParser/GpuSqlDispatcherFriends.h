@@ -52,9 +52,6 @@ int32_t loadCol(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
-int32_t loadReg(GpuSqlDispatcher &dispatcher);
-
-
 template<typename T>
 int32_t retConst(GpuSqlDispatcher &dispatcher)
 {
@@ -84,8 +81,6 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 	dispatcher.responseMessage.MergeFrom(partialMessage);
 	return 0;
 }
-
-int32_t retReg(GpuSqlDispatcher &dispatcher);
 
 int32_t fil(GpuSqlDispatcher &dispatcher);
 
@@ -151,23 +146,6 @@ int32_t filterConstConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
-template<typename OP>
-int32_t filterRegReg(GpuSqlDispatcher &dispatcher)
-{
-	auto colNameRight = dispatcher.arguments.read<std::string>();
-	auto colNameLeft = dispatcher.arguments.read<std::string>();
-	auto reg = dispatcher.arguments.read<std::string>();
-
-	std::tuple<uintptr_t, int32_t> columnRight = dispatcher.allocatedPointers.at(colNameRight);
-	std::tuple<uintptr_t, int32_t> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
-	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
-
-	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, retSize);
-
-	GPUFilter::colCol<OP, int8_t, int8_t>(mask, reinterpret_cast<int8_t*>(std::get<0>(columnLeft)), reinterpret_cast<int8_t*>(std::get<0>(columnRight)), retSize);
-	return 0;
-}
-
 template<typename OP, typename T, typename U>
 int32_t logicalColConst(GpuSqlDispatcher &dispatcher)
 {
@@ -186,8 +164,8 @@ int32_t logicalColConst(GpuSqlDispatcher &dispatcher)
 template<typename OP, typename T, typename U>
 int32_t logicalConstCol(GpuSqlDispatcher &dispatcher)
 {
-	T cnst = dispatcher.arguments.read<T>();
 	auto colName = dispatcher.arguments.read<std::string>();
+	T cnst = dispatcher.arguments.read<T>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
 	std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
@@ -223,22 +201,6 @@ int32_t logicalConstConst(GpuSqlDispatcher &dispatcher)
 
 	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, dispatcher.database->GetBlockSize());
 	GPULogic::constConst<OP, T, U>(mask, constLeft, constRight, dispatcher.database->GetBlockSize());
-	return 0;
-}
-
-template<typename OP>
-int32_t logicalRegReg(GpuSqlDispatcher &dispatcher)
-{
-	auto colNameRight = dispatcher.arguments.read<std::string>();
-	auto colNameLeft = dispatcher.arguments.read<std::string>();
-	auto reg = dispatcher.arguments.read<std::string>();
-
-	std::tuple<uintptr_t, int32_t> columnRight = dispatcher.allocatedPointers.at(colNameRight);
-	std::tuple<uintptr_t, int32_t> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
-	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
-
-	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, retSize);
-	GPULogic::colCol<OP, int8_t, int8_t>(mask, reinterpret_cast<int8_t*>(std::get<0>(columnLeft)), reinterpret_cast<int8_t*>(std::get<0>(columnRight)), retSize);
 	return 0;
 }
 
@@ -299,22 +261,6 @@ int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher)
 
 	T * result = dispatcher.allocateRegister<T>(reg, retSize);
 	GPUArithmetic::constConst<OP, T, T, U>(result, constLeft, constRight, retSize);
-	return 0;
-}
-
-template<typename OP>
-int32_t arithmeticRegReg(GpuSqlDispatcher &dispatcher)
-{
-	auto colNameRight = dispatcher.arguments.read<std::string>();
-	auto colNameLeft = dispatcher.arguments.read<std::string>();
-	auto reg = dispatcher.arguments.read<std::string>();
-
-	std::tuple<uintptr_t, int32_t> columnRight = dispatcher.allocatedPointers.at(colNameRight);
-	std::tuple<uintptr_t, int32_t> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
-	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
-
-	int8_t * result = dispatcher.allocateRegister<int8_t>(reg, retSize);
-	GPUArithmetic::colCol<OP, int8_t, int8_t, int8_t>(result, reinterpret_cast<int8_t*>(std::get<0>(columnLeft)), reinterpret_cast<int8_t*>(std::get<0>(columnRight)), retSize);
 	return 0;
 }
 
@@ -405,8 +351,6 @@ int32_t containsConstConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
-int32_t containsRegReg(GpuSqlDispatcher &dispatcher);
-
 template<typename T>
 int32_t logicalNotCol(GpuSqlDispatcher &dispatcher)
 {
@@ -428,8 +372,6 @@ int32_t logicalNotConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
-int32_t logicalNotReg(GpuSqlDispatcher &dispatcher);
-
 template<typename T>
 int32_t minusCol(GpuSqlDispatcher &dispatcher)
 {
@@ -441,8 +383,6 @@ int32_t minusConst(GpuSqlDispatcher &dispatcher)
 {
 	return 0;
 }
-
-int32_t minusReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
 int32_t minCol(GpuSqlDispatcher &dispatcher)
@@ -464,8 +404,6 @@ int32_t minConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
-int32_t minReg(GpuSqlDispatcher &dispatcher);
-
 template<typename T>
 int32_t maxCol(GpuSqlDispatcher &dispatcher)
 {
@@ -485,9 +423,6 @@ int32_t maxConst(GpuSqlDispatcher &dispatcher)
 {
 	return 0;
 }
-
-
-int32_t maxReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
 int32_t sumCol(GpuSqlDispatcher &dispatcher)
@@ -509,8 +444,6 @@ int32_t sumConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
-int32_t sumReg(GpuSqlDispatcher &dispatcher);
-
 template<typename T>
 int32_t countCol(GpuSqlDispatcher &dispatcher)
 {
@@ -523,8 +456,6 @@ int32_t countConst(GpuSqlDispatcher &dispatcher)
 {
 	return 0;
 }
-
-int32_t countReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
 int32_t avgCol(GpuSqlDispatcher &dispatcher)
@@ -546,8 +477,6 @@ int32_t avgConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
-int32_t avgReg(GpuSqlDispatcher &dispatcher);
-
 template<typename T>
 int32_t groupByConst(GpuSqlDispatcher &dispatcher)
 {
@@ -559,8 +488,6 @@ int32_t groupByCol(GpuSqlDispatcher &dispatcher)
 {
 	return 0;
 }
-
-int32_t groupByReg(GpuSqlDispatcher &dispatcher);
 
 template<typename T, typename U>
 int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher)

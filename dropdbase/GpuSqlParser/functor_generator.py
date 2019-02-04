@@ -5,8 +5,7 @@ DOUBLE = "double"
 POINT = "ColmnarDB::Types::Point"
 POLYGON = "ColmnarDB::Types::ComplexPolygon"
 STRING = "std::string"
-BOOL = "bool"
-BYTE = "uint8_t"
+BOOL = "int8_t"
 
 types = [INT,
          LONG,
@@ -31,8 +30,7 @@ all_types = [INT,
              POINT,
              POLYGON,
              STRING,
-             BOOL,
-             BYTE]
+             BOOL]
 
 arithmetic_operations = ["mul", "div", "add", "sub", "mod"]
 geo_operations = ["contains"]
@@ -42,7 +40,7 @@ logical_operations = ["logicalAnd", "logicalOr"]
 numeric_types = [INT, LONG, FLOAT, DOUBLE]
 floating_types = [FLOAT, DOUBLE]
 geo_types = [POINT, POLYGON]
-bool_types = [BYTE, BOOL]
+bool_types = [BOOL]
 
 operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual", "logicalAnd", "logicalOr",
                      "mul", "div", "add", "sub", "mod", "contains"]
@@ -62,46 +60,32 @@ for operation in operations_binary:
 
             if colIdx < len(types):
                 col = "Const"
-            elif colIdx >= len(types) and colVal != BYTE:
+            elif colIdx >= len(types):
                 col = "Col"
-            else:
-                col = "Reg"
 
             if rowIdx < len(types):
                 row = "Const"
-            elif rowIdx >= len(types) and rowVal != BYTE:
+            elif rowIdx >= len(types):
                 row = "Col"
+
+            if operation != 'contains' and (colVal in geo_types or rowVal in geo_types):
+                op = "invalidOperandTypesErrorHandler"
+
+            elif colVal == STRING or rowVal == STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
+                op = "invalidOperandTypesErrorHandler"
+
+            elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
+                op = "invalidOperandTypesErrorHandler"
+
+            elif operation == "contains" and (colVal != POLYGON or rowVal != POINT):
+                op = "invalidOperandTypesErrorHandler"
+
             else:
-                row = "Reg"
-
-            if row == "Reg" and col == "Reg":
-                if operation == 'contains':
-                    op = "invalidOperandTypesErrorHandler"
-                else:
-                    op = operation
-                function = op + col + row
-            else:
-                if row == "Reg" or col == "Reg":
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif operation != 'contains' and (colVal in geo_types or rowVal in geo_types):
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif colVal == STRING or rowVal == STRING:
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
-                    op = "invalidOperandTypesErrorHandler"
-                
-                elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif operation == "contains" and (colVal != POLYGON or rowVal != POINT):
-                    op = "invalidOperandTypesErrorHandler"
-
-                else:
-                    op = operation
-                function = op + col + row + "<" + colVal + ", " + rowVal + ">"
+                op = operation
+            function = op + col + row + "<" + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -135,19 +119,14 @@ for operation in operations_unary:
 
         if colIdx < len(types):
             col = "Const"
-        elif colIdx >= len(types) and colVal != BYTE:
+        elif colIdx >= len(types):
             col = "Col"
-        else:
-            col = "Reg"
 
-        if col == "Reg":
-            function = operation + col
+        if colVal in geo_types or colVal == STRING:
+            op = "invalidOperandTypesErrorHandler"
         else:
-            if colVal in geo_types or colVal == STRING:
-                op = "invalidOperandTypesErrorHandler"
-            else:
-                op = operation
-            function = op + col + "<" + colVal + ">"
+            op = operation
+        function = op + col + "<" + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")
@@ -183,14 +162,10 @@ for operation in operations_move:
 
         if colIdx < len(types):
             col = "Const"
-        elif colIdx >= len(types) and colVal != BYTE:
+        elif colIdx >= len(types):
             col = "Col"
-        else:
-            col = "Reg"
 
-        if col == "Reg":
-            function = operation + col
-        elif colVal == STRING or colVal == BOOL or colVal in geo_types:
+        if (operation == 'ret' or operation == 'groupBy') and (colVal == STRING or colVal == BOOL or colVal in geo_types):
             function = "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         else:
             function = operation + col + "<" + colVal + ">"
@@ -222,39 +197,29 @@ for operation in operations_filter:
 
             if colIdx < len(types):
                 col = "Const"
-            elif colIdx >= len(types) and colVal != BYTE:
+            elif colIdx >= len(types):
                 col = "Col"
-            else:
-                col = "Reg"
 
             if rowIdx < len(types):
                 row = "Const"
-            elif rowIdx >= len(types) and rowVal != BYTE:
+            elif rowIdx >= len(types):
                 row = "Col"
+
+            if colVal in geo_types or rowVal in geo_types:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif colVal == STRING or rowVal == STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
+                op = "invalidOperandTypesErrorHandler"
+
+            elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
+                op = "invalidOperandTypesErrorHandler"
+
             else:
-                row = "Reg"
-
-            if row == "Reg" and col == "Reg":
-                function = "filter" + col + row + "<FilterConditions::" + operation + ">"
-            else:
-                if row == "Reg" or col == "Reg":
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif colVal in geo_types or rowVal in geo_types:
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif colVal == STRING or rowVal == STRING:
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
-                    op = "invalidOperandTypesErrorHandler"
-
-                else:
-                    op = "filter"
-                function = op + col + row + "<FilterConditions::" + operation + ", " + colVal + ", " + rowVal + ">"
+                op = "filter"
+            function = op + col + row + "<FilterConditions::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -272,36 +237,26 @@ for operation in operations_logical:
 
             if colIdx < len(types):
                 col = "Const"
-            elif colIdx >= len(types) and colVal != BYTE:
+            elif colIdx >= len(types):
                 col = "Col"
-            else:
-                col = "Reg"
 
             if rowIdx < len(types):
                 row = "Const"
-            elif rowIdx >= len(types) and rowVal != BYTE:
+            elif rowIdx >= len(types):
                 row = "Col"
+
+            if colVal in geo_types or rowVal in geo_types:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif colVal == STRING or rowVal == STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
+                op = "invalidOperandTypesErrorHandler"
+
             else:
-                row = "Reg"
-
-            if row == "Reg" and col == "Reg":
-                function = "logical" + col + row + "<LogicOperations::" + operation + ">"
-            else:
-                if row == "Reg" or col == "Reg":
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif colVal in geo_types or rowVal in geo_types:
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif colVal == STRING or rowVal == STRING:
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
-                    op = "invalidOperandTypesErrorHandler"
-
-                else:
-                    op = "logical"
-                function = op + col + row + "<LogicOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+                op = "logical"
+            function = op + col + row + "<LogicOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -319,39 +274,30 @@ for operation in operations_arithmetic:
 
             if colIdx < len(types):
                 col = "Const"
-            elif colIdx >= len(types) and colVal != BYTE:
+            elif colIdx >= len(types):
                 col = "Col"
-            else:
-                col = "Reg"
 
             if rowIdx < len(types):
                 row = "Const"
-            elif rowIdx >= len(types) and rowVal != BYTE:
+            elif rowIdx >= len(types):
                 row = "Col"
+
+            if colVal in geo_types or rowVal in geo_types:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif colVal == STRING or rowVal == STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
+                op = "invalidOperandTypesErrorHandler"
+
+            elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
+                op = "invalidOperandTypesErrorHandler"
+
             else:
-                row = "Reg"
+                op = "arithmetic"
 
-            if row == "Reg" and col == "Reg":
-                function = "arithmetic" + col + row + "<ArithmeticOperations::" + operation + ">"
-            else:
-                if row == "Reg" or col == "Reg":
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif colVal in geo_types or rowVal in geo_types:
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif colVal == STRING or rowVal == STRING:
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
-                    op = "invalidOperandTypesErrorHandler"
-
-                elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
-                    op = "invalidOperandTypesErrorHandler"
-
-                else:
-                    op = "arithmetic"
-                function = op + col + row + "<ArithmeticOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+            function = op + col + row + "<ArithmeticOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -359,4 +305,3 @@ for operation in operations_arithmetic:
                 declaration += ("&" + function + ", ")
 
     print(declaration)
-

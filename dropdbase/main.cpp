@@ -23,13 +23,13 @@ int main(int argc, char **argv)
 
 	std::vector<std::string> tableNames = { "TableA" };
 	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
-	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 5, true, tableNames, columnTypes);
+	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 5, false, tableNames, columnTypes);
 
 	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 
-    GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE colPolygon1 CONTAINS colPoint1;");
+    GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 >= 20 AND colInteger1 <= 25) OR 1;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();
