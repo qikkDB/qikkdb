@@ -256,6 +256,8 @@ private:
 public:
     explicit GpuSqlDispatcher(const std::shared_ptr<Database> &database);
 
+	~GpuSqlDispatcher();
+
 	std::unique_ptr<google::protobuf::Message> execute();
 
 	const ColmnarDB::NetworkClient::Message::QueryResponseMessage &getQueryResponseMessage();
@@ -337,6 +339,8 @@ public:
     friend int32_t fil(GpuSqlDispatcher &dispatcher);
 
     friend int32_t done(GpuSqlDispatcher &dispatcher);
+
+	void cleanUpGpuPointers();
 
 	//// FILTERS WITH FUNCTORS
 
