@@ -13,11 +13,16 @@
 #include "../CudaMemAllocator.h"
 #include "GPUMemory.cuh"
 
+
 class GPUAggregation {
 public:
 	// Aggregation functions on the whole collumn
 	/// <summary>
-	/// Find the smallest element in the collumn
+	/// AGG=min: Find the smallest element in the collumn
+	/// AGG=max: Find the largest element in the collumn
+	/// AGG=sum: Return the sum of elements in the collumn
+	/// AGG=avg: Return the average of elements in the collumn as a floating point number
+	/// AGG=cnt: Return the number of elements in the collumn
 	/// </summary>
 	/// <param name="outValue">the smallest element- kept on the GPU</param>
 	/// <param name="ACol">block of the the input collumn</param>
@@ -25,104 +30,15 @@ public:
 	/// <param name="dataElementCount">the size of the input blocks in bytes</param>
 	/// <returns>GPU_EXTENSION_SUCCESS if operation was successful
 	/// or GPU_EXTENSION_ERROR if some error occured</returns>
-	template<typename T>
-	static void min(T *outValue, T *ACol, int32_t dataElementCount)
+	template<typename AGG, typename T>
+	static void col(T *outValue, T *ACol, int32_t dataElementCount)
 	{
 		// Kernel call
-		T *outValueGPUPointer = thrust::min_element(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount);
-		cudaDeviceSynchronize();
-
-		// Copy the generated output to outValue (still in GPU)
-		cudaMemcpy(outValue, outValueGPUPointer, sizeof(T), cudaMemcpyDeviceToDevice);
-
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
-	}
-	
-	/// <summary>
-	/// Find the largest element in the collumn
-	/// </summary>
-	/// <param name="outValue">the smallest element - kept on the GPU</param>
-	/// <param name="ACol">block of the the input collumn</param>
-	/// <param name="dataType">input data type</param>
-	/// <param name="dataElementCount">the size of the input blocks in bytes</param>
-	/// <returns>GPU_EXTENSION_SUCCESS if operation was successful
-	/// or GPU_EXTENSION_ERROR if some error occured</returns>
-	template<typename T>
-	static void max(T *outValue, T *ACol, int32_t dataElementCount)
-	{
-		// Kernel call
-		T *outValueGPUPointer = thrust::max_element(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount);
-		cudaDeviceSynchronize();
-
-		// Copy the generated output to outValue (still in GPU)
-		cudaMemcpy(outValue, outValueGPUPointer, sizeof(T), cudaMemcpyDeviceToDevice);
-
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
-	}
-	
-	/// <summary>
-	/// Return the sum of elements in the collumn
-	/// </summary>
-	/// <param name="outValue">the sum of elements - kept on the GPU</param>
-	/// <param name="ACol">block of the the input collumn</param>
-	/// <param name="dataType">input data type</param>
-	/// <param name="dataElementCount">the size of the input blocks in bytes</param>
-	/// <returns>GPU_EXTENSION_SUCCESS if operation was successful
-	/// or GPU_EXTENSION_ERROR if some error occured</returns>
-	template<typename T>
-	static void sum(T *outValue, T *ACol, int32_t dataElementCount)
-	{
-		// Kernel calls here
-		T outValueHost = thrust::reduce(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount, (T) 0, thrust::plus<T>());
-		cudaDeviceSynchronize();
-
-		// Copy the generated output to outValue (still in GPU)
-		GPUMemory::copyHostToDevice(outValue, &outValueHost, 1);
+		AGG::template agg<T>(outValue, ACol, dataElementCount);
 
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 
-	/// <summary>
-	/// Return the average of elements in the collumn as a floating point number
-	/// </summary>
-	/// <param name="outValue">the average of elements - kept on the GPU</param>
-	/// <param name="ACol">block of the the input collumn</param>
-	/// <param name="dataType">input data type</param>
-	/// <param name="dataElementCount">the size of the input blocks in bytes</param>
-	/// <returns>GPU_EXTENSION_SUCCESS if operation was successful
-	/// or GPU_EXTENSION_ERROR if some error occured</returns>
-	template<typename T>
-	static void avg(T *outValue, T *ACol, int32_t dataElementCount)
-	{
-		// Calculate the sum of all elements
-		T outValueHost = thrust::reduce(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount, (T)0, thrust::plus<T>());
-		outValueHost /= dataElementCount;
-		cudaDeviceSynchronize();
-
-		// Copy the generated output to outValue (still in GPU)
-		GPUMemory::copyHostToDevice(outValue, &outValueHost, 1);
-
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
-	}
-	
-	/// <summary>
-	/// Return the number of elements in the collumn
-	/// </summary>
-	/// <param name="outValue">the count of elements - kept on the GPU</param>
-	/// <param name="ACol">block of the the input collumn</param>
-	/// <param name="dataType">input data type</param>
-	/// <param name="dataElementCount">the size of the input blocks in bytes</param>
-	/// <returns>GPU_EXTENSION_SUCCESS if operation was successful
-	/// or GPU_EXTENSION_ERROR if some error occured</returns>
-	template<typename T>
-	static void cnt(T *outValue,T *ACol, int32_t dataElementCount)
-	{
-		// TODO, make this function more useful
-		T temp = dataElementCount;
-		GPUMemory::copyHostToDevice(outValue, &temp, 1);
-
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
-	}
 };
 
 #endif 

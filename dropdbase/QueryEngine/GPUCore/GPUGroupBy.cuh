@@ -15,122 +15,9 @@
 
 #include "ErrorFlagSwapper.h"
 #include "cuda_ptr.h"
+#include "IGroupBy.h"
+#include "AggregationFunctions.cuh"
 
-// Generic agg function functors
-namespace AggregationFunctions
-{
-	struct min
-	{
-		template<typename T>
-		__device__ void operator()(T *a, T b) const
-		{
-			atomicMin(a, b);
-		}
-
-		// Specialized atomicMin for floats
-		__device__ void operator()(float *a, float b) const
-		{
-			float old = *a;
-			float expected;
-			if (old <= b)
-			{
-				return;
-			}
-
-			do
-			{
-				expected = old;
-				int32_t ret = atomicCAS(reinterpret_cast<int32_t*>(a), *reinterpret_cast<int32_t*>(&expected), *reinterpret_cast<int32_t*>(&b));
-				old = *(float*)&ret;
-			} while (old != expected && old > b);
-		}
-
-		template<typename T>
-		static constexpr T getInitValue()
-		{
-			return std::numeric_limits<T>::max();
-		}
-	};
-
-	struct max
-	{
-		template<typename T>
-		__device__ void operator()(T *a, T b) const
-		{
-			atomicMax(a, b);
-		}
-
-		// Specialized atomicMax for floats
-		__device__ void operator()(float *a, float b) const
-		{
-			float old = *a;
-			float expected;
-			if (old >= b)
-			{
-				return;
-			}
-
-			do
-			{
-				expected = old;
-				int32_t ret = atomicCAS(reinterpret_cast<int32_t*>(a), *reinterpret_cast<int32_t*>(&expected), *reinterpret_cast<int32_t*>(&b));
-				old = *(float*)&ret;
-			} while (old != expected && old < b);
-		}
-
-		template<typename T>
-		static constexpr T getInitValue()
-		{
-			return std::numeric_limits<T>::lowest();
-		}
-	};
-
-	struct sum
-	{
-		template<typename T>
-		__device__ void operator()(T *a, T b) const
-		{
-			atomicAdd(a, b);
-		}
-
-		template<typename T>
-		static constexpr T getInitValue()
-		{
-			return T{ 0 };
-		}
-
-
-	};
-
-	struct avg
-	{
-		template<typename T>
-		__device__ void operator()(T *a, T b) const
-		{
-			atomicAdd(a, b);
-		}
-
-		template<typename T>
-		static constexpr T getInitValue()
-		{
-			return T{ 0 };
-		}
-	};
-	struct cnt
-	{
-		template<typename T>
-		__device__ void operator()(T *a, T b) const
-		{
-			// empty
-		}
-
-		template<typename T>
-		static constexpr T getInitValue()
-		{
-			return T{ 0 };
-		}
-	};
-}
 
 // Universal null key calculator
 template<typename K>
@@ -265,7 +152,7 @@ __global__ void is_bucket_occupied_kernel(int32_t *occupancyMask, K *keys, int32
 }
 
 template<typename AGG, typename O, typename K, typename V>
-class GPUGroupBy
+class GPUGroupBy : public IGroupBy
 {
 private:
 	K *keys_;							// Keys
@@ -333,7 +220,7 @@ public:
 };
 
 template<typename O, typename K, typename V>
-class GPUGroupBy<AggregationFunctions::avg, O, K, V>
+class GPUGroupBy<AggregationFunctions::avg, O, K, V> : public IGroupBy
 {
 private:
 	K *keys_;							// Keys
@@ -397,7 +284,7 @@ public:
 		//      but it requires one more GPUGroupBy specialization
 		/*
 		if (std::is_same<O, V>::value) {
-			GPUArithmetic::division(values_, values_, keyOccurenceCount_, maxHashCount_);
+			GPUArithmetic::colCol<ArithmeticOperations::div>(values_, values_, keyOccurenceCount_, maxHashCount_);
 			GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_, occupancyMask.get(), maxHashCount_);
 		}
 		else
@@ -405,7 +292,7 @@ public:
 		*/
 		cuda_ptr<O> outValuesGPU(maxHashCount_);
 		// Divide by counts to get averages for buckets
-		GPUArithmetic::division(outValuesGPU.get(), values_, keyOccurenceCount_, maxHashCount_);
+		GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(), values_, keyOccurenceCount_, maxHashCount_);
 		// Reonstruct result with original occupancyMask
 		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, outValuesGPU.get(), occupancyMask.get(), maxHashCount_);
 		/*
@@ -416,7 +303,7 @@ public:
 };
 
 template<typename K, typename V>
-class GPUGroupBy<AggregationFunctions::cnt, int64_t, K, V>
+class GPUGroupBy<AggregationFunctions::count, int64_t, K, V> : public IGroupBy
 {
 private:
 	K *keys_;							// Keys
@@ -438,7 +325,7 @@ public:
 		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
 
 		GPUMemory::fillArray(keys_, getEmptyValue<K>(), maxHashCount_);
-		GPUMemory::fillArray(values_, AggregationFunctions::cnt::template getInitValue<V>(), maxHashCount_);
+		GPUMemory::fillArray(values_, AggregationFunctions::count::template getInitValue<V>(), maxHashCount_);
 	}
 
 	// Destructor
@@ -455,7 +342,7 @@ public:
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
-		group_by_kernel <AggregationFunctions::cnt> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		group_by_kernel <AggregationFunctions::count> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
 	}
 
@@ -463,9 +350,9 @@ public:
 	void getResults(K *outKeys, int64_t *outValues, int32_t *outDataElementCount)
 	{
 		static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value,
-			"GPUGroupBy<cnt>.getResults K (keys) must be integral or floating point");
+			"GPUGroupBy<count>.getResults K (keys) must be integral or floating point");
 		static_assert(std::is_integral<V>::value || std::is_floating_point<V>::value,
-			"GPUGroupBy<cnt>.getResults V (values) must be integral or floating point");
+			"GPUGroupBy<count>.getResults V (values) must be integral or floating point");
 
 		// Create buffer for bucket compression - reconstruct
 		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);

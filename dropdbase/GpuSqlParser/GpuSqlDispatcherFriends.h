@@ -8,6 +8,8 @@
 #include "../QueryEngine/GPUCore/GPUPolygon.cuh"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../QueryEngine/GPUCore/GPUReconstruct.cuh"
+#include "../QueryEngine/GPUCore/GPUGroupBy.cuh"
+#include "../QueryEngine/GPUCore/AggregationFunctions.cuh"
 	
 
 template<typename T>
@@ -384,95 +386,22 @@ int32_t minusConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
-template<typename T>
-int32_t minCol(GpuSqlDispatcher &dispatcher)
+template<typename OP, typename T>
+int32_t aggregationCol(GpuSqlDispatcher &dispatcher) 
 {
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
-	std::cout << "MinCol: " << colName << " const " << reg << std::endl;
-
+	std::cout << "AggCol: " << colName << reg << std::endl;
+	
 	std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
-
+	
 	T * result = dispatcher.allocateRegister<T>(reg, 1);
-	GPUAggregation::min<T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
+	GPUAggregation::col<OP, T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
 	return 0;
 }
 
-template<typename T>
-int32_t minConst(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
-
-template<typename T>
-int32_t maxCol(GpuSqlDispatcher &dispatcher)
-{
-	auto colName = dispatcher.arguments.read<std::string>();
-	auto reg = dispatcher.arguments.read<std::string>();
-	std::cout << "MaxCol: " << colName << " const " << reg << std::endl;
-
-	std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
-
-	T * result = dispatcher.allocateRegister<T>(reg, 1);
-	GPUAggregation::max<T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
-	return 0;
-}
-
-template<typename T>
-int32_t maxConst(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
-
-template<typename T>
-int32_t sumCol(GpuSqlDispatcher &dispatcher)
-{
-	auto colName = dispatcher.arguments.read<std::string>();
-	auto reg = dispatcher.arguments.read<std::string>();
-	std::cout << "SumCol: " << colName << " const " << reg << std::endl;
-
-	std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
-
-	T * result = dispatcher.allocateRegister<T>(reg, 1);
-	GPUAggregation::sum<T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
-	return 0;
-}
-
-template<typename T>
-int32_t sumConst(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
-
-template<typename T>
-int32_t countCol(GpuSqlDispatcher &dispatcher)
-{
-	//TODO: CPU count
-	return 0;
-}
-
-template<typename T>
-int32_t countConst(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
-
-template<typename T>
-int32_t avgCol(GpuSqlDispatcher &dispatcher)
-{
-	auto colName = dispatcher.arguments.read<std::string>();
-	auto reg = dispatcher.arguments.read<std::string>();
-	std::cout << "AvgCol: " << colName << " const " << reg << std::endl;
-
-	std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
-
-	T * result = dispatcher.allocateRegister<T>(reg, 1);
-	GPUAggregation::avg<T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
-	return 0;
-}
-
-template<typename T>
-int32_t avgConst(GpuSqlDispatcher &dispatcher)
+template<typename OP, typename T>
+int32_t aggregationConst(GpuSqlDispatcher &dispatcher)
 {
 	return 0;
 }
@@ -544,59 +473,19 @@ int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
-template<typename OP, typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher)
+template<typename OP, typename T>
+int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher)
 {
 	return 0;
 }
 
-
-template<typename OP, typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
-
-
-template<typename OP, typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
-
-
-template<typename OP, typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher)
+template<typename OP, typename T>
+int32_t invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher)
 {
 	return 0;
 }
 
 ////
-
-
-template<typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerRegCol(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
-
-template<typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerRegConst(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
-
-template<typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerColReg(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
-
-template<typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerConstReg(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
 
 template<typename T>
 int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher)
@@ -606,12 +495,6 @@ int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher)
 
 template<typename T>
 int32_t invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
-
-template<typename T>
-int32_t invalidOperandTypesErrorHandlerReg(GpuSqlDispatcher &dispatcher)
 {
 	return 0;
 }

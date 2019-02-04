@@ -235,8 +235,6 @@ void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx
         }
         if (groupByColumns.find(tableColumn) == groupByColumns.end())
         {
-            dispatcher.addGroupByFunction(columnType);
-            dispatcher.addArgument<const std::string&>(tableColumn);
             groupByColumns.insert(tableColumn);
         }
     }
