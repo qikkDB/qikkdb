@@ -17,7 +17,6 @@ TEST(ColumnTests, AddBlockWithData)
 	table.CreateColumn("ColumnPoint", COLUMN_POINT);
 	table.CreateColumn("ColumnPolygon", COLUMN_POLYGON);
 	table.CreateColumn("ColumnString", COLUMN_STRING);
-	table.CreateColumn("ColumnBool", COLUMN_BOOL);
 
 	auto& columnInt = table.GetColumns().at("ColumnInt");
 	auto& columnLong = table.GetColumns().at("ColumnLong");
@@ -26,7 +25,6 @@ TEST(ColumnTests, AddBlockWithData)
 	auto& columnPoint = table.GetColumns().at("ColumnPoint");
 	auto& columnPolygon = table.GetColumns().at("ColumnPolygon");
 	auto& columnString = table.GetColumns().at("ColumnString");
-	auto& columnBool = table.GetColumns().at("ColumnBool");
 
 	std::vector<int32_t> dataInt({ 1024 });
 	std::vector<int64_t> dataLong({ 1000000000000000000 });
@@ -241,7 +239,6 @@ TEST(ColumnTests, InsertData_BlocksExistAndNewDataFitIntoThem)
 	table.CreateColumn("ColumnPoint", COLUMN_POINT);
 	table.CreateColumn("ColumnPolygon", COLUMN_POLYGON);
 	table.CreateColumn("ColumnString", COLUMN_STRING);
-	table.CreateColumn("ColumnBool", COLUMN_BOOL);
 
 	auto& columnInt = table.GetColumns().at("ColumnInt");
 	auto& columnLong = table.GetColumns().at("ColumnLong");
@@ -250,7 +247,6 @@ TEST(ColumnTests, InsertData_BlocksExistAndNewDataFitIntoThem)
 	auto& columnPoint = table.GetColumns().at("ColumnPoint");
 	auto& columnPolygon = table.GetColumns().at("ColumnPolygon");
 	auto& columnString = table.GetColumns().at("ColumnString");
-	auto& columnBool = table.GetColumns().at("ColumnBool");
 
 	std::vector<int32_t> dataInt;
 	std::vector<int64_t> dataLong;
@@ -259,7 +255,6 @@ TEST(ColumnTests, InsertData_BlocksExistAndNewDataFitIntoThem)
 	std::vector<ColmnarDB::Types::Point> dataPoint;
 	std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
 	std::vector<std::string> dataString;
-	std::vector<bool> dataBool;
 
 	for (int i = 0; i < database->GetBlockSize() / 4; i++)
 	{
@@ -270,7 +265,6 @@ TEST(ColumnTests, InsertData_BlocksExistAndNewDataFitIntoThem)
 		dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
 		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))"));
 		dataString.push_back("abc");
-		dataBool.push_back(i % 2);
 	}
 
 	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertData(dataInt);
