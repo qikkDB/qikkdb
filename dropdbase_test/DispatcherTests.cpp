@@ -2453,7 +2453,7 @@ TEST(DispatcherTests, FloatEqColumnConst)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (((float)(j % 1024 + 0.1111)) == 5.1111)
+			if (std::abs(((float)(j % 1024 + 0.1111)) - 5.1111) < 0.00005)
 			{
 				expectedResult.push_back((float)(j % 1024 + 0.1111));
 			}
@@ -2482,7 +2482,7 @@ TEST(DispatcherTests, FloatEqConstColumn)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (((float)(j % 1024 + 0.1111)) == 5.1111)
+			if (std::abs(((float)(j % 1024 + 0.1111)) - 5.1111) < 0.00005)
 			{
 				expectedResult.push_back((float)(j % 1024 + 0.1111));
 			}
@@ -2512,7 +2512,7 @@ TEST(DispatcherTests, FloatEqColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((float)(j % 2048 + 0.1111)) == ((float)(j % 1024 + 0.1111)))
+			if (std::abs(((float)(j % 2048 + 0.1111)) - ((float)(j % 1024 + 0.1111))) < 0.00005)
 			{
 				expectedResult.push_back((float)(j % 2048 + 0.1111));
 			}
@@ -2586,7 +2586,7 @@ TEST(DispatcherTests, DoubleEqColumnConst)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if ((j % 1024 + 0.1111111) == 5.1111111)
+			if (std::abs((j % 1024 + 0.1111111) - 5.1111111) < 0.00000005)
 			{
 				expectedResult.push_back(j % 1024 + 0.1111111);
 			}
@@ -2615,7 +2615,7 @@ TEST(DispatcherTests, DoubleEqConstColumn)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if ((j % 1024 + 0.1111111) == 5.1111111)
+			if (std::abs((j % 1024 + 0.1111111) - 5.1111111) < 0.00000005)
 			{
 				expectedResult.push_back(j % 1024 + 0.1111111);
 			}
@@ -2645,7 +2645,7 @@ TEST(DispatcherTests, DoubleEqColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if ((j % 2048 + 0.1111111) == (j % 1024 + 0.1111111))
+			if (std::abs((j % 2048 + 0.1111111) - (j % 1024 + 0.1111111)) < 0.00000005)
 			{
 				expectedResult.push_back(j % 2048 + 0.1111111);
 			}

@@ -171,7 +171,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 					std::vector<ColmnarDB::Types::Point> pointData;
 
 					int k = 0;
-					while (k + 4 < blockSize / 4)
+					while (k + 4 < blockSize)
 					{
 						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(15 15.4)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(15 + 5 * pointColumnCount + ((k * 100) % 1024)) +
 							" " + std::to_string(15.4 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //inside
@@ -181,11 +181,13 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 							" " + std::to_string(10.5 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //same vertex
 						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(30 30.6)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(30 + 5 * pointColumnCount + ((k * 100) % 1024)) +
 							" " + std::to_string(30.6 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //outside
+						k += 4;
 					}
 					while (k < blockSize)
 					{
 						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(15 15.4)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(15 + 5 * pointColumnCount + ((k * 100) % 1024)) +
 							" " + std::to_string(15.4 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //inside
+						k++;
 					}
 
 					column.AddBlock(pointData);
