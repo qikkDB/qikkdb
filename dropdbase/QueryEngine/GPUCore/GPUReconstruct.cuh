@@ -10,6 +10,7 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "GPUTypeWidthManip.cuh"
+
 #include "../../../cub/cub.cuh"
 
 template<typename T>

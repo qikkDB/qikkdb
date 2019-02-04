@@ -4,6 +4,8 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
+#include "../../../cub/cub.cuh"
+
 #include <thrust/reduce.h>
 #include <thrust/extrema.h>
 #include <thrust/execution_policy.h>
@@ -11,6 +13,8 @@
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
 #include "GPUMemory.cuh"
+#include "GPUArithmetic.cuh"
+
 
 class GPUAggregation {
 public:
@@ -27,16 +31,23 @@ public:
 	template<typename T>
 	static void min(T *outValue, T *ACol, int32_t dataElementCount)
 	{
-		// Kernel call
-		T *outValueGPUPointer = thrust::min_element(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount);
-		cudaDeviceSynchronize();
+		// Minimum reduction - ge tthe buffer size
+		void* tempBuffer = nullptr;
+		size_t tempBufferSize = 0;
+		cub::DeviceReduce::Min(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
 
-		// Copy the generated output to outValue (still in GPU)
-		cudaMemcpy(outValue, outValueGPUPointer, sizeof(T), cudaMemcpyDeviceToDevice);
+		// Allocate temporary storage
+		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+
+		// Run minimum reduction - data stays on gpu
+		cub::DeviceReduce::Min(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+		GPUMemory::free(tempBuffer);
+
+		cudaDeviceSynchronize();
 
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
-	
+
 	/// <summary>
 	/// Find the largest element in the collumn
 	/// </summary>
@@ -49,16 +60,23 @@ public:
 	template<typename T>
 	static void max(T *outValue, T *ACol, int32_t dataElementCount)
 	{
-		// Kernel call
-		T *outValueGPUPointer = thrust::max_element(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount);
-		cudaDeviceSynchronize();
+		// Minimum reduction - ge tthe buffer size
+		void* tempBuffer = nullptr;
+		size_t tempBufferSize = 0;
+		cub::DeviceReduce::Max(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
 
-		// Copy the generated output to outValue (still in GPU)
-		cudaMemcpy(outValue, outValueGPUPointer, sizeof(T), cudaMemcpyDeviceToDevice);
+		// Allocate temporary storage
+		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+
+		// Run minimum reduction - data stays on gpu
+		cub::DeviceReduce::Max(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+		GPUMemory::free(tempBuffer);
+
+		cudaDeviceSynchronize();
 
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
-	
+
 	/// <summary>
 	/// Return the sum of elements in the collumn
 	/// </summary>
@@ -71,12 +89,19 @@ public:
 	template<typename T>
 	static void sum(T *outValue, T *ACol, int32_t dataElementCount)
 	{
-		// Kernel calls here
-		T outValueHost = thrust::reduce(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount, (T) 0, thrust::plus<T>());
-		cudaDeviceSynchronize();
+		// Minimum reduction - ge tthe buffer size
+		void* tempBuffer = nullptr;
+		size_t tempBufferSize = 0;
+		cub::DeviceReduce::Sum(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
 
-		// Copy the generated output to outValue (still in GPU)
-		GPUMemory::copyHostToDevice(outValue, &outValueHost, 1);
+		// Allocate temporary storage
+		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+
+		// Run minimum reduction - data stays on gpu
+		cub::DeviceReduce::Sum(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+		GPUMemory::free(tempBuffer);
+
+		cudaDeviceSynchronize();
 
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
@@ -93,17 +118,26 @@ public:
 	template<typename T>
 	static void avg(T *outValue, T *ACol, int32_t dataElementCount)
 	{
-		// Calculate the sum of all elements
-		T outValueHost = thrust::reduce(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount, (T)0, thrust::plus<T>());
-		outValueHost /= dataElementCount;
+		// Minimum reduction - ge tthe buffer size
+		void* tempBuffer = nullptr;
+		size_t tempBufferSize = 0;
+		cub::DeviceReduce::Sum(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+
+		// Allocate temporary storage
+		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+
+		// Run minimum reduction - data stays on gpu
+		cub::DeviceReduce::Sum(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+		GPUMemory::free(tempBuffer);
+
 		cudaDeviceSynchronize();
 
-		// Copy the generated output to outValue (still in GPU)
-		GPUMemory::copyHostToDevice(outValue, &outValueHost, 1);
+		// Divide the result - calculate the average
+		GPUArithmetic::colConst<ArithmeticOperations::div, T, T, float>(outValue, outValue, static_cast<float>(dataElementCount), 1);
 
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
-	
+
 	/// <summary>
 	/// Return the number of elements in the collumn
 	/// </summary>
@@ -114,7 +148,7 @@ public:
 	/// <returns>GPU_EXTENSION_SUCCESS if operation was successful
 	/// or GPU_EXTENSION_ERROR if some error occured</returns>
 	template<typename T>
-	static void cnt(T *outValue,T *ACol, int32_t dataElementCount)
+	static void cnt(T *outValue, T *ACol, int32_t dataElementCount)
 	{
 		// TODO, make this function more useful
 		T temp = dataElementCount;
