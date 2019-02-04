@@ -3,10 +3,10 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
-
+#include <vector>
 #include "DataType.h"
+#include "Table.h"
 
-class Table;
 
 /// <summary>
 /// The main class representing database containing tables with data

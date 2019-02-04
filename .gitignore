@@ -266,3 +266,5 @@ log/
 
 # Databases
 databases/
+
+*/CMakeSettings.json

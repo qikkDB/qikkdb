@@ -1,4 +1,5 @@
 #include "Table.h"
+#include "Database.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 #include "ColumnBase.h"

@@ -9,7 +9,7 @@ enum DataType {
 	CONST_POINT = 4,
 	CONST_POLYGON = 5,
 	CONST_STRING = 6,
-	CONST_BOOLEAN = 7,
+	CONST_INT8_T = 7,
 	COLUMN_INT = 8,
 	COLUMN_LONG = 9,
 	COLUMN_FLOAT = 10,
@@ -17,7 +17,6 @@ enum DataType {
 	COLUMN_POINT = 12,
 	COLUMN_POLYGON = 13,
 	COLUMN_STRING = 14,
-	COLUMN_BOOL = 15, //TODO either to represent it as int8_t or to remove bool column at all
-	REG = 16,
-	DATA_TYPE_SIZE = 17
+	COLUMN_INT8_T = 15, //TODO either to represent it as int8_t or to remove bool column at all
+	DATA_TYPE_SIZE = 16
 };

@@ -213,10 +213,10 @@
     <CudaCompile Include="..\dropdbase\QueryEngine\CudaMemAllocator.cu">
       <Filter>dropdbase sources</Filter>
     </CudaCompile>
-    <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cpp">
+    <CudaCompile Include="CudaTests.cu" />
+    <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cu">
       <Filter>dropdbase sources</Filter>
     </CudaCompile>
-    <CudaCompile Include="CudaTests.cu" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="dropdbase sources">

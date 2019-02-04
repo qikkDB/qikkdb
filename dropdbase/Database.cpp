@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <cstdint>
+#include <exception>
 #include <stdexcept>
 #include <boost/log/trivial.hpp>
 
@@ -297,7 +298,7 @@ void Database::Persist(const char* path)
 				break;
 
 			default:
-				throw std::exception("Unsupported data type (when persisting database).");
+				throw std::domain_error("Unsupported data type (when persisting database).");
 				break;
 			}
 
@@ -782,7 +783,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 				break;
 
 			default:
-				throw std::exception("Unsupported data type (when loading database).");
+				throw std::domain_error("Unsupported data type (when loading database).");
 		}
 
 		colFile.close();
@@ -811,7 +812,7 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 
 				if (tableColumns.at(entry.first)->GetColumnType() != entry.second)
 				{
-					throw std::exception("Column type in CreateTable does not match with existing column.");
+					throw std::domain_error("Column type in CreateTable does not match with existing column.");
 				}
 			}
 			else

@@ -176,10 +176,9 @@ public:
 	/// <param name="dataElementCount">the size of the input blocks in elements</param>
 	/// <returns>if operation was successful (GPU_EXTENSION_SUCCESS or GPU_EXTENSION_ERROR)</returns>
 	template<typename T, typename U>
-	static void not(T *outCol, U *ACol, int32_t dataElementCount)
+	static void not_col(T *outCol, U *ACol, int32_t dataElementCount)
 	{
 		Context& context = Context::getInstance();
-
 		kernel_operator_not << <  context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(outCol, ACol, dataElementCount);
 		cudaDeviceSynchronize();

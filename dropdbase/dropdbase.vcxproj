@@ -61,6 +61,7 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <AdditionalCompilerOptions>/bigobj</AdditionalCompilerOptions>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -93,6 +94,7 @@
     <ClInclude Include="Database.h" />
     <ClInclude Include="DatabaseGenerator.h" />
     <ClInclude Include="DispatcherErrorCode.h" />
+    <ClInclude Include="GpuSqlParser\GpuSqlDispatcherFriends.h" />
     <ClInclude Include="GpuSqlParser\GpuSqlCustomParser.h" />
     <ClInclude Include="GpuSqlParser\GpuSqlDispatcher.h" />
     <ClInclude Include="GpuSqlParser\GpuSqlLexer.h" />
@@ -112,7 +114,6 @@
     <ClInclude Include="messages\SetDatabaseMessage.pb.h" />
     <ClInclude Include="NativeGeoPoint.h" />
     <ClInclude Include="PointFactory.h" />
-    <ClInclude Include="QueryEngine\GPUCore\GPULogicConst.cuh" />
     <ClInclude Include="Table.h" />
     <ClInclude Include="QueryEngine\Context.h" />
     <ClInclude Include="QueryEngine\CudaMemAllocator.h" />
@@ -136,10 +137,10 @@
     <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="DatabaseGenerator.cpp" />
-    <ClCompile Include="GpuSqlParser\GpuSqlCustomParser.cpp" />
-    <CudaCompile Include="GpuSqlParser\GpuSqlDispatcher.cpp" />
+    <CudaCompile Include="GpuSqlParser\GpuSqlCustomParser.cpp" />
+    <CudaCompile Include="GpuSqlParser\GpuSqlDispatcher.cu" />
     <ClCompile Include="GpuSqlParser\GpuSqlLexer.cpp" />
-    <ClCompile Include="GpuSqlParser\GpuSqlListener.cpp" />
+    <CudaCompile Include="GpuSqlParser\GpuSqlListener.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlParser.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlParserBaseListener.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlParserListener.cpp" />

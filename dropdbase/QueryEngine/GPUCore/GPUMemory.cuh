@@ -9,10 +9,25 @@
 
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
-
+#include "../../NativeGeoPoint.h"
 // Memory methods
 class GPUMemory {
 public:
+
+	struct GPUPolygon
+	{
+		// Points of polygons
+		NativeGeoPoint* polyPoints;
+		// Start indexes of each polygon in point array
+		int32_t* pointIdx;
+		// Number of points of each polygon
+		int32_t* pointCount;
+		// Start indexes of each complex polygon in polygon array
+		int32_t* polyIdx;
+		// Number of polygons of each complex polygon
+		int32_t* polyCount;
+	};
+
 	// Memory allocation
 	/// <summary>
 	/// Memory allocation of block on the GPU with the respective size of the input parameter type
@@ -99,10 +114,9 @@ public:
 	/// <param name="p_Block">pointer to memory block (on GPU memory)</param>
 	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
 	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
-	template<typename T>
-	static void free(T *p_block)
+	static void free(void *p_block)
 	{
-		CudaMemAllocator::GetInstance().deallocate(reinterpret_cast<int8_t*>(p_block), 0);
+		CudaMemAllocator::GetInstance().deallocate(static_cast<int8_t*>(p_block), 0);
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 
@@ -136,7 +150,6 @@ public:
 		CudaMemAllocator::GetInstance().Clear();
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
-
 };
 
 #endif

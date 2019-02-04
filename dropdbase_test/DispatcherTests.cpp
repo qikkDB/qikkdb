@@ -8,7 +8,7 @@
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 
 std::vector<std::string> tableNames = { "TableA" };
-std::vector<DataType> columnTypes = { {COLUMN_INT},{COLUMN_INT},{COLUMN_LONG},{COLUMN_LONG},{COLUMN_FLOAT},{COLUMN_FLOAT},{COLUMN_DOUBLE},{COLUMN_DOUBLE} };
+std::vector<DataType> columnTypes = { {COLUMN_INT},{COLUMN_INT},{COLUMN_LONG},{COLUMN_LONG},{COLUMN_FLOAT},{COLUMN_FLOAT},{COLUMN_DOUBLE},{COLUMN_DOUBLE},{COLUMN_POLYGON},{COLUMN_POINT} };
 std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 11, false , tableNames, columnTypes);
 /////////////////////
 //   ">" operator
