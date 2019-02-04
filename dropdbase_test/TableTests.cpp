@@ -48,7 +48,6 @@ TEST(TableTests, InsertData)
 	table.CreateColumn("ColumnPoint", COLUMN_POINT);
 	table.CreateColumn("ColumnPolygon", COLUMN_POLYGON);
 	table.CreateColumn("ColumnString", COLUMN_STRING);
-	table.CreateColumn("ColumnBool", COLUMN_BOOL);
 
 	std::unordered_map<std::string, std::any> data;
 
