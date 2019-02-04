@@ -824,8 +824,8 @@ int32_t logicalColConst(GpuSqlDispatcher &dispatcher)
 template<typename OP, typename T, typename U>
 int32_t logicalConstCol(GpuSqlDispatcher &dispatcher)
 {
-	T cnst = dispatcher.arguments.read<T>();
 	auto colName = dispatcher.arguments.read<std::string>();
+	T cnst = dispatcher.arguments.read<T>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
 	std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
