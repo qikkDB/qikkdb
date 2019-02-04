@@ -72,6 +72,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <ShowIncludes>false</ShowIncludes>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -105,7 +106,9 @@
     <ClInclude Include="GpuSqlParser\MemoryStream.h" />
     <ClInclude Include="GpuSqlParser\ParserExceptions.h" />
     <ClInclude Include="GpuSqlParser\QueryType.h" />
-    <ClInclude Include="ErrorFlagSwapper.h" />
+    <ClInclude Include="QueryEngine\GPUCore\cuda_ptr.h" />
+    <ClInclude Include="QueryEngine\GPUCore\ErrorFlagSwapper.h" />
+    <ClInclude Include="IBlock.h" />
     <ClInclude Include="IColumn.h" />
     <ClInclude Include="messages\CSVImportMessage.pb.h" />
     <ClInclude Include="messages\InfoMessage.pb.h" />
@@ -145,7 +148,9 @@
     <ClCompile Include="GpuSqlParser\GpuSqlParserBaseListener.cpp" />
     <ClCompile Include="GpuSqlParser\GpuSqlParserListener.cpp" />
     <ClCompile Include="GpuSqlParser\MemoryStream.cpp" />
-    <ClCompile Include="main.cpp" />
+    <CudaCompile Include="main.cpp">
+      <FileType>Document</FileType>
+    </CudaCompile>
     <ClCompile Include="messages\CSVImportMessage.pb.cc" />
     <ClCompile Include="messages\InfoMessage.pb.cc" />
     <ClCompile Include="messages\QueryMessage.pb.cc" />

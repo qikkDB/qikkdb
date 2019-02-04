@@ -14,7 +14,7 @@
 #include "../../../cub/cub.cuh"
 
 template<typename T>
-__global__ void kernel_reconstruct_col(T *outData, int32_t *outSize, T *ACol, int32_t *prefixSum, int32_t *inMask, int32_t dataElementCount)
+__global__ void kernel_reconstruct_col(T *outData, int32_t *outDataElementCount, T *ACol, int32_t *prefixSum, int32_t *inMask, int32_t dataElementCount)
 {
 	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int32_t stride = blockDim.x * gridDim.x;
@@ -33,14 +33,14 @@ __global__ void kernel_reconstruct_col(T *outData, int32_t *outSize, T *ACol, in
 	// Fetch the size of the output - the last item of the inclusive prefix sum
 	if (idx == 0) 
 	{
-		outSize[0] = prefixSum[dataElementCount - 1];
+		outDataElementCount[0] = prefixSum[dataElementCount - 1];
 	}
 }
 
 class GPUReconstruct {
 public:
 	template<typename T>
-	static void reconstructCol(T *outData, int32_t *outSize, T *ACol, int8_t *inMask, int32_t dataElementCount)
+	static void reconstructCol(T *outData, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
 	{
 		Context& context = Context::getInstance();
 
@@ -49,10 +49,10 @@ public:
 		GPUMemory::alloc(&outDataGPUPointer, dataElementCount);
 
 		// Call reconstruct col keep
-		reconstructColKeep(outDataGPUPointer, outSize, ACol, inMask, dataElementCount);
+		reconstructColKeep(outDataGPUPointer, outDataElementCount, ACol, inMask, dataElementCount);
 
 		// Copy the generated output back from the GPU
-		GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outSize);
+		GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
 
 		// Free the memory
 		GPUMemory::free(outDataGPUPointer);
@@ -62,7 +62,7 @@ public:
 	}
 
 	template<typename T>
-	static void reconstructColKeep(T *outCol, int32_t *outSize, T *ACol, int8_t *inMask, int32_t dataElementCount)
+	static void reconstructColKeep(T *outCol, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
 	{
 		Context& context = Context::getInstance();
 
@@ -75,8 +75,8 @@ public:
 		GPUMemory::alloc(&prefixSumPointer, dataElementCount);
 
 		// Malloc a new buffer for the output size
-		int32_t* outSizePointer = nullptr;
-		GPUMemory::alloc(&outSizePointer, 1);
+		int32_t* outDataElementCountPointer = nullptr;
+		GPUMemory::alloc(&outDataElementCountPointer, 1);
 
 		// Typecast the input mask array
 		GPUTypeWidthManip::convertBuffer(inMask32Pointer, inMask, dataElementCount);
@@ -89,21 +89,21 @@ public:
 		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask32Pointer, prefixSumPointer, dataElementCount);
 		// Allocate temporary storage
 		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
-		// Run exclusive prefix sum
+		// Run inclusive prefix sum
 		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask32Pointer, prefixSumPointer, dataElementCount);
 		GPUMemory::free(tempBuffer);
 		// Construct the output based on the prefix sum
 		kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-			(outCol, outSizePointer, ACol, prefixSumPointer, inMask32Pointer, dataElementCount);
+			(outCol, outDataElementCountPointer, ACol, prefixSumPointer, inMask32Pointer, dataElementCount);
 		cudaDeviceSynchronize();
 
 		// Copy the generated output back from the GPU
-		GPUMemory::copyDeviceToHost(outSize, outSizePointer, 1);
+		GPUMemory::copyDeviceToHost(outDataElementCount, outDataElementCountPointer, 1);
 
 		// Free the memory
 		GPUMemory::free(inMask32Pointer);
 		GPUMemory::free(prefixSumPointer);
-		GPUMemory::free(outSizePointer);
+		GPUMemory::free(outDataElementCountPointer);
 
 		// Get last error
 		context.getLastError().setCudaError(cudaGetLastError());
@@ -130,7 +130,7 @@ public:
 		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 		// Allocate temporary storage
 		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
-		// Run exclusive prefix sum
+		// Run inclusive prefix sum
 		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 		GPUMemory::free(tempBuffer);
 		// Construct the output based on the prefix sum

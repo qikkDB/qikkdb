@@ -10,6 +10,19 @@
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
 #include "../../NativeGeoPoint.h"
+
+template<typename T>
+__global__ void kernel_fill_array(T *p_Block, T value, int32_t dataElementCount)
+{
+	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		p_Block[i] = value;
+	}
+}
+
 // Memory methods
 class GPUMemory {
 public:
@@ -51,25 +64,36 @@ public:
 	/// <param name="p_Block">pointer to pointer wich will points to allocated memory block on the GPU</param>
 	/// <param name="dataType">type of the resulting buffer</param>
 	/// <param name="size">count of elements in the block</param>
-	/// <param name="value">value to set the memory to (always has to be int, because of cudaMemset)</param>
+	/// <param name="value">value to set the memory to
+	/// (always has to be int, because of cudaMemset; and just lowest byte will be used
+	/// and all bytes in the allocated buffer will be set to that byte value)</param>
 	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
 	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
 	template<typename T>
-	static void allocAndSet(T **p_Block, T value, int32_t dataElementCount)
+	static void allocAndSet(T **p_Block, int value, int32_t dataElementCount)
 	{
 		*p_Block = reinterpret_cast<T*>(CudaMemAllocator::GetInstance().allocate(dataElementCount * sizeof(T)));
 
-		fill(*p_Block, value, dataElementCount);
+		memset(*p_Block, value, dataElementCount);
 
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 
 	// Fill an array with a desired value
 	template<typename T>
-	static void fill(T *p_Block, T value, int32_t dataElementCount)
+	static void memset(T *p_Block, int value, int32_t dataElementCount)
 	{
 		//cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));	// Async version, uncomment if needed
 		cudaMemset(p_Block, value, dataElementCount * sizeof(T));
+		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+	}
+
+	template<typename T>
+	static void fillArray(T *p_Block, T value, int32_t dataElementCount)
+	{
+		kernel_fill_array << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+			(p_Block, value, dataElementCount);
+
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 

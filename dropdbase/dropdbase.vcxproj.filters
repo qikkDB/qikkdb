@@ -149,6 +149,19 @@
     <ClInclude Include="ErrorFlagSwapper.h">
       <Filter>Header Files\QueryEngine\GPUCore</Filter>
     </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\GPULogicConst.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\ErrorFlagSwapper.h">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="IBlock.h" />
+    <ClInclude Include="QueryEngine\GPUCore\GPUGroupBy.cuh">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
+    <ClInclude Include="QueryEngine\GPUCore\cuda_ptr.h">
+      <Filter>Header Files\QueryEngine\GPUCore</Filter>
+    </ClInclude>
     <ClInclude Include="GpuSqlParser\GpuSqlDispatcherFriends.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -194,6 +207,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="GpuSqlParser\GpuSqlCustomParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="GpuSqlParser\GpuSqlLexer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -221,12 +237,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <CudaCompile Include="GpuSqlParser\GpuSqlDispatcher.cpp">
-      <Filter>Source Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="GpuSqlParser\GpuSqlCustomParser.cpp">
-      <Filter>Source Files</Filter>
-    </CudaCompile>
-    <CudaCompile Include="GpuSqlParser\GpuSqlListener.cpp">
       <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>
