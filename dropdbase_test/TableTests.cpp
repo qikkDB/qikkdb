@@ -58,7 +58,6 @@ TEST(TableTests, InsertData)
 	std::vector<ColmnarDB::Types::Point> dataPoint({ PointFactory::FromWkt("POINT(10.11 11.1)")});
 	std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon({ ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))") });
 	std::vector<std::string> dataString({"randomString"});
-	std::vector<bool> dataBool({1});
 
 	data.insert({"ColumnInt",dataInt});
 	data.insert({"ColumnLong",dataLong});
