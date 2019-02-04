@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
 	auto start = std::chrono::high_resolution_clock::now();
 	
-    GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE 5 AND colInteger1;");
+    GpuSqlCustomParser parser(database, "SELECT colFloat1 FROM TableA WHERE colFloat1 = 5.1111;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();
