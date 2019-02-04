@@ -1,5 +1,4 @@
-#ifndef GPU_TYPE_WIDTH_MANIP_H
-#define GPU_TYPE_WIDTH_MANIP_H
+#pragma once
 
 #include <cstdint>
 
@@ -34,6 +33,4 @@ public:
 		context.getLastError().setCudaError(cudaGetLastError());
 	}
 };
-
-#endif
 

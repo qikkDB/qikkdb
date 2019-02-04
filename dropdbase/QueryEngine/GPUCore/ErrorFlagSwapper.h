@@ -1,5 +1,4 @@
-#ifndef ERROR_FLAG_SWAPPER_H
-#define ERROR_FLAG_SWAPPER_H
+#pragma once
 
 #include <cstdint>
 
@@ -34,5 +33,3 @@ public:
 		return errorFlagPointer;
 	}
 };
-
-#endif

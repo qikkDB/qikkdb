@@ -1,5 +1,4 @@
-#ifndef GPU_MEMORY_CUH
-#define GPU_MEMORY_CUH
+#pragma once
 
 #include <cstdint>
 
@@ -151,5 +150,3 @@ public:
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef GPU_GROUP_BY_CUH
-#define GPU_GROUP_BY_CUH
+#pragma once
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -9,5 +8,3 @@ class GPUGroupBy {
 public:
 
 };
-
-#endif

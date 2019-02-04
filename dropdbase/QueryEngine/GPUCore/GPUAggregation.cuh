@@ -1,5 +1,4 @@
-#ifndef GPU_AGGREGATION_CUH
-#define GPU_AGGREGATION_CUH
+#pragma once
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -124,6 +123,4 @@ public:
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 };
-
-#endif 
 

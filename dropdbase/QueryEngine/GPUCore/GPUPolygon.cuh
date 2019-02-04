@@ -1,5 +1,4 @@
-#ifndef GPU_POLYGON_CUH
-#define GPU_POLYGON_CUH
+#pragma once
 
 #include <cstdint>
 
@@ -133,5 +132,4 @@ public:
 	}
 };
 
-#endif 
 

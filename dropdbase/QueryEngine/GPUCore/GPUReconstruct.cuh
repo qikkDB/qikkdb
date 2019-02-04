@@ -1,5 +1,4 @@
-#ifndef GPU_RECONSTRUCT_CUH
-#define GPU_RECONSTRUCT_CUH
+#pragma once
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -150,5 +149,4 @@ public:
 	}
 };
 
-#endif
 

@@ -1,5 +1,4 @@
-#ifndef ERROR_H
-#define ERROR_H
+#pragma once
 
 #include <string>
 #include <cuda.h>
@@ -59,4 +58,3 @@ public:
 
 };
 
-#endif
