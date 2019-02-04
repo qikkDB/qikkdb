@@ -18,7 +18,6 @@ TEST(BlockTests, InsertData)
 	table.CreateColumn("ColumnPoint", COLUMN_POINT);
 	table.CreateColumn("ColumnPolygon", COLUMN_POLYGON);
 	table.CreateColumn("ColumnString", COLUMN_STRING);
-	table.CreateColumn("ColumnBool", COLUMN_BOOL);
 
 	auto& columnInt = table.GetColumns().at("ColumnInt");
 	auto& columnLong = table.GetColumns().at("ColumnLong");

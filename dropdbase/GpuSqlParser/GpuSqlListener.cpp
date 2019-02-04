@@ -32,35 +32,35 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
     if (op == ">")
     {
         dispatcher.addGreaterFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::REG;
+		returnDataType = DataType::COLUMN_INT8_T;
     } else if (op == "<")
     {
         dispatcher.addLessFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::REG;
+		returnDataType = DataType::COLUMN_INT8_T;
     } else if (op == ">=")
     {
         dispatcher.addGreaterEqualFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::REG;
+		returnDataType = DataType::COLUMN_INT8_T;
     } else if (op == "<=")
     {
         dispatcher.addLessEqualFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::REG;
+		returnDataType = DataType::COLUMN_INT8_T;
     } else if (op == "=")
     {
         dispatcher.addEqualFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::REG;
+		returnDataType = DataType::COLUMN_INT8_T;
     } else if (op == "!=")
     {
         dispatcher.addNotEqualFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::REG;
+		returnDataType = DataType::COLUMN_INT8_T;
     } else if (op == "AND")
     {
         dispatcher.addLogicalAndFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::REG;
+		returnDataType = DataType::COLUMN_INT8_T;
     } else if (op == "OR")
     {
         dispatcher.addLogicalOrFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::REG;
+		returnDataType = DataType::COLUMN_INT8_T;
     } else if (op == "*")
     {
         dispatcher.addMulFunction(leftOperandType, rightOperandType);
@@ -84,7 +84,7 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
     } else if (op == "CONTAINS")
     {
         dispatcher.addContainsFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::REG;
+		returnDataType = DataType::COLUMN_INT8_T;
     }
 
 	std::string reg = std::string("R") + std::to_string(tempCounter);
@@ -116,8 +116,8 @@ void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext 
     }
 
 	std::string reg = std::string("R") + std::to_string(tempCounter);
-	pushArgument(reg.c_str(), DataType::REG);
-    pushTempResult(DataType::REG);
+	pushArgument(reg.c_str(), DataType::COLUMN_INT8_T);
+    pushTempResult(DataType::COLUMN_INT8_T);
 }
 
 void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx)
@@ -134,7 +134,7 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     if (op == "!")
     {
         dispatcher.addLogicalNotFunction(operandType);
-		returnDataType = DataType::REG;
+		returnDataType = DataType::COLUMN_INT8_T;
     } else if (op == "-")
     {
         dispatcher.addMinusFunction(operandType);
@@ -275,7 +275,7 @@ void GpuSqlListener::exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx)
 
 void GpuSqlListener::exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx)
 {
-    parserStack.push(std::make_tuple(ctx->getText(), DataType::CONST_BOOLEAN));
+    parserStack.push(std::make_tuple(ctx->getText(), DataType::CONST_INT8_T));
 }
 
 void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
@@ -397,7 +397,6 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
         case DataType::CONST_POINT:
         case DataType::CONST_POLYGON:
         case DataType::CONST_STRING:
-        case DataType::CONST_BOOLEAN:
         case DataType::COLUMN_INT:
         case DataType::COLUMN_LONG:
         case DataType::COLUMN_FLOAT:
@@ -405,8 +404,7 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
         case DataType::COLUMN_POINT:
         case DataType::COLUMN_POLYGON:
         case DataType::COLUMN_STRING:
-        case DataType::COLUMN_BOOL:
-        case DataType::REG:
+        case DataType::COLUMN_INT8_T:
             dispatcher.addArgument<const std::string&>(token);
             break;
         case DataType::DATA_TYPE_SIZE:
