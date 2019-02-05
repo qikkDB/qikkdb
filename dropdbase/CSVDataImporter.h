@@ -32,6 +32,5 @@ private:
 	std::vector<DataType> dataTypes;	
 	std::unordered_map<std::string, std::any> data;
 
-	DataType IndetifyDataType(std::vector<std::string> columnValues);	
-	std::string ExtractTableNameFromFileName(std::string fileName);
+	DataType IndetifyDataType(std::vector<std::string> columnValues);		
 };

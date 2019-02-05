@@ -1,4 +1,5 @@
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem/path.hpp>
 #include "CSVDataImporter.h"
 #include "../CSVParser.hpp"
 #include "Types/ComplexPolygon.pb.h"
@@ -23,7 +24,8 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 	}
 	
 	// creates table
-	Table& table = database->CreateTable(columns, this->ExtractTableNameFromFileName(fileName).c_str());
+	std::string tableName = boost::filesystem::path(fileName).stem().string();
+	Table& table = database->CreateTable(columns, tableName.c_str());
 	
 	// initializes map columnName -> vector of column data
 	std::unordered_map<std::string, std::any> data;
@@ -218,24 +220,19 @@ void CSVDataImporter::ExtractHeaders()
 	aria::csv::CsvParser parser = aria::csv::CsvParser(f).delimiter(delimiter).quote(quotes);
 
 	int position = 0;
-	for (auto& row : parser) {
+	auto& row = parser.begin();
 
-		int columnIndex = 0;
-		for (auto& field : row) {
+	int columnIndex = 0;
+	for (auto& field : *row) {
 
-			if (position == 0) {
-				if (this->header)
-					this->headers.push_back(field);
-				else
-					this->headers.push_back("C" + std::to_string(columnIndex));
-			}
-			
-			columnIndex++;
+		if (position == 0) {
+			if (this->header)
+				this->headers.push_back(field);
+			else
+				this->headers.push_back("C" + std::to_string(columnIndex));
 		}
-
-		position++;
-		if (position == 1)
-			break;
+			
+		columnIndex++;
 	}	
 }
 
@@ -259,9 +256,8 @@ void CSVDataImporter::ExtractTypes()
 			if (position == 0) {
 				columnData.push_back(std::vector<std::string>());
 			}
-			else {
+			if ((header && position > 0) || !header) {
 				columnData[columnIndex].push_back(field);
-
 			}
 
 			columnIndex++;
@@ -270,7 +266,7 @@ void CSVDataImporter::ExtractTypes()
 
 		position++;
 
-		if (position == 100)
+		if (position >= 100)
 			break;
 	}
 
@@ -388,24 +384,3 @@ DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues
 	return COLUMN_STRING;
 }
 
-/// <summary>
-/// Extract filename without extension from file path
-/// </summary>
-/// <param name="polygons">Imported CSV file path</param>
-/// <returns>Name of file without extension</returns>
-std::string CSVDataImporter::ExtractTableNameFromFileName(std::string fileName)
-{
-	const size_t lastSlashIndex = fileName.find_last_of("\\/");
-	if (std::string::npos != lastSlashIndex)
-	{
-		fileName.erase(0, lastSlashIndex + 1);
-	}
-
-	const size_t extensionIdx = fileName.rfind('.');
-	if (std::string::npos != extensionIdx)
-	{
-		fileName.erase(extensionIdx);
-	}
-	return fileName;
-}
-	
