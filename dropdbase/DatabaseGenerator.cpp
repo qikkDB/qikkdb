@@ -88,7 +88,14 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						integerData.push_back(sameDataInBlocks ? 1 : k % (1024 * integerColumnCount));
+						if (k % 2)
+						{
+							integerData.push_back(sameDataInBlocks ? 1 : k % (1024 * integerColumnCount));
+						}
+						else
+						{
+							integerData.push_back(sameDataInBlocks ? -1 : (k % (1024 * integerColumnCount)) * -1);
+						}
 					}
 					column.AddBlock(integerData);
 				}
@@ -109,7 +116,15 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 					for (int k = 0; k < blockSize; k++)
 					{
 						int64_t result = (static_cast<int64_t>(2 * pow(10, k % 19))) + k % (1024 * longColumnCount);
-						longData.push_back(sameDataInBlocks ? static_cast<int64_t>(pow(10, k % 19)) : result);
+
+						if (k % 2)
+						{
+							longData.push_back(sameDataInBlocks ? static_cast<int64_t>(pow(10, k % 19)) : result);
+						}
+						else
+						{
+							longData.push_back(sameDataInBlocks ? static_cast<int64_t>(pow(10, k % 19)) * -1 : result * (-1));
+						}
 					}
 					column.AddBlock(longData);
 				}
@@ -130,7 +145,14 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						floatData.push_back(sameDataInBlocks ? (float) 0.1111 : (float)(k % (1024 * floatColumnCount) + 0.1111));
+						if (k % 2)
+						{
+							floatData.push_back(sameDataInBlocks ? (float) 0.1111 : (float)(k % (1024 * floatColumnCount) + 0.1111));
+						}
+						else
+						{
+							floatData.push_back(sameDataInBlocks ? (float) -0.1111 : (float)((k % (1024 * floatColumnCount) + 0.1111) * -1));
+						}
 					}
 					column.AddBlock(floatData);
 				}
@@ -151,7 +173,14 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						doubleData.push_back(sameDataInBlocks ? 0.1111111 : k % (1024 * doubleColumnCount) + 0.1111111);
+						if (k % 2)
+						{
+							doubleData.push_back(sameDataInBlocks ? 0.1111111 : k % (1024 * doubleColumnCount) + 0.1111111);
+						}
+						else
+						{
+							doubleData.push_back(sameDataInBlocks ? -0.1111111 : (k % (1024 * doubleColumnCount) + 0.1111111) * -1);
+						}
 					}
 					column.AddBlock(doubleData);
 				}
@@ -179,8 +208,8 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 							" " + std::to_string(10.3 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //on line
 						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(10.5 10.5)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(10.5 + 5 * pointColumnCount + ((k * 100) % 1024)) +
 							" " + std::to_string(10.5 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //same vertex
-						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(30 30.6)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(30 + 5 * pointColumnCount + ((k * 100) % 1024)) +
-							" " + std::to_string(30.6 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //outside
+						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(-30 -30.6)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string((30 + 5 * pointColumnCount + ((k * 100) % 1024)) * -1) +
+							" " + std::to_string((30.6 + 5 * pointColumnCount + ((k * 100) % 1024)) * -1) + ")")); //outside
 						k += 4;
 					}
 					while (k < blockSize)
@@ -209,7 +238,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						polygonData.push_back(sameDataInBlocks ? ComplexPolygonFactory::FromWkt("POLYGON((1 1, 2.5 2.5, 1 1),(5 15.5, 10.5 10.5, 20.5 10.5, 25 15.5, 20.5 20, 10.5 20, 5 15.5))") :
+						polygonData.push_back(sameDataInBlocks ? ComplexPolygonFactory::FromWkt("POLYGON((-1 1, 2.5 2.5, -1 1),(5 15.5, 10.5 10.5, 20.5 10.5, 25 15.5, 20.5 20, 10.5 20, 5 15.5))") :
 							ComplexPolygonFactory::FromWkt(std::string("POLYGON((1 1, 2.5 2.5, 1 1),(") + std::to_string(5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " + std::to_string(15.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " +
 								std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(20.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " + std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(25 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " +
 								std::to_string(15.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(20.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " + std::to_string(20 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " +
@@ -255,7 +284,14 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						integerData.push_back(sameDataInBlocks ? 1 : k % (1024 * integerColumnCount));
+						if (k % 2)
+						{
+							integerData.push_back(sameDataInBlocks ? 1 : k % (1024 * integerColumnCount));
+						}
+						else
+						{
+							integerData.push_back(sameDataInBlocks ? -1 : (k % (1024 * integerColumnCount)) * -1);
+						}
 					}
 					column.AddBlock(integerData);
 				}
