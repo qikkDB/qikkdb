@@ -192,7 +192,7 @@ private:
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 	bool usingGroupBy;
-	std::vector<std::string> groupByColumns;
+	std::unordered_set<std::string> groupByColumns;
 	std::unique_ptr<IGroupBy> groupByTable;
 
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,

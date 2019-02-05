@@ -15,8 +15,8 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database> &database,
 
 void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx)
 {
-    std::tuple<std::string, DataType> right = stackTopAndPop();
-    std::tuple<std::string, DataType> left = stackTopAndPop();
+    std::pair<std::string, DataType> right = stackTopAndPop();
+    std::pair<std::string, DataType> left = stackTopAndPop();
 
     std::string op = ctx->op->getText();
     stringToUpper(op);
@@ -95,9 +95,9 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 
 void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext *ctx)
 {
-    std::tuple<std::string, DataType> op1 = stackTopAndPop();
-    std::tuple<std::string, DataType> op2 = stackTopAndPop();
-    std::tuple<std::string, DataType> op3 = stackTopAndPop();
+    std::pair<std::string, DataType> op1 = stackTopAndPop();
+    std::pair<std::string, DataType> op2 = stackTopAndPop();
+    std::pair<std::string, DataType> op3 = stackTopAndPop();
 
     std::string op = ctx->op->getText();
     stringToUpper(op);
@@ -122,7 +122,7 @@ void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext 
 
 void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx)
 {
-    std::tuple<std::string, DataType> arg = stackTopAndPop();
+    std::pair<std::string, DataType> arg = stackTopAndPop();
 
     std::string op = ctx->op->getText();
     stringToUpper(op);
@@ -148,7 +148,7 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 
 void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 {
-    std::tuple<std::string, DataType> arg = stackTopAndPop();
+    std::pair<std::string, DataType> arg = stackTopAndPop();
 
     std::string op = ctx->AGG()->getText();
     stringToUpper(op);
@@ -165,7 +165,7 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 	else
 	{
 		// TODO
-		groupByType = DataType::CONST_ERROR;
+		groupByType = static_cast<DataType>(0);
 	}
 
     if (op == "MIN")
@@ -202,7 +202,7 @@ void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 
 void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 {
-    std::tuple<std::string, DataType> arg = stackTopAndPop();
+    std::pair<std::string, DataType> arg = stackTopAndPop();
     DataType retType = std::get<1>(arg);
     dispatcher.addRetFunction(retType);
     dispatcher.addArgument<const std::string&>(std::get<0>(arg));
@@ -224,7 +224,7 @@ void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
 
 void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext *ctx)
 {
-    std::tuple<std::string, DataType> arg = stackTopAndPop();
+    std::pair<std::string, DataType> arg = stackTopAndPop();
     dispatcher.addArgument<const std::string&>(std::get<0>(arg));
     dispatcher.addFilFunction();
 }
@@ -234,7 +234,7 @@ void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx
 
     for (auto column : ctx->columnId())
     {
-		std::tuple<std::string, DataType> tableColumnData = generateAndValidateColumnName(column);
+		std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(column);
 		const DataType columnType = std::get<1>(tableColumnData);
 		const std::string tableColumn = std::get<0>(tableColumnData);
 
@@ -259,10 +259,10 @@ void GpuSqlListener::exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx)
     std::string token = ctx->getText();
     if (isLong(token))
     {
-        parserStack.push(std::make_tuple(token, DataType::CONST_LONG));
+        parserStack.push(std::make_pair(token, DataType::CONST_LONG));
     } else
     {
-        parserStack.push(std::make_tuple(token, DataType::CONST_INT));
+        parserStack.push(std::make_pair(token, DataType::CONST_INT));
     }
 }
 
@@ -271,27 +271,27 @@ void GpuSqlListener::exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx
     std::string token = ctx->getText();
     if (isDouble(token))
     {
-        parserStack.push(std::make_tuple(token, DataType::CONST_DOUBLE));
+        parserStack.push(std::make_pair(token, DataType::CONST_DOUBLE));
     } else
     {
-        parserStack.push(std::make_tuple(token, DataType::CONST_FLOAT));
+        parserStack.push(std::make_pair(token, DataType::CONST_FLOAT));
     }
 }
 
 void GpuSqlListener::exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx)
 {
-    parserStack.push(std::make_tuple(ctx->getText(), DataType::CONST_STRING));
+    parserStack.push(std::make_pair(ctx->getText(), DataType::CONST_STRING));
 }
 
 
 void GpuSqlListener::exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx)
 {
-    parserStack.push(std::make_tuple(ctx->getText(), DataType::CONST_INT8_T));
+    parserStack.push(std::make_pair(ctx->getText(), DataType::CONST_INT8_T));
 }
 
 void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 {
-    std::tuple<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
+    std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
     const DataType columnType = std::get<1>(tableColumnData);
 	const std::string tableColumn = std::get<0>(tableColumnData);
 
@@ -301,7 +301,7 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
         dispatcher.addArgument<const std::string&>(tableColumn);
         loadedColumns.insert(tableColumn);
     }
-    parserStack.push(std::make_tuple(tableColumn, columnType));
+    parserStack.push(std::make_pair(tableColumn, columnType));
 }
 
 void GpuSqlListener::exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx)
@@ -314,15 +314,15 @@ void GpuSqlListener::exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx)
 
     if (isPolygon(geoValue))
     {
-        parserStack.push(std::make_tuple(geoValue, DataType::CONST_POLYGON));
+        parserStack.push(std::make_pair(geoValue, DataType::CONST_POLYGON));
     } else if (isPoint(geoValue))
     {
-        parserStack.push(std::make_tuple(geoValue, DataType::CONST_POINT));
+        parserStack.push(std::make_pair(geoValue, DataType::CONST_POINT));
     }
 }
 
 
-std::tuple<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx)
+std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx)
 {
     std::string table;
     std::string column;
@@ -367,17 +367,17 @@ std::tuple<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(
     std::string tableColumn = table + "." + column;
 	DataType columnType = database->GetTables().at(table).GetColumns().at(column)->GetColumnType();
 
-    if (usingGroupBy && !insideAgg && groupByColumns.find(std::make_tuple(tableColumn, columnType)) == groupByColumns.end())
+    if (usingGroupBy && !insideAgg && groupByColumns.find(std::make_pair(tableColumn, columnType)) == groupByColumns.end())
     {
         throw ColumnGroupByException();
     }
 
-    return std::make_tuple(tableColumn, columnType);
+    return std::make_pair(tableColumn, columnType);
 }
 
-std::tuple<std::string, DataType> GpuSqlListener::stackTopAndPop()
+std::pair<std::string, DataType> GpuSqlListener::stackTopAndPop()
 {
-    std::tuple<std::string, DataType> value = parserStack.top();
+    std::pair<std::string, DataType> value = parserStack.top();
     parserStack.pop();
     return value;
 }
@@ -386,7 +386,7 @@ void GpuSqlListener::pushTempResult(DataType type)
 {
     std::string reg = std::string("R") + std::to_string(tempCounter);
     tempCounter++;
-    parserStack.push(std::make_tuple(reg, type));
+    parserStack.push(std::make_pair(reg, type));
 }
 
 void GpuSqlListener::pushArgument(const char *token, DataType dataType)

@@ -36,6 +36,27 @@ __device__ __host__ constexpr K getEmptyValue()
 	}
 }
 
+template<typename T>
+__device__ T genericAtomicCAS(T * address, T compare, T val)
+{
+	static_assert(sizeof(T) == 8 || sizeof(T) == 4, "genericAtomicCAS is working only for 4 Bytes and 8 Bytes long data types");
+	if (sizeof(T) == 8)
+	{
+		uint64_t old = atomicCAS(reinterpret_cast<uint64_t*>(address), *(reinterpret_cast<uint64_t*>(&compare)), *(reinterpret_cast<uint64_t*>(&val)));
+		return *(reinterpret_cast<T*>(&old));
+	}
+	else if (sizeof(T) == 4)
+	{
+		int32_t old = atomicCAS(reinterpret_cast<int32_t*>(address), *(reinterpret_cast<int32_t*>(&compare)), *(reinterpret_cast<int32_t*>(&val)));
+		return *(reinterpret_cast<T*>(&old));
+	}
+	else
+	{
+		return T{ 0 };
+	}
+}
+
+
 // Kernel
 template<typename AGG, typename K, typename V>
 __global__ void group_by_kernel(
@@ -69,7 +90,7 @@ __global__ void group_by_kernel(
 			if (keys[index] == getEmptyValue<K>())
 			{
 				// Compare key at index with Empty and if equals, store there inKey
-				K old = atomicCAS(&keys[index], getEmptyValue<K>(), inKeys[i]);
+				K old = genericAtomicCAS<K>(&keys[index], getEmptyValue<K>(), inKeys[i]);
 
 				// Check if some other thread stored different key to this index
 				if (old != getEmptyValue<K>() && old != inKeys[i])

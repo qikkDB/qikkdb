@@ -8,10 +8,11 @@
 #include "../QueryEngine/GPUCore/GPUPolygon.cuh"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../QueryEngine/GPUCore/GPUReconstruct.cuh"
+#include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../QueryEngine/GPUCore/GPUGroupBy.cuh"
 #include "../QueryEngine/GPUCore/AggregationFunctions.cuh"
 #include "../Configuration.h"
-	
+
 
 template<typename T>
 T* GpuSqlDispatcher::allocateRegister(const std::string& reg, int32_t size)
@@ -405,7 +406,7 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 			dispatcher.groupByTable = std::make_unique<GPUGroupBy<OP,T,U,T>>(Configuration::GetInstance().GetGroupByBuckets());
 		}
 
-		std::string groupByColumnName = dispatcher.groupByColumns[0];
+		std::string groupByColumnName = *(dispatcher.groupByColumns.begin());
 		std::tuple<uintptr_t, int32_t> groupByColumn = dispatcher.allocatedPointers.at(groupByColumnName);
 		
 		int32_t dataSize = std::min(std::get<1>(groupByColumn), std::get<1>(column));
@@ -424,18 +425,21 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 template<typename OP, typename T, typename U>
 int32_t aggregationColConst(GpuSqlDispatcher &dispatcher)
 {
+	std::cout << "aggregationColConst" << std::endl;
 	return 0;
 }
 
 template<typename OP, typename T, typename U>
 int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher)
 {
+	std::cout << "aggregationConstCol" << std::endl;
 	return 0;
 }
 
 template<typename OP, typename T, typename U>
 int32_t aggregationConstConst(GpuSqlDispatcher &dispatcher)
 {
+	std::cout << "aggregationConstConst" << std::endl;
 	return 0;
 }
 
@@ -445,7 +449,7 @@ int32_t groupByCol(GpuSqlDispatcher &dispatcher)
 {
 	std::string column = dispatcher.arguments.read<std::string>();
 	std::cout << "GroupBy: " << column << std::endl;
-	if (dispatcher.groupByColumns.at(column) == dispatcher.groupByColumns.end())
+	if (dispatcher.groupByColumns.find(column) == dispatcher.groupByColumns.end())
 	{
 		dispatcher.groupByColumns.insert(column);
 	}

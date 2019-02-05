@@ -6,5 +6,5 @@ protected:
 	IGroupBy() {}
 
 public:
-	virtual ~IGroupBy();
+	virtual ~IGroupBy() {}
 };

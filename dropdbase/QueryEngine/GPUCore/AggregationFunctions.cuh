@@ -17,6 +17,42 @@ namespace AggregationFunctions
 			atomicMin(a, b);
 		}
 
+		// Specialized atomicMin for int64_t
+		__device__ void operator()(int64_t *a, int64_t b) const
+		{
+			int64_t old = *a;
+			int64_t expected;
+			if (old <= b)
+			{
+				return;
+			}
+
+			do
+			{
+				expected = old;
+				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&b));
+				old = *(int64_t*)&ret;
+			} while (old != expected && old > b);
+		}
+
+		// Specialized atomicMin for double
+		__device__ void operator()(double *a, double b) const
+		{
+			double old = *a;
+			double expected;
+			if (old <= b)
+			{
+				return;
+			}
+
+			do
+			{
+				expected = old;
+				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&b));
+				old = *(double*)&ret;
+			} while (old != expected && old > b);
+		}
+
 		// Specialized atomicMin for floats
 		__device__ void operator()(float *a, float b) const
 		{
@@ -58,6 +94,42 @@ namespace AggregationFunctions
 		__device__ void operator()(T *a, T b) const
 		{
 			atomicMax(a, b);
+		}
+
+		// Specialized atomicMax for int64_t
+		__device__ void operator()(int64_t *a, int64_t b) const
+		{
+			int64_t old = *a;
+			int64_t expected;
+			if (old >= b)
+			{
+				return;
+			}
+
+			do
+			{
+				expected = old;
+				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&b));
+				old = *(int64_t*)&ret;
+			} while (old != expected && old < b);
+		}
+
+		// Specialized atomicMax for double
+		__device__ void operator()(double *a, double b) const
+		{
+			double old = *a;
+			double expected;
+			if (old >= b)
+			{
+				return;
+			}
+
+			do
+			{
+				expected = old;
+				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&b));
+				old = *(double*)&ret;
+			} while (old != expected && old < b);
 		}
 
 		// Specialized atomicMax for floats
@@ -103,6 +175,31 @@ namespace AggregationFunctions
 			atomicAdd(a, b);
 		}
 
+		__device__ void operator()(int64_t *a, int64_t b) const
+		{
+			atomicAdd(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&b));
+		}
+
+		// Specialized atomicAdd for double
+		__device__ void operator()(double *a, double b) const
+		{
+			double old = *a;
+			double expected;
+			double newValue;
+			if (old >= b)
+			{
+				return;
+			}
+
+			do
+			{
+				expected = old;
+				newValue = *a + b;
+				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&newValue));
+				old = *(double*)&ret;
+			} while (old != expected && old < b);
+		}
+
 		template<typename T>
 		static void agg(T *outValue, T *ACol, int32_t dataElementCount)
 		{
@@ -127,6 +224,26 @@ namespace AggregationFunctions
 		__device__ void operator()(T *a, T b) const
 		{
 			atomicAdd(a, b);
+		}
+
+		__device__ void operator()(int64_t *a, int64_t b) const
+		{
+			atomicAdd(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&b));
+		}
+
+		// Specialized atomicAdd for double
+		__device__ void operator()(double *a, double b) const
+		{
+			double old = *a;
+			double expected;
+			double newValue;
+			do
+			{
+				expected = old;
+				newValue = expected + b;
+				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&newValue));
+				old = *(double*)&ret;
+			} while (old != expected);
 		}
 
 		template<typename T>

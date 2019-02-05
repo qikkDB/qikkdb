@@ -309,7 +309,7 @@ for operation in operations_arithmetic:
 
 for operation in operations_aggregation:
     declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
-                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
         for rowIdx, rowVal in enumerate(all_types):
@@ -324,7 +324,7 @@ for operation in operations_aggregation:
             elif rowIdx >= len(types):
                 row = "Col"
 
-            if (colVal in geo_types or colVal == STRING) or (rowVal in geo_types or rowVal == STRING):
+            if (colVal in geo_types or colVal == STRING) or (rowVal in geo_types or rowVal == STRING) or (rowVal == BOOL or colVal == BOOL):
                 op = "invalidOperandTypesErrorHandler"
             else:
                 op = "aggregation"
