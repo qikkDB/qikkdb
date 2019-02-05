@@ -243,6 +243,33 @@ void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx
     usingGroupBy = true;
 }
 
+void GpuSqlListener::exitShowDatabases(GpuSqlParser::ShowDatabasesContext * ctx)
+{
+	dispatcher.addShowDatabasesFunction();
+}
+
+void GpuSqlListener::exitShowTables(GpuSqlParser::ShowTablesContext * ctx)
+{
+	dispatcher.addShowTablesFunction();
+	std::string db;
+
+	if(ctx->database())
+	{
+		db = ctx->database()->getText();
+
+		if(Database::GetLoadedDatabases().find(db) == Database::GetLoadedDatabases().end())
+		{
+			throw DatabaseNotFoundException();
+		}
+	}
+	else
+	{
+		db = "#invalidDatabase";
+	}
+
+	dispatcher.addArgument<const std::string&>(db);
+}
+
 void GpuSqlListener::exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx)
 {
     std::string token = ctx->getText();

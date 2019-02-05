@@ -89,7 +89,9 @@ public:
 
     void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
 
+	void exitShowDatabases(GpuSqlParser::ShowDatabasesContext *ctx) override;
 
+	void exitShowTables(GpuSqlParser::ShowTablesContext *ctx) override;
 };
 
 

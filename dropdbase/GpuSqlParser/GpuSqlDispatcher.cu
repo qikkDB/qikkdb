@@ -59,6 +59,9 @@ std::array<std::function<int32_t(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE>
 std::array<std::function<int32_t(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::groupByFunctions = { &groupByConst<int32_t>, &groupByConst<int64_t>, &groupByConst<float>, &groupByConst<double>, &invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>, &invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>, &invalidOperandTypesErrorHandlerConst<std::string>, &invalidOperandTypesErrorHandlerConst<int8_t>, &groupByCol<int32_t>, &groupByCol<int64_t>, &groupByCol<float>, &groupByCol<double>, &invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>, &invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>, &invalidOperandTypesErrorHandlerCol<std::string>, &invalidOperandTypesErrorHandlerCol<int8_t> };
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::filFunction = &fil;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::doneFunction = &done;
+std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::showDatabasesFunction = &showDatabases;
+std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::showTablesFunction = &showTables;
+
 
 
 std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
@@ -72,8 +75,17 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 			err = function(*this);
 			if (err) 
 			{
-				if (err == 1) {
+				if (err == 1) 
+				{
 					std::cout << "Out of blocks." << std::endl;
+				}
+				if (err == 2)
+				{
+					std::cout << "Show databases completed sucessfully" << std::endl;
+				}
+				if (err == 3)
+				{
+					std::cout << "Show tables completed sucessfully" << std::endl;
 				}
 				break;
 			}
@@ -109,6 +121,16 @@ void GpuSqlDispatcher::addFilFunction()
 void GpuSqlDispatcher::addDoneFunction()
 {
     dispatcherFunctions.push_back(doneFunction);
+}
+
+void GpuSqlDispatcher::addShowDatabasesFunction()
+{
+	dispatcherFunctions.push_back(showDatabasesFunction);
+}
+
+void GpuSqlDispatcher::addShowTablesFunction()
+{
+	dispatcherFunctions.push_back(showTablesFunction);
 }
 
 void GpuSqlDispatcher::addGreaterFunction(DataType left, DataType right)
@@ -367,6 +389,42 @@ int32_t done(GpuSqlDispatcher &dispatcher)
 {
 	dispatcher.cleanUpGpuPointers();
 	return 0;
+}
+
+int32_t showDatabases(GpuSqlDispatcher &dispatcher)
+{
+	auto databases_map = Database::GetLoadedDatabases();
+	std::vector<std::string> databases;
+
+	for (auto databaseName : databases_map) {
+		databases.push_back(databaseName.first);
+		std::cout << databaseName.first << std::endl;
+	}
+	
+	return 2;
+}
+
+int32_t showTables(GpuSqlDispatcher &dispatcher)
+{
+	std::string db = dispatcher.arguments.read<std::string>();
+	std::shared_ptr<Database> database = dispatcher.database;
+
+	std::vector<std::string> tables;
+
+	if (db != "#invalidDatabase")
+	{
+		database = Database::GetLoadedDatabases().at(db);
+	}
+
+	auto& tables_map = database->GetTables();
+
+	for (auto& tableName : tables_map) {
+		tables.push_back(tableName.first);
+		//std::cout << tableName.first << std::endl;
+	}
+
+	std::cout << "Show tables" << std::endl;
+	return 3;
 }
 
 template<>
