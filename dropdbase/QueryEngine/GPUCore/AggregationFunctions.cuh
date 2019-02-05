@@ -6,6 +6,8 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
+#include "../../../cub/cub.cuh"
+
 // Generic agg function functors
 namespace AggregationFunctions
 {
@@ -74,11 +76,21 @@ namespace AggregationFunctions
 		template<typename T>
 		static void agg(T *outValue, T *ACol, int32_t dataElementCount)
 		{
-			T *outValueGPUPointer = thrust::min_element(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount);
+			// Get the buffer size
+			void* tempBuffer = nullptr;
+			size_t tempBufferSize = 0;
+			cub::DeviceReduce::Min(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+
+			// Allocate temporary storage
+			GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+
+			// Run minimum reduction - data stays on gpu
+			cub::DeviceReduce::Min(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+			GPUMemory::free(tempBuffer);
+
 			cudaDeviceSynchronize();
 
-			// Copy the generated output to outValue (still in GPU)
-			cudaMemcpy(outValue, outValueGPUPointer, sizeof(T), cudaMemcpyDeviceToDevice);
+			Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 		}
 
 		template<typename T>
@@ -153,11 +165,21 @@ namespace AggregationFunctions
 		template<typename T>
 		static void agg(T *outValue, T *ACol, int32_t dataElementCount)
 		{
-			T *outValueGPUPointer = thrust::max_element(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount);
+			// Get the buffer size
+			void* tempBuffer = nullptr;
+			size_t tempBufferSize = 0;
+			cub::DeviceReduce::Max(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+
+			// Allocate temporary storage
+			GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+
+			// Run maximum reduction - data stays on gpu
+			cub::DeviceReduce::Max(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+			GPUMemory::free(tempBuffer);
+
 			cudaDeviceSynchronize();
 
-			// Copy the generated output to outValue (still in GPU)
-			cudaMemcpy(outValue, outValueGPUPointer, sizeof(T), cudaMemcpyDeviceToDevice);
+			Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 		}
 
 		template<typename T>
@@ -203,12 +225,21 @@ namespace AggregationFunctions
 		template<typename T>
 		static void agg(T *outValue, T *ACol, int32_t dataElementCount)
 		{
-			// Kernel calls here
-			T outValueHost = thrust::reduce(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount, T{ 0 }, thrust::plus<T>());
+			// Get the buffer size
+			void* tempBuffer = nullptr;
+			size_t tempBufferSize = 0;
+			cub::DeviceReduce::Sum(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+
+			// Allocate temporary storage
+			GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+
+			// Run sum reduction - data stays on gpu
+			cub::DeviceReduce::Sum(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+			GPUMemory::free(tempBuffer);
+
 			cudaDeviceSynchronize();
 
-			// Copy the generated output to outValue (still in GPU)
-			GPUMemory::copyHostToDevice(outValue, &outValueHost, 1);
+			Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 		}
 
 		template<typename T>
@@ -249,12 +280,24 @@ namespace AggregationFunctions
 		template<typename T>
 		static void agg(T *outValue, T *ACol, int32_t dataElementCount)
 		{
-			T outValueHost = thrust::reduce(thrust::device(CudaMemAllocator::GetInstance()), ACol, ACol + dataElementCount, (T)0, thrust::plus<T>());
-			outValueHost /= dataElementCount;
+			// Get the buffer size
+			void* tempBuffer = nullptr;
+			size_t tempBufferSize = 0;
+			cub::DeviceReduce::Sum(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+
+			// Allocate temporary storage
+			GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+
+			// Run sum reduction - data stays on gpu
+			cub::DeviceReduce::Sum(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
+			GPUMemory::free(tempBuffer);
+
 			cudaDeviceSynchronize();
 
-			// Copy the generated output to outValue (still in GPU)
-			GPUMemory::copyHostToDevice(outValue, &outValueHost, 1);
+			// Divide the result - calculate the average
+			GPUArithmetic::colConst<ArithmeticOperations::div, T, T, float>(outValue, outValue, static_cast<float>(dataElementCount), 1);
+
+			Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 		}
 
 		template<typename T>
