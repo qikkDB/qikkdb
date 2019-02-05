@@ -64,6 +64,9 @@
     <ClCompile Include="TableTests.cpp" />
     <CudaCompile Include="..\dropdbase\GpuSqlParser\GpuSqlDispatcher.cu" />
     <CudaCompile Include="CudaTests.cu" />
+    <CudaCompile Include="GPUAggregationTests.cu" />
+    <CudaCompile Include="GPUArtithmeticTests.cu" />
+    <CudaCompile Include="GPUFilterTests.cu" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\dropdbase\QueryEngine\CudaMemAllocator.cu">
@@ -111,6 +114,8 @@
     <ClInclude Include="..\dropdbase\PointFactory.h" />
     <ClInclude Include="..\dropdbase\QueryEngine\Context.h" />
     <ClInclude Include="..\dropdbase\QueryEngine\CudaMemAllocator.h" />
+    <ClInclude Include="..\dropdbase\QueryEngine\GPUCore\ErrorFlagSwapper.h" />
+    <ClInclude Include="..\dropdbase\QueryEngine\GPUCore\GPULogicConst.cuh" />
     <ClInclude Include="..\dropdbase\QueryEngine\QueryEngineError.h" />
     <ClInclude Include="..\dropdbase\Table.h" />
     <ClInclude Include="..\dropdbase\Types\ComplexPolygon.pb.h" />
