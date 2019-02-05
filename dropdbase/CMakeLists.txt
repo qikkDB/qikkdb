@@ -183,7 +183,9 @@ set(TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/DatabaseTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/DispatcherTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/TableTests.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/CudaTests.cu)
+				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/GPUFilterTests.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/GPUArtithmeticTests.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/GPUAggregationTests.cu)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} main.cpp)
 add_executable(${PROJECT_NAME}_test ${SOURCE_FILES} ${TEST_FILES})
