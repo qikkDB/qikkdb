@@ -202,20 +202,20 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 					int k = 0;
 					while (k + 4 < blockSize)
 					{
-						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(15 15.4)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(15 + 5 * pointColumnCount + ((k * 100) % 1024)) +
-							" " + std::to_string(15.4 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //inside
-						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(15.5 10.5)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(15.2 + 5 * pointColumnCount + ((k * 100) % 1024)) +
-							" " + std::to_string(10.3 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //on line
-						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(10.5 10.5)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(10.5 + 5 * pointColumnCount + ((k * 100) % 1024)) +
-							" " + std::to_string(10.5 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //same vertex
-						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(-30 -30.6)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string((30 + 5 * pointColumnCount + ((k * 100) % 1024)) * -1) +
-							" " + std::to_string((30.6 + 5 * pointColumnCount + ((k * 100) % 1024)) * -1) + ")")); //outside
+						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(15 15.4)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(15 + 5 * (pointColumnCount - 1) + k * 0.001) +
+							" " + std::to_string(15.4 + 5 * (pointColumnCount - 1) + k * 0.001) + ")")); //outside
+						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(15.5 10.5)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(15.5 + 5 * (pointColumnCount - 1) + k * 0.001) +
+							" " + std::to_string(10.5 + 5 * (pointColumnCount - 1) + k * 0.001) + ")")); //on line, so it is inside
+						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(10.5 10.5)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(10.5 + 5 * (pointColumnCount - 1) + k * 0.001) +
+							" " + std::to_string(10.5 + 5 * (pointColumnCount - 1) + k * 0.001) + ")")); //same vertex, so it is inside
+						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(-30 -30.6)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string((30 + 5 * (pointColumnCount - 1) + k * 0.001) * -1) +
+							" " + std::to_string((30.6 + 5 * (pointColumnCount - 1) + k * 0.001) * -1) + ")")); //outside
 						k += 4;
 					}
 					while (k < blockSize)
 					{
-						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(15 15.4)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(15 + 5 * pointColumnCount + ((k * 100) % 1024)) +
-							" " + std::to_string(15.4 + 5 * pointColumnCount + ((k * 100) % 1024)) + ")")); //inside
+						pointData.push_back(sameDataInBlocks ? PointFactory::FromWkt("POINT(15 15.4)") : PointFactory::FromWkt(std::string("POINT(") + std::to_string(15 + 5 * pointColumnCount + k * 0.001) +
+							" " + std::to_string(15.4 + 5 * (pointColumnCount - 1) + k * 0.001) + ")")); //inside
 						k++;
 					}
 
@@ -239,10 +239,10 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 					for (int k = 0; k < blockSize; k++)
 					{
 						polygonData.push_back(sameDataInBlocks ? ComplexPolygonFactory::FromWkt("POLYGON((-1 1, 2.5 2.5, -1 1),(5 15.5, 10.5 10.5, 20.5 10.5, 25 15.5, 20.5 20, 10.5 20, 5 15.5))") :
-							ComplexPolygonFactory::FromWkt(std::string("POLYGON((1 1, 2.5 2.5, 1 1),(") + std::to_string(5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " + std::to_string(15.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " +
-								std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(20.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " + std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(25 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " +
-								std::to_string(15.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(20.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " + std::to_string(20 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(10.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " +
-								std::to_string(20 + 5 * polygonColumnCount + ((k * 100) % 1024)) + ", " + std::to_string(5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + " " + std::to_string(15.5 + 5 * polygonColumnCount + ((k * 100) % 1024)) + "))"));
+							ComplexPolygonFactory::FromWkt(std::string("POLYGON((1 1, 2.5 2.5, 1 1),(") + std::to_string(5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " + std::to_string(15.5 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(10.5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " +
+								std::to_string(10.5 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(20.5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " + std::to_string(10.5 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(25 + 5 * (pointColumnCount - 1) + k * 0.001) + " " +
+								std::to_string(15.5 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(20.5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " + std::to_string(20 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(10.5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " +
+								std::to_string(20 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " + std::to_string(15.5 + 5 * (pointColumnCount - 1) + k * 0.001) + "))"));
 					}
 					column.AddBlock(polygonData);
 				}
@@ -295,9 +295,8 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 					}
 					column.AddBlock(integerData);
 				}
-
-				break;
 			}
+				break;
 			}
 		}
 
