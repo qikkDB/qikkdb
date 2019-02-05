@@ -2989,7 +2989,7 @@ TEST(DispatcherTests, FloatNotEqColumnConst)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if ((((float)(j % 1024 + 0.1111)) > 5.1) && (((float)(j % 1024 + 0.1111)) < 5.2))
+			if (std::abs(((float)(j % 1024 + 0.1111)) - 5.1111) > 0.00005)
 			{
 				expectedResult.push_back((float)(j % 1024 + 0.1111));
 			}
@@ -3018,7 +3018,7 @@ TEST(DispatcherTests, FloatNotEqConstColumn)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (((float)(j % 1024 + 0.1111)) != 5.1111)
+			if (std::abs(((float)(j % 1024 + 0.1111)) - 5.1111) > 0.00005)
 			{
 				expectedResult.push_back((float)(j % 1024 + 0.1111));
 			}
@@ -3048,7 +3048,7 @@ TEST(DispatcherTests, FloatNotEqColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((float)(j % 2048 + 0.1111)) != ((float)(j % 1024 + 0.1111)))
+			if (std::abs(((float)(j % 2048 + 0.1111))-((float)(j % 1024 + 0.1111))) > 0.00005)
 			{
 				expectedResult.push_back((float)(j % 2048 + 0.1111));
 			}
@@ -3123,7 +3123,7 @@ TEST(DispatcherTests, DoubleNotEqColumnConst)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if ((j % 1024 + 0.1111111) != 5.1111111)
+			if (std::abs((j % 1024 + 0.1111111) - 5.1111111) > 0.0000005)
 			{
 				expectedResult.push_back(j % 1024 + 0.1111111);
 			}
@@ -3153,7 +3153,7 @@ TEST(DispatcherTests, DoubleNotEqConstColumn)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if ((j % 1024 + 0.1111111) != 5.1111111)
+			if (std::abs((j % 1024 + 0.1111111) - 5.1111111) > 0.0000005)
 			{
 				expectedResult.push_back(j % 1024 + 0.1111111);
 			}
@@ -3183,7 +3183,7 @@ TEST(DispatcherTests, DoubleNotEqColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if ((j % 2048 + 0.1111111) != (j % 1024 + 0.1111111))
+			if (std::abs((j % 2048 + 0.1111111) - (j % 1024 + 0.1111111)) > 0.0000005)
 			{
 				expectedResult.push_back(j % 2048 + 0.1111111);
 			}
@@ -3624,7 +3624,7 @@ TEST(DispatcherTests, FloatAndColumnConstNonZero)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (((float)(j % 1024 + 0.1111)) != 0)
+			if (((float)(j % 1024 + 0.1111)) > 0.0005)
 			{
 				expectedResult.push_back((float)(j % 1024 + 0.1111));
 			}
@@ -3666,7 +3666,7 @@ TEST(DispatcherTests, FloatAndConstColumnNonZero)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (((float)(j % 1024 + 0.1111)) != 0)
+			if (((float)(j % 1024 + 0.1111)) > 0.0005)
 			{
 				expectedResult.push_back((float)(j % 1024 + 0.1111));
 			}
@@ -3709,7 +3709,7 @@ TEST(DispatcherTests, FloatAndColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((float)(j % 2048 + 0.1111) != 0) && ((float)(j % 1024 + 0.1111) != 0))
+			if (((float)(j % 2048 + 0.1111) > 0.0005) && ((float)(j % 1024 + 0.1111) > 0.0005))
 			{
 				expectedResult.push_back((float)(j %1024 + 0.1111));
 			}
@@ -3804,7 +3804,7 @@ TEST(DispatcherTests, DoubleAndColumnConstNonZero)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (((j % 1024 + 0.1111111)) != 0)
+			if (((j % 1024 + 0.1111111)) > 0.0000005)
 			{
 				expectedResult.push_back((j % 1024 + 0.1111111));
 			}
@@ -3846,7 +3846,7 @@ TEST(DispatcherTests, DoubleAndConstColumnNonZero)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (((j % 1024 + 0.1111111)) != 0)
+			if (((j % 1024 + 0.1111111)) > 0.0000005)
 			{
 				expectedResult.push_back(j % 1024 + 0.1111111);
 			}
@@ -3889,7 +3889,7 @@ TEST(DispatcherTests, DoubleAndColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if ((j % 2048 + 0.1111111 != 0) && (j % 1024 + 0.1111111 != 0))
+			if ((j % 2048 + 0.1111111 > 0.0000005) && (j % 1024 + 0.1111111 > 0.0000005))
 			{
 				expectedResult.push_back(j % 1024 + 0.1111111);
 			}
@@ -4495,7 +4495,7 @@ TEST(DispatcherTests, FloatOrColumnConstZero)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (((float)(j % 1024 + 0.1111)) != 0)
+			if (((float)(j % 1024 + 0.1111)) > 0.0005)
 			{
 				expectedResult.push_back((float)(j % 1024 + 0.1111));
 			}
@@ -4552,7 +4552,7 @@ TEST(DispatcherTests, FloatOrConstColumnZero)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (((float)(j % 1024 + 0.1111)) != 0)
+			if (((float)(j % 1024 + 0.1111)) > 0.0005)
 			{
 				expectedResult.push_back((float)(j % 1024 + 0.1111));
 			}
@@ -4582,7 +4582,7 @@ TEST(DispatcherTests, FloatOrColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((float)(j % 2048 + 0.1111) != 0) || ((float)(j % 1024 + 0.1111) != 0))
+			if (((float)(j % 2048 + 0.1111) > 0.0005) || ((float)(j % 1024 + 0.1111) > 0.0005))
 			{
 				expectedResult.push_back((float)(j %1024 + 0.1111));
 			}
@@ -4731,7 +4731,7 @@ TEST(DispatcherTests, DoubleOrColumnConstZero)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (((j % 1024 + 0.1111111)) != 0)
+			if (((j % 1024 + 0.1111111)) > 0.0000005)
 			{
 				expectedResult.push_back((j % 1024 + 0.1111111));
 			}
@@ -4788,7 +4788,7 @@ TEST(DispatcherTests, DoubleOrConstColumnZero)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (((j % 1024 + 0.1111111)) != 0)
+			if (((j % 1024 + 0.1111111)) > 0.0000005)
 			{
 				expectedResult.push_back(j % 1024 + 0.1111111);
 			}
@@ -4818,7 +4818,7 @@ TEST(DispatcherTests, DoubleOrColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if ((j % 2048 + 0.1111111 != 0) || (j % 1024 + 0.1111111 != 0))
+			if ((j % 2048 + 0.1111111 > 0.0000005) || (j % 1024 + 0.1111111 > 0.0000005))
 			{
 				expectedResult.push_back(j % 1024 + 0.1111111);
 			}
@@ -4926,7 +4926,129 @@ TEST(DispatcherTests, DoubleOrConstConstFalseBothZero)
 	ASSERT_EQ(payloads.doublepayload().doubledata_size(), 0);
 }
 
+/////////////////////
+//   NEGATION
+/////////////////////
 
+// INT NEGATION
+TEST(DispatcherTests, IntNegation)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE !(colInteger1 > 5);");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			if (j % 1024 <= 5) 
+			{
+				expectedResult.push_back(j % 1024);
+			}
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colInteger1");
+
+	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
+	}
+}
+
+// LONG NEGATION
+TEST(DispatcherTests, LongNegation)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colLong1 FROM TableA WHERE !(colLong1 > 500000000);");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int64_t> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			if (static_cast<int64_t>(2 * pow(10, j % 19)) + j % 1024 <= 500000000)
+			{
+				expectedResult.push_back(static_cast<int64_t>(2 * pow(10, j % 19)) + j % 1024);
+			}
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colLong1");
+
+	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
+	{
+		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
+	}
+}
+
+// FLOAT NEGATION
+TEST(DispatcherTests, FloatNegation)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colFloat1 FROM TableA WHERE !(colFloat1 > 6.5555);");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			if ((float)(j % 1024 + 0.1111) <= 6.5555)
+			{
+				expectedResult.push_back((float)(j % 1024 + 0.1111));
+			}
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colFloat1");
+
+	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
+	}
+}
+
+// DOUBLE NEGATION
+TEST(DispatcherTests, DoubleNegation)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT colDouble1 FROM TableA WHERE !(colDouble1 > 9.66666666);");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<double> expectedResult;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < (1 << 11); j++)
+		{
+			if ((j % 1024 + 0.1111111) <= 9.66666666)
+			{
+				expectedResult.push_back((j % 1024 + 0.1111111));
+			}
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colDouble1");
+
+	for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
+	{
+		ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
+	}
+}
 
 ///////////
 
