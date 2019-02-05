@@ -20,6 +20,11 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) : 
 	filter_ = (reinterpret_cast<std::uintptr_t>(filter));
 }
 
+GpuSqlDispatcher::~GpuSqlDispatcher()
+{
+	cleanUpGpuPointers();
+}
+
 
 template <>
 int32_t loadCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher);
@@ -285,6 +290,16 @@ GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::
 	return gpuPolygon;
 }
 
+void GpuSqlDispatcher::cleanUpGpuPointers()
+{
+	arguments.reset();
+	for (auto& ptr : allocatedPointers)
+	{
+		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(ptr.second)));
+	}
+	allocatedPointers.clear();
+}
+
 template <>
 int32_t loadCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 {
@@ -350,12 +365,7 @@ int32_t fil(GpuSqlDispatcher &dispatcher)
 
 int32_t done(GpuSqlDispatcher &dispatcher)
 {
-	dispatcher.arguments.reset();
-	for (auto& ptr : dispatcher.allocatedPointers)
-	{
-		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(ptr.second)));
-	}
-	dispatcher.allocatedPointers.clear();
+	dispatcher.cleanUpGpuPointers();
 	return 0;
 }
 
