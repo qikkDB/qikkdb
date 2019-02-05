@@ -195,7 +195,6 @@ private:
 	std::vector<std::string> groupByColumns;
 	std::unique_ptr<IGroupBy> groupByTable;
 
-
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
@@ -229,15 +228,15 @@ private:
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> minusFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> minFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> maxFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> sumFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> countFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> avgFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> loadFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <yaml-cpp/yaml.h>
-#include <boost/log/trivial.hpp>
+#include <iostream>
 
 
 class Configuration
@@ -46,14 +46,17 @@ private:
 		if (yamlParsed_[entryKey]) {
 			try {
 				configurationValue = yamlParsed_[entryKey].as<T>();
-				BOOST_LOG_TRIVIAL(info) << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
+				//BOOST_LOG_TRIVIAL(info) << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
+				std::cout << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
 			}
 			catch (YAML::TypedBadConversion<T>& e) {
-				BOOST_LOG_TRIVIAL(warning) << "Configuration entry wrong conversion, using default value." << std::endl;
+				//BOOST_LOG_TRIVIAL(warning) << "Configuration entry wrong conversion, using default value." << std::endl;
+				std::cout << "Configuration entry wrong conversion, using default value." << std::endl;
 			}			
 		}
 		else {
-            BOOST_LOG_TRIVIAL(warning) << "Configuration entry not found, using default value." << std::endl;
+            //BOOST_LOG_TRIVIAL(warning) << "Configuration entry not found, using default value." << std::endl;
+			std::cout << "Configuration entry not found, using default value." << std::endl;
 		}
 	}
 

@@ -11,10 +11,12 @@ void Configuration::LoadConfigurationFile()
 		yamlParsed_ = YAML::LoadFile(this->configurationFile);
 	}
 	catch (YAML::ParserException& e) {
-		BOOST_LOG_TRIVIAL(info) << "Configuration file could not be parsed. Using default values." << std::endl;
+		//BOOST_LOG_TRIVIAL(info) << "Configuration file could not be parsed. Using default values." << std::endl;
+		std::cout << "Configuration file could not be parsed. Using default values." << std::endl;
 	}
 	catch (YAML::BadFile& e) {
-		BOOST_LOG_TRIVIAL(info) << "Configuration file could not found. Using default values." << std::endl;
+		//BOOST_LOG_TRIVIAL(info) << "Configuration file could not found. Using default values." << std::endl;
+		std::cout << "Configuration file could not found. Using default values." << std::endl;
 	}
 
 	// setting particular YAML entries into configuration values
