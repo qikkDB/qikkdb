@@ -192,6 +192,7 @@ private:
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 	bool usingGroupBy;
+	bool isLastBlock;
 	std::unordered_set<std::string> groupByColumns;
 	std::unique_ptr<IGroupBy> groupByTable;
 
@@ -287,15 +288,15 @@ public:
 
     void addMinusFunction(DataType type);
 
-    void addMinFunction(DataType type, DataType groupByType);
+    void addMinFunction(DataType key, DataType value);
 
-    void addMaxFunction(DataType type, DataType groupByType);
+    void addMaxFunction(DataType key, DataType value);
 
-    void addSumFunction(DataType type, DataType groupByType);
+    void addSumFunction(DataType key, DataType value);
 
-    void addCountFunction(DataType type, DataType groupByType);
+    void addCountFunction(DataType key, DataType value);
 
-    void addAvgFunction(DataType type, DataType groupByType);
+    void addAvgFunction(DataType key, DataType value);
 
     void addLoadFunction(DataType type);
 

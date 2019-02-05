@@ -170,26 +170,27 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 
     if (op == "MIN")
     {
-        dispatcher.addMinFunction(operandType, groupByType);
+        dispatcher.addMinFunction(groupByType, operandType);
 		returnDataType = operandType;
     } else if (op == "MAX")
     {
-        dispatcher.addMaxFunction(operandType, groupByType);
+        dispatcher.addMaxFunction(groupByType, operandType);
 		returnDataType = operandType;
     } else if (op == "SUM")
     {
-        dispatcher.addSumFunction(operandType, groupByType);
+        dispatcher.addSumFunction(groupByType, operandType);
 		returnDataType = operandType;
     } else if (op == "COUNT")
     {
-        dispatcher.addCountFunction(operandType, groupByType);
+        dispatcher.addCountFunction(groupByType, operandType);
 		returnDataType = DataType::COLUMN_INT;
     } else if (op == "AVG")
     {
-        dispatcher.addAvgFunction(operandType, groupByType);
+        dispatcher.addAvgFunction(groupByType, operandType);
 		returnDataType = operandType;
     }
 
+	insideAgg = false;
 	std::string reg = std::string("R") + std::to_string(tempCounter);
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(returnDataType);
@@ -238,17 +239,18 @@ void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx
 		const DataType columnType = std::get<1>(tableColumnData);
 		const std::string tableColumn = std::get<0>(tableColumnData);
 
+		if (groupByColumns.find(tableColumnData) == groupByColumns.end())
+		{
+			dispatcher.addGroupByFunction(columnType);
+			dispatcher.addArgument<const std::string&>(tableColumn);
+			groupByColumns.insert(tableColumnData);
+		}
+
         if (loadedColumns.find(tableColumn) == loadedColumns.end())
         {
             dispatcher.addLoadFunction(columnType);
             dispatcher.addArgument<const std::string&>(tableColumn);
             loadedColumns.insert(tableColumn);
-        }
-        if (groupByColumns.find(tableColumnData) == groupByColumns.end())
-        {
-			dispatcher.addGroupByFunction(columnType);
-			dispatcher.addArgument<const std::string&>(tableColumn);
-            groupByColumns.insert(tableColumnData);
         }
     }
     usingGroupBy = true;
@@ -304,6 +306,15 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
     parserStack.push(std::make_pair(tableColumn, columnType));
 }
 
+void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
+{
+	if (insideAgg) 
+	{
+		throw NestedAggregationException();
+	}
+	insideAgg = true;
+}
+
 void GpuSqlListener::exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx)
 {
 
@@ -342,7 +353,8 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
         {
             throw ColumnNotFoundException();
         }
-    } else
+    } 
+	else
     {
         int uses = 0;
         for (auto &tab : loadedTables)

@@ -78,6 +78,8 @@ public:
 
     void exitVarReference(GpuSqlParser::VarReferenceContext *ctx) override;
 
+	void enterAggregation(GpuSqlParser::AggregationContext *ctx) override;
+
     void exitAggregation(GpuSqlParser::AggregationContext *ctx) override;
 
     void exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx) override;

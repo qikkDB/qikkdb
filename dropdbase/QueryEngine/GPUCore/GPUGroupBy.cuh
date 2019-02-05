@@ -291,8 +291,9 @@ public:
 			"GPUGroupBy<avg>.getResults K (keys) must be integral or floating point");
 		static_assert(std::is_integral<V>::value || std::is_floating_point<V>::value,
 			"GPUGroupBy<avg>.getResults V (values) must be integral or floating point");
-		static_assert(std::is_floating_point<O>::value,
-			"GPUGroupBy<avg>.getResults O (outValue) must be floating point for Average operation");
+		// TODO uncomment
+		//static_assert(std::is_floating_point<O>::value,
+		//	"GPUGroupBy<avg>.getResults O (outValue) must be floating point for Average operation");
 
 		// Create buffer for bucket compression - reconstruct
 		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
