@@ -19,85 +19,85 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 
 	// prepares map columnName -> columnType
 	std::unordered_map<std::string, DataType> columns;
-	for (int i = 0; i < headers.size(); i++) {
-		columns[headers[i]] = dataTypes[i];
+	for (int i = 0; i < headers_.size(); i++) {
+		columns[headers_[i]] = dataTypes_[i];
 	}
 	
 	// creates table
-	std::string tableName = boost::filesystem::path(fileName).stem().string();
+	std::string tableName = boost::filesystem::path(fileName_).stem().string();
 	Table& table = database->CreateTable(columns, tableName.c_str());
 	
 	// initializes map columnName -> vector of column data
 	std::unordered_map<std::string, std::any> data;
-	for (int i = 0; i < headers.size(); i++) {
-		if (dataTypes[i] == COLUMN_INT)
+	for (int i = 0; i < headers_.size(); i++) {
+		if (dataTypes_[i] == COLUMN_INT)
 		{
 			std::vector<int32_t> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = std::move(v);
+			data[headers_[i]] = std::move(v);
 		}
-		else if (dataTypes[i] == COLUMN_LONG)
+		else if (dataTypes_[i] == COLUMN_LONG)
 		{
 			std::vector<int64_t> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = std::move(v);
+			data[headers_[i]] = std::move(v);
 		}
-		else if (dataTypes[i] == COLUMN_FLOAT)
+		else if (dataTypes_[i] == COLUMN_FLOAT)
 		{
 			std::vector<float> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = std::move(v);
+			data[headers_[i]] = std::move(v);
 		}
-		else if (dataTypes[i] == COLUMN_DOUBLE)
+		else if (dataTypes_[i] == COLUMN_DOUBLE)
 		{
 			std::vector<double> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = std::move(v);
+			data[headers_[i]] = std::move(v);
 		}
-		else if (dataTypes[i] == COLUMN_POINT)
+		else if (dataTypes_[i] == COLUMN_POINT)
 		{
 			std::vector<ColmnarDB::Types::Point> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = std::move(v);
+			data[headers_[i]] = std::move(v);
 		}
-		else if (dataTypes[i] == COLUMN_POLYGON)
+		else if (dataTypes_[i] == COLUMN_POLYGON)
 		{
 			std::vector<ColmnarDB::Types::ComplexPolygon> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = std::move(v);
+			data[headers_[i]] = std::move(v);
 		}
-		else if (dataTypes[i] == COLUMN_STRING)
+		else if (dataTypes_[i] == COLUMN_STRING)
 		{
 			std::vector<std::string> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = std::move(v);
+			data[headers_[i]] = std::move(v);
 		}
 		else {
 			std::vector<std::string> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = std::move(v);
+			data[headers_[i]] = std::move(v);
 		}
 	}
 	
-	std::ifstream f(fileName);
-	aria::csv::CsvParser parser = aria::csv::CsvParser(f).delimiter(delimiter).quote(quotes);
+	std::ifstream f(fileName_);
+	aria::csv::CsvParser parser = aria::csv::CsvParser(f).delimiter(delimiter_).quote(quotes_);
 
 	int position = 0;
 	std::vector<std::any> rowData;
-	rowData.reserve(headers.size());
+	rowData.reserve(headers_.size());
 
 	// parses file and inserts data in batches of size of blockSize
 	for (auto& row : parser) {
 		
 		int columnIndex = 0;
-		if (position > 0 || !this->header) {
+		if (position > 0 || !this->header_) {
 			// casts and puts data into row vector
 			// if casting fails, the line is ommited
 			try {
 				for (auto& field : row) {
 
 					std::any value;
-					switch (dataTypes[columnIndex]) {
+					switch (dataTypes_[columnIndex]) {
 					case COLUMN_INT:
 						value = (int32_t)std::stol(field);
 						break;
@@ -125,11 +125,11 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 				}
 			}
 			catch (std::out_of_range& e) {
-				BOOST_LOG_TRIVIAL(warning) << "Import of file " << fileName << " failed on line " << position << " (column " << columnIndex+1 << ")";
+				BOOST_LOG_TRIVIAL(warning) << "Import of file " << fileName_ << " failed on line " << position << " (column " << columnIndex+1 << ")";
 				rowData.clear(); 
 			}
 			catch (std::invalid_argument& e) {
-				BOOST_LOG_TRIVIAL(warning) << "Import of file " << fileName << " failed on line " << position << " (column " << columnIndex+1 << ")";
+				BOOST_LOG_TRIVIAL(warning) << "Import of file " << fileName_ << " failed on line " << position << " (column " << columnIndex+1 << ")";
 				rowData.clear();
 			}
 		}
@@ -137,9 +137,9 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 		// pushes values of row vector into corresponding columns
 		columnIndex = 0;
 		for (auto& field : rowData) {
-			std::any &wrappedData = data.at(headers[columnIndex]);
+			std::any &wrappedData = data.at(headers_[columnIndex]);
 			int v;
-			switch (dataTypes[columnIndex])
+			switch (dataTypes_[columnIndex])
 			{
 			case COLUMN_INT:
  				std::any_cast<std::vector<int32_t>&>(wrappedData).push_back(std::any_cast<int32_t>(field));
@@ -177,9 +177,9 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 			table.InsertData(data);
 
 			// clears parsed data so far
-			for (int i = 0; i < headers.size(); i++) {
-				std::any &wrappedData = data.at(headers[i]);
-				switch (dataTypes[i])
+			for (int i = 0; i < headers_.size(); i++) {
+				std::any &wrappedData = data.at(headers_[i]);
+				switch (dataTypes_[i])
 				{
 				case COLUMN_INT:
 					std::any_cast<std::vector<int32_t>&>(wrappedData).clear();
@@ -216,8 +216,8 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 /// </summary>
 void CSVDataImporter::ExtractHeaders()
 {
-	std::ifstream f(fileName);
-	aria::csv::CsvParser parser = aria::csv::CsvParser(f).delimiter(delimiter).quote(quotes);
+	std::ifstream f(fileName_);
+	aria::csv::CsvParser parser = aria::csv::CsvParser(f).delimiter(delimiter_).quote(quotes_);
 
 	int position = 0;
 	auto& row = parser.begin();
@@ -226,10 +226,10 @@ void CSVDataImporter::ExtractHeaders()
 	for (auto& field : *row) {
 
 		if (position == 0) {
-			if (this->header)
-				this->headers.push_back(field);
+			if (this->header_)
+				this->headers_.push_back(field);
 			else
-				this->headers.push_back("C" + std::to_string(columnIndex));
+				this->headers_.push_back("C" + std::to_string(columnIndex));
 		}
 			
 		columnIndex++;
@@ -243,8 +243,8 @@ void CSVDataImporter::ExtractTypes()
 {
 	std::vector<std::vector<std::string>> columnData;
 
-	std::ifstream f(fileName);
-	aria::csv::CsvParser parser = aria::csv::CsvParser(f).delimiter(delimiter).quote(quotes);
+	std::ifstream f(fileName_);
+	aria::csv::CsvParser parser = aria::csv::CsvParser(f).delimiter(delimiter_).quote(quotes_);
 
 	int position = 0;
 
@@ -256,7 +256,7 @@ void CSVDataImporter::ExtractTypes()
 			if (position == 0) {
 				columnData.push_back(std::vector<std::string>());
 			}
-			if ((header && position > 0) || !header) {
+			if ((header_ && position > 0) || !header_) {
 				columnData[columnIndex].push_back(field);
 			}
 
@@ -271,8 +271,8 @@ void CSVDataImporter::ExtractTypes()
 	}
 
 	for (auto& column : columnData) {
-		DataType type = this->IndetifyDataType(column);
-		dataTypes.push_back(type);
+		DataType type = this->IdentifyDataType(column);
+		dataTypes_.push_back(type);
 	}
 }
 
@@ -282,7 +282,7 @@ void CSVDataImporter::ExtractTypes()
 /// </summary>
 /// <param name="columnValues">vector of string values</param>
 /// <returns>Suitable data type</returns>
-DataType CSVDataImporter::IndetifyDataType(std::vector<std::string> columnValues)
+DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues)
 {
 	std::vector<DataType> dataTypes;
 

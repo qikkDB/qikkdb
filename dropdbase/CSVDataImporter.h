@@ -10,12 +10,13 @@
 class CSVDataImporter
 {
 public:
-	CSVDataImporter(std::string fileName, bool header=true, char delimiter = ',', char quotes = '\'', char decimal = '.') {
-		this->fileName = fileName;
-		this->delimiter = delimiter;
-		this->quotes = quotes;
-		this->decimal = decimal;
-		this->header = header;		
+	CSVDataImporter(std::string fileName, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.') :
+		fileName_(fileName),
+		header_(header),
+		delimiter_(delimiter),
+		quotes_(quotes),
+		decimal_(decimal)
+	{
 	}
 
 	void ImportTables(std::shared_ptr<Database> database);
@@ -23,14 +24,13 @@ public:
 	void ExtractTypes();
 
 private:
-	std::string fileName;
-	bool header;
-	char delimiter;
-	char quotes;
-	char decimal;
-	std::vector<std::string> headers;
-	std::vector<DataType> dataTypes;	
-	std::unordered_map<std::string, std::any> data;
+	std::string fileName_;
+	bool header_;
+	char delimiter_;
+	char quotes_;
+	char decimal_;
+	std::vector<std::string> headers_;
+	std::vector<DataType> dataTypes_;
 
-	DataType IndetifyDataType(std::vector<std::string> columnValues);		
+	DataType IdentifyDataType(std::vector<std::string> columnValues);
 };
