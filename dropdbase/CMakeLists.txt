@@ -145,6 +145,11 @@ set(SOURCE_FILES messages/CSVImportMessage.pb.cc
         ColumnBase.h
         ComplexPolygonFactory.cpp
         ComplexPolygonFactory.h
+        ClientPoolWorker.cpp
+	CSVInMemoryImporter.cpp
+	ITCPWorker.cpp
+	NetworkMessage.cpp
+	TCPClientHandler.cpp
         NativeGeoPoint.h
         PointFactory.cpp
         PointFactory.h
@@ -186,6 +191,14 @@ set(TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/GPUArtithmeticTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/GPUAggregationTests.cu)
+				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/ClientHandlerTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/ColumnTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/DatabaseTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/DispatcherTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/ProtocolMessageTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/TableTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/TCPServerTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/../dropdbase_test/CudaTests.cu)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} main.cpp)
 add_executable(${PROJECT_NAME}_test ${SOURCE_FILES} ${TEST_FILES})
