@@ -34,48 +34,48 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
 		{
 			std::vector<int32_t> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = v;
+			data[headers[i]] = std::move(v);
 		}
 		else if (dataTypes[i] == COLUMN_LONG)
 		{
 			std::vector<int64_t> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = v;
+			data[headers[i]] = std::move(v);
 		}
 		else if (dataTypes[i] == COLUMN_FLOAT)
 		{
 			std::vector<float> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = v;
+			data[headers[i]] = std::move(v);
 		}
 		else if (dataTypes[i] == COLUMN_DOUBLE)
 		{
 			std::vector<double> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = v;
+			data[headers[i]] = std::move(v);
 		}
 		else if (dataTypes[i] == COLUMN_POINT)
 		{
 			std::vector<ColmnarDB::Types::Point> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = v;
+			data[headers[i]] = std::move(v);
 		}
 		else if (dataTypes[i] == COLUMN_POLYGON)
 		{
 			std::vector<ColmnarDB::Types::ComplexPolygon> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = v;
+			data[headers[i]] = std::move(v);
 		}
 		else if (dataTypes[i] == COLUMN_STRING)
 		{
 			std::vector<std::string> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = v;
+			data[headers[i]] = std::move(v);
 		}
 		else {
 			std::vector<std::string> v;
 			v.reserve(database->GetBlockSize());
-			data[headers[i]] = v;
+			data[headers[i]] = std::move(v);
 		}
 	}
 	
