@@ -77,7 +77,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 			if (err) 
 			{
 				if (err == 1) {
-					std::cout << "Out of blocks." << std::endl;
+					//std::cout << "Out of blocks." << std::endl;
 				}
 				break;
 			}
@@ -85,7 +85,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 		blockIndex++;
 	}
 
-	std::cout << responseMessage.DebugString() << std::endl;
+	//std::cout << responseMessage.DebugString() << std::endl;
 	return std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(std::move(responseMessage));
 }
 

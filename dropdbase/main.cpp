@@ -17,7 +17,7 @@
 
 int main(int argc, char **argv)
 {
-	std::cout << "Start." << std::endl;
+	std::cout << "Start" << std::endl;
 	if (argc > 1)
 	{
 		CSVDataImporter csvDataImporter("TargetLoc.csv");
@@ -34,19 +34,16 @@ int main(int argc, char **argv)
 		std::cout << "No dbs loaded, use some switch" << std::endl;
 	}
 
-	std::cout << "Parsing..." << std::endl;
 	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
+	std::cout << "Parsing..." << std::endl; 
 	auto start = std::chrono::high_resolution_clock::now();
-	
-    GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT AVG(wealthIndexId), genderId FROM TargetLoc GROUP BY genderId;");
-    parser.parse();
 
-    auto end = std::chrono::high_resolution_clock::now();
+	GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT COUNT(ageId) FROM TargetLoc100M WHERE latitude > 48.163267512773274 AND latitude < 48.17608989851882 AND longitude > 17.19991468973717 AND longitude < 17.221200700479358 GROUP BY ageId;");
+	parser.parse();
 
-    std::chrono::duration<double> elapsed(end - start);
+	auto end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Elapsed time: " << elapsed.count()*1000 << " ms\n";
-
-	system("PAUSE");
+	std::chrono::duration<double> elapsed(end - start);
+	std::cout << "Elapsed time: " << elapsed.count() * 1000 << " ms\n";
     return 0;
 }
