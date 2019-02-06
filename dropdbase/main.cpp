@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	auto start = std::chrono::high_resolution_clock::now();
 	
 
-    GpuSqlCustomParser parser(database, "SELECT colInteger2, AVG(colInteger1) FROM TableA GROUP BY colInteger2;");
+    GpuSqlCustomParser parser(database, "SELECT AVG(colInteger1), colInteger2 FROM TableA GROUP BY colInteger2;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();

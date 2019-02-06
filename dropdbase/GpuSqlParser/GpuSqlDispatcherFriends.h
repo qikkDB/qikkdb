@@ -83,25 +83,32 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 	{
 		if (dispatcher.isLastBlock)
 		{
-			std::tuple<uintptr_t, int32_t> keyCol = dispatcher.allocatedPointers.at(col + "_keys");
-			std::tuple<uintptr_t, int32_t> valueCol = dispatcher.allocatedPointers.at(col);
-			outSize = std::max(std::get<1>(keyCol), std::get<1>(valueCol));
-			std::unique_ptr<T[]> outData(new T[outSize]);
-
 			if (dispatcher.groupByColumns.find(col) != dispatcher.groupByColumns.end())
 			{
+				std::tuple<uintptr_t, int32_t> keyCol = dispatcher.allocatedPointers.at(col + "_keys");
+				outSize = std::get<1>(keyCol);
+				std::unique_ptr<T[]> outData(new T[outSize]);
 				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(keyCol)), outSize);
+
+				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+				insertIntoPayload<T>(payload, outData, outSize);
+				ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
+				partialMessage.mutable_payloads()->insert({ col, payload });
+				dispatcher.responseMessage.MergeFrom(partialMessage);
 			}
 			else
 			{
+				std::tuple<uintptr_t, int32_t> valueCol = dispatcher.allocatedPointers.at(col);
+				outSize = std::get<1>(valueCol);
+				std::unique_ptr<T[]> outData(new T[outSize]);
 				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(valueCol)), outSize);
-			}
 
-			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-			insertIntoPayload<T>(payload, outData, outSize);
-			ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
-			partialMessage.mutable_payloads()->insert({ col, payload });
-			dispatcher.responseMessage.MergeFrom(partialMessage);
+				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+				insertIntoPayload<T>(payload, outData, outSize);
+				ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
+				partialMessage.mutable_payloads()->insert({ col, payload });
+				dispatcher.responseMessage.MergeFrom(partialMessage);
+			}
 		}
 	}
 	else
@@ -458,10 +465,10 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 		if (dispatcher.blockIndex == dispatcher.database->GetTables().at(table).GetColumns().at(columnName)->GetBlockCount() - 1)
 		{
 			int32_t outSize;
-			U* outKeys = dispatcher.allocateRegister<U>(reg + "_keys", Configuration::GetInstance().GetGroupByBuckets());
+			U* outKeys = dispatcher.allocateRegister<U>(groupByColumnName + "_keys", Configuration::GetInstance().GetGroupByBuckets());
 			T* outValues = dispatcher.allocateRegister<T>(reg, Configuration::GetInstance().GetGroupByBuckets());
 			reinterpret_cast<GPUGroupBy<OP, T, U, T>*>(dispatcher.groupByTable.get())->getResults(outKeys, outValues, &outSize);
-			std::get<1>(dispatcher.allocatedPointers.at(reg + "_keys")) = outSize;
+			std::get<1>(dispatcher.allocatedPointers.at(groupByColumnName + "_keys")) = outSize;
 			std::get<1>(dispatcher.allocatedPointers.at(reg)) = outSize;
 			dispatcher.isLastBlock = true;
 		}
