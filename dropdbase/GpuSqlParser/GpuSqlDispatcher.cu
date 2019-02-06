@@ -61,6 +61,8 @@ std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::filFunction = &fil;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::doneFunction = &done;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::showDatabasesFunction = &showDatabases;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::showTablesFunction = &showTables;
+std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::showColumnsFunction = &showColumns;
+std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::insertIntoFunction = &insertInto;
 
 
 
@@ -86,6 +88,14 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 				if (err == 3)
 				{
 					std::cout << "Show tables completed sucessfully" << std::endl;
+				}
+				if (err == 4)
+				{
+					std::cout << "Show columns completed sucessfully" << std::endl;
+				}
+				if (err == 5)
+				{
+					std::cout << "Insert into completed sucessfully" << std::endl;
 				}
 				break;
 			}
@@ -131,6 +141,16 @@ void GpuSqlDispatcher::addShowDatabasesFunction()
 void GpuSqlDispatcher::addShowTablesFunction()
 {
 	dispatcherFunctions.push_back(showTablesFunction);
+}
+
+void GpuSqlDispatcher::addShowColumnsFunction()
+{
+	dispatcherFunctions.push_back(showColumnsFunction);
+}
+
+void GpuSqlDispatcher::addInsertIntoFunction()
+{
+	dispatcherFunctions.push_back(insertIntoFunction);
 }
 
 void GpuSqlDispatcher::addGreaterFunction(DataType left, DataType right)
@@ -407,14 +427,9 @@ int32_t showDatabases(GpuSqlDispatcher &dispatcher)
 int32_t showTables(GpuSqlDispatcher &dispatcher)
 {
 	std::string db = dispatcher.arguments.read<std::string>();
-	std::shared_ptr<Database> database = dispatcher.database;
+	std::shared_ptr<Database> database = Database::GetLoadedDatabases().at(db);
 
 	std::vector<std::string> tables;
-
-	if (db != "#invalidDatabase")
-	{
-		database = Database::GetLoadedDatabases().at(db);
-	}
 
 	auto& tables_map = database->GetTables();
 
@@ -423,8 +438,34 @@ int32_t showTables(GpuSqlDispatcher &dispatcher)
 		//std::cout << tableName.first << std::endl;
 	}
 
-	std::cout << "Show tables" << std::endl;
 	return 3;
+}
+
+int32_t showColumns(GpuSqlDispatcher &dispatcher)
+{
+	std::string db = dispatcher.arguments.read<std::string>();
+	std::string tab = dispatcher.arguments.read<std::string>();
+
+	std::shared_ptr<Database> database = Database::GetLoadedDatabases().at(db);
+	auto& table = database->GetTables().at(tab);
+
+	auto& columns_map = table.GetColumns();
+	std::vector<std::string> columns;
+
+	for (auto& columnName : columns_map) {
+		columns.push_back(columnName.first);
+		std::cout << columnName.first << std::endl;
+	}
+	return 4;
+}
+
+int32_t insertInto(GpuSqlDispatcher & dispatcher)
+{
+	//TODO
+
+	std::cout << "Insert Into" << std::endl;
+
+	return 5;
 }
 
 template<>

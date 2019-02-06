@@ -70,5 +70,9 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	{
 		walker.walk(&gpuSqlListener, statement->showStatement());
 	}
+	else if (statement->sqlInsertInto())
+	{
+		walker.walk(&gpuSqlListener, statement->sqlInsertInto());
+	}
     return dispatcher.execute();
 }

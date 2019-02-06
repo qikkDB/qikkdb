@@ -264,8 +264,66 @@ void GpuSqlListener::exitShowTables(GpuSqlParser::ShowTablesContext * ctx)
 	}
 	else
 	{
-		db = "#invalidDatabase";
+		if (database)
+		{
+			db = database->GetName();
+		}
+		else
+		{
+			throw DatabaseNotFoundException();
+		}
 	}
+
+	dispatcher.addArgument<const std::string&>(db);
+}
+
+void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext * ctx)
+{
+	dispatcher.addShowColumnsFunction();
+	std::string db;
+	std::string table;
+
+	if (ctx->database())
+	{
+		db = ctx->database()->getText();
+
+		if (Database::GetLoadedDatabases().find(db) == Database::GetLoadedDatabases().end())
+		{
+			throw DatabaseNotFoundException();
+		}
+	}
+	else
+	{
+		if (database)
+		{
+
+			db = database->GetName();
+		}
+		else
+		{
+			throw DatabaseNotFoundException();
+		}
+	}
+
+	std::shared_ptr<Database> databaseObject = Database::GetLoadedDatabases().at(db);
+	table = ctx->table()->getText();
+	
+	if (databaseObject->GetTables().find(table) == databaseObject->GetTables().end())
+	{
+		throw TableNotFoundFromException();
+	}
+
+	dispatcher.addArgument<const std::string&>(db);
+	dispatcher.addArgument<const std::string&>(table);
+}
+
+//TODO
+void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
+{
+	dispatcher.addInsertIntoFunction();
+	std::string db;
+
+	db = database->GetName();
 
 	dispatcher.addArgument<const std::string&>(db);
 }

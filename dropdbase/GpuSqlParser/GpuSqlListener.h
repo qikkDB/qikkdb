@@ -92,6 +92,10 @@ public:
 	void exitShowDatabases(GpuSqlParser::ShowDatabasesContext *ctx) override;
 
 	void exitShowTables(GpuSqlParser::ShowTablesContext *ctx) override;
+
+	void exitShowColumns(GpuSqlParser::ShowColumnsContext *ctx) override;
+
+	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
 };
 
 

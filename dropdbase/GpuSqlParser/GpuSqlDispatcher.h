@@ -254,6 +254,8 @@ private:
     static std::function<int32_t(GpuSqlDispatcher &)> doneFunction;
 	static std::function<int32_t(GpuSqlDispatcher &)> showDatabasesFunction;
 	static std::function<int32_t(GpuSqlDispatcher &)> showTablesFunction;
+	static std::function<int32_t(GpuSqlDispatcher &)> showColumnsFunction;
+	static std::function<int32_t(GpuSqlDispatcher &)> insertIntoFunction;
 
 public:
     explicit GpuSqlDispatcher(const std::shared_ptr<Database> &database);
@@ -318,6 +320,10 @@ public:
 
 	void addShowTablesFunction();
 
+	void addShowColumnsFunction();
+
+	void addInsertIntoFunction();
+
     void addGroupByFunction(DataType type);
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
@@ -349,6 +355,10 @@ public:
 	friend int32_t showDatabases(GpuSqlDispatcher &dispatcher);
 
 	friend int32_t showTables(GpuSqlDispatcher &dispatcher);
+
+	friend int32_t showColumns(GpuSqlDispatcher &dispatcher);
+
+	friend int32_t insertInto(GpuSqlDispatcher &dispatcher);
 
 	void cleanUpGpuPointers();
 
