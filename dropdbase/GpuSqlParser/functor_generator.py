@@ -328,6 +328,9 @@ for operation in operations_aggregation:
                 op = "invalidOperandTypesErrorHandler"
             else:
                 op = "aggregation"
+
+            if operation == "count":
+                colVal = LONG
             function = op + col + row + "<AggregationFunctions::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:

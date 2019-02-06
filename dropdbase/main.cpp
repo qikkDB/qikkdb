@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 	auto start = std::chrono::high_resolution_clock::now();
 	
 
-    GpuSqlCustomParser parser(database, "SELECT colInteger2, MAX(colInteger1) FROM TableA WHERE colInteger1 < 20 GROUP BY colInteger2;");
+    GpuSqlCustomParser parser(database, "SELECT colInteger2 * colInteger2, COUNT(colInteger1) / -2 FROM TableA GROUP BY colInteger2;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();

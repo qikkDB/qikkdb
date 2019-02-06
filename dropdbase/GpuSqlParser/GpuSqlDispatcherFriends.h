@@ -290,11 +290,24 @@ int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher)
 
 	std::cout << "ArithmeticConstCol: " << colName << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
-	int32_t retSize = std::get<1>(column);
-
-	U * result = dispatcher.allocateRegister<U>(reg, retSize);
-	GPUArithmetic::constCol<OP, U, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
+	if (dispatcher.groupByColumns.find(colName) != dispatcher.groupByColumns.end())
+	{
+		if (dispatcher.isLastBlock)
+		{
+			std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName + "_keys");
+			int32_t retSize = std::get<1>(column);
+			U * result = dispatcher.allocateRegister<U>(reg + "_keys", retSize);
+			GPUArithmetic::constCol<OP, U, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
+			dispatcher.groupByColumns.insert(reg);
+		}
+	}
+	else
+	{
+		std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
+		int32_t retSize = std::get<1>(column);
+		U * result = dispatcher.allocateRegister<U>(reg, retSize);
+		GPUArithmetic::constCol<OP, U, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
+	}
 	return 0;
 }
 
@@ -307,12 +320,41 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 
 	std::cout << "ArithmeticColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t> columnRight = dispatcher.allocatedPointers.at(colNameRight);
-	std::tuple<uintptr_t, int32_t> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
-	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+	if (dispatcher.groupByColumns.find(colNameRight) != dispatcher.groupByColumns.end())
+	{
+		if (dispatcher.isLastBlock)
+		{
+			std::tuple<uintptr_t, int32_t> columnRight = dispatcher.allocatedPointers.at(colNameRight + "_keys");
+			std::tuple<uintptr_t, int32_t> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
+			int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
 
-	T * result = dispatcher.allocateRegister<T>(reg, retSize);
-	GPUArithmetic::colCol<OP, T, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+			T * result = dispatcher.allocateRegister<T>(reg + "_keys", retSize);
+			GPUArithmetic::colCol<OP, T, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+			dispatcher.groupByColumns.insert(reg);
+		}
+	}
+	else if (dispatcher.groupByColumns.find(colNameLeft) != dispatcher.groupByColumns.end())
+	{
+		if (dispatcher.isLastBlock)
+		{
+			std::tuple<uintptr_t, int32_t> columnRight = dispatcher.allocatedPointers.at(colNameRight);
+			std::tuple<uintptr_t, int32_t> columnLeft = dispatcher.allocatedPointers.at(colNameLeft + "_keys");
+			int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+
+			T * result = dispatcher.allocateRegister<T>(reg + "_keys", retSize);
+			GPUArithmetic::colCol<OP, T, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+			dispatcher.groupByColumns.insert(reg);
+		}
+	}
+	else
+	{
+		std::tuple<uintptr_t, int32_t> columnRight = dispatcher.allocatedPointers.at(colNameRight);
+		std::tuple<uintptr_t, int32_t> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
+		int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+
+		T * result = dispatcher.allocateRegister<T>(reg, retSize);
+		GPUArithmetic::colCol<OP, T, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+	}
 	return 0;
 }
 
