@@ -1,4 +1,4 @@
-enable_testing()
+
 set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ColumnTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DatabaseTests.cpp
@@ -19,7 +19,7 @@ add_executable(${PROJECT_NAME}_test ${SOURCE_FILES} ${TEST_FILES})
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIR}) 
 
-add_test(${PROJECT_NAME}_test ${PROJECT_NAME}_test)
+
 
 
 target_link_libraries(${PROJECT_NAME}_test ${prefix}protobuf${suffix})

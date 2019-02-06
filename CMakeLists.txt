@@ -126,6 +126,7 @@ include_directories(GpuSqlParser)
 add_subdirectory(dropdbase)
 add_subdirectory(dropdbase_test)
 
-
+enable_testing()
+add_test(${PROJECT_NAME}_test ${PROJECT_NAME}_test)
 
 

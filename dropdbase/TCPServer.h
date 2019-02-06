@@ -8,6 +8,7 @@
 #include <boost/log/trivial.hpp>
 #include "IClientHandler.h"
 #include "ITCPWorker.h"
+#include <atomic>
 
 /// <summary>
 /// TCP listener and client processor
@@ -22,6 +23,10 @@ class TCPServer final
 private:
 	boost::asio::io_context ioContext_;
 	boost::asio::ip::tcp::acceptor acceptor_;
+
+	size_t clientCount_;
+	std::mutex clientCountMutex_;
+	std::condition_variable clientCountCv_;
 	
 	/// <summary>
 	/// Listen for new client requests asynchronously
@@ -38,7 +43,16 @@ private:
 					{
 						BOOST_LOG_TRIVIAL(info) << "Accepting client " << sock.remote_endpoint().address().to_string() << "\n";
 						Worker worker(std::make_unique<ClientHandler>(), std::move(sock), 60000);
+						{
+							std::lock_guard<std::mutex> lock(clientCountMutex_);
+							clientCount_++;
+						}
 						worker.HandleClient();
+						{
+							std::lock_guard<std::mutex> lock(clientCountMutex_);
+							clientCount_--;
+						}
+						clientCountCv_.notify_all();
 					}
 					catch (std::exception& e)
 					{
@@ -58,7 +72,7 @@ public:
 	/// <param name="ipAddress">IPAddress on which to listen</param>
 	/// <param name="port">Port on which to listen</param>
 	TCPServer(const char* ipAddress, short port)
-		: ioContext_(), acceptor_(ioContext_, boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ipAddress), port)) 
+		: ioContext_(), acceptor_(ioContext_, boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ipAddress), port)), clientCount_(0)
 	{
 	};
 
@@ -78,6 +92,8 @@ public:
 	{
 		Worker::AbortAllWorkers();
 		acceptor_.cancel();
+		std::unique_lock<std::mutex> lock(clientCountMutex_);
+		clientCountCv_.wait(lock, [this] {return clientCount_ == 0;});
 		ioContext_.stop();
 	}
 
