@@ -152,6 +152,8 @@ set(SOURCE_FILES messages/CSVImportMessage.pb.cc
         Database.h
         Configuration.cpp
         Configuration.h
+        CSVDataImporter.h
+        CSVDataImporter.cpp
         GpuSqlParser/GpuSqlCustomParser.cpp
         GpuSqlParser/GpuSqlCustomParser.h
         GpuSqlParser/ParserExceptions.h
