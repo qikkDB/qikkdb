@@ -7,6 +7,7 @@
 
 #include <google/protobuf/message.h>
 #include "../Database.h"
+#include "GpuSqlParser.h"
 #include <string>
 #include <memory>
 
@@ -21,7 +22,7 @@ public:
     GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query);
 
 	std::unique_ptr<google::protobuf::Message> parse();
-
+	bool containsAggregation(GpuSqlParser::SelectColumnContext *ctx);
 };
 
 

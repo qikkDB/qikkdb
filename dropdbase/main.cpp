@@ -16,16 +16,15 @@
 
 int main(int argc, char **argv)
 {
-	
 	std::vector<std::string> tableNames = { "TableA" };
-	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
-	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 5, false, tableNames, columnTypes);
+	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT} /*, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} */ };
+	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, 1 << 24, false, tableNames, columnTypes);
 
 	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 
-    GpuSqlCustomParser parser(database, "SELECT AVG(colInteger1), colInteger2 FROM TableA GROUP BY colInteger2;");
+    GpuSqlCustomParser parser(database, "SELECT colInteger2, MAX(colInteger1) FROM TableA WHERE colInteger1 < 20 GROUP BY colInteger2;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();
