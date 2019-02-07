@@ -32,6 +32,8 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/Database.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Configuration.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Configuration.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/CSVDataImporter.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/CSVDataImporter.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlCustomParser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlCustomParser.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/ParserExceptions.h
