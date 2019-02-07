@@ -188,8 +188,8 @@ namespace ArithmeticOperations
 template<typename OP, typename T, typename U, typename V>
 __global__ void kernel_arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
 {
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
 
 	#pragma unroll 8
 	for (int32_t i = idx; i < dataElementCount; i += stride)

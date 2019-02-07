@@ -16,8 +16,8 @@
 template<typename T>
 __global__ void kernel_reconstruct_col(T *outData, int32_t *outDataElementCount, T *ACol, int32_t *prefixSum, int32_t *inMask, int32_t dataElementCount)
 {
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
 
 	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{

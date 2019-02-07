@@ -79,8 +79,8 @@ namespace FilterConditions
 template<typename FILTER, typename T, typename U>
 __global__ void kernel_filter(int8_t *outMask, T ACol, U BCol, int32_t dataElementCount)
 {
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
 
 	#pragma unroll 8
 	for (int32_t i = idx; i < dataElementCount; i += stride)

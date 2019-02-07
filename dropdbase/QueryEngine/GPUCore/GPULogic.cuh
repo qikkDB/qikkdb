@@ -42,8 +42,8 @@ namespace LogicOperations
 template<typename OP, typename T, typename U, typename V>
 __global__ void kernel_logic(T *outCol, U ACol, V BCol, int32_t dataElementCount)
 {
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
 
 	#pragma unroll 8
 	for(int32_t i = idx; i < dataElementCount; i += stride)
@@ -67,8 +67,8 @@ __global__ void kernel_logic(T *outCol, U ACol, V BCol, int32_t dataElementCount
 template<typename T, typename U>
 __global__ void kernel_operator_not(T *outCol, U ACol, int32_t dataElementCount)
 {
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
 
 	for(int32_t i = idx; i < dataElementCount; i += stride)
 	{
