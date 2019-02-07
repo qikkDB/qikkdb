@@ -191,6 +191,7 @@ __global__ void kernel_arithmetic(T* output, U ACol, V BCol, int32_t dataElement
 	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	int32_t stride = blockDim.x * gridDim.x;
 
+	#pragma unroll 8
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		output[i] = OP{}.template operator() 
