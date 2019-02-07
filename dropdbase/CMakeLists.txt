@@ -19,6 +19,7 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.h
         ${CMAKE_CURRENT_SOURCE_DIR}/ComplexPolygonFactory.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ComplexPolygonFactory.h
+		${CMAKE_CURRENT_SOURCE_DIR}/ConsoleHandler.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ClientPoolWorker.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/CSVInMemoryImporter.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/ITCPWorker.cpp

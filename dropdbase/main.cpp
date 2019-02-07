@@ -11,6 +11,7 @@
 #include "TCPServer.h"
 #include "ClientPoolWorker.h"
 #include "TCPClientHandler.h"
+#include "ConsoleHandler.h"
 
 int main(int argc, char **argv)
 {
@@ -21,6 +22,7 @@ int main(int argc, char **argv)
 	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
 	Database::LoadDatabasesFromDisk();
 	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
+	RegisterCtrlCHandler();
 	tcpServer.Run();
 	Database::SaveAllToDisk(Configuration::GetInstance().GetDatabaseDir().c_str());
 
