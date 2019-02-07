@@ -130,6 +130,13 @@ public:
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 
+	template<typename T>
+	static void copyDeviceToDevice(T *p_BlockDestination, T *p_BlockSource, int32_t dataElementCount)
+	{
+		cudaMemcpy(p_BlockDestination, p_BlockSource, dataElementCount * sizeof(T), cudaMemcpyDeviceToDevice);
+		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+	}
+
 	// Freeing data
 		/// <summary>
 	/// Free memory block from GPU's memory

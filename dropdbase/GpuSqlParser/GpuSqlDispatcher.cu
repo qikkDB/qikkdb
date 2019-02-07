@@ -15,13 +15,12 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) :
 	blockIndex(0),
 	constPointCounter(0),
 	constPolygonCounter(0),
+	filter_(0),
 	usingGroupBy(false),
 	isLastBlock(false),
 	groupByTable(nullptr)
 {
-	int8_t *filter;
-	GPUMemory::allocAndSet(&filter, static_cast<int8_t>(1), database->GetBlockSize());
-	filter_ = (reinterpret_cast<std::uintptr_t>(filter));
+
 }
 
 GpuSqlDispatcher::~GpuSqlDispatcher()
@@ -363,7 +362,6 @@ int32_t fil(GpuSqlDispatcher &dispatcher)
 {
     auto reg = dispatcher.arguments.read<std::string>();
     std::cout << "Filter: " << reg << std::endl;
-	GPUMemory::free(reinterpret_cast<int8_t*>(dispatcher.filter_));
 	dispatcher.filter_ = std::get<0>(dispatcher.allocatedPointers.at(reg));
 	return 0;
 }
