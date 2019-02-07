@@ -31,13 +31,13 @@ int main(int argc, char **argv)
 	
 	std::vector<std::string> tableNames = { "TableA" };
 	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT} /*, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} */ };
-	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, 1 << 6, false, tableNames, columnTypes);
+	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, 1 << 24, false, tableNames, columnTypes);
 
 	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
 	auto start = std::chrono::high_resolution_clock::now();
 	
 
-    GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 < 100 AND colInteger1 > 20) OR (colInteger1 < 200 AND colInteger1 > 120);");
+    GpuSqlCustomParser parser(database, "SELECT colInteger2 * 2, COUNT(colInteger1) / -2 FROM TableA GROUP BY colInteger2;");
     parser.parse();
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -46,7 +46,5 @@ int main(int argc, char **argv)
 
     std::cout << "Elapsed time: " << elapsed.count() << " s\n";
 	
-
-
 	return 0;
 }

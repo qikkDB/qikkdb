@@ -13,6 +13,7 @@
 GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) :
 	database(database),
 	blockIndex(0),
+	instructionPointer(0),
 	constPointCounter(0),
 	constPolygonCounter(0),
 	filter_(0),
@@ -61,6 +62,7 @@ std::array<std::function<int32_t(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE>
 std::array<std::function<int32_t(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::retFunctions = { &retConst<int32_t>, &retConst<int64_t>, &retConst<float>, &retConst<double>, &invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>, &invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>, &invalidOperandTypesErrorHandlerConst<std::string>, &invalidOperandTypesErrorHandlerConst<int8_t>, &retCol<int32_t>, &retCol<int64_t>, &retCol<float>, &retCol<double>, &invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>, &invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>, &invalidOperandTypesErrorHandlerCol<std::string>, &invalidOperandTypesErrorHandlerCol<int8_t> };
 std::array<std::function<int32_t(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::groupByFunctions = { &groupByConst<int32_t>, &groupByConst<int64_t>, &groupByConst<float>, &groupByConst<double>, &invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>, &invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>, &invalidOperandTypesErrorHandlerConst<std::string>, &invalidOperandTypesErrorHandlerConst<int8_t>, &groupByCol<int32_t>, &groupByCol<int64_t>, &groupByCol<float>, &groupByCol<double>, &invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>, &invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>, &invalidOperandTypesErrorHandlerCol<std::string>, &invalidOperandTypesErrorHandlerCol<int8_t> };
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::filFunction = &fil;
+std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::jmpFunction = &jmp;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::doneFunction = &done;
 
 
@@ -70,18 +72,15 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 
 	while (err == 0)
 	{
-		for (auto &function : dispatcherFunctions)
+		err = dispatcherFunctions[instructionPointer++](*this);
+		
+		if (err) 
 		{
-			err = function(*this);
-			if (err) 
-			{
-				if (err == 1) {
-					std::cout << "Out of blocks." << std::endl;
-				}
-				break;
+			if (err == 1) {
+				std::cout << "Out of blocks." << std::endl;
 			}
-		}
-		blockIndex++;
+			break;
+		}		
 	}
 
 	std::cout << responseMessage.DebugString() << std::endl;
@@ -107,6 +106,11 @@ void GpuSqlDispatcher::addRetFunction(DataType type)
 void GpuSqlDispatcher::addFilFunction()
 {
     dispatcherFunctions.push_back(filFunction);
+}
+
+void GpuSqlDispatcher::addJmpInstruction()
+{
+	dispatcherFunctions.push_back(jmpFunction);
 }
 
 void GpuSqlDispatcher::addDoneFunction()
@@ -366,10 +370,18 @@ int32_t fil(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
+int32_t jmp(GpuSqlDispatcher &dispatcher)
+{
+	dispatcher.blockIndex++;
+	dispatcher.instructionPointer = 0;
+	dispatcher.cleanUpGpuPointers();
+	std::cout << "Jump" << std::endl;
+	return 0;
+}
+
 int32_t done(GpuSqlDispatcher &dispatcher)
 {
 	std::cout << "Done" << std::endl;
-	dispatcher.cleanUpGpuPointers();
 	return 0;
 }
 
