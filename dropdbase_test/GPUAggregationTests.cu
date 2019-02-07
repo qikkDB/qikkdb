@@ -7,6 +7,7 @@
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/GPUAggregation.cuh"
+#include "../dropdbase/QueryEngine/GPUCore/AggregationFunctions.cuh"
 
 // Initialize random generators with a seed
 const int32_t SEED = 42;
@@ -68,11 +69,11 @@ void aggTests()
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	// Run kernels, copy back values and compare them
-	GPUAggregation::min(outputBufferMin, inputBufferA, DATA_ELEMENT_COUNT);
-	GPUAggregation::max(outputBufferMax, inputBufferA, DATA_ELEMENT_COUNT);
-	GPUAggregation::sum(outputBufferSum, inputBufferA, DATA_ELEMENT_COUNT);
-	GPUAggregation::avg(outputBufferAvg, inputBufferA, DATA_ELEMENT_COUNT);
-	GPUAggregation::cnt(outputBufferCnt, inputBufferA, DATA_ELEMENT_COUNT);
+	GPUAggregation::col<AggregationFunctions::min>(outputBufferMin, inputBufferA, DATA_ELEMENT_COUNT);
+	GPUAggregation::col<AggregationFunctions::max>(outputBufferMax, inputBufferA, DATA_ELEMENT_COUNT);
+	GPUAggregation::col<AggregationFunctions::sum>(outputBufferSum, inputBufferA, DATA_ELEMENT_COUNT);
+	GPUAggregation::col<AggregationFunctions::avg>(outputBufferAvg, inputBufferA, DATA_ELEMENT_COUNT);
+	GPUAggregation::col<AggregationFunctions::count>(outputBufferCnt, inputBufferA, DATA_ELEMENT_COUNT);
 
 	// Copy back data
 	GPUMemory::copyDeviceToHost(&outputDataMin, outputBufferMin, 1);

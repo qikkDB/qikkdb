@@ -20,6 +20,7 @@
 #include "../Table.h"
 #include "../ColumnBase.h"
 #include "../BlockBase.h"
+#include "../QueryEngine/GPUCore/IGroupBy.h"
 
 class GpuSqlDispatcher;
 
@@ -77,6 +78,18 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher);
 template<typename OP, typename T, typename U>
 int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher);
 
+template<typename OP, typename T, typename U>
+int32_t aggregationColCol(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T, typename U>
+int32_t aggregationColConst(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T, typename U>
+int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T, typename U>
+int32_t aggregationConstConst(GpuSqlDispatcher &dispatcher);
+
 ////
 
 template<typename T, typename U>
@@ -104,36 +117,6 @@ template<typename T>
 int32_t minusConst(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
-int32_t minCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t minConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t maxCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t maxConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t sumCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t sumConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t countCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t countConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t avgCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t avgConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
 int32_t groupByConst(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
@@ -152,6 +135,13 @@ int32_t invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
 
 template<typename OP, typename T, typename U>
 int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T>
+int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T>
+int32_t invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
+
 
 ////
 
@@ -201,6 +191,10 @@ private:
 	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t>> allocatedPointers;
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
+	bool usingGroupBy;
+	bool isLastBlock;
+	std::unordered_set<std::string> groupByColumns;
+	std::unique_ptr<IGroupBy> groupByTable;
 
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -235,15 +229,15 @@ private:
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> minusFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> minFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> maxFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> sumFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> countFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> avgFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> loadFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
@@ -294,15 +288,15 @@ public:
 
     void addMinusFunction(DataType type);
 
-    void addMinFunction(DataType type);
+    void addMinFunction(DataType key, DataType value);
 
-    void addMaxFunction(DataType type);
+    void addMaxFunction(DataType key, DataType value);
 
-    void addSumFunction(DataType type);
+    void addSumFunction(DataType key, DataType value);
 
-    void addCountFunction(DataType type);
+    void addCountFunction(DataType key, DataType value);
 
-    void addAvgFunction(DataType type);
+    void addAvgFunction(DataType key, DataType value);
 
     void addLoadFunction(DataType type);
 
@@ -380,6 +374,18 @@ public:
 	template<typename OP, typename T, typename U>
 	friend int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher);
 
+	template<typename OP, typename T, typename U>
+	friend int32_t aggregationColCol(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T, typename U>
+	friend int32_t aggregationColConst(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T, typename U>
+	friend int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T, typename U>
+	friend int32_t aggregationConstConst(GpuSqlDispatcher &dispatcher);
+
 	////
 
     template<typename T, typename U>
@@ -411,36 +417,6 @@ public:
 
     template<typename T>
     friend int32_t minusConst(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t minCol(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t minConst(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t maxCol(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t maxConst(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t sumCol(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t sumConst(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t countCol(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t countConst(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t avgCol(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t avgConst(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
     friend int32_t groupByCol(GpuSqlDispatcher &dispatcher);
@@ -477,6 +453,12 @@ public:
 
 	template<typename OP, typename T, typename U>
 	friend int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T>
+	friend int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T>
+	friend int32_t invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
 
 	////
 

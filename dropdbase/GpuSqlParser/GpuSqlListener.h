@@ -17,6 +17,7 @@
 #include <memory>
 #include <stack>
 #include <regex>
+#include <boost/functional/hash.hpp>
 
 class GpuSqlDispatcher;
 
@@ -25,19 +26,19 @@ class GpuSqlListener : public GpuSqlParserBaseListener
 private:
     const std::shared_ptr<Database> &database;
     GpuSqlDispatcher &dispatcher;
-    std::stack<std::tuple<std::string, DataType>> parserStack;
+    std::stack<std::pair<std::string, DataType>> parserStack;
     std::unordered_set<std::string> loadedTables;
     std::unordered_set<std::string> loadedColumns;
-    std::unordered_set<std::string> groupByColumns;
+    std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
 
     bool usingGroupBy;
     bool insideAgg;
 
     int tempCounter;
 
-    std::tuple<std::string, DataType> stackTopAndPop();
+    std::pair<std::string, DataType> stackTopAndPop();
 
-    std::tuple<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+    std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
     void pushTempResult(DataType type);
 
@@ -76,6 +77,8 @@ public:
     void exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx) override;
 
     void exitVarReference(GpuSqlParser::VarReferenceContext *ctx) override;
+
+	void enterAggregation(GpuSqlParser::AggregationContext *ctx) override;
 
     void exitAggregation(GpuSqlParser::AggregationContext *ctx) override;
 
