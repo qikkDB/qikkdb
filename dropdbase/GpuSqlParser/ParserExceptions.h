@@ -47,4 +47,12 @@ struct ColumnGroupByException : public std::exception
     }
 };
 
+struct InsertIntoException : public std::exception
+{
+	const char *what() const noexcept override
+	{
+		return "There are several same referenced columns";
+	}
+};
+
 #endif //DROPDBASE_INSTAREA_PARSEREXCEPTIONS_H

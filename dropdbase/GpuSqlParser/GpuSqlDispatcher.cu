@@ -62,7 +62,8 @@ std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::doneFunction = &don
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::showDatabasesFunction = &showDatabases;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::showTablesFunction = &showTables;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::showColumnsFunction = &showColumns;
-std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::insertIntoFunction = &insertInto;
+std::array<std::function<int32_t(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::insertIntoFunctions = { &insertInto<int32_t>, &insertInto<int64_t>, &insertInto<float>, &insertInto<double>, &insertInto<ColmnarDB::Types::Point>, &insertInto<ColmnarDB::Types::ComplexPolygon>, &insertInto<std::string>, &insertInto<int8_t>, &insertInto<int32_t>, &insertInto<int64_t>, &insertInto<float>, &insertInto<double>, &insertInto<ColmnarDB::Types::Point>, &insertInto<ColmnarDB::Types::ComplexPolygon>, &insertInto<std::string>, &insertInto<int8_t> };
+std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::insertIntoDoneFunction = &insertIntoDone;
 
 
 
@@ -148,9 +149,14 @@ void GpuSqlDispatcher::addShowColumnsFunction()
 	dispatcherFunctions.push_back(showColumnsFunction);
 }
 
-void GpuSqlDispatcher::addInsertIntoFunction()
+void GpuSqlDispatcher::addInsertIntoFunction(DataType type)
 {
-	dispatcherFunctions.push_back(insertIntoFunction);
+	dispatcherFunctions.push_back(insertIntoFunctions[type]);
+}
+
+void GpuSqlDispatcher::addInsertIntoDoneFunction()
+{
+	dispatcherFunctions.push_back(insertIntoDoneFunction);
 }
 
 void GpuSqlDispatcher::addGreaterFunction(DataType left, DataType right)
@@ -459,12 +465,8 @@ int32_t showColumns(GpuSqlDispatcher &dispatcher)
 	return 4;
 }
 
-int32_t insertInto(GpuSqlDispatcher & dispatcher)
+int32_t insertIntoDone(GpuSqlDispatcher & dispatcher)
 {
-	//TODO
-
-	std::cout << "Insert Into" << std::endl;
-
 	return 5;
 }
 

@@ -489,6 +489,26 @@ int32_t groupByCol(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
+template<typename T>
+int32_t insertInto(GpuSqlDispatcher &dispatcher)
+{
+	std::string table = dispatcher.arguments.read<std::string>();
+	std::string column = dispatcher.arguments.read<std::string>();
+	bool isReferencedColumn = dispatcher.arguments.read<bool>();
+
+	if (isReferencedColumn)
+	{
+		T args = dispatcher.arguments.read<T>();
+
+		dynamic_cast<ColumnBase<T>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get())->InsertData({args});
+	}
+	else
+	{
+		dynamic_cast<ColumnBase<T>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get())->InsertNullData(1);
+	}
+	return 0;
+}
+
 template<typename T, typename U>
 int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher)
 {

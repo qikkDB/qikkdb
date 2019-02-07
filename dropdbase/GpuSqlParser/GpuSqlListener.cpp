@@ -317,15 +317,66 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext * ctx)
 	dispatcher.addArgument<const std::string&>(table);
 }
 
-//TODO
 void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 {
-	dispatcher.addInsertIntoFunction();
-	std::string db;
+	std::string table = ctx->table()->getText();
+	if (database->GetTables().find(table) == database->GetTables().end())
+	{
+		throw TableNotFoundFromException();
+	}
+	auto& tab = database->GetTables().at(table);
+	
+	std::vector<std::pair<std::string, DataType>> columns;
+	std::vector<std::string> values;
 
-	db = database->GetName();
+	for (auto& insertIntoColumn : ctx->insertIntoColumns()->columnId())
+	{
+		if (insertIntoColumn->table())
+		{
+			throw ColumnNotFoundException();
+		}
 
-	dispatcher.addArgument<const std::string&>(db);
+		std::string column = insertIntoColumn->column()->getText();
+		if (tab.GetColumns().find(column) == tab.GetColumns().end())
+		{
+			throw ColumnNotFoundException();
+		}
+		DataType columnDataType = tab.GetColumns().at(column).get()->GetColumnType();
+		std::pair<std::string, DataType> columnPair = std::make_pair(column, columnDataType);
+		
+		if (std::find(columns.begin(), columns.end(), columnPair) != columns.end())
+		{
+			throw InsertIntoException();
+		}
+		columns.push_back(columnPair);
+	}
+
+	for (auto& value : ctx->insertIntoValues()->columnValue())
+	{
+		values.push_back(value->getText());
+	}
+
+	int valueIndex = 0;
+	for (auto& column : tab.GetColumns())
+	{
+		std::string columnName = column.first;
+		DataType columnDataType = column.second.get()->GetColumnType();
+		std::pair<std::string, DataType> columnPair = std::make_pair(columnName, columnDataType);
+
+		dispatcher.addInsertIntoFunction(columnDataType);
+
+		bool isReferencedColumn = std::find(columns.begin(), columns.end(), columnPair) != columns.end();
+
+		dispatcher.addArgument<const std::string&>(table);
+		dispatcher.addArgument<const std::string&>(columnName);
+		dispatcher.addArgument<bool>(isReferencedColumn);
+
+		if (isReferencedColumn)
+		{
+			pushArgument(values[valueIndex++].c_str(), static_cast<DataType>(static_cast<int>(columnDataType) - DataType::COLUMN_INT));
+		}
+	}
+	dispatcher.addInsertIntoDoneFunction();
 }
 
 void GpuSqlListener::exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx)
