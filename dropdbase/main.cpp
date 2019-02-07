@@ -17,7 +17,7 @@
 
 int main(int argc, char **argv)
 {
-	/*
+	
 	Context::getInstance(); // Initialize CUDA context
 
     boost::log::add_file_log("../log/ColmnarDB.log");
@@ -25,15 +25,13 @@ int main(int argc, char **argv)
 	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
 	Database::LoadDatabasesFromDisk();
 	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
-	RegisterCtrlCHandler();
+	RegisterCtrlCHandler(&tcpServer);
 	tcpServer.Run();
-	Database::SaveAllToDisk(Configuration::GetInstance().GetDatabaseDir().c_str());
-	*/
-
-	
-	std::vector<std::string> tableNames = { "TableA" };
-	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT} /*, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} */ };
-	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, 1 << 24, false, tableNames, columnTypes);
+	Database::SaveAllToDisk();
+	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
+	/*std::vector<std::string> tableNames = { "TableA" };
+	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT} /*, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT}  };*/
+	/*std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, 1 << 24, false, tableNames, columnTypes);
 
 	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
 	auto start = std::chrono::high_resolution_clock::now();
@@ -46,9 +44,6 @@ int main(int argc, char **argv)
 
     std::chrono::duration<double> elapsed(end - start);
 
-    std::cout << "Elapsed time: " << elapsed.count() << " s\n";
-	
-
-
+    std::cout << "Elapsed time: " << elapsed.count() << " s\n";*/
 	return 0;
 }
