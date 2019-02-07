@@ -49,7 +49,7 @@ void Database::Persist(const char* path)
 
 	//write file .db
 	BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << " .db" << std::endl;
-	std::ofstream dbFile(pathStr + name + ".db", std::ios::binary);
+	std::ofstream dbFile(pathStr + "/" + name + ".db", std::ios::binary);
 
 	int32_t dbNameLength = name.length() + 1; // +1 because '\0'
 
@@ -313,8 +313,9 @@ void Database::Persist(const char* path)
 /// Save all databases currently in memory to disk. All databases will be saved in the same directory
 /// </summary>
 /// <param name="path">Path to database storage directory</param>
-void Database::SaveAllToDisk(const char * path)
+void Database::SaveAllToDisk()
 {
+	auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
 	for (auto& database : Database::loadedDatabases_)
 	{
 		database.second->Persist(path);
