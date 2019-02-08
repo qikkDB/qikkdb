@@ -68,8 +68,8 @@ __global__ void group_by_kernel(
 	int32_t dataElementCount,
 	int32_t *errorFlag) {
 
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
@@ -155,8 +155,8 @@ __global__ void group_by_kernel(
 template<typename K>
 __global__ void is_bucket_occupied_kernel(int32_t *occupancyMask, K *keys, int32_t maxHashCount)
 {
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
 
 	for (int32_t i = idx; i < maxHashCount; i += stride)
 	{

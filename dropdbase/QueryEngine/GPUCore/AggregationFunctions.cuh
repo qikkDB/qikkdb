@@ -89,8 +89,6 @@ namespace AggregationFunctions
 			GPUMemory::free(tempBuffer);
 
 			cudaDeviceSynchronize();
-
-			Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 		}
 
 		template<typename T>
@@ -178,8 +176,6 @@ namespace AggregationFunctions
 			GPUMemory::free(tempBuffer);
 
 			cudaDeviceSynchronize();
-
-			Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 		}
 
 		template<typename T>
@@ -238,8 +234,6 @@ namespace AggregationFunctions
 			GPUMemory::free(tempBuffer);
 
 			cudaDeviceSynchronize();
-
-			Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 		}
 
 		template<typename T>
@@ -296,8 +290,6 @@ namespace AggregationFunctions
 
 			// Divide the result - calculate the average
 			GPUArithmetic::colConst<ArithmeticOperations::div, T, T, float>(outValue, outValue, static_cast<float>(dataElementCount), 1);
-
-			Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 		}
 
 		template<typename T>

@@ -9,6 +9,7 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "MaybeDeref.cuh"
+#include "GPUConstants.cuh"
 
 namespace FilterConditions
 {
@@ -79,11 +80,22 @@ namespace FilterConditions
 template<typename FILTER, typename T, typename U>
 __global__ void kernel_filter(int8_t *outMask, T ACol, U BCol, int32_t dataElementCount)
 {
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+	const int32_t loopIterations = (dataElementCount + stride - 1 - idx) / stride;
+	const int32_t alignedLoopIterations = loopIterations - (loopIterations % UNROLL_FACTOR);
+	const int32_t alignedDataElementCount = alignedLoopIterations * stride + idx;
 
-	#pragma unroll 8
-	for (int32_t i = idx; i < dataElementCount; i += stride)
+	//unroll from idx to alignedDataElementCount
+	#pragma unroll UNROLL_FACTOR
+	for (int32_t i = idx; i < alignedDataElementCount; i += stride)
+	{
+		outMask[i] = FILTER{}.template operator()
+			< typename std::remove_pointer<T>::type, typename std::remove_pointer<U>::type >
+			(maybe_deref(ACol, i), maybe_deref(BCol, i));
+	}
+	//continue classic way from alignedDataElementCount to full dataElementCount
+	for (int32_t i = alignedDataElementCount; i < dataElementCount; i += stride)
 	{
 		outMask[i] = FILTER{}.template operator()
 			< typename std::remove_pointer<T>::type, typename std::remove_pointer<U>::type >
