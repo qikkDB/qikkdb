@@ -426,13 +426,17 @@ int32_t done(GpuSqlDispatcher &dispatcher)
 int32_t showDatabases(GpuSqlDispatcher &dispatcher)
 {
 	auto databases_map = Database::GetLoadedDatabases();
-	std::vector<std::string> databases;
-
-	for (auto databaseName : databases_map) {
-		databases.push_back(databaseName.first);
-		std::cout << databaseName.first << std::endl;
+	std::unique_ptr<std::string[]> outData(new std::string[databases_map.size()]);
+	
+	int i = 0;
+	for (auto database : databases_map) {
+		outData[i++] = database.first;
 	}
 	
+	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+	insertIntoPayload<std::string>(payload, outData, databases_map.size());
+	dispatcher.mergePayloadToResponse("Databases", payload);
+
 	return 2;
 }
 
@@ -441,14 +445,17 @@ int32_t showTables(GpuSqlDispatcher &dispatcher)
 	std::string db = dispatcher.arguments.read<std::string>();
 	std::shared_ptr<Database> database = Database::GetLoadedDatabases().at(db);
 
-	std::vector<std::string> tables;
-
+	std::unique_ptr<std::string[]> outData(new std::string[database->GetTables().size()]);
 	auto& tables_map = database->GetTables();
 
+	int i = 0;
 	for (auto& tableName : tables_map) {
-		tables.push_back(tableName.first);
-		//std::cout << tableName.first << std::endl;
+		outData[i++] = tableName.first;
 	}
+
+	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+	insertIntoPayload<std::string>(payload, outData, tables_map.size());
+	dispatcher.mergePayloadToResponse(db, payload);
 
 	return 3;
 }
@@ -462,12 +469,18 @@ int32_t showColumns(GpuSqlDispatcher &dispatcher)
 	auto& table = database->GetTables().at(tab);
 
 	auto& columns_map = table.GetColumns();
-	std::vector<std::string> columns;
+	//std::vector<std::string> columns;
+	std::unique_ptr<std::string[]> outData(new std::string[table.GetColumns().size()]);
 
+	int i = 0;
 	for (auto& columnName : columns_map) {
-		columns.push_back(columnName.first);
-		std::cout << columnName.first << std::endl;
+		outData[i++] = columnName.first;
 	}
+
+	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+	insertIntoPayload<std::string>(payload, outData, columns_map.size());
+	dispatcher.mergePayloadToResponse(tab, payload);
+
 	return 4;
 }
 
@@ -554,4 +567,20 @@ void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &
 	{
 		payload.mutable_doublepayload()->add_doubledata(data[i]);
 	}
+}
+
+template<>
+void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<std::string[]> &data, int32_t dataSize)
+{
+	for (int i = 0; i < dataSize; i++)
+	{
+		payload.mutable_stringpayload()->add_stringdata(data[i]);
+	}
+}
+
+void GpuSqlDispatcher::mergePayloadToResponse(const std::string & key, ColmnarDB::NetworkClient::Message::QueryResponsePayload & payload)
+{
+	ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
+	partialMessage.mutable_payloads()->insert({ key, payload });
+	responseMessage.MergeFrom(partialMessage);
 }

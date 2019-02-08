@@ -191,6 +191,9 @@ void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &
 template<>
 void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<double[]> &data, int32_t dataSize);
 
+template<>
+void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<std::string[]> &data, int32_t dataSize);
+
 class GpuSqlDispatcher
 {
 
@@ -338,6 +341,8 @@ public:
 
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size);
+
+	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
 	void insertComplexPolygon(std::string colName, GPUMemory::GPUPolygon polygon, int32_t size);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);

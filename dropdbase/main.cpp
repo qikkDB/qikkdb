@@ -34,7 +34,8 @@ int main(int argc, char **argv)
 	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
 	auto start = std::chrono::high_resolution_clock::now();
 
-	GpuSqlCustomParser parser(database, "INSERT INTO TableA (colInteger1, colPolygon1) VALUES (2, POLYGON((10 11, 11 12, 10 11),(21 30, 35 36, 30 20, 21 30),(61 80,90 89,112 110, 61 80)));");
+	//GpuSqlCustomParser parser(database, "INSERT INTO TableA (colInteger1, colPolygon1) VALUES (2, POLYGON((10 11, 11 12, 10 11),(21 30, 35 36, 30 20, 21 30),(61 80,90 89,112 110, 61 80)));");
+	GpuSqlCustomParser parser(database2, "SHOW TABLES;");
 	parser.parse();
 
 	auto end = std::chrono::high_resolution_clock::now();
