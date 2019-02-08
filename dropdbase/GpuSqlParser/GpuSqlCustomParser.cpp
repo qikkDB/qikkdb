@@ -9,6 +9,7 @@
 #include "GpuSqlDispatcher.h"
 #include "ParserExceptions.h"
 #include "QueryType.h"
+#include <iostream>
 
 //TODO:parse()
 
@@ -49,7 +50,33 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
             walker.walk(&gpuSqlListener, statement->sqlSelect()->groupByColumns());
         }
 
-        walker.walk(&gpuSqlListener, statement->sqlSelect()->selectColumns());
+		std::vector<GpuSqlParser::SelectColumnContext*> aggColumns;
+		std::vector<GpuSqlParser::SelectColumnContext*> nonAggColumns;
+
+
+		for (auto column : statement->sqlSelect()->selectColumns()->selectColumn()) 
+		{
+			if (containsAggregation(column))
+			{
+				aggColumns.push_back(column);
+			}
+			else
+			{
+				nonAggColumns.push_back(column);
+			}
+		}
+
+		for (auto column : aggColumns) 
+		{
+			walker.walk(&gpuSqlListener, column);
+		}
+
+		for (auto column : nonAggColumns)
+		{
+			walker.walk(&gpuSqlListener, column);
+		}
+
+		gpuSqlListener.exitSelectColumns(statement->sqlSelect()->selectColumns());
 
         if(statement->sqlSelect()->offset())
         {
@@ -67,4 +94,24 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
         }
     }
     return dispatcher.execute();
+}
+
+bool GpuSqlCustomParser::containsAggregation(GpuSqlParser::SelectColumnContext * ctx)
+{
+	antlr4::tree::ParseTreeWalker walker;
+
+	class : public GpuSqlParserBaseListener {
+	public:
+		bool containsAggregation = false;
+	private:
+		void exitAggregation(GpuSqlParser::AggregationContext *ctx) override 
+		{
+			containsAggregation = true;
+		}
+
+	} findAggListener;
+
+	walker.walk(&findAggListener, ctx);
+
+	return findAggListener.containsAggregation;
 }

@@ -23,23 +23,23 @@ GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector
 	std::vector<int32_t> polyCount;
 	for (const auto& complPoly : polygons)
 	{
-		int subpolyCount = complPoly.polygons_size();
+		const int subpolyCount = complPoly.polygons_size();
 		polyIdx.push_back(pointIdx.size());
 		polyCount.push_back(subpolyCount);
 		for (int i = 0; i < subpolyCount; i++)
 		{
 			const auto & subpoly = complPoly.polygons(i);
-			int subpPointCount = subpoly.geopoints_size();
+			const int subpPointCount = subpoly.geopoints_size();
 			pointIdx.push_back(polyPoints.size());
 			pointCount.push_back(subpPointCount);
 			// Necessary for the raycasting to work, separates components of complex polygons
-			polyPoints.push_back({ 0,0 });
+			polyPoints.push_back({ 0, 0 });
 			for (int j = 0; j < subpPointCount; j++)
 			{
 				const auto & geopoint = subpoly.geopoints(j);
-				polyPoints.push_back({ geopoint.latitude(),geopoint.longitude() });
+				polyPoints.push_back({ geopoint.latitude(), geopoint.longitude() });
 			}
-			polyPoints.push_back({ 0,0 });
+			polyPoints.push_back({ 0, 0 });
 		}
 	}
 	GPUMemory::GPUPolygon retPointers;
@@ -142,7 +142,7 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 		points.push_back(polygon.substr(startIdx));
 		for (const auto& point : points)
 		{
-			int coordCount = std::count(point.cbegin(), point.cend(), ' ') + 1;
+			ptrdiff_t coordCount = std::count(point.cbegin(), point.cend(), ' ') + 1;
 
 			if (coordCount != 2)
 			{

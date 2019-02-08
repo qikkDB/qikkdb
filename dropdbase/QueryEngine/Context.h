@@ -1,5 +1,4 @@
-#ifndef CONTEXT_H
-#define CONTEXT_H
+#pragma once
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -74,6 +73,4 @@ public:
 	void bindDeviceToContext(int32_t deviceID) { }
 
 };
-
-#endif 
 

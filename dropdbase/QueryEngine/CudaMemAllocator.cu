@@ -4,8 +4,6 @@
 #include <device_launch_parameters.h>
 #include <cstdio>
 
-
-
 CudaMemAllocator::CudaMemAllocator()
 {
 	cudaDeviceProp props;

@@ -47,4 +47,12 @@ struct ColumnGroupByException : public std::exception
     }
 };
 
+struct NestedAggregationException : public std::exception
+{
+	const char *what() const noexcept override
+	{
+		return "Use of nested aggregation functions is not allowed.";
+	}
+};
+
 #endif //DROPDBASE_INSTAREA_PARSEREXCEPTIONS_H

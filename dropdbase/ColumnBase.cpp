@@ -1,6 +1,3 @@
-//
-// Created by Jakub Veselý on 2019-01-21.
-//
 #include "ColumnBase.h"
 #include "PointFactory.h"
 #include "ComplexPolygonFactory.h"
