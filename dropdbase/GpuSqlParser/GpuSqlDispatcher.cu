@@ -13,15 +13,15 @@
 GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) :
 	database(database),
 	blockIndex(0),
+	instructionPointer(0),
 	constPointCounter(0),
 	constPolygonCounter(0),
+	filter_(0),
 	usingGroupBy(false),
 	isLastBlock(false),
 	groupByTable(nullptr)
 {
-	int8_t *filter;
-	GPUMemory::allocAndSet(&filter, static_cast<int8_t>(1), database->GetBlockSize());
-	filter_ = (reinterpret_cast<std::uintptr_t>(filter));
+
 }
 
 GpuSqlDispatcher::~GpuSqlDispatcher()
@@ -62,6 +62,7 @@ std::array<std::function<int32_t(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE>
 std::array<std::function<int32_t(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::retFunctions = { &retConst<int32_t>, &retConst<int64_t>, &retConst<float>, &retConst<double>, &invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>, &invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>, &invalidOperandTypesErrorHandlerConst<std::string>, &invalidOperandTypesErrorHandlerConst<int8_t>, &retCol<int32_t>, &retCol<int64_t>, &retCol<float>, &retCol<double>, &invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>, &invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>, &invalidOperandTypesErrorHandlerCol<std::string>, &invalidOperandTypesErrorHandlerCol<int8_t> };
 std::array<std::function<int32_t(GpuSqlDispatcher &)>, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::groupByFunctions = { &groupByConst<int32_t>, &groupByConst<int64_t>, &groupByConst<float>, &groupByConst<double>, &invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>, &invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>, &invalidOperandTypesErrorHandlerConst<std::string>, &invalidOperandTypesErrorHandlerConst<int8_t>, &groupByCol<int32_t>, &groupByCol<int64_t>, &groupByCol<float>, &groupByCol<double>, &invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>, &invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>, &invalidOperandTypesErrorHandlerCol<std::string>, &invalidOperandTypesErrorHandlerCol<int8_t> };
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::filFunction = &fil;
+std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::jmpFunction = &jmp;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::doneFunction = &done;
 
 
@@ -71,18 +72,16 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 
 	while (err == 0)
 	{
-		for (auto &function : dispatcherFunctions)
+		err = dispatcherFunctions[instructionPointer++](*this);
+		
+		if (err) 
 		{
-			err = function(*this);
-			if (err) 
+			if (err == 1) 
 			{
-				if (err == 1) {
-					//std::cout << "Out of blocks." << std::endl;
-				}
-				break;
+				std::cout << "Out of blocks." << std::endl;
 			}
-		}
-		blockIndex++;
+			break;
+		}		
 	}
 
 	//std::cout << responseMessage.DebugString() << std::endl;
@@ -108,6 +107,11 @@ void GpuSqlDispatcher::addRetFunction(DataType type)
 void GpuSqlDispatcher::addFilFunction()
 {
     dispatcherFunctions.push_back(filFunction);
+}
+
+void GpuSqlDispatcher::addJmpInstruction()
+{
+	dispatcherFunctions.push_back(jmpFunction);
 }
 
 void GpuSqlDispatcher::addDoneFunction()
@@ -249,7 +253,6 @@ void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType o
     //TODO: Between
 }
 
-
 void GpuSqlDispatcher::insertComplexPolygon(std::string colName, GPUMemory::GPUPolygon polygon, int32_t size)
 {
 	allocatedPointers.insert({ colName + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyPoints), size) });
@@ -316,9 +319,10 @@ int32_t loadCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 	const std::string table = colName.substr(0, endOfPolyIdx);
 	const std::string column = colName.substr(endOfPolyIdx + 1);
 
-	if (dispatcher.blockIndex >= dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount())
+	const int32_t blockCount = dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+	if (dispatcher.blockIndex == blockCount - 1)
 	{
-		return 1;
+		dispatcher.isLastBlock = true;
 	}
 
 	auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
@@ -340,11 +344,12 @@ int32_t loadCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher)
 	const std::string table = colName.substr(0, endOfPolyIdx);
 	const std::string column = colName.substr(endOfPolyIdx + 1);
 
-	if (dispatcher.blockIndex >= dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount())
+	const int32_t blockCount = dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+	if (dispatcher.blockIndex == blockCount - 1)
 	{
-		return 1;
+		dispatcher.isLastBlock = true;
 	}
-
+	
 	auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
 	auto block = dynamic_cast<BlockBase<ColmnarDB::Types::Point>*>(col->GetBlocksList()[dispatcher.blockIndex].get());
 
@@ -363,16 +368,27 @@ int32_t fil(GpuSqlDispatcher &dispatcher)
 {
     auto reg = dispatcher.arguments.read<std::string>();
     std::cout << "Filter: " << reg << std::endl;
-	GPUMemory::free(reinterpret_cast<int8_t*>(dispatcher.filter_));
 	dispatcher.filter_ = std::get<0>(dispatcher.allocatedPointers.at(reg));
+	return 0;
+}
+
+int32_t jmp(GpuSqlDispatcher &dispatcher)
+{
+	if (!dispatcher.isLastBlock)
+	{
+		dispatcher.blockIndex++;
+		dispatcher.instructionPointer = 0;
+		dispatcher.cleanUpGpuPointers();
+	}
+	std::cout << "Jump" << std::endl;
 	return 0;
 }
 
 int32_t done(GpuSqlDispatcher &dispatcher)
 {
-	std::cout << "Done" << std::endl;
 	dispatcher.cleanUpGpuPointers();
-	return 0;
+	std::cout << "Done" << std::endl;
+	return 1;
 }
 
 template<>
@@ -410,5 +426,18 @@ void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &
 	for (int i = 0; i < dataSize; i++)
 	{
 		payload.mutable_doublepayload()->add_doubledata(data[i]);
+	}
+}
+
+
+void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
+{
+	if (responseMessage.payloads().find(key) == responseMessage.payloads().end())
+	{
+		responseMessage.mutable_payloads()->insert({ key, payload });
+	}
+	else
+	{
+		responseMessage.mutable_payloads()->at(key).MergeFrom(payload);
 	}
 }

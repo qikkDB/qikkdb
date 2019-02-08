@@ -9,14 +9,25 @@
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
 #include "../../NativeGeoPoint.h"
+#include "GPUConstants.cuh"
 
 template<typename T>
 __global__ void kernel_fill_array(T *p_Block, T value, int32_t dataElementCount)
 {
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+	const int32_t loopIterations = (dataElementCount + stride - 1 - idx) / stride;
+	const int32_t alignedLoopIterations = loopIterations - (loopIterations % UNROLL_FACTOR);
+	const int32_t alignedDataElementCount = alignedLoopIterations * stride + idx;
 
-	for (int32_t i = idx; i < dataElementCount; i += stride)
+	//unroll from idx to alignedDataElementCount
+	#pragma unroll UNROLL_FACTOR
+	for (int32_t i = idx; i < alignedDataElementCount; i += stride)
+	{
+		p_Block[i] = value;
+	}
+	//continue classic way from alignedDataElementCount to full dataElementCount
+	for (int32_t i = alignedDataElementCount; i < dataElementCount; i += stride)
 	{
 		p_Block[i] = value;
 	}
@@ -127,6 +138,13 @@ public:
 	static void copyDeviceToHost(T *p_BlockHost, T *p_BlockDevice, int32_t dataElementCount)
 	{
 		cudaMemcpy(p_BlockHost, p_BlockDevice, dataElementCount * sizeof(T), cudaMemcpyDeviceToHost);
+		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+	}
+
+	template<typename T>
+	static void copyDeviceToDevice(T *p_BlockDestination, T *p_BlockSource, int32_t dataElementCount)
+	{
+		cudaMemcpy(p_BlockDestination, p_BlockSource, dataElementCount * sizeof(T), cudaMemcpyDeviceToDevice);
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 

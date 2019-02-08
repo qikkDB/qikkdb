@@ -36,8 +36,8 @@ void kernel_point_in_polygon(int8_t *outMask,
 	int32_t pointCount,
 	int32_t polygonCount)
 {
-	int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int32_t stride = blockDim.x * gridDim.x;
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
 
 	for (int32_t i = idx; i < (pointCount > polygonCount ? pointCount : polygonCount); i += stride)
 	{

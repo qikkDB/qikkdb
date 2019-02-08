@@ -185,6 +185,7 @@ private:
     std::vector<std::function<int32_t(GpuSqlDispatcher &)>> dispatcherFunctions;
     MemoryStream arguments;
 	int32_t blockIndex;
+	int32_t instructionPointer;
 	int32_t constPointCounter;
 	int32_t constPolygonCounter;
     const std::shared_ptr<Database> &database;
@@ -245,6 +246,7 @@ private:
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
     static std::function<int32_t(GpuSqlDispatcher &)> filFunction;
+	static std::function<int32_t(GpuSqlDispatcher &)> jmpFunction;
     static std::function<int32_t(GpuSqlDispatcher &)> doneFunction;
 
 public:
@@ -304,6 +306,8 @@ public:
 
     void addFilFunction();
 
+	void addJmpInstruction();
+
     void addDoneFunction();
 
     void addGroupByFunction(DataType type);
@@ -312,6 +316,8 @@ public:
 
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size);
+
+	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
 	void insertComplexPolygon(std::string colName, GPUMemory::GPUPolygon polygon, int32_t size);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
@@ -331,6 +337,8 @@ public:
     friend int32_t retCol(GpuSqlDispatcher &dispatcher);
 
     friend int32_t fil(GpuSqlDispatcher &dispatcher);
+
+	friend int32_t jmp(GpuSqlDispatcher &dispatcher);
 
     friend int32_t done(GpuSqlDispatcher &dispatcher);
 

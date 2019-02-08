@@ -88,6 +88,7 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
     }
 
 	std::string reg = std::string("R") + std::to_string(tempCounter);
+
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(returnDataType);
 }
@@ -192,21 +193,28 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 
 	insideAgg = false;
 	std::string reg = std::string("R") + std::to_string(tempCounter);
+
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(returnDataType);
 }
 
 void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 {
-    dispatcher.addDoneFunction();
+	dispatcher.addJmpInstruction();
+	if (usingGroupBy)
+	{
+		
+	}
+	dispatcher.addDoneFunction();
 }
 
 void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 {
-    std::pair<std::string, DataType> arg = stackTopAndPop();
-    DataType retType = std::get<1>(arg);
-    dispatcher.addRetFunction(retType);
-    dispatcher.addArgument<const std::string&>(std::get<0>(arg));
+	std::pair<std::string, DataType> arg = stackTopAndPop();
+	std::string colName = std::get<0>(arg);
+	DataType retType = std::get<1>(arg);
+	dispatcher.addRetFunction(retType);
+	dispatcher.addArgument<const std::string&>(colName);
 }
 
 void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
@@ -220,7 +228,6 @@ void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
         }
         loadedTables.insert(table->getText());
     }
-
 }
 
 void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext *ctx)
