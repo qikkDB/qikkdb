@@ -385,7 +385,6 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 		throw NotSameAmoutOfValuesException();
 	}
 
-	int valueIndex = 0;
 	for (auto& column : tab.GetColumns())
 	{
 		std::string columnName = column.first;
@@ -402,7 +401,9 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 
 		if (isReferencedColumn)
 		{
-			pushArgument(values[valueIndex++].c_str(), static_cast<DataType>(static_cast<int>(columnDataType) - DataType::COLUMN_INT));
+			int valueIndex = std::find(columns.begin(), columns.end(), columnPair) - columns.begin();
+			std::cout << values[valueIndex].c_str() << " " <<  columnName << std::endl;
+			pushArgument(values[valueIndex].c_str(), static_cast<DataType>(static_cast<int>(columnDataType) - DataType::COLUMN_INT));
 		}
 	}
 	dispatcher.addInsertIntoDoneFunction();

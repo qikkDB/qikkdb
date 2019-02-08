@@ -13,7 +13,8 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TableTests.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp)
+				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp)
 
 add_executable(${PROJECT_NAME}_test ${SOURCE_FILES} ${TEST_FILES})
 
