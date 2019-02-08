@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 	/*
 	Context::getInstance(); // Initialize CUDA context
 
-  /*  boost::log::add_file_log("../log/ColmnarDB.log");
+	boost::log::add_file_log("../log/ColmnarDB.log");
     boost::log::add_console_log(std::cout);
 	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
 	Database::LoadDatabasesFromDisk();
@@ -30,7 +30,6 @@ int main(int argc, char **argv)
 	tcpServer.Run();
 
 	Database::SaveAllToDisk();
-<<<<<<< HEAD
 	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
 	*/
 
@@ -43,34 +42,18 @@ int main(int argc, char **argv)
 	std::vector<std::string> tableNames = { "TableA" };
 	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
 	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 5, false, tableNames, columnTypes);
-=======
-	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";*/
-	std::vector<std::string> tableNames = { "TableA" };
-	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT} /*, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} */ };
-	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, 1 << 24, false, tableNames, columnTypes);
->>>>>>> feature/multigpu-alloc
 
 	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
 	auto start = std::chrono::high_resolution_clock::now();
-	
-
-<<<<<<< HEAD
 
     GpuSqlCustomParser parser(database, "SELECT COUNT(colInteger1) FROM TableA WHERE colInteger1 <= 20;");
-=======
-    GpuSqlCustomParser parser(database, "SELECT colInteger2 * 2, COUNT(colInteger1) / -2 FROM TableA GROUP BY colInteger2;");
->>>>>>> feature/multigpu-alloc
+
     parser.parse()->PrintDebugString();
 
     auto end = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> elapsed(end - start);
 
-<<<<<<< HEAD
 	std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
-		
-=======
-    std::cout << "Elapsed time: " << elapsed.count() << " s\n";
->>>>>>> feature/multigpu-alloc
 	return 0;
 }

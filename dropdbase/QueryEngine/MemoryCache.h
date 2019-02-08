@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include <set>
 #include <string>
 #include "GPUCore/GPUMemory.cuh"
 
@@ -8,9 +9,21 @@ class MemoryCache
 {
 
 private:
-	std::unordered_map<std::string, std::pair<std::pair<uintptr_t, int32_t>, int32_t>> cacheMap;
+	const int64_t maxSize = 1 << 20;
+
+	std::unordered_map<std::string, std::pair<uintptr_t, int32_t>> cacheMap;
+
+	int64_t usedSize;
+	void evict();
+
+	bool tryInsert(int32_t sizeToInsert)
+	{
+		return usedSize + sizeToInsert < maxSize;
+	}
 
 public:
+
+	MemoryCache();
 
 	template<typename T>
 	std::pair<uintptr_t, int32_t> getColumn(const std::string& columnName, int32_t blockIndex, int32_t size)
@@ -18,12 +31,22 @@ public:
 		std::string columnBlock = columnName + "_" + std::to_string(blockIndex);
 		if (cacheMap.find(columnBlock) != cacheMap.end())
 		{
-			cacheMap.at(columnBlock).second++;
-			return cacheMap.at(columnBlock).first;
+			return cacheMap.at(columnBlock);
+		}
+
+		int32_t sizeToInsert = sizeof(T) * size;
+
+		while (!tryInsert(sizeToInsert)) 
+		{
+			evict();
 		}
 
 		T* newPtr;
 		GPUMemory::alloc(&newPtr, size);
-		cacheMap.insert({ columnBlock, std::make_pair(std::make_pair(reinterpret_cast<uintptr_t>(newPtr), size), 0) });
+		std::pair newPair = std::make_pair(reinterpret_cast<uintptr_t>(newPtr), size);
+		usedSize += sizeToInsert;
+
+		cacheMap.insert({ columnBlock, newPair });
+		return newPair;
 	}
 };
