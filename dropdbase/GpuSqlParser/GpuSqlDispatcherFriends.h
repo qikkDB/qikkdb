@@ -40,13 +40,10 @@ int32_t loadCol(GpuSqlDispatcher &dispatcher)
 	const std::string table = colName.substr(0, endOfPolyIdx);
 	const std::string column = colName.substr(endOfPolyIdx + 1);
 	const int32_t blockCount = dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+
 	if (dispatcher.blockIndex == blockCount - 1)
 	{
 		dispatcher.isLastBlock = true;
-	}
-	else if (dispatcher.blockIndex >= blockCount)
-	{
-		return 1;
 	}
 
 	auto col = dynamic_cast<const ColumnBase<T>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
@@ -93,8 +90,7 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload<T>(payload, outData, outSize);
 				ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
-				partialMessage.mutable_payloads()->insert({ col, payload });
-				dispatcher.responseMessage.MergeFrom(partialMessage);
+				dispatcher.mergePayloadToResponse(col, payload);
 			}
 			else
 			{
@@ -105,9 +101,7 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload<T>(payload, outData, outSize);
-				ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
-				partialMessage.mutable_payloads()->insert({ col, payload });
-				dispatcher.responseMessage.MergeFrom(partialMessage);
+				dispatcher.mergePayloadToResponse(col, payload);
 			}
 		}
 	}
@@ -122,9 +116,7 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 		std::cout << "dataSize: " << outSize << std::endl;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 		insertIntoPayload<T>(payload, outData, outSize);
-		ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
-		partialMessage.mutable_payloads()->insert({ col, payload });
-		dispatcher.responseMessage.MergeFrom(partialMessage);
+		dispatcher.mergePayloadToResponse(col, payload);
 	}
 	return 0;
 }
@@ -271,7 +263,7 @@ int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher)
 			dispatcher.groupByColumns.insert(reg);
 		}
 	}
-	else
+	else if (dispatcher.isLastBlock || !dispatcher.usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
 		int32_t retSize = std::get<1>(column);
@@ -301,7 +293,7 @@ int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher)
 			dispatcher.groupByColumns.insert(reg);
 		}
 	}
-	else
+	else if (dispatcher.isLastBlock || !dispatcher.usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
 		int32_t retSize = std::get<1>(column);
@@ -346,7 +338,7 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 			dispatcher.groupByColumns.insert(reg);
 		}
 	}
-	else
+	else if (dispatcher.isLastBlock || !dispatcher.usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t> columnRight = dispatcher.allocatedPointers.at(colNameRight);
 		std::tuple<uintptr_t, int32_t> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
@@ -499,7 +491,7 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 {
 	auto colTableName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
-	std::cout << "AggCol: " << colTableName << " " << reg << std::endl;
+	std::cout << "AggColCol: " << colTableName << " " << reg << std::endl;
 	
 	std::tuple<uintptr_t, int32_t>& column = dispatcher.allocatedPointers.at(colTableName);
 	int32_t reconstructOutSize;
@@ -555,7 +547,7 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 template<typename OP, typename T, typename U>
 int32_t aggregationColConst(GpuSqlDispatcher &dispatcher)
 {
-	std::cout << "aggregationColConst" << std::endl;
+	std::cout << "AggColConst" << std::endl;
 	return 0;
 }
 
@@ -564,9 +556,18 @@ int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher)
 {
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
-	std::cout << "aggregationConstCol: " << colName << " " << reg << std::endl;
+	std::cout << "AggConstCol: " << colName << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
+	std::tuple<uintptr_t, int32_t>& column = dispatcher.allocatedPointers.at(colName);
+
+	int32_t reconstructOutSize;
+	T* reconstructOutReg;
+	GPUMemory::alloc(&reconstructOutReg, std::get<1>(column));
+	GPUReconstruct::reconstructColKeep<T>(reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(std::get<0>(column)), reinterpret_cast<int8_t*>(dispatcher.filter_), std::get<1>(column));
+
+	GPUMemory::free(reinterpret_cast<void*>(std::get<0>(column)));
+	std::get<0>(column) = reinterpret_cast<uintptr_t>(reconstructOutReg);
+	std::get<1>(column) = reconstructOutSize;
 
 	T * result = dispatcher.allocateRegister<T>(reg, 1);
 	GPUAggregation::col<OP, T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
@@ -577,7 +578,7 @@ int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher)
 template<typename OP, typename T, typename U>
 int32_t aggregationConstConst(GpuSqlDispatcher &dispatcher)
 {
-	std::cout << "aggregationConstConst" << std::endl;
+	std::cout << "AggConstConst" << std::endl;
 	return 0;
 }
 

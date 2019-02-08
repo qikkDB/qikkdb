@@ -317,6 +317,8 @@ public:
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size);
 
+	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
+
 	void insertComplexPolygon(std::string colName, GPUMemory::GPUPolygon polygon, int32_t size);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);

@@ -30,7 +30,6 @@ private:
     std::unordered_set<std::string> loadedTables;
     std::unordered_set<std::string> loadedColumns;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
-	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> aggregationColumns;
 
     bool usingGroupBy;
     bool insideAgg;
