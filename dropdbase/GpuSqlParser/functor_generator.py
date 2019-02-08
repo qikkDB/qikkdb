@@ -48,6 +48,7 @@ operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "n
 operations_logical = ["logicalAnd", "logicalOr"]
 operations_arithmetic = ["mul", "div", "add", "sub", "mod"]
 operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg"]
+operations_aggregation = ["min", "max", "sum", "count", "avg"]
 operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
 
@@ -321,3 +322,37 @@ for colIdx, colVal in enumerate(all_types):
         declaration += ("&" + function + ", ")
 
 print(declaration)
+
+
+for operation in operations_aggregation:
+    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
+
+            if (colVal in geo_types or colVal == STRING) or (rowVal in geo_types or rowVal == STRING) or (rowVal == BOOL or colVal == BOOL):
+                op = "invalidOperandTypesErrorHandler"
+            else:
+                op = "aggregation"
+
+            if operation == "count":
+                colVal = LONG
+            function = op + col + row + "<AggregationFunctions::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
+
+    print(declaration)

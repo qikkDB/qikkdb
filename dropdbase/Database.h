@@ -35,7 +35,7 @@ public:
 	static const std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases() { return loadedDatabases_; }
 	const std::string& GetName() const { return name_; }
 	int GetBlockSize() const { return blockSize_; }
-	const std::unordered_map<std::string, Table>& GetTables() const { return tables_; }
+	std::unordered_map<std::string, Table>& GetTables() { return tables_; }
 
 	/// <summary>
 	/// Save database from memory to disk.
@@ -46,11 +46,11 @@ public:
 	/// <summary>
 	/// Save all databases currently in memory to disk. All databases will be saved in the same directory
 	/// </summary>
-	/// <param name="path">Path to database storage directory</param>
-	static void SaveAllToDisk(const char* path);
+	static void SaveAllToDisk();
 
 	/// <summary>
-	/// Load databases from disk storage. Databases .db and .col files have to be in the same directory, so all databases have to be in the same dorectory to be loaded using this procedure
+	/// Load databases from disk storage. Databases .db and .col files have to be in the same directory,
+	/// so all databases have to be in the same directory to be loaded using this procedure
 	/// </summary>
 	static void LoadDatabasesFromDisk();
 
@@ -88,7 +88,7 @@ public:
 	/// </summary>
 	/// <param name="databaseName">Name of database to get</param>
 	/// <returns>Database object or null</returns>
-	static std::shared_ptr<Database>& GetDatabaseByName(std::string databaseName) { return loadedDatabases_[databaseName]; }
+	static std::shared_ptr<Database> GetDatabaseByName(std::string databaseName) { return loadedDatabases_[databaseName]; }
 
 	/// <summary>
 	/// Remove database from in memory list

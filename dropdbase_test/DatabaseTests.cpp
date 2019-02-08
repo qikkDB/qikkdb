@@ -131,7 +131,7 @@ TEST(DatabaseTests, SaveLoadTest)
 	std::string storePath = path + dbName;
 	boost::filesystem::remove_all(storePath);
 
-	Database::SaveAllToDisk(path.c_str());
+	Database::SaveAllToDisk();
 
 	//load different database. but with the same data:
 	Database::LoadDatabasesFromDisk();

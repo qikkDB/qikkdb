@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 
 	//GpuSqlCustomParser parser(database, "INSERT INTO TableA (colInteger1, colPolygon1) VALUES (2, POLYGON((10 11, 11 12, 10 11),(21 30, 35 36, 30 20, 21 30),(61 80,90 89,112 110, 61 80)));");
 	GpuSqlCustomParser parser(database2, "SHOW TABLES;");
-	parser.parse();
+	parser.parse()->PrintDebugString();
 
 	auto end = std::chrono::high_resolution_clock::now();
 
