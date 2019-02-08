@@ -3,46 +3,56 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <cstdio>
+#include <stdexcept>
 
-CudaMemAllocator::CudaMemAllocator()
+CudaMemAllocator::CudaMemAllocator(int deviceID) :
+	deviceID_(deviceID)
 {
 	cudaDeviceProp props;
-	int device;
-	cudaGetDevice(&device);
-	cudaGetDeviceProperties(&props, device);
+	int oldDevice;
+	cudaGetDevice(&oldDevice);
+	cudaSetDevice(deviceID);
+	if (cudaGetDeviceProperties(&props, deviceID) != CUDA_SUCCESS)
+	{
+		throw std::invalid_argument("Failed to get GPU info");
+	}
 	size_t free, total;
 	cudaMemGetInfo(&free, &total);
-	printf("%s %zu %zu\n", props.name, total, free);
+	printf("Device %d: %s Total: %zu Free: %zu\n", deviceID_, props.name, total, free);
 	if (cudaMalloc(&cudaBufferStart_, free - 256000000) != cudaSuccess)
 	{
-		exit(5);
+		throw std::invalid_argument("Failed to alloc GPU buffer");
 	}
 	chainedBlocks_.push_back({ false, blocksBySize_.end(), free - 256000000, cudaBufferStart_ });
 	(*chainedBlocks_.begin()).sizeOrderIt = blocksBySize_.emplace(std::make_pair(free - 256000000, chainedBlocks_.begin()));
 #ifdef DEBUG_ALLOC
 	logOut = fopen("E:\\alloc.log", "a");
-	fprintf(logOut, "CudaMemAllocator\n");
+	fprintf(logOut, "CudaMemAllocator %d\n", deviceID);
 	fprintf(logOut, "Available blocks: %zu\n", chainedBlocks_.size());
 	for (auto & ptrs : chainedBlocks_)
 	{
 		fprintf(logOut, "%zu bytes at %p\n", ptrs.blockSize, ptrs.ptr);
 	}
 #endif // DEBUG_ALLOC
-}
-
-
-CudaMemAllocator & CudaMemAllocator::GetInstance()
-{
-	static CudaMemAllocator allocator{};
-	return allocator;
+	cudaSetDevice(oldDevice);
 }
 
 CudaMemAllocator::~CudaMemAllocator()
 {
-	cudaFree(cudaBufferStart_);
+	if (cudaBufferStart_ != nullptr)
+	{
+		int oldDevice;
+		cudaGetDevice(&oldDevice);
+		cudaSetDevice(deviceID_);
+		cudaFree(cudaBufferStart_);
+		cudaSetDevice(oldDevice);
+	}
 #ifdef DEBUG_ALLOC
-	fprintf(logOut,"~CudaMemAllocator\n");
-	fclose(logOut);
+	if (logOut != nullptr)
+	{
+		fprintf(logOut, "~CudaMemAllocator %d\n", deviceID);
+		fclose(logOut);
+	}
 #endif // DEBUG_ALLOC
 }
 
@@ -64,7 +74,7 @@ int8_t * CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 	blocksBySize_.erase(it);
 	allocatedBlocks_.emplace(std::make_pair((*blockInfoIt).ptr, blockInfoIt));
 #ifdef DEBUG_ALLOC
-	fprintf(logOut,"CudaMemAllocator::allocate %p %zu\n", (*blockInfoIt).ptr, alignedSize);
+	fprintf(logOut,"%d CudaMemAllocator::allocate %p %zu\n", deviceID_, (*blockInfoIt).ptr, alignedSize);
 	fflush(logOut);
 #endif
 	return static_cast<int8_t*>((*blockInfoIt).ptr);
@@ -73,7 +83,7 @@ int8_t * CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 void CudaMemAllocator::deallocate(int8_t * ptr, size_t numBytes)
 {
 #ifdef DEBUG_ALLOC
-	fprintf(logOut, "CudaMemAllocator::deallocate ptr %p\n", ptr);
+	fprintf(logOut, "%d CudaMemAllocator::deallocate ptr %p\n", deviceID_, ptr);
 	fflush(logOut);
 #endif
 	auto allocListIt = allocatedBlocks_.find(ptr);
@@ -126,7 +136,7 @@ void CudaMemAllocator::SplitBlock(std::multimap<size_t, std::list<BlockInfo>::it
 void CudaMemAllocator::Clear()
 {
 #ifdef DEBUG_ALLOC
-	fprintf(logOut, "---------------\nAllocation statistics:\n");
+	fprintf(logOut, "---------------\nAllocation statistics for GPU %d:\n",deviceID_);
 	fprintf(logOut, "Leaked pointers: %zu\n", allocatedBlocks_.size());
 	for (auto & ptrs : allocatedBlocks_)
 	{
