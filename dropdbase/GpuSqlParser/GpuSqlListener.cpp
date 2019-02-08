@@ -353,7 +353,16 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 
 	for (auto& value : ctx->insertIntoValues()->columnValue())
 	{
-		values.push_back(value->getText());
+		auto start = value->start->getStartIndex();
+		auto stop = value->stop->getStopIndex();
+		antlr4::misc::Interval interval(start, stop);
+		std::string valueText = value->start->getInputStream()->getText(interval);
+		values.push_back(valueText);
+	}
+
+	if (columns.size() != values.size())
+	{
+		throw NotSameAmoutOfValuesException();
 	}
 
 	int valueIndex = 0;

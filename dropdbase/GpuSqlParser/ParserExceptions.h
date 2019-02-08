@@ -55,4 +55,12 @@ struct InsertIntoException : public std::exception
 	}
 };
 
+struct NotSameAmoutOfValuesException : public std::exception
+{
+	const char *what() const noexcept override
+	{
+		return "Number of values provided must be the same as number of columns";
+	}
+};
+
 #endif //DROPDBASE_INSTAREA_PARSEREXCEPTIONS_H
