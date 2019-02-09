@@ -9,6 +9,8 @@
 #include "messages/QueryResponseMessage.pb.h"
 #include <boost/log/trivial.hpp>
 
+std::mutex TCPClientHandler::queryMutex_;
+
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult()
 {
 	BOOST_LOG_TRIVIAL(debug) << "GetNextQueryResult()\n";
@@ -190,6 +192,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleQuery(ITCPWor
 {
 	sentRecords_ = 0;
 	lastResultLen_ = 0;
+	BOOST_LOG_TRIVIAL(info) << queryMessage.query();
 	lastQueryResult_ = std::async(std::launch::async, std::bind(&TCPClientHandler::RunQuery, this, worker.currentDatabase_, queryMessage));
 	auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
 	resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::WAIT);

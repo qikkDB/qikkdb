@@ -19,7 +19,7 @@ public:
 	{
 	}
 
-	void ImportTables(std::shared_ptr<Database> database);
+	void ImportTables(std::shared_ptr<Database>& database);
 	void ExtractHeaders();
 	void ExtractTypes();
 
