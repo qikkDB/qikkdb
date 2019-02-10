@@ -12,7 +12,6 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/ComplexPolygon.pb.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/Point.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/Point.pb.h
-	    ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
         ${CMAKE_CURRENT_SOURCE_DIR}/BlockBase.h
         ${CMAKE_CURRENT_SOURCE_DIR}/BlockBase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.cpp
@@ -39,7 +38,6 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/ParserExceptions.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlListener.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlListener.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlDispatcher.cu
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlDispatcher.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/MemoryStream.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/MemoryStream.cpp
@@ -60,10 +58,17 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseGenerator.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseGenerator.h)
 
+set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu 
+                ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlDispatcher.cu)
+
 set(SOURCE_FILES ${SOURCE_FILES} PARENT_SCOPE)
+set(CUDA_FILES ${CUDA_FILES} PARENT_SCOPE)
 
-
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+if(WIN32)
+	set_source_files_properties(${SOURCE_FILES} main.cpp PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275")
+	set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "-Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\"")
+endif(WIN32)
+add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${CUDA_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 target_link_libraries(${PROJECT_NAME} ${prefix}protobuf${suffix})
 target_link_libraries(${PROJECT_NAME} ${YAML_CPP_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
