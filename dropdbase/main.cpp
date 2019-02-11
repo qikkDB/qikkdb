@@ -17,7 +17,7 @@
 
 int main(int argc, char **argv)
 {
-	
+	/*
 	Context::getInstance(); // Initialize CUDA context
 
     boost::log::add_file_log("../log/ColmnarDB.log");
@@ -30,9 +30,9 @@ int main(int argc, char **argv)
 
 	Database::SaveAllToDisk();
 	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
+	*/
 	
 	
-	/*
 	std::vector<std::string> tableNames = { "TableA" };
 	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
 	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 5, false, tableNames, columnTypes);
@@ -50,7 +50,6 @@ int main(int argc, char **argv)
     std::chrono::duration<double> elapsed(end - start);
 
 	std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
-	*/
 		
 	return 0;
 }

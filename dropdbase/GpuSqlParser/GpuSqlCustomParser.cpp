@@ -10,6 +10,8 @@
 #include "ParserExceptions.h"
 #include "QueryType.h"
 #include <iostream>
+#include <future>
+#include <thread>
 
 //TODO:parse()
 
@@ -29,8 +31,9 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
     antlr4::tree::ParseTreeWalker walker;
 
-    GpuSqlDispatcher dispatcher(database);
-    GpuSqlListener gpuSqlListener(database, dispatcher);
+	GpuSqlDispatcher dispatcher(database);
+	GpuSqlListener gpuSqlListener(database, dispatcher);
+
     if (statement->sqlSelect())
     {
         if (database == nullptr)
@@ -93,6 +96,28 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
             walker.walk(&gpuSqlListener, statement->sqlSelect()->orderByColumns());
         }
     }
+
+	std::vector<GpuSqlDispatcher> dispatchers;
+	std::vector<std::future<google::protobuf::Message>> dispatcherFutures;
+	std::vector<google::protobuf::Message> dispatcherResults;
+
+	const int32_t numOfDevices = 5;
+	for (int i = 0; i < numOfDevices; i++)
+	{
+		dispatchers.emplace_back(dispatcher);
+	}
+
+	for (int i = 0; i < numOfDevices; i++)
+	{
+		dispatcherFutures.push_back(std::async(&GpuSqlDispatcher::execute, &dispatchers[i]));
+	}
+
+	for (int i = 0; i < numOfDevices; i++)
+	{
+		dispatcherResults.push_back(dispatcherFutures[i].get());
+	}
+	
+	// merge results
     return dispatcher.execute();
 }
 

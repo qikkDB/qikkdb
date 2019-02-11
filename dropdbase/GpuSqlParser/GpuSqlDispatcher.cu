@@ -24,6 +24,11 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) :
 
 }
 
+GpuSqlDispatcher GpuSqlDispatcher::safeClone(const GpuSqlDispatcher &)
+{
+	return GpuSqlDispatcher();
+}
+
 GpuSqlDispatcher::~GpuSqlDispatcher()
 {
 	cleanUpGpuPointers();
