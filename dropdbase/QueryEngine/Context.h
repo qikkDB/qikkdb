@@ -10,6 +10,7 @@
 
 #include "QueryEngineError.h"
 #include "CudaMemAllocator.h"
+#include "GPUMemoryCache.h"
 
 class Context {
 private:
@@ -30,8 +31,9 @@ private:
 	int32_t boundDeviceID_;
 	cudaDeviceProp boundDevice_;
 	std::vector<cudaDeviceProp> devicesMetaInfo_;
-	// Move cannot be implemented for allocator, it keeps iterators to internal vectors
+	// Move cannot be implemented for allocator and cache, they keep iterators to internal vectors
 	std::vector<std::unique_ptr<CudaMemAllocator>> gpuAllocators_;
+	std::vector<std::unique_ptr<GPUMemoryCache>> gpuCaches_;
 	// Meyer's singleton
 	Context() : queried_block_dimension_(DEFAULT_BLOCK_DIMENSION) 
 	{
@@ -43,6 +45,7 @@ private:
 		for (int i = 0; i < devCount; i++)
 		{
 			gpuAllocators_.emplace_back(std::make_unique<CudaMemAllocator>(i));
+			gpuCaches_.emplace_back(std::make_unique<GPUMemoryCache>(i));
 		}
 
 		// TODO - Add device detection
@@ -81,6 +84,7 @@ public:
 
 	// Bind device to context if neccessary
 	void bindDeviceToContext(int32_t deviceID) { }
+
 	CudaMemAllocator& GetAllocatorForDevice(int32_t deviceID) { return *gpuAllocators_.at(deviceID); }
 	CudaMemAllocator& GetAllocatorForCurrentDevice()
 	{
@@ -89,5 +93,12 @@ public:
 		return *gpuAllocators_.at(deviceID); 
 	}
 
+	GPUMemoryCache& GetCacheForDevice(int32_t deviceID) { return *gpuCaches_.at(deviceID); }
+	GPUMemoryCache& GetCacheForCurrentDevice()
+	{
+		int deviceID;
+		cudaGetDevice(&deviceID);
+		return *gpuCaches_.at(deviceID);
+	}
 };
 

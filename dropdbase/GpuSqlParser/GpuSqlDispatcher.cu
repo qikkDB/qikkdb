@@ -255,11 +255,11 @@ void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType o
 
 void GpuSqlDispatcher::insertComplexPolygon(std::string colName, GPUMemory::GPUPolygon polygon, int32_t size)
 {
-	allocatedPointers.insert({ colName + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyPoints), size) });
-	allocatedPointers.insert({ colName + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointIdx), size) });
-	allocatedPointers.insert({ colName + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointCount), size) });
-	allocatedPointers.insert({ colName + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyIdx), size) });
-	allocatedPointers.insert({ colName + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyCount), size) });
+	allocatedPointers.insert({ colName + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyPoints), size, true) });
+	allocatedPointers.insert({ colName + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointIdx), size, true) });
+	allocatedPointers.insert({ colName + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointCount), size, true) });
+	allocatedPointers.insert({ colName + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyIdx), size, true) });
+	allocatedPointers.insert({ colName + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyCount), size, true) });
 }
 
 std::tuple<GPUMemory::GPUPolygon, int32_t> GpuSqlDispatcher::findComplexPolygon(std::string colName)
@@ -303,7 +303,10 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 	arguments.reset();
 	for (auto& ptr : allocatedPointers)
 	{
-		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(ptr.second)));
+		if (std::get<2>(ptr.second))
+		{
+			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(ptr.second)));
+		}
 	}
 	allocatedPointers.clear();
 }

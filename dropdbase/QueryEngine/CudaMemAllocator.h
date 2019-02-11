@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <list>
 #include <cstdio>
-
 class CudaMemAllocator
 {
 private:

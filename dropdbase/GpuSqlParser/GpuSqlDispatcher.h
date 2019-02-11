@@ -189,7 +189,7 @@ private:
 	int32_t constPointCounter;
 	int32_t constPolygonCounter;
     const std::shared_ptr<Database> &database;
-	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t>> allocatedPointers;
+	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 	bool usingGroupBy;
@@ -316,6 +316,9 @@ public:
 
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size);
+
+	template<typename T>
+	void addCachedRegister(const std::string& reg, T* ptr, int32_t size);
 
 	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
