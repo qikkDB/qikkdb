@@ -24,16 +24,18 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) :
 
 }
 
-GpuSqlDispatcher GpuSqlDispatcher::safeClone(const GpuSqlDispatcher &)
-{
-	return GpuSqlDispatcher();
-}
-
 GpuSqlDispatcher::~GpuSqlDispatcher()
 {
 	cleanUpGpuPointers();
 }
 
+GpuSqlDispatcher::GpuSqlDispatcher(const GpuSqlDispatcher &dispatcher2) :
+	database(dispatcher2.database),
+	dispatcherFunctions(dispatcher2.dispatcherFunctions),
+	arguments(dispatcher2.arguments)
+{
+	std::cout << "Dispatcher Copy" << std::endl;
+}
 
 template <>
 int32_t loadCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher);

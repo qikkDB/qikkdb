@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 	
 
 
-    GpuSqlCustomParser parser(database, "SELECT COUNT(colInteger1) FROM TableA WHERE colInteger1 <= 20;");
+    GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE colInteger1 <= 20;");
     parser.parse()->PrintDebugString();
 
     auto end = std::chrono::high_resolution_clock::now();

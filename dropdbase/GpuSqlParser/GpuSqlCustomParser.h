@@ -17,6 +17,7 @@ class GpuSqlCustomParser
 private:
     const std::shared_ptr<Database> &database;
     std::string query;
+	std::unique_ptr<google::protobuf::Message> mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults);
 
 public:
     GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query);

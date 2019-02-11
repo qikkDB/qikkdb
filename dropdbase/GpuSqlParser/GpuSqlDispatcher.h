@@ -252,11 +252,9 @@ private:
 public:
     explicit GpuSqlDispatcher(const std::shared_ptr<Database> &database);
 
-	GpuSqlDispatcher(const GpuSqlDispatcher&) = delete; 
-
-	GpuSqlDispatcher safeClone(const GpuSqlDispatcher&);
-
 	~GpuSqlDispatcher();
+
+	GpuSqlDispatcher(const GpuSqlDispatcher& dispatcher2);
 
 	std::unique_ptr<google::protobuf::Message> execute();
 

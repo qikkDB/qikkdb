@@ -13,10 +13,9 @@
 #include <future>
 #include <thread>
 
-//TODO:parse()
-
-GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query) : database(
-        database), query(query)
+GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query) : 
+	database(database),
+	query(query)
 {}
 
 
@@ -98,18 +97,18 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
     }
 
 	std::vector<GpuSqlDispatcher> dispatchers;
-	std::vector<std::future<google::protobuf::Message>> dispatcherFutures;
-	std::vector<google::protobuf::Message> dispatcherResults;
+	std::vector<std::future<std::unique_ptr<google::protobuf::Message>>> dispatcherFutures;
+	std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults;
 
-	const int32_t numOfDevices = 5;
+	const int32_t numOfDevices = 1;
 	for (int i = 0; i < numOfDevices; i++)
 	{
-		dispatchers.emplace_back(dispatcher);
+		dispatchers.push_back(dispatcher);
 	}
 
 	for (int i = 0; i < numOfDevices; i++)
 	{
-		dispatcherFutures.push_back(std::async(&GpuSqlDispatcher::execute, &dispatchers[i]));
+		dispatcherFutures.push_back(std::async(std::launch::async, &GpuSqlDispatcher::execute, &dispatchers[i]));
 	}
 
 	for (int i = 0; i < numOfDevices; i++)
@@ -117,8 +116,15 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		dispatcherResults.push_back(dispatcherFutures[i].get());
 	}
 	
-	// merge results
-    return dispatcher.execute();
+	mergeDispatcherResults(dispatcherResults);
+    return std::move(dispatcherResults[0]);
+}
+
+
+std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults)
+{
+	//TODO: merge
+	return dispatcherResults[0];
 }
 
 bool GpuSqlCustomParser::containsAggregation(GpuSqlParser::SelectColumnContext * ctx)
