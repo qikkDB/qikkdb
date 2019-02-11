@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <memory>
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -236,6 +237,48 @@ public:
 		// Copy back the results based on the operation
 		GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_, occupancyMask.get(), maxHashCount_);
+	}
+
+	int32_t getMaxHashCount()
+	{
+		return maxHashCount_;
+	}
+
+	void reconstructRawNumbers(K * keys, O * values, int64_t * occurences, int32_t * elementCount)
+	{
+		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+			(occupancyMask.get(), keys_, maxHashCount_);
+		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
+		GPUReconstruct::reconstructCol(values, elementCount, values_, occupancyMask.get(), maxHashCount_);
+		GPUReconstruct::reconstructCol(occurences, elementCount, keyOccurenceCount_, occupancyMask.get(), maxHashCount_);
+	}
+
+	// Merge results from different graphic cards
+	static void mergeMultiGPUTables(std::vector<IGroupBy*> tables, std::vector<int*> gpuIDs, K *outKeys, O *outValues, int32_t *outDataElementCount)
+	{
+		int oldDevice;
+		cudaGetDevice(&oldDevice);
+		std::vector<K> keysAll;
+		std::vector<V> valuesAll;
+		std::vector<int64_t> occurencesAll;
+		int32_t sumElementCount = 0;
+		for (int i = 0; i < tables.size(); i++)
+		{
+			std::unique_ptr<K[]> keys = std::make_unique<K[]>(tables[i].getMaxHashCount());
+			std::unique_ptr<V[]> values = std::make_unique<V[]>(tables[i].getMaxHashCount());
+			std::unique_ptr<int64_t[]> occurences = std::make_unique<int64_t[]>(tables[i].getMaxHashCount());
+			int32_t elementCount;
+			cudaSetDevice(gpuIDs[i]);
+			tables[i].reconstructRawNumbers(keys.get(), values.get(), occurences.get(), &elementCount);
+			keysAll.insert(keysAll.begin(), keys.get(), keys.get() + elementCount);
+			valuesAll.insert(valuesAll.begin(), values.get(), values.get() + elementCount);
+			occurencesAll.insert(occurencesAll.begin(), occurences.get(), occurences.get() + elementCount);
+			sumElementCount += elementCount;
+		}
+		// TODO group by, get results
+
+		cudaSetDevice(oldDevice);
 	}
 };
 
