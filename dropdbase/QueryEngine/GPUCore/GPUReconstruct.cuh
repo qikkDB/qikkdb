@@ -10,7 +10,6 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "GPUTypeWidthManip.cuh"
-#include "GPUConstants.cuh"
 
 #include "../../../cub/cub.cuh"
 
@@ -19,24 +18,8 @@ __global__ void kernel_reconstruct_col(T *outData, int32_t *outDataElementCount,
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
-	const int32_t loopIterations = (dataElementCount + stride - 1 - idx) / stride;
-	const int32_t alignedLoopIterations = loopIterations - (loopIterations % UNROLL_FACTOR);
-	const int32_t alignedDataElementCount = alignedLoopIterations * stride + idx;
 
-	//unroll from idx to alignedDataElementCount
-	#pragma unroll UNROLL_FACTOR
-	for (int32_t i = idx; i < alignedDataElementCount; i += stride)
-	{
-		// Select the elemnts that are "visible" in the mask
-		// If the mask is 1 for the output, use the prefix sum for array compaction
-		// The prefix sum includes values from the input array on the same element so the index has to be modified
-		if (inMask[i] && (prefixSum[i] - 1) >= 0) 
-		{
-			outData[prefixSum[i] - 1] = ACol[i];
-		}
-	}
-	//continue classic way from alignedDataElementCount to full dataElementCount
-	for (int32_t i = alignedDataElementCount; i < dataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		// Select the elemnts that are "visible" in the mask
 		// If the mask is 1 for the output, use the prefix sum for array compaction
