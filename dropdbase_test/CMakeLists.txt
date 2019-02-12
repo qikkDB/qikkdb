@@ -18,19 +18,30 @@ set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 
 if(WIN32)
 	set_source_files_properties(${SOURCE_FILES} main.cpp PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275")
-	set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "-Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\"")
+	set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "-Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\" -Xcompiler=\"/bigobj\"")
 	set_source_files_properties(${TEST_FILES} PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275")
-	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "-Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\"")
+	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "-Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\" -Xcompiler=\"/bigobj\"")
 endif(WIN32)
 
 add_executable(${PROJECT_NAME}_test ${SOURCE_FILES} ${CUDA_FILES} ${TEST_FILES} ${CUDA_TEST_FILES})
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIR}) 
 
+string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 
-target_link_libraries(${PROJECT_NAME}_test ${prefix}protobuf${suffix})
 target_link_libraries(${PROJECT_NAME}_test ${YAML_CPP_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_test ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_test antlr4_static)
-target_link_libraries(${PROJECT_NAME}_test gtest)
-target_link_libraries(${PROJECT_NAME}_test gtest_main)
+
+
+
+
+IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	target_link_libraries(${PROJECT_NAME}_test ${prefix}protobufd${suffix})
+    target_link_libraries(${PROJECT_NAME}_test gtestd)
+	target_link_libraries(${PROJECT_NAME}_test gtest_maind)
+ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+target_link_libraries(${PROJECT_NAME}_test ${prefix}protobuf${suffix})
+	target_link_libraries(${PROJECT_NAME}_test gtest)
+	target_link_libraries(${PROJECT_NAME}_test gtest_main)
+ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
