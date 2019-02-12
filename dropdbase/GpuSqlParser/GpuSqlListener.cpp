@@ -416,7 +416,7 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
             dispatcher.addArgument<int32_t>(std::stoi(token));
             break;
         case DataType::CONST_LONG:
-            dispatcher.addArgument<int64_t>(std::stol(token));
+            dispatcher.addArgument<int64_t>(std::stoll(token));
             break;
         case DataType::CONST_FLOAT:
             dispatcher.addArgument<float>(std::stof(token));
@@ -452,7 +452,7 @@ bool GpuSqlListener::isLong(const std::string &value)
     }
     catch (std::out_of_range &e)
     {
-        std::stol(value);
+        std::stoll(value);
         return true;
     }
     return false;
