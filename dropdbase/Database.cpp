@@ -206,7 +206,7 @@ void Database::Persist(const char* path)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						colFile.write(reinterpret_cast<const char*>(&data), dataLength * sizeof(int32_t)); //write block of data
+						colFile.write(reinterpret_cast<const char*>(data.data()), dataLength * sizeof(int32_t)); //write block of data
 						index += 1;
 					}
 				}
@@ -625,7 +625,7 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 
 						colFile.read(data.get(), dataLength * sizeof(int32_t)); //read entry data
 
-						dataIntTemp = reinterpret_cast<int*>(data.get());
+						dataIntTemp = reinterpret_cast<int32_t*>(data.get());
 						std::vector<int32_t> dataInt(dataIntTemp, dataIntTemp + dataLength);
 
 						columnInt.AddBlock(dataInt);
