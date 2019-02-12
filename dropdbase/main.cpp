@@ -14,14 +14,15 @@
 #include "ClientPoolWorker.h"
 #include "TCPClientHandler.h"
 #include "ConsoleHandler.h"
+#include "QueryEngine/GPUMemoryCache.h"
+#include "CSVDataImporter.h"
 
 int main(int argc, char **argv)
 {
-	
+    boost::log::add_file_log("../log/ColmnarDB.log");
+
 	Context::getInstance(); // Initialize CUDA context
 
-    boost::log::add_file_log("../log/ColmnarDB.log");
-    boost::log::add_console_log(std::cout);
 	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
 	auto start = std::chrono::high_resolution_clock::now();
 
@@ -50,26 +51,17 @@ int main(int argc, char **argv)
 
 	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
 	
-	
 	/*
 	std::vector<std::string> tableNames = { "TableA" };
 	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
 	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 5, false, tableNames, columnTypes);
 
-	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
-	auto start = std::chrono::high_resolution_clock::now();
-	
-
 
     GpuSqlCustomParser parser(database, "SELECT COUNT(colInteger1) FROM TableA WHERE colInteger1 <= 20;");
     parser.parse()->PrintDebugString();
 
-    auto end = std::chrono::high_resolution_clock::now();
-
-    std::chrono::duration<double> elapsed(end - start);
-
 	std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
 	*/
-		
+
 	return 0;
 }

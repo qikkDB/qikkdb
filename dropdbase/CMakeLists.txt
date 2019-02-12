@@ -12,6 +12,8 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/ComplexPolygon.pb.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/Point.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/Point.pb.h
+	    ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
+		${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUMemoryCache.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/BlockBase.h
         ${CMAKE_CURRENT_SOURCE_DIR}/BlockBase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.cpp
