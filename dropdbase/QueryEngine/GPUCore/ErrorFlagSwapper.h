@@ -21,11 +21,11 @@ public:
 
 		if (errorFlag != QueryEngineError::GPU_EXTENSION_SUCCESS)
 		{
-			Context::getInstance().getLastError().setType((QueryEngineError::Type)errorFlag);
+			QueryEngineError::setType((QueryEngineError::Type)errorFlag);
 		}
 		else
 		{
-			Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+			QueryEngineError::setCudaError(cudaGetLastError());
 		}
 	}
 

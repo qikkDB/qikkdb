@@ -229,7 +229,7 @@ public:
 		{
 			if (BConst == V{ 0 })
 			{
-				Context::getInstance().getLastError().setType(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
+				QueryEngineError::setType(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
 				return;
 			}
 		}
@@ -264,7 +264,7 @@ public:
 		{
 			if (BConst == V{ 0 })
 			{
-				Context::getInstance().getLastError().setType(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
+				QueryEngineError::setType(QueryEngineError::GPU_DIVISION_BY_ZERO_ERROR);
 				return;
 			}
 		}

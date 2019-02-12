@@ -28,20 +28,21 @@ public:
 		GPU_DRIVER_NOT_FOUND_EXCEPTION			// Return code for not found nvidia driver
 	};
 
-	void setCudaError(cudaError_t cudaError) {
+	static void setCudaError(cudaError_t cudaError) {
 		if (cudaError != cudaSuccess)
 		{
 			throw cuda_error(std::string(cudaGetErrorString(cudaError)));
 		}
 	}
 
-	void setType(Type type) {
+	static void setType(Type type) {
 		if (type != GPU_EXTENSION_SUCCESS)
 		{
 			throw cuda_error("GPU Error number " + std::to_string(type));
 		}
 	}
 
+	QueryEngineError() = delete;
 
 };
 
