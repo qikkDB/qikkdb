@@ -90,11 +90,11 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 					{
 						if (k % 2)
 						{
-							integerData.push_back(sameDataInBlocks ? 1 : k % (1024 * integerColumnCount));
+							integerData.push_back(sameDataInBlocks ? 1 : k % (integerColumnCount == 2 ? 4 : (1024 * integerColumnCount)));
 						}
 						else
 						{
-							integerData.push_back(sameDataInBlocks ? -1 : (k % (1024 * integerColumnCount)) * -1);
+							integerData.push_back(sameDataInBlocks ? -1 : (k % (integerColumnCount == 2 ? 4 : (1024 * integerColumnCount))) * -1);
 						}
 					}
 					column.AddBlock(integerData);

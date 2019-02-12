@@ -272,7 +272,7 @@ public:
 	}
 	
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>> tables)
+	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>>& tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{
@@ -295,14 +295,14 @@ public:
 			// Collect data from all devices (graphic cards) to host
 			for (int i = 0; i < tables.size(); i++)
 			{
-				GPUGroupBy<AGG, O, K, V> table = *reinterpret_cast<GPUGroupBy<AGG, O, K, V>*>(tables[i].get());
-				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table.getMaxHashCount());
-				std::unique_ptr<V[]> values = std::make_unique<V[]>(table.getMaxHashCount());
+				GPUGroupBy<AGG, O, K, V>* table = reinterpret_cast<GPUGroupBy<AGG, O, K, V>*>(tables[i].get());
+				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table->getMaxHashCount());
+				std::unique_ptr<V[]> values = std::make_unique<V[]>(table->getMaxHashCount());
 				int32_t elementCount;
 				cudaSetDevice(i);
 
 				// Reconstruct keys and values
-				table.reconstructRawNumbers(keys.get(), values.get(), nullptr, &elementCount);
+				table->reconstructRawNumbers(keys.get(), values.get(), nullptr, &elementCount);
 
 				// Append data to host vectors
 				keysAllHost.insert(keysAllHost.end(), keys.get(), keys.get() + elementCount);
@@ -442,7 +442,7 @@ public:
 	}
 
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>> tables)
+	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>>& tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{
@@ -466,16 +466,16 @@ public:
 			// Collect data from all devices (graphic cards) to host
 			for (int i = 0; i < tables.size(); i++)
 			{
-				GPUGroupBy<AggregationFunctions::avg, O, K, V> table =
-					*reinterpret_cast<GPUGroupBy<AggregationFunctions::avg, O, K, V>*>(tables[i].get());
-				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table.getMaxHashCount());
-				std::unique_ptr<V[]> values = std::make_unique<V[]>(table.getMaxHashCount());
-				std::unique_ptr<int64_t[]> occurences = std::make_unique<int64_t[]>(table.getMaxHashCount());
+				GPUGroupBy<AggregationFunctions::avg, O, K, V> *table =
+					reinterpret_cast<GPUGroupBy<AggregationFunctions::avg, O, K, V>*>(tables[i].get());
+				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table->getMaxHashCount());
+				std::unique_ptr<V[]> values = std::make_unique<V[]>(table->getMaxHashCount());
+				std::unique_ptr<int64_t[]> occurences = std::make_unique<int64_t[]>(table->getMaxHashCount());
 				int32_t elementCount;
 				cudaSetDevice(i);
 
 				// Reconstruct keys, values and also occurences
-				table.reconstructRawNumbers(keys.get(), values.get(), occurences.get(), &elementCount);
+				table->reconstructRawNumbers(keys.get(), values.get(), occurences.get(), &elementCount);
 
 				// Append data to host vectors
 				keysAllHost.insert(keysAllHost.end(), keys.get(), keys.get() + elementCount);
@@ -495,22 +495,22 @@ public:
 			GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
 
 			// Merge results
-			cuda_ptr<V[]> valuesMerged(sumElementCount);
-			cuda_ptr<int64_t[]> occurencesMerged(sumElementCount);
+			cuda_ptr<V> valuesMerged(sumElementCount);
+			cuda_ptr<int64_t> occurencesMerged(sumElementCount);
 
 			// Calculate sum of values
 			// Initialize new empty sumGroupBy table
 			GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
 			sumGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
-			sumGroupBy.getResults(outKeys, valuesMerged, outDataElementCount);
+			sumGroupBy.getResults(outKeys, valuesMerged.get(), outDataElementCount);
 
 			// Calculate sum of occurences
 			// Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
-			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(outDataElementCount, outKeys);
+			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, outKeys);
 			countGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
-			countGroupBy.getResults(outKeys, occurencesMerged, outDataElementCount);
+			countGroupBy.getResults(outKeys, occurencesMerged.get(), outDataElementCount);
 
-			GPUArithmetic::colCol<ArithmeticOperations::div>(outValues, valuesMerged, occurencesMerged, *outDataElementCount);
+			GPUArithmetic::colCol<ArithmeticOperations::div>(outValues, valuesMerged.get(), occurencesMerged.get(), *outDataElementCount);
 			
 			cudaSetDevice(oldDevice);
 		}
@@ -611,7 +611,7 @@ public:
 	}
 
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, int64_t *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>> tables)
+	void getResults(K *outKeys, int64_t *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>>& tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{
@@ -634,15 +634,15 @@ public:
 			// Collect data from all devices (graphic cards) to host
 			for (int i = 0; i < tables.size(); i++)
 			{
-				GPUGroupBy<AggregationFunctions::count, int64_t, K, V> table =
-					*reinterpret_cast<GPUGroupBy<AggregationFunctions::count, int64_t, K, V>*>(tables[i].get());
-				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table.getMaxHashCount());
-				std::unique_ptr<int64_t[]> occurences = std::make_unique<int64_t[]>(table.getMaxHashCount());
+				GPUGroupBy<AggregationFunctions::count, int64_t, K, V>* table =
+					reinterpret_cast<GPUGroupBy<AggregationFunctions::count, int64_t, K, V>*>(tables[i].get());
+				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table->getMaxHashCount());
+				std::unique_ptr<int64_t[]> occurences = std::make_unique<int64_t[]>(table->getMaxHashCount());
 				int32_t elementCount;
 				cudaSetDevice(i);
 
 				// Reconstruct just keys and occurences
-				table.reconstructRawNumbers(keys.get(), nullptr, occurences.get(), &elementCount);
+				table->reconstructRawNumbers(keys.get(), nullptr, occurences.get(), &elementCount);
 
 				// Append data to host vectors
 				keysAllHost.insert(keysAllHost.end(), keys.get(), keys.get() + elementCount);
