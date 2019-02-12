@@ -1,6 +1,8 @@
 #pragma once
 #include <stdexcept>
 #include <vector>
+#include <memory>
+#include <algorithm>
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 #include "QueryEngine/GPUCore/GPUMemory.cuh"
@@ -19,26 +21,28 @@ private:
 
 	void setBlockStatistics();
 
-	std::vector<T> data_;
 	ColumnBase<T>& column_;
+	size_t size_;
+	size_t capacity_;
+	std::unique_ptr<T[]> data_;
 public:
 	BlockBase(const std::vector<T>& data, ColumnBase<T>& column) :
-		column_(column), data_(data)
+		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_])
 	{
 		if (column_.GetBlockSize() < data.size())
 		{
 			throw std::length_error("Attempted to insert data larger than remaining block size");
 		}
-		data_.reserve(column_.GetBlockSize());
-		GPUMemory::hostPin(data_.data(), data_.size());
+		GPUMemory::hostPin(data_.get(), capacity_);
+		std::copy(data.begin(), data.end(), data_.get());
+		size_ = data.size();
 		setBlockStatistics();
 	}
 
 	explicit BlockBase(ColumnBase<T>& column) :
-		column_(column), data_()
+		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_])
 	{
-		data_.reserve(column_.GetBlockSize());
-		GPUMemory::hostPin(data_.data(), data_.size());
+		GPUMemory::hostPin(data_.get(), capacity_);
 	}
 
 	T GetMax()
@@ -61,14 +65,19 @@ public:
 		return sum_;
 	}
 
-	std::vector<T>& GetData()
+	T * const GetData()
 	{
-		return data_;
+		return data_.get();
+	}
+
+	size_t GetSize() const
+	{
+		return size_;
 	}
 
 	int EmptyBlockSpace() const
 	{
-		return column_.GetBlockSize() - data_.size();
+		return capacity_ - size_;
 	}
 
 	bool IsFull() const
@@ -120,7 +129,7 @@ public:
 	
 	~BlockBase()
 	{
-		GPUMemory::hostUnregister(data_.data());
+		GPUMemory::hostUnregister(data_.get());
 	}
 
 	BlockBase(const BlockBase&) = delete;

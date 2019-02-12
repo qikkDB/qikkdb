@@ -50,7 +50,7 @@ CudaMemAllocator::~CudaMemAllocator()
 #ifdef DEBUG_ALLOC
 	if (logOut != nullptr)
 	{
-		fprintf(logOut, "~CudaMemAllocator %d\n", deviceID);
+		fprintf(logOut, "~CudaMemAllocator %d\n", deviceID_);
 		fclose(logOut);
 	}
 #endif // DEBUG_ALLOC
@@ -116,7 +116,7 @@ void CudaMemAllocator::deallocate(int8_t * ptr, size_t numBytes)
 	(*listIt).allocated = false;
 	(*listIt).sizeOrderIt = blocksBySize_.emplace(std::make_pair((*listIt).blockSize, listIt));
 #ifdef DEBUG_ALLOC
-	//fprintf(logOut, "CudaMemAllocator::deallocate final ptr %p %zu\n", (*listIt).ptr, (*listIt).blockSize);
+	fprintf(logOut, "CudaMemAllocator::deallocate final ptr %p %zu\n", (*listIt).ptr, (*listIt).blockSize);
 	fflush(logOut);
 #endif
 }
