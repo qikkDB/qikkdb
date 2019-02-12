@@ -4,22 +4,24 @@
 
 #include "GpuSqlDispatcher.h"
 #include "GpuSqlDispatcherFriends.h"
+#include "../QueryEngine/Context.h"
 #include "../Types/ComplexPolygon.pb.h"
 #include "../Types/Point.pb.h"
 
 //TODO:Dispatch implementation
 
 
-GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) :
+GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
 	database(database),
 	blockIndex(0),
 	instructionPointer(0),
 	constPointCounter(0),
 	constPolygonCounter(0),
 	filter_(0),
+	groupByTables(groupByTables),
+	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
-	isLastBlock(false),
-	groupByTable(nullptr)
+	isLastBlock(false)
 {
 
 }
@@ -27,14 +29,6 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) :
 GpuSqlDispatcher::~GpuSqlDispatcher()
 {
 	cleanUpGpuPointers();
-}
-
-GpuSqlDispatcher::GpuSqlDispatcher(const GpuSqlDispatcher &dispatcher2) :
-	database(dispatcher2.database),
-	dispatcherFunctions(dispatcher2.dispatcherFunctions),
-	arguments(dispatcher2.arguments)
-{
-	std::cout << "Dispatcher Copy" << std::endl;
 }
 
 template <>
@@ -73,8 +67,16 @@ std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::jmpFunction = &jmp;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::doneFunction = &done;
 
 
+void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
+{
+	other.dispatcherFunctions = dispatcherFunctions;
+	other.arguments = arguments;
+}
+
 std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 {
+	Context& context = Context::getInstance();
+	context.bindDeviceToContext(dispatcherThreadId);
 	int32_t err = 0;
 
 	while (err == 0)
@@ -327,6 +329,12 @@ int32_t loadCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 	const std::string column = colName.substr(endOfPolyIdx + 1);
 
 	const int32_t blockCount = dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+
+	if (dispatcher.blockIndex >= blockCount)
+	{
+		return 1;
+	}
+
 	if (dispatcher.blockIndex == blockCount - 1)
 	{
 		dispatcher.isLastBlock = true;
@@ -352,6 +360,12 @@ int32_t loadCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher)
 	const std::string column = colName.substr(endOfPolyIdx + 1);
 
 	const int32_t blockCount = dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+
+	if (dispatcher.blockIndex >= blockCount)
+	{
+		return 1;
+	}
+
 	if (dispatcher.blockIndex == blockCount - 1)
 	{
 		dispatcher.isLastBlock = true;
@@ -381,9 +395,10 @@ int32_t fil(GpuSqlDispatcher &dispatcher)
 
 int32_t jmp(GpuSqlDispatcher &dispatcher)
 {
+	Context& context = Context::getInstance();
 	if (!dispatcher.isLastBlock)
 	{
-		dispatcher.blockIndex++;
+		dispatcher.blockIndex += context.getDeviceCount() + dispatcher.dispatcherThreadId;
 		dispatcher.instructionPointer = 0;
 		dispatcher.cleanUpGpuPointers();
 	}

@@ -12,7 +12,6 @@
 #include "../Context.h"
 #include "../QueryEngineError.h"
 #include "MaybeDeref.cuh"
-#include "GPUConstants.cuh"
 
 namespace ArithmeticOperations
 {
@@ -191,25 +190,8 @@ __global__ void kernel_arithmetic(T* output, U ACol, V BCol, int32_t dataElement
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
-	const int32_t loopIterations = (dataElementCount + stride - 1 - idx) / stride;
-	const int32_t alignedLoopIterations = loopIterations - (loopIterations % UNROLL_FACTOR);
-	const int32_t alignedDataElementCount = alignedLoopIterations * stride + idx;
-	
-	//unroll from idx to alignedDataElementCount
-	#pragma unroll UNROLL_FACTOR
-	for (int32_t i = idx; i < alignedDataElementCount; i += stride)
-	{
-		output[i] = OP{}.template operator() 
-			< T, 
-			typename std::remove_pointer<U>::type, 
-			typename std::remove_pointer<V>::type > 
-			(maybe_deref(ACol, i), maybe_deref(BCol, i), 
-				errorFlag, 
-				min, 
-				max);
-	}
-	//continue classic way from alignedDataElementCount to full dataElementCount
-	for (int32_t i = alignedDataElementCount; i < dataElementCount; i += stride)
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		output[i] = OP{}.template operator()
 			< T,
@@ -236,8 +218,6 @@ public:
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BCol, dataElementCount, errorFlagSwapper.getFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-
-		cudaDeviceSynchronize();
 	}
 
 	template<typename OP, typename T, typename U, typename V>
@@ -258,8 +238,6 @@ public:
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BConst, dataElementCount, errorFlagSwapper.getFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-
-		cudaDeviceSynchronize();
 	}
 
 	template<typename OP, typename T, typename U, typename V>
@@ -271,8 +249,6 @@ public:
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, AConst, BCol, dataElementCount, errorFlagSwapper.getFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-
-		cudaDeviceSynchronize();
 	}
 
 	template<typename OP, typename T, typename U, typename V>
@@ -293,7 +269,5 @@ public:
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, AConst, BConst, dataElementCount, errorFlagSwapper.getFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-
-		cudaDeviceSynchronize();
 	}
 };

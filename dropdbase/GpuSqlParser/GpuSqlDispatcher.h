@@ -185,6 +185,7 @@ private:
     std::vector<std::function<int32_t(GpuSqlDispatcher &)>> dispatcherFunctions;
     MemoryStream arguments;
 	int32_t blockIndex;
+	int32_t dispatcherThreadId;
 	int32_t instructionPointer;
 	int32_t constPointCounter;
 	int32_t constPolygonCounter;
@@ -195,7 +196,7 @@ private:
 	bool usingGroupBy;
 	bool isLastBlock;
 	std::unordered_set<std::string> groupByColumns;
-	std::unique_ptr<IGroupBy> groupByTable;
+	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -250,11 +251,15 @@ private:
     static std::function<int32_t(GpuSqlDispatcher &)> doneFunction;
 
 public:
-    explicit GpuSqlDispatcher(const std::shared_ptr<Database> &database);
+    GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);
 
 	~GpuSqlDispatcher();
 
-	GpuSqlDispatcher(const GpuSqlDispatcher& dispatcher2);
+	GpuSqlDispatcher(const GpuSqlDispatcher& dispatcher2) = delete;
+
+	GpuSqlDispatcher& operator=(const GpuSqlDispatcher&) = delete;
+
+	void copyExecutionDataTo(GpuSqlDispatcher& other);
 
 	std::unique_ptr<google::protobuf::Message> execute();
 
