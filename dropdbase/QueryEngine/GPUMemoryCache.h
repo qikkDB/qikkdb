@@ -71,6 +71,7 @@ public:
 	}
 
 	void clearCachedBlock(const std::string& columnName, int32_t blockIndex);
+	bool containsColumn(const std::string& columnName, int32_t blockIndex);
 	GPUMemoryCache(const GPUMemoryCache&) = delete;
 	GPUMemoryCache& operator=(const GPUMemoryCache&) = delete;
 };

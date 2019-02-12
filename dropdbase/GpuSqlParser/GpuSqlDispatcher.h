@@ -322,10 +322,10 @@ public:
 
 	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
-	void insertComplexPolygon(std::string colName, GPUMemory::GPUPolygon polygon, int32_t size);
+	void insertComplexPolygon(const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
-	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
+	std::string insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 
     template<typename T>
     friend int32_t loadConst(GpuSqlDispatcher &dispatcher);

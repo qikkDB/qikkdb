@@ -253,13 +253,46 @@ void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType o
     //TODO: Between
 }
 
-void GpuSqlDispatcher::insertComplexPolygon(std::string colName, GPUMemory::GPUPolygon polygon, int32_t size)
+void GpuSqlDispatcher::insertComplexPolygon(const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache)
 {
-	allocatedPointers.insert({ colName + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyPoints), size, true) });
-	allocatedPointers.insert({ colName + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointIdx), size, true) });
-	allocatedPointers.insert({ colName + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointCount), size, true) });
-	allocatedPointers.insert({ colName + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyIdx), size, true) });
-	allocatedPointers.insert({ colName + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyCount), size, true) });
+	if (useCache)
+	{
+		if (Context::getInstance().GetCacheForCurrentDevice().containsColumn(colName + "_polyPoints", blockIndex) && 
+			Context::getInstance().GetCacheForCurrentDevice().containsColumn(colName + "_pointIdx", blockIndex) && 
+			Context::getInstance().GetCacheForCurrentDevice().containsColumn(colName + "_pointCount", blockIndex) && 
+			Context::getInstance().GetCacheForCurrentDevice().containsColumn(colName + "_polyIdx", blockIndex) && 
+			Context::getInstance().GetCacheForCurrentDevice().containsColumn(colName + "_polyCount", blockIndex))
+		{
+			auto polyPoints = Context::getInstance().GetCacheForCurrentDevice().getColumn<NativeGeoPoint>(colName + "_polyPoints", blockIndex, size);
+			auto pointIdx = Context::getInstance().GetCacheForCurrentDevice().getColumn<int32_t>(colName + "_pointIdx", blockIndex, size);
+			auto pointCount = Context::getInstance().GetCacheForCurrentDevice().getColumn<int32_t>(colName + "_pointCount", blockIndex, size);
+			auto polyIdx = Context::getInstance().GetCacheForCurrentDevice().getColumn<int32_t>(colName + "_polyIdx", blockIndex, size);
+			auto polyCount = Context::getInstance().GetCacheForCurrentDevice().getColumn<int32_t>(colName + "_polyCount", blockIndex, size);
+			allocatedPointers.insert({ colName + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(polyPoints)), size, false) });
+			allocatedPointers.insert({ colName + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(pointIdx)), size, false) });
+			allocatedPointers.insert({ colName + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(pointCount)), size, false) });
+			allocatedPointers.insert({ colName + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(polyIdx)), size, false) });
+			allocatedPointers.insert({ colName + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(polyCount)), size, false) });
+		}
+		else
+		{
+			GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons, colName, blockIndex);
+			allocatedPointers.insert({ colName + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyPoints), size, false) });
+			allocatedPointers.insert({ colName + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointIdx), size, false) });
+			allocatedPointers.insert({ colName + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointCount), size, false) });
+			allocatedPointers.insert({ colName + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyIdx), size, false) });
+			allocatedPointers.insert({ colName + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyCount), size, false) });
+		}
+	}
+	else
+	{
+		GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons);
+		allocatedPointers.insert({ colName + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyPoints), size, true) });
+		allocatedPointers.insert({ colName + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointIdx), size, true) });
+		allocatedPointers.insert({ colName + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointCount), size, true) });
+		allocatedPointers.insert({ colName + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyIdx), size, true) });
+		allocatedPointers.insert({ colName + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyCount), size, true) });
+	}
 }
 
 std::tuple<GPUMemory::GPUPolygon, int32_t> GpuSqlDispatcher::findComplexPolygon(std::string colName)
@@ -289,12 +322,12 @@ NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& p
 	return gpuPointer;
 }
 
-GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
+std::string GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
 {
-	GPUMemory::GPUPolygon gpuPolygon = ComplexPolygonFactory::PrepareGPUPolygon({ polygon });
-	insertComplexPolygon("constPolygon" + std::to_string(constPolygonCounter), gpuPolygon, 1);
+	std::string ret = "constPolygon" + std::to_string(constPolygonCounter);
+	insertComplexPolygon(ret, { polygon }, 1);
 	constPolygonCounter++;
-	return gpuPolygon;
+	return ret;
 }
 
 void GpuSqlDispatcher::cleanUpGpuPointers()
@@ -330,9 +363,7 @@ int32_t loadCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 
 	auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
 	auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[dispatcher.blockIndex].get());
-
-	auto gpuPolygon = ComplexPolygonFactory::PrepareGPUPolygon(std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(), block->GetData() + block->GetSize()));
-	dispatcher.insertComplexPolygon(colName, gpuPolygon, block->GetSize());
+	dispatcher.insertComplexPolygon(colName, std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(), block->GetData() + block->GetSize()), block->GetSize());
 	return 0;
 }
 
@@ -359,11 +390,12 @@ int32_t loadCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher)
 	std::vector<NativeGeoPoint> nativePoints;
 	std::transform(block->GetData(), block->GetData() + block->GetSize(), std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint { return NativeGeoPoint{ point.geopoint().latitude(), point.geopoint().longitude() }; });
 	
-	NativeGeoPoint * gpuPointer;
-
-	gpuPointer = dispatcher.allocateRegister<NativeGeoPoint>(colName, nativePoints.size());
-
-	GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<NativeGeoPoint*>(nativePoints.data()), nativePoints.size());
+	auto cacheEntry = Context::getInstance().GetCacheForCurrentDevice().getColumn<NativeGeoPoint>(colName, dispatcher.blockIndex, nativePoints.size());
+	if (!std::get<2>(cacheEntry))
+	{
+		GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), reinterpret_cast<NativeGeoPoint*>(nativePoints.data()), nativePoints.size());
+	}
+	dispatcher.addCachedRegister(colName, std::get<0>(cacheEntry), nativePoints.size());
 	return 0;
 }
 
