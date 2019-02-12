@@ -105,7 +105,6 @@ public:
 			// Construct the output based on the prefix sum
 			kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 				(outCol, outDataElementCountPointer, ACol, prefixSumPointer, inMask32Pointer, dataElementCount);
-			cudaDeviceSynchronize();
 
 			// Copy the generated output back from the GPU
 			GPUMemory::copyDeviceToHost(outDataElementCount, outDataElementCountPointer, 1);

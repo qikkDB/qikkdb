@@ -218,8 +218,6 @@ public:
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BCol, dataElementCount, errorFlagSwapper.getFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-
-		cudaDeviceSynchronize();
 	}
 
 	template<typename OP, typename T, typename U, typename V>
@@ -240,8 +238,6 @@ public:
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BConst, dataElementCount, errorFlagSwapper.getFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-
-		cudaDeviceSynchronize();
 	}
 
 	template<typename OP, typename T, typename U, typename V>
@@ -253,8 +249,6 @@ public:
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, AConst, BCol, dataElementCount, errorFlagSwapper.getFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-
-		cudaDeviceSynchronize();
 	}
 
 	template<typename OP, typename T, typename U, typename V>
@@ -275,7 +269,5 @@ public:
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, AConst, BConst, dataElementCount, errorFlagSwapper.getFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-
-		cudaDeviceSynchronize();
 	}
 };
