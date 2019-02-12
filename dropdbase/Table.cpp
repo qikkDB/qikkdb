@@ -34,6 +34,16 @@ const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColum
 	return columns;
 }
 
+std::string Table::GetSortingColumn()
+{
+	return sortingColumn;
+}
+
+void Table::SetSortingColumn(std::string column)
+{
+	sortingColumn = column;
+}
+
 Table::Table(const std::shared_ptr<Database> &database, const char* name) : database(database), name(name)
 {
 	blockSize = database->GetBlockSize();

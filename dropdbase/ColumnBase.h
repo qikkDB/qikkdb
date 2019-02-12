@@ -8,6 +8,7 @@
 #include "Types/Point.pb.h"
 #include "IColumn.h"
 #include "ComplexPolygonFactory.h"
+#include "Table.h"
 
 namespace std {
 	template <> struct hash<ColmnarDB::Types::Point>

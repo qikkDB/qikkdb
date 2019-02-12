@@ -17,6 +17,7 @@ private:
 	std::string name;
 	int32_t blockSize;
 	std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
+	std::string sortingColumn = "";
 
 public:
 	const std::shared_ptr<Database> &GetDatabase();
@@ -24,6 +25,8 @@ public:
 	int32_t GetBlockSize();
 	int32_t GetBlockCount();
 	const std::unordered_map<std::string, std::unique_ptr<IColumn>> &GetColumns() const;
+	std::string GetSortingColumn();
+	void SetSortingColumn(std::string column);
 
 	Table(const std::shared_ptr<Database> &database, const char* name);
 	void CreateColumn(const char* columnName, DataType columnType);

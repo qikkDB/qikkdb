@@ -38,6 +38,7 @@ private:
 		int devCount;
 		if (cudaGetDeviceCount(&devCount) != CUDA_SUCCESS)
 		{
+			//std::cout << devCount << ", " << cudaGetErrorString(cudaGetLastError());
 			throw std::invalid_argument("Unable to get device count");
 		}
 		for (int i = 0; i < devCount; i++)

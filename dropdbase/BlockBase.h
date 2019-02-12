@@ -76,14 +76,46 @@ public:
 		return EmptyBlockSpace() == 0;
 	}
 
-	void InsertData(const std::vector<T>& data)
+	int32_t InsertData(const T& data)
 	{
-		if (EmptyBlockSpace() < data.size())
+		int index;
+		int fullBlockSpace = column_.GetBlockSize() - EmptyBlockSpace();
+
+		if (EmptyBlockSpace() == 0)
 		{
 			throw std::length_error("Attempted to insert data larger than remaining block size");
 		}
-		data_.insert(data_.end(), data.cbegin(), data.cend());
+
+		else if (fullBlockSpace == 0)
+		{
+			data_[0] = data;
+			index = 0;
+		}
+
+		else if (data_[fullBlockSpace] < data)
+		{
+			data_[fullBlockSpace + 1] = data;
+			index = fullBlockSpace + 1;
+		}
+
+		else
+		{
+			for (int i = 0; i < (fullBlockSpace - 1); i++)
+			{
+				if (data_[i] < data && data_[i + 1] >= data)
+				{
+					for (j = fullBlockSpace; j > i; j--)
+					{
+						data_[j + 1] = data_[j];
+					}
+					data_[i + 1] = data;
+					index = i + 1;
+					break;
+				}
+			}
+		}
 		setBlockStatistics();
+		return index;
 	}
 	
 	~BlockBase()
