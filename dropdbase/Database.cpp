@@ -103,19 +103,19 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of ComplexPolygon data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
 
-					if (data.size() > 0)
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
+						for(size_t i = 0; i < dataLength; i++)
 						{
-							int32_t entryByteLength = entry.ByteSize();
+							int32_t entryByteLength = data[i].ByteSize();
 							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
 
-							entry.SerializeToArray(byteArray.get(), entryByteLength);
+							data[i].SerializeToArray(byteArray.get(), entryByteLength);
 
 							colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
 							colFile.write(byteArray.get(), entryByteLength); //write entry data
@@ -136,19 +136,19 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of Point data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
 
-					if (data.size() > 0)
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
+						for (size_t i = 0; i < dataLength; i++)
 						{
-							int32_t entryByteLength = entry.ByteSize();
+							int32_t entryByteLength = data[i].ByteSize();
 							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
 
-							entry.SerializeToArray(byteArray.get(), entryByteLength);
+							data[i].SerializeToArray(byteArray.get(), entryByteLength);
 
 							colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
 							colFile.write(byteArray.get(), entryByteLength); //write entry data
@@ -169,19 +169,19 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of String data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
 
-					if (data.size() > 0)
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
+						for (size_t i = 0; i < dataLength; i++)
 						{
-							int32_t entryByteLength = entry.length() + 1; // +1 because '\0'
+							int32_t entryByteLength = data[i].length() + 1; // +1 because '\0'
 
 							colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
-							colFile.write(entry.c_str(), entryByteLength); //write entry data
+							colFile.write(data[i].c_str(), entryByteLength); //write entry data
 						}
 						index += 1;
 					}
@@ -199,16 +199,16 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
 
-					if (data.size() > 0)
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
+						for (size_t i = 0; i < dataLength; i++)
 						{
-							colFile.write(reinterpret_cast<const char*>(&entry), sizeof(int32_t)); //write entry data
+							colFile.write(reinterpret_cast<const char*>(&data[i]), sizeof(int32_t)); //write entry data
 						}
 						index += 1;
 					}
@@ -226,16 +226,16 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
 
-					if (data.size() > 0)
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
+						for (size_t i = 0; i < dataLength; i++)
 						{
-							colFile.write(reinterpret_cast<const char*>(&entry), sizeof(int64_t)); //write entry data
+							colFile.write(reinterpret_cast<const char*>(&data[i]), sizeof(int64_t)); //write entry data
 						}
 						index += 1;
 					}
@@ -253,16 +253,16 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
 
-					if (data.size() > 0)
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
+						for (size_t i = 0; i < dataLength; i++)
 						{
-							colFile.write(reinterpret_cast<const char*>(&entry), sizeof(float)); //write entry data
+							colFile.write(reinterpret_cast<const char*>(&data[i]), sizeof(float)); //write entry data
 						}
 						index += 1;
 					}
@@ -280,16 +280,16 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of Double data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
 
-					if (data.size() > 0)
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
+						for (size_t i = 0; i < dataLength; i++)
 						{
-							colFile.write(reinterpret_cast<const char*>(&entry), sizeof(double)); //write entry data
+							colFile.write(reinterpret_cast<const char*>(&data[i]), sizeof(double)); //write entry data
 						}
 						index += 1;
 					}

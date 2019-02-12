@@ -331,8 +331,8 @@ int32_t loadCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 	auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
 	auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[dispatcher.blockIndex].get());
 
-	auto gpuPolygon = ComplexPolygonFactory::PrepareGPUPolygon(block->GetData());
-	dispatcher.insertComplexPolygon(colName, gpuPolygon, block->GetData().size());
+	auto gpuPolygon = ComplexPolygonFactory::PrepareGPUPolygon(std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(), block->GetData() + block->GetSize()));
+	dispatcher.insertComplexPolygon(colName, gpuPolygon, block->GetSize());
 	return 0;
 }
 
@@ -357,7 +357,7 @@ int32_t loadCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher)
 	auto block = dynamic_cast<BlockBase<ColmnarDB::Types::Point>*>(col->GetBlocksList()[dispatcher.blockIndex].get());
 
 	std::vector<NativeGeoPoint> nativePoints;
-	std::transform(block->GetData().cbegin(), block->GetData().cend(), std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint { return NativeGeoPoint{ point.geopoint().latitude(), point.geopoint().longitude() }; });
+	std::transform(block->GetData(), block->GetData() + block->GetSize(), std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint { return NativeGeoPoint{ point.geopoint().latitude(), point.geopoint().longitude() }; });
 	
 	NativeGeoPoint * gpuPointer;
 
