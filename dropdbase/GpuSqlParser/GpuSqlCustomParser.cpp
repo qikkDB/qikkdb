@@ -9,6 +9,7 @@
 #include "GpuSqlDispatcher.h"
 #include "ParserExceptions.h"
 #include "QueryType.h"
+#include "../QueryEngine/GPUCore/IGroupBy.h"
 #include <iostream>
 #include <future>
 #include <thread>
@@ -29,8 +30,16 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
     GpuSqlParser::StatementContext *statement = parser.statement();
 
     antlr4::tree::ParseTreeWalker walker;
+	const int32_t numOfDevices = 1;
 
-	GpuSqlDispatcher dispatcher(database);
+	std::vector<IGroupBy*> groupByInstances;
+
+	for (int i = 0; i < numOfDevices; i++)
+	{
+		groupByInstances.emplace_back(nullptr);
+	}
+
+	GpuSqlDispatcher dispatcher(database, groupByInstances, -1);
 	GpuSqlListener gpuSqlListener(database, dispatcher);
 
     if (statement->sqlSelect())
@@ -100,7 +109,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	std::vector<std::future<std::unique_ptr<google::protobuf::Message>>> dispatcherFutures;
 	std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults;
 
-	const int32_t numOfDevices = 1;
 	for (int i = 0; i < numOfDevices; i++)
 	{
 		dispatchers.push_back(dispatcher);

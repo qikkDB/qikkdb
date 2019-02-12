@@ -10,13 +10,15 @@
 //TODO:Dispatch implementation
 
 
-GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) :
+GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<IGroupBy*>& groupByTables, int dispatcherThreadId) :
 	database(database),
 	blockIndex(0),
 	instructionPointer(0),
 	constPointCounter(0),
 	constPolygonCounter(0),
 	filter_(0),
+	groupByTables(groupByTables),
+	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
 	isLastBlock(false),
 	groupByTable(nullptr)
@@ -33,6 +35,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const GpuSqlDispatcher &dispatcher2) :
 	database(dispatcher2.database),
 	dispatcherFunctions(dispatcher2.dispatcherFunctions),
 	arguments(dispatcher2.arguments)
+	groupByTables(dispatcher2.groupByTables)
 {
 	std::cout << "Dispatcher Copy" << std::endl;
 }

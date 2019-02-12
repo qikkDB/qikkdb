@@ -185,6 +185,7 @@ private:
     std::vector<std::function<int32_t(GpuSqlDispatcher &)>> dispatcherFunctions;
     MemoryStream arguments;
 	int32_t blockIndex;
+	int32_t dispatcherThreadId;
 	int32_t instructionPointer;
 	int32_t constPointCounter;
 	int32_t constPolygonCounter;
@@ -195,6 +196,7 @@ private:
 	bool usingGroupBy;
 	bool isLastBlock;
 	std::unordered_set<std::string> groupByColumns;
+	std::vector<IGroupBy*>& groupByTables;
 	std::unique_ptr<IGroupBy> groupByTable;
 
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
@@ -250,7 +252,7 @@ private:
     static std::function<int32_t(GpuSqlDispatcher &)> doneFunction;
 
 public:
-    explicit GpuSqlDispatcher(const std::shared_ptr<Database> &database);
+    GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<IGroupBy*>& groupByTables, int dispatcherThreadId);
 
 	~GpuSqlDispatcher();
 
