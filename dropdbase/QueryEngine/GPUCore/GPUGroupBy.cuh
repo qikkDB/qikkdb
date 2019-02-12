@@ -153,6 +153,7 @@ __global__ void group_by_kernel(
 	}
 }
 
+// TODO remake to filter colConst
 template<typename K>
 __global__ void is_bucket_occupied_kernel(int32_t *occupancyMask, K *keys, int32_t maxHashCount)
 {
@@ -219,6 +220,9 @@ public:
 	// Get the final hash table results - for operations Min, Max and Sum
 	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount)
 	{
+		static_assert(!std::is_same<AGG, AggregationFunctions::avg>::value &&
+			!std::is_same<AGG, AggregationFunctions::count>::value,
+			"GPUGroupBy combination of templates types not supported");
 		static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value,
 			"GPUGroupBy<min/max/sum>.getResults K (keys) must be integral or floating point");
 		static_assert(std::is_integral<V>::value || std::is_floating_point<V>::value,
