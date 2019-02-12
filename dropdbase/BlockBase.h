@@ -85,7 +85,7 @@ public:
 		return EmptyBlockSpace() == 0;
 	}
 
-	int32_t InsertData(const T& data)
+	int32_t InsertOneValueData(const T& data)
 	{
 		int index;
 		int fullBlockSpace = column_.GetBlockSize() - EmptyBlockSpace();
@@ -101,10 +101,20 @@ public:
 			index = 0;
 		}
 
-		else if (data_[fullBlockSpace] < data)
+		else if (data_[fullBlockSpace-1] < data)
 		{
-			data_[fullBlockSpace + 1] = data;
-			index = fullBlockSpace + 1;
+			data_[fullBlockSpace] = data;
+			index = fullBlockSpace;
+		}
+
+		else if (data_[0] > data)
+		{
+			for (int j = fullBlockSpace - 1; j >= 0; j--)
+			{
+				data_[j + 1] = data_[j];
+			}
+			data_[0] = data;
+			index = 0;
 		}
 
 		else
@@ -113,7 +123,7 @@ public:
 			{
 				if (data_[i] < data && data_[i + 1] >= data)
 				{
-					for (j = fullBlockSpace; j > i; j--)
+					for (int j = fullBlockSpace - 1; j > i; j--)
 					{
 						data_[j + 1] = data_[j];
 					}
@@ -124,7 +134,40 @@ public:
 			}
 		}
 		setBlockStatistics();
+		size_++;
 		return index;
+	}
+
+	void InsertData(const std::vector<T>& data)
+	{
+		if (EmptyBlockSpace() < data.size())
+		{
+			throw std::length_error("Attempted to insert data larger than remaining block size");
+		}
+		std::copy(data.begin(), data.end(), data_.get() + size_);
+		size_ += data.size();
+		setBlockStatistics();
+	}
+
+	void InsertDataOnSpecificPosition(int index, const T& data)
+	{
+		int fullBlockSpace = column_.GetBlockSize() - EmptyBlockSpace();
+
+		if (EmptyBlockSpace() == 0)
+		{
+			throw std::length_error("Attempted to insert data larger than remaining block size");
+		}
+
+		else if (index < fullBlockSpace)
+		{
+			for (int j = fullBlockSpace - 1; j >= index; j--)
+			{
+				data_[j + 1] = data_[j];
+			}
+		}
+		data_[index] = data;
+		size_++;
+		setBlockStatistics();
 	}
 	
 	~BlockBase()

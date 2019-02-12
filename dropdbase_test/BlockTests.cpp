@@ -6,7 +6,7 @@
 #include "../dropdbase/ComplexPolygonFactory.h"
 #include "../dropdbase/PointFactory.h"
 
-TEST(BlockTests, InsertData)
+TEST(BlockTests, InsertDataVector)
 {
 	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Table table(database, "testTable");
@@ -133,6 +133,88 @@ TEST(BlockTests, InsertData)
 		throw;
 	} }, std::length_error);
 
+}
+
+TEST(BlockTests, InsertDataOneValue)
+{
+	auto database = std::make_shared<Database>("testDatabase", 20);
+	Table table(database, "testTable");
+
+	table.CreateColumn("ColumnInt", COLUMN_INT);
+	auto& columnInt = table.GetColumns().at("ColumnInt");
+	auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+
+	int index = blockInt.InsertOneValueData(2);
+	ASSERT_EQ(index, 0);
+
+	int index1 = blockInt.InsertOneValueData(30);
+	ASSERT_EQ(index1, 1);
+
+	int index2 = blockInt.InsertOneValueData(5);
+	ASSERT_EQ(index2, 1);
+
+	int index3 = blockInt.InsertOneValueData(1);
+	ASSERT_EQ(index3, 0);
+
+	int index4 = blockInt.InsertOneValueData(70);
+	ASSERT_EQ(index4, 4);
+
+	int index5 = blockInt.InsertOneValueData(60);
+	ASSERT_EQ(index5, 4);
+
+	int index6 = blockInt.InsertOneValueData(0);
+	ASSERT_EQ(index6, 0);
+
+	ASSERT_EQ(blockInt.GetData()[0], 0);
+	ASSERT_EQ(blockInt.GetData()[1], 1);
+	ASSERT_EQ(blockInt.GetData()[2], 2);
+	ASSERT_EQ(blockInt.GetData()[3], 5);
+	ASSERT_EQ(blockInt.GetData()[4], 30);
+	ASSERT_EQ(blockInt.GetData()[5], 60);
+	ASSERT_EQ(blockInt.GetData()[6], 70);
+}
+
+TEST(BlockTests, InserDatatOnSpecificPosition)
+{
+	auto database = std::make_shared<Database>("testDatabase", 20);
+	Table table(database, "testTable");
+
+	table.CreateColumn("ColumnInt", COLUMN_INT);
+	auto& columnInt = table.GetColumns().at("ColumnInt");
+	auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+
+	blockInt.InsertDataOnSpecificPosition(0,2);
+	ASSERT_EQ(blockInt.GetData()[0], 2);
+
+	blockInt.InsertDataOnSpecificPosition(1,30);
+	ASSERT_EQ(blockInt.GetData()[0], 2);
+	ASSERT_EQ(blockInt.GetData()[1], 30);
+
+	blockInt.InsertDataOnSpecificPosition(1, 5);
+	ASSERT_EQ(blockInt.GetData()[0], 2);
+	ASSERT_EQ(blockInt.GetData()[1], 5);
+	ASSERT_EQ(blockInt.GetData()[2], 30);
+
+	blockInt.InsertDataOnSpecificPosition(0,1);
+	ASSERT_EQ(blockInt.GetData()[0], 1);
+	ASSERT_EQ(blockInt.GetData()[1], 2);
+	ASSERT_EQ(blockInt.GetData()[2], 5);
+	ASSERT_EQ(blockInt.GetData()[3], 30);
+
+	blockInt.InsertDataOnSpecificPosition(1, 50);
+	ASSERT_EQ(blockInt.GetData()[0], 1);
+	ASSERT_EQ(blockInt.GetData()[1], 50);
+	ASSERT_EQ(blockInt.GetData()[2], 2);
+	ASSERT_EQ(blockInt.GetData()[3], 5);
+	ASSERT_EQ(blockInt.GetData()[4], 30);
+
+	blockInt.InsertDataOnSpecificPosition(7, 50);
+	ASSERT_EQ(blockInt.GetData()[0], 1);
+	ASSERT_EQ(blockInt.GetData()[1], 50);
+	ASSERT_EQ(blockInt.GetData()[2], 2);
+	ASSERT_EQ(blockInt.GetData()[3], 5);
+	ASSERT_EQ(blockInt.GetData()[4], 30);
+	ASSERT_EQ(blockInt.GetData()[7], 50);
 }
 
 TEST(BlockTests, IsFull)

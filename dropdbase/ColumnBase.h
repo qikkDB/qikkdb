@@ -158,6 +158,116 @@ public:
 		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
 	}
 
+	std::pair<int,int> InsertOneValueData(const T& columnData)
+	{
+		int indexBlock;
+		int indexInBlock;
+
+		if (blocks_.size() == 0) 
+		{
+			BlockBase<T> &block = AddBlock();
+			indexInBlock = block.InsertOneValueData(columnData);
+			indexBlock = 0;
+		}
+		else if (blocks_.size() == 1)
+		{
+			BlockBase<T> &block = *(blocks_.front().get());
+			indexInBlock = block.InsertOneValueData(columnData);
+			indexBlock = 0;
+
+			if (block.IsFull())
+			{
+				BlockSplit(blocks_.front());
+			}
+		}
+		else if (blocks_.back()->GetMin() < columnData)
+		{
+			BlockBase<T> &block = *(blocks_.back().get());
+			indexInBlock = block.InsertOneValueData(columnData);
+			indexBlock = blocks_.size() - 1;
+
+			if (block.IsFull())
+			{
+				BlockSplit(blocks_.back());
+			}
+		}
+		else if (blocks_.front()->GetMin() > columnData)
+		{
+			BlockBase<T> &block = *(blocks_.front().get());
+			indexInBlock = block.InsertOneValueData(columnData);
+			indexBlock = 0;
+
+			if (block.IsFull())
+			{
+				BlockSplit(blocks_.back());
+			}
+		}
+		else
+		{
+			for (int i = 0; i < (blocks_.size() - 1); i++)
+			{
+				if (blocks_[i]->GetMin() < columnData && blocks_[i + 1]->GetMin() > columnData)
+				{
+					BlockBase<T> &block = *(blocks_[i].get());
+					indexInBlock = block.InsertOneValueData(columnData);
+					indexBlock = i;
+
+					if (block.IsFull())
+					{
+						BlockSplit(blocks_[i]);
+					}
+
+					break;
+				}
+			}
+		}
+		setColumnStatistics();
+
+		return std::make_pair(indexBlock, indexInBlock);
+	}
+
+	void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData)
+	{
+		BlockBase<T> &block = *(blocks_[indexBlock].get());
+		block.InsertDataOnSpecificPosition(indexInBlock, columnData);
+
+		if (block.IsFull())
+		{
+			BlockSplit(blocks_[indexBlock]);
+		}
+
+		setColumnStatistics();
+	}
+
+	void BlockSplit(std::unique_ptr<BlockBase<T>>& blockPtr) 
+	{
+		BlockBase<T>& block = *(blockPtr.get());
+		std::vector<T>data1;
+		std::vector<T>data2;
+		const T* data = block.GetData();
+
+		for (int i = 0; i < block.GetSize(); i++)
+		{
+			if (i < block.GetSize() / 2)
+			{
+				data1.push_back(data[i]);
+			}
+			else
+			{
+				data2.push_back(data[i]);
+			}
+		}
+
+		std::unique_ptr<BlockBase<T>> block1 = std::make_unique<BlockBase<T>>(data1, *this);
+		std::unique_ptr<BlockBase<T>> block2 = std::make_unique<BlockBase<T>>(data2, *this);
+
+		auto blockIndex = std::find(blocks_.begin(), blocks_.end(), blockPtr);
+		blocks_.erase(blockIndex);
+
+		blocks_.insert(blockIndex, std::move(block2));
+		blocks_.insert(blockIndex, std::move(block1));
+	}
+
 
 	/// <summary>
 	/// Insert data into column considering empty space of last block and maximum size of blocks

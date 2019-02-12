@@ -86,40 +86,88 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 #ifndef __CUDACC__
 void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 {
-	for (const auto& column : columns)
+	if (!sortingColumn.empty())
 	{
-		std::string columnName = column.first;
-		auto search = data.find(columnName);
-		if (search != data.end())
+		auto column = (columns.find(sortingColumn)->second.get());
+		const auto &wrappedData = data.at(sortingColumn);
+
+		int indexBlock;
+		int indexInBlock;
+
+		if (wrappedData.type() == typeid(std::vector<int32_t>))
 		{
-			const auto &wrappedData = data.at(columnName);
-			if (wrappedData.type() == typeid(std::vector<int32_t>))
+			std::vector<int32_t> dataInt = std::any_cast<std::vector<int32_t>>(wrappedData);
+
+			for (auto dataRow : dataInt)
 			{
-				dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<int32_t>>(wrappedData));
+				std::tie(indexBlock, indexInBlock) = dynamic_cast<ColumnBase<int32_t>*>(column)->InsertOneValueData(dataRow);
+
+				//TODO insert na zaklade pairu do ostatnych stlpcov
 			}
-			else if (wrappedData.type() == typeid(std::vector<int64_t>))
+		}
+		else if (wrappedData.type() == typeid(std::vector<int64_t>))
+		{
+			
+		}
+		else if (wrappedData.type() == typeid(std::vector<double>))
+		{
+			
+		}
+		else if (wrappedData.type() == typeid(std::vector<float>))
+		{
+			
+		}
+		else if (wrappedData.type() == typeid(std::vector<std::string>))
+		{
+			
+		}
+		else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
+		{
+			
+		}
+		else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
+		{
+			
+		}
+	}
+
+	else
+	{
+		for (const auto& column : columns)
+		{
+			std::string columnName = column.first;
+			auto search = data.find(columnName);
+			if (search != data.end())
 			{
-				dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<int64_t>>(wrappedData));
-			}
-			else if (wrappedData.type() == typeid(std::vector<double>))
-			{
-				dynamic_cast<ColumnBase<double>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<double>>(wrappedData));
-			}
-			else if (wrappedData.type() == typeid(std::vector<float>))
-			{
-				dynamic_cast<ColumnBase<float>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<float>>(wrappedData));
-			}
-			else if (wrappedData.type() == typeid(std::vector<std::string>))
-			{
-				dynamic_cast<ColumnBase<std::string>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<std::string>>(wrappedData));
-			}
-			else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
-			{
-				dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData));
-			}
-			else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
-			{
-				dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData));
+				const auto &wrappedData = data.at(columnName);
+				if (wrappedData.type() == typeid(std::vector<int32_t>))
+				{
+					dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<int32_t>>(wrappedData));
+				}
+				else if (wrappedData.type() == typeid(std::vector<int64_t>))
+				{
+					dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<int64_t>>(wrappedData));
+				}
+				else if (wrappedData.type() == typeid(std::vector<double>))
+				{
+					dynamic_cast<ColumnBase<double>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<double>>(wrappedData));
+				}
+				else if (wrappedData.type() == typeid(std::vector<float>))
+				{
+					dynamic_cast<ColumnBase<float>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<float>>(wrappedData));
+				}
+				else if (wrappedData.type() == typeid(std::vector<std::string>))
+				{
+					dynamic_cast<ColumnBase<std::string>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<std::string>>(wrappedData));
+				}
+				else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
+				{
+					dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData));
+				}
+				else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
+				{
+					dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData));
+				}
 			}
 		}
 	}
