@@ -32,15 +32,15 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
     antlr4::tree::ParseTreeWalker walker;
 	const int32_t numOfDevices = 1;
 
-	std::vector<IGroupBy*> groupByInstances;
+	std::vector<std::unique_ptr<IGroupBy>> groupByInstances;
 
 	for (int i = 0; i < numOfDevices; i++)
 	{
 		groupByInstances.emplace_back(nullptr);
 	}
 
-	GpuSqlDispatcher dispatcher(database, groupByInstances, -1);
-	GpuSqlListener gpuSqlListener(database, dispatcher);
+	std::unique_ptr<GpuSqlDispatcher> dispatcher = std::make_unique<GpuSqlDispatcher>(database, groupByInstances, -1);
+	GpuSqlListener gpuSqlListener(database, *dispatcher);
 
     if (statement->sqlSelect())
     {
@@ -105,18 +105,15 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
         }
     }
 
-	std::vector<GpuSqlDispatcher> dispatchers;
+	std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers;
 	std::vector<std::future<std::unique_ptr<google::protobuf::Message>>> dispatcherFutures;
 	std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults;
 
 	for (int i = 0; i < numOfDevices; i++)
 	{
-		dispatchers.push_back(dispatcher);
-	}
-
-	for (int i = 0; i < numOfDevices; i++)
-	{
-		dispatcherFutures.push_back(std::async(std::launch::async, &GpuSqlDispatcher::execute, &dispatchers[i]));
+		dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database, groupByInstances, i));
+		dispatcher.get()->copyExecutionDataTo(*dispatchers[i]);
+		dispatcherFutures.push_back(std::async(std::launch::async, &GpuSqlDispatcher::execute, dispatchers[i].get()));
 	}
 
 	for (int i = 0; i < numOfDevices; i++)

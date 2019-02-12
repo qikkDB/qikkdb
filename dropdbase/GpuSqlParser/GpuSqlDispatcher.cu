@@ -10,7 +10,7 @@
 //TODO:Dispatch implementation
 
 
-GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<IGroupBy*>& groupByTables, int dispatcherThreadId) :
+GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
 	database(database),
 	blockIndex(0),
 	instructionPointer(0),
@@ -20,8 +20,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
-	isLastBlock(false),
-	groupByTable(nullptr)
+	isLastBlock(false)
 {
 
 }
@@ -29,15 +28,6 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 GpuSqlDispatcher::~GpuSqlDispatcher()
 {
 	cleanUpGpuPointers();
-}
-
-GpuSqlDispatcher::GpuSqlDispatcher(const GpuSqlDispatcher &dispatcher2) :
-	database(dispatcher2.database),
-	dispatcherFunctions(dispatcher2.dispatcherFunctions),
-	arguments(dispatcher2.arguments)
-	groupByTables(dispatcher2.groupByTables)
-{
-	std::cout << "Dispatcher Copy" << std::endl;
 }
 
 template <>
@@ -75,6 +65,12 @@ std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::filFunction = &fil;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::jmpFunction = &jmp;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::doneFunction = &done;
 
+
+void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
+{
+	other.dispatcherFunctions = dispatcherFunctions;
+	other.arguments = arguments;
+}
 
 std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 {
