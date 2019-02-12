@@ -52,7 +52,7 @@ public:
 	template<typename T>
 	static void alloc(T **p_Block, int32_t dataElementCount)
 	{
-		*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
+		*p_Block = reinterpret_cast<T*>(Context::getInstance().getAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 
@@ -71,7 +71,7 @@ public:
 	template<typename T>
 	static void allocAndSet(T **p_Block, int value, int32_t dataElementCount)
 	{
-		*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
+		*p_Block = reinterpret_cast<T*>(Context::getInstance().getAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
 
 		memset(*p_Block, value, dataElementCount);
 
@@ -146,7 +146,7 @@ public:
 	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
 	static void free(void *p_block)
 	{
-		Context::getInstance().GetAllocatorForCurrentDevice().deallocate(static_cast<int8_t*>(p_block), 0);
+		Context::getInstance().getAllocatorForCurrentDevice().deallocate(static_cast<int8_t*>(p_block), 0);
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 
@@ -177,7 +177,7 @@ public:
 	// Wipe all allocated memory O(1)
 	static void clear()
 	{
-		Context::getInstance().GetAllocatorForCurrentDevice().Clear();
+		Context::getInstance().getAllocatorForCurrentDevice().Clear();
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 };

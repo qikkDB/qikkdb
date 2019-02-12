@@ -5,26 +5,22 @@
 #include <cstdio>
 #include <stdexcept>
 
-CudaMemAllocator::CudaMemAllocator(int deviceID) :
+CudaMemAllocator::CudaMemAllocator(int32_t deviceID) :
 	deviceID_(deviceID)
 {
-	cudaDeviceProp props;
-	int oldDevice;
+	int32_t oldDevice;
 	cudaGetDevice(&oldDevice);
 	cudaSetDevice(deviceID);
-	if (cudaGetDeviceProperties(&props, deviceID) != CUDA_SUCCESS)
-	{
-		throw std::invalid_argument("Failed to get GPU info");
-	}
+
 	size_t free, total;
 	cudaMemGetInfo(&free, &total);
-	printf("Device %d: %s Total: %zu Free: %zu\n", deviceID_, props.name, total, free);
-	if (cudaMalloc(&cudaBufferStart_, free - 256000000) != cudaSuccess)
+	//printf("Device %d: %s Total: %zu Free: %zu\n", deviceID_, props.name, total, free);
+	if (cudaMalloc(&cudaBufferStart_, free - RESERVED_MEMORY) != cudaSuccess)
 	{
 		throw std::invalid_argument("Failed to alloc GPU buffer");
 	}
-	chainedBlocks_.push_back({ false, blocksBySize_.end(), free - 256000000, cudaBufferStart_ });
-	(*chainedBlocks_.begin()).sizeOrderIt = blocksBySize_.emplace(std::make_pair(free - 256000000, chainedBlocks_.begin()));
+	chainedBlocks_.push_back({ false, blocksBySize_.end(), free - RESERVED_MEMORY, cudaBufferStart_ });
+	(*chainedBlocks_.begin()).sizeOrderIt = blocksBySize_.emplace(std::make_pair(free - RESERVED_MEMORY, chainedBlocks_.begin()));
 #ifdef DEBUG_ALLOC
 	logOut = fopen("E:\\alloc.log", "a");
 	fprintf(logOut, "CudaMemAllocator %d\n", deviceID);
