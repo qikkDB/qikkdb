@@ -13,7 +13,7 @@ GPUMemoryCache::~GPUMemoryCache()
 	lruQueue.clear();
 	for (auto& cacheEntry : cacheMap)
 	{
-		Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(cacheEntry.second.ptr), cacheEntry.second.size);
+		Context::getInstance().getAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(cacheEntry.second.ptr), cacheEntry.second.size);
 	}
 	cacheMap.clear();
 	BOOST_LOG_TRIVIAL(debug) << "~GPUMemoryCache" << deviceID_;
@@ -22,7 +22,7 @@ GPUMemoryCache::~GPUMemoryCache()
 void GPUMemoryCache::evict()
 {
 	auto& front = lruQueue.front();
-	Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(front->second.ptr), front->second.size);
+	Context::getInstance().getAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(front->second.ptr), front->second.size);
 	usedSize -= front->second.size;
 	cacheMap.erase(front);
 	lruQueue.pop_front();
@@ -30,7 +30,7 @@ void GPUMemoryCache::evict()
 
 CudaMemAllocator & GPUMemoryCache::GetAllocator()
 {
-	return Context::getInstance().GetAllocatorForDevice(deviceID_);
+	return Context::getInstance().getAllocatorForDevice(deviceID_);
 }
 
 void GPUMemoryCache::clearCachedBlock(const std::string& columnName, int32_t blockIndex)
@@ -40,7 +40,7 @@ void GPUMemoryCache::clearCachedBlock(const std::string& columnName, int32_t blo
 	{
 		auto& toErase = cacheMap.at(columnBlock);
 		lruQueue.erase(toErase.lruQueueIt);
-		Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(toErase.ptr), toErase.size);
+		Context::getInstance().getAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(toErase.ptr), toErase.size);
 		usedSize -= toErase.size;
 		cacheMap.erase(cacheMap.find(columnBlock));
 	}

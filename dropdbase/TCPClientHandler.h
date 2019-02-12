@@ -13,7 +13,7 @@ private:
 	const int FRAGMENT_SIZE = 1000;
 	int sentRecords_;
 	int lastResultLen_;
-	std::mutex queryMutex_;
+	static std::mutex queryMutex_;
 	std::unique_ptr<google::protobuf::Message> GetNextQueryResult();
 	std::future<std::unique_ptr<google::protobuf::Message>> lastQueryResult_;
 	std::unique_ptr<google::protobuf::Message> lastResultMessage_;

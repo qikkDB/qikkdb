@@ -27,7 +27,7 @@ public:
 	/// </summary>
 	/// <param name="databaseName">Database name.</param>
 	/// <param name="blockSize">Block size of all blocks in this database</param>
-	Database(const char* databaseName, int32_t blockSize = 1024);
+	Database(const char* databaseName, int32_t blockSize = 1 << 18);
 
 	~Database();
 

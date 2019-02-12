@@ -4,22 +4,24 @@
 
 #include "GpuSqlDispatcher.h"
 #include "GpuSqlDispatcherFriends.h"
+#include "../QueryEngine/Context.h"
 #include "../Types/ComplexPolygon.pb.h"
 #include "../Types/Point.pb.h"
 
 //TODO:Dispatch implementation
 
 
-GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) :
+GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
 	database(database),
-	blockIndex(0),
+	blockIndex(dispatcherThreadId),
 	instructionPointer(0),
 	constPointCounter(0),
 	constPolygonCounter(0),
 	filter_(0),
+	groupByTables(groupByTables),
+	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
-	isLastBlock(false),
-	groupByTable(nullptr)
+	isLastBlock(false)
 {
 
 }
@@ -28,7 +30,6 @@ GpuSqlDispatcher::~GpuSqlDispatcher()
 {
 	cleanUpGpuPointers();
 }
-
 
 template <>
 int32_t loadCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher);
@@ -66,8 +67,16 @@ std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::jmpFunction = &jmp;
 std::function<int32_t(GpuSqlDispatcher &)> GpuSqlDispatcher::doneFunction = &done;
 
 
+void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
+{
+	other.dispatcherFunctions = dispatcherFunctions;
+	other.arguments = arguments;
+}
+
 std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 {
+	Context& context = Context::getInstance();
+	context.bindDeviceToContext(dispatcherThreadId);
 	int32_t err = 0;
 
 	while (err == 0)
@@ -257,17 +266,17 @@ void GpuSqlDispatcher::insertComplexPolygon(const std::string& colName, const st
 {
 	if (useCache)
 	{
-		if (Context::getInstance().GetCacheForCurrentDevice().containsColumn(colName + "_polyPoints", blockIndex) && 
-			Context::getInstance().GetCacheForCurrentDevice().containsColumn(colName + "_pointIdx", blockIndex) && 
-			Context::getInstance().GetCacheForCurrentDevice().containsColumn(colName + "_pointCount", blockIndex) && 
-			Context::getInstance().GetCacheForCurrentDevice().containsColumn(colName + "_polyIdx", blockIndex) && 
-			Context::getInstance().GetCacheForCurrentDevice().containsColumn(colName + "_polyCount", blockIndex))
+		if (Context::getInstance().getCacheForCurrentDevice().containsColumn(colName + "_polyPoints", blockIndex) && 
+			Context::getInstance().getCacheForCurrentDevice().containsColumn(colName + "_pointIdx", blockIndex) && 
+			Context::getInstance().getCacheForCurrentDevice().containsColumn(colName + "_pointCount", blockIndex) && 
+			Context::getInstance().getCacheForCurrentDevice().containsColumn(colName + "_polyIdx", blockIndex) && 
+			Context::getInstance().getCacheForCurrentDevice().containsColumn(colName + "_polyCount", blockIndex))
 		{
-			auto polyPoints = Context::getInstance().GetCacheForCurrentDevice().getColumn<NativeGeoPoint>(colName + "_polyPoints", blockIndex, size);
-			auto pointIdx = Context::getInstance().GetCacheForCurrentDevice().getColumn<int32_t>(colName + "_pointIdx", blockIndex, size);
-			auto pointCount = Context::getInstance().GetCacheForCurrentDevice().getColumn<int32_t>(colName + "_pointCount", blockIndex, size);
-			auto polyIdx = Context::getInstance().GetCacheForCurrentDevice().getColumn<int32_t>(colName + "_polyIdx", blockIndex, size);
-			auto polyCount = Context::getInstance().GetCacheForCurrentDevice().getColumn<int32_t>(colName + "_polyCount", blockIndex, size);
+			auto polyPoints = Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(colName + "_polyPoints", blockIndex, size);
+			auto pointIdx = Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(colName + "_pointIdx", blockIndex, size);
+			auto pointCount = Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(colName + "_pointCount", blockIndex, size);
+			auto polyIdx = Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(colName + "_polyIdx", blockIndex, size);
+			auto polyCount = Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(colName + "_polyCount", blockIndex, size);
 			allocatedPointers.insert({ colName + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(polyPoints)), size, false) });
 			allocatedPointers.insert({ colName + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(pointIdx)), size, false) });
 			allocatedPointers.insert({ colName + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(pointCount)), size, false) });
@@ -356,6 +365,12 @@ int32_t loadCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 	const std::string column = colName.substr(endOfPolyIdx + 1);
 
 	const int32_t blockCount = dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+
+	if (dispatcher.blockIndex >= blockCount)
+	{
+		return 1;
+	}
+
 	if (dispatcher.blockIndex == blockCount - 1)
 	{
 		dispatcher.isLastBlock = true;
@@ -379,6 +394,12 @@ int32_t loadCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher)
 	const std::string column = colName.substr(endOfPolyIdx + 1);
 
 	const int32_t blockCount = dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+
+	if (dispatcher.blockIndex >= blockCount)
+	{
+		return 1;
+	}
+
 	if (dispatcher.blockIndex == blockCount - 1)
 	{
 		dispatcher.isLastBlock = true;
@@ -390,7 +411,7 @@ int32_t loadCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher)
 	std::vector<NativeGeoPoint> nativePoints;
 	std::transform(block->GetData(), block->GetData() + block->GetSize(), std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint { return NativeGeoPoint{ point.geopoint().latitude(), point.geopoint().longitude() }; });
 	
-	auto cacheEntry = Context::getInstance().GetCacheForCurrentDevice().getColumn<NativeGeoPoint>(colName, dispatcher.blockIndex, nativePoints.size());
+	auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(colName, dispatcher.blockIndex, nativePoints.size());
 	if (!std::get<2>(cacheEntry))
 	{
 		GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), reinterpret_cast<NativeGeoPoint*>(nativePoints.data()), nativePoints.size());
@@ -409,9 +430,10 @@ int32_t fil(GpuSqlDispatcher &dispatcher)
 
 int32_t jmp(GpuSqlDispatcher &dispatcher)
 {
+	Context& context = Context::getInstance();
 	if (!dispatcher.isLastBlock)
 	{
-		dispatcher.blockIndex++;
+		dispatcher.blockIndex += context.getDeviceCount();
 		dispatcher.instructionPointer = 0;
 		dispatcher.cleanUpGpuPointers();
 	}

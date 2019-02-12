@@ -11,7 +11,7 @@
 /// Parses CSV file, guess types, create table (if not exists) and fills the table with parsed data
 /// </summary>
 /// <param name="database">Database where data will be imported</param>
-void CSVDataImporter::ImportTables(std::shared_ptr<Database> database)
+void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 {
 	this->ExtractHeaders();
 	

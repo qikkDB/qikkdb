@@ -8,6 +8,8 @@
 class CudaMemAllocator
 {
 private:
+	static const int32_t RESERVED_MEMORY = 256000000;
+
 	struct BlockInfo 
 	{
 		bool allocated;
@@ -15,7 +17,7 @@ private:
 		size_t blockSize;
 		void* ptr;
 	};
-	int deviceID_;
+	int32_t deviceID_;
 #ifdef DEBUG_ALLOC
 	FILE* logOut;
 #endif // DEBUG_ALLOC
