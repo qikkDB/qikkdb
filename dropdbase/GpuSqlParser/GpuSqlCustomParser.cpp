@@ -113,18 +113,34 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
 	for (int i = 0; i < numOfDevices; i++)
 	{
-		dispatcherResults.push_back(dispatcherFutures[i].get());
+		dispatcherResults.push_back(std::move(dispatcherFutures[i].get()));
 	}
-	
-	mergeDispatcherResults(dispatcherResults);
-    return std::move(dispatcherResults[0]);
+		
+    return std::move(mergeDispatcherResults(dispatcherResults));
 }
 
 
-std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults)
+std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults)
 {
-	//TODO: merge
-	return dispatcherResults[0];
+	std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> responseMessage = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
+	for (auto& partialResult : dispatcherResults)
+	{
+		ColmnarDB::NetworkClient::Message::QueryResponseMessage* partialMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(partialResult.get());
+		for (auto& partialPayload : partialMessage->payloads())
+		{
+			std::string key = partialPayload.first;
+			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
+			if (responseMessage->payloads().find(key) == responseMessage->payloads().end())
+			{
+				responseMessage->mutable_payloads()->insert({ key, payload });
+			}
+			else
+			{
+				responseMessage->mutable_payloads()->at(key).MergeFrom(payload);
+			}
+		}
+	}
+	return std::move(responseMessage);
 }
 
 bool GpuSqlCustomParser::containsAggregation(GpuSqlParser::SelectColumnContext * ctx)
