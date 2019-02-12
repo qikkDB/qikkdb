@@ -272,7 +272,7 @@ public:
 	}
 	
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<IGroupBy*> tables)
+	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>> tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{
@@ -295,7 +295,7 @@ public:
 			// Collect data from all devices (graphic cards) to host
 			for (int i = 0; i < tables.size(); i++)
 			{
-				GPUGroupBy<AGG, O, K, V> table = *reinterpret_cast<GPUGroupBy<AGG, O, K, V>*>(tables[i]);
+				GPUGroupBy<AGG, O, K, V> table = *reinterpret_cast<GPUGroupBy<AGG, O, K, V>*>(tables[i].get());
 				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table.getMaxHashCount());
 				std::unique_ptr<V[]> values = std::make_unique<V[]>(table.getMaxHashCount());
 				int32_t elementCount;
@@ -442,7 +442,7 @@ public:
 	}
 
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<IGroupBy*> tables)
+	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>> tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{
@@ -467,7 +467,7 @@ public:
 			for (int i = 0; i < tables.size(); i++)
 			{
 				GPUGroupBy<AggregationFunctions::avg, O, K, V> table =
-					*reinterpret_cast<GPUGroupBy<AggregationFunctions::avg, O, K, V>*>(tables[i]);
+					*reinterpret_cast<GPUGroupBy<AggregationFunctions::avg, O, K, V>*>(tables[i].get());
 				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table.getMaxHashCount());
 				std::unique_ptr<V[]> values = std::make_unique<V[]>(table.getMaxHashCount());
 				std::unique_ptr<int64_t[]> occurences = std::make_unique<int64_t[]>(table.getMaxHashCount());
@@ -611,7 +611,7 @@ public:
 	}
 
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, int64_t *outValues, int32_t *outDataElementCount, std::vector<IGroupBy*> tables)
+	void getResults(K *outKeys, int64_t *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>> tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{
@@ -635,7 +635,7 @@ public:
 			for (int i = 0; i < tables.size(); i++)
 			{
 				GPUGroupBy<AggregationFunctions::count, int64_t, K, V> table =
-					*reinterpret_cast<GPUGroupBy<AggregationFunctions::count, int64_t, K, V>*>(tables[i]);
+					*reinterpret_cast<GPUGroupBy<AggregationFunctions::count, int64_t, K, V>*>(tables[i].get());
 				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table.getMaxHashCount());
 				std::unique_ptr<int64_t[]> occurences = std::make_unique<int64_t[]>(table.getMaxHashCount());
 				int32_t elementCount;
