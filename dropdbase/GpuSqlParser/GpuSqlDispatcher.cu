@@ -4,6 +4,7 @@
 
 #include "GpuSqlDispatcher.h"
 #include "GpuSqlDispatcherFriends.h"
+#include "../QueryEngine/Context.h"
 #include "../Types/ComplexPolygon.pb.h"
 #include "../Types/Point.pb.h"
 
@@ -74,6 +75,8 @@ void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
 
 std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 {
+	Context& context = Context::getInstance();
+	context.bindDeviceToContext(dispatcherThreadId);
 	int32_t err = 0;
 
 	while (err == 0)
@@ -326,6 +329,12 @@ int32_t loadCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 	const std::string column = colName.substr(endOfPolyIdx + 1);
 
 	const int32_t blockCount = dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+
+	if (dispatcher.blockIndex >= blockCount)
+	{
+		return 1;
+	}
+
 	if (dispatcher.blockIndex == blockCount - 1)
 	{
 		dispatcher.isLastBlock = true;
@@ -351,6 +360,12 @@ int32_t loadCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher)
 	const std::string column = colName.substr(endOfPolyIdx + 1);
 
 	const int32_t blockCount = dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+
+	if (dispatcher.blockIndex >= blockCount)
+	{
+		return 1;
+	}
+
 	if (dispatcher.blockIndex == blockCount - 1)
 	{
 		dispatcher.isLastBlock = true;
@@ -380,9 +395,10 @@ int32_t fil(GpuSqlDispatcher &dispatcher)
 
 int32_t jmp(GpuSqlDispatcher &dispatcher)
 {
+	Context& context = Context::getInstance();
 	if (!dispatcher.isLastBlock)
 	{
-		dispatcher.blockIndex++;
+		dispatcher.blockIndex += context.getDeviceCount() + dispatcher.dispatcherThreadId;
 		dispatcher.instructionPointer = 0;
 		dispatcher.cleanUpGpuPointers();
 	}

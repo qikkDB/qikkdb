@@ -41,6 +41,11 @@ int32_t loadCol(GpuSqlDispatcher &dispatcher)
 	const std::string column = colName.substr(endOfPolyIdx + 1);
 	const int32_t blockCount = dispatcher.database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
 
+	if (dispatcher.blockIndex >= blockCount)
+	{
+		return 1;
+	}
+
 	if (dispatcher.blockIndex == blockCount - 1)
 	{
 		dispatcher.isLastBlock = true;
