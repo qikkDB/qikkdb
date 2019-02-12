@@ -64,7 +64,7 @@ private:
 			queriedBlockDimensionList.push_back(deviceProp.maxThreadsPerBlock);
 
 			// Print device info
-			printf("INFO: Device ID: %d: %s\n", i, deviceProp.name);
+			printf("INFO: Device ID: %d: %s \t maxBlockDim: %d\n", i, deviceProp.name, deviceProp.maxThreadsPerBlock);
 
 			// Print memory info
 			size_t free, total;
@@ -90,7 +90,7 @@ private:
 				}
 				if (canAccessPeer == 1)
 				{
-					cudaDeviceEnablePeerAccess(i, 0);
+					cudaDeviceEnablePeerAccess(i, DEFAULT_DEVICE_ID);
 				}
 			}
 		}
@@ -141,7 +141,8 @@ public:
 	const int32_t getBoundDeviceID() { 
 		int boundDeviceID;
 		cudaGetDevice(&boundDeviceID);
-		return boundDeviceID; }
+		return boundDeviceID; 
+	}
 
 	// Get found device count
 	const int32_t getDeviceCount() { 
