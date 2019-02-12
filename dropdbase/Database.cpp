@@ -206,10 +206,7 @@ void Database::Persist(const char* path)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
-						{
-							colFile.write(reinterpret_cast<const char*>(&entry), sizeof(int32_t)); //write entry data
-						}
+						colFile.write(reinterpret_cast<const char*>(&data), dataLength * sizeof(int32_t)); //write block of data
 						index += 1;
 					}
 				}
@@ -623,15 +620,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					}
 					else //read data from block
 					{
-						std::vector<int32_t> dataInt;
+						std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength * sizeof(int32_t));
+						int* dataIntTemp;
 
-						for (int32_t j = 0; j < dataLength; j++)
-						{
-							int32_t entryDataInt;
-							colFile.read(reinterpret_cast<char*>(&entryDataInt), sizeof(int32_t)); //read entry data
+						colFile.read(data.get(), dataLength * sizeof(int32_t)); //read entry data
 
-							dataInt.push_back(entryDataInt);
-						}
+						dataIntTemp = reinterpret_cast<int*>(data.get());
+						std::vector<int32_t> dataInt(dataIntTemp, dataIntTemp + dataLength);
 
 						columnInt.AddBlock(dataInt);
 						BOOST_LOG_TRIVIAL(debug) << "Added Int32 block with data at index: " << index << "." << std::endl;

@@ -23,12 +23,34 @@ int main(int argc, char **argv)
     boost::log::add_file_log("../log/ColmnarDB.log");
     boost::log::add_console_log(std::cout);
 	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
+	auto start = std::chrono::high_resolution_clock::now(); /////
+
+	std::vector<std::string> tableNames = { "TableA", "TableB" };
+	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_DOUBLE}, {COLUMN_STRING}, {COLUMN_POLYGON}, {COLUMN_POINT} };
+	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("SimpleDb", 4, 1 << 10, true, tableNames, columnTypes);
+
+	Database::AddToInMemoryDatabaseList(database);
+	Database::SaveAllToDisk();
+
 	Database::LoadDatabasesFromDisk();
+
+	////
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> elapsed(end - start);
+	std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
+
+	
+	GpuSqlCustomParser parser(Database::GetDatabaseByName("SimpleDb"), "SELECT COUNT(colInteger1) FROM TableA WHERE colInteger1 <= 20;");
+	parser.parse()->PrintDebugString();
+
+	
+	///////
 	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
 	RegisterCtrlCHandler(&tcpServer);
 	tcpServer.Run();
 
-	Database::SaveAllToDisk();
+	//Database::SaveAllToDisk();
+
 	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
 	
 	
