@@ -13,7 +13,7 @@
 
 GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
 	database(database),
-	blockIndex(0),
+	blockIndex(dispatcherThreadId),
 	instructionPointer(0),
 	constPointCounter(0),
 	constPolygonCounter(0),
@@ -398,7 +398,7 @@ int32_t jmp(GpuSqlDispatcher &dispatcher)
 	Context& context = Context::getInstance();
 	if (!dispatcher.isLastBlock)
 	{
-		dispatcher.blockIndex += context.getDeviceCount() + dispatcher.dispatcherThreadId;
+		dispatcher.blockIndex += context.getDeviceCount();
 		dispatcher.instructionPointer = 0;
 		dispatcher.cleanUpGpuPointers();
 	}
