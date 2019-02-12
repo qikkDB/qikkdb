@@ -33,7 +33,7 @@ template<typename T>
 int32_t loadCol(GpuSqlDispatcher &dispatcher)
 {
 	auto colName = dispatcher.arguments.read<std::string>();
-	std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
+	std::cout << "Load: " << colName << " " << typeid(T).name() << ", thread: " << dispatcher.dispatcherThreadId << std::endl;
 
 	// split colName to table and column name
 	const size_t endOfPolyIdx = colName.find(".");
@@ -74,7 +74,7 @@ template<typename T>
 int32_t retCol(GpuSqlDispatcher &dispatcher)
 {
 	auto col = dispatcher.arguments.read<std::string>();
-	std::cout << "RetCol: " << col << std::endl;
+	std::cout << "RetCol: " << col << ", thread: " << dispatcher.dispatcherThreadId << std::endl;
 	int32_t outSize;
 
 	const size_t endOfPolyIdx = col.find(".");
@@ -496,7 +496,7 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 {
 	auto colTableName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
-	std::cout << "AggColCol: " << colTableName << " " << reg << std::endl;
+	std::cout << "AggColCol: " << colTableName << " " << reg << ", thread: " << dispatcher.dispatcherThreadId << std::endl;
 	
 	std::tuple<uintptr_t, int32_t>& column = dispatcher.allocatedPointers.at(colTableName);
 	int32_t reconstructOutSize;
@@ -514,8 +514,6 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 	
 	if (dispatcher.usingGroupBy)
 	{
-		std::cout << "Using group by" << std::endl;
-
 		//TODO void param
 		if (dispatcher.groupByTables[dispatcher.dispatcherThreadId] == nullptr)
 		{
@@ -532,6 +530,8 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 		// If last block was processed, reconstruct group by table
 		if (dispatcher.isLastBlock)
 		{
+			std::cout << "Reconstructing group by in thread: " << dispatcher.dispatcherThreadId << std::endl;
+
 			int32_t outSize;
 			U* outKeys = dispatcher.allocateRegister<U>(groupByColumnName + "_keys", Configuration::GetInstance().GetGroupByBuckets());
 			T* outValues = dispatcher.allocateRegister<T>(reg, Configuration::GetInstance().GetGroupByBuckets());

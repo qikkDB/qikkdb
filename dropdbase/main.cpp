@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	Context::getInstance();
 	std::vector<std::string> tableNames = { "TableA" };
 	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
-	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 8, 1 << 3, false, tableNames, columnTypes);
+	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 3, false, tableNames, columnTypes);
 
 	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
 	auto start = std::chrono::high_resolution_clock::now();

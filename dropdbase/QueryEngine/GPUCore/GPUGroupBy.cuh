@@ -286,8 +286,6 @@ public:
 		{
 			// TODO change to cudaMemcpyPeerAsync
 
-			int oldDevice;
-			cudaGetDevice(&oldDevice);
 			std::vector<K> keysAllHost;
 			std::vector<V> valuesAllHost;
 			int32_t sumElementCount = 0;
@@ -299,7 +297,7 @@ public:
 				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table->getMaxHashCount());
 				std::unique_ptr<V[]> values = std::make_unique<V[]>(table->getMaxHashCount());
 				int32_t elementCount;
-				cudaSetDevice(i);
+				Context::getInstance().bindDeviceToContext(i);
 
 				// Reconstruct keys and values
 				table->reconstructRawNumbers(keys.get(), values.get(), nullptr, &elementCount);
@@ -310,7 +308,7 @@ public:
 				sumElementCount += elementCount;
 			}
 
-			cudaSetDevice(Context::DEFAULT_DEVICE_ID);
+			Context::getInstance().bindDeviceToContext(Context::DEFAULT_DEVICE_ID);
 			cuda_ptr<K> keysAllGPU(sumElementCount);
 			cuda_ptr<V> valuesAllGPU(sumElementCount);
 
@@ -322,8 +320,6 @@ public:
 			GPUGroupBy<AGG, O, K, V> finalGroupBy(sumElementCount);
 			finalGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
 			finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
-
-			cudaSetDevice(oldDevice);
 		}
 	}
 
@@ -456,8 +452,6 @@ public:
 		{
 			// TODO change to cudaMemcpyPeerAsync
 
-			int oldDevice;
-			cudaGetDevice(&oldDevice);
 			std::vector<K> keysAllHost;
 			std::vector<V> valuesAllHost;
 			std::vector<int64_t> occurencesAllHost;
@@ -472,7 +466,7 @@ public:
 				std::unique_ptr<V[]> values = std::make_unique<V[]>(table->getMaxHashCount());
 				std::unique_ptr<int64_t[]> occurences = std::make_unique<int64_t[]>(table->getMaxHashCount());
 				int32_t elementCount;
-				cudaSetDevice(i);
+				Context::getInstance().bindDeviceToContext(i);
 
 				// Reconstruct keys, values and also occurences
 				table->reconstructRawNumbers(keys.get(), values.get(), occurences.get(), &elementCount);
@@ -484,7 +478,7 @@ public:
 				sumElementCount += elementCount;
 			}
 
-			cudaSetDevice(Context::DEFAULT_DEVICE_ID);
+			Context::getInstance().bindDeviceToContext(Context::DEFAULT_DEVICE_ID);
 			cuda_ptr<K> keysAllGPU(sumElementCount);
 			cuda_ptr<V> valuesAllGPU(sumElementCount);
 			cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
@@ -511,8 +505,6 @@ public:
 			countGroupBy.getResults(outKeys, occurencesMerged.get(), outDataElementCount);
 
 			GPUArithmetic::colCol<ArithmeticOperations::div>(outValues, valuesMerged.get(), occurencesMerged.get(), *outDataElementCount);
-			
-			cudaSetDevice(oldDevice);
 		}
 	}
 
@@ -625,8 +617,6 @@ public:
 		{
 			// TODO change to cudaMemcpyPeerAsync
 
-			int oldDevice;
-			cudaGetDevice(&oldDevice);
 			std::vector<K> keysAllHost;
 			std::vector<int64_t> occurencesAllHost;
 			int32_t sumElementCount = 0;
@@ -639,7 +629,7 @@ public:
 				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table->getMaxHashCount());
 				std::unique_ptr<int64_t[]> occurences = std::make_unique<int64_t[]>(table->getMaxHashCount());
 				int32_t elementCount;
-				cudaSetDevice(i);
+				Context::getInstance().bindDeviceToContext(i);
 
 				// Reconstruct just keys and occurences
 				table->reconstructRawNumbers(keys.get(), nullptr, occurences.get(), &elementCount);
@@ -650,7 +640,7 @@ public:
 				sumElementCount += elementCount;
 			}
 
-			cudaSetDevice(Context::DEFAULT_DEVICE_ID);
+			Context::getInstance().bindDeviceToContext(Context::DEFAULT_DEVICE_ID);
 			cuda_ptr<K> keysAllGPU(sumElementCount);
 			cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
 
@@ -662,8 +652,6 @@ public:
 			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> finalGroupBy(sumElementCount);
 			finalGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
 			finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
-
-			cudaSetDevice(oldDevice);
 		}
 	}
 
