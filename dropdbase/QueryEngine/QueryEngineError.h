@@ -5,6 +5,15 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
+class cuda_error : public std::runtime_error
+{
+public:
+	explicit cuda_error(const std::string& what_arg) : runtime_error(what_arg)
+	{
+	}
+};
+
+
 class QueryEngineError {
 public:
 	enum Type {
@@ -19,42 +28,20 @@ public:
 		GPU_DRIVER_NOT_FOUND_EXCEPTION			// Return code for not found nvidia driver
 	};
 
-private:
-	Type type_;
-	std::string text_;
-
-public:
 	void setCudaError(cudaError_t cudaError) {
-		switch (cudaError)
+		if (cudaError != cudaSuccess)
 		{
-		case cudaSuccess:
-			// Don't overwrite last error with success
-			break;
-		default:
-			type_ = GPU_EXTENSION_ERROR;
-			text_ = cudaGetErrorString(cudaError);
-			break;
+			throw cuda_error(std::string(cudaGetErrorString(cudaError)));
 		}
 	}
 
 	void setType(Type type) {
 		if (type != GPU_EXTENSION_SUCCESS)
 		{
-			type_ = type;
+			throw cuda_error("GPU Error number " + std::to_string(type));
 		}
 	}
 
-	const Type getType() {
-		Type last = type_;
-		type_ = GPU_EXTENSION_SUCCESS;
-		return last;
-	}
-
-	const std::string getText() {
-		std::string last = text_;
-		text_ = "";
-		return last;
-	}
 
 };
 
