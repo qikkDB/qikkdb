@@ -74,7 +74,7 @@ string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 	target_link_libraries(${PROJECT_NAME} ${prefix}protobufd${suffix})
 ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
-target_link_libraries(${PROJECT_NAME} ${prefix}protobuf${suffix})
+	target_link_libraries(${PROJECT_NAME} ${prefix}protobuf${suffix})
 ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 
 target_link_libraries(${PROJECT_NAME} ${YAML_CPP_LIBRARIES})

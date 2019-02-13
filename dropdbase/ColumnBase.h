@@ -217,9 +217,9 @@ public:
 	}
 
 	/// <summary>
-/// Returns type of ColumnBase
-/// </summary>
-/// <returns>Type of current column</returns>
+	/// Returns type of ColumnBase
+	/// </summary>
+	/// <returns>Type of current column</returns>
 	virtual DataType GetColumnType() const override
 	{
 		typedef typename std::conditional<std::is_same<T, int>::value, std::integral_constant<DataType, COLUMN_INT>,

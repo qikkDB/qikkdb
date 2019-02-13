@@ -122,6 +122,9 @@ int32_t groupByConst(GpuSqlDispatcher &dispatcher);
 template<typename T>
 int32_t groupByCol(GpuSqlDispatcher &dispatcher);
 
+template<typename T>
+int32_t insertInto(GpuSqlDispatcher &dispatcher);
+
 //// FUNCTOR ERROR HANDLERS
 
 template<typename OP, typename T, typename U>
@@ -177,6 +180,9 @@ void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &
 
 template<>
 void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<double[]> &data, int32_t dataSize);
+
+template<>
+void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<std::string[]> &data, int32_t dataSize);
 
 class GpuSqlDispatcher
 {
@@ -248,6 +254,13 @@ private:
     static std::function<int32_t(GpuSqlDispatcher &)> filFunction;
 	static std::function<int32_t(GpuSqlDispatcher &)> jmpFunction;
     static std::function<int32_t(GpuSqlDispatcher &)> doneFunction;
+	static std::function<int32_t(GpuSqlDispatcher &)> showDatabasesFunction;
+	static std::function<int32_t(GpuSqlDispatcher &)> showTablesFunction;
+	static std::function<int32_t(GpuSqlDispatcher &)> showColumnsFunction;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+		DataType::DATA_TYPE_SIZE> insertIntoFunctions;
+	static std::function<int32_t(GpuSqlDispatcher &)> insertIntoDoneFunction;
+
 
 public:
     explicit GpuSqlDispatcher(const std::shared_ptr<Database> &database);
@@ -310,6 +323,16 @@ public:
 
     void addDoneFunction();
 
+	void addShowDatabasesFunction();
+
+	void addShowTablesFunction();
+
+	void addShowColumnsFunction();
+
+	void addInsertIntoFunction(DataType type);
+
+	void addInsertIntoDoneFunction();
+
     void addGroupByFunction(DataType type);
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
@@ -341,6 +364,12 @@ public:
 	friend int32_t jmp(GpuSqlDispatcher &dispatcher);
 
     friend int32_t done(GpuSqlDispatcher &dispatcher);
+
+	friend int32_t showDatabases(GpuSqlDispatcher &dispatcher);
+
+	friend int32_t showTables(GpuSqlDispatcher &dispatcher);
+
+	friend int32_t showColumns(GpuSqlDispatcher &dispatcher);
 
 	void cleanUpGpuPointers();
 
@@ -431,6 +460,11 @@ public:
 
     template<typename T>
     friend int32_t groupByConst(GpuSqlDispatcher &dispatcher);
+
+	template<typename T>
+	friend int32_t insertInto(GpuSqlDispatcher &dispatcher);
+
+	friend int32_t insertIntoDone(GpuSqlDispatcher &dispatcher);
 
     template<typename T, typename U>
     friend int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);

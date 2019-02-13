@@ -31,9 +31,9 @@ std::vector<double> ColumnBase<double>::NullArray(int length)
 }
 
 template<>
-std::vector<bool> ColumnBase<bool>::NullArray(int length)
+std::vector<int8_t> ColumnBase<int8_t>::NullArray(int length)
 {
-	return std::vector<bool>(length, 0);
+	return std::vector<int8_t>(length, 0);
 }
 
 template<>
@@ -174,10 +174,24 @@ void ColumnBase<std::string>::setColumnStatistics()
 }
 
 template<>
-void ColumnBase<bool>::setColumnStatistics()
+void ColumnBase<int8_t>::setColumnStatistics()
 {
-	min_ = 0;
-	max_ = 0;
-	avg_ = (float) 0.0;
-	sum_ = 0;
+	std::vector<int8_t> mins;
+	std::vector<int8_t> maxs;
+	std::vector<int8_t> sums;
+
+	std::vector<int64_t> numOfDataInBlocks;
+
+	for (auto& block : blocks_)
+	{
+		mins.push_back(block->GetMin());
+		maxs.push_back(block->GetMax());
+		sums.push_back(block->GetSum());
+		numOfDataInBlocks.push_back(block->GetData().size());
+	}
+
+	min_ = *std::min_element(mins.begin(), mins.end());
+	max_ = *std::max_element(maxs.begin(), maxs.end());
+	sum_ = std::accumulate(sums.begin(), sums.end(), 0);
+	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), (float) 0.0);
 }
