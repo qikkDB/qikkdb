@@ -155,7 +155,7 @@ __global__ void group_by_kernel(
 
 // TODO remake to filter colConst
 template<typename K>
-__global__ void is_bucket_occupied_kernel(int32_t *occupancyMask, K *keys, int32_t maxHashCount)
+__global__ void is_bucket_occupied_kernel(int8_t *occupancyMask, K *keys, int32_t maxHashCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -238,7 +238,7 @@ public:
 	// Reconstruct needed raw fields (do not calculate final results yet)
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
@@ -259,7 +259,7 @@ public:
 			"GPUGroupBy<min/max/sum>.getResults O (outValue) and V (value) must be of the same type (for Min/Max/Sum)");
 
 		// Create buffer for bucket compression - reconstruct
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
@@ -394,7 +394,7 @@ public:
 	// Reconstruct needed raw fields (do not calculate final results yet)
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
@@ -414,7 +414,7 @@ public:
 		//	"GPUGroupBy<avg>.getResults O (outValue) must be floating point for Average operation");
 
 		// Create buffer for bucket compression - reconstruct
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
@@ -583,7 +583,7 @@ public:
 	// Reconstruct needed raw fields (do not calculate final results yet)
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
@@ -599,7 +599,7 @@ public:
 			"GPUGroupBy<count>.getResults V (values) must be integral or floating point");
 
 		// Create buffer for bucket compression - reconstruct
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
