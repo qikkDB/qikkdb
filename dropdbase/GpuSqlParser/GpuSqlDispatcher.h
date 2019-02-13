@@ -340,6 +340,8 @@ public:
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size);
 
+	void freeColumnIfRegister(std::string& col);
+
 	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
 	void insertComplexPolygon(std::string colName, GPUMemory::GPUPolygon polygon, int32_t size);

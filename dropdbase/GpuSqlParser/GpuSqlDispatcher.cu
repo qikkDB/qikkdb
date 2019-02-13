@@ -6,6 +6,7 @@
 #include "GpuSqlDispatcherFriends.h"
 #include "../Types/ComplexPolygon.pb.h"
 #include "../Types/Point.pb.h"
+#include <regex>
 
 //TODO:Dispatch implementation
 
@@ -608,5 +609,15 @@ void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB:
 	else
 	{
 		responseMessage.mutable_payloads()->at(key).MergeFrom(payload);
+	}
+}
+
+void GpuSqlDispatcher::freeColumnIfRegister(std::string & col)
+{
+	if (std::regex_match(col, std::regex("(\\$)[0-9]+"))) 
+	{
+		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(col))));
+		allocatedPointers.erase(col);
+		std::cout << "Free: " << col << std::endl;
 	}
 }

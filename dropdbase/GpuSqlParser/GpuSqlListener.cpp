@@ -87,8 +87,7 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 		returnDataType = DataType::COLUMN_INT8_T;
     }
 
-	std::string reg = std::string("R") + std::to_string(tempCounter);
-
+	std::string reg = getRegString();
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(returnDataType);
 }
@@ -116,7 +115,7 @@ void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext 
         dispatcher.addBetweenFunction(op1Type, op2Type, op3Type);
     }
 
-	std::string reg = std::string("R") + std::to_string(tempCounter);
+	std::string reg = getRegString();
 	pushArgument(reg.c_str(), DataType::COLUMN_INT8_T);
     pushTempResult(DataType::COLUMN_INT8_T);
 }
@@ -142,7 +141,7 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 		returnDataType = operandType;
     }
 
-	std::string reg = std::string("R") + std::to_string(tempCounter);
+	std::string reg = getRegString();
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(returnDataType);
 }
@@ -192,7 +191,7 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     }
 
 	insideAgg = false;
-	std::string reg = std::string("R") + std::to_string(tempCounter);
+	std::string reg = getRegString();
 
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(returnDataType);
@@ -549,7 +548,7 @@ std::pair<std::string, DataType> GpuSqlListener::stackTopAndPop()
 
 void GpuSqlListener::pushTempResult(DataType type)
 {
-    std::string reg = std::string("R") + std::to_string(tempCounter);
+	std::string reg = getRegString();
     tempCounter++;
     parserStack.push(std::make_pair(reg, type));
 }
@@ -650,6 +649,11 @@ void GpuSqlListener::stringToUpper(std::string &str)
     {
         c = toupper(c);
     }
+}
+
+std::string GpuSqlListener::getRegString()
+{
+	return std::string("$") + std::to_string(tempCounter);
 }
 
 DataType GpuSqlListener::getReturnDataType(DataType left, DataType right)

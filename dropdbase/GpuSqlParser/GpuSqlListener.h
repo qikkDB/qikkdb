@@ -54,6 +54,7 @@ private:
 
     void stringToUpper(std::string &str);
 
+	std::string getRegString();
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType colToConst(DataType type);
 
