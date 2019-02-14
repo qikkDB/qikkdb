@@ -5,6 +5,12 @@
 #include "GpuSqlListener.h"
 #include "../Table.h"
 #include "GpuSqlDispatcher.h"
+#include <ctime>
+#include <iostream>
+#include <sstream>
+#include <locale>
+#include <iomanip>
+
 
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database> &database,
                                GpuSqlDispatcher &dispatcher) : database(database), dispatcher(dispatcher),
@@ -33,55 +39,68 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
     {
         dispatcher.addGreaterFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "<")
+    } 
+	else if (op == "<")
     {
         dispatcher.addLessFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == ">=")
+    } 
+	else if (op == ">=")
     {
         dispatcher.addGreaterEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "<=")
+    } 
+	else if (op == "<=")
     {
         dispatcher.addLessEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "=")
+    } 
+	else if (op == "=")
     {
         dispatcher.addEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "!=")
+    } 
+	else if (op == "!=")
     {
         dispatcher.addNotEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "AND")
+    } 
+	else if (op == "AND")
     {
         dispatcher.addLogicalAndFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "OR")
+    } 
+	else if (op == "OR")
     {
         dispatcher.addLogicalOrFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "*")
+    } 
+	else if (op == "*")
     {
         dispatcher.addMulFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } else if (op == "/")
+    } 
+	else if (op == "/")
     {
         dispatcher.addDivFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } else if (op == "+")
+    } 
+	else if (op == "+")
     {
         dispatcher.addAddFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } else if (op == "-")
+    } 
+	else if (op == "-")
     {
         dispatcher.addSubFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } else if (op == "%")
+    } 
+	else if (op == "%")
     {
         dispatcher.addModFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } else if (op == "CONTAINS")
+    } 
+	else if (op == "CONTAINS")
     {
         dispatcher.addContainsFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
@@ -135,11 +154,42 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     {
         dispatcher.addLogicalNotFunction(operandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "-")
+    } 
+	else if (op == "-")
     {
         dispatcher.addMinusFunction(operandType);
 		returnDataType = operandType;
     }
+	else if (op == "YEAR")
+	{
+		dispatcher.addYearFunction(operandType);
+		returnDataType = operandType;
+	}
+	else if (op == "MONTH")
+	{
+		dispatcher.addMonthFunction(operandType);
+		returnDataType = operandType;
+	}
+	else if (op == "DAY")
+	{
+		dispatcher.addDayFunction(operandType);
+		returnDataType = operandType;
+	}
+	else if (op == "HOUR")
+	{
+		dispatcher.addHourFunction(operandType);
+		returnDataType = operandType;
+	}
+	else if (op == "MINUTE")
+	{
+		dispatcher.addMinuteFunction(operandType);
+		returnDataType = operandType;
+	}
+	else if (op == "SECOND")
+	{
+		dispatcher.addSecondFunction(operandType);
+		returnDataType = operandType;
+	}
 
 	std::string reg = getRegString();
 	pushArgument(reg.c_str(), returnDataType);
@@ -172,19 +222,23 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     {
         dispatcher.addMinFunction(groupByType, operandType);
 		returnDataType = operandType;
-    } else if (op == "MAX")
+    } 
+	else if (op == "MAX")
     {
         dispatcher.addMaxFunction(groupByType, operandType);
 		returnDataType = operandType;
-    } else if (op == "SUM")
+    } 
+	else if (op == "SUM")
     {
         dispatcher.addSumFunction(groupByType, operandType);
 		returnDataType = operandType;
-    } else if (op == "COUNT")
+    } 
+	else if (op == "COUNT")
     {
         dispatcher.addCountFunction(groupByType, operandType);
 		returnDataType = DataType::COLUMN_LONG;
-    } else if (op == "AVG")
+    } 
+	else if (op == "AVG")
     {
         dispatcher.addAvgFunction(groupByType, operandType);
 		returnDataType = operandType;
@@ -456,6 +510,30 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
         loadedColumns.insert(tableColumn);
     }
     parserStack.push(std::make_pair(tableColumn, columnType));
+}
+
+void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * ctx)
+{
+	auto start = ctx->start->getStartIndex();
+	auto stop = ctx->stop->getStopIndex();
+	antlr4::misc::Interval interval(start, stop);
+	std::string dateValue = ctx->start->getInputStream()->getText(interval);
+	dateValue = dateValue.substr(1, dateValue.size() - 2);
+
+	if (dateValue.size() <= 10)
+	{
+		dateValue += " 00:00:00";
+	}
+
+	std::tm t;
+	std::istringstream ss(dateValue);
+	ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
+	std::time_t epochTime = std::mktime(&t);
+
+	std::cout << dateValue << std::endl;
+	std::cout << (epochTime / 31557600) + 1970 << std::endl;
+
+	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
 }
 
 void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)

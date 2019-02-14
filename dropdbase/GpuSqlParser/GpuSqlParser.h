@@ -21,11 +21,12 @@ public:
     SELECT = 33, FROM = 34, JOIN = 35, WHERE = 36, GROUPBY = 37, AS = 38, 
     IN = 39, BETWEEN = 40, ON = 41, ORDERBY = 42, DIR = 43, LIMIT = 44, 
     OFFSET = 45, SHOWDB = 46, SHOWTB = 47, SHOWCL = 48, AGG = 49, AVG = 50, 
-    SUM = 51, MIN = 52, MAX = 53, COUNT = 54, GEO = 55, CONTAINS = 56, PLUS = 57, 
-    MINUS = 58, ASTERISK = 59, DIVISION = 60, MODULO = 61, EQUALS = 62, 
-    NOTEQUALS = 63, LPAREN = 64, RPAREN = 65, GREATER = 66, LESS = 67, GREATEREQ = 68, 
-    LESSEQ = 69, NOT = 70, OR = 71, AND = 72, FLOATLIT = 73, INTLIT = 74, 
-    ID = 75, BOOLEANLIT = 76, STRINGLIT = 77
+    SUM = 51, MIN = 52, MAX = 53, COUNT = 54, YEAR = 55, MONTH = 56, DAY = 57, 
+    HOUR = 58, MINUTE = 59, SECOND = 60, GEO = 61, CONTAINS = 62, PLUS = 63, 
+    MINUS = 64, ASTERISK = 65, DIVISION = 66, MODULO = 67, EQUALS = 68, 
+    NOTEQUALS = 69, LPAREN = 70, RPAREN = 71, GREATER = 72, LESS = 73, GREATEREQ = 74, 
+    LESSEQ = 75, NOT = 76, OR = 77, AND = 78, FLOATLIT = 79, INTLIT = 80, 
+    ID = 81, BOOLEANLIT = 82, STRINGLIT = 83
   };
 
   enum {
@@ -623,6 +624,15 @@ public:
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
+  class  StringLiteralContext : public ExpressionContext {
+  public:
+    StringLiteralContext(ExpressionContext *ctx);
+
+    antlr4::tree::TerminalNode *STRINGLIT();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
   class  IntLiteralContext : public ExpressionContext {
   public:
     IntLiteralContext(ExpressionContext *ctx);
@@ -703,35 +713,15 @@ public:
     antlr4::Token *op = nullptr;
     ExpressionContext *expression();
     antlr4::tree::TerminalNode *NOT();
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-  };
-
-  class  VarReferenceContext : public ExpressionContext {
-  public:
-    VarReferenceContext(ExpressionContext *ctx);
-
-    ColumnIdContext *columnId();
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-  };
-
-  class  StringLiteralContext : public ExpressionContext {
-  public:
-    StringLiteralContext(ExpressionContext *ctx);
-
-    antlr4::tree::TerminalNode *STRINGLIT();
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-  };
-
-  class  UnaryExpressionContext : public ExpressionContext {
-  public:
-    UnaryExpressionContext(ExpressionContext *ctx);
-
-    antlr4::Token *op = nullptr;
-    ExpressionContext *expression();
     antlr4::tree::TerminalNode *MINUS();
+    antlr4::tree::TerminalNode *LPAREN();
+    antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *YEAR();
+    antlr4::tree::TerminalNode *MONTH();
+    antlr4::tree::TerminalNode *DAY();
+    antlr4::tree::TerminalNode *HOUR();
+    antlr4::tree::TerminalNode *MINUTE();
+    antlr4::tree::TerminalNode *SECOND();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
@@ -741,6 +731,15 @@ public:
     BooleanLiteralContext(ExpressionContext *ctx);
 
     antlr4::tree::TerminalNode *BOOLEANLIT();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  VarReferenceContext : public ExpressionContext {
+  public:
+    VarReferenceContext(ExpressionContext *ctx);
+
+    ColumnIdContext *columnId();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };

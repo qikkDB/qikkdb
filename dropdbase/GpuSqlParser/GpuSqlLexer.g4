@@ -73,6 +73,13 @@ MIN         : M I N;
 MAX         : M A X;
 COUNT       : C O U N T;
 
+YEAR        : Y E A R;
+MONTH       : M O N T H;
+DAY         : D A Y;
+HOUR        : H O U R;
+MINUTE      : M I N U T E;
+SECOND      : S E C O N D;
+
 GEO             : (CONTAINS);
 
 CONTAINS        : C O N T A I N S;

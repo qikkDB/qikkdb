@@ -267,6 +267,30 @@ void GpuSqlDispatcher::addMinusFunction(DataType type)
     dispatcherFunctions.push_back(minusFunctions[type]);
 }
 
+void GpuSqlDispatcher::addYearFunction(DataType type)
+{
+}
+
+void GpuSqlDispatcher::addMonthFunction(DataType type)
+{
+}
+
+void GpuSqlDispatcher::addDayFunction(DataType type)
+{
+}
+
+void GpuSqlDispatcher::addHourFunction(DataType type)
+{
+}
+
+void GpuSqlDispatcher::addMinuteFunction(DataType type)
+{
+}
+
+void GpuSqlDispatcher::addSecondFunction(DataType type)
+{
+}
+
 
 void GpuSqlDispatcher::addMinFunction(DataType key, DataType value)
 {

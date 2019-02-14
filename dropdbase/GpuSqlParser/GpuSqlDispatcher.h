@@ -303,6 +303,18 @@ public:
 
     void addMinusFunction(DataType type);
 
+	void addYearFunction(DataType type);
+
+	void addMonthFunction(DataType type);
+
+	void addDayFunction(DataType type);
+
+	void addHourFunction(DataType type);
+
+	void addMinuteFunction(DataType type);
+
+	void addSecondFunction(DataType type);
+
     void addMinFunction(DataType key, DataType value);
 
     void addMaxFunction(DataType key, DataType value);

@@ -79,6 +79,8 @@ public:
 
     void exitVarReference(GpuSqlParser::VarReferenceContext *ctx) override;
 
+	void exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext *ctx) override;
+
 	void enterAggregation(GpuSqlParser::AggregationContext *ctx) override;
 
     void exitAggregation(GpuSqlParser::AggregationContext *ctx) override;
