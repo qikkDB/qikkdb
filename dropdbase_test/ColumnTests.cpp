@@ -737,18 +737,18 @@ TEST(ColumnTests, InsertDataOnSpecificPosition)
 
 	ASSERT_EQ(columnInt.get()->GetBlockCount(), 3);
 
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(1,1,13);
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(2,1,13);
 
 	ASSERT_EQ(columnInt.get()->GetBlockCount(), 4);
 
-	/*ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[0].get()->GetData()[0], 7);
+	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[0].get()->GetData()[0], 7);
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[0].get()->GetData()[1], 1);
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[1].get()->GetData()[0], 8);
-	//ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[1].get()->GetData()[1], 2);
+	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[1].get()->GetData()[1], 2);
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[2].get()->GetData()[0], 3);
-	//ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[2].get()->GetData()[1], 13);
+	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[2].get()->GetData()[1], 13);
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[3].get()->GetData()[0], 4);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[3].get()->GetData()[1], 9);*/
+	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[3].get()->GetData()[1], 9);
 
 }
 

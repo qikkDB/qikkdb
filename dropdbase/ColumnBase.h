@@ -206,7 +206,7 @@ public:
 		{
 			for (int i = 0; i < (blocks_.size() - 1); i++)
 			{
-				if (blocks_[i]->GetMin() < columnData && blocks_[i + 1]->GetMin() > columnData)
+				if (blocks_[i]->GetMin() < columnData && blocks_[i + 1]->GetMin() >= columnData)
 				{
 					BlockBase<T> &block = *(blocks_[i].get());
 					indexInBlock = block.InsertOneValueData(columnData);
@@ -228,6 +228,10 @@ public:
 
 	void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData)
 	{
+		if (blocks_.size() == 0)
+		{
+			BlockBase<T> &block = AddBlock();
+		}
 		BlockBase<T> &block = *(blocks_[indexBlock].get());
 		block.InsertDataOnSpecificPosition(indexInBlock, columnData);
 

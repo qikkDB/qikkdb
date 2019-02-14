@@ -18,6 +18,9 @@ private:
 	int32_t blockSize;
 	std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
 	std::string sortingColumn = "";
+#ifndef __CUDACC__
+	void InsertValuesInNonIndexColumns(const std::unordered_map<std::string, std::any> &data, int indexBlock, int indexInBlock, std::string sortingColumn, int iterator);
+#endif
 
 public:
 	const std::shared_ptr<Database> &GetDatabase();

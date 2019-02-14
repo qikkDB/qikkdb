@@ -36,7 +36,7 @@ TEST(TableTests, CreateColumn)
 	ASSERT_EQ(columnTypeString, COLUMN_STRING);
 }
 
-TEST(TableTests, InsertData)
+TEST(TableTests, InsertDataVector)
 {
 	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Table table(database, "testTable");
@@ -89,4 +89,55 @@ TEST(TableTests, InsertData)
 
 	auto& blockString = dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList();
 	ASSERT_EQ(blockString.front()->GetData()[0], "randomString");
+}
+
+TEST(TableTests, InsertDataIndexed)
+{
+	auto database = std::make_shared<Database>("testDatabase", 4);
+	Table table(database, "testTable");
+	table.SetSortingColumn("ColumnLong");
+
+	table.CreateColumn("ColumnInt", COLUMN_INT); 
+	table.CreateColumn("ColumnInt2", COLUMN_INT); 
+	table.CreateColumn("ColumnLong", COLUMN_LONG);
+
+	std::unordered_map<std::string, std::any> data;
+
+	std::vector<int32_t> dataInt({ { 5 }, { 3 }, { 1 }, { 2 }, { 6 }, { 4 } });
+	std::vector<int32_t> dataInt2({ { 15 }, { 13 }, { 11 }, { 12 }, { 16 }, { 14 } });
+	std::vector<int64_t> dataLong({ { 1000000000000000005 },{ 1000000000000000003 },{ 1000000000000000001 },{ 1000000000000000002 },{ 1000000000000000006 },{ 1000000000000000004 } });
+
+	data.insert({ "ColumnInt",dataInt });
+	data.insert({ "ColumnInt2",dataInt2 });
+	data.insert({ "ColumnLong",dataLong });
+
+	table.InsertData(data);
+
+	auto& blockInts = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList();
+	auto& blockInts2 = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt2").get())->GetBlocksList();
+	auto& blockLongs = dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList();
+
+	ASSERT_EQ(blockLongs.front()->GetData()[0], 1000000000000000001);
+	ASSERT_EQ(blockInts.front()->GetData()[0], 1);
+	ASSERT_EQ(blockInts2.front()->GetData()[0], 11);
+
+	ASSERT_EQ(blockLongs.front()->GetData()[1], 1000000000000000002);
+	ASSERT_EQ(blockInts.front()->GetData()[1], 2);
+	ASSERT_EQ(blockInts2.front()->GetData()[1], 12);
+
+	ASSERT_EQ(blockLongs[1]->GetData()[0], 1000000000000000003);
+	ASSERT_EQ(blockInts[1]->GetData()[0], 3);
+	ASSERT_EQ(blockInts2[1]->GetData()[0], 13);
+
+	ASSERT_EQ(blockLongs[1]->GetData()[1], 1000000000000000004);
+	ASSERT_EQ(blockInts[1]->GetData()[1], 4);
+	ASSERT_EQ(blockInts2[1]->GetData()[1], 14);
+
+	ASSERT_EQ(blockLongs[2]->GetData()[0], 1000000000000000005);
+	ASSERT_EQ(blockInts[2]->GetData()[0], 5);
+	ASSERT_EQ(blockInts2[2]->GetData()[0], 15);
+
+	ASSERT_EQ(blockLongs[2]->GetData()[1], 1000000000000000006);
+	ASSERT_EQ(blockInts[2]->GetData()[1], 6);
+	ASSERT_EQ(blockInts2[2]->GetData()[1], 16);
 }

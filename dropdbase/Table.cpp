@@ -5,6 +5,56 @@
 #include "ColumnBase.h"
 #include <cstdint>
 
+#ifndef __CUDACC__
+void Table::InsertValuesInNonIndexColumns(const std::unordered_map<std::string, std::any>& data, int indexBlock, int indexInBlock, std::string sortingColumn, int iterator)
+{
+	for (const auto& column : columns)
+	{
+		const std::string columnName = column.first;
+		auto search = data.find(columnName);
+		if (search != data.end() && columnName != sortingColumn)
+		{
+			const auto &wrappedData = data.at(columnName);
+			if (wrappedData.type() == typeid(std::vector<int32_t>))
+			{
+				std::vector<int32_t> dataInt = std::any_cast<std::vector<int32_t>>(wrappedData);
+				dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataInt[iterator]);
+			}
+			else if (wrappedData.type() == typeid(std::vector<int64_t>))
+			{
+				std::vector<int64_t> dataLong = std::any_cast<std::vector<int64_t>>(wrappedData);
+				dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataLong[iterator]);
+			}
+			else if (wrappedData.type() == typeid(std::vector<double>))
+			{
+				std::vector<double> dataDouble = std::any_cast<std::vector<double>>(wrappedData);
+				dynamic_cast<ColumnBase<double>*>(columns.find(columnName)->second.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataDouble[iterator]);
+			}
+			else if (wrappedData.type() == typeid(std::vector<float>))
+			{
+				std::vector<float> dataFloat = std::any_cast<std::vector<float>>(wrappedData);
+				dynamic_cast<ColumnBase<float>*>(columns.find(columnName)->second.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataFloat[iterator]);
+			}
+			else if (wrappedData.type() == typeid(std::vector<std::string>))
+			{
+				std::vector<std::string> dataString = std::any_cast<std::vector<std::string>>(wrappedData);
+				dynamic_cast<ColumnBase<std::string>*>(columns.find(columnName)->second.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataString[iterator]);
+			}
+			else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
+			{
+				std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon = std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData);
+				dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columns.find(columnName)->second.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataPolygon[iterator]);
+			}
+			else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
+			{
+				std::vector<ColmnarDB::Types::Point> dataPoint = std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData);
+				dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columns.find(columnName)->second.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataPoint[iterator]);
+			}
+		}
+	}
+}
+#endif
+
 const std::shared_ptr<Database>& Table::GetDatabase()
 {
 	return database;
@@ -88,47 +138,90 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 {
 	if (!sortingColumn.empty())
 	{
-		auto column = (columns.find(sortingColumn)->second.get());
-		const auto &wrappedData = data.at(sortingColumn);
+		auto indexedColumn = (columns.find(sortingColumn)->second.get());
+		const auto &wrappedDataIndexedColumn = data.at(sortingColumn);
 
 		int indexBlock;
 		int indexInBlock;
 
-		if (wrappedData.type() == typeid(std::vector<int32_t>))
+		if (wrappedDataIndexedColumn.type() == typeid(std::vector<int32_t>))
 		{
-			std::vector<int32_t> dataInt = std::any_cast<std::vector<int32_t>>(wrappedData);
+			std::vector<int32_t> dataIndexedColumn = std::any_cast<std::vector<int32_t>>(wrappedDataIndexedColumn);
+			auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(indexedColumn);
 
-			for (auto dataRow : dataInt)
+			for (int i = 0; i < dataIndexedColumn.size(); i++)
 			{
-				std::tie(indexBlock, indexInBlock) = dynamic_cast<ColumnBase<int32_t>*>(column)->InsertOneValueData(dataRow);
-
-				//TODO insert na zaklade pairu do ostatnych stlpcov
+				std::tie(indexBlock, indexInBlock) = castedColumn->InsertOneValueData(dataIndexedColumn[i]);
+				InsertValuesInNonIndexColumns(data,indexBlock,indexInBlock,sortingColumn,i);
 			}
 		}
-		else if (wrappedData.type() == typeid(std::vector<int64_t>))
+		else if (wrappedDataIndexedColumn.type() == typeid(std::vector<int64_t>))
 		{
-			
+			std::vector<int64_t> dataIndexedColumn = std::any_cast<std::vector<int64_t>>(wrappedDataIndexedColumn);
+			auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(indexedColumn);
+
+			for (int i = 0; i < dataIndexedColumn.size(); i++)
+			{
+				std::tie(indexBlock, indexInBlock) = castedColumn->InsertOneValueData(dataIndexedColumn[i]);
+				InsertValuesInNonIndexColumns(data, indexBlock, indexInBlock, sortingColumn, i);
+			}
 		}
-		else if (wrappedData.type() == typeid(std::vector<double>))
+		else if (wrappedDataIndexedColumn.type() == typeid(std::vector<double>))
 		{
-			
+			std::vector<double> dataIndexedColumn = std::any_cast<std::vector<double>>(wrappedDataIndexedColumn);
+			auto castedColumn = dynamic_cast<ColumnBase<double>*>(indexedColumn);
+
+			for (int i = 0; i < dataIndexedColumn.size(); i++)
+			{
+				std::tie(indexBlock, indexInBlock) = castedColumn->InsertOneValueData(dataIndexedColumn[i]);
+				InsertValuesInNonIndexColumns(data, indexBlock, indexInBlock, sortingColumn, i);
+			}
 		}
-		else if (wrappedData.type() == typeid(std::vector<float>))
+		else if (wrappedDataIndexedColumn.type() == typeid(std::vector<float>))
 		{
-			
+			std::vector<float> dataIndexedColumn = std::any_cast<std::vector<float>>(wrappedDataIndexedColumn);
+			auto castedColumn = dynamic_cast<ColumnBase<float>*>(indexedColumn);
+
+			for (int i = 0; i < dataIndexedColumn.size(); i++)
+			{
+				std::tie(indexBlock, indexInBlock) = castedColumn->InsertOneValueData(dataIndexedColumn[i]);
+				InsertValuesInNonIndexColumns(data, indexBlock, indexInBlock, sortingColumn, i);
+			}
 		}
-		else if (wrappedData.type() == typeid(std::vector<std::string>))
+		//TODO Point and Polygon and string indexes (decide what is the minimum of these and decide how compare them)
+		/*else if (wrappedDataIndexedColumn.type() == typeid(std::vector<std::string>))
 		{
-			
+			std::vector<std::string> dataIndexedColumn = std::any_cast<std::vector<std::string>>(wrappedDataIndexedColumn);
+			auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(indexedColumn);
+
+			for (int i = 0; i < dataIndexedColumn.size(); i++)
+			{
+				std::tie(indexBlock, indexInBlock) = castedColumn->InsertOneValueData(dataIndexedColumn[i]);
+				InsertValuesInNonIndexColumns(data, indexBlock, indexInBlock, sortingColumn, i);
+			}
 		}
-		else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
+		else if (wrappedDataIndexedColumn.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
 		{
-			
+			std::vector<ColmnarDB::Types::ComplexPolygon> dataIndexedColumn = std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedDataIndexedColumn);
+			auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(indexedColumn);
+
+			for (int i = 0; i < dataIndexedColumn.size(); i++)
+			{
+				std::tie(indexBlock, indexInBlock) = castedColumn->InsertOneValueData(dataIndexedColumn[i]);
+				InsertValuesInNonIndexColumns(data, indexBlock, indexInBlock, sortingColumn, i);
+			}
 		}
-		else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
+		else if (wrappedDataIndexedColumn.type() == typeid(std::vector<ColmnarDB::Types::Point>))
 		{
-			
-		}
+			std::vector<ColmnarDB::Types::Point> dataIndexedColumn = std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedDataIndexedColumn);
+			auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(indexedColumn);
+
+			for (int i = 0; i < dataIndexedColumn.size(); i++)
+			{
+				std::tie(indexBlock, indexInBlock) = castedColumn->InsertOneValueData(dataIndexedColumn[i]);
+				InsertValuesInNonIndexColumns(data, indexBlock, indexInBlock, sortingColumn, i);
+			}
+		}*/
 	}
 
 	else
