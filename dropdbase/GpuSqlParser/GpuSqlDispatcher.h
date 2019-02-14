@@ -116,6 +116,12 @@ int32_t minusCol(GpuSqlDispatcher &dispatcher);
 template<typename T>
 int32_t minusConst(GpuSqlDispatcher &dispatcher);
 
+template<typename OP, typename T>
+int32_t dateExtractCol(GpuSqlDispatcher &dispatcher);
+
+template<typename OP, typename T>
+int32_t dateExtractConst(GpuSqlDispatcher &dispatcher);
+
 template<typename T>
 int32_t groupByConst(GpuSqlDispatcher &dispatcher);
 
@@ -235,6 +241,18 @@ private:
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> minusFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> yearFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> monthFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> dayFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> hourFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> minuteFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> secondFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
@@ -468,6 +486,12 @@ public:
 
     template<typename T>
     friend int32_t minusConst(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T>
+	friend int32_t dateExtractCol(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP, typename T>
+	friend int32_t dateExtractConst(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
     friend int32_t groupByCol(GpuSqlDispatcher &dispatcher);

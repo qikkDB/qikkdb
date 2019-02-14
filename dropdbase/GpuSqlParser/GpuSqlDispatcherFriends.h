@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "GpuSqlDispatcher.h"
+#include "../QueryEngine/GPUCore/GPUDate.cuh"
 #include "../QueryEngine/GPUCore/GPUFilter.cuh"
 #include "../QueryEngine/GPUCore/GPUArithmetic.cuh"
 #include "../QueryEngine/GPUCore/GPULogic.cuh"
@@ -502,6 +503,19 @@ int32_t minusConst(GpuSqlDispatcher &dispatcher)
 {
 	return 0;
 }
+
+template<typename OP, typename T>
+int32_t dateExtractCol(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+template<typename OP, typename T>
+int32_t dateExtractConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
 
 template<typename OP, typename T, typename U>
 int32_t aggregationColCol(GpuSqlDispatcher &dispatcher) 
