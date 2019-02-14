@@ -54,6 +54,7 @@ private:
 
     void stringToUpper(std::string &str);
 
+	std::string getRegString();
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType colToConst(DataType type);
 
@@ -92,7 +93,13 @@ public:
 
     void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
 
+	void exitShowDatabases(GpuSqlParser::ShowDatabasesContext *ctx) override;
 
+	void exitShowTables(GpuSqlParser::ShowTablesContext *ctx) override;
+
+	void exitShowColumns(GpuSqlParser::ShowColumnsContext *ctx) override;
+
+	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
 };
 
 

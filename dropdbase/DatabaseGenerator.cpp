@@ -88,14 +88,14 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						if (k % 2)
-						{
+						/*if (k % 2)
+						{*/
 							integerData.push_back(sameDataInBlocks ? 1 : k % (1024 * integerColumnCount));
-						}
+						/*}
 						else
 						{
 							integerData.push_back(sameDataInBlocks ? -1 : (k % (1024 * integerColumnCount)) * -1);
-						}
+						}*/
 					}
 					column.AddBlock(integerData);
 				}

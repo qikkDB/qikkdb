@@ -11,7 +11,8 @@ class GPUMemoryCache
 {
 
 private:
-	const size_t maxSize = 1LL << 32;
+	const size_t maxSize = 7000000000LL;
+	//const size_t maxSize = 9200;
 	int32_t deviceID_;
 
 	struct CacheEntry

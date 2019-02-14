@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <iostream>
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
@@ -31,6 +32,8 @@ public:
 			// Don't overwrite last error with success
 			break;
 		default:
+			std::cout << cudaError << " " << cudaGetErrorString(cudaError) << '\n';
+			throw cudaError;
 			type_ = GPU_EXTENSION_ERROR;
 			text_ = cudaGetErrorString(cudaError);
 			break;

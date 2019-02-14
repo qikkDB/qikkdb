@@ -148,12 +148,13 @@ public:
 	const int32_t getBoundDeviceID() { 
 		int boundDeviceID;
 		cudaGetDevice(&boundDeviceID);
-		return boundDeviceID; 
+		return 0; 
 	}
 
 	// Get found device count
 	const int32_t getDeviceCount() { 
-		return deviceCount_; 
+		//return deviceCount_; 
+		return 1;
 	}
 
 	// Querying info about devices and rebinding devices to the context
@@ -169,7 +170,7 @@ public:
 			throw std::out_of_range("ERROR: Device ID not present");
 		}
 
-		cudaSetDevice(deviceID);
+		cudaSetDevice(0);
 	}
 
 	// Allocator methods

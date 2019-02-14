@@ -246,7 +246,7 @@ public:
 	}
 
 	// Get the final hash table results - for operations Min, Max and Sum
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount)
+	void getResults(K **outKeys, O **outValues, int32_t *outDataElementCount)
 	{
 		static_assert(!std::is_same<AGG, AggregationFunctions::avg>::value &&
 			!std::is_same<AGG, AggregationFunctions::count>::value,
@@ -272,7 +272,7 @@ public:
 	}
 	
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<IGroupBy*> tables)
+	void getResults(K **outKeys, O **outValues, int32_t *outDataElementCount, std::vector<IGroupBy*> tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{
@@ -403,7 +403,7 @@ public:
 	}
 
 	// Get the final hash table results - for operation Average
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount)
+	void getResults(K **outKeys, O **outValues, int32_t *outDataElementCount)
 	{
 		static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value,
 			"GPUGroupBy<avg>.getResults K (keys) must be integral or floating point");
@@ -442,7 +442,7 @@ public:
 	}
 
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<IGroupBy*> tables)
+	void getResults(K **outKeys, O **outValues, int32_t *outDataElementCount, std::vector<IGroupBy*> tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{
@@ -591,7 +591,7 @@ public:
 	}
 
 	// Get the final hash table results - for operation Count
-	void getResults(K *outKeys, int64_t *outValues, int32_t *outDataElementCount)
+	void getResults(K **outKeys, int64_t **outValues, int32_t *outDataElementCount)
 	{
 		static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value,
 			"GPUGroupBy<count>.getResults K (keys) must be integral or floating point");
@@ -611,7 +611,7 @@ public:
 	}
 
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, int64_t *outValues, int32_t *outDataElementCount, std::vector<IGroupBy*> tables)
+	void getResults(K **outKeys, int64_t **outValues, int32_t *outDataElementCount, std::vector<IGroupBy*> tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{

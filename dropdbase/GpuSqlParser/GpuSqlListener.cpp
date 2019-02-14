@@ -87,8 +87,7 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 		returnDataType = DataType::COLUMN_INT8_T;
     }
 
-	std::string reg = std::string("R") + std::to_string(tempCounter);
-
+	std::string reg = getRegString();
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(returnDataType);
 }
@@ -116,7 +115,7 @@ void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext 
         dispatcher.addBetweenFunction(op1Type, op2Type, op3Type);
     }
 
-	std::string reg = std::string("R") + std::to_string(tempCounter);
+	std::string reg = getRegString();
 	pushArgument(reg.c_str(), DataType::COLUMN_INT8_T);
     pushTempResult(DataType::COLUMN_INT8_T);
 }
@@ -142,7 +141,7 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 		returnDataType = operandType;
     }
 
-	std::string reg = std::string("R") + std::to_string(tempCounter);
+	std::string reg = getRegString();
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(returnDataType);
 }
@@ -192,7 +191,7 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     }
 
 	insideAgg = false;
-	std::string reg = std::string("R") + std::to_string(tempCounter);
+	std::string reg = getRegString();
 
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(returnDataType);
@@ -261,6 +260,152 @@ void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx
         }
     }
     usingGroupBy = true;
+}
+
+void GpuSqlListener::exitShowDatabases(GpuSqlParser::ShowDatabasesContext * ctx)
+{
+	dispatcher.addShowDatabasesFunction();
+}
+
+void GpuSqlListener::exitShowTables(GpuSqlParser::ShowTablesContext * ctx)
+{
+	dispatcher.addShowTablesFunction();
+	std::string db;
+
+	if(ctx->database())
+	{
+		db = ctx->database()->getText();
+
+		if(Database::GetLoadedDatabases().find(db) == Database::GetLoadedDatabases().end())
+		{
+			throw DatabaseNotFoundException();
+		}
+	}
+	else
+	{
+		if (database)
+		{
+			db = database->GetName();
+		}
+		else
+		{
+			throw DatabaseNotFoundException();
+		}
+	}
+
+	dispatcher.addArgument<const std::string&>(db);
+}
+
+void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext * ctx)
+{
+	dispatcher.addShowColumnsFunction();
+	std::string db;
+	std::string table;
+
+	if (ctx->database())
+	{
+		db = ctx->database()->getText();
+
+		if (Database::GetLoadedDatabases().find(db) == Database::GetLoadedDatabases().end())
+		{
+			throw DatabaseNotFoundException();
+		}
+	}
+	else
+	{
+		if (database)
+		{
+
+			db = database->GetName();
+		}
+		else
+		{
+			throw DatabaseNotFoundException();
+		}
+	}
+
+	std::shared_ptr<Database> databaseObject = Database::GetLoadedDatabases().at(db);
+	table = ctx->table()->getText();
+	
+	if (databaseObject->GetTables().find(table) == databaseObject->GetTables().end())
+	{
+		throw TableNotFoundFromException();
+	}
+
+	dispatcher.addArgument<const std::string&>(db);
+	dispatcher.addArgument<const std::string&>(table);
+}
+
+void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
+{
+	std::string table = ctx->table()->getText();
+	if (database->GetTables().find(table) == database->GetTables().end())
+	{
+		throw TableNotFoundFromException();
+	}
+	auto& tab = database->GetTables().at(table);
+	
+	std::vector<std::pair<std::string, DataType>> columns;
+	std::vector<std::string> values;
+
+	for (auto& insertIntoColumn : ctx->insertIntoColumns()->columnId())
+	{
+		if (insertIntoColumn->table())
+		{
+			throw ColumnNotFoundException();
+		}
+
+		std::string column = insertIntoColumn->column()->getText();
+		if (tab.GetColumns().find(column) == tab.GetColumns().end())
+		{
+			throw ColumnNotFoundException();
+		}
+		DataType columnDataType = tab.GetColumns().at(column).get()->GetColumnType();
+		std::pair<std::string, DataType> columnPair = std::make_pair(column, columnDataType);
+		
+		if (std::find(columns.begin(), columns.end(), columnPair) != columns.end())
+		{
+			throw InsertIntoException();
+		}
+		columns.push_back(columnPair);
+	}
+
+	for (auto& value : ctx->insertIntoValues()->columnValue())
+	{
+		auto start = value->start->getStartIndex();
+		auto stop = value->stop->getStopIndex();
+		antlr4::misc::Interval interval(start, stop);
+		std::string valueText = value->start->getInputStream()->getText(interval);
+		values.push_back(valueText);
+	}
+
+	if (columns.size() != values.size())
+	{
+		throw NotSameAmoutOfValuesException();
+	}
+
+	for (auto& column : tab.GetColumns())
+	{
+		std::string columnName = column.first;
+		DataType columnDataType = column.second.get()->GetColumnType();
+		std::pair<std::string, DataType> columnPair = std::make_pair(columnName, columnDataType);
+
+		dispatcher.addInsertIntoFunction(columnDataType);
+
+		bool isReferencedColumn = std::find(columns.begin(), columns.end(), columnPair) != columns.end();
+
+		dispatcher.addArgument<const std::string&>(table);
+		dispatcher.addArgument<const std::string&>(columnName);
+		dispatcher.addArgument<bool>(isReferencedColumn);
+
+		if (isReferencedColumn)
+		{
+			int valueIndex = std::find(columns.begin(), columns.end(), columnPair) - columns.begin();
+			std::cout << values[valueIndex].c_str() << " " <<  columnName << std::endl;
+			pushArgument(values[valueIndex].c_str(), static_cast<DataType>(static_cast<int>(columnDataType) - DataType::COLUMN_INT));
+		}
+	}
+	dispatcher.addInsertIntoDoneFunction();
 }
 
 void GpuSqlListener::exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx)
@@ -403,7 +548,7 @@ std::pair<std::string, DataType> GpuSqlListener::stackTopAndPop()
 
 void GpuSqlListener::pushTempResult(DataType type)
 {
-    std::string reg = std::string("R") + std::to_string(tempCounter);
+	std::string reg = getRegString();
     tempCounter++;
     parserStack.push(std::make_pair(reg, type));
 }
@@ -504,6 +649,11 @@ void GpuSqlListener::stringToUpper(std::string &str)
     {
         c = toupper(c);
     }
+}
+
+std::string GpuSqlListener::getRegString()
+{
+	return std::string("$") + std::to_string(tempCounter);
 }
 
 DataType GpuSqlListener::getReturnDataType(DataType left, DataType right)
