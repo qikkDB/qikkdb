@@ -54,6 +54,7 @@ expression : op=NOT expression                                                  
            | LPAREN expression RPAREN                                                     # parenExpression
            | columnId                                                                     # varReference
            | geometry                                                                     # geoReference
+           | DATETIMELIT                                                                  # dateTimeLiteral
            | FLOATLIT                                                                     # decimalLiteral
            | INTLIT                                                                       # intLiteral
            | STRINGLIT                                                                    # stringLiteral

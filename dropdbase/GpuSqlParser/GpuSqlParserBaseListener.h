@@ -115,8 +115,8 @@ public:
   virtual void enterGeoReference(GpuSqlParser::GeoReferenceContext * /*ctx*/) override { }
   virtual void exitGeoReference(GpuSqlParser::GeoReferenceContext * /*ctx*/) override { }
 
-  virtual void enterStringLiteral(GpuSqlParser::StringLiteralContext * /*ctx*/) override { }
-  virtual void exitStringLiteral(GpuSqlParser::StringLiteralContext * /*ctx*/) override { }
+  virtual void enterDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * /*ctx*/) override { }
+  virtual void exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * /*ctx*/) override { }
 
   virtual void enterIntLiteral(GpuSqlParser::IntLiteralContext * /*ctx*/) override { }
   virtual void exitIntLiteral(GpuSqlParser::IntLiteralContext * /*ctx*/) override { }
@@ -136,14 +136,17 @@ public:
   virtual void enterUnaryOperation(GpuSqlParser::UnaryOperationContext * /*ctx*/) override { }
   virtual void exitUnaryOperation(GpuSqlParser::UnaryOperationContext * /*ctx*/) override { }
 
+  virtual void enterVarReference(GpuSqlParser::VarReferenceContext * /*ctx*/) override { }
+  virtual void exitVarReference(GpuSqlParser::VarReferenceContext * /*ctx*/) override { }
+
+  virtual void enterStringLiteral(GpuSqlParser::StringLiteralContext * /*ctx*/) override { }
+  virtual void exitStringLiteral(GpuSqlParser::StringLiteralContext * /*ctx*/) override { }
+
   virtual void enterUnaryExpression(GpuSqlParser::UnaryExpressionContext * /*ctx*/) override { }
   virtual void exitUnaryExpression(GpuSqlParser::UnaryExpressionContext * /*ctx*/) override { }
 
   virtual void enterBooleanLiteral(GpuSqlParser::BooleanLiteralContext * /*ctx*/) override { }
   virtual void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext * /*ctx*/) override { }
-
-  virtual void enterVarReference(GpuSqlParser::VarReferenceContext * /*ctx*/) override { }
-  virtual void exitVarReference(GpuSqlParser::VarReferenceContext * /*ctx*/) override { }
 
   virtual void enterGeometry(GpuSqlParser::GeometryContext * /*ctx*/) override { }
   virtual void exitGeometry(GpuSqlParser::GeometryContext * /*ctx*/) override { }

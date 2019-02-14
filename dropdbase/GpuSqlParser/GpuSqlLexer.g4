@@ -1,12 +1,29 @@
 lexer grammar GpuSqlLexer;
 
+DATETIMELIT : SQOUTE DATELIT ([ ] TIMELIT)? SQOUTE;
+
 LF          : '\n' -> skip;
 CR          : '\r' -> skip;
 CRLF        : '\r\n' -> skip;
 WS          : [\t\r\n ]+ -> skip ;
 SEMICOL     : ';';
+SQOUTE      : '\'';
+DQOUTE      : '"';
+COLON       : ':';
 COMMA       : ',';
 DOT         : '.';
+
+DATELIT                 : YEARLIT MINUS MONTHLIT MINUS DAYLIT;
+
+fragment YEARLIT        : [1-9][0-9][0-9][0-9];
+fragment MONTHLIT       : [1][0-2]|[0][1-9];
+fragment DAYLIT         : [0][1-9]|[1-2][0-9]|[3][0-1];
+
+TIMELIT                 : HOURLIT COLON MINUTELIT COLON SECONDLIT;
+
+fragment HOURLIT        : [0-1][0-9]|[2][0-3];
+fragment MINUTELIT      : [0-5][0-9];
+fragment SECONDLIT      : [0-5][0-9];
 
 DATATYPE    : (INTTYPE|FLOATTYPE|STRINGTYPE|BOOLEANTYPE);
 

@@ -113,8 +113,8 @@ public:
   virtual void enterGeoReference(GpuSqlParser::GeoReferenceContext *ctx) = 0;
   virtual void exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx) = 0;
 
-  virtual void enterStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
-  virtual void exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
+  virtual void enterDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext *ctx) = 0;
+  virtual void exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext *ctx) = 0;
 
   virtual void enterIntLiteral(GpuSqlParser::IntLiteralContext *ctx) = 0;
   virtual void exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx) = 0;
@@ -134,14 +134,17 @@ public:
   virtual void enterUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) = 0;
   virtual void exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) = 0;
 
+  virtual void enterVarReference(GpuSqlParser::VarReferenceContext *ctx) = 0;
+  virtual void exitVarReference(GpuSqlParser::VarReferenceContext *ctx) = 0;
+
+  virtual void enterStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
+  virtual void exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
+
   virtual void enterUnaryExpression(GpuSqlParser::UnaryExpressionContext *ctx) = 0;
   virtual void exitUnaryExpression(GpuSqlParser::UnaryExpressionContext *ctx) = 0;
 
   virtual void enterBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;
   virtual void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;
-
-  virtual void enterVarReference(GpuSqlParser::VarReferenceContext *ctx) = 0;
-  virtual void exitVarReference(GpuSqlParser::VarReferenceContext *ctx) = 0;
 
   virtual void enterGeometry(GpuSqlParser::GeometryContext *ctx) = 0;
   virtual void exitGeometry(GpuSqlParser::GeometryContext *ctx) = 0;
