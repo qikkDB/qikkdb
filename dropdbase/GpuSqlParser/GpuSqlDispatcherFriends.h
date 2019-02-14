@@ -507,6 +507,7 @@ int32_t minusConst(GpuSqlDispatcher &dispatcher)
 template<typename OP, typename T>
 int32_t dateExtractCol(GpuSqlDispatcher &dispatcher)
 {
+	std::cout << "Extract from date" << std::endl;
 	return 0;
 }
 

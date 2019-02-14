@@ -528,17 +528,22 @@ int32_t showColumns(GpuSqlDispatcher &dispatcher)
 
 	auto& columns_map = table.GetColumns();
 	//std::vector<std::string> columns;
-	std::unique_ptr<std::string[]> outData(new std::string[table.GetColumns().size()]);
+	std::unique_ptr<std::string[]> outDataName(new std::string[table.GetColumns().size()]);
+	std::unique_ptr<std::string[]> outDataType(new std::string[table.GetColumns().size()]);
 
 	int i = 0;
-	for (auto& columnName : columns_map) {
-		outData[i++] = columnName.first;
+	for (auto& column : columns_map) {
+		outDataName[i] = column.first;
+		outDataType[i] = std::to_string(column.second.get()->GetColumnType());
+		i++;
 	}
 
-	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-	insertIntoPayload<std::string>(payload, outData, columns_map.size());
-	dispatcher.mergePayloadToResponse(tab, payload);
-
+	ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadName;
+	ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadType;
+	insertIntoPayload<std::string>(payloadName, outDataName, columns_map.size());
+	insertIntoPayload<std::string>(payloadType, outDataType, columns_map.size());
+	dispatcher.mergePayloadToResponse(tab + "_columns", payloadName);
+	dispatcher.mergePayloadToResponse(tab + "_types", payloadType);
 	return 4;
 }
 
