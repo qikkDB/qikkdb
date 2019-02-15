@@ -119,7 +119,7 @@ public:
 
 		if (pointCount != polygonCount && pointCount != 1 && polygonCount != 1)
 		{
-			context.getLastError().setType(QueryEngineError::GPU_EXTENSION_ERROR);
+			QueryEngineError::setType(QueryEngineError::GPU_EXTENSION_ERROR);
 			return;
 		}
 
@@ -128,7 +128,7 @@ public:
 				polygonCnt, pointCount, polygonCount);
 		cudaDeviceSynchronize();
 
-		context.getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 };
 

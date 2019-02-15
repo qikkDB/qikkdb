@@ -30,7 +30,7 @@ public:
 		kernel_convert_buffer << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(outData, inData, dataElementCount);
 
-		context.getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 };
 
