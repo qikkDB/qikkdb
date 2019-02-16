@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include "../Context.h"
+#include "../QueryEngineError.h"
 #include "MaybeDeref.cuh"
 
 namespace DateOperations
@@ -77,7 +78,7 @@ __global__ void kernel_extract(int32_t * output, T dateTimeCol, int32_t dataElem
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		output[i] = OP{}.operator()(maybe_deref(dateTimeCol, i));// OP::extract(static_cast<int64_t>(maybe_deref(dateTimeCol, i)));
+		output[i] = OP{}.operator()(maybe_deref(dateTimeCol, i));
 	}
 }
 
