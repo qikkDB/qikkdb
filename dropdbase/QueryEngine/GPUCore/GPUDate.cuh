@@ -13,8 +13,7 @@ namespace DateOperations
 {
 	struct year
 	{
-		template<typename RET, typename DT>
-		__device__ RET operator()(DT dateTime) const
+		__device__ int32_t operator()(int64_t dateTime) const
 		{
 			return 0;
 		}
@@ -22,8 +21,7 @@ namespace DateOperations
 
 	struct month
 	{
-		template<typename RET, typename DT>
-		__device__ RET operator()(DT dateTime) const
+		__device__ int32_t operator()(int64_t dateTime) const
 		{
 			return 0;
 		}
@@ -31,8 +29,7 @@ namespace DateOperations
 
 	struct day
 	{
-		template<typename RET, typename DT>
-		__device__ RET operator()(DT dateTime) const
+		__device__ int32_t operator()(int64_t dateTime) const
 		{
 			return 0;
 		}
@@ -40,28 +37,25 @@ namespace DateOperations
 
 	struct hour
 	{
-		template<typename RET, typename DT>
-		__device__ RET operator()(DT dateTime) const
+		__device__ int32_t operator()(int64_t dateTime) const
 		{
-			return 0;
+			return static_cast<int32_t>((dateTime/3600i64) % 24i64);
 		}
 	};
 
 	struct minute
 	{
-		template<typename RET, typename DT>
-		__device__ RET operator()(DT dateTime) const
+		__device__ int32_t operator()(int64_t dateTime) const
 		{
-			return 0;
+			return static_cast<int32_t>((dateTime / 60i64) % 60i64);
 		}
 	};
 
 	struct second
 	{
-		template<typename RET, typename DT>
-		__device__ RET operator()(DT dateTime) const
+		__device__ int32_t operator()(int64_t dateTime) const
 		{
-			return 0;
+			return static_cast<int32_t>(dateTime % 60i64);
 		}
 	};
 }
@@ -75,17 +69,15 @@ namespace DateOperations
 /// <param name="dateTimeCol">input timestamp (column or constant)</param>
 /// <param name="dataElementCount">the count of elements in the input block
 /// (or of output block if input is constant)</param>
-template<typename OP, typename RET, typename DT>
-__global__ void kernel_extract(RET * output, DT dateTimeCol, int32_t dataElementCount)
+template<typename OP, typename T>
+__global__ void kernel_extract(int32_t * output, T dateTimeCol, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		output[i] = OP{}.template operator()
-			< RET, typename std::remove_pointer<DT>::type>
-			(maybe_deref(dateTimeCol, i));
+		output[i] = OP{}.operator()(maybe_deref(dateTimeCol, i));// OP::extract(static_cast<int64_t>(maybe_deref(dateTimeCol, i)));
 	}
 }
 
@@ -96,8 +88,8 @@ __global__ void kernel_extract(RET * output, DT dateTimeCol, int32_t dataElement
 class GPUDate
 {
 public:
-	template<typename OP, typename T>
-	static void extractCol(int32_t * output, T * dateTimeCol, int32_t dataElementCount)
+	template<typename OP>
+	static void extractCol(int32_t * output, int64_t * dateTimeCol, int32_t dataElementCount)
 	{
 		kernel_extract <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, dateTimeCol, dataElementCount);
@@ -105,14 +97,13 @@ public:
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
-	template<typename OP, typename T>
-	static void extractConst(int32_t * output, T dateTimeConst, int32_t dataElementCount)
+	template<typename OP>
+	static void extractConst(int32_t * output, int64_t dateTimeConst, int32_t dataElementCount)
 	{
 		kernel_extract <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, dateTimeConst, dataElementCount);
 		cudaDeviceSynchronize();
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
-
 
 };
