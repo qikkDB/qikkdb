@@ -15,7 +15,8 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 
 set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUArtithmeticTests.cu
-				${CMAKE_CURRENT_SOURCE_DIR}/GPUAggregationTests.cu)
+				${CMAKE_CURRENT_SOURCE_DIR}/GPUAggregationTests.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/GPUDateTests.cu)
 
 if(WIN32)
 	set_source_files_properties(${SOURCE_FILES} main.cpp PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275")
