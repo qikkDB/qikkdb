@@ -1,36 +1,32 @@
 #include <cstdio>
 #include <iostream>
 #include <chrono>
-#include <boost/log/core.hpp>
-#include <boost/log/sinks/text_file_backend.hpp>
-#include <boost/log/utility/setup/file.hpp>
-#include <boost/log/utility/setup/console.hpp>
-#include <boost/log/trivial.hpp>
+
 #include "QueryEngine/Context.h"
-#include "GpuSqlParser/GpuSqlCustomParser.h"
-#include "DatabaseGenerator.h"
-#include "Configuration.h"
-#include "TCPServer.h"
-#include "ClientPoolWorker.h"
-#include "TCPClientHandler.h"
-#include "ConsoleHandler.h"
+#include "QueryEngine/GPUCore/GPUMemory.cuh"
+#include "QueryEngine/GPUCore/GPUFilter.cuh"
+#include "QueryEngine/GPUCore/GPUDate.cuh"
+#include "QueryEngine/GPUCore/cuda_ptr.h"
+
+const int32_t TEST_EL_COUNT = 8;
+int64_t testDateTimes[] = { 0, 1, 60, 3599, 3600, 5555, 86399, 86400, };
+const int32_t correctYears[] = { 0, 0,  0,    0,    1,    1,    23,    24, };
 
 int main(int argc, char **argv)
 {
-	
-	Context::getInstance(); // Initialize CUDA context
+	std::unique_ptr<int32_t[]> resultHost = std::make_unique<int32_t[]>(TEST_EL_COUNT);
+	cuda_ptr<int64_t> dtDevice(TEST_EL_COUNT);	// use our cuda smart pointer
+	cuda_ptr<int32_t> resultDevice(TEST_EL_COUNT);
 
-    boost::log::add_file_log("../log/ColmnarDB.log");
-    boost::log::add_console_log(std::cout);
-	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
-	Database::LoadDatabasesFromDisk();
-	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
-	RegisterCtrlCHandler(&tcpServer);
-	tcpServer.Run();
+	GPUMemory::copyHostToDevice(dtDevice.get(), testDateTimes, TEST_EL_COUNT);
+	GPUDate::extractCol<DateOperations::hour>(resultDevice.get(), dtDevice.get(), TEST_EL_COUNT);
+	GPUMemory::copyDeviceToHost(resultHost.get(), resultDevice.get(), TEST_EL_COUNT);
 
-	Database::SaveAllToDisk();
-	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
-	
+	for (int i = 0; i < TEST_EL_COUNT; i++)
+	{
+		if (resultHost.get()[i] != correctYears[i])
+			abort();
+	}
 	
 	/*
 	std::vector<std::string> tableNames = { "TableA" };
