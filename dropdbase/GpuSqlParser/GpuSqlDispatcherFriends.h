@@ -19,8 +19,17 @@ template<typename T>
 T* GpuSqlDispatcher::allocateRegister(const std::string& reg, int32_t size)
 {
 	T * mask;
-	GPUMemory::alloc<T>(&mask, size);
-	allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(mask), size) });
+	if (allocatedPointers.find(reg) == allocatedPointers.end())
+	{
+		GPUMemory::alloc<T>(&mask, size);
+		allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(mask), size) });
+	}
+	else
+	{
+		std::cout << "Used local cache" << std::endl;
+		mask = reinterpret_cast<T*>(std::get<0>(allocatedPointers.at(reg)));
+	}
+	usedRegisterMemory += size * sizeof(T);
 	return mask;
 }
 

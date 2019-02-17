@@ -197,6 +197,8 @@ private:
     std::vector<std::function<int32_t(GpuSqlDispatcher &)>> dispatcherFunctions;
     MemoryStream arguments;
 	int32_t blockIndex;
+	int64_t usedRegisterMemory;
+	const int64_t maxRegisterMemory;
 	int32_t instructionPointer;
 	int32_t constPointCounter;
 	int32_t constPolygonCounter;
