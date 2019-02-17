@@ -55,6 +55,7 @@ int32_t loadCol(GpuSqlDispatcher &dispatcher)
 	gpuPointer = dispatcher.allocateRegister<T>(colName, block->GetData().size());
 
 	GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<T*>(block->GetData().data()), block->GetData().size());
+	dispatcher.noLoad = false;
 	return 0;
 }
 
@@ -504,16 +505,33 @@ int32_t minusConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
-template<typename OP, typename T>
+template<typename OP>
 int32_t dateExtractCol(GpuSqlDispatcher &dispatcher)
 {
-	std::cout << "Extract from date" << std::endl;
+	auto colName = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "ExtractDatePartCol: " << colName << " " << reg << std::endl;
+
+	std::tuple<uintptr_t, int32_t> column = dispatcher.allocatedPointers.at(colName);
+	int32_t retSize = std::get<1>(column);
+
+	int32_t * result = dispatcher.allocateRegister<int32_t>(reg, retSize);
+	GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(std::get<0>(column)), retSize);
+	dispatcher.freeColumnIfRegister(colName);
 	return 0;
 }
 
-template<typename OP, typename T>
+template<typename OP>
 int32_t dateExtractConst(GpuSqlDispatcher &dispatcher)
 {
+	int64_t cnst = dispatcher.arguments.read<int64_t>();
+	auto reg = dispatcher.arguments.read<std::string>();
+	std::cout << "ExtractDatePartConst: " << cnst << " " << reg << std::endl;
+
+	int32_t retSize = 1;
+
+	int32_t * result = dispatcher.allocateRegister<int32_t>(reg, retSize);
+	GPUDate::extractConst<OP>(result, cnst, retSize);
 	return 0;
 }
 

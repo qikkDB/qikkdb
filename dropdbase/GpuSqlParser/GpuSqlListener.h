@@ -56,7 +56,7 @@ private:
 
 	std::string getRegString();
 	DataType getReturnDataType(DataType left, DataType right);
-	DataType colToConst(DataType type);
+	DataType getReturnDataType(DataType operand);
 
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);

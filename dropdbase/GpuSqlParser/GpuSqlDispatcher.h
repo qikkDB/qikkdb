@@ -116,10 +116,10 @@ int32_t minusCol(GpuSqlDispatcher &dispatcher);
 template<typename T>
 int32_t minusConst(GpuSqlDispatcher &dispatcher);
 
-template<typename OP, typename T>
+template<typename OP>
 int32_t dateExtractCol(GpuSqlDispatcher &dispatcher);
 
-template<typename OP, typename T>
+template<typename OP>
 int32_t dateExtractConst(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
@@ -206,6 +206,7 @@ private:
 	std::uintptr_t filter_;
 	bool usingGroupBy;
 	bool isLastBlock;
+	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
 	std::unique_ptr<IGroupBy> groupByTable;
 
@@ -487,10 +488,10 @@ public:
     template<typename T>
     friend int32_t minusConst(GpuSqlDispatcher &dispatcher);
 
-	template<typename OP, typename T>
+	template<typename OP>
 	friend int32_t dateExtractCol(GpuSqlDispatcher &dispatcher);
 
-	template<typename OP, typename T>
+	template<typename OP>
 	friend int32_t dateExtractConst(GpuSqlDispatcher &dispatcher);
 
     template<typename T>

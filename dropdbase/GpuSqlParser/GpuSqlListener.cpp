@@ -158,37 +158,37 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	else if (op == "-")
     {
         dispatcher.addMinusFunction(operandType);
-		returnDataType = operandType;
+		returnDataType = getReturnDataType(operandType);
     }
 	else if (op == "YEAR")
 	{
 		dispatcher.addYearFunction(operandType);
-		returnDataType = operandType;
+		returnDataType = COLUMN_INT;
 	}
 	else if (op == "MONTH")
 	{
 		dispatcher.addMonthFunction(operandType);
-		returnDataType = operandType;
+		returnDataType = COLUMN_INT;
 	}
 	else if (op == "DAY")
 	{
 		dispatcher.addDayFunction(operandType);
-		returnDataType = operandType;
+		returnDataType = COLUMN_INT;
 	}
 	else if (op == "HOUR")
 	{
 		dispatcher.addHourFunction(operandType);
-		returnDataType = operandType;
+		returnDataType = COLUMN_INT;
 	}
 	else if (op == "MINUTE")
 	{
 		dispatcher.addMinuteFunction(operandType);
-		returnDataType = operandType;
+		returnDataType = COLUMN_INT;
 	}
 	else if (op == "SECOND")
 	{
 		dispatcher.addSecondFunction(operandType);
-		returnDataType = operandType;
+		returnDataType = COLUMN_INT;
 	}
 
 	std::string reg = getRegString();
@@ -221,27 +221,27 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     if (op == "MIN")
     {
         dispatcher.addMinFunction(groupByType, operandType);
-		returnDataType = operandType;
+		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "MAX")
     {
         dispatcher.addMaxFunction(groupByType, operandType);
-		returnDataType = operandType;
+		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "SUM")
     {
         dispatcher.addSumFunction(groupByType, operandType);
-		returnDataType = operandType;
+		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "COUNT")
     {
         dispatcher.addCountFunction(groupByType, operandType);
-		returnDataType = DataType::COLUMN_LONG;
+		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "AVG")
     {
         dispatcher.addAvgFunction(groupByType, operandType);
-		returnDataType = operandType;
+		returnDataType = getReturnDataType(operandType);
     }
 
 	insideAgg = false;
@@ -530,9 +530,6 @@ void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * 
 	ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
 	std::time_t epochTime = std::mktime(&t);
 
-	std::cout << dateValue << std::endl;
-	std::cout << (epochTime / 31557600) + 1970 << std::endl;
-
 	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
 }
 
@@ -736,10 +733,19 @@ std::string GpuSqlListener::getRegString()
 
 DataType GpuSqlListener::getReturnDataType(DataType left, DataType right)
 {
-	return std::max<DataType>(left,right);
+	DataType result = std::max<DataType>(left,right);
+	if (result < DataType::COLUMN_INT)
+	{
+		return static_cast<DataType>(result + DataType::COLUMN_INT);
+	}
+	return result;
 }
 
-DataType GpuSqlListener::colToConst(DataType type)
+DataType GpuSqlListener::getReturnDataType(DataType operand)
 {
-	return static_cast<DataType>(type - DataType::COLUMN_INT);
+	if (operand < DataType::COLUMN_INT)
+	{
+		return static_cast<DataType>(operand + DataType::COLUMN_INT);
+	}
+	return operand;
 }
