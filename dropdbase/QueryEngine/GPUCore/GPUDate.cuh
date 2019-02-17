@@ -40,7 +40,16 @@ namespace DateOperations
 	{
 		__device__ int32_t operator()(int64_t dateTime) const
 		{
-			return static_cast<int32_t>((dateTime/3600i64) % 24i64);
+			bool negative = dateTime < 0;
+			if (negative)
+			{
+				return static_cast<int32_t>((((dateTime + 1i64) % 86400i64) + 86399i64) / 3600i64);
+			}
+			if (!negative)
+			{
+				return static_cast<int32_t>((dateTime / 3600i64) % 24i64);
+			}
+			return 0;
 		}
 	};
 
@@ -48,7 +57,16 @@ namespace DateOperations
 	{
 		__device__ int32_t operator()(int64_t dateTime) const
 		{
-			return static_cast<int32_t>((dateTime / 60i64) % 60i64);
+			bool negative = dateTime < 0;
+			if (negative)
+			{
+				return static_cast<int32_t>((((dateTime + 1i64) % 3600i64) + 3599i64) / 60i64);
+			}
+			if (!negative)
+			{
+				return static_cast<int32_t>((dateTime / 60i64) % 60i64);
+			}
+			return 0;
 		}
 	};
 
@@ -56,7 +74,16 @@ namespace DateOperations
 	{
 		__device__ int32_t operator()(int64_t dateTime) const
 		{
-			return static_cast<int32_t>(dateTime % 60i64);
+			bool negative = dateTime < 0;
+			if (negative)
+			{
+				return static_cast<int32_t>(((dateTime + 1i64) % 60i64) + 59i64);
+			}
+			if (!negative)
+			{
+				return static_cast<int32_t>(dateTime % 60i64);
+			}
+			return 0;
 		}
 	};
 }
