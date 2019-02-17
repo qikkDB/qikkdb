@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/Martin Stano/Desktop/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -73,6 +73,9 @@ public:
 
   virtual void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) = 0;
   virtual void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) = 0;
+
+  virtual void enterGroupByColumn(GpuSqlParser::GroupByColumnContext *ctx) = 0;
+  virtual void exitGroupByColumn(GpuSqlParser::GroupByColumnContext *ctx) = 0;
 
   virtual void enterColumnId(GpuSqlParser::ColumnIdContext *ctx) = 0;
   virtual void exitColumnId(GpuSqlParser::ColumnIdContext *ctx) = 0;

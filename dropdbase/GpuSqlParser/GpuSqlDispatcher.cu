@@ -664,7 +664,7 @@ void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB:
 
 void GpuSqlDispatcher::freeColumnIfRegister(std::string & col)
 {
-	if (std::regex_match(col, std::regex("(\\$)[0-9]+"))) 
+	if (std::regex_match(col, std::regex("^(\\$).*"))) 
 	{
 		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(col))));
 		allocatedPointers.erase(col);

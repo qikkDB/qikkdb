@@ -5,6 +5,7 @@
 #ifndef DROPDBASE_INSTAREA_GPUSQLLISTENER_H
 #define DROPDBASE_INSTAREA_GPUSQLLISTENER_H
 
+#include "GpuSqlParser.h"
 #include "GpuSqlParserBaseListener.h"
 #include "ParserExceptions.h"
 #include "../Database.h"
@@ -40,7 +41,7 @@ private:
 
     std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
-    void pushTempResult(DataType type);
+    void pushTempResult(std::string reg, DataType type);
 
     void pushArgument(const char *token, DataType dataType);
 
@@ -54,7 +55,7 @@ private:
 
     void stringToUpper(std::string &str);
 
-	std::string getRegString();
+	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
 
@@ -94,6 +95,8 @@ public:
     void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 
     void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
+
+	void exitGroupByColumn(GpuSqlParser::GroupByColumnContext *ctx) override;
 
 	void exitShowDatabases(GpuSqlParser::ShowDatabasesContext *ctx) override;
 

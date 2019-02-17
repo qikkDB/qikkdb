@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/Martin Stano/Desktop/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -36,13 +36,13 @@ public:
     RuleNewTableColumn = 11, RuleSelectColumns = 12, RuleSelectColumn = 13, 
     RuleWhereClause = 14, RuleOrderByColumns = 15, RuleOrderByColumn = 16, 
     RuleInsertIntoValues = 17, RuleInsertIntoColumns = 18, RuleGroupByColumns = 19, 
-    RuleColumnId = 20, RuleFromTables = 21, RuleJoinClauses = 22, RuleJoinClause = 23, 
-    RuleJoinTable = 24, RuleTable = 25, RuleColumn = 26, RuleDatabase = 27, 
-    RuleLimit = 28, RuleOffset = 29, RuleColumnValue = 30, RuleExpression = 31, 
-    RuleGeometry = 32, RulePointGeometry = 33, RuleLineStringGeometry = 34, 
-    RulePolygonGeometry = 35, RuleMultiPointGeometry = 36, RuleMultiLineStringGeometry = 37, 
-    RuleMultiPolygonGeometry = 38, RulePointOrClosedPoint = 39, RulePolygon = 40, 
-    RuleLineString = 41, RulePoint = 42
+    RuleGroupByColumn = 20, RuleColumnId = 21, RuleFromTables = 22, RuleJoinClauses = 23, 
+    RuleJoinClause = 24, RuleJoinTable = 25, RuleTable = 26, RuleColumn = 27, 
+    RuleDatabase = 28, RuleLimit = 29, RuleOffset = 30, RuleColumnValue = 31, 
+    RuleExpression = 32, RuleGeometry = 33, RulePointGeometry = 34, RuleLineStringGeometry = 35, 
+    RulePolygonGeometry = 36, RuleMultiPointGeometry = 37, RuleMultiLineStringGeometry = 38, 
+    RuleMultiPolygonGeometry = 39, RulePointOrClosedPoint = 40, RulePolygon = 41, 
+    RuleLineString = 42, RulePoint = 43
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -75,6 +75,7 @@ public:
   class InsertIntoValuesContext;
   class InsertIntoColumnsContext;
   class GroupByColumnsContext;
+  class GroupByColumnContext;
   class ColumnIdContext;
   class FromTablesContext;
   class JoinClausesContext;
@@ -417,8 +418,8 @@ public:
   public:
     GroupByColumnsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    std::vector<ColumnIdContext *> columnId();
-    ColumnIdContext* columnId(size_t i);
+    std::vector<GroupByColumnContext *> groupByColumn();
+    GroupByColumnContext* groupByColumn(size_t i);
     std::vector<antlr4::tree::TerminalNode *> COMMA();
     antlr4::tree::TerminalNode* COMMA(size_t i);
 
@@ -428,6 +429,19 @@ public:
   };
 
   GroupByColumnsContext* groupByColumns();
+
+  class  GroupByColumnContext : public antlr4::ParserRuleContext {
+  public:
+    GroupByColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    ExpressionContext *expression();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  GroupByColumnContext* groupByColumn();
 
   class  ColumnIdContext : public antlr4::ParserRuleContext {
   public:
