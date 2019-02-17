@@ -236,7 +236,7 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 	else if (op == "COUNT")
     {
         dispatcher.addCountFunction(groupByType, operandType);
-		returnDataType = getReturnDataType(operandType);
+		returnDataType = DataType::COLUMN_LONG;
     } 
 	else if (op == "AVG")
     {
