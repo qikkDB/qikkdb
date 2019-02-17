@@ -43,6 +43,7 @@ ExternalProject_Add(
 	"-Dprotobuf_BUILD_SHARED_LIBS:BOOL=OFF"
 	"-Dprotobuf_MSVC_STATIC_RUNTIME:BOOL=OFF"
     "-DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}"
+	"-DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}"
 	"-DCMAKE_MAKE_PROGRAM:STRING=${CMAKE_MAKE_PROGRAM}"
     # other project specific parameters
   SOURCE_SUBDIR cmake
@@ -86,6 +87,7 @@ ExternalProject_Add(
 	  "-DINSTALL_GTEST:BOOL=OFF"
 	  "-Dgtest_force_shared_crt:BOOL=ON"
 	  "-DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}"
+	  "-DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}"
 	  "-DCMAKE_MAKE_PROGRAM:STRING=${CMAKE_MAKE_PROGRAM}"
     INSTALL_COMMAND ""
     # Wrap download, configure and build steps in a script to log output
