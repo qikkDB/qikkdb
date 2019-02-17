@@ -31,11 +31,14 @@ private:
     std::unordered_set<std::string> loadedTables;
     std::unordered_set<std::string> loadedColumns;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
+	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
 
     bool usingGroupBy;
     bool insideAgg;
+	bool insideGroupBy;
 
-    int tempCounter;
+	bool insideSelectColumn;
+	bool isAggSelectColumn;
 
     std::pair<std::string, DataType> stackTopAndPop();
 
@@ -88,11 +91,15 @@ public:
 
     void exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx) override;
 
+	void enterSelectColumn(GpuSqlParser::SelectColumnContext *ctx) override;
+
     void exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx) override;
 
     void exitFromTables(GpuSqlParser::FromTablesContext *ctx) override;
 
     void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
+
+	void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
 
     void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
 

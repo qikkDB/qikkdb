@@ -211,6 +211,7 @@ private:
 	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
 	std::unique_ptr<IGroupBy> groupByTable;
+	bool isRegisterAllocated(std::string& reg);
 
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;

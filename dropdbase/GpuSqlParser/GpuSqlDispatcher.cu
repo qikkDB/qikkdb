@@ -10,7 +10,6 @@
 
 //TODO:Dispatch implementation
 
-
 GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database) :
 	database(database),
 	blockIndex(0),
@@ -672,4 +671,9 @@ void GpuSqlDispatcher::freeColumnIfRegister(std::string & col)
 		allocatedPointers.erase(col);
 		std::cout << "Free: " << col << std::endl;
 	}
+}
+
+bool GpuSqlDispatcher::isRegisterAllocated(std::string & reg)
+{
+	return allocatedPointers.find(reg) != allocatedPointers.end();
 }

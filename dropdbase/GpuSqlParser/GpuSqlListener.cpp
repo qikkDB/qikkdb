@@ -14,7 +14,7 @@
 
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database> &database,
                                GpuSqlDispatcher &dispatcher) : database(database), dispatcher(dispatcher),
-								usingGroupBy(false), insideAgg(false), tempCounter(0)
+								usingGroupBy(false), insideAgg(false), insideGroupBy(false), insideSelectColumn(false), isAggSelectColumn(false)
 {
 }
 
@@ -196,6 +196,16 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     pushTempResult(reg, returnDataType);
 }
 
+void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
+{
+	if (insideAgg)
+	{
+		throw NestedAggregationException();
+	}
+	insideAgg = true;
+	isAggSelectColumn = insideSelectColumn;
+}
+
 void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 {
     std::pair<std::string, DataType> arg = stackTopAndPop();
@@ -254,20 +264,29 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 {
 	dispatcher.addJmpInstruction();
-	if (usingGroupBy)
-	{
-		
-	}
 	dispatcher.addDoneFunction();
+}
+
+void GpuSqlListener::enterSelectColumn(GpuSqlParser::SelectColumnContext * ctx)
+{
+	insideSelectColumn = true;
 }
 
 void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 {
 	std::pair<std::string, DataType> arg = stackTopAndPop();
+
+	if (!isAggSelectColumn && groupByColumns.find(arg) == groupByColumns.end())
+	{
+		throw ColumnGroupByException();
+	}
+
 	std::string colName = std::get<0>(arg);
 	DataType retType = std::get<1>(arg);
 	dispatcher.addRetFunction(retType);
 	dispatcher.addArgument<const std::string&>(colName);
+	insideSelectColumn = false;
+	isAggSelectColumn = false;
 }
 
 void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
@@ -290,9 +309,15 @@ void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext *ctx)
     dispatcher.addFilFunction();
 }
 
+void GpuSqlListener::enterGroupByColumns(GpuSqlParser::GroupByColumnsContext * ctx)
+{
+	insideGroupBy = true;
+}
+
 void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx)
 {
     usingGroupBy = true;
+	insideGroupBy = false;
 }
 
 void GpuSqlListener::exitGroupByColumn(GpuSqlParser::GroupByColumnContext * ctx)
@@ -524,15 +549,6 @@ void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * 
 	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
 }
 
-void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
-{
-	if (insideAgg) 
-	{
-		throw NestedAggregationException();
-	}
-	insideAgg = true;
-}
-
 void GpuSqlListener::exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx)
 {
 
@@ -597,12 +613,19 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
     std::string tableColumn = table + "." + column;
 	DataType columnType = database->GetTables().at(table).GetColumns().at(column)->GetColumnType();
 
-    if (usingGroupBy && !insideAgg && groupByColumns.find(std::make_pair(tableColumn, columnType)) == groupByColumns.end())
+	std::pair<std::string, DataType> tableColumnPair = std::make_pair(tableColumn, columnType);
+
+	if (insideGroupBy && originalGroupByColumns.find(tableColumnPair) == originalGroupByColumns.end())
+	{
+		originalGroupByColumns.insert(tableColumnPair);
+	}
+
+    if (usingGroupBy && !insideAgg && originalGroupByColumns.find(tableColumnPair) == groupByColumns.end())
     {
         throw ColumnGroupByException();
     }
 
-    return std::make_pair(tableColumn, columnType);
+    return tableColumnPair;
 }
 
 std::pair<std::string, DataType> GpuSqlListener::stackTopAndPop()
