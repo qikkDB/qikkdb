@@ -87,7 +87,6 @@ public:
 			// in-place scan
 			void* tempBuffer = nullptr;
 			size_t tempBufferSize = 0;
-			std::cout << "ReconstructColKeep dataElementCount: " << dataElementCount;
 			cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 			// Allocate temporary storage
 			GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);

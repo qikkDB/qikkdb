@@ -255,8 +255,8 @@ public:
 			"GPUGroupBy<min/max/sum>.getResults K (keys) must be integral or floating point");
 		static_assert(std::is_integral<V>::value || std::is_floating_point<V>::value,
 			"GPUGroupBy<min/max/sum>.getResults V (values) must be integral or floating point");
-		static_assert(std::is_same<O, V>::value,
-			"GPUGroupBy<min/max/sum>.getResults O (outValue) and V (value) must be of the same type (for Min/Max/Sum)");
+//		static_assert(std::is_same<O, V>::value,
+	//		"GPUGroupBy<min/max/sum>.getResults O (outValue) and V (value) must be of the same type (for Min/Max/Sum)");
 
 		// Create buffer for bucket compression - reconstruct
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
@@ -267,8 +267,8 @@ public:
 
 		// Reconstruct the output
 		// Copy back the results based on the operation
-		GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask.get(), maxHashCount_);
-		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_, occupancyMask.get(), maxHashCount_);
+//		GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask.get(), maxHashCount_);
+//		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_, occupancyMask.get(), maxHashCount_);
 	}
 	
 	// Merge results from all devices and store to fields on default device
