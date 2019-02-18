@@ -88,7 +88,17 @@ public:
 	/// </summary>
 	/// <param name="databaseName">Name of database to get</param>
 	/// <returns>Database object or null</returns>
-	static std::shared_ptr<Database> GetDatabaseByName(std::string databaseName) { return loadedDatabases_[databaseName]; }
+	static std::shared_ptr<Database> GetDatabaseByName(std::string databaseName) 
+	{ 
+		try
+		{
+			return loadedDatabases_.at(databaseName);
+		}
+		catch (std::out_of_range&)
+		{
+			return nullptr;
+		}
+	}
 
 	/// <summary>
 	/// Remove database from in memory list

@@ -94,15 +94,28 @@ set(GTEST_INCLUDE_DIR ${source_dir}/googletest/include)
 
 # Library
 ExternalProject_Get_Property(googletest binary_dir)
-set(GTEST_MAIN_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${suffix} )
-set(GTEST_MAIN_LIBRARY gtest_main)
+string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
+
+IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	message("DEBUG MODE")
+	set(GTEST_MAIN_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_maind${suffix} )
+    set(GTEST_MAIN_LIBRARY gtest_maind)
+ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	set(GTEST_MAIN_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${suffix} )
+	set(GTEST_MAIN_LIBRARY gtest_main)
+ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 add_library(${GTEST_MAIN_LIBRARY} UNKNOWN IMPORTED)
 set_property(TARGET ${GTEST_MAIN_LIBRARY} PROPERTY IMPORTED_LOCATION
                 ${GTEST_MAIN_LIBRARY_PATH} )
 add_dependencies(${GTEST_MAIN_LIBRARY} googletest)
 
-set(GTEST_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${suffix} )
-set(GTEST_LIBRARY gtest)
+IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	set(GTEST_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtestd${suffix} )
+    set(GTEST_LIBRARY gtestd)
+ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	set(GTEST_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${suffix} )
+	set(GTEST_LIBRARY gtest)
+ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 add_library(${GTEST_LIBRARY} UNKNOWN IMPORTED)
 set_property(TARGET ${GTEST_LIBRARY} PROPERTY IMPORTED_LOCATION
                 ${GTEST_LIBRARY_PATH} )

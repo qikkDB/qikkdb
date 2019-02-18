@@ -39,7 +39,7 @@ void aggTests()
 	}
 	else
 	{
-		std::uniform_real_distribution<float> distributionFloat(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
+		std::uniform_real_distribution<float> distributionFloat(-32000, 32000);
 		for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 		{
 			inputDataA[i] = distributionFloat(generator);
