@@ -11,6 +11,7 @@
 #include "QueryEngineError.h"
 #include "CudaMemAllocator.h"
 #include "GPUMemoryCache.h"
+#include "../Configuration.h"
 
 class Context {
 private:
@@ -44,19 +45,12 @@ private:
 			throw std::invalid_argument("INFO: Unable to get device count");
 		}
 		printf("INFO: Found %d CUDA devices\n", deviceCount_);
-
+		const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
 		// Get devices information
 		for (int32_t i = 0; i < deviceCount_; i++)
 		{
 			// Bind device and initialize everything for a device allocators/cache
 			bindDeviceToContext(i);
-
-			// Initialize allocators
-			gpuAllocators_.emplace_back(std::make_unique<CudaMemAllocator>(i));
-
-			// Initialize cache
-			gpuCaches_.emplace_back(std::make_unique<GPUMemoryCache>(i));
-
 			// Get devices information
 			cudaDeviceProp deviceProp;
 			if (cudaGetDeviceProperties(&deviceProp, i) != CUDA_SUCCESS)
@@ -64,6 +58,16 @@ private:
 				throw std::invalid_argument("ERROR: Failed to get GPU info");
 			}
 			devicesMetaInfoList_.push_back(deviceProp);
+			// Print memory info
+			size_t free, total;
+			cudaMemGetInfo(&free, &total);
+
+			// Initialize allocators
+			gpuAllocators_.emplace_back(std::make_unique<CudaMemAllocator>(i));
+
+			// Initialize cache
+			size_t cacheSize = free * static_cast<int64_t>(static_cast<double>(cachePercentage) / 100.0);
+			gpuCaches_.emplace_back(std::make_unique<GPUMemoryCache>(i,cacheSize));
 
 			// Get the correct blockDim from the device - use always based on the bound device - optimal for kernels
 			queriedBlockDimensionList.push_back(deviceProp.maxThreadsPerBlock);
@@ -71,10 +75,8 @@ private:
 			// Print device info
 			printf("INFO: Device ID: %d: %s \t maxBlockDim: %d\n", i, deviceProp.name, deviceProp.maxThreadsPerBlock);
 
-			// Print memory info
-			size_t free, total;
-			cudaMemGetInfo(&free, &total);
-			printf("INFO: Memory: Total: %zu B Free: %zu B\n", total, free);
+			
+			printf("INFO: Memory: Total: %zu B Free: %zu B Cache: %zu B\n", total, free, cacheSize);
 		}
 
 		// Bind default device and notify the user

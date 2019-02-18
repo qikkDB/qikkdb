@@ -2,8 +2,8 @@
 #include <boost/log/trivial.hpp>
 #include "Context.h"
 
-GPUMemoryCache::GPUMemoryCache(int32_t deviceID) :
-	usedSize(0), deviceID_(deviceID)
+GPUMemoryCache::GPUMemoryCache(int32_t deviceID, size_t maximumSize) :
+	usedSize(0), deviceID_(deviceID), maxSize_(maximumSize)
 {
 	BOOST_LOG_TRIVIAL(debug) << "Cache initialized for device " << deviceID;
 }
