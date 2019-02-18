@@ -66,7 +66,7 @@ private:
 			gpuAllocators_.emplace_back(std::make_unique<CudaMemAllocator>(i));
 
 			// Initialize cache
-			size_t cacheSize = free * static_cast<int64_t>(static_cast<double>(cachePercentage) / 100.0);
+			size_t cacheSize = static_cast<int64_t>(free * static_cast<double>(cachePercentage) / 100.0);
 			gpuCaches_.emplace_back(std::make_unique<GPUMemoryCache>(i,cacheSize));
 
 			// Get the correct blockDim from the device - use always based on the bound device - optimal for kernels
