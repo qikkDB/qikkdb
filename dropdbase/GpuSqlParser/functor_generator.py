@@ -328,10 +328,13 @@ for operation in operations_aggregation:
                 op = "invalidOperandTypesErrorHandler"
             else:
                 op = "aggregation"
-
+            retVal = colVal
             if operation == "count":
-                colVal = LONG
-            function = op + col + row + "<AggregationFunctions::" + operation + ", " + colVal + ", " + rowVal + ">"
+                retVal = LONG
+            if col == "Col" and row == "Col" and op != "invalidOperandTypesErrorHandler":
+                function = op + col + row + "<AggregationFunctions::" + operation + ", " + retVal + ", " + colVal + ", " + rowVal + ">"
+            else:
+                function = op + col + row + "<AggregationFunctions::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
