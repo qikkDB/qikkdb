@@ -5,6 +5,7 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TableTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ClientHandlerTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/CSVDataImportTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ColumnTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DatabaseTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp

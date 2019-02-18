@@ -1,7 +1,7 @@
 #include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "TCPClientHandler.h"
 #include "ITCPWorker.h"
-#include "CSVInMemoryImporter.h"
+#include "CSVDataImporter.h"
 #include "Configuration.h"
 #include <functional>
 #include <stdexcept>
@@ -202,7 +202,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleQuery(ITCPWor
 
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleCSVImport(ITCPWorker & worker, const ColmnarDB::NetworkClient::Message::CSVImportMessage & csvImportMessage)
 {
-	CSVInMemoryImporter dataImporter(csvImportMessage.csvname(), csvImportMessage.payload());
+	CSVDataImporter dataImporter(csvImportMessage.payload().c_str(),csvImportMessage.csvname().c_str());
 	auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
 	try
 	{
@@ -210,12 +210,12 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleCSVImport(ITC
 		if (importDB == nullptr)
 		{
 			std::shared_ptr<Database> newImportDB = std::make_shared<Database>(csvImportMessage.databasename().c_str(), Configuration::GetInstance().GetBlockSize());
-			dataImporter.ImportTables(*newImportDB);
 			Database::AddToInMemoryDatabaseList(newImportDB);
+			dataImporter.ImportTables(newImportDB);
 		}
 		else
 		{
-			dataImporter.ImportTables(*importDB);
+			dataImporter.ImportTables(importDB);
 		}
 	}
 	catch (std::exception& e)
