@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <array>
+#include <regex>
 #include <string>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
@@ -377,7 +378,7 @@ public:
 	template<typename T>
 	int32_t loadCol(std::string& colName)
 	{
-		if (allocatedPointers.find(colName) == allocatedPointers.end())
+		if (allocatedPointers.find(colName) == allocatedPointers.end() && !std::regex_match(colName, std::regex("^(\\$).*")))
 		{
 			std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
 

@@ -40,11 +40,11 @@ int main(int argc, char **argv)
 	
 	
 	std::vector<std::string> tableNames = { "TableA" };
-	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
+	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT}};
 	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 5, false, tableNames, columnTypes);
 
 	auto start = std::chrono::high_resolution_clock::now();
-    GpuSqlCustomParser parser(database, "SELECT colLong1 FROM TableA WHERE colLong1 * 5 > 500;");
+    GpuSqlCustomParser parser(database, "SELECT colInteger1, COUNT(colInteger1) FROM TableA GROUP BY colInteger1;");
     parser.parse()->PrintDebugString();
 	auto end = std::chrono::high_resolution_clock::now();
 
