@@ -120,6 +120,11 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
 	for (int i = 0; i < context.getDeviceCount(); i++)
 	{
+		dispatcherFutures[i].wait();
+	}
+
+	for (int i = 0; i < context.getDeviceCount(); i++)
+	{
 		dispatcherResults.push_back(std::move(dispatcherFutures[i].get()));
 	}
 		

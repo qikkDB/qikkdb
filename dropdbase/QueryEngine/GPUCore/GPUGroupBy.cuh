@@ -278,13 +278,13 @@ public:
 		{
 			throw std::invalid_argument("Number of tables have to be at least 1.");
 		}
-		else if (tables.size() == 1) // just one table
+		else if (tables.size() == 1 || tables[1].get() == nullptr) // just one table
 		{
 			getResults(outKeys, outValues, outDataElementCount);
 		}
 		else // more tables
 		{
-			// TODO change to cudaMemcpyPeerAsync
+			int oldDeviceId = Context::getInstance().getBoundDeviceID();
 
 			std::vector<K> keysAllHost;
 			std::vector<V> valuesAllHost;
@@ -293,6 +293,11 @@ public:
 			// Collect data from all devices (graphic cards) to host
 			for (int i = 0; i < tables.size(); i++)
 			{
+				if (tables[i].get() == nullptr)
+				{
+					break;
+				}
+				// TODO change to cudaMemcpyPeerAsync
 				GPUGroupBy<AGG, O, K, V>* table = reinterpret_cast<GPUGroupBy<AGG, O, K, V>*>(tables[i].get());
 				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table->getMaxHashCount());
 				std::unique_ptr<V[]> values = std::make_unique<V[]>(table->getMaxHashCount());
@@ -308,7 +313,7 @@ public:
 				sumElementCount += elementCount;
 			}
 
-			Context::getInstance().bindDeviceToContext(Context::DEFAULT_DEVICE_ID);
+			Context::getInstance().bindDeviceToContext(oldDeviceId);
 			cuda_ptr<K> keysAllGPU(sumElementCount);
 			cuda_ptr<V> valuesAllGPU(sumElementCount);
 
@@ -444,13 +449,13 @@ public:
 		{
 			throw std::invalid_argument("Number of tables have to be at least 1.");
 		}
-		else if (tables.size() == 1) // just one table
+		else if (tables.size() == 1 || tables[1].get() == nullptr) // just one table
 		{
 			getResults(outKeys, outValues, outDataElementCount);
 		}
 		else // more tables
 		{
-			// TODO change to cudaMemcpyPeerAsync
+			int oldDeviceId = Context::getInstance().getBoundDeviceID();
 
 			std::vector<K> keysAllHost;
 			std::vector<V> valuesAllHost;
@@ -460,6 +465,11 @@ public:
 			// Collect data from all devices (graphic cards) to host
 			for (int i = 0; i < tables.size(); i++)
 			{
+				if (tables[i].get() == nullptr)
+				{
+					break;
+				}
+				// TODO change to cudaMemcpyPeerAsync
 				GPUGroupBy<AggregationFunctions::avg, O, K, V> *table =
 					reinterpret_cast<GPUGroupBy<AggregationFunctions::avg, O, K, V>*>(tables[i].get());
 				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table->getMaxHashCount());
@@ -478,7 +488,7 @@ public:
 				sumElementCount += elementCount;
 			}
 
-			Context::getInstance().bindDeviceToContext(Context::DEFAULT_DEVICE_ID);
+			Context::getInstance().bindDeviceToContext(oldDeviceId);
 			cuda_ptr<K> keysAllGPU(sumElementCount);
 			cuda_ptr<V> valuesAllGPU(sumElementCount);
 			cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
@@ -609,13 +619,13 @@ public:
 		{
 			throw std::invalid_argument("Number of tables have to be at least 1.");
 		}
-		else if (tables.size() == 1) // just one table
+		else if (tables.size() == 1 || tables[1].get() == nullptr) // just one table
 		{
 			getResults(outKeys, outValues, outDataElementCount);
 		}
 		else // more tables
 		{
-			// TODO change to cudaMemcpyPeerAsync
+			int oldDeviceId = Context::getInstance().getBoundDeviceID();
 
 			std::vector<K> keysAllHost;
 			std::vector<int64_t> occurencesAllHost;
@@ -624,6 +634,11 @@ public:
 			// Collect data from all devices (graphic cards) to host
 			for (int i = 0; i < tables.size(); i++)
 			{
+				if (tables[i].get() == nullptr)
+				{
+					break;
+				}
+				// TODO change to cudaMemcpyPeerAsync
 				GPUGroupBy<AggregationFunctions::count, int64_t, K, V>* table =
 					reinterpret_cast<GPUGroupBy<AggregationFunctions::count, int64_t, K, V>*>(tables[i].get());
 				std::unique_ptr<K[]> keys = std::make_unique<K[]>(table->getMaxHashCount());
@@ -640,7 +655,7 @@ public:
 				sumElementCount += elementCount;
 			}
 
-			Context::getInstance().bindDeviceToContext(Context::DEFAULT_DEVICE_ID);
+			Context::getInstance().bindDeviceToContext(oldDeviceId);
 			cuda_ptr<K> keysAllGPU(sumElementCount);
 			cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
 
