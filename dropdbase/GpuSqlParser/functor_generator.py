@@ -47,8 +47,10 @@ operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "n
 operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operations_logical = ["logicalAnd", "logicalOr"]
 operations_arithmetic = ["mul", "div", "add", "sub", "mod"]
-operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg"]
+operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg", "year", "month", "day", "hour",
+                    "minute", "second"]
 operations_aggregation = ["min", "max", "sum", "count", "avg"]
+operations_date = ["year", "month", "day", "hour", "minute", "second"]
 operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
 
@@ -166,7 +168,8 @@ for operation in operations_move:
         elif colIdx >= len(types):
             col = "Col"
 
-        if (operation == 'ret' or operation == 'groupBy') and (colVal == STRING or colVal == BOOL or colVal in geo_types):
+        if (operation == 'ret' or operation == 'groupBy') and (
+                colVal == STRING or colVal == BOOL or colVal in geo_types):
             function = "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         else:
             function = operation + col + "<" + colVal + ">"
@@ -307,11 +310,10 @@ for operation in operations_arithmetic:
 
     print(declaration)
 
-
 operation = "insertInto"
 
 declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
-                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+              "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
 for colIdx, colVal in enumerate(all_types):
     function = operation + "<" + colVal + ">"
@@ -322,7 +324,6 @@ for colIdx, colVal in enumerate(all_types):
         declaration += ("&" + function + ", ")
 
 print(declaration)
-
 
 for operation in operations_aggregation:
     declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
@@ -341,7 +342,8 @@ for operation in operations_aggregation:
             elif rowIdx >= len(types):
                 row = "Col"
 
-            if (colVal in geo_types or colVal == STRING) or (rowVal in geo_types or rowVal == STRING) or (rowVal == BOOL or colVal == BOOL):
+            if (colVal in geo_types or colVal == STRING) or (rowVal in geo_types or rowVal == STRING) or (
+                    rowVal == BOOL or colVal == BOOL):
                 op = "invalidOperandTypesErrorHandler"
             else:
                 op = "aggregation"
@@ -354,5 +356,29 @@ for operation in operations_aggregation:
                 declaration += ("&" + function + "};")
             else:
                 declaration += ("&" + function + ", ")
+
+    print(declaration)
+
+for operation in operations_date:
+    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal != LONG:
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = "dateExtract"
+        function = op + col + "<DateOperations::" + operation + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
 
     print(declaration)

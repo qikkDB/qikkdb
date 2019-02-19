@@ -25,12 +25,6 @@
 class GpuSqlDispatcher;
 
 template<typename T>
-int32_t loadConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t loadCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
 int32_t retConst(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
@@ -116,6 +110,12 @@ int32_t minusCol(GpuSqlDispatcher &dispatcher);
 template<typename T>
 int32_t minusConst(GpuSqlDispatcher &dispatcher);
 
+template<typename OP>
+int32_t dateExtractCol(GpuSqlDispatcher &dispatcher);
+
+template<typename OP>
+int32_t dateExtractConst(GpuSqlDispatcher &dispatcher);
+
 template<typename T>
 int32_t groupByConst(GpuSqlDispatcher &dispatcher);
 
@@ -191,6 +191,8 @@ private:
     std::vector<std::function<int32_t(GpuSqlDispatcher &)>> dispatcherFunctions;
     MemoryStream arguments;
 	int32_t blockIndex;
+	int64_t usedRegisterMemory;
+	const int64_t maxRegisterMemory;
 	int32_t instructionPointer;
 	int32_t constPointCounter;
 	int32_t constPolygonCounter;
@@ -200,8 +202,10 @@ private:
 	std::uintptr_t filter_;
 	bool usingGroupBy;
 	bool isLastBlock;
+	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
 	std::unique_ptr<IGroupBy> groupByTable;
+	bool isRegisterAllocated(std::string& reg);
 
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -235,6 +239,18 @@ private:
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> minusFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> yearFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> monthFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> dayFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> hourFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> minuteFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+		DataType::DATA_TYPE_SIZE> secondFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
@@ -245,8 +261,6 @@ private:
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> loadFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
@@ -303,6 +317,18 @@ public:
 
     void addMinusFunction(DataType type);
 
+	void addYearFunction(DataType type);
+
+	void addMonthFunction(DataType type);
+
+	void addDayFunction(DataType type);
+
+	void addHourFunction(DataType type);
+
+	void addMinuteFunction(DataType type);
+
+	void addSecondFunction(DataType type);
+
     void addMinFunction(DataType key, DataType value);
 
     void addMaxFunction(DataType key, DataType value);
@@ -312,8 +338,6 @@ public:
     void addCountFunction(DataType key, DataType value);
 
     void addAvgFunction(DataType key, DataType value);
-
-    void addLoadFunction(DataType type);
 
     void addRetFunction(DataType type);
 
@@ -342,6 +366,37 @@ public:
 
 	template<typename T>
 	void addCachedRegister(const std::string& reg, T* ptr, int32_t size);
+	
+	template<typename T>
+	int32_t loadCol(std::string& colName)
+	{
+		if (allocatedPointers.find(colName) == allocatedPointers.end())
+		{
+			std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
+
+			// split colName to table and column name
+			const size_t endOfPolyIdx = colName.find(".");
+			const std::string table = colName.substr(0, endOfPolyIdx);
+			const std::string column = colName.substr(endOfPolyIdx + 1);
+			const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+
+			if (blockIndex == blockCount - 1)
+			{
+				isLastBlock = true;
+			}
+
+			auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
+			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
+
+			T* gpuPointer = allocateRegister<T>(colName, block->GetData().size());
+
+			GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<T*>(block->GetData().data()), block->GetData().size());
+			noLoad = false;
+		}
+		return 0;
+	}
+
+	void freeColumnIfRegister(std::string& col);
 
 	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
@@ -349,12 +404,6 @@ public:
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
-
-    template<typename T>
-    friend int32_t loadConst(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t loadCol(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
     friend int32_t retConst(GpuSqlDispatcher &dispatcher);
@@ -457,6 +506,12 @@ public:
 
     template<typename T>
     friend int32_t minusConst(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP>
+	friend int32_t dateExtractCol(GpuSqlDispatcher &dispatcher);
+
+	template<typename OP>
+	friend int32_t dateExtractConst(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
     friend int32_t groupByCol(GpuSqlDispatcher &dispatcher);

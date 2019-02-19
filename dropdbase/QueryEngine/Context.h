@@ -24,9 +24,6 @@ private:
 	// Number of opitimal threads per block queried for a specific GPU - currently bound to the context
 	int32_t queried_block_dimension_;
 
-	// Registry for holding the last error
-	QueryEngineError lastError_;
-
 	// The currently bound device and found devices and their metadata
 	int32_t boundDeviceID_;
 	cudaDeviceProp boundDevice_;
@@ -62,9 +59,6 @@ public:
 		static Context instance;
 		return instance;
 	}
-
-	// Get the last cuda error
-	QueryEngineError& getLastError() { return lastError_; }
 
 	// Operations on the grid dimensions
 	int32_t calcGridDim(int32_t threadCount) const

@@ -5,10 +5,16 @@
 #include "GpuSqlListener.h"
 #include "../Table.h"
 #include "GpuSqlDispatcher.h"
+#include <ctime>
+#include <iostream>
+#include <sstream>
+#include <locale>
+#include <iomanip>
+
 
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database> &database,
                                GpuSqlDispatcher &dispatcher) : database(database), dispatcher(dispatcher),
-								usingGroupBy(false), insideAgg(false), tempCounter(0)
+								usingGroupBy(false), insideAgg(false), insideGroupBy(false), insideSelectColumn(false), isAggSelectColumn(false)
 {
 }
 
@@ -33,64 +39,76 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
     {
         dispatcher.addGreaterFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "<")
+    } 
+	else if (op == "<")
     {
         dispatcher.addLessFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == ">=")
+    } 
+	else if (op == ">=")
     {
         dispatcher.addGreaterEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "<=")
+    } 
+	else if (op == "<=")
     {
         dispatcher.addLessEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "=")
+    } 
+	else if (op == "=")
     {
         dispatcher.addEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "!=")
+    } 
+	else if (op == "!=")
     {
         dispatcher.addNotEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "AND")
+    } 
+	else if (op == "AND")
     {
         dispatcher.addLogicalAndFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "OR")
+    } 
+	else if (op == "OR")
     {
         dispatcher.addLogicalOrFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "*")
+    } 
+	else if (op == "*")
     {
         dispatcher.addMulFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } else if (op == "/")
+    } 
+	else if (op == "/")
     {
         dispatcher.addDivFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } else if (op == "+")
+    } 
+	else if (op == "+")
     {
         dispatcher.addAddFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } else if (op == "-")
+    } 
+	else if (op == "-")
     {
         dispatcher.addSubFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } else if (op == "%")
+    } 
+	else if (op == "%")
     {
         dispatcher.addModFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } else if (op == "CONTAINS")
+    } 
+	else if (op == "CONTAINS")
     {
         dispatcher.addContainsFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
     }
 
-	std::string reg = std::string("R") + std::to_string(tempCounter);
-
+	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
-    pushTempResult(returnDataType);
+    pushTempResult(reg, returnDataType);
 }
 
 
@@ -116,9 +134,9 @@ void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext 
         dispatcher.addBetweenFunction(op1Type, op2Type, op3Type);
     }
 
-	std::string reg = std::string("R") + std::to_string(tempCounter);
+	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), DataType::COLUMN_INT8_T);
-    pushTempResult(DataType::COLUMN_INT8_T);
+    pushTempResult(reg, DataType::COLUMN_INT8_T);
 }
 
 void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx)
@@ -136,15 +154,56 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     {
         dispatcher.addLogicalNotFunction(operandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } else if (op == "-")
+    } 
+	else if (op == "-")
     {
         dispatcher.addMinusFunction(operandType);
-		returnDataType = operandType;
+		returnDataType = getReturnDataType(operandType);
     }
+	else if (op == "YEAR")
+	{
+		dispatcher.addYearFunction(operandType);
+		returnDataType = COLUMN_INT;
+	}
+	else if (op == "MONTH")
+	{
+		dispatcher.addMonthFunction(operandType);
+		returnDataType = COLUMN_INT;
+	}
+	else if (op == "DAY")
+	{
+		dispatcher.addDayFunction(operandType);
+		returnDataType = COLUMN_INT;
+	}
+	else if (op == "HOUR")
+	{
+		dispatcher.addHourFunction(operandType);
+		returnDataType = COLUMN_INT;
+	}
+	else if (op == "MINUTE")
+	{
+		dispatcher.addMinuteFunction(operandType);
+		returnDataType = COLUMN_INT;
+	}
+	else if (op == "SECOND")
+	{
+		dispatcher.addSecondFunction(operandType);
+		returnDataType = COLUMN_INT;
+	}
 
-	std::string reg = std::string("R") + std::to_string(tempCounter);
+	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
-    pushTempResult(returnDataType);
+    pushTempResult(reg, returnDataType);
+}
+
+void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
+{
+	if (insideAgg)
+	{
+		throw NestedAggregationException();
+	}
+	insideAgg = true;
+	isAggSelectColumn = insideSelectColumn;
 }
 
 void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
@@ -172,49 +231,62 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     if (op == "MIN")
     {
         dispatcher.addMinFunction(groupByType, operandType);
-		returnDataType = operandType;
-    } else if (op == "MAX")
+		returnDataType = getReturnDataType(operandType);
+    } 
+	else if (op == "MAX")
     {
         dispatcher.addMaxFunction(groupByType, operandType);
-		returnDataType = operandType;
-    } else if (op == "SUM")
+		returnDataType = getReturnDataType(operandType);
+    } 
+	else if (op == "SUM")
     {
         dispatcher.addSumFunction(groupByType, operandType);
-		returnDataType = operandType;
-    } else if (op == "COUNT")
+		returnDataType = getReturnDataType(operandType);
+    } 
+	else if (op == "COUNT")
     {
         dispatcher.addCountFunction(groupByType, operandType);
 		returnDataType = DataType::COLUMN_LONG;
-    } else if (op == "AVG")
+    } 
+	else if (op == "AVG")
     {
         dispatcher.addAvgFunction(groupByType, operandType);
-		returnDataType = operandType;
+		returnDataType = getReturnDataType(operandType);
     }
 
 	insideAgg = false;
-	std::string reg = std::string("R") + std::to_string(tempCounter);
+	std::string reg = getRegString(ctx);
 
 	pushArgument(reg.c_str(), returnDataType);
-    pushTempResult(returnDataType);
+    pushTempResult(reg, returnDataType);
 }
 
 void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 {
 	dispatcher.addJmpInstruction();
-	if (usingGroupBy)
-	{
-		
-	}
 	dispatcher.addDoneFunction();
+}
+
+void GpuSqlListener::enterSelectColumn(GpuSqlParser::SelectColumnContext * ctx)
+{
+	insideSelectColumn = true;
 }
 
 void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 {
 	std::pair<std::string, DataType> arg = stackTopAndPop();
+
+	if (!isAggSelectColumn && groupByColumns.find(arg) == groupByColumns.end() && usingGroupBy)
+	{
+		throw ColumnGroupByException();
+	}
+
 	std::string colName = std::get<0>(arg);
 	DataType retType = std::get<1>(arg);
 	dispatcher.addRetFunction(retType);
 	dispatcher.addArgument<const std::string&>(colName);
+	insideSelectColumn = false;
+	isAggSelectColumn = false;
 }
 
 void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
@@ -237,30 +309,27 @@ void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext *ctx)
     dispatcher.addFilFunction();
 }
 
+void GpuSqlListener::enterGroupByColumns(GpuSqlParser::GroupByColumnsContext * ctx)
+{
+	insideGroupBy = true;
+}
+
 void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx)
 {
-
-    for (auto column : ctx->columnId())
-    {
-		std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(column);
-		const DataType columnType = std::get<1>(tableColumnData);
-		const std::string tableColumn = std::get<0>(tableColumnData);
-
-		if (groupByColumns.find(tableColumnData) == groupByColumns.end())
-		{
-			dispatcher.addGroupByFunction(columnType);
-			dispatcher.addArgument<const std::string&>(tableColumn);
-			groupByColumns.insert(tableColumnData);
-		}
-
-        if (loadedColumns.find(tableColumn) == loadedColumns.end())
-        {
-            dispatcher.addLoadFunction(columnType);
-            dispatcher.addArgument<const std::string&>(tableColumn);
-            loadedColumns.insert(tableColumn);
-        }
-    }
     usingGroupBy = true;
+	insideGroupBy = false;
+}
+
+void GpuSqlListener::exitGroupByColumn(GpuSqlParser::GroupByColumnContext * ctx)
+{
+	std::pair<std::string, DataType> operand = stackTopAndPop();
+
+	if (groupByColumns.find(operand) == groupByColumns.end())
+	{
+		dispatcher.addGroupByFunction(std::get<1>(operand));
+		dispatcher.addArgument<const std::string&>(std::get<0>(operand));
+		groupByColumns.insert(operand);
+	}
 }
 
 void GpuSqlListener::exitShowDatabases(GpuSqlParser::ShowDatabasesContext * ctx)
@@ -449,23 +518,29 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
     std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
     const DataType columnType = std::get<1>(tableColumnData);
 	const std::string tableColumn = std::get<0>(tableColumnData);
-
-    if (loadedColumns.find(tableColumn) == loadedColumns.end())
-    {
-        dispatcher.addLoadFunction(columnType);
-        dispatcher.addArgument<const std::string&>(tableColumn);
-        loadedColumns.insert(tableColumn);
-    }
+	
     parserStack.push(std::make_pair(tableColumn, columnType));
 }
 
-void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
+void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * ctx)
 {
-	if (insideAgg) 
+	auto start = ctx->start->getStartIndex();
+	auto stop = ctx->stop->getStopIndex();
+	antlr4::misc::Interval interval(start, stop);
+	std::string dateValue = ctx->start->getInputStream()->getText(interval);
+	dateValue = dateValue.substr(1, dateValue.size() - 2);
+
+	if (dateValue.size() <= 10)
 	{
-		throw NestedAggregationException();
+		dateValue += " 00:00:00";
 	}
-	insideAgg = true;
+
+	std::tm t;
+	std::istringstream ss(dateValue);
+	ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
+	std::time_t epochTime = std::mktime(&t);
+
+	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
 }
 
 void GpuSqlListener::exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx)
@@ -532,12 +607,19 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
     std::string tableColumn = table + "." + column;
 	DataType columnType = database->GetTables().at(table).GetColumns().at(column)->GetColumnType();
 
-    if (usingGroupBy && !insideAgg && groupByColumns.find(std::make_pair(tableColumn, columnType)) == groupByColumns.end())
+	std::pair<std::string, DataType> tableColumnPair = std::make_pair(tableColumn, columnType);
+
+	if (insideGroupBy && originalGroupByColumns.find(tableColumnPair) == originalGroupByColumns.end())
+	{
+		originalGroupByColumns.insert(tableColumnPair);
+	}
+
+    if (usingGroupBy && !insideAgg && originalGroupByColumns.find(tableColumnPair) == groupByColumns.end())
     {
         throw ColumnGroupByException();
     }
 
-    return std::make_pair(tableColumn, columnType);
+    return tableColumnPair;
 }
 
 std::pair<std::string, DataType> GpuSqlListener::stackTopAndPop()
@@ -547,10 +629,8 @@ std::pair<std::string, DataType> GpuSqlListener::stackTopAndPop()
     return value;
 }
 
-void GpuSqlListener::pushTempResult(DataType type)
+void GpuSqlListener::pushTempResult(std::string reg, DataType type)
 {
-    std::string reg = std::string("R") + std::to_string(tempCounter);
-    tempCounter++;
     parserStack.push(std::make_pair(reg, type));
 }
 
@@ -562,7 +642,7 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
             dispatcher.addArgument<int32_t>(std::stoi(token));
             break;
         case DataType::CONST_LONG:
-            dispatcher.addArgument<int64_t>(std::stol(token));
+            dispatcher.addArgument<int64_t>(std::stoll(token));
             break;
         case DataType::CONST_FLOAT:
             dispatcher.addArgument<float>(std::stof(token));
@@ -598,7 +678,7 @@ bool GpuSqlListener::isLong(const std::string &value)
     }
     catch (std::out_of_range &e)
     {
-        std::stol(value);
+        std::stoll(value);
         return true;
     }
     return false;
@@ -652,12 +732,26 @@ void GpuSqlListener::stringToUpper(std::string &str)
     }
 }
 
-DataType GpuSqlListener::getReturnDataType(DataType left, DataType right)
+std::string GpuSqlListener::getRegString(antlr4::ParserRuleContext* ctx)
 {
-	return std::max<DataType>(left,right);
+	return std::string("$") + ctx->getText();
 }
 
-DataType GpuSqlListener::colToConst(DataType type)
+DataType GpuSqlListener::getReturnDataType(DataType left, DataType right)
 {
-	return static_cast<DataType>(type - DataType::COLUMN_INT);
+	DataType result = std::max<DataType>(left,right);
+	if (result < DataType::COLUMN_INT)
+	{
+		return static_cast<DataType>(result + DataType::COLUMN_INT);
+	}
+	return result;
+}
+
+DataType GpuSqlListener::getReturnDataType(DataType operand)
+{
+	if (operand < DataType::COLUMN_INT)
+	{
+		return static_cast<DataType>(operand + DataType::COLUMN_INT);
+	}
+	return operand;
 }

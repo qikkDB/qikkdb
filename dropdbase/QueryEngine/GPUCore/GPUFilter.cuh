@@ -101,7 +101,7 @@ public:
 		kernel_filter <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BCol, dataElementCount);
 		cudaDeviceSynchronize();
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
@@ -110,7 +110,7 @@ public:
 		kernel_filter <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
 		cudaDeviceSynchronize();
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
@@ -119,14 +119,14 @@ public:
 		kernel_filter <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, AConst, BCol, dataElementCount);
 		cudaDeviceSynchronize();
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
 	static void constConst(int8_t *outMask, T AConst, U BConst, int32_t dataElementCount)
 	{
 		GPUMemory::memset(outMask, OP{}(AConst, BConst), dataElementCount);
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 };

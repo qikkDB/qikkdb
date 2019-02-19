@@ -42,8 +42,6 @@ public:
 	template<typename T>
 	static void reconstructCol(T *outData, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
 	{
-		Context& context = Context::getInstance();
-
 		if (inMask)		// If inMask is not nullptr
 		{
 			// Malloc a new buffer for the output vector -GPU side
@@ -66,7 +64,7 @@ public:
 		}
 
 		// Get last error
-		context.getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 	template<typename T>
@@ -122,7 +120,7 @@ public:
 		}
 
 		// Get last error
-		context.getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 	template<typename T>
@@ -170,7 +168,7 @@ public:
 		}
 
 		// Get last error
-		context.getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 };
 
