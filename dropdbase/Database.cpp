@@ -481,10 +481,10 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 
 						colFile.read(data.get(), dataLength); //read entry data
 
-						int32_t byteIndex = 0;
+						int64_t byteIndex = 0;
 						while (byteIndex < dataLength)
 						{
-							int32_t entryByteLength = *reinterpret_cast<int32_t*>(data[byteIndex]);
+							int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]);
 
 							byteIndex += sizeof(int32_t);
 
@@ -542,10 +542,10 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 		
 						colFile.read(data.get(), dataLength); //read entry data
 
-						int32_t byteIndex = 0;
+						int64_t byteIndex = 0;
 						while (byteIndex < dataLength)
 						{
-							int32_t entryByteLength = *reinterpret_cast<int32_t*>(data[byteIndex]);
+							int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]);
 
 							byteIndex += sizeof(int32_t);
 
@@ -589,8 +589,8 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						break;
 					}
 
-					int32_t dataLength;
-					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (data block length)
+					int64_t dataLength;
+					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int64_t)); //read data length (data block length)
 
 					if (index != nullIndex) //there is null block
 					{
@@ -602,17 +602,17 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						std::vector<std::string> dataString;
 						std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength);
 
-						colFile.read(data.get(), dataLength); //read entry data
+						colFile.read(data.get(), dataLength); //read block length
 
-						int32_t byteIndex = 0;
+						int64_t byteIndex = 0;
 						while (byteIndex < dataLength)
 						{
-							int32_t entryByteLength = *reinterpret_cast<int32_t*>(data[byteIndex]);
+							int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]); //read entry byte length
 
 							byteIndex += sizeof(int32_t);
 
 							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
-							memcpy(byteArray.get(), &data[byteIndex], entryByteLength);
+							memcpy(byteArray.get(), &data[byteIndex], entryByteLength); //read entry data
 
 							std::string entryDataString(byteArray.get());
 							dataString.push_back(entryDataString);

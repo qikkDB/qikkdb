@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 	auto start = std::chrono::high_resolution_clock::now();
 
 	std::vector<std::string> tableNames = { "TableA", "TableB" };
-	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_DOUBLE}, {COLUMN_STRING}, {COLUMN_POLYGON}, {COLUMN_POINT} };
+	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_DOUBLE}, {COLUMN_POLYGON}, {COLUMN_POINT}, {COLUMN_STRING}};
 	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("SimpleDb", 4, 1 << 5, true, tableNames, columnTypes);
 
 	Database::AddToInMemoryDatabaseList(database);
