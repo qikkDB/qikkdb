@@ -388,9 +388,9 @@ public:
 			auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
 			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
 
-			T* gpuPointer = allocateRegister<T>(colName, block->GetData().size());
+			T* gpuPointer = allocateRegister<T>(colName, block->GetSize());
 
-			GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<T*>(block->GetData().data()), block->GetData().size());
+			GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<T*>(block->GetData()), block->GetSize());
 			noLoad = false;
 		}
 		return 0;

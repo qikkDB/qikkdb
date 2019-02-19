@@ -6042,7 +6042,7 @@ TEST(DispatcherTests, FloatAddColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colFloat1+5");
 
 	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
@@ -6467,7 +6467,7 @@ TEST(DispatcherTests, FloatSubColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colFloat1-5");
 
 	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
@@ -6574,7 +6574,7 @@ TEST(DispatcherTests, DoubleSubColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colDouble1-5");
 
 	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 
@@ -6882,7 +6882,7 @@ TEST(DispatcherTests, FloatMulColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colFloat1*5");
 
 	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
@@ -7097,7 +7097,7 @@ TEST(DispatcherTests, IntDivColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colInteger1/5");
 
 	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
@@ -7204,7 +7204,7 @@ TEST(DispatcherTests, LongDivColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colLong1/2");
 
 	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
@@ -7318,7 +7318,7 @@ TEST(DispatcherTests, FloatDivColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colFloat1/5");
 
 	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
@@ -7492,7 +7492,7 @@ TEST(DispatcherTests, IntDivColumnConstFloat) //FIXME chyba je v CUDA kerneli, m
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colInteger1/5.0");
 
 	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
@@ -7579,7 +7579,7 @@ TEST(DispatcherTests, LongDivColumnConstFloat) //FIXME test je dobry, kernel tre
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colLong1/2.0");
 
 	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
@@ -7688,7 +7688,7 @@ TEST(DispatcherTests, IntModColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colInteger1%5");
 
 	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
@@ -7785,7 +7785,7 @@ TEST(DispatcherTests, LongModColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colLong1%2");
 
 	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
