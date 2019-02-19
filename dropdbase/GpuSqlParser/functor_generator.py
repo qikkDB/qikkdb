@@ -307,6 +307,23 @@ for operation in operations_arithmetic:
 
     print(declaration)
 
+
+operation = "insertInto"
+
+declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+for colIdx, colVal in enumerate(all_types):
+    function = operation + "<" + colVal + ">"
+
+    if colIdx == len(all_types) - 1:
+        declaration += ("&" + function + "};")
+    else:
+        declaration += ("&" + function + ", ")
+
+print(declaration)
+
+
 for operation in operations_aggregation:
     declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"

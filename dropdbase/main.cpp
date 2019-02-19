@@ -41,19 +41,23 @@ int main(int argc, char **argv)
 	
 	/*std::vector<std::string> tableNames = { "TableA" };
 	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT}/*, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
-	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 100000000, false, tableNames, columnTypes);*/
-	CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
-	std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 100000000);
+	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1024, false, tableNames, columnTypes);
+	Database::AddToInMemoryDatabaseList(database);*/
+	/*CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc1B.csv)");
+	std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 500000000);
 	Database::AddToInMemoryDatabaseList(database);
 	std::cout << "Loading TargetLoc.csv ..." << std::endl;
 	csvDataImporter.ImportTables(database);
-	std::cout << "Done ..." << std::endl;
+	std::cout << "Done ..." << std::endl;*/
+	Database::LoadDatabasesFromDisk();
 	//GPUMemory::hostPin(dynamic_cast<BlockBase<int32_t>&>(*dynamic_cast<ColumnBase<int32_t>&>(*(database->GetTables().at("TableA").GetColumns().at("colInteger"))).GetBlocksList()[0]).GetData().data(), 1 << 24);
-	for (int i = 0; i < 4; i++)
-	{
+	/*for (int i = 0; i < 4; i++)
+	{*/
 		auto start = std::chrono::high_resolution_clock::now();
-
-		GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT COUNT(ageId) FROM TargetLoc100M WHERE latitude > 48.163267512773274 AND latitude < 48.17608989851882 AND longitude > 17.19991468973717 AND longitude < 17.221200700479358 GROUP BY ageId;");
+		
+		//GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT COUNT(ageId) FROM TargetLoc100M WHERE latitude > 48.163267512773274 AND latitude < 48.17608989851882 AND longitude > 17.19991468973717 AND longitude < 17.221200700479358 GROUP BY ageId; ");
+		GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT ageId, COUNT(ageId) FROM TargetLoc1B WHERE latitude > 48.163267512773274 AND latitude < 48.17608989851882 AND longitude > 17.19991468973717 AND longitude < 17.221200700479358 GROUP BY ageId;");
+		//GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT colInteger2,COUNT(colInteger1) FROM TableA GROUP BY colInteger2;");
 		parser.parse()->PrintDebugString();
 
 		auto end = std::chrono::high_resolution_clock::now();
@@ -61,6 +65,7 @@ int main(int argc, char **argv)
 		std::chrono::duration<double> elapsed(end - start);
 
 		std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
-	}
+	//}
+	//Database::SaveAllToDisk();
 	return 0;
 }

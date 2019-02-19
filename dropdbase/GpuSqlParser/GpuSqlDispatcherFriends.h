@@ -35,6 +35,7 @@ int32_t loadConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
+
 template<typename T>
 int32_t loadCol(GpuSqlDispatcher &dispatcher)
 {
@@ -63,8 +64,8 @@ int32_t loadCol(GpuSqlDispatcher &dispatcher)
 
 	auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(dispatcher.database->GetName() + "_" + colName, dispatcher.blockIndex, block->GetSize());
 	if (!std::get<2>(cacheEntry))
-	{
-		GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), reinterpret_cast<T*>(block->GetData()), block->GetSize());
+	{		
+		GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
 	}
 	dispatcher.addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
 	return 0;
@@ -146,10 +147,13 @@ int32_t filterColConst(GpuSqlDispatcher &dispatcher)
 	auto reg = dispatcher.arguments.read<std::string>();
 
 	std::tuple<uintptr_t, int32_t, bool> column = dispatcher.allocatedPointers.at(colName);
+	std::cout << "Filter: " << colName << " " << reg << std::endl;
+
 	int32_t retSize = std::get<1>(column);
 
 	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, retSize);
 	GPUFilter::colConst<OP, T, U>(mask, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
+	dispatcher.freeColumnIfRegister(colName);
 	return 0;
 }
 
@@ -165,6 +169,7 @@ int32_t filterConstCol(GpuSqlDispatcher &dispatcher)
 
 	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, retSize);
 	GPUFilter::constCol<OP, T, U>(mask, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
+	dispatcher.freeColumnIfRegister(colName);
 	return 0;
 }
 
@@ -182,6 +187,8 @@ int32_t filterColCol(GpuSqlDispatcher &dispatcher)
 	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, retSize);
 
 	GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+	dispatcher.freeColumnIfRegister(colNameRight);
+	dispatcher.freeColumnIfRegister(colNameLeft);
 	return 0;
 }
 
@@ -210,6 +217,7 @@ int32_t logicalColConst(GpuSqlDispatcher &dispatcher)
 
 	int8_t * result = dispatcher.allocateRegister<int8_t>(reg, retSize);
 	GPULogic::colConst<OP, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
+	dispatcher.freeColumnIfRegister(colName);
 	return 0;
 }
 
@@ -225,6 +233,7 @@ int32_t logicalConstCol(GpuSqlDispatcher &dispatcher)
 
 	int8_t * result = dispatcher.allocateRegister<int8_t>(reg, retSize);
 	GPULogic::constCol<OP, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
+	dispatcher.freeColumnIfRegister(colName);
 	return 0;
 }
 
@@ -237,10 +246,15 @@ int32_t logicalColCol(GpuSqlDispatcher &dispatcher)
 
 	std::tuple<uintptr_t, int32_t, bool> columnRight = dispatcher.allocatedPointers.at(colNameRight);
 	std::tuple<uintptr_t, int32_t, bool> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
+
+	std::cout << "Filter: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+
 	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
 
 	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, retSize);
 	GPULogic::colCol<OP, T, U>(mask, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+	dispatcher.freeColumnIfRegister(colNameRight);
+	dispatcher.freeColumnIfRegister(colNameLeft);
 	return 0;
 }
 
@@ -283,6 +297,7 @@ int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher)
 		T * result = dispatcher.allocateRegister<T>(reg, retSize);
 		GPUArithmetic::colConst<OP, T, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
 	}
+	dispatcher.freeColumnIfRegister(colName);
 	return 0;
 }
 
@@ -313,6 +328,7 @@ int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher)
 		U * result = dispatcher.allocateRegister<U>(reg, retSize);
 		GPUArithmetic::constCol<OP, U, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
 	}
+	dispatcher.freeColumnIfRegister(colName);
 	return 0;
 }
 
@@ -360,6 +376,8 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 		T * result = dispatcher.allocateRegister<T>(reg, retSize);
 		GPUArithmetic::colCol<OP, T, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
 	}
+	dispatcher.freeColumnIfRegister(colNameLeft);
+	dispatcher.freeColumnIfRegister(colNameRight);
 	return 0;
 }
 
@@ -479,6 +497,7 @@ int32_t logicalNotCol(GpuSqlDispatcher &dispatcher)
 
 	int8_t * mask = dispatcher.allocateRegister<int8_t>(reg, retSize);
 	GPULogic::not_col<int8_t, T>(mask, reinterpret_cast<T*>(std::get<0>(column)), retSize);
+	dispatcher.freeColumnIfRegister(colName);
 	return 0;
 }
 
@@ -510,9 +529,7 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 	std::tuple<uintptr_t, int32_t, bool>& column = dispatcher.allocatedPointers.at(colTableName);
 	int32_t reconstructOutSize;
 	T* reconstructOutReg; 
-	GPUMemory::alloc(&reconstructOutReg, std::get<1>(column));
-	GPUReconstruct::reconstructColKeep<T>(reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(std::get<0>(column)), reinterpret_cast<int8_t*>(dispatcher.filter_), std::get<1>(column));
-
+	GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(std::get<0>(column)), reinterpret_cast<int8_t*>(dispatcher.filter_), std::get<1>(column));
 	if (std::get<2>(column))
 	{
 		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(column)));
@@ -549,20 +566,20 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 		if (dispatcher.isLastBlock)
 		{
 			int32_t outSize;
-			U* outKeys = dispatcher.allocateRegister<U>(groupByColumnName + "_keys", Configuration::GetInstance().GetGroupByBuckets());
-			R* outValues = dispatcher.allocateRegister<R>(reg, Configuration::GetInstance().GetGroupByBuckets());
-			reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(outKeys, outValues, &outSize);
-			std::get<1>(dispatcher.allocatedPointers.at(groupByColumnName + "_keys")) = outSize;
-			std::get<1>(dispatcher.allocatedPointers.at(reg)) = outSize;
+			U* outKeys;// = dispatcher.allocateRegister<U>(groupByColumnName + "_keys", Configuration::GetInstance().GetGroupByBuckets());
+			R* outValues;// = dispatcher.allocateRegister<T>(reg, Configuration::GetInstance().GetGroupByBuckets());
+			reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize);
+			dispatcher.allocatedPointers.insert({ groupByColumnName + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
+			dispatcher.allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
 		}
-		return 0;
 	}
 	else
 	{
 		R * result = dispatcher.allocateRegister<R>(reg, 1);
 		GPUAggregation::col<OP, R>(result, reinterpret_cast<R*>(std::get<0>(column)), std::get<1>(column));
-		return 0;
 	}
+	dispatcher.freeColumnIfRegister(colTableName);
+	return 0;
 }
 
 template<typename OP, typename T, typename U>
@@ -583,8 +600,7 @@ int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher)
 
 	int32_t reconstructOutSize;
 	T* reconstructOutReg;
-	GPUMemory::alloc(&reconstructOutReg, std::get<1>(column));
-	GPUReconstruct::reconstructColKeep<T>(reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(std::get<0>(column)), reinterpret_cast<int8_t*>(dispatcher.filter_), std::get<1>(column));
+	GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(std::get<0>(column)), reinterpret_cast<int8_t*>(dispatcher.filter_), std::get<1>(column));
 
 	if (std::get<2>(column))
 	{
@@ -600,7 +616,8 @@ int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher)
 
 	T * result = dispatcher.allocateRegister<T>(reg, 1);
 	GPUAggregation::col<OP, T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
-
+	dispatcher.freeColumnIfRegister(colName);
+	dispatcher.filter_ = 0;
 	return 0;
 }
 
@@ -628,6 +645,26 @@ int32_t groupByCol(GpuSqlDispatcher &dispatcher)
 template<typename T>
 int32_t groupByConst(GpuSqlDispatcher &dispatcher)
 {
+	return 0;
+}
+
+template<typename T>
+int32_t insertInto(GpuSqlDispatcher &dispatcher)
+{
+	std::string table = dispatcher.arguments.read<std::string>();
+	std::string column = dispatcher.arguments.read<std::string>();
+	bool isReferencedColumn = dispatcher.arguments.read<bool>();
+
+	if (isReferencedColumn)
+	{
+		T args = dispatcher.arguments.read<T>();
+
+		dynamic_cast<ColumnBase<T>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get())->InsertData({args});
+	}
+	else
+	{
+		dynamic_cast<ColumnBase<T>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get())->InsertNullData(1);
+	}
 	return 0;
 }
 

@@ -30,7 +30,7 @@ __global__ void kernel_reconstruct_col(T *outData, int32_t *outDataElementCount,
 	}
 
 	// Fetch the size of the output - the last item of the inclusive prefix sum
-	if (idx == 0) 
+	if (idx == 0)
 	{
 		outDataElementCount[0] = prefixSum[dataElementCount - 1];
 	}
@@ -47,10 +47,9 @@ public:
 		{
 			// Malloc a new buffer for the output vector -GPU side
 			T *outDataGPUPointer = nullptr;
-			GPUMemory::alloc(&outDataGPUPointer, dataElementCount);
 
 			// Call reconstruct col keep
-			reconstructColKeep(outDataGPUPointer, outDataElementCount, ACol, inMask, dataElementCount);
+			reconstructColKeep(&outDataGPUPointer, outDataElementCount, ACol, inMask, dataElementCount);
 
 			// Copy the generated output back from the GPU
 			GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
@@ -69,7 +68,7 @@ public:
 	}
 
 	template<typename T>
-	static void reconstructColKeep(T *outCol, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
+	static void reconstructColKeep(T **outCol, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
 	{
 		Context& context = Context::getInstance();
 
@@ -94,20 +93,23 @@ public:
 			// Run inclusive prefix sum
 			cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 			GPUMemory::free(tempBuffer);
+			GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
+			GPUMemory::alloc<T>(outCol, *outDataElementCount);
 			// Construct the output based on the prefix sum
 			kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-				(outCol, outDataElementCountPointer, ACol, prefixSumPointer, inMask, dataElementCount);
+				(*outCol, outDataElementCountPointer, ACol, prefixSumPointer, inMask, dataElementCount);
 
 			// Copy the generated output back from the GPU
-			GPUMemory::copyDeviceToHost(outDataElementCount, outDataElementCountPointer, 1);
+
 
 			// Free the memory
 			GPUMemory::free(prefixSumPointer);
 			GPUMemory::free(outDataElementCountPointer);
 		}
-		else if (outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+		else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
 		{
-			GPUMemory::copyDeviceToDevice(outCol, ACol, dataElementCount);
+			GPUMemory::alloc<T>(outCol, dataElementCount);
+			GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
 			*outDataElementCount = dataElementCount;
 		}
 

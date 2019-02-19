@@ -7,9 +7,11 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ClientHandlerTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ColumnTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DatabaseTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TableTests.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp)
+				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp)
 
 set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUArtithmeticTests.cu
@@ -25,11 +27,16 @@ endif(WIN32)
 add_executable(${PROJECT_NAME}_test ${SOURCE_FILES} ${CUDA_FILES} ${TEST_FILES} ${CUDA_TEST_FILES})
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIR}) 
+
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 
 target_link_libraries(${PROJECT_NAME}_test ${YAML_CPP_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_test ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_test antlr4_static)
+
+
+
+
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 	target_link_libraries(${PROJECT_NAME}_test ${prefix}protobufd${suffix})
     target_link_libraries(${PROJECT_NAME}_test gtestd)
