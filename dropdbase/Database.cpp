@@ -14,6 +14,7 @@
 #include "Table.h"
 
 std::unordered_map<std::string, std::shared_ptr<Database>> Database::loadedDatabases_;
+std::mutex Database::dbMutex_;
 
 /// <summary>
 /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
@@ -870,6 +871,7 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 /// <param name="database">Database to add</param>
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
+	std::lock_guard<std::mutex> lock(dbMutex_);
 	loadedDatabases_.insert({ database->name_, database });
 }
 
