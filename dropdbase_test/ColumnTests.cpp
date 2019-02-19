@@ -160,57 +160,57 @@ TEST(ColumnTests, InsertData_BlocksDoNotExist)
 
 	for (auto &block : dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInIntBlock.push_back(entry);
+			dataInIntBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInLongBlock.push_back(entry);
+			dataInLongBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInFloatBlock.push_back(entry);
+			dataInFloatBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInDoubleBlock.push_back(entry);
+			dataInDoubleBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInPointBlock.push_back(entry);
+			dataInPointBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInPolygonBlock.push_back(entry);
+			dataInPolygonBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInStringBlock.push_back(entry);
+			dataInStringBlock.push_back(block->GetData()[i]);
 		}
 	}
 
@@ -293,57 +293,57 @@ TEST(ColumnTests, InsertData_BlocksExistAndNewDataFitIntoThem)
 
 	for (auto &block : dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInIntBlock.push_back(entry);
+			dataInIntBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInLongBlock.push_back(entry);
+			dataInLongBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInFloatBlock.push_back(entry);
+			dataInFloatBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInDoubleBlock.push_back(entry);
+			dataInDoubleBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInPointBlock.push_back(entry);
+			dataInPointBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInPolygonBlock.push_back(entry);
+			dataInPolygonBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInStringBlock.push_back(entry);
+			dataInStringBlock.push_back(block->GetData()[i]);
 		}
 	}
 
@@ -418,57 +418,57 @@ TEST(ColumnTests, InsertData_BlocksExistAndNewDataDoNotFitIntoThem)
 
 	for (auto &block : dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInIntBlock.push_back(entry);
+			dataInIntBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInLongBlock.push_back(entry);
+			dataInLongBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInFloatBlock.push_back(entry);
+			dataInFloatBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInDoubleBlock.push_back(entry);
+			dataInDoubleBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInPointBlock.push_back(entry);
+			dataInPointBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInPolygonBlock.push_back(entry);
+			dataInPolygonBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInStringBlock.push_back(entry);
+			dataInStringBlock.push_back(block->GetData()[i]);
 		}
 	}
 
@@ -568,13 +568,13 @@ TEST(ColumnTests, InsertNull)
 	dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->InsertNullData(512);
 	dynamic_cast<ColumnBase<std::string>*>(columnString.get())->InsertNullData(512);
 
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList()[0].get()->GetData().size(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList()[0].get()->GetData().size(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList()[0].get()->GetData().size(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList()[0].get()->GetData().size(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList()[0].get()->GetData().size(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList()[0].get()->GetData().size(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList()[0].get()->GetData().size(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList()[0].get()->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList()[0].get()->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList()[0].get()->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList()[0].get()->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList()[0].get()->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList()[0].get()->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList()[0].get()->GetSize(),512);
 
 	std::vector<int32_t> dataInIntBlock;
 	std::vector<int64_t> dataInLongBlock;
@@ -586,57 +586,57 @@ TEST(ColumnTests, InsertNull)
 
 	for (auto &block : dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInIntBlock.push_back(entry);
+			dataInIntBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInLongBlock.push_back(entry);
+			dataInLongBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInFloatBlock.push_back(entry);
+			dataInFloatBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInDoubleBlock.push_back(entry);
+			dataInDoubleBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInPointBlock.push_back(entry);
+			dataInPointBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInPolygonBlock.push_back(entry);
+			dataInPolygonBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (size_t i = 0; i < block->GetSize(); i++)
 		{
-			dataInStringBlock.push_back(entry);
+			dataInStringBlock.push_back(block->GetData()[i]);
 		}
 	}
 

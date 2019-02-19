@@ -103,19 +103,27 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of ComplexPolygon data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
+					int64_t dataByteSize = 0;
 
-					if (data.size() > 0)
+					for (int32_t i = 0; i < dataLength; i++)
+					{
+						dataByteSize += data[i].ByteSize();
+					}
+
+					int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
+
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
+						colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); //write block length in bytes
+						for(size_t i = 0; i < dataLength; i++)
 						{
-							int32_t entryByteLength = entry.ByteSize();
+							int32_t entryByteLength = data[i].ByteSize();
 							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
 
-							entry.SerializeToArray(byteArray.get(), entryByteLength);
+							data[i].SerializeToArray(byteArray.get(), entryByteLength);
 
 							colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
 							colFile.write(byteArray.get(), entryByteLength); //write entry data
@@ -136,19 +144,27 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of Point data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
+					int64_t dataByteSize = 0;
 
-					if (data.size() > 0)
+					for (int32_t i = 0; i < dataLength; i++)
+					{
+						dataByteSize += data[i].ByteSize();
+					}
+
+					int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
+
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
+						colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); //write block length in bytes
+						for (size_t i = 0; i < dataLength; i++)
 						{
-							int32_t entryByteLength = entry.ByteSize();
+							int32_t entryByteLength = data[i].ByteSize();
 							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
 
-							entry.SerializeToArray(byteArray.get(), entryByteLength);
+							data[i].SerializeToArray(byteArray.get(), entryByteLength);
 
 							colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
 							colFile.write(byteArray.get(), entryByteLength); //write entry data
@@ -169,19 +185,27 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of String data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
+					int64_t dataByteSize = 0;
 
-					if (data.size() > 0)
+					for (int32_t i = 0; i < dataLength; i++)
+					{
+						dataByteSize += data[i].length() + 1;
+					}
+
+					int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
+
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
+						colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); //write block length in bytes
+						for (size_t i = 0; i < dataLength; i++)
 						{
-							int32_t entryByteLength = entry.length() + 1; // +1 because '\0'
+							int32_t entryByteLength = data[i].length() + 1; // +1 because '\0'
 
 							colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
-							colFile.write(entry.c_str(), entryByteLength); //write entry data
+							colFile.write(data[i].c_str(), entryByteLength); //write entry data
 						}
 						index += 1;
 					}
@@ -199,17 +223,14 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
 
-					if (data.size() > 0)
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
-						{
-							colFile.write(reinterpret_cast<const char*>(&entry), sizeof(int32_t)); //write entry data
-						}
+						colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int32_t)); //write block of data
 						index += 1;
 					}
 				}
@@ -226,17 +247,14 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
 
-					if (data.size() > 0)
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
-						{
-							colFile.write(reinterpret_cast<const char*>(&entry), sizeof(int64_t)); //write entry data
-						}
+						colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int64_t)); //write block of data
 						index += 1;
 					}
 				}
@@ -253,17 +271,14 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
 
-					if (data.size() > 0)
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
-						{
-							colFile.write(reinterpret_cast<const char*>(&entry), sizeof(float)); //write entry data
-						}
+						colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(float)); //write block of data
 						index += 1;
 					}
 				}
@@ -280,17 +295,14 @@ void Database::Persist(const char* path)
 				{
 					BOOST_LOG_TRIVIAL(debug) << "Saving block of Double data with index = " << index << "." << std::endl;
 
-					auto& data = block->GetData();
-					int32_t dataLength = data.size();
+					auto data = block->GetData();
+					int32_t dataLength = block->GetSize();
 
-					if (data.size() > 0)
+					if (dataLength > 0)
 					{
 						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
 						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						for (const auto& entry : data)
-						{
-							colFile.write(reinterpret_cast<const char*>(&entry), sizeof(double)); //write entry data
-						}
+						colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(double)); //write block of data
 						index += 1;
 					}
 				}
@@ -454,8 +466,8 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						break;
 					}
 
-					int32_t dataLength;
-					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
+					int64_t dataLength;
+					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int64_t)); //read data length (data block length)
 
 					if (index != nullIndex) //there is null block
 					{
@@ -465,20 +477,27 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					else //read data from block
 					{
 						std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+						std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength);
 
-						for (int32_t j = 0; j < dataLength; j++)
+						colFile.read(data.get(), dataLength); //read entry data
+
+						int64_t byteIndex = 0;
+						while (byteIndex < dataLength)
 						{
-							int32_t entryByteLength;
-							colFile.read(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //read entry length
+							int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]);
+
+							byteIndex += sizeof(int32_t);
 
 							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
-							colFile.read(byteArray.get(), entryByteLength); //read entry data
+							memcpy(byteArray.get(), &data[byteIndex], entryByteLength);
 
 							ColmnarDB::Types::ComplexPolygon entryDataPolygon;
 
 							entryDataPolygon.ParseFromArray(byteArray.get(), entryByteLength);
 
 							dataPolygon.push_back(entryDataPolygon);
+
+							byteIndex += entryByteLength;
 						}
 
 						columnPolygon.AddBlock(dataPolygon);
@@ -508,8 +527,8 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						break;
 					}
 
-					int32_t dataLength;
-					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
+					int64_t dataLength;
+					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int64_t)); //read byte data length (data block length)
 
 					if (index != nullIndex) //there is null block
 					{
@@ -519,23 +538,31 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					else //read data from block
 					{
 						std::vector<ColmnarDB::Types::Point> dataPoint;
+						std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength);
+		
+						colFile.read(data.get(), dataLength); //read entry data
 
-						for (int32_t j = 0; j < dataLength; j++)
+						int64_t byteIndex = 0;
+						while (byteIndex < dataLength)
 						{
-							int32_t entryByteLength;
-							colFile.read(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //read entry length
+							int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]);
+
+							byteIndex += sizeof(int32_t);
 
 							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
-							colFile.read(byteArray.get(), entryByteLength); //read entry data
+							memcpy(byteArray.get(), &data[byteIndex], entryByteLength);
 
 							ColmnarDB::Types::Point entryDataPoint;
 
 							entryDataPoint.ParseFromArray(byteArray.get(), entryByteLength);
 
 							dataPoint.push_back(entryDataPoint);
+
+							byteIndex += entryByteLength;
 						}
 
 						columnPoint.AddBlock(dataPoint);
+
 						BOOST_LOG_TRIVIAL(debug) << "Added Point block with data at index: " << index << "." << std::endl;
 					}
 
@@ -562,8 +589,8 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 						break;
 					}
 
-					int32_t dataLength;
-					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //read data length (number of entries)
+					int64_t dataLength;
+					colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int64_t)); //read data length (data block length)
 
 					if (index != nullIndex) //there is null block
 					{
@@ -573,17 +600,24 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					else //read data from block
 					{
 						std::vector<std::string> dataString;
+						std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength);
 
-						for (int32_t j = 0; j < dataLength; j++)
+						colFile.read(data.get(), dataLength); //read block length
+
+						int64_t byteIndex = 0;
+						while (byteIndex < dataLength)
 						{
-							int32_t entryByteLength;
-							colFile.read(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //read entry length
+							int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]); //read entry byte length
+
+							byteIndex += sizeof(int32_t);
 
 							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
-							colFile.read(byteArray.get(), entryByteLength); //read entry data
+							memcpy(byteArray.get(), &data[byteIndex], entryByteLength); //read entry data
 
 							std::string entryDataString(byteArray.get());
 							dataString.push_back(entryDataString);
+
+							byteIndex += entryByteLength;
 						}
 
 						columnString.AddBlock(dataString);
@@ -623,15 +657,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					}
 					else //read data from block
 					{
-						std::vector<int32_t> dataInt;
+						std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength * sizeof(int32_t));
+						int32_t* dataTemp;
 
-						for (int32_t j = 0; j < dataLength; j++)
-						{
-							int32_t entryDataInt;
-							colFile.read(reinterpret_cast<char*>(&entryDataInt), sizeof(int32_t)); //read entry data
+						colFile.read(data.get(), dataLength * sizeof(int32_t)); //read entry data
 
-							dataInt.push_back(entryDataInt);
-						}
+						dataTemp = reinterpret_cast<int32_t*>(data.get());
+						std::vector<int32_t> dataInt(dataTemp, dataTemp + dataLength);
 
 						columnInt.AddBlock(dataInt);
 						BOOST_LOG_TRIVIAL(debug) << "Added Int32 block with data at index: " << index << "." << std::endl;
@@ -670,15 +702,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					}
 					else //read data from block
 					{
-						std::vector<int64_t> dataLong;
+						std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength * sizeof(int64_t));
+						int64_t* dataTemp;
 
-						for (int32_t j = 0; j < dataLength; j++)
-						{
-							int64_t entryDataLong;
-							colFile.read(reinterpret_cast<char*>(&entryDataLong), sizeof(int64_t)); //read entry data
+						colFile.read(data.get(), dataLength * sizeof(int64_t)); //read entry data
 
-							dataLong.push_back(entryDataLong);
-						}
+						dataTemp = reinterpret_cast<int64_t*>(data.get());
+						std::vector<int64_t> dataLong(dataTemp, dataTemp + dataLength);
 
 						columnLong.AddBlock(dataLong);
 						BOOST_LOG_TRIVIAL(debug) << "Added Int64 block with data at index: " << index << "." << std::endl;
@@ -717,15 +747,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					}
 					else //read data from block
 					{
-						std::vector<float> dataFloat;
+						std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength * sizeof(float));
+						float* dataTemp;
 
-						for (int32_t j = 0; j < dataLength; j++)
-						{
-							float entryDataFloat;
-							colFile.read(reinterpret_cast<char*>(&entryDataFloat), sizeof(float)); //read entry data
+						colFile.read(data.get(), dataLength * sizeof(float)); //read entry data
 
-							dataFloat.push_back(entryDataFloat);
-						}
+						dataTemp = reinterpret_cast<float*>(data.get());
+						std::vector<float> dataFloat(dataTemp, dataTemp + dataLength);
 
 						columnFloat.AddBlock(dataFloat);
 						BOOST_LOG_TRIVIAL(debug) << "Added Float block with data at index: " << index << "." << std::endl;
@@ -764,15 +792,13 @@ void Database::LoadColumns(const char* path, const char* dbName, Table& table, c
 					}
 					else //read data from block
 					{
-						std::vector<double> dataDouble;
+						std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength * sizeof(double));
+						double* dataTemp;
 
-						for (int32_t j = 0; j < dataLength; j++)
-						{
-							double entryDataDouble;
-							colFile.read(reinterpret_cast<char*>(&entryDataDouble), sizeof(double)); //read entry data
+						colFile.read(data.get(), dataLength * sizeof(double)); //read entry data
 
-							dataDouble.push_back(entryDataDouble);
-						}
+						dataTemp = reinterpret_cast<double*>(data.get());
+						std::vector<double> dataDouble(dataTemp, dataTemp + dataLength);
 
 						columnDouble.AddBlock(dataDouble);
 						BOOST_LOG_TRIVIAL(debug) << "Added Double block with data at index: " << index << "." << std::endl;

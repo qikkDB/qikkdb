@@ -11,7 +11,7 @@
 #include "../../NativeGeoPoint.h"
 
 template<typename T>
-__global__ void kernel_fill_array(T *p_Block, T value, int32_t dataElementCount)
+__global__ void kernel_fill_array(T *p_Block, T value, size_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -50,7 +50,7 @@ public:
 	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
 	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
 	template<typename T>
-	static void alloc(T **p_Block, int32_t dataElementCount)
+	static void alloc(T **p_Block, size_t dataElementCount)
 	{
 		*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
@@ -69,7 +69,7 @@ public:
 	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
 	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
 	template<typename T>
-	static void allocAndSet(T **p_Block, int value, int32_t dataElementCount)
+	static void allocAndSet(T **p_Block, int value, size_t dataElementCount)
 	{
 		*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
 
@@ -80,7 +80,7 @@ public:
 
 	// Fill an array with a desired value
 	template<typename T>
-	static void memset(T *p_Block, int value, int32_t dataElementCount)
+	static void memset(T *p_Block, int value, size_t dataElementCount)
 	{
 		//cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));	// Async version, uncomment if needed
 		cudaMemset(p_Block, value, dataElementCount * sizeof(T));
@@ -88,7 +88,7 @@ public:
 	}
 
 	template<typename T>
-	static void fillArray(T *p_Block, T value, int32_t dataElementCount)
+	static void fillArray(T *p_Block, T value, size_t dataElementCount)
 	{
 		kernel_fill_array << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(p_Block, value, dataElementCount);
@@ -107,7 +107,7 @@ public:
 	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
 	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
 	template<typename T>
-	static void copyHostToDevice(T *p_BlockDevice, T *p_BlockHost, int32_t dataElementCount)
+	static void copyHostToDevice(T *p_BlockDevice, T *p_BlockHost, size_t dataElementCount)
 	{
 		cudaMemcpy(p_BlockDevice, p_BlockHost, dataElementCount * sizeof(T), cudaMemcpyHostToDevice);
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
@@ -124,14 +124,14 @@ public:
 	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
 	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
 	template<typename T>
-	static void copyDeviceToHost(T *p_BlockHost, T *p_BlockDevice, int32_t dataElementCount)
+	static void copyDeviceToHost(T *p_BlockHost, T *p_BlockDevice, size_t dataElementCount)
 	{
 		cudaMemcpy(p_BlockHost, p_BlockDevice, dataElementCount * sizeof(T), cudaMemcpyDeviceToHost);
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
 	}
 
 	template<typename T>
-	static void copyDeviceToDevice(T *p_BlockDestination, T *p_BlockSource, int32_t dataElementCount)
+	static void copyDeviceToDevice(T *p_BlockDestination, T *p_BlockSource, size_t dataElementCount)
 	{
 		cudaMemcpy(p_BlockDestination, p_BlockSource, dataElementCount * sizeof(T), cudaMemcpyDeviceToDevice);
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
@@ -151,7 +151,7 @@ public:
 	}
 
 	template<typename T>
-	static void hostRegister(T **devicePtr, T *hostPtr, int32_t dataElementCount)
+	static void hostRegister(T **devicePtr, T *hostPtr, size_t dataElementCount)
 	{
 		cudaHostRegister(hostPtr, dataElementCount * sizeof(T), cudaHostRegisterMapped);
 		cudaHostGetDevicePointer(devicePtr, hostPtr, 0);
@@ -168,7 +168,7 @@ public:
 
 	// Pin host memory
 	template<typename T>
-	static void hostPin(T* hostPtr, int32_t dataElementCount)
+	static void hostPin(T* hostPtr, size_t dataElementCount)
 	{
 		cudaHostRegister(hostPtr, dataElementCount * sizeof(T), cudaHostRegisterDefault);
 		Context::getInstance().getLastError().setCudaError(cudaGetLastError());

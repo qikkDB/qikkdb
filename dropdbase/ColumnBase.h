@@ -199,9 +199,9 @@ public:
 		auto& floatBlocks = GetBlocksList();
 		for (const auto & block : floatBlocks)
 		{
-			for (const auto & dataPoint : block->GetData())
+			for (size_t i = 0; i < block->GetSize(); i++)
 			{
-				dataSet.insert(dataPoint);
+				dataSet.insert(block->GetData()[i]);
 			}
 		}
 		return std::vector<T>(dataSet.cbegin(), dataSet.cend());
