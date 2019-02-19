@@ -158,49 +158,55 @@ public:
 		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
 	}
 
-	std::pair<int,int> InsertOneValueData(const T& columnData)
+	std::tuple<int,int,int> FindBlockIndexAndRange(const T& columnData)
 	{
 		int indexBlock;
 		int indexInBlock;
+		int inBlockRange;
+		int blocksRange;
+		bool reachEnd;
 
 		if (blocks_.size() == 0) 
 		{
 			BlockBase<T> &block = AddBlock();
-			indexInBlock = block.InsertOneValueData(columnData);
+			std::tie(indexInBlock, inBlockRange, reachEnd) = block.FindIndexAndRange(columnData);
 			indexBlock = 0;
+			blocksRange = 0;
 		}
 		else if (blocks_.size() == 1)
 		{
 			BlockBase<T> &block = *(blocks_.front().get());
-			indexInBlock = block.InsertOneValueData(columnData);
+			std::tie(indexInBlock, inBlockRange, reachEnd) = block.FindIndexAndRange(columnData);
 			indexBlock = 0;
-
-			if (block.IsFull())
-			{
-				BlockSplit(blocks_.front());
-			}
+			blocksRange = inBlockRange;
 		}
 		else if (blocks_.back()->GetMin() < columnData)
 		{
 			BlockBase<T> &block = *(blocks_.back().get());
-			indexInBlock = block.InsertOneValueData(columnData);
+			std::tie(indexInBlock, inBlockRange, reachEnd) = block.FindIndexAndRange(columnData);
 			indexBlock = blocks_.size() - 1;
-
-			if (block.IsFull())
-			{
-				BlockSplit(blocks_.back());
-			}
+			blocksRange = inBlockRange;
 		}
 		else if (blocks_.front()->GetMin() >= columnData)
 		{
 			BlockBase<T> &block = *(blocks_.front().get());
-			indexInBlock = block.InsertOneValueData(columnData);
+			std::tie(indexInBlock, inBlockRange, reachEnd) = block.FindIndexAndRange(columnData);
 			indexBlock = 0;
-
-			if (block.IsFull())
+			
+			if (reachEnd == false)
 			{
-				BlockSplit(blocks_.back());
+				blocksRange = inBlockRange;
 			}
+			else
+			{
+				int i = 1;
+				while (reachEnd)
+				{
+					std::tie(indexInBlock, inBlockRange, reachEnd) = blocks_[i].FindIndexAndRange(columnData);
+					blocksRange += inBlockRange;
+				}
+			}
+			
 		}
 		else
 		{
@@ -209,21 +215,27 @@ public:
 				if (blocks_[i]->GetMin() < columnData && blocks_[i + 1]->GetMin() >= columnData)
 				{
 					BlockBase<T> &block = *(blocks_[i].get());
-					indexInBlock = block.InsertOneValueData(columnData);
+					std::tie(indexInBlock, inBlockRange, reachEnd) = blocks_[i].FindIndexAndRange(columnData);
 					indexBlock = i;
 
-					if (block.IsFull())
+					if (reachEnd == false)
 					{
-						BlockSplit(blocks_[i]);
+						blocksRange = inBlockRange;
 					}
-
-					break;
+					else
+					{
+						int j = i+1;
+						while (reachEnd)
+						{
+							std::tie(indexInBlock, inBlockRange, reachEnd) = blocks_[j].FindIndexAndRange(columnData);
+							blocksRange += inBlockRange;
+						}
+					}
 				}
 			}
 		}
-		setColumnStatistics();
-
-		return std::make_pair(indexBlock, indexInBlock);
+		//todo prerobit return
+		return std::make_pair(indexBlock, indexInBlock, blocksRange);
 	}
 
 	void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData)

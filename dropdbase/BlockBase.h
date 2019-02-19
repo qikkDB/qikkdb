@@ -149,8 +149,8 @@ public:
 						{
 							break;
 						}
-						break;
 					}
+					break;
 				}
 				if (data_[fullBlockSpace] == data) {
 					reachEnd = true;
