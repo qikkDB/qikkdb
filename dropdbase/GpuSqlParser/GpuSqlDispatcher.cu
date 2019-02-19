@@ -95,7 +95,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 	while (err == 0)
 	{
 		err = dispatcherFunctions[instructionPointer++](*this);
-		
 		if (err) 
 		{
 			if (err == 1) 
@@ -121,8 +120,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 			break;
 		}		
 	}
-
-	//std::cout << responseMessage.DebugString() << std::endl;
 	return std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(std::move(responseMessage));
 }
 

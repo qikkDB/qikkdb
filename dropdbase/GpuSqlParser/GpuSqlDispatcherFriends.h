@@ -44,7 +44,11 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 {
 	auto col = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<T>(col);
+	int32_t loadFlag = dispatcher.loadCol<T>(col);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "RetCol: " << col << ", thread: " << dispatcher.dispatcherThreadId << std::endl;
 
@@ -109,7 +113,11 @@ int32_t filterColConst(GpuSqlDispatcher &dispatcher)
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<T>(colName);
+	int32_t loadFlag = dispatcher.loadCol<T>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "Filter: " << colName << " " << reg << std::endl;
 
@@ -133,7 +141,11 @@ int32_t filterConstCol(GpuSqlDispatcher &dispatcher)
 	T cnst = dispatcher.arguments.read<T>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<U>(colName);
+	int32_t loadFlag = dispatcher.loadCol<U>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "Filter: " << colName << " " << reg << std::endl;
 
@@ -157,8 +169,16 @@ int32_t filterColCol(GpuSqlDispatcher &dispatcher)
 	auto colNameLeft = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<U>(colNameRight);
-	dispatcher.loadCol<T>(colNameLeft);
+	int32_t loadFlag = dispatcher.loadCol<U>(colNameRight);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+	loadFlag = dispatcher.loadCol<T>(colNameLeft);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "Filter: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
@@ -200,7 +220,11 @@ int32_t logicalColConst(GpuSqlDispatcher &dispatcher)
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<T>(colName);
+	int32_t loadFlag = dispatcher.loadCol<T>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::tuple<uintptr_t, int32_t, bool> column = dispatcher.allocatedPointers.at(colName);
 	int32_t retSize = std::get<1>(column);
@@ -222,7 +246,11 @@ int32_t logicalConstCol(GpuSqlDispatcher &dispatcher)
 	T cnst = dispatcher.arguments.read<T>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<U>(colName);
+	int32_t loadFlag = dispatcher.loadCol<U>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::tuple<uintptr_t, int32_t, bool> column = dispatcher.allocatedPointers.at(colName);
 	int32_t retSize = std::get<1>(column);
@@ -244,8 +272,16 @@ int32_t logicalColCol(GpuSqlDispatcher &dispatcher)
 	auto colNameLeft = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<U>(colNameRight);
-	dispatcher.loadCol<T>(colNameLeft);
+	int32_t loadFlag = dispatcher.loadCol<U>(colNameRight);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+	loadFlag = dispatcher.loadCol<T>(colNameLeft);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "Logical: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
@@ -287,7 +323,11 @@ int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher)
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<T>(colName);
+	int32_t loadFlag = dispatcher.loadCol<T>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "ArithmeticColConst: " << colName << " " << reg << std::endl;
 
@@ -323,7 +363,11 @@ int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher)
 	T cnst = dispatcher.arguments.read<T>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<U>(colName);
+	int32_t loadFlag = dispatcher.loadCol<U>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "ArithmeticConstCol: " << colName << " " << reg << std::endl;
 
@@ -360,8 +404,16 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 	auto colNameLeft = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<U>(colNameRight);
-	dispatcher.loadCol<T>(colNameLeft);
+	int32_t loadFlag = dispatcher.loadCol<U>(colNameRight);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+	loadFlag = dispatcher.loadCol<T>(colNameLeft);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "ArithmeticColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
@@ -434,7 +486,11 @@ int32_t containsColConst(GpuSqlDispatcher &dispatcher)
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<T>(colName);
+	int32_t loadFlag = dispatcher.loadCol<T>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "ContainsColConst: " + colName << " " << constWkt << " " << reg << std::endl;
 
@@ -460,7 +516,11 @@ int32_t containsConstCol(GpuSqlDispatcher &dispatcher)
 	auto constWkt = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<U>(colName);
+	int32_t loadFlag = dispatcher.loadCol<U>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "ContainsConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
 
@@ -485,8 +545,16 @@ int32_t containsColCol(GpuSqlDispatcher &dispatcher)
 	auto colNamePolygon = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<U>(colNamePoint);
-	dispatcher.loadCol<T>(colNamePolygon);
+	int32_t loadFlag = dispatcher.loadCol<U>(colNamePoint);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+	loadFlag = dispatcher.loadCol<T>(colNamePolygon);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "ContainsColCol: " + colNamePolygon << " " << colNamePoint << " " << reg << std::endl;
 
@@ -536,7 +604,11 @@ int32_t logicalNotCol(GpuSqlDispatcher &dispatcher)
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<T>(colName);
+	int32_t loadFlag = dispatcher.loadCol<T>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "NotCol: " << colName << " " << reg << std::endl;
 
@@ -577,7 +649,11 @@ int32_t dateExtractCol(GpuSqlDispatcher &dispatcher)
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<int64_t>(colName);
+	int32_t loadFlag = dispatcher.loadCol<int64_t>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "ExtractDatePartCol: " << colName << " " << reg << std::endl;
 
@@ -618,7 +694,11 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 	auto colTableName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<U>(colTableName);
+	int32_t loadFlag = dispatcher.loadCol<U>(colTableName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "AggColCol: " << colTableName << " " << reg << ", thread: " << dispatcher.dispatcherThreadId << std::endl;
 
@@ -697,7 +777,11 @@ int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher)
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<T>(colName);
+	int32_t loadFlag = dispatcher.loadCol<T>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "AggConstCol: " << colName << " " << reg << std::endl;
 
@@ -741,7 +825,12 @@ template<typename T>
 int32_t groupByCol(GpuSqlDispatcher &dispatcher)
 {
 	std::string column = dispatcher.arguments.read<std::string>();
-	dispatcher.loadCol<T>(column);
+	
+	int32_t loadFlag = dispatcher.loadCol<T>(column);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
 	std::cout << "GroupBy: " << column << std::endl;
 	if (dispatcher.groupByColumns.find(column) == dispatcher.groupByColumns.end())
