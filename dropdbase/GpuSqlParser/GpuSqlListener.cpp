@@ -614,7 +614,7 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
 		originalGroupByColumns.insert(tableColumnPair);
 	}
 
-    if (usingGroupBy && !insideAgg && originalGroupByColumns.find(tableColumnPair) == groupByColumns.end())
+    if (usingGroupBy && !insideAgg && originalGroupByColumns.find(tableColumnPair) == originalGroupByColumns.end())
     {
         throw ColumnGroupByException();
     }

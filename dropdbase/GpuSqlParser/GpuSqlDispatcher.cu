@@ -95,7 +95,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 	while (err == 0)
 	{
 		err = dispatcherFunctions[instructionPointer++](*this);
-		
 		if (err) 
 		{
 			if (err == 1) 
@@ -121,8 +120,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 			break;
 		}		
 	}
-
-	//std::cout << responseMessage.DebugString() << std::endl;
 	return std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(std::move(responseMessage));
 }
 
@@ -395,6 +392,7 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(ptr.second)));
 		}
 	}
+	usedRegisterMemory = 0;
 	allocatedPointers.clear();
 }
 
@@ -426,6 +424,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 
 		auto gpuPolygon = ComplexPolygonFactory::PrepareGPUPolygon(std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(), block->GetData() + block->GetSize()));
 		insertComplexPolygon(colName, gpuPolygon, block->GetSize());
+		noLoad = false;
 	}
 	return 0;
 }
@@ -462,6 +461,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 		NativeGeoPoint* gpuPointer = allocateRegister<NativeGeoPoint>(colName, nativePoints.size());
 
 		GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<NativeGeoPoint*>(nativePoints.data()), nativePoints.size());
+		noLoad = false;
 	}
 	return 0;
 }
