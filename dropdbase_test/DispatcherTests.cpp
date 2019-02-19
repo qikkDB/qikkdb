@@ -2707,7 +2707,7 @@ TEST(DispatcherTests, IntEqConstColumn)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE 500 = colInteger1;");
+	GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE -500 = colInteger1;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -6796,7 +6796,7 @@ TEST(DispatcherTests, LongMulColumnConstGtConst)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(database, "SELECT colLong1 FROM TableA WHERE colLong1 * 5 > 500;");
+	GpuSqlCustomParser parser(database, "SELECT colLong1 FROM TableA WHERE colLong1 * 2 > 500;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -6807,7 +6807,7 @@ TEST(DispatcherTests, LongMulColumnConstGtConst)
 		{
 			if (j % 2)
 			{
-				if (((static_cast<int64_t>(2 * pow(10, j % 19)) + j % 1024) * 5) > 500)
+				if (((static_cast<int64_t>(2 * pow(10, j % 19)) + j % 1024) * 2) > 500)
 				{
 					expectedResult.push_back(static_cast<int64_t>(2 * pow(10, j % 19)) + j % 1024);
 				}
@@ -6989,7 +6989,7 @@ TEST(DispatcherTests, DoubleMulColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colDouble1*5");
 
 	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 
@@ -7405,7 +7405,7 @@ TEST(DispatcherTests, DoubleDivColumnConst) //FIXME Dispatch je chybny, treba ho
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colDouble1/5");
 
 	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 

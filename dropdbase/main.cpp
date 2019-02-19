@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 5, false, tableNames, columnTypes);
 
 	auto start = std::chrono::high_resolution_clock::now();
-    GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE colInteger1 >= 20;");
+    GpuSqlCustomParser parser(database, "SELECT colLong1 FROM TableA WHERE colLong1 * 5 > 500;");
     parser.parse()->PrintDebugString();
 	auto end = std::chrono::high_resolution_clock::now();
 
