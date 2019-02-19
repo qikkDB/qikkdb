@@ -276,7 +276,7 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 {
 	std::pair<std::string, DataType> arg = stackTopAndPop();
 
-	if (!isAggSelectColumn && groupByColumns.find(arg) == groupByColumns.end())
+	if (!isAggSelectColumn && groupByColumns.find(arg) == groupByColumns.end() && usingGroupBy)
 	{
 		throw ColumnGroupByException();
 	}

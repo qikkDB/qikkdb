@@ -8,7 +8,7 @@
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 
 std::vector<std::string> tableNames = { "TableA" };
-std::vector<DataType> columnTypes = { {COLUMN_INT},{COLUMN_INT},{COLUMN_LONG},{COLUMN_LONG},{COLUMN_FLOAT},{COLUMN_FLOAT},{COLUMN_DOUBLE},{COLUMN_DOUBLE},{COLUMN_POLYGON},{COLUMN_POINT} };
+std::vector<DataType> columnTypes = { {COLUMN_INT},{COLUMN_INT},{COLUMN_LONG},{COLUMN_LONG}, {COLUMN_LONG}, {COLUMN_FLOAT},{COLUMN_FLOAT},{COLUMN_DOUBLE},{COLUMN_DOUBLE},{COLUMN_POLYGON},{COLUMN_POINT} };
 std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 11, false , tableNames, columnTypes);
 /////////////////////
 //   ">" operator
@@ -7902,5 +7902,78 @@ TEST(DispatcherTests, ConstainsAllPossibilities)
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, DateTimeCol)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(database, "SELECT YEAR(colLong3), MONTH(colLong3), DAY(colLong3), HOUR(colLong3), MINUTE(colLong3), SECOND(colLong3) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResultsYear;
+	std::vector<int32_t> expectedResultsMonth;
+	std::vector<int32_t> expectedResultsDay;
+	std::vector<int32_t> expectedResultsHour;
+	std::vector<int32_t> expectedResultsMinute;
+	std::vector<int32_t> expectedResultsSecond;
+
+	for (int i = 0; i < 2; i++)
+	{
+		for (int k = 0; k < (1<<11); k++)
+		{
+			expectedResultsYear.push_back(static_cast<int32_t>(k % 1000) + 2000);
+			expectedResultsMonth.push_back(static_cast<int32_t>((k % 12) + 1));
+			expectedResultsDay.push_back(static_cast<int32_t>(((k % 28) + 1)));
+			expectedResultsHour.push_back(static_cast<int32_t>((k % 24)));
+			expectedResultsMinute.push_back(static_cast<int32_t>(((k + 1) % 60)));
+			expectedResultsSecond.push_back(static_cast<int32_t>((k + 2) % 60));
+		}
+	}
+
+	auto &payloadsYear = result->payloads().at("YEAR(colLong3)");
+	auto &payloadsMonth = result->payloads().at("MONTH(colLong3)");
+	auto &payloadsDay = result->payloads().at("DAY(colLong3)");
+	auto &payloadsHour = result->payloads().at("HOUR(colLong3)");
+	auto &payloadsMinute = result->payloads().at("MINUTE(colLong3)");
+	auto &payloadsSecond = result->payloads().at("SECOND(colLong3)");
+
+	ASSERT_EQ(payloadsYear.intpayload().intdata_size(), expectedResultsYear.size());
+	ASSERT_EQ(payloadsMonth.intpayload().intdata_size(), expectedResultsMonth.size());
+	ASSERT_EQ(payloadsDay.intpayload().intdata_size(), expectedResultsDay.size());
+	ASSERT_EQ(payloadsHour.intpayload().intdata_size(), expectedResultsHour.size());
+	ASSERT_EQ(payloadsMinute.intpayload().intdata_size(), expectedResultsMinute.size());
+	ASSERT_EQ(payloadsSecond.intpayload().intdata_size(), expectedResultsSecond.size());
+
+	for (int i = 0; i < payloadsYear.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsYear[i], payloadsYear.intpayload().intdata()[i]);
+	}
+
+	for (int i = 0; i < payloadsYear.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsMonth[i], payloadsMonth.intpayload().intdata()[i]);
+	}
+
+	for (int i = 0; i < payloadsYear.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsDay[i], payloadsDay.intpayload().intdata()[i]);
+	}
+
+	for (int i = 0; i < payloadsYear.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsHour[i], payloadsHour.intpayload().intdata()[i]);
+	}
+
+	for (int i = 0; i < payloadsYear.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsMinute[i], payloadsMinute.intpayload().intdata()[i]);
+	}
+
+	for (int i = 0; i < payloadsYear.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsSecond[i], payloadsSecond.intpayload().intdata()[i]);
 	}
 }

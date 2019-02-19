@@ -117,7 +117,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 					for (int k = 0; k < blockSize; k++)
 					{
 
-						if (longColumnCount % 2 == 1)
+						if (longColumnCount % 3 != 0)
 						{
 							int64_t result = (static_cast<int64_t>(2 * pow(10, k % 19))) + k % (1024 * longColumnCount);
 
@@ -140,9 +140,11 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 							date.tm_mday = sameDataInBlocks ? 10 : ((k % 28) + 1);
 							date.tm_mon = sameDataInBlocks ? 10 : (k % 12);
-							date.tm_year = (sameDataInBlocks ? 110 : (k + 100)) % 1000;
+							date.tm_year = sameDataInBlocks ? 110 : ((k % 1000) + 100);
 
-							longData.push_back(static_cast<int64_t>(mktime(&date)));
+							const time_t utcTimestamp = _mkgmtime64(&date);
+
+							longData.push_back(static_cast<int64_t>(utcTimestamp));
 						}
 					}
 					column.AddBlock(longData);

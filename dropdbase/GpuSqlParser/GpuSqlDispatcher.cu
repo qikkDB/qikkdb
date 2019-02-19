@@ -653,13 +653,19 @@ void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &
 
 void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
 {
-	if (responseMessage.payloads().find(key) == responseMessage.payloads().end())
+	std::string trimmedKey = key.substr(0, std::string::npos);
+	if (std::regex_match(key, std::regex("^(\\$).*")))
 	{
-		responseMessage.mutable_payloads()->insert({ key, payload });
+		trimmedKey = key.substr(1, std::string::npos);
+	}
+
+	if (responseMessage.payloads().find(trimmedKey) == responseMessage.payloads().end())
+	{
+		responseMessage.mutable_payloads()->insert({ trimmedKey, payload });
 	}
 	else
 	{
-		responseMessage.mutable_payloads()->at(key).MergeFrom(payload);
+		responseMessage.mutable_payloads()->at(trimmedKey).MergeFrom(payload);
 	}
 }
 
