@@ -85,10 +85,12 @@ public:
 		return EmptyBlockSpace() == 0;
 	}
 
-	int32_t InsertOneValueData(const T& data)
+	std::tuple<int,int,bool> FindIndexAndRange(const T& data)
 	{
 		int index;
 		int fullBlockSpace = column_.GetBlockSize() - EmptyBlockSpace();
+		int range = 0;
+		bool reachEnd = false;
 
 		if (EmptyBlockSpace() == 0)
 		{
@@ -97,24 +99,38 @@ public:
 
 		else if (fullBlockSpace == 0)
 		{
-			data_[0] = data;
+			range = 0;
 			index = 0;
+			reachEnd = true;
 		}
 
 		else if (data_[fullBlockSpace-1] < data)
 		{
-			data_[fullBlockSpace] = data;
 			index = fullBlockSpace;
+			range = 0;
+			reachEnd = true;
 		}
 
-		else if (data_[0] > data)
+		else if (data_[0] >= data)
 		{
-			for (int j = fullBlockSpace - 1; j >= 0; j--)
-			{
-				data_[j + 1] = data_[j];
-			}
-			data_[0] = data;
 			index = 0;
+			for (int i = 0; i < (fullBlockSpace - 1); i++)
+			{
+				if (data_[i] == data) {
+					range++;
+				}
+				else
+				{
+					break;
+				}
+			}
+			if (data_[fullBlockSpace] == data) {
+				reachEnd = true;
+			}
+			else
+			{
+				reachEnd = false;
+			}
 		}
 
 		else
@@ -123,19 +139,29 @@ public:
 			{
 				if (data_[i] < data && data_[i + 1] >= data)
 				{
-					for (int j = fullBlockSpace - 1; j > i; j--)
-					{
-						data_[j + 1] = data_[j];
-					}
-					data_[i + 1] = data;
 					index = i + 1;
-					break;
+					for (int j = i + 1; j < (fullBlockSpace - 1); j++)
+					{
+						if (data_[j] == data) {
+							range++;
+						}
+						else
+						{
+							break;
+						}
+						break;
+					}
+				}
+				if (data_[fullBlockSpace] == data) {
+					reachEnd = true;
+				}
+				else
+				{
+					reachEnd = false;
 				}
 			}
 		}
-		setBlockStatistics();
-		size_++;
-		return index;
+		return std::make_tuple(index,range,reachEnd);
 	}
 
 	void InsertData(const std::vector<T>& data)

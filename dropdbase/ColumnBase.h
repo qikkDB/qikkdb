@@ -191,7 +191,7 @@ public:
 				BlockSplit(blocks_.back());
 			}
 		}
-		else if (blocks_.front()->GetMin() > columnData)
+		else if (blocks_.front()->GetMin() >= columnData)
 		{
 			BlockBase<T> &block = *(blocks_.front().get());
 			indexInBlock = block.InsertOneValueData(columnData);
