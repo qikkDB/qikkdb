@@ -520,7 +520,7 @@ int32_t minusConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
-template<typename OP, typename T, typename U>
+template<typename OP, typename R, typename T, typename U>
 int32_t aggregationColCol(GpuSqlDispatcher &dispatcher) 
 {
 	auto colTableName = dispatcher.arguments.read<std::string>();
@@ -529,8 +529,8 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 	
 	std::tuple<uintptr_t, int32_t, bool>& column = dispatcher.allocatedPointers.at(colTableName);
 	int32_t reconstructOutSize;
-	U* reconstructOutReg; 
-	GPUReconstruct::reconstructColKeep<U>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<U*>(std::get<0>(column)), reinterpret_cast<int8_t*>(dispatcher.filter_), std::get<1>(column));
+	T* reconstructOutReg; 
+	GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(std::get<0>(column)), reinterpret_cast<int8_t*>(dispatcher.filter_), std::get<1>(column));
 	if (std::get<2>(column))
 	{
 		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(column)));
@@ -553,15 +553,15 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 		//TODO void param
 		if (dispatcher.groupByTables[dispatcher.dispatcherThreadId] == nullptr)
 		{
-			dispatcher.groupByTables[dispatcher.dispatcherThreadId] = std::make_unique<GPUGroupBy<OP,T,U,U>>(Configuration::GetInstance().GetGroupByBuckets());
+			dispatcher.groupByTables[dispatcher.dispatcherThreadId] = std::make_unique<GPUGroupBy<OP,R,U,T>>(Configuration::GetInstance().GetGroupByBuckets());
 		}
 
 		std::string groupByColumnName = *(dispatcher.groupByColumns.begin());
 		std::tuple<uintptr_t, int32_t, bool> groupByColumn = dispatcher.allocatedPointers.at(groupByColumnName);
 		
 		int32_t dataSize = std::min(std::get<1>(groupByColumn), std::get<1>(column));
-		std::cout << dataSize << " " << std::get<0>(groupByColumn) << " " << std::get<0>(column) <<  '\n';
-		reinterpret_cast<GPUGroupBy<OP, T, U, U>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->groupBy(reinterpret_cast<U*>(std::get<0>(groupByColumn)), reinterpret_cast<U*>(std::get<0>(column)), dataSize);
+
+		reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->groupBy(reinterpret_cast<U*>(std::get<0>(groupByColumn)), reinterpret_cast<T*>(std::get<0>(column)), dataSize);
 
 		// If last block was processed, reconstruct group by table
 		if (dispatcher.isLastBlock)
@@ -569,15 +569,15 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 			int32_t outSize;
 			U* outKeys;// = dispatcher.allocateRegister<U>(groupByColumnName + "_keys", Configuration::GetInstance().GetGroupByBuckets());
 			T* outValues;// = dispatcher.allocateRegister<T>(reg, Configuration::GetInstance().GetGroupByBuckets());
-			reinterpret_cast<GPUGroupBy<OP, T, U, U>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize);
+			reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize);
 			dispatcher.allocatedPointers.insert({ groupByColumnName + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
 			dispatcher.allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
 		}
 	}
 	else
 	{
-		T * result = dispatcher.allocateRegister<T>(reg, 1);
-		GPUAggregation::col<OP, T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
+		R * result = dispatcher.allocateRegister<R>(reg, 1);
+		GPUAggregation::col<OP, R>(result, reinterpret_cast<R*>(std::get<0>(column)), std::get<1>(column));
 	}
 	dispatcher.freeColumnIfRegister(colTableName);
 	return 0;

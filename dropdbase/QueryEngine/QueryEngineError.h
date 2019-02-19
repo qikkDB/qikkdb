@@ -5,6 +5,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+#include <iostream>
 
 class QueryEngineError {
 public:
@@ -36,6 +37,8 @@ public:
 			throw cudaError;
 			type_ = GPU_EXTENSION_ERROR;
 			text_ = cudaGetErrorString(cudaError);
+			std::cout << cudaError << " " << cudaGetErrorName(cudaError);
+			throw;
 			break;
 		}
 	}

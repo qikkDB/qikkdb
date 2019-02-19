@@ -11,8 +11,7 @@ class GPUMemoryCache
 {
 
 private:
-	const size_t maxSize = 7000000000LL;
-	//const size_t maxSize = 9200;
+	const size_t maxSize_;
 	int32_t deviceID_;
 
 	struct CacheEntry
@@ -32,12 +31,12 @@ private:
 
 	bool tryInsert(size_t sizeToInsert) const
 	{
-		return usedSize + sizeToInsert < maxSize;
+		return usedSize + sizeToInsert < maxSize_;
 	}
 
 public:
 
-	GPUMemoryCache(int32_t deviceID);
+	GPUMemoryCache(int32_t deviceID, size_t maximumSize);
 	~GPUMemoryCache();
 	template<typename T>
 	std::tuple<T*, size_t, bool> getColumn(const std::string& columnName, int32_t blockIndex, size_t size)
@@ -52,7 +51,7 @@ public:
 		}
 		size_t sizeToInsert = sizeof(T) * size;
 
-		if (sizeToInsert > maxSize)
+		if (sizeToInsert > maxSize_)
 		{
 			throw std::length_error("Tried to cache block larger than maximum cache size");
 		}

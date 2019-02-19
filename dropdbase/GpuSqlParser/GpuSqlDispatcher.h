@@ -424,7 +424,7 @@ public:
 	template<typename OP, typename T, typename U>
 	friend int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher);
 
-	template<typename OP, typename T, typename U>
+	template<typename OP, typename R, typename T, typename U>
 	friend int32_t aggregationColCol(GpuSqlDispatcher &dispatcher);
 
 	template<typename OP, typename T, typename U>
