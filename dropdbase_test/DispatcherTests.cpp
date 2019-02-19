@@ -5828,7 +5828,7 @@ TEST(DispatcherTests, IntAddColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colInteger1+5");
 
 	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
@@ -5935,7 +5935,7 @@ TEST(DispatcherTests, LongAddColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colLong1+5");
 
 	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
@@ -6149,7 +6149,7 @@ TEST(DispatcherTests, DoubleAddColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colDouble1+5");
 
 	ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 
@@ -6253,7 +6253,7 @@ TEST(DispatcherTests, IntSubColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colInteger1-5");
 
 	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
@@ -6360,7 +6360,7 @@ TEST(DispatcherTests, LongSubColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colLong1-5");
 
 	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 
@@ -6675,7 +6675,7 @@ TEST(DispatcherTests, IntMulColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colInteger1*5");
 
 	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
@@ -6782,7 +6782,7 @@ TEST(DispatcherTests, LongMulColumnConst)
 		}
 	}
 
-	auto &payloads = result->payloads().at("R0");
+	auto &payloads = result->payloads().at("colLong1*2");
 
 	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
 

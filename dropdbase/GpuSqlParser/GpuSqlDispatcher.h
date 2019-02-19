@@ -25,12 +25,6 @@
 class GpuSqlDispatcher;
 
 template<typename T>
-int32_t loadConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t loadCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
 int32_t retConst(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
@@ -268,8 +262,6 @@ private:
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> loadFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
@@ -347,8 +339,6 @@ public:
 
     void addAvgFunction(DataType key, DataType value);
 
-    void addLoadFunction(DataType type);
-
     void addRetFunction(DataType type);
 
     void addFilFunction();
@@ -374,6 +364,35 @@ public:
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size);
 
+	template<typename T>
+	int32_t loadCol(std::string& colName)
+	{
+		if (allocatedPointers.find(colName) == allocatedPointers.end())
+		{
+			std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
+
+			// split colName to table and column name
+			const size_t endOfPolyIdx = colName.find(".");
+			const std::string table = colName.substr(0, endOfPolyIdx);
+			const std::string column = colName.substr(endOfPolyIdx + 1);
+			const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+
+			if (blockIndex == blockCount - 1)
+			{
+				isLastBlock = true;
+			}
+
+			auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
+			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
+
+			T* gpuPointer = allocateRegister<T>(colName, block->GetData().size());
+
+			GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<T*>(block->GetData().data()), block->GetData().size());
+			noLoad = false;
+		}
+		return 0;
+	}
+
 	void freeColumnIfRegister(std::string& col);
 
 	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
@@ -382,12 +401,6 @@ public:
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
-
-    template<typename T>
-    friend int32_t loadConst(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t loadCol(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
     friend int32_t retConst(GpuSqlDispatcher &dispatcher);
