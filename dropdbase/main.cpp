@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 		//GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT COUNT(ageId) FROM TargetLoc100M WHERE latitude > 48.163267512773274 AND latitude < 48.17608989851882 AND longitude > 17.19991468973717 AND longitude < 17.221200700479358 GROUP BY ageId; ");
 		GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT ageId, COUNT(ageId) FROM TargetLoc1B WHERE latitude > 48.163267512773274 AND latitude < 48.17608989851882 AND longitude > 17.19991468973717 AND longitude < 17.221200700479358 GROUP BY ageId;");
 		//GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT colInteger2,COUNT(colInteger1) FROM TableA GROUP BY colInteger2;");
-		parser.parse();//->PrintDebugString();
+		parser.parse()->PrintDebugString();
 
 		auto end = std::chrono::high_resolution_clock::now();
 

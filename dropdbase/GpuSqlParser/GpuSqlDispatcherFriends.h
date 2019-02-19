@@ -568,7 +568,7 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 		{
 			int32_t outSize;
 			U* outKeys;// = dispatcher.allocateRegister<U>(groupByColumnName + "_keys", Configuration::GetInstance().GetGroupByBuckets());
-			T* outValues;// = dispatcher.allocateRegister<T>(reg, Configuration::GetInstance().GetGroupByBuckets());
+			R* outValues;// = dispatcher.allocateRegister<T>(reg, Configuration::GetInstance().GetGroupByBuckets());
 			reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize);
 			dispatcher.allocatedPointers.insert({ groupByColumnName + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
 			dispatcher.allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
