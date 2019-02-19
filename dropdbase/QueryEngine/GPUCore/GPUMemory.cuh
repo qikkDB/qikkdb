@@ -83,7 +83,7 @@ public:
 	static void memset(T *p_Block, int value, size_t dataElementCount)
 	{
 		//cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));	// Async version, uncomment if needed
-		cudaMemset(p_Block, value, dataElementCount * sizeof(T));
+		cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
@@ -109,7 +109,7 @@ public:
 	template<typename T>
 	static void copyHostToDevice(T *p_BlockDevice, T *p_BlockHost, size_t dataElementCount)
 	{
-		cudaMemcpy(p_BlockDevice, p_BlockHost, dataElementCount * sizeof(T), cudaMemcpyHostToDevice);
+		cudaMemcpyAsync(p_BlockDevice, p_BlockHost, dataElementCount * sizeof(T), cudaMemcpyHostToDevice);
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 

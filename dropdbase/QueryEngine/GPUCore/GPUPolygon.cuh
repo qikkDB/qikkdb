@@ -126,10 +126,8 @@ public:
 		kernel_point_in_polygon << < context.calcGridDim((pointCount > polygonCount ? pointCount : polygonCount)), context.getBlockDim() >> >
 			(outMask, geoPointsInput, geoPoints, complexPolygonIdx, complexPolygonCnt, polygonIdx,
 				polygonCnt, pointCount, polygonCount);
-		cudaDeviceSynchronize();
 
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 };
-
 

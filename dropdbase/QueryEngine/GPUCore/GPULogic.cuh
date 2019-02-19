@@ -83,7 +83,6 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BCol, dataElementCount);
-		cudaDeviceSynchronize();
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
@@ -92,7 +91,6 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
-		cudaDeviceSynchronize();
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
@@ -101,7 +99,6 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, AConst, BCol, dataElementCount);
-		cudaDeviceSynchronize();
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
@@ -110,7 +107,6 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, AConst, BConst, dataElementCount);
-		cudaDeviceSynchronize();
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 	
@@ -128,7 +124,6 @@ public:
 		Context& context = Context::getInstance();
 		kernel_operator_not << <  context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(outCol, ACol, dataElementCount);
-		cudaDeviceSynchronize();
 		
 		// Get last error
 		QueryEngineError::setCudaError(cudaGetLastError());
@@ -148,7 +143,6 @@ public:
 
 		kernel_operator_not << <  context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(outCol, AConst, dataElementCount);
-		cudaDeviceSynchronize();
 
 		// Get last error
 		QueryEngineError::setCudaError(cudaGetLastError());

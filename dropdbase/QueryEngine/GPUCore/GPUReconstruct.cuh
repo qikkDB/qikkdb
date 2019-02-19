@@ -67,6 +67,38 @@ public:
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
+
+	template<typename T>
+	static void reconstructCol(T *outData, int32_t *outDataElementCount, T *ACol, int32_t *inMask, int32_t dataElementCount)
+	{
+		Context& context = Context::getInstance();
+
+		if (inMask)		// If inMask is not nullptr
+		{
+			// Malloc a new buffer for the output vector -GPU side
+			T *outDataGPUPointer = nullptr;
+			GPUMemory::alloc(&outDataGPUPointer, dataElementCount);
+
+			// Call reconstruct col keep
+			reconstructColKeep(outDataGPUPointer, outDataElementCount, ACol, inMask, dataElementCount);
+
+			// Copy the generated output back from the GPU
+			GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
+
+			// Free the memory
+			GPUMemory::free(outDataGPUPointer);
+		}
+		else		// If inMask is nullptr, just copy whole ACol to outData
+		{
+			GPUMemory::copyDeviceToHost(outData, ACol, dataElementCount);
+			*outDataElementCount = dataElementCount;
+		}
+
+		// Get last error
+		QueryEngineError::setCudaError(cudaGetLastError());
+	}
+
+
 	template<typename T>
 	static void reconstructColKeep(T *outCol, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
 	{
@@ -103,7 +135,6 @@ public:
 			// Construct the output based on the prefix sum
 			kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 				(outCol, outDataElementCountPointer, ACol, prefixSumPointer, inMask32Pointer, dataElementCount);
-			cudaDeviceSynchronize();
 
 			// Copy the generated output back from the GPU
 			GPUMemory::copyDeviceToHost(outDataElementCount, outDataElementCountPointer, 1);

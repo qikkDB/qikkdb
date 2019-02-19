@@ -32,12 +32,6 @@ void GpuSqlDispatcher::addCachedRegister(const std::string& reg, T* ptr, int32_t
 }
 
 template<typename T>
-int32_t loadConst(GpuSqlDispatcher &dispatcher)
-{
-	return 0;
-}
-
-template<typename T>
 int32_t retConst(GpuSqlDispatcher &dispatcher)
 {
 	T cnst = dispatcher.arguments.read<T>();
@@ -49,11 +43,12 @@ template<typename T>
 int32_t retCol(GpuSqlDispatcher &dispatcher)
 {
 	auto col = dispatcher.arguments.read<std::string>();
-	int32_t outSize;
+
 	dispatcher.loadCol<T>(col);
 
-	std::cout << "RetCol: " << col << std::endl;
+	std::cout << "RetCol: " << col << ", thread: " << dispatcher.dispatcherThreadId << std::endl;
 
+	int32_t outSize;
 	const size_t endOfPolyIdx = col.find(".");
 	const std::string table = col.substr(0, endOfPolyIdx);
 	const std::string column = col.substr(endOfPolyIdx + 1);
@@ -623,15 +618,16 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 	auto colTableName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
 
-	dispatcher.loadCol<int64_t>(colTableName);
+	dispatcher.loadCol<U>(colTableName);
 
-	std::cout << "AggColCol: " << colTableName << " " << reg << std::endl;
+	std::cout << "AggColCol: " << colTableName << " " << reg << ", thread: " << dispatcher.dispatcherThreadId << std::endl;
+
 	
 	std::tuple<uintptr_t, int32_t, bool>& column = dispatcher.allocatedPointers.at(colTableName);
 	int32_t reconstructOutSize;
-	T* reconstructOutReg; 
+	U* reconstructOutReg; 
 	GPUMemory::alloc(&reconstructOutReg, std::get<1>(column));
-	GPUReconstruct::reconstructColKeep<T>(reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(std::get<0>(column)), reinterpret_cast<int8_t*>(dispatcher.filter_), std::get<1>(column));
+	GPUReconstruct::reconstructColKeep<U>(reconstructOutReg, &reconstructOutSize, reinterpret_cast<U*>(std::get<0>(column)), reinterpret_cast<int8_t*>(dispatcher.filter_), std::get<1>(column));
 
 	if (std::get<2>(column))
 	{
@@ -650,12 +646,10 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 	
 	if (dispatcher.usingGroupBy)
 	{
-		std::cout << "Using group by" << std::endl;
-
 		//TODO void param
-		if (dispatcher.groupByTable == nullptr) 
+		if (dispatcher.groupByTables[dispatcher.dispatcherThreadId] == nullptr)
 		{
-			dispatcher.groupByTable = std::make_unique<GPUGroupBy<OP,T,U,T>>(Configuration::GetInstance().GetGroupByBuckets());
+			dispatcher.groupByTables[dispatcher.dispatcherThreadId] = std::make_unique<GPUGroupBy<OP,T,U,T>>(Configuration::GetInstance().GetGroupByBuckets());
 		}
 
 		std::string groupByColumnName = *(dispatcher.groupByColumns.begin());
@@ -663,15 +657,17 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 		
 		int32_t dataSize = std::min(std::get<1>(groupByColumn), std::get<1>(column));
 
-		reinterpret_cast<GPUGroupBy<OP, T, U, T>*>(dispatcher.groupByTable.get())->groupBy(reinterpret_cast<U*>(std::get<0>(groupByColumn)), reinterpret_cast<T*>(std::get<0>(column)), dataSize);
+		reinterpret_cast<GPUGroupBy<OP, T, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->groupBy(reinterpret_cast<U*>(std::get<0>(groupByColumn)), reinterpret_cast<T*>(std::get<0>(column)), dataSize);
 
 		// If last block was processed, reconstruct group by table
 		if (dispatcher.isLastBlock)
 		{
+			std::cout << "Reconstructing group by in thread: " << dispatcher.dispatcherThreadId << std::endl;
+
 			int32_t outSize;
 			U* outKeys = dispatcher.allocateRegister<U>(groupByColumnName + "_keys", Configuration::GetInstance().GetGroupByBuckets());
 			T* outValues = dispatcher.allocateRegister<T>(reg, Configuration::GetInstance().GetGroupByBuckets());
-			reinterpret_cast<GPUGroupBy<OP, T, U, T>*>(dispatcher.groupByTable.get())->getResults(outKeys, outValues, &outSize);
+			reinterpret_cast<GPUGroupBy<OP, T, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(outKeys, outValues, &outSize, dispatcher.groupByTables);
 			std::get<1>(dispatcher.allocatedPointers.at(groupByColumnName + "_keys")) = outSize;
 			std::get<1>(dispatcher.allocatedPointers.at(reg)) = outSize;
 		}

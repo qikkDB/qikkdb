@@ -9,17 +9,22 @@
 #include "GpuSqlDispatcher.h"
 #include "ParserExceptions.h"
 #include "QueryType.h"
+#include "../QueryEngine/GPUCore/IGroupBy.h"
+#include "../QueryEngine/Context.h"
 #include <iostream>
+#include <future>
+#include <thread>
 
-//TODO:parse()
-
-GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query) : database(
-        database), query(query)
+GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query) : 
+	database(database),
+	query(query)
 {}
 
 
 std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 {
+	Context& context = Context::getInstance();
+
     antlr4::ANTLRInputStream sqlInputStream(query);
     GpuSqlLexer sqlLexer(&sqlInputStream);
     antlr4::CommonTokenStream commonTokenStream(&sqlLexer);
@@ -29,8 +34,16 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
     antlr4::tree::ParseTreeWalker walker;
 
-    GpuSqlDispatcher dispatcher(database);
-    GpuSqlListener gpuSqlListener(database, dispatcher);
+	std::vector<std::unique_ptr<IGroupBy>> groupByInstances;
+
+	for (int i = 0; i < context.getDeviceCount(); i++)
+	{
+		groupByInstances.emplace_back(nullptr);
+	}
+
+	std::unique_ptr<GpuSqlDispatcher> dispatcher = std::make_unique<GpuSqlDispatcher>(database, groupByInstances, -1);
+	GpuSqlListener gpuSqlListener(database, *dispatcher);
+
     if (statement->sqlSelect())
     {
         if (database == nullptr)
@@ -101,7 +114,53 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	{
 		walker.walk(&gpuSqlListener, statement->sqlInsertInto());
 	}
-    return dispatcher.execute();
+
+	std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers;
+	std::vector<std::future<std::unique_ptr<google::protobuf::Message>>> dispatcherFutures;
+	std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults;
+
+	for (int i = 0; i < context.getDeviceCount(); i++)
+	{
+		dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database, groupByInstances, i));
+		dispatcher.get()->copyExecutionDataTo(*dispatchers[i]);
+		dispatcherFutures.push_back(std::async(std::launch::async, &GpuSqlDispatcher::execute, dispatchers[i].get()));
+	}
+
+	for (int i = 0; i < context.getDeviceCount(); i++)
+	{
+		dispatcherFutures[i].wait();
+	}
+
+	for (int i = 0; i < context.getDeviceCount(); i++)
+	{
+		dispatcherResults.push_back(std::move(dispatcherFutures[i].get()));
+	}
+		
+    return std::move(mergeDispatcherResults(dispatcherResults));
+}
+
+
+std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults)
+{
+	std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> responseMessage = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
+	for (auto& partialResult : dispatcherResults)
+	{
+		ColmnarDB::NetworkClient::Message::QueryResponseMessage* partialMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(partialResult.get());
+		for (auto& partialPayload : partialMessage->payloads())
+		{
+			std::string key = partialPayload.first;
+			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
+			if (responseMessage->payloads().find(key) == responseMessage->payloads().end())
+			{
+				responseMessage->mutable_payloads()->insert({ key, payload });
+			}
+			else
+			{
+				responseMessage->mutable_payloads()->at(key).MergeFrom(payload);
+			}
+		}
+	}
+	return std::move(responseMessage);
 }
 
 bool GpuSqlCustomParser::containsAggregation(GpuSqlParser::SelectColumnContext * ctx)

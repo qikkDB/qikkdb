@@ -193,6 +193,7 @@ private:
 	int32_t blockIndex;
 	int64_t usedRegisterMemory;
 	const int64_t maxRegisterMemory;
+	int32_t dispatcherThreadId;
 	int32_t instructionPointer;
 	int32_t constPointCounter;
 	int32_t constPolygonCounter;
@@ -204,8 +205,8 @@ private:
 	bool isLastBlock;
 	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
-	std::unique_ptr<IGroupBy> groupByTable;
 	bool isRegisterAllocated(std::string& reg);
+	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -277,9 +278,15 @@ private:
 
 
 public:
-    explicit GpuSqlDispatcher(const std::shared_ptr<Database> &database);
+    GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);
 
 	~GpuSqlDispatcher();
+
+	GpuSqlDispatcher(const GpuSqlDispatcher& dispatcher2) = delete;
+
+	GpuSqlDispatcher& operator=(const GpuSqlDispatcher&) = delete;
+
+	void copyExecutionDataTo(GpuSqlDispatcher& other);
 
 	std::unique_ptr<google::protobuf::Message> execute();
 
@@ -379,6 +386,11 @@ public:
 			const std::string table = colName.substr(0, endOfPolyIdx);
 			const std::string column = colName.substr(endOfPolyIdx + 1);
 			const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+
+			if (blockIndex >= blockCount)
+			{
+				return 1;
+			}
 
 			if (blockIndex == blockCount - 1)
 			{
