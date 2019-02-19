@@ -401,7 +401,7 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 template <>
 int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName)
 {
-	if (allocatedPointers.find(colName) == allocatedPointers.end() && std::regex_match(colName, std::regex("^(\\$).*")))
+    if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
 	{
 		std::cout << "Load: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name() << std::endl;
 
@@ -433,7 +433,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 template <>
 int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 {
-	if (allocatedPointers.find(colName) == allocatedPointers.end() && std::regex_match(colName, std::regex("^(\\$).*")))
+    if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
 	{
 		std::cout << "Load: " << colName << " " << typeid(ColmnarDB::Types::Point).name() << std::endl;
 

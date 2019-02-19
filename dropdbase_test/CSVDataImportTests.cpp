@@ -6,7 +6,7 @@
 
 TEST(CSVDataImportTests, CreateTable)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header.csv", true, ',');
@@ -17,7 +17,7 @@ TEST(CSVDataImportTests, CreateTable)
 
 TEST(CSVDataImportTests, ImportHeader)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header.csv", true, ',');
@@ -34,7 +34,7 @@ TEST(CSVDataImportTests, ImportHeader)
 
 TEST(CSVDataImportTests, ImportWithoutHeader)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_no_header.csv", false, ',');
@@ -51,7 +51,7 @@ TEST(CSVDataImportTests, ImportWithoutHeader)
 
 TEST(CSVDataImportTests, GuessTypes)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header.csv", true, ',');
@@ -68,7 +68,7 @@ TEST(CSVDataImportTests, GuessTypes)
 
 TEST(CSVDataImportTests, GuessTypesMessedTypes)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header_messed_types.csv", true, ',');
@@ -83,7 +83,7 @@ TEST(CSVDataImportTests, GuessTypesMessedTypes)
 
 TEST(CSVDataImportTests, Import)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header.csv", true, ',');
@@ -100,7 +100,7 @@ TEST(CSVDataImportTests, Import)
 
 TEST(CSVDataImportTests, ImportSkipRow)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/invalid_row_header.csv", true, ',');
@@ -113,7 +113,7 @@ TEST(CSVDataImportTests, ImportSkipRow)
 
 TEST(CSVDataImportTests, WktTypes)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header.csv", true, ';');
@@ -127,7 +127,7 @@ TEST(CSVDataImportTests, WktTypes)
 
 TEST(CSVDataImportTests, WktTypesMessedTypes)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header_messed_types.csv", true, ';');
@@ -141,7 +141,7 @@ TEST(CSVDataImportTests, WktTypesMessedTypes)
 
 TEST(CSVDataImportTests, WktImport)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header.csv", true, ';');
@@ -152,7 +152,7 @@ TEST(CSVDataImportTests, WktImport)
 
 TEST(CSVDataImportTests, WktImportInvalidRow)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header_invalid_row.csv", true, ';');
@@ -163,7 +163,7 @@ TEST(CSVDataImportTests, WktImportInvalidRow)
 
 TEST(CSVDataImportTests, CreateTableFromString)
 {
-	const auto inputString = "longitude, latitude, targetId, genderId, ageId, wealthIndexId, hwOsId\n\
+	const auto inputString = "longitude,latitude,targetId,genderId,ageId,wealthIndexId,hwOsId\n\
 17.1911813399913, 48.2262068066084, 1, -1, 1, 11, 2\n\
 17.1120308046253, 48.1916689725291, 2, -1, 0, 11, 2\n\
 17.137051565592, 48.1963514926608, 3, 1, 1, 13, 3\n\
@@ -265,7 +265,7 @@ TEST(CSVDataImportTests, CreateTableFromString)
 17.1611149255593, 48.2063789784255, 99, 1, 5, 13, 3\n\
 17.5856587828356, 48.4160591122736, 100, 2, 6, 14, 5\n\
 18.099007734618, 48.3152594831971, 101, 1, 1, 13, 3";
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter(inputString, "valid_header", true, ',');
@@ -276,7 +276,7 @@ TEST(CSVDataImportTests, CreateTableFromString)
 
 TEST(CSVDataImportTests, ImportFromString)
 {
-	const auto inputString = "longitude, latitude, targetId, genderId, ageId, wealthIndexId, hwOsId\n\
+	const auto inputString = "longitude,latitude,targetId,genderId,ageId,wealthIndexId,hwOsId\n\
 17.1911813399913, 48.2262068066084, 1, -1, 1, 11, 2\n\
 17.1120308046253, 48.1916689725291, 2, -1, 0, 11, 2\n\
 17.137051565592, 48.1963514926608, 3, 1, 1, 13, 3\n\
@@ -378,7 +378,7 @@ TEST(CSVDataImportTests, ImportFromString)
 17.1611149255593, 48.2063789784255, 99, 1, 5, 13, 3\n\
 17.5856587828356, 48.4160591122736, 100, 2, 6, 14, 5\n\
 18.099007734618, 48.3152594831971, 101, 1, 1, 13, 3";
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter(inputString,"valid_header", true, ',');

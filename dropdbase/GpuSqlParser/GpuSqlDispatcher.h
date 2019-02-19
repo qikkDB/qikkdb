@@ -378,7 +378,7 @@ public:
 	template<typename T>
 	int32_t loadCol(std::string& colName)
 	{
-		if (allocatedPointers.find(colName) == allocatedPointers.end() && !std::regex_match(colName, std::regex("^(\\$).*")))
+        if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
 		{
 			std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
 
