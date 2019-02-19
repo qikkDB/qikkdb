@@ -395,13 +395,14 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(ptr.second)));
 		}
 	}
+	usedRegisterMemory = 0;
 	allocatedPointers.clear();
 }
 
 template <>
 int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName)
 {
-	if (allocatedPointers.find(colName) == allocatedPointers.end() && std::regex_match(colName, std::regex("^(\\$).*")))
+	if (allocatedPointers.find(colName) == allocatedPointers.end() && !std::regex_match(colName, std::regex("^(\\$).*")))
 	{
 		std::cout << "Load: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name() << std::endl;
 
@@ -426,6 +427,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 
 		auto gpuPolygon = ComplexPolygonFactory::PrepareGPUPolygon(std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(), block->GetData() + block->GetSize()));
 		insertComplexPolygon(colName, gpuPolygon, block->GetSize());
+		noLoad = false;
 	}
 	return 0;
 }
@@ -433,7 +435,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 template <>
 int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 {
-	if (allocatedPointers.find(colName) == allocatedPointers.end() && std::regex_match(colName, std::regex("^(\\$).*")))
+	if (allocatedPointers.find(colName) == allocatedPointers.end() && !std::regex_match(colName, std::regex("^(\\$).*")))
 	{
 		std::cout << "Load: " << colName << " " << typeid(ColmnarDB::Types::Point).name() << std::endl;
 
@@ -462,6 +464,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 		NativeGeoPoint* gpuPointer = allocateRegister<NativeGeoPoint>(colName, nativePoints.size());
 
 		GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<NativeGeoPoint*>(nativePoints.data()), nativePoints.size());
+		noLoad = false;
 	}
 	return 0;
 }
