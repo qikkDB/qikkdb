@@ -19,7 +19,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	constPolygonCounter(0),
 	filter_(0),
 	usedRegisterMemory(0),
-	maxRegisterMemory(1 << 20),
+	maxRegisterMemory(1 << 62), // TODO value from config e.g.
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
