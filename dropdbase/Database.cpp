@@ -844,7 +844,10 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 /// <param name="database">Database to add</param>
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
-	loadedDatabases_.insert({ database->name_, database });
+	if (!loadedDatabases_.insert({ database->name_, database }).second)
+	{
+		throw std::invalid_argument("Attempt to insert duplicate database name");
+	}
 }
 
 /// <summary>

@@ -61,7 +61,7 @@ int32_t loadCol(GpuSqlDispatcher &dispatcher)
 	auto col = dynamic_cast<const ColumnBase<T>*>(dispatcher.database->GetTables().at(table).GetColumns().at(column).get());
 	auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[dispatcher.blockIndex].get());
 
-	auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(colName, dispatcher.blockIndex, block->GetSize());
+	auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(dispatcher.database->GetName() + "_" + colName, dispatcher.blockIndex, block->GetSize());
 	if (!std::get<2>(cacheEntry))
 	{
 		GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), reinterpret_cast<T*>(block->GetData()), block->GetSize());
