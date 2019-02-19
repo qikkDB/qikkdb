@@ -72,8 +72,8 @@ void BlockBase<std::string>::setBlockStatistics()
 template<>
 void BlockBase<int8_t>::setBlockStatistics()
 {
-	min_ = *std::min_element(data_.begin(), data_.end());
-	max_ = *std::max_element(data_.begin(), data_.end());
-	avg_ = std::accumulate(data_.begin(), data_.end(), (float) 0.0) / data_.size();
-	sum_ = std::accumulate(data_.begin(), data_.end(), 0);
+	min_ = *std::min_element(data_.get(), data_.get() + size_);
+	max_ = *std::max_element(data_.get(), data_.get() + size_);
+	avg_ = std::accumulate(data_.get(), data_.get() + size_, (float) 0.0) / size_;
+	sum_ = std::accumulate(data_.get(), data_.get() + size_, 0);
 }

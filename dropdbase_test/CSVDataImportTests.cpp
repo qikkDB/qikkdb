@@ -91,11 +91,11 @@ TEST(CSVDataImportTests, Import)
 
 	
 
-	ASSERT_EQ(101, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetData().size());
-	ASSERT_EQ(11, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetData().at(10));
-	ASSERT_EQ(21.2282657634477f, dynamic_cast<ColumnBase<float>*>(database->GetTables().find("valid_header")->second.GetColumns().at("longitude").get())->GetBlocksList().front()->GetData().at(11));
-	ASSERT_EQ(-1, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("genderId").get())->GetBlocksList().front()->GetData().at(12));
-	ASSERT_EQ(3, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("hwOsId").get())->GetBlocksList().front()->GetData().at(100));	
+	ASSERT_EQ(101, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetSize());
+	ASSERT_EQ(11, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetData()[10]);
+	ASSERT_EQ(21.2282657634477f, dynamic_cast<ColumnBase<float>*>(database->GetTables().find("valid_header")->second.GetColumns().at("longitude").get())->GetBlocksList().front()->GetData()[11]);
+	ASSERT_EQ(-1, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("genderId").get())->GetBlocksList().front()->GetData()[12]);
+	ASSERT_EQ(3, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("hwOsId").get())->GetBlocksList().front()->GetData()[100]);	
 }
 
 TEST(CSVDataImportTests, ImportSkipRow)
@@ -108,7 +108,7 @@ TEST(CSVDataImportTests, ImportSkipRow)
 
 
 
-	ASSERT_EQ(100, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("invalid_row_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetData().size());	
+	ASSERT_EQ(100, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("invalid_row_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetSize());	
 }
 
 TEST(CSVDataImportTests, WktTypes)
@@ -147,7 +147,7 @@ TEST(CSVDataImportTests, WktImport)
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header.csv", true, ';');
 	importer.ImportTables(database);
 
-	ASSERT_EQ(101, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetData().size());
+	ASSERT_EQ(101, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetSize());
 }
 
 TEST(CSVDataImportTests, WktImportInvalidRow)
@@ -158,7 +158,7 @@ TEST(CSVDataImportTests, WktImportInvalidRow)
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header_invalid_row.csv", true, ';');
 	importer.ImportTables(database);
 
-	ASSERT_EQ(100, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header_invalid_row")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetData().size());
+	ASSERT_EQ(100, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header_invalid_row")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetSize());
 }
 
 TEST(CSVDataImportTests, CreateTableFromString)
@@ -384,9 +384,9 @@ TEST(CSVDataImportTests, ImportFromString)
 	CSVDataImporter importer = CSVDataImporter(inputString,"valid_header", true, ',');
 	importer.ImportTables(database);
 
-	ASSERT_EQ(101, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetData().size());
-	ASSERT_EQ(11, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetData().at(10));
-	ASSERT_EQ(21.2282657634477f, dynamic_cast<ColumnBase<float>*>(database->GetTables().find("valid_header")->second.GetColumns().at("longitude").get())->GetBlocksList().front()->GetData().at(11));
-	ASSERT_EQ(-1, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("genderId").get())->GetBlocksList().front()->GetData().at(12));
-	ASSERT_EQ(3, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("hwOsId").get())->GetBlocksList().front()->GetData().at(100));
+	ASSERT_EQ(101, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetSize());
+	ASSERT_EQ(11, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetData()[10]);
+	ASSERT_EQ(21.2282657634477f, dynamic_cast<ColumnBase<float>*>(database->GetTables().find("valid_header")->second.GetColumns().at("longitude").get())->GetBlocksList().front()->GetData()[11]);
+	ASSERT_EQ(-1, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("genderId").get())->GetBlocksList().front()->GetData()[12]);
+	ASSERT_EQ(3, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("hwOsId").get())->GetBlocksList().front()->GetData()[100]);
 }

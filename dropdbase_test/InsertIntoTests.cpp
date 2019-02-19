@@ -30,41 +30,41 @@ TEST(InsertIntoTests, InsertIntoCorrect)
 
 	for (auto &block : dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("colInteger1").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for(int i = 0; i < block->GetSize(); i++)
 		{
-			dataInIntBlock.push_back(entry);
+			dataInIntBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("colLong1").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (int i = 0; i < block->GetSize(); i++)
 		{
-			dataInLongBlock.push_back(entry);
+			dataInLongBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("colFloat1").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (int i = 0; i < block->GetSize(); i++)
 		{
-			dataInFloatBlock.push_back(entry);
+			dataInFloatBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("colPoint1").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (int i = 0; i < block->GetSize(); i++)
 		{
-			dataInPointBlock.push_back(entry);
+			dataInPointBlock.push_back(block->GetData()[i]);
 		}
 	}
 
 	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("colPolygon1").get())->GetBlocksList())
 	{
-		for (auto &entry : block->GetData())
+		for (int i = 0; i < block->GetSize(); i++)
 		{
-			dataInPolygonBlock.push_back(entry);
+			dataInPolygonBlock.push_back(block->GetData()[i]);
 		}
 	}
 
@@ -92,7 +92,7 @@ TEST(InsertIntoTests, InsertIntoCorrect)
 
 TEST(InsertIntoTests, InsertIntoTableNotFound)
 {
-	/*int blockSize = 1 << 5;
+	int blockSize = 1 << 5;
 
 	std::vector<std::string> tableNames = { {"TableA"} };
 	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
@@ -106,5 +106,5 @@ TEST(InsertIntoTests, InsertIntoTableNotFound)
 	catch (const std::length_error& expected) {
 		EXPECT_STREQ("Table was not found in FROM clause.", expected.what());
 		throw;
-	} }, std::length_error);*/
+	} }, std::length_error);
 }

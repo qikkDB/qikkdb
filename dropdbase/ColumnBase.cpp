@@ -187,7 +187,7 @@ void ColumnBase<int8_t>::setColumnStatistics()
 		mins.push_back(block->GetMin());
 		maxs.push_back(block->GetMax());
 		sums.push_back(block->GetSum());
-		numOfDataInBlocks.push_back(block->GetData().size());
+		numOfDataInBlocks.push_back(block->GetSize());
 	}
 
 	min_ = *std::min_element(mins.begin(), mins.end());
