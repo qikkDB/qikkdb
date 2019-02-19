@@ -31,7 +31,7 @@ private:
 
 	bool tryInsert(size_t sizeToInsert) const
 	{
-		return usedSize + sizeToInsert < maxSize_;
+		return usedSize + sizeToInsert <= maxSize_;
 	}
 
 public:
