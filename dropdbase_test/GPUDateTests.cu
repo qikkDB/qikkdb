@@ -47,7 +47,7 @@ void testExtract(std::vector<int64_t>& input, std::vector<int32_t>& correctOutpu
 	// Initialize CUDA context
 	Context::getInstance();
 	
-	const int ELEMENT_COUNT = static_cast<int>(min(input.size(), correctOutput.size())); 
+	const int32_t ELEMENT_COUNT = static_cast<int>(min(input.size(), correctOutput.size()));
 	std::unique_ptr<int32_t[]> resultHost = std::make_unique<int32_t[]>(ELEMENT_COUNT);
 	// Use our cuda smart pointers
 	cuda_ptr<int64_t> dtDevice(ELEMENT_COUNT);
@@ -60,6 +60,37 @@ void testExtract(std::vector<int64_t>& input, std::vector<int32_t>& correctOutpu
 	for (int i = 0; i < ELEMENT_COUNT; i++)
 	{
 		ASSERT_EQ(resultHost.get()[i], correctOutput[i]) << " at [" << i << "], timestamp: " << input[i];
+	}
+}
+
+template<typename OP>
+void testExtractOneConstant(int64_t input, int32_t correctOutput)
+{
+	// Initialize CUDA context
+	Context::getInstance();
+
+	const int32_t ELEMENT_COUNT = 4;
+	std::unique_ptr<int32_t[]> resultHost = std::make_unique<int32_t[]>(ELEMENT_COUNT);
+	// Use our cuda smart pointers
+	cuda_ptr<int32_t> resultDevice(ELEMENT_COUNT);
+
+	GPUDate::extractConst<OP>(resultDevice.get(), input, ELEMENT_COUNT);
+	GPUMemory::copyDeviceToHost(resultHost.get(), resultDevice.get(), ELEMENT_COUNT);
+
+	for (int i = 0; i < ELEMENT_COUNT; i++)
+	{
+		ASSERT_EQ(resultHost.get()[i], correctOutput) << " timestamp: " << input;
+	}
+}
+
+template<typename OP>
+void testExtractAsConstants(std::vector<int64_t>& input, std::vector<int32_t>& correctOutput)
+{
+	const int ELEMENT_COUNT = static_cast<int>(min(input.size(), correctOutput.size()));
+
+	for (int i = 0; i < ELEMENT_COUNT; i++)
+	{
+		testExtractOneConstant<OP>(input[i], correctOutput[i]);
 	}
 }
 
@@ -190,4 +221,54 @@ TEST(GPUDateTests, ExtractMinutesLeapNegative)
 TEST(GPUDateTests, ExtractSecondsLeapNegative)
 {
 	testExtract<DateOperations::second>(testDateTimesLeapNegative, correctSecondsLeapNegative);
+}
+
+
+// Versions with constant
+TEST(GPUDateTests, ExtractYearConsts)
+{
+	testExtractAsConstants<DateOperations::year>(testDateTimes, correctYears);
+	testExtractAsConstants<DateOperations::year>(testDateTimesNegative, correctYearsNegative);
+	testExtractAsConstants<DateOperations::year>(testDateTimesLeap, correctYearsLeap);
+	testExtractAsConstants<DateOperations::year>(testDateTimesLeapNegative, correctYearsLeapNegative);
+}
+
+TEST(GPUDateTests, ExtractMonthConsts)
+{
+	testExtractAsConstants<DateOperations::month>(testDateTimes, correctMonths);
+	testExtractAsConstants<DateOperations::month>(testDateTimesNegative, correctMonthsNegative);
+	testExtractAsConstants<DateOperations::month>(testDateTimesLeap, correctMonthsLeap);
+	testExtractAsConstants<DateOperations::month>(testDateTimesLeapNegative, correctMonthsLeapNegative);
+}
+
+TEST(GPUDateTests, ExtractDayConsts)
+{
+	testExtractAsConstants<DateOperations::day>(testDateTimes, correctDays);
+	testExtractAsConstants<DateOperations::day>(testDateTimesNegative, correctDaysNegative);
+	testExtractAsConstants<DateOperations::day>(testDateTimesLeap, correctDaysLeap);
+	testExtractAsConstants<DateOperations::day>(testDateTimesLeapNegative, correctDaysLeapNegative);
+}
+
+TEST(GPUDateTests, ExtractHourConsts)
+{
+	testExtractAsConstants<DateOperations::hour>(testDateTimes, correctHours);
+	testExtractAsConstants<DateOperations::hour>(testDateTimesNegative, correctHoursNegative);
+	testExtractAsConstants<DateOperations::hour>(testDateTimesLeap, correctHoursLeap);
+	testExtractAsConstants<DateOperations::hour>(testDateTimesLeapNegative, correctHoursLeapNegative);
+}
+
+TEST(GPUDateTests, ExtractMinuteConsts)
+{
+	testExtractAsConstants<DateOperations::minute>(testDateTimes, correctMinutes);
+	testExtractAsConstants<DateOperations::minute>(testDateTimesNegative, correctMinutesNegative);
+	testExtractAsConstants<DateOperations::minute>(testDateTimesLeap, correctMinutesLeap);
+	testExtractAsConstants<DateOperations::minute>(testDateTimesLeapNegative, correctMinutesLeapNegative);
+}
+
+TEST(GPUDateTests, ExtractSecondConsts)
+{
+	testExtractAsConstants<DateOperations::second>(testDateTimes, correctSeconds);
+	testExtractAsConstants<DateOperations::second>(testDateTimesNegative, correctSecondsNegative);
+	testExtractAsConstants<DateOperations::second>(testDateTimesLeap, correctSecondsLeap);
+	testExtractAsConstants<DateOperations::second>(testDateTimesLeapNegative, correctSecondsLeapNegative);
 }
