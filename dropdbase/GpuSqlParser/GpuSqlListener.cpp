@@ -739,11 +739,16 @@ std::string GpuSqlListener::getRegString(antlr4::ParserRuleContext* ctx)
 
 DataType GpuSqlListener::getReturnDataType(DataType left, DataType right)
 {
-	DataType result = std::max<DataType>(left,right);
-	if (result < DataType::COLUMN_INT)
+	if (right < DataType::COLUMN_INT)
 	{
-		return static_cast<DataType>(result + DataType::COLUMN_INT);
+		right = static_cast<DataType>(right + DataType::COLUMN_INT);
 	}
+	if (left < DataType::COLUMN_INT)
+	{
+		left = static_cast<DataType>(left + DataType::COLUMN_INT);
+	}
+	DataType result = std::max<DataType>(left,right);
+	
 	return result;
 }
 

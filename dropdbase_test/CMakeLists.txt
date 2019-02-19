@@ -48,3 +48,9 @@ target_link_libraries(${PROJECT_NAME}_test ${prefix}protobuf${suffix})
 	target_link_libraries(${PROJECT_NAME}_test gtest)
 	target_link_libraries(${PROJECT_NAME}_test gtest_main)
 ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+
+add_custom_command(
+        TARGET ${PROJECT_NAME}_test POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_SOURCE_DIR}/csv_tests
+                ${CMAKE_CURRENT_BINARY_DIR}/csv_tests)

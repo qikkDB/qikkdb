@@ -286,7 +286,14 @@ int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher)
 	U cnst = dispatcher.arguments.read<U>();
 	auto colName = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
-
+	constexpr bool bothTypesFloatOrBothIntegral =
+		std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
+		std::is_integral<T>::value && std::is_integral<U>::value;
+	typedef typename std::conditional< bothTypesFloatOrBothIntegral,
+		typename std::conditional<sizeof(typename T) >= sizeof(typename U), typename T, typename U>::type,
+		typename std::conditional<std::is_floating_point<typename T>::value, typename T,
+		typename std::conditional<std::is_floating_point<typename U>::value, typename U, void>::type>::type
+		>::type ResultType;
 	dispatcher.loadCol<T>(colName);
 
 	std::cout << "ArithmeticColConst: " << colName << " " << reg << std::endl;
@@ -297,8 +304,8 @@ int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher)
 		{
 			std::tuple<uintptr_t, int32_t, bool> column = dispatcher.allocatedPointers.at(colName + "_keys");
 			int32_t retSize = std::get<1>(column);
-			T * result = dispatcher.allocateRegister<T>(reg + "_keys", retSize);
-			GPUArithmetic::colConst<OP, T, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
+			ResultType * result = dispatcher.allocateRegister<ResultType>(reg + "_keys", retSize);
+			GPUArithmetic::colConst<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
 			dispatcher.groupByColumns.insert(reg);
 		}
 	}
@@ -308,8 +315,8 @@ int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher)
 		int32_t retSize = std::get<1>(column);
 		if (!dispatcher.isRegisterAllocated(reg))
 		{
-			T * result = dispatcher.allocateRegister<T>(reg, retSize);
-			GPUArithmetic::colConst<OP, T, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
+			ResultType * result = dispatcher.allocateRegister<ResultType>(reg, retSize);
+			GPUArithmetic::colConst<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
 		}
 	}
 	dispatcher.freeColumnIfRegister(colName);
@@ -322,7 +329,14 @@ int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher)
 	auto colName = dispatcher.arguments.read<std::string>();
 	T cnst = dispatcher.arguments.read<T>();
 	auto reg = dispatcher.arguments.read<std::string>();
-
+	constexpr bool bothTypesFloatOrBothIntegral =
+		std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
+		std::is_integral<T>::value && std::is_integral<U>::value;
+	typedef typename std::conditional< bothTypesFloatOrBothIntegral,
+		typename std::conditional<sizeof(typename T) >= sizeof(typename U), typename T, typename U>::type,
+		typename std::conditional<std::is_floating_point<typename T>::value, typename T,
+		typename std::conditional<std::is_floating_point<typename U>::value, typename U, void>::type>::type
+	>::type ResultType;
 	dispatcher.loadCol<U>(colName);
 
 	std::cout << "ArithmeticConstCol: " << colName << " " << reg << std::endl;
@@ -333,8 +347,8 @@ int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher)
 		{
 			std::tuple<uintptr_t, int32_t, bool> column = dispatcher.allocatedPointers.at(colName + "_keys");
 			int32_t retSize = std::get<1>(column);
-			U * result = dispatcher.allocateRegister<U>(reg + "_keys", retSize);
-			GPUArithmetic::constCol<OP, U, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
+			ResultType * result = dispatcher.allocateRegister<ResultType>(reg + "_keys", retSize);
+			GPUArithmetic::constCol<OP, ResultType, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
 			dispatcher.groupByColumns.insert(reg);
 		}
 	}
@@ -345,8 +359,8 @@ int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher)
 
 		if (!dispatcher.isRegisterAllocated(reg))
 		{
-			U * result = dispatcher.allocateRegister<U>(reg, retSize);
-			GPUArithmetic::constCol<OP, U, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
+			ResultType * result = dispatcher.allocateRegister<ResultType>(reg, retSize);
+			GPUArithmetic::constCol<OP, ResultType, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
 		}
 	}
 	dispatcher.freeColumnIfRegister(colName);
@@ -359,7 +373,14 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 	auto colNameRight = dispatcher.arguments.read<std::string>();
 	auto colNameLeft = dispatcher.arguments.read<std::string>();
 	auto reg = dispatcher.arguments.read<std::string>();
-
+	constexpr bool bothTypesFloatOrBothIntegral =
+		std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
+		std::is_integral<T>::value && std::is_integral<U>::value;
+	typedef typename std::conditional< bothTypesFloatOrBothIntegral,
+		typename std::conditional<sizeof(typename T) >= sizeof(typename U), typename T, typename U>::type,
+		typename std::conditional<std::is_floating_point<typename T>::value, typename T,
+		typename std::conditional<std::is_floating_point<typename U>::value, typename U, void>::type>::type
+	>::type ResultType;
 	dispatcher.loadCol<U>(colNameRight);
 	dispatcher.loadCol<T>(colNameLeft);
 
@@ -373,8 +394,8 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 			std::tuple<uintptr_t, int32_t, bool> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
 			int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
 
-			T * result = dispatcher.allocateRegister<T>(reg + "_keys", retSize);
-			GPUArithmetic::colCol<OP, T, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+			ResultType * result = dispatcher.allocateRegister<ResultType>(reg + "_keys", retSize);
+			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
 			dispatcher.groupByColumns.insert(reg);
 		}
 	}
@@ -386,8 +407,8 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 			std::tuple<uintptr_t, int32_t, bool> columnLeft = dispatcher.allocatedPointers.at(colNameLeft + "_keys");
 			int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
 
-			T * result = dispatcher.allocateRegister<T>(reg + "_keys", retSize);
-			GPUArithmetic::colCol<OP, T, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+			ResultType * result = dispatcher.allocateRegister<ResultType>(reg + "_keys", retSize);
+			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
 			dispatcher.groupByColumns.insert(reg);
 		}
 	}
@@ -399,8 +420,8 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 
 		if (!dispatcher.isRegisterAllocated(reg))
 		{
-			T * result = dispatcher.allocateRegister<T>(reg, retSize);
-			GPUArithmetic::colCol<OP, T, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+			ResultType * result = dispatcher.allocateRegister<ResultType>(reg, retSize);
+			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
 		}
 	}
 	dispatcher.freeColumnIfRegister(colNameLeft);
@@ -414,15 +435,22 @@ int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher)
 	U constRight = dispatcher.arguments.read<U>();
 	T constLeft = dispatcher.arguments.read<T>();
 	auto reg = dispatcher.arguments.read<std::string>();
-
+	constexpr bool bothTypesFloatOrBothIntegral =
+		std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
+		std::is_integral<T>::value && std::is_integral<U>::value;
+	typedef typename std::conditional< bothTypesFloatOrBothIntegral,
+		typename std::conditional<sizeof(typename T) >= sizeof(typename U), typename T, typename U>::type,
+		typename std::conditional<std::is_floating_point<typename T>::value, typename T,
+		typename std::conditional<std::is_floating_point<typename U>::value, typename U, void>::type>::type
+	>::type ResultType;
 	std::cout << "ArithmeticConstConst: " << reg << std::endl;
 
 	int32_t retSize = 1;
 
 	if (!dispatcher.isRegisterAllocated(reg))
 	{
-		T * result = dispatcher.allocateRegister<T>(reg, retSize);
-		GPUArithmetic::constConst<OP, T, T, U>(result, constLeft, constRight, retSize);
+		ResultType * result = dispatcher.allocateRegister<ResultType>(reg, retSize);
+		GPUArithmetic::constConst<OP, ResultType, T, U>(result, constLeft, constRight, retSize);
 	}
 	return 0;
 }

@@ -7512,11 +7512,11 @@ TEST(DispatcherTests, IntDivColumnConstFloat) //FIXME chyba je v CUDA kerneli, m
 
 	auto &payloads = result->payloads().at("colInteger1/5.0");
 
-	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
-	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
-		ASSERT_FLOAT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
+		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
 	}
 }
 
@@ -7542,11 +7542,11 @@ TEST(DispatcherTests, IntDivColumnConstGtConstFloat)
 
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
-	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
-	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
-		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
+		ASSERT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
 	}
 }
 
@@ -7599,11 +7599,11 @@ TEST(DispatcherTests, LongDivColumnConstFloat) //FIXME test je dobry, kernel tre
 
 	auto &payloads = result->payloads().at("colLong1/2.0");
 
-	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
+	ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResult.size());
 
-	for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
+	for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
 	{
-		ASSERT_FLOAT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
+		ASSERT_FLOAT_EQ(expectedResult[i], payloads.floatpayload().floatdata()[i]);
 	}
 }
 
