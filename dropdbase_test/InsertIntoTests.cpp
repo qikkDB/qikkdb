@@ -68,18 +68,6 @@ TEST(InsertIntoTests, InsertIntoCorrect)
 		}
 	}
 
-	ColmnarDB::Types::Point point = PointFactory::FromWkt("POINT(10.11 11.1)");
-	ColmnarDB::Types::ComplexPolygon polygon = ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))");
-
-	for (int i = 0; i < blockSize; i++)
-	{
-		ASSERT_EQ(1, dataInIntBlock[i]);
-		ASSERT_EQ(static_cast<int64_t>(pow(10, 18)), dataInLongBlock[i]);
-		ASSERT_FLOAT_EQ((float) 0.1111, dataInFloatBlock[i]);
-		ASSERT_EQ(PointFactory::WktFromPoint(point), PointFactory::WktFromPoint(dataInPointBlock[i]));
-		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(polygon), ComplexPolygonFactory::WktFromPolygon(dataInPolygonBlock[i]));
-	}
-
 	ColmnarDB::Types::Point addedPoint = PointFactory::FromWkt("POINT(2 5)");
 	ColmnarDB::Types::ComplexPolygon addedPolygon = ComplexPolygonFactory::FromWkt("POLYGON((20 15, 11 12, 20 15), (21 30, 35 36, 30 20, 21 30), (61 80, 90 89, 112 110, 61 80))");
 
