@@ -99,7 +99,6 @@ set(GTEST_INCLUDE_DIR ${source_dir}/googletest/include)
 
 # Library
 ExternalProject_Get_Property(googletest binary_dir)
-
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")

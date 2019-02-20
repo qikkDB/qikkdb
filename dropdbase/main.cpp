@@ -6,7 +6,7 @@
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/trivial.hpp>
-#include "QueryEngine/Context.h"
+#include "QueryEngine/Context.h" 
 #include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "DatabaseGenerator.h"
 #include "Configuration.h"
@@ -20,10 +20,9 @@
 int main(int argc, char **argv)
 {
     boost::log::add_file_log("../log/ColmnarDB.log");
+    boost::log::add_console_log(std::cout);
 
 	Context::getInstance(); // Initialize CUDA context
-
-	/*
 
 	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
 	Database::LoadDatabasesFromDisk();
@@ -33,23 +32,7 @@ int main(int argc, char **argv)
 	tcpServer.Run();
 
 	Database::SaveAllToDisk();
-
 	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
-
-	*/
-	
-	
-	std::vector<std::string> tableNames = { "TableA" };
-	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_INT}};
-	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 5, false, tableNames, columnTypes);
-
-	auto start = std::chrono::high_resolution_clock::now();
-    GpuSqlCustomParser parser(database, "SELECT colInteger1, COUNT(colInteger1) FROM TableA GROUP BY colInteger1;");
-    parser.parse()->PrintDebugString();
-	auto end = std::chrono::high_resolution_clock::now();
-
-	std::chrono::duration<double> elapsed(end - start);
-	std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;	
 
 	return 0;
 }

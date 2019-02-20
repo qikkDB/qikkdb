@@ -1,19 +1,16 @@
 
 set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ColumnTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/CacheTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DatabaseTests.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TableTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ClientHandlerTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/CSVDataImportTests.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/ColumnTests.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/DatabaseTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/TableTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp)
-
+				
 set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUArtithmeticTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUAggregationTests.cu

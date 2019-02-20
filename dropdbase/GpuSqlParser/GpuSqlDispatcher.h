@@ -401,9 +401,14 @@ public:
 			auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
 			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
 
-			T* gpuPointer = allocateRegister<T>(colName, block->GetSize());
+			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+				database->GetName() + "_" + colName, blockIndex, block->GetSize());
+            if (!std::get<2>(cacheEntry))
+            {
+                GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+            }
+            addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
 
-			GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<T*>(block->GetData()), block->GetSize());
 			noLoad = false;
 		}
 		return 0;
@@ -413,10 +418,10 @@ public:
 
 	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
-	void insertComplexPolygon(std::string colName, GPUMemory::GPUPolygon polygon, int32_t size);
+	void insertComplexPolygon(const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
-	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
+	std::string insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 
     template<typename T>
     friend int32_t retConst(GpuSqlDispatcher &dispatcher);
@@ -476,7 +481,7 @@ public:
 	template<typename OP, typename T, typename U>
 	friend int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher);
 
-	template<typename OP, typename T, typename U>
+	template<typename OP, typename R, typename T, typename U>
 	friend int32_t aggregationColCol(GpuSqlDispatcher &dispatcher);
 
 	template<typename OP, typename T, typename U>

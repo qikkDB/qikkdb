@@ -872,7 +872,10 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
 	std::lock_guard<std::mutex> lock(dbMutex_);
-	loadedDatabases_.insert({ database->name_, database });
+	if (!loadedDatabases_.insert({ database->name_, database }).second)
+	{
+		throw std::invalid_argument("Attempt to insert duplicate database name");
+	}
 }
 
 /// <summary>
