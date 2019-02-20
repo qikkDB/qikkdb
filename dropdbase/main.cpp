@@ -26,13 +26,31 @@ int main(int argc, char **argv)
 
 	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
 	Database::LoadDatabasesFromDisk();
-
+	/*
 	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
 	RegisterCtrlCHandler(&tcpServer);
 	tcpServer.Run();
 
 	Database::SaveAllToDisk();
 	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
+	*/
+	/*CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
+	std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 100000000);
+	Database::AddToInMemoryDatabaseList(database);
+	std::cout << "Loading TargetLoc.csv ..." << std::endl;
+	csvDataImporter.ImportTables(database);*/
+	for (int i = 0; i < 2; i++)
+	{
+		auto start = std::chrono::high_resolution_clock::now();
 
+		GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT ageId, COUNT(ageId) FROM TargetLoc1B WHERE latitude > 48.163267512773274 AND latitude < 48.17608989851882 AND longitude > 17.19991468973717 AND longitude < 17.221200700479358 GROUP BY ageId;");
+		parser.parse();// ->PrintDebugString();
+
+		auto end = std::chrono::high_resolution_clock::now();
+
+		std::chrono::duration<double> elapsed(end - start);
+		std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
+
+	}
 	return 0;
 }

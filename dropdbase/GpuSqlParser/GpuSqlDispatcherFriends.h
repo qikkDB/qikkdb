@@ -766,20 +766,22 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 	std::tuple<uintptr_t, int32_t, bool>& column = dispatcher.allocatedPointers.at(colTableName);
 	int32_t reconstructOutSize;
 
-	T* reconstructOutReg; 
-	GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(std::get<0>(column)), reinterpret_cast<int8_t*>(dispatcher.filter_), std::get<1>(column));
-
-	if (std::get<2>(column))
+	if (!dispatcher.usingGroupBy || colTableName != *(dispatcher.groupByColumns.begin()))
 	{
-		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(column)));
-	}
-	else
-	{
-		std::get<2>(column) = true;
-	}
-	std::get<0>(column) = reinterpret_cast<uintptr_t>(reconstructOutReg);
-	std::get<1>(column) = reconstructOutSize;
+		T* reconstructOutReg;
+		GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(std::get<0>(column)), reinterpret_cast<int8_t*>(dispatcher.filter_), std::get<1>(column));
 
+		if (std::get<2>(column))
+		{
+			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(column)));
+		}
+		else
+		{
+			std::get<2>(column) = true;
+		}
+		std::get<0>(column) = reinterpret_cast<uintptr_t>(reconstructOutReg);
+		std::get<1>(column) = reconstructOutSize;
+	}
 	const size_t endOfPolyIdx = colTableName.find(".");
 	const std::string table = colTableName.substr(0, endOfPolyIdx);
 	const std::string columnName = colTableName.substr(endOfPolyIdx + 1);
@@ -809,7 +811,7 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 			int32_t outSize;
 			U* outKeys;
 			R* outValues;
-			reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize);
+			reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables);
 			dispatcher.allocatedPointers.insert({ groupByColumnName + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
 			dispatcher.allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
 		}

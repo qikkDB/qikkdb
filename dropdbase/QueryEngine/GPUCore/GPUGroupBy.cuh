@@ -201,7 +201,7 @@ public:
 
 	// Create Group By object with existing keys
 	GPUGroupBy(int32_t maxHashCount, K * keys) :
-		maxHashCount_(maxHashCount), keys_(keys)
+		maxHashCount_(maxHashCount)
 	{
 		GPUMemory::alloc(&keys_, maxHashCount_);
 		GPUMemory::alloc(&values_, maxHashCount_);
@@ -505,22 +505,26 @@ public:
 			GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
 
 			// Merge results
-			cuda_ptr<V> valuesMerged(sumElementCount);
-			cuda_ptr<int64_t> occurencesMerged(sumElementCount);
+			V* valuesMerged;
+			int64_t* occurencesMerged;
 
 			// Calculate sum of values
 			// Initialize new empty sumGroupBy table
+			K* tmpKeys;
 			GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
 			sumGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
-			sumGroupBy.getResults(outKeys, valuesMerged.get(), outDataElementCount);
+			sumGroupBy.getResults(&tmpKeys, &valuesMerged, outDataElementCount);
 
 			// Calculate sum of occurences
 			// Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
-			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, outKeys);
+			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, tmpKeys);
 			countGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
-			countGroupBy.getResults(outKeys, occurencesMerged.get(), outDataElementCount);
+			countGroupBy.getResults(outKeys, &occurencesMerged, outDataElementCount);
 
-			GPUArithmetic::colCol<ArithmeticOperations::div>(outValues, valuesMerged.get(), occurencesMerged.get(), *outDataElementCount);
+			GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurencesMerged, *outDataElementCount);
+			GPUMemory::free(valuesMerged);
+			GPUMemory::free(occurencesMerged);
+			GPUMemory::free(tmpKeys);
 		}
 	}
 
@@ -657,7 +661,6 @@ public:
 
 				// Reconstruct just keys and occurences
 				table->reconstructRawNumbers(keys.get(), nullptr, occurences.get(), &elementCount);
-
 				// Append data to host vectors
 				keysAllHost.insert(keysAllHost.end(), keys.get(), keys.get() + elementCount);
 				occurencesAllHost.insert(occurencesAllHost.end(), occurences.get(), occurences.get() + elementCount);

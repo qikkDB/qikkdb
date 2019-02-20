@@ -89,7 +89,7 @@ void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
 	other.arguments = arguments;
 }
 
-std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
+void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& result)
 {
 	Context& context = Context::getInstance();
 	context.bindDeviceToContext(dispatcherThreadId);
@@ -123,7 +123,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlDispatcher::execute()
 			break;
 		}		
 	}
-	return std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(std::move(responseMessage));
+	result = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(std::move(responseMessage));
 }
 
 const ColmnarDB::NetworkClient::Message::QueryResponseMessage &GpuSqlDispatcher::getQueryResponseMessage()

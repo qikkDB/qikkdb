@@ -9,7 +9,8 @@
 #include "../dropdbase/GpuSqlParser/ParserExceptions.h"
 TEST(InsertIntoTests, InsertIntoCorrect)
 {
-/*	int blockSize = 1 << 5;
+	Database::DestroyDatabase("TestDb");
+	int blockSize = 1 << 5;
 
 	std::vector<std::string> tableNames = { {"TableA"}};
 	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
@@ -75,11 +76,13 @@ TEST(InsertIntoTests, InsertIntoCorrect)
 	ASSERT_EQ(20000000, dataInLongBlock[blockSize]);
 	ASSERT_FLOAT_EQ((float)2.5, dataInFloatBlock[blockSize]);
 	ASSERT_EQ(PointFactory::WktFromPoint(addedPoint), PointFactory::WktFromPoint(dataInPointBlock[blockSize]));
-	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(addedPolygon), ComplexPolygonFactory::WktFromPolygon(dataInPolygonBlock[blockSize]));*/
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(addedPolygon), ComplexPolygonFactory::WktFromPolygon(dataInPolygonBlock[blockSize]));
+	Database::DestroyDatabase("TestDb");
 }
 
 TEST(InsertIntoTests, InsertIntoTableNotFound)
 {
+	Database::DestroyDatabase("TestDb");
 	int blockSize = 1 << 5;
 
 	std::vector<std::string> tableNames = { {"TableA"} };
@@ -99,4 +102,5 @@ TEST(InsertIntoTests, InsertIntoTableNotFound)
 			throw;
         }
     },TableNotFoundFromException);
+	Database::DestroyDatabase("TestDb");
 }
