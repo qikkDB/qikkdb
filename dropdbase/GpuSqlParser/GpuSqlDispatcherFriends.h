@@ -809,7 +809,7 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 			if (dispatcher.isOverallLastBlock)
 			{
 				// Wait until all threads finished work
-				std::lock_guard<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
+				std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
 				GpuSqlDispatcher::groupByCV_.wait(lock, []{ return GpuSqlDispatcher::IsGroupByDone(); });
 
 				std::cout << "Reconstructing group by in thread: " << dispatcher.dispatcherThreadId << std::endl;
@@ -824,7 +824,7 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 			{
 				std::cout << "Group by all blocks done in thread: " << dispatcher.dispatcherThreadId << std::endl;
 				// Increment counter and notify threads
-				std::lock_guard<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
+				std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
 				GpuSqlDispatcher::IncGroupByDoneCounter();
 				GpuSqlDispatcher::groupByCV_.notify_all();
 			}

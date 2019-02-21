@@ -11,7 +11,9 @@
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 bool GpuSqlDispatcher::groupByDone_ = false;
-
+std::mutex GpuSqlDispatcher::groupByMutex_;
+std::condition_variable GpuSqlDispatcher::groupByCV_;
+int32_t GpuSqlDispatcher::groupByDoneLimit_;
 //TODO:Dispatch implementation
 
 GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
