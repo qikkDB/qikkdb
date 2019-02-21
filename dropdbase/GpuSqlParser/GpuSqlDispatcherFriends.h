@@ -59,7 +59,7 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 
 	if (dispatcher.usingGroupBy)
 	{
-		if (dispatcher.isLastBlockOfDevice)
+		if (dispatcher.isOverallLastBlock)
 		{
 			if (dispatcher.groupByColumns.find(col) != dispatcher.groupByColumns.end())
 			{

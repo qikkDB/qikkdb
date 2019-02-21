@@ -114,7 +114,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	{
 		walker.walk(&gpuSqlListener, statement->sqlInsertInto());
 	}
-
+	GpuSqlDispatcher::ResetGroupByCounters();
 	std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers;
 	std::vector<std::thread> dispatcherFutures;
 	std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults; 
