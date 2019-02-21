@@ -505,12 +505,12 @@ int32_t done(GpuSqlDispatcher &dispatcher)
 
 int32_t showDatabases(GpuSqlDispatcher &dispatcher)
 {
-	auto databases_map = Database::GetLoadedDatabases();
+	auto& databases_map = Database::GetDatabaseNames();
 	std::unique_ptr<std::string[]> outData(new std::string[databases_map.size()]);
 	
 	int i = 0;
-	for (auto database : databases_map) {
-		outData[i++] = database.first;
+	for (auto& database : databases_map) {
+		outData[i++] = database;
 	}
 	
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
@@ -523,7 +523,7 @@ int32_t showDatabases(GpuSqlDispatcher &dispatcher)
 int32_t showTables(GpuSqlDispatcher &dispatcher)
 {
 	std::string db = dispatcher.arguments.read<std::string>();
-	std::shared_ptr<Database> database = Database::GetLoadedDatabases().at(db);
+	std::shared_ptr<Database> database = Database::GetDatabaseByName(db);
 
 	std::unique_ptr<std::string[]> outData(new std::string[database->GetTables().size()]);
 	auto& tables_map = database->GetTables();
@@ -545,7 +545,7 @@ int32_t showColumns(GpuSqlDispatcher &dispatcher)
 	std::string db = dispatcher.arguments.read<std::string>();
 	std::string tab = dispatcher.arguments.read<std::string>();
 
-	std::shared_ptr<Database> database = Database::GetLoadedDatabases().at(db);
+	std::shared_ptr<Database> database = Database::GetDatabaseByName(db);
 	auto& table = database->GetTables().at(tab);
 
 	auto& columns_map = table.GetColumns();

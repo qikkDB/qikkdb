@@ -346,7 +346,7 @@ void GpuSqlListener::exitShowTables(GpuSqlParser::ShowTablesContext * ctx)
 	{
 		db = ctx->database()->getText();
 
-		if(Database::GetLoadedDatabases().find(db) == Database::GetLoadedDatabases().end())
+		if(!Database::Exists(db))
 		{
 			throw DatabaseNotFoundException();
 		}
@@ -376,7 +376,7 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext * ctx)
 	{
 		db = ctx->database()->getText();
 
-		if (Database::GetLoadedDatabases().find(db) == Database::GetLoadedDatabases().end())
+		if (!Database::Exists(db))
 		{
 			throw DatabaseNotFoundException();
 		}
@@ -394,7 +394,7 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext * ctx)
 		}
 	}
 
-	std::shared_ptr<Database> databaseObject = Database::GetLoadedDatabases().at(db);
+	std::shared_ptr<Database> databaseObject = Database::GetDatabaseByName(db);
 	table = ctx->table()->getText();
 	
 	if (databaseObject->GetTables().find(table) == databaseObject->GetTables().end())

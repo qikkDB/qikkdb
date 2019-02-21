@@ -35,11 +35,11 @@ public:
 	~Database();
 
 	//getters:
-	static const std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases() { return loadedDatabases_; }
 	const std::string& GetName() const { return name_; }
 	int GetBlockSize() const { return blockSize_; }
 	std::unordered_map<std::string, Table>& GetTables() { return tables_; }
-
+	static bool Exists(const std::string& databaseName) { return loadedDatabases_.find(databaseName) != loadedDatabases_.end(); }
+	static std::vector<std::string> GetDatabaseNames();
 	/// <summary>
 	/// Save database from memory to disk.
 	/// </summary>

@@ -31,6 +31,16 @@ Database::~Database()
 {
 }
 
+std::vector<std::string> Database::GetDatabaseNames()
+{
+	std::vector<std::string> ret;
+	for (auto& entry : loadedDatabases_)
+	{
+		ret.push_back(entry.first);
+	}
+	return ret;
+}
+
 /// <summary>
 /// Save database from memory to disk.
 /// </summary>
