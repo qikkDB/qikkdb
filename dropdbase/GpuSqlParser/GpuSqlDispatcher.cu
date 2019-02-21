@@ -9,6 +9,9 @@
 #include "../Types/Point.pb.h"
 #include <regex>
 
+int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
+bool GpuSqlDispatcher::groupByDone_ = false;
+
 //TODO:Dispatch implementation
 
 GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
@@ -23,7 +26,8 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
-	isLastBlock(false),
+	isLastBlockOfDevice(false),
+	isOverallLastBlock(false),
 	noLoad(true)
 {
 
@@ -445,14 +449,18 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 		const std::string column = colName.substr(endOfPolyIdx + 1);
 
 		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+		GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() -1, blockCount - 1);
 		if (blockIndex >= blockCount)
 		{
 			return 1;
 		}
-
+		if (blockIndex >= blockCount - Context::getInstance().getDeviceCount())
+		{
+			isLastBlockOfDevice = true;
+		}
 		if (blockIndex == blockCount - 1)
 		{
-			isLastBlock = true;
+			isOverallLastBlock = true;
 		}
 
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(database->GetTables().at(table).GetColumns().at(column).get());
@@ -479,14 +487,18 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 		const std::string column = colName.substr(endOfPolyIdx + 1);
 
 		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+		GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
 		if (blockIndex >= blockCount)
 		{
 			return 1;
 		}
-
+		if (blockIndex >= blockCount - Context::getInstance().getDeviceCount())
+		{
+			isLastBlockOfDevice = true;
+		}
 		if (blockIndex == blockCount - 1)
 		{
-			isLastBlock = true;
+			isOverallLastBlock = true;
 		}
 
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().at(table).GetColumns().at(column).get());
@@ -527,7 +539,7 @@ int32_t jmp(GpuSqlDispatcher &dispatcher)
 		return 0;
 	}
 
-	if (!dispatcher.isLastBlock)
+	if (!dispatcher.isLastBlockOfDevice)
 	{
 		dispatcher.blockIndex += context.getDeviceCount();
 		dispatcher.instructionPointer = 0;

@@ -59,7 +59,7 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 
 	if (dispatcher.usingGroupBy)
 	{
-		if (dispatcher.isLastBlock)
+		if (dispatcher.isLastBlockOfDevice)
 		{
 			if (dispatcher.groupByColumns.find(col) != dispatcher.groupByColumns.end())
 			{
@@ -342,7 +342,7 @@ int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher)
 
 	if (dispatcher.groupByColumns.find(colName) != dispatcher.groupByColumns.end())
 	{
-		if (dispatcher.isLastBlock)
+		if (dispatcher.isLastBlockOfDevice)
 		{
 			std::tuple<uintptr_t, int32_t, bool> column = dispatcher.allocatedPointers.at(colName + "_keys");
 			int32_t retSize = std::get<1>(column);
@@ -351,7 +351,7 @@ int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher)
 			dispatcher.groupByColumns.insert(reg);
 		}
 	}
-	else if (dispatcher.isLastBlock || !dispatcher.usingGroupBy)
+	else if (dispatcher.isLastBlockOfDevice || !dispatcher.usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t, bool> column = dispatcher.allocatedPointers.at(colName);
 		int32_t retSize = std::get<1>(column);
@@ -391,7 +391,7 @@ int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher)
 
 	if (dispatcher.groupByColumns.find(colName) != dispatcher.groupByColumns.end())
 	{
-		if (dispatcher.isLastBlock)
+		if (dispatcher.isLastBlockOfDevice)
 		{
 			std::tuple<uintptr_t, int32_t, bool> column = dispatcher.allocatedPointers.at(colName + "_keys");
 			int32_t retSize = std::get<1>(column);
@@ -400,7 +400,7 @@ int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher)
 			dispatcher.groupByColumns.insert(reg);
 		}
 	}
-	else if (dispatcher.isLastBlock || !dispatcher.usingGroupBy)
+	else if (dispatcher.isLastBlockOfDevice || !dispatcher.usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t, bool> column = dispatcher.allocatedPointers.at(colName);
 		int32_t retSize = std::get<1>(column);
@@ -445,7 +445,7 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 
 	if (dispatcher.groupByColumns.find(colNameRight) != dispatcher.groupByColumns.end())
 	{
-		if (dispatcher.isLastBlock)
+		if (dispatcher.isLastBlockOfDevice)
 		{
 			std::tuple<uintptr_t, int32_t, bool> columnRight = dispatcher.allocatedPointers.at(colNameRight + "_keys");
 			std::tuple<uintptr_t, int32_t, bool> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
@@ -458,7 +458,7 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 	}
 	else if (dispatcher.groupByColumns.find(colNameLeft) != dispatcher.groupByColumns.end())
 	{
-		if (dispatcher.isLastBlock)
+		if (dispatcher.isLastBlockOfDevice)
 		{
 			std::tuple<uintptr_t, int32_t, bool> columnRight = dispatcher.allocatedPointers.at(colNameRight);
 			std::tuple<uintptr_t, int32_t, bool> columnLeft = dispatcher.allocatedPointers.at(colNameLeft + "_keys");
@@ -469,7 +469,7 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 			dispatcher.groupByColumns.insert(reg);
 		}
 	}
-	else if (dispatcher.isLastBlock || !dispatcher.usingGroupBy)
+	else if (dispatcher.isLastBlockOfDevice || !dispatcher.usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t, bool> columnRight = dispatcher.allocatedPointers.at(colNameRight);
 		std::tuple<uintptr_t, int32_t, bool> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
@@ -804,16 +804,30 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 		reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->groupBy(reinterpret_cast<U*>(std::get<0>(groupByColumn)), reinterpret_cast<T*>(std::get<0>(column)), dataSize);
 
 		// If last block was processed, reconstruct group by table
-		if (dispatcher.isLastBlock)
+		if (dispatcher.isLastBlockOfDevice)
 		{
-			std::cout << "Reconstructing group by in thread: " << dispatcher.dispatcherThreadId << std::endl;
+			if (dispatcher.isOverallLastBlock)
+			{
+				// Wait until all threads finished work
+				std::lock_guard<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
+				GpuSqlDispatcher::groupByCV_.wait(lock, []{ return GpuSqlDispatcher::IsGroupByDone(); });
 
-			int32_t outSize;
-			U* outKeys;
-			R* outValues;
-			reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables);
-			dispatcher.allocatedPointers.insert({ groupByColumnName + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
-			dispatcher.allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
+				std::cout << "Reconstructing group by in thread: " << dispatcher.dispatcherThreadId << std::endl;
+				int32_t outSize;
+				U* outKeys;
+				R* outValues;
+				reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables);
+				dispatcher.allocatedPointers.insert({ groupByColumnName + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
+				dispatcher.allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
+			}
+			else
+			{
+				std::cout << "Group by all blocks done in thread: " << dispatcher.dispatcherThreadId << std::endl;
+				// Increment counter and notify threads
+				std::lock_guard<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
+				GpuSqlDispatcher::IncGroupByDoneCounter();
+				GpuSqlDispatcher::groupByCV_.notify_all();
+			}
 		}
 	}
 	else

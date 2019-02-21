@@ -12,6 +12,8 @@
 #include <array>
 #include <regex>
 #include <string>
+#include <mutex>
+#include <condition_variable>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
 #include "../ComplexPolygonFactory.h"
@@ -203,7 +205,8 @@ private:
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 	bool usingGroupBy;
-	bool isLastBlock;
+	bool isLastBlockOfDevice;
+	bool isOverallLastBlock;
 	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
 	bool isRegisterAllocated(std::string& reg);
@@ -277,8 +280,26 @@ private:
 		DataType::DATA_TYPE_SIZE> insertIntoFunctions;
 	static std::function<int32_t(GpuSqlDispatcher &)> insertIntoDoneFunction;
 
+	static int32_t groupByDoneCounter_;
+	static int32_t groupByDoneLimit_;
+	static bool groupByDone_;
+
 
 public:
+	static std::mutex groupByMutex_;
+	static std::condition_variable groupByCV_;
+
+	static void IncGroupByDoneCounter()
+	{
+		groupByDoneCounter_++;
+		groupByDone_ = (groupByDoneCounter_ == groupByDoneLimit_);
+	}
+
+	static bool IsGroupByDone()
+	{
+		return groupByDone_;
+	}
+
     GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);
 
 	~GpuSqlDispatcher();
@@ -386,16 +407,20 @@ public:
 			const size_t endOfPolyIdx = colName.find(".");
 			const std::string table = colName.substr(0, endOfPolyIdx);
 			const std::string column = colName.substr(endOfPolyIdx + 1);
-			const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
 
+			const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+			GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
 			if (blockIndex >= blockCount)
 			{
 				return 1;
 			}
-
+			if (blockIndex >= blockCount - Context::getInstance().getDeviceCount())
+			{
+				isLastBlockOfDevice = true;
+			}
 			if (blockIndex == blockCount - 1)
 			{
-				isLastBlock = true;
+				isOverallLastBlock = true;
 			}
 
 			auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
