@@ -303,8 +303,8 @@ public:
 	static void ResetGroupByCounters()
 	{
 		groupByDoneCounter_ = 0;
+		groupByDoneLimit_ = 0;
 		groupByDone_ = false;
-		groupByDoneLimit_ = false;
 	}
 
     GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);

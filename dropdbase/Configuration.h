@@ -25,7 +25,7 @@ private:
 	std::string configurationFile = "../configuration/config.yml";
 	bool usingGPU_ = true;
 	std::string dir_ = "./";
-	std::string databaseDir_ = "E:/databases/";
+	std::string databaseDir_ = "../databases/";
 	int blockSize_ = 1024;
 	int blockCount_ = 1024;
 	int groupByBuckets_ = 65536;
