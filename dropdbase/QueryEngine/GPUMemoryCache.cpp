@@ -2,8 +2,8 @@
 #include <boost/log/trivial.hpp>
 #include "Context.h"
 
-GPUMemoryCache::GPUMemoryCache(int32_t deviceID) :
-	usedSize(0), deviceID_(deviceID)
+GPUMemoryCache::GPUMemoryCache(int32_t deviceID, size_t maximumSize) :
+	usedSize(0), deviceID_(deviceID), maxSize_(maximumSize)
 {
 	BOOST_LOG_TRIVIAL(debug) << "Cache initialized for device " << deviceID;
 }
@@ -22,8 +22,10 @@ GPUMemoryCache::~GPUMemoryCache()
 void GPUMemoryCache::evict()
 {
 	auto& front = lruQueue.front();
+	BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "Evict: " << reinterpret_cast<int8_t*>(front->second.ptr) << " " << front->second.size;
 	Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(front->second.ptr), front->second.size);
 	usedSize -= front->second.size;
+	BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "UsedSize: " << usedSize;
 	cacheMap.erase(front);
 	lruQueue.pop_front();
 }
@@ -45,4 +47,10 @@ void GPUMemoryCache::clearCachedBlock(const std::string& columnName, int32_t blo
 		cacheMap.erase(cacheMap.find(columnBlock));
 	}
 	BOOST_LOG_TRIVIAL(debug) << "Cleared cached block "<< columnBlock << " on device" << deviceID_;
+}
+
+bool GPUMemoryCache::containsColumn(const std::string& columnName, int32_t blockIndex)
+{
+	std::string columnBlock = columnName + "_" + std::to_string(blockIndex);
+	return cacheMap.find(columnBlock) != cacheMap.end();
 }

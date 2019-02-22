@@ -155,7 +155,7 @@ __global__ void group_by_kernel(
 
 // TODO remake to filter colConst
 template<typename K>
-__global__ void is_bucket_occupied_kernel(int32_t *occupancyMask, K *keys, int32_t maxHashCount)
+__global__ void is_bucket_occupied_kernel(int8_t *occupancyMask, K *keys, int32_t maxHashCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -201,7 +201,7 @@ public:
 
 	// Create Group By object with existing keys
 	GPUGroupBy(int32_t maxHashCount, K * keys) :
-		maxHashCount_(maxHashCount), keys_(keys)
+		maxHashCount_(maxHashCount)
 	{
 		GPUMemory::alloc(&keys_, maxHashCount_);
 		GPUMemory::alloc(&values_, maxHashCount_);
@@ -238,7 +238,7 @@ public:
 	// Reconstruct needed raw fields (do not calculate final results yet)
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
@@ -246,7 +246,7 @@ public:
 	}
 
 	// Get the final hash table results - for operations Min, Max and Sum
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount)
+	void getResults(K **outKeys, O **outValues, int32_t *outDataElementCount)
 	{
 		static_assert(!std::is_same<AGG, AggregationFunctions::avg>::value &&
 			!std::is_same<AGG, AggregationFunctions::count>::value,
@@ -255,11 +255,11 @@ public:
 			"GPUGroupBy<min/max/sum>.getResults K (keys) must be integral or floating point");
 		static_assert(std::is_integral<V>::value || std::is_floating_point<V>::value,
 			"GPUGroupBy<min/max/sum>.getResults V (values) must be integral or floating point");
-		static_assert(std::is_same<O, V>::value,
-			"GPUGroupBy<min/max/sum>.getResults O (outValue) and V (value) must be of the same type (for Min/Max/Sum)");
+//		static_assert(std::is_same<O, V>::value,
+	//		"GPUGroupBy<min/max/sum>.getResults O (outValue) and V (value) must be of the same type (for Min/Max/Sum)");
 
 		// Create buffer for bucket compression - reconstruct
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
@@ -272,7 +272,10 @@ public:
 	}
 	
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>>& tables)
+	void getResults(K** outKeys,
+					O** outValues,
+					int32_t* outDataElementCount,
+					std::vector<std::unique_ptr<IGroupBy>>& tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{
@@ -395,7 +398,7 @@ public:
 	// Reconstruct needed raw fields (do not calculate final results yet)
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
@@ -404,7 +407,7 @@ public:
 	}
 
 	// Get the final hash table results - for operation Average
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount)
+	void getResults(K **outKeys, O **outValues, int32_t *outDataElementCount)
 	{
 		static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value,
 			"GPUGroupBy<avg>.getResults K (keys) must be integral or floating point");
@@ -415,7 +418,7 @@ public:
 		//	"GPUGroupBy<avg>.getResults O (outValue) must be floating point for Average operation");
 
 		// Create buffer for bucket compression - reconstruct
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
@@ -443,7 +446,10 @@ public:
 	}
 
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, O *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>>& tables)
+	void getResults(K** outKeys,
+					O** outValues,
+					int32_t* outDataElementCount,
+					std::vector<std::unique_ptr<IGroupBy>>& tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{
@@ -499,22 +505,26 @@ public:
 			GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
 
 			// Merge results
-			cuda_ptr<V> valuesMerged(sumElementCount);
-			cuda_ptr<int64_t> occurencesMerged(sumElementCount);
+			V* valuesMerged;
+			int64_t* occurencesMerged;
 
 			// Calculate sum of values
 			// Initialize new empty sumGroupBy table
+			K* tmpKeys;
 			GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
 			sumGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
-			sumGroupBy.getResults(outKeys, valuesMerged.get(), outDataElementCount);
+			sumGroupBy.getResults(&tmpKeys, &valuesMerged, outDataElementCount);
 
 			// Calculate sum of occurences
 			// Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
-			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, outKeys);
+			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, tmpKeys);
 			countGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
-			countGroupBy.getResults(outKeys, occurencesMerged.get(), outDataElementCount);
+			countGroupBy.getResults(outKeys, &occurencesMerged, outDataElementCount);
 
-			GPUArithmetic::colCol<ArithmeticOperations::div>(outValues, valuesMerged.get(), occurencesMerged.get(), *outDataElementCount);
+			GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurencesMerged, *outDataElementCount);
+			GPUMemory::free(valuesMerged);
+			GPUMemory::free(occurencesMerged);
+			GPUMemory::free(tmpKeys);
 		}
 	}
 
@@ -585,7 +595,7 @@ public:
 	// Reconstruct needed raw fields (do not calculate final results yet)
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
@@ -593,7 +603,7 @@ public:
 	}
 
 	// Get the final hash table results - for operation Count
-	void getResults(K *outKeys, int64_t *outValues, int32_t *outDataElementCount)
+	void getResults(K **outKeys, int64_t **outValues, int32_t *outDataElementCount)
 	{
 		static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value,
 			"GPUGroupBy<count>.getResults K (keys) must be integral or floating point");
@@ -601,7 +611,7 @@ public:
 			"GPUGroupBy<count>.getResults V (values) must be integral or floating point");
 
 		// Create buffer for bucket compression - reconstruct
-		cuda_ptr<int32_t> occupancyMask(maxHashCount_, 0);
+		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
 		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
@@ -613,7 +623,10 @@ public:
 	}
 
 	// Merge results from all devices and store to fields on default device
-	void getResults(K *outKeys, int64_t *outValues, int32_t *outDataElementCount, std::vector<std::unique_ptr<IGroupBy>>& tables)
+	void getResults(K** outKeys,
+					int64_t** outValues,
+					int32_t* outDataElementCount,
+					std::vector<std::unique_ptr<IGroupBy>>& tables)
 	{
 		if (tables.size() <= 0) // invalid count of tables
 		{
@@ -648,7 +661,6 @@ public:
 
 				// Reconstruct just keys and occurences
 				table->reconstructRawNumbers(keys.get(), nullptr, occurences.get(), &elementCount);
-
 				// Append data to host vectors
 				keysAllHost.insert(keysAllHost.end(), keys.get(), keys.get() + elementCount);
 				occurencesAllHost.insert(occurencesAllHost.end(), occurences.get(), occurences.get() + elementCount);

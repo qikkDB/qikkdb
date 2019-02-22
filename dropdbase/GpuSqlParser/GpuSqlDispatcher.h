@@ -12,6 +12,8 @@
 #include <array>
 #include <regex>
 #include <string>
+#include <mutex>
+#include <condition_variable>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
 #include "../ComplexPolygonFactory.h"
@@ -203,7 +205,8 @@ private:
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 	bool usingGroupBy;
-	bool isLastBlock;
+	bool isLastBlockOfDevice;
+	bool isOverallLastBlock;
 	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
 	bool isRegisterAllocated(std::string& reg);
@@ -277,8 +280,33 @@ private:
 		DataType::DATA_TYPE_SIZE> insertIntoFunctions;
 	static std::function<int32_t(GpuSqlDispatcher &)> insertIntoDoneFunction;
 
+	static int32_t groupByDoneCounter_;
+	static int32_t groupByDoneLimit_;
+	static bool groupByDone_;
+
 
 public:
+	static std::mutex groupByMutex_;
+	static std::condition_variable groupByCV_;
+
+	static void IncGroupByDoneCounter()
+	{
+		groupByDoneCounter_++;
+		groupByDone_ = (groupByDoneCounter_ == groupByDoneLimit_);
+	}
+
+	static bool IsGroupByDone()
+	{
+		return groupByDone_;
+	}
+
+	static void ResetGroupByCounters()
+	{
+		groupByDoneCounter_ = 0;
+		groupByDoneLimit_ = 0;
+		groupByDone_ = false;
+	}
+
     GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);
 
 	~GpuSqlDispatcher();
@@ -289,7 +317,7 @@ public:
 
 	void copyExecutionDataTo(GpuSqlDispatcher& other);
 
-	std::unique_ptr<google::protobuf::Message> execute();
+	void execute(std::unique_ptr<google::protobuf::Message>& result);
 
 	const ColmnarDB::NetworkClient::Message::QueryResponseMessage &getQueryResponseMessage();
 
@@ -386,24 +414,33 @@ public:
 			const size_t endOfPolyIdx = colName.find(".");
 			const std::string table = colName.substr(0, endOfPolyIdx);
 			const std::string column = colName.substr(endOfPolyIdx + 1);
-			const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
 
+			const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+			GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
 			if (blockIndex >= blockCount)
 			{
 				return 1;
 			}
-
+			if (blockIndex >= blockCount - Context::getInstance().getDeviceCount())
+			{
+				isLastBlockOfDevice = true;
+			}
 			if (blockIndex == blockCount - 1)
 			{
-				isLastBlock = true;
+				isOverallLastBlock = true;
 			}
 
 			auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
 			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
 
-			T* gpuPointer = allocateRegister<T>(colName, block->GetSize());
+			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+				database->GetName() + "_" + colName, blockIndex, block->GetSize());
+            if (!std::get<2>(cacheEntry))
+            {
+                GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+            }
+            addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
 
-			GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<T*>(block->GetData()), block->GetSize());
 			noLoad = false;
 		}
 		return 0;
@@ -413,10 +450,10 @@ public:
 
 	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
-	void insertComplexPolygon(std::string colName, GPUMemory::GPUPolygon polygon, int32_t size);
+	void insertComplexPolygon(const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
-	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
+	std::string insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 
     template<typename T>
     friend int32_t retConst(GpuSqlDispatcher &dispatcher);
@@ -476,7 +513,7 @@ public:
 	template<typename OP, typename T, typename U>
 	friend int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher);
 
-	template<typename OP, typename T, typename U>
+	template<typename OP, typename R, typename T, typename U>
 	friend int32_t aggregationColCol(GpuSqlDispatcher &dispatcher);
 
 	template<typename OP, typename T, typename U>

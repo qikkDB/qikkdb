@@ -5,6 +5,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+#include <iostream>
 
 class cuda_error : public std::runtime_error
 {
@@ -32,13 +33,15 @@ public:
 	static void setCudaError(cudaError_t cudaError) {
 		if (cudaError != cudaSuccess)
 		{
-			throw cuda_error(std::string(cudaGetErrorString(cudaError)));
+			std::cout << "CUDA ERROR: " << cudaError << " " << cudaGetErrorName(cudaError);
+			throw cuda_error(std::string(cudaGetErrorName(cudaError)));
 		}
 	}
 
 	static void setType(Type type) {
 		if (type != GPU_EXTENSION_SUCCESS)
 		{
+			std::cout << "GPU ERROR: " << type << std::endl;
 			throw cuda_error("GPU Error number " + std::to_string(type));
 		}
 	}
