@@ -328,9 +328,9 @@ int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher)
 		std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
 		std::is_integral<T>::value && std::is_integral<U>::value;
 	typedef typename std::conditional< bothTypesFloatOrBothIntegral,
-		typename std::conditional<sizeof(typename T) >= sizeof(typename U), typename T, typename U>::type,
-		typename std::conditional<std::is_floating_point<typename T>::value, typename T,
-		typename std::conditional<std::is_floating_point<typename U>::value, typename U, void>::type>::type
+		typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
+		typename std::conditional<std::is_floating_point<T>::value, T,
+		typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type
 		>::type ResultType;
 	int32_t loadFlag = dispatcher.loadCol<T>(colName);
 	if (loadFlag)
@@ -377,9 +377,9 @@ int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher)
 		std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
 		std::is_integral<T>::value && std::is_integral<U>::value;
 	typedef typename std::conditional< bothTypesFloatOrBothIntegral,
-		typename std::conditional<sizeof(typename T) >= sizeof(typename U), typename T, typename U>::type,
-		typename std::conditional<std::is_floating_point<typename T>::value, typename T,
-		typename std::conditional<std::is_floating_point<typename U>::value, typename U, void>::type>::type
+		typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
+		typename std::conditional<std::is_floating_point<T>::value, T,
+		typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type
 	>::type ResultType;
 	int32_t loadFlag = dispatcher.loadCol<U>(colName);
 	if (loadFlag)
@@ -425,9 +425,9 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 		std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
 		std::is_integral<T>::value && std::is_integral<U>::value;
 	typedef typename std::conditional< bothTypesFloatOrBothIntegral,
-		typename std::conditional<sizeof(typename T) >= sizeof(typename U), typename T, typename U>::type,
-		typename std::conditional<std::is_floating_point<typename T>::value, typename T,
-		typename std::conditional<std::is_floating_point<typename U>::value, typename U, void>::type>::type
+		typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
+		typename std::conditional<std::is_floating_point<T>::value, T,
+		typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type
 	>::type ResultType;
 
 	int32_t loadFlag = dispatcher.loadCol<U>(colNameRight);
@@ -496,9 +496,9 @@ int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher)
 		std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
 		std::is_integral<T>::value && std::is_integral<U>::value;
 	typedef typename std::conditional< bothTypesFloatOrBothIntegral,
-		typename std::conditional<sizeof(typename T) >= sizeof(typename U), typename T, typename U>::type,
-		typename std::conditional<std::is_floating_point<typename T>::value, typename T,
-		typename std::conditional<std::is_floating_point<typename U>::value, typename U, void>::type>::type
+		typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
+		typename std::conditional<std::is_floating_point<T>::value, T,
+		typename std::conditional<std::is_floating_point< U>::value, U, void>::type>::type
 	>::type ResultType;
 	std::cout << "ArithmeticConstConst: " << reg << std::endl;
 

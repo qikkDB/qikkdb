@@ -13,16 +13,29 @@ class GPUMemoryCache
 private:
 	const size_t maxSize_;
 	int32_t deviceID_;
+	struct CacheEntry;
+
+	struct CacheEntryRefWrapper
+	{
+		CacheEntryRefWrapper(CacheEntry& entry) :
+			ref(entry)
+		{
+		}
+		CacheEntry& ref;
+	};
 
 	struct CacheEntry
 	{
+		std::string key;
 		std::uintptr_t ptr;
 		size_t size;
-		std::list<std::unordered_map<std::string, CacheEntry>::iterator>::iterator lruQueueIt;
+		std::list<CacheEntryRefWrapper>::iterator lruQueueIt;
 	};
 
+
+
 	std::unordered_map<std::string, CacheEntry> cacheMap;
-	std::list<std::unordered_map<std::string, CacheEntry>::iterator> lruQueue;
+	std::list<CacheEntryRefWrapper> lruQueue;
 
 	int64_t usedSize;
 	void evict();
@@ -45,7 +58,7 @@ public:
 		if (cacheMap.find(columnBlock) != cacheMap.end())
 		{
 			lruQueue.erase(cacheMap.at(columnBlock).lruQueueIt);
-			lruQueue.push_back(cacheMap.find(columnBlock));
+			lruQueue.push_back(cacheMap.at(columnBlock));
 			cacheMap.at(columnBlock).lruQueueIt = (--lruQueue.end());
 			return { reinterpret_cast<T*>(cacheMap.at(columnBlock).ptr), cacheMap.at(columnBlock).size / sizeof(T), true };
 		}
@@ -63,9 +76,9 @@ public:
 
 		T* newPtr = reinterpret_cast<T*>(GetAllocator().allocate(size*sizeof(T)));
 		usedSize += sizeToInsert;
-		CacheEntry newCacheEntry{ reinterpret_cast<std::uintptr_t>(newPtr), sizeToInsert, lruQueue.end() };
+		CacheEntry newCacheEntry{ columnBlock, reinterpret_cast<std::uintptr_t>(newPtr), sizeToInsert, lruQueue.end() };
 		auto cacheMapIt = cacheMap.insert(std::make_pair(columnBlock, std::move(newCacheEntry))).first;
-		lruQueue.push_back(cacheMapIt);
+		lruQueue.emplace_back(cacheMapIt->second);
 		cacheMapIt->second.lruQueueIt = (--lruQueue.end());
 		return { newPtr, size, false };
 	}

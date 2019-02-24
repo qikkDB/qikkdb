@@ -22,11 +22,11 @@ GPUMemoryCache::~GPUMemoryCache()
 void GPUMemoryCache::evict()
 {
 	auto& front = lruQueue.front();
-	BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "Evict: " << reinterpret_cast<int8_t*>(front->second.ptr) << " " << front->second.size;
-	Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(front->second.ptr), front->second.size);
-	usedSize -= front->second.size;
+	BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "Evict: " << reinterpret_cast<int8_t*>(front.ref.ptr) << " " << front.ref.size;
+	Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(front.ref.ptr), front.ref.size);
+	usedSize -= front.ref.size;
 	BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "UsedSize: " << usedSize;
-	cacheMap.erase(front);
+	cacheMap.erase(front.ref.key);
 	lruQueue.pop_front();
 }
 

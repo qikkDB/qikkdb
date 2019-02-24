@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 SET_DIRECTORY_PROPERTIES(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/third_party)
 set(PROJECT_NAME dropdbase_instarea)
-project(${PROJECT_NAME} LANGUAGES CXX CUDA)
+project(${PROJECT_NAME} LANGUAGES C CXX CUDA)
 set(CMAKE_CXX_STANDARD 17)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 

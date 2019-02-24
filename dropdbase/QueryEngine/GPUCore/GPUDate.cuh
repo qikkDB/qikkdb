@@ -12,9 +12,9 @@
 
 namespace DateOperations
 {
-	constexpr int64_t SECONDS_BETWEEN_1600_1970 = 11676096000i64;			// number of seconds between years 1600 and 1970
-	constexpr int64_t DAYS_IN_400_YEARS = 146097i64;						// days in 400 years cycle (e.g. between 1600 and 2000)
-	constexpr int64_t SECONDS_IN_400_YEARS = DAYS_IN_400_YEARS * 86400i64;	// seconds in 400 years cycle (e.g. between 1600 and 2000)
+	constexpr int64_t SECONDS_BETWEEN_1600_1970 = 11676096000LL;			// number of seconds between years 1600 and 1970
+	constexpr int64_t DAYS_IN_400_YEARS = 146097LL;						// days in 400 years cycle (e.g. between 1600 and 2000)
+	constexpr int64_t SECONDS_IN_400_YEARS = DAYS_IN_400_YEARS * 86400LL;	// seconds in 400 years cycle (e.g. between 1600 and 2000)
 	
 	__constant__ int64_t START_DAYS_OF_LEAP_YEARS[] = { 0, 1461, 2922, 4383, 5844, 7305, 8766, 10227, 11688, 13149, 14610, 16071, 17532, 18993, 20454, 21915, 23376, 24837, 26298, 27759, 29220, 30681, 32142, 33603, 35064,
 		37985, 39446, 40907, 42368, 43829, 45290, 46751, 48212, 49673, 51134, 52595, 54056, 55517, 56978, 58439, 59900, 61361, 62822, 64283, 65744, 67205, 68666, 70127, 71588,
@@ -40,28 +40,28 @@ namespace DateOperations
 			
 			if (value < 0)
 			{
-				year400 = static_cast<int32_t>((value - SECONDS_IN_400_YEARS + 1i64) / SECONDS_IN_400_YEARS);
-				value = (((value + 1i64) % SECONDS_IN_400_YEARS) + SECONDS_IN_400_YEARS - 1i64) / 86400i64;
+				year400 = static_cast<int32_t>((value - SECONDS_IN_400_YEARS + 1LL) / SECONDS_IN_400_YEARS);
+				value = (((value + 1LL) % SECONDS_IN_400_YEARS) + SECONDS_IN_400_YEARS - 1LL) / 86400LL;
 			}
 			else
 			{
 				year400 = static_cast<int32_t>(value / SECONDS_IN_400_YEARS);
-				value = (value / 86400i64) % DAYS_IN_400_YEARS;
+				value = (value / 86400LL) % DAYS_IN_400_YEARS;
 			}
 			// value is now count of days from start of some 400 years cycle
 
 			// Heuristic for finding index to leap years table
-			int32_t index = min(96, static_cast<int32_t>(value * 97i64 / DAYS_IN_400_YEARS + 1i64));
+			int32_t index = min(96, static_cast<int32_t>(value * 97LL / DAYS_IN_400_YEARS + 1LL));
 			while (START_DAYS_OF_LEAP_YEARS[index] > value)	// this cycle will run max. 2 iterations
 			{
 				--index;
 			}
-			int32_t year4 = static_cast<int32_t>((START_DAYS_OF_LEAP_YEARS[index] + 730i64) / 1461i64);
+			int32_t year4 = static_cast<int32_t>((START_DAYS_OF_LEAP_YEARS[index] + 730LL) / 1461LL);
 			value -= START_DAYS_OF_LEAP_YEARS[index];
 			// value is now count of days from start of some 4 or 8 year cycle between 2 leap years
 
 			// Find index to months table (this one is exact)
-			index = min(7, static_cast<int32_t>(value * 8i64 / 2921i64));
+			index = min(7, static_cast<int32_t>(value * 8LL / 2921LL));
 
 			return 1600 + year400 * 400 + year4 * 4 + index;
 		}
@@ -76,16 +76,16 @@ namespace DateOperations
 
 			if (value < 0)
 			{
-				value = (((value + 1i64) % SECONDS_IN_400_YEARS) + SECONDS_IN_400_YEARS - 1i64) / 86400i64;
+				value = (((value + 1LL) % SECONDS_IN_400_YEARS) + SECONDS_IN_400_YEARS - 1LL) / 86400LL;
 			}
 			else
 			{
-				value = (value / 86400i64) % DAYS_IN_400_YEARS;
+				value = (value / 86400LL) % DAYS_IN_400_YEARS;
 			}
 			// value is now count of days from start of some 400 years cycle
 
 			// Heuristic for finding index to leap years table
-			int32_t index = min(96, static_cast<int32_t>(value * 97i64 / DAYS_IN_400_YEARS + 1i64));
+			int32_t index = min(96, static_cast<int32_t>(value * 97LL / DAYS_IN_400_YEARS + 1LL));
 			while (START_DAYS_OF_LEAP_YEARS[index] > value)	// this cycle will run max. 2 iterations
 			{
 				--index;
@@ -94,7 +94,7 @@ namespace DateOperations
 			// value is now count of days from start of some 4 or 8 year cycle between 2 leap years
 
 			// Heuristic for finding index to months table
-			index = min(95, static_cast<int32_t>(value * 96i64 / 2921i64 + 1i64));
+			index = min(95, static_cast<int32_t>(value * 96LL / 2921LL + 1LL));
 			while (START_DAYS_OF_MONTHS[index] > value)		// this cycle will run max. 2 iterations
 			{
 				--index;
@@ -112,16 +112,16 @@ namespace DateOperations
 
 			if (value < 0)
 			{
-				value = (((value + 1i64) % SECONDS_IN_400_YEARS) + SECONDS_IN_400_YEARS - 1i64) / 86400i64;
+				value = (((value + 1LL) % SECONDS_IN_400_YEARS) + SECONDS_IN_400_YEARS - 1LL) / 86400LL;
 			}
 			else
 			{
-				value = (value / 86400i64) % DAYS_IN_400_YEARS;
+				value = (value / 86400LL) % DAYS_IN_400_YEARS;
 			}
 			// value is now count of days from start of some 400 years cycle
 
 			// Heuristic for finding index to leap years table
-			int32_t index = min(96, static_cast<int32_t>(value * 97i64 / DAYS_IN_400_YEARS + 1i64));
+			int32_t index = min(96, static_cast<int32_t>(value * 97LL / DAYS_IN_400_YEARS + 1LL));
 			while (START_DAYS_OF_LEAP_YEARS[index] > value)	// this cycle will run max. 2 iterations
 			{
 				--index;
@@ -130,7 +130,7 @@ namespace DateOperations
 			// value is now count of days from start of some 4 or 8 year cycle between 2 leap years
 
 			// Heuristic for finding index to months table
-			index = min(95, static_cast<int32_t>(value * 96i64 / 2921i64 + 1i64));
+			index = min(95, static_cast<int32_t>(value * 96LL / 2921LL + 1LL));
 			while (START_DAYS_OF_MONTHS[index] > value)		// this cycle will run max. 2 iterations
 			{
 				--index;
@@ -146,11 +146,11 @@ namespace DateOperations
 		{
 			if (dateTime < 0)
 			{
-				return static_cast<int32_t>((((dateTime + 1i64) % 86400i64) + 86399i64) / 3600i64);
+				return static_cast<int32_t>((((dateTime + 1LL) % 86400LL) + 86399LL) / 3600LL);
 			}
 			else
 			{
-				return static_cast<int32_t>((dateTime / 3600i64) % 24i64);
+				return static_cast<int32_t>((dateTime / 3600LL) % 24LL);
 			}
 		}
 	};
@@ -161,11 +161,11 @@ namespace DateOperations
 		{
 			if (dateTime < 0)
 			{
-				return static_cast<int32_t>((((dateTime + 1i64) % 3600i64) + 3599i64) / 60i64);
+				return static_cast<int32_t>((((dateTime + 1LL) % 3600LL) + 3599LL) / 60LL);
 			}
 			else
 			{
-				return static_cast<int32_t>((dateTime / 60i64) % 60i64);
+				return static_cast<int32_t>((dateTime / 60LL) % 60LL);
 			}
 		}
 	};
@@ -176,11 +176,11 @@ namespace DateOperations
 		{
 			if (dateTime < 0)
 			{
-				return static_cast<int32_t>(((dateTime + 1i64) % 60i64) + 59i64);
+				return static_cast<int32_t>(((dateTime + 1LL) % 60LL) + 59LL);
 			}
 			else
 			{
-				return static_cast<int32_t>(dateTime % 60i64);
+				return static_cast<int32_t>(dateTime % 60LL);
 			}
 		}
 	};

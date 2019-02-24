@@ -43,10 +43,10 @@ void RegisterCtrlCHandler(TCPServer<TCPClientHandler, ClientPoolWorker>* server)
 #else
 	struct sigaction sigIntHandler;
 
-	sigIntHandler.sa_handler = my_handler;
+	sigIntHandler.sa_handler = UnixSigHandler;
 	sigemptyset(&sigIntHandler.sa_mask);
 	sigIntHandler.sa_flags = 0;
 
-	sigaction(SIGINT, &UnixSigHandler, NULL);
+	sigaction(SIGINT, &sigIntHandler, NULL);
 #endif
 }
