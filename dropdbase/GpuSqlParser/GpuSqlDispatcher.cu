@@ -24,7 +24,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	constPolygonCounter(0),
 	filter_(0),
 	usedRegisterMemory(0),
-	maxRegisterMemory(1 << 62), // TODO value from config e.g.
+	maxRegisterMemory(1LL << 62), // TODO value from config e.g.
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
@@ -562,7 +562,7 @@ int32_t done(GpuSqlDispatcher &dispatcher)
 
 int32_t showDatabases(GpuSqlDispatcher &dispatcher)
 {
-	auto& databases_map = Database::GetDatabaseNames();
+	auto databases_map = Database::GetDatabaseNames();
 	std::unique_ptr<std::string[]> outData(new std::string[databases_map.size()]);
 	
 	int i = 0;

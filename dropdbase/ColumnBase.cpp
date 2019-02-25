@@ -7,9 +7,9 @@
 #include <cmath>
 
 template<>
-std::vector<int> ColumnBase<int>::NullArray(int length)
+std::vector<int32_t> ColumnBase<int32_t>::NullArray(int length)
 {
-	return std::vector<int>(length, 0);
+	return std::vector<int32_t>(length, 0);
 }
 
 template<>
@@ -19,9 +19,9 @@ std::vector<float> ColumnBase<float>::NullArray(int length)
 }
 
 template<>
-std::vector<long long> ColumnBase<long long>::NullArray(int length)
+std::vector<int64_t> ColumnBase<int64_t>::NullArray(int length)
 {
-	return std::vector<long long>(length, 0);
+	return std::vector<int64_t>(length, 0);
 }
 
 template<>

@@ -35,7 +35,14 @@ int32_t retCol(GpuSqlDispatcher &dispatcher);
 
 int32_t fil(GpuSqlDispatcher &dispatcher);
 
+int32_t jmp(GpuSqlDispatcher &dispatcher);
+
 int32_t done(GpuSqlDispatcher &dispatcher);
+
+int32_t showDatabases(GpuSqlDispatcher &dispatcher);
+int32_t showTables(GpuSqlDispatcher &dispatcher);
+int32_t showColumns(GpuSqlDispatcher &dispatcher);
+int32_t insertIntoDone(GpuSqlDispatcher & dispatcher);
 
 //// FILTERS WITH FUNCTORS
 

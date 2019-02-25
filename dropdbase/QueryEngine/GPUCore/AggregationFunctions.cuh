@@ -7,7 +7,7 @@
 #include <device_launch_parameters.h>
 
 #include "../../../cub/cub.cuh"
-
+#include "GPUTypes.h"
 // Generic agg function functors
 namespace AggregationFunctions
 {
@@ -32,7 +32,7 @@ namespace AggregationFunctions
 			do
 			{
 				expected = old;
-				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&b));
+				uint64_t ret = atomicCAS(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&expected), *reinterpret_cast<cuUInt64*>(&b));
 				old = *(int64_t*)&ret;
 			} while (old != expected && old > b);
 		}
@@ -50,7 +50,7 @@ namespace AggregationFunctions
 			do
 			{
 				expected = old;
-				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&b));
+				uint64_t ret = atomicCAS(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&expected), *reinterpret_cast<cuUInt64*>(&b));
 				old = *(double*)&ret;
 			} while (old != expected && old > b);
 		}
@@ -119,7 +119,7 @@ namespace AggregationFunctions
 			do
 			{
 				expected = old;
-				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&b));
+				uint64_t ret = atomicCAS(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&expected), *reinterpret_cast<cuUInt64*>(&b));
 				old = *(int64_t*)&ret;
 			} while (old != expected && old < b);
 		}
@@ -137,7 +137,7 @@ namespace AggregationFunctions
 			do
 			{
 				expected = old;
-				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&b));
+				uint64_t ret = atomicCAS(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&expected), *reinterpret_cast<cuUInt64*>(&b));
 				old = *(double*)&ret;
 			} while (old != expected && old < b);
 		}
@@ -195,7 +195,7 @@ namespace AggregationFunctions
 
 		__device__ void operator()(int64_t *a, int64_t b) const
 		{
-			atomicAdd(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&b));
+			atomicAdd(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&b));
 		}
 
 		// Specialized atomicAdd for double
@@ -213,7 +213,7 @@ namespace AggregationFunctions
 			{
 				expected = old;
 				newValue = *a + b;
-				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&newValue));
+				uint64_t ret = atomicCAS(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&expected), *reinterpret_cast<cuUInt64*>(&newValue));
 				old = *(double*)&ret;
 			} while (old != expected && old < b);
 		}
@@ -253,7 +253,7 @@ namespace AggregationFunctions
 
 		__device__ void operator()(int64_t *a, int64_t b) const
 		{
-			atomicAdd(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&b));
+			atomicAdd(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&b));
 		}
 
 		// Specialized atomicAdd for double
@@ -266,7 +266,7 @@ namespace AggregationFunctions
 			{
 				expected = old;
 				newValue = expected + b;
-				uint64_t ret = atomicCAS(reinterpret_cast<uint64_t*>(a), *reinterpret_cast<uint64_t*>(&expected), *reinterpret_cast<uint64_t*>(&newValue));
+				uint64_t ret = atomicCAS(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&expected), *reinterpret_cast<cuUInt64*>(&newValue));
 				old = *(double*)&ret;
 			} while (old != expected);
 		}

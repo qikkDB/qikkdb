@@ -17,7 +17,7 @@
 #include "cuda_ptr.h"
 #include "IGroupBy.h"
 #include "AggregationFunctions.cuh"
-
+#include "GPUTypes.h"
 
 // Universal null key calculator
 template<typename K>
@@ -42,7 +42,7 @@ __device__ T genericAtomicCAS(T * address, T compare, T val)
 	static_assert(sizeof(T) == 8 || sizeof(T) == 4, "genericAtomicCAS is working only for 4 Bytes and 8 Bytes long data types");
 	if (sizeof(T) == 8)
 	{
-		uint64_t old = atomicCAS(reinterpret_cast<uint64_t*>(address), *(reinterpret_cast<uint64_t*>(&compare)), *(reinterpret_cast<uint64_t*>(&val)));
+		uint64_t old = atomicCAS(reinterpret_cast<cuUInt64*>(address), *(reinterpret_cast<cuUInt64*>(&compare)), *(reinterpret_cast<cuUInt64*>(&val)));
 		return *(reinterpret_cast<T*>(&old));
 	}
 	else if (sizeof(T) == 4)
@@ -148,7 +148,7 @@ __global__ void group_by_kernel(
 		{
 			// Use aggregation of values on the bucket and the corresponding counter
 			AGG{}(&values[foundIndex], inValues[i]);
-			atomicAdd(reinterpret_cast<uint64_t*>(&keyOccurenceCount[foundIndex]), 1);
+			atomicAdd(reinterpret_cast<cuUInt64*>(&keyOccurenceCount[foundIndex]), 1);
 		}
 	}
 }
