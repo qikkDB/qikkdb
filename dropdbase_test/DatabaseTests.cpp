@@ -135,9 +135,8 @@ TEST(DatabaseTests, SaveLoadTest)
 
 	//load different database. but with the same data:
 	Database::LoadDatabasesFromDisk();
-	auto& loadedDatabases = Database::GetLoadedDatabases();
-
-	auto& loadedTables = loadedDatabases.at(dbName)->GetTables();
+	
+	auto& loadedTables = Database::GetDatabaseByName(dbName)->GetTables();
 	auto& firstTableColumns = loadedTables.at("TestTable1").GetColumns();
 	auto& secondTableColumns = loadedTables.at("TestTable2").GetColumns();
 

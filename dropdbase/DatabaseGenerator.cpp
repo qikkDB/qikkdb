@@ -141,8 +141,11 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 							date.tm_mday = sameDataInBlocks ? 10 : ((k % 28) + 1);
 							date.tm_mon = sameDataInBlocks ? 10 : (k % 12);
 							date.tm_year = sameDataInBlocks ? 110 : ((k % 1000) + 100);
-
+							#ifdef WIN32 
 							const time_t utcTimestamp = _mkgmtime64(&date);
+							#else
+							const time_t utcTimestamp = timegm(&date);
+							#endif
 
 							longData.push_back(static_cast<int64_t>(utcTimestamp));
 						}

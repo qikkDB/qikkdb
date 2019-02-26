@@ -11,6 +11,7 @@
 #include "QueryEngineError.h"
 #include "CudaMemAllocator.h"
 #include "GPUMemoryCache.h"
+#include "../Configuration.h"
 
 class Context {
 private:
@@ -25,13 +26,13 @@ private:
 	// Number of opitimal threads per block queried for a specific GPU - currently bound to the context
 	std::vector<int32_t> queriedBlockDimensionList;
 
-	// Move cannot be implemented for allocator and cache, they keep iterators to internal vectors
-	std::vector<std::unique_ptr<CudaMemAllocator>> gpuAllocators_;
-	std::vector<std::unique_ptr<GPUMemoryCache>> gpuCaches_;
-
 	// The found devices and their metadata
 	int32_t deviceCount_;
 	std::vector<cudaDeviceProp> devicesMetaInfoList_;
+
+    // Move cannot be implemented for allocator and cache, they keep iterators to internal vectors
+    std::vector<std::unique_ptr<CudaMemAllocator>> gpuAllocators_;
+    std::vector<std::unique_ptr<GPUMemoryCache>> gpuCaches_;
 
 	// Meyer's singleton
 	Context()
@@ -42,16 +43,12 @@ private:
 			throw std::invalid_argument("INFO: Unable to get device count");
 		}
 		printf("INFO: Found %d CUDA devices\n", deviceCount_);
-
+		const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
 		// Get devices information
 		for (int32_t i = 0; i < deviceCount_; i++)
 		{
 			// Bind device and initialize everything for a device allocators/cache
 			bindDeviceToContext(i);
-
-			// Initialize allocators
-			gpuAllocators_.emplace_back(std::make_unique<CudaMemAllocator>(i));
-			gpuCaches_.emplace_back(std::make_unique<GPUMemoryCache>(i));
 
 			// Get devices information
 			cudaDeviceProp deviceProp;
@@ -60,6 +57,16 @@ private:
 				throw std::invalid_argument("ERROR: Failed to get GPU info");
 			}
 			devicesMetaInfoList_.push_back(deviceProp);
+			// Print memory info
+			size_t free, total;
+			cudaMemGetInfo(&free, &total);
+
+			// Initialize allocators
+			gpuAllocators_.emplace_back(std::make_unique<CudaMemAllocator>(i));
+
+			// Initialize cache
+			size_t cacheSize = static_cast<int64_t>(free * static_cast<double>(cachePercentage) / 100.0);
+			gpuCaches_.emplace_back(std::make_unique<GPUMemoryCache>(i,cacheSize));
 
 			// Get the correct blockDim from the device - use always based on the bound device - optimal for kernels
 			queriedBlockDimensionList.push_back(deviceProp.maxThreadsPerBlock);
@@ -67,10 +74,7 @@ private:
 			// Print device info
 			printf("INFO: Device ID: %d: %s \t maxBlockDim: %d\n", i, deviceProp.name, deviceProp.maxThreadsPerBlock);
 
-			// Print memory info
-			size_t free, total;
-			cudaMemGetInfo(&free, &total);
-			printf("INFO: Memory: Total: %zu B Free: %zu B\n", total, free);
+			printf("INFO: Memory: Total: %zu B Free: %zu B Cache: %zu B\n", total, free, cacheSize);
 		}
 
 		// Bind default device and notify the user
@@ -95,6 +99,7 @@ private:
 			}
 		}
 	};
+
 	~Context() {
 		for (int32_t i = 0; i < deviceCount_; i++)
 		{
@@ -103,7 +108,9 @@ private:
 			cudaDeviceReset();
 		}
 	}
+
 	Context(const Context&) = delete;
+
 	Context& operator=(const Context&) = delete;
 
 public:
@@ -138,7 +145,7 @@ public:
 	const int32_t getBoundDeviceID() { 
 		int boundDeviceID;
 		cudaGetDevice(&boundDeviceID);
-		return boundDeviceID; 
+		return boundDeviceID;
 	}
 
 	// Get found device count
@@ -178,12 +185,20 @@ public:
 		return *gpuAllocators_.at(getBoundDeviceID());
 	}
 
-	GPUMemoryCache& GetCacheForDevice(int32_t deviceID) { return *gpuCaches_.at(deviceID); }
-	GPUMemoryCache& GetCacheForCurrentDevice()
+	// Cache methods
+	GPUMemoryCache& getCacheForDevice(int32_t deviceID) { 
+		//Check for invalid range
+		if (deviceID < 0 || deviceID >= deviceCount_)
+		{
+			throw std::out_of_range("ERROR: Device ID not present");
+		}
+
+		return *gpuCaches_.at(deviceID); 
+	}
+
+	GPUMemoryCache& getCacheForCurrentDevice()
 	{
-		int deviceID;
-		cudaGetDevice(&deviceID);
-		return *gpuCaches_.at(deviceID);
+		return *gpuCaches_.at(getBoundDeviceID());
 	}
 };
 

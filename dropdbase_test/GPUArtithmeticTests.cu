@@ -325,7 +325,6 @@ void testColConstArithmetic()
 
 	// Create CUDA buffers:
 	T *inputBufferA;
-	T *inputBufferB;
 	T *outputBuffer;
 
 	// Alloc buffers in GPU memory:
@@ -444,7 +443,6 @@ void testColConstArithmetic()
 
 	// Free buffers in GPU memory:
 	GPUMemory::free(inputBufferA);
-	GPUMemory::free(inputBufferB);
 	GPUMemory::free(outputBuffer);
 }
 
@@ -480,7 +478,6 @@ void testColConstArithmetic<float>()
 
 	// Create CUDA buffers:
 	float *inputBufferA;
-	float *inputBufferB;
 	float *outputBuffer;
 
 	// Alloc buffers in GPU memory:
@@ -544,7 +541,6 @@ void testColConstArithmetic<float>()
 
 	// Free buffers in GPU memory:
 	GPUMemory::free(inputBufferA);
-	GPUMemory::free(inputBufferB);
 	GPUMemory::free(outputBuffer);
 }
 

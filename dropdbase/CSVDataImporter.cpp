@@ -231,7 +231,7 @@ void CSVDataImporter::ExtractHeaders()
 	aria::csv::CsvParser parser = aria::csv::CsvParser(*inputStream_).delimiter(delimiter_).quote(quotes_);
 
 	int position = 0;
-	auto& row = parser.begin();
+	auto row = parser.begin();
 
 	int columnIndex = 0;
 	for (auto& field : *row) {

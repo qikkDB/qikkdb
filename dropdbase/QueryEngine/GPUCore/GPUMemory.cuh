@@ -86,7 +86,7 @@ public:
 		cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
-
+	#ifdef __CUDACC__
 	template<typename T>
 	static void fillArray(T *p_Block, T value, size_t dataElementCount)
 	{
@@ -95,6 +95,7 @@ public:
 
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
+	#endif
 
 	// Moving data from host to device
 		/// <summary>

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 SET_DIRECTORY_PROPERTIES(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/third_party)
 set(PROJECT_NAME dropdbase_instarea)
-project(${PROJECT_NAME} LANGUAGES CXX CUDA)
+project(${PROJECT_NAME} LANGUAGES C CXX CUDA)
 set(CMAKE_CXX_STANDARD 17)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -99,7 +99,6 @@ set(GTEST_INCLUDE_DIR ${source_dir}/googletest/include)
 
 # Library
 ExternalProject_Get_Property(googletest binary_dir)
-
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")

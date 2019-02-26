@@ -14,6 +14,9 @@ const int32_t SEED = 42;
 // Count of the testing data elements:
 const int32_t DATA_ELEMENT_COUNT = 1 << 18;
 
+// Float limits of random generator
+constexpr float TEST_FLOAT_LOWEST = -32000.0f;
+constexpr float TEST_FLOAT_HIGHEST = 32000.0f;
 
 template<typename T>
 void testColColFilter()
@@ -36,7 +39,7 @@ void testColColFilter()
 	}
 	else
 	{
-		std::uniform_real_distribution<float> distributionFloat(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
+        std::uniform_real_distribution<float> distributionFloat(TEST_FLOAT_LOWEST, TEST_FLOAT_HIGHEST);
 		for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 		{
 			inputDataA[i] = distributionFloat(generator);
@@ -194,7 +197,7 @@ void testColConstFilter()
 	}
 	else
 	{
-		std::uniform_real_distribution<float> distributionFloat(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
+        std::uniform_real_distribution<float> distributionFloat(TEST_FLOAT_LOWEST, TEST_FLOAT_HIGHEST);
 		for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 		{
 			inputDataA[i] = distributionFloat(generator);
@@ -347,7 +350,7 @@ void testConstColFilter()
 	}
 	else
 	{
-		std::uniform_real_distribution<float> distributionFloat(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
+        std::uniform_real_distribution<float> distributionFloat(TEST_FLOAT_LOWEST, TEST_FLOAT_HIGHEST);
 		for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 		{
 			inputDataA[i] = distributionFloat(generator);
@@ -499,7 +502,7 @@ void testConstConstFilter()
 	}
 	else
 	{
-		std::uniform_real_distribution<float> distributionFloat(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
+        std::uniform_real_distribution<float> distributionFloat(TEST_FLOAT_LOWEST, TEST_FLOAT_HIGHEST);
 
 		inputDataAConstant = distributionFloat(generator);
 		inputDataBConstant = distributionFloat(generator);
