@@ -25,11 +25,11 @@ private:
 	std::unordered_map<std::string, Table> tables_;
 
 	/// <summary>
-	/// Load columns of a table into memory from disc.
+	/// Load column of a table into memory from disc.
 	/// </summary>
-	/// <param name="path">Path directory, where column files (*.col) are.</param>
-	/// <param name="table">Instance of table into which the columns should be added.</param>
-	/// <param name="columnNames">Names of particular columns.</param>
+	/// <param name="path">Path directory, where column file (*.col) is.</param>
+	/// <param name="table">Instance of table into which the column should be added.</param>
+	/// <param name="columnName">Names of particular column.</param>
 	static void LoadColumn(const char* path, const char* dbName, Table& table, const std::string& columnName);
 
 	/// <summary>
