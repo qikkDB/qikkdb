@@ -21,6 +21,19 @@ private:
 	int32_t blockSize_;
 	std::unordered_map<std::string, Table> tables_;
 
+	/// <summary>
+	/// Load columns of a table into memory from disc.
+	/// </summary>
+	/// <param name="path">Path directory, where column files (*.col) are.</param>
+	/// <param name="table">Instance of table into which the columns should be added.</param>
+	/// <param name="columnNames">Names of particular columns.</param>
+	static void LoadColumns(const char* path, const char* dbName, Table& table, const std::vector<std::string>& columnNames);
+
+	static void WriteColumn(const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
+                     std::string pathStr,
+                     std::string name,
+                     const std::pair<const std::string, Table>& table);
+
 public:
 	/// <summary>
 	/// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
@@ -60,14 +73,6 @@ public:
 	/// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
 	/// <param name="path">Path to directory in which database files are.</param>
 	static std::shared_ptr<Database> LoadDatabase(const char* fileDbName, const char* path);
-
-	/// <summary>
-	/// Load columns of a table into memory from disc.
-	/// </summary>
-	/// <param name="path">Path directory, where column files (*.col) are.</param>
-	/// <param name="table">Instance of table into which the columns should be added.</param>
-	/// <param name="columnNames">Names of particular columns.</param>
-	static void LoadColumns(const char* path, const char* dbName, Table& table, const std::vector<std::string>& columnNames);
 
 	/// <summary>
 	/// Creates table with given name and columns and adds it to database. If the table already existed, create missing columns if there are any missing

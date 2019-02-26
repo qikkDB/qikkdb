@@ -6,6 +6,7 @@
 #include <exception>
 #include <stdexcept>
 #include <boost/log/trivial.hpp>
+#include <thread>
 
 #include "Database.h"
 #include "Configuration.h"
@@ -77,244 +78,20 @@ void Database::Persist(const char* path)
 	dbFile.close();
 
 	//write files .col:
-	for (auto& table : tables)
+	for (const auto& table : tables)
 	{
-		auto& columns = table.second.GetColumns();
+		const auto& columns = table.second.GetColumns();
+
+		std::vector<std::thread> threads;
 
 		for (const auto& column : columns)
 		{
-			BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << "_" << table.first << "_" << column.second->GetName() << " .col" << std::endl;
+            threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name, std::ref(table));
+		}
 
-			std::ofstream colFile(pathStr + name + "_" + table.first + "_" + column.second->GetName() + ".col", std::ios::binary);
-
-			int32_t type = column.second->GetColumnType();
-
-			colFile.write(reinterpret_cast<char*>(&type), sizeof(int32_t)); //write type of column
-				
-			switch (type)
-			{
-			case COLUMN_POLYGON:
-			{
-				int32_t index = 0;
-
-				const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
-
-				for (const auto& block : colPolygon.GetBlocksList())
-				{
-					BOOST_LOG_TRIVIAL(debug) << "Saving block of ComplexPolygon data with index = " << index << "." << std::endl;
-
-					auto data = block->GetData();
-					int32_t dataLength = block->GetSize();
-					int64_t dataByteSize = 0;
-
-					for (int32_t i = 0; i < dataLength; i++)
-					{
-						dataByteSize += data[i].ByteSize();
-					}
-
-					int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
-
-					if (dataLength > 0)
-					{
-						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-						colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); //write block length in bytes
-						for(size_t i = 0; i < dataLength; i++)
-						{
-							int32_t entryByteLength = data[i].ByteSize();
-							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
-
-							data[i].SerializeToArray(byteArray.get(), entryByteLength);
-
-							colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
-							colFile.write(byteArray.get(), entryByteLength); //write entry data
-						}
-						index += 1;
-					}
-				}
-			}
-				break;
-
-			case COLUMN_POINT:
-			{
-				int32_t index = 0;
-
-				const ColumnBase<ColmnarDB::Types::Point>& colPoint = dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
-
-				for (const auto& block : colPoint.GetBlocksList())
-				{
-					BOOST_LOG_TRIVIAL(debug) << "Saving block of Point data with index = " << index << "." << std::endl;
-
-					auto data = block->GetData();
-					int32_t dataLength = block->GetSize();
-					int64_t dataByteSize = 0;
-
-					for (int32_t i = 0; i < dataLength; i++)
-					{
-						dataByteSize += data[i].ByteSize();
-					}
-
-					int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
-
-					if (dataLength > 0)
-					{
-						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-						colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); //write block length in bytes
-						for (size_t i = 0; i < dataLength; i++)
-						{
-							int32_t entryByteLength = data[i].ByteSize();
-							std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
-
-							data[i].SerializeToArray(byteArray.get(), entryByteLength);
-
-							colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
-							colFile.write(byteArray.get(), entryByteLength); //write entry data
-						}
-						index += 1;
-					}
-				}
-			}
-				break;
-
-			case COLUMN_STRING:
-			{
-				int32_t index = 0;
-
-				const ColumnBase<std::string>& colStr = dynamic_cast<const ColumnBase<std::string>&>(*(column.second));
-
-				for (const auto& block : colStr.GetBlocksList())
-				{
-					BOOST_LOG_TRIVIAL(debug) << "Saving block of String data with index = " << index << "." << std::endl;
-
-					auto data = block->GetData();
-					int32_t dataLength = block->GetSize();
-					int64_t dataByteSize = 0;
-
-					for (int32_t i = 0; i < dataLength; i++)
-					{
-						dataByteSize += data[i].length() + 1;
-					}
-
-					int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
-
-					if (dataLength > 0)
-					{
-						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-						colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); //write block length in bytes
-						for (size_t i = 0; i < dataLength; i++)
-						{
-							int32_t entryByteLength = data[i].length() + 1; // +1 because '\0'
-
-							colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); //write entry length
-							colFile.write(data[i].c_str(), entryByteLength); //write entry data
-						}
-						index += 1;
-					}
-				}
-			}
-				break;
-
-			case COLUMN_INT:
-			{
-				int32_t index = 0;
-
-				const ColumnBase<int32_t>& colInt = dynamic_cast<const ColumnBase<int32_t>&>(*(column.second));
-
-				for (const auto& block : colInt.GetBlocksList())
-				{
-					BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index << "." << std::endl;
-
-					auto data = block->GetData();
-					int32_t dataLength = block->GetSize();
-
-					if (dataLength > 0)
-					{
-						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int32_t)); //write block of data
-						index += 1;
-					}
-				}
-			}
-				break;
-
-			case COLUMN_LONG:
-			{
-				int32_t index = 0;
-
-				const ColumnBase<int64_t>& colLong = dynamic_cast<const ColumnBase<int64_t>&>(*(column.second));
-
-				for (const auto& block : colLong.GetBlocksList())
-				{
-					BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index << "." << std::endl;
-
-					auto data = block->GetData();
-					int32_t dataLength = block->GetSize();
-
-					if (dataLength > 0)
-					{
-						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int64_t)); //write block of data
-						index += 1;
-					}
-				}
-			}
-				break;
-
-			case COLUMN_FLOAT:
-			{
-				int32_t index = 0;
-
-				const ColumnBase<float>& colFloat = dynamic_cast<const ColumnBase<float>&>(*(column.second));
-
-				for (const auto& block : colFloat.GetBlocksList())
-				{
-					BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index << "." << std::endl;
-
-					auto data = block->GetData();
-					int32_t dataLength = block->GetSize();
-
-					if (dataLength > 0)
-					{
-						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(float)); //write block of data
-						index += 1;
-					}
-				}
-			}
-				break;
-
-			case COLUMN_DOUBLE:
-			{
-				int32_t index = 0;
-
-				const ColumnBase<double>& colDouble = dynamic_cast<const ColumnBase<double>&>(*(column.second));
-
-				for (const auto& block : colDouble.GetBlocksList())
-				{
-					BOOST_LOG_TRIVIAL(debug) << "Saving block of Double data with index = " << index << "." << std::endl;
-
-					auto data = block->GetData();
-					int32_t dataLength = block->GetSize();
-
-					if (dataLength > 0)
-					{
-						colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); //write index
-						colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); //write block length (number of entries)
-						colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(double)); //write block of data
-						index += 1;
-					}
-				}
-			}
-				break;
-
-			default:
-				throw std::domain_error("Unsupported data type (when persisting database).");
-				break;
-			}
-
-			colFile.close();
+		for (int j = 0; j < columns.size(); j++)
+		{
+            threads[j].join();
 		}
 	}
 
@@ -887,5 +664,249 @@ int Database::GetBlockCount()
 		}
 	}
 	return 0;
+}
+
+static void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IColumn>>& column, std::string pathStr, std::string name,const std::pair<const std::string, Table>& table)
+{
+    BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << "_" << table.first
+                             << "_" << column.second->GetName() << " .col" << std::endl;
+
+    std::ofstream colFile(pathStr + name + "_" + table.first + "_" + column.second->GetName() + ".col",
+                          std::ios::binary);
+
+    int32_t type = column.second->GetColumnType();
+
+    colFile.write(reinterpret_cast<char*>(&type), sizeof(int32_t)); // write type of column
+
+    switch (type)
+    {
+    case COLUMN_POLYGON:
+    {
+        int32_t index = 0;
+
+        const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
+            dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
+
+        for (const auto& block : colPolygon.GetBlocksList())
+        {
+            BOOST_LOG_TRIVIAL(debug)
+                << "Saving block of ComplexPolygon data with index = " << index << "." << std::endl;
+
+            auto data = block->GetData();
+            int32_t dataLength = block->GetSize();
+            int64_t dataByteSize = 0;
+
+            for (int32_t i = 0; i < dataLength; i++)
+            {
+                dataByteSize += data[i].ByteSize();
+            }
+
+            int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
+
+            if (dataLength > 0)
+            {
+                colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
+                for (size_t i = 0; i < dataLength; i++)
+                {
+                    int32_t entryByteLength = data[i].ByteSize();
+                    std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
+
+                    data[i].SerializeToArray(byteArray.get(), entryByteLength);
+
+                    colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); // write entry length
+                    colFile.write(byteArray.get(), entryByteLength); // write entry data
+                }
+                index += 1;
+            }
+        }
+    }
+    break;
+
+    case COLUMN_POINT:
+    {
+        int32_t index = 0;
+
+        const ColumnBase<ColmnarDB::Types::Point>& colPoint =
+            dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
+
+        for (const auto& block : colPoint.GetBlocksList())
+        {
+            BOOST_LOG_TRIVIAL(debug) << "Saving block of Point data with index = " << index << "." << std::endl;
+
+            auto data = block->GetData();
+            int32_t dataLength = block->GetSize();
+            int64_t dataByteSize = 0;
+
+            for (int32_t i = 0; i < dataLength; i++)
+            {
+                dataByteSize += data[i].ByteSize();
+            }
+
+            int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
+
+            if (dataLength > 0)
+            {
+                colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
+                for (size_t i = 0; i < dataLength; i++)
+                {
+                    int32_t entryByteLength = data[i].ByteSize();
+                    std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
+
+                    data[i].SerializeToArray(byteArray.get(), entryByteLength);
+
+                    colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); // write entry length
+                    colFile.write(byteArray.get(), entryByteLength); // write entry data
+                }
+                index += 1;
+            }
+        }
+    }
+    break;
+
+    case COLUMN_STRING:
+    {
+        int32_t index = 0;
+
+        const ColumnBase<std::string>& colStr =
+            dynamic_cast<const ColumnBase<std::string>&>(*(column.second));
+
+        for (const auto& block : colStr.GetBlocksList())
+        {
+            BOOST_LOG_TRIVIAL(debug)
+                << "Saving block of String data with index = " << index << "." << std::endl;
+
+            auto data = block->GetData();
+            int32_t dataLength = block->GetSize();
+            int64_t dataByteSize = 0;
+
+            for (int32_t i = 0; i < dataLength; i++)
+            {
+                dataByteSize += data[i].length() + 1;
+            }
+
+            int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
+
+            if (dataLength > 0)
+            {
+                colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
+                for (size_t i = 0; i < dataLength; i++)
+                {
+                    int32_t entryByteLength = data[i].length() + 1; // +1 because '\0'
+
+                    colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); // write entry length
+                    colFile.write(data[i].c_str(), entryByteLength); // write entry data
+                }
+                index += 1;
+            }
+        }
+    }
+    break;
+
+    case COLUMN_INT:
+    {
+        int32_t index = 0;
+
+        const ColumnBase<int32_t>& colInt = dynamic_cast<const ColumnBase<int32_t>&>(*(column.second));
+
+        for (const auto& block : colInt.GetBlocksList())
+        {
+            BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index << "." << std::endl;
+
+            auto data = block->GetData();
+            int32_t dataLength = block->GetSize();
+
+            if (dataLength > 0)
+            {
+                colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+                colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int32_t)); // write block of data
+                index += 1;
+            }
+        }
+    }
+    break;
+
+    case COLUMN_LONG:
+    {
+        int32_t index = 0;
+
+        const ColumnBase<int64_t>& colLong = dynamic_cast<const ColumnBase<int64_t>&>(*(column.second));
+
+        for (const auto& block : colLong.GetBlocksList())
+        {
+            BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index << "." << std::endl;
+
+            auto data = block->GetData();
+            int32_t dataLength = block->GetSize();
+
+            if (dataLength > 0)
+            {
+                colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+                colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int64_t)); // write block of data
+                index += 1;
+            }
+        }
+    }
+    break;
+
+    case COLUMN_FLOAT:
+    {
+        int32_t index = 0;
+
+        const ColumnBase<float>& colFloat = dynamic_cast<const ColumnBase<float>&>(*(column.second));
+
+        for (const auto& block : colFloat.GetBlocksList())
+        {
+            BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index << "." << std::endl;
+
+            auto data = block->GetData();
+            int32_t dataLength = block->GetSize();
+
+            if (dataLength > 0)
+            {
+                colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+                colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(float)); // write block of data
+                index += 1;
+            }
+        }
+    }
+    break;
+
+    case COLUMN_DOUBLE:
+    {
+        int32_t index = 0;
+
+        const ColumnBase<double>& colDouble = dynamic_cast<const ColumnBase<double>&>(*(column.second));
+
+        for (const auto& block : colDouble.GetBlocksList())
+        {
+            BOOST_LOG_TRIVIAL(debug)
+                << "Saving block of Double data with index = " << index << "." << std::endl;
+
+            auto data = block->GetData();
+            int32_t dataLength = block->GetSize();
+
+            if (dataLength > 0)
+            {
+                colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+                colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(double)); // write block of data
+                index += 1;
+            }
+        }
+    }
+    break;
+
+    default:
+        throw std::domain_error("Unsupported data type (when persisting database).");
+        break;
+    }
+
+    colFile.close();
 }
 
