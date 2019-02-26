@@ -9,7 +9,6 @@
 #include "DataType.h"
 #include "Table.h"
 
-
 /// <summary>
 /// The main class representing database containing tables with data
 /// </summary>
@@ -108,10 +107,7 @@ public:
 	/// Remove database from in memory list
 	/// </summary>
 	/// <param name="databaseName">Name of database to be removed</param>
-	static void DestroyDatabase(const char* databaseName) {
-		std::lock_guard<std::mutex> lock(dbMutex_);
-		loadedDatabases_.erase(databaseName);
-	}
+	static void DestroyDatabase(const char* databaseName);
 
 	/// <summary>
 	/// Get number of blocks
