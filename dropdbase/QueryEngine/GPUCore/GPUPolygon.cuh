@@ -119,17 +119,15 @@ public:
 
 		if (pointCount != polygonCount && pointCount != 1 && polygonCount != 1)
 		{
-			context.getLastError().setType(QueryEngineError::GPU_EXTENSION_ERROR);
+			QueryEngineError::setType(QueryEngineError::GPU_EXTENSION_ERROR);
 			return;
 		}
 
 		kernel_point_in_polygon << < context.calcGridDim((pointCount > polygonCount ? pointCount : polygonCount)), context.getBlockDim() >> >
 			(outMask, geoPointsInput, geoPoints, complexPolygonIdx, complexPolygonCnt, polygonIdx,
 				polygonCnt, pointCount, polygonCount);
-		cudaDeviceSynchronize();
 
-		context.getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 };
-
 

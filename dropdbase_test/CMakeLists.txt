@@ -5,16 +5,19 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TableTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ClientHandlerTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/CSVDataImportTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ColumnTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DatabaseTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TableTests.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp)
+				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp)
 
 set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUArtithmeticTests.cu
-				${CMAKE_CURRENT_SOURCE_DIR}/GPUAggregationTests.cu)
+				${CMAKE_CURRENT_SOURCE_DIR}/GPUAggregationTests.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/GPUDateTests.cu)
 
 if(WIN32)
 	set_source_files_properties(${SOURCE_FILES} main.cpp PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275")
@@ -45,3 +48,9 @@ target_link_libraries(${PROJECT_NAME}_test ${prefix}protobuf${suffix})
 	target_link_libraries(${PROJECT_NAME}_test gtest)
 	target_link_libraries(${PROJECT_NAME}_test gtest_main)
 ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+
+add_custom_command(
+        TARGET ${PROJECT_NAME}_test POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_SOURCE_DIR}/csv_tests
+                ${CMAKE_CURRENT_BINARY_DIR}/csv_tests)

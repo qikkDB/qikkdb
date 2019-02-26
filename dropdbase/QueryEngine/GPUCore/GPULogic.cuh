@@ -7,7 +7,6 @@
 #include <device_launch_parameters.h>
 
 #include "MaybeDeref.cuh"
-#include "GPUConstants.cuh"
 
 namespace LogicOperations
 {
@@ -45,23 +44,8 @@ __global__ void kernel_logic(T *outCol, U ACol, V BCol, int32_t dataElementCount
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
-	const int32_t loopIterations = (dataElementCount + stride - 1 - idx) / stride;
-	const int32_t alignedLoopIterations = loopIterations - (loopIterations % UNROLL_FACTOR);
-	const int32_t alignedDataElementCount = alignedLoopIterations * stride + idx;
 
-	//unroll from idx to alignedDataElementCount
-	#pragma unroll UNROLL_FACTOR
-	for (int32_t i = idx; i < alignedDataElementCount; i += stride)
-	{
-		outCol[i] = OP{}.template operator()
-			<
-			T,
-			typename std::remove_pointer<U>::type, 
-			typename std::remove_pointer<V>::type >
-			(maybe_deref(ACol, i), maybe_deref(BCol, i));
-	}
-	//continue classic way from alignedDataElementCount to full dataElementCount
-	for (int32_t i = alignedDataElementCount; i < dataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		outCol[i] = OP{}.template operator()
 			<
@@ -84,18 +68,8 @@ __global__ void kernel_operator_not(T *outCol, U ACol, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
-	const int32_t loopIterations = (dataElementCount + stride - 1 - idx) / stride;
-	const int32_t alignedLoopIterations = loopIterations - (loopIterations % UNROLL_FACTOR);
-	const int32_t alignedDataElementCount = alignedLoopIterations * stride + idx;
 
-	//unroll from idx to alignedDataElementCount
-	#pragma unroll UNROLL_FACTOR
-	for (int32_t i = idx; i < alignedDataElementCount; i += stride)
-	{
-		outCol[i] = !maybe_deref<typename std::remove_pointer<U>::type>(ACol, i);
-	}
-	//continue classic way from alignedDataElementCount to full dataElementCount
-	for (int32_t i = alignedDataElementCount; i < dataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		outCol[i] = !maybe_deref<typename std::remove_pointer<U>::type>(ACol, i);
 	}
@@ -109,8 +83,7 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BCol, dataElementCount);
-		cudaDeviceSynchronize();
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
@@ -118,8 +91,7 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
-		cudaDeviceSynchronize();
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
@@ -127,8 +99,7 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, AConst, BCol, dataElementCount);
-		cudaDeviceSynchronize();
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
@@ -136,8 +107,7 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, AConst, BConst, dataElementCount);
-		cudaDeviceSynchronize();
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 	
 	
@@ -154,10 +124,9 @@ public:
 		Context& context = Context::getInstance();
 		kernel_operator_not << <  context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(outCol, ACol, dataElementCount);
-		cudaDeviceSynchronize();
 		
 		// Get last error
-		context.getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 	/// <summary>
@@ -174,9 +143,8 @@ public:
 
 		kernel_operator_not << <  context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(outCol, AConst, dataElementCount);
-		cudaDeviceSynchronize();
 
 		// Get last error
-		context.getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 };

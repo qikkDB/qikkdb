@@ -10,7 +10,6 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "GPUTypeWidthManip.cuh"
-#include "GPUConstants.cuh"
 
 #include "../../../cub/cub.cuh"
 
@@ -19,24 +18,8 @@ __global__ void kernel_reconstruct_col(T *outData, int32_t *outDataElementCount,
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
-	const int32_t loopIterations = (dataElementCount + stride - 1 - idx) / stride;
-	const int32_t alignedLoopIterations = loopIterations - (loopIterations % UNROLL_FACTOR);
-	const int32_t alignedDataElementCount = alignedLoopIterations * stride + idx;
 
-	//unroll from idx to alignedDataElementCount
-	#pragma unroll UNROLL_FACTOR
-	for (int32_t i = idx; i < alignedDataElementCount; i += stride)
-	{
-		// Select the elemnts that are "visible" in the mask
-		// If the mask is 1 for the output, use the prefix sum for array compaction
-		// The prefix sum includes values from the input array on the same element so the index has to be modified
-		if (inMask[i] && (prefixSum[i] - 1) >= 0) 
-		{
-			outData[prefixSum[i] - 1] = ACol[i];
-		}
-	}
-	//continue classic way from alignedDataElementCount to full dataElementCount
-	for (int32_t i = alignedDataElementCount; i < dataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
 		// Select the elemnts that are "visible" in the mask
 		// If the mask is 1 for the output, use the prefix sum for array compaction
@@ -58,6 +41,35 @@ class GPUReconstruct {
 public:
 	template<typename T>
 	static void reconstructCol(T *outData, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
+	{
+		if (inMask)		// If inMask is not nullptr
+		{
+			// Malloc a new buffer for the output vector -GPU side
+			T *outDataGPUPointer = nullptr;
+			GPUMemory::alloc(&outDataGPUPointer, dataElementCount);
+
+			// Call reconstruct col keep
+			reconstructColKeep(outDataGPUPointer, outDataElementCount, ACol, inMask, dataElementCount);
+
+			// Copy the generated output back from the GPU
+			GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
+
+			// Free the memory
+			GPUMemory::free(outDataGPUPointer);
+		}
+		else		// If inMask is nullptr, just copy whole ACol to outData
+		{
+			GPUMemory::copyDeviceToHost(outData, ACol, dataElementCount);
+			*outDataElementCount = dataElementCount;
+		}
+
+		// Get last error
+		QueryEngineError::setCudaError(cudaGetLastError());
+	}
+
+
+	template<typename T>
+	static void reconstructCol(T *outData, int32_t *outDataElementCount, T *ACol, int32_t *inMask, int32_t dataElementCount)
 	{
 		Context& context = Context::getInstance();
 
@@ -83,8 +95,9 @@ public:
 		}
 
 		// Get last error
-		context.getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
+
 
 	template<typename T>
 	static void reconstructColKeep(T *outCol, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
@@ -122,7 +135,6 @@ public:
 			// Construct the output based on the prefix sum
 			kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 				(outCol, outDataElementCountPointer, ACol, prefixSumPointer, inMask32Pointer, dataElementCount);
-			cudaDeviceSynchronize();
 
 			// Copy the generated output back from the GPU
 			GPUMemory::copyDeviceToHost(outDataElementCount, outDataElementCountPointer, 1);
@@ -139,7 +151,7 @@ public:
 		}
 
 		// Get last error
-		context.getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 	template<typename T>
@@ -187,7 +199,7 @@ public:
 		}
 
 		// Get last error
-		context.getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 };
 

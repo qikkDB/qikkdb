@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/Martin Stano/Desktop/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -74,6 +74,9 @@ public:
   virtual void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) = 0;
   virtual void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) = 0;
 
+  virtual void enterGroupByColumn(GpuSqlParser::GroupByColumnContext *ctx) = 0;
+  virtual void exitGroupByColumn(GpuSqlParser::GroupByColumnContext *ctx) = 0;
+
   virtual void enterColumnId(GpuSqlParser::ColumnIdContext *ctx) = 0;
   virtual void exitColumnId(GpuSqlParser::ColumnIdContext *ctx) = 0;
 
@@ -113,6 +116,9 @@ public:
   virtual void enterGeoReference(GpuSqlParser::GeoReferenceContext *ctx) = 0;
   virtual void exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx) = 0;
 
+  virtual void enterDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext *ctx) = 0;
+  virtual void exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext *ctx) = 0;
+
   virtual void enterStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
   virtual void exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
 
@@ -133,9 +139,6 @@ public:
 
   virtual void enterUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) = 0;
   virtual void exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) = 0;
-
-  virtual void enterUnaryExpression(GpuSqlParser::UnaryExpressionContext *ctx) = 0;
-  virtual void exitUnaryExpression(GpuSqlParser::UnaryExpressionContext *ctx) = 0;
 
   virtual void enterBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;
   virtual void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;

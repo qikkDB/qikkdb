@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/Martin Stano/Desktop/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -12,19 +12,21 @@
 class  GpuSqlParser : public antlr4::Parser {
 public:
   enum {
-    LF = 1, CR = 2, CRLF = 3, WS = 4, SEMICOL = 5, COMMA = 6, DOT = 7, DATATYPE = 8, 
-    POINT = 9, MULTIPOINT = 10, LINESTRING = 11, MULTILINESTRING = 12, POLYGON = 13, 
-    MULTIPOLYGON = 14, INTTYPE = 15, LONGTYPE = 16, FLOATTYPE = 17, DOUBLETYPE = 18, 
-    STRINGTYPE = 19, BOOLEANTYPE = 20, POINTTYPE = 21, POLYTYPE = 22, INSERTINTO = 23, 
-    CREATEDB = 24, CREATETABLE = 25, VALUES = 26, SELECT = 27, FROM = 28, 
-    JOIN = 29, WHERE = 30, GROUPBY = 31, AS = 32, IN = 33, BETWEEN = 34, 
-    ON = 35, ORDERBY = 36, DIR = 37, LIMIT = 38, OFFSET = 39, SHOWDB = 40, 
-    SHOWTB = 41, SHOWCL = 42, AGG = 43, AVG = 44, SUM = 45, MIN = 46, MAX = 47, 
-    COUNT = 48, GEO = 49, CONTAINS = 50, PLUS = 51, MINUS = 52, ASTERISK = 53, 
-    DIVISION = 54, MODULO = 55, EQUALS = 56, NOTEQUALS = 57, LPAREN = 58, 
-    RPAREN = 59, GREATER = 60, LESS = 61, GREATEREQ = 62, LESSEQ = 63, NOT = 64, 
-    OR = 65, AND = 66, FLOATLIT = 67, INTLIT = 68, ID = 69, BOOLEANLIT = 70, 
-    STRINGLIT = 71
+    DATETIMELIT = 1, LF = 2, CR = 3, CRLF = 4, WS = 5, SEMICOL = 6, SQOUTE = 7, 
+    DQOUTE = 8, COLON = 9, COMMA = 10, DOT = 11, DATELIT = 12, TIMELIT = 13, 
+    DATATYPE = 14, POINT = 15, MULTIPOINT = 16, LINESTRING = 17, MULTILINESTRING = 18, 
+    POLYGON = 19, MULTIPOLYGON = 20, INTTYPE = 21, LONGTYPE = 22, FLOATTYPE = 23, 
+    DOUBLETYPE = 24, STRINGTYPE = 25, BOOLEANTYPE = 26, POINTTYPE = 27, 
+    POLYTYPE = 28, INSERTINTO = 29, CREATEDB = 30, CREATETABLE = 31, VALUES = 32, 
+    SELECT = 33, FROM = 34, JOIN = 35, WHERE = 36, GROUPBY = 37, AS = 38, 
+    IN = 39, BETWEEN = 40, ON = 41, ORDERBY = 42, DIR = 43, LIMIT = 44, 
+    OFFSET = 45, SHOWDB = 46, SHOWTB = 47, SHOWCL = 48, AGG = 49, AVG = 50, 
+    SUM = 51, MIN = 52, MAX = 53, COUNT = 54, YEAR = 55, MONTH = 56, DAY = 57, 
+    HOUR = 58, MINUTE = 59, SECOND = 60, GEO = 61, CONTAINS = 62, PLUS = 63, 
+    MINUS = 64, ASTERISK = 65, DIVISION = 66, MODULO = 67, EQUALS = 68, 
+    NOTEQUALS = 69, LPAREN = 70, RPAREN = 71, GREATER = 72, LESS = 73, GREATEREQ = 74, 
+    LESSEQ = 75, NOT = 76, OR = 77, AND = 78, FLOATLIT = 79, INTLIT = 80, 
+    ID = 81, BOOLEANLIT = 82, STRINGLIT = 83
   };
 
   enum {
@@ -34,13 +36,13 @@ public:
     RuleNewTableColumn = 11, RuleSelectColumns = 12, RuleSelectColumn = 13, 
     RuleWhereClause = 14, RuleOrderByColumns = 15, RuleOrderByColumn = 16, 
     RuleInsertIntoValues = 17, RuleInsertIntoColumns = 18, RuleGroupByColumns = 19, 
-    RuleColumnId = 20, RuleFromTables = 21, RuleJoinClauses = 22, RuleJoinClause = 23, 
-    RuleJoinTable = 24, RuleTable = 25, RuleColumn = 26, RuleDatabase = 27, 
-    RuleLimit = 28, RuleOffset = 29, RuleColumnValue = 30, RuleExpression = 31, 
-    RuleGeometry = 32, RulePointGeometry = 33, RuleLineStringGeometry = 34, 
-    RulePolygonGeometry = 35, RuleMultiPointGeometry = 36, RuleMultiLineStringGeometry = 37, 
-    RuleMultiPolygonGeometry = 38, RulePointOrClosedPoint = 39, RulePolygon = 40, 
-    RuleLineString = 41, RulePoint = 42
+    RuleGroupByColumn = 20, RuleColumnId = 21, RuleFromTables = 22, RuleJoinClauses = 23, 
+    RuleJoinClause = 24, RuleJoinTable = 25, RuleTable = 26, RuleColumn = 27, 
+    RuleDatabase = 28, RuleLimit = 29, RuleOffset = 30, RuleColumnValue = 31, 
+    RuleExpression = 32, RuleGeometry = 33, RulePointGeometry = 34, RuleLineStringGeometry = 35, 
+    RulePolygonGeometry = 36, RuleMultiPointGeometry = 37, RuleMultiLineStringGeometry = 38, 
+    RuleMultiPolygonGeometry = 39, RulePointOrClosedPoint = 40, RulePolygon = 41, 
+    RuleLineString = 42, RulePoint = 43
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -73,6 +75,7 @@ public:
   class InsertIntoValuesContext;
   class InsertIntoColumnsContext;
   class GroupByColumnsContext;
+  class GroupByColumnContext;
   class ColumnIdContext;
   class FromTablesContext;
   class JoinClausesContext;
@@ -415,8 +418,8 @@ public:
   public:
     GroupByColumnsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    std::vector<ColumnIdContext *> columnId();
-    ColumnIdContext* columnId(size_t i);
+    std::vector<GroupByColumnContext *> groupByColumn();
+    GroupByColumnContext* groupByColumn(size_t i);
     std::vector<antlr4::tree::TerminalNode *> COMMA();
     antlr4::tree::TerminalNode* COMMA(size_t i);
 
@@ -426,6 +429,19 @@ public:
   };
 
   GroupByColumnsContext* groupByColumns();
+
+  class  GroupByColumnContext : public antlr4::ParserRuleContext {
+  public:
+    GroupByColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    ExpressionContext *expression();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  GroupByColumnContext* groupByColumn();
 
   class  ColumnIdContext : public antlr4::ParserRuleContext {
   public:
@@ -613,6 +629,15 @@ public:
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
+  class  DateTimeLiteralContext : public ExpressionContext {
+  public:
+    DateTimeLiteralContext(ExpressionContext *ctx);
+
+    antlr4::tree::TerminalNode *DATETIMELIT();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
   class  StringLiteralContext : public ExpressionContext {
   public:
     StringLiteralContext(ExpressionContext *ctx);
@@ -702,17 +727,15 @@ public:
     antlr4::Token *op = nullptr;
     ExpressionContext *expression();
     antlr4::tree::TerminalNode *NOT();
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-  };
-
-  class  UnaryExpressionContext : public ExpressionContext {
-  public:
-    UnaryExpressionContext(ExpressionContext *ctx);
-
-    antlr4::Token *op = nullptr;
-    ExpressionContext *expression();
     antlr4::tree::TerminalNode *MINUS();
+    antlr4::tree::TerminalNode *LPAREN();
+    antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *YEAR();
+    antlr4::tree::TerminalNode *MONTH();
+    antlr4::tree::TerminalNode *DAY();
+    antlr4::tree::TerminalNode *HOUR();
+    antlr4::tree::TerminalNode *MINUTE();
+    antlr4::tree::TerminalNode *SECOND();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };

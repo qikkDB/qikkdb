@@ -22,7 +22,6 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/ComplexPolygonFactory.h
 		${CMAKE_CURRENT_SOURCE_DIR}/ConsoleHandler.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ClientPoolWorker.cpp
-		${CMAKE_CURRENT_SOURCE_DIR}/CSVInMemoryImporter.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/ITCPWorker.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/NetworkMessage.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/TCPClientHandler.cpp
@@ -76,7 +75,7 @@ string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 	target_link_libraries(${PROJECT_NAME} ${prefix}protobufd${suffix})
 ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
-target_link_libraries(${PROJECT_NAME} ${prefix}protobuf${suffix})
+	target_link_libraries(${PROJECT_NAME} ${prefix}protobuf${suffix})
 ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 
 target_link_libraries(${PROJECT_NAME} ${YAML_CPP_LIBRARIES})

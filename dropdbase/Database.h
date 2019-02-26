@@ -4,6 +4,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <thread>
+#include <mutex>
 #include "DataType.h"
 #include "Table.h"
 
@@ -17,6 +19,7 @@ class Database
 
 private:
 	static std::unordered_map<std::string, std::shared_ptr<Database>> loadedDatabases_;
+	static std::mutex dbMutex_;
 	std::string name_;
 	int32_t blockSize_;
 	std::unordered_map<std::string, Table> tables_;
@@ -100,13 +103,24 @@ public:
 	/// </summary>
 	/// <param name="databaseName">Name of database to get</param>
 	/// <returns>Database object or null</returns>
-	static std::shared_ptr<Database> GetDatabaseByName(std::string databaseName) { return loadedDatabases_[databaseName]; }
+	static std::shared_ptr<Database> GetDatabaseByName(std::string databaseName)
+	{
+		std::lock_guard<std::mutex> lock(dbMutex_);
+		try
+		{
+			return loadedDatabases_.at(databaseName);
+		}
+		catch(std::out_of_range&)
+		{
+			return nullptr;
+		}
+	}
 
 	/// <summary>
 	/// Remove database from in memory list
 	/// </summary>
 	/// <param name="databaseName">Name of database to be removed</param>
-	static void DestroyDatabase(const char* databaseName) { loadedDatabases_.erase(databaseName); }
+	static void DestroyDatabase(const char* databaseName) { std::lock_guard<std::mutex> lock(dbMutex_); loadedDatabases_.erase(databaseName); }
 
 	/// <summary>
 	/// Get number of blocks

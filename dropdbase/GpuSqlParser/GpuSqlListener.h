@@ -5,6 +5,7 @@
 #ifndef DROPDBASE_INSTAREA_GPUSQLLISTENER_H
 #define DROPDBASE_INSTAREA_GPUSQLLISTENER_H
 
+#include "GpuSqlParser.h"
 #include "GpuSqlParserBaseListener.h"
 #include "ParserExceptions.h"
 #include "../Database.h"
@@ -28,19 +29,21 @@ private:
     GpuSqlDispatcher &dispatcher;
     std::stack<std::pair<std::string, DataType>> parserStack;
     std::unordered_set<std::string> loadedTables;
-    std::unordered_set<std::string> loadedColumns;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
+	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
 
     bool usingGroupBy;
     bool insideAgg;
+	bool insideGroupBy;
 
-    int tempCounter;
+	bool insideSelectColumn;
+	bool isAggSelectColumn;
 
     std::pair<std::string, DataType> stackTopAndPop();
 
     std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
-    void pushTempResult(DataType type);
+    void pushTempResult(std::string reg, DataType type);
 
     void pushArgument(const char *token, DataType dataType);
 
@@ -54,8 +57,9 @@ private:
 
     void stringToUpper(std::string &str);
 
+	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
-	DataType colToConst(DataType type);
+	DataType getReturnDataType(DataType operand);
 
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
@@ -78,11 +82,15 @@ public:
 
     void exitVarReference(GpuSqlParser::VarReferenceContext *ctx) override;
 
+	void exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext *ctx) override;
+
 	void enterAggregation(GpuSqlParser::AggregationContext *ctx) override;
 
     void exitAggregation(GpuSqlParser::AggregationContext *ctx) override;
 
     void exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx) override;
+
+	void enterSelectColumn(GpuSqlParser::SelectColumnContext *ctx) override;
 
     void exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx) override;
 
@@ -90,9 +98,19 @@ public:
 
     void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 
+	void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
+
     void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
 
+	void exitGroupByColumn(GpuSqlParser::GroupByColumnContext *ctx) override;
 
+	void exitShowDatabases(GpuSqlParser::ShowDatabasesContext *ctx) override;
+
+	void exitShowTables(GpuSqlParser::ShowTablesContext *ctx) override;
+
+	void exitShowColumns(GpuSqlParser::ShowColumnsContext *ctx) override;
+
+	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
 };
 
 
