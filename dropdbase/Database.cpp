@@ -34,7 +34,7 @@ Database::~Database()
 /// <summary>
 /// Save database from memory to disk.
 /// </summary>
-/// <param name="path">Path to database storage directory</param>
+/// <param name="path">Path to database storage directory.</param>
 void Database::Persist(const char* path)
 {
 	auto& tables = GetTables();

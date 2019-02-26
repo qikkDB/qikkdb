@@ -29,6 +29,13 @@ private:
 	/// <param name="columnNames">Names of particular columns.</param>
 	static void LoadColumns(const char* path, const char* dbName, Table& table, const std::vector<std::string>& columnNames);
 
+	/// <summary>
+	/// Write column into disk.
+	/// </summary>
+	/// <param name="column">Column to be written.</param>
+	/// <param name="pathStr">Path to database storage directory.</param>
+	/// <param name="name">Names of particular column.</param>
+	/// <param name="table">Names of particular table.</param>
 	static void WriteColumn(const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
                      std::string pathStr,
                      std::string name,
@@ -53,17 +60,17 @@ public:
 	/// <summary>
 	/// Save database from memory to disk.
 	/// </summary>
-	/// <param name="path">Path to database storage directory</param>
+	/// <param name="path">Path to database storage directory.</param>
 	void Persist(const char* path);
 
 	/// <summary>
-	/// Save all databases currently in memory to disk. All databases will be saved in the same directory
+	/// Save all databases currently in memory to disk. All databases will be saved in the same directory.
 	/// </summary>
 	static void SaveAllToDisk();
 
 	/// <summary>
 	/// Load databases from disk storage. Databases .db and .col files have to be in the same directory,
-	/// so all databases have to be in the same directory to be loaded using this procedure
+	/// so all databases have to be in the same directory to be loaded using this procedure.
 	/// </summary>
 	static void LoadDatabasesFromDisk();
 
