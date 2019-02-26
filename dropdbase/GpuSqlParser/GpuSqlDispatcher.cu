@@ -24,7 +24,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	constPolygonCounter(0),
 	filter_(0),
 	usedRegisterMemory(0),
-	maxRegisterMemory(1LL << 62), // TODO value from config e.g.
+	maxRegisterMemory(0), // TODO value from config e.g.
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
@@ -738,11 +738,13 @@ void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB:
 	}
 }
 
+template <typename T>
 void GpuSqlDispatcher::freeColumnIfRegister(std::string & col)
 {
 	if (usedRegisterMemory > maxRegisterMemory && std::regex_match(col, std::regex("^(\\$).*"))) 
 	{
 		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(col))));
+		usedRegisterMemory -= std::get<1>(allocatedPointers.at(col))*sizeof(T);
 		allocatedPointers.erase(col);
 		std::cout << "Free: " << col << std::endl;
 	}

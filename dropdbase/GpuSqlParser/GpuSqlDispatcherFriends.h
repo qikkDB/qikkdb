@@ -130,7 +130,7 @@ int32_t filterColConst(GpuSqlDispatcher &dispatcher)
 		GPUFilter::colConst<OP, T, U>(mask, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
 	}
 
-	dispatcher.freeColumnIfRegister(colName);
+	dispatcher.freeColumnIfRegister<T>(colName);
 	return 0;
 }
 
@@ -158,7 +158,7 @@ int32_t filterConstCol(GpuSqlDispatcher &dispatcher)
 		GPUFilter::constCol<OP, T, U>(mask, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
 	}
 
-	dispatcher.freeColumnIfRegister(colName);
+	dispatcher.freeColumnIfRegister<U>(colName);
 	return 0;
 }
 
@@ -192,8 +192,8 @@ int32_t filterColCol(GpuSqlDispatcher &dispatcher)
 		GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
 	}
 
-	dispatcher.freeColumnIfRegister(colNameRight);
-	dispatcher.freeColumnIfRegister(colNameLeft);
+	dispatcher.freeColumnIfRegister<U>(colNameRight);
+	dispatcher.freeColumnIfRegister<T>(colNameLeft);
 	return 0;
 }
 
@@ -235,7 +235,7 @@ int32_t logicalColConst(GpuSqlDispatcher &dispatcher)
 		GPULogic::colConst<OP, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
 	}
 
-	dispatcher.freeColumnIfRegister(colName);
+	dispatcher.freeColumnIfRegister<T>(colName);
 	return 0;
 }
 
@@ -261,7 +261,7 @@ int32_t logicalConstCol(GpuSqlDispatcher &dispatcher)
 		GPULogic::constCol<OP, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
 	}
 
-	dispatcher.freeColumnIfRegister(colName);
+	dispatcher.freeColumnIfRegister<U>(colName);
 	return 0;
 }
 
@@ -296,8 +296,8 @@ int32_t logicalColCol(GpuSqlDispatcher &dispatcher)
 		GPULogic::colCol<OP, T, U>(mask, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
 	}
 
-	dispatcher.freeColumnIfRegister(colNameRight);
-	dispatcher.freeColumnIfRegister(colNameLeft);
+	dispatcher.freeColumnIfRegister<U>(colNameRight);
+	dispatcher.freeColumnIfRegister<T>(colNameLeft);
 	return 0;
 }
 
@@ -361,7 +361,7 @@ int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher)
 			GPUArithmetic::colConst<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
 		}
 	}
-	dispatcher.freeColumnIfRegister(colName);
+	dispatcher.freeColumnIfRegister<T>(colName);
 	return 0;
 }
 
@@ -411,7 +411,7 @@ int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher)
 			GPUArithmetic::constCol<OP, ResultType, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
 		}
 	}
-	dispatcher.freeColumnIfRegister(colName);
+	dispatcher.freeColumnIfRegister<U>(colName);
 	return 0;
 }
 
@@ -481,8 +481,8 @@ int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher)
 			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
 		}
 	}
-	dispatcher.freeColumnIfRegister(colNameLeft);
-	dispatcher.freeColumnIfRegister(colNameRight);
+	dispatcher.freeColumnIfRegister<T>(colNameLeft);
+	dispatcher.freeColumnIfRegister<U>(colNameRight);
 	return 0;
 }
 
@@ -681,7 +681,7 @@ int32_t logicalNotCol(GpuSqlDispatcher &dispatcher)
 		GPULogic::not_col<int8_t, T>(mask, reinterpret_cast<T*>(std::get<0>(column)), retSize);
 	}
 
-	dispatcher.freeColumnIfRegister(colName);
+	dispatcher.freeColumnIfRegister<T>(colName);
 	return 0;
 }
 
@@ -726,7 +726,7 @@ int32_t dateExtractCol(GpuSqlDispatcher &dispatcher)
 		GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(std::get<0>(column)), retSize);
 	}
 
-	dispatcher.freeColumnIfRegister(colName);
+	dispatcher.freeColumnIfRegister<int64_t>(colName);
 	return 0;
 }
 
@@ -838,7 +838,7 @@ int32_t aggregationColCol(GpuSqlDispatcher &dispatcher)
 			GPUAggregation::col<OP, T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
 		}
 	}
-	dispatcher.freeColumnIfRegister(colTableName);
+	dispatcher.freeColumnIfRegister<U>(colTableName);
 	return 0;
 }
 
@@ -886,7 +886,7 @@ int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher)
 		T * result = dispatcher.allocateRegister<T>(reg, 1);
 		GPUAggregation::col<OP, T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
 	}
-	dispatcher.freeColumnIfRegister(colName);
+	dispatcher.freeColumnIfRegister<T>(colName);
 	dispatcher.filter_ = 0;
 	return 0;
 }

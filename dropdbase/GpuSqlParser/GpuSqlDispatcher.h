@@ -452,7 +452,7 @@ public:
 		}
 		return 0;
 	}
-
+	template <typename T>
 	void freeColumnIfRegister(std::string& col);
 
 	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
