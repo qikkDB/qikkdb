@@ -681,7 +681,7 @@ int Database::GetBlockCount()
 	return 0;
 }
 
-static void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IColumn>>& column, std::string pathStr, std::string name,const std::pair<const std::string, Table>& table)
+void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IColumn>>& column, std::string pathStr, std::string name,const std::pair<const std::string, Table>& table)
 {
     BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << "_" << table.first
                              << "_" << column.second->GetName() << " .col" << std::endl;
