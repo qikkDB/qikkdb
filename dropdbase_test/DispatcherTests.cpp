@@ -6,6 +6,10 @@
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
+#include "../dropdbase/ColumnBase.h"
+#include "../dropdbase/PointFactory.h"
+
+constexpr int32_t TEST_BLOCK_SIZE = 1 << 11;
 
 class DispatcherObjs
 {
@@ -16,7 +20,7 @@ public:
         columnTypes = {{COLUMN_INT},    {COLUMN_INT},     {COLUMN_LONG},  {COLUMN_LONG},
                        {COLUMN_LONG},  {COLUMN_FLOAT},   {COLUMN_FLOAT}, {COLUMN_DOUBLE}, {COLUMN_DOUBLE},
                        {COLUMN_POLYGON}, {COLUMN_POINT}};
-        database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 11, false, tableNames, columnTypes);
+        database = DatabaseGenerator::GenerateDatabase("TestDb", 2, TEST_BLOCK_SIZE, false, tableNames, columnTypes);
     }
     static DispatcherObjs GetInstance()
     {
@@ -7883,46 +7887,74 @@ TEST(DispatcherTests, LongModColumnConstLtConst)
 	}
 }
 
-//contains tests:
-TEST(DispatcherTests, ConstainsAllPossibilities)
+// Polygon CONTAINS Point tests
+void GeoContainsGenericTest(const std::string& query,
+							std::vector<NativeGeoPoint> points,
+							std::vector<int32_t> expectedResult)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colPolygon1 CONTAINS colPoint1;");
+	auto geoDatabase = std::make_shared<Database>("GeoTestDb", TEST_BLOCK_SIZE);
+	Database::AddToInMemoryDatabaseList(geoDatabase);
+	auto columns = std::unordered_map<std::string, DataType>();
+	columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
+	columns.insert(std::make_pair<std::string, DataType>("colPoint", DataType::COLUMN_POINT));
+	geoDatabase->CreateTable(columns, "SimpleTable");
+	
+	// Create column with IDs
+	std::vector<int32_t> colID;
+	for (int i = 0; i < points.size(); i++)
+	{
+		colID.push_back(i);
+	}
+	reinterpret_cast<ColumnBase<int32_t>*>(geoDatabase->GetTables().at("SimpleTable").
+		GetColumns().at("colID").get())->InsertData(colID);
+	
+	// Create column with points
+	std::vector<ColmnarDB::Types::Point> colPoint;
+	for (auto point : points)
+	{
+		colPoint.push_back(PointFactory::FromLatLon(point.latitude, point.longitude));
+	}
+	reinterpret_cast<ColumnBase<ColmnarDB::Types::Point>*>(geoDatabase->GetTables().at("SimpleTable").
+		GetColumns().at("colPoint").get())->InsertData(colPoint);
+
+	GpuSqlCustomParser parser(geoDatabase, query);
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("SimpleTable.colID");
 
-	std::vector<int32_t> expectedResult;
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
-		int dont = 1;
-
-		for (int j = 0; j < (1 << 11); j++)
-		{
-			if (dont >= 2)
-			{
-				(j % 2) ? expectedResult.push_back(static_cast<int32_t>(j % 1024)) : expectedResult.push_back(static_cast<int32_t>((j % 1024) * (-1)));
-				j++;
-				(j % 2) ? expectedResult.push_back(static_cast<int32_t>(j % 1024)) : expectedResult.push_back(static_cast<int32_t>((j % 1024) * (-1)));
-				dont = 0;
-			}
-			else
-			{
-				dont++;
-			}
-		}
+		std::cout << i << ": " << payloads.intpayload().intdata()[i] << std::endl;
 	}
 
-	auto &payloads = result->payloads().at("TableA.colInteger1");
-
 	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
-
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
 	}
+	Database::DestroyDatabase("GeoTestDb");
 }
 
+TEST(DispatcherTests, GeoConvexPolygonContains)
+{
+	GeoContainsGenericTest("SELECT colID FROM SimpleTable WHERE POLYGON((1.0 1.0,3.0 1.0,1.0 3.0,1.0 1.0)) CONTAINS colPoint;",
+		{ {0.5, 0.5}, {2.5, 0.5}, {1.1, 1.1}, {2.8, 1.1}, {0.5, 2.0}, {1.5, 2.0}, {1.9, 2.0},
+		{2.1, 2.0}, {1.01, 2.95}, {0.5, 3.0}, {1.0, 4.0}, {2.0, 3.0}, {4.0, 1.0} },
+		{ 2, 3, 5, 6, 8 });
+}
+
+TEST(DispatcherTests, GeoConcavePolygonContains)
+{
+	GeoContainsGenericTest("SELECT colID FROM SimpleTable WHERE POLYGON((1.0 2.0,3.0 1.0,3.0 2.0,2.0 2.0,2.0 3.0,1.0 3.0,1.0 2.0)) CONTAINS colPoint;",
+		{ {-1.0, -1.0}, {1.9, 1.5}, {0.5, 2.5}, {1.5, 3.1}, {3.5, 4.0}, {2.1, 2.1}, {3.5, 1.5},
+		{3.1, 0.9}, {1.5, 2.5}, {1.9, 1.9}, {2.1, 1.9}, {2.9, 1.1} },
+		{ 8, 9, 10, 11 });
+}
+
+
+// DateTime tests
 TEST(DispatcherTests, DateTimeCol)
 {
 	Context::getInstance();
