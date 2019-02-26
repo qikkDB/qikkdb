@@ -700,28 +700,12 @@ bool GpuSqlListener::isDouble(const std::string &value)
 
 bool GpuSqlListener::isPoint(const std::string &value)
 {
-    try
-    {
-        ColmnarDB::Types::Point point = PointFactory::FromWkt(value);
-        return true;
-    }
-    catch (std::invalid_argument &e)
-    {
-        return false;
-    }
+	return (value.find("POINT") == 0);
 }
 
 bool GpuSqlListener::isPolygon(const std::string &value)
 {
-    try
-    {
-        ColmnarDB::Types::ComplexPolygon polygon = ComplexPolygonFactory::FromWkt(value);
-        return true;
-    }
-    catch (std::invalid_argument &e)
-    {
-        return false;
-    }
+	return (value.find("POLYGON") == 0);
 }
 
 void GpuSqlListener::stringToUpper(std::string &str)

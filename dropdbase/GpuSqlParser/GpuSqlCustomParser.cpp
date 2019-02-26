@@ -29,6 +29,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	GpuSqlLexer sqlLexer(&sqlInputStream);
 	antlr4::CommonTokenStream commonTokenStream(&sqlLexer);
 	GpuSqlParser parser(&commonTokenStream);
+	parser.setErrorHandler(std::make_shared<antlr4::BailErrorStrategy>());
 	parser.getInterpreter<antlr4::atn::ParserATNSimulator>()->setPredictionMode(antlr4::atn::PredictionMode::SLL);
 	GpuSqlParser::StatementContext *statement = parser.statement();
 

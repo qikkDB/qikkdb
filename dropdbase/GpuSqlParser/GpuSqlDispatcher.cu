@@ -10,7 +10,6 @@
 #include <regex>
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
-bool GpuSqlDispatcher::groupByDone_ = false;
 std::mutex GpuSqlDispatcher::groupByMutex_;
 std::condition_variable GpuSqlDispatcher::groupByCV_;
 int32_t GpuSqlDispatcher::groupByDoneLimit_;

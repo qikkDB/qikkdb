@@ -289,8 +289,6 @@ private:
 
 	static int32_t groupByDoneCounter_;
 	static int32_t groupByDoneLimit_;
-	static bool groupByDone_;
-
 
 public:
 	static std::mutex groupByMutex_;
@@ -299,19 +297,17 @@ public:
 	static void IncGroupByDoneCounter()
 	{
 		groupByDoneCounter_++;
-		groupByDone_ = (groupByDoneCounter_ == groupByDoneLimit_);
 	}
 
 	static bool IsGroupByDone()
 	{
-		return groupByDone_;
+		return (groupByDoneCounter_ == groupByDoneLimit_);
 	}
 
 	static void ResetGroupByCounters()
 	{
 		groupByDoneCounter_ = 0;
 		groupByDoneLimit_ = 0;
-		groupByDone_ = false;
 	}
 
     GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);
