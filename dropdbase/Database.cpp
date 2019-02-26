@@ -12,6 +12,7 @@
 #include "ColumnBase.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Table.h"
+#include "QueryEngine/Context.h"
 
 std::unordered_map<std::string, std::shared_ptr<Database>> Database::loadedDatabases_;
 std::mutex Database::dbMutex_;
@@ -29,6 +30,22 @@ Database::Database(const char* databaseName, int32_t blockSize)
 
 Database::~Database()
 {
+	// clear cache for all devices
+	for (int32_t deviceID = 0; deviceID < Context::getInstance().getDeviceCount(); deviceID++)
+	{
+		for (auto const& table : tables_)
+		{
+			for (auto const& column : table.second.GetColumns())
+			{
+				int32_t blockCount = column.second.get()->GetBlockCount();
+				for (int32_t i = 0; i < blockCount; i++)
+				{
+					Context::getInstance().getCacheForDevice(deviceID).
+						clearCachedBlock(name_, table.second.GetName() + "." + column.second.get()->GetName(), i);
+				}
+			}
+		}
+	}
 }
 
 std::vector<std::string> Database::GetDatabaseNames()
