@@ -7888,19 +7888,20 @@ TEST(DispatcherTests, LongModColumnConstLtConst)
 }
 
 // Polygon CONTAINS Point tests
+// polygon - const, wkt from query
+// point - col (as vector here)
 void GeoContainsGenericTest(const std::string& query,
 							std::vector<NativeGeoPoint> points,
 							std::vector<int32_t> expectedResult)
 {
 	Context::getInstance();
-
 	auto geoDatabase = std::make_shared<Database>("GeoTestDb", TEST_BLOCK_SIZE);
 	Database::AddToInMemoryDatabaseList(geoDatabase);
 	auto columns = std::unordered_map<std::string, DataType>();
 	columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
 	columns.insert(std::make_pair<std::string, DataType>("colPoint", DataType::COLUMN_POINT));
 	geoDatabase->CreateTable(columns, "SimpleTable");
-	
+
 	// Create column with IDs
 	std::vector<int32_t> colID;
 	for (int i = 0; i < points.size(); i++)
@@ -7909,7 +7910,7 @@ void GeoContainsGenericTest(const std::string& query,
 	}
 	reinterpret_cast<ColumnBase<int32_t>*>(geoDatabase->GetTables().at("SimpleTable").
 		GetColumns().at("colID").get())->InsertData(colID);
-	
+
 	// Create column with points
 	std::vector<ColmnarDB::Types::Point> colPoint;
 	for (auto point : points)
@@ -7919,17 +7920,13 @@ void GeoContainsGenericTest(const std::string& query,
 	reinterpret_cast<ColumnBase<ColmnarDB::Types::Point>*>(geoDatabase->GetTables().at("SimpleTable").
 		GetColumns().at("colPoint").get())->InsertData(colPoint);
 
+	// Execute the query
 	GpuSqlCustomParser parser(geoDatabase, query);
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("SimpleTable.colID");
 
-	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
-	{
-		std::cout << i << ": " << payloads.intpayload().intdata()[i] << std::endl;
-	}
-
-	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size()) << "size is not correct";
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
