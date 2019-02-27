@@ -138,12 +138,16 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		std::cout << "TID: " << i << " Done \n";
 	}
 		
-	return std::move(mergeDispatcherResults(dispatcherResults));
+	return std::move(mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
 }
 
 
-std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults)
+std::unique_ptr<google::protobuf::Message>
+GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,int32_t resultLimit, int32_t resultOffset)
 {
+    std::cout << "Limit: " << resultLimit << std::endl;
+    std::cout << "Offset: " << resultOffset << std::endl;
+
 	std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> responseMessage = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
 	for (auto& partialResult : dispatcherResults)
 	{

@@ -34,6 +34,7 @@ all_types = [INT,
 
 arithmetic_operations = ["mul", "div", "add", "sub", "mod"]
 geo_operations = ["contains"]
+polygon_operations = ["intersect", "union"]
 filter_operations = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 logical_operations = ["logicalAnd", "logicalOr"]
 
@@ -43,7 +44,7 @@ geo_types = [POINT, POLYGON]
 bool_types = [BOOL]
 
 operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual", "logicalAnd", "logicalOr",
-                     "mul", "div", "add", "sub", "mod", "contains"]
+                     "mul", "div", "add", "sub", "mod", "contains", "intersect", "union"]
 operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operations_logical = ["logicalAnd", "logicalOr"]
 operations_arithmetic = ["mul", "div", "add", "sub", "mod"]
@@ -383,5 +384,36 @@ for operation in operations_date:
             declaration += ("&" + function + "};")
         else:
             declaration += ("&" + function + ", ")
+
+    print(declaration)
+
+for operation in polygon_operations:
+    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
+
+            if colVal != POLYGON or rowVal != POLYGON:
+                op = "invalidOperandTypesErrorHandler"
+
+            else:
+                op = "polygonOperation"
+            function = op + col + row + "<PolygonFunctions::poly" + operation.capitalize() + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
 
     print(declaration)

@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/Martin Stano/Desktop/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -131,11 +131,11 @@ public:
   virtual void enterAggregation(GpuSqlParser::AggregationContext *ctx) = 0;
   virtual void exitAggregation(GpuSqlParser::AggregationContext *ctx) = 0;
 
-  virtual void enterParenExpression(GpuSqlParser::ParenExpressionContext *ctx) = 0;
-  virtual void exitParenExpression(GpuSqlParser::ParenExpressionContext *ctx) = 0;
-
   virtual void enterBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) = 0;
   virtual void exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) = 0;
+
+  virtual void enterParenExpression(GpuSqlParser::ParenExpressionContext *ctx) = 0;
+  virtual void exitParenExpression(GpuSqlParser::ParenExpressionContext *ctx) = 0;
 
   virtual void enterUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) = 0;
   virtual void exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) = 0;

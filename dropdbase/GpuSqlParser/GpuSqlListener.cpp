@@ -12,9 +12,16 @@
 #include <iomanip>
 
 
-GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database> &database,
-                               GpuSqlDispatcher &dispatcher) : database(database), dispatcher(dispatcher),
-								usingGroupBy(false), insideAgg(false), insideGroupBy(false), insideSelectColumn(false), isAggSelectColumn(false)
+GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSqlDispatcher& dispatcher): 
+	database(database), 
+	dispatcher(dispatcher), 
+	resultLimit(-1), 
+	resultOffset(-1),
+	usingGroupBy(false), 
+	insideAgg(false), 
+	insideGroupBy(false), 
+	insideSelectColumn(false), 
+	isAggSelectColumn(false)
 {
 }
 
@@ -100,10 +107,20 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
         dispatcher.addModFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     } 
-	else if (op == "CONTAINS")
+	else if (op == "GEO_CONTAINS")
     {
         dispatcher.addContainsFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
+    }
+    else if (op == "GEO_INTERSECT")
+    {
+        dispatcher.addIntersectFunction(leftOperandType, rightOperandType);
+        returnDataType = DataType::COLUMN_POLYGON;
+    }
+    else if (op == "GEO_UNION")
+    {
+        dispatcher.addUnionFunction(leftOperandType, rightOperandType);
+        returnDataType = DataType::COLUMN_POLYGON;
     }
 
 	std::string reg = getRegString(ctx);
@@ -476,6 +493,16 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 		}
 	}
 	dispatcher.addInsertIntoDoneFunction();
+}
+
+void GpuSqlListener::exitLimit(GpuSqlParser::LimitContext* ctx)
+{
+    resultLimit = std::stoi(ctx->getText());
+}
+
+void GpuSqlListener::exitOffset(GpuSqlParser::OffsetContext* ctx)
+{
+    resultOffset = std::stoi(ctx->getText());
 }
 
 void GpuSqlListener::exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx)
