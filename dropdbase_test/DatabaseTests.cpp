@@ -25,7 +25,7 @@ protected:
 	virtual void TearDown()
 	{
 		//clean up occurs when test completes or an exception is thrown
-		Database::DestroyDatabase("TestDatabase");
+		Database::DestroyDatabase(dbName.c_str());
 	}
 };
 
