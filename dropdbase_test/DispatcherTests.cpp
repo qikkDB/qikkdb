@@ -7,7 +7,6 @@
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 #include "../dropdbase/ColumnBase.h"
-#include "../dropdbase/PointFactory.h"
 
 constexpr int32_t TEST_BLOCK_SIZE = 1 << 11;
 
@@ -7886,94 +7885,6 @@ TEST(DispatcherTests, LongModColumnConstLtConst)
 		ASSERT_EQ(expectedResult[i], payloads.int64payload().int64data()[i]);
 	}
 }
-
-// Polygon CONTAINS Point tests
-// polygon - const, wkt from query
-// point - col (as vector here)
-void GeoContainsGenericTest(const std::string& query,
-							std::vector<NativeGeoPoint> points,
-							std::vector<int32_t> expectedResult)
-{
-	Context::getInstance();
-	auto geoDatabase = std::make_shared<Database>("GeoTestDb", TEST_BLOCK_SIZE);
-	Database::AddToInMemoryDatabaseList(geoDatabase);
-	auto columns = std::unordered_map<std::string, DataType>();
-	columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
-	columns.insert(std::make_pair<std::string, DataType>("colPoint", DataType::COLUMN_POINT));
-	geoDatabase->CreateTable(columns, "SimpleTable");
-
-	// Create column with IDs
-	std::vector<int32_t> colID;
-	for (int i = 0; i < points.size(); i++)
-	{
-		colID.push_back(i);
-	}
-	reinterpret_cast<ColumnBase<int32_t>*>(geoDatabase->GetTables().at("SimpleTable").
-		GetColumns().at("colID").get())->InsertData(colID);
-
-	// Create column with points
-	std::vector<ColmnarDB::Types::Point> colPoint;
-	for (auto point : points)
-	{
-		colPoint.push_back(PointFactory::FromLatLon(point.latitude, point.longitude));
-	}
-	reinterpret_cast<ColumnBase<ColmnarDB::Types::Point>*>(geoDatabase->GetTables().at("SimpleTable").
-		GetColumns().at("colPoint").get())->InsertData(colPoint);
-
-	// Execute the query
-	GpuSqlCustomParser parser(geoDatabase, query);
-	auto resultPtr = parser.parse();
-	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	auto &payloads = result->payloads().at("SimpleTable.colID");
-
-	ASSERT_EQ(expectedResult.size(), payloads.intpayload().intdata_size()) << "size is not correct";
-	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
-	{
-		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
-	}
-	Database::DestroyDatabase("GeoTestDb");
-}
-
-TEST(DispatcherTests, GeoConvexPolygonContains)
-{
-	GeoContainsGenericTest("SELECT colID FROM SimpleTable WHERE POLYGON((1.0 1.0,3.0 1.0,1.0 3.0,1.0 1.0)) CONTAINS colPoint;",
-		{ {0.5, 0.5}, {2.5, 0.5}, {1.1, 1.1}, {2.8, 1.1}, {0.5, 2.0}, {1.5, 2.0}, {1.9, 2.0},
-		{2.1, 2.0}, {1.01, 2.95}, {0.5, 3.0}, {1.0, 4.0}, {2.0, 3.0}, {4.0, 1.0} },
-		{ 2, 3, 5, 6, 8 });
-}
-
-TEST(DispatcherTests, GeoConcavePolygonContains)
-{
-	GeoContainsGenericTest("SELECT colID FROM SimpleTable WHERE POLYGON((1.0 2.0,3.0 1.0,3.0 2.0,2.0 2.0,2.0 3.0,1.0 3.0,1.0 2.0)) CONTAINS colPoint;",
-		{ {-1.0, -1.0}, {1.9, 1.5}, {0.5, 2.5}, {1.5, 3.1}, {3.5, 4.0}, {2.1, 2.1}, {3.5, 1.5},
-		{3.1, 0.9}, {1.5, 2.5}, {1.9, 1.9}, {2.1, 1.9}, {2.9, 1.1} },
-		{ 8, 9, 10, 11 });
-}
-
-// Very hard test - "butterfly" polygon, like |><|
-TEST(DispatcherTests, GeoTrickyPolygonContains)
-{
-	GeoContainsGenericTest("SELECT colID FROM SimpleTable WHERE POLYGON((30 30,10 20,10 30,30 20,30 30)) CONTAINS colPoint;",
-		{ {5, 15}, {5, 25}, {5, 35}, {16, 24}, {15, 25}, {25, 21}, {28, 25}, {30.05, 25}, {20, 25.1}, {20, 35} },
-		{ 3, 4, 6 });
-}
-
-// Complex polygon (Non intersected 2 polygons)
-TEST(DispatcherTests, GeoSimpleComplexPolygonContains)
-{
-	GeoContainsGenericTest("SELECT colID FROM SimpleTable WHERE POLYGON((0 0,1 0,1 1,0 1,0 0),(2 2,3 2,3 3,2 3,2 2)) CONTAINS colPoint;",
-		{ {0.5, 0.5}, {1.5, 1.5}, {0.5, 2.5}, {2.5, 0.5}, {2.5, 2.5}, {50, -20} },
-		{ 0, 4 });
-}
-
-// Gappy complex polygon
-TEST(DispatcherTests, GeoNestedComplexPolygonContains)
-{
-	GeoContainsGenericTest("SELECT colID FROM SimpleTable WHERE POLYGON((0 0,10 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 5)) CONTAINS colPoint;",
-		{ {-2, 1}, {1, 1}, {6, 1}, {1, 6}, {6, 5.5}, {5.5, 6}, {8, 8}, {12, 8}, {12, 8}, {20, 20} },
-		{ 1, 2, 3, 5, 6 });
-}
-
 
 
 // DateTime tests
