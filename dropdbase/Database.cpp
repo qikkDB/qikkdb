@@ -13,8 +13,8 @@
 #include "Database.h"
 #include "Table.h"
 #include "Types/ComplexPolygon.pb.h"
+#include "QueryEngine/Context.h"
 
-std::unordered_map<std::string, std::shared_ptr<Database>> Database::loadedDatabases_;
 std::mutex Database::dbMutex_;
 
 /// <summary>
@@ -30,16 +30,33 @@ Database::Database(const char* databaseName, int32_t blockSize)
 
 Database::~Database()
 {
+	// Clear cache for all devices
+	for (int32_t deviceID = 0; deviceID < Context::getInstance().getDeviceCount(); deviceID++)
+	{
+		Context::getInstance().bindDeviceToContext(deviceID);
+		GPUMemoryCache& cacheForDevice = Context::getInstance().getCacheForDevice(deviceID);
+		for (auto const& table : tables_)
+		{
+			for (auto const& column : table.second.GetColumns())
+			{
+				int32_t blockCount = column.second.get()->GetBlockCount();
+				for (int32_t i = 0; i < blockCount; i++)
+				{
+					cacheForDevice.clearCachedBlock(name_, table.second.GetName() + "." + column.second.get()->GetName(), i);
+				}
+			}
+		}
+	}
 }
 
 std::vector<std::string> Database::GetDatabaseNames()
 {
-    std::vector<std::string> ret;
-    for (auto& entry : loadedDatabases_)
-    {
-        ret.push_back(entry.first);
-    }
-    return ret;
+	std::vector<std::string> ret;
+	for (auto& entry : Context::getInstance().GetLoadedDatabases())
+	{
+		ret.push_back(entry.first);
+	}
+	return ret;
 }
 
 /// <summary>
@@ -116,11 +133,11 @@ void Database::Persist(const char* path)
 /// <param name="path">Path to database storage directory</param>
 void Database::SaveAllToDisk()
 {
-    auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
-    for (auto& database : Database::loadedDatabases_)
-    {
-        database.second->Persist(path);
-    }
+	auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
+	for (auto& database : Context::getInstance().GetLoadedDatabases())
+	{
+		database.second->Persist(path);
+	}
 }
 
 /// <summary>
@@ -129,29 +146,27 @@ void Database::SaveAllToDisk()
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
-    auto& path = Configuration::GetInstance().GetDatabaseDir();
+	auto &path = Configuration::GetInstance().GetDatabaseDir();
 
-    if (boost::filesystem::exists(path))
-    {
-        for (auto& p : boost::filesystem::directory_iterator(path))
-        {
-            auto extension = p.path().extension();
-            if (extension == ".db")
-            {
-                auto database =
-                    Database::LoadDatabase(p.path().filename().stem().generic_string().c_str(), path.c_str());
+	if (boost::filesystem::exists(path)) {
+		for (auto& p : boost::filesystem::directory_iterator(path))
+		{
+			auto extension = p.path().extension();
+			if (extension == ".db")
+			{
+				auto database = Database::LoadDatabase(p.path().filename().stem().generic_string().c_str(), path.c_str());
 
-                if (database != nullptr)
-                {
-                    loadedDatabases_.insert({database->name_, database});
-                }
-            }
-        }
-    }
-    else
-    {
-        BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists." << std::endl;
-    }
+				if (database != nullptr)
+				{
+					Context::getInstance().GetLoadedDatabases().insert( {database->name_, database} );
+				}
+			}
+		}
+	}
+	else
+	{
+		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists." << std::endl;
+	}
 }
 
 /// <summary>
@@ -702,11 +717,18 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 /// <param name="database">Database to add</param>
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
-    std::lock_guard<std::mutex> lock(dbMutex_);
-    if (!loadedDatabases_.insert({database->name_, database}).second)
-    {
-        throw std::invalid_argument("Attempt to insert duplicate database name");
-    }
+	std::lock_guard<std::mutex> lock(dbMutex_);
+	if (!Context::getInstance().GetLoadedDatabases().insert({ database->name_, database }).second)
+	{
+		throw std::invalid_argument("Attempt to insert duplicate database name");
+	}
+}
+
+void Database::DestroyDatabase(const char* databaseName)
+{
+	// Erase db from map
+	std::lock_guard<std::mutex> lock(dbMutex_);
+	Context::getInstance().GetLoadedDatabases().erase(databaseName);
 }
 
 /// <summary>

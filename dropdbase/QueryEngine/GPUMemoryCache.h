@@ -52,9 +52,9 @@ public:
 	GPUMemoryCache(int32_t deviceID, size_t maximumSize);
 	~GPUMemoryCache();
 	template<typename T>
-	std::tuple<T*, size_t, bool> getColumn(const std::string& columnName, int32_t blockIndex, size_t size)
+	std::tuple<T*, size_t, bool> getColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex, size_t size)
 	{
-		std::string columnBlock = columnName + "_" + std::to_string(blockIndex);
+		std::string columnBlock = databaseName + "." + tableAndColumnName + "_" + std::to_string(blockIndex);
 		if (cacheMap.find(columnBlock) != cacheMap.end())
 		{
 			lruQueue.erase(cacheMap.at(columnBlock).lruQueueIt);
@@ -83,8 +83,8 @@ public:
 		return { newPtr, size, false };
 	}
 
-	void clearCachedBlock(const std::string& columnName, int32_t blockIndex);
-	bool containsColumn(const std::string& columnName, int32_t blockIndex);
+	void clearCachedBlock(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex);
+	bool containsColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex);
 	GPUMemoryCache(const GPUMemoryCache&) = delete;
 	GPUMemoryCache& operator=(const GPUMemoryCache&) = delete;
 };

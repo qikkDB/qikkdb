@@ -7,6 +7,8 @@
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 
+constexpr int32_t TEST_BLOCK_SIZE = 1 << 11;
+
 class DispatcherObjs
 {
 public:
@@ -16,7 +18,7 @@ public:
         columnTypes = {{COLUMN_INT},    {COLUMN_INT},     {COLUMN_LONG},  {COLUMN_LONG},
                        {COLUMN_LONG},  {COLUMN_FLOAT},   {COLUMN_FLOAT}, {COLUMN_DOUBLE}, {COLUMN_DOUBLE},
                        {COLUMN_POLYGON}, {COLUMN_POINT}};
-        database = DatabaseGenerator::GenerateDatabase("TestDb", 2, 1 << 11, false, tableNames, columnTypes);
+        database = DatabaseGenerator::GenerateDatabase("TestDb", 2, TEST_BLOCK_SIZE, false, tableNames, columnTypes);
     }
     static DispatcherObjs GetInstance()
     {
@@ -7883,46 +7885,8 @@ TEST(DispatcherTests, LongModColumnConstLtConst)
 	}
 }
 
-//contains tests:
-TEST(DispatcherTests, ConstainsAllPossibilities)
-{
-	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colPolygon1 CONTAINS colPoint1;");
-	auto resultPtr = parser.parse();
-	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-
-	std::vector<int32_t> expectedResult;
-	for (int i = 0; i < 2; i++)
-	{
-		int dont = 1;
-
-		for (int j = 0; j < (1 << 11); j++)
-		{
-			if (dont >= 2)
-			{
-				(j % 2) ? expectedResult.push_back(static_cast<int32_t>(j % 1024)) : expectedResult.push_back(static_cast<int32_t>((j % 1024) * (-1)));
-				j++;
-				(j % 2) ? expectedResult.push_back(static_cast<int32_t>(j % 1024)) : expectedResult.push_back(static_cast<int32_t>((j % 1024) * (-1)));
-				dont = 0;
-			}
-			else
-			{
-				dont++;
-			}
-		}
-	}
-
-	auto &payloads = result->payloads().at("TableA.colInteger1");
-
-	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
-
-	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
-	{
-		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
-	}
-}
-
+// DateTime tests
 TEST(DispatcherTests, DateTimeCol)
 {
 	Context::getInstance();

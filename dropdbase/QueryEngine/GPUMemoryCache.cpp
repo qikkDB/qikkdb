@@ -35,9 +35,9 @@ CudaMemAllocator & GPUMemoryCache::GetAllocator()
 	return Context::getInstance().GetAllocatorForDevice(deviceID_);
 }
 
-void GPUMemoryCache::clearCachedBlock(const std::string& columnName, int32_t blockIndex)
+void GPUMemoryCache::clearCachedBlock(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex)
 {
-	std::string columnBlock = columnName + "_" + std::to_string(blockIndex);
+	std::string columnBlock = databaseName + "." + tableAndColumnName + "_" + std::to_string(blockIndex);
 	if (cacheMap.find(columnBlock) != cacheMap.end())
 	{
 		auto& toErase = cacheMap.at(columnBlock);
@@ -49,8 +49,8 @@ void GPUMemoryCache::clearCachedBlock(const std::string& columnName, int32_t blo
 	BOOST_LOG_TRIVIAL(debug) << "Cleared cached block "<< columnBlock << " on device" << deviceID_;
 }
 
-bool GPUMemoryCache::containsColumn(const std::string& columnName, int32_t blockIndex)
+bool GPUMemoryCache::containsColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex)
 {
-	std::string columnBlock = columnName + "_" + std::to_string(blockIndex);
+	std::string columnBlock = databaseName + "." + tableAndColumnName + "_" + std::to_string(blockIndex);
 	return cacheMap.find(columnBlock) != cacheMap.end();
 }

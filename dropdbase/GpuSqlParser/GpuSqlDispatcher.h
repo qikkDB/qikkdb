@@ -459,7 +459,7 @@ public:
 			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
 
 			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-				database->GetName() + "_" + colName, blockIndex, block->GetSize());
+				database->GetName(), colName, blockIndex, block->GetSize());
             if (!std::get<2>(cacheEntry))
             {
                 GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
@@ -475,7 +475,7 @@ public:
 
 	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
-	void insertComplexPolygon(const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
+	void insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	std::string insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
