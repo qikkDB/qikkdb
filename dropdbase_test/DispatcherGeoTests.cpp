@@ -61,7 +61,7 @@ protected:
 			GetColumns().at("colPoint").get())->InsertData(colPoint);
 
 		// Execute the query
-		GpuSqlCustomParser parser(geoDatabase, "SELECT colID FROM " + tableName + " WHERE " + polygon + " CONTAINS colPoint;");
+		GpuSqlCustomParser parser(geoDatabase, "SELECT colID FROM " + tableName + " WHERE GEO_CONTAINS(" + polygon + ", colPoint);");
 		auto resultPtr = parser.parse();
 		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 		auto &payloads = result->payloads().at("SimpleTable.colID");
