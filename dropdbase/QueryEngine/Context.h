@@ -13,6 +13,8 @@
 #include "GPUMemoryCache.h"
 #include "../Configuration.h"
 
+class Database;
+
 class Context {
 private:
 
@@ -33,6 +35,9 @@ private:
     // Move cannot be implemented for allocator and cache, they keep iterators to internal vectors
     std::vector<std::unique_ptr<CudaMemAllocator>> gpuAllocators_;
     std::vector<std::unique_ptr<GPUMemoryCache>> gpuCaches_;
+
+	// List of loaded databases
+	std::unordered_map<std::string, std::shared_ptr<Database>> loadedDatabases_;
 
 	// Meyer's singleton
 	Context()
@@ -199,6 +204,11 @@ public:
 	GPUMemoryCache& getCacheForCurrentDevice()
 	{
 		return *gpuCaches_.at(getBoundDeviceID());
+	}
+
+	std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases()
+	{
+		return loadedDatabases_;
 	}
 };
 

@@ -53,5 +53,9 @@ int main(int argc, char **argv)
 		std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
 	}
 	*/
+	for (auto& db : Database::GetDatabaseNames())
+	{
+		Database::DestroyDatabase(db.c_str());
+	}
 	return 0;
 }

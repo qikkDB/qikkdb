@@ -5,22 +5,22 @@
 #include "ColumnBase.h"
 #include <cstdint>
 
-const std::shared_ptr<Database>& Table::GetDatabase()
+const std::shared_ptr<Database>& Table::GetDatabase() const
 {
 	return database;
 }
 
-const std::string & Table::GetName()
+const std::string & Table::GetName() const
 {
 	return name;
 }
 
-int Table::GetBlockSize()
+int Table::GetBlockSize() const
 {
 	return blockSize;
 }
 
-int32_t Table::GetBlockCount()
+int32_t Table::GetBlockCount() const
 {
 	for (auto& column : columns) 
 	{
