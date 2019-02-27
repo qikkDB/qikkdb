@@ -303,7 +303,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 		// COLUMN_INT
 		try {
 			size_t position;
-			std::stol(s, &position);
+			std::stoi(s, &position);
 			if (s.length() == position) {
 				dataTypes.push_back(COLUMN_INT);
 				continue;
