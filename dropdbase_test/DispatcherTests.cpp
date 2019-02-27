@@ -7926,7 +7926,7 @@ void GeoContainsGenericTest(const std::string& query,
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("SimpleTable.colID");
 
-	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size()) << "size is not correct";
+	ASSERT_EQ(expectedResult.size(), payloads.intpayload().intdata_size()) << "size is not correct";
 	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -7949,6 +7949,31 @@ TEST(DispatcherTests, GeoConcavePolygonContains)
 		{3.1, 0.9}, {1.5, 2.5}, {1.9, 1.9}, {2.1, 1.9}, {2.9, 1.1} },
 		{ 8, 9, 10, 11 });
 }
+
+// Very hard test - "butterfly" polygon, like |><|
+TEST(DispatcherTests, GeoTrickyPolygonContains)
+{
+	GeoContainsGenericTest("SELECT colID FROM SimpleTable WHERE POLYGON((30 30,10 20,10 30,30 20,30 30)) CONTAINS colPoint;",
+		{ {5, 15}, {5, 25}, {5, 35}, {16, 24}, {15, 25}, {25, 21}, {28, 25}, {30.05, 25}, {20, 25.1}, {20, 35} },
+		{ 3, 4, 6 });
+}
+
+// Complex polygon (Non intersected 2 polygons)
+TEST(DispatcherTests, GeoSimpleComplexPolygonContains)
+{
+	GeoContainsGenericTest("SELECT colID FROM SimpleTable WHERE POLYGON((0 0,1 0,1 1,0 1,0 0),(2 2,3 2,3 3,2 3,2 2)) CONTAINS colPoint;",
+		{ {0.5, 0.5}, {1.5, 1.5}, {0.5, 2.5}, {2.5, 0.5}, {2.5, 2.5}, {50, -20} },
+		{ 0, 4 });
+}
+
+// Gappy complex polygon
+TEST(DispatcherTests, GeoNestedComplexPolygonContains)
+{
+	GeoContainsGenericTest("SELECT colID FROM SimpleTable WHERE POLYGON((0 0,10 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 5)) CONTAINS colPoint;",
+		{ {-2, 1}, {1, 1}, {6, 1}, {1, 6}, {6, 5.5}, {5.5, 6}, {8, 8}, {12, 8}, {12, 8}, {20, 20} },
+		{ 1, 2, 3, 5, 6 });
+}
+
 
 
 // DateTime tests
