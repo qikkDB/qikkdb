@@ -33,6 +33,8 @@ Database::~Database()
 	// Clear cache for all devices
 	for (int32_t deviceID = 0; deviceID < Context::getInstance().getDeviceCount(); deviceID++)
 	{
+		Context::getInstance().bindDeviceToContext(deviceID);
+		GPUMemoryCache& cacheForDevice = Context::getInstance().getCacheForDevice(deviceID);
 		for (auto const& table : tables_)
 		{
 			for (auto const& column : table.second.GetColumns())
@@ -40,8 +42,7 @@ Database::~Database()
 				int32_t blockCount = column.second.get()->GetBlockCount();
 				for (int32_t i = 0; i < blockCount; i++)
 				{
-					Context::getInstance().getCacheForDevice(deviceID).
-						clearCachedBlock(name_, table.second.GetName() + "." + column.second.get()->GetName(), i);
+					cacheForDevice.clearCachedBlock(name_, table.second.GetName() + "." + column.second.get()->GetName(), i);
 				}
 			}
 		}
@@ -906,26 +907,6 @@ void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 }
 
 void Database::DestroyDatabase(const char* databaseName) {
-	// Clear cache
-	if (loadedDatabases_.find(databaseName) != loadedDatabases_.end())
-	{
-		auto db = loadedDatabases_.at(databaseName);
-		for (int32_t deviceID = 0; deviceID < Context::getInstance().getDeviceCount(); deviceID++)
-		{
-			for (auto const& table : db->tables_)
-			{
-				for (auto const& column : table.second.GetColumns())
-				{
-					int32_t blockCount = column.second.get()->GetBlockCount();
-					for (int32_t i = 0; i < blockCount; i++)
-					{
-						Context::getInstance().getCacheForDevice(deviceID).
-							clearCachedBlock(db->name_, table.second.GetName() + "." + column.second.get()->GetName(), i);
-					}
-				}
-			}
-		}
-	}
 	// Erase db from map
 	std::lock_guard<std::mutex> lock(dbMutex_);
 	loadedDatabases_.erase(databaseName);

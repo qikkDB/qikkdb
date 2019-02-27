@@ -13,7 +13,7 @@ class Database;
 class Table
 {
 private:
-	const std::shared_ptr<Database> database;
+	const std::shared_ptr<Database>& database;
 	std::string name;
 	int32_t blockSize;
 	std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
