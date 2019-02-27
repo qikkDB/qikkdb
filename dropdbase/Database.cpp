@@ -14,7 +14,6 @@
 #include "Table.h"
 #include "QueryEngine/Context.h"
 
-std::unordered_map<std::string, std::shared_ptr<Database>> Database::loadedDatabases_;
 std::mutex Database::dbMutex_;
 
 /// <summary>
@@ -52,7 +51,7 @@ Database::~Database()
 std::vector<std::string> Database::GetDatabaseNames()
 {
 	std::vector<std::string> ret;
-	for (auto& entry : loadedDatabases_)
+	for (auto& entry : Context::getInstance().GetLoadedDatabases())
 	{
 		ret.push_back(entry.first);
 	}
@@ -357,7 +356,7 @@ void Database::Persist(const char* path)
 void Database::SaveAllToDisk()
 {
 	auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
-	for (auto& database : Database::loadedDatabases_)
+	for (auto& database : Context::getInstance().GetLoadedDatabases())
 	{
 		database.second->Persist(path);
 	}
@@ -380,7 +379,7 @@ void Database::LoadDatabasesFromDisk()
 
 				if (database != nullptr)
 				{
-					loadedDatabases_.insert( {database->name_, database} );
+					Context::getInstance().GetLoadedDatabases().insert( {database->name_, database} );
 				}
 			}
 		}
@@ -900,7 +899,7 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
 	std::lock_guard<std::mutex> lock(dbMutex_);
-	if (!loadedDatabases_.insert({ database->name_, database }).second)
+	if (!Context::getInstance().GetLoadedDatabases().insert({ database->name_, database }).second)
 	{
 		throw std::invalid_argument("Attempt to insert duplicate database name");
 	}
@@ -909,7 +908,7 @@ void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 void Database::DestroyDatabase(const char* databaseName) {
 	// Erase db from map
 	std::lock_guard<std::mutex> lock(dbMutex_);
-	loadedDatabases_.erase(databaseName);
+	Context::getInstance().GetLoadedDatabases().erase(databaseName);
 }
 
 /// <summary>

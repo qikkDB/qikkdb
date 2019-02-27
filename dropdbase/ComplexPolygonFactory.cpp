@@ -31,7 +31,7 @@ GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector
 			const auto & subpoly = complPoly.polygons(i);
 			const int subpPointCount = subpoly.geopoints_size();
 			pointIdx.push_back(polyPoints.size());
-			pointCount.push_back(subpPointCount);
+			pointCount.push_back(subpPointCount + 2);
 			// Necessary for the raycasting to work, separates components of complex polygons
 			polyPoints.push_back({ 0, 0 });
 			for (int j = 0; j < subpPointCount; j++)

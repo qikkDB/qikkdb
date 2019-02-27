@@ -8,6 +8,28 @@
 #include "../dropdbase/ComplexPolygonFactory.h"
 #include "../dropdbase/PointFactory.h"
 
+class DatabaseTests : public ::testing::Test
+{
+protected:
+	const std::string path = Configuration::GetInstance().GetDatabaseDir() + "/testDatabase/";
+	const std::string dbName = "TestDatabase";
+	const int32_t blockNum = 2; //number of blocks
+	const int32_t blockSize = 3; //length of a block
+
+	std::shared_ptr<Database> database;
+	virtual void SetUp()
+	{
+		database = std::make_shared<Database>(dbName.c_str(), blockSize);
+	}
+
+	virtual void TearDown()
+	{
+		//clean up occurs when test completes or an exception is thrown
+		Database::DestroyDatabase("TestDatabase");
+	}
+};
+
+
 /// Integration test - tests the following fucntions and procedures:
 ///  - Persist()
 ///  - SaveAllToDisk()
@@ -16,16 +38,9 @@
 ///  - LoadColumns()
 ///  - CreateTable()
 ///  - AddToInMemoryDatabaseList()
-TEST(DatabaseTests, SaveLoadTest)
+TEST_F(DatabaseTests, SaveLoadTest)
 {
 	boost::filesystem::current_path();
-
-	const std::string path = Configuration::GetInstance().GetDatabaseDir() + "/testDatabase/";
-	const std::string dbName = "TestDatabase";
-	const int32_t blockNum = 2; //number of blocks
-	const int32_t blockSize = 3; //length of a block
-
-	std::shared_ptr<Database> database = std::make_shared<Database>(dbName.c_str(), blockSize);
 
 	Database::AddToInMemoryDatabaseList(database);
 
@@ -239,4 +254,5 @@ TEST(DatabaseTests, SaveLoadTest)
 		ASSERT_EQ(PointFactory::WktFromPoint(data[1]), "POINT(12 11.15)");
 		ASSERT_EQ(PointFactory::WktFromPoint(data[2]), "POINT(9 8)");
 	}
+
 }
