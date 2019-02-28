@@ -642,7 +642,7 @@ int32_t containsConstConst(GpuSqlDispatcher &dispatcher)
 	if (!dispatcher.isRegisterAllocated(reg))
 	{
         int8_t* result = dispatcher.allocateRegister<int8_t>(reg, retSize);
-        GPUPolygon::contains(result, constNativeGeoPoint,
+        GPUPolygon::containsConst(result, constNativeGeoPoint,
                              reinterpret_cast<NativeGeoPoint*>(std::get<0>(
                                  dispatcher.allocatedPointers.at(gpuPolygon + "_polyPoints"))),
                              reinterpret_cast<int32_t*>(std::get<0>(
@@ -653,7 +653,7 @@ int32_t containsConstConst(GpuSqlDispatcher &dispatcher)
                                  dispatcher.allocatedPointers.at(gpuPolygon + "_pointIdx"))),
                              reinterpret_cast<int32_t*>(std::get<0>(
                                  dispatcher.allocatedPointers.at(gpuPolygon + "_pointCount"))),
-                             1, 1);
+			retSize);
 	}
 	return 0;
 }

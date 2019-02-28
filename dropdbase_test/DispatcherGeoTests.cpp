@@ -72,6 +72,62 @@ protected:
 			ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
 		}
 	}
+
+
+	void GeoContainsConstPolyConstPointTest(const std::string& polygon,
+		const std::string& point,
+		std::vector<int32_t> expectedResult)
+	{
+		auto columns = std::unordered_map<std::string, DataType>();
+		columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
+		geoDatabase->CreateTable(columns, tableName.c_str());
+
+		// Create column with IDs
+		std::vector<int32_t> colID;
+		for (int i = 0; i < expectedResult.size(); i++)
+		{
+			colID.push_back(i);
+		}
+		reinterpret_cast<ColumnBase<int32_t>*>(geoDatabase->GetTables().at("SimpleTable").
+			GetColumns().at("colID").get())->InsertData(colID);
+
+		// Execute the query
+		GpuSqlCustomParser parser(geoDatabase, "SELECT colID FROM " + tableName + " WHERE GEO_CONTAINS("+ polygon +" , " + point + ");");
+		auto resultPtr = parser.parse();
+		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+		auto &payloads = result->payloads().at("SimpleTable.colID");
+
+		ASSERT_EQ(expectedResult.size(), payloads.intpayload().intdata_size()) << "size is not correct";
+		for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+		{
+			ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
+		}
+	}
+
+	void GeoContainsNotConstPolyConstPointTest(const std::string& polygon,
+		const std::string& point)
+	{
+		auto columns = std::unordered_map<std::string, DataType>();
+		columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
+		geoDatabase->CreateTable(columns, tableName.c_str());
+
+		// Create column with IDs
+		std::vector<int32_t> colID;
+		for (int i = 0; i < 10; i++)
+		{
+			colID.push_back(i);
+		}
+		reinterpret_cast<ColumnBase<int32_t>*>(geoDatabase->GetTables().at("SimpleTable").
+			GetColumns().at("colID").get())->InsertData(colID);
+
+		// Execute the query
+		GpuSqlCustomParser parser(geoDatabase, "SELECT colID FROM " + tableName + " WHERE GEO_CONTAINS(" + polygon + " , " + point + ");");
+		auto resultPtr = parser.parse();
+		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+		auto &payloads = result->payloads().at("SimpleTable.colID");
+
+		ASSERT_EQ(0, payloads.intpayload().intdata_size()) << "size is not correct";
+	}
 };
 
 
@@ -113,4 +169,18 @@ TEST_F(DispatcherGeoTests, GeoNestedComplexPolygonContains)
 	GeoContainsGenericTest("POLYGON((0 0,10 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 5))",
 		{ {-2, 1}, {1, 1}, {6, 1}, {1, 6}, {6, 5.5}, {5.5, 6}, {8, 8}, {12, 8}, {12, 8}, {20, 20} },
 		{ 1, 2, 3, 5, 6 });
+}
+
+
+TEST_F(DispatcherGeoTests, GeoConstPolyConstPoint)
+{
+	GeoContainsConstPolyConstPointTest("POLYGON((0 0,10 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 5))",
+		 "POINT(2 1)", 
+		{ 0, 1, 2, 3, 4 });
+}
+
+TEST_F(DispatcherGeoTests, GeoNotConstPolyConstPoint)
+{
+	GeoContainsNotConstPolyConstPointTest("POLYGON((0 0,10 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 5))",
+		"POINT(-2 1)");
 }
