@@ -20,6 +20,17 @@ public:
 		decimal_(decimal)
 	{
 	}
+
+	CSVDataImporter(const char* inputString, const char* tableName, const std::vector<DataType>& dataTypes, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.') :
+		inputStream_(std::make_unique<std::istringstream>(inputString)),
+		tableName_(tableName),
+		header_(header),
+		delimiter_(delimiter),
+		quotes_(quotes),
+		decimal_(decimal),
+		dataTypes_(dataTypes)
+	{
+	}
 	
 	CSVDataImporter(const char* fileName, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.');
 	

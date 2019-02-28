@@ -24,8 +24,10 @@ CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimit
 void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 {
 	this->ExtractHeaders();
-	
-	this->ExtractTypes();
+	if (dataTypes_.empty())
+	{
+		this->ExtractTypes();
+	}
 
 	inputStream_->clear();
 	inputStream_->seekg(0, std::ios::beg);
