@@ -166,7 +166,7 @@ TEST_F(DatabaseTests, SaveLoadTest)
 	//high level stuff:
 	ASSERT_EQ(loadedTables.size(), 2);
 	ASSERT_EQ(firstTableColumns.size(), 3);
-	ASSERT_EQ(secondTableColumns.size(), 7);
+	ASSERT_EQ(secondTableColumns.size(), 8);
 
 	//first table block counts:
 	ASSERT_EQ((firstTableColumns.at("colInteger").get())->GetBlockCount(), blockNum);
