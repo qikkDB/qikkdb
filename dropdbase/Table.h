@@ -13,16 +13,16 @@ class Database;
 class Table
 {
 private:
-	const std::shared_ptr<Database> database;
+	const std::shared_ptr<Database>& database;
 	std::string name;
 	int32_t blockSize;
 	std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
 
 public:
-	const std::shared_ptr<Database> &GetDatabase();
-	const std::string &GetName();
-	int32_t GetBlockSize();
-	int32_t GetBlockCount();
+	const std::shared_ptr<Database> &GetDatabase() const;
+	const std::string &GetName() const;
+	int32_t GetBlockSize() const;
+	int32_t GetBlockCount() const;
 	const std::unordered_map<std::string, std::unique_ptr<IColumn>> &GetColumns() const;
 
 	Table(const std::shared_ptr<Database> &database, const char* name);

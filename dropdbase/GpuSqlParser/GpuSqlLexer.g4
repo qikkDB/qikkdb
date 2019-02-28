@@ -9,6 +9,7 @@ WS          : [\t\r\n ]+ -> skip ;
 SEMICOL     : ';';
 SQOUTE      : '\'';
 DQOUTE      : '"';
+UNDERSCORE  : '_';
 COLON       : ':';
 COMMA       : ',';
 DOT         : '.';
@@ -80,9 +81,9 @@ HOUR        : H O U R;
 MINUTE      : M I N U T E;
 SECOND      : S E C O N D;
 
-GEO             : (CONTAINS);
-
-CONTAINS        : C O N T A I N S;
+GEO_CONTAINS        : G E O UNDERSCORE C O N T A I N S;
+GEO_INTERSECT       : G E O UNDERSCORE I N T E R S E C T;
+GEO_UNION           : G E O UNDERSCORE U N I O N;
 
 PLUS        : '+' ;
 MINUS       : '-' ;

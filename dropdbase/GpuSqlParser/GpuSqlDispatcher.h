@@ -96,6 +96,8 @@ int32_t aggregationConstConst(GpuSqlDispatcher &dispatcher);
 
 ////
 
+//contains
+
 template<typename T, typename U>
 int32_t containsColConst(GpuSqlDispatcher &dispatcher);
 
@@ -107,6 +109,18 @@ int32_t containsColCol(GpuSqlDispatcher &dispatcher);
 
 template<typename T, typename U>
 int32_t containsConstConst(GpuSqlDispatcher &dispatcher);
+
+template <typename OP, typename T, typename U>
+int32_t polygonOperationColConst(GpuSqlDispatcher& dispatcher);
+
+template <typename OP, typename T, typename U>
+int32_t polygonOperationConstCol(GpuSqlDispatcher& dispatcher);
+
+template <typename OP, typename T, typename U>
+int32_t polygonOperationColCol(GpuSqlDispatcher& dispatcher);
+
+template <typename OP, typename T, typename U>
+int32_t polygonOperationConstConst(GpuSqlDispatcher& dispatcher);
 
 template<typename T>
 int32_t logicalNotCol(GpuSqlDispatcher &dispatcher);
@@ -247,6 +261,10 @@ private:
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> containsFunctions;
+    static std::array<std::function<int32_t(GpuSqlDispatcher&)>, 
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> intersectFunctions;
+    static std::array<std::function<int32_t(GpuSqlDispatcher&)>, 
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> unionFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
@@ -289,8 +307,6 @@ private:
 
 	static int32_t groupByDoneCounter_;
 	static int32_t groupByDoneLimit_;
-	static bool groupByDone_;
-
 
 public:
 	static std::mutex groupByMutex_;
@@ -299,19 +315,17 @@ public:
 	static void IncGroupByDoneCounter()
 	{
 		groupByDoneCounter_++;
-		groupByDone_ = (groupByDoneCounter_ == groupByDoneLimit_);
 	}
 
 	static bool IsGroupByDone()
 	{
-		return groupByDone_;
+		return (groupByDoneCounter_ == groupByDoneLimit_);
 	}
 
 	static void ResetGroupByCounters()
 	{
 		groupByDoneCounter_ = 0;
 		groupByDoneLimit_ = 0;
-		groupByDone_ = false;
 	}
 
     GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);
@@ -355,6 +369,10 @@ public:
     void addModFunction(DataType left, DataType right);
 
     void addContainsFunction(DataType left, DataType right);
+
+	void addIntersectFunction(DataType left, DataType right);
+
+	void addUnionFunction(DataType left, DataType right);
 
     void addLogicalNotFunction(DataType type);
 
@@ -441,7 +459,7 @@ public:
 			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
 
 			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-				database->GetName() + "_" + colName, blockIndex, block->GetSize());
+				database->GetName(), colName, blockIndex, block->GetSize());
             if (!std::get<2>(cacheEntry))
             {
                 GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
@@ -457,7 +475,7 @@ public:
 
 	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
-	void insertComplexPolygon(const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
+	void insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	std::string insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
@@ -534,6 +552,8 @@ public:
 
 	////
 
+	//contains
+
     template<typename T, typename U>
     friend int32_t containsColConst(GpuSqlDispatcher &dispatcher);
 
@@ -545,9 +565,20 @@ public:
     template<typename T, typename U>
     friend int32_t containsColCol(GpuSqlDispatcher &dispatcher);
 
+    template <typename T, typename U>
+    friend int32_t containsConstConst(GpuSqlDispatcher& dispatcher);
 
-    template<typename T, typename U>
-    friend int32_t containsConstConst(GpuSqlDispatcher &dispatcher);
+	template <typename OP, typename T, typename U>
+    friend int32_t polygonOperationColConst(GpuSqlDispatcher& dispatcher);
+
+    template <typename OP, typename T, typename U>
+    friend int32_t polygonOperationConstCol(GpuSqlDispatcher& dispatcher);
+
+    template <typename OP, typename T, typename U>
+    friend int32_t polygonOperationColCol(GpuSqlDispatcher& dispatcher);
+
+    template <typename OP, typename T, typename U>
+    friend int32_t polygonOperationConstConst(GpuSqlDispatcher& dispatcher);
 
     int32_t between();
 

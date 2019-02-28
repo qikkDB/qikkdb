@@ -64,6 +64,9 @@ private:
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
 
+	int32_t resultLimit;
+    int32_t resultOffset;
+
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) override;
 
     void exitTernaryOperation(GpuSqlParser::TernaryOperationContext *ctx) override;
@@ -111,6 +114,12 @@ public:
 	void exitShowColumns(GpuSqlParser::ShowColumnsContext *ctx) override;
 
 	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
+
+	void exitLimit(GpuSqlParser::LimitContext *ctx) override;
+
+	void exitOffset(GpuSqlParser::OffsetContext *ctx) override;
+
+
 };
 
 

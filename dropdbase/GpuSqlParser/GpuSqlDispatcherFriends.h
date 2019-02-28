@@ -658,6 +658,38 @@ int32_t containsConstConst(GpuSqlDispatcher &dispatcher)
 	return 0;
 }
 
+template <typename OP, typename T, typename U>
+int32_t polygonOperationColConst(GpuSqlDispatcher& dispatcher)
+{
+    std::cout << "Polygon operation: " << std::endl;
+    return 0;
+}
+
+template <typename OP, typename T, typename U>
+int32_t polygonOperationConstCol(GpuSqlDispatcher& dispatcher)
+{
+    std::cout << "Polygon operation: " << std::endl;
+    return 0;
+}
+
+template <typename OP, typename T, typename U>
+int32_t polygonOperationColCol(GpuSqlDispatcher& dispatcher)
+{
+	auto colNameRight = dispatcher.arguments.read<std::string>();
+    auto colNameLeft = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+    std::cout << "Polygon operation: " << colNameRight << " " << colNameLeft << " " << reg << std::endl;
+    return 0;
+}
+
+template <typename OP, typename T, typename U>
+int32_t polygonOperationConstConst(GpuSqlDispatcher& dispatcher)
+{
+    std::cout << "Polygon operation: " << std::endl;
+    return 0;
+}
+
 template<typename T>
 int32_t logicalNotCol(GpuSqlDispatcher &dispatcher)
 {

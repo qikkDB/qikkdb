@@ -8,6 +8,7 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ClientHandlerTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/CSVDataImportTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherGeoTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp)
@@ -23,7 +24,9 @@ if(WIN32)
 	set_source_files_properties(${TEST_FILES} PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275")
 	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "-Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\" -Xcompiler=\"/bigobj\"")
 endif(WIN32)
-
+if(NOT WIN32)
+	set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "--compiler-bindir=${CMAKE_CXX_COMPILER}")
+endif(NOT WIN32)
 add_executable(${PROJECT_NAME}_test ${SOURCE_FILES} ${CUDA_FILES} ${TEST_FILES} ${CUDA_TEST_FILES})
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIR}) 
