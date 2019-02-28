@@ -653,7 +653,7 @@ int32_t containsConstConst(GpuSqlDispatcher &dispatcher)
                                  dispatcher.allocatedPointers.at(gpuPolygon + "_pointIdx"))),
                              reinterpret_cast<int32_t*>(std::get<0>(
                                  dispatcher.allocatedPointers.at(gpuPolygon + "_pointCount"))),
-                             1, 1, retSize);
+			retSize);
 	}
 	return 0;
 }

@@ -175,22 +175,15 @@ public:
 		int32_t* complexPolygonCnt,
 		int32_t* polygonIdx,
 		int32_t* polygonCnt,
-		int32_t pointCount,
-		int32_t polygonCount,
 		int32_t retSize)
 	{
 		Context& context = Context::getInstance();
 
-		if (pointCount != polygonCount && pointCount != 1 && polygonCount != 1)
-		{
-			QueryEngineError::setType(QueryEngineError::GPU_EXTENSION_ERROR);
-			return;
-		}
 
-		kernel_point_in_polygon << <context.calcGridDim((pointCount > polygonCount ? pointCount : polygonCount)),
+		kernel_point_in_polygon << <context.calcGridDim(1),
 			context.getBlockDim() >> > (outMask, geoPointsInput, geoPoints,
 				complexPolygonIdx, complexPolygonCnt, polygonIdx,
-				polygonCnt, pointCount, polygonCount);
+				polygonCnt, 1, 1);
 		int8_t result;
 		GPUMemory::copyDeviceToHost(&result, outMask, 1);
 		GPUMemory::memset(outMask, result, retSize);
