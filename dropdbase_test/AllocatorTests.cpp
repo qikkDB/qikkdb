@@ -8,7 +8,7 @@
 
 TEST(AllocatorTests, AllocateDeallocate)
 {
-    int SIZE = 2048;
+    const int SIZE = 2048;
 
     auto& context = Context::getInstance();
 
@@ -22,20 +22,20 @@ TEST(AllocatorTests, AllocateDeallocate)
     // check if it is correct:
     for (int i = 0; i < pointers.size(); i++)
     {
-		for (int j = 0; j < pointers.size(); j++)
-		{
-			if (i != j)
-			{
+        for (int j = 0; j < pointers.size(); j++)
+        {
+            if (i != j)
+            {
                 ASSERT_TRUE(pointers[j] >= pointers[i] + SIZE ||
-                    (pointers[j] < pointers[i] && pointers[i] >= pointers[j] + SIZE));
-			}
-		}   
+                            (pointers[j] < pointers[i] && pointers[i] >= pointers[j] + SIZE));
+            }
+        }
     }
 
-	pointers.push_back(allocator.allocate(SIZE));
+    pointers.push_back(allocator.allocate(SIZE));
     allocator.deallocate(pointers[0], 0);
 
-	    // check if it is correct:
+    // check if it is correct:
     for (int i = 0; i < pointers.size(); i++)
     {
         for (int j = 0; j < pointers.size(); j++)
