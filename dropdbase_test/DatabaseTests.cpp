@@ -60,7 +60,7 @@ TEST_F(DatabaseTests, SaveLoadTest)
 	columnsTable2.insert( {"colLong", COLUMN_LONG} );
 	columnsTable2.insert( {"colPolygon", COLUMN_POLYGON} );
 	columnsTable2.insert( {"colPoint", COLUMN_POINT} );
-	columnsTable2.insert({ "colBool", COLUMN_INT8_T });
+	columnsTable2.insert( {"colBool", COLUMN_INT8_T });
 	database->CreateTable(columnsTable2, "TestTable2");
 
 	auto& tables = database->GetTables();
@@ -208,7 +208,7 @@ TEST_F(DatabaseTests, SaveLoadTest)
 	ASSERT_EQ((secondTableColumns.at("colDouble").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((secondTableColumns.at("colPolygon").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((secondTableColumns.at("colPoint").get())->GetBlockCount(), blockNum);
-	ASSERT_EQ((secondTableColumns.at("col´Bool").get())->GetBlockCount(), blockNum);
+	ASSERT_EQ((secondTableColumns.at("colBool").get())->GetBlockCount(), blockNum);
 
 	//second table colInteger:
 	for (int i = 0; i < blockNum; i++)
