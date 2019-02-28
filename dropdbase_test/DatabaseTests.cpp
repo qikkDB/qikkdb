@@ -60,6 +60,7 @@ TEST_F(DatabaseTests, SaveLoadTest)
 	columnsTable2.insert( {"colLong", COLUMN_LONG} );
 	columnsTable2.insert( {"colPolygon", COLUMN_POLYGON} );
 	columnsTable2.insert( {"colPoint", COLUMN_POINT} );
+	columnsTable2.insert( {"colBool", COLUMN_INT8_T });
 	database->CreateTable(columnsTable2, "TestTable2");
 
 	auto& tables = database->GetTables();
@@ -77,6 +78,7 @@ TEST_F(DatabaseTests, SaveLoadTest)
 	auto& colLong2 = table2.GetColumns().at("colLong");
 	auto& colPolygon2 = table2.GetColumns().at("colPolygon");
 	auto& colPoint2 = table2.GetColumns().at("colPoint");
+	auto& colBool2 = table2.GetColumns().at("colBool");
 
 	for (int i = 0; i < blockNum; i++)
 	{
@@ -141,6 +143,12 @@ TEST_F(DatabaseTests, SaveLoadTest)
 		dataPoint2.push_back(PointFactory::FromWkt("POINT(12 11.15)"));
 		dataPoint2.push_back(PointFactory::FromWkt("POINT(9 8)"));
 		dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(colPoint2.get())->AddBlock(dataPoint2);
+
+		std::vector<int8_t> dataBool2;
+		dataBool2.push_back(-1);
+		dataBool2.push_back(0);
+		dataBool2.push_back(1);
+		dynamic_cast<ColumnBase<int8_t>*>(colBool2.get())->AddBlock(dataBool2);
 	}
 
 	std::string storePath = path + dbName;
@@ -158,7 +166,7 @@ TEST_F(DatabaseTests, SaveLoadTest)
 	//high level stuff:
 	ASSERT_EQ(loadedTables.size(), 2);
 	ASSERT_EQ(firstTableColumns.size(), 3);
-	ASSERT_EQ(secondTableColumns.size(), 7);
+	ASSERT_EQ(secondTableColumns.size(), 8);
 
 	//first table block counts:
 	ASSERT_EQ((firstTableColumns.at("colInteger").get())->GetBlockCount(), blockNum);
@@ -200,6 +208,7 @@ TEST_F(DatabaseTests, SaveLoadTest)
 	ASSERT_EQ((secondTableColumns.at("colDouble").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((secondTableColumns.at("colPolygon").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((secondTableColumns.at("colPoint").get())->GetBlockCount(), blockNum);
+	ASSERT_EQ((secondTableColumns.at("colBool").get())->GetBlockCount(), blockNum);
 
 	//second table colInteger:
 	for (int i = 0; i < blockNum; i++)
@@ -255,4 +264,12 @@ TEST_F(DatabaseTests, SaveLoadTest)
 		ASSERT_EQ(PointFactory::WktFromPoint(data[2]), "POINT(9 8)");
 	}
 
+	//second table colBool:
+	for (int i = 0; i < blockNum; i++)
+	{
+		auto data = dynamic_cast<ColumnBase<int8_t>*>(secondTableColumns.at("colBool").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_EQ(data[0], -1);
+		ASSERT_EQ(data[1], 0);
+		ASSERT_EQ(data[2], 1);
+	}
 }

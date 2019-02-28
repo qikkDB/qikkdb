@@ -460,6 +460,55 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
     }
     break;
 
+	case COLUMN_INT8_T:
+    {
+        table.CreateColumn(columnName.c_str(), COLUMN_INT8_T);
+
+        auto& columnInt = dynamic_cast<ColumnBase<int8_t>&>(*table.GetColumns().at(columnName));
+
+        while (!colFile.eof())
+        {
+            int32_t index;
+            colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+
+            // this is needed because of how EOF is checked:
+            if (colFile.eof())
+            {
+                BOOST_LOG_TRIVIAL(debug)
+                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << columnName << ".col has finished successfully." << std::endl;
+                break;
+            }
+
+            int32_t dataLength;
+            colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+
+            if (index != nullIndex) // there is null block
+            {
+                columnInt.AddBlock(); // add empty block
+                BOOST_LOG_TRIVIAL(debug)
+                    << "Added empty Int8 block at index: " << nullIndex << "." << std::endl;
+            }
+            else // read data from block
+            {
+                std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength * sizeof(int8_t));
+                int8_t* dataTemp;
+
+                colFile.read(data.get(), dataLength * sizeof(int8_t)); // read entry data
+
+                dataTemp = reinterpret_cast<int8_t*>(data.get());
+                std::vector<int8_t> dataInt(dataTemp, dataTemp + dataLength);
+
+                columnInt.AddBlock(dataInt);
+                BOOST_LOG_TRIVIAL(debug)
+                    << "Added Int8 block with data at index: " << index << "." << std::endl;
+            }
+
+            nullIndex += 1;
+        }
+    }
+    break;
+
     case COLUMN_INT:
     {
         table.CreateColumn(columnName.c_str(), COLUMN_INT);
@@ -747,6 +796,13 @@ int Database::GetBlockCount()
     return 0;
 }
 
+/// <summary>
+/// Write column into disk.
+/// </summary>
+/// <param name="column">Column to be written.</param>
+/// <param name="pathStr">Path to database storage directory.</param>
+/// <param name="name">Names of particular column.</param>
+/// <param name="table">Names of particular table.</param>
 void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
                            std::string pathStr,
                            std::string name,
@@ -883,6 +939,30 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); // write entry length
                     colFile.write(data[i].c_str(), entryByteLength); // write entry data
                 }
+                index += 1;
+            }
+        }
+    }
+    break;
+
+	 case COLUMN_INT8_T:
+    {
+        int32_t index = 0;
+
+        const ColumnBase<int8_t>& colInt = dynamic_cast<const ColumnBase<int8_t>&>(*(column.second));
+
+        for (const auto& block : colInt.GetBlocksList())
+        {
+            BOOST_LOG_TRIVIAL(debug) << "Saving block of Int8 data with index = " << index << "." << std::endl;
+
+            auto data = block->GetData();
+            int32_t dataLength = block->GetSize();
+
+            if (dataLength > 0)
+            {
+                colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+                colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int8_t)); // write block of data
                 index += 1;
             }
         }

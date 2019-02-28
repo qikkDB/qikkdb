@@ -71,7 +71,13 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 	{
 		column = std::make_unique<ColumnBase<ColmnarDB::Types::Point>>(columnName, blockSize);
 	}
+	else if (columnType == COLUMN_INT8_T)
+	{
+		column = std::make_unique<ColumnBase<int8_t>>(columnName, blockSize);
+	}
 	columns.insert(std::make_pair(columnName, std::move(column)));
+
+
 }
 #ifndef __CUDACC__
 void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
