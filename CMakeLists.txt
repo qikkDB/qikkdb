@@ -130,7 +130,7 @@ add_dependencies(${GTEST_LIBRARY} googletest)
 
 
 SET(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.66.0 COMPONENTS system filesystem log REQUIRED)
+find_package(Boost 1.66.0 COMPONENTS system filesystem log iostreams REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 find_package(yaml-cpp REQUIRED)

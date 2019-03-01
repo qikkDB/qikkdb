@@ -1,3 +1,4 @@
+#include "CSVDataImporter.h"
 #include <cstdio>
 #include <iostream>
 #include <chrono>
@@ -15,7 +16,7 @@
 #include "TCPClientHandler.h"
 #include "ConsoleHandler.h"
 #include "QueryEngine/GPUMemoryCache.h"
-#include "CSVDataImporter.h"
+
 
 int main(int argc, char **argv)
 {
