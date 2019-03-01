@@ -29,6 +29,8 @@ public:
 	void ExtractHeaders();
 	void ExtractTypes();
 	void SetTypes(const std::vector<DataType>& types);
+	int GetNumberOfThreads() const { return numThreads_; }
+	void SetNumberOfThreads(const int numThreads) { numThreads_ = numThreads; }
 private:
 	std::unique_ptr<std::istream> inputStream_;
 	std::unique_ptr<boost::iostreams::mapped_file> inputMapped_;

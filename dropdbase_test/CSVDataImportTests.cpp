@@ -86,7 +86,26 @@ TEST(CSVDataImportTests, GuessTypesMessedTypes)
 	Database::DestroyDatabase("testDatabase");
 }
 
-TEST(CSVDataImportTests, Import)
+TEST(CSVDataImportTests, ImportSingleThread)
+{
+	auto database = std::make_shared<Database>("testDatabase", 1024);
+	Database::AddToInMemoryDatabaseList(database);
+
+	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header.csv", true, ',');
+	importer.SetNumberOfThreads(1);
+	importer.ImportTables(database);
+
+
+
+	ASSERT_EQ(101, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetSize());
+	ASSERT_EQ(11, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetData()[10]);
+	ASSERT_EQ(21.2282657634477f, dynamic_cast<ColumnBase<float>*>(database->GetTables().find("valid_header")->second.GetColumns().at("longitude").get())->GetBlocksList().front()->GetData()[11]);
+	ASSERT_EQ(-1, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("genderId").get())->GetBlocksList().front()->GetData()[12]);
+	ASSERT_EQ(3, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("hwOsId").get())->GetBlocksList().front()->GetData()[100]);
+	Database::DestroyDatabase("testDatabase");
+}
+
+TEST(CSVDataImportTests, ImportMultiThread)
 {
 	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Database::AddToInMemoryDatabaseList(database);
@@ -94,13 +113,9 @@ TEST(CSVDataImportTests, Import)
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header.csv", true, ',');
 	importer.ImportTables(database);
 
-	
+
 
 	ASSERT_EQ(101, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetSize());
-	ASSERT_EQ(11, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetData()[10]);
-	ASSERT_EQ(21.2282657634477f, dynamic_cast<ColumnBase<float>*>(database->GetTables().find("valid_header")->second.GetColumns().at("longitude").get())->GetBlocksList().front()->GetData()[11]);
-	ASSERT_EQ(-1, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("genderId").get())->GetBlocksList().front()->GetData()[12]);
-	ASSERT_EQ(3, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("hwOsId").get())->GetBlocksList().front()->GetData()[100]);	
 	Database::DestroyDatabase("testDatabase");
 }
 
