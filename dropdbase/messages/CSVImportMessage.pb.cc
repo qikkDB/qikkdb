@@ -50,6 +50,7 @@ void InitDefaults() {
 }
 
 ::google::protobuf::Metadata file_level_metadata[1];
+const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors[1];
 
 const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
@@ -60,6 +61,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, databasename_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, csvname_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, payload_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, columntypes_),
 };
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::ColmnarDB::NetworkClient::Message::CSVImportMessage)},
@@ -73,7 +75,7 @@ void protobuf_AssignDescriptors() {
   AddDescriptors();
   AssignDescriptors(
       "CSVImportMessage.proto", schemas, file_default_instances, TableStruct::offsets,
-      file_level_metadata, NULL, NULL);
+      file_level_metadata, file_level_enum_descriptors, NULL);
 }
 
 void protobuf_AssignDescriptorsOnce() {
@@ -91,12 +93,22 @@ void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
       "\n\026CSVImportMessage.proto\022\037ColmnarDB.Netw"
-      "orkClient.Message\"J\n\020CSVImportMessage\022\024\n"
-      "\014DatabaseName\030\001 \001(\t\022\017\n\007CSVName\030\002 \001(\t\022\017\n\007"
-      "Payload\030\003 \001(\tb\006proto3"
+      "orkClient.Message\"\212\001\n\020CSVImportMessage\022\024"
+      "\n\014DatabaseName\030\001 \001(\t\022\017\n\007CSVName\030\002 \001(\t\022\017\n"
+      "\007Payload\030\003 \001(\t\022>\n\013ColumnTypes\030\004 \003(\0162).Co"
+      "lmnarDB.NetworkClient.Message.DataType*\324"
+      "\002\n\010DataType\022\r\n\tCONST_INT\020\000\022\030\n\013CONST_ERRO"
+      "R\020\377\377\377\377\377\377\377\377\377\001\022\016\n\nCONST_LONG\020\001\022\017\n\013CONST_FL"
+      "OAT\020\002\022\020\n\014CONST_DOUBLE\020\003\022\017\n\013CONST_POINT\020\004"
+      "\022\021\n\rCONST_POLYGON\020\005\022\020\n\014CONST_STRING\020\006\022\020\n"
+      "\014CONST_INT8_T\020\007\022\016\n\nCOLUMN_INT\020\010\022\017\n\013COLUM"
+      "N_LONG\020\t\022\020\n\014COLUMN_FLOAT\020\n\022\021\n\rCOLUMN_DOU"
+      "BLE\020\013\022\020\n\014COLUMN_POINT\020\014\022\022\n\016COLUMN_POLYGO"
+      "N\020\r\022\021\n\rCOLUMN_STRING\020\016\022\021\n\rCOLUMN_INT8_T\020"
+      "\017\022\022\n\016DATA_TYPE_SIZE\020\020b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 141);
+      descriptor, 549);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "CSVImportMessage.proto", &protobuf_RegisterTypes);
 }
@@ -115,6 +127,36 @@ struct StaticDescriptorInitializer {
 namespace ColmnarDB {
 namespace NetworkClient {
 namespace Message {
+const ::google::protobuf::EnumDescriptor* DataType_descriptor() {
+  protobuf_CSVImportMessage_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_CSVImportMessage_2eproto::file_level_enum_descriptors[0];
+}
+bool DataType_IsValid(int value) {
+  switch (value) {
+    case -1:
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+      return true;
+    default:
+      return false;
+  }
+}
+
 
 // ===================================================================
 
@@ -124,6 +166,7 @@ void CSVImportMessage::InitAsDefaultInstance() {
 const int CSVImportMessage::kDatabaseNameFieldNumber;
 const int CSVImportMessage::kCSVNameFieldNumber;
 const int CSVImportMessage::kPayloadFieldNumber;
+const int CSVImportMessage::kColumnTypesFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 CSVImportMessage::CSVImportMessage()
@@ -135,7 +178,8 @@ CSVImportMessage::CSVImportMessage()
 }
 CSVImportMessage::CSVImportMessage(const CSVImportMessage& from)
   : ::google::protobuf::Message(),
-      _internal_metadata_(NULL) {
+      _internal_metadata_(NULL),
+      columntypes_(from.columntypes_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   databasename_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   if (from.databasename().size() > 0) {
@@ -189,6 +233,7 @@ void CSVImportMessage::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  columntypes_.Clear();
   databasename_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   csvname_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   payload_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
@@ -253,6 +298,35 @@ bool CSVImportMessage::MergePartialFromCodedStream(
         break;
       }
 
+      // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
+      case 4: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(34u /* 34 & 0xFF */)) {
+          ::google::protobuf::uint32 length;
+          DO_(input->ReadVarint32(&length));
+          ::google::protobuf::io::CodedInputStream::Limit limit = input->PushLimit(static_cast<int>(length));
+          while (input->BytesUntilLimit() > 0) {
+            int value;
+            DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+            add_columntypes(static_cast< ::ColmnarDB::NetworkClient::Message::DataType >(value));
+          }
+          input->PopLimit(limit);
+        } else if (
+            static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(32u /* 32 & 0xFF */)) {
+          int value;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          add_columntypes(static_cast< ::ColmnarDB::NetworkClient::Message::DataType >(value));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
       default: {
       handle_unusual:
         if (tag == 0) {
@@ -309,6 +383,20 @@ void CSVImportMessage::SerializeWithCachedSizes(
       3, this->payload(), output);
   }
 
+  // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
+  if (this->columntypes_size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteTag(
+      4,
+      ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
+      output);
+    output->WriteVarint32(
+        static_cast< ::google::protobuf::uint32>(_columntypes_cached_byte_size_));
+  }
+  for (int i = 0, n = this->columntypes_size(); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnumNoTag(
+      this->columntypes(i), output);
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
@@ -356,6 +444,18 @@ void CSVImportMessage::SerializeWithCachedSizes(
         3, this->payload(), target);
   }
 
+  // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
+  if (this->columntypes_size() > 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
+      4,
+      ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
+      target);
+    target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(      static_cast< ::google::protobuf::uint32>(
+            _columntypes_cached_byte_size_), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumNoTagToArray(
+      this->columntypes_, target);
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
@@ -373,6 +473,25 @@ size_t CSVImportMessage::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
+  // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
+  {
+    size_t data_size = 0;
+    unsigned int count = static_cast<unsigned int>(this->columntypes_size());for (unsigned int i = 0; i < count; i++) {
+      data_size += ::google::protobuf::internal::WireFormatLite::EnumSize(
+        this->columntypes(static_cast<int>(i)));
+    }
+    if (data_size > 0) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+            static_cast< ::google::protobuf::int32>(data_size));
+    }
+    int cached_size = ::google::protobuf::internal::ToCachedSize(data_size);
+    GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+    _columntypes_cached_byte_size_ = cached_size;
+    GOOGLE_SAFE_CONCURRENT_WRITES_END();
+    total_size += data_size;
+  }
+
   // string DatabaseName = 1;
   if (this->databasename().size() > 0) {
     total_size += 1 +
@@ -421,6 +540,7 @@ void CSVImportMessage::MergeFrom(const CSVImportMessage& from) {
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
+  columntypes_.MergeFrom(from.columntypes_);
   if (from.databasename().size() > 0) {
 
     databasename_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.databasename_);
@@ -459,6 +579,7 @@ void CSVImportMessage::Swap(CSVImportMessage* other) {
 }
 void CSVImportMessage::InternalSwap(CSVImportMessage* other) {
   using std::swap;
+  columntypes_.InternalSwap(&other->columntypes_);
   databasename_.Swap(&other->databasename_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   csvname_.Swap(&other->csvname_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),

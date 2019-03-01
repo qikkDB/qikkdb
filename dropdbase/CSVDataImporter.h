@@ -26,7 +26,7 @@ public:
 	void ImportTables(std::shared_ptr<Database>& database);
 	void ExtractHeaders();
 	void ExtractTypes();
-
+	void SetTypes(const std::vector<DataType>& types);
 private:
 	std::unique_ptr<std::istream> inputStream_;
 	std::string tableName_;

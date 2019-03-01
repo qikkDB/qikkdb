@@ -24,8 +24,10 @@ CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimit
 void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 {
 	this->ExtractHeaders();
-	
-	this->ExtractTypes();
+	if (dataTypes_.empty())
+	{
+		this->ExtractTypes();
+	}
 
 	inputStream_->clear();
 	inputStream_->seekg(0, std::ios::beg);
@@ -396,3 +398,12 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 	return COLUMN_STRING;
 }
 
+/// <summary>
+/// Sets column types based on pre determined values
+/// Disables type guessing
+/// </summary>
+/// <param name="columnValues">vector of types values</param>
+void CSVDataImporter::SetTypes(const std::vector<DataType>& types)
+{
+	dataTypes_ = types;
+}
