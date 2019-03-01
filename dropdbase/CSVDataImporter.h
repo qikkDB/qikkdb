@@ -45,5 +45,5 @@ private:
 	std::mutex insertMutex_;
 
 	DataType IdentifyDataType(std::vector<std::string> columnValues);
-	void ParseAndImport(int tid, std::shared_ptr<Database>& database, std::unordered_map<std::string, DataType>& columns, Table& table);
+	void ParseAndImport(int threadId, int32_t blockSize, const std::unordered_map<std::string, DataType>& columns, Table& table);
 };

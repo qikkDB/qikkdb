@@ -50,7 +50,7 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 	
 	std::vector<std::thread> threads;
 	for (int i = 0; i < numThreads_; i++) {
-		threads.emplace_back(&CSVDataImporter::ParseAndImport, this, i, database, columns, std::ref(table));
+		threads.emplace_back(&CSVDataImporter::ParseAndImport, this, i, database->GetBlockSize(), columns, std::ref(table));
 	}
 	
 	for (int i = 0; i < numThreads_; ++i) {
@@ -65,7 +65,7 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 /// <param name="database">Database where data will be imported</param>
 /// <param name="columns">Columns with names and types: map columnName -> columnType</param>
 /// <param name="table">Table of the database where data will be imported</param>
-void CSVDataImporter::ParseAndImport(int threadId, std::shared_ptr<Database>& database, std::unordered_map<std::string, DataType>& columns, Table& table)
+void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std::unordered_map<std::string, DataType>& columns, Table& table)
 {
 		
 	size_t start = (inputSize_ / numThreads_) * threadId;
@@ -79,48 +79,48 @@ void CSVDataImporter::ParseAndImport(int threadId, std::shared_ptr<Database>& da
 		if (dataTypes_[i] == COLUMN_INT)
 		{
 			std::vector<int32_t> v;
-			v.reserve(database->GetBlockSize());
+			v.reserve(blockSize);
 			data[headers_[i]] = std::move(v);
 		}
 		else if (dataTypes_[i] == COLUMN_LONG)
 		{
 			std::vector<int64_t> v;
-			v.reserve(database->GetBlockSize());
+			v.reserve(blockSize);
 			data[headers_[i]] = std::move(v);
 		}
 		else if (dataTypes_[i] == COLUMN_FLOAT)
 		{
 			std::vector<float> v;
-			v.reserve(database->GetBlockSize());
+			v.reserve(blockSize);
 			data[headers_[i]] = std::move(v);
 		}
 		else if (dataTypes_[i] == COLUMN_DOUBLE)
 		{
 			std::vector<double> v;
-			v.reserve(database->GetBlockSize());
+			v.reserve(blockSize);
 			data[headers_[i]] = std::move(v);
 		}
 		else if (dataTypes_[i] == COLUMN_POINT)
 		{
 			std::vector<ColmnarDB::Types::Point> v;
-			v.reserve(database->GetBlockSize());
+			v.reserve(blockSize);
 			data[headers_[i]] = std::move(v);
 		}
 		else if (dataTypes_[i] == COLUMN_POLYGON)
 		{
 			std::vector<ColmnarDB::Types::ComplexPolygon> v;
-			v.reserve(database->GetBlockSize());
+			v.reserve(blockSize);
 			data[headers_[i]] = std::move(v);
 		}
 		else if (dataTypes_[i] == COLUMN_STRING)
 		{
 			std::vector<std::string> v;
-			v.reserve(database->GetBlockSize());
+			v.reserve(blockSize);
 			data[headers_[i]] = std::move(v);
 		}
 		else {
 			std::vector<std::string> v;
-			v.reserve(database->GetBlockSize());
+			v.reserve(blockSize);
 			data[headers_[i]] = std::move(v);
 		}
 	}
@@ -145,7 +145,7 @@ void CSVDataImporter::ParseAndImport(int threadId, std::shared_ptr<Database>& da
 					std::any value;
 					switch (dataTypes_[columnIndex]) {
 					case COLUMN_INT:
-						value = (int32_t)std::stol(field);
+						value = (int32_t)std::stoi(field);
 						break;
 					case COLUMN_LONG:
 						value = (int64_t)std::stoll(field);
@@ -218,7 +218,7 @@ void CSVDataImporter::ParseAndImport(int threadId, std::shared_ptr<Database>& da
 		position++;
 		
 		// inserts parsed data into database when blockSize reached
-		if (position % database->GetBlockSize() == 0) {
+		if (position % blockSize == 0) {
 
 			insertMutex_.lock();
 			table.InsertData(data);
