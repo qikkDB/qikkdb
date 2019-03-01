@@ -20,24 +20,13 @@ public:
 		decimal_(decimal)
 	{
 	}
-
-	CSVDataImporter(const char* inputString, const char* tableName, const std::vector<DataType>& dataTypes, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.') :
-		inputStream_(std::make_unique<std::istringstream>(inputString)),
-		tableName_(tableName),
-		header_(header),
-		delimiter_(delimiter),
-		quotes_(quotes),
-		decimal_(decimal),
-		dataTypes_(dataTypes)
-	{
-	}
 	
 	CSVDataImporter(const char* fileName, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.');
 	
 	void ImportTables(std::shared_ptr<Database>& database);
 	void ExtractHeaders();
 	void ExtractTypes();
-
+	void SetTypes(const std::vector<DataType>& types);
 private:
 	std::unique_ptr<std::istream> inputStream_;
 	std::string tableName_;

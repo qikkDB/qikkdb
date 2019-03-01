@@ -29,6 +29,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 #define PROTOBUF_INTERNAL_EXPORT_protobuf_CSVImportMessage_2eproto 
@@ -63,6 +64,43 @@ namespace ColmnarDB {
 namespace NetworkClient {
 namespace Message {
 
+enum DataType {
+  CONST_INT = 0,
+  CONST_ERROR = -1,
+  CONST_LONG = 1,
+  CONST_FLOAT = 2,
+  CONST_DOUBLE = 3,
+  CONST_POINT = 4,
+  CONST_POLYGON = 5,
+  CONST_STRING = 6,
+  CONST_INT8_T = 7,
+  COLUMN_INT = 8,
+  COLUMN_LONG = 9,
+  COLUMN_FLOAT = 10,
+  COLUMN_DOUBLE = 11,
+  COLUMN_POINT = 12,
+  COLUMN_POLYGON = 13,
+  COLUMN_STRING = 14,
+  COLUMN_INT8_T = 15,
+  DATA_TYPE_SIZE = 16,
+  DataType_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
+  DataType_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
+};
+bool DataType_IsValid(int value);
+const DataType DataType_MIN = CONST_ERROR;
+const DataType DataType_MAX = DATA_TYPE_SIZE;
+const int DataType_ARRAYSIZE = DataType_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* DataType_descriptor();
+inline const ::std::string& DataType_Name(DataType value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    DataType_descriptor(), value);
+}
+inline bool DataType_Parse(
+    const ::std::string& name, DataType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<DataType>(
+    DataType_descriptor(), name, value);
+}
 // ===================================================================
 
 class CSVImportMessage : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.NetworkClient.Message.CSVImportMessage) */ {
@@ -152,6 +190,16 @@ class CSVImportMessage : public ::google::protobuf::Message /* @@protoc_insertio
 
   // accessors -------------------------------------------------------
 
+  // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
+  int columntypes_size() const;
+  void clear_columntypes();
+  static const int kColumnTypesFieldNumber = 4;
+  ::ColmnarDB::NetworkClient::Message::DataType columntypes(int index) const;
+  void set_columntypes(int index, ::ColmnarDB::NetworkClient::Message::DataType value);
+  void add_columntypes(::ColmnarDB::NetworkClient::Message::DataType value);
+  const ::google::protobuf::RepeatedField<int>& columntypes() const;
+  ::google::protobuf::RepeatedField<int>* mutable_columntypes();
+
   // string DatabaseName = 1;
   void clear_databasename();
   static const int kDatabaseNameFieldNumber = 1;
@@ -198,6 +246,8 @@ class CSVImportMessage : public ::google::protobuf::Message /* @@protoc_insertio
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::RepeatedField<int> columntypes_;
+  mutable int _columntypes_cached_byte_size_;
   ::google::protobuf::internal::ArenaStringPtr databasename_;
   ::google::protobuf::internal::ArenaStringPtr csvname_;
   ::google::protobuf::internal::ArenaStringPtr payload_;
@@ -374,6 +424,36 @@ inline void CSVImportMessage::set_allocated_payload(::std::string* payload) {
   // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload)
 }
 
+// repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
+inline int CSVImportMessage::columntypes_size() const {
+  return columntypes_.size();
+}
+inline void CSVImportMessage::clear_columntypes() {
+  columntypes_.Clear();
+}
+inline ::ColmnarDB::NetworkClient::Message::DataType CSVImportMessage::columntypes(int index) const {
+  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
+  return static_cast< ::ColmnarDB::NetworkClient::Message::DataType >(columntypes_.Get(index));
+}
+inline void CSVImportMessage::set_columntypes(int index, ::ColmnarDB::NetworkClient::Message::DataType value) {
+  columntypes_.Set(index, value);
+  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
+}
+inline void CSVImportMessage::add_columntypes(::ColmnarDB::NetworkClient::Message::DataType value) {
+  columntypes_.Add(value);
+  // @@protoc_insertion_point(field_add:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
+}
+inline const ::google::protobuf::RepeatedField<int>&
+CSVImportMessage::columntypes() const {
+  // @@protoc_insertion_point(field_list:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
+  return columntypes_;
+}
+inline ::google::protobuf::RepeatedField<int>*
+CSVImportMessage::mutable_columntypes() {
+  // @@protoc_insertion_point(field_mutable_list:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
+  return &columntypes_;
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
@@ -383,6 +463,18 @@ inline void CSVImportMessage::set_allocated_payload(::std::string* payload) {
 }  // namespace Message
 }  // namespace NetworkClient
 }  // namespace ColmnarDB
+
+namespace google {
+namespace protobuf {
+
+template <> struct is_proto_enum< ::ColmnarDB::NetworkClient::Message::DataType> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::ColmnarDB::NetworkClient::Message::DataType>() {
+  return ::ColmnarDB::NetworkClient::Message::DataType_descriptor();
+}
+
+}  // namespace protobuf
+}  // namespace google
 
 // @@protoc_insertion_point(global_scope)
 

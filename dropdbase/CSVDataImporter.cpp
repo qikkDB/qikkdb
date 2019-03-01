@@ -398,3 +398,12 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 	return COLUMN_STRING;
 }
 
+/// <summary>
+/// Sets column types based on pre determined values
+/// Disables type guessing
+/// </summary>
+/// <param name="columnValues">vector of types values</param>
+void CSVDataImporter::SetTypes(const std::vector<DataType>& types)
+{
+	dataTypes_ = types;
+}
