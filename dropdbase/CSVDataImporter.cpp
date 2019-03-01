@@ -1,5 +1,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem/path.hpp>
+#include <thread>
+#include <vector>
 #include "CSVDataImporter.h"
 #include "../CSVParser.hpp"
 #include "Types/ComplexPolygon.pb.h"
@@ -7,14 +9,22 @@
 #include "PointFactory.h"
 #include "ComplexPolygonFactory.h"
 
+
+
+
 CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimiter, char quotes, char decimal) :
-	inputStream_(std::make_unique<std::ifstream>(fileName)),
+	inputMapped_(std::make_unique<boost::iostreams::mapped_file>(fileName, boost::iostreams::mapped_file::readonly)),
 	tableName_(boost::filesystem::path(fileName).stem().string()),
 	header_(header),
 	delimiter_(delimiter),
 	quotes_(quotes),
 	decimal_(decimal)
-{
+{	
+	inputSize_ = inputMapped_.get()->size();
+	input_ = inputMapped_.get()->const_data();
+	if (std::thread::hardware_concurrency() > 1)
+		numThreads_ = std::thread::hardware_concurrency();
+	BOOST_LOG_TRIVIAL(info) << "Import threads: " << numThreads_;
 }
 
 /// <summary>
@@ -27,8 +37,6 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 	
 	this->ExtractTypes();
 
-	inputStream_->clear();
-	inputStream_->seekg(0, std::ios::beg);
 	// prepares map columnName -> columnType
 	std::unordered_map<std::string, DataType> columns;
 	for (int i = 0; i < headers_.size(); i++) {
@@ -37,6 +45,31 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 	
 	// creates table
 	Table& table = database->CreateTable(columns, tableName_.c_str());
+	
+	std::vector<std::thread> threads;
+	for (int i = 0; i < numThreads_; i++) {
+		threads.emplace_back(&CSVDataImporter::ParseAndImport, this, i, database, columns, std::ref(table));
+	}
+	
+	for (int i = 0; i < numThreads_; ++i) {
+		threads[i].join();
+	}
+}
+
+/// <summary>
+/// Does the parsing and fills the table with parsed data
+/// </summary>
+/// <param name="threadId">Id of the thread doing the work</param>
+/// <param name="database">Database where data will be imported</param>
+/// <param name="columns">Columns with names and types: map columnName -> columnType</param>
+/// <param name="table">Table of the database where data will be imported</param>
+void CSVDataImporter::ParseAndImport(int threadId, std::shared_ptr<Database>& database, std::unordered_map<std::string, DataType>& columns, Table& table)
+{
+		
+	size_t start = (inputSize_ / numThreads_) * threadId;
+	size_t end = start + (inputSize_ / numThreads_);
+	if (threadId >= numThreads_ - 1)
+		end = inputSize_;
 	
 	// initializes map columnName -> vector of column data
 	std::unordered_map<std::string, std::any> data;
@@ -89,8 +122,8 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 			data[headers_[i]] = std::move(v);
 		}
 	}
-	
-	aria::csv::CsvParser parser = aria::csv::CsvParser(*inputStream_).delimiter(delimiter_).quote(quotes_);
+
+	aria::csv::CsvParser parser = aria::csv::CsvParser(input_, start, end, inputSize_).delimiter(delimiter_).quote(quotes_);
 
 	int position = 0;
 	std::vector<std::any> rowData;
@@ -98,9 +131,10 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 
 	// parses file and inserts data in batches of size of blockSize
 	for (auto& row : parser) {
-		
+
 		int columnIndex = 0;
-		if (position > 0 || !this->header_) {
+		// skipping first line with header (only relevant in the first thread)
+		if (position > 0 || !this->header_ || threadId > 0) {
 			// casts and puts data into row vector
 			// if casting fails, the line is ommited
 			try {
@@ -135,11 +169,11 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 				}
 			}
 			catch (std::out_of_range& e) {
-				BOOST_LOG_TRIVIAL(warning) << "Import of table " << tableName_ << " failed on line " << position << " (column " << columnIndex+1 << ")";
-				rowData.clear(); 
+				BOOST_LOG_TRIVIAL(warning) << "Import of file " << tableName_ << " failed on line " << position << " (column " << columnIndex + 1 << ")";
+				rowData.clear();
 			}
 			catch (std::invalid_argument& e) {
-				BOOST_LOG_TRIVIAL(warning) << "Import of file " << tableName_ << " failed on line " << position << " (column " << columnIndex+1 << ")";
+				BOOST_LOG_TRIVIAL(warning) << "Import of file " << tableName_ << " failed on line " << position << " (column " << columnIndex + 1 << ")";
 				rowData.clear();
 			}
 		}
@@ -152,7 +186,7 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 			switch (dataTypes_[columnIndex])
 			{
 			case COLUMN_INT:
- 				std::any_cast<std::vector<int32_t>&>(wrappedData).push_back(std::any_cast<int32_t>(field));
+				std::any_cast<std::vector<int32_t>&>(wrappedData).push_back(std::any_cast<int32_t>(field));
 				break;
 			case COLUMN_LONG:
 				std::any_cast<std::vector<int64_t>&>(wrappedData).push_back(std::any_cast<int64_t>(field));
@@ -183,8 +217,10 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 		
 		// inserts parsed data into database when blockSize reached
 		if (position % database->GetBlockSize() == 0) {
-			
+
+			insertMutex_.lock();
 			table.InsertData(data);
+			insertMutex_.unlock();
 
 			// clears parsed data so far
 			for (int i = 0; i < headers_.size(); i++) {
@@ -216,19 +252,21 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 			}
 		}
 	}
-	
+
 	// inserts remaing rows into table
+	insertMutex_.lock();
 	table.InsertData(data);
+	insertMutex_.unlock();
+
 }
+
 
 /// <summary>
 /// Extracts column names from header. If there is no header, column names are created C0, C1,...
 /// </summary>
 void CSVDataImporter::ExtractHeaders()
 {
-	inputStream_->clear();
-	inputStream_->seekg(0, std::ios::beg);
-	aria::csv::CsvParser parser = aria::csv::CsvParser(*inputStream_).delimiter(delimiter_).quote(quotes_);
+	aria::csv::CsvParser parser = aria::csv::CsvParser(input_, 0, inputSize_, inputSize_).delimiter(delimiter_).quote(quotes_);
 
 	int position = 0;
 	auto row = parser.begin();
@@ -252,11 +290,9 @@ void CSVDataImporter::ExtractHeaders()
 /// </summary>
 void CSVDataImporter::ExtractTypes()
 {
-	inputStream_->clear();
-	inputStream_->seekg(0, std::ios::beg);
 	std::vector<std::vector<std::string>> columnData;
 
-	aria::csv::CsvParser parser = aria::csv::CsvParser(*inputStream_).delimiter(delimiter_).quote(quotes_);
+	aria::csv::CsvParser parser = aria::csv::CsvParser(input_, 0, inputSize_, inputSize_).delimiter(delimiter_).quote(quotes_);
 
 	int position = 0;
 

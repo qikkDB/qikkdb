@@ -1,7 +1,7 @@
+#include "CSVDataImporter.h"
 #include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "TCPClientHandler.h"
 #include "ITCPWorker.h"
-#include "CSVDataImporter.h"
 #include "Configuration.h"
 #include <functional>
 #include <stdexcept>

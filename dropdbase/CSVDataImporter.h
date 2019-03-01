@@ -1,4 +1,5 @@
 #pragma once
+#include <boost/iostreams/device/mapped_file.hpp>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -12,13 +13,14 @@ class CSVDataImporter
 {
 public:
 	CSVDataImporter(const char* inputString, const char* tableName, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.') :
-		inputStream_(std::make_unique<std::istringstream>(inputString)),
+		input_(inputString),
+		inputSize_(strlen(inputString)),
 		tableName_(tableName),
 		header_(header),
 		delimiter_(delimiter),
 		quotes_(quotes),
 		decimal_(decimal)
-	{
+	{			
 	}
 	
 	CSVDataImporter(const char* fileName, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.');
@@ -29,6 +31,9 @@ public:
 
 private:
 	std::unique_ptr<std::istream> inputStream_;
+	std::unique_ptr<boost::iostreams::mapped_file> inputMapped_;
+	const char* input_;
+	size_t inputSize_;
 	std::string tableName_;
 	bool header_;
 	char delimiter_;
@@ -36,6 +41,9 @@ private:
 	char decimal_;
 	std::vector<std::string> headers_;
 	std::vector<DataType> dataTypes_;
+	int numThreads_ = 1;
+	std::mutex insertMutex_;
 
 	DataType IdentifyDataType(std::vector<std::string> columnValues);
+	void ParseAndImport(int tid, std::shared_ptr<Database>& database, std::unordered_map<std::string, DataType>& columns, Table& table);
 };
