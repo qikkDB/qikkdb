@@ -752,9 +752,9 @@ void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB:
 }
 
 template <typename T>
-void GpuSqlDispatcher::freeColumnIfRegister(std::string & col)
+void GpuSqlDispatcher::freeColumnIfRegister(const std::string & col)
 {
-	if (usedRegisterMemory > maxRegisterMemory && std::regex_match(col, std::regex("^(\\$).*"))) 
+	if (usedRegisterMemory > maxRegisterMemory && !col.empty() && col.front() == '$') 
 	{
 		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(col))));
 		usedRegisterMemory -= std::get<1>(allocatedPointers.at(col))*sizeof(T);

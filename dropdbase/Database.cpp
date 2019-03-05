@@ -185,7 +185,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     int32_t dbNameLength;
     dbFile.read(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); // read db name length
 
-    std::unique_ptr<char[]> dbName = std::make_unique<char[]>(dbNameLength);
+    std::unique_ptr<char[]> dbName(new char[dbNameLength]);
     dbFile.read(dbName.get(), dbNameLength); // read db name
 
     int32_t blockSize;
@@ -201,7 +201,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
         int32_t tableNameLength;
         dbFile.read(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); // read table name length
 
-        std::unique_ptr<char[]> tableName = std::make_unique<char[]>(tableNameLength);
+        std::unique_ptr<char[]> tableName(new char[tableNameLength]);
         dbFile.read(tableName.get(), tableNameLength); // read table name
 
         database->tables_.insert({tableName.get(), Table(database, tableName.get())});
@@ -216,7 +216,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
             int32_t columnNameLength;
             dbFile.read(reinterpret_cast<char*>(&columnNameLength), sizeof(int32_t)); // read column name length
 
-            std::unique_ptr<char[]> columnName = std::make_unique<char[]>(columnNameLength);
+            std::unique_ptr<char[]> columnName( new char[columnNameLength]);
             dbFile.read(columnName.get(), columnNameLength); // read column name
 
             columnNames.push_back(columnName.get());
@@ -298,7 +298,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             else // read data from block
             {
                 std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
-                std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength);
+                std::unique_ptr<char[]> data(new char[dataLength]);
 
                 colFile.read(data.get(), dataLength); // read entry data
 
@@ -309,7 +309,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
                     byteIndex += sizeof(int32_t);
 
-                    std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
+                    std::unique_ptr<char[]> byteArray( new char[entryByteLength]);
                     memcpy(byteArray.get(), &data[byteIndex], entryByteLength);
 
                     ColmnarDB::Types::ComplexPolygon entryDataPolygon;
@@ -364,7 +364,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             else // read data from block
             {
                 std::vector<ColmnarDB::Types::Point> dataPoint;
-                std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength);
+                std::unique_ptr<char[]> data(new char[dataLength]);
 
                 colFile.read(data.get(), dataLength); // read entry data
 
@@ -375,7 +375,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
                     byteIndex += sizeof(int32_t);
 
-                    std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
+                    std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
                     memcpy(byteArray.get(), &data[byteIndex], entryByteLength);
 
                     ColmnarDB::Types::Point entryDataPoint;
@@ -430,7 +430,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             else // read data from block
             {
                 std::vector<std::string> dataString;
-                std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength);
+                std::unique_ptr<char[]> data(new char[dataLength]);
 
                 colFile.read(data.get(), dataLength); // read block length
 
@@ -441,7 +441,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
                     byteIndex += sizeof(int32_t);
 
-                    std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
+                    std::unique_ptr<char[]> byteArray( new char[entryByteLength]);
                     memcpy(byteArray.get(), &data[byteIndex], entryByteLength); // read entry data
 
                     std::string entryDataString(byteArray.get());
@@ -491,7 +491,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             }
             else // read data from block
             {
-                std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength * sizeof(int8_t));
+                std::unique_ptr<char[]> data(new char[dataLength * sizeof(int8_t)]);
                 int8_t* dataTemp;
 
                 colFile.read(data.get(), dataLength * sizeof(int8_t)); // read entry data
@@ -540,7 +540,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             }
             else // read data from block
             {
-                std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength * sizeof(int32_t));
+                std::unique_ptr<char[]> data(new char[dataLength * sizeof(int32_t)]);
                 int32_t* dataTemp;
 
                 colFile.read(data.get(), dataLength * sizeof(int32_t)); // read entry data
@@ -589,7 +589,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             }
             else // read data from block
             {
-                std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength * sizeof(int64_t));
+                std::unique_ptr<char[]> data(new char[dataLength * sizeof(int64_t)]);
                 int64_t* dataTemp;
 
                 colFile.read(data.get(), dataLength * sizeof(int64_t)); // read entry data
@@ -638,7 +638,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             }
             else // read data from block
             {
-                std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength * sizeof(float));
+                std::unique_ptr<char[]> data(new char[dataLength * sizeof(float)]);
                 float* dataTemp;
 
                 colFile.read(data.get(), dataLength * sizeof(float)); // read entry data
@@ -687,7 +687,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             }
             else // read data from block
             {
-                std::unique_ptr<char[]> data = std::make_unique<char[]>(dataLength * sizeof(double));
+                std::unique_ptr<char[]> data(new char[dataLength * sizeof(double)]);
                 double* dataTemp;
 
                 colFile.read(data.get(), dataLength * sizeof(double)); // read entry data
@@ -850,7 +850,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                 for (size_t i = 0; i < dataLength; i++)
                 {
                     int32_t entryByteLength = data[i].ByteSize();
-                    std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
+                    std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
 
                     data[i].SerializeToArray(byteArray.get(), entryByteLength);
 
@@ -892,7 +892,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                 for (size_t i = 0; i < dataLength; i++)
                 {
                     int32_t entryByteLength = data[i].ByteSize();
-                    std::unique_ptr<char[]> byteArray = std::make_unique<char[]>(entryByteLength);
+                    std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
 
                     data[i].SerializeToArray(byteArray.get(), entryByteLength);
 
