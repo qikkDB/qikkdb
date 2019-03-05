@@ -4,7 +4,6 @@
 #include "Types/Point.pb.h"
 #include "ColumnBase.h"
 #include <cstdint>
-#include <mutex> 
 
 const std::shared_ptr<Database>& Table::GetDatabase() const
 {
