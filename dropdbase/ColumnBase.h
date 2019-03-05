@@ -235,7 +235,7 @@ public:
 			}
 		}
 		//todo prerobit return
-		return std::make_pair(indexBlock, indexInBlock, blocksRange);
+		return std::make_tuple(indexBlock, indexInBlock, blocksRange);
 	}
 
 	void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData)
@@ -344,9 +344,9 @@ public:
 	}
 
 	/// <summary>
-/// Returns type of ColumnBase
-/// </summary>
-/// <returns>Type of current column</returns>
+	/// Returns type of ColumnBase
+	/// </summary>
+	/// <returns>Type of current column</returns>
 	virtual DataType GetColumnType() const override
 	{
 		typedef typename std::conditional<std::is_same<T, int>::value, std::integral_constant<DataType, COLUMN_INT>,

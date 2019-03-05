@@ -9,7 +9,6 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "MaybeDeref.cuh"
-#include "GPUConstants.cuh"
 
 namespace FilterConditions
 {
@@ -77,27 +76,15 @@ namespace FilterConditions
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
 /// <param name="dataElementCount">the count of elements in the input block</param>
-template<typename FILTER, typename T, typename U>
+template<typename OP, typename T, typename U>
 __global__ void kernel_filter(int8_t *outMask, T ACol, U BCol, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
-	const int32_t loopIterations = (dataElementCount + stride - 1 - idx) / stride;
-	const int32_t alignedLoopIterations = loopIterations - (loopIterations % UNROLL_FACTOR);
-	const int32_t alignedDataElementCount = alignedLoopIterations * stride + idx;
 
-	//unroll from idx to alignedDataElementCount
-	#pragma unroll UNROLL_FACTOR
-	for (int32_t i = idx; i < alignedDataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		outMask[i] = FILTER{}.template operator()
-			< typename std::remove_pointer<T>::type, typename std::remove_pointer<U>::type >
-			(maybe_deref(ACol, i), maybe_deref(BCol, i));
-	}
-	//continue classic way from alignedDataElementCount to full dataElementCount
-	for (int32_t i = alignedDataElementCount; i < dataElementCount; i += stride)
-	{
-		outMask[i] = FILTER{}.template operator()
+		outMask[i] = OP{}.template operator()
 			< typename std::remove_pointer<T>::type, typename std::remove_pointer<U>::type >
 			(maybe_deref(ACol, i), maybe_deref(BCol, i));
 	}
@@ -108,38 +95,35 @@ __global__ void kernel_filter(int8_t *outMask, T ACol, U BCol, int32_t dataEleme
 class GPUFilter
 {
 public:
-	template<typename FILTER, typename T, typename U>
+	template<typename OP, typename T, typename U>
 	static void colCol(int8_t *outMask, T *ACol, U *BCol, int32_t dataElementCount)
 	{
-		kernel_filter <FILTER> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		kernel_filter <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BCol, dataElementCount);
-		cudaDeviceSynchronize();
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
-	template<typename FILTER, typename T, typename U>
+	template<typename OP, typename T, typename U>
 	static void colConst(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount)
 	{
-		kernel_filter <FILTER> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		kernel_filter <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
-		cudaDeviceSynchronize();
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
-	template<typename FILTER, typename T, typename U>
+	template<typename OP, typename T, typename U>
 	static void constCol(int8_t *outMask, T AConst, U *BCol, int32_t dataElementCount)
 	{
-		kernel_filter <FILTER> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		kernel_filter <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, AConst, BCol, dataElementCount);
-		cudaDeviceSynchronize();
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
-	template<typename FILTER, typename T, typename U>
+	template<typename OP, typename T, typename U>
 	static void constConst(int8_t *outMask, T AConst, U BConst, int32_t dataElementCount)
 	{
-		GPUMemory::memset(outMask, FILTER{}(AConst, BConst), dataElementCount);
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		GPUMemory::memset(outMask, OP{}(AConst, BConst), dataElementCount);
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 };

@@ -32,6 +32,7 @@ private:
 	std::string listenIP_ = "127.0.0.1";
 	short listenPort_ = 12345;
 	int timeout_ = 5000;
+	int GPUCachePercent_ = 73;
 
 	void LoadConfigurationFile();
 
@@ -98,5 +99,10 @@ public:
 
 	const int GetTimeout() {
 		return timeout_;
+	}
+
+	const int GetGPUCachePercentage()
+	{
+		return GPUCachePercent_;
 	}
 };

@@ -6,6 +6,7 @@
 #include "BlockBase.h"
 #include "PointFactory.h"
 #include "ComplexPolygonFactory.h"
+#include <ctime>
 
 /// <summary>
 /// Generate new database with pseudo random or the same data.
@@ -115,20 +116,42 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						int64_t result = (static_cast<int64_t>(2 * pow(10, k % 19))) + k % (1024 * longColumnCount);
 
-						if (k % 2)
+						if (longColumnCount % 3 != 0)
 						{
-							longData.push_back(sameDataInBlocks ? static_cast<int64_t>(pow(10, k % 19)) : result);
+							int64_t result = (static_cast<int64_t>(2 * pow(10, k % 19))) + k % (1024 * longColumnCount);
+
+							if (k % 2)
+							{
+								longData.push_back(sameDataInBlocks ? static_cast<int64_t>(pow(10, k % 19)) : result);
+							}
+							else
+							{
+								longData.push_back(sameDataInBlocks ? static_cast<int64_t>(pow(10, k % 19)) * -1 : result * (-1));
+							}
 						}
+
 						else
 						{
-							longData.push_back(sameDataInBlocks ? static_cast<int64_t>(pow(10, k % 19)) * -1 : result * (-1));
+							struct tm date;
+							date.tm_hour = sameDataInBlocks ? 10 : (k % 24);
+							date.tm_min = sameDataInBlocks ? 10 : ((k + 1) % 60);
+							date.tm_sec = sameDataInBlocks ? 10 : ((k + 2) % 60);
+
+							date.tm_mday = sameDataInBlocks ? 10 : ((k % 28) + 1);
+							date.tm_mon = sameDataInBlocks ? 10 : (k % 12);
+							date.tm_year = sameDataInBlocks ? 110 : ((k % 1000) + 100);
+							#ifdef WIN32 
+							const time_t utcTimestamp = _mkgmtime64(&date);
+							#else
+							const time_t utcTimestamp = timegm(&date);
+							#endif
+
+							longData.push_back(static_cast<int64_t>(utcTimestamp));
 						}
 					}
 					column.AddBlock(longData);
 				}
-
 				break;
 			}
 

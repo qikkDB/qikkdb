@@ -135,45 +135,6 @@ TEST(BlockTests, InsertDataVector)
 
 }
 
-TEST(BlockTests, InsertDataOneValue)
-{
-	auto database = std::make_shared<Database>("testDatabase", 20);
-	Table table(database, "testTable");
-
-	table.CreateColumn("ColumnInt", COLUMN_INT);
-	auto& columnInt = table.GetColumns().at("ColumnInt");
-	auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
-
-	int index = blockInt.InsertOneValueData(2);
-	ASSERT_EQ(index, 0);
-
-	int index1 = blockInt.InsertOneValueData(30);
-	ASSERT_EQ(index1, 1);
-
-	int index2 = blockInt.InsertOneValueData(5);
-	ASSERT_EQ(index2, 1);
-
-	int index3 = blockInt.InsertOneValueData(1);
-	ASSERT_EQ(index3, 0);
-
-	int index4 = blockInt.InsertOneValueData(70);
-	ASSERT_EQ(index4, 4);
-
-	int index5 = blockInt.InsertOneValueData(60);
-	ASSERT_EQ(index5, 4);
-
-	int index6 = blockInt.InsertOneValueData(0);
-	ASSERT_EQ(index6, 0);
-
-	ASSERT_EQ(blockInt.GetData()[0], 0);
-	ASSERT_EQ(blockInt.GetData()[1], 1);
-	ASSERT_EQ(blockInt.GetData()[2], 2);
-	ASSERT_EQ(blockInt.GetData()[3], 5);
-	ASSERT_EQ(blockInt.GetData()[4], 30);
-	ASSERT_EQ(blockInt.GetData()[5], 60);
-	ASSERT_EQ(blockInt.GetData()[6], 70);
-}
-
 TEST(BlockTests, InserDatatOnSpecificPosition)
 {
 	auto database = std::make_shared<Database>("testDatabase", 20);

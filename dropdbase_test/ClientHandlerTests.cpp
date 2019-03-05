@@ -37,18 +37,16 @@ TEST(ClientHandlerTests, TestHandlerSetDB)
 
 TEST(ClientHandlerTests, TestHandlerCSV)
 {
-	//ToDo: Nie je CSV Importer
-	ASSERT_TRUE(false);
 	std::unique_ptr<IClientHandler> handler = std::make_unique<TCPClientHandler>();
 	boost::asio::io_context context;
 	IClientHandler* handlerPtr = handler.get();
 	ClientPoolWorker tempWorker(std::move(handler), boost::asio::ip::tcp::socket(context), 60000);
 	ColmnarDB::NetworkClient::Message::CSVImportMessage csvMessage;
 	csvMessage.set_csvname("test");
-	csvMessage.set_databasename("test");
+	csvMessage.set_databasename("testCSV");
 	csvMessage.set_payload("test1,test2,test3\n1,2,3");
 	handlerPtr->HandleCSVImport(tempWorker, csvMessage);
-	auto db = Database::GetDatabaseByName("test");
+	auto db = Database::GetDatabaseByName("testCSV");
 	ASSERT_NE(db.get(), static_cast<Database*>(nullptr));
 	auto& column1 = db->GetTables().at("test").GetColumns().at("test1");
 	ASSERT_EQ(1, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column1).GetBlocksList()[0]).GetData()[0]);
@@ -56,6 +54,32 @@ TEST(ClientHandlerTests, TestHandlerCSV)
 	ASSERT_EQ(2, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column2).GetBlocksList()[0]).GetData()[0]);
 	auto& column3 = db->GetTables().at("test").GetColumns().at("test3");
 	ASSERT_EQ(3, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column3).GetBlocksList()[0]).GetData()[0]);
+	Database::DestroyDatabase("testCSV");
+}
+
+TEST(ClientHandlerTests, TestHandlerCSVWithTypes)
+{
+	std::unique_ptr<IClientHandler> handler = std::make_unique<TCPClientHandler>();
+	boost::asio::io_context context;
+	IClientHandler* handlerPtr = handler.get();
+	ClientPoolWorker tempWorker(std::move(handler), boost::asio::ip::tcp::socket(context), 60000);
+	ColmnarDB::NetworkClient::Message::CSVImportMessage csvMessage;
+	csvMessage.set_csvname("test");
+	csvMessage.set_databasename("testCSV");
+	csvMessage.set_payload("test1,test2,test3\n1,2,3");
+	csvMessage.add_columntypes(ColmnarDB::NetworkClient::Message::COLUMN_INT);
+	csvMessage.add_columntypes(ColmnarDB::NetworkClient::Message::COLUMN_INT);
+	csvMessage.add_columntypes(ColmnarDB::NetworkClient::Message::COLUMN_INT);
+	handlerPtr->HandleCSVImport(tempWorker, csvMessage);
+	auto db = Database::GetDatabaseByName("testCSV");
+	ASSERT_NE(db.get(), static_cast<Database*>(nullptr));
+	auto& column1 = db->GetTables().at("test").GetColumns().at("test1");
+	ASSERT_EQ(1, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column1).GetBlocksList()[0]).GetData()[0]);
+	auto& column2 = db->GetTables().at("test").GetColumns().at("test2");
+	ASSERT_EQ(2, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column2).GetBlocksList()[0]).GetData()[0]);
+	auto& column3 = db->GetTables().at("test").GetColumns().at("test3");
+	ASSERT_EQ(3, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column3).GetBlocksList()[0]).GetData()[0]);
+	Database::DestroyDatabase("testCSV");
 }
 
 TEST(ClientHandlerTests, TestHandlerQuery)

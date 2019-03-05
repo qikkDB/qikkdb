@@ -7,7 +7,7 @@
 
 TEST(ColumnTests, AddBlockWithData)
 {
-	auto& database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Table table(database, "testTable");
 
 	table.CreateColumn("ColumnInt", COLUMN_INT);
@@ -651,105 +651,6 @@ TEST(ColumnTests, InsertNull)
 		ASSERT_EQ("POLYGON()", ComplexPolygonFactory::WktFromPolygon(dataInPolygonBlock[i]));
 		ASSERT_EQ("", dataInStringBlock[i]);
 	}
-}
-
-TEST(ColumnTests, InsertOneValueData)
-{
-	int indexBlock;
-	int indexInBlock;
-
-	auto database = std::make_shared<Database>("testDatabase", 4);
-	Table table(database, "testTable");
-	table.CreateColumn("ColumnInt", COLUMN_INT);
-	auto& columnInt = table.GetColumns().at("ColumnInt");
-
-	std::tie(indexBlock, indexInBlock) = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(6);
-	ASSERT_EQ(indexBlock, 0);
-	ASSERT_EQ(indexInBlock, 0);
-
-	std::tie(indexBlock, indexInBlock) = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(7);
-	ASSERT_EQ(indexBlock, 0);
-	ASSERT_EQ(indexInBlock, 1);
-
-	std::tie(indexBlock, indexInBlock) = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(9);
-	ASSERT_EQ(indexBlock, 0);
-	ASSERT_EQ(indexInBlock, 2);
-
-	std::tie(indexBlock, indexInBlock) = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(5);
-	ASSERT_EQ(indexBlock, 0);
-	ASSERT_EQ(indexInBlock, 0);
-
-	ASSERT_EQ(columnInt.get()->GetBlockCount(), 2);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[0].get()->GetData()[0], 5);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[0].get()->GetData()[1], 6);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[1].get()->GetData()[0], 7);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[1].get()->GetData()[1], 9);
-
-	std::tie(indexBlock, indexInBlock) = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(40);
-	ASSERT_EQ(indexBlock, 1);
-	ASSERT_EQ(indexInBlock, 2);
-
-	std::tie(indexBlock, indexInBlock) = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(8);
-	ASSERT_EQ(indexBlock, 1);
-	ASSERT_EQ(indexInBlock, 1);
-
-	std::tie(indexBlock, indexInBlock) = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(3);
-	ASSERT_EQ(indexBlock, 0);
-	ASSERT_EQ(indexInBlock, 0);
-
-	std::tie(indexBlock, indexInBlock) = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(4);
-	ASSERT_EQ(indexBlock, 0);
-	ASSERT_EQ(indexInBlock, 1);
-
-	ASSERT_EQ(columnInt.get()->GetBlockCount(), 4);
-
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[0].get()->GetData()[0], 3);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[0].get()->GetData()[1], 4);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[1].get()->GetData()[0], 5);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[1].get()->GetData()[1], 6);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[2].get()->GetData()[0], 7);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[2].get()->GetData()[1], 8);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[3].get()->GetData()[0], 9);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[3].get()->GetData()[1], 40);
-
-}
-
-TEST(ColumnTests, InsertDataOnSpecificPosition)
-{
-	int indexBlock;
-	int indexInBlock;
-
-	auto database = std::make_shared<Database>("testDatabase", 4);
-	Table table(database, "testTable");
-	table.CreateColumn("ColumnInt", COLUMN_INT);
-	auto& columnInt = table.GetColumns().at("ColumnInt");
-
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(1);
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(2);
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(3);
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertOneValueData(4);
-
-	ASSERT_EQ(columnInt.get()->GetBlockCount(), 2);
-
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(0,0,7);
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(1,2,9);
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(0,2,8);
-
-	ASSERT_EQ(columnInt.get()->GetBlockCount(), 3);
-
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(2,1,13);
-
-	ASSERT_EQ(columnInt.get()->GetBlockCount(), 4);
-
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[0].get()->GetData()[0], 7);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[0].get()->GetData()[1], 1);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[1].get()->GetData()[0], 8);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[1].get()->GetData()[1], 2);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[2].get()->GetData()[0], 3);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[2].get()->GetData()[1], 13);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[3].get()->GetData()[0], 4);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList()[3].get()->GetData()[1], 9);
-
 }
 
 TEST(ColumnTests, GetColumnType)

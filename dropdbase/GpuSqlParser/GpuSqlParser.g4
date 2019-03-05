@@ -26,7 +26,8 @@ orderByColumns      : ((orderByColumn (COMMA orderByColumn)*));
 orderByColumn       : (columnId DIR?);
 insertIntoValues    : ((columnValue (COMMA columnValue)*));
 insertIntoColumns   : ((columnId (COMMA columnId)*));
-groupByColumns      : ((columnId (COMMA columnId)*));
+groupByColumns      : ((groupByColumn (COMMA groupByColumn)*));
+groupByColumn       : expression;
 columnId            : (column)|(table DOT column);
 fromTables          : ((table (COMMA table)*));
 joinClauses         : (joinClause)+;
@@ -40,20 +41,29 @@ offset              : INTLIT;
 columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT|);
 
 expression : op=NOT expression                                                            # unaryOperation
-           | op=MINUS expression                                                          # unaryExpression
+           | op=MINUS expression                                                          # unaryOperation
+           | op=YEAR LPAREN expression RPAREN                                             # unaryOperation
+           | op=MONTH LPAREN expression RPAREN                                            # unaryOperation
+           | op=DAY LPAREN expression RPAREN                                              # unaryOperation
+           | op=HOUR LPAREN expression RPAREN                                             # unaryOperation
+           | op=MINUTE LPAREN expression RPAREN                                           # unaryOperation
+           | op=SECOND LPAREN expression RPAREN                                           # unaryOperation
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation
            | left=expression op=(GREATER|LESS) right=expression                           # binaryOperation
            | left=expression op=(GREATEREQ|LESSEQ) right=expression                       # binaryOperation
            | left=expression op=(EQUALS|NOTEQUALS) right=expression                       # binaryOperation
            | left=expression op=MODULO right=expression                                   # binaryOperation
-           | left=expression op=GEO right=expression                                      # binaryOperation
+           | op=GEO_CONTAINS LPAREN left=expression COMMA right=expression RPAREN         # binaryOperation
+           | op=GEO_INTERSECT LPAREN left=expression COMMA right=expression RPAREN        # binaryOperation
+           | op=GEO_UNION LPAREN left=expression COMMA right=expression RPAREN            # binaryOperation
            | expression op=BETWEEN expression op2=AND expression                          # ternaryOperation
            | left=expression op=AND right=expression                                      # binaryOperation
            | left=expression op=OR right=expression                                       # binaryOperation
            | LPAREN expression RPAREN                                                     # parenExpression
            | columnId                                                                     # varReference
            | geometry                                                                     # geoReference
+           | DATETIMELIT                                                                  # dateTimeLiteral
            | FLOATLIT                                                                     # decimalLiteral
            | INTLIT                                                                       # intLiteral
            | STRINGLIT                                                                    # stringLiteral

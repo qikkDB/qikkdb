@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 SET_DIRECTORY_PROPERTIES(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/third_party)
 set(PROJECT_NAME dropdbase_instarea)
-project(${PROJECT_NAME} LANGUAGES CXX CUDA)
+project(${PROJECT_NAME} LANGUAGES C CXX CUDA)
 set(CMAKE_CXX_STANDARD 17)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
@@ -43,6 +43,8 @@ ExternalProject_Add(
 	"-Dprotobuf_BUILD_SHARED_LIBS:BOOL=OFF"
 	"-Dprotobuf_MSVC_STATIC_RUNTIME:BOOL=OFF"
     "-DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}"
+	"-DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}"
+	"-DCMAKE_MAKE_PROGRAM:STRING=${CMAKE_MAKE_PROGRAM}"
     # other project specific parameters
   SOURCE_SUBDIR cmake
   BUILD_ALWAYS 1
@@ -84,6 +86,9 @@ ExternalProject_Add(
 	  "-DBUILD_GMOCK:BOOL=OFF"
 	  "-DINSTALL_GTEST:BOOL=OFF"
 	  "-Dgtest_force_shared_crt:BOOL=ON"
+	  "-DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}"
+	  "-DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}"
+	  "-DCMAKE_MAKE_PROGRAM:STRING=${CMAKE_MAKE_PROGRAM}"
     INSTALL_COMMAND ""
     # Wrap download, configure and build steps in a script to log output
     LOG_DOWNLOAD ON
@@ -94,15 +99,28 @@ set(GTEST_INCLUDE_DIR ${source_dir}/googletest/include)
 
 # Library
 ExternalProject_Get_Property(googletest binary_dir)
-set(GTEST_MAIN_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${suffix} )
-set(GTEST_MAIN_LIBRARY gtest_main)
+string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
+
+IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	message("DEBUG MODE")
+	set(GTEST_MAIN_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_maind${suffix} )
+    set(GTEST_MAIN_LIBRARY gtest_maind)
+ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	set(GTEST_MAIN_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${suffix} )
+	set(GTEST_MAIN_LIBRARY gtest_main)
+ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 add_library(${GTEST_MAIN_LIBRARY} UNKNOWN IMPORTED)
 set_property(TARGET ${GTEST_MAIN_LIBRARY} PROPERTY IMPORTED_LOCATION
                 ${GTEST_MAIN_LIBRARY_PATH} )
 add_dependencies(${GTEST_MAIN_LIBRARY} googletest)
 
-set(GTEST_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${suffix} )
-set(GTEST_LIBRARY gtest)
+IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	set(GTEST_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtestd${suffix} )
+    set(GTEST_LIBRARY gtestd)
+ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	set(GTEST_LIBRARY_PATH ${binary_dir}/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${suffix} )
+	set(GTEST_LIBRARY gtest)
+ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 add_library(${GTEST_LIBRARY} UNKNOWN IMPORTED)
 set_property(TARGET ${GTEST_LIBRARY} PROPERTY IMPORTED_LOCATION
                 ${GTEST_LIBRARY_PATH} )
@@ -112,7 +130,7 @@ add_dependencies(${GTEST_LIBRARY} googletest)
 
 
 SET(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.66.0 COMPONENTS system filesystem log REQUIRED)
+find_package(Boost 1.66.0 COMPONENTS system filesystem log iostreams REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 find_package(yaml-cpp REQUIRED)

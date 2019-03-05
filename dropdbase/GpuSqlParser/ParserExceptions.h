@@ -47,6 +47,22 @@ struct ColumnGroupByException : public std::exception
     }
 };
 
+struct InsertIntoException : public std::exception
+{
+	const char *what() const noexcept override
+	{
+		return "There are several same referenced columns";
+	}
+};
+
+struct NotSameAmoutOfValuesException : public std::exception
+{
+	const char *what() const noexcept override
+	{
+		return "Number of values provided must be the same as number of columns";
+	}
+};
+
 struct NestedAggregationException : public std::exception
 {
 	const char *what() const noexcept override

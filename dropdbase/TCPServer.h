@@ -9,6 +9,7 @@
 #include "IClientHandler.h"
 #include "ITCPWorker.h"
 #include <atomic>
+#include "Configuration.h"
 
 /// <summary>
 /// TCP listener and client processor
@@ -42,7 +43,7 @@ private:
 					try
 					{
 						BOOST_LOG_TRIVIAL(info) << "Accepting client " << sock.remote_endpoint().address().to_string() << "\n";
-						Worker worker(std::make_unique<ClientHandler>(), std::move(sock), 60000);
+						Worker worker(std::make_unique<ClientHandler>(), std::move(sock), Configuration::GetInstance().GetTimeout());
 						{
 							std::lock_guard<std::mutex> lock(clientCountMutex_);
 							clientCount_++;

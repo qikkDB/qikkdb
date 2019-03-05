@@ -8,6 +8,28 @@
 #include "../dropdbase/ComplexPolygonFactory.h"
 #include "../dropdbase/PointFactory.h"
 
+class DatabaseTests : public ::testing::Test
+{
+protected:
+	const std::string path = Configuration::GetInstance().GetDatabaseDir() + "/testDatabase/";
+	const std::string dbName = "TestDatabase";
+	const int32_t blockNum = 2; //number of blocks
+	const int32_t blockSize = 3; //length of a block
+
+	std::shared_ptr<Database> database;
+	virtual void SetUp()
+	{
+		database = std::make_shared<Database>(dbName.c_str(), blockSize);
+	}
+
+	virtual void TearDown()
+	{
+		//clean up occurs when test completes or an exception is thrown
+		Database::DestroyDatabase(dbName.c_str());
+	}
+};
+
+
 /// Integration test - tests the following fucntions and procedures:
 ///  - Persist()
 ///  - SaveAllToDisk()
@@ -16,16 +38,9 @@
 ///  - LoadColumns()
 ///  - CreateTable()
 ///  - AddToInMemoryDatabaseList()
-TEST(DatabaseTests, SaveLoadTest)
+TEST_F(DatabaseTests, SaveLoadTest)
 {
 	boost::filesystem::current_path();
-
-	const std::string path = Configuration::GetInstance().GetDatabaseDir() + "/testDatabase/";
-	const std::string dbName = "TestDatabase";
-	const int32_t blockNum = 2; //number of blocks
-	const int32_t blockSize = 3; //length of a block
-
-	std::shared_ptr<Database> database = std::make_shared<Database>(dbName.c_str(), blockSize);
 
 	Database::AddToInMemoryDatabaseList(database);
 
@@ -45,6 +60,7 @@ TEST(DatabaseTests, SaveLoadTest)
 	columnsTable2.insert( {"colLong", COLUMN_LONG} );
 	columnsTable2.insert( {"colPolygon", COLUMN_POLYGON} );
 	columnsTable2.insert( {"colPoint", COLUMN_POINT} );
+	columnsTable2.insert( {"colBool", COLUMN_INT8_T });
 	database->CreateTable(columnsTable2, "TestTable2");
 
 	auto& tables = database->GetTables();
@@ -62,6 +78,7 @@ TEST(DatabaseTests, SaveLoadTest)
 	auto& colLong2 = table2.GetColumns().at("colLong");
 	auto& colPolygon2 = table2.GetColumns().at("colPolygon");
 	auto& colPoint2 = table2.GetColumns().at("colPoint");
+	auto& colBool2 = table2.GetColumns().at("colBool");
 
 	for (int i = 0; i < blockNum; i++)
 	{
@@ -126,6 +143,12 @@ TEST(DatabaseTests, SaveLoadTest)
 		dataPoint2.push_back(PointFactory::FromWkt("POINT(12 11.15)"));
 		dataPoint2.push_back(PointFactory::FromWkt("POINT(9 8)"));
 		dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(colPoint2.get())->AddBlock(dataPoint2);
+
+		std::vector<int8_t> dataBool2;
+		dataBool2.push_back(-1);
+		dataBool2.push_back(0);
+		dataBool2.push_back(1);
+		dynamic_cast<ColumnBase<int8_t>*>(colBool2.get())->AddBlock(dataBool2);
 	}
 
 	std::string storePath = path + dbName;
@@ -135,16 +158,15 @@ TEST(DatabaseTests, SaveLoadTest)
 
 	//load different database. but with the same data:
 	Database::LoadDatabasesFromDisk();
-	auto& loadedDatabases = Database::GetLoadedDatabases();
-
-	auto& loadedTables = loadedDatabases.at(dbName)->GetTables();
+	
+	auto& loadedTables = Database::GetDatabaseByName(dbName)->GetTables();
 	auto& firstTableColumns = loadedTables.at("TestTable1").GetColumns();
 	auto& secondTableColumns = loadedTables.at("TestTable2").GetColumns();
 
 	//high level stuff:
 	ASSERT_EQ(loadedTables.size(), 2);
 	ASSERT_EQ(firstTableColumns.size(), 3);
-	ASSERT_EQ(secondTableColumns.size(), 7);
+	ASSERT_EQ(secondTableColumns.size(), 8);
 
 	//first table block counts:
 	ASSERT_EQ((firstTableColumns.at("colInteger").get())->GetBlockCount(), blockNum);
@@ -186,6 +208,7 @@ TEST(DatabaseTests, SaveLoadTest)
 	ASSERT_EQ((secondTableColumns.at("colDouble").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((secondTableColumns.at("colPolygon").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((secondTableColumns.at("colPoint").get())->GetBlockCount(), blockNum);
+	ASSERT_EQ((secondTableColumns.at("colBool").get())->GetBlockCount(), blockNum);
 
 	//second table colInteger:
 	for (int i = 0; i < blockNum; i++)
@@ -239,5 +262,14 @@ TEST(DatabaseTests, SaveLoadTest)
 		ASSERT_EQ(PointFactory::WktFromPoint(data[0]), "POINT(10.11 11.1)");
 		ASSERT_EQ(PointFactory::WktFromPoint(data[1]), "POINT(12 11.15)");
 		ASSERT_EQ(PointFactory::WktFromPoint(data[2]), "POINT(9 8)");
+	}
+
+	//second table colBool:
+	for (int i = 0; i < blockNum; i++)
+	{
+		auto data = dynamic_cast<ColumnBase<int8_t>*>(secondTableColumns.at("colBool").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_EQ(data[0], -1);
+		ASSERT_EQ(data[1], 0);
+		ASSERT_EQ(data[2], 1);
 	}
 }

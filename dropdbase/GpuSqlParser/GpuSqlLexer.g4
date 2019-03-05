@@ -1,12 +1,30 @@
 lexer grammar GpuSqlLexer;
 
+DATETIMELIT : SQOUTE DATELIT ([ ] TIMELIT)? SQOUTE;
+
 LF          : '\n' -> skip;
 CR          : '\r' -> skip;
 CRLF        : '\r\n' -> skip;
 WS          : [\t\r\n ]+ -> skip ;
 SEMICOL     : ';';
+SQOUTE      : '\'';
+DQOUTE      : '"';
+UNDERSCORE  : '_';
+COLON       : ':';
 COMMA       : ',';
 DOT         : '.';
+
+DATELIT                 : YEARLIT MINUS MONTHLIT MINUS DAYLIT;
+
+fragment YEARLIT        : [1-9][0-9][0-9][0-9];
+fragment MONTHLIT       : [1][0-2]|[0][1-9];
+fragment DAYLIT         : [0][1-9]|[1-2][0-9]|[3][0-1];
+
+TIMELIT                 : HOURLIT COLON MINUTELIT COLON SECONDLIT;
+
+fragment HOURLIT        : [0-1][0-9]|[2][0-3];
+fragment MINUTELIT      : [0-5][0-9];
+fragment SECONDLIT      : [0-5][0-9];
 
 DATATYPE    : (INTTYPE|FLOATTYPE|STRINGTYPE|BOOLEANTYPE);
 
@@ -56,9 +74,16 @@ MIN         : M I N;
 MAX         : M A X;
 COUNT       : C O U N T;
 
-GEO             : (CONTAINS);
+YEAR        : Y E A R;
+MONTH       : M O N T H;
+DAY         : D A Y;
+HOUR        : H O U R;
+MINUTE      : M I N U T E;
+SECOND      : S E C O N D;
 
-CONTAINS        : C O N T A I N S;
+GEO_CONTAINS        : G E O UNDERSCORE C O N T A I N S;
+GEO_INTERSECT       : G E O UNDERSCORE I N T E R S E C T;
+GEO_UNION           : G E O UNDERSCORE U N I O N;
 
 PLUS        : '+' ;
 MINUS       : '-' ;

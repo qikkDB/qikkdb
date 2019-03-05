@@ -5,7 +5,7 @@
 #include "ColumnBase.h"
 #include <cstdint>
 
-#ifndef __CUDACC__
+/*#ifndef __CUDACC__
 void Table::InsertValuesInNonIndexColumns(const std::unordered_map<std::string, std::any>& data, int indexBlock, int indexInBlock, std::string sortingColumn, int iterator, int range)
 {
 	for (const auto& column : columns)
@@ -53,24 +53,24 @@ void Table::InsertValuesInNonIndexColumns(const std::unordered_map<std::string, 
 		}
 	}
 }
-#endif
+#endif*/
 
 const std::shared_ptr<Database>& Table::GetDatabase()
 {
 	return database;
 }
 
-const std::string & Table::GetName()
+const std::string & Table::GetName() const
 {
 	return name;
 }
 
-int Table::GetBlockSize()
+int Table::GetBlockSize() const
 {
 	return blockSize;
 }
 
-int32_t Table::GetBlockCount()
+int32_t Table::GetBlockCount() const
 {
 	for (auto& column : columns) 
 	{
@@ -131,7 +131,13 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 	{
 		column = std::make_unique<ColumnBase<ColmnarDB::Types::Point>>(columnName, blockSize);
 	}
+	else if (columnType == COLUMN_INT8_T)
+	{
+		column = std::make_unique<ColumnBase<int8_t>>(columnName, blockSize);
+	}
 	columns.insert(std::make_pair(columnName, std::move(column)));
+
+
 }
 #ifndef __CUDACC__
 void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
@@ -147,7 +153,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 			int indexBlock;
 			int indexInBlock;
 
-			if (wrappedDataIndexedColumn.type() == typeid(std::vector<int32_t>))
+			/*if (wrappedDataIndexedColumn.type() == typeid(std::vector<int32_t>))
 			{
 				std::vector<int32_t> dataIndexedColumn = std::any_cast<std::vector<int32_t>>(wrappedDataIndexedColumn);
 				auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(indexedColumn);
@@ -190,7 +196,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 					std::tie(indexBlock, indexInBlock, range) = castedColumn->InsertOneValueData(dataIndexedColumn[i], range);
 					InsertValuesInNonIndexColumns(data, indexBlock, indexInBlock, sortingColumn, i, range);
 				}
-			}
+			}*/
 			//TODO Point and Polygon and string indexes (decide what is the minimum of these and decide how compare them)
 			/*else if (wrappedDataIndexedColumn.type() == typeid(std::vector<std::string>))
 			{

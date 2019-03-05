@@ -13,20 +13,20 @@ class Database;
 class Table
 {
 private:
-	const std::shared_ptr<Database> database;
+	const std::shared_ptr<Database>& database;
 	std::string name;
 	int32_t blockSize;
 	std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
 	std::vector<std::string> sortingColumns;
 #ifndef __CUDACC__
-	void InsertValuesInNonIndexColumns(const std::unordered_map<std::string, std::any> &data, int indexBlock, int indexInBlock, std::string sortingColumn, int iterator);
+	//void InsertValuesInNonIndexColumns(const std::unordered_map<std::string, std::any> &data, int indexBlock, int indexInBlock, std::string sortingColumn, int iterator);
 #endif
 
 public:
 	const std::shared_ptr<Database> &GetDatabase();
-	const std::string &GetName();
-	int32_t GetBlockSize();
-	int32_t GetBlockCount();
+	const std::string &GetName() const;
+	int32_t GetBlockSize() const;
+	int32_t GetBlockCount() const;
 	const std::unordered_map<std::string, std::unique_ptr<IColumn>> &GetColumns() const;
 	std::vector<std::string> GetSortingColumns();
 	void SetSortingColumns(std::vector<std::string> columns);

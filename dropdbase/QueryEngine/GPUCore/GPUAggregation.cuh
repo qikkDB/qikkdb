@@ -38,7 +38,7 @@ public:
 	{
 		// Kernel call
 		AGG::template agg<T>(outValue, ACol, dataElementCount);
-		Context::getInstance().getLastError().setCudaError(cudaGetLastError());
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 };
 

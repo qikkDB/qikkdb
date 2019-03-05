@@ -76,6 +76,9 @@ public:
   virtual void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext * /*ctx*/) override { }
   virtual void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext * /*ctx*/) override { }
 
+  virtual void enterGroupByColumn(GpuSqlParser::GroupByColumnContext * /*ctx*/) override { }
+  virtual void exitGroupByColumn(GpuSqlParser::GroupByColumnContext * /*ctx*/) override { }
+
   virtual void enterColumnId(GpuSqlParser::ColumnIdContext * /*ctx*/) override { }
   virtual void exitColumnId(GpuSqlParser::ColumnIdContext * /*ctx*/) override { }
 
@@ -115,6 +118,9 @@ public:
   virtual void enterGeoReference(GpuSqlParser::GeoReferenceContext * /*ctx*/) override { }
   virtual void exitGeoReference(GpuSqlParser::GeoReferenceContext * /*ctx*/) override { }
 
+  virtual void enterDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * /*ctx*/) override { }
+  virtual void exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * /*ctx*/) override { }
+
   virtual void enterStringLiteral(GpuSqlParser::StringLiteralContext * /*ctx*/) override { }
   virtual void exitStringLiteral(GpuSqlParser::StringLiteralContext * /*ctx*/) override { }
 
@@ -127,17 +133,14 @@ public:
   virtual void enterAggregation(GpuSqlParser::AggregationContext * /*ctx*/) override { }
   virtual void exitAggregation(GpuSqlParser::AggregationContext * /*ctx*/) override { }
 
-  virtual void enterParenExpression(GpuSqlParser::ParenExpressionContext * /*ctx*/) override { }
-  virtual void exitParenExpression(GpuSqlParser::ParenExpressionContext * /*ctx*/) override { }
-
   virtual void enterBinaryOperation(GpuSqlParser::BinaryOperationContext * /*ctx*/) override { }
   virtual void exitBinaryOperation(GpuSqlParser::BinaryOperationContext * /*ctx*/) override { }
 
+  virtual void enterParenExpression(GpuSqlParser::ParenExpressionContext * /*ctx*/) override { }
+  virtual void exitParenExpression(GpuSqlParser::ParenExpressionContext * /*ctx*/) override { }
+
   virtual void enterUnaryOperation(GpuSqlParser::UnaryOperationContext * /*ctx*/) override { }
   virtual void exitUnaryOperation(GpuSqlParser::UnaryOperationContext * /*ctx*/) override { }
-
-  virtual void enterUnaryExpression(GpuSqlParser::UnaryExpressionContext * /*ctx*/) override { }
-  virtual void exitUnaryExpression(GpuSqlParser::UnaryExpressionContext * /*ctx*/) override { }
 
   virtual void enterBooleanLiteral(GpuSqlParser::BooleanLiteralContext * /*ctx*/) override { }
   virtual void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext * /*ctx*/) override { }
