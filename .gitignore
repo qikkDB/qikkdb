@@ -269,3 +269,4 @@ log/
 databases/
 
 CMakeSettings.json
+doc/
