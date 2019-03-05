@@ -17,6 +17,7 @@ private:
 	std::string name;
 	int32_t blockSize;
 	std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
+	std::mutex columnsMutex;
 
 public:
 	const std::shared_ptr<Database> &GetDatabase() const;

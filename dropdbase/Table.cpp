@@ -4,6 +4,7 @@
 #include "Types/Point.pb.h"
 #include "ColumnBase.h"
 #include <cstdint>
+#include <mutex> 
 
 const std::shared_ptr<Database>& Table::GetDatabase() const
 {
@@ -75,9 +76,9 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 	{
 		column = std::make_unique<ColumnBase<int8_t>>(columnName, blockSize);
 	}
+	columnsMutex.lock();
 	columns.insert(std::make_pair(columnName, std::move(column)));
-
-
+	columnsMutex.unlock();
 }
 #ifndef __CUDACC__
 void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
