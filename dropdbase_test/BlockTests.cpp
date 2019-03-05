@@ -135,6 +135,102 @@ TEST(BlockTests, InsertDataVector)
 
 }
 
+TEST(BlockTests, FindIndexAndRange)
+{
+    auto database = std::make_shared<Database>("testDatabase", 20);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnInt", COLUMN_INT);
+    auto& columnInt = table.GetColumns().at("ColumnInt");
+    auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+
+	blockInt.InsertDataOnSpecificPosition(0, 1);
+    blockInt.InsertDataOnSpecificPosition(1, 1);
+    blockInt.InsertDataOnSpecificPosition(2, 1);
+    blockInt.InsertDataOnSpecificPosition(3, 1);
+    blockInt.InsertDataOnSpecificPosition(4, 2);
+    blockInt.InsertDataOnSpecificPosition(5, 2);
+    blockInt.InsertDataOnSpecificPosition(6, 2);
+    blockInt.InsertDataOnSpecificPosition(7, 2);
+
+	int index;
+    int range;
+    bool reachEnd;
+
+	std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(1);
+    ASSERT_EQ(index, 0);
+    ASSERT_EQ(range, 3);
+    ASSERT_EQ(reachEnd, false);
+
+	std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(0);
+    ASSERT_EQ(index, 0);
+    ASSERT_EQ(range, 0);
+    ASSERT_EQ(reachEnd, false);
+
+	std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(2);
+    ASSERT_EQ(index, 4);
+    ASSERT_EQ(range, 3);
+    ASSERT_EQ(reachEnd, true);
+
+	std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(3);
+    ASSERT_EQ(index, 8);
+    ASSERT_EQ(range, 0);
+    ASSERT_EQ(reachEnd, true);
+}
+
+TEST(BlockTests, FindIndexAndRangeAccordingPrimaryIndexAndRange)
+{
+    auto database = std::make_shared<Database>("testDatabase", 20);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnInt", COLUMN_INT);
+    auto& columnInt = table.GetColumns().at("ColumnInt");
+    auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+
+    blockInt.InsertDataOnSpecificPosition(0, 1);
+    blockInt.InsertDataOnSpecificPosition(1, 1);
+    blockInt.InsertDataOnSpecificPosition(2, 1);
+    blockInt.InsertDataOnSpecificPosition(3, 1);
+    blockInt.InsertDataOnSpecificPosition(4, 2);
+    blockInt.InsertDataOnSpecificPosition(5, 2);
+    blockInt.InsertDataOnSpecificPosition(6, 2);
+    blockInt.InsertDataOnSpecificPosition(7, 2);
+
+    int index;
+    int range;
+    bool reachEnd;
+
+    std::tie(index, range, reachEnd) = blockInt.FindIndexAndRangeAccordingPrimaryIndexAndRange(0, 2, 0);
+    ASSERT_EQ(index, 0);
+    ASSERT_EQ(range, 0);
+    ASSERT_EQ(reachEnd, false);
+
+	std::tie(index, range, reachEnd) = blockInt.FindIndexAndRangeAccordingPrimaryIndexAndRange(0, 7, 0);
+    ASSERT_EQ(index, 0);
+    ASSERT_EQ(range, 0);
+    ASSERT_EQ(reachEnd, false);
+
+	std::tie(index, range, reachEnd) = blockInt.FindIndexAndRangeAccordingPrimaryIndexAndRange(0, 7, 1);
+    ASSERT_EQ(index, 0);
+    ASSERT_EQ(range, 3);
+    ASSERT_EQ(reachEnd, false);
+
+	std::tie(index, range, reachEnd) = blockInt.FindIndexAndRangeAccordingPrimaryIndexAndRange(6, 1, 1);
+    ASSERT_EQ(index, 6);
+    ASSERT_EQ(range, 0);
+    ASSERT_EQ(reachEnd, false);
+
+   std::tie(index, range, reachEnd) = blockInt.FindIndexAndRangeAccordingPrimaryIndexAndRange(0, 2, 2);
+    ASSERT_EQ(index, 3);
+    ASSERT_EQ(range, 0);
+    ASSERT_EQ(reachEnd, false);
+
+	std::tie(index, range, reachEnd) = blockInt.FindIndexAndRangeAccordingPrimaryIndexAndRange(0, 7, 2);
+    ASSERT_EQ(index, 4);
+    ASSERT_EQ(range, 3);
+    ASSERT_EQ(reachEnd, true);
+}
+
 TEST(BlockTests, InserDatatOnSpecificPosition)
 {
 	auto database = std::make_shared<Database>("testDatabase", 20);

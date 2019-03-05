@@ -22,8 +22,13 @@ private:
 	//void InsertValuesInNonIndexColumns(const std::unordered_map<std::string, std::any> &data, int indexBlock, int indexInBlock, std::string sortingColumn, int iterator);
 #endif
 
+#ifndef __CUDACC__
+    std::tuple<int, int, int> FindIndexAccordingPrimaryIndex(int index, int indexBlock,int indexInBlock,int range, const std::unordered_map<std::string, std::any>& data);
+#endif
+
 public:
-	const std::shared_ptr<Database> &GetDatabase();
+ //   void InsertValuesInNonIndexColumns(const std::unordered_map<std::string, std::any>& data, int indexBlock, int indexInBlock, std::string sortingColumn, int iterator, int range);
+    const std::shared_ptr<Database>& GetDatabase();
 	const std::string &GetName() const;
 	int32_t GetBlockSize() const;
 	int32_t GetBlockCount() const;

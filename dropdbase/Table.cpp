@@ -52,7 +52,7 @@ void Table::InsertValuesInNonIndexColumns(const std::unordered_map<std::string, 
 			}
 		}
 	}
-}
+} 
 #endif*/
 
 const std::shared_ptr<Database>& Table::GetDatabase()
@@ -139,6 +139,39 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 
 
 }
+
+#ifndef __CUDACC__
+std::tuple<int, int, int>
+Table::FindIndexAccordingPrimaryIndex(int index,
+                                      int indexBlock,
+                                      int indexInBlock,
+                                      int range,
+									  const std::unordered_map<std::string, std::any>& data)
+{
+    int columnIndexBlock = indexBlock;
+    int columnIndexInBlock = indexInBlock;
+    int columnRange = range;
+
+    for (int j = 1; j < sortingColumns.size(); j++)
+    {
+        auto secondaryIndexedColumn = (columns.find(sortingColumns[j])->second.get());
+        const auto& wrappedDataSecondaryIndexedColumn = data.at(sortingColumns[j]);
+
+		if (wrappedDataSecondaryIndexedColumn.type() == typeid(std::vector<int32_t>))
+        {
+            std::vector<int32_t> dataIndexedColumn =std::any_cast<std::vector<int32_t>>(wrappedDataSecondaryIndexedColumn);
+            auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(secondaryIndexedColumn);
+            std::tie(columnIndexBlock, columnIndexInBlock, columnRange) =
+                castedColumn->FindIndexAccordingPrimaryIndex(columnIndexInBlock, columnIndexBlock, columnRange, dataIndexedColumn[index]);
+		}
+		//TODO ostatne typy
+    }
+
+    return std::make_tuple(columnIndexBlock, columnIndexInBlock, columnRange);
+}
+#endif
+
+
 #ifndef __CUDACC__
 void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 {
@@ -147,24 +180,26 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 	{
 		for (auto sortingColumn : sortingColumns) 
 		{
-			auto indexedColumn = (columns.find(sortingColumn)->second.get());
-			const auto &wrappedDataIndexedColumn = data.at(sortingColumn);
+			auto primaryIndexedColumn = (columns.find(sortingColumn)->second.get());
+			const auto &wrappedDataPrimaryIndexedColumn = data.at(sortingColumn);
 
 			int indexBlock;
 			int indexInBlock;
 
-			/*if (wrappedDataIndexedColumn.type() == typeid(std::vector<int32_t>))
+			if (wrappedDataPrimaryIndexedColumn.type() == typeid(std::vector<int32_t>))
 			{
-				std::vector<int32_t> dataIndexedColumn = std::any_cast<std::vector<int32_t>>(wrappedDataIndexedColumn);
-				auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(indexedColumn);
+				std::vector<int32_t> dataIndexedColumn = std::any_cast<std::vector<int32_t>>(wrappedDataPrimaryIndexedColumn);
+                auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(primaryIndexedColumn);
 
 				for (int i = 0; i < dataIndexedColumn.size(); i++)
 				{
-					std::tie(indexBlock, indexInBlock, range) = castedColumn->InsertOneValueData(dataIndexedColumn[i], range);
-					InsertValuesInNonIndexColumns(data, indexBlock, indexInBlock, sortingColumn, i, range);
+                    std::tie(indexBlock, indexInBlock, range) = castedColumn->FindBlockIndexAndRange(dataIndexedColumn[i]);
+					std::tie(indexBlock, indexInBlock, range) = FindIndexAccordingPrimaryIndex(i, indexBlock, indexInBlock, range, data);
 				}
+				//TODO insertni na spravnu poziciu
 			}
-			else if (wrappedDataIndexedColumn.type() == typeid(std::vector<int64_t>))
+			//TODO ostatne typy
+			/*else if (wrappedDataIndexedColumn.type() == typeid(std::vector<int64_t>))
 			{
 				std::vector<int64_t> dataIndexedColumn = std::any_cast<std::vector<int64_t>>(wrappedDataIndexedColumn);
 				auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(indexedColumn);

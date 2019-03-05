@@ -85,6 +85,84 @@ public:
 		return EmptyBlockSpace() == 0;
 	}
 
+	std::tuple<int,int,bool> FindIndexAndRangeAccordingPrimaryIndexAndRange(int indexInBlock, int range, const T& data)
+    {
+        int newRange = 0;
+        int newIndexInBlock;
+        bool reachEnd;
+        int fullBlockSpace = column_.GetBlockSize() - EmptyBlockSpace();
+
+		if (data_[indexInBlock+range] < data)
+		{
+            newIndexInBlock = indexInBlock + range + 1;
+            newRange = 0;
+            if (indexInBlock + range == fullBlockSpace)
+            {
+                reachEnd = true;
+            }
+            else
+            {
+                reachEnd = false;
+            }
+		}
+
+		else if (data_[indexInBlock] >= data)
+        {
+            newIndexInBlock = indexInBlock;
+            for (int i = indexInBlock + 1; i < indexInBlock + range; i++)
+            {
+                if (data_[i] == data)
+                {
+                    newRange++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if (data_[fullBlockSpace - 1] == data)
+            {
+                reachEnd = true;
+            }
+            else
+            {
+                reachEnd = false;
+            }
+        }
+		else
+		{
+			for (int i = indexInBlock; i < indexInBlock + range; i++)
+			{
+			     if (data_[i] < data && data_[i + 1] >= data)
+			     {
+			         newIndexInBlock = i + 1;
+                     for (int j = newIndexInBlock + 1; j < (fullBlockSpace); j++)
+			         {
+			             if (data_[j] == data)
+			             {
+			                 newRange++;
+			             }
+			             else
+			             {
+			                 break;
+			             }
+			         }
+			         break;
+			     }
+			     if (data_[fullBlockSpace - 1] == data)
+			     {
+			         reachEnd = true;
+			     }
+			     else
+			     {
+			         reachEnd = false;
+			     }
+			}
+		}
+        
+        return std::make_tuple(newIndexInBlock, newRange, reachEnd);
+    }
+
 	std::tuple<int,int,bool> FindIndexAndRange(const T& data)
 	{
 		int index;
@@ -114,7 +192,7 @@ public:
 		else if (data_[0] >= data)
 		{
 			index = 0;
-			for (int i = 0; i < (fullBlockSpace - 1); i++)
+			for (int i = 1; i < (fullBlockSpace); i++)
 			{
 				if (data_[i] == data) {
 					range++;
@@ -124,7 +202,7 @@ public:
 					break;
 				}
 			}
-			if (data_[fullBlockSpace] == data) {
+			if (data_[fullBlockSpace - 1] == data) {
 				reachEnd = true;
 			}
 			else
@@ -140,7 +218,7 @@ public:
 				if (data_[i] < data && data_[i + 1] >= data)
 				{
 					index = i + 1;
-					for (int j = i + 1; j < (fullBlockSpace - 1); j++)
+					for (int j = index + 1; j < fullBlockSpace; j++)
 					{
 						if (data_[j] == data) {
 							range++;
@@ -152,7 +230,7 @@ public:
 					}
 					break;
 				}
-				if (data_[fullBlockSpace] == data) {
+				if (data_[fullBlockSpace - 1] == data) {
 					reachEnd = true;
 				}
 				else
