@@ -203,9 +203,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 
         std::unique_ptr<char[]> tableName(new char[tableNameLength]);
         dbFile.read(tableName.get(), tableNameLength); // read table name
-
-        database->tables_.insert({tableName.get(), Table(database, tableName.get())});
-
+        database->tables_.emplace(std::make_pair(std::string(tableName.get()), Table(database, tableName.get())));
         int32_t columnCount;
         dbFile.read(reinterpret_cast<char*>(&columnCount), sizeof(int32_t)); // read number of columns
 
@@ -748,7 +746,7 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
     }
     else
     {
-        tables_.insert({tableName, Table(Database::GetDatabaseByName(name_), tableName)});
+        tables_.emplace(std::make_pair(tableName, Table(Database::GetDatabaseByName(name_), tableName)));
         auto& table = tables_.at(tableName);
 
         for (auto& entry : columns)

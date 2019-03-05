@@ -34,7 +34,7 @@ const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColum
 	return columns;
 }
 
-Table::Table(const std::shared_ptr<Database> &database, const char* name) : database(database), name(name)
+Table::Table(const std::shared_ptr<Database> &database, const char* name) : database(database), name(name), columnsMutex_(std::make_unique<std::mutex>())
 {
 	blockSize = database->GetBlockSize();
 }
@@ -75,9 +75,8 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 	{
 		column = std::make_unique<ColumnBase<int8_t>>(columnName, blockSize);
 	}
-	columnsMutex.lock();
+	std::unique_lock<std::mutex> lock(*columnsMutex_);
 	columns.insert(std::make_pair(columnName, std::move(column)));
-	columnsMutex.unlock();
 }
 #ifndef __CUDACC__
 void Table::InsertData(const std::unordered_map<std::string, std::any>& data)

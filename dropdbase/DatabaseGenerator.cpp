@@ -69,7 +69,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 	for (const auto& tableName : tableNames)
 	{
-		(*database).tables_.insert({ tableName, Table(database, tableName.c_str()) });
+		(*database).tables_.emplace(std::make_pair(tableName, Table(database, tableName.c_str())));
 		auto& table = database->tables_.at(tableName);
 
 		for (const auto& columnType : columnTypes)

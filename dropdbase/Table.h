@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <mutex>
 #ifndef __CUDACC__
 #include <any>
 #endif
@@ -17,7 +18,7 @@ private:
 	std::string name;
 	int32_t blockSize;
 	std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
-	std::mutex columnsMutex;
+	std::unique_ptr<std::mutex> columnsMutex_;
 
 public:
 	const std::shared_ptr<Database> &GetDatabase() const;
