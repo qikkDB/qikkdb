@@ -2,6 +2,10 @@
 #include "Types/Point.pb.h"
 #include <string>
 #include "NativeGeoPoint.h"
+
+/// <summary>
+/// The class for creating points from different sources and to create well-known-text from point.
+/// </summary>
 class PointFactory
 {
 private:

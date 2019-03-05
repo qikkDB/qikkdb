@@ -17,6 +17,6 @@ enum DataType {
 	COLUMN_POINT = 12,
 	COLUMN_POLYGON = 13,
 	COLUMN_STRING = 14,
-	COLUMN_INT8_T = 15, //TODO either to represent it as int8_t or to remove bool column at all
+	COLUMN_INT8_T = 15,
 	DATA_TYPE_SIZE = 16
 };
