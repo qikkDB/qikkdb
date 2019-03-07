@@ -6,7 +6,7 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include "GPUComplexPolygon.cuh"
+#include "GPUMemory.cuh"
 
 #include "../../NativeGeoPoint.h"
 #include "../Context.h"
@@ -15,56 +15,52 @@
 /// Check whether point is in given polygon using GPU
 /// </summary>
 /// <param name="outMask">pointer to output mask</param>
-/// <param name="geoPointsInput">points to check for inclusion</param>
-/// <param name="geoPoints">points of all polygons</param>
-/// <param name="complexPolygonIdx">Start indices of range of polygons in polygon arrays, for each complex polygon</param>
-/// <param name="complexPolygonCnt">Length of the polygon range for each complex polygon</param>
-/// <param name="polygonIdx">Start indices of range of points in points array, for each polygon</param>
-/// <param name="polygonCnt">Length of the point range for each polygon</param>
-/// <param name="pointCount">Length of geoPointsInput</param>
+/// <param name="geoPointCol">points to check for inclusion</param>
+/// <param name="pointCount">Length of geoPointCol</param>
 /// <param name="polygonCount">Length of complexPolygonIdx and complexPolygonCnt</param>
 /// <remarks>If point count is equal to 1, the point is checked against every polygon.
 /// If polygon count is equal to 1, the polygon is checked against every point.
 /// If point count is equal to polygon count, points are checked one to one against polygons on the same array index.
 /// </remarks>
 __global__ void
-kernel_point_in_polygon(int8_t* outMask, ComplexPolygon polygonCol, NativeGeoPoint* geoPointsInput, int32_t pointCount)
+kernel_point_in_polygon(int8_t* outMask, GPUMemory::GPUPolygon polygonCol, int32_t polygonCount,
+	NativeGeoPoint* geoPointCol, int32_t pointCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
     for (int32_t i = idx;
-         i < (pointCount > polygonCol.polygonCount ? pointCount : polygonCol.polygonCount); i += stride)
+         i < (pointCount > polygonCount ? pointCount : polygonCount); i += stride)
     {
         NativeGeoPoint point;
 
         if (pointCount == 1)
         {
-            point = geoPointsInput[0];
+            point = geoPointCol[0];
         }
         else
         {
-            point = geoPointsInput[i];
+            point = geoPointCol[i];
         }
 
         int32_t polyIdx = i;
 
-        if (polygonCol.polygonCount == 1)
+        if (polygonCount == 1)
         {
             polyIdx = 0;
         }
-        int32_t subPolygonsStartIdx = polygonCol.complexPolygonIdx[polyIdx];
-        int32_t subPolygonsCount = polygonCol.complexPolygonCnt[polyIdx];
+        int32_t subPolygonsStartIdx = polygonCol.polyIdx[polyIdx];
+        int32_t subPolygonsCount = polygonCol.polyCount[polyIdx];
         int8_t result = 0;
         for (int32_t j = subPolygonsStartIdx; j < subPolygonsStartIdx + subPolygonsCount; j++)
         {
-            int32_t verticesStartIdx = polygonCol.polygonIdx[j];
-            int32_t verticesCount = polygonCol.polygonCnt[j];
-            NativeGeoPoint previousVertex = polygonCol.geoPoints[verticesStartIdx];
+            int32_t verticesStartIdx = polygonCol.pointIdx[j];
+            int32_t verticesCount = polygonCol.pointCount[j];
+            NativeGeoPoint previousVertex = polygonCol.polyPoints[verticesStartIdx];
             NativeGeoPoint currentVertex;
             for (int32_t k = verticesStartIdx + 1; k < verticesStartIdx + verticesCount; k++)
             {
-                currentVertex = polygonCol.geoPoints[k];
+                currentVertex = polygonCol.polyPoints[k];
                 // Dark raycasting magic
                 if (((currentVertex.latitude > point.latitude) != (previousVertex.latitude > point.latitude)) &&
                     (point.longitude < (previousVertex.longitude - currentVertex.longitude) *
@@ -89,16 +85,16 @@ public:
     /// </summary>
     /// <param name="outMask">pointer to output mask</param>
     /// <param name="polygonCol">A structure to represent a complex polygon column</param>
-    /// <param name="geoPointsInput">points to check for inclusion</param>
-	/// <param name="pointCount">Length of geoPointsInput</param> <param
-    /// name="polygonCount">Length of complexPolygonIdx and complexPolygonCnt</param>
+    /// <param name="geoPointCol">points to check for inclusion</param>
+	/// <param name="pointCount">Length of geoPointCol</param>
     /// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS) or some error
     /// occured (GPU_EXTENSION_ERROR)</returns> <remarks>If point count is equal to 1, the point is
     /// checked against every polygon. If polygon count is equal to 1, the polygon is checked
     /// against every point. If point count is equal to polygon count, points are checked one to one
     /// against polygons on the same array index.
     /// </remarks>
-    static void contains(int8_t* outMask, ComplexPolygon polygonCol, NativeGeoPoint* geoPointsInput int32_t pointCount)
+    static void contains(int8_t* outMask, GPUMemory::GPUPolygon polygonCol, int32_t polygonCount,
+		NativeGeoPoint* geoPointCol, int32_t pointCount)
     {
         Context& context = Context::getInstance();
 
@@ -109,16 +105,17 @@ public:
         }
 
         kernel_point_in_polygon<<<context.calcGridDim((pointCount > polygonCount ? pointCount : polygonCount)),
-                                  context.getBlockDim()>>>(outMask, polygonCol, geoPointsInput, pointCount);
+                                  context.getBlockDim()>>>(outMask, polygonCol, polygonCount, geoPointCol, pointCount);
 
         QueryEngineError::setCudaError(cudaGetLastError());
     }
+
     /// <summary>
     /// Check whether point is in given polygon
     /// </summary>
     /// <param name="outMask">pointer to output mask</param>
-    /// <param name="polygon">A structure to represent a complex polygon</param>
-    /// <param name="geoPointsInput">points to check for inclusion</param>
+    /// <param name="polygonCol">A structure to represent a complex polygon</param>
+    /// <param name="geoPointCol">points to check for inclusion</param>
     /// <param name="retSize">requested return size</param>
     /// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS) or some error
     /// occured (GPU_EXTENSION_ERROR)</returns> <remarks>If point count is equal to 1, the point is
@@ -126,12 +123,12 @@ public:
     /// against every point. If point count is equal to polygon count, points are checked one to one
     /// against polygons on the same array index.
     /// </remarks>
-    static void containsConst(int8_t* outMask, ComplexPolygon polygon, NativeGeoPoint* geoPointsInput, int32_t retSize)
+    static void containsConst(int8_t* outMask, GPUMemory::GPUPolygon polygonCol, NativeGeoPoint* geoPointCol, int32_t retSize)
     {
         Context& context = Context::getInstance();
 
-        kernel_point_in_polygon << <context.calcGridDim(1), context.getBlockDim()>>>(
-            (outMask, polygon, geoPointsInput, 1);
+        kernel_point_in_polygon << <context.calcGridDim(1), context.getBlockDim()>>>
+            (outMask, polygonCol, 1, geoPointCol, 1);
 		int8_t result;
 		GPUMemory::copyDeviceToHost(&result, outMask, 1);
 		GPUMemory::memset(outMask, result, retSize);

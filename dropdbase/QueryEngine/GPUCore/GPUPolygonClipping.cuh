@@ -6,7 +6,7 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include "GPUComplexPolygon.cuh"
+#include "GPUMemory.cuh"
 
 #include "../../NativeGeoPoint.h"
 #include "../Context.h"
@@ -48,7 +48,10 @@ __device__ PolygonNodeDLL* poly1List;
 __device__ PolygonNodeDLL* poly2List;
 
 template <typename OP>
-__global__ void kernel_polygon_clipping(ComplexPolygon out, ComplexPolygon polygon1, ComplexPolygon polygon2)
+__global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon out,
+                                        GPUMemory::GPUPolygon polygon1,
+                                        GPUMemory::GPUPolygon polygon2,
+                                        int32_t dataElementCount)
 {
 
 }
@@ -56,11 +59,12 @@ __global__ void kernel_polygon_clipping(ComplexPolygon out, ComplexPolygon polyg
 class GPUPolygonIntersect
 {
 public:
-    template <typename OP, typename T, typename U>
-    static void ColCol()
+    template <typename OP>
+    static void ColCol(GPUMemory::GPUPolygon out, GPUMemory::GPUPolygon polygon1, GPUMemory::GPUPolygon polygon2, int32_t dataElementCount)
     {
-        kernel_filter<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>();
+        kernel_polygon_clipping<OP>
+            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
+                out, polygon1, polygon2, dataElementCount);
         QueryEngineError::setCudaError(cudaGetLastError());
     }
 };
