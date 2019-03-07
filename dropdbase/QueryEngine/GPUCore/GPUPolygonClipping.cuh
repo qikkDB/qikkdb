@@ -1,10 +1,12 @@
-#pragma 
+#pragma
 
 #include <cstdint>
 
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+
+#include "GPUComplexPolygon.cuh"
 
 #include "../../NativeGeoPoint.h"
 #include "../Context.h"
@@ -26,8 +28,39 @@ struct polyUnion
 };
 } // namespace PolygonFunctions
 
+// Struct for the polygon Doubly Linked List construction on the GPU
+__host__ __device__ struct PolygonNodeDLL
+{
+    int32_t poly_group;
+
+    NativeGeoPoint point;
+
+    float linear_distance;
+    int32_t is_intersect;
+
+    int32_t next;
+    int32_t prev;
+    int32_t cross_link;
+};
+
+// Data buffers for linked lists of polygons during clipping
+__device__ PolygonNodeDLL* poly1List;
+__device__ PolygonNodeDLL* poly2List;
+
+template <typename OP>
+__global__ void kernel_polygon_clipping(ComplexPolygon out, ComplexPolygon polygon1, ComplexPolygon polygon2)
+{
+
+}
 
 class GPUPolygonIntersect
 {
-
+public:
+    template <typename OP, typename T, typename U>
+    static void ColCol()
+    {
+        kernel_filter<OP>
+            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>();
+        QueryEngineError::setCudaError(cudaGetLastError());
+    }
 };
