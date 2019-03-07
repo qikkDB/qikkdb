@@ -6,7 +6,8 @@
 #include "../QueryEngine/GPUCore/GPUArithmetic.cuh"
 #include "../QueryEngine/GPUCore/GPULogic.cuh"
 #include "../QueryEngine/GPUCore/GPUAggregation.cuh"
-#include "../QueryEngine/GPUCore/GPUPolygon.cuh"
+#include "../QueryEngine/GPUCore/GPUPolygonClipping.cuh"
+#include "../QueryEngine/GPUCore/GPUPolygonContains.cuh"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
@@ -537,7 +538,7 @@ int32_t containsColConst(GpuSqlDispatcher &dispatcher)
 	if (!dispatcher.isRegisterAllocated(reg))
 	{
         int8_t* result = dispatcher.allocateRegister<int8_t>(reg, retSize);
-        GPUPolygon::contains(result, pointConstPtr, reinterpret_cast<NativeGeoPoint*>(polygons.polyPoints),
+        GPUPolygonContains::contains(result, pointConstPtr, reinterpret_cast<NativeGeoPoint*>(polygons.polyPoints),
                              reinterpret_cast<int32_t*>(polygons.polyIdx),
                              reinterpret_cast<int32_t*>(polygons.polyCount),
                              reinterpret_cast<int32_t*>(polygons.pointIdx),
@@ -570,7 +571,7 @@ int32_t containsConstCol(GpuSqlDispatcher &dispatcher)
 	if (!dispatcher.isRegisterAllocated(reg))
 	{
         int8_t* result = dispatcher.allocateRegister<int8_t>(reg, retSize);
-        GPUPolygon::contains(result, reinterpret_cast<NativeGeoPoint*>(std::get<0>(columnPoint)),
+        GPUPolygonContains::contains(result, reinterpret_cast<NativeGeoPoint*>(std::get<0>(columnPoint)),
                              reinterpret_cast<NativeGeoPoint*>(std::get<0>(
                                  dispatcher.allocatedPointers.at(gpuPolygon + "_polyPoints"))),
                              reinterpret_cast<int32_t*>(std::get<0>(
@@ -616,7 +617,7 @@ int32_t containsColCol(GpuSqlDispatcher &dispatcher)
 	if (!dispatcher.isRegisterAllocated(reg))
 	{
 		int8_t * result = dispatcher.allocateRegister<int8_t>(reg, retSize);
-		GPUPolygon::contains(result, reinterpret_cast<NativeGeoPoint*>(std::get<0>(pointCol)), reinterpret_cast<NativeGeoPoint*>(gpuPolygon.polyPoints), reinterpret_cast<int32_t*>(gpuPolygon.polyIdx), reinterpret_cast<int32_t*>(gpuPolygon.polyCount), reinterpret_cast<int32_t*>(gpuPolygon.pointIdx), reinterpret_cast<int32_t*>(gpuPolygon.pointCount), std::get<1>(pointCol), std::get<1>(polygonCol));
+		GPUPolygonContains::contains(result, reinterpret_cast<NativeGeoPoint*>(std::get<0>(pointCol)), reinterpret_cast<NativeGeoPoint*>(gpuPolygon.polyPoints), reinterpret_cast<int32_t*>(gpuPolygon.polyIdx), reinterpret_cast<int32_t*>(gpuPolygon.polyCount), reinterpret_cast<int32_t*>(gpuPolygon.pointIdx), reinterpret_cast<int32_t*>(gpuPolygon.pointCount), std::get<1>(pointCol), std::get<1>(polygonCol));
 	}
 	return 0;
 }
@@ -642,7 +643,7 @@ int32_t containsConstConst(GpuSqlDispatcher &dispatcher)
 	if (!dispatcher.isRegisterAllocated(reg))
 	{
         int8_t* result = dispatcher.allocateRegister<int8_t>(reg, retSize);
-        GPUPolygon::containsConst(result, constNativeGeoPoint,
+        GPUPolygonContains::containsConst(result, constNativeGeoPoint,
                              reinterpret_cast<NativeGeoPoint*>(std::get<0>(
                                  dispatcher.allocatedPointers.at(gpuPolygon + "_polyPoints"))),
                              reinterpret_cast<int32_t*>(std::get<0>(

@@ -9,25 +9,6 @@
 #include "../../NativeGeoPoint.h"
 #include "../Context.h"
 
-namespace PolygonFunctions
-{
-	struct polyIntersect
-	{
-		__device__ __host__ void operator()() const
-		{
-			
-		}
-	};
-
-	struct polyUnion
-	{
-		__device__ __host__ void operator()() const
-		{
-			
-		}
-	};
-}
-
 /// <summary>
 /// Check whether point is in given polygon using GPU
 /// </summary>
@@ -104,7 +85,7 @@ __global__ void kernel_point_in_polygon(int8_t* outMask,
     }
 }
 
-class GPUPolygon
+class GPUPolygonContains
 {
 public:
     /// <summary>
