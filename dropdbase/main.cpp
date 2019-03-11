@@ -7,6 +7,7 @@
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/trivial.hpp>
+#include "Compression/Compression.h"
 #include "QueryEngine/Context.h" 
 #include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "DatabaseGenerator.h"
@@ -16,6 +17,8 @@
 #include "TCPClientHandler.h"
 #include "ConsoleHandler.h"
 #include "QueryEngine/GPUMemoryCache.h"
+#include "ColumnBase.h"
+
 
 
 int main(int argc, char **argv)
@@ -28,11 +31,24 @@ int main(int argc, char **argv)
 	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
 	Database::LoadDatabasesFromDisk();
 	
-	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
-	RegisterCtrlCHandler(&tcpServer);
-	tcpServer.Run();
+	//TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
+	//RegisterCtrlCHandler(&tcpServer);
+	//tcpServer.Run();
+	BlockBase<int32_t>* block = dynamic_cast<ColumnBase<int32_t>*>(Database::GetDatabaseByName("TestDatabase")->GetTables().find("TestTable1")->second.GetColumns().at("colInteger").get())->GetBlocksList().front().get();
+	for (int i = 0; i < 10; i++) {
+		std::cout << "block " << block->GetData()[i] << std::endl;
+	}
 
-	Database::SaveAllToDisk();
+	std::unique_ptr<BlockBase<int32_t>> block2 = Compression::CompressBlock<int32_t>((*block));
+	
+	for (int i = 0; i < 10; i++) {
+		std::cout << "comp " << block2.get()->GetData()[i] << std::endl;
+	}
+
+	char koniec;
+	std::cin >> koniec;
+
+	//Database::SaveAllToDisk();
 	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
 	
 	/*CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");

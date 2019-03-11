@@ -23,8 +23,12 @@ private:
 
 	ColumnBase<T>& column_;
 	size_t size_;
+	size_t compressedSize_;
 	size_t capacity_;
 	std::unique_ptr<T[]> data_;
+
+	bool isCompressed_;
+
 public:
 	BlockBase(const std::vector<T>& data, ColumnBase<T>& column) :
 		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_])
@@ -37,6 +41,7 @@ public:
 		std::copy(data.begin(), data.end(), data_.get());
 		size_ = data.size();
 		setBlockStatistics();
+		isCompressed_ = false;
 	}
 
 	explicit BlockBase(ColumnBase<T>& column) :
@@ -94,6 +99,21 @@ public:
 		std::copy(data.begin(), data.end(), data_.get() + size_);
 		size_ += data.size();
 		setBlockStatistics();
+	}
+
+	bool IsCompressed() const
+	{
+		return false;
+	}
+	
+	size_t GetCompressedSize() const
+	{
+		return compressedSize_;
+	}
+
+	ColumnBase<T>& GetColumn()
+	{
+		return column_;
 	}
 	
 	~BlockBase()
