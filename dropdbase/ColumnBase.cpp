@@ -63,7 +63,7 @@ void ColumnBase<int32_t>::setColumnStatistics()
 
 	std::vector<int64_t> numOfDataInBlocks;
 
-	for (auto& block : blocks_)
+	for (auto& block : this->GetBlocksList())
 	{
 		mins.push_back(block->GetMin());
 		maxs.push_back(block->GetMax());
@@ -86,7 +86,7 @@ void ColumnBase<int64_t>::setColumnStatistics()
 
 	std::vector<int64_t> numOfDataInBlocks;
 
-	for (auto& block : blocks_)
+	for (auto& block : this->GetBlocksList())
 	{
 		mins.push_back(block->GetMin());
 		maxs.push_back(block->GetMax());
@@ -109,7 +109,7 @@ void ColumnBase<float>::setColumnStatistics()
 
 	std::vector<int64_t> numOfDataInBlocks;
 
-	for (auto& block : blocks_)
+	for (auto& block : this->GetBlocksList())
 	{
 		mins.push_back(block->GetMin());
 		maxs.push_back(block->GetMax());
@@ -132,7 +132,7 @@ void ColumnBase<double>::setColumnStatistics()
 
 	std::vector<int64_t> numOfDataInBlocks;
 
-	for (auto& block : blocks_)
+	for (auto& block : this->GetBlocksList())
 	{
 		mins.push_back(block->GetMin());
 		maxs.push_back(block->GetMax());
@@ -182,7 +182,7 @@ void ColumnBase<int8_t>::setColumnStatistics()
 
 	std::vector<int64_t> numOfDataInBlocks;
 
-	for (auto& block : blocks_)
+	for (auto& block : this->GetBlocksList())
 	{
 		mins.push_back(block->GetMin());
 		maxs.push_back(block->GetMax());

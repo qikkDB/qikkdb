@@ -84,7 +84,7 @@ class ColumnBase : public IColumn
 private:
 	std::string name_;
 	int blockSize_;
-	std::vector<std::unique_ptr<BlockBase<T>>> blocks_;
+	std::map<int, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
 
 	std::vector<T> NullArray(int length);
 	void setColumnStatistics();
@@ -98,6 +98,8 @@ public:
 	ColumnBase(const std::string& name, int blockSize) :
 		name_(name), blockSize_(blockSize), blocks_()
 	{
+		std::vector<std::unique_ptr<BlockBase<T>>> blocks;
+		blocks_[-1] = std::move(blocks);
 	}
 
 	inline int GetBlockSize() const { return blockSize_; };
@@ -133,17 +135,25 @@ public:
 	/// <returns>List of blocks in current column</returns>
 	const std::vector<std::unique_ptr<BlockBase<T>>>& GetBlocksList() const
 	{
-		return blocks_;
+		//std::vector<std::unique_ptr<BlockBase<T>>> blocks;
+		//for (const auto& pair : blocks_) {
+		//	std::vector<std::unique_ptr<BlockBase<T>>> *j = pair.second;
+		//	blocks.insert(blocks.end(), j.begin(), j.end());
+		//}
+		//return blocks;
+		auto& blocks = blocks_.find(-1)->second;
+		return blocks;
 	};
 
 	/// <summary>
 	/// Add new block in column
 	/// </summary>
 	/// <returns>Last block of column</returns>
-	BlockBase<T>& AddBlock()
+	BlockBase<T>& AddBlock(int groupId = -1)
 	{
-		blocks_.push_back(std::make_unique<BlockBase<T>>(*this));
-		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
+		
+		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
+		return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
 	}
 
 	/// <summary>
@@ -151,10 +161,10 @@ public:
 	/// </summary>
 	/// <param name="data">Data to be inserted</param>
 	/// <returns>Last block of column</returns>
-	BlockBase<T>& AddBlock(const std::vector<T>& data)
+	BlockBase<T>& AddBlock(const std::vector<T>& data, int groupId = -1)
 	{
-		blocks_.push_back(std::make_unique<BlockBase<T>>(data, *this));
-		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
+		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this));
+		return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
 	}
 
 
@@ -162,12 +172,12 @@ public:
 	/// Insert data into column considering empty space of last block and maximum size of blocks
 	/// </summary>
 	/// <param name="columnData">Data to be inserted</param>
-	void InsertData(const std::vector<T>& columnData)
+	void InsertData(const std::vector<T>& columnData, int groupId = -1)
 	{
 		int startIdx = 0;
-		if (blocks_.size() > 0 && !blocks_.back()->IsFull())
+		if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
 		{
-			auto & lastBlock = blocks_.back();
+			auto & lastBlock = blocks_[groupId].back();
 			if (columnData.size() <= lastBlock->EmptyBlockSpace())
 			{
 				lastBlock->InsertData(columnData);
