@@ -12,8 +12,8 @@ namespace LogicOperations
 {
 	struct logicalAnd
 	{
-		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b)
+		template<typename U, typename V>
+		__device__ __host__ int8_t operator()(U a, V b)
 		{
 			return a && b;
 		}
@@ -22,8 +22,8 @@ namespace LogicOperations
 
 	struct logicalOr
 	{
-		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b)
+		template<typename U, typename V>
+		__device__ __host__ int8_t operator()(U a, V b)
 		{
 			return a || b;
 		}
@@ -39,8 +39,8 @@ namespace LogicOperations
 /// <param name="BCol">block of the right input operands</param>
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <returns>void</returns>
-template<typename OP, typename T, typename U, typename V>
-__global__ void kernel_logic(T *outCol, U ACol, V BCol, int32_t dataElementCount)
+template<typename OP, typename U, typename V>
+__global__ void kernel_logic(int8_t *outCol, U ACol, V BCol, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -49,7 +49,6 @@ __global__ void kernel_logic(T *outCol, U ACol, V BCol, int32_t dataElementCount
 	{
 		outCol[i] = OP{}.template operator()
 			<
-			T,
 			typename std::remove_pointer<U>::type,
 			typename std::remove_pointer<V>::type >
 			(maybe_deref(ACol, i), maybe_deref(BCol, i));
@@ -63,8 +62,8 @@ __global__ void kernel_logic(T *outCol, U ACol, V BCol, int32_t dataElementCount
 /// <param name="ACol">block of the input operands</param>
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <returns>void</returns>
-template<typename T, typename U>
-__global__ void kernel_operator_not(T *outCol, U ACol, int32_t dataElementCount)
+template<typename U>
+__global__ void kernel_operator_not(int8_t *outCol, U ACol, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -118,8 +117,8 @@ public:
 	/// <param name="ACol">block of the input operands</param>
 	/// <param name="dataElementCount">the size of the input blocks in elements</param>
 	/// <returns>if operation was successful (GPU_EXTENSION_SUCCESS or GPU_EXTENSION_ERROR)</returns>
-	template<typename T, typename U>
-	static void not_col(T *outCol, U *ACol, int32_t dataElementCount)
+	template<typename U>
+	static void not_col(int8_t *outCol, U *ACol, int32_t dataElementCount)
 	{
 		Context& context = Context::getInstance();
 		kernel_operator_not << <  context.calcGridDim(dataElementCount), context.getBlockDim() >> >
@@ -136,8 +135,8 @@ public:
 	/// <param name="AConst">constant to be negated</param>
 	/// <param name="dataElementCount">the size of the input blocks in elements</param>
 	/// <returns>if operation was successful (GPU_EXTENSION_SUCCESS or GPU_EXTENSION_ERROR)</returns>
-	template<typename T, typename U>
-	static void not_const(T *outCol, U AConst, int32_t dataElementCount)
+	template<typename U>
+	static void not_const(int8_t *outCol, U AConst, int32_t dataElementCount)
 	{
 		Context& context = Context::getInstance();
 

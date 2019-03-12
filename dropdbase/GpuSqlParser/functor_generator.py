@@ -462,6 +462,7 @@ for operation in filter_operations + logical_operations:
     print('\t}')
     print('}')
 
+operation = 'logicalNot'
 print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
 print('{')
 print('\tswitch(dataTypes)')
@@ -486,17 +487,20 @@ for colIdx, colVal in enumerate(all_types):
         elif rowIdx >= len(types):
             row = "Col"
 
-        if colVal != POLYGON or rowVal != POINT:
+        if colVal in geo_types:
+            validCombination = False
+
+        elif colVal == STRING:
             validCombination = False
 
         if validCombination:
             print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
             print(
-                '\t\t\treturn &filterFunction' + col + row + "<" + namespace + operation + ", " + dataTypeCombination + ">;")
+                '\t\t\treturn &filterNotFunction' + col + "<" + colVal + ">;")
             print('\t\tbreak;')
 
 print('\t\tdefault:')
-print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
+print('\t\t\treturn &invalidNotArgumentTypeHandler;')
 print('\t\tbreak;')
 print('\t}')
 print('}')

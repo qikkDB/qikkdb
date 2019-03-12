@@ -41,12 +41,28 @@ __device__ int8_t filterFunctionConstConst(GPUOpCode opCode, int32_t offset)
 		maybe_deref(left, offset), maybe_deref(right, offset));
 }
 
+template <typename L>
+__device__ int8_t filterNotFunctionCol(GPUOpCode opCode, int32_t offset)
+{
+	L* left = reinterpret_cast<L*>(opCode.dataLeft);
+	return !left[offset];
+}
+
+template <typename L>
+__device__ int8_t filterNotFunctionConst(GPUOpCode opCode, int32_t offset)
+{
+	L left = *reinterpret_cast<L*>(&opCode.dataLeft);
+	return !left;
+}
+
 
 template <typename OP>
 __device__ int8_t invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset)
 {
 	return 2;
 }
+
+__device__ int8_t invalidNotArgumentTypeHandler(GPUOpCode opCode, int32_t offset);
 
 __global__ void kernel_filter(int8_t* outMask, GPUOpCode* opCodes, int32_t opCodesCount, int32_t dataElementCount);
 

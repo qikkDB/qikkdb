@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-constexpr int32_t OPERATIONS_COUNT = 10;
+constexpr int32_t OPERATIONS_COUNT = 9;
 struct GPUOpCode;
 
 typedef int8_t (*DispatchFunction)(GPUOpCode, int32_t);

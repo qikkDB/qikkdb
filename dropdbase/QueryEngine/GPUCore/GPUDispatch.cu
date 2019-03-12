@@ -2496,14 +2496,494 @@ __device__ DispatchFunction add_gpu_logicalOr_function(int32_t dataTypes)
 	}
 }
 
-__device__ DispatchFunction add_gpu_contains_function(int32_t dataTypes)
+__device__ DispatchFunction add_gpu_logicalNot_function(int32_t dataTypes)
 {
-
-}
-
-__device__ DispatchFunction add_gpu_not_function(int32_t dataTypes)
-{
-
+	switch(dataTypes)
+	{
+		case 0:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 1:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 2:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 3:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 4:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 5:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 6:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 7:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 8:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 9:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 10:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 11:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 12:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 13:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 14:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 15:
+			return &filterNotFunctionConst<int32_t>;
+		break;
+		case 16:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 17:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 18:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 19:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 20:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 21:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 22:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 23:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 24:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 25:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 26:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 27:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 28:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 29:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 30:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 31:
+			return &filterNotFunctionConst<int64_t>;
+		break;
+		case 32:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 33:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 34:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 35:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 36:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 37:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 38:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 39:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 40:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 41:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 42:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 43:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 44:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 45:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 46:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 47:
+			return &filterNotFunctionConst<float>;
+		break;
+		case 48:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 49:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 50:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 51:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 52:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 53:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 54:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 55:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 56:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 57:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 58:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 59:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 60:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 61:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 62:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 63:
+			return &filterNotFunctionConst<double>;
+		break;
+		case 112:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 113:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 114:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 115:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 116:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 117:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 118:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 119:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 120:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 121:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 122:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 123:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 124:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 125:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 126:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 127:
+			return &filterNotFunctionConst<int8_t>;
+		break;
+		case 128:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 129:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 130:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 131:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 132:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 133:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 134:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 135:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 136:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 137:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 138:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 139:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 140:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 141:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 142:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 143:
+			return &filterNotFunctionCol<int32_t>;
+		break;
+		case 144:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 145:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 146:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 147:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 148:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 149:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 150:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 151:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 152:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 153:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 154:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 155:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 156:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 157:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 158:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 159:
+			return &filterNotFunctionCol<int64_t>;
+		break;
+		case 160:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 161:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 162:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 163:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 164:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 165:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 166:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 167:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 168:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 169:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 170:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 171:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 172:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 173:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 174:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 175:
+			return &filterNotFunctionCol<float>;
+		break;
+		case 176:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 177:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 178:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 179:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 180:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 181:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 182:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 183:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 184:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 185:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 186:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 187:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 188:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 189:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 190:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 191:
+			return &filterNotFunctionCol<double>;
+		break;
+		case 240:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 241:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 242:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 243:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 244:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 245:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 246:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 247:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 248:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 249:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 250:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 251:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 252:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 253:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 254:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		case 255:
+			return &filterNotFunctionCol<int8_t>;
+		break;
+		default:
+			return &invalidNotArgumentTypeHandler;
+		break;
+	}
 }
 
 
@@ -2545,10 +3025,7 @@ __global__ void fill_gpu_dispatch_table(DispatchFunction* gpuDispatchTable, int3
 			gpuDispatchTable[i] = add_gpu_logicalOr_function(dataTypes);
 			break;
 		case 8:
-			gpuDispatchTable[i] = add_gpu_contains_function(dataTypes);
-			break;
-		case 9:
-			gpuDispatchTable[i] = add_gpu_not_function(dataTypes);
+			gpuDispatchTable[i] = add_gpu_logicalNot_function(dataTypes);
 			break;
 		default:
 			break;
@@ -2556,16 +3033,10 @@ __global__ void fill_gpu_dispatch_table(DispatchFunction* gpuDispatchTable, int3
 	}
 }
 
-
-
-__device__ int8_t containsFunctionColConst(GPUOpCode opCode, int32_t offset)
+__device__ int8_t invalidNotArgumentTypeHandler(GPUOpCode opCode, int32_t offset)
 {
-	L* left = reinterpret_cast<L*>(opCode.dataLeft);
-	R right = *reinterpret_cast<R*>(&opCode.dataRight);
-	return OP{}.template operator() < typename std::remove_pointer<L>::type, typename std::remove_pointer<R>::type > (
-		maybe_deref(left, offset), maybe_deref(right, offset));
+	return 2;
 }
-
 
 void FillGpuDispatchTable(DispatchFunction* gpuDispatchTable, int32_t gpuDispatchTableSize)
 {
