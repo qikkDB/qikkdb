@@ -75,6 +75,12 @@ void ColumnBase<int32_t>::setColumnStatistics()
 	max_ = *std::max_element(maxs.begin(), maxs.end());
 	sum_ = std::accumulate(sums.begin(), sums.end(), 0);
 	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(),numOfDataInBlocks.end(), (float) 0.0);
+
+	if (!initAvgIsSet_) //TODO spravit toto tak, aby sa nastavil initAvg_ az ked sa priemer vyrata z aspon X riadkov
+	{
+		initAvgIsSet_ = true;
+		initAvg_ = avg_;
+	}
 }
 
 template<>

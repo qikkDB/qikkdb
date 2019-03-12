@@ -129,3 +129,48 @@ bool Table::ContainsColumn(const char* column)
 	}
 	return false;
 }
+
+/// <summary>
+/// Find out the index of binary index group of blocks, to which the row data will be inserted.
+/// The main question that decides the group is as follows: 'Is value > average?'.
+/// </summary>
+/// <param name="rowData">Row of data from .CSV file, that is inserting into the table.</param>
+/// <param name="allColumns">Columns in the same order as fields in row of data.</param>
+/// <param name="indexColumns">Names of columns on which binary index will be created in order from most significant to least significant.</param>
+/// <returns>Index of binary index group of blocks.</returns>
+int32_t Table::AssignGroupId(std::vector<std::any>& rowData, std::unordered_map<std::string, std::unique_ptr<IColumn>>& allColumns, std::vector<std::string>& indexColumns)
+{
+	std::vector<std::string> tempIndexColumns;
+
+	//find out if there is at least one column with set initAvg_ so it can make index:
+	for (std::string indexColumn : indexColumns)
+	{
+		if (allColumns[indexColumn]->GetInitAvgIsSet())
+		{
+			tempIndexColumns.push_back(indexColumn);
+		}
+	}
+
+	//if there is no column according to which it make sense to create index:
+	if (tempIndexColumns.size() == 0)
+	{
+		return -1;
+	}
+
+	int32_t index = 0;
+
+	for (std::string tempIndexColumn : tempIndexColumns)
+	{
+		bool b = false;
+
+		//TODO i musi byt spojene s allColumns poradim
+		if (rowData[i] > allColumns[tempIndexColumn]->GetInitAvg())
+		{
+			b = true;
+		}
+
+		index += 2 * i + b;
+	}
+
+	return index;
+}

@@ -84,15 +84,17 @@ class ColumnBase : public IColumn
 private:
 	std::string name_;
 	int blockSize_;
-	std::map<int, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
+	std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
 
 	std::vector<T> NullArray(int length);
 	void setColumnStatistics();
 
-	T min_;
-	T max_;
-	float avg_;
-	T sum_;
+	T min_ = std::numeric_limits<T>::lowest();
+	T max_ = std::numeric_limits<T>::max();
+	float avg_ = 0.0;
+	T sum_ = T{ 0 };
+	float initAvg_ = 0.0;
+	bool initAvgIsSet_ = false;
 
 public:
 	ColumnBase(const std::string& name, int blockSize) :
@@ -107,6 +109,16 @@ public:
 	virtual const std::string& GetName() const override
 	{
 		return name_;
+	}
+
+	virtual const float GetInitAvg() const override
+	{
+		return initAvg_;
+	}
+
+	virtual const bool GetInitAvgIsSet() const override
+	{
+		return initAvgIsSet_;
 	}
 
 	T GetMax()
@@ -133,16 +145,19 @@ public:
 	/// Blocks getter
 	/// </summary>
 	/// <returns>List of blocks in current column</returns>
-	const std::vector<std::unique_ptr<BlockBase<T>>>& GetBlocksList() const
+	const std::vector<std::unique_ptr<BlockBase<T>>&> GetBlocksList() const
 	{
-		//std::vector<std::unique_ptr<BlockBase<T>>> blocks;
-		//for (const auto& pair : blocks_) {
-		//	std::vector<std::unique_ptr<BlockBase<T>>> *j = pair.second;
-		//	blocks.insert(blocks.end(), j.begin(), j.end());
-		//}
-		//return blocks;
-		auto& blocks = blocks_.find(-1)->second;
-		return blocks;
+		std::vector<std::unique_ptr<BlockBase<T>>&> ret;
+
+		for (auto& blockList : blocks_)
+		{
+			for (auto& block : blockList.second)
+			{
+				ret.push_back(block);
+			}
+		}
+
+		return ret;
 	};
 
 	/// <summary>
@@ -151,7 +166,12 @@ public:
 	/// <returns>Last block of column</returns>
 	BlockBase<T>& AddBlock(int groupId = -1)
 	{
-		
+		if (m.find(groupId) == m.end()) {
+			// key not found
+			std::vector<std::unique_ptr<BlockBase<T>>> blocks;
+			blocks_[groupId] = std::move(blocks);
+		}
+
 		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
 		return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
 	}

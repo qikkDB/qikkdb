@@ -28,9 +28,9 @@ CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimit
 }
 
 /// <summary>
-/// Parses CSV file, guess types, create table (if not exists) and fills the table with parsed data
+/// Parses CSV file, guess types, create table (if not exists) and fills the table with parsed data.
 /// </summary>
-/// <param name="database">Database where data will be imported</param>
+/// <param name="database">Database where data will be imported.</param>
 void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 {
 	this->ExtractHeaders();
@@ -59,12 +59,12 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 }
 
 /// <summary>
-/// Does the parsing and fills the table with parsed data
+/// Does the parsing and fills the table with parsed data.
 /// </summary>
-/// <param name="threadId">Id of the thread doing the work</param>
-/// <param name="database">Database where data will be imported</param>
-/// <param name="columns">Columns with names and types: map columnName -> columnType</param>
-/// <param name="table">Table of the database where data will be imported</param>
+/// <param name="threadId">Id of the thread doing the work.</param>
+/// <param name="database">Database where data will be imported.</param>
+/// <param name="columns">Columns with names and types: map columnName -> columnType.</param>
+/// <param name="table">Table of the database where data will be imported.</param>
 void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std::unordered_map<std::string, DataType>& columns, Table& table)
 {
 		
@@ -288,7 +288,7 @@ void CSVDataImporter::ExtractHeaders()
 }
 
 /// <summary>
-/// Extracts types based on 100 leading rows
+/// Extracts types based on 100 leading rows.
 /// </summary>
 void CSVDataImporter::ExtractTypes()
 {
@@ -330,8 +330,8 @@ void CSVDataImporter::ExtractTypes()
 /// Identify data type based on vector of values. Returns maximum type from vector of types.
 /// COLUMN_INT < COLUMN_LONG < COLUMN_FLOAT < COLUMN_DOUBLE < COULMN_STRING
 /// </summary>
-/// <param name="columnValues">vector of string values</param>
-/// <returns>Suitable data type</returns>
+/// <param name="columnValues">Vector of string values.</param>
+/// <returns>Suitable data type.</returns>
 DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues)
 {
 	std::vector<DataType> dataTypes;
@@ -435,10 +435,10 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 }
 
 /// <summary>
-/// Sets column types based on pre determined values
-/// Disables type guessing
+/// Sets column types based on pre determined values.
+/// Disables type guessing.
 /// </summary>
-/// <param name="columnValues">vector of types values</param>
+/// <param name="columnValues">Vector of types values.</param>
 void CSVDataImporter::SetTypes(const std::vector<DataType>& types)
 {
 	dataTypes_ = types;
