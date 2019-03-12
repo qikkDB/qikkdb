@@ -57,14 +57,10 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.h
         ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseGenerator.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseGenerator.h
-		${CMAKE_CURRENT_SOURCE_DIR}/Compression/Compression.h
-
-		)
+        ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseGenerator.h)
 
 set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu 
-                ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlDispatcher.cu
-				${CMAKE_CURRENT_SOURCE_DIR}/Compression/GPUCompression.cuh)
+                ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlDispatcher.cu)
 
 set(SOURCE_FILES ${SOURCE_FILES} PARENT_SCOPE)
 set(CUDA_FILES ${CUDA_FILES} PARENT_SCOPE)

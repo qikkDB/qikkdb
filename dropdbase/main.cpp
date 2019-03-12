@@ -7,7 +7,6 @@
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/console.hpp>
 #include <boost/log/trivial.hpp>
-#include "Compression/Compression.h"
 #include "QueryEngine/Context.h" 
 #include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "DatabaseGenerator.h"
@@ -17,38 +16,39 @@
 #include "TCPClientHandler.h"
 #include "ConsoleHandler.h"
 #include "QueryEngine/GPUMemoryCache.h"
-#include "ColumnBase.h"
-
 
 
 int main(int argc, char **argv)
 {
     boost::log::add_file_log("../log/ColmnarDB.log");
     boost::log::add_console_log(std::cout);
-
+	std::string dbName = "TestDatabase";
+	std::vector<std::string> tableNames = { "TestTable1" };
+	std::vector<DataType> columnTypes = { {COLUMN_INT},
+		 {COLUMN_INT},
+		 {COLUMN_LONG},
+		 {COLUMN_LONG},
+		 {COLUMN_LONG},
+		 {COLUMN_FLOAT},
+		 {COLUMN_FLOAT},
+		 {COLUMN_DOUBLE},
+		 {COLUMN_DOUBLE},
+		 {COLUMN_POLYGON},
+		 {COLUMN_POINT} };
+	std::shared_ptr<Database> compressionDatabase = DatabaseGenerator::GenerateDatabase(dbName.c_str(), 2, 1<<18, false, tableNames, columnTypes);
+	Database::AddToInMemoryDatabaseList(compressionDatabase);
+	Database::SaveAllToDisk();
+	return 0;
 	Context::getInstance(); // Initialize CUDA context
 
 	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
 	Database::LoadDatabasesFromDisk();
 	
-	//TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
-	//RegisterCtrlCHandler(&tcpServer);
-	//tcpServer.Run();
-	BlockBase<int32_t>* block = dynamic_cast<ColumnBase<int32_t>*>(Database::GetDatabaseByName("TestDatabase")->GetTables().find("TestTable1")->second.GetColumns().at("colInteger").get())->GetBlocksList().front().get();
-	for (int i = 0; i < 10; i++) {
-		std::cout << "block " << block->GetData()[i] << std::endl;
-	}
+	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
+	RegisterCtrlCHandler(&tcpServer);
+	tcpServer.Run();
 
-	std::unique_ptr<BlockBase<int32_t>> block2 = Compression::CompressBlock<int32_t>((*block));
-	
-	for (int i = 0; i < 10; i++) {
-		std::cout << "comp " << block2.get()->GetData()[i] << std::endl;
-	}
-
-	char koniec;
-	std::cin >> koniec;
-
-	//Database::SaveAllToDisk();
+	Database::SaveAllToDisk();
 	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
 	
 	/*CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
