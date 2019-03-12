@@ -26,6 +26,9 @@ __global__ void kernel_fill_array(T *p_Block, T value, size_t dataElementCount)
 class GPUMemory {
 public:
 
+	/// <summary>
+	/// A structure to represent a complex polygon
+	/// </summary>
 	struct GPUPolygon
 	{
 		// Points of polygons
