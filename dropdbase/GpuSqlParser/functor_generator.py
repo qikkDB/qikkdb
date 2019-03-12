@@ -417,3 +417,86 @@ for operation in polygon_operations:
                 declaration += ("&" + function + ", ")
 
     print(declaration)
+
+for operation in filter_operations + logical_operations:
+    print('\n')
+    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
+    print('{')
+    print('\tswitch(dataTypes)')
+    print('\t{')
+    namespace = ''
+    if operation in filter_operations:
+        namespace = 'FilterConditions::'
+    if operation in logical_operations:
+        namespace = 'LogicOperations::'
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+            dataTypeCombination = colVal + ', ' + rowVal
+            validCombination = True
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
+
+            if colVal in geo_types or rowVal in geo_types:
+                validCombination = False
+
+            elif colVal == STRING or rowVal == STRING:
+                validCombination = False
+
+            if validCombination:
+                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
+                print(
+                    '\t\t\treturn &filterFunction' + col + row + "<" + namespace + operation + ", " + dataTypeCombination + ">;")
+                print('\t\tbreak;')
+
+    print('\t\tdefault:')
+    print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
+    print('\t\tbreak;')
+    print('\t}')
+    print('}')
+
+print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
+print('{')
+print('\tswitch(dataTypes)')
+print('\t{')
+namespace = ''
+if operation in filter_operations:
+    namespace = 'FilterConditions::'
+if operation in logical_operations:
+    namespace = 'LogicOperations::'
+for colIdx, colVal in enumerate(all_types):
+    for rowIdx, rowVal in enumerate(all_types):
+        dataTypeCombination = colVal + ', ' + rowVal
+        validCombination = True
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if rowIdx < len(types):
+            row = "Const"
+        elif rowIdx >= len(types):
+            row = "Col"
+
+        if colVal != POLYGON or rowVal != POINT:
+            validCombination = False
+
+        if validCombination:
+            print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
+            print(
+                '\t\t\treturn &filterFunction' + col + row + "<" + namespace + operation + ", " + dataTypeCombination + ">;")
+            print('\t\tbreak;')
+
+print('\t\tdefault:')
+print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
+print('\t\tbreak;')
+print('\t}')
+print('}')
