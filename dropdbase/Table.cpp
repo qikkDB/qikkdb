@@ -193,7 +193,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 
 				for (int i = 0; i < dataIndexedColumn.size(); i++)
 				{
-                    std::tie(indexBlock, indexInBlock, range) = castedColumn->FindBlockIndexAndRange(dataIndexedColumn[i]);
+                   // std::tie(indexBlock, indexInBlock, range) = castedColumn->FindBlockIndexAndRange(dataIndexedColumn[i]);
 					std::tie(indexBlock, indexInBlock, range) = FindIndexAccordingPrimaryIndex(i, indexBlock, indexInBlock, range, data);
 				}
 				//TODO insertni na spravnu poziciu

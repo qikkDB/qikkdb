@@ -785,3 +785,50 @@ TEST(ColumnTests, ColumnStatistics)
 	ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(columnString.get())->GetSum(), "");
 	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<std::string>*>(columnString.get())->GetAvg(), 0);
 }
+
+TEST(ColumnTests, FindBlockIndexAndRange)
+{
+    int indexBlock;
+    int indexInBlock;
+	int range;
+
+    auto database = std::make_shared<Database>("testDatabase", 4);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnInt", COLUMN_INT);
+    auto& columnInt = table.GetColumns().at("ColumnInt");
+
+	std::vector<int32_t> dataInt = {0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 6, 7, 7, 7};
+
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertData(dataInt);
+
+	std::tie(indexBlock, indexInBlock, range) = 
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAccordingPrimaryIndex(0, 2, 6, 1);
+    ASSERT_EQ(indexBlock, 0);
+    ASSERT_EQ(indexInBlock, 2);
+    ASSERT_EQ(range, 2);
+
+	std::tie(indexBlock, indexInBlock, range) =
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAccordingPrimaryIndex(0, 2, 8, 2);
+    ASSERT_EQ(indexBlock, 1);
+    ASSERT_EQ(indexInBlock, 0);
+    ASSERT_EQ(range, 3);
+
+	std::tie(indexBlock, indexInBlock, range) =
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAccordingPrimaryIndex(0, 2, 8, 3);
+    ASSERT_EQ(indexBlock, 1);
+    ASSERT_EQ(indexInBlock, 3);
+    ASSERT_EQ(range, 2);
+
+	std::tie(indexBlock, indexInBlock, range) =
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAccordingPrimaryIndex(0, 0, 16, 7);
+    ASSERT_EQ(indexBlock, 3);
+    ASSERT_EQ(indexInBlock, 1);
+    ASSERT_EQ(range, 3);
+
+	std::tie(indexBlock, indexInBlock, range) =
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAccordingPrimaryIndex(1, 1, 2, 7);
+    ASSERT_EQ(indexBlock, 1);
+    ASSERT_EQ(indexInBlock, 3);
+    ASSERT_EQ(range, 1);
+}

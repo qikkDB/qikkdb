@@ -168,143 +168,42 @@ public:
         return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
     }
 
-    std::tuple<int, int, int>FindIndexAccordingPrimaryIndex(int indexBlock, int indexInBlock, int range, const T& columnData)
+    std::tuple<int, int, int>
+    FindIndexAccordingPrimaryIndex(int indexBlock, int indexInBlock, int range, const T& columnData)
     {
-        int leftRange = range;
-        int inBlockRange;
+        int remainingRange = range;
         int blockRange;
-        int newRange;
+        int newRange = 0;
         int newIndexInBlock;
         int newIndexBlock;
-        bool reachEnd;
+        int startIndexInCurrentBlock = indexInBlock;
+        bool reachEnd = true;
+        bool found = false;
 
-        BlockBase<T>& block = *(blocks_[indexBlock].get());
-        if (indexInBlock + range <= blockSize_)
+        for (int i = indexBlock; i < blocks_.size() && reachEnd && remainingRange > 0; i++)
         {
-            std::tie(newIndexInBlock, blockRange, reachEnd) =
-                block.FindIndexAndRangeAccordingPrimaryIndexAndRange(indexInBlock, range, columnData);
-        }
+            BlockBase<T>& block = *(blocks_[i].get());
 
-		else
-		{
-            int currentRange = blockSize_ - indexInBlock;
-            std::tie(newIndexInBlock, blockRange, reachEnd) =
-                block.FindIndexAndRangeAccordingPrimaryIndexAndRange(indexInBlock, currentRange, columnData);
-            leftRange -= currentRange;
-            newRange = blockRange;
-            /*TODO doroit argumenty funkciam
-			for (int i = indexBlock; i < (blocks_.size() - 1); i++)
+            if (columnData >= blocks_[i]->GetMin() &&
+                (remainingRange < block.GetSize() - startIndexInCurrentBlock ||
+                (columnData <= blocks_[i]->GetMax() &&
+                (i == blocks_.size() - 1 || columnData <= blocks_[i + 1]->GetMin()))))
             {
-                if (blocks_[i]->GetMin() < columnData && blocks_[i + 1]->GetMin() >= columnData)
+                int tempIndexInBlock;
+                std::tie(tempIndexInBlock, blockRange, reachEnd) =
+                    block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData);
+                if (!found)
                 {
-                    BlockBase<T>& block = *(blocks_[i].get());
-                    std::tie(newIndexInBlock, inBlockRange, reachEnd) =
-                        block.FindIndexAndRangeAccordingPrimaryIndexAndRange(columnData);
-                    newIndexBlock = i;
-
-                    if (reachEnd == false)
-                    {
-                        newRange = inBlockRange;
-                    }
-                    else
-                    {
-                        int j = i + 1;
-                        while (reachEnd)
-                        {
-                            BlockBase<T>& block = *(blocks_[j].get());
-                            std::tie(newIndexInBlock, inBlockRange, reachEnd) =
-                                block.FindIndexAndRangeAccordingPrimaryIndexAndRange(columnData);
-                            newRange += inBlockRange;
-                            j++;
-                        }
-                    }
-                }
+                    newIndexInBlock = tempIndexInBlock;
+					newIndexBlock = i;
+                    found = true;
+				}
+                newRange += blockRange;
             }
-			*/
-		}
-        return std::make_tuple(indexBlock, newIndexInBlock, newRange);
-    }
-
-    std::tuple<int, int, int> FindBlockIndexAndRange(const T& columnData)
-    {
-        int indexBlock;
-        int indexInBlock;
-        int inBlockRange;
-        int blocksRange;
-        bool reachEnd;
-
-        if (blocks_.size() == 0)
-        {
-            BlockBase<T>& block = AddBlock();
-            std::tie(indexInBlock, inBlockRange, reachEnd) = block.FindIndexAndRange(columnData);
-            indexBlock = 0;
-            blocksRange = 0;
+            remainingRange -= block.GetSize() - startIndexInCurrentBlock; 
+            startIndexInCurrentBlock = 0;
         }
-        else if (blocks_.size() == 1)
-        {
-            BlockBase<T>& block = *(blocks_.front().get());
-            std::tie(indexInBlock, inBlockRange, reachEnd) = block.FindIndexAndRange(columnData);
-            indexBlock = 0;
-            blocksRange = inBlockRange;
-        }
-        else if (blocks_.back()->GetMin() < columnData)
-        {
-            BlockBase<T>& block = *(blocks_.back().get());
-            std::tie(indexInBlock, inBlockRange, reachEnd) = block.FindIndexAndRange(columnData);
-            indexBlock = blocks_.size() - 1;
-            blocksRange = inBlockRange;
-        }
-        else if (blocks_.front()->GetMin() >= columnData)
-        {
-            BlockBase<T>& block = *(blocks_.front().get());
-            std::tie(indexInBlock, inBlockRange, reachEnd) = block.FindIndexAndRange(columnData);
-            indexBlock = 0;
-
-            if (reachEnd == false)
-            {
-                blocksRange = inBlockRange;
-            }
-            else
-            {
-                int i = 1;
-                while (reachEnd)
-                {
-                    BlockBase<T>& block = *(blocks_[i].get());
-                    std::tie(indexInBlock, inBlockRange, reachEnd) = block.FindIndexAndRange(columnData);
-                    blocksRange += inBlockRange;
-                    i++;
-                }
-            }
-        }
-        else
-        {
-            for (int i = 0; i < (blocks_.size() - 1); i++)
-            {
-                if (blocks_[i]->GetMin() < columnData && blocks_[i + 1]->GetMin() >= columnData)
-                {
-                    BlockBase<T>& block = *(blocks_[i].get());
-                    std::tie(indexInBlock, inBlockRange, reachEnd) = block.FindIndexAndRange(columnData);
-                    indexBlock = i;
-
-                    if (reachEnd == false)
-                    {
-                        blocksRange = inBlockRange;
-                    }
-                    else
-                    {
-                        int j = i + 1;
-                        while (reachEnd)
-                        {
-                            BlockBase<T>& block = *(blocks_[j].get());
-                            std::tie(indexInBlock, inBlockRange, reachEnd) = block.FindIndexAndRange(columnData);
-                            blocksRange += inBlockRange;
-                            j++;
-                        }
-                    }
-                }
-            }
-        }
-        return std::make_tuple(indexBlock, indexInBlock, blocksRange);
+        return std::make_tuple(newIndexBlock, newIndexInBlock, newRange);
     }
 
     void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData)
