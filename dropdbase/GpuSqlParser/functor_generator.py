@@ -169,8 +169,9 @@ for operation in operations_move:
         elif colIdx >= len(types):
             col = "Col"
 
-        if (operation == 'ret' or operation == 'groupBy') and (
-                colVal == STRING or colVal == BOOL or colVal in geo_types):
+        if (operation == 'groupBy') and ( colVal == STRING or colVal == BOOL or colVal in geo_types):
+            function = "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
+        elif (operation == 'ret') and (colVal == STRING or colVal == BOOL or colVal == POINT):
             function = "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         else:
             function = operation + col + "<" + colVal + ">"

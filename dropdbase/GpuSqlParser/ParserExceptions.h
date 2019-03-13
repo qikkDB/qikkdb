@@ -71,4 +71,12 @@ struct NestedAggregationException : public std::exception
 	}
 };
 
+struct RetPolygonGroupByException : public std::exception
+{
+	const char *what() const noexcept override
+	{
+		return "Return of complex polygon WKT is not allowed while using group by.";
+	}
+};
+
 #endif //DROPDBASE_INSTAREA_PARSEREXCEPTIONS_H

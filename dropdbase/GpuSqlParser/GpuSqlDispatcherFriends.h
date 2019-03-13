@@ -53,9 +53,6 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 	std::cout << "RetCol: " << col << ", thread: " << dispatcher.dispatcherThreadId << std::endl;
 
 	int32_t outSize;
-	const size_t endOfPolyIdx = col.find(".");
-	const std::string table = col.substr(0, endOfPolyIdx);
-	const std::string column = col.substr(endOfPolyIdx + 1);
 
 	if (dispatcher.usingGroupBy)
 	{
