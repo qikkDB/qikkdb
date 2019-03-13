@@ -13,7 +13,7 @@
 #include "../../../cub/cub.cuh"
 
 template<typename T>
-__global__ void kernel_reconstruct_col(T *outData, int32_t *outDataElementCount, T *ACol, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
+__global__ void kernel_reconstruct_col(T *outData, T *ACol, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -28,17 +28,11 @@ __global__ void kernel_reconstruct_col(T *outData, int32_t *outDataElementCount,
 			outData[prefixSum[i] - 1] = ACol[i];
 		}
 	}
-
-	// Fetch the size of the output - the last item of the inclusive prefix sum // TODO delete, no needed anymore
-	if (idx == 0)
-	{
-		outDataElementCount[0] = prefixSum[dataElementCount - 1];
-	}
 }
 
 // Kernel for generating array with sorted indexes which point to values where mask is 1.
 template<typename T>
-__global__ void kernel_generate_indexes(T *outData, int32_t *outDataElementCount, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
+__global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -52,12 +46,6 @@ __global__ void kernel_generate_indexes(T *outData, int32_t *outDataElementCount
 		{
 			outData[prefixSum[i] - 1] = i;
 		}
-	}
-
-	// Fetch the size of the output - the last item of the inclusive prefix sum // TODO delete, no needed anymore
-	if (idx == 0)
-	{
-		outDataElementCount[0] = prefixSum[dataElementCount - 1];
 	}
 }
 
@@ -116,7 +104,7 @@ public:
 			GPUMemory::alloc<T>(outCol, *outDataElementCount);
 			// Construct the output based on the prefix sum
 			kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-				(*outCol, outDataElementCountPointer, ACol, prefixSumPointer, inMask, dataElementCount);
+				(*outCol, ACol, prefixSumPointer, inMask, dataElementCount);
 
 			// Free the memory
 			GPUMemory::free(prefixSumPointer);
@@ -193,7 +181,7 @@ public:
 
 			// Call kernel for generating indexes
 			kernel_generate_indexes << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-				(*outData, outDataElementCountPointer, prefixSumPointer, inMask, dataElementCount);
+				(*outData, prefixSumPointer, inMask, dataElementCount);
 
 			// Free the memory
 			GPUMemory::free(prefixSumPointer);
