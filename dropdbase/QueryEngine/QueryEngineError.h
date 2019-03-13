@@ -38,11 +38,11 @@ public:
 		}
 	}
 
-	static void setType(Type type) {
+	static void setType(const Type type, const std::string& message=std::string()) {
 		if (type != GPU_EXTENSION_SUCCESS)
 		{
-			std::cout << "GPU ERROR: " << type << std::endl;
-			throw cuda_error("GPU Error number " + std::to_string(type));
+			std::cout << "GPU ERROR: " << type << " " << message << std::endl;
+			throw cuda_error("GPU Error number " + std::to_string(type) + " " + message);
 		}
 	}
 
