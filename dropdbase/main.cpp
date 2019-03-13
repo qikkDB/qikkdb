@@ -1,3 +1,4 @@
+/*
 #include "CSVDataImporter.h"
 #include <cstdio>
 #include <iostream>
@@ -53,10 +54,22 @@ int main(int argc, char **argv)
 		std::chrono::duration<double> elapsed(end - start);
 		std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
 	}
-	*/
+	* /
 	for (auto& db : Database::GetDatabaseNames())
 	{
 		Database::DestroyDatabase(db.c_str());
 	}
 	return 0;
+}
+*/
+
+#include "QueryEngine/Context.h" 
+#include "QueryEngine/GPUCore/GPUPolygonClipping.cuh" 
+
+int main()
+{
+    Context::getInstance(); // Initialize CUDA context
+    GPUPolygonIntersect::runDemo();
+    system("PAUSE");
+    return 0;
 }
