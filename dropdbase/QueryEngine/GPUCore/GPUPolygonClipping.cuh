@@ -43,29 +43,52 @@ __device__ struct PolygonNodeDLL
     int32_t cross_link;
 };
 
-// Data buffers for Polygon Doubly Linked List memory offsets
-__device__ int32_t* poly1DLLListStartOffset;
-__device__ int32_t* poly2DLLListStartOffset;
-
 // Data buffers for doubly linked lists of polygons during clipping
 __device__ PolygonNodeDLL* poly1DLList;
 __device__ PolygonNodeDLL* poly2DLList;
 
+// Doubly linked list starts offset
+__device__ int32_t* poly1DLListOffset;
+__device__ int32_t* poly2DLListOffset;
+
+// A kernel for counting the number of vertices that a complex polygon has
+__global__ void kernel_calculate_points_in_complex_polygon_count(int32_t* pointCounts,
+                                                             GPUMemory::GPUPolygon complexPolygon,
+                                                             int32_t dataElementCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < dataElementCount; i += stride)
+    {
+        // Sum the number of points of a polygon and store it in a buffer
+        int32_t vertexCountSum = 0;
+        for (int32_t j = 0; j < complexPolygon.polyCount[i]; j++)
+        {
+            vertexCountSum += complexPolygon.pointCount[complexPolygon.polyIdx[i] + j];
+        }
+        pointCounts[i] = vertexCountSum;
+    }
+}
+
 template <typename OP>
-__global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon out,
-                                        GPUMemory::GPUPolygon polygon1,
-                                        GPUMemory::GPUPolygon polygon2,
+__global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
+                                        GPUMemory::GPUPolygon complexPolygon1,
+                                        GPUMemory::GPUPolygon complexPolygon2,
                                         int32_t dataElementCount)
 {
 }
 
-class GPUPolygonIntersect
+class GPUPolygonClip
 {
 public:
     template <typename OP>
     static void
     ColCol(GPUMemory::GPUPolygon polygonOut, GPUMemory::GPUPolygon polygon1, GPUMemory::GPUPolygon polygon2, int32_t dataElementCount)
     {
+        // Get the context instance
+        Context& context = Context::getInstance();
+
         // Precalcualte the maximal needed size for a doubly linked list as
         // n*k + n + k where n is the number of vertices of polygon 1 and k is the number of
         // vertices of polygon 2 This is a case for one row - for all rows this has to be done
@@ -73,12 +96,28 @@ public:
         // can be calculated as the prefix sum of doubly linked list sizes The result size of the
         // doubly linked list buffer is a sum of all dll buffers
 
-        // The offset buffers - fil lthem with the prefix sum of input polygon vertices
-        GPUMemory::allocAndSet(&poly1DLLListStartOffset, 0, dataElementCount);
-        GPUMemory::allocAndSet(&poly2DLLListStartOffset, 0, dataElementCount);
+        // The offset buffers - fill them with the prefix sum of input polygon vertices
+        // Alloc the offset buffs
+        GPUMemory::allocAndSet(&poly1DLListOffset, 0, dataElementCount);
+        GPUMemory::allocAndSet(&poly2DLListOffset, 0, dataElementCount);
+
+        // Calculate the number of vertices in the complexpolygons
+        kernel_calculate_points_in_complex_polygon_count<<<context.calcGridDim(dataElementCount),
+                                                       context.getBlockDim()>>>(poly1DLListOffset, polygon1,
+                                                                                dataElementCount);
+        kernel_calculate_points_in_complex_polygon_count<<<context.calcGridDim(dataElementCount),
+                                                       context.getBlockDim()>>>(poly2DLListOffset, polygon2,
+                                                                                dataElementCount);
+
+        // Transform the offset buffers using the prefix sum
+
+        // Debug code - copy back the buffers
+        int32_t result[1];
+        GPUMemory::copyDeviceToHost(result, poly1DLListOffset, 1);
+        printf("Res1: %d\n", result[0]);
 
 
-        // The data sandbox for linked lists
+        // The data sandbox for linked lists - the max count of the vertices is the result of the prefix sum
         poly1DLList;
         poly2DLList;
 
@@ -89,89 +128,8 @@ public:
 
 
         kernel_polygon_clipping<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                out, polygon1, polygon2, dataElementCount);
+            <<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(polygonOut, polygon1,
+                                                                               polygon2, dataElementCount);
         QueryEngineError::setCudaError(cudaGetLastError());
-    }
-
-    static void runDemo()
-    {
-        // Input polygons
-        NativeGeoPoint poly1[] = {{181, 270}, {85, 418},  {171, 477},
-                                  {491, 365}, {218, 381}, {458, 260}};
-        int32_t complexPolygonIdx1[] = {0};
-        int32_t complexPolygonCnt1[] = {1};
-        int32_t polygonIdx1[] = {0};
-        int32_t polygonCnt1[] = {6};
-
-        NativeGeoPoint poly2[] = {{474, 488}, {659, 363}, {255, 283},
-                                  {56, 340},  {284, 488}, {371, 342}};
-        int32_t complexPolygonIdx2[] = {0};
-        int32_t complexPolygonCnt2[] = {1};
-        int32_t polygonIdx2[] = {0};
-        int32_t polygonCnt2[] = {6};
-
-        int32_t dataElementCount = 1;
-
-        // Buffers on the GPU
-        GPUMemory::GPUPolygon polygon1;
-        GPUMemory::GPUPolygon polygon2;
-        GPUMemory::GPUPolygon polygonOut;
-
-        // Malloc the buffers
-        // Polygon 1
-        GPUMemory::alloc(&polygon1.polyPoints, sizeof(poly1) / sizeof(NativeGeoPoint));
-        GPUMemory::alloc(&polygon1.polyIdx, sizeof(complexPolygonIdx1) / sizeof(int32_t));
-        GPUMemory::alloc(&polygon1.polyCount, sizeof(complexPolygonCnt1) / sizeof(int32_t));
-        GPUMemory::alloc(&polygon1.pointIdx, sizeof(polygonIdx1) / sizeof(int32_t));
-        GPUMemory::alloc(&polygon1.pointCount, sizeof(polygonCnt1) / sizeof(int32_t));
-
-        // Polygon 2
-        GPUMemory::alloc(&polygon2.polyPoints, sizeof(poly2) / sizeof(NativeGeoPoint));
-        GPUMemory::alloc(&polygon2.polyIdx, sizeof(complexPolygonIdx2) / sizeof(int32_t));
-        GPUMemory::alloc(&polygon2.polyCount, sizeof(complexPolygonCnt2) / sizeof(int32_t));
-        GPUMemory::alloc(&polygon2.pointIdx, sizeof(polygonIdx2) / sizeof(int32_t));
-        GPUMemory::alloc(&polygon2.pointCount, sizeof(polygonCnt2) / sizeof(int32_t));
-
-        // Copy data to GPU
-        // Polygon 1
-        GPUMemory::copyHostToDevice(polygon1.polyPoints, poly1, sizeof(poly1) / sizeof(NativeGeoPoint));
-        GPUMemory::copyHostToDevice(polygon1.polyIdx, complexPolygonIdx1,
-                                    sizeof(complexPolygonIdx1) / sizeof(int32_t));
-        GPUMemory::copyHostToDevice(polygon1.polyCount, complexPolygonCnt1,
-                                    sizeof(complexPolygonCnt1) / sizeof(int32_t));
-        GPUMemory::copyHostToDevice(polygon1.pointIdx, polygonIdx1, sizeof(polygonIdx1) / sizeof(int32_t));
-        GPUMemory::copyHostToDevice(polygon1.pointCount, polygonCnt1, sizeof(polygonCnt1) / sizeof(int32_t));
-
-        // Polygon 2
-        GPUMemory::copyHostToDevice(polygon2.polyPoints, poly2, sizeof(poly2) / sizeof(NativeGeoPoint));
-        GPUMemory::copyHostToDevice(polygon2.polyIdx, complexPolygonIdx2,
-                                    sizeof(complexPolygonIdx2) / sizeof(int32_t));
-        GPUMemory::copyHostToDevice(polygon2.polyCount, complexPolygonCnt2,
-                                    sizeof(complexPolygonCnt2) / sizeof(int32_t));
-        GPUMemory::copyHostToDevice(polygon2.pointIdx, polygonIdx2, sizeof(polygonIdx2) / sizeof(int32_t));
-        GPUMemory::copyHostToDevice(polygon2.pointCount, polygonCnt2, sizeof(polygonCnt2) / sizeof(int32_t));
-
-        // Launch intersect
-        ColCol < PolygonFunctions::polyIntersect>(polygonOut, polygon1, polygon2, dataElementCount);
-
-        // TODO Copy back results
-
-        // TODO Print results
-
-        // Free buffers
-        // Polygon 1
-        GPUMemory::free(polygon1.polyPoints);
-        GPUMemory::free(polygon1.polyIdx);
-        GPUMemory::free(polygon1.polyCount);
-        GPUMemory::free(polygon1.pointIdx);
-        GPUMemory::free(polygon1.pointCount);
-
-        // Polygon 2
-        GPUMemory::free(polygon2.polyPoints);
-        GPUMemory::free(polygon2.polyIdx);
-        GPUMemory::free(polygon2.polyCount);
-        GPUMemory::free(polygon2.pointIdx);
-        GPUMemory::free(polygon2.pointCount);
     }
 };
