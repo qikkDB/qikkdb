@@ -52,7 +52,7 @@ __device__ int32_t* poly1DLListOffset;
 __device__ int32_t* poly2DLListOffset;
 
 // A kernel for counting the number of vertices that a complex polygon has
-__global__ void kernel_calculate_points_in_complex_polygon_count(int32_t* pointCounts,
+inline __global__ void kernel_calculate_points_in_complex_polygon_count(int32_t* pointCounts,
                                                              GPUMemory::GPUPolygon complexPolygon,
                                                              int32_t dataElementCount)
 {
@@ -108,13 +108,11 @@ public:
         kernel_calculate_points_in_complex_polygon_count<<<context.calcGridDim(dataElementCount),
                                                        context.getBlockDim()>>>(poly2DLListOffset, polygon2,
                                                                                 dataElementCount);
-
         // Transform the offset buffers using the prefix sum
 
         // Debug code - copy back the buffers
         int32_t result[1];
         GPUMemory::copyDeviceToHost(result, poly1DLListOffset, 1);
-        printf("Res1: %d\n", result[0]);
 
 
         // The data sandbox for linked lists - the max count of the vertices is the result of the prefix sum
