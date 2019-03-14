@@ -171,7 +171,7 @@ for operation in operations_move:
 
         if (operation == 'groupBy') and ( colVal == STRING or colVal == BOOL or colVal in geo_types):
             function = "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
-        elif (operation == 'ret') and (colVal == STRING or colVal == BOOL or colVal == POINT):
+        elif (operation == 'ret') and (colVal == BOOL):
             function = "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         else:
             function = operation + col + "<" + colVal + ">"

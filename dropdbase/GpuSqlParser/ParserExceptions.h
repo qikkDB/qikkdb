@@ -79,4 +79,20 @@ struct RetPolygonGroupByException : public std::exception
 	}
 };
 
+struct RetPointGroupByException : public std::exception
+{
+	const char *what() const noexcept override
+	{
+		return "Return of point WKT is not allowed while using group by.";
+	}
+};
+
+struct RetStringGroupByException : public std::exception
+{
+	const char *what() const noexcept override
+	{
+		return "Return of string is not allowed while using group by.";
+	}
+};
+
 #endif //DROPDBASE_INSTAREA_PARSEREXCEPTIONS_H
