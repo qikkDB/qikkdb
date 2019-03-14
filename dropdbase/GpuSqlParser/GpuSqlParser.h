@@ -692,9 +692,10 @@ public:
     antlr4::tree::TerminalNode *LPAREN();
     antlr4::tree::TerminalNode *COMMA();
     antlr4::tree::TerminalNode *RPAREN();
-    antlr4::tree::TerminalNode *GEO_CONTAINS();
+    antlr4::tree::TerminalNode *POINT();
     std::vector<ExpressionContext *> expression();
     ExpressionContext* expression(size_t i);
+    antlr4::tree::TerminalNode *GEO_CONTAINS();
     antlr4::tree::TerminalNode *GEO_INTERSECT();
     antlr4::tree::TerminalNode *GEO_UNION();
     antlr4::tree::TerminalNode *DIVISION();
