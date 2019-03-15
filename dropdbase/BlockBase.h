@@ -147,6 +147,31 @@ public:
 		
 	}
 
+	void DecompressData()
+	{
+		if (!isCompressed_)
+			return;
+
+		bool decompressedSuccessfully = false;
+		std::vector<T> dataDecompressed;		
+		Compression::Decompress(column_.GetColumnType(), data_.get(), size_, dataDecompressed, decompressedSuccessfully);
+		if (decompressedSuccessfully)
+		{
+			GPUMemory::hostUnregister(data_.get());
+
+			capacity_ = column_.GetBlockSize();
+			size_ = column_.GetBlockSize();
+			data_.release();
+			data_ = std::unique_ptr<T[]>(new T[capacity_]);
+
+			GPUMemory::hostPin(data_.get(), capacity_);
+			std::copy(dataDecompressed.begin(), dataDecompressed.end(), data_.get());
+
+			isCompressed_ = false;
+		}
+
+	}
+
 	~BlockBase()
 	{
 		GPUMemory::hostUnregister(data_.get());
