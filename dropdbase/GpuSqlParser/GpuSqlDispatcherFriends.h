@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "GpuSqlDispatcher.h"
+#include "../QueryEngine/GPUCore/GPUConversion.cuh"
 #include "../QueryEngine/GPUCore/GPUDate.cuh"
 #include "../QueryEngine/GPUCore/GPUFilter.cuh"
 #include "../QueryEngine/GPUCore/GPUArithmetic.cuh"
@@ -539,9 +540,9 @@ int32_t pointColCol(GpuSqlDispatcher &dispatcher)
 
 	if (!dispatcher.isRegisterAllocated(reg))
 	{
-		NativeGeoPoint * mask = dispatcher.allocateRegister<NativeGeoPoint>(reg, retSize);
+		NativeGeoPoint * pointCol = dispatcher.allocateRegister<NativeGeoPoint>(reg, retSize);
 		//This should really be point GPU operation
-		GPULogic::colCol<T, U>(mask, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+		GPUConversion::ConvertColCol(pointCol, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
 	}
 
 	dispatcher.freeColumnIfRegister<U>(colNameRight);
