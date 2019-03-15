@@ -96,6 +96,17 @@ int32_t aggregationConstConst(GpuSqlDispatcher &dispatcher);
 
 ////
 
+// point from columns
+
+template<typename T, typename U>
+int32_t pointColCol(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t pointColConst(GpuSqlDispatcher &dispatcher);
+
+template<typename T, typename U>
+int32_t pointConstCol(GpuSqlDispatcher &dispatcher);
+
 //contains
 
 template<typename T, typename U>
@@ -259,6 +270,8 @@ private:
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> subFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> containsFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher&)>, 
@@ -367,6 +380,8 @@ public:
     void addSubFunction(DataType left, DataType right);
 
     void addModFunction(DataType left, DataType right);
+
+	void addPointFunction(DataType left, DataType right);
 
     void addContainsFunction(DataType left, DataType right);
 
@@ -552,15 +567,24 @@ public:
 
 	////
 
+	// point from columns
+
+	template<typename T, typename U>
+	friend int32_t pointColCol(GpuSqlDispatcher &dispatcher);
+
+	template<typename T, typename U>
+	friend int32_t pointColConst(GpuSqlDispatcher &dispatcher);
+
+	template<typename T, typename U>
+	friend int32_t pointConstCol(GpuSqlDispatcher &dispatcher);
+
 	//contains
 
     template<typename T, typename U>
     friend int32_t containsColConst(GpuSqlDispatcher &dispatcher);
 
-
     template<typename T, typename U>
     friend int32_t containsConstCol(GpuSqlDispatcher &dispatcher);
-
 
     template<typename T, typename U>
     friend int32_t containsColCol(GpuSqlDispatcher &dispatcher);

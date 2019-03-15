@@ -417,3 +417,36 @@ for operation in polygon_operations:
                 declaration += ("&" + function + ", ")
 
     print(declaration)
+
+operation = "point"
+declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+              "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+for colIdx, colVal in enumerate(all_types):
+    for rowIdx, rowVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if rowIdx < len(types):
+            row = "Const"
+        elif rowIdx >= len(types):
+            row = "Col"
+
+        if col == "Const" and row == "Const":
+            op = "invalidOperandTypesErrorHandler"
+        elif colVal not in numeric_types or rowVal not in numeric_types:
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = operation
+
+        function = op + col + row + "<" + colVal + ", " + rowVal + ">"
+
+        if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+print(declaration)

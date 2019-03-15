@@ -513,6 +513,55 @@ int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher)
 }
 
 template<typename T, typename U>
+int32_t pointColCol(GpuSqlDispatcher &dispatcher)
+{
+	auto colNameRight = dispatcher.arguments.read<std::string>();
+	auto colNameLeft = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+	std::cout << "PointColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+
+	int32_t loadFlag = dispatcher.loadCol<U>(colNameRight);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+	loadFlag = dispatcher.loadCol<T>(colNameLeft);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::tuple<uintptr_t, int32_t, bool> columnRight = dispatcher.allocatedPointers.at(colNameRight);
+	std::tuple<uintptr_t, int32_t, bool> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
+
+	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+
+	if (!dispatcher.isRegisterAllocated(reg))
+	{
+		NativeGeoPoint * mask = dispatcher.allocateRegister<NativeGeoPoint>(reg, retSize);
+		//This should really be point GPU operation
+		GPULogic::colCol<T, U>(mask, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+	}
+
+	dispatcher.freeColumnIfRegister<U>(colNameRight);
+	dispatcher.freeColumnIfRegister<T>(colNameLeft);
+	return 0;
+}
+
+template<typename T, typename U>
+int32_t pointColConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+template<typename T, typename U>
+int32_t pointConstCol(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+template<typename T, typename U>
 int32_t containsColConst(GpuSqlDispatcher &dispatcher)
 {
 	auto constWkt = dispatcher.arguments.read<std::string>();

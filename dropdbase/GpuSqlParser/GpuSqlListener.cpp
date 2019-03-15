@@ -106,7 +106,12 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
     {
         dispatcher.addModFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } 
+    }
+	else if (op == "POINT")
+	{
+		dispatcher.addPointFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_POINT;
+	}
 	else if (op == "GEO_CONTAINS")
     {
         dispatcher.addContainsFunction(leftOperandType, rightOperandType);
