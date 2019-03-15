@@ -151,11 +151,11 @@ public:
 	/// </summary>
 	/// <param name="data">Data to be inserted</param>
 	/// <returns>Last block of column</returns>
-	BlockBase<T>& AddBlock(const std::vector<T>& data)
+	BlockBase<T>& AddBlock(const std::vector<T>& data, bool isCompressed = false)
 	{
-		blocks_.push_back(std::make_unique<BlockBase<T>>(data, *this));
+		blocks_.push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed));
 		auto & lastBlock = blocks_.back();
-		if (lastBlock->IsFull())
+		if (lastBlock->IsFull() && !isCompressed)
 		{
 			lastBlock->CompressData();
 		}

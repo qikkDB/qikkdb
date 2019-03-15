@@ -31,9 +31,12 @@ private:
 	bool isCompressed_;
 
 public:
-	BlockBase(const std::vector<T>& data, ColumnBase<T>& column) :
-		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_])
+	BlockBase(const std::vector<T>& data, ColumnBase<T>& column, bool isCompressed = false) :
+		column_(column), size_(0), isCompressed_(isCompressed)
 	{
+		capacity_ = (isCompressed) ? data.size() : column_.GetBlockSize();
+		data_ = std::unique_ptr<T[]>(new T[capacity_]);
+
 		if (column_.GetBlockSize() < data.size())
 		{
 			throw std::length_error("Attempted to insert data larger than remaining block size");
@@ -42,7 +45,6 @@ public:
 		std::copy(data.begin(), data.end(), data_.get());
 		size_ = data.size();
 		setBlockStatistics();
-		isCompressed_ = false;
 	}
 
 	explicit BlockBase(ColumnBase<T>& column) :

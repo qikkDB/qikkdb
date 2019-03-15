@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CompressionType.h"
 #include <vector>
 #include "GPUCompression.h"
 #include "DataType.h"
