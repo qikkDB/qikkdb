@@ -10,13 +10,6 @@
 #include "dropdbase/Types/ComplexPolygon.pb.h"
 #include "dropdbase/Types/Point.pb.h"
 
-//template<typename T>
-//std::unique_ptr<T[]> CompressionGPU::compressDataAAFL(T* const host_uncompressed, int64_t size, int64_t& compressed_size) {
-//
-//}
-
-
-
 
 template<typename T>
 bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size, std::vector<T>& host_compressed, int64_t& compressed_size)

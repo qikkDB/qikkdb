@@ -10,13 +10,11 @@
 
 class CompressionGPU
 {
-
-
+	
 public:
     static const char CWARP_SIZE = 32;
 
     template<typename T>
 	static bool compressDataAAFL(T* const host_uncompressed, int64_t size, std::vector<T>& host_compressed, int64_t& compressed_size);					
-
-	
+		
 };

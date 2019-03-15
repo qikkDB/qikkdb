@@ -18,8 +18,10 @@ public:
 		{
 			compressedSuccessfully = CompressionGPU::compressDataAAFL(host_uncompressed, size, host_compressed, compressed_size);
 		}
+		else
+		{
+			compressedSuccessfully = false;
+		}
 		
-		//std::vector<T> v(block.GetData(), block.GetData() + block.GetSize());
-		//return std::make_unique<BlockBase<T>>(v, block.GetColumn());
 	}
 };
