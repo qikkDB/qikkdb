@@ -6,6 +6,7 @@
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 #include "QueryEngine/GPUCore/GPUMemory.cuh"
+#include "Compression/Compression.h"
 
 template<class T>
 class ColumnBase;
@@ -87,7 +88,10 @@ public:
 
 	bool IsFull() const
 	{
-		return EmptyBlockSpace() == 0;
+		if (isCompressed_)
+			return false;
+		else
+			return EmptyBlockSpace() == 0;
 	}
 
 	void InsertData(const std::vector<T>& data)
@@ -103,7 +107,7 @@ public:
 
 	bool IsCompressed() const
 	{
-		return false;
+		return isCompressed_;
 	}
 	
 	size_t GetCompressedSize() const
@@ -116,6 +120,31 @@ public:
 		return column_;
 	}
 	
+	void CompressData() 
+	{
+		if (isCompressed_)
+			return;
+
+		bool compressedSuccessfully = false;
+		std::vector<T> dataCompressed;
+		Compression::Compress(column_.GetColumnType(), data_.get(), size_, dataCompressed, compressedSuccessfully);
+		if (compressedSuccessfully)
+		{
+			GPUMemory::hostUnregister(data_.get());
+			
+			capacity_ = dataCompressed.size();
+			size_ = dataCompressed.size();
+			data_.release();
+			data_ = std::unique_ptr<T[]>(new T[capacity_]);
+			
+			GPUMemory::hostPin(data_.get(), capacity_);
+			std::copy(dataCompressed.begin(), dataCompressed.end(), data_.get());
+			
+			isCompressed_ = true;
+		}
+		
+	}
+
 	~BlockBase()
 	{
 		GPUMemory::hostUnregister(data_.get());

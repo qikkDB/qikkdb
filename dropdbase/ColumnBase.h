@@ -154,6 +154,11 @@ public:
 	BlockBase<T>& AddBlock(const std::vector<T>& data)
 	{
 		blocks_.push_back(std::make_unique<BlockBase<T>>(data, *this));
+		auto & lastBlock = blocks_.back();
+		if (lastBlock->IsFull())
+		{
+			lastBlock->CompressData();
+		}
 		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
 	}
 
@@ -171,6 +176,10 @@ public:
 			if (columnData.size() <= lastBlock->EmptyBlockSpace())
 			{
 				lastBlock->InsertData(columnData);
+				if (lastBlock->IsFull())
+				{
+					lastBlock->CompressData();
+				}
 				return;
 			}
 			int emptySpace = lastBlock->EmptyBlockSpace();

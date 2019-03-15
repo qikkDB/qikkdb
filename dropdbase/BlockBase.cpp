@@ -9,6 +9,9 @@
 template<>
 void BlockBase<int32_t>::setBlockStatistics()
 {
+	if (isCompressed_)
+		return;
+
 	min_ = *std::min_element(data_.get(), data_.get() + size_);
 	max_ = *std::max_element(data_.get(), data_.get() + size_);
 	avg_ = std::accumulate(data_.get(), data_.get() + size_, (float) 0.0)/ size_;
@@ -18,6 +21,9 @@ void BlockBase<int32_t>::setBlockStatistics()
 template<>
 void BlockBase<int64_t>::setBlockStatistics()
 {
+	if (isCompressed_)
+		return;
+
 	min_ = *std::min_element(data_.get(), data_.get() + size_);
 	max_ = *std::max_element(data_.get(), data_.get() + size_);
 	avg_ = std::accumulate(data_.get(), data_.get() + size_, (float) 0.0) / size_;
@@ -27,6 +33,9 @@ void BlockBase<int64_t>::setBlockStatistics()
 template<>
 void BlockBase<float>::setBlockStatistics()
 {
+	if (isCompressed_)
+		return;
+
 	min_ = *std::min_element(data_.get(), data_.get() + size_);
 	max_ = *std::max_element(data_.get(), data_.get() + size_);
 	avg_ = std::accumulate(data_.get(), data_.get() + size_, (float) 0.0) / size_;
@@ -36,6 +45,9 @@ void BlockBase<float>::setBlockStatistics()
 template<>
 void BlockBase<double>::setBlockStatistics()
 {
+	if (isCompressed_)
+		return;
+
 	min_ = *std::min_element(data_.get(), data_.get() + size_);
 	max_ = *std::max_element(data_.get(), data_.get() + size_);
 	avg_ = std::accumulate(data_.get(), data_.get() + size_, (float) 0.0) / size_;
@@ -72,6 +84,9 @@ void BlockBase<std::string>::setBlockStatistics()
 template<>
 void BlockBase<int8_t>::setBlockStatistics()
 {
+	if (isCompressed_)
+		return;
+
 	min_ = *std::min_element(data_.get(), data_.get() + size_);
 	max_ = *std::max_element(data_.get(), data_.get() + size_);
 	avg_ = std::accumulate(data_.get(), data_.get() + size_, (float) 0.0) / size_;

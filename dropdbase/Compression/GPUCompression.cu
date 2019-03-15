@@ -1,4 +1,14 @@
-#include "GPUCompression.cuh"
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
+#include "dropdbase/Compression/feathergpu/fl/containers.cuh"
+#include "dropdbase/Compression/feathergpu/fl/default.cuh"
+#include "GPUCompression.h"
+#include "dropdbase/QueryEngine/Context.h" 
+#include <memory>
+#include <string>
+#include "dropdbase/Types/ComplexPolygon.pb.h"
+#include "dropdbase/Types/Point.pb.h"
 
 //template<typename T>
 //std::unique_ptr<T[]> CompressionGPU::compressDataAAFL(T* const host_uncompressed, int64_t size, int64_t& compressed_size) {
@@ -99,7 +109,53 @@ bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size
 template<>
 bool CompressionGPU::compressDataAAFL<int32_t>(int32_t* const host_uncompressed, int64_t size, std::vector<int32_t>& host_compressed, int64_t& compressed_size)
 {
-	compressAAFL(this->CWARP_SIZE, host_uncompressed, size, host_compressed, compressed_size);
+	compressAAFL(32, host_uncompressed, size, host_compressed, compressed_size);
 	return 1;
 }
+
+template<>
+bool CompressionGPU::compressDataAAFL<int64_t>(int64_t* const host_uncompressed, int64_t size, std::vector<int64_t>& host_compressed, int64_t& compressed_size)
+{
+	compressAAFL(32, host_uncompressed, size, host_compressed, compressed_size);
+	return 1;
+}
+
+template<>
+bool CompressionGPU::compressDataAAFL<int8_t>(int8_t* const host_uncompressed, int64_t size, std::vector<int8_t>& host_compressed, int64_t& compressed_size)
+{
+	compressAAFL(32, host_uncompressed, size, host_compressed, compressed_size);
+	return 1;
+}
+
+template<>
+bool CompressionGPU::compressDataAAFL<double>(double* const host_uncompressed, int64_t size, std::vector<double>& host_compressed, int64_t& compressed_size)
+{	
+	return 0;
+}
+
+template<>
+bool CompressionGPU::compressDataAAFL<float>(float* const host_uncompressed, int64_t size, std::vector<float>& host_compressed, int64_t& compressed_size)
+{
+	return 0;
+}
+
+template<>
+bool CompressionGPU::compressDataAAFL<std::string>(std::string* const host_uncompressed, int64_t size, std::vector<std::string>& host_compressed, int64_t& compressed_size)
+{
+	return 0;
+}
+
+
+template<>
+bool CompressionGPU::compressDataAAFL<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon* const host_uncompressed, int64_t size, std::vector<ColmnarDB::Types::ComplexPolygon>& host_compressed, int64_t& compressed_size)
+{
+	return 0;
+}
+
+template<>
+bool CompressionGPU::compressDataAAFL<ColmnarDB::Types::Point>(ColmnarDB::Types::Point* const host_uncompressed, int64_t size, std::vector<ColmnarDB::Types::Point>& host_compressed, int64_t& compressed_size)
+{
+	return 0;
+}
+
 
