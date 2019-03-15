@@ -590,7 +590,7 @@ int32_t pointConstCol(GpuSqlDispatcher &dispatcher)
 		return loadFlag;
 	}
 
-	std::tuple<uintptr_t, int32_t, bool> columnRight = dispatcher.allocatedPointers.at(colNameLeft);
+	std::tuple<uintptr_t, int32_t, bool> columnRight = dispatcher.allocatedPointers.at(colNameRight);
 
 	int32_t retSize = std::get<1>(columnRight);
 

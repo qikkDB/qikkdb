@@ -8194,3 +8194,107 @@ TEST(DispatcherTests, RetStringWhere)
 		ASSERT_EQ(expectedResultsStrings[i], payloads.stringpayload().stringdata()[i]);
 	}
 }
+
+TEST(DispatcherTests, PointFromColCol)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(colInteger1, colFloat1) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<std::string> expectedResultsPoints;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i].get();
+		auto blockFloat = columnFloat->GetBlocksList()[i].get();
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			std::ostringstream wktStream;
+			wktStream << "POINT(" << blockInt->GetData()[k] << " " << blockFloat->GetData()[k] << ")";
+			expectedResultsPoints.push_back(wktStream.str());
+		}
+	}
+
+	auto &payloads = result->payloads().at("POINT(colInteger1,colFloat1)");
+
+	ASSERT_EQ(payloads.stringpayload().stringdata_size(), expectedResultsPoints.size());
+
+	for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsPoints[i], payloads.stringpayload().stringdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, PointFromColConst)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(colInteger1, 4.5) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<std::string> expectedResultsPoints;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i].get();
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			std::ostringstream wktStream;
+			wktStream << "POINT(" << blockInt->GetData()[k] << " 4.5" << ")";
+			expectedResultsPoints.push_back(wktStream.str());
+		}
+	}
+
+	auto &payloads = result->payloads().at("POINT(colInteger1,4.5)");
+
+	ASSERT_EQ(payloads.stringpayload().stringdata_size(), expectedResultsPoints.size());
+
+	for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsPoints[i], payloads.stringpayload().stringdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, PointFromConstCol)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(7, colFloat1) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<std::string> expectedResultsPoints;
+
+	auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockFloat = columnFloat->GetBlocksList()[i].get();
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			std::ostringstream wktStream;
+			wktStream << "POINT(" << "7 " << blockFloat->GetData()[k] << ")";
+			expectedResultsPoints.push_back(wktStream.str());
+		}
+	}
+
+	auto &payloads = result->payloads().at("POINT(7,colFloat1)");
+
+	ASSERT_EQ(payloads.stringpayload().stringdata_size(), expectedResultsPoints.size());
+
+	for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsPoints[i], payloads.stringpayload().stringdata()[i]);
+	}
+}
