@@ -108,7 +108,10 @@ public:
         kernel_calculate_points_in_complex_polygon_count<<<context.calcGridDim(dataElementCount),
                                                        context.getBlockDim()>>>(poly2DLListOffset, polygon2,
                                                                                 dataElementCount);
-        // Transform the offset buffers using the prefix sum
+        // Transform the offset buffers using the exclusive prefix sum - inclusive sum with 0 as the 0th element - think about it again
+
+
+
 
         // Debug code - copy back the buffers
         int32_t result[1];
