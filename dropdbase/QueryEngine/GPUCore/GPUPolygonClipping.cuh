@@ -10,6 +10,7 @@
 
 #include "../../NativeGeoPoint.h"
 #include "../Context.h"
+#include "../../../cub/cub.cuh"
 
 namespace PolygonFunctions
 {
@@ -110,27 +111,52 @@ public:
                                                                                 dataElementCount);
         // Transform the offset buffers using the exclusive prefix sum - inclusive sum with 0 as the 0th element - think about it again
 
+		// Input poly 1 offsets - prefix sum calculation
+		void *d_temp_storage = nullptr;
+		size_t temp_storage_bytes = 0;
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly1DLListOffset, poly1DLListOffset, dataElementCount);
+		GPUMemory::alloc(reinterpret_cast<int8_t**>(&d_temp_storage), temp_storage_bytes);
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly1DLListOffset, poly1DLListOffset, dataElementCount);
+		GPUMemory::free(d_temp_storage);
 
+		// Input poly 2 offsets - prefix sum calculation
+		d_temp_storage = nullptr;
+		temp_storage_bytes = 0;
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly2DLListOffset, poly2DLListOffset, dataElementCount);
+		GPUMemory::alloc(reinterpret_cast<int8_t**>(&d_temp_storage), temp_storage_bytes);
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly2DLListOffset, poly2DLListOffset, dataElementCount);
+		GPUMemory::free(d_temp_storage);
 
+		//Copy back the last element of both prefix sum calculations - the total number of points
+		int32_t pointCountTotalPoly1;
+		int32_t pointCountTotalPoly2;
 
-        // Debug code - copy back the buffers
-        int32_t result[1];
-        GPUMemory::copyDeviceToHost(result, poly1DLListOffset, 1);
+		GPUMemory::copyDeviceToHost(&pointCountTotalPoly1, poly1DLListOffset + dataElementCount - 1, 1);
+		GPUMemory::copyDeviceToHost(&pointCountTotalPoly2, poly2DLListOffset + dataElementCount - 1, 1);
 
+		/*
+		// TODO REMOVE Debug code - copy back buffer 1 to see it's content
+		int32_t offsets1[2];
+		int32_t offsets2[2];
+		GPUMemory::copyDeviceToHost(offsets1, poly1DLListOffset, dataElementCount);
+		GPUMemory::copyDeviceToHost(offsets2, poly2DLListOffset, dataElementCount);
+		*/
 
         // The data sandbox for linked lists - the max count of the vertices is the result of the prefix sum
-        poly1DLList;
-        poly2DLList;
-
-
         // Alloc space for the doubly linked lists for both polygons in both collumns
-        GPUMemory::alloc(&poly1DLList, dataElementCount);
-        GPUMemory::alloc(&poly1DLList, dataElementCount);
+        GPUMemory::alloc(&poly1DLList, pointCountTotalPoly1);
+        GPUMemory::alloc(&poly2DLList, pointCountTotalPoly2);
 
-
+		//Run the clipping kernel
         kernel_polygon_clipping<OP>
             <<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(polygonOut, polygon1,
                                                                                polygon2, dataElementCount);
-        QueryEngineError::setCudaError(cudaGetLastError());
+        
+		// Free the sandbox for linked lists
+		GPUMemory::free(poly1DLList);
+		GPUMemory::free(poly2DLList);
+
+		// Set error
+		QueryEngineError::setCudaError(cudaGetLastError());
     }
 };
