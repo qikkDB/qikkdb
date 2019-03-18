@@ -47,33 +47,6 @@ __device__ struct PolygonNodeDLL
     int32_t cross_link; // Cross ink also indicates if a node is a intersect or not = only intersects have positive cross links
 };
 
-// Vertex counts in each input polygon - needed for offset calculation
-__device__ int32_t* poly1VertexCounts;
-__device__ int32_t* poly2VertexCounts;
-
-// Vertex count start offsets
-//__device__ int32_t* poly1VertexOffsets;
-//__device__ int32_t* poly2VertexOffsets;
-
-// Doubly linked list offset buffers
-__device__ int32_t* DLLVertexCounts;
-__device__ int32_t* DLLVertexCountOffsets;
-
-__device__ int32_t* DLLPolygonCounts;
-__device__ int32_t* DLLPolygonCountOffsets;
-
-// Data buffers for doubly linked lists of polygons during clipping
-__device__ PolygonNodeDLL* poly1DLList;
-__device__ PolygonNodeDLL* poly2DLList;
-
-// Offset buffer sizes - TODO make device callable
-// static int32_t poly1VertexCountTotal;
-// static int32_t poly2VertexCountTotal;
-
-// Total/Maximal size of the result DLL list vertices and polygons
-static int32_t DLLVertexCountTotal;
-static int32_t DLLPolygonCountTotal;
-
 // A kernel for counting the number of vertices that a complex polygon has
 inline __global__ void kernel_calculate_point_count_in_complex_polygon(int32_t* pointCounts,
                                                                        GPUMemory::GPUPolygon complexPolygon,
@@ -103,7 +76,15 @@ template <typename OP>
 __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                                         GPUMemory::GPUPolygon complexPolygon1,
                                         GPUMemory::GPUPolygon complexPolygon2,
-                                        int32_t dataElementCount)
+                                        int32_t dataElementCount,
+                                        int32_t* poly1VertexCounts,
+                                        int32_t* poly2VertexCounts,
+                                        int32_t* DLLVertexCounts,
+                                        int32_t* DLLVertexCountOffsets,
+                                        int32_t* DLLPolygonCounts,
+                                        int32_t* DLLPolygonCountOffsets,
+                                        PolygonNodeDLL* poly1DLList,
+                                        PolygonNodeDLL* poly2DLList)
 {
     // The root of the DLL is always the 0th element
     const int32_t ROOT_NODE_IDX = 0;
@@ -120,30 +101,28 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
         // Only for 0th polygon
 
         // Get the offset index for the dynamic list index - needed because of the character of the prefix sum
-        int32_t DLLVertexCountOffsetIdx = 0;
-        if ((i - 1) < 0)
+
+        int32_t DLLVertexCountOffsetIdx = 0; // Base offset in the vertex array
+        int32_t DLLPolygonCountOffsetIdx = 0; // Base offset in the vpolygon array
+
+        if (i <= 0)
         {
             DLLVertexCountOffsetIdx = 0;
-        }
-        else
-        {
-            DLLVertexCountOffsetIdx = DLLVertexCountOffsets[i - 1];
-        }
-
-        int32_t DLLPolygonCountOffsetIdx = 0;
-        if ((i - 1) < 0)
-        {
             DLLPolygonCountOffsetIdx = 0;
         }
         else
         {
+            DLLVertexCountOffsetIdx = DLLVertexCountOffsets[i - 1];
             DLLPolygonCountOffsetIdx = DLLPolygonCountOffsets[i - 1];
         }
 
+
         //////////////////////////////////////////////////////////////////////////////////////////////////
-        // Poly 1
-        // Pointer to the end of the list ( one element after the last element)
+        // Pointers to the end of the DLL lists ( one element after the last element)
         int32_t DLLPoly1ElementCount = 0;
+        int32_t DLLPoly2ElementCount = 0;
+
+        // Poly 1
         for (int32_t j = 0; j < complexPolygon1.pointCount[complexPolygon1.polyIdx[i] + 0]; j++)
         {
             // Get the coordinates
@@ -183,7 +162,6 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                 //    ...-- (prev) <--------------> (root) --...
                 // to this:
                 //    ...-- (prev) <--> (node) <--> (root) --...
-
                 int32_t oldLastElementIdx = poly1DLList[DLLVertexCountOffsetIdx + ROOT_NODE_IDX].prevIdx;
                 poly1DLList[DLLVertexCountOffsetIdx + oldLastElementIdx].nextIdx = DLLPoly1ElementCount;
                 tempNode.prevIdx = oldLastElementIdx;
@@ -197,11 +175,9 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             // Increment the number of elements
             DLLPoly1ElementCount++;
         }
-
+        
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // Poly 2
-        // Pointer to the end of the list ( one element after the last element)
-        int32_t DLLPoly2ElementCount = 0;
         for (int32_t j = 0; j < complexPolygon2.pointCount[complexPolygon2.polyIdx[i] + 0]; j++)
         {
             // Get the coordinates
@@ -255,7 +231,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             // Increment the number of elements
             DLLPoly2ElementCount++;
         }
-
+        
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // Calculate all line intersections and append them to the polygon DLLs dynamiclaly during calculation
 
@@ -561,8 +537,8 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                         (poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].is_entry == into[curpoly]);
                 }
 
-				// Zero the output polygon vertex counter
-				VertexCountOutPoly = 0;
+                // Zero the output polygon vertex counter
+                VertexCountOutPoly = 0;
 
                 do
                 {
@@ -627,11 +603,11 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
                 } while (!intersectFound);
 
-				// Save the reults for reconstruction
+                // Save the reults for reconstruction
                 complexPolygonOut.pointCount[DLLPolygonCountOffsetIdx + PolygonCountOutPoly] = VertexCountOutPoly;
                 //complexPolygonOut.pointIdx[i] = VertexOffsetOutPoly; // cant be calculated, only with prefix sum
 
-				// Icrement the polygon offset
+                // Icrement the polygon offset
                 VertexOffsetOutPoly += VertexCountOutPoly;
                 PolygonCountOutPoly++;
 
@@ -658,12 +634,11 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             } while (!allProcessed);
 
 
-			complexPolygonOut.polyCount[i] = PolygonCountOutPoly;
+            complexPolygonOut.polyCount[i] = PolygonCountOutPoly;
             //complexPolygonOut.polyIdx[i]; // cant be calculated, only with prefix sum
         }
     }
-
-	// The nightmare is over
+    // The nightmare is over //The nightmare is just beginning
 }
 
 class GPUPolygonClip
@@ -675,6 +650,33 @@ public:
     {
         // Get the context instance
         Context& context = Context::getInstance();
+
+        // Vertex counts in each input polygon - needed for offset calculation
+        int32_t* poly1VertexCounts;
+        int32_t* poly2VertexCounts;
+
+        // Vertex count start offsets
+        // int32_t* poly1VertexOffsets;
+        // int32_t* poly2VertexOffsets;
+
+        // Doubly linked list offset buffers
+        int32_t* DLLVertexCounts;
+        int32_t* DLLVertexCountOffsets;
+
+        int32_t* DLLPolygonCounts;
+        int32_t* DLLPolygonCountOffsets;
+
+        // Data buffers for doubly linked lists of polygons during clipping
+        PolygonNodeDLL* poly1DLList;
+        PolygonNodeDLL* poly2DLList;
+
+        // Offset buffer sizes - TODO make device callable
+        // static int32_t poly1VertexCountTotal;
+        // static int32_t poly2VertexCountTotal;
+
+        // Total/Maximal size of the result DLL list vertices and polygons
+        int32_t DLLVertexCountTotal;
+        int32_t DLLPolygonCountTotal;
 
         // Precalcualte the maximal needed size for a doubly linked list as
         // n*k + n + k where n is the number of vertices of polygon 1 and k is the number of
@@ -724,14 +726,6 @@ public:
         GPUMemory::copyDeviceToHost(&poly1VertexCountTotal, poly1VertexOffsets + dataElementCount -
         1, 1); GPUMemory::copyDeviceToHost(&poly2VertexCountTotal, poly2VertexOffsets +
         dataElementCount - 1, 1);
-        */
-
-        /*
-        // TODO REMOVE Debug code - copy back buffer 1 to see it's content
-        int32_t offsets1[2];
-        int32_t offsets2[2];
-        GPUMemory::copyDeviceToHost(offsets1, poly1VertexCounts, dataElementCount);
-        GPUMemory::copyDeviceToHost(offsets2, poly2VertexCounts, dataElementCount);
         */
 
         ///////////////////////////////////////////////////////////////////////////////////////
@@ -799,6 +793,11 @@ public:
 
         GPUMemory::copyDeviceToHost(&DLLPolygonCountTotal, DLLPolygonCountOffsets + dataElementCount - 1, 1);
 
+        //////
+        // DEBUG
+        // int32_t offsets3[1];
+        // GPUMemory::copyDeviceToHost(offsets3, DLLPolygonCountOffsets, 1);
+
         ///////////////////////////////////////////////////////////////////////////////////////
         // Alloc the buffer for doubly linked lists - create a temporary out polygon
         GPUMemory::GPUPolygon polygonOutTemp;
@@ -822,24 +821,25 @@ public:
         GPUMemory::alloc(&polygonOutTemp.pointCount, DLLPolygonCountTotal);
 
         // Run the clipping kernel
-        kernel_polygon_clipping<OP>
-            <<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(polygonOutTemp, polygon1,
-                                                                               polygon2, dataElementCount);
+        kernel_polygon_clipping<OP><<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
+            polygonOutTemp, polygon1, polygon2, dataElementCount,
+            poly1VertexCounts, poly2VertexCounts, DLLVertexCounts, DLLVertexCountOffsets,
+            DLLPolygonCounts, DLLPolygonCountOffsets, poly1DLList, poly2DLList);
 
         // TODO Reconstruct the real output polygon from temp output polygon
 
-		// DEBUG CODE Copy back the buffers
-        NativeGeoPoint res[1000];
-        int32_t complexPolygonIdxRes[1000];
-        int32_t complexPolygonCntRes[1000];
-        int32_t polygonIdxRes[1000];
-        int32_t polygonCntRes[1000];
+        // DEBUG CODE Copy back the buffers
+        NativeGeoPoint res[48];
+        int32_t complexPolygonIdxRes[1];
+        int32_t complexPolygonCntRes[1];
+        int32_t polygonIdxRes[16];
+        int32_t polygonCntRes[16];
 
-		GPUMemory::copyDeviceToHost(res, polygonOutTemp.polyPoints, DLLVertexCountTotal);
-        GPUMemory::copyDeviceToHost(complexPolygonIdxRes, polygonOutTemp.polyIdx, dataElementCount);
-        GPUMemory::copyDeviceToHost(complexPolygonCntRes, polygonOutTemp.polyCount, dataElementCount);
-        GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOutTemp.pointIdx, DLLPolygonCountTotal);
-        GPUMemory::copyDeviceToHost(polygonCntRes, polygonOutTemp.pointCount, DLLPolygonCountTotal);
+        GPUMemory::copyDeviceToHost(res, polygonOutTemp.polyPoints, 48);
+        GPUMemory::copyDeviceToHost(complexPolygonIdxRes, polygonOutTemp.polyIdx, 1);
+        GPUMemory::copyDeviceToHost(complexPolygonCntRes, polygonOutTemp.polyCount, 1);
+        GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOutTemp.pointIdx, 16);
+        GPUMemory::copyDeviceToHost(polygonCntRes, polygonOutTemp.pointCount, 16);
 
 
         // Free the tempora polygon
