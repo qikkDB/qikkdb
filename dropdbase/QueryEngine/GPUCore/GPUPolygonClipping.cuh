@@ -19,14 +19,14 @@ namespace PolygonFunctions
 {
 struct polyIntersect
 {
-    __device__ __host__ void operator()() const
+    __device__ __host__ bool operator()() const
     {
     }
 };
 
 struct polyUnion
 {
-    __device__ __host__ void operator()() const
+    __device__ __host__ bool operator()() const
     {
     }
 };
@@ -35,13 +35,12 @@ struct polyUnion
 // Struct for the polygon Doubly Linked List construction on the GPU
 __device__ struct PolygonNodeDLL
 {
-    int32_t poly_group;
-
     NativeGeoPoint point;
 
     float linear_distance;
     bool is_intersect;
     bool is_entry;
+    bool is_processed;
 
     int32_t nextIdx;
     int32_t prevIdx;
@@ -148,12 +147,12 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             // Create an empty node
             PolygonNodeDLL tempNode;
 
-            tempNode.poly_group = -1;
             tempNode.point = {x, y};
 
             tempNode.linear_distance = 0;
             tempNode.is_intersect = false;
             tempNode.is_entry = false;
+            tempNode.is_processed = false;
 
             tempNode.cross_link = -1;
 
@@ -206,12 +205,12 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             // Create an empty node
             PolygonNodeDLL tempNode;
 
-            tempNode.poly_group = -1;
             tempNode.point = {x, y};
 
             tempNode.linear_distance = 0;
             tempNode.is_intersect = false;
             tempNode.is_entry = false;
+            tempNode.is_processed = false;
 
             tempNode.cross_link = -1;
 
@@ -324,24 +323,24 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                     // Create the intersect node in firstlist
                     PolygonNodeDLL tempNodeA;
 
-                    tempNodeA.poly_group = -1;
                     tempNodeA.point = {point_x, point_y};
 
                     tempNodeA.linear_distance = alongA;
                     tempNodeA.is_intersect = true;
                     tempNodeA.is_entry = false;
+                    tempNodeA.is_processed = false;
 
                     tempNodeA.cross_link = DLLPoly2ElementCount;
 
                     // Create the intersect node in second list
                     PolygonNodeDLL tempNodeB;
 
-                    tempNodeB.poly_group = -1;
                     tempNodeB.point = {point_x, point_y};
 
                     tempNodeB.linear_distance = alongB;
                     tempNodeB.is_intersect = true;
                     tempNodeB.is_entry = false;
+                    tempNodeB.is_processed = false;
 
                     tempNodeB.cross_link = DLLPoly1ElementCount;
 
@@ -406,12 +405,12 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
         } while (here1Idx != ROOT_NODE_IDX);
 
 
-		//////////////////////////////////////////////////////////////////////////////////////////////////
-		// Calculate if the first vertex of a polygon is in the other polygon or not
-		// We calculate for the root element of both polygons
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        // Calculate if the first vertex of a polygon is in the other polygon or not
+        // We calculate for the root element of both polygons
 
-		// Poly 1 root in poly 2
-		bool is1in2 = false;
+        // Poly 1 root in poly 2
+        bool is1in2 = false;
         float x = poly1DLList[DLLVertexCountOffsetIdx + ROOT_NODE_IDX].point.latitude;
         float y = poly1DLList[DLLVertexCountOffsetIdx + ROOT_NODE_IDX].point.longitude;
         int32_t hereIdx = ROOT_NODE_IDX;
@@ -454,8 +453,8 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             hereIdx = nextIdx;
         } while (hereIdx != ROOT_NODE_IDX);
 
-		// Now label the is_entry attributein a zig-zag pattern based on the first point calculated above
-		// Poly 1
+        // Now label the is_entry attributein a zig-zag pattern based on the first point calculated
+        // above Poly 1
         hereIdx = ROOT_NODE_IDX;
         bool isEntry = !is1in2;
         do
@@ -468,7 +467,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             hereIdx = poly1DLList[DLLVertexCountOffsetIdx + hereIdx].nextIdx;
         } while (hereIdx != ROOT_NODE_IDX);
 
-		// Poly 2
+        // Poly 2
         hereIdx = ROOT_NODE_IDX;
         isEntry = !is2in1;
         do
@@ -481,7 +480,49 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             hereIdx = poly2DLList[DLLVertexCountOffsetIdx + hereIdx].nextIdx;
         } while (hereIdx != ROOT_NODE_IDX);
         //////////////////////////////////////////////////////////////////////////////////////////////////
-		// Now reconstruct the polygons based on edge tracing and the desired functors
+        // Now reconstruct the polygons based on edge tracing and the desired functors
+
+        // Counter for vertices in the resulting polygon
+        // Counter for polygons in resulting polygon
+        int32_t VertexCountOutPoly = 0;
+        int32_t PolygonCountOutPoly = 0;
+
+        int32_t VertexOffsetOutPoly = 0;
+        int32_t PolygonOffsetOutPoly = 0;
+
+
+        // Process all intersects based on the chosen functor
+        int32_t isectIdx = ROOT_NODE_IDX;
+        while (true)
+        {
+            do
+            {
+                if (poly1DLList[DLLVertexCountOffsetIdx + isectIdx].is_intersect &&
+                    !poly1DLList[DLLVertexCountOffsetIdx + isectIdx].is_processed)
+                {
+					// If the vertex is an intersection and it was not processed then process it, else skip
+                    break;
+                }
+                isectIdx = poly1DLList[DLLVertexCountOffsetIdx + isectIdx].nextIdx;
+            } while (isectIdx != ROOT_NODE_IDX);
+
+            if (isectIdx == ROOT_NODE_IDX)
+            {
+				// If we iterated over the whole list - then exit
+				// TODO I am not sure about this - test it !
+                break;
+            }
+
+            // Process isect
+            //
+        }
+
+
+        complexPolygonOut.polyIdx[i];
+        complexPolygonOut.polyCount[i];
+
+        complexPolygonOut.pointIdx[complexPolygonOut.polyIdx[i] + 0];
+        complexPolygonOut.pointCount[complexPolygonOut.polyIdx[i] + 0];
     }
 }
 
