@@ -108,7 +108,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
     // The root of the DLL is always the 0th element
     const int32_t ROOT_NODE_IDX = 0;
 
-	// "Infinity"
+    // "Infinity"
     const float INF = 1000000000;
 
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -277,7 +277,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                     next2Idx = poly2DLList[DLLVertexCountOffsetIdx + next2Idx].nextIdx;
                 } while (poly2DLList[DLLVertexCountOffsetIdx + next2Idx].is_intersect != false);
 
-				///////////////////////////////////////////////////////////////////////////////
+                ///////////////////////////////////////////////////////////////////////////////
                 // Calculate the intersect - math is complex - see doc
                 float adx = poly1DLList[DLLVertexCountOffsetIdx + next1Idx].point.latitude -
                             poly1DLList[DLLVertexCountOffsetIdx + here1Idx].point.latitude;
@@ -296,11 +296,11 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
                 float point_x = INF;
                 float point_y = INF;
-                
-				if (axb == 0)
-				{
-					// TODO Do something when lines are parallel !!!
-				}
+
+                if (axb == 0)
+                {
+                    // TODO Do something when lines are parallel !!!
+                }
 
                 float dx = poly1DLList[DLLVertexCountOffsetIdx + here1Idx].point.latitude -
                            poly2DLList[DLLVertexCountOffsetIdx + here2Idx].point.latitude;
@@ -314,7 +314,74 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                 point_y = poly1DLList[DLLVertexCountOffsetIdx + here1Idx].point.longitude + alongA * ady;
 
                 ///////////////////////////////////////////////////////////////////////////////
-                // Update vertex
+                // If there is an intersection - add a new intersection vertex
+                if (alongA > 0 && alongA < 1 && alongB > 0 && alongB < 1)
+                {
+                    // Insert intersection points in both polygons at the correct location, referencing each other Create an empty node
+                    // Create the intersect node in firstlist
+                    PolygonNodeDLL tempNodeA;
+
+                    tempNodeA.poly_group = -1;
+                    tempNodeA.point = {point_x, point_y};
+
+                    tempNodeA.linear_distance = alongA;
+                    tempNodeA.is_intersect = true;
+
+                    tempNodeA.cross_link = DLLPoly2ElementCount;
+
+                    // Create the intersect node in second list
+                    PolygonNodeDLL tempNodeB;
+
+                    tempNodeB.poly_group = -1;
+                    tempNodeB.point = {point_x, point_y};
+
+                    tempNodeB.linear_distance = alongB;
+                    tempNodeB.is_intersect = true;
+
+                    tempNodeB.cross_link = DLLPoly1ElementCount;
+
+                    //////////////////////////////////////////////////////////////
+                    // Find insertion between here1Idx and next1Idx, based on dist
+                    int32_t inextIdx, iprevIdx;
+
+                    inextIdx = poly1DLList[DLLVertexCountOffsetIdx + here1Idx].nextIdx;
+                    while (inextIdx != next1Idx && poly1DLList[DLLVertexCountOffsetIdx + inextIdx].linear_distance <
+                                                       tempNodeA.linear_distance)
+                    {
+                        inextIdx = poly1DLList[DLLVertexCountOffsetIdx + inextIdx].nextIdx;
+                    }
+                    iprevIdx = poly1DLList[DLLVertexCountOffsetIdx + inextIdx].prevIdx;
+
+                    // Insert node1 between iprev and inext
+                    poly1DLList[DLLVertexCountOffsetIdx + inextIdx].prevIdx = DLLPoly1ElementCount;
+                    tempNodeA.nextIdx = inextIdx;
+                    tempNodeA.prevIdx = iprevIdx;
+                    poly1DLList[DLLVertexCountOffsetIdx + iprevIdx].nextIdx = DLLPoly1ElementCount;
+
+                    //////////////////////////////////////////////////////////////
+                    // Find insertion between here2Idx and next2Idx, based on dist
+                    inextIdx = poly2DLList[DLLVertexCountOffsetIdx + here2Idx].nextIdx;
+                    while (inextIdx != next2Idx && poly2DLList[DLLVertexCountOffsetIdx + inextIdx].linear_distance <
+                                                       tempNodeB.linear_distance)
+                    {
+                        inextIdx = poly2DLList[DLLVertexCountOffsetIdx + inextIdx].nextIdx;
+                    }
+                    iprevIdx = poly2DLList[DLLVertexCountOffsetIdx + inextIdx].prevIdx;
+
+                    // Insert node1 between iprev and inext
+                    poly2DLList[DLLVertexCountOffsetIdx + inextIdx].prevIdx = DLLPoly2ElementCount;
+                    tempNodeB.nextIdx = inextIdx;
+                    tempNodeB.prevIdx = iprevIdx;
+                    poly2DLList[DLLVertexCountOffsetIdx + iprevIdx].nextIdx = DLLPoly2ElementCount;
+
+                    // Insert the nodes into the result array (append them, the pointers are correctly chained)
+                    poly1DLList[DLLVertexCountOffsetIdx + DLLPoly1ElementCount] = tempNodeA;
+                    poly2DLList[DLLVertexCountOffsetIdx + DLLPoly2ElementCount] = tempNodeB;
+
+                    // Increment the total number of vertices
+                    DLLPoly1ElementCount++;
+                    DLLPoly2ElementCount++;
+                }
 
                 // Find the next non intersection vertex
                 do
@@ -332,6 +399,9 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             } while (poly1DLList[DLLVertexCountOffsetIdx + here1Idx].is_intersect != false);
 
         } while (here1Idx != ROOT_NODE_IDX);
+
+
+
     }
 }
 
