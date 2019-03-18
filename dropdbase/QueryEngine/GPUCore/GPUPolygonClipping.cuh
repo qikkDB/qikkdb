@@ -41,6 +41,7 @@ __device__ struct PolygonNodeDLL
 
     float linear_distance;
     bool is_intersect;
+    bool is_entry;
 
     int32_t nextIdx;
     int32_t prevIdx;
@@ -152,6 +153,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
             tempNode.linear_distance = 0;
             tempNode.is_intersect = false;
+            tempNode.is_entry = false;
 
             tempNode.cross_link = -1;
 
@@ -209,6 +211,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
             tempNode.linear_distance = 0;
             tempNode.is_intersect = false;
+            tempNode.is_entry = false;
 
             tempNode.cross_link = -1;
 
@@ -326,6 +329,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
                     tempNodeA.linear_distance = alongA;
                     tempNodeA.is_intersect = true;
+                    tempNodeA.is_entry = false;
 
                     tempNodeA.cross_link = DLLPoly2ElementCount;
 
@@ -337,6 +341,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
                     tempNodeB.linear_distance = alongB;
                     tempNodeB.is_intersect = true;
+                    tempNodeB.is_entry = false;
 
                     tempNodeB.cross_link = DLLPoly1ElementCount;
 
@@ -449,7 +454,34 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             hereIdx = nextIdx;
         } while (hereIdx != ROOT_NODE_IDX);
 
+		// Now label the is_entry attributein a zig-zag pattern based on the first point calculated above
+		// Poly 1
+        hereIdx = ROOT_NODE_IDX;
+        bool isEntry = !is1in2;
+        do
+        {
+            if (poly1DLList[DLLVertexCountOffsetIdx + hereIdx].is_intersect)
+            {
+                poly1DLList[DLLVertexCountOffsetIdx + hereIdx].is_entry = isEntry;
+                isEntry = !isEntry;
+            }
+            hereIdx = poly1DLList[DLLVertexCountOffsetIdx + hereIdx].nextIdx;
+        } while (hereIdx != ROOT_NODE_IDX);
 
+		// Poly 2
+        hereIdx = ROOT_NODE_IDX;
+        isEntry = !is2in1;
+        do
+        {
+            if (poly2DLList[DLLVertexCountOffsetIdx + hereIdx].is_intersect)
+            {
+                poly2DLList[DLLVertexCountOffsetIdx + hereIdx].is_entry = isEntry;
+                isEntry = !isEntry;
+            }
+            hereIdx = poly2DLList[DLLVertexCountOffsetIdx + hereIdx].nextIdx;
+        } while (hereIdx != ROOT_NODE_IDX);
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+		// Now reconstruct the polygons based on edge tracing and the desired functors
     }
 }
 
