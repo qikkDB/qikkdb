@@ -13,6 +13,8 @@
 #include "../Context.h"
 #include "../../../cub/cub.cuh"
 
+// WARNING - This version clips only the 0th polygon of a complex polygon !!!
+
 namespace PolygonFunctions
 {
 struct polyIntersect
@@ -45,33 +47,35 @@ __device__ struct PolygonNodeDLL
     int32_t cross_link;
 };
 
+// Vertex counts in each input polygon - needed for offset calculation
+__device__ int32_t* poly1VertexCounts;
+__device__ int32_t* poly2VertexCounts;
+
+// Vertex count start offsets
+//__device__ int32_t* poly1VertexOffsets;
+//__device__ int32_t* poly2VertexOffsets;
+
+// Doubly linked list offset buffers
+__device__ int32_t* DLLVertexCounts;
+__device__ int32_t* DLLVertexCountOffsets;
+
+//__device__ int32_t* DLLPolygonCounts;
+//__device__ int32_t* DLLPolygonCountOffsets;
+
 // Data buffers for doubly linked lists of polygons during clipping
 __device__ PolygonNodeDLL* poly1DLList;
 __device__ PolygonNodeDLL* poly2DLList;
 
-// Doubly linked list vertex counts
-__device__ int32_t* poly1DLListVertexCounts;
-__device__ int32_t* poly2DLListVertexCounts;
-
-// Doubly linked list starts offset
-__device__ int32_t* poly1DLListOffset;
-__device__ int32_t* poly2DLListOffset;
-
-// Offset buffers
-__device__ int32_t* resultMaximumVertexCounts;
-__device__ int32_t* resultMaximumVertexCountOffset;
-__device__ int32_t* resultMaximumPolygonCounts;
-__device__ int32_t* resultMaximumPolygonCountOffset;
-
 //Offset buffer sizes - TODO make device callable
-static int32_t pointCountTotalPoly1;
-static int32_t pointCountTotalPoly2;
+//static int32_t poly1VertexCountTotal;
+//static int32_t poly2VertexCountTotal;
 
-static int32_t resultMaximumVertexCountTotal;
-static int32_t resultMaximumPolygonCountTotal;
+// Total/Maximal size of the result DLL list vertices and polygons
+static int32_t DLLVertexCountTotal;
+//static int32_t DLLPolygonCountTotal;
 
 // A kernel for counting the number of vertices that a complex polygon has
-inline __global__ void kernel_calculate_points_in_complex_polygon_count(int32_t* pointCounts,
+inline __global__ void kernel_calculate_point_count_in_complex_polygon(int32_t* pointCounts,
                                                              GPUMemory::GPUPolygon complexPolygon,
                                                              int32_t dataElementCount)
 {
@@ -80,6 +84,7 @@ inline __global__ void kernel_calculate_points_in_complex_polygon_count(int32_t*
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
+        /*
         // Sum the number of points of a polygon and store it in a buffer
         int32_t vertexCountSum = 0;
         for (int32_t j = 0; j < complexPolygon.polyCount[i]; j++)
@@ -87,6 +92,10 @@ inline __global__ void kernel_calculate_points_in_complex_polygon_count(int32_t*
             vertexCountSum += complexPolygon.pointCount[complexPolygon.polyIdx[i] + j];
         }
         pointCounts[i] = vertexCountSum;
+		*/
+
+		// Account only for the 0th polygon in a complex polygon - the 0 is only for better understanding
+        pointCounts[i] = complexPolygon.pointCount[complexPolygon.polyIdx[i] + 0];
     }
 }
 
@@ -96,6 +105,15 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                                         GPUMemory::GPUPolygon complexPolygon2,
                                         int32_t dataElementCount)
 {
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < dataElementCount; i += stride)
+    {
+        // Transform - update the input polygons to Doubly Linked Lists (DLLs)
+
+    }
+	
 }
 
 class GPUPolygonClip
@@ -116,56 +134,53 @@ public:
         // doubly linked list buffer is a sum of all dll buffers
 
         // Alloc the vertex count buffs
-        GPUMemory::allocAndSet(&poly1DLListVertexCounts, 0, dataElementCount);
-        GPUMemory::allocAndSet(&poly2DLListVertexCounts, 0, dataElementCount);
+        GPUMemory::allocAndSet(&poly1VertexCounts, 0, dataElementCount);
+        GPUMemory::allocAndSet(&poly2VertexCounts, 0, dataElementCount);
 
         // Calculate the number of vertices in the complex polygons
-        kernel_calculate_points_in_complex_polygon_count<<<context.calcGridDim(dataElementCount),
-                                                       context.getBlockDim()>>>(poly1DLListVertexCounts, polygon1,
+        kernel_calculate_point_count_in_complex_polygon<<<context.calcGridDim(dataElementCount),
+                                                       context.getBlockDim()>>>(poly1VertexCounts, polygon1,
                                                                                 dataElementCount);
-        kernel_calculate_points_in_complex_polygon_count<<<context.calcGridDim(dataElementCount),
-                                                       context.getBlockDim()>>>(poly2DLListVertexCounts, polygon2,
-                                                                                dataElementCount);
+        kernel_calculate_point_count_in_complex_polygon<<<context.calcGridDim(dataElementCount),
+                                                       context.getBlockDim()>>>(poly2VertexCounts, polygon2,
+                                                                               dataElementCount);
+        /*
 		// Alloc the offset buffs
-        GPUMemory::allocAndSet(&poly1DLListOffset, 0, dataElementCount);
-        GPUMemory::allocAndSet(&poly2DLListOffset, 0, dataElementCount);
+        GPUMemory::allocAndSet(&poly1VertexOffsets, 0, dataElementCount);
+        GPUMemory::allocAndSet(&poly2VertexOffsets, 0, dataElementCount);
 
         // Transform the offset buffers using the exclusive prefix sum - inclusive sum with 0 as the 0th element - think about it again
 		// Input poly 1 offsets - prefix sum calculation
 		void *d_temp_storage = nullptr;
 		size_t temp_storage_bytes = 0;
-		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly1DLListVertexCounts, poly1DLListOffset, dataElementCount);
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly1VertexCounts, poly1VertexOffsets, dataElementCount);
 		GPUMemory::alloc(reinterpret_cast<int8_t**>(&d_temp_storage), temp_storage_bytes);
-		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly1DLListVertexCounts, poly1DLListOffset, dataElementCount);
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly1VertexCounts, poly1VertexOffsets, dataElementCount);
 		GPUMemory::free(d_temp_storage);
 
 		// Input poly 2 offsets - prefix sum calculation
 		d_temp_storage = nullptr;
 		temp_storage_bytes = 0;
-		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly2DLListVertexCounts, poly2DLListOffset, dataElementCount);
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly2VertexCounts, poly2VertexOffsets, dataElementCount);
 		GPUMemory::alloc(reinterpret_cast<int8_t**>(&d_temp_storage), temp_storage_bytes);
-		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly2DLListVertexCounts, poly2DLListOffset, dataElementCount);
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly2VertexCounts, poly2VertexOffsets, dataElementCount);
 		GPUMemory::free(d_temp_storage);
 
 		//Copy back the last element of both prefix sum calculations - the total number of points
-		pointCountTotalPoly1 = 0;
-		pointCountTotalPoly2 = 0;
+		poly1VertexCountTotal = 0;
+		poly2VertexCountTotal = 0;
 
-		GPUMemory::copyDeviceToHost(&pointCountTotalPoly1, poly1DLListOffset + dataElementCount - 1, 1);
-		GPUMemory::copyDeviceToHost(&pointCountTotalPoly2, poly2DLListOffset + dataElementCount - 1, 1);
+		GPUMemory::copyDeviceToHost(&poly1VertexCountTotal, poly1VertexOffsets + dataElementCount - 1, 1);
+		GPUMemory::copyDeviceToHost(&poly2VertexCountTotal, poly2VertexOffsets + dataElementCount - 1, 1);
+		*/
 
 		/*
 		// TODO REMOVE Debug code - copy back buffer 1 to see it's content
 		int32_t offsets1[2];
 		int32_t offsets2[2];
-		GPUMemory::copyDeviceToHost(offsets1, poly1DLListOffset, dataElementCount);
-		GPUMemory::copyDeviceToHost(offsets2, poly2DLListOffset, dataElementCount);
-		*/	
-
-        // The data sandbox for linked lists - the max count of the vertices is the result of the prefix sum
-        // Alloc space for the doubly linked lists for both polygons in both collumns
-        GPUMemory::alloc(&poly1DLList, pointCountTotalPoly1);
-        GPUMemory::alloc(&poly2DLList, pointCountTotalPoly2);
+        GPUMemory::copyDeviceToHost(offsets1, poly1VertexCounts, dataElementCount);
+        GPUMemory::copyDeviceToHost(offsets2, poly2VertexCounts, dataElementCount);
+		*/
 
 		///////////////////////////////////////////////////////////////////////////////////////	
 		// Pre allocte the output buffer based on the formula n*k + n + k (one polygon only)
@@ -175,91 +190,115 @@ public:
 		// The prefix sum is also needed for output indexing
 		// Now calculate the result sizes and alloate the outPoly structure
 
-		// POINT SPACE CALCULATION AND ALOCATION
+		// DLL VERTEX SPACE CALCULATION AND ALOCATION
 		// Calc maximum needed size - real values will be smaller due to assumption of the worst case
-		resultMaximumVertexCounts = nullptr;
-		GPUMemory::allocAndSet(&resultMaximumVertexCounts, 0, dataElementCount);
+		DLLVertexCounts = nullptr;
+		GPUMemory::allocAndSet(&DLLVertexCounts, 0, dataElementCount);
 
 		// Calc (n*k + n + k) for each input row
 		GPUArithmetic::colCol<ArithmeticOperations::mul>
-			(resultMaximumVertexCounts, poly1DLListVertexCounts, poly2DLListVertexCounts, dataElementCount);
+			(DLLVertexCounts, poly1VertexCounts, poly2VertexCounts, dataElementCount);
 		GPUArithmetic::colCol<ArithmeticOperations::add>
-			(resultMaximumVertexCounts, resultMaximumVertexCounts, poly1DLListVertexCounts, dataElementCount);
+			(DLLVertexCounts, DLLVertexCounts, poly1VertexCounts, dataElementCount);
 		GPUArithmetic::colCol<ArithmeticOperations::add>
-			(resultMaximumVertexCounts, resultMaximumVertexCounts, poly2DLListVertexCounts, dataElementCount);	
+			(DLLVertexCounts, DLLVertexCounts, poly2VertexCounts, dataElementCount);	
 
 		// Calc the prefix sum for each input row - points
-		resultMaximumVertexCountOffset = nullptr;
-		GPUMemory::allocAndSet(&resultMaximumVertexCountOffset, 0, dataElementCount);
+		DLLVertexCountOffsets = nullptr;
+		GPUMemory::allocAndSet(&DLLVertexCountOffsets, 0, dataElementCount);
 
-		d_temp_storage = nullptr;
-		temp_storage_bytes = 0;
-		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, resultMaximumVertexCounts, resultMaximumVertexCountOffset, dataElementCount);
+		void* d_temp_storage = nullptr;
+        size_t temp_storage_bytes = 0;
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, DLLVertexCounts, DLLVertexCountOffsets, dataElementCount);
 		GPUMemory::alloc(reinterpret_cast<int8_t**>(&d_temp_storage), temp_storage_bytes);
-		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, resultMaximumVertexCounts, resultMaximumVertexCountOffset, dataElementCount);
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, DLLVertexCounts, DLLVertexCountOffsets, dataElementCount);
 		GPUMemory::free(d_temp_storage);
 
 		// Get the number of maximum point count for the result buffer allocation
-		resultMaximumVertexCountTotal = 0;
+		DLLVertexCountTotal = 0;
 
-		GPUMemory::copyDeviceToHost(&resultMaximumVertexCountTotal, resultMaximumVertexCountOffset + dataElementCount - 1, 1);
+		GPUMemory::copyDeviceToHost(&DLLVertexCountTotal, DLLVertexCountOffsets + dataElementCount - 1, 1);
 		
-		// POLYGON OFFSET SPACE CALCULATION AND ALLOCATION
-		resultMaximumPolygonCounts = nullptr;
-		GPUMemory::allocAndSet(&resultMaximumPolygonCounts, 0, dataElementCount);
+		// DLL POLYGON SPACE CALCULATION AND ALLOCATION
+		// TODO think about geting rid of this - only size needed, possible to calculate at runtime
+		// Because a/3 + b/3 + c/3 == (a + b + c)/3
+        /*
+		DLLPolygonCounts = nullptr;
+		GPUMemory::allocAndSet(&DLLPolygonCounts, 0, dataElementCount);
 
 		// Calc (n*k + n + k)/3 for each input row
 		GPUArithmetic::colConst<ArithmeticOperations::div>
-			(resultMaximumPolygonCounts, resultMaximumVertexCounts, 3, dataElementCount);
+			(DLLPolygonCounts, DLLVertexCounts, 3, dataElementCount);
 
 		// Calc the prefix sum for each input row - polygons
-		resultMaximumPolygonCountOffset = nullptr;
-		GPUMemory::allocAndSet(&resultMaximumPolygonCountOffset, 0, dataElementCount);
+		DLLPolygonCountOffsets = nullptr;
+		GPUMemory::allocAndSet(&DLLPolygonCountOffsets, 0, dataElementCount);
 
 		d_temp_storage = nullptr;
 		temp_storage_bytes = 0;
-		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, resultMaximumPolygonCounts, resultMaximumPolygonCountOffset, dataElementCount);
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, DLLPolygonCounts, DLLPolygonCountOffsets, dataElementCount);
 		GPUMemory::alloc(reinterpret_cast<int8_t**>(&d_temp_storage), temp_storage_bytes);
-		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, resultMaximumPolygonCounts, resultMaximumPolygonCountOffset, dataElementCount);
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, DLLPolygonCounts, DLLPolygonCountOffsets, dataElementCount);
 		GPUMemory::free(d_temp_storage);
 
 		// Get the number of maximum polygon count for the result buffer allocation
-		resultMaximumPolygonCountTotal = 0;
+		DLLPolygonCountTotal = 0;
 
-		GPUMemory::copyDeviceToHost(&resultMaximumPolygonCountTotal, resultMaximumPolygonCountOffset +  dataElementCount - 1, 1);
+		GPUMemory::copyDeviceToHost(&DLLPolygonCountTotal, DLLPolygonCountOffsets +  dataElementCount - 1, 1);
+		*/
+
+		///////////////////////////////////////////////////////////////////////////////////////
+		// Alloc the buffer for doubly linked lists - create a temporary out polygon
+        GPUMemory::GPUPolygon polygonOutTemp;
+
+		// The data buffer for linked lists - the max count of the vertices is the result of the prefix sum
+        // Alloc space for the doubly linked lists for both polygons in both collumns
+        GPUMemory::alloc(&poly1DLList, DLLVertexCountTotal);
+        GPUMemory::alloc(&poly2DLList, DLLVertexCountTotal);
 
 		///////////////////////////////////////////////////////////////////////////////////////
 		// Allocation of the result buffer - worst case scenario
 		// The total count of resulting vertices
-		GPUMemory::alloc(&polygonOut.polyPoints, resultMaximumVertexCountTotal);	
+        GPUMemory::alloc(&polygonOutTemp.polyPoints, DLLVertexCountTotal);	
 
 		// The number of complex polygons is the same as the input complex polygons
-		GPUMemory::alloc(&polygonOut.polyIdx, dataElementCount);
-		GPUMemory::alloc(&polygonOut.polyCount, dataElementCount);
+        GPUMemory::alloc(&polygonOutTemp.polyIdx, dataElementCount);
+        GPUMemory::alloc(&polygonOutTemp.polyCount, dataElementCount);
 		
 		// The number of simple polygons is (n*k + n + k)/3 summed over all polygons
-		GPUMemory::alloc(&polygonOut.pointIdx, resultMaximumPolygonCountTotal);
-		GPUMemory::alloc(&polygonOut.pointCount, resultMaximumPolygonCountTotal);
+        //GPUMemory::alloc(&polygonOutTemp.pointIdx, DLLPolygonCountTotal);
+        //GPUMemory::alloc(&polygonOutTemp.pointCount, DLLPolygonCountTotal);
+        GPUMemory::alloc(&polygonOutTemp.pointIdx, DLLVertexCountTotal / 3);
+        GPUMemory::alloc(&polygonOutTemp.pointCount, DLLVertexCountTotal / 3);
 
 		//Run the clipping kernel
         kernel_polygon_clipping<OP>
-            <<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(polygonOut, polygon1,
+            <<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(polygonOutTemp, polygon1,
                                                                                polygon2, dataElementCount);
         
-		// Free the allocated memory
-        GPUMemory::free(poly1DLListVertexCounts);
-        GPUMemory::free(poly2DLListVertexCounts);
+		// TODO Reconstruct the real output polygon from temp output polygon
 
-		GPUMemory::free(poly1DLListOffset);
-        GPUMemory::free(poly2DLListOffset);
+		// Free the tempora polygon
+        GPUMemory::free(polygonOutTemp.polyPoints);
+        GPUMemory::free(polygonOutTemp.polyIdx);
+        GPUMemory::free(polygonOutTemp.polyCount);
+        GPUMemory::free(polygonOutTemp.pointIdx);
+        GPUMemory::free(polygonOutTemp.pointCount);
+
+		// Free the allocated memory
+        GPUMemory::free(poly1VertexCounts);
+        GPUMemory::free(poly2VertexCounts);
+
+		//GPUMemory::free(poly1VertexOffsets);
+        //GPUMemory::free(poly2VertexOffsets);
 
 		GPUMemory::free(poly1DLList);
 		GPUMemory::free(poly2DLList);
 
-		GPUMemory::free(resultMaximumVertexCounts);
-		GPUMemory::free(resultMaximumVertexCountOffset);
-		GPUMemory::free(resultMaximumPolygonCounts);
-		GPUMemory::free(resultMaximumPolygonCountOffset);
+		GPUMemory::free(DLLVertexCounts);
+		GPUMemory::free(DLLVertexCountOffsets);
+		//GPUMemory::free(DLLPolygonCounts);
+		//GPUMemory::free(DLLPolygonCountOffsets);
 
 		// Set error
 		QueryEngineError::setCudaError(cudaGetLastError());
