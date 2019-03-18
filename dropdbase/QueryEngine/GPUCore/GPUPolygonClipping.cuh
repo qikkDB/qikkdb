@@ -44,7 +44,7 @@ __device__ struct PolygonNodeDLL
 
     int32_t nextIdx;
     int32_t prevIdx;
-    int32_t cross_link;	// Cross ink also indicates if a node is a intersect or not = only intersects have positive cross links
+    int32_t cross_link; // Cross ink also indicates if a node is a intersect or not = only intersects have positive cross links
 };
 
 // Vertex counts in each input polygon - needed for offset calculation
@@ -116,17 +116,21 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
         // Iterate over the vertices of the first poly of the complex poly
         // Only for 0th polygon
 
-		//////////////////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////
         // Poly 1
-		// Pointer to the end of the list ( one element after the last element)
+        // Pointer to the end of the list ( one element after the last element)
         int32_t DLLPoly1ElementCount = 0;
         for (int32_t j = 0; j < complexPolygon1.pointCount[complexPolygon1.polyIdx[i] + 0]; j++)
         {
-			// Get the coordinates
-            float x = complexPolygon1.polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] + j].latitude;
-            float y = complexPolygon1.polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] + j].longitude;
+            // Get the coordinates
+            float x = complexPolygon1
+                          .polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] + j]
+                          .latitude;
+            float y = complexPolygon1
+                          .polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] + j]
+                          .longitude;
 
-			// Create an empty node
+            // Create an empty node
             PolygonNodeDLL tempNode;
 
             tempNode.poly_group = -1;
@@ -135,9 +139,9 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             tempNode.linear_distance = 0;
             tempNode.is_intersect = false;
 
-			tempNode.cross_link = -1;
-            
-			// Get the offset index - needed because of the character of the prefix sum
+            tempNode.cross_link = -1;
+
+            // Get the offset index - needed because of the character of the prefix sum
             int32_t DLLVertexCountOffsetIdx = 0;
             if ((i - 1) < 0)
             {
@@ -147,11 +151,11 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             {
                 DLLVertexCountOffsetIdx = DLLVertexCountOffsets[i - 1];
             }
-            
+
             // Rewire the "pointers"
             if (DLLPoly1ElementCount == ROOT_NODE_IDX)
             {
-				// Set the "pointers"
+                // Set the "pointers"
                 // root just points to itself:
                 //    +-> (root) <-+
                 //    |            |
@@ -159,8 +163,8 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                 tempNode.nextIdx = ROOT_NODE_IDX;
                 tempNode.prevIdx = ROOT_NODE_IDX;
             }
-			else
-			{
+            else
+            {
                 // change this:
                 //    ...-- (prev) <--------------> (root) --...
                 // to this:
@@ -171,16 +175,16 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                 tempNode.prevIdx = oldLastElementIdx;
                 tempNode.nextIdx = ROOT_NODE_IDX;
                 poly1DLList[DLLVertexCountOffsetIdx + ROOT_NODE_IDX].prevIdx = DLLPoly1ElementCount;
-			}
-  
-			// Insert the node into the list
+            }
+
+            // Insert the node into the list
             poly1DLList[DLLVertexCountOffsetIdx + DLLPoly1ElementCount] = tempNode;
 
-			// Increment the number of elements
+            // Increment the number of elements
             DLLPoly1ElementCount++;
         }
 
-		//////////////////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////
         // Poly 2
         // Pointer to the end of the list ( one element after the last element)
         int32_t DLLPoly2ElementCount = 0;
@@ -248,8 +252,60 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             DLLPoly2ElementCount++;
         }
 
-		//////////////////////////////////////////////////////////////////////////////////////////////////
-		// Calculate all line intersections and append them to the polygon DLLs
+        //////////////////////////////////////////////////////////////////////////////////////////////////
+        // Calculate all line intersections and append them to the polygon DLLs
+
+		// TODO Change to DLLs reading
+        for (int32_t j = 0; j < complexPolygon1.pointCount[complexPolygon1.polyIdx[i] + 0]; j++)
+        {
+            // Get the start vertex s and the end vertex e of the first edge
+            // The end vertex needs the modulus to wrap around to the first vertex
+            float s1_x = complexPolygon1
+                             .polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] + j]
+                             .latitude;
+            float s1_y = complexPolygon1
+                             .polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] + j]
+                             .longitude;
+
+            float e1_x =
+                complexPolygon1
+                    .polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] +
+                                (j + 1) % complexPolygon1.pointCount[complexPolygon1.polyIdx[i] + 0]]
+                    .latitude;
+            float e1_y =
+                complexPolygon1
+                    .polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] +
+                                (j + 1) % complexPolygon1.pointCount[complexPolygon1.polyIdx[i] + 0]]
+                    .longitude;
+
+
+            for (int32_t k = 0; k < complexPolygon2.pointCount[complexPolygon2.polyIdx[i] + 0]; j++)
+            {
+                // Get the start vertex s and the end vertex e of the second edge
+                // The end vertex needs the modulus to wrap around to the first vertex
+                float s2_x = complexPolygon2
+                                 .polyPoints[complexPolygon2.pointIdx[complexPolygon2.polyIdx[i] + 0] + k]
+                                 .latitude;
+                float s2_y = complexPolygon2
+                                 .polyPoints[complexPolygon2.pointIdx[complexPolygon2.polyIdx[i] + 0] + k]
+                                 .longitude;
+
+                float e2_x =
+                    complexPolygon2
+                        .polyPoints[complexPolygon2.pointIdx[complexPolygon2.polyIdx[i] + 0] +
+                                    (k + 1) % complexPolygon2.pointCount[complexPolygon2.polyIdx[i] + 0]]
+                        .latitude;
+                float e2_y =
+                    complexPolygon2
+                        .polyPoints[complexPolygon2.pointIdx[complexPolygon2.polyIdx[i] + 0] +
+                                    (k + 1) % complexPolygon2.pointCount[complexPolygon2.polyIdx[i] + 0]]
+                        .longitude;
+
+				//////////////////////////////////////////////////////////////////////////////////////////
+				// Calculate the intersections - create a new node, push it to both lists based on linear distance and cross reference it
+
+            }
+        }
     }
 }
 
