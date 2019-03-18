@@ -149,4 +149,7 @@ TEST(GPUPolygonClippingTests, PoygonTest)
     GPUMemory::free(polygon2.polyCount);
     GPUMemory::free(polygon2.pointIdx);
     GPUMemory::free(polygon2.pointCount);
+
+	// Fail assert
+    ASSERT_EQ(0, 1);
 }

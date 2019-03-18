@@ -175,7 +175,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             // Increment the number of elements
             DLLPoly1ElementCount++;
         }
-        
+
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // Poly 2
         for (int32_t j = 0; j < complexPolygon2.pointCount[complexPolygon2.polyIdx[i] + 0]; j++)
@@ -231,7 +231,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             // Increment the number of elements
             DLLPoly2ElementCount++;
         }
-        
+
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // Calculate all line intersections and append them to the polygon DLLs dynamiclaly during calculation
 
@@ -605,7 +605,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
                 // Save the reults for reconstruction
                 complexPolygonOut.pointCount[DLLPolygonCountOffsetIdx + PolygonCountOutPoly] = VertexCountOutPoly;
-                //complexPolygonOut.pointIdx[i] = VertexOffsetOutPoly; // cant be calculated, only with prefix sum
+                // complexPolygonOut.pointIdx[i] = VertexOffsetOutPoly; // cant be calculated, only with prefix sum
 
                 // Icrement the polygon offset
                 VertexOffsetOutPoly += VertexCountOutPoly;
@@ -635,7 +635,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
 
             complexPolygonOut.polyCount[i] = PolygonCountOutPoly;
-            //complexPolygonOut.polyIdx[i]; // cant be calculated, only with prefix sum
+            // complexPolygonOut.polyIdx[i]; // cant be calculated, only with prefix sum
         }
     }
     // The nightmare is over //The nightmare is just beginning
@@ -822,9 +822,9 @@ public:
 
         // Run the clipping kernel
         kernel_polygon_clipping<OP><<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
-            polygonOutTemp, polygon1, polygon2, dataElementCount,
-            poly1VertexCounts, poly2VertexCounts, DLLVertexCounts, DLLVertexCountOffsets,
-            DLLPolygonCounts, DLLPolygonCountOffsets, poly1DLList, poly2DLList);
+            polygonOutTemp, polygon1, polygon2, dataElementCount, poly1VertexCounts,
+            poly2VertexCounts, DLLVertexCounts, DLLVertexCountOffsets, DLLPolygonCounts,
+            DLLPolygonCountOffsets, poly1DLList, poly2DLList);
 
         // TODO Reconstruct the real output polygon from temp output polygon
 
@@ -841,6 +841,22 @@ public:
         GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOutTemp.pointIdx, 16);
         GPUMemory::copyDeviceToHost(polygonCntRes, polygonOutTemp.pointCount, 16);
 
+		// Debug values BEGIN
+        for (int s = 0; s < 48; s++)
+        {
+            printf("[%.2f,%.2f],\n", res[s].latitude, res[s].longitude);
+        }
+
+		printf("\n\n");
+        printf("Poly count: %d\n", complexPolygonCntRes);
+
+		printf("\n\n");
+        printf("Point counts\n");
+		for (int s = 0; s < 16; s++)
+        {
+            printf("%d,\n", polygonCntRes[s]);
+        }
+        // Debug values END
 
         // Free the tempora polygon
         GPUMemory::free(polygonOutTemp.polyPoints);
