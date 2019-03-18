@@ -401,6 +401,54 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
         } while (here1Idx != ROOT_NODE_IDX);
 
 
+		//////////////////////////////////////////////////////////////////////////////////////////////////
+		// Calculate if the first vertex of a polygon is in the other polygon or not
+		// We calculate for the root element of both polygons
+
+		// Poly 1 root in poly 2
+		bool is1in2 = false;
+        float x = poly1DLList[DLLVertexCountOffsetIdx + ROOT_NODE_IDX].point.latitude;
+        float y = poly1DLList[DLLVertexCountOffsetIdx + ROOT_NODE_IDX].point.longitude;
+        int32_t hereIdx = ROOT_NODE_IDX;
+        int32_t nextIdx = ROOT_NODE_IDX;
+
+        do
+        {
+            nextIdx = poly2DLList[DLLVertexCountOffsetIdx + hereIdx].nextIdx;
+            float hx = poly2DLList[DLLVertexCountOffsetIdx + hereIdx].point.latitude;
+            float hy = poly2DLList[DLLVertexCountOffsetIdx + hereIdx].point.longitude;
+            float nx = poly2DLList[DLLVertexCountOffsetIdx + nextIdx].point.latitude;
+            float ny = poly2DLList[DLLVertexCountOffsetIdx + nextIdx].point.longitude;
+            if (((hy < y && ny >= y) || (hy >= y && ny < y)) && (hx <= x || nx <= x) &&
+                (hx + (y - hy) / (ny - hy) * (nx - hx) < x))
+            {
+                is1in2 = !is1in2;
+            }
+            hereIdx = nextIdx;
+        } while (hereIdx != ROOT_NODE_IDX);
+
+        // Poly 1 root in poly 2
+        bool is2in1 = false;
+        x = poly2DLList[DLLVertexCountOffsetIdx + ROOT_NODE_IDX].point.latitude;
+        y = poly2DLList[DLLVertexCountOffsetIdx + ROOT_NODE_IDX].point.longitude;
+        hereIdx = ROOT_NODE_IDX;
+        nextIdx = ROOT_NODE_IDX;
+
+        do
+        {
+            nextIdx = poly1DLList[DLLVertexCountOffsetIdx + hereIdx].nextIdx;
+            float hx = poly1DLList[DLLVertexCountOffsetIdx + hereIdx].point.latitude;
+            float hy = poly1DLList[DLLVertexCountOffsetIdx + hereIdx].point.longitude;
+            float nx = poly1DLList[DLLVertexCountOffsetIdx + nextIdx].point.latitude;
+            float ny = poly1DLList[DLLVertexCountOffsetIdx + nextIdx].point.longitude;
+            if (((hy < y && ny >= y) || (hy >= y && ny < y)) && (hx <= x || nx <= x) &&
+                (hx + (y - hy) / (ny - hy) * (nx - hx) < x))
+            {
+                is2in1 = !is2in1;
+            }
+            hereIdx = nextIdx;
+        } while (hereIdx != ROOT_NODE_IDX);
+
 
     }
 }
