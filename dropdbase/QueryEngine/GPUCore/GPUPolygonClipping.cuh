@@ -59,8 +59,8 @@ __device__ int32_t* poly2VertexCounts;
 __device__ int32_t* DLLVertexCounts;
 __device__ int32_t* DLLVertexCountOffsets;
 
-//__device__ int32_t* DLLPolygonCounts;
-//__device__ int32_t* DLLPolygonCountOffsets;
+__device__ int32_t* DLLPolygonCounts;
+__device__ int32_t* DLLPolygonCountOffsets;
 
 // Data buffers for doubly linked lists of polygons during clipping
 __device__ PolygonNodeDLL* poly1DLList;
@@ -72,7 +72,7 @@ __device__ PolygonNodeDLL* poly2DLList;
 
 // Total/Maximal size of the result DLL list vertices and polygons
 static int32_t DLLVertexCountTotal;
-// static int32_t DLLPolygonCountTotal;
+static int32_t DLLPolygonCountTotal;
 
 // A kernel for counting the number of vertices that a complex polygon has
 inline __global__ void kernel_calculate_point_count_in_complex_polygon(int32_t* pointCounts,
@@ -128,6 +128,16 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
         else
         {
             DLLVertexCountOffsetIdx = DLLVertexCountOffsets[i - 1];
+        }
+
+        int32_t DLLPolygonCountOffsetIdx = 0;
+        if ((i - 1) < 0)
+        {
+            DLLPolygonCountOffsetIdx = 0;
+        }
+        else
+        {
+            DLLPolygonCountOffsetIdx = DLLPolygonCountOffsets[i - 1];
         }
 
         //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -500,7 +510,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                 if (poly1DLList[DLLVertexCountOffsetIdx + isectIdx].is_intersect &&
                     !poly1DLList[DLLVertexCountOffsetIdx + isectIdx].is_processed)
                 {
-					// If the vertex is an intersection and it was not processed then process it, else skip
+                    // If the vertex is an intersection and it was not processed then process it, else skip
                     break;
                 }
                 isectIdx = poly1DLList[DLLVertexCountOffsetIdx + isectIdx].nextIdx;
@@ -508,13 +518,148 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
             if (isectIdx == ROOT_NODE_IDX)
             {
-				// If we iterated over the whole list - then exit
-				// TODO I am not sure about this - test it !
+                // If we iterated over the whole list - then exit
+                // TODO I am not sure about this - test it !
                 break;
             }
 
             // Process isect
-            //
+            bool into[] = {false, false}; // TODO Assign based on functor
+
+            int32_t curpoly = 0;
+            bool moveForward = false;
+
+            bool intersectFound = false;
+            bool allProcessed = false;
+
+            int32_t hereClipIdx = isectIdx;
+            do
+            {
+
+                // Switch base on which pointer is active
+
+                if (curpoly == 0)
+                {
+                    // Mark the found intersection as processed both on the current list and the cross link list
+                    poly1DLList[DLLVertexCountOffsetIdx + hereClipIdx].is_processed = true;
+                    poly2DLList[DLLVertexCountOffsetIdx +
+                                poly1DLList[DLLVertexCountOffsetIdx + hereClipIdx].cross_link]
+                        .is_processed = true;
+
+                    moveForward =
+                        (poly1DLList[DLLVertexCountOffsetIdx + hereClipIdx].is_entry == into[curpoly]);
+                }
+                else if (curpoly == 1)
+                {
+                    // Mark the found intersection as processed both on the current list and the cross link list
+                    poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].is_processed = true;
+                    poly1DLList[DLLVertexCountOffsetIdx +
+                                poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].cross_link]
+                        .is_processed = true;
+
+                    moveForward =
+                        (poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].is_entry == into[curpoly]);
+                }
+
+				// Zero the output polygon vertex counter
+				VertexCountOutPoly = 0;
+
+                do
+                {
+                    // Save the point as a new result point for the result polygon
+                    float lat;
+                    float lon;
+                    if (curpoly == 0)
+                    {
+                        lat = poly1DLList[DLLVertexCountOffsetIdx + hereClipIdx].point.latitude;
+                        lon = poly1DLList[DLLVertexCountOffsetIdx + hereClipIdx].point.longitude;
+                    }
+                    else if (curpoly == 1)
+                    {
+                        lat = poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].point.latitude;
+                        lon = poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].point.longitude;
+                    }
+
+                    // Write output data to correct offsets
+                    complexPolygonOut
+                        .polyPoints[DLLPolygonCountOffsetIdx + VertexOffsetOutPoly + VertexCountOutPoly]
+                        .latitude = lat;
+                    complexPolygonOut
+                        .polyPoints[DLLPolygonCountOffsetIdx + VertexOffsetOutPoly + VertexCountOutPoly]
+                        .longitude = lon;
+
+                    // Increment vertex count
+                    VertexCountOutPoly++;
+
+                    // Move according to in/out status
+                    if (moveForward)
+                    {
+                        if (curpoly == 0)
+                        {
+                            hereClipIdx = poly1DLList[DLLVertexCountOffsetIdx + hereClipIdx].nextIdx;
+                        }
+                        else if (curpoly == 1)
+                        {
+                            hereClipIdx = poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].nextIdx;
+                        }
+                    }
+                    else
+                    {
+                        if (curpoly == 0)
+                        {
+                            hereClipIdx = poly1DLList[DLLVertexCountOffsetIdx + hereClipIdx].prevIdx;
+                        }
+                        else if (curpoly == 1)
+                        {
+                            hereClipIdx = poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].prevIdx;
+                        }
+                    }
+
+                    // Do this until an intersection is found
+                    if (curpoly == 0)
+                    {
+                        intersectFound = poly1DLList[DLLVertexCountOffsetIdx + hereClipIdx].is_intersect;
+                    }
+                    else if (curpoly == 1)
+                    {
+                        intersectFound = poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].is_intersect;
+                    }
+
+                } while (!intersectFound);
+
+				// Save the reults for reconstruction
+                complexPolygonOut.pointCount[DLLPolygonCountOffsetIdx + PolygonCountOutPoly] = VertexCountOutPoly;
+                //complexPolygonOut.pointIdx[i] = VertexOffsetOutPoly; // cant be calculated, only with prefix sum
+
+				// Icrement the polygon offset
+                VertexOffsetOutPoly += VertexCountOutPoly;
+                PolygonCountOutPoly++;
+
+                // We've hit the next intersection so switch polygons
+                if (curpoly == 0)
+                {
+                    hereClipIdx = poly1DLList[DLLVertexCountOffsetIdx + hereClipIdx].cross_link;
+                }
+                else if (curpoly == 1)
+                {
+                    hereClipIdx = poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].cross_link;
+                }
+                curpoly = 1 - curpoly;
+
+                // Do this until all vertices for a result polygon are processed
+                if (curpoly == 0)
+                {
+                    allProcessed = poly1DLList[DLLVertexCountOffsetIdx + hereClipIdx].is_processed;
+                }
+                else if (curpoly == 1)
+                {
+                    allProcessed = poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].is_processed;
+                }
+            } while (!allProcessed);
+
+
+			complexPolygonOut.polyCount[i] = PolygonCountOutPoly;
+            //complexPolygonOut.polyIdx[i]; // cant be calculated, only with prefix sum
         }
 
 
@@ -523,6 +668,13 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
         complexPolygonOut.pointIdx[complexPolygonOut.polyIdx[i] + 0];
         complexPolygonOut.pointCount[complexPolygonOut.polyIdx[i] + 0];
+
+        complexPolygonOut
+            .polyPoints[complexPolygonOut.pointIdx[complexPolygonOut.polyIdx[i] + 0] + 0]
+            .latitude;
+        complexPolygonOut
+            .polyPoints[complexPolygonOut.pointCount[complexPolygonOut.polyIdx[i] + 0] + 0]
+            .longitude;
     }
 }
 
@@ -634,15 +786,12 @@ public:
         GPUMemory::copyDeviceToHost(&DLLVertexCountTotal, DLLVertexCountOffsets + dataElementCount - 1, 1);
 
         // DLL POLYGON SPACE CALCULATION AND ALLOCATION
-        // TODO think about geting rid of this - only size needed, possible to calculate at runtime
-        // Because a/3 + b/3 + c/3 == (a + b + c)/3
-        /*
+
         DLLPolygonCounts = nullptr;
         GPUMemory::allocAndSet(&DLLPolygonCounts, 0, dataElementCount);
 
         // Calc (n*k + n + k)/3 for each input row
-        GPUArithmetic::colConst<ArithmeticOperations::div>
-            (DLLPolygonCounts, DLLVertexCounts, 3, dataElementCount);
+        GPUArithmetic::colConst<ArithmeticOperations::div>(DLLPolygonCounts, DLLVertexCounts, 3, dataElementCount);
 
         // Calc the prefix sum for each input row - polygons
         DLLPolygonCountOffsets = nullptr;
@@ -650,16 +799,17 @@ public:
 
         d_temp_storage = nullptr;
         temp_storage_bytes = 0;
-        cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, DLLPolygonCounts, DLLPolygonCountOffsets, dataElementCount);
+        cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, DLLPolygonCounts,
+                                      DLLPolygonCountOffsets, dataElementCount);
         GPUMemory::alloc(reinterpret_cast<int8_t**>(&d_temp_storage), temp_storage_bytes);
-        cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, DLLPolygonCounts, DLLPolygonCountOffsets, dataElementCount);
+        cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, DLLPolygonCounts,
+                                      DLLPolygonCountOffsets, dataElementCount);
         GPUMemory::free(d_temp_storage);
 
         // Get the number of maximum polygon count for the result buffer allocation
         DLLPolygonCountTotal = 0;
 
         GPUMemory::copyDeviceToHost(&DLLPolygonCountTotal, DLLPolygonCountOffsets + dataElementCount - 1, 1);
-        */
 
         ///////////////////////////////////////////////////////////////////////////////////////
         // Alloc the buffer for doubly linked lists - create a temporary out polygon
@@ -680,10 +830,8 @@ public:
         GPUMemory::alloc(&polygonOutTemp.polyCount, dataElementCount);
 
         // The number of simple polygons is (n*k + n + k)/3 summed over all polygons
-        // GPUMemory::alloc(&polygonOutTemp.pointIdx, DLLPolygonCountTotal);
-        // GPUMemory::alloc(&polygonOutTemp.pointCount, DLLPolygonCountTotal);
-        GPUMemory::alloc(&polygonOutTemp.pointIdx, DLLVertexCountTotal / 3);
-        GPUMemory::alloc(&polygonOutTemp.pointCount, DLLVertexCountTotal / 3);
+        GPUMemory::alloc(&polygonOutTemp.pointIdx, DLLPolygonCountTotal);
+        GPUMemory::alloc(&polygonOutTemp.pointCount, DLLPolygonCountTotal);
 
         // Run the clipping kernel
         kernel_polygon_clipping<OP>
