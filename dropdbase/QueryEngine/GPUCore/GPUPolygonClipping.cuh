@@ -105,16 +105,30 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                                         GPUMemory::GPUPolygon complexPolygon2,
                                         int32_t dataElementCount)
 {
+    // The root of the DLL is always the 0th element
     const int32_t ROOT_NODE_IDX = 0;
+
+	// "Infinity"
+    const float INF = 1000000000;
 
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        // Transform - update the input polygons to Doubly Linked Lists (DLLs)
-        // Iterate over the vertices of the first poly of the complex poly
+        // Transform the input polygons to Doubly Linked Lists (DLLs)
         // Only for 0th polygon
+
+        // Get the offset index for the dynamic list index - needed because of the character of the prefix sum
+        int32_t DLLVertexCountOffsetIdx = 0;
+        if ((i - 1) < 0)
+        {
+            DLLVertexCountOffsetIdx = 0;
+        }
+        else
+        {
+            DLLVertexCountOffsetIdx = DLLVertexCountOffsets[i - 1];
+        }
 
         //////////////////////////////////////////////////////////////////////////////////////////////////
         // Poly 1
@@ -140,17 +154,6 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             tempNode.is_intersect = false;
 
             tempNode.cross_link = -1;
-
-            // Get the offset index - needed because of the character of the prefix sum
-            int32_t DLLVertexCountOffsetIdx = 0;
-            if ((i - 1) < 0)
-            {
-                DLLVertexCountOffsetIdx = 0;
-            }
-            else
-            {
-                DLLVertexCountOffsetIdx = DLLVertexCountOffsets[i - 1];
-            }
 
             // Rewire the "pointers"
             if (DLLPoly1ElementCount == ROOT_NODE_IDX)
@@ -209,17 +212,6 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
             tempNode.cross_link = -1;
 
-            // Get the offset index - needed because of the character of the prefix sum
-            int32_t DLLVertexCountOffsetIdx = 0;
-            if ((i - 1) < 0)
-            {
-                DLLVertexCountOffsetIdx = 0;
-            }
-            else
-            {
-                DLLVertexCountOffsetIdx = DLLVertexCountOffsets[i - 1];
-            }
-
             // Rewire the "pointers"
             if (DLLPoly2ElementCount == ROOT_NODE_IDX)
             {
@@ -253,59 +245,93 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
         }
 
         //////////////////////////////////////////////////////////////////////////////////////////////////
-        // Calculate all line intersections and append them to the polygon DLLs
+        // Calculate all line intersections and append them to the polygon DLLs dynamiclaly during calculation
 
-		// TODO Change to DLLs reading
-        for (int32_t j = 0; j < complexPolygon1.pointCount[complexPolygon1.polyIdx[i] + 0]; j++)
+        // The root index of both lists
+        int32_t here1Idx = ROOT_NODE_IDX;
+        int32_t here2Idx = ROOT_NODE_IDX;
+
+        int32_t next1Idx = here1Idx;
+        int32_t next2Idx = here2Idx;
+
+        do
         {
-            // Get the start vertex s and the end vertex e of the first edge
-            // The end vertex needs the modulus to wrap around to the first vertex
-            float s1_x = complexPolygon1
-                             .polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] + j]
-                             .latitude;
-            float s1_y = complexPolygon1
-                             .polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] + j]
-                             .longitude;
-
-            float e1_x =
-                complexPolygon1
-                    .polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] +
-                                (j + 1) % complexPolygon1.pointCount[complexPolygon1.polyIdx[i] + 0]]
-                    .latitude;
-            float e1_y =
-                complexPolygon1
-                    .polyPoints[complexPolygon1.pointIdx[complexPolygon1.polyIdx[i] + 0] +
-                                (j + 1) % complexPolygon1.pointCount[complexPolygon1.polyIdx[i] + 0]]
-                    .longitude;
-
-
-            for (int32_t k = 0; k < complexPolygon2.pointCount[complexPolygon2.polyIdx[i] + 0]; j++)
+            do
             {
-                // Get the start vertex s and the end vertex e of the second edge
-                // The end vertex needs the modulus to wrap around to the first vertex
-                float s2_x = complexPolygon2
-                                 .polyPoints[complexPolygon2.pointIdx[complexPolygon2.polyIdx[i] + 0] + k]
-                                 .latitude;
-                float s2_y = complexPolygon2
-                                 .polyPoints[complexPolygon2.pointIdx[complexPolygon2.polyIdx[i] + 0] + k]
-                                 .longitude;
+                ///////////////////////////////////////////////////////////////////////////////
+                // Test intersection between:
+                // here1Idx -> NextNonIntersection(here1Idx)  and
+                // here2Idx -> NextNonIntersection(here2Idx)
 
-                float e2_x =
-                    complexPolygon2
-                        .polyPoints[complexPolygon2.pointIdx[complexPolygon2.polyIdx[i] + 0] +
-                                    (k + 1) % complexPolygon2.pointCount[complexPolygon2.polyIdx[i] + 0]]
-                        .latitude;
-                float e2_y =
-                    complexPolygon2
-                        .polyPoints[complexPolygon2.pointIdx[complexPolygon2.polyIdx[i] + 0] +
-                                    (k + 1) % complexPolygon2.pointCount[complexPolygon2.polyIdx[i] + 0]]
-                        .longitude;
+                // Find the next non intersection edge
+                next1Idx = here1Idx;
+                next2Idx = here2Idx;
 
-				//////////////////////////////////////////////////////////////////////////////////////////
-				// Calculate the intersections - create a new node, push it to both lists based on linear distance and cross reference it
+                do
+                {
+                    next1Idx = poly1DLList[DLLVertexCountOffsetIdx + next1Idx].nextIdx;
+                } while (poly1DLList[DLLVertexCountOffsetIdx + next1Idx].is_intersect != false);
 
-            }
-        }
+                do
+                {
+                    next2Idx = poly2DLList[DLLVertexCountOffsetIdx + next2Idx].nextIdx;
+                } while (poly2DLList[DLLVertexCountOffsetIdx + next2Idx].is_intersect != false);
+
+				///////////////////////////////////////////////////////////////////////////////
+                // Calculate the intersect - math is complex - see doc
+                float adx = poly1DLList[DLLVertexCountOffsetIdx + next1Idx].point.latitude -
+                            poly1DLList[DLLVertexCountOffsetIdx + here1Idx].point.latitude;
+                float ady = poly1DLList[DLLVertexCountOffsetIdx + next1Idx].point.longitude -
+                            poly1DLList[DLLVertexCountOffsetIdx + here1Idx].point.longitude;
+                float bdx = poly2DLList[DLLVertexCountOffsetIdx + next2Idx].point.latitude -
+                            poly2DLList[DLLVertexCountOffsetIdx + here2Idx].point.latitude;
+                float bdy = poly2DLList[DLLVertexCountOffsetIdx + next2Idx].point.longitude -
+                            poly2DLList[DLLVertexCountOffsetIdx + here2Idx].point.longitude;
+
+                float axb = adx * bdy - ady * bdx;
+
+                float cross = axb;
+                float alongA = INF;
+                float alongB = INF;
+
+                float point_x = INF;
+                float point_y = INF;
+                
+				if (axb == 0)
+				{
+					// TODO Do something when lines are parallel !!!
+				}
+
+                float dx = poly1DLList[DLLVertexCountOffsetIdx + here1Idx].point.latitude -
+                           poly2DLList[DLLVertexCountOffsetIdx + here2Idx].point.latitude;
+                float dy = poly1DLList[DLLVertexCountOffsetIdx + here1Idx].point.longitude -
+                           poly2DLList[DLLVertexCountOffsetIdx + here2Idx].point.longitude;
+
+                alongA = (bdx * dy - bdy * dx) / axb;
+                alongB = (adx * dy - ady * dx) / axb;
+
+                point_x = poly1DLList[DLLVertexCountOffsetIdx + here1Idx].point.latitude + alongA * adx;
+                point_y = poly1DLList[DLLVertexCountOffsetIdx + here1Idx].point.longitude + alongA * ady;
+
+                ///////////////////////////////////////////////////////////////////////////////
+                // Update vertex
+
+                // Find the next non intersection vertex
+                do
+                {
+                    here2Idx = poly2DLList[DLLVertexCountOffsetIdx + here2Idx].nextIdx;
+                } while (poly2DLList[DLLVertexCountOffsetIdx + here2Idx].is_intersect != false);
+
+            } while (here2Idx != ROOT_NODE_IDX);
+
+            // Update vertex
+            // Find the next non intersection vertex
+            do
+            {
+                here1Idx = poly1DLList[DLLVertexCountOffsetIdx + here1Idx].nextIdx;
+            } while (poly1DLList[DLLVertexCountOffsetIdx + here1Idx].is_intersect != false);
+
+        } while (here1Idx != ROOT_NODE_IDX);
     }
 }
 
