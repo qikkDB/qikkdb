@@ -661,21 +661,9 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 			complexPolygonOut.polyCount[i] = PolygonCountOutPoly;
             //complexPolygonOut.polyIdx[i]; // cant be calculated, only with prefix sum
         }
-
-
-        complexPolygonOut.polyIdx[i];
-        complexPolygonOut.polyCount[i];
-
-        complexPolygonOut.pointIdx[complexPolygonOut.polyIdx[i] + 0];
-        complexPolygonOut.pointCount[complexPolygonOut.polyIdx[i] + 0];
-
-        complexPolygonOut
-            .polyPoints[complexPolygonOut.pointIdx[complexPolygonOut.polyIdx[i] + 0] + 0]
-            .latitude;
-        complexPolygonOut
-            .polyPoints[complexPolygonOut.pointCount[complexPolygonOut.polyIdx[i] + 0] + 0]
-            .longitude;
     }
+
+	// The nightmare is over
 }
 
 class GPUPolygonClip
@@ -839,6 +827,20 @@ public:
                                                                                polygon2, dataElementCount);
 
         // TODO Reconstruct the real output polygon from temp output polygon
+
+		// DEBUG CODE Copy back the buffers
+        NativeGeoPoint res[1000];
+        int32_t complexPolygonIdxRes[1000];
+        int32_t complexPolygonCntRes[1000];
+        int32_t polygonIdxRes[1000];
+        int32_t polygonCntRes[1000];
+
+		GPUMemory::copyDeviceToHost(res, polygonOutTemp.polyPoints, DLLVertexCountTotal);
+        GPUMemory::copyDeviceToHost(complexPolygonIdxRes, polygonOutTemp.polyIdx, dataElementCount);
+        GPUMemory::copyDeviceToHost(complexPolygonCntRes, polygonOutTemp.polyCount, dataElementCount);
+        GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOutTemp.pointIdx, DLLPolygonCountTotal);
+        GPUMemory::copyDeviceToHost(polygonCntRes, polygonOutTemp.pointCount, DLLPolygonCountTotal);
+
 
         // Free the tempora polygon
         GPUMemory::free(polygonOutTemp.polyPoints);
