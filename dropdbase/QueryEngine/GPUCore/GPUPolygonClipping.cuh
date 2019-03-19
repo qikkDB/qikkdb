@@ -500,7 +500,9 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             }
 
             // Process isect
-            bool into[] = {false, false}; // TODO Assign based on functor
+			// false false - union
+			// true true - interset
+            bool into[] = {true, true}; // TODO Assign based on functor
 
             int32_t curpoly = 0;
             bool moveForward = false;
@@ -509,6 +511,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             bool allProcessed = false;
 
             int32_t hereClipIdx = isectIdx;
+            VertexCountOutPoly = 0;
             do
             {
 
@@ -538,7 +541,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                 }
 
                 // Zero the output polygon vertex counter
-                VertexCountOutPoly = 0;
+                //VertexCountOutPoly = 0;
 
                 do
                 {
@@ -604,12 +607,12 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                 } while (!intersectFound);
 
                 // Save the reults for reconstruction
-                complexPolygonOut.pointCount[DLLPolygonCountOffsetIdx + PolygonCountOutPoly] = VertexCountOutPoly;
+                //complexPolygonOut.pointCount[DLLPolygonCountOffsetIdx + PolygonCountOutPoly] = VertexCountOutPoly;
                 // complexPolygonOut.pointIdx[i] = VertexOffsetOutPoly; // cant be calculated, only with prefix sum
 
                 // Icrement the polygon offset
-                VertexOffsetOutPoly += VertexCountOutPoly;
-                PolygonCountOutPoly++;
+                //VertexOffsetOutPoly += VertexCountOutPoly;
+                //PolygonCountOutPoly++;
 
                 // We've hit the next intersection so switch polygons
                 if (curpoly == 0)
@@ -632,11 +635,18 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                     allProcessed = poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].is_processed;
                 }
             } while (!allProcessed);
+            // Save the reults for reconstruction
+            complexPolygonOut.pointCount[DLLPolygonCountOffsetIdx + PolygonCountOutPoly] = VertexCountOutPoly;
+            // complexPolygonOut.pointIdx[i] = VertexOffsetOutPoly; // cant be calculated, only with prefix sum
 
+            // Icrement the polygon offset
+            VertexOffsetOutPoly += VertexCountOutPoly;
+            PolygonCountOutPoly++;
 
-            complexPolygonOut.polyCount[i] = PolygonCountOutPoly;
+            //complexPolygonOut.polyCount[i] = PolygonCountOutPoly;
             // complexPolygonOut.polyIdx[i]; // cant be calculated, only with prefix sum
         }
+        complexPolygonOut.polyCount[i] = PolygonCountOutPoly;
     }
     // The nightmare is over //The nightmare is just beginning
 }
@@ -848,13 +858,13 @@ public:
         }
 
 		printf("\n\n");
-        printf("Poly count: %d\n", complexPolygonCntRes);
+        printf("Poly count: %d\n", complexPolygonCntRes[0]);	// This should be 2
 
 		printf("\n\n");
         printf("Point counts\n");
 		for (int s = 0; s < 16; s++)
         {
-            printf("%d,\n", polygonCntRes[s]);
+            printf("%d,\n", polygonCntRes[s]);	// This should be 8, 3
         }
         // Debug values END
 
