@@ -800,6 +800,7 @@ public:
 		///////////////////////////////////////////////////////////////////////////////////////
         // Reconstruct the real output polygon from temp output polygon
 
+		// DEBUG START //
         // Temp
         NativeGeoPoint res[48];
         int32_t complexPolygonIdxRes[1];
@@ -828,7 +829,7 @@ public:
         {
             printf("%d,\n", polygonCntRes[s]);	// This should be 8, 3
         }
-        // Debug values END
+        // DEBUG END //
 
         // Free the tempora polygon
         GPUMemory::free(polygonOutTemp.polyPoints);
