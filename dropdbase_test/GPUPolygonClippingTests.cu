@@ -9,65 +9,6 @@
 
 #include "gtest/gtest.h"
 
-TEST(GPUPolygonClippingTests, SamplePoygonTest)
-{
-    Context::getInstance();
-
-    // The sample polygon from the documentation
-    const int32_t GEO_POINT_COUNT = 24;
-
-    NativeGeoPoint samplePoly[GEO_POINT_COUNT];
-    for (int i = 0; i < GEO_POINT_COUNT; i++)
-    {
-        samplePoly[i].latitude = 0;
-        samplePoly[i].longitude = 0;
-	}
-
-    int32_t complexPolygonIdxSample[] = {0, 4};
-    int32_t complexPolygonCntSample[] = {4, 3};
-    int32_t polygonIdxSample[] = {0, 3, 6, 11, 15, 18, 21};
-    int32_t polygonCntSample[] = {3, 3, 5, 4, 3, 3, 3};
-
-    int32_t polygonSampleDataElementCount = 2;
-
-	// Buffers on the GPU
-    GPUMemory::GPUPolygon polygonSample;
-    GPUMemory::GPUPolygon dummyPolyOut;
-
-    // Malloc the buffers
-    GPUMemory::alloc(&polygonSample.polyPoints, GEO_POINT_COUNT * sizeof(NativeGeoPoint));
-    GPUMemory::alloc(&polygonSample.polyIdx, sizeof(complexPolygonIdxSample) / sizeof(int32_t));
-    GPUMemory::alloc(&polygonSample.polyCount, sizeof(complexPolygonCntSample) / sizeof(int32_t));
-    GPUMemory::alloc(&polygonSample.pointIdx, sizeof(polygonIdxSample) / sizeof(int32_t));
-    GPUMemory::alloc(&polygonSample.pointCount, sizeof(polygonCntSample) / sizeof(int32_t));
-
-	// Copy data to GPU
-    GPUMemory::copyHostToDevice(polygonSample.polyPoints, samplePoly, GEO_POINT_COUNT * sizeof(NativeGeoPoint));
-    GPUMemory::copyHostToDevice(polygonSample.polyIdx, complexPolygonIdxSample,
-                                sizeof(complexPolygonIdxSample) / sizeof(int32_t));
-    GPUMemory::copyHostToDevice(polygonSample.polyCount, complexPolygonCntSample,
-                                sizeof(complexPolygonCntSample) / sizeof(int32_t));
-    GPUMemory::copyHostToDevice(polygonSample.pointIdx, polygonIdxSample, sizeof(polygonIdxSample) / sizeof(int32_t));
-    GPUMemory::copyHostToDevice(polygonSample.pointCount, polygonCntSample,
-                                sizeof(polygonCntSample) / sizeof(int32_t));
-
-	 // Launch intersect
-    GPUPolygonClip::ColCol<PolygonFunctions::polyIntersect>(dummyPolyOut, polygonSample, polygonSample,
-                                                            polygonSampleDataElementCount);
-
-    // TODO Copy back results
-
-    // TODO Print results
-
-    // Free buffers
-    // Polygon 1
-    GPUMemory::free(polygonSample.polyPoints);
-    GPUMemory::free(polygonSample.polyIdx);
-    GPUMemory::free(polygonSample.polyCount);
-    GPUMemory::free(polygonSample.pointIdx);
-    GPUMemory::free(polygonSample.pointCount);
-}
-
 TEST(GPUPolygonClippingTests, PoygonTest)
 {
     Context::getInstance();

@@ -19,15 +19,19 @@ namespace PolygonFunctions
 {
 struct polyIntersect
 {
-    __device__ __host__ bool operator()() const
+    __device__ __host__ void operator()(bool *into) const
     {
+		into[0] = true;
+		into[1] = true;
     }
 };
 
 struct polyUnion
 {
-    __device__ __host__ bool operator()() const
+    __device__ __host__ void operator()(bool *into) const
     {
+		into[0] = false;
+		into[1] = false;
     }
 };
 } // namespace PolygonFunctions
@@ -502,7 +506,8 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             // Process isect
 			// false false - union
 			// true true - interset
-            bool into[] = {true, true}; // TODO Assign based on functor
+            bool into[2];//{true, true}; 
+			OP{}(into);// Assign operation based on functor
 
             int32_t curpoly = 0;
             bool moveForward = false;
@@ -511,7 +516,10 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             bool allProcessed = false;
 
             int32_t hereClipIdx = isectIdx;
+
+			// Zero the output polygon vertex counter
             VertexCountOutPoly = 0;
+
             do
             {
 
@@ -539,9 +547,6 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                     moveForward =
                         (poly2DLList[DLLVertexCountOffsetIdx + hereClipIdx].is_entry == into[curpoly]);
                 }
-
-                // Zero the output polygon vertex counter
-                //VertexCountOutPoly = 0;
 
                 do
                 {
@@ -606,14 +611,6 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
                 } while (!intersectFound);
 
-                // Save the reults for reconstruction
-                //complexPolygonOut.pointCount[DLLPolygonCountOffsetIdx + PolygonCountOutPoly] = VertexCountOutPoly;
-                // complexPolygonOut.pointIdx[i] = VertexOffsetOutPoly; // cant be calculated, only with prefix sum
-
-                // Icrement the polygon offset
-                //VertexOffsetOutPoly += VertexCountOutPoly;
-                //PolygonCountOutPoly++;
-
                 // We've hit the next intersection so switch polygons
                 if (curpoly == 0)
                 {
@@ -637,18 +634,13 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             } while (!allProcessed);
             // Save the reults for reconstruction
             complexPolygonOut.pointCount[DLLPolygonCountOffsetIdx + PolygonCountOutPoly] = VertexCountOutPoly;
-            // complexPolygonOut.pointIdx[i] = VertexOffsetOutPoly; // cant be calculated, only with prefix sum
 
             // Icrement the polygon offset
             VertexOffsetOutPoly += VertexCountOutPoly;
             PolygonCountOutPoly++;
-
-            //complexPolygonOut.polyCount[i] = PolygonCountOutPoly;
-            // complexPolygonOut.polyIdx[i]; // cant be calculated, only with prefix sum
         }
         complexPolygonOut.polyCount[i] = PolygonCountOutPoly;
     }
-    // The nightmare is over //The nightmare is just beginning
 }
 
 class GPUPolygonClip
@@ -706,37 +698,6 @@ public:
         kernel_calculate_point_count_in_complex_polygon<<<context.calcGridDim(dataElementCount),
                                                           context.getBlockDim()>>>(poly2VertexCounts, polygon2,
                                                                                    dataElementCount);
-        /*
-        // Alloc the offset buffs
-        GPUMemory::allocAndSet(&poly1VertexOffsets, 0, dataElementCount);
-        GPUMemory::allocAndSet(&poly2VertexOffsets, 0, dataElementCount);
-
-        // Transform the offset buffers using the exclusive prefix sum - inclusive sum with 0 as the
-        0th element - think about it again
-        // Input poly 1 offsets - prefix sum calculation
-        void *d_temp_storage = nullptr;
-        size_t temp_storage_bytes = 0;
-        cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly1VertexCounts,
-        poly1VertexOffsets, dataElementCount); GPUMemory::alloc(reinterpret_cast<int8_t**>(&d_temp_storage),
-        temp_storage_bytes); cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes,
-        poly1VertexCounts, poly1VertexOffsets, dataElementCount); GPUMemory::free(d_temp_storage);
-
-        // Input poly 2 offsets - prefix sum calculation
-        d_temp_storage = nullptr;
-        temp_storage_bytes = 0;
-        cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, poly2VertexCounts,
-        poly2VertexOffsets, dataElementCount); GPUMemory::alloc(reinterpret_cast<int8_t**>(&d_temp_storage),
-        temp_storage_bytes); cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes,
-        poly2VertexCounts, poly2VertexOffsets, dataElementCount); GPUMemory::free(d_temp_storage);
-
-        //Copy back the last element of both prefix sum calculations - the total number of points
-        poly1VertexCountTotal = 0;
-        poly2VertexCountTotal = 0;
-
-        GPUMemory::copyDeviceToHost(&poly1VertexCountTotal, poly1VertexOffsets + dataElementCount -
-        1, 1); GPUMemory::copyDeviceToHost(&poly2VertexCountTotal, poly2VertexOffsets +
-        dataElementCount - 1, 1);
-        */
 
         ///////////////////////////////////////////////////////////////////////////////////////
         // Pre allocte the output buffer based on the formula n*k + n + k (one polygon only)
@@ -836,9 +797,10 @@ public:
             poly2VertexCounts, DLLVertexCounts, DLLVertexCountOffsets, DLLPolygonCounts,
             DLLPolygonCountOffsets, poly1DLList, poly2DLList);
 
-        // TODO Reconstruct the real output polygon from temp output polygon
+		///////////////////////////////////////////////////////////////////////////////////////
+        // Reconstruct the real output polygon from temp output polygon
 
-        // DEBUG CODE Copy back the buffers
+        // Temp
         NativeGeoPoint res[48];
         int32_t complexPolygonIdxRes[1];
         int32_t complexPolygonCntRes[1];
