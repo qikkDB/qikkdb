@@ -15,6 +15,7 @@
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSqlDispatcher& dispatcher): 
 	database(database), 
 	dispatcher(dispatcher), 
+	linkTableIndex(0),
 	resultLimit(-1), 
 	resultOffset(-1),
 	usingGroupBy(false), 
@@ -548,12 +549,9 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 	
     parserStack.push(std::make_pair(tableColumn, columnType));
 
-
-	if (loadedColumns.find(tableColumn) == loadedColumns.end())
+	if (linkTable.find(tableColumn) == linkTable.end())
 	{
-		dispatcher.addLoadFunction(columnType);
-		dispatcher.addArgument<const std::string&>(tableColumn);
-		loadedColumns.insert(tableColumn);
+		linkTable.insert({ tableColumn, linkTableIndex++ });
 	}
 }
 
