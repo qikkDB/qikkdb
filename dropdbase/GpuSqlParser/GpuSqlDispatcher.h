@@ -685,6 +685,27 @@ public:
     {
         arguments.insert<T>(argument);
     }
+
+	template<typename T>
+	std::pair<bool, T> aggregateOnCPU(std::string& operation, T number1, T number2)
+	{
+		if (operation == "MIN")
+		{
+			return std::make_pair<bool, T>(true, number1 < number2 ? number1 : number2);
+		}
+		else if (operation == "MAX")
+		{
+			return std::make_pair<bool, T>(true, number1 > number2 ? number1 : number2);
+		}
+		else if (operation == "SUM" || operation == "AVG" || operation == "COUNT")
+		{
+			return std::make_pair<bool, T>(true, number1 + number2);
+		}
+		else    // Other operation (e.g. datetime)
+		{
+			return std::make_pair<bool, T>(false, T{ 0 });
+		}
+	}
 };
 
 #endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H

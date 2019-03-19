@@ -942,18 +942,77 @@ void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &
 void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
 {
 	std::string trimmedKey = key.substr(0, std::string::npos);
-	if (std::regex_match(key, std::regex("^(\\$).*")))
+	if (key.front() == '$')
 	{
 		trimmedKey = key.substr(1, std::string::npos);
 	}
-
+	// If there is payload with new key
 	if (responseMessage.payloads().find(trimmedKey) == responseMessage.payloads().end())
 	{
 		responseMessage.mutable_payloads()->insert({ trimmedKey, payload });
 	}
-	else
+	else    // If there is payload with existing key, merge or aggregate according to key
 	{
-		responseMessage.mutable_payloads()->at(trimmedKey).MergeFrom(payload);
+		// Find index of parenthesis (for finding out if it is aggregation function)
+		size_t keyParensIndex = trimmedKey.find('(');
+
+		bool aggregationOperationFound = false;
+		// If no function is used
+		if (keyParensIndex == std::string::npos)
+		{
+			aggregationOperationFound = false;
+		}
+		else
+		{
+			// Get operation name
+			std::string operation = trimmedKey.substr(0, keyParensIndex);
+			// To upper case
+			for (auto &c : operation)
+			{
+				c = toupper(c);
+			}
+			// Switch according to data type of payload (=column)
+			switch (payload.payload_case())
+			{
+			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+				std::pair<bool, int32_t> result =
+					aggregateOnCPU<int32_t>(operation, payload.intpayload().intdata()[0],
+					responseMessage.mutable_payloads()->at(trimmedKey).intpayload().intdata()[0]);
+				aggregationOperationFound = result.first;
+				responseMessage.mutable_payloads()->at(trimmedKey).mutable_intpayload()->mutable_intdata()[0] =
+					result.second;
+				break;
+			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+				std::pair<bool, int64_t> result =
+					aggregateOnCPU<int64_t>(operation, payload.int64payload().int64data()[0],
+					responseMessage.mutable_payloads()->at(trimmedKey).int64payload().int64data()[0]);
+				aggregationOperationFound = result.first;
+				responseMessage.mutable_payloads()->at(trimmedKey).mutable_int64payload()->mutable_int64data()[0] =
+					result.second;
+				break;
+			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+				std::pair<bool, float> result =
+					aggregateOnCPU<float>(operation, payload.floatpayload().floatdata()[0],
+					responseMessage.mutable_payloads()->at(trimmedKey).floatpayload().floatdata()[0]);
+				aggregationOperationFound = result.first;
+				responseMessage.mutable_payloads()->at(trimmedKey).mutable_floatpayload()->mutable_floatdata()[0] =
+					result.second;
+				break;
+			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+				std::pair<bool, double> result =
+					aggregateOnCPU<double>(operation, payload.doublepayload().doubledata()[0],
+					responseMessage.mutable_payloads()->at(trimmedKey).doublepayload().doubledata()[0]);
+				aggregationOperationFound = result.first;
+				responseMessage.mutable_payloads()->at(trimmedKey).mutable_doublepayload()->mutable_doubledata()[0] =
+					result.second;
+				break;
+			}
+		}
+
+		if (!aggregationOperationFound)
+		{
+			responseMessage.mutable_payloads()->at(trimmedKey).MergeFrom(payload);
+		}
 	}
 }
 

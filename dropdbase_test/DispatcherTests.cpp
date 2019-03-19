@@ -11,6 +11,7 @@
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 
+constexpr int32_t TEST_BLOCK_COUNT = 2;		// this must be at least 2 (for testing more cases)
 constexpr int32_t TEST_BLOCK_SIZE = 1 << 11;
 
 class DispatcherObjs
@@ -22,7 +23,7 @@ public:
         columnTypes = {{COLUMN_INT},    {COLUMN_INT},     {COLUMN_LONG},  {COLUMN_LONG},
                        {COLUMN_LONG},  {COLUMN_FLOAT},   {COLUMN_FLOAT}, {COLUMN_DOUBLE}, {COLUMN_DOUBLE},
 					   {COLUMN_POLYGON}, {COLUMN_POINT}, {COLUMN_STRING} };
-        database = DatabaseGenerator::GenerateDatabase("TestDb", 2, TEST_BLOCK_SIZE, false, tableNames, columnTypes);
+        database = DatabaseGenerator::GenerateDatabase("TestDb", TEST_BLOCK_COUNT, TEST_BLOCK_SIZE, false, tableNames, columnTypes);
     }
     static DispatcherObjs GetInstance()
     {
@@ -8297,4 +8298,16 @@ TEST(DispatcherTests, PointFromConstCol)
 	{
 		ASSERT_EQ(expectedResultsPoints[i], payloads.stringpayload().stringdata()[i]);
 	}
+}
+
+TEST(DispatcherTests, AggregationCount)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COUNT(colInteger1) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("COUNT(colInteger1)");
+	ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
+	ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
 }
