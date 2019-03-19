@@ -71,8 +71,7 @@ __device__ __host__ void fl_decompress_func (unsigned long comp_data_id, unsigne
             ret = GETNPBITS(v1, v1_len, v1_pos);
             v1_pos += v1_len;
         }
-		if (pos_decomp > 86600000)
-			printf("%d\n", pos_decomp);
+
         udata.data[pos_decomp] = ret;
         pos_decomp += CWARP_SIZE;
     }

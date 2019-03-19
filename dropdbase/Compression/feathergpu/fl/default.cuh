@@ -5,7 +5,6 @@
 #include "helpers.cuh"
 #include "afl.cuh"
 #include "aafl.cuh"
-#include "aafl_compact.cuh"
 #include "pafl.cuh"
 #include "delta_pafl.cuh"
 #include "delta_aafl.cuh"

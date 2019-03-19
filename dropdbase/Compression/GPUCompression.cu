@@ -9,6 +9,7 @@
 #include <string>
 #include "dropdbase/Types/ComplexPolygon.pb.h"
 #include "dropdbase/Types/Point.pb.h"
+#include "dropdbase/QueryEngine/QueryEngineError.h"
 
 
 template<typename T>
@@ -51,7 +52,11 @@ bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size
 	int64_t compressed_data_size = (host_compressed_size) * sizeof(T);
 
 	// coding into single array
-	unsigned long compressed_data_size_final = compressed_data_size + (sizeof(unsigned long) * compression_blocks_count) + (sizeof(unsigned char) * compression_blocks_count) + (sizeof(int64_t) * 3);
+	unsigned long compressed_data_size_final = 
+		compressed_data_size + 
+		std::max(sizeof(unsigned long) * compression_blocks_count, sizeof(T)) +
+		std::max(sizeof(unsigned char) * compression_blocks_count, sizeof(T)) +
+		(sizeof(int64_t) * 3);
 	compressed_size = compressed_data_size_final / sizeof(T);
 
 	bool result = false;
@@ -62,8 +67,8 @@ bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size
 		T* coded_sizes = reinterpret_cast<T*>(sizes);
 
 		int coded_data_position_id_start = (sizeof(int64_t) / sizeof(T) * 3);
-		int coded_data_bit_length_start = coded_data_position_id_start + (sizeof(unsigned long) / (float)sizeof(T) * compression_blocks_count);
-		int host_out_start = coded_data_bit_length_start + (sizeof(char) / (float)sizeof(T) * compression_blocks_count);
+		int coded_data_bit_length_start = coded_data_position_id_start + std::max((int)(sizeof(unsigned long) / (float)sizeof(T) * compression_blocks_count), 1);
+		int host_out_start = coded_data_bit_length_start + std::max((int)(sizeof(char) / (float)sizeof(T) * compression_blocks_count), 1);
 
 		host_compressed.reserve(compressed_data_size_final / sizeof(T));
 		
@@ -105,22 +110,19 @@ bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size
 template<>
 bool CompressionGPU::compressDataAAFL<int32_t>(int32_t* const host_uncompressed, int64_t size, std::vector<int32_t>& host_compressed, int64_t& compressed_size)
 {
-	compressAAFL(32, host_uncompressed, size, host_compressed, compressed_size);
-	return 1;
+	return compressAAFL(32, host_uncompressed, size, host_compressed, compressed_size);
 }
 
 template<>
 bool CompressionGPU::compressDataAAFL<int64_t>(int64_t* const host_uncompressed, int64_t size, std::vector<int64_t>& host_compressed, int64_t& compressed_size)
 {
-	compressAAFL(32, host_uncompressed, size, host_compressed, compressed_size);
-	return 1;
+	return compressAAFL(32, host_uncompressed, size, host_compressed, compressed_size);
 }
 
 template<>
 bool CompressionGPU::compressDataAAFL<int8_t>(int8_t* const host_uncompressed, int64_t size, std::vector<int8_t>& host_compressed, int64_t& compressed_size)
 {
-	compressAAFL(32, host_uncompressed, size, host_compressed, compressed_size);
-	return 1;
+	return compressAAFL(32, host_uncompressed, size, host_compressed, compressed_size);
 }
 
 template<>
@@ -193,9 +195,9 @@ bool decompressAAFL(const int CWARP_SIZE, T* const host_compressed, int64_t comp
 	host_bit_length = reinterpret_cast<unsigned char*>(&host_compressed[coded_data_bit_length_start]);
 	host_compressed_data = &host_compressed[host_out_start];
 
-	for (int i = 0; i < 10; i++) {
-		printf("bit2 %d\n", host_bit_length[i]);
-	}
+	//for (int i = 0; i < 10; i++) {
+	//	printf("bit2 %d\n", host_bit_length[i]);
+	//}
 
 	cudaMemcpy(device_compressed, host_compressed_data, compressed_data_size, cudaMemcpyHostToDevice);
 	cudaMemcpy(device_position_id, host_position_id, compression_blocks_count * sizeof(unsigned long), cudaMemcpyHostToDevice);
@@ -258,6 +260,83 @@ bool CompressionGPU::decompressDataAAFL<ColmnarDB::Types::ComplexPolygon>(Colmna
 
 template<>
 bool CompressionGPU::decompressDataAAFL<ColmnarDB::Types::Point>(ColmnarDB::Types::Point* const host_compressed, int64_t compressed_size, std::vector<ColmnarDB::Types::Point>& host_uncompressed)
+{
+	return false;
+}
+
+
+
+
+
+
+template<typename T>
+bool decompressAAFLOnDevice(const int CWARP_SIZE, T* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, T* const device_uncompressed)
+{
+	int64_t size = data_size / sizeof(T);
+
+	T *device_compressed_data;
+
+	unsigned char *device_bit_length;
+	unsigned long *device_position_id;
+		
+	int coded_data_position_id_start = (sizeof(int64_t) / (float)sizeof(T) * 3);
+	int coded_data_bit_length_start = coded_data_position_id_start + std::max((int)(sizeof(unsigned long) / (float)sizeof(T) * compression_blocks_count), 1);
+	int device_out_start = coded_data_bit_length_start + std::max((int)(sizeof(char) / (float)sizeof(T) * compression_blocks_count), 1);
+
+	device_position_id = reinterpret_cast<unsigned long*>(&device_compressed[coded_data_position_id_start]);
+	device_bit_length = reinterpret_cast<unsigned char*>(&device_compressed[coded_data_bit_length_start]);
+	device_compressed_data = &device_compressed[device_out_start];
+
+	
+	container_uncompressed<T> udata = { device_uncompressed, size };
+	container_aafl<T> cdata = { device_compressed_data, size, device_bit_length, device_position_id, NULL };
+
+	gpu_fl_naive_launcher_decompression<T, 32, container_aafl<T>>::decompress(cdata, udata);
+	QueryEngineError::setCudaError(cudaGetLastError());
+
+	return true;
+}
+
+
+template<>
+bool CompressionGPU::decompressDataAAFLOnDevice<int32_t>(int32_t* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, int32_t* const device_uncompressed)
+{
+	return decompressAAFLOnDevice(32, device_compressed, data_size, compression_data_size, compression_blocks_count, device_uncompressed);
+}
+
+template<>
+bool CompressionGPU::decompressDataAAFLOnDevice<int64_t>(int64_t* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, int64_t* const device_uncompressed)
+{
+	return decompressAAFLOnDevice(32, device_compressed, data_size, compression_data_size, compression_blocks_count, device_uncompressed);
+}
+
+
+template<>
+bool CompressionGPU::decompressDataAAFLOnDevice<int8_t>(int8_t* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, int8_t* const device_uncompressed)
+{
+	return decompressAAFLOnDevice(32, device_compressed, data_size, compression_data_size, compression_blocks_count, device_uncompressed);
+}
+
+template<>
+bool CompressionGPU::decompressDataAAFLOnDevice<float>(float* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, float* const device_uncompressed)
+{
+	return false;
+}
+
+template<>
+bool CompressionGPU::decompressDataAAFLOnDevice<double>(double* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, double* const device_uncompressed)
+{
+	return false;
+}
+
+template<>
+bool CompressionGPU::decompressDataAAFLOnDevice<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, ColmnarDB::Types::ComplexPolygon* const device_uncompressed)
+{
+	return false;
+}
+
+template<>
+bool CompressionGPU::decompressDataAAFLOnDevice<ColmnarDB::Types::Point>(ColmnarDB::Types::Point* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, ColmnarDB::Types::Point* const device_uncompressed)
 {
 	return false;
 }

@@ -458,15 +458,46 @@ public:
 			auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
 			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
 
-			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-				database->GetName(), colName, blockIndex, block->GetSize());
-            if (!std::get<2>(cacheEntry))
-            {
-                GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
-            }
-            addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
+			if (block->IsCompressed())
+			{
+				size_t uncompressedSize = Compression::GetUncompressedDataSize(block->GetData()) / sizeof(T);
+				size_t compressedSize = block->GetSize();
+				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+					database->GetName(), colName, blockIndex, uncompressedSize);
+				if (!std::get<2>(cacheEntry))
+				{
+					//GPUMemory::alloc(&std::get<0>(cacheEntry), uncompressedSize);
+					T* deviceCompressed;
+					GPUMemory::alloc(&deviceCompressed, compressedSize);
+					GPUMemory::copyHostToDevice(deviceCompressed, block->GetData(), compressedSize);
+					bool isDecompressed;
+					Compression::DecompressOnDevice(
+						col->GetColumnType(),
+						deviceCompressed,
+						Compression::GetUncompressedDataSize(block->GetData()),
+						Compression::GetCompressedDataSize(block->GetData()),
+						Compression::GetCompressionBlocksCount(block->GetData()),
+						std::get<0>(cacheEntry),
+						isDecompressed
+					);
+					GPUMemory::free(deviceCompressed);					
+				}
+				addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize);
 
-			noLoad = false;
+				noLoad = false;
+			}
+			else
+			{
+				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+					database->GetName(), colName, blockIndex, block->GetSize());
+				if (!std::get<2>(cacheEntry))
+				{
+					GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+				}
+				addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
+
+				noLoad = false;
+			}
 		}
 		return 0;
 	}

@@ -499,7 +499,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int8_t*>(data.get());
                 std::vector<int8_t> dataInt(dataTemp, dataTemp + dataLength);
 
-                columnInt.AddBlock(dataInt, (bool)isCompressed);
+                columnInt.AddBlock(dataInt, false, (bool)isCompressed);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added Int8 block with data at index: " << index << "." << std::endl;
             }
@@ -550,7 +550,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int32_t*>(data.get());
                 std::vector<int32_t> dataInt(dataTemp, dataTemp + dataLength);
 
-                columnInt.AddBlock(dataInt, (bool)isCompressed);
+                columnInt.AddBlock(dataInt, false, (bool)isCompressed);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added Int32 block with data at index: " << index << "." << std::endl;
             }
@@ -601,7 +601,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int64_t*>(data.get());
                 std::vector<int64_t> dataLong(dataTemp, dataTemp + dataLength);
 
-                columnLong.AddBlock(dataLong, (bool)isCompressed);
+                columnLong.AddBlock(dataLong, false, (bool)isCompressed);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added Int64 block with data at index: " << index << "." << std::endl;
             }
@@ -652,7 +652,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<float*>(data.get());
                 std::vector<float> dataFloat(dataTemp, dataTemp + dataLength);
 
-                columnFloat.AddBlock(dataFloat, (bool)isCompressed);
+                columnFloat.AddBlock(dataFloat, false, (bool)isCompressed);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added Float block with data at index: " << index << "." << std::endl;
             }
@@ -703,7 +703,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<double*>(data.get());
                 std::vector<double> dataDouble(dataTemp, dataTemp + dataLength);
 
-                columnDouble.AddBlock(dataDouble, (bool)isCompressed);
+                columnDouble.AddBlock(dataDouble, false, (bool)isCompressed);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added Double block with data at index: " << index << "." << std::endl;
             }

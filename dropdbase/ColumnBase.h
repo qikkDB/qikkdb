@@ -151,11 +151,11 @@ public:
 	/// </summary>
 	/// <param name="data">Data to be inserted</param>
 	/// <returns>Last block of column</returns>
-	BlockBase<T>& AddBlock(const std::vector<T>& data, bool isCompressed = false)
+	BlockBase<T>& AddBlock(const std::vector<T>& data, bool compress = false, bool isCompressed = false)
 	{
 		blocks_.push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed));
 		auto & lastBlock = blocks_.back();
-		if (lastBlock->IsFull() && !isCompressed)
+		if (lastBlock->IsFull() && !isCompressed && compress)
 		{
 			lastBlock->CompressData();
 		}
@@ -192,7 +192,7 @@ public:
 			int toCopy = columnData.size() - startIdx < blockSize_
 				? columnData.size() - startIdx
 				: blockSize_;
-			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy));
+			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), true, false);
 			startIdx += toCopy;
 		}
 		setColumnStatistics();

@@ -38,4 +38,39 @@ public:
 		}
 
 	}
+
+	template<class T>
+	static size_t GetUncompressedDataSize(T* const host_compressed)
+	{
+		int64_t data_size = reinterpret_cast<int64_t*>(host_compressed)[0];
+		return data_size;
+	}
+
+	template<class T>
+	static size_t GetCompressedDataSize(T* const host_compressed)
+	{
+		int64_t compressed_data_size = reinterpret_cast<int64_t*>(host_compressed)[1];
+		return compressed_data_size;
+	}
+
+	template<class T>
+	static size_t GetCompressionBlocksCount(T* const host_compressed)
+	{
+		int64_t compression_blocks_count = reinterpret_cast<int64_t*>(host_compressed)[2];
+		return compression_blocks_count;
+	}
+
+	template<class T>
+	static void DecompressOnDevice(DataType columnType, T* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, T* const device_uncompressed, bool& compressedSuccessfully)
+	{
+		if (columnType == COLUMN_INT || columnType == COLUMN_LONG || columnType == COLUMN_INT8_T)
+		{
+			compressedSuccessfully = CompressionGPU::decompressDataAAFLOnDevice(device_compressed, data_size, compression_data_size, compression_blocks_count, device_uncompressed);
+		}
+		else
+		{
+			compressedSuccessfully = false;
+		}
+
+	}
 };
