@@ -547,6 +547,14 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 	const std::string tableColumn = std::get<0>(tableColumnData);
 	
     parserStack.push(std::make_pair(tableColumn, columnType));
+
+
+	if (loadedColumns.find(tableColumn) == loadedColumns.end())
+	{
+		dispatcher.addLoadFunction(columnType);
+		dispatcher.addArgument<const std::string&>(tableColumn);
+		loadedColumns.insert(tableColumn);
+	}
 }
 
 void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * ctx)
