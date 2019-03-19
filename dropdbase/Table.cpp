@@ -202,15 +202,45 @@ int32_t Table::AssignGroupId(std::vector<std::any>& rowData, std::vector<std::un
 			}
 			break;
 		default:
-			if (std::any_cast<float>(rowData[i]) > columns[i]->GetInitAvg())
-			{
-				b = true;
-			}
-			break;
+			throw std::domain_error("Unsupported data type (when importing database from CSV file).");
 		}
 		
 		index += 2 * i + b;
 	}
 
 	return index;
+}
+
+/// <summary>
+/// Find Ids for all groups needed for binary index per particular table. Do not include -1 as index, because it is default group id.
+/// </summary>
+/// <param name="columns">Columns of a table.</param>
+/// <returns>Ids of all groups for binary index.</returns>
+std::vector<int32_t> Table::GetTableGroupIds(std::unordered_map<std::string, std::unique_ptr<IColumn>>& columns)
+{
+	std::vector<int32_t> groupIds;
+
+	for (int32_t i; i < columns.size(); i++)
+	{
+		groupIds.push_back(i);
+	}
+
+	return groupIds;
+}
+
+/// <summary>
+/// Find Ids for all groups needed for binary index per particular table. Do not include -1 as index, because it is default group id.
+/// </summary>
+/// <param name="columns">Columns of a table.</param>
+/// <returns>Ids of all groups for binary index.</returns>
+std::vector<int32_t> Table::GetTableGroupIds(std::vector<std::unique_ptr<IColumn>>& columns)
+{
+	std::vector<int32_t> groupIds;
+
+	for (int32_t i; i < columns.size(); i++)
+	{
+		groupIds.push_back(i);
+	}
+
+	return groupIds;
 }

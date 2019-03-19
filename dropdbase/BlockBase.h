@@ -66,6 +66,11 @@ public:
 		return sum_;
 	}
 
+	int32_t GetGroupId()
+	{
+		return groupId_;
+	}
+
 	T * const GetData()
 	{
 		return data_.get();
