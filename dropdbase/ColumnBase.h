@@ -93,7 +93,7 @@ private:
 	T max_ = std::numeric_limits<T>::max();
 	float avg_ = 0.0;
 	T sum_ = T{ 0 };
-	float initAvg_ = 0.0;
+	float initAvg_ = 0.0; //initial average is needed, because avg_ is constantly changing and we need unchable value for comparing in binary index
 	bool initAvgIsSet_ = false;
 
 public:

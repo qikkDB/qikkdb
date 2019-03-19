@@ -33,5 +33,5 @@ public:
 	void InsertData(const std::unordered_map<std::string, std::any> &data);
 #endif
 	bool ContainsColumn(const char* column);
-	int32_t AssignGroupId(std::vector<std::any>& rowData, std::unordered_map<std::string, std::unique_ptr<IColumn>>& allColumns, std::vector<std::string>& indexHeaders);
+	int32_t AssignGroupId(std::vector<std::any>& rowData, std::vector<std::unique_ptr<IColumn>>& columns);
 };

@@ -135,40 +135,80 @@ bool Table::ContainsColumn(const char* column)
 /// The main question that decides the group is as follows: 'Is value > average?'.
 /// </summary>
 /// <param name="rowData">Row of data from .CSV file, that is inserting into the table.</param>
-/// <param name="allColumns">Columns in the same order as fields in row of data.</param>
-/// <param name="indexColumns">Names of columns on which binary index will be created in order from most significant to least significant.</param>
+/// <param name="columns">Columns in the same order as fields in row of data.</param>
 /// <returns>Index of binary index group of blocks.</returns>
-int32_t Table::AssignGroupId(std::vector<std::any>& rowData, std::unordered_map<std::string, std::unique_ptr<IColumn>>& allColumns, std::vector<std::string>& indexColumns)
+int32_t Table::AssignGroupId(std::vector<std::any>& rowData, std::vector<std::unique_ptr<IColumn>>& columns)
 {
-	std::vector<std::string> tempIndexColumns;
-
-	//find out if there is at least one column with set initAvg_ so it can make index:
-	for (std::string indexColumn : indexColumns)
-	{
-		if (allColumns[indexColumn]->GetInitAvgIsSet())
-		{
-			tempIndexColumns.push_back(indexColumn);
-		}
-	}
-
-	//if there is no column according to which it make sense to create index:
-	if (tempIndexColumns.size() == 0)
-	{
-		return -1;
-	}
-
 	int32_t index = 0;
 
-	for (std::string tempIndexColumn : tempIndexColumns)
+	for (int32_t i = 0; i < columns.size(); i++)
 	{
 		bool b = false;
 
-		//TODO i musi byt spojene s allColumns poradim
-		if (rowData[i] > allColumns[tempIndexColumn]->GetInitAvg())
+		//if initial average is not set, assign all values in the default group:
+		if (!columns[i]->GetInitAvgIsSet())
 		{
-			b = true;
+			return -1;
 		}
 
+		switch (columns[i]->GetColumnType())
+		{
+		case COLUMN_INT:
+			if (std::any_cast<int32_t>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_LONG:
+			if (std::any_cast<int64_t>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_FLOAT:
+			if (std::any_cast<float>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_DOUBLE:
+			if (std::any_cast<double>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_POINT:
+			if (std::any_cast<float>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_POLYGON:
+			if (std::any_cast<float>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_STRING:
+			if (std::any_cast<float>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_INT8_T:
+			if (std::any_cast<int8_t>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		default:
+			if (std::any_cast<float>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		}
+		
 		index += 2 * i + b;
 	}
 
