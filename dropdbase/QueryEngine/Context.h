@@ -79,7 +79,7 @@ private:
 
             // Get the correct blockDim from the device - use always based on the bound device - optimal for kernels
             queriedBlockDimensionList.push_back(deviceProp.maxThreadsPerBlock);
-            const int32_t DISPATCH_ARRAY_SIZE = DataType::DATA_TYPE_SIZE *  DataType::DATA_TYPE_SIZE * OPERATIONS_COUNT;
+            const int32_t DISPATCH_ARRAY_SIZE = DataType::COLUMN_INT * DataType::COLUMN_INT * OPERATIONS_COUNT;
             std::unique_ptr<DispatchFunction[]> dispatchTable(new DispatchFunction[DISPATCH_ARRAY_SIZE]);
             cudaHostRegister(dispatchTable.get(), DISPATCH_ARRAY_SIZE * sizeof(DispatchFunction),
                              cudaHostRegisterDefault);

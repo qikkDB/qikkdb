@@ -1,14 +1,15 @@
 #pragma once
 
 template<int N>
-class GPUStack {
+class GPUStack 
+{
 private:
 	char stackArray[N];
 	int sp;
 
 public:
 
-	__device__ GPUStack():
+	__device__ GPUStack() :
 		sp(0)
 	{
 
@@ -47,7 +48,7 @@ public:
 		}
 		else
 		{
-			return *(reinterpret_cast<T*>(stackArray + sp - sizeof(T));
+			return *(reinterpret_cast<T*>(stackArray + sp - sizeof(T)));
 		}
 	}
 };

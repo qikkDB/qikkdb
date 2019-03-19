@@ -30,7 +30,6 @@ private:
     std::stack<std::pair<std::string, DataType>> parserStack;
     std::unordered_set<std::string> loadedTables;
 	int32_t linkTableIndex;
-	std::unordered_map<std::string, int32_t> linkTable;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
 	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
 

@@ -41,6 +41,21 @@ int32_t retConst(GpuSqlDispatcher &dispatcher)
 }
 
 template<typename T>
+int32_t ldCol(GpuSqlDispatcher &dispatcher)
+{
+	std::string colName = dispatcher.arguments.read<std::string>();
+	std::cout << "Ld: "<< colName << " " << dispatcher.linkTable.at(colName) << std::endl;
+
+	return 0;
+}
+
+template<typename T>
+int32_t ldConst(GpuSqlDispatcher &dispatcher)
+{
+	return 0;
+}
+
+template<typename T>
 int32_t retCol(GpuSqlDispatcher &dispatcher)
 {
 	auto col = dispatcher.arguments.read<std::string>();

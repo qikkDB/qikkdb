@@ -6,16 +6,15 @@
 #include <cuda_runtime.h>
 
 template <typename OP, typename L, typename R>
-__device__ void filterFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, int8_t* registers, void** symbols)
+__device__ void filterFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
 	R right = gpuStack.pop<R>();
 	L left = gpuStack.pop<L>();
-
-	registers[opCode.data[0]] = OP{}.template operator() <L, R> (left, right);
+	gpuStack.push<int8_t>(OP{}.template operator() <L, R> (left, right));
 }
 
 template <typename OP, typename T, typename L, typename R>
-__device__ void arithmeticFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, int8_t* registers, void** symbols)
+__device__ void arithmeticFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
 	R right = gpuStack.pop<R>();
 	L left = gpuStack.pop<L>();
@@ -24,23 +23,41 @@ __device__ void arithmeticFunction(GPUOpCode opCode, int32_t offset, GPUStack<20
 }
 
 template <typename OP>
-__device__ void logicFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, int8_t* registers, void** symbols)
+__device__ void dateFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
-	registers[opCode.data[0]] = OP{}.template operator() < int8_t, int8_t > (registers[opCode.data[0]], registers[opCode.data[1]]);
+	int64_t left = gpuStack.pop<int64_t>();
+	gpuStack.push<int32_t>(OP{}(left));
+}
+
+template <typename OP, typename L>
+__device__ void logicalNotFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
+{
+	L left = gpuStack.pop<L>();
+	gpuStack.push<int8_t>(OP{}.template operator() <L> (left));
 }
 
 template <typename T>
-__device__ void pushConst(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, int8_t* registers, void** symbols)
+__device__ void pushConstFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
 	gpuStack.push<T>(*reinterpret_cast<T*>(opCode.data));
 }
 
 template <typename T>
-__device__ void pushCol(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, int8_t* registers, void** symbols)
+__device__ void pushColFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
-	gpuStack.push<T>(reinterpret_cast<T*>(symbols[opCode.data])[offset]);
+	gpuStack.push<T>(reinterpret_cast<T*>(symbols[opCode.data[0]])[offset]);
 }
 
-__device__ void containsFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, int8_t* registers, void** symbols);
+template <typename OP>
+__device__ void invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
+{
+
+}
+
+__device__ void invalidContainsArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols);
+
+__device__ void invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols);
+
+__device__ void containsFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols);
 
 __global__ void kernel_filter(int8_t* outMask, GPUOpCode* opCodes, int32_t opCodesCount, void** symbols, int32_t dataElementCount);

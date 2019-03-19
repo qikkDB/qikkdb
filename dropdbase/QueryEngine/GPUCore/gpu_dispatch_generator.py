@@ -44,14 +44,15 @@ geo_types = [POINT, POLYGON]
 bool_types = [BOOL]
 
 operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual", "logicalAnd", "logicalOr",
-                     "mul", "div", "add", "sub", "mod", "contains", "intersect", "union"]
+                     "mul", "div", "add", "sub", "mod", "contains", "year", "month", "day", "hour", "minute", "second",
+                     "pushCol", "pushConst"]
 operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operations_logical = ["logicalAnd", "logicalOr"]
 operations_arithmetic = ["mul", "div", "add", "sub", "mod"]
 operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg", "year", "month", "day", "hour",
                     "minute", "second"]
 operations_aggregation = ["min", "max", "sum", "count", "avg"]
-operations_date = ["year", "month", "day", "hour", "minute", "second"]
+operations_date = []
 operations_move = ["ld", "ret", "groupBy"]
 operations_ternary = ["between"]
 
@@ -431,8 +432,8 @@ for operation in filter_operations + logical_operations:
         namespace = 'FilterConditions::'
     if operation in logical_operations:
         namespace = 'LogicOperations::'
-    for colIdx, colVal in enumerate(types):
-        for rowIdx, rowVal in enumerate(types):
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
             dataTypeCombination = colVal + ', ' + rowVal
             validCombination = True
 
@@ -445,7 +446,7 @@ for operation in filter_operations + logical_operations:
             if validCombination:
                 print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
                 print(
-                    '\t\t\treturn &filterFunction<' + namespace + operation + ", " + dataTypeCombination + ">;")
+                    '\t\t\treturn &filterFunction' + "<" + namespace + operation + ", " + dataTypeCombination + ">;")
                 print('\t\tbreak;')
 
     print('\t\tdefault:')
@@ -454,174 +455,45 @@ for operation in filter_operations + logical_operations:
     print('\t}')
     print('}')
 
-for operation in arithmetic_operations:
-    print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
-    print('{')
-    print('\tswitch(dataTypes)')
-    print('\t{')
-    namespace = 'ArithmeticOperations::'
-    for colIdx, colVal in enumerate(types):
-        for rowIdx, rowVal in enumerate(types):
-            dataTypeCombination = colVal + ', ' + colVal + ', ' + rowVal
-            validCombination = True
-
-            if colVal in geo_types or rowVal in geo_types:
-                validCombination = False
-
-            elif colVal == STRING or rowVal == STRING:
-                validCombination = False
-
-            if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
-                print(
-                    '\t\t\treturn &arithmeticFunction<' + namespace + operation + ", " + dataTypeCombination + ">;")
-                print('\t\tbreak;')
-
-    print('\t\tdefault:')
-    print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
-    print('\t\tbreak;')
-    print('\t}')
-    print('}')
-
-for operation in operations_date:
-    print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
-    print('{')
-    print('\tswitch(dataTypes)')
-    print('\t{')
-    namespace = 'DateOperations::'
-    for colIdx, colVal in enumerate(types):
-        for rowIdx, rowVal in enumerate(types):
-            dataTypeCombination = colVal
-            validCombination = True
-
-            if colVal != LONG or rowVal != LONG:
-                validCombination = False
-
-            if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
-                print(
-                    '\t\t\treturn &dateFunction<' + namespace + operation + ">;")
-                print('\t\tbreak;')
-
-    print('\t\tdefault:')
-    print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
-    print('\t\tbreak;')
-    print('\t}')
-    print('}')
-
-for operation in ['contains']:
-    print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
-    print('{')
-    print('\tswitch(dataTypes)')
-    print('\t{')
-    namespace = 'DateOperations::'
-    for colIdx, colVal in enumerate(types):
-        for rowIdx, rowVal in enumerate(types):
-            dataTypeCombination = colVal
-            validCombination = True
-
-            if colVal != POLYGON or rowVal != POINT:
-                validCombination = False
-
-            if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
-                print(
-                    '\t\t\treturn &containsFunction;')
-                print('\t\tbreak;')
-
-    print('\t\tdefault:')
-    print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
-    print('\t\tbreak;')
-    print('\t}')
-    print('}')
-
-for operation in ['logicalNot']:
-    print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
-    print('{')
-    print('\tswitch(dataTypes)')
-    print('\t{')
+operation = 'logicalNot'
+print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
+print('{')
+print('\tswitch(dataTypes)')
+print('\t{')
+namespace = ''
+if operation in filter_operations:
+    namespace = 'FilterConditions::'
+if operation in logical_operations:
     namespace = 'LogicOperations::'
-    for colIdx, colVal in enumerate(types):
-        for rowIdx, rowVal in enumerate(types):
-            dataTypeCombination = colVal
-            validCombination = True
+for colIdx, colVal in enumerate(all_types):
+    for rowIdx, rowVal in enumerate(all_types):
+        dataTypeCombination = colVal + ', ' + rowVal
+        validCombination = True
 
-            if colVal in geo_types or rowVal in geo_types:
-                validCombination = False
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
 
-            elif colVal == STRING or rowVal == STRING:
-                validCombination = False
+        if rowIdx < len(types):
+            row = "Const"
+        elif rowIdx >= len(types):
+            row = "Col"
 
-            if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
-                print(
-                    '\t\t\treturn &logicalNotFunction<' + namespace + operation + ' ,' + colVal + ">;")
-                print('\t\tbreak;')
+        if colVal in geo_types:
+            validCombination = False
 
-    print('\t\tdefault:')
-    print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
-    print('\t\tbreak;')
-    print('\t}')
-    print('}')
+        elif colVal == STRING:
+            validCombination = False
 
-for operation in ['pushCol']:
-    print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
-    print('{')
-    print('\tswitch(dataTypes)')
-    print('\t{')
-    for colIdx, colVal in enumerate(types):
-        for rowIdx, rowVal in enumerate(types):
-            dataTypeCombination = colVal
-            validCombination = True
+        if validCombination:
+            print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
+            print(
+                '\t\t\treturn &filterNotFunction' + col + "<" + colVal + ">;")
+            print('\t\tbreak;')
 
-            if colVal in geo_types or rowVal in geo_types:
-                validCombination = False
-
-            elif colVal == STRING or rowVal == STRING:
-                validCombination = False
-
-            if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
-                print(
-                    '\t\t\treturn &pushColFunction<' + colVal + '>;')
-                print('\t\tbreak;')
-
-    print('\t\tdefault:')
-    print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
-    print('\t\tbreak;')
-    print('\t}')
-    print('}')
-
-for operation in ['pushConst']:
-    print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
-    print('{')
-    print('\tswitch(dataTypes)')
-    print('\t{')
-    for colIdx, colVal in enumerate(types):
-        for rowIdx, rowVal in enumerate(types):
-            dataTypeCombination = colVal
-            validCombination = True
-
-            if colVal in geo_types or rowVal in geo_types:
-                validCombination = False
-
-            elif colVal == STRING or rowVal == STRING:
-                validCombination = False
-
-            if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
-                print(
-                    '\t\t\treturn &pushConstFunction<' + colVal + '>;')
-                print('\t\tbreak;')
-
-    print('\t\tdefault:')
-    print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
-    print('\t\tbreak;')
-    print('\t}')
-    print('}')
+print('\t\tdefault:')
+print('\t\t\treturn &invalidNotArgumentTypeHandler;')
+print('\t\tbreak;')
+print('\t}')
+print('}')

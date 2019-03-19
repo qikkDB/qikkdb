@@ -24,14 +24,21 @@
 #include "../ColumnBase.h"
 #include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
+#include "../QueryEngine/GPUCore/GPUDispatch.h"
 
 class GpuSqlDispatcher;
 
 template<typename T>
-int32_t retConst(GpuSqlDispatcher &dispatcher);
+int32_t ldCol(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t ldConst(GpuSqlDispatcher &dispatcher);
 
 template<typename T>
 int32_t retCol(GpuSqlDispatcher &dispatcher);
+
+template<typename T>
+int32_t retConst(GpuSqlDispatcher &dispatcher);
 
 int32_t fil(GpuSqlDispatcher &dispatcher);
 
@@ -231,6 +238,7 @@ private:
 	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
 	bool isRegisterAllocated(std::string& reg);
+	std::vector<GPUOpCode> gpuDispatchOpCodes;
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
@@ -291,6 +299,8 @@ private:
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgFunctions;
+	static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+			DataType::DATA_TYPE_SIZE> ldFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
@@ -309,6 +319,7 @@ private:
 	static int32_t groupByDoneLimit_;
 
 public:
+	std::unordered_map<std::string, int32_t> linkTable;
 	static std::mutex groupByMutex_;
 	static std::condition_variable groupByCV_;
 
@@ -400,6 +411,8 @@ public:
 
     void addAvgFunction(DataType key, DataType value);
 
+	void addLoadFunction(DataType type);
+
     void addRetFunction(DataType type);
 
     void addFilFunction();
@@ -479,6 +492,12 @@ public:
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	std::string insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
+
+	template<typename T>
+	friend int32_t ldCol(GpuSqlDispatcher &dispatcher);
+
+	template<typename T>
+	friend int32_t ldConst(GpuSqlDispatcher &dispatcher);
 
     template<typename T>
     friend int32_t retConst(GpuSqlDispatcher &dispatcher);

@@ -549,9 +549,11 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 	
     parserStack.push(std::make_pair(tableColumn, columnType));
 
-	if (linkTable.find(tableColumn) == linkTable.end())
+	if (dispatcher.linkTable.find(tableColumn) == dispatcher.linkTable.end())
 	{
-		linkTable.insert({ tableColumn, linkTableIndex++ });
+		dispatcher.linkTable.insert({ tableColumn, linkTableIndex++ });
+		dispatcher.addLoadFunction(columnType);
+		dispatcher.addArgument<const std::string&>(tableColumn);
 	}
 }
 

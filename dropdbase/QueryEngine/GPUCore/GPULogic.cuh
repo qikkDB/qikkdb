@@ -28,6 +28,15 @@ namespace LogicOperations
 			return a || b;
 		}
 	};
+
+	struct logicalNot
+	{
+		template<typename U>
+		__device__ __host__ int8_t operator()(U a)
+		{
+			return !a;
+		}
+	};
 }
 
 /// <summary>
