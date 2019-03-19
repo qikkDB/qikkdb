@@ -803,32 +803,51 @@ TEST(ColumnTests, FindBlockIndexAndRange)
 	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertData(dataInt);
 
 	std::tie(indexBlock, indexInBlock, range) = 
-		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAccordingPrimaryIndex(0, 2, 6, 1);
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 2, 6, 1);
     ASSERT_EQ(indexBlock, 0);
     ASSERT_EQ(indexInBlock, 2);
     ASSERT_EQ(range, 2);
 
 	std::tie(indexBlock, indexInBlock, range) =
-        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAccordingPrimaryIndex(0, 2, 8, 2);
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 2, 8, 2);
     ASSERT_EQ(indexBlock, 1);
     ASSERT_EQ(indexInBlock, 0);
     ASSERT_EQ(range, 3);
 
 	std::tie(indexBlock, indexInBlock, range) =
-        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAccordingPrimaryIndex(0, 2, 8, 3);
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 2, 8, 3);
     ASSERT_EQ(indexBlock, 1);
     ASSERT_EQ(indexInBlock, 3);
     ASSERT_EQ(range, 2);
 
 	std::tie(indexBlock, indexInBlock, range) =
-        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAccordingPrimaryIndex(0, 0, 16, 7);
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 16, 7);
     ASSERT_EQ(indexBlock, 3);
     ASSERT_EQ(indexInBlock, 1);
     ASSERT_EQ(range, 3);
 
 	std::tie(indexBlock, indexInBlock, range) =
-        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAccordingPrimaryIndex(1, 1, 2, 7);
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(1, 1, 2, 7);
     ASSERT_EQ(indexBlock, 1);
     ASSERT_EQ(indexInBlock, 3);
     ASSERT_EQ(range, 1);
+}
+
+TEST(ColumnTests, FIndIndexAndRangeTemp)
+{
+    int indexBlock = 0;
+    int indexInBlock = 0;
+    int range = INT_MAX;
+
+	auto database = std::make_shared<Database>("testDatabase", 4);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnInt", COLUMN_INT);
+    auto& columnInt = table.GetColumns().at("ColumnInt");
+
+    std::tie(indexBlock, indexInBlock, range) =
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(indexBlock, indexInBlock, range, 2);
+    ASSERT_EQ(indexBlock, 0);
+    ASSERT_EQ(indexInBlock, 0);
+    ASSERT_EQ(range, 0);
 }

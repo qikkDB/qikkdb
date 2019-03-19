@@ -19,15 +19,17 @@ private:
 	std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
 	std::vector<std::string> sortingColumns;
 #ifndef __CUDACC__
-	//void InsertValuesInNonIndexColumns(const std::unordered_map<std::string, std::any> &data, int indexBlock, int indexInBlock, std::string sortingColumn, int iterator);
+    int32_t getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any> &data);
 #endif
 
 #ifndef __CUDACC__
-    std::tuple<int, int, int> FindIndexAccordingPrimaryIndex(int index, int indexBlock,int indexInBlock,int range, const std::unordered_map<std::string, std::any>& data);
+    void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
+                                               int indexBlock,
+                                               int indexInBlock,
+                                               int iterator);
 #endif
 
 public:
- //   void InsertValuesInNonIndexColumns(const std::unordered_map<std::string, std::any>& data, int indexBlock, int indexInBlock, std::string sortingColumn, int iterator, int range);
     const std::shared_ptr<Database>& GetDatabase();
 	const std::string &GetName() const;
 	int32_t GetBlockSize() const;
@@ -37,7 +39,7 @@ public:
 	void SetSortingColumns(std::vector<std::string> columns);
 
 	Table(const std::shared_ptr<Database> &database, const char* name);
-	void CreateColumn(const char* columnName, DataType columnType);
+    void CreateColumn(const char* columnName, DataType columnType);
 #ifndef __CUDACC__
 	void InsertData(const std::unordered_map<std::string, std::any> &data);
 #endif

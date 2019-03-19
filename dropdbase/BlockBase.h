@@ -102,63 +102,74 @@ public:
 		bool found = false;
 		// flag if for loop is broken because of some conditions
         bool inRange = false;
-        for (int i = indexInBlock; i < indexInBlock + range; i++)
-        {
-			//index out of block
-            if (i >= size_)
-            {
-                reachEnd = true;
-                if (found)
-                {
-                    newRange = i - newIndexInBlock;
-				}
-				else
-				{
-                    newIndexInBlock = size_;
-                }
-                inRange = true;
-                break;
-			}
 
-			if (data_[i] > data)
-			{
-				//if first checked value is greater than data
-				if (!found)
-				{
-                    newIndexInBlock = i;
+		if (size_ == 0)
+        {
+            newIndexInBlock = 0;
+            newRange = 0;
+            reachEnd = true;
+        }
+
+		else
+        {
+            for (int i = indexInBlock; i < indexInBlock + range; i++)
+            {
+                // index out of block
+                if (i >= size_)
+                {
+                    reachEnd = true;
+                    if (found)
+                    {
+                        newRange = i - newIndexInBlock;
+                    }
+                    else
+                    {
+                        newIndexInBlock = size_;
+                    }
                     inRange = true;
                     break;
-				}
+                }
 
-				//last suitable value
-                newRange = i - newIndexInBlock;
-                inRange = true;
-                break;
-			}
+                if (data_[i] > data)
+                {
+                    // if first checked value is greater than data
+                    if (!found)
+                    {
+                        newIndexInBlock = i;
+                        inRange = true;
+                        break;
+                    }
 
-			if (data_[i] == data)
-			{
-				if (!found)
-				{
-                    newIndexInBlock = i;
-					found = true;
-				}
-			}
-		}
+                    // last suitable value
+                    newRange = i - newIndexInBlock;
+                    inRange = true;
+                    break;
+                }
 
-		//if whole for loop was executed
-		if (!inRange)
-		{
-            if (found)
+                if (data_[i] == data)
+                {
+                    if (!found)
+                    {
+                        newIndexInBlock = i;
+                        found = true;
+                    }
+                }
+            }
+
+            // if whole for loop was executed
+            if (!inRange)
             {
-                newRange = indexInBlock + range - newIndexInBlock;
-			}
-            else
-            {
-				//if suitable value was not found, index at end is chosen as place to insert
-				newIndexInBlock = indexInBlock + range;
-			}
-		}
+                if (found)
+                {
+                    newRange = indexInBlock + range - newIndexInBlock;
+                }
+                else
+                {
+                    // if suitable value was not found, index at end is chosen as place to insert
+                    newIndexInBlock = indexInBlock + range;
+                }
+            }
+        }
 
 		return std::make_tuple(newIndexInBlock, newRange, reachEnd);
     }

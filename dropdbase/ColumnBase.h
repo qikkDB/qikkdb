@@ -169,7 +169,7 @@ public:
     }
 
     std::tuple<int, int, int>
-    FindIndexAccordingPrimaryIndex(int indexBlock, int indexInBlock, int range, const T& columnData)
+    FindIndexAndRange(int indexBlock, int indexInBlock, int range, const T& columnData)
     {
         int remainingRange = range;
         int blockRange;
@@ -180,28 +180,38 @@ public:
         bool reachEnd = true;
         bool found = false;
 
-        for (int i = indexBlock; i < blocks_.size() && reachEnd && remainingRange > 0; i++)
+		if (blocks_.size() == 0)
         {
-            BlockBase<T>& block = *(blocks_[i].get());
-
-            if (columnData >= blocks_[i]->GetMin() &&
-                (remainingRange < block.GetSize() - startIndexInCurrentBlock ||
-                (columnData <= blocks_[i]->GetMax() &&
-                (i == blocks_.size() - 1 || columnData <= blocks_[i + 1]->GetMin()))))
+            BlockBase<T>& block = AddBlock();
+            newIndexBlock = 0;
+            std::tie(newIndexInBlock, newRange, reachEnd) =
+                block.FindIndexAndRange(indexBlock, range, columnData);
+		}
+        else
+        {
+            for (int i = indexBlock; i < blocks_.size() && reachEnd && remainingRange > 0; i++)
             {
-                int tempIndexInBlock;
-                std::tie(tempIndexInBlock, blockRange, reachEnd) =
-                    block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData);
-                if (!found)
+                BlockBase<T>& block = *(blocks_[i].get());
+
+                if (columnData >= blocks_[i]->GetMin() &&
+                    (remainingRange < block.GetSize() - startIndexInCurrentBlock ||
+                     (columnData <= blocks_[i]->GetMax() &&
+                      (i == blocks_.size() - 1 || columnData <= blocks_[i + 1]->GetMin()))))
                 {
-                    newIndexInBlock = tempIndexInBlock;
-					newIndexBlock = i;
-                    found = true;
-				}
-                newRange += blockRange;
+                    int tempIndexInBlock;
+                    std::tie(tempIndexInBlock, blockRange, reachEnd) =
+                        block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData);
+                    if (!found)
+                    {
+                        newIndexInBlock = tempIndexInBlock;
+                        newIndexBlock = i;
+                        found = true;
+                    }
+                    newRange += blockRange;
+                }
+                remainingRange -= block.GetSize() - startIndexInCurrentBlock;
+                startIndexInCurrentBlock = 0;
             }
-            remainingRange -= block.GetSize() - startIndexInCurrentBlock; 
-            startIndexInCurrentBlock = 0;
         }
         return std::make_tuple(newIndexBlock, newIndexInBlock, newRange);
     }
