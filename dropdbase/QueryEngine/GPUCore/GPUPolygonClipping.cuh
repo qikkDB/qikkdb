@@ -643,6 +643,60 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
     }
 }
 
+// Offset the inclusive sum to a exclusive sum
+template <typename T>
+__global__ void kernel_transform_inclusive_to_exclusive_sum(T* in, T* out, int32_t dataElementCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < dataElementCount; i += stride)
+    {
+        if (i <= 0)
+            in[i] = 0;
+        else
+            in[i] = out[i - 1];
+    }
+}
+
+// Compress the poygin/vertex counts into one single array based on the initial sandbox offsets
+// This function is set up to accept inclusive prefix sums only !!!
+template <typename T>
+__global__ void kernel_compress_based_on_offset_element_counts_inclusive(T* outCompressedData,
+                                                                         T* inUncompressedData,
+                                                                         int32_t* inCompressedOffsets,
+                                                                         int32_t* inUncompressedOffsets,
+                                                                         int32_t* inCounts,
+                                                                         int32_t dataElementCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < dataElementCount; i += stride)
+    {
+        int32_t inUncompressedOffset = 0;
+        int32_t inCompressedOffset = 0;
+
+        // Preform inclusive to exclusive index switch
+        if (i <= 0)
+        {
+            inUncompressedOffset = 0;
+            inCompressedOffset = 0;
+        }
+        else
+        {
+            inUncompressedOffset = inUncompressedOffsets[i - 1];
+            inCompressedOffset = inCompressedOffsets[i - 1];
+        }
+
+        // Compress the data
+        for (int j = 0; j < inCounts[i]; j++)
+        {
+            outCompressedData[inCompressedOffset + j] = inUncompressedData[inUncompressedOffset + j];
+        }
+    }
+}
+
 class GPUPolygonClip
 {
 public:
@@ -799,43 +853,112 @@ public:
 
         ///////////////////////////////////////////////////////////////////////////////////////
         // Reconstruct the real output polygon from temp output polygon
+        // Use the tempOut poly as a temporal buffer
+        // First the complex polygon layer is reconstructed
 
+        // Alloc the complexPolygon count buffer and the complex polygon idx buffer
+        GPUMemory::alloc(&polygonOut.polyCount, dataElementCount);
+        GPUMemory::alloc(&polygonOut.polyIdx, dataElementCount);
 
-        // Alloc a prefix buffer for the complexPolyCounts in the output polygon
+        // Copy the count buffers from the temp polygon and calculate an exclusive prefix sum to the idx buffer
+        GPUMemory::copyDeviceToDevice(polygonOut.polyCount, polygonOutTemp.polyCount, dataElementCount);
 
+        // Calculate the exclusive scan for the complex polygon id buffe
+        // First calculate the inclusive scan to get the ount of the complex polygons
+        // Then transform it to an exclusive scan to the final output
+        // The complex polygon count is used for the next step in poly reconstruction
+        d_temp_storage = nullptr;
+        temp_storage_bytes = 0;
+        cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, polygonOutTemp.polyCount,
+                                      polygonOutTemp.polyIdx, dataElementCount);
+        GPUMemory::alloc(reinterpret_cast<int8_t**>(&d_temp_storage), temp_storage_bytes);
+        cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, polygonOutTemp.polyCount,
+                                      polygonOutTemp.polyIdx, dataElementCount);
+        GPUMemory::free(d_temp_storage);
+
+        // Get the count of the output polygons
+        int32_t complexPolygonOutCount = 0;
+        GPUMemory::copyDeviceToHost(&complexPolygonOutCount, polygonOutTemp.polyIdx + dataElementCount - 1, 1);
+
+        // Transfer the idx prefix sum to the final output as an exclusive scan
+        kernel_transform_inclusive_to_exclusive_sum<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
+            polygonOut.polyIdx, polygonOutTemp.polyIdx, dataElementCount);
+
+        // Alloc the point count buffer and the point idx buffer based on the previously calculated sum
+        GPUMemory::alloc(&polygonOut.pointCount, complexPolygonOutCount);
+        GPUMemory::alloc(&polygonOut.pointIdx, complexPolygonOutCount);
+
+		// A helper buffer for inclusive to exclusive prefix sum transfer
+        int32_t *tempPointIdxBuffer;
+        GPUMemory::alloc(&tempPointIdxBuffer, complexPolygonOutCount);
+
+        // Compress the polygons/ point counts
+        kernel_compress_based_on_offset_element_counts_inclusive<<<context.calcGridDim(dataElementCount),
+                                                         context.getBlockDim()>>>(
+            polygonOut.pointCount, polygonOutTemp.pointCount, polygonOutTemp.polyIdx,
+            DLLPolygonCountOffsets, polygonOutTemp.polyCount, dataElementCount);
+
+		// Calculate the  inclusive prefix sum for the points ( same as above), retrieve the size then transfer to exclusive prefix sum
+		d_temp_storage = nullptr;
+        temp_storage_bytes = 0;
+        cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, polygonOut.pointCount,
+                                      tempPointIdxBuffer, dataElementCount);
+        GPUMemory::alloc(reinterpret_cast<int8_t**>(&d_temp_storage), temp_storage_bytes);
+        cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytes, polygonOutTemp.pointCount,
+                                      tempPointIdxBuffer, dataElementCount);
+        GPUMemory::free(d_temp_storage);
+
+        // Get the count of the output polygons
+        int32_t pointOutCount = 0;
+        GPUMemory::copyDeviceToHost(&pointOutCount, tempPointIdxBuffer + dataElementCount - 1, 1);
+
+		// Alloc the array of output pointsbased on the retrieved size
+        GPUMemory::alloc(&polygonOut.polyPoints, pointOutCount);
+
+        // Compress the array of output points
+        kernel_compress_based_on_offset_element_counts_inclusive<<<context.calcGridDim(dataElementCount),
+                                                         context.getBlockDim()>>>(
+            polygonOut.polyPoints, polygonOutTemp.polyPoints, tempPointIdxBuffer,
+            DLLVertexCountOffsets, polygonOutTemp.pointCount, complexPolygonOutCount);
 
         // DEBUG START //
         // Temp
-        NativeGeoPoint res[67];
-        int32_t complexPolygonIdxRes[2];
-        int32_t complexPolygonCntRes[2];
-        int32_t polygonIdxRes[23];
-        int32_t polygonCntRes[23];
+        NativeGeoPoint* res = new NativeGeoPoint[pointOutCount];
+        int32_t *complexPolygonIdxRes = new int32_t[dataElementCount];
+        int32_t* complexPolygonCntRes = new int32_t[dataElementCount];
+        int32_t* polygonIdxRes = new int32_t[complexPolygonOutCount];
+        int32_t* polygonCntRes = new int32_t[complexPolygonOutCount];
 
-        GPUMemory::copyDeviceToHost(res, polygonOutTemp.polyPoints, 67);
-        GPUMemory::copyDeviceToHost(complexPolygonIdxRes, polygonOutTemp.polyIdx, 2);
-        GPUMemory::copyDeviceToHost(complexPolygonCntRes, polygonOutTemp.polyCount, 2);
-        GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOutTemp.pointIdx, 23);
-        GPUMemory::copyDeviceToHost(polygonCntRes, polygonOutTemp.pointCount, 23);
+        GPUMemory::copyDeviceToHost(res, polygonOut.polyPoints, pointOutCount);
+        GPUMemory::copyDeviceToHost(complexPolygonIdxRes, polygonOut.polyIdx, dataElementCount);
+        GPUMemory::copyDeviceToHost(complexPolygonCntRes, polygonOut.polyCount, dataElementCount);
+        GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOut.pointIdx, complexPolygonOutCount);
+        GPUMemory::copyDeviceToHost(polygonCntRes, polygonOut.pointCount, complexPolygonOutCount);
 
         // Debug values BEGIN
         printf("\n\nVertices\n");
-        for (int s = 0; s < 100; s++)
+        for (int s = 0; s < pointOutCount; s++)
         {
             printf("[%.2f,%.2f],\n", res[s].latitude, res[s].longitude);
         }
 
         printf("\n\nPoly counts\n");
-        for (int s = 0; s < 2; s++)
+        for (int s = 0; s < dataElementCount; s++)
         {
-			printf("%d\n", complexPolygonCntRes[s]); // This should be 2
-		}
+            printf("%d\n", complexPolygonCntRes[s]);
+        }
 
         printf("\n\nPoint counts\n");
-        for (int s = 0; s < 23; s++)
+        for (int s = 0; s < complexPolygonOutCount; s++)
         {
-            printf("%d,\n", polygonCntRes[s]); // This should be 8, 3
+            printf("%d,\n", polygonCntRes[s]);
         }
+
+		delete[] res;
+        delete[] complexPolygonIdxRes;
+        delete[] complexPolygonCntRes;
+        delete[] polygonIdxRes;
+        delete[] polygonCntRes;
         // DEBUG END //
 
         // Free the tempora polygon
@@ -859,6 +982,8 @@ public:
         GPUMemory::free(DLLVertexCountOffsets);
         // GPUMemory::free(DLLPolygonCounts);
         // GPUMemory::free(DLLPolygonCountOffsets);
+
+		GPUMemory::free(tempPointIdxBuffer);
 
         // Set error
         QueryEngineError::setCudaError(cudaGetLastError());
