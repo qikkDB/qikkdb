@@ -145,19 +145,9 @@ public:
 	/// Blocks getter
 	/// </summary>
 	/// <returns>List of blocks in current column</returns>
-	const std::vector<std::unique_ptr<BlockBase<T>>&> GetBlocksList() const
+	const std::vector<std::unique_ptr<BlockBase<T>>>& GetBlocksList() const
 	{
-		std::vector<std::unique_ptr<BlockBase<T>>&> ret;
-
-		for (auto& blockList : blocks_)
-		{
-			for (auto& block : blockList.second)
-			{
-				ret.push_back(block);
-			}
-		}
-
-		return ret;
+		return blocks_;
 	};
 
 	/// <summary>
@@ -166,7 +156,8 @@ public:
 	/// <returns>Last block of column</returns>
 	BlockBase<T>& AddBlock(int groupId = -1)
 	{
-		if (m.find(groupId) == m.end()) {
+		if (blocks_.find(groupId) == blocks_.end())
+		{
 			// key not found
 			std::vector<std::unique_ptr<BlockBase<T>>> blocks;
 			blocks_[groupId] = std::move(blocks);
