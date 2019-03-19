@@ -912,6 +912,10 @@ public:
         int32_t pointOutCount = 0;
         GPUMemory::copyDeviceToHost(&pointOutCount, tempPointIdxBuffer + dataElementCount - 1, 1);
 
+		// Transform the inclusive sum of points to exclusive sum
+        kernel_transform_inclusive_to_exclusive_sum<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
+            polygonOut.pointIdx, tempPointIdxBuffer, complexPolygonOutCount);
+
 		// Alloc the array of output pointsbased on the retrieved size
         GPUMemory::alloc(&polygonOut.polyPoints, pointOutCount);
 
@@ -948,10 +952,22 @@ public:
             printf("%d\n", complexPolygonCntRes[s]);
         }
 
+		 printf("\n\nPoly idx\n");
+        for (int s = 0; s < dataElementCount; s++)
+        {
+            printf("%d\n", complexPolygonIdxRes[s]);
+        }
+
         printf("\n\nPoint counts\n");
         for (int s = 0; s < complexPolygonOutCount; s++)
         {
             printf("%d,\n", polygonCntRes[s]);
+        }
+
+		printf("\n\nPoint idx\n");
+        for (int s = 0; s < complexPolygonOutCount; s++)
+        {
+            printf("%d,\n", polygonIdxRes[s]);
         }
 
 		delete[] res;
