@@ -15,20 +15,23 @@ TEST(GPUPolygonClippingTests, PoygonTest)
 
     // Input polygons
     NativeGeoPoint poly1[] = {{181, 270}, {85, 418},  {171, 477},
-                              {491, 365}, {218, 381}, {458, 260}};
-    int32_t complexPolygonIdx1[] = {0};
-    int32_t complexPolygonCnt1[] = {1};
-    int32_t polygonIdx1[] = {0};
-    int32_t polygonCnt1[] = {6};
+                              {491, 365}, {218, 381}, {458, 260}, 
+		{270, 370}, {450, 334}, {150, 300}, {200, 450}
+    };
+    int32_t complexPolygonIdx1[] = {0,1};
+    int32_t complexPolygonCnt1[] = {1,1};
+    int32_t polygonIdx1[] = {0,6};
+    int32_t polygonCnt1[] = {6,4};
 
     NativeGeoPoint poly2[] = {{474, 488}, {659, 363}, {255, 283},
-                              {56, 340},  {284, 488}, {371, 342}};
-    int32_t complexPolygonIdx2[] = {0};
-    int32_t complexPolygonCnt2[] = {1};
-    int32_t polygonIdx2[] = {0};
-    int32_t polygonCnt2[] = {6};
+                              {56, 340},  {284, 488}, {371, 342},
+	{450, 420},{300, 300}, {344, 450}};
+    int32_t complexPolygonIdx2[] = {0,1};
+    int32_t complexPolygonCnt2[] = {1,1};
+    int32_t polygonIdx2[] = {0,6};
+    int32_t polygonCnt2[] = {6,3};
 
-    int32_t dataElementCount = 1;
+    int32_t dataElementCount = 2;
 
     // Buffers on the GPU
     GPUMemory::GPUPolygon polygon1;
@@ -91,6 +94,6 @@ TEST(GPUPolygonClippingTests, PoygonTest)
     GPUMemory::free(polygon2.pointIdx);
     GPUMemory::free(polygon2.pointCount);
 
-	// Fail assert
+    // Fail assert
     ASSERT_EQ(0, 1);
 }

@@ -19,19 +19,19 @@ namespace PolygonFunctions
 {
 struct polyIntersect
 {
-    __device__ __host__ void operator()(bool *into) const
+    __device__ __host__ void operator()(bool* into) const
     {
-		into[0] = true;
-		into[1] = true;
+        into[0] = true;
+        into[1] = true;
     }
 };
 
 struct polyUnion
 {
-    __device__ __host__ void operator()(bool *into) const
+    __device__ __host__ void operator()(bool* into) const
     {
-		into[0] = false;
-		into[1] = false;
+        into[0] = false;
+        into[1] = false;
     }
 };
 } // namespace PolygonFunctions
@@ -107,7 +107,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
         // Get the offset index for the dynamic list index - needed because of the character of the prefix sum
 
         int32_t DLLVertexCountOffsetIdx = 0; // Base offset in the vertex array
-        int32_t DLLPolygonCountOffsetIdx = 0; // Base offset in the vpolygon array
+        int32_t DLLPolygonCountOffsetIdx = 0; // Base offset in the polygon array
 
         if (i <= 0)
         {
@@ -504,10 +504,10 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
             }
 
             // Process isect
-			// false false - union
-			// true true - interset
-            bool into[2];//{true, true}; 
-			OP{}(into);// Assign operation based on functor
+            // false false - union
+            // true true - interset
+            bool into[2]; //{true, true};
+            OP{}(into); // Assign operation based on functor
 
             int32_t curpoly = 0;
             bool moveForward = false;
@@ -517,7 +517,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
             int32_t hereClipIdx = isectIdx;
 
-			// Zero the output polygon vertex counter
+            // Zero the output polygon vertex counter
             VertexCountOutPoly = 0;
 
             do
@@ -566,10 +566,10 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
 
                     // Write output data to correct offsets
                     complexPolygonOut
-                        .polyPoints[DLLPolygonCountOffsetIdx + VertexOffsetOutPoly + VertexCountOutPoly]
+                        .polyPoints[DLLVertexCountOffsetIdx + VertexOffsetOutPoly + VertexCountOutPoly]
                         .latitude = lat;
                     complexPolygonOut
-                        .polyPoints[DLLPolygonCountOffsetIdx + VertexOffsetOutPoly + VertexCountOutPoly]
+                        .polyPoints[DLLVertexCountOffsetIdx + VertexOffsetOutPoly + VertexCountOutPoly]
                         .longitude = lon;
 
                     // Increment vertex count
@@ -797,37 +797,44 @@ public:
             poly2VertexCounts, DLLVertexCounts, DLLVertexCountOffsets, DLLPolygonCounts,
             DLLPolygonCountOffsets, poly1DLList, poly2DLList);
 
-		///////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////
         // Reconstruct the real output polygon from temp output polygon
 
-		// DEBUG START //
+
+        // Alloc a prefix buffer for the complexPolyCounts in the output polygon
+
+
+        // DEBUG START //
         // Temp
-        NativeGeoPoint res[48];
-        int32_t complexPolygonIdxRes[1];
-        int32_t complexPolygonCntRes[1];
-        int32_t polygonIdxRes[16];
-        int32_t polygonCntRes[16];
+        NativeGeoPoint res[67];
+        int32_t complexPolygonIdxRes[2];
+        int32_t complexPolygonCntRes[2];
+        int32_t polygonIdxRes[23];
+        int32_t polygonCntRes[23];
 
-        GPUMemory::copyDeviceToHost(res, polygonOutTemp.polyPoints, 48);
-        GPUMemory::copyDeviceToHost(complexPolygonIdxRes, polygonOutTemp.polyIdx, 1);
-        GPUMemory::copyDeviceToHost(complexPolygonCntRes, polygonOutTemp.polyCount, 1);
-        GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOutTemp.pointIdx, 16);
-        GPUMemory::copyDeviceToHost(polygonCntRes, polygonOutTemp.pointCount, 16);
+        GPUMemory::copyDeviceToHost(res, polygonOutTemp.polyPoints, 67);
+        GPUMemory::copyDeviceToHost(complexPolygonIdxRes, polygonOutTemp.polyIdx, 2);
+        GPUMemory::copyDeviceToHost(complexPolygonCntRes, polygonOutTemp.polyCount, 2);
+        GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOutTemp.pointIdx, 23);
+        GPUMemory::copyDeviceToHost(polygonCntRes, polygonOutTemp.pointCount, 23);
 
-		// Debug values BEGIN
-        for (int s = 0; s < 48; s++)
+        // Debug values BEGIN
+        printf("\n\nVertices\n");
+        for (int s = 0; s < 100; s++)
         {
             printf("[%.2f,%.2f],\n", res[s].latitude, res[s].longitude);
         }
 
-		printf("\n\n");
-        printf("Poly count: %d\n", complexPolygonCntRes[0]);	// This should be 2
-
-		printf("\n\n");
-        printf("Point counts\n");
-		for (int s = 0; s < 16; s++)
+        printf("\n\nPoly counts\n");
+        for (int s = 0; s < 2; s++)
         {
-            printf("%d,\n", polygonCntRes[s]);	// This should be 8, 3
+			printf("%d\n", complexPolygonCntRes[s]); // This should be 2
+		}
+
+        printf("\n\nPoint counts\n");
+        for (int s = 0; s < 23; s++)
+        {
+            printf("%d,\n", polygonCntRes[s]); // This should be 8, 3
         }
         // DEBUG END //
 
