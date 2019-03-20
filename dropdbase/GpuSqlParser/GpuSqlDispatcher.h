@@ -351,7 +351,7 @@ public:
 
 	void copyExecutionDataTo(GpuSqlDispatcher& other);
 
-	void execute(std::unique_ptr<google::protobuf::Message>& result);
+	void execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception);
 
 	const ColmnarDB::NetworkClient::Message::QueryResponseMessage &getQueryResponseMessage();
 

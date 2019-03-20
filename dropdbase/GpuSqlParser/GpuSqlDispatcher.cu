@@ -110,41 +110,48 @@ void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
 	other.arguments = arguments;
 }
 
-void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& result)
+void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception)
 {
-	Context& context = Context::getInstance();
-	context.bindDeviceToContext(dispatcherThreadId);
-	int32_t err = 0;
-
-	while (err == 0)
+	try
 	{
-		err = dispatcherFunctions[instructionPointer++](*this);
-		if (err) 
+		Context& context = Context::getInstance();
+		context.bindDeviceToContext(dispatcherThreadId);
+		int32_t err = 0;
+
+		while (err == 0)
 		{
-			if (err == 1) 
+			err = dispatcherFunctions[instructionPointer++](*this);
+			if (err)
 			{
-				std::cout << "Out of blocks." << std::endl;
+				if (err == 1)
+				{
+					std::cout << "Out of blocks." << std::endl;
+				}
+				if (err == 2)
+				{
+					std::cout << "Show databases completed sucessfully" << std::endl;
+				}
+				if (err == 3)
+				{
+					std::cout << "Show tables completed sucessfully" << std::endl;
+				}
+				if (err == 4)
+				{
+					std::cout << "Show columns completed sucessfully" << std::endl;
+				}
+				if (err == 5)
+				{
+					std::cout << "Insert into completed sucessfully" << std::endl;
+				}
+				break;
 			}
-			if (err == 2)
-			{
-				std::cout << "Show databases completed sucessfully" << std::endl;
-			}
-			if (err == 3)
-			{
-				std::cout << "Show tables completed sucessfully" << std::endl;
-			}
-			if (err == 4)
-			{
-				std::cout << "Show columns completed sucessfully" << std::endl;
-			}
-			if (err == 5)
-			{
-				std::cout << "Insert into completed sucessfully" << std::endl;
-			}
-			break;
-		}		
+		}
+		result = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(std::move(responseMessage));
 	}
-	result = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(std::move(responseMessage));
+	catch (...)
+	{
+		exception = std::current_exception();
+	}
 }
 
 const ColmnarDB::NetworkClient::Message::QueryResponseMessage &GpuSqlDispatcher::getQueryResponseMessage()

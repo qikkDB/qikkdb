@@ -124,24 +124,30 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	GpuSqlDispatcher::ResetGroupByCounters();
 	std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers;
 	std::vector<std::thread> dispatcherFutures;
+	std::vector<std::exception_ptr> dispatcherExceptions;
 	std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults; 
 
 	for (int i = 0; i < threadCount; i++)
 	{
 		dispatcherResults.emplace_back(nullptr);
+		dispatcherExceptions.emplace_back(nullptr);
 	}
 
 	for (int i = 0; i < threadCount; i++)
 	{
 		dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database, groupByInstances, i));
 		dispatcher.get()->copyExecutionDataTo(*dispatchers[i]);
-		dispatcherFutures.push_back(std::thread(std::bind(&GpuSqlDispatcher::execute, dispatchers[i].get(), std::ref(dispatcherResults[i]))));
+		dispatcherFutures.push_back(std::thread(std::bind(&GpuSqlDispatcher::execute, dispatchers[i].get(), std::ref(dispatcherResults[i]), std::ref(dispatcherExceptions[i]))));
 	}
 
 	for (int i = 0; i < threadCount; i++)
 	{
 		dispatcherFutures[i].join();
 		std::cout << "TID: " << i << " Done \n";
+		if (dispatcherExceptions[i])
+		{
+			std::rethrow_exception(dispatcherExceptions[i]);
+		}
 	}
 		
 	return std::move(mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
