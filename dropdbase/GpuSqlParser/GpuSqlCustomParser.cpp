@@ -144,11 +144,16 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	{
 		dispatcherFutures[i].join();
 		std::cout << "TID: " << i << " Done \n";
+	}
+
+	for (int i = 0; i < threadCount; i++)
+	{
 		if (dispatcherExceptions[i])
 		{
 			std::rethrow_exception(dispatcherExceptions[i]);
 		}
 	}
+	
 		
 	return std::move(mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
 }
