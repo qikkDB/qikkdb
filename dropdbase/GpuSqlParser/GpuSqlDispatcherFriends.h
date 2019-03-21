@@ -751,6 +751,7 @@ template <typename OP, typename T, typename U>
 int32_t polygonOperationColConst(GpuSqlDispatcher& dispatcher)
 {
     std::cout << "Polygon operation: " << std::endl;
+
     return 0;
 }
 
@@ -769,6 +770,28 @@ int32_t polygonOperationColCol(GpuSqlDispatcher& dispatcher)
 	auto reg = dispatcher.arguments.read<std::string>();
 
     std::cout << "Polygon operation: " << colNameRight << " " << colNameLeft << " " << reg << std::endl;
+
+	int32_t loadFlag = dispatcher.loadCol<U>(colNameLeft);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+	loadFlag = dispatcher.loadCol<T>(colNameRight);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	auto polygonLeft = dispatcher.findComplexPolygon(colNameLeft);
+	auto polygonRight = dispatcher.findComplexPolygon(colNameRight);
+
+	int32_t dataSize = std::min(std::get<1>(polygonLeft), std::get<1>(polygonRight));
+	if (!dispatcher.isRegisterAllocated(reg))
+	{
+		GPUMemory::GPUPolygon outPolygon;
+		GPUPolygonClipping::ColCol<OP>(outPolygon, std::get<0>(polygonLeft), std::get<0>(polygonRight), dataSize);
+		dispatcher.fillPolygonRegister(outPolygon, reg, dataSize);
+	}
     return 0;
 }
 

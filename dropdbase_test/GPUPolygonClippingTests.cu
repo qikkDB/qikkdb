@@ -81,7 +81,7 @@ TEST(GPUPolygonClippingTests, PoygonTest)
     GPUMemory::copyHostToDevice(polygon2.pointCount, polygonCnt2, sizeof(polygonCnt2) / sizeof(int32_t));
 
     // Launch intersect
-    GPUPolygonClip::ColCol<PolygonFunctions::polyIntersect>(polygonOut, polygon1, polygon2, dataElementCount);
+    GPUPolygonClipping::ColCol<PolygonFunctions::polyIntersect>(polygonOut, polygon1, polygon2, dataElementCount);
 
 	/*
     // Copy back results and compare them

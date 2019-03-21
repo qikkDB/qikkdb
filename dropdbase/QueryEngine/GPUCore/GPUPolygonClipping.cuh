@@ -684,12 +684,12 @@ __global__ void kernel_compress_based_on_offset_element_counts_inclusive(T* outC
     }
 }
 
-class GPUPolygonClip
+class GPUPolygonClipping
 {
 public:
     template <typename OP>
     static void
-    ColCol(GPUMemory::GPUPolygon polygonOut, GPUMemory::GPUPolygon polygon1, GPUMemory::GPUPolygon polygon2, int32_t dataElementCount)
+    ColCol(GPUMemory::GPUPolygon& polygonOut, GPUMemory::GPUPolygon polygon1, GPUMemory::GPUPolygon polygon2, int32_t dataElementCount)
     {
         // Get the context instance
         Context& context = Context::getInstance();
