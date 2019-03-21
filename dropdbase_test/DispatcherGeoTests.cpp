@@ -28,7 +28,7 @@ protected:
 	virtual void TearDown()
 	{
 		//clean up occurs when test completes or an exception is thrown
-		Database::DestroyDatabase(dbName.c_str());
+		Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
 	}
 
 	// This is testing queries like "SELECT colID FROM SimpleTable WHERE POLYGON(...) CONTAINS colPoint;"

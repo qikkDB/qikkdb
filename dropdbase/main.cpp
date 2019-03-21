@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 	*/
 	for (auto& db : Database::GetDatabaseNames())
 	{
-		Database::DestroyDatabase(db.c_str());
+		Database::RemoveFromInMemoryDatabaseList(db.c_str());
 	}
 	return 0;
 }

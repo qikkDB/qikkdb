@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "GpuSqlDispatcher.h"
+#include "../QueryEngine/GPUCore/GPUConversion.cuh"
 #include "../QueryEngine/GPUCore/GPUDate.cuh"
 #include "../QueryEngine/GPUCore/GPUFilter.cuh"
 #include "../QueryEngine/GPUCore/GPUArithmetic.cuh"
@@ -54,9 +55,6 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 	std::cout << "RetCol: " << col << ", thread: " << dispatcher.dispatcherThreadId << std::endl;
 
 	int32_t outSize;
-	const size_t endOfPolyIdx = col.find(".");
-	const std::string table = col.substr(0, endOfPolyIdx);
-	const std::string column = col.substr(endOfPolyIdx + 1);
 
 	if (dispatcher.usingGroupBy)
 	{
@@ -510,6 +508,100 @@ int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher)
 		ResultType * result = dispatcher.allocateRegister<ResultType>(reg, retSize);
 		GPUArithmetic::constConst<OP, ResultType, T, U>(result, constLeft, constRight, retSize);
 	}
+	return 0;
+}
+
+template<typename T, typename U>
+int32_t pointColCol(GpuSqlDispatcher &dispatcher)
+{
+	auto colNameRight = dispatcher.arguments.read<std::string>();
+	auto colNameLeft = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+	std::cout << "PointColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+
+	int32_t loadFlag = dispatcher.loadCol<U>(colNameRight);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+	loadFlag = dispatcher.loadCol<T>(colNameLeft);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::tuple<uintptr_t, int32_t, bool> columnRight = dispatcher.allocatedPointers.at(colNameRight);
+	std::tuple<uintptr_t, int32_t, bool> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
+
+	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+
+	if (!dispatcher.isRegisterAllocated(reg))
+	{
+		NativeGeoPoint * pointCol = dispatcher.allocateRegister<NativeGeoPoint>(reg, retSize);
+		GPUConversion::ConvertColCol(pointCol, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+	}
+
+	dispatcher.freeColumnIfRegister<U>(colNameRight);
+	dispatcher.freeColumnIfRegister<T>(colNameLeft);
+	return 0;
+}
+
+template<typename T, typename U>
+int32_t pointColConst(GpuSqlDispatcher &dispatcher)
+{
+	U cnst = dispatcher.arguments.read<U>();
+	auto colNameLeft = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+	std::cout << "PointColConst: " << colNameLeft << " " << reg << std::endl;
+
+	int32_t loadFlag = dispatcher.loadCol<T>(colNameLeft);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::tuple<uintptr_t, int32_t, bool> columnLeft = dispatcher.allocatedPointers.at(colNameLeft);
+
+	int32_t retSize = std::get<1>(columnLeft);
+
+	if (!dispatcher.isRegisterAllocated(reg))
+	{
+		NativeGeoPoint * pointCol = dispatcher.allocateRegister<NativeGeoPoint>(reg, retSize);
+		GPUConversion::ConvertColConst(pointCol, reinterpret_cast<T*>(std::get<0>(columnLeft)), cnst, retSize);
+	}
+
+	dispatcher.freeColumnIfRegister<T>(colNameLeft);
+	return 0;
+}
+
+template<typename T, typename U>
+int32_t pointConstCol(GpuSqlDispatcher &dispatcher)
+{
+	auto colNameRight = dispatcher.arguments.read<std::string>();
+	T cnst = dispatcher.arguments.read<T>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+	std::cout << "PointConstCol: " << colNameRight << " " << reg << std::endl;
+
+	int32_t loadFlag = dispatcher.loadCol<U>(colNameRight);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::tuple<uintptr_t, int32_t, bool> columnRight = dispatcher.allocatedPointers.at(colNameRight);
+
+	int32_t retSize = std::get<1>(columnRight);
+
+	if (!dispatcher.isRegisterAllocated(reg))
+	{
+		NativeGeoPoint * pointCol = dispatcher.allocateRegister<NativeGeoPoint>(reg, retSize);
+		GPUConversion::ConvertConstCol(pointCol, cnst, reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+	}
+
+	dispatcher.freeColumnIfRegister<U>(colNameRight);
 	return 0;
 }
 

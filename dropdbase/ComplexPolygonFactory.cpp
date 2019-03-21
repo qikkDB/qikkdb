@@ -4,11 +4,12 @@
 #include <regex>
 #include <algorithm>
 #include "QueryEngine/Context.h"
+
 /// <summary>
-/// Converts polygons to GPU representation
+/// Converts polygons to GPU representation.
 /// </summary>
-/// <param name="polygons">Polygons to convert</param>
-/// <returns>Tuple of array for the GPU</returns>
+/// <param name="polygons">Polygons to convert.</param>
+/// <returns>Tuple of array for the GPU.</returns>
 GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons)
 {
 	// Points of polygons
@@ -60,7 +61,7 @@ GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector
 	return retPointers;
 }
 
-GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, const std::string & databaseName, const std::string & columnName, size_t blockIndex)
+GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, const std::string& databaseName, const std::string& columnName, size_t blockIndex)
 {
 	// Points of polygons
 	std::vector<NativeGeoPoint> polyPoints;

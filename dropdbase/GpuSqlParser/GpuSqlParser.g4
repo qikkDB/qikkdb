@@ -54,6 +54,7 @@ expression : op=NOT expression                                                  
            | left=expression op=(GREATEREQ|LESSEQ) right=expression                       # binaryOperation
            | left=expression op=(EQUALS|NOTEQUALS) right=expression                       # binaryOperation
            | left=expression op=MODULO right=expression                                   # binaryOperation
+           | op=POINT LPAREN left=expression COMMA right=expression RPAREN                # binaryOperation
            | op=GEO_CONTAINS LPAREN left=expression COMMA right=expression RPAREN         # binaryOperation
            | op=GEO_INTERSECT LPAREN left=expression COMMA right=expression RPAREN        # binaryOperation
            | op=GEO_UNION LPAREN left=expression COMMA right=expression RPAREN            # binaryOperation
