@@ -652,13 +652,14 @@ int32_t containsConstCol(GpuSqlDispatcher &dispatcher)
 
 	std::tuple<uintptr_t, int32_t, bool> columnPoint = dispatcher.allocatedPointers.at(colName);
 	ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
-	std::string gpuPolygon = dispatcher.insertConstPolygonGpu(polygonConst);
+	std::string gpuPolygon = dispatcher.insertConstPolygonGpu(polygonConst); // TODO change to return GPUMemory::GPUPolygon struct
 
 	int32_t retSize = std::get<1>(columnPoint);
 
 	if (!dispatcher.isRegisterAllocated(reg))
 	{
         int8_t* result = dispatcher.allocateRegister<int8_t>(reg, retSize);
+		// TODO change 
         GPUPolygonContains::contains(result,
 			{ reinterpret_cast<NativeGeoPoint*>(std::get<0>(
 				dispatcher.allocatedPointers.at(gpuPolygon + "_polyPoints"))),
@@ -723,14 +724,15 @@ int32_t containsConstConst(GpuSqlDispatcher &dispatcher)
 	ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constPolygonWkt);
 
 	NativeGeoPoint *constNativeGeoPoint = dispatcher.insertConstPointGpu(constPoint);
-	std::string gpuPolygon = dispatcher.insertConstPolygonGpu(constPolygon);
+	std::string gpuPolygon = dispatcher.insertConstPolygonGpu(constPolygon); // TODO change
 
 	int32_t retSize = dispatcher.database->GetBlockSize();
 
 	if (!dispatcher.isRegisterAllocated(reg))
 	{
         int8_t* result = dispatcher.allocateRegister<int8_t>(reg, retSize);
-        GPUPolygonContains::containsConst(result,
+		// TODO change
+		GPUPolygonContains::containsConst(result,
 			{ reinterpret_cast<NativeGeoPoint*>(std::get<0>(
 				dispatcher.allocatedPointers.at(gpuPolygon + "_polyPoints"))),
 			reinterpret_cast<int32_t*>(std::get<0>(
@@ -758,8 +760,29 @@ int32_t polygonOperationColConst(GpuSqlDispatcher& dispatcher)
 template <typename OP, typename T, typename U>
 int32_t polygonOperationConstCol(GpuSqlDispatcher& dispatcher)
 {
-    std::cout << "Polygon operation: " << std::endl;
-    return 0;
+	auto colName = dispatcher.arguments.read<std::string>();
+	auto constWkt = dispatcher.arguments.read<std::string>();
+	auto reg = dispatcher.arguments.read<std::string>();
+
+	int32_t loadFlag = dispatcher.loadCol<U>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::cout << "PolygonOPConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
+
+	auto polygonLeft = dispatcher.findComplexPolygon(colName);
+	ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
+	std::string gpuPolygon = dispatcher.insertConstPolygonGpu(polygonConst);
+
+	int32_t retSize = std::get<1>(polygonLeft);
+
+	if (!dispatcher.isRegisterAllocated(reg))
+	{
+		
+	}
+	return 0;
 }
 
 template <typename OP, typename T, typename U>

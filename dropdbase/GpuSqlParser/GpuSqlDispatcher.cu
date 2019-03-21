@@ -451,6 +451,7 @@ NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& p
 	return gpuPointer;
 }
 
+// TODO change to return GPUMemory::GPUPolygon struct
 std::string GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
 {
 	std::string ret = "constPolygon" + std::to_string(constPolygonCounter);

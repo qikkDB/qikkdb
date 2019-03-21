@@ -21,7 +21,7 @@ public:
         tableNames = {"TableA"};
         columnTypes = {{COLUMN_INT},    {COLUMN_INT},     {COLUMN_LONG},  {COLUMN_LONG},
                        {COLUMN_LONG},  {COLUMN_FLOAT},   {COLUMN_FLOAT}, {COLUMN_DOUBLE}, {COLUMN_DOUBLE},
-					   {COLUMN_POLYGON}, {COLUMN_POINT}, {COLUMN_STRING} };
+					   {COLUMN_POLYGON}, {COLUMN_POLYGON}, {COLUMN_POINT}, {COLUMN_STRING} };
         database = DatabaseGenerator::GenerateDatabase("TestDb", 2, TEST_BLOCK_SIZE, false, tableNames, columnTypes);
     }
     static DispatcherObjs GetInstance()
@@ -8297,4 +8297,19 @@ TEST(DispatcherTests, PointFromConstCol)
 	{
 		ASSERT_EQ(expectedResultsPoints[i], payloads.stringpayload().stringdata()[i]);
 	}
+}
+
+
+TEST(DispatcherTests, PolygonClippingAndContains)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+		"SELECT colInteger1 FROM TableA WHERE GEO_CONTAINS(GEO_INTERSECT(colPolygon1, colPolygon2), colPoint1);");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<std::string> expectedResultsPoints;
+	// TODO asserts
 }
