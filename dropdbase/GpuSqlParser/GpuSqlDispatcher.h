@@ -440,6 +440,8 @@ public:
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size);
 
+	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false);
+
 	template<typename T>
 	void addCachedRegister(const std::string& reg, T* ptr, int32_t size);
 	
