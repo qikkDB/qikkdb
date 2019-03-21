@@ -93,9 +93,6 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
     // The root of the DLL is always the 0th element
     const int32_t ROOT_NODE_IDX = 0;
 
-    // "Infinity"
-    const float INF = 1000000000;
-
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
@@ -109,12 +106,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
         int32_t DLLVertexCountOffsetIdx = 0; // Base offset in the vertex array
         int32_t DLLPolygonCountOffsetIdx = 0; // Base offset in the polygon array
 
-        if (i <= 0)
-        {
-            DLLVertexCountOffsetIdx = 0;
-            DLLPolygonCountOffsetIdx = 0;
-        }
-        else
+        if (i > 0)
         {
             DLLVertexCountOffsetIdx = DLLVertexCountOffsets[i - 1];
             DLLPolygonCountOffsetIdx = DLLPolygonCountOffsets[i - 1];
@@ -283,11 +275,11 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                 float axb = adx * bdy - ady * bdx;
 
                 float cross = axb;
-                float alongA = INF;
-                float alongB = INF;
+                float alongA = 0;
+                float alongB = 0;
 
-                float point_x = INF;
-                float point_y = INF;
+                float point_x = 0;
+                float point_y = 0;
 
                 if (axb == 0)
                 {
@@ -678,12 +670,7 @@ __global__ void kernel_compress_based_on_offset_element_counts_inclusive(T* outC
         int32_t inCompressedOffset = 0;
 
         // Preform inclusive to exclusive index switch
-        if (i <= 0)
-        {
-            inUncompressedOffset = 0;
-            inCompressedOffset = 0;
-        }
-        else
+        if (i > 0)
         {
             inUncompressedOffset = inUncompressedOffsets[i - 1];
             inCompressedOffset = inCompressedOffsets[i - 1];
@@ -725,10 +712,6 @@ public:
         // Data buffers for doubly linked lists of polygons during clipping
         PolygonNodeDLL* poly1DLList;
         PolygonNodeDLL* poly2DLList;
-
-        // Offset buffer sizes - TODO make device callable
-        // static int32_t poly1VertexCountTotal;
-        // static int32_t poly2VertexCountTotal;
 
         // Total/Maximal size of the result DLL list vertices and polygons
         int32_t DLLVertexCountTotal;
@@ -925,6 +908,7 @@ public:
             polygonOut.polyPoints, polygonOutTemp.polyPoints, tempPointIdxBuffer,
             DLLVertexCountOffsets, polygonOutTemp.pointCount, complexPolygonOutCount);
 
+		/*
         // DEBUG START //
         // Temp
         NativeGeoPoint* res = new NativeGeoPoint[pointOutCount];
@@ -938,8 +922,7 @@ public:
         GPUMemory::copyDeviceToHost(complexPolygonCntRes, polygonOut.polyCount, dataElementCount);
         GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOut.pointIdx, complexPolygonOutCount);
         GPUMemory::copyDeviceToHost(polygonCntRes, polygonOut.pointCount, complexPolygonOutCount);
-
-        // Debug values BEGIN
+        
         printf("\n\nVertices\n");
         for (int s = 0; s < pointOutCount; s++)
         {
@@ -976,6 +959,7 @@ public:
         delete[] polygonIdxRes;
         delete[] polygonCntRes;
         // DEBUG END //
+		*/
 
         // Free the tempora polygon
         GPUMemory::free(polygonOutTemp.polyPoints);
@@ -988,16 +972,11 @@ public:
         GPUMemory::free(poly1VertexCounts);
         GPUMemory::free(poly2VertexCounts);
 
-        // GPUMemory::free(poly1VertexOffsets);
-        // GPUMemory::free(poly2VertexOffsets);
-
         GPUMemory::free(poly1DLList);
         GPUMemory::free(poly2DLList);
 
         GPUMemory::free(DLLVertexCounts);
         GPUMemory::free(DLLVertexCountOffsets);
-        // GPUMemory::free(DLLPolygonCounts);
-        // GPUMemory::free(DLLPolygonCountOffsets);
 
 		GPUMemory::free(tempPointIdxBuffer);
 

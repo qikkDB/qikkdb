@@ -31,6 +31,14 @@ TEST(GPUPolygonClippingTests, PoygonTest)
     int32_t polygonIdx2[] = {0,6};
     int32_t polygonCnt2[] = {6,3};
 
+	NativeGeoPoint polyOutData[] = {
+        {153.76, 312.00}, {112.01, 376.36}, {233.41, 455.16}, {322.06, 424.13}, {352.46, 373.12},
+        {218.00, 381.00}, {368.00, 305.38}, {255.00, 283.00}, {317.73, 360.45}, {364.00, 351.20}, {324.76, 319.81}};
+	int32_t complexPolygonIdxOut[] = {0, 2};
+    int32_t complexPolygonCntOut[] = {2, 1};
+    int32_t polygonIdxOut[] = {0, 8, 11};
+    int32_t polygonCntOut[] = {8, 3, 4};
+
     int32_t dataElementCount = 2;
 
     // Buffers on the GPU
@@ -75,9 +83,51 @@ TEST(GPUPolygonClippingTests, PoygonTest)
     // Launch intersect
     GPUPolygonClip::ColCol<PolygonFunctions::polyIntersect>(polygonOut, polygon1, polygon2, dataElementCount);
 
-    // TODO Copy back results
+	/*
+    // Copy back results and compare them
+    NativeGeoPoint* res = new NativeGeoPoint[pointOutCount];
+    int32_t* complexPolygonIdxRes = new int32_t[dataElementCount];
+    int32_t* complexPolygonCntRes = new int32_t[dataElementCount];
+    int32_t* polygonIdxRes = new int32_t[complexPolygonOutCount];
+    int32_t* polygonCntRes = new int32_t[complexPolygonOutCount];
 
-    // TODO Print results
+    GPUMemory::copyDeviceToHost(res, polygonOut.polyPoints, pointOutCount);
+    GPUMemory::copyDeviceToHost(complexPolygonIdxRes, polygonOut.polyIdx, dataElementCount);
+    GPUMemory::copyDeviceToHost(complexPolygonCntRes, polygonOut.polyCount, dataElementCount);
+    GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOut.pointIdx, complexPolygonOutCount);
+    GPUMemory::copyDeviceToHost(polygonCntRes, polygonOut.pointCount, complexPolygonOutCount);
+
+    for (int s = 0; s < pointOutCount; s++)
+    {
+        printf("[%.2f,%.2f],\n", res[s].latitude, res[s].longitude);
+    }
+
+    for (int s = 0; s < dataElementCount; s++)
+    {
+        printf("%d\n", complexPolygonCntRes[s]);
+    }
+
+    for (int s = 0; s < dataElementCount; s++)
+    {
+        printf("%d\n", complexPolygonIdxRes[s]);
+    }
+
+    for (int s = 0; s < complexPolygonOutCount; s++)
+    {
+        printf("%d,\n", polygonCntRes[s]);
+    }
+
+    for (int s = 0; s < complexPolygonOutCount; s++)
+    {
+        printf("%d,\n", polygonIdxRes[s]);
+    }
+
+    delete[] res;
+    delete[] complexPolygonIdxRes;
+    delete[] complexPolygonCntRes;
+    delete[] polygonIdxRes;
+    delete[] polygonCntRes;
+	*/
 
     // Free buffers
     // Polygon 1
@@ -93,6 +143,13 @@ TEST(GPUPolygonClippingTests, PoygonTest)
     GPUMemory::free(polygon2.polyCount);
     GPUMemory::free(polygon2.pointIdx);
     GPUMemory::free(polygon2.pointCount);
+
+	// Polygon out
+    GPUMemory::free(polygonOut.polyPoints);
+    GPUMemory::free(polygonOut.polyIdx);
+    GPUMemory::free(polygonOut.polyCount);
+    GPUMemory::free(polygonOut.pointIdx);
+    GPUMemory::free(polygonOut.pointCount);
 
     // Fail assert
     ASSERT_EQ(0, 1);
