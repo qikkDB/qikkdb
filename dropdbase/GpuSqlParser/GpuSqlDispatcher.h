@@ -127,6 +127,15 @@ private:
 	static int32_t groupByDoneCounter_;
 	static int32_t groupByDoneLimit_;
 
+	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<int32_t[]> &data, int32_t dataSize);
+
+	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<int64_t[]> &data, int32_t dataSize);
+
+	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<float[]> &data, int32_t dataSize);
+
+	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<double[]> &data, int32_t dataSize);
+
+	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<std::string[]> &data, int32_t dataSize);
 public:
 	static std::mutex groupByMutex_;
 	static std::condition_variable groupByCV_;
@@ -242,7 +251,7 @@ public:
     void addGroupByFunction(DataType type);
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
-
+	
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size)
 	{
@@ -260,49 +269,19 @@ public:
 	}
 
 	template<typename T>
-	int32_t loadCol(std::string& colName)
-	{
-        if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
-		{
-			std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
+	int32_t loadCol(std::string& colName);
 
-			// split colName to table and column name
-			const size_t endOfPolyIdx = colName.find(".");
-			const std::string table = colName.substr(0, endOfPolyIdx);
-			const std::string column = colName.substr(endOfPolyIdx + 1);
-
-			const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
-			GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
-			if (blockIndex >= blockCount)
-			{
-				return 1;
-			}
-			if (blockIndex >= blockCount - Context::getInstance().getDeviceCount())
-			{
-				isLastBlockOfDevice = true;
-			}
-			if (blockIndex == blockCount - 1)
-			{
-				isOverallLastBlock = true;
-			}
-
-			auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
-			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
-
-			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-				database->GetName(), colName, blockIndex, block->GetSize());
-            if (!std::get<2>(cacheEntry))
-            {
-                GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
-            }
-            addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
-
-			noLoad = false;
-		}
-		return 0;
-	}
 	template <typename T>
-	void freeColumnIfRegister(const std::string& col);
+	void freeColumnIfRegister(const std::string& col)
+	{
+		if (usedRegisterMemory > maxRegisterMemory && !col.empty() && col.front() == '$')
+		{
+			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(col))));
+			usedRegisterMemory -= std::get<1>(allocatedPointers.at(col)) * sizeof(T);
+			allocatedPointers.erase(col);
+			std::cout << "Free: " << col << std::endl;
+		}
+	}
 
 	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
@@ -330,12 +309,6 @@ public:
 	int32_t showColumns();
 
 	void cleanUpGpuPointers();
-
-	template<>
-	int32_t insertInto<ColmnarDB::Types::ComplexPolygon>();
-
-	template<>
-	int32_t insertInto<ColmnarDB::Types::Point>();
 
 	template <>
 	int32_t retCol<ColmnarDB::Types::ComplexPolygon>();
@@ -422,19 +395,19 @@ public:
     int32_t containsColCol();
 
     template <typename T, typename U>
-    int32_t containsConstConst(GpuSqlDispatcher& dispatcher);
+    int32_t containsConstConst();
 
 	template <typename OP, typename T, typename U>
-    int32_t polygonOperationColConst(GpuSqlDispatcher& dispatcher);
+    int32_t polygonOperationColConst();
 
     template <typename OP, typename T, typename U>
-    int32_t polygonOperationConstCol(GpuSqlDispatcher& dispatcher);
+    int32_t polygonOperationConstCol();
 
     template <typename OP, typename T, typename U>
-    int32_t polygonOperationColCol(GpuSqlDispatcher& dispatcher);
+    int32_t polygonOperationColCol();
 
     template <typename OP, typename T, typename U>
-    int32_t polygonOperationConstConst(GpuSqlDispatcher& dispatcher);
+    int32_t polygonOperationConstConst();
 
     int32_t between();
 
@@ -466,51 +439,93 @@ public:
 	template<typename T>
 	int32_t insertInto();
 
+	template<>
+	int32_t insertInto<ColmnarDB::Types::ComplexPolygon>();
+
+	template<>
+	int32_t insertInto<ColmnarDB::Types::Point>();
+
 	int32_t insertIntoDone();
 
     template<typename T, typename U>
-    int32_t invalidOperandTypesErrorHandlerColConst();
+    int32_t invalidOperandTypesErrorHandlerColConst()
+	{
+		return 0;
+	}
 
     template<typename T, typename U>
-    int32_t invalidOperandTypesErrorHandlerConstCol();
+    int32_t invalidOperandTypesErrorHandlerConstCol()
+	{
+		return 0;
+	}
 
     template<typename T, typename U>
-    int32_t invalidOperandTypesErrorHandlerColCol();
+    int32_t invalidOperandTypesErrorHandlerColCol()
+	{
+		return 0;
+	}
 
     template<typename T, typename U>
-    int32_t invalidOperandTypesErrorHandlerConstConst();
+    int32_t invalidOperandTypesErrorHandlerConstConst()
+	{
+		return 0;
+	}
 
 
 	//// FUNCTOR ERROR HANDLERS
 
 	template<typename OP, typename T, typename U>
-	int32_t invalidOperandTypesErrorHandlerColConst();
+	int32_t invalidOperandTypesErrorHandlerColConst()
+	{
+		return 0;
+	}
 
 
 	template<typename OP, typename T, typename U>
-	int32_t invalidOperandTypesErrorHandlerConstCol();
+	int32_t invalidOperandTypesErrorHandlerConstCol()
+	{
+		return 0;
+	}
 
 
 	template<typename OP, typename T, typename U>
-	int32_t invalidOperandTypesErrorHandlerColCol();
+	int32_t invalidOperandTypesErrorHandlerColCol()
+	{
+		return 0;
+	}
 
 
 	template<typename OP, typename T, typename U>
-	int32_t invalidOperandTypesErrorHandlerConstConst();
+	int32_t invalidOperandTypesErrorHandlerConstConst()
+	{
+		return 0;
+	}
 
 	template<typename OP, typename T>
-	int32_t invalidOperandTypesErrorHandlerCol();
+	int32_t invalidOperandTypesErrorHandlerCol()
+	{
+		return 0;
+	}
 
 	template<typename OP, typename T>
-	int32_t invalidOperandTypesErrorHandlerConst();
+	int32_t invalidOperandTypesErrorHandlerConst()
+	{
+		return 0;
+	}
 
 	////
 
 	template<typename T>
-	int32_t invalidOperandTypesErrorHandlerCol();
+	int32_t invalidOperandTypesErrorHandlerCol()
+	{
+		return 0;
+	}
 
 	template<typename T>
-	int32_t invalidOperandTypesErrorHandlerConst();
+	int32_t invalidOperandTypesErrorHandlerConst()
+	{
+		return 0;
+	}
 
     template<typename T>
     void addArgument(T argument)
