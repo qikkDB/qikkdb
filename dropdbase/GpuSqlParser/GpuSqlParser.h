@@ -1,5 +1,5 @@
 
-// Generated from /Users/ms/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -37,12 +37,13 @@ public:
     RuleWhereClause = 14, RuleOrderByColumns = 15, RuleOrderByColumn = 16, 
     RuleInsertIntoValues = 17, RuleInsertIntoColumns = 18, RuleGroupByColumns = 19, 
     RuleGroupByColumn = 20, RuleColumnId = 21, RuleFromTables = 22, RuleJoinClauses = 23, 
-    RuleJoinClause = 24, RuleJoinTable = 25, RuleTable = 26, RuleColumn = 27, 
-    RuleDatabase = 28, RuleAlias = 29, RuleLimit = 30, RuleOffset = 31, 
-    RuleColumnValue = 32, RuleExpression = 33, RuleGeometry = 34, RulePointGeometry = 35, 
-    RuleLineStringGeometry = 36, RulePolygonGeometry = 37, RuleMultiPointGeometry = 38, 
-    RuleMultiLineStringGeometry = 39, RuleMultiPolygonGeometry = 40, RulePointOrClosedPoint = 41, 
-    RulePolygon = 42, RuleLineString = 43, RulePoint = 44
+    RuleJoinClause = 24, RuleJoinTable = 25, RuleFromTable = 26, RuleTable = 27, 
+    RuleColumn = 28, RuleDatabase = 29, RuleAlias = 30, RuleLimit = 31, 
+    RuleOffset = 32, RuleColumnValue = 33, RuleExpression = 34, RuleGeometry = 35, 
+    RulePointGeometry = 36, RuleLineStringGeometry = 37, RulePolygonGeometry = 38, 
+    RuleMultiPointGeometry = 39, RuleMultiLineStringGeometry = 40, RuleMultiPolygonGeometry = 41, 
+    RulePointOrClosedPoint = 42, RulePolygon = 43, RuleLineString = 44, 
+    RulePoint = 45
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -81,6 +82,7 @@ public:
   class JoinClausesContext;
   class JoinClauseContext;
   class JoinTableContext;
+  class FromTableContext;
   class TableContext;
   class ColumnContext;
   class DatabaseContext;
@@ -465,8 +467,8 @@ public:
   public:
     FromTablesContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    std::vector<TableContext *> table();
-    TableContext* table(size_t i);
+    std::vector<FromTableContext *> fromTable();
+    FromTableContext* fromTable(size_t i);
     std::vector<antlr4::tree::TerminalNode *> COMMA();
     antlr4::tree::TerminalNode* COMMA(size_t i);
 
@@ -512,6 +514,8 @@ public:
     JoinTableContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     TableContext *table();
+    antlr4::tree::TerminalNode *AS();
+    AliasContext *alias();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -519,6 +523,21 @@ public:
   };
 
   JoinTableContext* joinTable();
+
+  class  FromTableContext : public antlr4::ParserRuleContext {
+  public:
+    FromTableContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    TableContext *table();
+    antlr4::tree::TerminalNode *AS();
+    AliasContext *alias();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  FromTableContext* fromTable();
 
   class  TableContext : public antlr4::ParserRuleContext {
   public:
@@ -718,13 +737,13 @@ public:
     antlr4::tree::TerminalNode *ASTERISK();
     antlr4::tree::TerminalNode *PLUS();
     antlr4::tree::TerminalNode *MINUS();
+    antlr4::tree::TerminalNode *MODULO();
     antlr4::tree::TerminalNode *GREATER();
     antlr4::tree::TerminalNode *LESS();
     antlr4::tree::TerminalNode *GREATEREQ();
     antlr4::tree::TerminalNode *LESSEQ();
     antlr4::tree::TerminalNode *EQUALS();
     antlr4::tree::TerminalNode *NOTEQUALS();
-    antlr4::tree::TerminalNode *MODULO();
     antlr4::tree::TerminalNode *AND();
     antlr4::tree::TerminalNode *OR();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;

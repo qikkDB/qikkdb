@@ -1,5 +1,5 @@
 
-// Generated from /Users/ms/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -93,6 +93,9 @@ public:
 
   virtual void enterJoinTable(GpuSqlParser::JoinTableContext * /*ctx*/) override { }
   virtual void exitJoinTable(GpuSqlParser::JoinTableContext * /*ctx*/) override { }
+
+  virtual void enterFromTable(GpuSqlParser::FromTableContext * /*ctx*/) override { }
+  virtual void exitFromTable(GpuSqlParser::FromTableContext * /*ctx*/) override { }
 
   virtual void enterTable(GpuSqlParser::TableContext * /*ctx*/) override { }
   virtual void exitTable(GpuSqlParser::TableContext * /*ctx*/) override { }

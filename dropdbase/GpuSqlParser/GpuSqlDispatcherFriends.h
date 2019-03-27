@@ -44,6 +44,7 @@ template<typename T>
 int32_t retCol(GpuSqlDispatcher &dispatcher)
 {
 	auto col = dispatcher.arguments.read<std::string>();
+	auto alias = dispatcher.arguments.read<std::string>();
 
 	int32_t loadFlag = dispatcher.loadCol<T>(col);
 	if (loadFlag)
@@ -69,7 +70,7 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload<T>(payload, outData, outSize);
 				ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
-				dispatcher.mergePayloadToResponse(col, payload);
+				dispatcher.mergePayloadToResponse(alias, payload);
 			}
 			else
 			{
@@ -80,7 +81,7 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload<T>(payload, outData, outSize);
-				dispatcher.mergePayloadToResponse(col, payload);
+				dispatcher.mergePayloadToResponse(alias, payload);
 			}
 		}
 	}
@@ -95,7 +96,7 @@ int32_t retCol(GpuSqlDispatcher &dispatcher)
 		std::cout << "dataSize: " << outSize << std::endl;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 		insertIntoPayload<T>(payload, outData, outSize);
-		dispatcher.mergePayloadToResponse(col, payload);
+		dispatcher.mergePayloadToResponse(alias, payload);
 	}
 	return 0;
 }

@@ -572,6 +572,7 @@ int32_t retCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 	else
 	{
 		auto colName = dispatcher.arguments.read<std::string>();
+		auto alias = dispatcher.arguments.read<std::string>();
 		std::cout << "RetPolygonCol: " << colName << ", thread: " << dispatcher.dispatcherThreadId << std::endl;
 
 		const size_t endOfPolyIdx = colName.find(".");
@@ -614,7 +615,7 @@ int32_t retCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 			std::cout << "dataSize: " << outSize << std::endl;
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 			insertIntoPayload<std::string>(payload, outData, outSize);
-			dispatcher.mergePayloadToResponse(colName, payload);
+			dispatcher.mergePayloadToResponse(alias, payload);
 		}
 		else
 		{
@@ -628,7 +629,7 @@ int32_t retCol<ColmnarDB::Types::ComplexPolygon>(GpuSqlDispatcher &dispatcher)
 			std::cout << "dataSize: " << block->GetSize() << std::endl;
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 			insertIntoPayload<std::string>(payload, outData, block->GetSize());
-			dispatcher.mergePayloadToResponse(colName, payload);
+			dispatcher.mergePayloadToResponse(alias, payload);
 		}
 	}
 	return 0;
@@ -644,6 +645,7 @@ int32_t retCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher)
 	else
 	{
 		auto colName = dispatcher.arguments.read<std::string>();
+		auto alias = dispatcher.arguments.read<std::string>();
 
 		int32_t loadFlag = dispatcher.loadCol<ColmnarDB::Types::Point>(colName);
 		if (loadFlag)
@@ -671,7 +673,7 @@ int32_t retCol<ColmnarDB::Types::Point>(GpuSqlDispatcher &dispatcher)
 		std::cout << "dataSize: " << outSize << std::endl;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 		insertIntoPayload<std::string>(payload, outData, outSize);
-		dispatcher.mergePayloadToResponse(colName, payload);
+		dispatcher.mergePayloadToResponse(alias, payload);
 	}
 	return 0;
 }
@@ -686,6 +688,7 @@ int32_t retCol<std::string>(GpuSqlDispatcher &dispatcher)
 	else
 	{
 		auto colName = dispatcher.arguments.read<std::string>();
+		auto alias = dispatcher.arguments.read<std::string>();
 		std::cout << "RetStringCol: " << colName << ", thread: " << dispatcher.dispatcherThreadId << std::endl;
 
 		const size_t endOfPolyIdx = colName.find(".");
@@ -728,7 +731,7 @@ int32_t retCol<std::string>(GpuSqlDispatcher &dispatcher)
 			std::cout << "dataSize: " << outSize << std::endl;
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 			insertIntoPayload<std::string>(payload, outData, outSize);
-			dispatcher.mergePayloadToResponse(colName, payload);
+			dispatcher.mergePayloadToResponse(alias, payload);
 		}
 		else
 		{
@@ -743,7 +746,7 @@ int32_t retCol<std::string>(GpuSqlDispatcher &dispatcher)
 			std::cout << "dataSize: " << block->GetSize() << std::endl;
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 			insertIntoPayload<std::string>(payload, outData, block->GetSize());
-			dispatcher.mergePayloadToResponse(colName, payload);
+			dispatcher.mergePayloadToResponse(alias, payload);
 		}
 	}
 	return 0;
