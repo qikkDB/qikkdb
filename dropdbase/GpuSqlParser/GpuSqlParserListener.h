@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from /Users/ms/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -100,6 +100,9 @@ public:
 
   virtual void enterDatabase(GpuSqlParser::DatabaseContext *ctx) = 0;
   virtual void exitDatabase(GpuSqlParser::DatabaseContext *ctx) = 0;
+
+  virtual void enterAlias(GpuSqlParser::AliasContext *ctx) = 0;
+  virtual void exitAlias(GpuSqlParser::AliasContext *ctx) = 0;
 
   virtual void enterLimit(GpuSqlParser::LimitContext *ctx) = 0;
   virtual void exitLimit(GpuSqlParser::LimitContext *ctx) = 0;

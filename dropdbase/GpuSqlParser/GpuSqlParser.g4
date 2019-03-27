@@ -20,7 +20,7 @@ sqlInsertInto   : INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN
 newTableColumns     : ((newTableColumn (COMMA newTableColumn)*));
 newTableColumn      : (columnId DATATYPE);
 selectColumns       : (((selectColumn) (COMMA selectColumn)*));
-selectColumn        : expression;
+selectColumn        : expression (AS alias)?;
 whereClause         : expression;
 orderByColumns      : ((orderByColumn (COMMA orderByColumn)*));
 orderByColumn       : (columnId DIR?);
@@ -36,6 +36,7 @@ joinTable           : table;
 table               : ID;
 column              : ID;
 database            : ID;
+alias               : ID;
 limit               : INTLIT;
 offset              : INTLIT;
 columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT|);

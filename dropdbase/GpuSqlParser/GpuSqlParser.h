@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from /Users/ms/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -38,11 +38,11 @@ public:
     RuleInsertIntoValues = 17, RuleInsertIntoColumns = 18, RuleGroupByColumns = 19, 
     RuleGroupByColumn = 20, RuleColumnId = 21, RuleFromTables = 22, RuleJoinClauses = 23, 
     RuleJoinClause = 24, RuleJoinTable = 25, RuleTable = 26, RuleColumn = 27, 
-    RuleDatabase = 28, RuleLimit = 29, RuleOffset = 30, RuleColumnValue = 31, 
-    RuleExpression = 32, RuleGeometry = 33, RulePointGeometry = 34, RuleLineStringGeometry = 35, 
-    RulePolygonGeometry = 36, RuleMultiPointGeometry = 37, RuleMultiLineStringGeometry = 38, 
-    RuleMultiPolygonGeometry = 39, RulePointOrClosedPoint = 40, RulePolygon = 41, 
-    RuleLineString = 42, RulePoint = 43
+    RuleDatabase = 28, RuleAlias = 29, RuleLimit = 30, RuleOffset = 31, 
+    RuleColumnValue = 32, RuleExpression = 33, RuleGeometry = 34, RulePointGeometry = 35, 
+    RuleLineStringGeometry = 36, RulePolygonGeometry = 37, RuleMultiPointGeometry = 38, 
+    RuleMultiLineStringGeometry = 39, RuleMultiPolygonGeometry = 40, RulePointOrClosedPoint = 41, 
+    RulePolygon = 42, RuleLineString = 43, RulePoint = 44
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -84,6 +84,7 @@ public:
   class TableContext;
   class ColumnContext;
   class DatabaseContext;
+  class AliasContext;
   class LimitContext;
   class OffsetContext;
   class ColumnValueContext;
@@ -331,6 +332,8 @@ public:
     SelectColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     ExpressionContext *expression();
+    antlr4::tree::TerminalNode *AS();
+    AliasContext *alias();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -555,6 +558,19 @@ public:
   };
 
   DatabaseContext* database();
+
+  class  AliasContext : public antlr4::ParserRuleContext {
+  public:
+    AliasContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ID();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  AliasContext* alias();
 
   class  LimitContext : public antlr4::ParserRuleContext {
   public:
