@@ -56,7 +56,7 @@ operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
 
 for operation in operations_binary:
-    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -89,7 +89,7 @@ for operation in operations_binary:
 
             else:
                 op = operation
-            function = op + col + row + "<" + colVal + ", " + rowVal + ">"
+            function = "GpuSqlDispatcher::" + op + col + row + "<" + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -110,13 +110,13 @@ for operation in operations_binary:
     print('\n')
 
 for operation in operations_unary:
-    print("static std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
+    print("static std::array<GpuSqlDispatcher::DispatchFunction, " \
           "DataType::DATA_TYPE_SIZE> " + operation + "Functions;")
 
 print('\n')
 
 for operation in operations_unary:
-    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction, " \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -130,7 +130,7 @@ for operation in operations_unary:
             op = "invalidOperandTypesErrorHandler"
         else:
             op = operation
-        function = op + col + "<" + colVal + ">"
+        function = "GpuSqlDispatcher::" + op + col + "<" + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")
@@ -153,13 +153,13 @@ for operation in operations_unary:
 print('\n')
 
 for operation in operations_move:
-    print("static std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
+    print("static std::array<GpuSqlDispatcher::DispatchFunction, " \
           "DataType::DATA_TYPE_SIZE> " + operation + "Functions;")
 
 print('\n')
 
 for operation in operations_move:
-    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction, " \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -170,11 +170,11 @@ for operation in operations_move:
             col = "Col"
 
         if (operation == 'groupBy') and ( colVal == STRING or colVal == BOOL or colVal in geo_types):
-            function = "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
+            function = "GpuSqlDispatcher::" + "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         elif (operation == 'ret') and (colVal == BOOL):
-            function = "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
+            function = "GpuSqlDispatcher::" + "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         else:
-            function = operation + col + "<" + colVal + ">"
+            function = "GpuSqlDispatcher::" + operation + col + "<" + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")
@@ -195,7 +195,7 @@ for operation in operations_move:
     print('\n')
 
 for operation in operations_filter:
-    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -225,7 +225,7 @@ for operation in operations_filter:
 
             else:
                 op = "filter"
-            function = op + col + row + "<FilterConditions::" + operation + ", " + colVal + ", " + rowVal + ">"
+            function = "GpuSqlDispatcher::" + op + col + row + "<FilterConditions::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -235,7 +235,7 @@ for operation in operations_filter:
     print(declaration)
 
 for operation in operations_logical:
-    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -262,7 +262,7 @@ for operation in operations_logical:
 
             else:
                 op = "logical"
-            function = op + col + row + "<LogicOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+            function = "GpuSqlDispatcher::" + op + col + row + "<LogicOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -272,7 +272,7 @@ for operation in operations_logical:
     print(declaration)
 
 for operation in operations_arithmetic:
-    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -303,7 +303,7 @@ for operation in operations_arithmetic:
             else:
                 op = "arithmetic"
 
-            function = op + col + row + "<ArithmeticOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+            function = "GpuSqlDispatcher::" + op + col + row + "<ArithmeticOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -314,11 +314,11 @@ for operation in operations_arithmetic:
 
 operation = "insertInto"
 
-declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
               "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
 for colIdx, colVal in enumerate(all_types):
-    function = operation + "<" + colVal + ">"
+    function = "GpuSqlDispatcher::" + operation + "<" + colVal + ">"
 
     if colIdx == len(all_types) - 1:
         declaration += ("&" + function + "};")
@@ -328,7 +328,7 @@ for colIdx, colVal in enumerate(all_types):
 print(declaration)
 
 for operation in operations_aggregation:
-    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction, " \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -353,9 +353,9 @@ for operation in operations_aggregation:
             if operation == "count":
                 retVal = LONG
             if col == "Col" and row == "Col" and op != "invalidOperandTypesErrorHandler":
-                function = op + col + row + "<AggregationFunctions::" + operation + ", " + retVal + ", " + colVal + ", " + rowVal + ">"
+                function = "GpuSqlDispatcher::" + op + col + row + "<AggregationFunctions::" + operation + ", " + retVal + ", " + colVal + ", " + rowVal + ">"
             else:
-                function = op + col + row + "<AggregationFunctions::" + operation + ", " + colVal + ", " + rowVal + ">"
+                function = "GpuSqlDispatcher::" + op + col + row + "<AggregationFunctions::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -365,7 +365,7 @@ for operation in operations_aggregation:
     print(declaration)
 
 for operation in operations_date:
-    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>, " \
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction, " \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -377,9 +377,10 @@ for operation in operations_date:
 
         if colVal != LONG:
             op = "invalidOperandTypesErrorHandler"
+            function = "GpuSqlDispatcher::" + op + col + "<DateOperations::" + operation + ", " + colVal + ">"
         else:
             op = "dateExtract"
-        function = op + col + "<DateOperations::" + operation + ", " + colVal + ">"
+            function = "GpuSqlDispatcher::" + op + col + "<DateOperations::" + operation + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")
@@ -389,7 +390,7 @@ for operation in operations_date:
     print(declaration)
 
 for operation in polygon_operations:
-    declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -410,7 +411,7 @@ for operation in polygon_operations:
 
             else:
                 op = "polygonOperation"
-            function = op + col + row + "<PolygonFunctions::poly" + operation.capitalize() + ", " + colVal + ", " + rowVal + ">"
+            function = "GpuSqlDispatcher::" + op + col + row + "<PolygonFunctions::poly" + operation.capitalize() + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -420,7 +421,7 @@ for operation in polygon_operations:
     print(declaration)
 
 operation = "point"
-declaration = "std::array<std::function<int32_t(GpuSqlDispatcher &)>," \
+declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
               "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
 for colIdx, colVal in enumerate(all_types):
@@ -443,7 +444,7 @@ for colIdx, colVal in enumerate(all_types):
         else:
             op = operation
 
-        function = op + col + row + "<" + colVal + ", " + rowVal + ">"
+        function = "GpuSqlDispatcher::" + op + col + row + "<" + colVal + ", " + rowVal + ">"
 
         if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")
