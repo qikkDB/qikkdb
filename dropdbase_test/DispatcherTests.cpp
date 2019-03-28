@@ -8298,3 +8298,49 @@ TEST(DispatcherTests, PointFromConstCol)
 		ASSERT_EQ(expectedResultsPoints[i], payloads.stringpayload().stringdata()[i]);
 	}
 }
+
+TEST(DispatcherTests, Alias)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT (t.colInteger1 - 10) AS col1, t.colFloat1 AS col2 FROM TableA as t WHERE t.colInteger1 > 20;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResultsInt;
+	std::vector<float> expectedResultsFloat;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i].get();
+		auto blockFloat = columnFloat->GetBlocksList()[i].get();
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if (blockInt->GetData()[k] > 20)
+			{
+				expectedResultsInt.push_back(blockInt->GetData()[k] - 10);
+				expectedResultsFloat.push_back(blockFloat->GetData()[k]);
+			}
+		}
+	}
+
+	auto &payloadsInt = result->payloads().at("col1");
+	auto &payloadsFloat = result->payloads().at("col2");
+	
+	ASSERT_EQ(payloadsInt.intpayload().intdata_size(), expectedResultsInt.size());
+	ASSERT_EQ(payloadsFloat.floatpayload().floatdata_size(), expectedResultsFloat.size());
+
+	for (int i = 0; i < payloadsInt.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsInt[i], payloadsInt.intpayload().intdata()[i]);
+	}
+
+	for (int i = 0; i < payloadsFloat.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
+	}
+}
