@@ -34,7 +34,7 @@ public:
 	BlockBase(const std::vector<T>& data, ColumnBase<T>& column, bool isCompressed = false) :
 		column_(column), size_(0), isCompressed_(isCompressed)
 	{
-		capacity_ = (isCompressed) ? data.size() : column_.GetBlockSize();
+		capacity_ = (isCompressed) ? data.size() : column.GetBlockSize();
 		data_ = std::unique_ptr<T[]>(new T[capacity_]);
 
 		if (column_.GetBlockSize() < data.size())
@@ -91,7 +91,7 @@ public:
 	bool IsFull() const
 	{
 		if (isCompressed_)
-			return false;
+			return true;
 		else
 			return EmptyBlockSpace() == 0;
 	}
@@ -129,7 +129,7 @@ public:
 
 		bool compressedSuccessfully = false;
 		std::vector<T> dataCompressed;
-		Compression::Compress(column_.GetColumnType(), data_.get(), size_, dataCompressed, compressedSuccessfully);
+		Compression::Compress(column_.GetColumnType(), data_.get(), size_, dataCompressed, min_, max_, compressedSuccessfully);
 		if (compressedSuccessfully)
 		{
 			GPUMemory::hostUnregister(data_.get());
@@ -154,7 +154,7 @@ public:
 
 		bool decompressedSuccessfully = false;
 		std::vector<T> dataDecompressed;		
-		Compression::Decompress(column_.GetColumnType(), data_.get(), size_, dataDecompressed, decompressedSuccessfully);
+		Compression::Decompress(column_.GetColumnType(), data_.get(), size_, dataDecompressed, min_, max_, decompressedSuccessfully);
 		if (decompressedSuccessfully)
 		{
 			GPUMemory::hostUnregister(data_.get());

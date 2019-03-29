@@ -477,7 +477,9 @@ public:
 						Compression::GetUncompressedDataSize(block->GetData()),
 						Compression::GetCompressedDataSize(block->GetData()),
 						Compression::GetCompressionBlocksCount(block->GetData()),
-						std::get<0>(cacheEntry),
+						std::get<0>(cacheEntry),						
+						block->GetMin(),
+						block->GetMax(),
 						isDecompressed
 					);
 					GPUMemory::free(deviceCompressed);					

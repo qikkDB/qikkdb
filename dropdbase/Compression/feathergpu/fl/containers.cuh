@@ -54,6 +54,8 @@ struct container_aafl {
     unsigned long *warp_position_id;
 
     unsigned long *data_register;
+
+	T offset;
 };
 
 template <typename T>

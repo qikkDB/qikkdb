@@ -12,6 +12,14 @@ __device__  void fl_compress_func (unsigned long data_id, container_uncompressed
 
     unsigned long long max_val = 0;
 
+	for (i = 0; i < CWORD_SIZE(T) && pos_data < udata.length; ++i)
+	{
+		udata.data[pos_data] = udata.data[pos_data] - cdata.offset;
+		pos_data += CWARP_SIZE;
+	}
+
+	pos_data = data_id;
+
     // Compute bit length for compressed block of data
     for (i = 0; i < CWORD_SIZE(T) && pos_data < udata.length; ++i)
     {
@@ -76,6 +84,14 @@ __global__ void gpu_aafl_decompress_kernel ( container_aafl<T> cdata, container_
         fl_decompress_func <T, CWARP_SIZE> (comp_data_id, data_id, cdata_fl, udata);
     else
         afl_decompress_constant_value <T, CWARP_SIZE> (comp_data_id, data_id, cdata_fl, udata, 0);
+
+	unsigned long pos_data = data_id;
+	unsigned int i = 0;
+	for (i = 0; i < CWORD_SIZE(T) && pos_data < udata.length; ++i)
+	{
+		udata.data[pos_data] = udata.data[pos_data] + cdata.offset;
+		pos_data += CWARP_SIZE;
+	}
 }
 
 
