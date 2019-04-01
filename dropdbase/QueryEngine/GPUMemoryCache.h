@@ -82,7 +82,7 @@ public:
 		cacheMapIt->second.lruQueueIt = (--lruQueue.end());
 		return { newPtr, size, false };
 	}
-
+	bool evict(const std::vector<std::string>& lockList);
 	void clearCachedBlock(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex);
 	bool containsColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex);
 	GPUMemoryCache(const GPUMemoryCache&) = delete;

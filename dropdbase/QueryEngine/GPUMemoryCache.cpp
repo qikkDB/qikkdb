@@ -30,6 +30,35 @@ void GPUMemoryCache::evict()
 	lruQueue.pop_front();
 }
 
+bool GPUMemoryCache::evict(const std::vector<std::string>& lockList)
+{
+	for(auto it = lruQueue.begin(); it != lruQueue.end(); it++)
+	{
+		auto& queueItem = *it;
+		bool isLockedItem = false;
+		for (const auto& lockedColumn : lockList)
+		{
+			if (it->ref.key.find_first_of(lockedColumn, 0) == 0)
+			{
+				isLockedItem = true;
+				break;
+			}
+		}
+
+		if (isLockedItem)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "Evict: " << reinterpret_cast<int8_t*>(queueItem.ref.ptr) << " " << queueItem.ref.size;
+		Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(queueItem.ref.ptr), queueItem.ref.size);
+		usedSize -= queueItem.ref.size;
+		BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "UsedSize: " << usedSize;
+		cacheMap.erase(queueItem.ref.key);
+		lruQueue.erase(it);
+	}
+}
+
 CudaMemAllocator & GPUMemoryCache::GetAllocator()
 {
 	return Context::getInstance().GetAllocatorForDevice(deviceID_);

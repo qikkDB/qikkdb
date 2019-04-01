@@ -52,7 +52,23 @@ public:
 	template<typename T>
 	static void alloc(T **p_Block, size_t dataElementCount)
 	{
-		*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
+		bool allocOK = false;
+		while (!allocOK)
+		{
+			try
+			{
+				*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
+				allocOK = true;
+			}
+			catch (const std::out_of_range& e)
+			{
+				std::vector<std::string >> lockList;
+				if (!Context::getInstance().getCacheForCurrentDevice().evict(lockList))
+				{
+					std::rethrow(e);
+				}
+			}
+		}
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
