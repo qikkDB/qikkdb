@@ -7,6 +7,7 @@
 #include "dropdbase/QueryEngine/Context.h" 
 #include <memory>
 #include <string>
+#include <limits>
 #include "dropdbase/Types/ComplexPolygon.pb.h"
 #include "dropdbase/Types/Point.pb.h"
 #include "dropdbase/QueryEngine/QueryEngineError.h"
@@ -16,6 +17,11 @@ template<typename T>
 bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size, std::vector<T>& host_compressed, int64_t& compressed_size, T min, T max)
 {
 	T offset = min;
+	if (min < 0)
+	{
+		if (std::numeric_limits<T>::max() - max < -min)
+			offset = 0;
+	}
 
 	int64_t data_size = size * sizeof(T);
 	int64_t compression_blocks_count = (data_size + (sizeof(T) * CWARP_SIZE) - 1) / (sizeof(T) * CWARP_SIZE);
