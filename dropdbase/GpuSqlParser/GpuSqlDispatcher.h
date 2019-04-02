@@ -429,12 +429,6 @@ public:
 	template<typename T>
 	int32_t insertInto();
 
-	template<>
-	int32_t insertInto<ColmnarDB::Types::ComplexPolygon>();
-
-	template<>
-	int32_t insertInto<ColmnarDB::Types::Point>();
-
 	int32_t insertIntoDone();
 
     template<typename T, typename U>
@@ -533,5 +527,10 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
 template <>
 int32_t GpuSqlDispatcher::retCol<std::string>();
 
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::Point>();
 
 #endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
