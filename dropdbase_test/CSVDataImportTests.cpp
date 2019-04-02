@@ -13,7 +13,7 @@ TEST(CSVDataImportTests, CreateTable)
 	importer.ImportTables(database);
 
 	ASSERT_EQ(true, database->GetTables().find("valid_header") != database->GetTables().end());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, ImportHeader)
@@ -31,7 +31,7 @@ TEST(CSVDataImportTests, ImportHeader)
 	ASSERT_EQ(true, database->GetTables().find("valid_header")->second.GetColumns().find("ageId") != database->GetTables().find("valid_header")->second.GetColumns().end());
 	ASSERT_EQ(true, database->GetTables().find("valid_header")->second.GetColumns().find("wealthIndexId") != database->GetTables().find("valid_header")->second.GetColumns().end());
 	ASSERT_EQ(true, database->GetTables().find("valid_header")->second.GetColumns().find("hwOsId") != database->GetTables().find("valid_header")->second.GetColumns().end());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, ImportWithoutHeader)
@@ -49,7 +49,7 @@ TEST(CSVDataImportTests, ImportWithoutHeader)
 	ASSERT_EQ(true, database->GetTables().find("valid_no_header")->second.GetColumns().find("C4") != database->GetTables().find("valid_no_header")->second.GetColumns().end());
 	ASSERT_EQ(true, database->GetTables().find("valid_no_header")->second.GetColumns().find("C5") != database->GetTables().find("valid_no_header")->second.GetColumns().end());
 	ASSERT_EQ(true, database->GetTables().find("valid_no_header")->second.GetColumns().find("C6") != database->GetTables().find("valid_no_header")->second.GetColumns().end());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, GuessTypes)
@@ -67,7 +67,7 @@ TEST(CSVDataImportTests, GuessTypes)
 	ASSERT_EQ(COLUMN_INT, database->GetTables().find("valid_header")->second.GetColumns().find("ageId")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_INT, database->GetTables().find("valid_header")->second.GetColumns().find("wealthIndexId")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_INT, database->GetTables().find("valid_header")->second.GetColumns().find("hwOsId")->second->GetColumnType());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, GuessTypesMessedTypes)
@@ -83,7 +83,7 @@ TEST(CSVDataImportTests, GuessTypesMessedTypes)
 	ASSERT_EQ(COLUMN_LONG, database->GetTables().find("valid_header_messed_types")->second.GetColumns().find("targetId")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_FLOAT, database->GetTables().find("valid_header_messed_types")->second.GetColumns().find("genderId")->second->GetColumnType());	
 	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("valid_header_messed_types")->second.GetColumns().find("ageId")->second->GetColumnType());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, ImportSingleThread)
@@ -102,7 +102,7 @@ TEST(CSVDataImportTests, ImportSingleThread)
 	ASSERT_EQ(21.2282657634477f, dynamic_cast<ColumnBase<float>*>(database->GetTables().find("valid_header")->second.GetColumns().at("longitude").get())->GetBlocksList().front()->GetData()[11]);
 	ASSERT_EQ(-1, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("genderId").get())->GetBlocksList().front()->GetData()[12]);
 	ASSERT_EQ(3, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("hwOsId").get())->GetBlocksList().front()->GetData()[100]);
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, ImportMultiThread)
@@ -116,7 +116,7 @@ TEST(CSVDataImportTests, ImportMultiThread)
 
 
 	ASSERT_EQ(101, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetSize());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, ImportSkipRow)
@@ -128,7 +128,7 @@ TEST(CSVDataImportTests, ImportSkipRow)
 	importer.ImportTables(database);
 
 	ASSERT_EQ(100, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("invalid_row_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetSize());	
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, WktTypes)
@@ -143,7 +143,7 @@ TEST(CSVDataImportTests, WktTypes)
 	ASSERT_EQ(COLUMN_POLYGON, database->GetTables().find("wkt_header")->second.GetColumns().find("p2")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_INT, database->GetTables().find("wkt_header")->second.GetColumns().find("p3")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header")->second.GetColumns().find("p4")->second->GetColumnType());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, WktTypesMessedTypes)
@@ -158,7 +158,7 @@ TEST(CSVDataImportTests, WktTypesMessedTypes)
 	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header_messed_types")->second.GetColumns().find("p2")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header_messed_types")->second.GetColumns().find("p3")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header_messed_types")->second.GetColumns().find("p4")->second->GetColumnType());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, WktImport)
@@ -170,7 +170,7 @@ TEST(CSVDataImportTests, WktImport)
 	importer.ImportTables(database);
 
 	ASSERT_EQ(101, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetSize());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, WktImportInvalidRow)
@@ -182,7 +182,7 @@ TEST(CSVDataImportTests, WktImportInvalidRow)
 	importer.ImportTables(database);
 
 	ASSERT_EQ(100, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header_invalid_row")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetSize());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, CreateTableFromString)
@@ -296,7 +296,7 @@ TEST(CSVDataImportTests, CreateTableFromString)
 	importer.ImportTables(database);
 
 	ASSERT_EQ(true, database->GetTables().find("valid_header") != database->GetTables().end());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }
 
 TEST(CSVDataImportTests, ImportFromString)
@@ -414,5 +414,5 @@ TEST(CSVDataImportTests, ImportFromString)
 	ASSERT_EQ(21.2282657634477f, dynamic_cast<ColumnBase<float>*>(database->GetTables().find("valid_header")->second.GetColumns().at("longitude").get())->GetBlocksList().front()->GetData()[11]);
 	ASSERT_EQ(-1, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("genderId").get())->GetBlocksList().front()->GetData()[12]);
 	ASSERT_EQ(3, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("hwOsId").get())->GetBlocksList().front()->GetData()[100]);
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase");
 }

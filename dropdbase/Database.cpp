@@ -21,7 +21,7 @@ std::mutex Database::dbMutex_;
 /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
 /// </summary>
 /// <param name="databaseName">Database name.</param>
-/// <param name="blockSize">Block size of all blocks in this database</param>
+/// <param name="blockSize">Block size of all blocks in this database.</param>
 Database::Database(const char* databaseName, int32_t blockSize)
 {
     name_ = databaseName;
@@ -130,7 +130,7 @@ void Database::Persist(const char* path)
 /// <summary>
 /// Save all databases currently in memory to disk. All databases will be saved in the same directory
 /// </summary>
-/// <param name="path">Path to database storage directory</param>
+/// <param name="path">Path to database storage directory.</param>
 void Database::SaveAllToDisk()
 {
 	auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
@@ -142,7 +142,7 @@ void Database::SaveAllToDisk()
 
 /// <summary>
 /// Load databases from disk storage. Databases .db and .col files have to be in the same directory,
-/// so all databases have to be in the same dorectory to be loaded using this procedure
+/// so all databases have to be in the same dorectory to be loaded using this procedure.
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
@@ -759,9 +759,9 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 }
 
 /// <summary>
-/// Add database to in memory list
+/// Add database to in memory list.
 /// </summary>
-/// <param name="database">Database to add</param>
+/// <param name="database">Database to be added.</param>
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
 	std::lock_guard<std::mutex> lock(dbMutex_);
@@ -771,17 +771,21 @@ void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 	}
 }
 
-void Database::DestroyDatabase(const char* databaseName)
+/// <summary>
+/// Remove database from in memory database list.
+/// </summary>
+/// <param name="databaseName">Name of database to be removed.</param>
+void Database::RemoveFromInMemoryDatabaseList(const char* databaseName)
 {
-	// Erase db from map
+	// erase db from map
 	std::lock_guard<std::mutex> lock(dbMutex_);
 	Context::getInstance().GetLoadedDatabases().erase(databaseName);
 }
 
 /// <summary>
-/// Get number of blocks
+/// Get number of blocks.
 /// </summary>
-/// <returns>Number of blocks</param>
+/// <returns>Number of blocks.</param>
 int Database::GetBlockCount()
 {
     for (auto& table : tables_)

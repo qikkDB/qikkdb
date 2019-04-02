@@ -141,11 +141,11 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 							date.tm_mday = sameDataInBlocks ? 10 : ((k % 28) + 1);
 							date.tm_mon = sameDataInBlocks ? 10 : (k % 12);
 							date.tm_year = sameDataInBlocks ? 110 : ((k % 1000) + 100);
-							#ifdef WIN32 
+#ifdef WIN32 
 							const time_t utcTimestamp = _mkgmtime64(&date);
-							#else
+#else
 							const time_t utcTimestamp = timegm(&date);
-							#endif
+#endif
 
 							longData.push_back(static_cast<int64_t>(utcTimestamp));
 						}
@@ -174,7 +174,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 						}
 						else
 						{
-							floatData.push_back(sameDataInBlocks ? (float) -0.1111 : (float)((k % (1024 * floatColumnCount) + 0.1111) * -1));
+							floatData.push_back(sameDataInBlocks ? (float)-0.1111 : (float)((k % (1024 * floatColumnCount) + 0.1111) * -1));
 						}
 					}
 					column.AddBlock(floatData);
@@ -262,10 +262,10 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 					for (int k = 0; k < blockSize; k++)
 					{
 						polygonData.push_back(sameDataInBlocks ? ComplexPolygonFactory::FromWkt("POLYGON((-1 1, 2.5 2.5, -1 1),(5 15.5, 10.5 10.5, 20.5 10.5, 25 15.5, 20.5 20, 10.5 20, 5 15.5))") :
-							ComplexPolygonFactory::FromWkt(std::string("POLYGON((1 1, 2.5 2.5, 1 1),(") + std::to_string(5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " + std::to_string(15.5 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(10.5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " +
-								std::to_string(10.5 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(20.5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " + std::to_string(10.5 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(25 + 5 * (pointColumnCount - 1) + k * 0.001) + " " +
-								std::to_string(15.5 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(20.5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " + std::to_string(20 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(10.5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " +
-								std::to_string(20 + 5 * (pointColumnCount - 1) + k * 0.001) + ", " + std::to_string(5 + 5 * (pointColumnCount - 1) + k * 0.001) + " " + std::to_string(15.5 + 5 * (pointColumnCount - 1) + k * 0.001) + "))"));
+							ComplexPolygonFactory::FromWkt(std::string("POLYGON((1 1, 2.5 2.5, 1 1),(") + std::to_string(5 + 5 * (polygonColumnCount - 1) + k * 0.001) + " " + std::to_string(15.5 + 5 * (polygonColumnCount - 1) + k * 0.001) + ", " + std::to_string(10.5 + 5 * (polygonColumnCount - 1) + k * 0.001) + " " +
+								std::to_string(10.5 + 5 * (polygonColumnCount - 1) + k * 0.001) + ", " + std::to_string(20.5 + 5 * (polygonColumnCount - 1) + k * 0.001) + " " + std::to_string(10.5 + 5 * (polygonColumnCount - 1) + k * 0.001) + ", " + std::to_string(25 + 5 * (polygonColumnCount - 1) + k * 0.001) + " " +
+								std::to_string(15.5 + 5 * (polygonColumnCount - 1) + k * 0.001) + ", " + std::to_string(20.5 + 5 * (polygonColumnCount - 1) + k * 0.001) + " " + std::to_string(20 + 5 * (polygonColumnCount - 1) + k * 0.001) + ", " + std::to_string(10.5 + 5 * (polygonColumnCount - 1) + k * 0.001) + " " +
+								std::to_string(20 + 5 * (polygonColumnCount - 1) + k * 0.001) + ", " + std::to_string(5 + 5 * (polygonColumnCount - 1) + k * 0.001) + " " + std::to_string(15.5 + 5 * (polygonColumnCount - 1) + k * 0.001) + "))"));
 					}
 					column.AddBlock(polygonData);
 				}
@@ -286,7 +286,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						stringData.push_back(sameDataInBlocks ? "Word1enD-1" : "Word" + std::to_string(k % (1024 * stringColumnCount)));
+						stringData.push_back(sameDataInBlocks ? "Word1enD1" : "Word" + std::to_string(k % (1024 * stringColumnCount)));
 					}
 					column.AddBlock(stringData);
 				}
@@ -318,12 +318,10 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 					}
 					column.AddBlock(integerData);
 				}
-			}
 				break;
 			}
+			}
 		}
-
 	}
-
 	return database;
 }

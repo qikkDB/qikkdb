@@ -13,6 +13,7 @@
 #include "../PointFactory.h"
 #include "../ComplexPolygonFactory.h"
 #include <unordered_set>
+#include <unordered_map>
 #include <functional>
 #include <string>
 #include <memory>
@@ -28,6 +29,8 @@ private:
     const std::shared_ptr<Database> &database;
     GpuSqlDispatcher &dispatcher;
     std::stack<std::pair<std::string, DataType>> parserStack;
+	std::unordered_map<std::string, std::string> tableAliases;
+	std::unordered_set<std::string> columnAliases;
     std::unordered_set<std::string> loadedTables;
 	int32_t linkTableIndex;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;

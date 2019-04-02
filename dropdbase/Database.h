@@ -10,7 +10,7 @@
 #include "Table.h"
 #include "QueryEngine/Context.h"
 /// <summary>
-/// The main class representing database containing tables with data
+/// The main class representing database containing tables with data.
 /// </summary>
 class Database
 {
@@ -47,7 +47,7 @@ public:
 	/// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
 	/// </summary>
 	/// <param name="databaseName">Database name.</param>
-	/// <param name="blockSize">Block size of all blocks in this database</param>
+	/// <param name="blockSize">Block size of all blocks in this database.</param>
 	Database(const char* databaseName, int32_t blockSize = 1 << 18);
 
 	~Database();
@@ -80,6 +80,7 @@ public:
 	/// </summary>
 	/// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
 	/// <param name="path">Path to directory in which database files are.</param>
+	/// <returns>Newly created table.</returns>
 	static std::shared_ptr<Database> LoadDatabase(const char* fileDbName, const char* path);
 
 	/// <summary>
@@ -87,20 +88,20 @@ public:
 	/// </summary>
 	/// <param name="columns">Columns with types.</param>
 	/// <param name="tableName">Table name.</param>
-	/// <returns>Newly created table</returns>
+	/// <returns>Newly created table.</returns>
 	Table& CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName);
 
 	/// <summary>
-	/// Add database to in memory list
+	/// Add database to in memory list.
 	/// </summary>
-	/// <param name="database">Database to add</param>
+	/// <param name="database">Database to be added.</param>
 	static void AddToInMemoryDatabaseList(std::shared_ptr<Database> database);
 
 	/// <summary>
-	/// Get database from in memory list
+	/// Get database from in memory list.
 	/// </summary>
-	/// <param name="databaseName">Name of database to get</param>
-	/// <returns>Database object or null</returns>
+	/// <param name="databaseName">Name of database to get.</param>
+	/// <returns>Database object or null-</returns>
 	static std::shared_ptr<Database> GetDatabaseByName(std::string databaseName)
 	{
 		std::lock_guard<std::mutex> lock(dbMutex_);
@@ -115,14 +116,14 @@ public:
 	}
 
 	/// <summary>
-	/// Remove database from in memory list
+	/// Remove database from in memory database list.
 	/// </summary>
-	/// <param name="databaseName">Name of database to be removed</param>
-	static void DestroyDatabase(const char* databaseName);
+	/// <param name="databaseName">Name of database to be removed.</param>
+	static void RemoveFromInMemoryDatabaseList(const char* databaseName);
 
 	/// <summary>
-	/// Get number of blocks
+	/// Get number of blocks.
 	/// </summary>
-	/// <returns>Number of blocks</param>
+	/// <returns>Number of blocks.</returns>
 	int GetBlockCount();
 };

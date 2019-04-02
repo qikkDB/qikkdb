@@ -20,7 +20,7 @@ sqlInsertInto   : INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN
 newTableColumns     : ((newTableColumn (COMMA newTableColumn)*));
 newTableColumn      : (columnId DATATYPE);
 selectColumns       : (((selectColumn) (COMMA selectColumn)*));
-selectColumn        : expression;
+selectColumn        : expression (AS alias)?;
 whereClause         : expression;
 orderByColumns      : ((orderByColumn (COMMA orderByColumn)*));
 orderByColumn       : (columnId DIR?);
@@ -29,13 +29,15 @@ insertIntoColumns   : ((columnId (COMMA columnId)*));
 groupByColumns      : ((groupByColumn (COMMA groupByColumn)*));
 groupByColumn       : expression;
 columnId            : (column)|(table DOT column);
-fromTables          : ((table (COMMA table)*));
+fromTables          : ((fromTable (COMMA fromTable)*));
 joinClauses         : (joinClause)+;
 joinClause          : (JOIN joinTable ON expression);
-joinTable           : table;
+joinTable           : table (AS alias)?;
+fromTable           : table (AS alias)?;
 table               : ID;
 column              : ID;
 database            : ID;
+alias               : ID;
 limit               : INTLIT;
 offset              : INTLIT;
 columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT|);
@@ -50,10 +52,11 @@ expression : op=NOT expression                                                  
            | op=SECOND LPAREN expression RPAREN                                           # unaryOperation
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation
+           | left=expression op=MODULO right=expression                                   # binaryOperation
            | left=expression op=(GREATER|LESS) right=expression                           # binaryOperation
            | left=expression op=(GREATEREQ|LESSEQ) right=expression                       # binaryOperation
            | left=expression op=(EQUALS|NOTEQUALS) right=expression                       # binaryOperation
-           | left=expression op=MODULO right=expression                                   # binaryOperation
+           | op=POINT LPAREN left=expression COMMA right=expression RPAREN                # binaryOperation
            | op=GEO_CONTAINS LPAREN left=expression COMMA right=expression RPAREN         # binaryOperation
            | op=GEO_INTERSECT LPAREN left=expression COMMA right=expression RPAREN        # binaryOperation
            | op=GEO_UNION LPAREN left=expression COMMA right=expression RPAREN            # binaryOperation
