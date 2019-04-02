@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
+#include <vector>
 #ifndef __CUDACC__
 #include <any>
 #endif
