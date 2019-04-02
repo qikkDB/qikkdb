@@ -14,7 +14,8 @@
 
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSqlDispatcher& dispatcher): 
 	database(database), 
-	dispatcher(dispatcher), 
+	dispatcher(dispatcher),
+	linkTableIndex(0),
 	resultLimit(-1), 
 	resultOffset(-1),
 	usingGroupBy(false), 
@@ -576,8 +577,13 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
     std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
     const DataType columnType = std::get<1>(tableColumnData);
 	const std::string tableColumn = std::get<0>(tableColumnData);
-	
-    parserStack.push(std::make_pair(tableColumn, columnType));
+
+	parserStack.push(std::make_pair(tableColumn, columnType));
+
+	if (dispatcher.linkTable.find(tableColumn) == dispatcher.linkTable.end())
+	{
+		dispatcher.linkTable.insert({ tableColumn, linkTableIndex++ });
+	}
 }
 
 void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * ctx)
