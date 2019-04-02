@@ -92,7 +92,7 @@ private:
 	T min_ = std::numeric_limits<T>::lowest();
 	T max_ = std::numeric_limits<T>::max();
 	float avg_ = 0.0;
-	T sum_ = T{ 0 };
+	T sum_ = T{};
 	float initAvg_ = 0.0; //initial average is needed, because avg_ is constantly changing and we need unchable value for comparing in binary index
 	bool initAvgIsSet_ = false;
 
@@ -145,9 +145,19 @@ public:
 	/// Blocks getter
 	/// </summary>
 	/// <returns>List of blocks in current column</returns>
-	const std::vector<std::unique_ptr<BlockBase<T>>>& GetBlocksList() const
+	const std::vector<BlockBase<T> *> GetBlocksList() const
 	{
-		return blocks_;
+		std::vector<BlockBase<T> *> ret;
+
+		for (auto& stuff : blocks_)
+		{
+			for (auto& ptr : stuff.second)
+			{
+				ret.emplace_back(ptr.get());
+			}
+		}
+
+		return ret;
 	};
 
 	/// <summary>
@@ -258,6 +268,14 @@ public:
 
 	virtual int32_t GetBlockCount() const override
 	{
-		return blocks_.size();
+		int32_t ret = 0;
+
+		//TODO preiterovat celu mapu a zosumovat bloky
+		for (auto& stuff : blocks_)
+		{
+			ret += stuff.second.size();
+		}
+
+		return ret;
 	}
 };

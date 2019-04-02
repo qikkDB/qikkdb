@@ -456,7 +456,7 @@ public:
 			}
 
 			auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
-			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
+			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
 
 			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
 				database->GetName(), colName, blockIndex, block->GetSize());

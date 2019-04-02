@@ -17,7 +17,7 @@ private:
 	T min_ = std::numeric_limits<T>::lowest();
 	T max_ = std::numeric_limits<T>::max();
 	float avg_ = 0.0;
-	T sum_ = T{0};
+	T sum_ = T{};
 	int32_t groupId_ = -1; //index for group of blocks - binary index
 
 	void setBlockStatistics();
