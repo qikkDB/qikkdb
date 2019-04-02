@@ -599,7 +599,10 @@ void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB:
 					aggregateOnCPU<int32_t>(operation, payload.intpayload().intdata()[0],
 						responseMessage.mutable_payloads()->at(trimmedKey).intpayload().intdata()[0]);
 				aggregationOperationFound = result.first;
-				responseMessage.mutable_payloads()->at(trimmedKey).mutable_intpayload()->set_intdata(0, result.second);
+				if (aggregationOperationFound)
+				{
+					responseMessage.mutable_payloads()->at(trimmedKey).mutable_intpayload()->set_intdata(0, result.second);
+				}
 				break;
 			}
 			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
@@ -608,9 +611,10 @@ void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB:
 					aggregateOnCPU<int64_t>(operation, payload.int64payload().int64data()[0],
 						responseMessage.payloads().at(trimmedKey).int64payload().int64data()[0]);
 				aggregationOperationFound = result.first;
-				std::cout << "tk: " << trimmedKey << ", before: " << responseMessage.payloads().at(trimmedKey).int64payload().int64data()[0] << ", rs:" << result.second << std::endl;
-				responseMessage.mutable_payloads()->at(trimmedKey).mutable_int64payload()->set_int64data(0, result.second);
-				std::cout << "tk: " << trimmedKey << ", after:" << responseMessage.payloads().at(trimmedKey).int64payload().int64data()[0] << ", rs:" << result.second << std::endl;
+				if (aggregationOperationFound)
+				{
+					responseMessage.mutable_payloads()->at(trimmedKey).mutable_int64payload()->set_int64data(0, result.second);
+				}
 				break;
 			}
 			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
@@ -619,7 +623,10 @@ void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB:
 					aggregateOnCPU<float>(operation, payload.floatpayload().floatdata()[0],
 						responseMessage.mutable_payloads()->at(trimmedKey).floatpayload().floatdata()[0]);
 				aggregationOperationFound = result.first;
-				responseMessage.mutable_payloads()->at(trimmedKey).mutable_floatpayload()->set_floatdata(0, result.second);
+				if (aggregationOperationFound)
+				{
+					responseMessage.mutable_payloads()->at(trimmedKey).mutable_floatpayload()->set_floatdata(0, result.second);
+				}
 				break;
 			}
 			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
@@ -628,7 +635,10 @@ void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB:
 					aggregateOnCPU<double>(operation, payload.doublepayload().doubledata()[0],
 						responseMessage.mutable_payloads()->at(trimmedKey).doublepayload().doubledata()[0]);
 				aggregationOperationFound = result.first;
-				responseMessage.mutable_payloads()->at(trimmedKey).mutable_doublepayload()->set_doubledata(0, result.second);
+				if (aggregationOperationFound)
+				{
+					responseMessage.mutable_payloads()->at(trimmedKey).mutable_doublepayload()->set_doubledata(0, result.second);
+				}
 				break;
 			}
 			}
@@ -636,7 +646,9 @@ void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB:
 
 		if (!aggregationOperationFound)
 		{
+			std::cout << "tk: " << trimmedKey << ", before: " << responseMessage.payloads().at(trimmedKey).intpayload().intdata_size() << std::endl;
 			responseMessage.mutable_payloads()->at(trimmedKey).MergeFrom(payload);
+			std::cout << "after: " << responseMessage.payloads().at(trimmedKey).intpayload().intdata_size() << std::endl;
 		}
 	}
 }
