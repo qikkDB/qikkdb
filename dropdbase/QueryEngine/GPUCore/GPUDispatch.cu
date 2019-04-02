@@ -39,6 +39,12 @@ __device__ void containsFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048
 	//Zavolaj Contains,urob z neho device funkiu
 }
 
+
+__device__ void invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
+{
+
+}
+
 __device__ void invalidContainsArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
 
@@ -68,7 +74,7 @@ __device__ DispatchFunction add_gpu_second_function(int32_t dataTypes);
 __device__ DispatchFunction add_gpu_pushCol_function(int32_t dataTypes);
 __device__ DispatchFunction add_gpu_pushConst_function(int32_t dataTypes);
 
-void FillGpuDispatchTable(DispatchFunction * gpuDispatchPtr, size_t arraySize)
+__global__ void kernel_fill_gpu_dispatch_table(DispatchFunction * gpuDispatchPtr, size_t arraySize)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -756,7 +762,6 @@ __device__ DispatchFunction add_gpu_logicalAnd_function(int32_t dataTypes)
 	}
 }
 
-
 __device__ DispatchFunction add_gpu_logicalOr_function(int32_t dataTypes)
 {
 	switch (dataTypes)
@@ -1196,12 +1201,6 @@ __device__ DispatchFunction add_gpu_mod_function(int32_t dataTypes)
 	case 1:
 		return &arithmeticFunction<ArithmeticOperations::mod, int32_t, int32_t, int64_t>;
 		break;
-	case 2:
-		return &arithmeticFunction<ArithmeticOperations::mod, int32_t, int32_t, float>;
-		break;
-	case 3:
-		return &arithmeticFunction<ArithmeticOperations::mod, int32_t, int32_t, double>;
-		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::mod, int32_t, int32_t, int8_t>;
 		break;
@@ -1211,56 +1210,14 @@ __device__ DispatchFunction add_gpu_mod_function(int32_t dataTypes)
 	case 17:
 		return &arithmeticFunction<ArithmeticOperations::mod, int64_t, int64_t, int64_t>;
 		break;
-	case 18:
-		return &arithmeticFunction<ArithmeticOperations::mod, int64_t, int64_t, float>;
-		break;
-	case 19:
-		return &arithmeticFunction<ArithmeticOperations::mod, int64_t, int64_t, double>;
-		break;
 	case 23:
 		return &arithmeticFunction<ArithmeticOperations::mod, int64_t, int64_t, int8_t>;
-		break;
-	case 32:
-		return &arithmeticFunction<ArithmeticOperations::mod, float, float, int32_t>;
-		break;
-	case 33:
-		return &arithmeticFunction<ArithmeticOperations::mod, float, float, int64_t>;
-		break;
-	case 34:
-		return &arithmeticFunction<ArithmeticOperations::mod, float, float, float>;
-		break;
-	case 35:
-		return &arithmeticFunction<ArithmeticOperations::mod, float, float, double>;
-		break;
-	case 39:
-		return &arithmeticFunction<ArithmeticOperations::mod, float, float, int8_t>;
-		break;
-	case 48:
-		return &arithmeticFunction<ArithmeticOperations::mod, double, double, int32_t>;
-		break;
-	case 49:
-		return &arithmeticFunction<ArithmeticOperations::mod, double, double, int64_t>;
-		break;
-	case 50:
-		return &arithmeticFunction<ArithmeticOperations::mod, double, double, float>;
-		break;
-	case 51:
-		return &arithmeticFunction<ArithmeticOperations::mod, double, double, double>;
-		break;
-	case 55:
-		return &arithmeticFunction<ArithmeticOperations::mod, double, double, int8_t>;
 		break;
 	case 112:
 		return &arithmeticFunction<ArithmeticOperations::mod, int8_t, int8_t, int32_t>;
 		break;
 	case 113:
 		return &arithmeticFunction<ArithmeticOperations::mod, int8_t, int8_t, int64_t>;
-		break;
-	case 114:
-		return &arithmeticFunction<ArithmeticOperations::mod, int8_t, int8_t, float>;
-		break;
-	case 115:
-		return &arithmeticFunction<ArithmeticOperations::mod, int8_t, int8_t, double>;
 		break;
 	case 119:
 		return &arithmeticFunction<ArithmeticOperations::mod, int8_t, int8_t, int8_t>;

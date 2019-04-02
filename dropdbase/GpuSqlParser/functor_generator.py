@@ -474,6 +474,9 @@ for operation in arithmetic_operations:
             elif colVal == STRING or rowVal == STRING:
                 validCombination = False
 
+            elif operation == 'mod' and (colVal in floating_types or rowVal in floating_types):
+                validCombination = False
+
             if validCombination:
                 print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
                 print(

@@ -14,4 +14,4 @@ struct GPUOpCode
 	char data[sizeof(void*)];
 };
 
-void FillGpuDispatchTable(DispatchFunction* gpuDispatchPtr, size_t arraySize);
+__global__ void kernel_fill_gpu_dispatch_table(DispatchFunction* gpuDispatchPtr, size_t arraySize);

@@ -110,6 +110,8 @@ private:
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> ldFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
@@ -230,6 +232,8 @@ public:
 
     void addAvgFunction(DataType key, DataType value);
 
+	void addLoadFunction(DataType type);
+
     void addRetFunction(DataType type);
 
     void addFilFunction();
@@ -251,6 +255,8 @@ public:
     void addGroupByFunction(DataType type);
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
+
+	std::unordered_map<std::string, int32_t> linkTable;
 	
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size)

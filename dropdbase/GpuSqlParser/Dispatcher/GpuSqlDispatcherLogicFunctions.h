@@ -237,7 +237,7 @@ int32_t GpuSqlDispatcher::logicalNotCol()
 	if (!isRegisterAllocated(reg))
 	{
 		int8_t * mask = allocateRegister<int8_t>(reg, retSize);
-		GPULogic::not_col<int8_t, T>(mask, reinterpret_cast<T*>(std::get<0>(column)), retSize);
+		GPULogic::not_col<T>(mask, reinterpret_cast<T*>(std::get<0>(column)), retSize);
 	}
 
 	freeColumnIfRegister<T>(colName);

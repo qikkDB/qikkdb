@@ -19,7 +19,7 @@ __device__ void arithmeticFunction(GPUOpCode opCode, int32_t offset, GPUStack<20
 	R right = gpuStack.pop<R>();
 	L left = gpuStack.pop<L>();
 	int32_t errorFlag;
-	gpuStack.push<T>(OP{}.template operator() < T, L, R > (left, right, &errorFlag, std::numeric_limits<T>::min(), std::numeric_limits<T>::max()));
+	gpuStack.push<T>(OP{}.template operator() < T, L, R > (left, right, &errorFlag, std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max()));
 }
 
 template <typename OP>
