@@ -707,6 +707,7 @@ void GpuSqlListener::pushTempResult(std::string reg, DataType type)
 
 void GpuSqlListener::pushArgument(const char *token, DataType dataType)
 {
+	// push gpu where op code
     switch (dataType)
     {
         case DataType::CONST_INT:

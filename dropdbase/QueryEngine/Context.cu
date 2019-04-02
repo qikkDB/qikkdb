@@ -37,15 +37,14 @@ Context::Context()
 		// Get the correct blockDim from the device - use always based on the bound device - optimal for kernels
 		queriedBlockDimensionList.push_back(deviceProp.maxThreadsPerBlock);
 		const int32_t DISPATCH_ARRAY_SIZE = DataType::COLUMN_INT * DataType::COLUMN_INT * OPERATIONS_COUNT;
-		std::unique_ptr<DispatchFunction[]> dispatchTable(new DispatchFunction[DISPATCH_ARRAY_SIZE]);
-		cudaHostRegister(dispatchTable.get(), DISPATCH_ARRAY_SIZE * sizeof(DispatchFunction),
+		std::unique_ptr<GpuVMFunction[]> dispatchTable(new GpuVMFunction[DISPATCH_ARRAY_SIZE]);
+		cudaHostRegister(dispatchTable.get(), DISPATCH_ARRAY_SIZE * sizeof(GpuVMFunction),
 			cudaHostRegisterDefault);
-		DispatchFunction* gpuDispatchPtr;
+		GpuVMFunction* gpuDispatchPtr;
 		cudaHostGetDevicePointer(&gpuDispatchPtr, dispatchTable.get(), 0);
 
 		kernel_fill_gpu_dispatch_table << <calcGridDim(DISPATCH_ARRAY_SIZE), getBlockDim() >> > (gpuDispatchPtr, DISPATCH_ARRAY_SIZE);
 		cudaHostUnregister(dispatchTable.get());
-
 
 		gpuDispatchTables.emplace_back(std::move(dispatchTable));
 
@@ -176,6 +175,16 @@ GPUMemoryCache& Context::getCacheForDevice(int32_t deviceID)
 GPUMemoryCache& Context::getCacheForCurrentDevice()
 {
 	return *gpuCaches_.at(getBoundDeviceID());
+}
+
+GpuVMFunction* Context::getDispatchTableForDevice(int32_t deviceID)
+{
+	return gpuDispatchTables.at(deviceID).get();
+}
+
+GpuVMFunction* Context::getDispatchTablesForCurrentDevice()
+{
+	return gpuDispatchTables.at(getBoundDeviceID()).get();
 }
 
 std::unordered_map<std::string, std::shared_ptr<Database>>& Context::GetLoadedDatabases()

@@ -10,7 +10,7 @@
 
 #include "../Configuration.h"
 #include "CudaMemAllocator.h"
-#include "GPUCore/GPUDispatch.h"
+#include "GPUCore/GPUWhereInterpreter.h"
 #include "GPUMemoryCache.h"
 #include "QueryEngineError.h"
 #include "../DataType.h"
@@ -37,7 +37,7 @@ private:
     // Move cannot be implemented for allocator and cache, they keep iterators to internal vectors
     std::vector<std::unique_ptr<CudaMemAllocator>> gpuAllocators_;
     std::vector<std::unique_ptr<GPUMemoryCache>> gpuCaches_;
-    std::vector<std::unique_ptr<DispatchFunction[]>> gpuDispatchTables;
+    std::vector<std::unique_ptr<GpuVMFunction[]>> gpuDispatchTables;
 
     // List of loaded databases
     std::unordered_map<std::string, std::shared_ptr<Database>> loadedDatabases_;
@@ -85,6 +85,10 @@ public:
 	GPUMemoryCache& getCacheForDevice(int32_t deviceID);
 
 	GPUMemoryCache& getCacheForCurrentDevice();
+
+	GpuVMFunction* getDispatchTableForDevice(int32_t deviceID);
+
+	GpuVMFunction* getDispatchTablesForCurrentDevice();
 
 	std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases();
 };

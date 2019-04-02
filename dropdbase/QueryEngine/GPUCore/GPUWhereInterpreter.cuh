@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GPUDispatch.h"
+#include "GPUWhereInterpreter.h"
 #include "MaybeDeref.cuh"
 #include <cuda.h>
 #include <cuda_runtime.h>

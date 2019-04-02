@@ -16,6 +16,7 @@
 #include <condition_variable>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
+#include "../QueryEngine/GPUCore/GPUWhereInterpreter.h"
 #include "../ComplexPolygonFactory.h"
 #include "../PointFactory.h"
 #include "../DataType.h"
@@ -257,6 +258,7 @@ public:
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
 
 	std::unordered_map<std::string, int32_t> linkTable;
+	std::vector<GPUOpCode> gpuWhereOpCodes;
 	
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size)

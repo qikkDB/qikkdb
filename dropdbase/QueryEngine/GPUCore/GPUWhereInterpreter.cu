@@ -8,7 +8,7 @@
 #include "GPULogic.cuh"
 #include "GPUArithmetic.cuh"
 #include "GPUDate.cuh"
-#include "GPUDispatch.cuh"
+#include "GPUWhereInterpreter.cuh"
 #include "MaybeDeref.cuh"
 #include "GpuMemory.cuh"
 
@@ -50,31 +50,31 @@ __device__ void invalidContainsArgumentTypeHandler(GPUOpCode opCode, int32_t off
 
 }
 
-__device__ DispatchFunction add_gpu_greater_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_less_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_greaterEqual_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_lessEqual_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_equal_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_notEqual_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_logicalAnd_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_logicalOr_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_mul_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_div_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_add_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_sub_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_mod_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_contains_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_logicalNot_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_year_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_month_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_day_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_hour_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_minute_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_second_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_pushCol_function(int32_t dataTypes);
-__device__ DispatchFunction add_gpu_pushConst_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_greater_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_less_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_greaterEqual_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_lessEqual_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_equal_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_notEqual_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_logicalAnd_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_logicalOr_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_mul_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_div_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_add_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_sub_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_mod_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_contains_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_logicalNot_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_year_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_month_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_day_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_hour_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_minute_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_second_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_pushCol_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_pushConst_function(int32_t dataTypes);
 
-__global__ void kernel_fill_gpu_dispatch_table(DispatchFunction * gpuDispatchPtr, size_t arraySize)
+__global__ void kernel_fill_gpu_dispatch_table(GpuVMFunction * gpuDispatchPtr, size_t arraySize)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -161,7 +161,7 @@ __global__ void kernel_fill_gpu_dispatch_table(DispatchFunction * gpuDispatchPtr
 	}
 }
 
-__device__ DispatchFunction add_gpu_greater_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_greater_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -247,7 +247,7 @@ __device__ DispatchFunction add_gpu_greater_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_less_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_less_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -333,7 +333,7 @@ __device__ DispatchFunction add_gpu_less_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_greaterEqual_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_greaterEqual_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -419,7 +419,7 @@ __device__ DispatchFunction add_gpu_greaterEqual_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_lessEqual_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_lessEqual_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -505,7 +505,7 @@ __device__ DispatchFunction add_gpu_lessEqual_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_equal_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_equal_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -591,7 +591,7 @@ __device__ DispatchFunction add_gpu_equal_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_notEqual_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_notEqual_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -677,7 +677,7 @@ __device__ DispatchFunction add_gpu_notEqual_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_logicalAnd_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_logicalAnd_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -762,7 +762,7 @@ __device__ DispatchFunction add_gpu_logicalAnd_function(int32_t dataTypes)
 	}
 }
 
-__device__ DispatchFunction add_gpu_logicalOr_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_logicalOr_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -847,7 +847,7 @@ __device__ DispatchFunction add_gpu_logicalOr_function(int32_t dataTypes)
 	}
 }
 
-__device__ DispatchFunction add_gpu_mul_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_mul_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -933,7 +933,7 @@ __device__ DispatchFunction add_gpu_mul_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_div_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_div_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1019,7 +1019,7 @@ __device__ DispatchFunction add_gpu_div_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_add_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_add_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1105,7 +1105,7 @@ __device__ DispatchFunction add_gpu_add_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_sub_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_sub_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1191,7 +1191,7 @@ __device__ DispatchFunction add_gpu_sub_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_mod_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_mod_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1228,7 +1228,7 @@ __device__ DispatchFunction add_gpu_mod_function(int32_t dataTypes)
 	}
 }
 
-__device__ DispatchFunction add_gpu_logicalNot_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_logicalNot_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1313,7 +1313,7 @@ __device__ DispatchFunction add_gpu_logicalNot_function(int32_t dataTypes)
 	}
 }
 
-__device__ DispatchFunction add_gpu_contains_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_contains_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1326,7 +1326,7 @@ __device__ DispatchFunction add_gpu_contains_function(int32_t dataTypes)
 	}
 }
 
-__device__ DispatchFunction add_gpu_year_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_year_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1340,7 +1340,7 @@ __device__ DispatchFunction add_gpu_year_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_month_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_month_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1354,7 +1354,7 @@ __device__ DispatchFunction add_gpu_month_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_day_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_day_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1368,7 +1368,7 @@ __device__ DispatchFunction add_gpu_day_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_hour_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_hour_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1382,7 +1382,7 @@ __device__ DispatchFunction add_gpu_hour_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_minute_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_minute_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1396,7 +1396,7 @@ __device__ DispatchFunction add_gpu_minute_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_second_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_second_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1409,7 +1409,7 @@ __device__ DispatchFunction add_gpu_second_function(int32_t dataTypes)
 	}
 }
 
-__device__ DispatchFunction add_gpu_pushCol_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_pushCol_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
@@ -1495,7 +1495,7 @@ __device__ DispatchFunction add_gpu_pushCol_function(int32_t dataTypes)
 }
 
 
-__device__ DispatchFunction add_gpu_pushConst_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_pushConst_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
