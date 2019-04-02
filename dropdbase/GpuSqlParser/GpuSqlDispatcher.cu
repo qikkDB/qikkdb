@@ -463,7 +463,7 @@ int32_t GpuSqlDispatcher::showDatabases()
 	
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 	insertIntoPayload(payload, outData, databases_map.size());
-	mergePayloadToResponse("Databases", payload);
+	MergePayloadToSelfResponse("Databases", payload);
 
 	return 2;
 }
@@ -483,7 +483,7 @@ int32_t GpuSqlDispatcher::showTables()
 
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 	insertIntoPayload(payload, outData, tables_map.size());
-	mergePayloadToResponse(db, payload);
+	MergePayloadToSelfResponse(db, payload);
 
 	return 3;
 }
@@ -512,8 +512,8 @@ int32_t GpuSqlDispatcher::showColumns()
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadType;
 	insertIntoPayload(payloadName, outDataName, columns_map.size());
 	insertIntoPayload(payloadType, outDataType, columns_map.size());
-	mergePayloadToResponse(tab + "_columns", payloadName);
-	mergePayloadToResponse(tab + "_types", payloadType);
+	MergePayloadToSelfResponse(tab + "_columns", payloadName);
+	MergePayloadToSelfResponse(tab + "_types", payloadType);
 	return 4;
 }
 
@@ -558,17 +558,13 @@ void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 	}
 }
 
-void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
+void GpuSqlDispatcher::MergePayload(const std::string &trimmedKey, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage,
+	ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload)
 {
-	std::string trimmedKey = key.substr(0, std::string::npos);
-	if (!key.empty() && key.front() == '$')
-	{
-		trimmedKey = key.substr(1, std::string::npos);
-	}
 	// If there is payload with new key
-	if (responseMessage.payloads().find(trimmedKey) == responseMessage.payloads().end())
+	if (responseMessage->payloads().find(trimmedKey) == responseMessage->payloads().end())
 	{
-		responseMessage.mutable_payloads()->insert({ trimmedKey, payload });
+		responseMessage->mutable_payloads()->insert({ trimmedKey, payload });
 	}
 	else    // If there is payload with existing key, merge or aggregate according to key
 	{
@@ -596,48 +592,48 @@ void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB:
 			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
 			{
 				std::pair<bool, int32_t> result =
-					aggregateOnCPU<int32_t>(operation, payload.intpayload().intdata()[0],
-						responseMessage.mutable_payloads()->at(trimmedKey).intpayload().intdata()[0]);
+					AggregateOnCPU<int32_t>(operation, payload.intpayload().intdata()[0],
+						responseMessage->mutable_payloads()->at(trimmedKey).intpayload().intdata()[0]);
 				aggregationOperationFound = result.first;
 				if (aggregationOperationFound)
 				{
-					responseMessage.mutable_payloads()->at(trimmedKey).mutable_intpayload()->set_intdata(0, result.second);
+					responseMessage->mutable_payloads()->at(trimmedKey).mutable_intpayload()->set_intdata(0, result.second);
 				}
 				break;
 			}
 			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
 			{
 				std::pair<bool, int64_t> result =
-					aggregateOnCPU<int64_t>(operation, payload.int64payload().int64data()[0],
-						responseMessage.payloads().at(trimmedKey).int64payload().int64data()[0]);
+					AggregateOnCPU<int64_t>(operation, payload.int64payload().int64data()[0],
+						responseMessage->payloads().at(trimmedKey).int64payload().int64data()[0]);
 				aggregationOperationFound = result.first;
 				if (aggregationOperationFound)
 				{
-					responseMessage.mutable_payloads()->at(trimmedKey).mutable_int64payload()->set_int64data(0, result.second);
+					responseMessage->mutable_payloads()->at(trimmedKey).mutable_int64payload()->set_int64data(0, result.second);
 				}
 				break;
 			}
 			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
 			{
 				std::pair<bool, float> result =
-					aggregateOnCPU<float>(operation, payload.floatpayload().floatdata()[0],
-						responseMessage.mutable_payloads()->at(trimmedKey).floatpayload().floatdata()[0]);
+					AggregateOnCPU<float>(operation, payload.floatpayload().floatdata()[0],
+						responseMessage->mutable_payloads()->at(trimmedKey).floatpayload().floatdata()[0]);
 				aggregationOperationFound = result.first;
 				if (aggregationOperationFound)
 				{
-					responseMessage.mutable_payloads()->at(trimmedKey).mutable_floatpayload()->set_floatdata(0, result.second);
+					responseMessage->mutable_payloads()->at(trimmedKey).mutable_floatpayload()->set_floatdata(0, result.second);
 				}
 				break;
 			}
 			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
 			{
 				std::pair<bool, double> result =
-					aggregateOnCPU<double>(operation, payload.doublepayload().doubledata()[0],
-						responseMessage.mutable_payloads()->at(trimmedKey).doublepayload().doubledata()[0]);
+					AggregateOnCPU<double>(operation, payload.doublepayload().doubledata()[0],
+						responseMessage->mutable_payloads()->at(trimmedKey).doublepayload().doubledata()[0]);
 				aggregationOperationFound = result.first;
 				if (aggregationOperationFound)
 				{
-					responseMessage.mutable_payloads()->at(trimmedKey).mutable_doublepayload()->set_doubledata(0, result.second);
+					responseMessage->mutable_payloads()->at(trimmedKey).mutable_doublepayload()->set_doubledata(0, result.second);
 				}
 				break;
 			}
@@ -646,11 +642,19 @@ void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB:
 
 		if (!aggregationOperationFound)
 		{
-			std::cout << "tk: " << trimmedKey << ", before: " << responseMessage.payloads().at(trimmedKey).intpayload().intdata_size() << std::endl;
-			responseMessage.mutable_payloads()->at(trimmedKey).MergeFrom(payload);
-			std::cout << "after: " << responseMessage.payloads().at(trimmedKey).intpayload().intdata_size() << std::endl;
+			responseMessage->mutable_payloads()->at(trimmedKey).MergeFrom(payload);
 		}
 	}
+}
+
+void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
+{
+	std::string trimmedKey = key.substr(0, std::string::npos);
+	if (!key.empty() && key.front() == '$')
+	{
+		trimmedKey = key.substr(1, std::string::npos);
+	}
+	MergePayload(trimmedKey, &responseMessage, payload);
 }
 
 bool GpuSqlDispatcher::isRegisterAllocated(std::string & reg)

@@ -173,14 +173,7 @@ GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::p
 		{
 			std::string key = partialPayload.first;
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
-			if (responseMessage->payloads().find(key) == responseMessage->payloads().end())
-			{
-				responseMessage->mutable_payloads()->insert({ key, payload });
-			}
-			else
-			{
-				responseMessage->mutable_payloads()->at(key).MergeFrom(payload);
-			}
+			GpuSqlDispatcher::MergePayload(key, responseMessage.get(), payload);
 		}
 	}
 	return std::move(responseMessage);
