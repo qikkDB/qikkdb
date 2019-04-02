@@ -220,7 +220,7 @@ std::vector<int32_t> Table::GetTableGroupIds(std::unordered_map<std::string, std
 {
 	std::vector<int32_t> groupIds;
 
-	for (int32_t i; i < columns.size(); i++)
+	for (int32_t i = 0; i < columns.size(); i++)
 	{
 		groupIds.push_back(i);
 	}
@@ -237,7 +237,7 @@ std::vector<int32_t> Table::GetTableGroupIds(std::vector<std::unique_ptr<IColumn
 {
 	std::vector<int32_t> groupIds;
 
-	for (int32_t i; i < columns.size(); i++)
+	for (int32_t i = 0; i < columns.size(); i++)
 	{
 		groupIds.push_back(i);
 	}
