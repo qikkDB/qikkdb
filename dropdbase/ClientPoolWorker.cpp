@@ -7,6 +7,13 @@
 #include "IClientHandler.h"
 #include <boost/log/trivial.hpp>
 
+/// <summary>
+/// Create new instance of ClientPoolWorker object
+/// </summary>
+/// <param name="activeWorkers">Instance of object responsible for handling messages</param>
+/// <param name="handler">Instance of object responsible for handling messages</param>
+/// <param name="socket">Client that will be handled by this instance</param>
+/// <param name="requestTimeout">Timeout for TCP read and write in ms</param>
 ClientPoolWorker::ClientPoolWorker(std::unique_ptr<IClientHandler>&& clientHandler, boost::asio::ip::tcp::socket socket, int requestTimeout) 
 	: ITCPWorker(std::move(clientHandler), std::move(socket), requestTimeout)
 {

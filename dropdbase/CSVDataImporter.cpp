@@ -9,9 +9,14 @@
 #include "PointFactory.h"
 #include "ComplexPolygonFactory.h"
 
-
-
-
+/// <summary>
+/// Initializes a new instance of the <see cref="T:ColmnarDB.CSVDataImporter"/> class.
+/// </summary>
+/// <param name="fileName">Path to the CSV file.</param>
+/// <param name="header">True, if CSV file has a header. Default value is 'true'.</param>
+/// <param name="delimiter">Delimiter between values. Default value is ','.</param>
+/// <param name="quotes">Character used for quoting. Default value is '.</param>
+/// <param name="decimal">Character used for quoting. Default value is '.</param>
 CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimiter, char quotes, char decimal) :
 	inputMapped_(std::make_unique<boost::iostreams::mapped_file>(fileName, boost::iostreams::mapped_file::readonly)),
 	tableName_(boost::filesystem::path(fileName).stem().string()),
@@ -264,7 +269,7 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 
 
 /// <summary>
-/// Extracts column names from header. If there is no header, column names are created C0, C1,...
+/// Extracts column names from header. If there is no header, column names are created C0, C1, ... and so on.
 /// </summary>
 void CSVDataImporter::ExtractHeaders()
 {
@@ -328,7 +333,7 @@ void CSVDataImporter::ExtractTypes()
 
 /// <summary>
 /// Identify data type based on vector of values. Returns maximum type from vector of types.
-/// COLUMN_INT < COLUMN_LONG < COLUMN_FLOAT < COLUMN_DOUBLE < COULMN_STRING
+/// COLUMN_INT < COLUMN_LONG < COLUMN_FLOAT < COLUMN_DOUBLE < COULMN_STRING.
 /// </summary>
 /// <param name="columnValues">Vector of string values.</param>
 /// <returns>Suitable data type.</returns>

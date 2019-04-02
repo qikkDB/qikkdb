@@ -34,11 +34,22 @@ const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColum
 	return columns;
 }
 
+/// <summary>
+/// Initializes a new instance of the <see cref="T:ColmnarDB.Table"/> class. Also gets from database
+/// the block size and initializes with this value the private variable blockSize. Finally, it initializes columnsMutex_.
+/// </summary>
+/// <param name="database">Pointer to the database which will contains the new table.</param>
+/// <param name="name">Name of the newly created table.</param>
 Table::Table(const std::shared_ptr<Database> &database, const char* name) : database(database), name(name), columnsMutex_(std::make_unique<std::mutex>())
 {
 	blockSize = database->GetBlockSize();
 }
 
+/// <summary>
+/// Insert new column with proper data type into the table.
+/// </summary>
+/// <param name="columnName">Name of column.</param>
+/// <param name="dataType">Data type of colum.n</param>
 void Table::CreateColumn(const char* columnName, DataType columnType)
 {
 	std::unique_ptr<IColumn> column;
@@ -78,7 +89,12 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 	std::unique_lock<std::mutex> lock(*columnsMutex_);
 	columns.insert(std::make_pair(columnName, std::move(column)));
 }
+
 #ifndef __CUDACC__
+/// <summary>
+/// Insert data into proper column of table considering empty space of last block and maximum size of blocks.
+/// </summary>
+/// <param name="data">Name of column with inserting data.</param>
 void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 {
 	for (const auto& column : columns)
@@ -121,6 +137,11 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 }
 #endif
 
+/// <summary>
+	/// Search for column according to its name.
+	/// </summary>
+	/// <param name="column">Name of column.</param>
+	/// <returns>Return true, if table contains particular column. Returns false, if table does not contains particular column.</returns>
 bool Table::ContainsColumn(const char* column)
 {
 	auto search = columns.find(column);
