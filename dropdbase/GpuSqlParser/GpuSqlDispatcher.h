@@ -691,19 +691,19 @@ public:
 	{
 		if (operation == "MIN")
 		{
-			return std::make_pair<bool, T>(true, number1 < number2 ? number1 : number2);
+			return std::make_pair(true, number1 < number2 ? number1 : number2);
 		}
 		else if (operation == "MAX")
 		{
-			return std::make_pair<bool, T>(true, number1 > number2 ? number1 : number2);
+			return std::make_pair(true, number1 > number2 ? number1 : number2);
 		}
 		else if (operation == "SUM" || operation == "AVG" || operation == "COUNT")
 		{
-			return std::make_pair<bool, T>(true, number1 + number2);
+			return std::make_pair(true, number1 + number2);
 		}
 		else    // Other operation (e.g. datetime)
 		{
-			return std::make_pair<bool, T>(false, T{ 0 });
+			return std::make_pair(false, T{ 0 });
 		}
 	}
 };

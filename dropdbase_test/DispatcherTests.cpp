@@ -8311,3 +8311,36 @@ TEST(DispatcherTests, AggregationCount)
 	ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
 	ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
 }
+
+TEST(DispatcherTests, AggregationMin)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT MIN(colInteger1) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("MIN(colInteger1)");
+	
+	// Get the input column
+	const std::vector<std::unique_ptr<BlockBase<int32_t>>>& inputColumn1Blocks =
+	reinterpret_cast<const std::unique_ptr<ColumnBase<int32_t>>&>(
+		DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1"))
+		->GetBlocksList();
+	
+	// Find min on CPU
+	int32_t expectedResult = std::numeric_limits<int32_t>::max();
+	for (int i = 0; i < TEST_BLOCK_COUNT; i++)
+	{
+		for (int j = 0; j < TEST_BLOCK_SIZE; j++)
+		{
+			int32_t value = inputColumn1Blocks[i]->GetData()[j];
+			if (value < expectedResult)
+			{
+				expectedResult = value;
+			}
+		}
+	}
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+	ASSERT_EQ(payloads.intpayload().intdata()[0], expectedResult);
+}
