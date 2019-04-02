@@ -50,3 +50,10 @@ std::string PointFactory::WktFromPoint(const ColmnarDB::Types::Point & point)
 	wktStream << "POINT(" << point.geopoint().latitude() << " " << point.geopoint().longitude() << ")";
 	return wktStream.str();
 }
+
+std::string PointFactory::WktFromPoint(const NativeGeoPoint & point)
+{
+	std::ostringstream wktStream;
+	wktStream << "POINT(" << point.latitude << " " << point.longitude << ")";
+	return wktStream.str();
+}

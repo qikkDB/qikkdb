@@ -158,7 +158,11 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::RunQuery(const std:
 			std::lock_guard<std::mutex> queryLock(queryMutex_);
 			auto ret = parser.parse();
 			auto end = std::chrono::high_resolution_clock::now();
-			BOOST_LOG_TRIVIAL(info) << "Elapsed: " << std::chrono::duration<double>(end-start).count() << " sec.";
+			BOOST_LOG_TRIVIAL(info) << "Elapsed: " << std::chrono::duration<float>(end-start).count() << " sec.";
+			if (auto response = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get()))
+			{
+				response->mutable_timing()->insert({ "Elapsed", std::chrono::duration<float>(end - start).count() * 1000 });
+			}
 			return ret;
 		}
 	}

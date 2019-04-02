@@ -32,7 +32,7 @@ TEST(ClientHandlerTests, TestHandlerSetDB)
 	handlerPtr->HandleSetDatabase(tempWorker,setDatabaseMessage);
 	auto dbPtr = tempWorker.currentDatabase_.lock();
 	ASSERT_EQ(std::string("test"),dbPtr->GetName());
-	Database::DestroyDatabase("test");
+	Database::RemoveFromInMemoryDatabaseList("test");
 }
 
 TEST(ClientHandlerTests, TestHandlerCSV)
@@ -54,7 +54,7 @@ TEST(ClientHandlerTests, TestHandlerCSV)
 	ASSERT_EQ(2, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column2).GetBlocksList()[0]).GetData()[0]);
 	auto& column3 = db->GetTables().at("test").GetColumns().at("test3");
 	ASSERT_EQ(3, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column3).GetBlocksList()[0]).GetData()[0]);
-	Database::DestroyDatabase("testCSV");
+	Database::RemoveFromInMemoryDatabaseList("testCSV");
 }
 
 TEST(ClientHandlerTests, TestHandlerCSVWithTypes)
@@ -79,7 +79,7 @@ TEST(ClientHandlerTests, TestHandlerCSVWithTypes)
 	ASSERT_EQ(2, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column2).GetBlocksList()[0]).GetData()[0]);
 	auto& column3 = db->GetTables().at("test").GetColumns().at("test3");
 	ASSERT_EQ(3, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column3).GetBlocksList()[0]).GetData()[0]);
-	Database::DestroyDatabase("testCSV");
+	Database::RemoveFromInMemoryDatabaseList("testCSV");
 }
 
 TEST(ClientHandlerTests, TestHandlerQuery)
@@ -109,5 +109,5 @@ TEST(ClientHandlerTests, TestHandlerQuery)
 	ASSERT_EQ(payload[0], 1);
 	ASSERT_EQ(payload[1], 2);
 	ASSERT_EQ(payload[2], 3);
-	Database::DestroyDatabase("test");
+	Database::RemoveFromInMemoryDatabaseList("test");
 }
