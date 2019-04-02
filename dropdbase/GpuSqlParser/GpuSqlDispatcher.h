@@ -310,16 +310,6 @@ public:
 
 	void cleanUpGpuPointers();
 
-	template <>
-	int32_t retCol<ColmnarDB::Types::ComplexPolygon>();
-
-	template<>
-	int32_t retCol<ColmnarDB::Types::Point>();
-
-	template <>
-	int32_t retCol<std::string>();
-
-
 	//// FILTERS WITH FUNCTORS
 
 	template<typename OP, typename T, typename U>
@@ -533,5 +523,15 @@ public:
         arguments.insert<T>(argument);
     }
 };
+
+template <>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
+
+template <>
+int32_t GpuSqlDispatcher::retCol<std::string>();
+
 
 #endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
