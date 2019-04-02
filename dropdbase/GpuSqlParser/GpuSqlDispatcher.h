@@ -101,15 +101,25 @@ private:
 	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> secondFunctions;
     static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxAggregationFunctions;
     static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumAggregationFunctions;
     static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countAggregationFunctions;
     static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgAggregationFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
@@ -220,15 +230,15 @@ public:
 
 	void addSecondFunction(DataType type);
 
-    void addMinFunction(DataType key, DataType value);
+    void addMinFunction(DataType key, DataType value, bool usingGroupBy);
 
-    void addMaxFunction(DataType key, DataType value);
+    void addMaxFunction(DataType key, DataType value, bool usingGroupBy);
 
-    void addSumFunction(DataType key, DataType value);
+    void addSumFunction(DataType key, DataType value, bool usingGroupBy);
 
-    void addCountFunction(DataType key, DataType value);
+    void addCountFunction(DataType key, DataType value, bool usingGroupBy);
 
-    void addAvgFunction(DataType key, DataType value);
+    void addAvgFunction(DataType key, DataType value, bool usingGroupBy);
 
     void addRetFunction(DataType type);
 
@@ -359,16 +369,13 @@ public:
 	int32_t arithmeticConstConst();
 
 	template<typename OP, typename R, typename T, typename U>
-	int32_t aggregationColCol();
+	int32_t aggregationGroupBy();
 
 	template<typename OP, typename T, typename U>
-	int32_t aggregationColConst();
+	int32_t aggregationCol();
 
 	template<typename OP, typename T, typename U>
-	int32_t aggregationConstCol();
-
-	template<typename OP, typename T, typename U>
-	int32_t aggregationConstConst();
+	int32_t aggregationConst();
 
 	////
 

@@ -5,8 +5,57 @@
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
 
+template<typename OP, typename OUT, typename IN>
+int32_t GpuSqlDispatcher::aggregationCol()
+{
+	auto colName = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+
+	int32_t loadFlag = loadCol<IN>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::cout << "AggCol: " << colName << " " << reg << std::endl;
+
+	std::tuple<uintptr_t, int32_t, bool>& column = allocatedPointers.at(colName);
+	int32_t reconstructOutSize;
+
+	IN* reconstructOutReg;
+	GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<IN*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+
+	if (std::get<2>(column))
+	{
+		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(column)));
+	}
+	else
+	{
+		std::get<2>(column) = true;
+	}
+
+	std::get<0>(column) = reinterpret_cast<uintptr_t>(reconstructOutReg);
+	std::get<1>(column) = reconstructOutSize;
+
+	if (!isRegisterAllocated(reg))
+	{
+		OUT * result = allocateRegister<OUT>(reg, 1);
+		GPUAggregation::col<OP, OUT, IN>(result, reinterpret_cast<IN*>(std::get<0>(column)), std::get<1>(column));
+	}
+	freeColumnIfRegister<IN>(colName);
+	filter_ = 0;
+	return 0;
+}
+
+template<typename OP, typename OUT, typename IN>
+int32_t GpuSqlDispatcher::aggregationConst()
+{
+	std::cout << "AggConst" << std::endl;
+	return 0;
+}
+
 template<typename OP, typename R, typename T, typename U>
-int32_t GpuSqlDispatcher::aggregationColCol()
+int32_t GpuSqlDispatcher::aggregationGroupBy()
 {
 	auto colTableName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
@@ -17,7 +66,7 @@ int32_t GpuSqlDispatcher::aggregationColCol()
 		return loadFlag;
 	}
 
-	std::cout << "AggColCol: " << colTableName << " " << reg << ", thread: " << dispatcherThreadId << std::endl;
+	std::cout << "AggGroupBy: " << colTableName << " " << reg << ", thread: " << dispatcherThreadId << std::endl;
 
 
 	std::tuple<uintptr_t, int32_t, bool>& column = allocatedPointers.at(colTableName);
@@ -98,63 +147,6 @@ int32_t GpuSqlDispatcher::aggregationColCol()
 	freeColumnIfRegister<U>(colTableName);
 	return 0;
 }
-
-template<typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::aggregationColConst()
-{
-	std::cout << "AggColConst" << std::endl;
-	return 0;
-}
-
-template<typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::aggregationConstCol()
-{
-	auto colName = arguments.read<std::string>();
-	auto reg = arguments.read<std::string>();
-
-	int32_t loadFlag = loadCol<T>(colName);
-	if (loadFlag)
-	{
-		return loadFlag;
-	}
-
-	std::cout << "AggConstCol: " << colName << " " << reg << std::endl;
-
-	std::tuple<uintptr_t, int32_t, bool>& column = allocatedPointers.at(colName);
-	int32_t reconstructOutSize;
-
-	T* reconstructOutReg;
-	GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
-
-	if (std::get<2>(column))
-	{
-		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(column)));
-	}
-	else
-	{
-		std::get<2>(column) = true;
-	}
-
-	std::get<0>(column) = reinterpret_cast<uintptr_t>(reconstructOutReg);
-	std::get<1>(column) = reconstructOutSize;
-
-	if (!isRegisterAllocated(reg))
-	{
-		T * result = allocateRegister<T>(reg, 1);
-		GPUAggregation::col<OP, T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
-	}
-	freeColumnIfRegister<T>(colName);
-	filter_ = 0;
-	return 0;
-}
-
-template<typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::aggregationConstConst()
-{
-	std::cout << "AggConstConst" << std::endl;
-	return 0;
-}
-
 
 template<typename T>
 int32_t GpuSqlDispatcher::groupByCol()
