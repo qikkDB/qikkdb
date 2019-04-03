@@ -8310,9 +8310,9 @@ TEST(DispatcherTests, AggregationMin)
 	auto &payloads = result->payloads().at("MIN(colInteger1)");
 
 	// Get the input column
-	const std::vector<std::unique_ptr<BlockBase<int32_t>>>& inputColumn1Blocks =
-		reinterpret_cast<const std::unique_ptr<ColumnBase<int32_t>>&>(
-			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1"))
+	const std::vector<BlockBase<int32_t>*>& inputColumn1Blocks =
+		reinterpret_cast<ColumnBase<int32_t>*>(
+			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get())
 		->GetBlocksList();
 
 	// Find min on CPU
@@ -8343,9 +8343,9 @@ TEST(DispatcherTests, AggregationMax)
 	auto &payloads = result->payloads().at("MAX(colInteger1)");
 
 	// Get the input column
-	const std::vector<std::unique_ptr<BlockBase<int32_t>>>& inputColumn1Blocks =
-		reinterpret_cast<const std::unique_ptr<ColumnBase<int32_t>>&>(
-			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1"))
+	const std::vector<BlockBase<int32_t>*>& inputColumn1Blocks =
+		reinterpret_cast<ColumnBase<int32_t>*>(
+			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get())
 		->GetBlocksList();
 
 	// Find min on CPU
@@ -8376,9 +8376,9 @@ TEST(DispatcherTests, AggregationSum)
 	auto &payloads = result->payloads().at("SUM(colInteger1)");
 
 	// Get the input column
-	const std::vector<std::unique_ptr<BlockBase<int32_t>>>& inputColumn1Blocks =
-		reinterpret_cast<const std::unique_ptr<ColumnBase<int32_t>>&>(
-			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1"))
+	const std::vector<BlockBase<int32_t>*>& inputColumn1Blocks =
+		reinterpret_cast<ColumnBase<int32_t>*>(
+			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get())
 		->GetBlocksList();
 
 	// Find min on CPU
@@ -8405,9 +8405,9 @@ TEST(DispatcherTests, AggregationAvg)
 	auto &payloads = result->payloads().at("AVG(colInteger1)");
 
 	// Get the input column
-	const std::vector<std::unique_ptr<BlockBase<int32_t>>>& inputColumn1Blocks =
-		reinterpret_cast<const std::unique_ptr<ColumnBase<int32_t>>&>(
-			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1"))
+	const std::vector<BlockBase<int32_t>*>& inputColumn1Blocks =
+		reinterpret_cast<ColumnBase<int32_t>*>(
+			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get())
 		->GetBlocksList();
 
 	// Find min on CPU
