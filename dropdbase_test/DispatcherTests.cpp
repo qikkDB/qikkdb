@@ -11,6 +11,7 @@
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 
+constexpr int32_t TEST_BLOCK_COUNT = 2;		// this must be at least 2 (for testing more cases)
 constexpr int32_t TEST_BLOCK_SIZE = 1 << 11;
 
 class DispatcherObjs
@@ -22,7 +23,7 @@ public:
         columnTypes = {{COLUMN_INT},    {COLUMN_INT},     {COLUMN_LONG},  {COLUMN_LONG},
                        {COLUMN_LONG},  {COLUMN_FLOAT},   {COLUMN_FLOAT}, {COLUMN_DOUBLE}, {COLUMN_DOUBLE},
 					   {COLUMN_POLYGON}, {COLUMN_POINT}, {COLUMN_STRING} };
-        database = DatabaseGenerator::GenerateDatabase("TestDb", 2, TEST_BLOCK_SIZE, false, tableNames, columnTypes);
+        database = DatabaseGenerator::GenerateDatabase("TestDb", TEST_BLOCK_COUNT, TEST_BLOCK_SIZE, false, tableNames, columnTypes);
     }
     static DispatcherObjs GetInstance()
     {
@@ -8299,6 +8300,145 @@ TEST(DispatcherTests, PointFromConstCol)
 	}
 }
 
+TEST(DispatcherTests, AggregationMin)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT MIN(colInteger1) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("MIN(colInteger1)");
+
+	// Get the input column
+	const std::vector<std::unique_ptr<BlockBase<int32_t>>>& inputColumn1Blocks =
+		reinterpret_cast<const std::unique_ptr<ColumnBase<int32_t>>&>(
+			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1"))
+		->GetBlocksList();
+
+	// Find min on CPU
+	int32_t expectedResult = std::numeric_limits<int32_t>::max();
+	for (int i = 0; i < TEST_BLOCK_COUNT; i++)
+	{
+		for (int j = 0; j < TEST_BLOCK_SIZE; j++)
+		{
+			int32_t value = inputColumn1Blocks[i]->GetData()[j];
+			if (value < expectedResult)
+			{
+				expectedResult = value;
+			}
+		}
+	}
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+	ASSERT_EQ(payloads.intpayload().intdata()[0], expectedResult);
+}
+
+TEST(DispatcherTests, AggregationMax)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT MAX(colInteger1) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("MAX(colInteger1)");
+
+	// Get the input column
+	const std::vector<std::unique_ptr<BlockBase<int32_t>>>& inputColumn1Blocks =
+		reinterpret_cast<const std::unique_ptr<ColumnBase<int32_t>>&>(
+			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1"))
+		->GetBlocksList();
+
+	// Find min on CPU
+	int32_t expectedResult = std::numeric_limits<int32_t>::min();
+	for (int i = 0; i < TEST_BLOCK_COUNT; i++)
+	{
+		for (int j = 0; j < TEST_BLOCK_SIZE; j++)
+		{
+			int32_t value = inputColumn1Blocks[i]->GetData()[j];
+			if (value > expectedResult)
+			{
+				expectedResult = value;
+			}
+		}
+	}
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+	ASSERT_EQ(payloads.intpayload().intdata()[0], expectedResult);
+}
+
+TEST(DispatcherTests, AggregationSum)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT SUM(colInteger1) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("SUM(colInteger1)");
+
+	// Get the input column
+	const std::vector<std::unique_ptr<BlockBase<int32_t>>>& inputColumn1Blocks =
+		reinterpret_cast<const std::unique_ptr<ColumnBase<int32_t>>&>(
+			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1"))
+		->GetBlocksList();
+
+	// Find min on CPU
+	int32_t expectedResult = 0;
+	for (int i = 0; i < TEST_BLOCK_COUNT; i++)
+	{
+		for (int j = 0; j < TEST_BLOCK_SIZE; j++)
+		{
+			expectedResult += inputColumn1Blocks[i]->GetData()[j];
+		}
+	}
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+	ASSERT_EQ(payloads.intpayload().intdata()[0], expectedResult);
+}
+
+TEST(DispatcherTests, AggregationAvg)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT AVG(colInteger1) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("AVG(colInteger1)");
+
+	// Get the input column
+	const std::vector<std::unique_ptr<BlockBase<int32_t>>>& inputColumn1Blocks =
+		reinterpret_cast<const std::unique_ptr<ColumnBase<int32_t>>&>(
+			DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1"))
+		->GetBlocksList();
+
+	// Find min on CPU
+	int32_t expectedResult = 0; // TODO float, also in disptacher fields float
+	int64_t count = 0;
+	for (int i = 0; i < TEST_BLOCK_COUNT; i++)
+	{
+		for (int j = 0; j < TEST_BLOCK_SIZE; j++)
+		{
+			expectedResult += inputColumn1Blocks[i]->GetData()[j];
+			++count;
+		}
+	}
+	expectedResult /= count;
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+	ASSERT_EQ(payloads.intpayload().intdata()[0], expectedResult);
+}
+
+TEST(DispatcherTests, AggregationCount)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COUNT(colInteger1) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("COUNT(colInteger1)");
+	ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
+	ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+}
+
 TEST(DispatcherTests, Alias)
 {
 	Context::getInstance();
@@ -8330,7 +8470,7 @@ TEST(DispatcherTests, Alias)
 
 	auto &payloadsInt = result->payloads().at("col1");
 	auto &payloadsFloat = result->payloads().at("col2");
-	
+
 	ASSERT_EQ(payloadsInt.intpayload().intdata_size(), expectedResultsInt.size());
 	ASSERT_EQ(payloadsFloat.floatpayload().floatdata_size(), expectedResultsFloat.size());
 

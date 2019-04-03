@@ -252,27 +252,27 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 
     if (op == "MIN")
     {
-        dispatcher.addMinFunction(groupByType, operandType);
+        dispatcher.addMinFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "MAX")
     {
-        dispatcher.addMaxFunction(groupByType, operandType);
+        dispatcher.addMaxFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "SUM")
     {
-        dispatcher.addSumFunction(groupByType, operandType);
+        dispatcher.addSumFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "COUNT")
     {
-        dispatcher.addCountFunction(groupByType, operandType);
+        dispatcher.addCountFunction(groupByType, operandType, groupByType);
 		returnDataType = DataType::COLUMN_LONG;
     } 
 	else if (op == "AVG")
     {
-        dispatcher.addAvgFunction(groupByType, operandType);
+        dispatcher.addAvgFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     }
 

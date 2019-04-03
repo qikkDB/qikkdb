@@ -73,8 +73,8 @@ namespace AggregationFunctions
 			} while (old != expected && old > b);
 		}
 
-		template<typename T>
-		static void agg(T *outValue, T *ACol, int32_t dataElementCount)
+		template<typename OUT, typename IN>
+		static void agg(OUT *outValue, IN *ACol, int32_t dataElementCount)
 		{
 			// Get the buffer size
 			void* tempBuffer = nullptr;
@@ -160,8 +160,8 @@ namespace AggregationFunctions
 			} while (old != expected && old < b);
 		}
 
-		template<typename T>
-		static void agg(T *outValue, T *ACol, int32_t dataElementCount)
+		template<typename OUT, typename IN>
+		static void agg(OUT *outValue, IN *ACol, int32_t dataElementCount)
 		{
 			// Get the buffer size
 			void* tempBuffer = nullptr;
@@ -218,8 +218,8 @@ namespace AggregationFunctions
 			} while (old != expected && old < b);
 		}
 
-		template<typename T>
-		static void agg(T *outValue, T *ACol, int32_t dataElementCount)
+		template<typename OUT, typename IN>
+		static void agg(OUT *outValue, IN *ACol, int32_t dataElementCount)
 		{
 			// Get the buffer size
 			void* tempBuffer = nullptr;
@@ -271,8 +271,8 @@ namespace AggregationFunctions
 			} while (old != expected);
 		}
 
-		template<typename T>
-		static void agg(T *outValue, T *ACol, int32_t dataElementCount)
+		template<typename OUT, typename IN>
+		static void agg(OUT *outValue, IN *ACol, int32_t dataElementCount)
 		{
 			// Get the buffer size
 			void* tempBuffer = nullptr;
@@ -289,7 +289,7 @@ namespace AggregationFunctions
 			cudaDeviceSynchronize();
 
 			// Divide the result - calculate the average
-			GPUArithmetic::colConst<ArithmeticOperations::div, T, T, float>(outValue, outValue, static_cast<float>(dataElementCount), 1);
+			GPUArithmetic::colConst<ArithmeticOperations::div, OUT, OUT, float>(outValue, outValue, static_cast<float>(dataElementCount), 1);
 		}
 
 		template<typename T>
@@ -307,11 +307,11 @@ namespace AggregationFunctions
 			// empty
 		}
 
-		template<typename T>
-		static void agg(T *outValue, T *ACol, int32_t dataElementCount)
+		template<typename OUT, typename IN>
+		static void agg(OUT *outValue, IN *ACol, int32_t dataElementCount)
 		{
 			// TODO, make this function more useful
-			T temp = dataElementCount;
+			OUT temp = dataElementCount;
 			GPUMemory::copyHostToDevice(outValue, &temp, 1);
 		}
 
