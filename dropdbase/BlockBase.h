@@ -20,7 +20,7 @@ private:
 	float avg_;
 	T sum_;
 
-	void setBlockStatistics();
+	void setBlockStatistics();	
 
 	ColumnBase<T>& column_;
 	size_t size_;
@@ -51,6 +51,14 @@ public:
 		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_])
 	{
 		GPUMemory::hostPin(data_.get(), capacity_);
+	}
+
+	void setBlockStatistics(T min, T max, float avg, T sum)
+	{
+		min_ = min;
+		max_ = max;
+		avg_ = avg;
+		sum_ = sum;
 	}
 
 	T GetMax()

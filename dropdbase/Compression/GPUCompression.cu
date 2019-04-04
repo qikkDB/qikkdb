@@ -304,7 +304,7 @@ bool CompressionGPU::decompressDataAAFL<ColmnarDB::Types::Point>(ColmnarDB::Type
 template<typename T>
 bool decompressAAFLOnDevice(const int CWARP_SIZE, T* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, T* const device_uncompressed, T min, T max)
 {
-	T offset = -1;
+	T offset = min;
 
 	int64_t size = data_size / sizeof(T);
 
