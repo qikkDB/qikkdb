@@ -24,6 +24,7 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	insideSelectColumn(false), 
 	isAggSelectColumn(false)
 {
+	GpuSqlDispatcher::linkTable.clear();
 }
 
 
@@ -580,9 +581,9 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 
 	parserStack.push(std::make_pair(tableColumn, columnType));
 
-	if (dispatcher.linkTable.find(tableColumn) == dispatcher.linkTable.end())
+	if (GpuSqlDispatcher::linkTable.find(tableColumn) == GpuSqlDispatcher::linkTable.end())
 	{
-		dispatcher.linkTable.insert({ tableColumn, linkTableIndex++ });
+		GpuSqlDispatcher::linkTable.insert({ tableColumn, linkTableIndex++ });
 	}
 }
 

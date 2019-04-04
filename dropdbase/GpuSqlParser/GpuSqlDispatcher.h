@@ -252,7 +252,7 @@ public:
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
 
-	std::unordered_map<std::string, int32_t> linkTable;
+	static std::unordered_map<std::string, int32_t> linkTable;
 	
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size)
