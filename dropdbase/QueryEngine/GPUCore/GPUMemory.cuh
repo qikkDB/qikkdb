@@ -9,7 +9,7 @@
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
 #include "../../NativeGeoPoint.h"
-
+#include "../../GpuSqlParser/GpuSqlDispatcher.h"
 template<typename T>
 __global__ void kernel_fill_array(T *p_Block, T value, size_t dataElementCount)
 {
@@ -62,10 +62,9 @@ public:
 			}
 			catch (const std::out_of_range& e)
 			{
-				std::vector<std::string >> lockList;
-				if (!Context::getInstance().getCacheForCurrentDevice().evict(lockList))
+				if (!Context::getInstance().getCacheForCurrentDevice().evict(GpuSqlDispatcher::linkTable))
 				{
-					std::rethrow(e);
+					std::rethrow_exception(e);
 				}
 			}
 		}
