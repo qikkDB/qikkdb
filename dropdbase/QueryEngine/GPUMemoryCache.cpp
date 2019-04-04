@@ -56,7 +56,9 @@ bool GPUMemoryCache::evict(const std::vector<std::string>& lockList)
 		BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "UsedSize: " << usedSize;
 		cacheMap.erase(queueItem.ref.key);
 		lruQueue.erase(it);
+		return true;
 	}
+	return false;
 }
 
 CudaMemAllocator & GPUMemoryCache::GetAllocator()
