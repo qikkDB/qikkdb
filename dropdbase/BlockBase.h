@@ -18,10 +18,11 @@ template<class T>
 class BlockBase
 {
 private:
-	T min_;
-	T max_;
-	float avg_;
-	T sum_;
+	T min_ = std::numeric_limits<T>::lowest();
+	T max_ = std::numeric_limits<T>::max();
+	float avg_ = 0.0;
+	T sum_ = T{};
+	int32_t groupId_ = -1; //index for group of blocks - binary index
 
 	void setBlockStatistics();
 
@@ -77,6 +78,11 @@ public:
 	T GetSum()
 	{
 		return sum_;
+	}
+
+	int32_t GetGroupId()
+	{
+		return groupId_;
 	}
 
 	T * const GetData()

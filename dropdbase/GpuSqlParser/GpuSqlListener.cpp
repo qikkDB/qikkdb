@@ -252,27 +252,27 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 
     if (op == "MIN")
     {
-        dispatcher.addMinFunction(groupByType, operandType);
+        dispatcher.addMinFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "MAX")
     {
-        dispatcher.addMaxFunction(groupByType, operandType);
+        dispatcher.addMaxFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "SUM")
     {
-        dispatcher.addSumFunction(groupByType, operandType);
+        dispatcher.addSumFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "COUNT")
     {
-        dispatcher.addCountFunction(groupByType, operandType);
+        dispatcher.addCountFunction(groupByType, operandType, groupByType);
 		returnDataType = DataType::COLUMN_LONG;
     } 
 	else if (op == "AVG")
     {
-        dispatcher.addAvgFunction(groupByType, operandType);
+        dispatcher.addAvgFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     }
 
@@ -307,20 +307,46 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 	DataType retType = std::get<1>(arg);
 	dispatcher.addRetFunction(retType);
 	dispatcher.addArgument<const std::string&>(colName);
+	
+	if (ctx->alias())
+	{
+		std::string alias = ctx->alias()->getText();
+		if (columnAliases.find(alias) != columnAliases.end())
+		{
+			throw AliasRedefinitionException();
+		}
+		columnAliases.insert(alias);
+		dispatcher.addArgument<const std::string&>(alias);
+	}
+	else
+	{
+		dispatcher.addArgument<const std::string&>(colName);
+	}
+
 	insideSelectColumn = false;
 	isAggSelectColumn = false;
 }
 
 void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
 {
-
-    for (auto table : ctx->table())
+    for (auto fromTable : ctx->fromTable())
     {
-        if (database->GetTables().find(table->getText()) == database->GetTables().end())
+		std::string table = fromTable->table()->getText();
+        if (database->GetTables().find(table) == database->GetTables().end())
         {
             throw TableNotFoundFromException();
         }
-        loadedTables.insert(table->getText());
+        loadedTables.insert(table);
+
+		if (fromTable->alias())
+		{
+			std::string alias = fromTable->alias()->getText();
+			if (tableAliases.find(alias) != tableAliases.end())
+			{
+				throw AliasRedefinitionException();
+			}
+			tableAliases.insert({ alias, table });
+		}
     }
 }
 
@@ -604,6 +630,11 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
     {
         table = ctx->table()->getText();
         column = ctx->column()->getText();
+
+		if (tableAliases.find(table) != tableAliases.end())
+		{
+			table = tableAliases.at(table);
+		}
 
         if (loadedTables.find(table) == loadedTables.end())
         {

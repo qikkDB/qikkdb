@@ -150,3 +150,118 @@ bool Table::ContainsColumn(const char* column)
 	}
 	return false;
 }
+
+/// <summary>
+/// Find out the index of binary index group of blocks, to which the row data will be inserted.
+/// The main question that decides the group is as follows: 'Is value > average?'.
+/// </summary>
+/// <param name="rowData">Row of data from .CSV file, that is inserting into the table.</param>
+/// <param name="columns">Columns in the same order as fields in row of data.</param>
+/// <returns>Index of binary index group of blocks.</returns>
+int32_t Table::AssignGroupId(std::vector<std::any>& rowData, std::vector<std::unique_ptr<IColumn>>& columns)
+{
+	int32_t index = 0;
+
+	for (int32_t i = 0; i < columns.size(); i++)
+	{
+		bool b = false;
+
+		//if initial average is not set, assign all values in the default group:
+		if (!columns[i]->GetInitAvgIsSet())
+		{
+			return -1;
+		}
+
+		switch (columns[i]->GetColumnType())
+		{
+		case COLUMN_INT:
+			if (std::any_cast<int32_t>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_LONG:
+			if (std::any_cast<int64_t>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_FLOAT:
+			if (std::any_cast<float>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_DOUBLE:
+			if (std::any_cast<double>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_POINT:
+			if (std::any_cast<float>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_POLYGON:
+			if (std::any_cast<float>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_STRING:
+			if (std::any_cast<float>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		case COLUMN_INT8_T:
+			if (std::any_cast<int8_t>(rowData[i]) > columns[i]->GetInitAvg())
+			{
+				b = true;
+			}
+			break;
+		default:
+			throw std::domain_error("Unsupported data type (when importing database from CSV file).");
+		}
+		
+		index += 2 * i + b;
+	}
+
+	return index;
+}
+
+/// <summary>
+/// Find Ids for all groups needed for binary index per particular table. Do not include -1 as index, because it is default group id.
+/// </summary>
+/// <param name="columns">Columns of a table.</param>
+/// <returns>Ids of all groups for binary index.</returns>
+std::vector<int32_t> Table::GetTableGroupIds(std::unordered_map<std::string, std::unique_ptr<IColumn>>& columns)
+{
+	std::vector<int32_t> groupIds;
+
+	for (int32_t i = 0; i < columns.size(); i++)
+	{
+		groupIds.push_back(i);
+	}
+
+	return groupIds;
+}
+
+/// <summary>
+/// Find Ids for all groups needed for binary index per particular table. Do not include -1 as index, because it is default group id.
+/// </summary>
+/// <param name="columns">Columns of a table.</param>
+/// <returns>Ids of all groups for binary index.</returns>
+std::vector<int32_t> Table::GetTableGroupIds(std::vector<std::unique_ptr<IColumn>>& columns)
+{
+	std::vector<int32_t> groupIds;
+
+	for (int32_t i = 0; i < columns.size(); i++)
+	{
+		groupIds.push_back(i);
+	}
+
+	return groupIds;
+}

@@ -92,6 +92,9 @@ public:
   virtual void enterJoinTable(GpuSqlParser::JoinTableContext *ctx) = 0;
   virtual void exitJoinTable(GpuSqlParser::JoinTableContext *ctx) = 0;
 
+  virtual void enterFromTable(GpuSqlParser::FromTableContext *ctx) = 0;
+  virtual void exitFromTable(GpuSqlParser::FromTableContext *ctx) = 0;
+
   virtual void enterTable(GpuSqlParser::TableContext *ctx) = 0;
   virtual void exitTable(GpuSqlParser::TableContext *ctx) = 0;
 
@@ -100,6 +103,9 @@ public:
 
   virtual void enterDatabase(GpuSqlParser::DatabaseContext *ctx) = 0;
   virtual void exitDatabase(GpuSqlParser::DatabaseContext *ctx) = 0;
+
+  virtual void enterAlias(GpuSqlParser::AliasContext *ctx) = 0;
+  virtual void exitAlias(GpuSqlParser::AliasContext *ctx) = 0;
 
   virtual void enterLimit(GpuSqlParser::LimitContext *ctx) = 0;
   virtual void exitLimit(GpuSqlParser::LimitContext *ctx) = 0;

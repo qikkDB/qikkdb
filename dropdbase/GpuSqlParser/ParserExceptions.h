@@ -95,4 +95,13 @@ struct RetStringGroupByException : public std::exception
 	}
 };
 
+struct AliasRedefinitionException : public std::exception
+{
+	const char *what() const noexcept override
+	{
+		return "Attempt to redefine an allias has occured.";
+	}
+};
+
+
 #endif //DROPDBASE_INSTAREA_PARSEREXCEPTIONS_H
