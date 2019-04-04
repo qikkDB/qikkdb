@@ -10,7 +10,8 @@
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
 #include "../../NativeGeoPoint.h"
-#include "../../GpuSqlParser/GpuSqlDispatcher.h"
+
+
 template<typename T>
 __global__ void kernel_fill_array(T *p_Block, T value, size_t dataElementCount)
 {
@@ -41,6 +42,8 @@ public:
 		int32_t* polyCount;
 	};
 
+	static bool EvictWithLockList();
+
 	// Memory allocation
 	/// <summary>
 	/// Memory allocation of block on the GPU with the respective size of the input parameter type
@@ -63,9 +66,9 @@ public:
 			}
 			catch (const std::out_of_range& e)
 			{
-				if (!Context::getInstance().getCacheForCurrentDevice().evict(GpuSqlDispatcher::linkTable))
+				if (!EvictWithLockList())
 				{
-					std::rethrow_exception(e);
+					std::rethrow_exception(std::current_exception());
 				}
 			}
 		}

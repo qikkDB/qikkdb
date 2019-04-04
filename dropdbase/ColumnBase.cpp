@@ -1,10 +1,11 @@
 #include "ColumnBase.h"
 #include "PointFactory.h"
-#include "ComplexPolygonFactory.h"
-
+#include "Types/ComplexPolygon.pb.h"
 #include <numeric>
 #include <algorithm>
 #include <cmath>
+
+
 
 template<>
 std::vector<int32_t> ColumnBase<int32_t>::NullArray(int length)

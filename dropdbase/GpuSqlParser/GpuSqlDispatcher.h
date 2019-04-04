@@ -16,15 +16,14 @@
 #include <condition_variable>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
-#include "../ComplexPolygonFactory.h"
-#include "../PointFactory.h"
 #include "../DataType.h"
 #include "../Database.h"
 #include "../Table.h"
 #include "../ColumnBase.h"
 #include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
-
+#include "../NativeGeoPoint.h"
+#include "../QueryEngine/GPUCore/GpuMemory.cuh"
 class GpuSqlDispatcher
 {
 private:

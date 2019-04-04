@@ -33,6 +33,7 @@ namespace std {
 	};
 
 
+
 	template <> struct equal_to<ColmnarDB::Types::Point>
 	{
 		bool operator()(const ColmnarDB::Types::Point &lhs, const ColmnarDB::Types::Point &rhs) const
