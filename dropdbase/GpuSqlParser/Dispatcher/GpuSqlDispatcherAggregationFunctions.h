@@ -22,7 +22,7 @@ int32_t GpuSqlDispatcher::aggregationCol()
 	std::tuple<uintptr_t, int32_t, bool>& column = allocatedPointers.at(colName);
 	int32_t reconstructOutSize;
 
-	IN* reconstructOutReg;
+	IN* reconstructOutReg = nullptr;
 	GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<IN*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
 
 	if (std::get<2>(column))
