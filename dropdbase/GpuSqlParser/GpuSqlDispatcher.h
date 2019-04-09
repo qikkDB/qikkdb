@@ -75,6 +75,16 @@ private:
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> subFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseOrFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseAndFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseXorFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseLeftShiftFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions;
     static std::array<DispatchFunction,
@@ -228,7 +238,17 @@ public:
 
     void addSubFunction(DataType left, DataType right);
 
-    void addModFunction(DataType left, DataType right);
+	void addModFunction(DataType left, DataType right);
+
+    void addBitwiseOrFunction(DataType left, DataType right);
+
+	void addBitwiseAndFunction(DataType left, DataType right);
+
+	void addBitwiseXorFunction(DataType left, DataType right);
+
+	void addBitwiseLeftShiftFunction(DataType left, DataType right);
+
+	void addBitwiseRightShiftFunction(DataType left, DataType right);
 
 	void addPointFunction(DataType left, DataType right);
 

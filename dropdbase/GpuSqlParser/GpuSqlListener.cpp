@@ -69,7 +69,7 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
         dispatcher.addEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
-	else if (op == "!=")
+	else if (op == "!=" || op == "<>")
     {
         dispatcher.addNotEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
@@ -109,6 +109,31 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
         dispatcher.addModFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     }
+	else if (op == "|")
+	{
+		dispatcher.addBitwiseOrFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == "&")
+	{
+		dispatcher.addBitwiseAndFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == "^")
+	{
+		dispatcher.addBitwiseXorFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == "<<")
+	{
+		dispatcher.addBitwiseLeftShiftFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == ">>")
+	{
+		dispatcher.addBitwiseRightShiftFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
 	else if (op == "POINT")
 	{
 		dispatcher.addPointFunction(leftOperandType, rightOperandType);

@@ -32,6 +32,7 @@ all_types = [INT,
              STRING,
              BOOL]
 
+bitwise_operations = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift"]
 arithmetic_operations = ["mul", "div", "add", "sub", "mod"]
 geo_operations = ["contains"]
 polygon_operations = ["intersect", "union"]
@@ -47,7 +48,8 @@ operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "n
                      "mul", "div", "add", "sub", "mod", "contains", "intersect", "union"]
 operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operations_logical = ["logicalAnd", "logicalOr"]
-operations_arithmetic = ["mul", "div", "add", "sub", "mod"]
+operations_arithmetic = ["mul", "div", "add", "sub", "mod", "bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift",
+                         "bitwiseRightShift"]
 operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg", "year", "month", "day", "hour",
                     "minute", "second"]
 operations_aggregation = ["min", "max", "sum", "count", "avg"]
@@ -171,7 +173,7 @@ for operation in operations_move:
         elif colIdx >= len(types):
             col = "Col"
 
-        if (operation == 'groupBy') and ( colVal == STRING or colVal == BOOL or colVal in geo_types):
+        if (operation == 'groupBy') and (colVal == STRING or colVal == BOOL or colVal in geo_types):
             function = "GpuSqlDispatcher::" + "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         elif (operation == 'ret') and (colVal == BOOL):
             function = "GpuSqlDispatcher::" + "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
@@ -299,10 +301,11 @@ for operation in operations_arithmetic:
             elif colVal == STRING or rowVal == STRING:
                 op = "invalidOperandTypesErrorHandler"
 
-            elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
+            elif colVal == BOOL or rowVal == BOOL:
                 op = "invalidOperandTypesErrorHandler"
 
-            elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
+            elif (operation == "mod" or operation in bitwise_operations) and (
+                    colVal in floating_types or rowVal in floating_types):
                 op = "invalidOperandTypesErrorHandler"
 
             else:
@@ -334,37 +337,36 @@ for colIdx, colVal in enumerate(all_types):
 print(declaration)
 print()
 
-
 # Aggregations (without group by)
 for operation in operations_aggregation:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction, " \
-                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" +\
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + \
                   operation + "AggregationFunctions = {"
 
     for colIdx, colVal in enumerate(all_types):
 
-            if colIdx < len(types):
-                col = "Const"
-            elif colIdx >= len(types):
-                col = "Col"
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
 
-            if (colVal in geo_types or colVal == STRING) or (colVal == BOOL):
-                op = "invalidOperandTypesErrorHandler"
-            else:
-                op = "aggregation"
-            retVal = colVal
-            if operation == "count":
-                retVal = LONG
-            # TODO: for avg FLOAT/DOUBLE
-            if op != "invalidOperandTypesErrorHandler":
-                function = "GpuSqlDispatcher::" + op + col + "<AggregationFunctions::" + operation + ", " + retVal + ", " + colVal + ">"
-            else:
-                function = "GpuSqlDispatcher::" + op + col + "<AggregationFunctions::" + operation + ", " + colVal + ">"
+        if (colVal in geo_types or colVal == STRING) or (colVal == BOOL):
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = "aggregation"
+        retVal = colVal
+        if operation == "count":
+            retVal = LONG
+        # TODO: for avg FLOAT/DOUBLE
+        if op != "invalidOperandTypesErrorHandler":
+            function = "GpuSqlDispatcher::" + op + col + "<AggregationFunctions::" + operation + ", " + retVal + ", " + colVal + ">"
+        else:
+            function = "GpuSqlDispatcher::" + op + col + "<AggregationFunctions::" + operation + ", " + colVal + ">"
 
-            if colIdx == len(all_types) - 1:
-                declaration += ("&" + function + "};")
-            else:
-                declaration += ("&" + function + ", ")
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
 
     print(declaration)
 print()
@@ -372,7 +374,7 @@ print()
 # Aggregations with group by
 for operation in operations_aggregation:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction, " \
-                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" +\
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + \
                   operation + "GroupByFunctions = {"
 
     for colIdx, colVal in enumerate(all_types):
@@ -388,8 +390,8 @@ for operation in operations_aggregation:
             elif rowIdx >= len(types):
                 row = "Col"
 
-            if (col != "Col" or row != "Col") or\
-                    (colVal in geo_types or colVal == STRING) or\
+            if (col != "Col" or row != "Col") or \
+                    (colVal in geo_types or colVal == STRING) or \
                     (rowVal in geo_types or rowVal == STRING) or (
                     rowVal == BOOL or colVal == BOOL):
                 op = "invalidOperandTypesErrorHandler"

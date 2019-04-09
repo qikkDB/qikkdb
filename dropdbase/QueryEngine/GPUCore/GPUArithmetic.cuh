@@ -171,6 +171,51 @@ namespace ArithmeticOperations
 			return a % b;
 		}
 	};
+
+	struct bitwiseAnd
+	{
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		{
+			return a & b;
+		}
+	};
+
+	struct bitwiseOr
+	{
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		{
+			return a | b;
+		}
+	};
+
+	struct bitwiseXor
+	{
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		{
+			return a ^ b;
+		}
+	};
+
+	struct bitwiseLeftShift
+	{
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		{
+			return a << b;
+		}
+	};
+
+	struct bitwiseRightShift
+	{
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		{
+			return a >> b;
+		}
+	};
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
