@@ -22,11 +22,13 @@ public:
     AS = 39, IN = 40, BETWEEN = 41, ON = 42, ORDERBY = 43, DIR = 44, LIMIT = 45, 
     OFFSET = 46, SHOWDB = 47, SHOWTB = 48, SHOWCL = 49, AGG = 50, AVG = 51, 
     SUM = 52, MIN = 53, MAX = 54, COUNT = 55, YEAR = 56, MONTH = 57, DAY = 58, 
-    HOUR = 59, MINUTE = 60, SECOND = 61, GEO_CONTAINS = 62, GEO_INTERSECT = 63, 
-    GEO_UNION = 64, PLUS = 65, MINUS = 66, ASTERISK = 67, DIVISION = 68, 
-    MODULO = 69, EQUALS = 70, NOTEQUALS = 71, LPAREN = 72, RPAREN = 73, 
-    GREATER = 74, LESS = 75, GREATEREQ = 76, LESSEQ = 77, NOT = 78, OR = 79, 
-    AND = 80, FLOATLIT = 81, INTLIT = 82, ID = 83, BOOLEANLIT = 84, STRINGLIT = 85
+    HOUR = 59, MINUTE = 60, SECOND = 61, ABS = 62, GEO_CONTAINS = 63, GEO_INTERSECT = 64, 
+    GEO_UNION = 65, PLUS = 66, MINUS = 67, ASTERISK = 68, DIVISION = 69, 
+    MODULO = 70, XOR = 71, EQUALS = 72, NOTEQUALS = 73, NOTEQUALS_GT_LT = 74, 
+    LPAREN = 75, RPAREN = 76, GREATER = 77, LESS = 78, GREATEREQ = 79, LESSEQ = 80, 
+    NOT = 81, OR = 82, AND = 83, BIT_OR = 84, BIT_AND = 85, L_SHIFT = 86, 
+    R_SHIFT = 87, FLOATLIT = 88, INTLIT = 89, ID = 90, BOOLEANLIT = 91, 
+    STRINGLIT = 92
   };
 
   enum {
@@ -738,12 +740,18 @@ public:
     antlr4::tree::TerminalNode *PLUS();
     antlr4::tree::TerminalNode *MINUS();
     antlr4::tree::TerminalNode *MODULO();
+    antlr4::tree::TerminalNode *XOR();
+    antlr4::tree::TerminalNode *BIT_AND();
+    antlr4::tree::TerminalNode *BIT_OR();
+    antlr4::tree::TerminalNode *L_SHIFT();
+    antlr4::tree::TerminalNode *R_SHIFT();
     antlr4::tree::TerminalNode *GREATER();
     antlr4::tree::TerminalNode *LESS();
     antlr4::tree::TerminalNode *GREATEREQ();
     antlr4::tree::TerminalNode *LESSEQ();
     antlr4::tree::TerminalNode *EQUALS();
     antlr4::tree::TerminalNode *NOTEQUALS();
+    antlr4::tree::TerminalNode *NOTEQUALS_GT_LT();
     antlr4::tree::TerminalNode *AND();
     antlr4::tree::TerminalNode *OR();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -769,6 +777,7 @@ public:
     ExpressionContext *expression();
     antlr4::tree::TerminalNode *NOT();
     antlr4::tree::TerminalNode *MINUS();
+    antlr4::tree::TerminalNode *ABS();
     antlr4::tree::TerminalNode *LPAREN();
     antlr4::tree::TerminalNode *RPAREN();
     antlr4::tree::TerminalNode *YEAR();
