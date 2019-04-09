@@ -128,9 +128,11 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	std::vector<std::exception_ptr> dispatcherExceptions;
 	std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults; 
 	std::vector<std::string> lockList;
+	const std::string dbName = database->GetName();
 	for(auto& tableName : GpuSqlDispatcher::linkTable)
 	{
-		lockList.push_back(tableName.first);
+		
+		lockList.push_back(dbName + "." + tableName.first);
 	}
 	GPUMemoryCache::SetLockList(lockList);
 	

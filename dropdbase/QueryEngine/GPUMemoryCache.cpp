@@ -34,7 +34,7 @@ bool GPUMemoryCache::evict()
 		bool isLockedItem = false;
 		for (const auto& lockedColumn : GPUMemoryCache::lockList)
 		{
-			BOOST_LOG_TRIVIAL(debug) << "CacheLock cmp: " << lockedColumn << " " << it->ref.key);
+			BOOST_LOG_TRIVIAL(debug) << "CacheLock cmp: " << lockedColumn << " " << it->ref.key;
 			if (it->ref.key.find_first_of(lockedColumn, 0) == 0)
 			{
 				isLockedItem = true;
