@@ -295,7 +295,7 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 				break;
 			}
 
-			case COLUMN_INT8_T:
+			case COLUMN_INT8_T:  //used as a 8bit number but internally we use it as boolean
 			{
 				boolColumnCount++;
 				table.CreateColumn((std::string("colBool") + std::to_string(boolColumnCount)).c_str(), COLUMN_INT8_T);
@@ -310,11 +310,11 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 					{
 						if (k % 2)
 						{
-							boolData.push_back(sameDataInBlocks ? 1 : k % (10 * boolColumnCount));
+							boolData.push_back(sameDataInBlocks ? 1 : (k % (10 * boolColumnCount)) % 128);
 						}
 						else
 						{
-							boolData.push_back(sameDataInBlocks ? 0 : (k % (10 * boolColumnCount)) * -1);
+							boolData.push_back(sameDataInBlocks ? 0 : ((k % (10 * boolColumnCount)) * -1) % 128);
 						}
 					}
 					column.AddBlock(boolData);
