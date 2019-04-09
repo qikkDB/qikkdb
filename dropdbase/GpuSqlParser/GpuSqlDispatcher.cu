@@ -330,7 +330,7 @@ void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn,
 	allocatedPointers.insert({ reg + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.polyCount), size, !useCache) });
 }
 
-void GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache)
+GPUMemory::GPUPolygon GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache)
 {
 	if (useCache)
 	{
@@ -348,17 +348,20 @@ void GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName, con
 			polygon.polyIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex, size));
 			polygon.polyCount = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyCount", blockIndex, size));
 			fillPolygonRegister(polygon, colName, size, useCache);
+			return polygon;
 		}
 		else
 		{
 			GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons, databaseName, colName, blockIndex);
 			fillPolygonRegister(polygon, colName, size, useCache);
+			return polygon;
 		}
 	}
 	else
 	{
 		GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons);
 		fillPolygonRegister(polygon, colName, size, useCache);
+		return polygon;
 	}
 }
 
@@ -390,12 +393,11 @@ NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& p
 }
 
 // TODO change to return GPUMemory::GPUPolygon struct
-std::string GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
+GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
 {
-	std::string ret = "constPolygon" + std::to_string(constPolygonCounter);
-	insertComplexPolygon(database->GetName(), ret, { polygon }, 1);
+	std::string name = "constPolygon" + std::to_string(constPolygonCounter);
 	constPolygonCounter++;
-	return ret;
+	return insertComplexPolygon(database->GetName(), name, { polygon }, 1);
 }
 
 void GpuSqlDispatcher::cleanUpGpuPointers()

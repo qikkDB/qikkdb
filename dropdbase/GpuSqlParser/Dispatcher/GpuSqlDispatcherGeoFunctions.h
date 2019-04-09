@@ -148,25 +148,14 @@ int32_t GpuSqlDispatcher::containsConstCol()
 
 	std::tuple<uintptr_t, int32_t, bool> columnPoint = allocatedPointers.at(colName);
 	ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
-	std::string gpuPolygon = insertConstPolygonGpu(polygonConst); // TODO change to return GPUMemory::GPUPolygon struct
+	GPUMemory::GPUPolygon gpuPolygon = insertConstPolygonGpu(polygonConst);
 
 	int32_t retSize = std::get<1>(columnPoint);
 
 	if (!isRegisterAllocated(reg))
 	{
 		int8_t* result = allocateRegister<int8_t>(reg, retSize);
-		// TODO change 
-		GPUPolygonContains::contains(result,
-			{ reinterpret_cast<NativeGeoPoint*>(std::get<0>(
-				allocatedPointers.at(gpuPolygon + "_polyPoints"))),
-			reinterpret_cast<int32_t*>(std::get<0>(
-				allocatedPointers.at(gpuPolygon + "_pointIdx"))),
-			reinterpret_cast<int32_t*>(std::get<0>(
-				allocatedPointers.at(gpuPolygon + "_pointCount"))),
-			reinterpret_cast<int32_t*>(std::get<0>(
-				allocatedPointers.at(gpuPolygon + "_polyIdx"))),
-			reinterpret_cast<int32_t*>(std::get<0>(
-				allocatedPointers.at(gpuPolygon + "_polyCount"))) }, 1,
+		GPUPolygonContains::contains(result, gpuPolygon, 1,
 			reinterpret_cast<NativeGeoPoint*>(std::get<0>(columnPoint)), retSize);
 	}
 	return 0;
@@ -221,27 +210,14 @@ int32_t GpuSqlDispatcher::containsConstConst()
 	ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constPolygonWkt);
 
 	NativeGeoPoint *constNativeGeoPoint = insertConstPointGpu(constPoint);
-	std::string gpuPolygon = insertConstPolygonGpu(constPolygon); // TODO change
+	GPUMemory::GPUPolygon gpuPolygon = insertConstPolygonGpu(constPolygon);
 
 	int32_t retSize = database->GetBlockSize();
 
 	if (!isRegisterAllocated(reg))
 	{
 		int8_t* result = allocateRegister<int8_t>(reg, retSize);
-		// TODO change
-		GPUPolygonContains::containsConst(result,
-			{ reinterpret_cast<NativeGeoPoint*>(std::get<0>(
-				allocatedPointers.at(gpuPolygon + "_polyPoints"))),
-			reinterpret_cast<int32_t*>(std::get<0>(
-				allocatedPointers.at(gpuPolygon + "_pointIdx"))),
-			reinterpret_cast<int32_t*>(std::get<0>(
-				allocatedPointers.at(gpuPolygon + "_pointCount"))),
-			reinterpret_cast<int32_t*>(std::get<0>(
-				allocatedPointers.at(gpuPolygon + "_polyIdx"))),
-			reinterpret_cast<int32_t*>(std::get<0>(
-				allocatedPointers.at(gpuPolygon + "_polyCount"))) },
-			constNativeGeoPoint,
-			retSize);
+		GPUPolygonContains::containsConst(result, gpuPolygon, constNativeGeoPoint, retSize);
 	}
 	return 0;
 }
@@ -263,7 +239,7 @@ int32_t GpuSqlDispatcher::polygonOperationColConst()
 
 	auto polygonLeft = findComplexPolygon(colName);
 	ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
-	std::string gpuPolygon = insertConstPolygonGpu(polygonConst);
+	GPUMemory::GPUPolygon gpuPolygon = insertConstPolygonGpu(polygonConst);
 
 	int32_t retSize = std::get<1>(polygonLeft);
 
