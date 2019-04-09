@@ -5,10 +5,12 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+#include <stdexcept>
 
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
 #include "../../NativeGeoPoint.h"
+
 
 template<typename T>
 __global__ void kernel_fill_array(T *p_Block, T value, size_t dataElementCount)
@@ -40,6 +42,8 @@ public:
 		int32_t* polyCount;
 	};
 
+	static bool EvictWithLockList();
+
 	// Memory allocation
 	/// <summary>
 	/// Memory allocation of block on the GPU with the respective size of the input parameter type
@@ -52,7 +56,22 @@ public:
 	template<typename T>
 	static void alloc(T **p_Block, size_t dataElementCount)
 	{
-		*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
+		bool allocOK = false;
+		while (!allocOK)
+		{
+			try
+			{
+				*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
+				allocOK = true;
+			}
+			catch (const std::out_of_range& e)
+			{
+				if (!EvictWithLockList())
+				{
+					std::rethrow_exception(std::current_exception());
+				}
+			}
+		}
 		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 

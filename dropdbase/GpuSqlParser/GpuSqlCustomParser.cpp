@@ -8,6 +8,7 @@
 #include "GpuSqlListener.h"
 #include "GpuSqlDispatcher.h"
 #include "ParserExceptions.h"
+#include "../QueryEngine/GPUMemoryCache.h"
 #include "QueryType.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../QueryEngine/Context.h"
@@ -126,7 +127,15 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	std::vector<std::thread> dispatcherFutures;
 	std::vector<std::exception_ptr> dispatcherExceptions;
 	std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults; 
-
+	std::vector<std::string> lockList;
+	const std::string dbName = database->GetName();
+	for(auto& tableName : GpuSqlDispatcher::linkTable)
+	{
+		
+		lockList.push_back(dbName + "." + tableName.first);
+	}
+	GPUMemoryCache::SetLockList(lockList);
+	
 	for (int i = 0; i < threadCount; i++)
 	{
 		dispatcherResults.emplace_back(nullptr);

@@ -2,6 +2,13 @@
 #include <boost/log/trivial.hpp>
 #include "Context.h"
 
+std::vector<std::string> GPUMemoryCache::lockList;
+
+void GPUMemoryCache::SetLockList(const std::vector<std::string>& lockList)
+{
+	GPUMemoryCache::lockList = lockList;
+}
+
 GPUMemoryCache::GPUMemoryCache(int32_t deviceID, size_t maximumSize) :
 	usedSize(0), deviceID_(deviceID), maxSize_(maximumSize)
 {
@@ -19,15 +26,37 @@ GPUMemoryCache::~GPUMemoryCache()
 	BOOST_LOG_TRIVIAL(debug) << "~GPUMemoryCache" << deviceID_;
 }
 
-void GPUMemoryCache::evict()
+bool GPUMemoryCache::evict()
 {
-	auto& front = lruQueue.front();
-	BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "Evict: " << reinterpret_cast<int8_t*>(front.ref.ptr) << " " << front.ref.size;
-	Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(front.ref.ptr), front.ref.size);
-	usedSize -= front.ref.size;
-	BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "UsedSize: " << usedSize;
-	cacheMap.erase(front.ref.key);
-	lruQueue.pop_front();
+	for(auto it = lruQueue.begin(); it != lruQueue.end(); it++)
+	{
+		auto& queueItem = *it;
+		bool isLockedItem = false;
+		// Check if current eviction candidate is evictable
+		for (const auto& lockedColumn : GPUMemoryCache::lockList)
+		{
+			BOOST_LOG_TRIVIAL(debug) << "CacheLock cmp: " << lockedColumn << " " << it->ref.key;
+			if (it->ref.key.find(lockedColumn, 0) == 0)
+			{
+				isLockedItem = true;
+				break;
+			}
+		}
+
+		if (isLockedItem)
+		{
+			continue;
+		}
+
+		BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "Evict: " << reinterpret_cast<int8_t*>(queueItem.ref.ptr) << " " << queueItem.ref.size;
+		Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(queueItem.ref.ptr), queueItem.ref.size);
+		usedSize -= queueItem.ref.size;
+		BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "UsedSize: " << usedSize;
+		cacheMap.erase(queueItem.ref.key);
+		lruQueue.erase(it);
+		return true;
+	}
+	return false;
 }
 
 CudaMemAllocator & GPUMemoryCache::GetAllocator()

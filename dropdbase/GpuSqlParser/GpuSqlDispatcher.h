@@ -16,15 +16,14 @@
 #include <condition_variable>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
-#include "../ComplexPolygonFactory.h"
-#include "../PointFactory.h"
 #include "../DataType.h"
 #include "../Database.h"
 #include "../Table.h"
 #include "../ColumnBase.h"
 #include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
-
+#include "../NativeGeoPoint.h"
+#include "../QueryEngine/GPUCore/GPUMemory.cuh"
 class GpuSqlDispatcher
 {
 private:
@@ -286,6 +285,8 @@ public:
     void addGroupByFunction(DataType type);
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
+
+	static std::unordered_map<std::string, int32_t> linkTable;
 	
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size)
@@ -325,7 +326,7 @@ public:
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	std::string insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 
-    template<typename T>
+  	template<typename T>
     int32_t retConst();
 
     template<typename T>
@@ -344,6 +345,7 @@ public:
 	int32_t showColumns();
 
 	void cleanUpGpuPointers();
+
 
 	//// FILTERS WITH FUNCTORS
 
@@ -558,6 +560,18 @@ template<>
 int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
 
 template <>
+int32_t GpuSqlDispatcher::retCol<std::string>();
+
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
+
+template<>
 int32_t GpuSqlDispatcher::retCol<std::string>();
 
 template<>
