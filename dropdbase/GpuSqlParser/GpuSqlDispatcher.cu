@@ -214,10 +214,34 @@ void GpuSqlDispatcher::addSubFunction(DataType left, DataType right)
     dispatcherFunctions.push_back(subFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-
 void GpuSqlDispatcher::addModFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(modFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+	dispatcherFunctions.push_back(modFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseOrFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseOrFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseAndFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseAndFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseXorFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseXorFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseLeftShiftFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseLeftShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseRightShiftFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseRightShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 void GpuSqlDispatcher::addPointFunction(DataType left, DataType right)
