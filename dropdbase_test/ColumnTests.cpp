@@ -849,5 +849,5 @@ TEST(ColumnTests, FIndIndexAndRangeTemp)
         dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(indexBlock, indexInBlock, range, 2);
     ASSERT_EQ(indexBlock, 0);
     ASSERT_EQ(indexInBlock, 0);
-    ASSERT_EQ(range, 0);
+    ASSERT_EQ(range, 1);
 }

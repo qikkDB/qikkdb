@@ -106,7 +106,7 @@ public:
 		if (size_ == 0)
         {
             newIndexInBlock = 0;
-            newRange = 0;
+            newRange = 1;
             reachEnd = true;
         }
 
@@ -137,6 +137,7 @@ public:
                     {
                         newIndexInBlock = i;
                         inRange = true;
+                        found = true;
                         break;
                     }
 

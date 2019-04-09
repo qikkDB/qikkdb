@@ -177,6 +177,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 	if (!sortingColumns.empty())
 	{
         int oneColumnDataSize = getDataSizeOfInsertedColumns(data);
+        std::cout << oneColumnDataSize << std::endl;
 		
 		for (int i = 0; i < oneColumnDataSize; i++)
         {
@@ -186,6 +187,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 
             for (auto sortingColumn : sortingColumns)
             {
+                std::cout << sortingColumn << std::endl;
                 auto currentSortingColumn = (columns.find(sortingColumn)->second.get());
                 const auto& wrappedCurrentSortingColumnData = data.at(sortingColumn);
 
@@ -194,7 +196,10 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
                     std::vector<int32_t> dataIndexedColumn = std::any_cast<std::vector<int32_t>>(wrappedCurrentSortingColumnData);
                     auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentSortingColumn);
 
+					
 					std::tie(blockIndex, indexInBlock, range) = castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i]);
+                    std::cout << blockIndex << " " << indexInBlock << " " << range << " "
+                              << " " << dataIndexedColumn[i] << std::endl;
                 }
 
 				if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<int64_t>))
