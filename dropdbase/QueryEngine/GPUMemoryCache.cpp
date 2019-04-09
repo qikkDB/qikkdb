@@ -32,6 +32,7 @@ bool GPUMemoryCache::evict()
 	{
 		auto& queueItem = *it;
 		bool isLockedItem = false;
+		// Check if current eviction candidate is evictable
 		for (const auto& lockedColumn : GPUMemoryCache::lockList)
 		{
 			BOOST_LOG_TRIVIAL(debug) << "CacheLock cmp: " << lockedColumn << " " << it->ref.key;
