@@ -158,7 +158,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	return std::move(mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
 }
 
-
 std::unique_ptr<google::protobuf::Message>
 GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,int32_t resultLimit, int32_t resultOffset)
 {
@@ -176,7 +175,46 @@ GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::p
 			GpuSqlDispatcher::MergePayload(key, responseMessage.get(), payload);
 		}
 	}
+
+	trimResponseMessage(responseMessage.get(), resultLimit, resultOffset);
 	return std::move(responseMessage);
+}
+
+void GpuSqlCustomParser::trimResponseMessage(google::protobuf::Message *responseMessage, int32_t limit, int32_t offset)
+{	
+	auto queryResponseMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(responseMessage);
+	for (auto& queryPayload : queryResponseMessage->payloads())
+	{
+		std::string key = queryPayload.first;
+		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = queryPayload.second;
+		trimPayload(payload, limit, offset);
+	}
+}
+
+void GpuSqlCustomParser::trimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload & payload, int32_t limit, int32_t offset)
+{
+	switch (payload.payload_case())
+	{
+	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+		int32_t payloadSize = payload.intpayload().intdata().size();
+		int32_t clampedOffset = std::clamp(offset, 0, payloadSize);
+		int32_t clampedLimit = std::clamp(limit, 0, payloadSize - clampedOffset);
+		auto begin = payload.intpayload().intdata().begin() + clampedOffset;
+		auto end = payload.intpayload().intdata().begin() + clampedOffset + clampedLimit;
+		break;
+	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+		break;
+	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+		break;
+	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+		break;
+	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+		break;
+	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+		break;
+	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+		break;
+	}
 }
 
 bool GpuSqlCustomParser::containsAggregation(GpuSqlParser::SelectColumnContext * ctx)
