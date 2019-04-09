@@ -2,6 +2,13 @@
 #include <boost/log/trivial.hpp>
 #include "Context.h"
 
+std::vector<std::string> GPUMemoryCache::lockList;
+
+void GPUMemoryCache::SetLockList(const std::vector<std::string>& lockList)
+{
+	GPUMemoryCache::lockList = lockList;
+}
+
 GPUMemoryCache::GPUMemoryCache(int32_t deviceID, size_t maximumSize) :
 	usedSize(0), deviceID_(deviceID), maxSize_(maximumSize)
 {
@@ -19,24 +26,13 @@ GPUMemoryCache::~GPUMemoryCache()
 	BOOST_LOG_TRIVIAL(debug) << "~GPUMemoryCache" << deviceID_;
 }
 
-void GPUMemoryCache::evict()
-{
-	auto& front = lruQueue.front();
-	BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "Evict: " << reinterpret_cast<int8_t*>(front.ref.ptr) << " " << front.ref.size;
-	Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(front.ref.ptr), front.ref.size);
-	usedSize -= front.ref.size;
-	BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "UsedSize: " << usedSize;
-	cacheMap.erase(front.ref.key);
-	lruQueue.pop_front();
-}
-
-bool GPUMemoryCache::evict(const std::vector<std::string>& lockList)
+bool GPUMemoryCache::evict()
 {
 	for(auto it = lruQueue.begin(); it != lruQueue.end(); it++)
 	{
 		auto& queueItem = *it;
 		bool isLockedItem = false;
-		for (const auto& lockedColumn : lockList)
+		for (const auto& lockedColumn : GPUMemoryCache::lockList)
 		{
 			if (it->ref.key.find_first_of(lockedColumn, 0) == 0)
 			{

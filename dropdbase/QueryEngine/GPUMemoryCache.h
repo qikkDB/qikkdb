@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include <stdexcept>
+#include <vector>
 #include "CudaMemAllocator.h"
 
 class GPUMemoryCache
@@ -38,7 +39,6 @@ private:
 	std::list<CacheEntryRefWrapper> lruQueue;
 
 	int64_t usedSize;
-	void evict();
 
 	CudaMemAllocator& GetAllocator();
 
@@ -46,9 +46,9 @@ private:
 	{
 		return usedSize + sizeToInsert <= maxSize_;
 	}
-
+	static std::vector<std::string> lockList;
 public:
-
+	static void SetLockList(const std::vector<std::string>& lockList);
 	GPUMemoryCache(int32_t deviceID, size_t maximumSize);
 	~GPUMemoryCache();
 	template<typename T>
@@ -82,7 +82,7 @@ public:
 		cacheMapIt->second.lruQueueIt = (--lruQueue.end());
 		return { newPtr, size, false };
 	}
-	bool evict(const std::vector<std::string>& lockList);
+	bool evict();
 	void clearCachedBlock(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex);
 	bool containsColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex);
 	GPUMemoryCache(const GPUMemoryCache&) = delete;

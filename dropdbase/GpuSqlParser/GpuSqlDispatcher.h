@@ -23,7 +23,7 @@
 #include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
-#include "../QueryEngine/GPUCore/GpuMemory.cuh"
+#include "../QueryEngine/GPUCore/GPUMemory.cuh"
 class GpuSqlDispatcher
 {
 private:
@@ -291,7 +291,7 @@ public:
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	std::string insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 
-    template<typename T>
+  	template<typename T>
     int32_t retConst();
 
     template<typename T>
@@ -310,15 +310,6 @@ public:
 	int32_t showColumns();
 
 	void cleanUpGpuPointers();
-
-	template <>
-	int32_t retCol<ColmnarDB::Types::ComplexPolygon>();
-
-	template<>
-	int32_t retCol<ColmnarDB::Types::Point>();
-
-	template <>
-	int32_t retCol<std::string>();
 
 
 	//// FILTERS WITH FUNCTORS
@@ -440,12 +431,6 @@ public:
 	template<typename T>
 	int32_t insertInto();
 
-	template<>
-	int32_t insertInto<ColmnarDB::Types::ComplexPolygon>();
-
-	template<>
-	int32_t insertInto<ColmnarDB::Types::Point>();
-
 	int32_t insertIntoDone();
 
     template<typename T, typename U>
@@ -534,5 +519,19 @@ public:
         arguments.insert<T>(argument);
     }
 };
+  
+template <>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>();
 
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
+
+template <>
+int32_t GpuSqlDispatcher::retCol<std::string>();
+
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::Point>();
 #endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
