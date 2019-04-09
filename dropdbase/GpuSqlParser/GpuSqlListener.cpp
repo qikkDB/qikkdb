@@ -15,8 +15,8 @@
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSqlDispatcher& dispatcher): 
 	database(database), 
 	dispatcher(dispatcher), 
-	resultLimit(-1), 
-	resultOffset(-1),
+	resultLimit(std::numeric_limits<int64_t>::max()), 
+	resultOffset(0),
 	usingGroupBy(false), 
 	insideAgg(false), 
 	insideGroupBy(false), 
