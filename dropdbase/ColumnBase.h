@@ -184,6 +184,10 @@ public:
 			}
 			int emptySpace = lastBlock->EmptyBlockSpace();
 			lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
+			if (lastBlock->IsFull())
+			{
+				lastBlock->CompressData();
+			}
 			startIdx += emptySpace;
 		}
 

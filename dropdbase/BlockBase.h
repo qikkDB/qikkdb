@@ -51,6 +51,7 @@ public:
 		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_])
 	{
 		GPUMemory::hostPin(data_.get(), capacity_);
+		isCompressed_ = false;
 	}
 
 	void setBlockStatistics(T min, T max, float avg, T sum)
