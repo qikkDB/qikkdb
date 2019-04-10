@@ -460,7 +460,7 @@ public:
 
 			if (block->IsCompressed())
 			{
-				size_t uncompressedSize = Compression::GetUncompressedDataSize(block->GetData()) / sizeof(T);
+				size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData()) / sizeof(T);
 				size_t compressedSize = block->GetSize();
 				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
 					database->GetName(), colName, blockIndex, uncompressedSize);
@@ -474,8 +474,8 @@ public:
 					Compression::DecompressOnDevice(
 						col->GetColumnType(),
 						deviceCompressed,
-						Compression::GetUncompressedDataSize(block->GetData()),
-						Compression::GetCompressedDataSize(block->GetData()),
+						Compression::GetUncompressedDataElementsCount(block->GetData()),
+						Compression::GetCompressedDataElementsCount(block->GetData()),
 						Compression::GetCompressionBlocksCount(block->GetData()),
 						std::get<0>(cacheEntry),						
 						block->GetMin(),

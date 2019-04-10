@@ -72,7 +72,7 @@ bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size
 	bool result = false;
 	if (compressed_size < size)
 	{
-		int64_t sizes[3] = { data_size , compressed_data_size, compression_blocks_count };
+		int64_t sizes[3] = { size , host_compressed_size, compression_blocks_count };
 
 		T* coded_sizes = reinterpret_cast<T*>(sizes);
 
@@ -183,11 +183,13 @@ bool decompressAAFL(const int CWARP_SIZE, T* const host_compressed, int64_t comp
 {
 	T offset = min;
 
-	int64_t data_size = reinterpret_cast<int64_t*>(host_compressed)[0];
-	int64_t compressed_data_size = reinterpret_cast<int64_t*>(host_compressed)[1];
+	int64_t size = reinterpret_cast<int64_t*>(host_compressed)[0];
+	int64_t compressed_size = reinterpret_cast<int64_t*>(host_compressed)[1];
 	int64_t compression_blocks_count = reinterpret_cast<int64_t*>(host_compressed)[2];
 
-	size = data_size / sizeof(T);
+	int64_t data_size * sizeof(T);
+	int64_t compressed_data_size = compressed_size * sizeof(T);
+	
 
 	unsigned char *host_bit_length;
 	unsigned long *host_position_id;
@@ -306,8 +308,7 @@ bool decompressAAFLOnDevice(const int CWARP_SIZE, T* const device_compressed, in
 {
 	T offset = min;
 
-	int64_t size = data_size / sizeof(T);
-
+	
 	T *device_compressed_data;
 
 	unsigned char *device_bit_length;
@@ -322,8 +323,8 @@ bool decompressAAFLOnDevice(const int CWARP_SIZE, T* const device_compressed, in
 	device_compressed_data = &device_compressed[device_out_start];
 
 	
-	container_uncompressed<T> udata = { device_uncompressed, size };
-	container_aafl<T> cdata = { device_compressed_data, size, device_bit_length, device_position_id, NULL, offset };
+	container_uncompressed<T> udata = { device_uncompressed, data_size };
+	container_aafl<T> cdata = { device_compressed_data, data_size, device_bit_length, device_position_id, NULL, offset };
 
 	gpu_fl_naive_launcher_decompression<T, 32, container_aafl<T>>::decompress(cdata, udata);
 	QueryEngineError::setCudaError(cudaGetLastError());
