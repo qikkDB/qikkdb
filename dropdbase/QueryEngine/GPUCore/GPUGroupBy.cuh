@@ -225,8 +225,14 @@ public:
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
+<<<<<<< Updated upstream
 		if (dataElementCount > 0) {
 			group_by_kernel <AGG> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+=======
+		if (dataElementCount > 0)
+		{
+			group_by_kernel <AGG> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+>>>>>>> Stashed changes
 				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
 		}
 	}
@@ -387,8 +393,14 @@ public:
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
+<<<<<<< Updated upstream
 		if (dataElementCount > 0) {
 			group_by_kernel <AggregationFunctions::avg> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+=======
+		if (dataElementCount > 0)
+		{
+			group_by_kernel <AggregationFunctions::avg> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+>>>>>>> Stashed changes
 				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
 		}
 	}
@@ -586,8 +598,9 @@ public:
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
-		if (dataElementCount > 0) {
-			group_by_kernel <AggregationFunctions::count> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		if (dataElementCount > 0)
+		{
+			group_by_kernel <AggregationFunctions::count> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
 		}
 	}
