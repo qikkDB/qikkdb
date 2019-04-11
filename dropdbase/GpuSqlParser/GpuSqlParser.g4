@@ -44,7 +44,13 @@ columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT|);
 
 expression : op=NOT expression                                                            # unaryOperation
            | op=MINUS expression                                                          # unaryOperation
-           | op=ABS expression                                                            # unaryOperation
+           | op=ABS LPAREN expression RPAREN                                              # unaryOperation
+           | op=SIN LPAREN expression RPAREN                                              # unaryOperation
+           | op=COS LPAREN expression RPAREN                                              # unaryOperation
+           | op=TAN LPAREN expression RPAREN                                              # unaryOperation
+           | op=ASIN LPAREN expression RPAREN                                             # unaryOperation
+           | op=ACOS LPAREN expression RPAREN                                             # unaryOperation
+           | op=ATAN LPAREN expression RPAREN                                             # unaryOperation
            | op=YEAR LPAREN expression RPAREN                                             # unaryOperation
            | op=MONTH LPAREN expression RPAREN                                            # unaryOperation
            | op=DAY LPAREN expression RPAREN                                              # unaryOperation

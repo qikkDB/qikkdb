@@ -82,6 +82,13 @@ MINUTE      : M I N U T E;
 SECOND      : S E C O N D;
 
 ABS         : A B S;
+SIN         : S I N;
+COS         : C O S;
+TAN         : T A N;
+ASIN        : A S I N;
+ACOS        : A C O S;
+ATAN        : A T A N;
+
 
 GEO_CONTAINS        : G E O UNDERSCORE C O N T A I N S;
 GEO_INTERSECT       : G E O UNDERSCORE I N T E R S E C T;
