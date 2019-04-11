@@ -9,7 +9,8 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 	auto reg = arguments.read<std::string>();
 
 	// TODO STD conditional :: if OP == abs return type = T
-	typedef typename T ResultType;
+
+	typedef typename std::conditional < OP::isFloatRetType, float, T>::type ResultType;
 
 	int32_t loadFlag = loadCol<T>(colName);
 	if (loadFlag)
@@ -51,7 +52,7 @@ int32_t GpuSqlDispatcher::arithmeticUnaryConst()
 	auto reg = arguments.read<std::string>();
 
 	// TODO STD conditional :: if OP == abs return type = T
-	typedef typename T ResultType;
+	typedef typename std::conditional < OP::isFloatRetType, float, T > ::type ResultType;
 
 	std::cout << "ArithmeticUnaryConst: " << reg << std::endl;
 

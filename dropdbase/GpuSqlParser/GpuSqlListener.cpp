@@ -241,8 +241,38 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	}
 	else if (op == "ABS")
 	{
-		dispatcher.addAbsFunction(operandType);
-		returnDataType = operandType;
+		dispatcher.addAbsoluteFunction(operandType);
+		returnDataType = getReturnDataType(operandType);
+	}
+	else if (op == "SIN")
+	{
+		dispatcher.addSineFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "COS")
+	{
+		dispatcher.addCosineFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "TAN")
+	{
+		dispatcher.addTangentFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "ASIN")
+	{
+		dispatcher.addArcsineFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "ACOS")
+	{
+		dispatcher.addArccosineFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "ATAN")
+	{
+		dispatcher.addArctangentFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
 	}
 
 	std::string reg = getRegString(ctx);

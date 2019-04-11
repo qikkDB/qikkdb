@@ -3,6 +3,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+#include <math.h>
 
 #include <cstdint>
 #include <limits>
@@ -15,8 +16,19 @@
 
 namespace ArithmeticUnaryOperations
 {
-	struct _abs
+	struct minus
 	{
+		static constexpr bool isFloatRetType = false;
+		template<typename T, typename U>
+		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		{
+			return -a;
+		}
+	};
+
+	struct absolute
+	{
+		static constexpr bool isFloatRetType = false;
 		template<typename T, typename U>
 		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
@@ -24,8 +36,9 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
-	struct _sin
+	struct sine
 	{
+		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
 		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
@@ -33,8 +46,9 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
-	struct _cos
+	struct cosine
 	{
+		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
 		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
@@ -42,12 +56,43 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
-	struct _tan
+	struct tangent
 	{
+		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
 		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return tanf(a);
+		}
+	};
+
+	struct arcsine
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U>
+		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		{
+			return asinf(a);
+		}
+	};
+
+	struct arccosine
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U>
+		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		{
+			return acosf(a);
+		}
+	};
+
+	struct arctangent
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U>
+		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		{
+			return atanf(a);
 		}
 	};
 }

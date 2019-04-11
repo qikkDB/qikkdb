@@ -95,8 +95,6 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> unionFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
-    static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE> minusFunctions;
 	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> yearFunctions;
 	static std::array<DispatchFunction, 
@@ -110,7 +108,21 @@ private:
 	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> secondFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE> absFunctions;
+		DataType::DATA_TYPE_SIZE> minusFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> absoluteFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> sineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> cosineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> tangentFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arcsineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arccosineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arctangentFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
@@ -276,7 +288,19 @@ public:
 
 	void addSecondFunction(DataType type);
 
-	void addAbsFunction(DataType type);
+	void addAbsoluteFunction(DataType type);
+
+	void addSineFunction(DataType type);
+
+	void addCosineFunction(DataType type);
+
+	void addTangentFunction(DataType type);
+
+	void addArcsineFunction(DataType type);
+
+	void addArccosineFunction(DataType type);
+
+	void addArctangentFunction(DataType type);
 
     void addMinFunction(DataType key, DataType value, bool usingGroupBy);
 
@@ -471,12 +495,6 @@ public:
 
     template<typename T>
     int32_t logicalNotConst();
-
-    template<typename T>
-    int32_t minusCol();
-
-    template<typename T>
-    int32_t minusConst();
 
 	template<typename OP>
 	int32_t dateExtractCol();
