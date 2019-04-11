@@ -19,7 +19,7 @@ TEST(DispatcherTestsRegression, GroupByEmptySet)
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT COUNT(colInteger1) FROM TableA WHERE colInteger1 > 5000 GROUP BY colInteger1;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("COUNT(colInteger1)");
 
-	std::vector<int32_t> expectedResult;
-
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);	// Check if result size is also 0
 }

@@ -225,8 +225,10 @@ public:
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
-		group_by_kernel <AGG> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		if (dataElementCount > 0) {
+			group_by_kernel <AGG> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		}
 	}
 
 	// Get the size of hash table (max count of keys)
@@ -239,7 +241,7 @@ public:
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructCol(values, elementCount, values_, occupancyMask.get(), maxHashCount_);
@@ -262,7 +264,7 @@ public:
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 
 		// Reconstruct the output
@@ -385,8 +387,10 @@ public:
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
-		group_by_kernel <AggregationFunctions::avg> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		if (dataElementCount > 0) {
+			group_by_kernel <AggregationFunctions::avg> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		}
 	}
 
 	// Get the size of hash table (max count of keys)
@@ -399,7 +403,7 @@ public:
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructCol(values, elementCount, values_, occupancyMask.get(), maxHashCount_);
@@ -421,7 +425,7 @@ public:
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 
 		// TODO maybe somewhen optimize if O and V is the same data type - dont copy values
@@ -582,8 +586,10 @@ public:
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
-		group_by_kernel <AggregationFunctions::count> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		if (dataElementCount > 0) {
+			group_by_kernel <AggregationFunctions::count> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		}
 	}
 
 	// Get the size of hash table (max count of keys)
@@ -596,7 +602,7 @@ public:
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructCol(occurences, elementCount, keyOccurenceCount_, occupancyMask.get(), maxHashCount_);
@@ -614,7 +620,7 @@ public:
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 
 		// Reconstruct the output
