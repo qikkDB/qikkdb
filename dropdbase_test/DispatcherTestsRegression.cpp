@@ -12,7 +12,7 @@
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 #include "DispatcherObjs.h"
 
-TEST(DispatcherTests, GroupByEmptySet)
+TEST(DispatcherTestsRegression, GroupByEmptySet)
 {
 	Context::getInstance();
 
