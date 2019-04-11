@@ -133,7 +133,8 @@ public:
 	// Operations on the grid dimensions
 	int32_t calcGridDim(int32_t dataElementCount)
 	{
-		if (dataElementCount <= 0) {
+		if (dataElementCount <= 0)
+		{
 			QueryEngineError::setType(QueryEngineError::GPU_EXTENSION_ERROR, "Data Element Count must be > 0");
 		}
 		int blockCount = (dataElementCount + getBlockDim() - 1) / getBlockDim();

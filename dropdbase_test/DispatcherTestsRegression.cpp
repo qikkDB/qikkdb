@@ -12,23 +12,61 @@
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 #include "DispatcherObjs.h"
 
-TEST(DispatcherTestsRegression, GroupByEmptySet)
+TEST(DispatcherTests, EmptyResultFromGtColConst)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT COUNT(colInteger1) FROM TableA WHERE colInteger1 > 5000 GROUP BY colInteger1;");
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 4096;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("TableA.colInteger1");
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);
+
+}
+
+TEST(DispatcherTests, EmptyResultFromGroupByCount)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COUNT(colInteger1) FROM TableA WHERE colInteger1 > 4096 GROUP BY colInteger1;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("COUNT(colInteger1)");
 
-	ASSERT_EQ(payloads.int64payload().int64data_size(), 0);	// Check if the result size is also 0
+	ASSERT_EQ(payloads.int64payload().int64data_size(), 0);		// Check if the result size is also 0
 }
+
+TEST(DispatcherTests, EmptyResultFromGroupByAvg)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT AVG(colInteger1) FROM TableA WHERE colInteger1 > 4096 GROUP BY colInteger1;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("AVG(colInteger1)");
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);
+}
+
+TEST(DispatcherTests, EmptyResultFromGroupBySum)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT SUM(colInteger1) FROM TableA WHERE colInteger1 > 4096 GROUP BY colInteger1;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("SUM(colInteger1)");
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);
+}
+
 
 TEST(DispatcherTestsRegression, EmptySetAggregationCount)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT COUNT(colInteger1) FROM TableA WHERE colInteger1 > 5000;");
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COUNT(colInteger1) FROM TableA WHERE colInteger1 > 4096;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("COUNT(colInteger1)");
@@ -41,7 +79,7 @@ TEST(DispatcherTestsRegression, EmptySetAggregationSum)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT SUM(colInteger1) FROM TableA WHERE colInteger1 > 5000;");
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT SUM(colInteger1) FROM TableA WHERE colInteger1 > 4096;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("SUM(colInteger1)");
@@ -53,7 +91,7 @@ TEST(DispatcherTestsRegression, EmptySetAggregationMin)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT MIN(colInteger1) FROM TableA WHERE colInteger1 > 5000;");
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT MIN(colInteger1) FROM TableA WHERE colInteger1 > 4096;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("MIN(colInteger1)");
