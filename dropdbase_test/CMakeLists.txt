@@ -8,7 +8,6 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ClientHandlerTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/CSVDataImportTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTestsRegression.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherGeoTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
