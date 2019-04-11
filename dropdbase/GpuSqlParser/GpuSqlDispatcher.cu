@@ -306,6 +306,11 @@ void GpuSqlDispatcher::addSecondFunction(DataType type)
 	dispatcherFunctions.push_back(secondFunctions[type]);
 }
 
+void GpuSqlDispatcher::addAbsFunction(DataType type)
+{
+	dispatcherFunctions.push_back(absFunctions[type]);
+}
+
 
 void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)
 {

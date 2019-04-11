@@ -109,6 +109,8 @@ private:
 		DataType::DATA_TYPE_SIZE> minuteFunctions;
 	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> secondFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> absFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
@@ -274,6 +276,8 @@ public:
 
 	void addSecondFunction(DataType type);
 
+	void addAbsFunction(DataType type);
+
     void addMinFunction(DataType key, DataType value, bool usingGroupBy);
 
     void addMaxFunction(DataType key, DataType value, bool usingGroupBy);
@@ -404,6 +408,12 @@ public:
 
 	template<typename OP, typename T, typename U>
 	int32_t arithmeticConstConst();
+
+	template<typename OP, typename T>
+	int32_t arithmeticUnaryCol();
+
+	template<typename OP, typename T>
+	int32_t arithmeticUnaryConst();
 
 	template<typename OP, typename R, typename T, typename U>
 	int32_t aggregationGroupBy();

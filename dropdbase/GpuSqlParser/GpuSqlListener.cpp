@@ -239,6 +239,11 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 		dispatcher.addSecondFunction(operandType);
 		returnDataType = COLUMN_INT;
 	}
+	else if (op == "ABS")
+	{
+		dispatcher.addAbsFunction(operandType);
+		returnDataType = operandType;
+	}
 
 	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
