@@ -39,6 +39,7 @@ int32_t GpuSqlDispatcher::aggregationCol()
 
 	if (!isRegisterAllocated(reg))
 	{
+		// TODO: if (not COUNT operation and std::get<1>(column) == 0), set result to NaN
 		OUT * result = allocateRegister<OUT>(reg, 1);
 		GPUAggregation::col<OP, OUT, IN>(result, reinterpret_cast<IN*>(std::get<0>(column)), std::get<1>(column));
 	}
