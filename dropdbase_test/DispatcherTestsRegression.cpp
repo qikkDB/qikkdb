@@ -12,7 +12,7 @@
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 #include "DispatcherObjs.h"
 
-TEST(DispatcherTests, EmptyResultFromGtColConst)
+TEST(DispatcherTestsRegression, EmptyResultFromGtColConst)
 {
 	Context::getInstance();
 
@@ -21,11 +21,10 @@ TEST(DispatcherTests, EmptyResultFromGtColConst)
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
-	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);
-
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);		// Check if the result size is also 0
 }
 
-TEST(DispatcherTests, EmptyResultFromGroupByCount)
+TEST(DispatcherTestsRegression, EmptyResultFromGroupByCount)
 {
 	Context::getInstance();
 
@@ -34,10 +33,10 @@ TEST(DispatcherTests, EmptyResultFromGroupByCount)
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("COUNT(colInteger1)");
 
-	ASSERT_EQ(payloads.int64payload().int64data_size(), 0);		// Check if the result size is also 0
+	ASSERT_EQ(payloads.int64payload().int64data_size(), 0);
 }
 
-TEST(DispatcherTests, EmptyResultFromGroupByAvg)
+TEST(DispatcherTestsRegression, EmptyResultFromGroupByAvg)
 {
 	Context::getInstance();
 
@@ -49,7 +48,7 @@ TEST(DispatcherTests, EmptyResultFromGroupByAvg)
 	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);
 }
 
-TEST(DispatcherTests, EmptyResultFromGroupBySum)
+TEST(DispatcherTestsRegression, EmptyResultFromGroupBySum)
 {
 	Context::getInstance();
 
