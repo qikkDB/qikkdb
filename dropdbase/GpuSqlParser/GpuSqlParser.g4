@@ -51,6 +51,12 @@ expression : op=NOT expression                                                  
            | op=ASIN LPAREN expression RPAREN                                             # unaryOperation
            | op=ACOS LPAREN expression RPAREN                                             # unaryOperation
            | op=ATAN LPAREN expression RPAREN                                             # unaryOperation
+           | op=LOG10 LPAREN expression RPAREN                                            # unaryOperation
+           | op=LOG LPAREN expression RPAREN                                              # unaryOperation
+           | op=EXP LPAREN expression RPAREN                                              # unaryOperation
+           | op=SQRT LPAREN expression RPAREN                                             # unaryOperation
+           | op=SQUARE LPAREN expression RPAREN                                           # unaryOperation
+           | op=SIGN LPAREN expression RPAREN                                             # unaryOperation
            | op=YEAR LPAREN expression RPAREN                                             # unaryOperation
            | op=MONTH LPAREN expression RPAREN                                            # unaryOperation
            | op=DAY LPAREN expression RPAREN                                              # unaryOperation
@@ -60,6 +66,9 @@ expression : op=NOT expression                                                  
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation
            | left=expression op=MODULO right=expression                                   # binaryOperation
+           | op=LOG LPAREN left=expression COMMA right=expression RPAREN                  # binaryOperation
+           | op=POW LPAREN left=expression COMMA right=expression RPAREN                  # binaryOperation
+           | op=ROOT LPAREN left=expression COMMA right=expression RPAREN                 # binaryOperation
            | left=expression op=XOR right=expression                                      # binaryOperation
            | left=expression op=(BIT_AND|BIT_OR) right=expression                         # binaryOperation
            | left=expression op=(L_SHIFT|R_SHIFT) right=expression                        # binaryOperation
@@ -79,6 +88,8 @@ expression : op=NOT expression                                                  
            | geometry                                                                     # geoReference
            | DATETIMELIT                                                                  # dateTimeLiteral
            | FLOATLIT                                                                     # decimalLiteral
+           | PI                                                                           # piLiteral
+           | NOW                                                                          # nowLiteral
            | INTLIT                                                                       # intLiteral
            | STRINGLIT                                                                    # stringLiteral
            | BOOLEANLIT                                                                   # booleanLiteral

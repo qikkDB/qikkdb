@@ -11,6 +11,7 @@
 #include <locale>
 #include <iomanip>
 
+constexpr float pi() { return 3.1415926f; }
 
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSqlDispatcher& dispatcher): 
 	database(database), 
@@ -154,6 +155,21 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
         dispatcher.addUnionFunction(leftOperandType, rightOperandType);
         returnDataType = DataType::COLUMN_POLYGON;
     }
+	else if (op == "LOG")
+	{
+		dispatcher.addLogarithmFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "POW")
+	{
+		dispatcher.addPowerFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == "ROOT")
+	{
+	dispatcher.addRootFunction(leftOperandType, rightOperandType);
+	returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
 
 	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
@@ -273,6 +289,36 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	{
 		dispatcher.addArctangentFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
+	}
+    else if (op == "LOG10")
+    {
+        dispatcher.addLogarithm10Function(operandType);
+        returnDataType = DataType::COLUMN_FLOAT;
+    }
+	else if (op == "LOG")
+	{
+		dispatcher.addLogarithmNaturalFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "EXP")
+	{
+		dispatcher.addExponentialFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SQRT")
+	{
+		dispatcher.addSquareRootFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SQUARE")
+	{
+		dispatcher.addSquareFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SIGN")
+	{
+		dispatcher.addSignFunction(operandType);
+		returnDataType = DataType::COLUMN_INT;
 	}
 
 	std::string reg = getRegString(ctx);
@@ -665,6 +711,17 @@ void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * 
 	ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
 	std::time_t epochTime = std::mktime(&t);
 
+	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
+}
+
+void GpuSqlListener::exitPiLiteral(GpuSqlParser::PiLiteralContext * ctx)
+{
+	parserStack.push(std::make_pair(std::to_string(pi()), DataType::CONST_FLOAT));
+}
+
+void GpuSqlListener::exitNowLiteral(GpuSqlParser::NowLiteralContext * ctx)
+{
+	std::time_t epochTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
 }
 

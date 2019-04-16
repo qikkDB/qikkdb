@@ -80,7 +80,9 @@ DAY         : D A Y;
 HOUR        : H O U R;
 MINUTE      : M I N U T E;
 SECOND      : S E C O N D;
+NOW         : N O W LPAREN RPAREN;
 
+PI          : P I LPAREN RPAREN;
 ABS         : A B S;
 SIN         : S I N;
 COS         : C O S;
@@ -88,6 +90,15 @@ TAN         : T A N;
 ASIN        : A S I N;
 ACOS        : A C O S;
 ATAN        : A T A N;
+
+LOG10       : L O G '10';
+LOG         : L O G;
+EXP         : E X P;
+POW         : P O W;
+SQRT        : S Q R T;
+SQUARE      : S Q U A R E;
+SIGN        : S I G N;
+ROOT        : R O O T;
 
 
 GEO_CONTAINS        : G E O UNDERSCORE C O N T A I N S;
