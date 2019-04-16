@@ -89,6 +89,11 @@ ASIN        : A S I N;
 ACOS        : A C O S;
 ATAN        : A T A N;
 
+LOG10       : L O G '10';
+LOG         : L O G;
+EXP         : E X P;
+POW         : P O W;
+
 
 GEO_CONTAINS        : G E O UNDERSCORE C O N T A I N S;
 GEO_INTERSECT       : G E O UNDERSCORE I N T E R S E C T;

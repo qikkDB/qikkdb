@@ -85,6 +85,10 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseLeftShiftFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions;
     static std::array<DispatchFunction,
@@ -123,6 +127,12 @@ private:
 		DataType::DATA_TYPE_SIZE> arccosineFunctions;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> arctangentFunctions;
+    static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> logarithm10Functions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> logarithmNaturalFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> exponentialFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
@@ -301,6 +311,16 @@ public:
 	void addArccosineFunction(DataType type);
 
 	void addArctangentFunction(DataType type);
+
+	void addLogarithm10Function(DataType type);
+
+	void addLogarithmFunction(DataType number, DataType base);
+
+	void addLogarithmNaturalFunction(DataType type);
+
+	void addExponentialFunction(DataType type);
+
+	void addPowerFunction(DataType base, DataType exponent);
 
     void addMinFunction(DataType key, DataType value, bool usingGroupBy);
 

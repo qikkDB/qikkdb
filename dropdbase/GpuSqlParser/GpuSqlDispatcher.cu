@@ -249,6 +249,16 @@ void GpuSqlDispatcher::addPointFunction(DataType left, DataType right)
 	dispatcherFunctions.push_back(pointFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
+void GpuSqlDispatcher::addLogarithmFunction(DataType number, DataType base)
+{
+	dispatcherFunctions.push_back(logarithmFunctions[DataType::DATA_TYPE_SIZE * number + base]);
+}
+
+
+void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
+{
+	dispatcherFunctions.push_back(powerFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
+}
 
 void GpuSqlDispatcher::addContainsFunction(DataType left, DataType right)
 {
@@ -340,6 +350,20 @@ void GpuSqlDispatcher::addArctangentFunction(DataType type)
 	dispatcherFunctions.push_back(arctangentFunctions[type]);
 }
 
+void GpuSqlDispatcher::addLogarithm10Function(DataType type)
+{
+	dispatcherFunctions.push_back(logarithm10Functions[type]);
+}
+
+void GpuSqlDispatcher::addLogarithmNaturalFunction(DataType type)
+{
+	dispatcherFunctions.push_back(logarithmNaturalFunctions[type]);
+}
+
+void GpuSqlDispatcher::addExponentialFunction(DataType type)
+{
+	dispatcherFunctions.push_back(exponentialFunctions[type]);
+}
 
 void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)
 {

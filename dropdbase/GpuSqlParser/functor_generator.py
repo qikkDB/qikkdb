@@ -33,8 +33,8 @@ all_types = [INT,
              BOOL]
 
 bitwise_operations = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift"]
-arithmetic_operations = ["mul", "div", "add", "sub", "mod"]
-unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'arcsine', 'arccosine', 'arctangent']
+arithmetic_operations = ["mul", "div", "add", "sub", "mod", "logarithm", "power"]
+unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'arcsine', 'arccosine', 'arctangent', 'logarithm10', 'logarithmNatural', 'exponential']
 geo_operations = ["contains"]
 polygon_operations = ["intersect", "union"]
 filter_operations = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
@@ -50,7 +50,7 @@ operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "n
 operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operations_logical = ["logicalAnd", "logicalOr"]
 operations_arithmetic = ["mul", "div", "add", "sub", "mod", "bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift",
-                         "bitwiseRightShift"]
+                         "bitwiseRightShift", "power", "logarithm"]
 operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg", "year", "month", "day", "hour",
                     "minute", "second"]
 operations_aggregation = ["min", "max", "sum", "count", "avg"]

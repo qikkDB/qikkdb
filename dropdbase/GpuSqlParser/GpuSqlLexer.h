@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlLexer.g4 by ANTLR 4.7.2
+// Generated from C:/Users/David/source/repos/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlLexer.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -23,13 +23,13 @@ public:
     OFFSET = 46, SHOWDB = 47, SHOWTB = 48, SHOWCL = 49, AGG = 50, AVG = 51, 
     SUM = 52, MIN = 53, MAX = 54, COUNT = 55, YEAR = 56, MONTH = 57, DAY = 58, 
     HOUR = 59, MINUTE = 60, SECOND = 61, ABS = 62, SIN = 63, COS = 64, TAN = 65, 
-    ASIN = 66, ACOS = 67, ATAN = 68, GEO_CONTAINS = 69, GEO_INTERSECT = 70, 
-    GEO_UNION = 71, PLUS = 72, MINUS = 73, ASTERISK = 74, DIVISION = 75, 
-    MODULO = 76, XOR = 77, EQUALS = 78, NOTEQUALS = 79, NOTEQUALS_GT_LT = 80, 
-    LPAREN = 81, RPAREN = 82, GREATER = 83, LESS = 84, GREATEREQ = 85, LESSEQ = 86, 
-    NOT = 87, OR = 88, AND = 89, BIT_OR = 90, BIT_AND = 91, L_SHIFT = 92, 
-    R_SHIFT = 93, FLOATLIT = 94, INTLIT = 95, ID = 96, BOOLEANLIT = 97, 
-    STRINGLIT = 98
+    ASIN = 66, ACOS = 67, ATAN = 68, LOG10 = 69, LOG = 70, EXP = 71, POW = 72, 
+    GEO_CONTAINS = 73, GEO_INTERSECT = 74, GEO_UNION = 75, PLUS = 76, MINUS = 77, 
+    ASTERISK = 78, DIVISION = 79, MODULO = 80, XOR = 81, EQUALS = 82, NOTEQUALS = 83, 
+    NOTEQUALS_GT_LT = 84, LPAREN = 85, RPAREN = 86, GREATER = 87, LESS = 88, 
+    GREATEREQ = 89, LESSEQ = 90, NOT = 91, OR = 92, AND = 93, BIT_OR = 94, 
+    BIT_AND = 95, L_SHIFT = 96, R_SHIFT = 97, FLOATLIT = 98, INTLIT = 99, 
+    ID = 100, BOOLEANLIT = 101, STRINGLIT = 102
   };
 
   GpuSqlLexer(antlr4::CharStream *input);

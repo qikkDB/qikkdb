@@ -154,6 +154,16 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
         dispatcher.addUnionFunction(leftOperandType, rightOperandType);
         returnDataType = DataType::COLUMN_POLYGON;
     }
+	else if (op == "LOG")
+	{
+		dispatcher.addLogarithmFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "POW")
+	{
+		dispatcher.addPowerFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
 
 	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
@@ -272,6 +282,21 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	else if (op == "ATAN")
 	{
 		dispatcher.addArctangentFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+    else if (op == "LOG10")
+    {
+        dispatcher.addLogarithm10Function(operandType);
+        returnDataType = DataType::COLUMN_FLOAT;
+    }
+	else if (op == "LOG")
+	{
+		dispatcher.addLogarithmNaturalFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "EXP")
+	{
+		dispatcher.addExponentialFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 

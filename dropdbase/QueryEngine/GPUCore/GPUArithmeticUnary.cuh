@@ -95,6 +95,36 @@ namespace ArithmeticUnaryOperations
 			return atanf(a);
 		}
 	};
+
+	struct logarithm10
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U>
+		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		{
+			return log10f(a);
+		}
+	};
+
+	struct logarithmNatural
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U>
+		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		{
+			return logf(a);
+		}
+	};
+
+	struct exponential
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U>
+		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		{
+			return expf(a);
+		}
+	};
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
