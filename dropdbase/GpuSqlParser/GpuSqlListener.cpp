@@ -11,6 +11,7 @@
 #include <locale>
 #include <iomanip>
 
+constexpr float pi() { return 3.1415926; }
 
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSqlDispatcher& dispatcher): 
 	database(database), 
@@ -690,6 +691,17 @@ void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * 
 	ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
 	std::time_t epochTime = std::mktime(&t);
 
+	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
+}
+
+void GpuSqlListener::exitPiLiteral(GpuSqlParser::PiLiteralContext * ctx)
+{
+	parserStack.push(std::make_pair(std::to_string(pi()), DataType::CONST_FLOAT));
+}
+
+void GpuSqlListener::exitNowLiteral(GpuSqlParser::NowLiteralContext * ctx)
+{
+	std::time_t epochTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
 }
 
