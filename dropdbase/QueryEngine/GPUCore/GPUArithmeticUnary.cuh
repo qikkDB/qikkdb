@@ -125,6 +125,36 @@ namespace ArithmeticUnaryOperations
 			return expf(a);
 		}
 	};
+
+	struct squareRoot
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U>
+		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		{
+			return sqrtf(a);
+		}
+	};
+
+	struct square
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U>
+		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		{
+			return powf(a, 2);
+		}
+	};
+
+	struct sign
+	{
+		static constexpr bool isFloatRetType = false;
+		template<typename T, typename U>
+		__device__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		{
+			return (U{ 0 } < val) - (val < U{ 0 });
+		}
+	};
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

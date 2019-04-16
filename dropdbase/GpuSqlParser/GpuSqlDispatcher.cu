@@ -260,6 +260,11 @@ void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
 	dispatcherFunctions.push_back(powerFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
 }
 
+void GpuSqlDispatcher::addRootFunction(DataType base, DataType exponent)
+{
+	dispatcherFunctions.push_back(rootFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
+}
+
 void GpuSqlDispatcher::addContainsFunction(DataType left, DataType right)
 {
     dispatcherFunctions.push_back(containsFunctions[DataType::DATA_TYPE_SIZE * left + right]);

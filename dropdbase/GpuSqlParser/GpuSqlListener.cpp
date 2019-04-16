@@ -165,6 +165,11 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 		dispatcher.addPowerFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
+	else if (op == "ROOT")
+	{
+	dispatcher.addRootFunction(leftOperandType, rightOperandType);
+	returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
 
 	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
@@ -299,6 +304,21 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	{
 		dispatcher.addExponentialFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SQRT")
+	{
+		dispatcher.addExponentialFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SQUARE")
+	{
+		dispatcher.addExponentialFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SIGN")
+	{
+		dispatcher.addExponentialFunction(operandType);
+		returnDataType = DataType::COLUMN_INT;
 	}
 
 	std::string reg = getRegString(ctx);

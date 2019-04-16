@@ -89,6 +89,8 @@ private:
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions;
     static std::array<DispatchFunction,
@@ -133,6 +135,12 @@ private:
 		DataType::DATA_TYPE_SIZE> logarithmNaturalFunctions;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> exponentialFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> squareRootFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> squareFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> signFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
@@ -321,6 +329,14 @@ public:
 	void addExponentialFunction(DataType type);
 
 	void addPowerFunction(DataType base, DataType exponent);
+
+	void addSquareRootFunction(DataType type);
+
+	void addSquareFunction(DataType type);
+
+	void addSignFunction(DataType type);
+
+	void addRootFunction(DataType base, DataType exponent);
 
     void addMinFunction(DataType key, DataType value, bool usingGroupBy);
 

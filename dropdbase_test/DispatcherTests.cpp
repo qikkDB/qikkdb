@@ -9579,7 +9579,7 @@ TEST(DispatcherTests, SquareColConstInt)
 
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			if (pow(blockInt->GetData()[k], 2) > 2000)
+			if (powf(blockInt->GetData()[k], 2) > 2000)
 			{
 				expectedResultsInt.push_back(blockInt->GetData()[k]);
 			}
