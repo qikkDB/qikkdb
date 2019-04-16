@@ -7867,6 +7867,68 @@ TEST(DispatcherTests, LongModColumnConstLtConst)
 	}
 }
 
+TEST(DispatcherTests, DateTimeNow)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT YEAR(NOW()), MONTH(NOW()), DAY(NOW()), HOUR(NOW()), MINUTE(NOW()) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResultsYear;
+	std::vector<int32_t> expectedResultsMonth;
+	std::vector<int32_t> expectedResultsDay;
+	std::vector<int32_t> expectedResultsHour;
+	std::vector<int32_t> expectedResultsMinute;
+	std::vector<int32_t> expectedResultsSecond;
+
+	std::time_t epochTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	std::tm* localTime = gmtime(&epochTime);
+
+	expectedResultsYear.push_back(localTime->tm_year + 1900);
+	expectedResultsMonth.push_back(localTime->tm_mon + 1);
+	expectedResultsDay.push_back(localTime->tm_mday);
+	expectedResultsHour.push_back(localTime->tm_hour);
+	expectedResultsMinute.push_back(localTime->tm_min);
+
+	auto &payloadsYear = result->payloads().at("YEAR(NOW())");
+	auto &payloadsMonth = result->payloads().at("MONTH(NOW())");
+	auto &payloadsDay = result->payloads().at("DAY(NOW())");
+	auto &payloadsHour = result->payloads().at("HOUR(NOW())");
+	auto &payloadsMinute = result->payloads().at("MINUTE(NOW())");
+
+	ASSERT_EQ(payloadsYear.intpayload().intdata_size(), expectedResultsYear.size());
+	ASSERT_EQ(payloadsMonth.intpayload().intdata_size(), expectedResultsMonth.size());
+	ASSERT_EQ(payloadsDay.intpayload().intdata_size(), expectedResultsDay.size());
+	ASSERT_EQ(payloadsHour.intpayload().intdata_size(), expectedResultsHour.size());
+	ASSERT_EQ(payloadsMinute.intpayload().intdata_size(), expectedResultsMinute.size());
+
+	for (int i = 0; i < payloadsYear.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsYear[i], payloadsYear.intpayload().intdata()[i]);
+	}
+
+	for (int i = 0; i < payloadsYear.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsMonth[i], payloadsMonth.intpayload().intdata()[i]);
+	}
+
+	for (int i = 0; i < payloadsYear.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsDay[i], payloadsDay.intpayload().intdata()[i]);
+	}
+
+	for (int i = 0; i < payloadsYear.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsHour[i], payloadsHour.intpayload().intdata()[i]);
+	}
+
+	for (int i = 0; i < payloadsYear.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsMinute[i], payloadsMinute.intpayload().intdata()[i]);
+	}
+}
+
 
 // DateTime tests
 TEST(DispatcherTests, DateTimeCol)
@@ -9632,7 +9694,7 @@ TEST(DispatcherTests, SquareColConstInt)
 	}
 }
 
-TEST(DispatcherTests, SignColConstInt)
+TEST(DispatcherTests, SignPositiveColConstInt)
 {
 	Context::getInstance();
 	int32_t polygonColumnCount = 1;
@@ -9652,6 +9714,78 @@ TEST(DispatcherTests, SignColConstInt)
 		for (int k = 0; k < (1 << 11); k++)
 		{
 			if (blockInt->GetData()[k] > 0)
+			{
+				expectedResultsInt.push_back(blockInt->GetData()[k]);
+			}
+		}
+	}
+
+	auto &payloadsInt = result->payloads().at("TableA.colInteger1");
+
+	ASSERT_EQ(payloadsInt.intpayload().intdata_size(), expectedResultsInt.size());
+
+	for (int i = 0; i < payloadsInt.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsInt[i], payloadsInt.intpayload().intdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, SignNegativeColConstInt)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIGN(colInteger1) = -1;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResultsInt;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i];
+
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if (blockInt->GetData()[k] < 0)
+			{
+				expectedResultsInt.push_back(blockInt->GetData()[k]);
+			}
+		}
+	}
+
+	auto &payloadsInt = result->payloads().at("TableA.colInteger1");
+
+	ASSERT_EQ(payloadsInt.intpayload().intdata_size(), expectedResultsInt.size());
+
+	for (int i = 0; i < payloadsInt.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsInt[i], payloadsInt.intpayload().intdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, SignZeroColConstInt)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIGN(colInteger1) = 0;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResultsInt;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i];
+
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if (blockInt->GetData()[k] == 0)
 			{
 				expectedResultsInt.push_back(blockInt->GetData()[k]);
 			}
