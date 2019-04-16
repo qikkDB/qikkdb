@@ -118,8 +118,8 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 
 			std::cout << "Reconstructing group by in thread: " << dispatcherThreadId << std::endl;
 			int32_t outSize;
-			U* outKeys;
-			R* outValues;
+			U* outKeys = nullptr;
+			R* outValues = nullptr;
 			reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(groupByTables[dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, groupByTables);
 			allocatedPointers.insert({ groupByColumnName + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
 			allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });

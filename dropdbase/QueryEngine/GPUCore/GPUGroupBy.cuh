@@ -520,7 +520,7 @@ public:
 				GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
 
 				// Merge results
-				V* valuesMerged;
+				V* valuesMerged = nullptr;
 				int64_t* occurencesMerged;
 
 				// Calculate sum of values
@@ -535,7 +535,7 @@ public:
 				GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, tmpKeys);
 				countGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
 				countGroupBy.getResults(outKeys, &occurencesMerged, outDataElementCount);
-
+				GPUMemory::alloc(outValues, *outDataElementCount);
 				GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurencesMerged, *outDataElementCount);
 				GPUMemory::free(valuesMerged);
 				GPUMemory::free(occurencesMerged);

@@ -141,14 +141,14 @@ namespace ArithmeticOperations
 			//	"Output column of operation division has to be floating point type! For integer division use operation floorDivision.");
 
 			// if none of the input operands are float
-			if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
+			/*if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
 			{
 				return a / static_cast<T>(b); // convert divisor to type T (should be floating point)
 			}
-			else
-			{
+			else*/
+			//{
 				return a / b;
-			}
+			//}
 		}
 	};
 
@@ -258,11 +258,12 @@ public:
 	static void colCol(T *output, U *ACol, V *BCol, int32_t dataElementCount)
 	{
 		ErrorFlagSwapper errorFlagSwapper;
-
 		kernel_arithmetic <OP>
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, ACol, BCol, dataElementCount, errorFlagSwapper.getFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+		cudaDeviceSynchronize();
+		QueryEngineError::setCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U, typename V>
