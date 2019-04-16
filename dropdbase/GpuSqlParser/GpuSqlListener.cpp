@@ -307,17 +307,17 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	}
 	else if (op == "SQRT")
 	{
-		dispatcher.addExponentialFunction(operandType);
+		dispatcher.addSquareRootFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "SQUARE")
 	{
-		dispatcher.addExponentialFunction(operandType);
+		dispatcher.addSquareFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "SIGN")
 	{
-		dispatcher.addExponentialFunction(operandType);
+		dispatcher.addSignFunction(operandType);
 		returnDataType = DataType::COLUMN_INT;
 	}
 

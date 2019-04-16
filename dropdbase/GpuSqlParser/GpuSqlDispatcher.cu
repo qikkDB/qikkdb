@@ -370,6 +370,21 @@ void GpuSqlDispatcher::addExponentialFunction(DataType type)
 	dispatcherFunctions.push_back(exponentialFunctions[type]);
 }
 
+void GpuSqlDispatcher::addSquareFunction(DataType type)
+{
+	dispatcherFunctions.push_back(squareFunctions[type]);
+}
+
+void GpuSqlDispatcher::addSquareRootFunction(DataType type)
+{
+	dispatcherFunctions.push_back(squareRootFunctions[type]);
+}
+
+void GpuSqlDispatcher::addSignFunction(DataType type)
+{
+	dispatcherFunctions.push_back(signFunctions[type]);
+}
+
 void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)
 {
     dispatcherFunctions.push_back((usingGroupBy ? minGroupByFunctions : minAggregationFunctions)
