@@ -22,14 +22,15 @@ public:
     AS = 39, IN = 40, BETWEEN = 41, ON = 42, ORDERBY = 43, DIR = 44, LIMIT = 45, 
     OFFSET = 46, SHOWDB = 47, SHOWTB = 48, SHOWCL = 49, AGG = 50, AVG = 51, 
     SUM = 52, MIN = 53, MAX = 54, COUNT = 55, YEAR = 56, MONTH = 57, DAY = 58, 
-    HOUR = 59, MINUTE = 60, SECOND = 61, ABS = 62, SIN = 63, COS = 64, TAN = 65, 
-    ASIN = 66, ACOS = 67, ATAN = 68, LOG10 = 69, LOG = 70, EXP = 71, POW = 72, 
-    GEO_CONTAINS = 73, GEO_INTERSECT = 74, GEO_UNION = 75, PLUS = 76, MINUS = 77, 
-    ASTERISK = 78, DIVISION = 79, MODULO = 80, XOR = 81, EQUALS = 82, NOTEQUALS = 83, 
-    NOTEQUALS_GT_LT = 84, LPAREN = 85, RPAREN = 86, GREATER = 87, LESS = 88, 
-    GREATEREQ = 89, LESSEQ = 90, NOT = 91, OR = 92, AND = 93, BIT_OR = 94, 
-    BIT_AND = 95, L_SHIFT = 96, R_SHIFT = 97, FLOATLIT = 98, INTLIT = 99, 
-    ID = 100, BOOLEANLIT = 101, STRINGLIT = 102
+    HOUR = 59, MINUTE = 60, SECOND = 61, NOW = 62, PI = 63, ABS = 64, SIN = 65, 
+    COS = 66, TAN = 67, ASIN = 68, ACOS = 69, ATAN = 70, LOG10 = 71, LOG = 72, 
+    EXP = 73, POW = 74, SQRT = 75, SQUARE = 76, SIGN = 77, ROOT = 78, GEO_CONTAINS = 79, 
+    GEO_INTERSECT = 80, GEO_UNION = 81, PLUS = 82, MINUS = 83, ASTERISK = 84, 
+    DIVISION = 85, MODULO = 86, XOR = 87, EQUALS = 88, NOTEQUALS = 89, NOTEQUALS_GT_LT = 90, 
+    LPAREN = 91, RPAREN = 92, GREATER = 93, LESS = 94, GREATEREQ = 95, LESSEQ = 96, 
+    NOT = 97, OR = 98, AND = 99, BIT_OR = 100, BIT_AND = 101, L_SHIFT = 102, 
+    R_SHIFT = 103, FLOATLIT = 104, INTLIT = 105, ID = 106, BOOLEANLIT = 107, 
+    STRINGLIT = 108
   };
 
   enum {
@@ -676,11 +677,11 @@ public:
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
-  class  StringLiteralContext : public ExpressionContext {
+  class  NowLiteralContext : public ExpressionContext {
   public:
-    StringLiteralContext(ExpressionContext *ctx);
+    NowLiteralContext(ExpressionContext *ctx);
 
-    antlr4::tree::TerminalNode *STRINGLIT();
+    antlr4::tree::TerminalNode *NOW();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
@@ -734,6 +735,7 @@ public:
     std::vector<ExpressionContext *> expression();
     ExpressionContext* expression(size_t i);
     antlr4::tree::TerminalNode *POW();
+    antlr4::tree::TerminalNode *ROOT();
     antlr4::tree::TerminalNode *POINT();
     antlr4::tree::TerminalNode *GEO_CONTAINS();
     antlr4::tree::TerminalNode *GEO_INTERSECT();
@@ -792,6 +794,9 @@ public:
     antlr4::tree::TerminalNode *LOG10();
     antlr4::tree::TerminalNode *LOG();
     antlr4::tree::TerminalNode *EXP();
+    antlr4::tree::TerminalNode *SQRT();
+    antlr4::tree::TerminalNode *SQUARE();
+    antlr4::tree::TerminalNode *SIGN();
     antlr4::tree::TerminalNode *YEAR();
     antlr4::tree::TerminalNode *MONTH();
     antlr4::tree::TerminalNode *DAY();
@@ -802,20 +807,38 @@ public:
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
-  class  BooleanLiteralContext : public ExpressionContext {
-  public:
-    BooleanLiteralContext(ExpressionContext *ctx);
-
-    antlr4::tree::TerminalNode *BOOLEANLIT();
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-  };
-
   class  VarReferenceContext : public ExpressionContext {
   public:
     VarReferenceContext(ExpressionContext *ctx);
 
     ColumnIdContext *columnId();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  PiLiteralContext : public ExpressionContext {
+  public:
+    PiLiteralContext(ExpressionContext *ctx);
+
+    antlr4::tree::TerminalNode *PI();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  StringLiteralContext : public ExpressionContext {
+  public:
+    StringLiteralContext(ExpressionContext *ctx);
+
+    antlr4::tree::TerminalNode *STRINGLIT();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  BooleanLiteralContext : public ExpressionContext {
+  public:
+    BooleanLiteralContext(ExpressionContext *ctx);
+
+    antlr4::tree::TerminalNode *BOOLEANLIT();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
