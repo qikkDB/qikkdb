@@ -39,6 +39,7 @@ int32_t GpuSqlDispatcher::aggregationCol()
 
 	if (!isRegisterAllocated(reg))
 	{
+		// TODO: if (not COUNT operation and std::get<1>(column) == 0), set result to NaN
 		OUT * result = allocateRegister<OUT>(reg, 1);
 		GPUAggregation::col<OP, OUT, IN>(result, reinterpret_cast<IN*>(std::get<0>(column)), std::get<1>(column));
 	}
@@ -92,58 +93,47 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 	const std::string table = colTableName.substr(0, endOfPolyIdx);
 	const std::string columnName = colTableName.substr(endOfPolyIdx + 1);
 
-	if (usingGroupBy)
+	//TODO void param
+	if (groupByTables[dispatcherThreadId] == nullptr)
 	{
-		//TODO void param
-		if (groupByTables[dispatcherThreadId] == nullptr)
+		groupByTables[dispatcherThreadId] = std::make_unique<GPUGroupBy<OP, R, U, T>>(Configuration::GetInstance().GetGroupByBuckets());
+	}
+
+	std::string groupByColumnName = *(groupByColumns.begin());
+	std::tuple<uintptr_t, int32_t, bool> groupByColumn = allocatedPointers.at(groupByColumnName);
+
+
+	int32_t dataSize = std::min(std::get<1>(groupByColumn), std::get<1>(column));
+
+	reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(groupByTables[dispatcherThreadId].get())->groupBy(reinterpret_cast<U*>(std::get<0>(groupByColumn)), reinterpret_cast<T*>(std::get<0>(column)), dataSize);
+
+	// If last block was processed, reconstruct group by table
+	if (isLastBlockOfDevice)
+	{
+		if (isOverallLastBlock)
 		{
-			groupByTables[dispatcherThreadId] = std::make_unique<GPUGroupBy<OP, R, U, T>>(Configuration::GetInstance().GetGroupByBuckets());
+			// Wait until all threads finished work
+			std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
+			GpuSqlDispatcher::groupByCV_.wait(lock, [] { return GpuSqlDispatcher::IsGroupByDone(); });
+
+			std::cout << "Reconstructing group by in thread: " << dispatcherThreadId << std::endl;
+			int32_t outSize;
+			U* outKeys;
+			R* outValues;
+			reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(groupByTables[dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, groupByTables);
+			allocatedPointers.insert({ groupByColumnName + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
+			allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
 		}
-
-		std::string groupByColumnName = *(groupByColumns.begin());
-		std::tuple<uintptr_t, int32_t, bool> groupByColumn = allocatedPointers.at(groupByColumnName);
-
-
-
-		int32_t dataSize = std::min(std::get<1>(groupByColumn), std::get<1>(column));
-
-		reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(groupByTables[dispatcherThreadId].get())->groupBy(reinterpret_cast<U*>(std::get<0>(groupByColumn)), reinterpret_cast<T*>(std::get<0>(column)), dataSize);
-
-		// If last block was processed, reconstruct group by table
-		if (isLastBlockOfDevice)
+		else
 		{
-			if (isOverallLastBlock)
-			{
-				// Wait until all threads finished work
-				std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
-				GpuSqlDispatcher::groupByCV_.wait(lock, [] { return GpuSqlDispatcher::IsGroupByDone(); });
-
-				std::cout << "Reconstructing group by in thread: " << dispatcherThreadId << std::endl;
-				int32_t outSize;
-				U* outKeys;
-				R* outValues;
-				reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(groupByTables[dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, groupByTables);
-				allocatedPointers.insert({ groupByColumnName + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
-				allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
-			}
-			else
-			{
-				std::cout << "Group by all blocks done in thread: " << dispatcherThreadId << std::endl;
-				// Increment counter and notify threads
-				std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
-				GpuSqlDispatcher::IncGroupByDoneCounter();
-				GpuSqlDispatcher::groupByCV_.notify_all();
-			}
+			std::cout << "Group by all blocks done in thread: " << dispatcherThreadId << std::endl;
+			// Increment counter and notify threads
+			std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
+			GpuSqlDispatcher::IncGroupByDoneCounter();
+			GpuSqlDispatcher::groupByCV_.notify_all();
 		}
 	}
-	else
-	{
-		if (!isRegisterAllocated(reg))
-		{
-			T * result = allocateRegister<T>(reg, 1);
-			GPUAggregation::col<OP, T>(result, reinterpret_cast<T*>(std::get<0>(column)), std::get<1>(column));
-		}
-	}
+	
 	freeColumnIfRegister<U>(colTableName);
 	return 0;
 }

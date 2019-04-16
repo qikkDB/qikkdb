@@ -465,7 +465,7 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 	arguments.reset();
 	for (auto& ptr : allocatedPointers)
 	{
-		if (std::get<2>(ptr.second))
+		if (std::get<0>(ptr.second) != 0 && std::get<2>(ptr.second))
 		{
 			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(ptr.second)));
 		}
