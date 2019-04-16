@@ -320,17 +320,24 @@ public:
 			}
 
 			Context::getInstance().bindDeviceToContext(oldDeviceId);
-			cuda_ptr<K> keysAllGPU(sumElementCount);
-			cuda_ptr<V> valuesAllGPU(sumElementCount);
+			if (sumElementCount > 0)
+			{
+				cuda_ptr<K> keysAllGPU(sumElementCount);
+				cuda_ptr<V> valuesAllGPU(sumElementCount);
 
-			// Copy the condens from host to default device
-			GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
+				// Copy the condens from host to default device
+				GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
 
-			// Merge results
-			GPUGroupBy<AGG, O, K, V> finalGroupBy(sumElementCount);
-			finalGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
-			finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+				// Merge results
+				GPUGroupBy<AGG, O, K, V> finalGroupBy(sumElementCount);
+				finalGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
+				finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+			}
+			else
+			{
+				*outDataElementCount = 0;
+			}
 		}
 	}
 
@@ -501,36 +508,43 @@ public:
 			}
 
 			Context::getInstance().bindDeviceToContext(oldDeviceId);
-			cuda_ptr<K> keysAllGPU(sumElementCount);
-			cuda_ptr<V> valuesAllGPU(sumElementCount);
-			cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
+			if (sumElementCount > 0)
+			{
+				cuda_ptr<K> keysAllGPU(sumElementCount);
+				cuda_ptr<V> valuesAllGPU(sumElementCount);
+				cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
 
-			// Copy the condens from host to default device
-			GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
+				// Copy the condens from host to default device
+				GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
 
-			// Merge results
-			V* valuesMerged;
-			int64_t* occurencesMerged;
+				// Merge results
+				V* valuesMerged;
+				int64_t* occurencesMerged;
 
-			// Calculate sum of values
-			// Initialize new empty sumGroupBy table
-			K* tmpKeys;
-			GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
-			sumGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
-			sumGroupBy.getResults(&tmpKeys, &valuesMerged, outDataElementCount);
+				// Calculate sum of values
+				// Initialize new empty sumGroupBy table
+				K* tmpKeys;
+				GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
+				sumGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
+				sumGroupBy.getResults(&tmpKeys, &valuesMerged, outDataElementCount);
 
-			// Calculate sum of occurences
-			// Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
-			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, tmpKeys);
-			countGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
-			countGroupBy.getResults(outKeys, &occurencesMerged, outDataElementCount);
+				// Calculate sum of occurences
+				// Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
+				GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, tmpKeys);
+				countGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
+				countGroupBy.getResults(outKeys, &occurencesMerged, outDataElementCount);
 
-			GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurencesMerged, *outDataElementCount);
-			GPUMemory::free(valuesMerged);
-			GPUMemory::free(occurencesMerged);
-			GPUMemory::free(tmpKeys);
+				GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurencesMerged, *outDataElementCount);
+				GPUMemory::free(valuesMerged);
+				GPUMemory::free(occurencesMerged);
+				GPUMemory::free(tmpKeys);
+			}
+			else
+			{
+				*outDataElementCount = 0;
+			}
 		}
 	}
 
@@ -677,17 +691,24 @@ public:
 			}
 
 			Context::getInstance().bindDeviceToContext(oldDeviceId);
-			cuda_ptr<K> keysAllGPU(sumElementCount);
-			cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
+			if (sumElementCount > 0)
+			{
+				cuda_ptr<K> keysAllGPU(sumElementCount);
+				cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
 
-			// Copy the condens from host to default device
-			GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
+				// Copy the condens from host to default device
+				GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
 
-			// Merge results
-			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> finalGroupBy(sumElementCount);
-			finalGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
-			finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+				// Merge results
+				GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> finalGroupBy(sumElementCount);
+				finalGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
+				finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+			}
+			else
+			{
+				*outDataElementCount = 0;
+			}
 		}
 	}
 
