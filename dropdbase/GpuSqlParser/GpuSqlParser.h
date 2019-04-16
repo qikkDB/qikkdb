@@ -22,13 +22,14 @@ public:
     AS = 39, IN = 40, BETWEEN = 41, ON = 42, ORDERBY = 43, DIR = 44, LIMIT = 45, 
     OFFSET = 46, SHOWDB = 47, SHOWTB = 48, SHOWCL = 49, AGG = 50, AVG = 51, 
     SUM = 52, MIN = 53, MAX = 54, COUNT = 55, YEAR = 56, MONTH = 57, DAY = 58, 
-    HOUR = 59, MINUTE = 60, SECOND = 61, ABS = 62, GEO_CONTAINS = 63, GEO_INTERSECT = 64, 
-    GEO_UNION = 65, PLUS = 66, MINUS = 67, ASTERISK = 68, DIVISION = 69, 
-    MODULO = 70, XOR = 71, EQUALS = 72, NOTEQUALS = 73, NOTEQUALS_GT_LT = 74, 
-    LPAREN = 75, RPAREN = 76, GREATER = 77, LESS = 78, GREATEREQ = 79, LESSEQ = 80, 
-    NOT = 81, OR = 82, AND = 83, BIT_OR = 84, BIT_AND = 85, L_SHIFT = 86, 
-    R_SHIFT = 87, FLOATLIT = 88, INTLIT = 89, ID = 90, BOOLEANLIT = 91, 
-    STRINGLIT = 92
+    HOUR = 59, MINUTE = 60, SECOND = 61, ABS = 62, SIN = 63, COS = 64, TAN = 65, 
+    ASIN = 66, ACOS = 67, ATAN = 68, GEO_CONTAINS = 69, GEO_INTERSECT = 70, 
+    GEO_UNION = 71, PLUS = 72, MINUS = 73, ASTERISK = 74, DIVISION = 75, 
+    MODULO = 76, XOR = 77, EQUALS = 78, NOTEQUALS = 79, NOTEQUALS_GT_LT = 80, 
+    LPAREN = 81, RPAREN = 82, GREATER = 83, LESS = 84, GREATEREQ = 85, LESSEQ = 86, 
+    NOT = 87, OR = 88, AND = 89, BIT_OR = 90, BIT_AND = 91, L_SHIFT = 92, 
+    R_SHIFT = 93, FLOATLIT = 94, INTLIT = 95, ID = 96, BOOLEANLIT = 97, 
+    STRINGLIT = 98
   };
 
   enum {
@@ -777,9 +778,15 @@ public:
     ExpressionContext *expression();
     antlr4::tree::TerminalNode *NOT();
     antlr4::tree::TerminalNode *MINUS();
-    antlr4::tree::TerminalNode *ABS();
     antlr4::tree::TerminalNode *LPAREN();
     antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *ABS();
+    antlr4::tree::TerminalNode *SIN();
+    antlr4::tree::TerminalNode *COS();
+    antlr4::tree::TerminalNode *TAN();
+    antlr4::tree::TerminalNode *ASIN();
+    antlr4::tree::TerminalNode *ACOS();
+    antlr4::tree::TerminalNode *ATAN();
     antlr4::tree::TerminalNode *YEAR();
     antlr4::tree::TerminalNode *MONTH();
     antlr4::tree::TerminalNode *DAY();

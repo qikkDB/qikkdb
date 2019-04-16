@@ -270,7 +270,6 @@ void GpuSqlDispatcher::addLogicalNotFunction(DataType type)
     dispatcherFunctions.push_back(logicalNotFunctions[type]);
 }
 
-
 void GpuSqlDispatcher::addMinusFunction(DataType type)
 {
     dispatcherFunctions.push_back(minusFunctions[type]);
@@ -304,6 +303,41 @@ void GpuSqlDispatcher::addMinuteFunction(DataType type)
 void GpuSqlDispatcher::addSecondFunction(DataType type)
 {
 	dispatcherFunctions.push_back(secondFunctions[type]);
+}
+
+void GpuSqlDispatcher::addAbsoluteFunction(DataType type)
+{
+	dispatcherFunctions.push_back(absoluteFunctions[type]);
+}
+
+void GpuSqlDispatcher::addSineFunction(DataType type)
+{
+	dispatcherFunctions.push_back(sineFunctions[type]);
+}
+
+void GpuSqlDispatcher::addCosineFunction(DataType type)
+{
+	dispatcherFunctions.push_back(cosineFunctions[type]);
+}
+
+void GpuSqlDispatcher::addTangentFunction(DataType type)
+{
+	dispatcherFunctions.push_back(tangentFunctions[type]);
+}
+
+void GpuSqlDispatcher::addArcsineFunction(DataType type)
+{
+	dispatcherFunctions.push_back(arcsineFunctions[type]);
+}
+
+void GpuSqlDispatcher::addArccosineFunction(DataType type)
+{
+	dispatcherFunctions.push_back(arccosineFunctions[type]);
+}
+
+void GpuSqlDispatcher::addArctangentFunction(DataType type)
+{
+	dispatcherFunctions.push_back(arctangentFunctions[type]);
 }
 
 

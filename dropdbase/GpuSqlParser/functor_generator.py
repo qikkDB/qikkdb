@@ -34,6 +34,7 @@ all_types = [INT,
 
 bitwise_operations = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift"]
 arithmetic_operations = ["mul", "div", "add", "sub", "mod"]
+unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'arcsine', 'arccosine', 'arctangent']
 geo_operations = ["contains"]
 polygon_operations = ["intersect", "union"]
 filter_operations = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
@@ -317,6 +318,39 @@ for operation in operations_arithmetic:
                 declaration += ("&" + function + "};")
             else:
                 declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+for operation in unary_arithmetic_operations:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal in geo_types:
+            op = "invalidOperandTypesErrorHandler"
+
+        elif colVal == STRING:
+            op = "invalidOperandTypesErrorHandler"
+
+        elif colVal == BOOL:
+            op = "invalidOperandTypesErrorHandler"
+
+        else:
+            op = "arithmeticUnary"
+
+        function = "GpuSqlDispatcher::" + op + col + "<ArithmeticUnaryOperations::" + operation + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
 
     print(declaration)
 print()
