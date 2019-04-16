@@ -2,6 +2,7 @@
 
 constexpr int32_t TEST_BLOCK_COUNT = 2;		// this must be at least 2 (for testing more cases)
 constexpr int32_t TEST_BLOCK_SIZE = 1 << 11;
+constexpr float pi() { return 3.1415926f; }
 
 class DispatcherObjs
 {
