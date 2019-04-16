@@ -11,7 +11,7 @@
 #include <locale>
 #include <iomanip>
 
-constexpr float pi() { return 3.1415926; }
+constexpr float pi() { return 3.1415926f; }
 
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSqlDispatcher& dispatcher): 
 	database(database), 
