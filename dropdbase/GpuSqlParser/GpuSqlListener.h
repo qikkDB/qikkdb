@@ -91,6 +91,10 @@ public:
 
 	void exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext *ctx) override;
 
+	void exitPiLiteral(GpuSqlParser::PiLiteralContext *ctx) override;
+
+	void exitNowLiteral(GpuSqlParser::NowLiteralContext *ctx) override;
+
 	void enterAggregation(GpuSqlParser::AggregationContext *ctx) override;
 
     void exitAggregation(GpuSqlParser::AggregationContext *ctx) override;
