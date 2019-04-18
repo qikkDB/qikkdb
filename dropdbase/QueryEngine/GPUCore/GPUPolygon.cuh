@@ -139,7 +139,8 @@ public:
 
         if (pointCount != polygonCount && pointCount != 1 && polygonCount != 1)
         {
-            QueryEngineError::setType(QueryEngineError::GPU_EXTENSION_ERROR);
+            QueryEngineError::setType(QueryEngineErrorType::GPU_EXTENSION_ERROR, "PointCount=" + std::to_string(pointCount) +
+				", PolygonCount=" + std::to_string(polygonCount) + ": not allowed combination");
             return;
         }
 

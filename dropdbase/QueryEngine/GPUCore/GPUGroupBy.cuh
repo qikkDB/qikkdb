@@ -142,7 +142,7 @@ __global__ void group_by_kernel(
 		// else if we found a valid index
 		if (foundIndex == -1)
 		{
-			atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_HASH_TABLE_FULL));
+			atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_HASH_TABLE_FULL));
 		}
 		else
 		{
@@ -451,7 +451,18 @@ public:
 		*/
 		cuda_ptr<O> outValuesGPU(maxHashCount_);
 		// Divide by counts to get averages for buckets
-		GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(), values_, keyOccurenceCount_, maxHashCount_);
+		try
+		{
+			GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(), values_, keyOccurenceCount_, maxHashCount_);
+		}
+		catch (query_engine_error& err)
+		{
+			if (err.GetQueryEngineError() != QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR)
+			{
+				throw err; // Rethrow
+			}
+			// else ignore, because div by zero is OK here
+		}
 		// Reonstruct result with original occupancyMask
 		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, outValuesGPU.get(), occupancyMask.get(), maxHashCount_);
 		/*

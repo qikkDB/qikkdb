@@ -207,7 +207,7 @@ public:
 		}
 		else  // Version without mask is not supported in GenerateIndexes
 		{
-			QueryEngineError::setType(QueryEngineError::GPU_EXTENSION_ERROR, "inMask cannot be nullptr in GenerateIndexes");
+			QueryEngineError::setType(QueryEngineErrorType::GPU_EXTENSION_ERROR, "inMask cannot be nullptr in GenerateIndexes");
 		}
 
 		// Get last error

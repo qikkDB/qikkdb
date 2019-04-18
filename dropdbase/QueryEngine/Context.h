@@ -135,7 +135,7 @@ public:
 	{
 		if (dataElementCount <= 0)
 		{
-			QueryEngineError::setType(QueryEngineError::GPU_EXTENSION_ERROR, "Data Element Count must be > 0");
+			QueryEngineError::setType(QueryEngineErrorType::GPU_EXTENSION_ERROR, "Data Element Count must be > 0");
 		}
 		int blockCount = (dataElementCount + getBlockDim() - 1) / getBlockDim();
 		if (blockCount >= (DEFAULT_GRID_DIMENSION_LIMIT + 1))
