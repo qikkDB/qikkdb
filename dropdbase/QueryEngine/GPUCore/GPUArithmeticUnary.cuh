@@ -193,21 +193,21 @@ public:
 	static void col(T *output, U *ACol, int32_t dataElementCount)
 	{
 		ErrorFlagSwapper errorFlagSwapper;
-
 		kernel_arithmetic_unary <OP>
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(output, ACol, dataElementCount, errorFlagSwapper.getFlagPointer(),
+			(output, ACol, dataElementCount, errorFlagSwapper.GetFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+		errorFlagSwapper.Swap();
 	}
 
 	template<typename OP, typename T, typename U>
 	static void cnst(T *output, U AConst, int32_t dataElementCount)
 	{
 		ErrorFlagSwapper errorFlagSwapper;
-
 		kernel_arithmetic_unary <OP>
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(output, AConst, dataElementCount, errorFlagSwapper.getFlagPointer(),
+			(output, AConst, dataElementCount, errorFlagSwapper.GetFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+		errorFlagSwapper.Swap();
 	}
 };

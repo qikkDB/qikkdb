@@ -15,13 +15,18 @@ public:
 	}
 
 	~ErrorFlagSwapper() {
+		GPUMemory::free(errorFlagPointer);
+	}
+
+	void Swap() {
 		int32_t errorFlag;
 		GPUMemory::copyDeviceToHost(&errorFlag, errorFlagPointer, 1);
-		GPUMemory::free(errorFlagPointer);
+		// Clear flag for repeatedly use of this object
+		GPUMemory::memset(errorFlagPointer, static_cast<int32_t>(QueryEngineError::GPU_EXTENSION_SUCCESS), 1);
 
 		if (errorFlag != QueryEngineError::GPU_EXTENSION_SUCCESS)
 		{
-			QueryEngineError::setType((QueryEngineError::Type)errorFlag);
+			QueryEngineError::setType(static_cast<QueryEngineError::Type>(errorFlag));
 		}
 		else
 		{
@@ -29,7 +34,7 @@ public:
 		}
 	}
 
-	int32_t * getFlagPointer() {
+	int32_t * GetFlagPointer() {
 		return errorFlagPointer;
 	}
 };

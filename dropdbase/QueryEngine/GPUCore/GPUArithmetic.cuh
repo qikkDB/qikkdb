@@ -290,10 +290,9 @@ public:
 		ErrorFlagSwapper errorFlagSwapper;
 		kernel_arithmetic <OP>
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(output, ACol, BCol, dataElementCount, errorFlagSwapper.getFlagPointer(),
+			(output, ACol, BCol, dataElementCount, errorFlagSwapper.GetFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-		cudaDeviceSynchronize();
-		QueryEngineError::setCudaError(cudaGetLastError());
+		errorFlagSwapper.Swap();
 	}
 
 	template<typename OP, typename T, typename U, typename V>
@@ -309,22 +308,22 @@ public:
 		}
 
 		ErrorFlagSwapper errorFlagSwapper;
-
 		kernel_arithmetic <OP>
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(output, ACol, BConst, dataElementCount, errorFlagSwapper.getFlagPointer(),
+			(output, ACol, BConst, dataElementCount, errorFlagSwapper.GetFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+		errorFlagSwapper.Swap();
 	}
 
 	template<typename OP, typename T, typename U, typename V>
 	static void constCol(T *output, U AConst, V *BCol, int32_t dataElementCount)
 	{
 		ErrorFlagSwapper errorFlagSwapper;
-
 		kernel_arithmetic <OP>
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(output, AConst, BCol, dataElementCount, errorFlagSwapper.getFlagPointer(),
+			(output, AConst, BCol, dataElementCount, errorFlagSwapper.GetFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+		errorFlagSwapper.Swap();
 	}
 
 	template<typename OP, typename T, typename U, typename V>
@@ -340,10 +339,10 @@ public:
 		}
 
 		ErrorFlagSwapper errorFlagSwapper;
-
 		kernel_arithmetic <OP>
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(output, AConst, BConst, dataElementCount, errorFlagSwapper.getFlagPointer(),
+			(output, AConst, BConst, dataElementCount, errorFlagSwapper.GetFlagPointer(),
 				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+		errorFlagSwapper.Swap();
 	}
 };
