@@ -460,7 +460,7 @@ public:
 
 			if (block->IsCompressed())
 			{
-				size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData()) / sizeof(T);
+				size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
 				size_t compressedSize = block->GetSize();
 				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
 					database->GetName(), colName, blockIndex, uncompressedSize);

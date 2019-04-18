@@ -74,21 +74,23 @@ public:
 	/// </summary>
 	/// <param name="columnType">Type of column specified in DataType.h</param>
 	/// <param name="deviceCompressed">Pointer to compressed data stored in device memory</param>
+	/// <param name="uncompressedElementsCount">Number of elements of uncompressed data</param>
 	/// <param name="compressedElementsCount">Number of elements of compressed data</param>
-	/// <param name="hostUncompressed">Uncompressed data vector in host memory</param>
+	/// <param name="compressionBlocksCount">Number of elements of compression blocks</param>
+	/// <param name="deviceUncompressed">Pointer to compressed data stored in device memory</param>
 	/// <param name="minValue">Minimum value of uncompressed data</param>
 	/// <param name="maxValue">Maximum value of uncompressed data</param>
-	/// <param name="compressedSuccessfully">Output parameter representing result of compression</param>
+	/// <param name="compressedSuccessfully">Output parameter representing result of decompression</param>
 	template<class T>
-	static void DecompressOnDevice(DataType columnType, T* const deviceCompressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, T* const device_uncompressed, T minValue, T maxValue, bool& compressedSuccessfully)
+	static void DecompressOnDevice(DataType columnType, T* const deviceCompressed, int64_t uncompressedElementsCount, int64_t compressedElementsCount, int64_t compressionBlocksCount, T* const deviceUncompressed, T minValue, T maxValue, bool& compressedSuccessfully)
 	{
 		if (columnType == COLUMN_INT || columnType == COLUMN_LONG || columnType == COLUMN_INT8_T)
 		{
-			compressedSuccessfully = CompressionGPU::decompressDataAAFLOnDevice(deviceCompressed, data_size, compression_data_size, compression_blocks_count, device_uncompressed, minValue, maxValue);
+			compressedSuccessfully = CompressionGPU::decompressDataAAFLOnDevice(deviceCompressed, uncompressedElementsCount, compressedElementsCount, compressionBlocksCount, deviceUncompressed, minValue, maxValue);
 		}
 		else if (columnType == COLUMN_FLOAT)
 		{
-			compressedSuccessfully = CompressionGPU::decompressDataAAFLOnDevice(deviceCompressed, data_size, compression_data_size, compression_blocks_count, device_uncompressed, minValue, maxValue);
+			compressedSuccessfully = CompressionGPU::decompressDataAAFLOnDevice(deviceCompressed, uncompressedElementsCount, compressedElementsCount, compressionBlocksCount, deviceUncompressed, minValue, maxValue);
 		}
 		else
 		{

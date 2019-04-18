@@ -13,18 +13,28 @@
 #include "dropdbase/Types/Point.pb.h"
 #include "dropdbase/QueryEngine/QueryEngineError.h"
 
-
+/// <summary>
+/// Compresses input data and fills output vector with compressed data
+/// </summary>
+/// <param name="CWARP_SIZE">Warp size</param>
+/// <param name="hostUncompressed">Poiter to uncompressed data stored in host memory</param>
+/// <param name="uncompressedElementsCount">Number of elements of uncompressed data</param>
+/// <param name="hostCompressed">Compressed data vector in host memory</param>
+/// <param name="compressedElementsCount">Number of elements of compressed data</param>
+/// <param name="minValue">Minimum value of uncompressed data</param>
+/// <param name="maxValue">Maximum value of uncompressed data</param>
+/// <returns>Output parameter representing result of compression</returns>
 template<typename T>
-bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size, std::vector<T>& host_compressed, int64_t& compressed_size, T min, T max)
+bool compressAAFL(const int CWARP_SIZE, T* const hostUncompressed, int64_t uncompressedElementsCount, std::vector<T>& hostCompressed, int64_t& compressedElementsCount, T minValue, T maxValue)
 {
-	T offset = min;
-	if (min < 0)
+	T offset = minValue;
+	if (minValue < 0)
 	{
-		if (std::numeric_limits<T>::max() - max < -min)
+		if (std::numeric_limits<T>::max() - maxValue < -minValue)
 			offset = 0;
 	}
 
-	int64_t data_size = size * sizeof(T);
+	int64_t data_size = uncompressedElementsCount * sizeof(T);
 	int64_t compression_blocks_count = (data_size + (sizeof(T) * CWARP_SIZE) - 1) / (sizeof(T) * CWARP_SIZE);
 
 
@@ -44,7 +54,7 @@ bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size
 	device_compressed_size = reinterpret_cast<unsigned long*>(cudaAllocator.allocate(sizeof(unsigned long)));
 		
 	//copy M->G
-	cudaMemcpy(device_uncompressed, host_uncompressed, data_size, cudaMemcpyHostToDevice);
+	cudaMemcpy(device_uncompressed, hostUncompressed, data_size, cudaMemcpyHostToDevice);
 
 	// Clean up before compression
 	cudaMemset(device_compressed, 0, data_size);
@@ -52,8 +62,8 @@ bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size
 	cudaMemset(device_bit_length, 0, compression_blocks_count * sizeof(unsigned char));
 	cudaMemset(device_position_id, 0, compression_blocks_count * sizeof(unsigned long));
 
-	container_uncompressed<T> udata = { device_uncompressed, size };
-	container_aafl<T> cdata = { device_compressed, size, device_bit_length, device_position_id, device_compressed_size, offset };
+	container_uncompressed<T> udata = { device_uncompressed, uncompressedElementsCount };
+	container_aafl<T> cdata = { device_compressed, uncompressedElementsCount, device_bit_length, device_position_id, device_compressed_size, offset };
 	gpu_fl_naive_launcher_compression<T, 32, container_aafl<T>>::compress(udata, cdata);
 	QueryEngineError::setCudaError(cudaGetLastError());
 
@@ -67,12 +77,12 @@ bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size
 		std::max(sizeof(unsigned long) * compression_blocks_count, sizeof(T)) +
 		std::max(sizeof(unsigned char) * compression_blocks_count, sizeof(T)) +
 		(sizeof(int64_t) * 3);
-	compressed_size = compressed_data_size_final / sizeof(T);
+	compressedElementsCount = compressed_data_size_final / sizeof(T);
 
 	bool result = false;
-	if (compressed_size < size)
+	if (compressedElementsCount < uncompressedElementsCount)
 	{
-		int64_t sizes[3] = { size , host_compressed_size, compression_blocks_count };
+		int64_t sizes[3] = { uncompressedElementsCount , compressedElementsCount, compression_blocks_count };
 
 		T* coded_sizes = reinterpret_cast<T*>(sizes);
 
@@ -80,7 +90,7 @@ bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size
 		int coded_data_bit_length_start = coded_data_position_id_start + std::max((int)(sizeof(unsigned long) / (float)sizeof(T) * compression_blocks_count), 1);
 		int host_out_start = coded_data_bit_length_start + std::max((int)(sizeof(char) / (float)sizeof(T) * compression_blocks_count), 1);
 
-		host_compressed.reserve(compressed_data_size_final / sizeof(T));
+		hostCompressed.reserve(compressed_data_size_final / sizeof(T));
 		
 		std::unique_ptr<T[]> data = std::unique_ptr<T[]>(new T[(compressed_data_size_final / sizeof(T))]);
 
@@ -89,7 +99,7 @@ bool compressAAFL(const int CWARP_SIZE, T* const host_uncompressed, int64_t size
 		cudaMemcpy(data.get() + coded_data_bit_length_start, device_bit_length, compression_blocks_count * sizeof(unsigned char), cudaMemcpyDeviceToHost);
 		cudaMemcpy(data.get() + host_out_start, device_compressed, compressed_data_size, cudaMemcpyDeviceToHost);
 
-		host_compressed.assign(data.get(), data.get() + compressed_size);
+		hostCompressed.assign(data.get(), data.get() + compressedElementsCount);
 
 		result = true;
 	}
@@ -183,11 +193,11 @@ bool decompressAAFL(const int CWARP_SIZE, T* const host_compressed, int64_t comp
 {
 	T offset = min;
 
-	int64_t size = reinterpret_cast<int64_t*>(host_compressed)[0];
-	int64_t compressed_size = reinterpret_cast<int64_t*>(host_compressed)[1];
+	size = reinterpret_cast<int64_t*>(host_compressed)[0];
+	compressed_size = reinterpret_cast<int64_t*>(host_compressed)[1];
 	int64_t compression_blocks_count = reinterpret_cast<int64_t*>(host_compressed)[2];
 
-	int64_t data_size * sizeof(T);
+	int64_t data_size = size * sizeof(T);
 	int64_t compressed_data_size = compressed_size * sizeof(T);
 	
 
