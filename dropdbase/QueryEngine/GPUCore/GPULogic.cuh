@@ -83,7 +83,7 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BCol, dataElementCount);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
@@ -91,7 +91,7 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
@@ -99,7 +99,7 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, AConst, BCol, dataElementCount);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
@@ -107,7 +107,7 @@ public:
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, AConst, BConst, dataElementCount);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 	
 	
@@ -126,7 +126,7 @@ public:
 			(outCol, ACol, dataElementCount);
 		
 		// Get last error
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	/// <summary>
@@ -145,6 +145,6 @@ public:
 			(outCol, AConst, dataElementCount);
 
 		// Get last error
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 };

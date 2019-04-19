@@ -78,7 +78,7 @@ public:
 		}
 
 		// Get last error
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 
@@ -124,7 +124,7 @@ public:
 		}
 
 		// Get last error
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 
@@ -207,11 +207,11 @@ public:
 		}
 		else  // Version without mask is not supported in GenerateIndexes
 		{
-			QueryEngineError::setType(QueryEngineErrorType::GPU_EXTENSION_ERROR, "inMask cannot be nullptr in GenerateIndexes");
+			CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR, "inMask cannot be nullptr in GenerateIndexes");
 		}
 
 		// Get last error
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename M>

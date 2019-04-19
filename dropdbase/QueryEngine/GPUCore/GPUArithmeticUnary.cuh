@@ -11,7 +11,7 @@
 
 #include "ErrorFlagSwapper.h"
 #include "../Context.h"
-#include "../QueryEngineError.h"
+#include "../GPUError.h"
 #include "MaybeDeref.cuh"
 
 namespace ArithmeticUnaryOperations

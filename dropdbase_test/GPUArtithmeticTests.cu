@@ -8,7 +8,7 @@
 #include "../dropdbase/QueryEngine/GPUCore/GPUArithmetic.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/cuda_ptr.h"
-#include "../dropdbase/QueryEngine/NullConstants.h"
+#include "../dropdbase/QueryEngine/NullConstants.cuh"
 #include "gtest/gtest.h"
 
 // Initialize random generators with a seed
@@ -537,9 +537,9 @@ TEST(GPUArithmeticTests, DivisionByZero)
     Context::getInstance();
 
     testErrors<ArithmeticOperations::div, int32_t>({1, 8, 1, -1, 0, -1}, {1, 4, 0, 0, 0, 1},
-                                                   {1, 2, NullConstants::GetNullConstant<int32_t>(),
-                                                    NullConstants::GetNullConstant<int32_t>(),
-                                                    NullConstants::GetNullConstant<int32_t>(), -1},
+                                                   {1, 2, GetNullConstant<int32_t>(),
+                                                    GetNullConstant<int32_t>(),
+                                                    GetNullConstant<int32_t>(), -1},
                                                    QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR);
 }
 
@@ -549,8 +549,8 @@ TEST(GPUArithmeticTests, AddOverflow)
     Context::getInstance();
 
     testErrors<ArithmeticOperations::add, int32_t>({1, 2147483646, -2147483646, -1, 0, -1}, {1, 10, -10, -1},
-                                                   {2, NullConstants::GetNullConstant<int32_t>(),
-                                                    NullConstants::GetNullConstant<int32_t>(), -2},
+                                                   {2, GetNullConstant<int32_t>(),
+                                                    GetNullConstant<int32_t>(), -2},
                                                    QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR);
 }
 
@@ -560,7 +560,7 @@ TEST(GPUArithmeticTests, MulOverflow)
 	Context::getInstance();
 
 	testErrors<ArithmeticOperations::mul, int32_t>({ 1, 65536, -65536, -1, 0, -1 }, { 1, 65536, 65536, -1 },
-		{ 1, NullConstants::GetNullConstant<int32_t>(),
-		 NullConstants::GetNullConstant<int32_t>(), 1 },
+		{ 1, GetNullConstant<int32_t>(),
+		 GetNullConstant<int32_t>(), 1 },
 		QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR);
 }

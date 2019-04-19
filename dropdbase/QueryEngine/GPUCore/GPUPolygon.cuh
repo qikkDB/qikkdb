@@ -139,7 +139,7 @@ public:
 
         if (pointCount != polygonCount && pointCount != 1 && polygonCount != 1)
         {
-            QueryEngineError::setType(QueryEngineErrorType::GPU_EXTENSION_ERROR, "PointCount=" + std::to_string(pointCount) +
+            CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR, "PointCount=" + std::to_string(pointCount) +
 				", PolygonCount=" + std::to_string(polygonCount) + ": not allowed combination");
             return;
         }
@@ -149,7 +149,7 @@ public:
                                                            complexPolygonIdx, complexPolygonCnt, polygonIdx,
                                                            polygonCnt, pointCount, polygonCount);
 
-        QueryEngineError::setCudaError(cudaGetLastError());
+        CheckCudaError(cudaGetLastError());
     }
 	/// <summary>
   /// Check whether point is in given polygon
@@ -188,6 +188,6 @@ public:
 		int8_t result;
 		GPUMemory::copyDeviceToHost(&result, outMask, 1);
 		GPUMemory::memset(outMask, result, retSize);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 };

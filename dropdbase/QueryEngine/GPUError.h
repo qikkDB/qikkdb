@@ -6,6 +6,9 @@
 #include <iostream>
 #include <string>
 
+/// <summary>
+/// Enum for different QueryEngine errors
+/// </summary>
 enum QueryEngineErrorType
 {
     GPU_EXTENSION_SUCCESS = 0, // Return code for successful operations
@@ -19,6 +22,9 @@ enum QueryEngineErrorType
     GPU_DRIVER_NOT_FOUND_EXCEPTION // Return code for not found nvidia driver
 };
 
+/// <summary>
+/// Generic GPU Error
+/// </summary>
 class gpu_error : public std::runtime_error
 {
 public:
@@ -30,7 +36,9 @@ public:
     }
 };
 
-// Error for CUDA "internal" errors
+/// <summary>
+/// Error for CUDA "internal" errors
+/// </summary>
 class cuda_error : public gpu_error
 {
 private:
@@ -54,7 +62,9 @@ public:
     }
 };
 
-// Error for our QueryEngine errors
+/// <summary>
+/// Error for our QueryEngine errors
+/// </summary>
 class query_engine_error : public gpu_error
 {
 private:
@@ -78,26 +88,12 @@ public:
 };
 
 
-class QueryEngineError
-{
-public:
-    static void setCudaError(cudaError_t cudaError)
-    {
-        if (cudaError != cudaSuccess)
-        {
-            std::cout << "CUDA ERROR " << cudaError << ": " << cudaGetErrorName(cudaError) << std::endl;
-            throw cuda_error(cudaError);
-        }
-    }
+/// <summary>
+/// Check 'cudaError' and throw a cuda_error if it is not cudaSuccess
+/// </summary>
+void CheckCudaError(cudaError_t cudaError);
 
-    static void setType(const QueryEngineErrorType type, const std::string& message = std::string())
-    {
-        if (type != QueryEngineErrorType::GPU_EXTENSION_SUCCESS)
-        {
-            std::cout << "GPU ERROR " << type << ": " << message << std::endl;
-            throw query_engine_error(type, message);
-        }
-    }
-
-    QueryEngineError() = delete;
-};
+/// <summary>
+/// Check 'errorType' and throw a query_engine_error if it is not GPU_EXTENSION_SUCCESS
+/// </summary>
+void CheckQueryEngineError(const QueryEngineErrorType errorType, const std::string& message = std::string());

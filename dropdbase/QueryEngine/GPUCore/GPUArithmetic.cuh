@@ -10,9 +10,9 @@
 
 #include "ErrorFlagSwapper.h"
 #include "../Context.h"
-#include "../QueryEngineError.h"
+#include "../GPUError.h"
 #include "MaybeDeref.cuh"
-#include "../NullConstants.h"
+#include "../NullConstants.cuh"
 
 namespace ArithmeticOperations
 {
@@ -29,7 +29,7 @@ namespace ArithmeticOperations
 					((b < V{ 0 }) && (a < (min - b))))
 				{
 					atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-					return NullConstants::GetNullConstant<T>();
+					return GetNullConstant<T>();
 				}
 			}
 			return a + b;
@@ -49,7 +49,7 @@ namespace ArithmeticOperations
 					((b < V{ 0 }) && (a > (max + b))))
 				{
 					atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-					return NullConstants::GetNullConstant<T>();
+					return GetNullConstant<T>();
 				}
 			}
 			return a - b;
@@ -72,7 +72,7 @@ namespace ArithmeticOperations
 						if (a > (max / b))
 						{
 							atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-							return NullConstants::GetNullConstant<T>();
+							return GetNullConstant<T>();
 						}
 					}
 					else
@@ -80,7 +80,7 @@ namespace ArithmeticOperations
 						if (b < (min / a))
 						{
 							atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-							return NullConstants::GetNullConstant<T>();
+							return GetNullConstant<T>();
 						}
 					}
 				}
@@ -91,7 +91,7 @@ namespace ArithmeticOperations
 						if (a < (min / b))
 						{
 							atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-							return NullConstants::GetNullConstant<T>();
+							return GetNullConstant<T>();
 						}
 					}
 					else
@@ -99,7 +99,7 @@ namespace ArithmeticOperations
 						if ((a != U{ 0 }) && (b < (max / a)))
 						{
 							atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-							return NullConstants::GetNullConstant<T>();
+							return GetNullConstant<T>();
 						}
 					}
 				}
@@ -116,7 +116,7 @@ namespace ArithmeticOperations
 			if (b == V{ 0 })
 			{
 				atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR));
-				return NullConstants::GetNullConstant<T>();
+				return GetNullConstant<T>();
 			}
 			else
 			{
@@ -138,7 +138,7 @@ namespace ArithmeticOperations
 			if (b == V{ 0 })
 			{
 				atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR));
-				return NullConstants::GetNullConstant<T>();
+				return GetNullConstant<T>();
 			}
 
 			return a % b;
