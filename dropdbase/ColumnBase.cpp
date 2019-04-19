@@ -1,7 +1,6 @@
 #include "ColumnBase.h"
 #include "PointFactory.h"
-#include "ComplexPolygonFactory.h"
-
+#include "Types/ComplexPolygon.pb.h"
 #include <numeric>
 #include <algorithm>
 #include <cmath>

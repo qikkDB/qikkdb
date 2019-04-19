@@ -142,7 +142,7 @@ __global__ void group_by_kernel(
 		// else if we found a valid index
 		if (foundIndex == -1)
 		{
-			atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_HASH_TABLE_FULL));
+			atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_HASH_TABLE_FULL));
 		}
 		else
 		{
@@ -225,8 +225,12 @@ public:
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
-		group_by_kernel <AGG> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		if (dataElementCount > 0)
+		{
+			group_by_kernel <AGG> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.GetFlagPointer());
+			errorFlagSwapper_.Swap();
+		}
 	}
 
 	// Get the size of hash table (max count of keys)
@@ -239,7 +243,7 @@ public:
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructCol(values, elementCount, values_, occupancyMask.get(), maxHashCount_);
@@ -262,7 +266,7 @@ public:
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 
 		// Reconstruct the output
@@ -317,17 +321,24 @@ public:
 			}
 
 			Context::getInstance().bindDeviceToContext(oldDeviceId);
-			cuda_ptr<K> keysAllGPU(sumElementCount);
-			cuda_ptr<V> valuesAllGPU(sumElementCount);
+			if (sumElementCount > 0)
+			{
+				cuda_ptr<K> keysAllGPU(sumElementCount);
+				cuda_ptr<V> valuesAllGPU(sumElementCount);
 
-			// Copy the condens from host to default device
-			GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
+				// Copy the condens from host to default device
+				GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
 
-			// Merge results
-			GPUGroupBy<AGG, O, K, V> finalGroupBy(sumElementCount);
-			finalGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
-			finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+				// Merge results
+				GPUGroupBy<AGG, O, K, V> finalGroupBy(sumElementCount);
+				finalGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
+				finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+			}
+			else
+			{
+				*outDataElementCount = 0;
+			}
 		}
 	}
 
@@ -385,8 +396,12 @@ public:
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
-		group_by_kernel <AggregationFunctions::avg> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		if (dataElementCount > 0)
+		{
+			group_by_kernel <AggregationFunctions::avg> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.GetFlagPointer());
+			errorFlagSwapper_.Swap();
+		}
 	}
 
 	// Get the size of hash table (max count of keys)
@@ -399,7 +414,7 @@ public:
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructCol(values, elementCount, values_, occupancyMask.get(), maxHashCount_);
@@ -421,7 +436,7 @@ public:
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 
 		// TODO maybe somewhen optimize if O and V is the same data type - dont copy values
@@ -436,7 +451,18 @@ public:
 		*/
 		cuda_ptr<O> outValuesGPU(maxHashCount_);
 		// Divide by counts to get averages for buckets
-		GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(), values_, keyOccurenceCount_, maxHashCount_);
+		try
+		{
+			GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(), values_, keyOccurenceCount_, maxHashCount_);
+		}
+		catch (query_engine_error& err)
+		{
+			if (err.GetQueryEngineError() != QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR)
+			{
+				throw err; // Rethrow
+			}
+			// else ignore, because div by zero is OK here
+		}
 		// Reonstruct result with original occupancyMask
 		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, outValuesGPU.get(), occupancyMask.get(), maxHashCount_);
 		/*
@@ -495,36 +521,43 @@ public:
 			}
 
 			Context::getInstance().bindDeviceToContext(oldDeviceId);
-			cuda_ptr<K> keysAllGPU(sumElementCount);
-			cuda_ptr<V> valuesAllGPU(sumElementCount);
-			cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
+			if (sumElementCount > 0)
+			{
+				cuda_ptr<K> keysAllGPU(sumElementCount);
+				cuda_ptr<V> valuesAllGPU(sumElementCount);
+				cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
 
-			// Copy the condens from host to default device
-			GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
+				// Copy the condens from host to default device
+				GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
 
-			// Merge results
-			V* valuesMerged;
-			int64_t* occurencesMerged;
+				// Merge results
+				V* valuesMerged = nullptr;
+				int64_t* occurencesMerged;
 
-			// Calculate sum of values
-			// Initialize new empty sumGroupBy table
-			K* tmpKeys;
-			GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
-			sumGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
-			sumGroupBy.getResults(&tmpKeys, &valuesMerged, outDataElementCount);
+				// Calculate sum of values
+				// Initialize new empty sumGroupBy table
+				K* tmpKeys;
+				GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
+				sumGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
+				sumGroupBy.getResults(&tmpKeys, &valuesMerged, outDataElementCount);
 
-			// Calculate sum of occurences
-			// Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
-			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, tmpKeys);
-			countGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
-			countGroupBy.getResults(outKeys, &occurencesMerged, outDataElementCount);
-
-			GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurencesMerged, *outDataElementCount);
-			GPUMemory::free(valuesMerged);
-			GPUMemory::free(occurencesMerged);
-			GPUMemory::free(tmpKeys);
+				// Calculate sum of occurences
+				// Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
+				GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, tmpKeys);
+				countGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
+				countGroupBy.getResults(outKeys, &occurencesMerged, outDataElementCount);
+				GPUMemory::alloc(outValues, *outDataElementCount);
+				GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurencesMerged, *outDataElementCount);
+				GPUMemory::free(valuesMerged);
+				GPUMemory::free(occurencesMerged);
+				GPUMemory::free(tmpKeys);
+			}
+			else
+			{
+				*outDataElementCount = 0;
+			}
 		}
 	}
 
@@ -582,8 +615,12 @@ public:
 	// Group By - callable on the blocks of the input dataset
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
-		group_by_kernel <AggregationFunctions::count> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		if (dataElementCount > 0)
+		{
+			group_by_kernel <AggregationFunctions::count> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.GetFlagPointer());
+			errorFlagSwapper_.Swap();
+		}
 	}
 
 	// Get the size of hash table (max count of keys)
@@ -596,7 +633,7 @@ public:
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructCol(occurences, elementCount, keyOccurenceCount_, occupancyMask.get(), maxHashCount_);
@@ -614,7 +651,7 @@ public:
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 
 		// Reconstruct the output
@@ -668,17 +705,24 @@ public:
 			}
 
 			Context::getInstance().bindDeviceToContext(oldDeviceId);
-			cuda_ptr<K> keysAllGPU(sumElementCount);
-			cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
+			if (sumElementCount > 0)
+			{
+				cuda_ptr<K> keysAllGPU(sumElementCount);
+				cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
 
-			// Copy the condens from host to default device
-			GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
+				// Copy the condens from host to default device
+				GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
 
-			// Merge results
-			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> finalGroupBy(sumElementCount);
-			finalGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
-			finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+				// Merge results
+				GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> finalGroupBy(sumElementCount);
+				finalGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
+				finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+			}
+			else
+			{
+				*outDataElementCount = 0;
+			}
 		}
 	}
 

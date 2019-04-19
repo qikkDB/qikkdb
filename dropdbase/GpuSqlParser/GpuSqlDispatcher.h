@@ -16,15 +16,14 @@
 #include <condition_variable>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
-#include "../ComplexPolygonFactory.h"
-#include "../PointFactory.h"
 #include "../DataType.h"
 #include "../Database.h"
 #include "../Table.h"
 #include "../ColumnBase.h"
 #include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
-
+#include "../NativeGeoPoint.h"
+#include "../QueryEngine/GPUCore/GPUMemory.cuh"
 class GpuSqlDispatcher
 {
 private:
@@ -76,6 +75,22 @@ private:
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> subFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseOrFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseAndFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseXorFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseLeftShiftFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions;
     static std::array<DispatchFunction,
@@ -86,8 +101,6 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> unionFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
-    static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE> minusFunctions;
 	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> yearFunctions;
 	static std::array<DispatchFunction, 
@@ -100,6 +113,34 @@ private:
 		DataType::DATA_TYPE_SIZE> minuteFunctions;
 	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> secondFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> minusFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> absoluteFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> sineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> cosineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> tangentFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arcsineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arccosineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arctangentFunctions;
+    static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> logarithm10Functions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> logarithmNaturalFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> exponentialFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> squareRootFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> squareFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> signFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
@@ -229,7 +270,17 @@ public:
 
     void addSubFunction(DataType left, DataType right);
 
-    void addModFunction(DataType left, DataType right);
+	void addModFunction(DataType left, DataType right);
+
+    void addBitwiseOrFunction(DataType left, DataType right);
+
+	void addBitwiseAndFunction(DataType left, DataType right);
+
+	void addBitwiseXorFunction(DataType left, DataType right);
+
+	void addBitwiseLeftShiftFunction(DataType left, DataType right);
+
+	void addBitwiseRightShiftFunction(DataType left, DataType right);
 
 	void addPointFunction(DataType left, DataType right);
 
@@ -254,6 +305,38 @@ public:
 	void addMinuteFunction(DataType type);
 
 	void addSecondFunction(DataType type);
+
+	void addAbsoluteFunction(DataType type);
+
+	void addSineFunction(DataType type);
+
+	void addCosineFunction(DataType type);
+
+	void addTangentFunction(DataType type);
+
+	void addArcsineFunction(DataType type);
+
+	void addArccosineFunction(DataType type);
+
+	void addArctangentFunction(DataType type);
+
+	void addLogarithm10Function(DataType type);
+
+	void addLogarithmFunction(DataType number, DataType base);
+
+	void addLogarithmNaturalFunction(DataType type);
+
+	void addExponentialFunction(DataType type);
+
+	void addPowerFunction(DataType base, DataType exponent);
+
+	void addSquareRootFunction(DataType type);
+
+	void addSquareFunction(DataType type);
+
+	void addSignFunction(DataType type);
+
+	void addRootFunction(DataType base, DataType exponent);
 
     void addMinFunction(DataType key, DataType value, bool usingGroupBy);
 
@@ -286,6 +369,8 @@ public:
     void addGroupByFunction(DataType type);
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
+
+	static std::unordered_map<std::string, int32_t> linkTable;
 	
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size)
@@ -327,7 +412,7 @@ public:
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 
-    template<typename T>
+  	template<typename T>
     int32_t retConst();
 
     template<typename T>
@@ -346,6 +431,7 @@ public:
 	int32_t showColumns();
 
 	void cleanUpGpuPointers();
+
 
 	//// FILTERS WITH FUNCTORS
 
@@ -384,6 +470,12 @@ public:
 
 	template<typename OP, typename T, typename U>
 	int32_t arithmeticConstConst();
+
+	template<typename OP, typename T>
+	int32_t arithmeticUnaryCol();
+
+	template<typename OP, typename T>
+	int32_t arithmeticUnaryConst();
 
 	template<typename OP, typename R, typename T, typename U>
 	int32_t aggregationGroupBy();
@@ -441,12 +533,6 @@ public:
 
     template<typename T>
     int32_t logicalNotConst();
-
-    template<typename T>
-    int32_t minusCol();
-
-    template<typename T>
-    int32_t minusConst();
 
 	template<typename OP>
 	int32_t dateExtractCol();
@@ -560,6 +646,18 @@ template<>
 int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
 
 template <>
+int32_t GpuSqlDispatcher::retCol<std::string>();
+
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
+
+template<>
 int32_t GpuSqlDispatcher::retCol<std::string>();
 
 template<>

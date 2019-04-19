@@ -44,6 +44,19 @@ columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT|);
 
 expression : op=NOT expression                                                            # unaryOperation
            | op=MINUS expression                                                          # unaryOperation
+           | op=ABS LPAREN expression RPAREN                                              # unaryOperation
+           | op=SIN LPAREN expression RPAREN                                              # unaryOperation
+           | op=COS LPAREN expression RPAREN                                              # unaryOperation
+           | op=TAN LPAREN expression RPAREN                                              # unaryOperation
+           | op=ASIN LPAREN expression RPAREN                                             # unaryOperation
+           | op=ACOS LPAREN expression RPAREN                                             # unaryOperation
+           | op=ATAN LPAREN expression RPAREN                                             # unaryOperation
+           | op=LOG10 LPAREN expression RPAREN                                            # unaryOperation
+           | op=LOG LPAREN expression RPAREN                                              # unaryOperation
+           | op=EXP LPAREN expression RPAREN                                              # unaryOperation
+           | op=SQRT LPAREN expression RPAREN                                             # unaryOperation
+           | op=SQUARE LPAREN expression RPAREN                                           # unaryOperation
+           | op=SIGN LPAREN expression RPAREN                                             # unaryOperation
            | op=YEAR LPAREN expression RPAREN                                             # unaryOperation
            | op=MONTH LPAREN expression RPAREN                                            # unaryOperation
            | op=DAY LPAREN expression RPAREN                                              # unaryOperation
@@ -53,9 +66,16 @@ expression : op=NOT expression                                                  
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation
            | left=expression op=MODULO right=expression                                   # binaryOperation
+           | op=LOG LPAREN left=expression COMMA right=expression RPAREN                  # binaryOperation
+           | op=POW LPAREN left=expression COMMA right=expression RPAREN                  # binaryOperation
+           | op=ROOT LPAREN left=expression COMMA right=expression RPAREN                 # binaryOperation
+           | left=expression op=XOR right=expression                                      # binaryOperation
+           | left=expression op=(BIT_AND|BIT_OR) right=expression                         # binaryOperation
+           | left=expression op=(L_SHIFT|R_SHIFT) right=expression                        # binaryOperation
            | left=expression op=(GREATER|LESS) right=expression                           # binaryOperation
            | left=expression op=(GREATEREQ|LESSEQ) right=expression                       # binaryOperation
            | left=expression op=(EQUALS|NOTEQUALS) right=expression                       # binaryOperation
+           | left=expression op=NOTEQUALS_GT_LT right=expression                          # binaryOperation
            | op=POINT LPAREN left=expression COMMA right=expression RPAREN                # binaryOperation
            | op=GEO_CONTAINS LPAREN left=expression COMMA right=expression RPAREN         # binaryOperation
            | op=GEO_INTERSECT LPAREN left=expression COMMA right=expression RPAREN        # binaryOperation
@@ -68,6 +88,8 @@ expression : op=NOT expression                                                  
            | geometry                                                                     # geoReference
            | DATETIMELIT                                                                  # dateTimeLiteral
            | FLOATLIT                                                                     # decimalLiteral
+           | PI                                                                           # piLiteral
+           | NOW                                                                          # nowLiteral
            | INTLIT                                                                       # intLiteral
            | STRINGLIT                                                                    # stringLiteral
            | BOOLEANLIT                                                                   # booleanLiteral

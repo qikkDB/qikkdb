@@ -46,7 +46,7 @@ public:
         kernel_convert_lat_lon_to_point<<<Context::getInstance().calcGridDim(dataElementCount),
                                           Context::getInstance().getBlockDim()>>>(outCol, LatCol, LonCol,
                                                                                   dataElementCount);
-        QueryEngineError::setCudaError(cudaGetLastError());
+        CheckCudaError(cudaGetLastError());
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public:
         kernel_convert_lat_lon_to_point<<<Context::getInstance().calcGridDim(dataElementCount),
                                           Context::getInstance().getBlockDim()>>>(outCol, LatCol, LonCol,
                                                                                   dataElementCount);
-        QueryEngineError::setCudaError(cudaGetLastError());
+        CheckCudaError(cudaGetLastError());
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public:
         kernel_convert_lat_lon_to_point<<<Context::getInstance().calcGridDim(dataElementCount),
                                           Context::getInstance().getBlockDim()>>>(outCol, LatCol, LonCol,
                                                                                   dataElementCount);
-        QueryEngineError::setCudaError(cudaGetLastError());
+        CheckCudaError(cudaGetLastError());
     }
 
     /// <summary>

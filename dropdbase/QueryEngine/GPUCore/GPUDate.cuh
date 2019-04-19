@@ -7,7 +7,7 @@
 #include <cstdint>
 
 #include "../Context.h"
-#include "../QueryEngineError.h"
+#include "../GPUError.h"
 #include "MaybeDeref.cuh"
 
 namespace DateOperations
@@ -220,7 +220,7 @@ public:
 		kernel_extract <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, dateTimeCol, dataElementCount);
 		cudaDeviceSynchronize();
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename OP>
@@ -229,7 +229,7 @@ public:
 		kernel_extract <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, dateTimeConst, dataElementCount);
 		cudaDeviceSynchronize();
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 };

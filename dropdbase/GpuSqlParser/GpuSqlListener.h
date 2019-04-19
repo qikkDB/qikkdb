@@ -32,6 +32,7 @@ private:
 	std::unordered_map<std::string, std::string> tableAliases;
 	std::unordered_set<std::string> columnAliases;
     std::unordered_set<std::string> loadedTables;
+	int32_t linkTableIndex;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
 	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
 
@@ -67,8 +68,8 @@ private:
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
 
-	int32_t resultLimit;
-    int32_t resultOffset;
+	int64_t resultLimit;
+    int64_t resultOffset;
 
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) override;
 
@@ -89,6 +90,10 @@ public:
     void exitVarReference(GpuSqlParser::VarReferenceContext *ctx) override;
 
 	void exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext *ctx) override;
+
+	void exitPiLiteral(GpuSqlParser::PiLiteralContext *ctx) override;
+
+	void exitNowLiteral(GpuSqlParser::NowLiteralContext *ctx) override;
 
 	void enterAggregation(GpuSqlParser::AggregationContext *ctx) override;
 

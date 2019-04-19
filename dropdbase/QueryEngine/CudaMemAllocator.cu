@@ -54,6 +54,10 @@ CudaMemAllocator::~CudaMemAllocator()
 
 int8_t * CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 {
+	if (numBytes <= 0)
+	{
+		throw std::out_of_range("Invalid allocation size");
+	}
 	//Minimal allocation unit is 512bytes, same as cudaMalloc. Thurst relies on this internally.
 	std::size_t alignedSize = numBytes % 512 == 0 ? numBytes : numBytes + (512 - numBytes % 512);
 	auto it = blocksBySize_.lower_bound(alignedSize);

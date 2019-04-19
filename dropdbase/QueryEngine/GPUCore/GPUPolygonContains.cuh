@@ -100,14 +100,15 @@ public:
 
         if (pointCount != polygonCount && pointCount != 1 && polygonCount != 1)
         {
-            QueryEngineError::setType(QueryEngineError::GPU_EXTENSION_ERROR);
+            CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR, "PointCount=" + std::to_string(pointCount) +
+				", PolygonCount=" + std::to_string(polygonCount) + ": not allowed combination");
             return;
         }
 
         kernel_point_in_polygon<<<context.calcGridDim((pointCount > polygonCount ? pointCount : polygonCount)),
                                   context.getBlockDim()>>>(outMask, polygonCol, polygonCount, geoPointCol, pointCount);
 
-        QueryEngineError::setCudaError(cudaGetLastError());
+        CheckCudaError(cudaGetLastError());
     }
 
     /// <summary>
@@ -132,6 +133,7 @@ public:
 		int8_t result;
 		GPUMemory::copyDeviceToHost(&result, outMask, 1);
 		GPUMemory::memset(outMask, result, retSize);
-		QueryEngineError::setCudaError(cudaGetLastError());
+
+		CheckCudaError(cudaGetLastError());
     }
 };

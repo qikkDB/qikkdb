@@ -8,12 +8,15 @@
 #include "../Types/Point.pb.h"
 #include "ParserExceptions.h"
 #include "../QueryEngine/Context.h"
+#include "../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "../ComplexPolygonFactory.h"
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 std::mutex GpuSqlDispatcher::groupByMutex_;
 std::condition_variable GpuSqlDispatcher::groupByCV_;
 int32_t GpuSqlDispatcher::groupByDoneLimit_;
-//TODO:Dispatch implementation
+std::unordered_map<std::string, int32_t> GpuSqlDispatcher::linkTable;
+
 
 GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
 	database(database),
@@ -211,10 +214,34 @@ void GpuSqlDispatcher::addSubFunction(DataType left, DataType right)
     dispatcherFunctions.push_back(subFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-
 void GpuSqlDispatcher::addModFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(modFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+	dispatcherFunctions.push_back(modFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseOrFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseOrFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseAndFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseAndFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseXorFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseXorFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseLeftShiftFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseLeftShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseRightShiftFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseRightShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 void GpuSqlDispatcher::addPointFunction(DataType left, DataType right)
@@ -222,6 +249,21 @@ void GpuSqlDispatcher::addPointFunction(DataType left, DataType right)
 	dispatcherFunctions.push_back(pointFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
+void GpuSqlDispatcher::addLogarithmFunction(DataType number, DataType base)
+{
+	dispatcherFunctions.push_back(logarithmFunctions[DataType::DATA_TYPE_SIZE * number + base]);
+}
+
+
+void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
+{
+	dispatcherFunctions.push_back(powerFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
+}
+
+void GpuSqlDispatcher::addRootFunction(DataType base, DataType exponent)
+{
+	dispatcherFunctions.push_back(rootFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
+}
 
 void GpuSqlDispatcher::addContainsFunction(DataType left, DataType right)
 {
@@ -242,7 +284,6 @@ void GpuSqlDispatcher::addLogicalNotFunction(DataType type)
 {
     dispatcherFunctions.push_back(logicalNotFunctions[type]);
 }
-
 
 void GpuSqlDispatcher::addMinusFunction(DataType type)
 {
@@ -279,6 +320,70 @@ void GpuSqlDispatcher::addSecondFunction(DataType type)
 	dispatcherFunctions.push_back(secondFunctions[type]);
 }
 
+void GpuSqlDispatcher::addAbsoluteFunction(DataType type)
+{
+	dispatcherFunctions.push_back(absoluteFunctions[type]);
+}
+
+void GpuSqlDispatcher::addSineFunction(DataType type)
+{
+	dispatcherFunctions.push_back(sineFunctions[type]);
+}
+
+void GpuSqlDispatcher::addCosineFunction(DataType type)
+{
+	dispatcherFunctions.push_back(cosineFunctions[type]);
+}
+
+void GpuSqlDispatcher::addTangentFunction(DataType type)
+{
+	dispatcherFunctions.push_back(tangentFunctions[type]);
+}
+
+void GpuSqlDispatcher::addArcsineFunction(DataType type)
+{
+	dispatcherFunctions.push_back(arcsineFunctions[type]);
+}
+
+void GpuSqlDispatcher::addArccosineFunction(DataType type)
+{
+	dispatcherFunctions.push_back(arccosineFunctions[type]);
+}
+
+void GpuSqlDispatcher::addArctangentFunction(DataType type)
+{
+	dispatcherFunctions.push_back(arctangentFunctions[type]);
+}
+
+void GpuSqlDispatcher::addLogarithm10Function(DataType type)
+{
+	dispatcherFunctions.push_back(logarithm10Functions[type]);
+}
+
+void GpuSqlDispatcher::addLogarithmNaturalFunction(DataType type)
+{
+	dispatcherFunctions.push_back(logarithmNaturalFunctions[type]);
+}
+
+void GpuSqlDispatcher::addExponentialFunction(DataType type)
+{
+	dispatcherFunctions.push_back(exponentialFunctions[type]);
+}
+
+void GpuSqlDispatcher::addSquareFunction(DataType type)
+{
+	dispatcherFunctions.push_back(squareFunctions[type]);
+}
+
+void GpuSqlDispatcher::addSquareRootFunction(DataType type)
+{
+	dispatcherFunctions.push_back(squareRootFunctions[type]);
+}
+
+void GpuSqlDispatcher::addSignFunction(DataType type)
+{
+	dispatcherFunctions.push_back(signFunctions[type]);
+}
 
 void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)
 {
@@ -406,7 +511,7 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 	arguments.reset();
 	for (auto& ptr : allocatedPointers)
 	{
-		if (std::get<2>(ptr.second))
+		if (std::get<0>(ptr.second) != 0 && std::get<2>(ptr.second))
 		{
 			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(ptr.second)));
 		}

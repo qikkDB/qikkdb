@@ -868,7 +868,7 @@ public:
             polygonOut.polyIdx, polygonOutTemp.polyIdx, dataElementCount);
 
         // Alloc the point count buffer and the point idx buffer based on the previously calculated sum
-        GPUMemory::alloc(&polygonOut.pointCount, complexPolygonOutCount);
+        GPUMemory::alloc(&polygonOut.pointCount, complexPolygonOutCount);                              // TODO fix zero allocation
         GPUMemory::alloc(&polygonOut.pointIdx, complexPolygonOutCount);
 
 		// A helper buffer for inclusive to exclusive prefix sum transfer
@@ -981,6 +981,6 @@ public:
 		GPUMemory::free(tempPointIdxBuffer);
 
         // Set error
-        QueryEngineError::setCudaError(cudaGetLastError());
+        CheckCudaError(cudaGetLastError());
     }
 };
