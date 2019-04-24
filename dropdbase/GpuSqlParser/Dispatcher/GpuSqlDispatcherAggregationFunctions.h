@@ -23,7 +23,19 @@ int32_t GpuSqlDispatcher::aggregationCol()
 	int32_t reconstructOutSize;
 
 	IN* reconstructOutReg = nullptr;
-	GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<IN*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+	if (std::is_same<OP, AggregationFunctions::count>::value)
+	{
+		int32_t *indexes = nullptr;
+		GPUReconstruct::GenerateIndexesKeep(&indexes, &reconstructOutSize, reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+		if (indexes)
+		{
+			GPUMemory::free(indexes);
+		}
+	}
+	else
+	{
+		GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<IN*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+	}
 
 	if (std::get<2>(column))
 	{

@@ -480,7 +480,7 @@ public:
 	template<typename OP, typename R, typename T, typename U>
 	int32_t aggregationGroupBy();
 
-	template<typename OP, typename T, typename U>
+	template<typename OP, typename OUT, typename IN>
 	int32_t aggregationCol();
 
 	template<typename OP, typename T, typename U>

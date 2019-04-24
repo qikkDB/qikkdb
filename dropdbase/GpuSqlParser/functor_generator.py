@@ -385,7 +385,7 @@ for operation in operations_aggregation:
         elif colIdx >= len(types):
             col = "Col"
 
-        if (colVal in geo_types or colVal == STRING) or (colVal == BOOL):
+        if (colVal in geo_types and operation != "count") or (colVal == STRING) or (colVal == BOOL):
             op = "invalidOperandTypesErrorHandler"
         else:
             op = "aggregation"
