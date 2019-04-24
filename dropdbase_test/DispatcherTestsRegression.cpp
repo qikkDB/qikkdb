@@ -97,3 +97,31 @@ TEST(DispatcherTestsRegression, EmptySetAggregationMin)
 	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);	// Check if the result size is 1
 	// TODO: assert at row 0
 }
+
+TEST(DispatcherTestsRegression, PointAggregationCount)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COUNT(colPoint1) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("COUNT(colPoint1)");
+
+	
+	auto columnPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colPoint1").get());
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+}
+
+TEST(DispatcherTestsRegression, Int32AggregationCount)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COUNT(colInteger1) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("COUNT(colInteger1)");
+
+	
+	auto columnPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+}
