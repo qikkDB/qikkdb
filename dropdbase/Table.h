@@ -28,7 +28,9 @@ private:
                                                int indexInBlock,
                                                int iterator);
 #endif
-
+#ifndef __CUDACC__
+    int32_t getDataRangeInSortingColumn();
+#endif
 public:
     const std::shared_ptr<Database>& GetDatabase();
 	const std::string &GetName() const;
