@@ -89,33 +89,38 @@ int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string
 #ifndef __CUDACC__
 int32_t Table::getDataRangeInSortingColumn()
 {
-    int size = 0;
+	int size = 0;
 
-    auto firstSortingColumn = (columns.find(sortingColumns[0])->second.get());
-    int blockCount = firstSortingColumn->GetBlockCount();
-    auto columnType = firstSortingColumn->GetColumnType();
+	auto firstSortingColumn = (columns.find(sortingColumns[0])->second.get());
+	auto columnType = firstSortingColumn->GetColumnType();
 
-    if (columnType == COLUMN_INT)
-    {
+	if (columnType == COLUMN_INT)
+	{
+		auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(firstSortingColumn);
+		auto &blocks = castedColumn->GetBlocksList();
+		int blockCount = castedColumn->GetBlockCount();
+
 		for (size_t i = 0; i < blockCount; i++)
 		{
-            auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(firstSortingColumn);
-            size = castedColumn->GetBlocksList()[i];
+			size += blocks[i]->GetSize();
 		}
-    }
+		
+	}
 
-    if (columnType == COLUMN_LONG)
-    {
-    }
+	//TODO
+	if (columnType == COLUMN_LONG)
+	{
+	}
 
-    if (columnType == COLUMN_DOUBLE)
-    {
-    }
+	if (columnType == COLUMN_DOUBLE)
+	{
+	}
 
-    if (columnType == COLUMN_FLOAT)
-    {
-    }
+	if (columnType == COLUMN_FLOAT)
+	{
+	}
 
+	return size;
 }
 #endif
 
@@ -214,8 +219,8 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 		
 		for (int i = 0; i < oneColumnDataSize; i++)
         {
-			//int range = getDataRangeInSortingColumn();
-            int range = INT_MAX;
+			int range = getDataRangeInSortingColumn();
+            //int range = INT_MAX;
             int blockIndex = 0;
             int indexInBlock = 0;
 

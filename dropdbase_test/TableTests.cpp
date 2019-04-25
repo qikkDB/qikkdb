@@ -95,10 +95,10 @@ TEST(TableTests, ClusteredIndexInsert)
 {
     auto database = std::make_shared<Database>("testDatabase", 4);
     Table table(database, "testTable");
-    table.SetSortingColumns({{"ColumnInt1"}, {"ColumnInt2"}});
+    table.SetSortingColumns({"ColumnInt1"});
 
     table.CreateColumn("ColumnInt1", COLUMN_INT);
-    table.CreateColumn("ColumnInt2", COLUMN_INT);
+   // table.CreateColumn("ColumnInt2", COLUMN_INT);
     // table.CreateColumn("ColumnInt3", COLUMN_INT);
     // table.CreateColumn("ColumnInt4", COLUMN_INT);
 
@@ -110,7 +110,7 @@ TEST(TableTests, ClusteredIndexInsert)
     std::vector<int32_t> dataInt4({{2}, {1}, {5}, {8}, {102}, {67}, {5}, {1}, {12}, {13}});
 
     data.insert({"ColumnInt1", dataInt1});
-    data.insert({"ColumnInt2", dataInt2});
+    //data.insert({"ColumnInt2", dataInt2});
     // data.insert({"ColumnInt3", dataInt3});
     // data.insert({"ColumnInt4", dataInt4});
 
