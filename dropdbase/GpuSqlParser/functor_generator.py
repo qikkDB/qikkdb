@@ -35,7 +35,8 @@ all_types = [INT,
 bitwise_operations = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift"]
 arithmetic_operations = ["mul", "div", "add", "sub", "mod", "logarithm", "power"]
 unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'arcsine', 'arccosine', 'arctangent',
-                               'logarithm10', 'logarithmNatural', 'exponential', 'squareRoot', 'square', 'sign']
+                               'logarithm10', 'logarithmNatural', 'exponential', 'squareRoot', 'square', 'sign',
+                               'round', 'floor', 'ceil']
 geo_operations = ["contains"]
 polygon_operations = ["intersect", "union"]
 filter_operations = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]

@@ -155,6 +155,36 @@ namespace ArithmeticUnaryOperations
 			return (U{ 0 } < val) - (val < U{ 0 });
 		}
 	};
+
+	struct round
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U>
+		__device__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		{
+			return roundf(val);
+		}
+	};
+
+	struct floor
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U>
+		__device__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		{
+			return floorf(val);
+		}
+	};
+
+	struct ceil
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U>
+		__device__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		{
+			return ceilf(val);
+		}
+	};
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

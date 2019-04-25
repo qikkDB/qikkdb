@@ -385,6 +385,21 @@ void GpuSqlDispatcher::addSignFunction(DataType type)
 	dispatcherFunctions.push_back(signFunctions[type]);
 }
 
+void GpuSqlDispatcher::addRoundFunction(DataType type)
+{
+	dispatcherFunctions.push_back(roundFunctions[type]);
+}
+
+void GpuSqlDispatcher::addFloorFunction(DataType type)
+{
+	dispatcherFunctions.push_back(floorFunctions[type]);
+}
+
+void GpuSqlDispatcher::addCeilFunction(DataType type)
+{
+	dispatcherFunctions.push_back(ceilFunctions[type]);
+}
+
 void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)
 {
     dispatcherFunctions.push_back((usingGroupBy ? minGroupByFunctions : minAggregationFunctions)

@@ -86,11 +86,11 @@ private:
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions;
     static std::array<DispatchFunction,
@@ -141,6 +141,12 @@ private:
 		DataType::DATA_TYPE_SIZE> squareFunctions;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> signFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> roundFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> ceilFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> floorFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
@@ -335,6 +341,12 @@ public:
 	void addSquareFunction(DataType type);
 
 	void addSignFunction(DataType type);
+
+	void addRoundFunction(DataType type);
+
+	void addFloorFunction(DataType type);
+
+	void addCeilFunction(DataType type);
 
 	void addRootFunction(DataType base, DataType exponent);
 

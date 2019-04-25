@@ -320,6 +320,21 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 		dispatcher.addSignFunction(operandType);
 		returnDataType = DataType::COLUMN_INT;
 	}
+	else if (op == "ROUND")
+	{
+		dispatcher.addRoundFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "FLOOR")
+	{
+		dispatcher.addFloorFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "CEIL")
+	{
+		dispatcher.addCeilFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
 
 	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);

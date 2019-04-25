@@ -99,6 +99,9 @@ SQRT        : S Q R T;
 SQUARE      : S Q U A R E;
 SIGN        : S I G N;
 ROOT        : R O O T;
+ROUND       : R O U N D;
+CEIL        : C E I L;
+FLOOR       : F L O O R;
 
 
 GEO_CONTAINS        : G E O UNDERSCORE C O N T A I N S;

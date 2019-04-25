@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/David/source/repos/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -24,13 +24,13 @@ public:
     SUM = 52, MIN = 53, MAX = 54, COUNT = 55, YEAR = 56, MONTH = 57, DAY = 58, 
     HOUR = 59, MINUTE = 60, SECOND = 61, NOW = 62, PI = 63, ABS = 64, SIN = 65, 
     COS = 66, TAN = 67, ASIN = 68, ACOS = 69, ATAN = 70, LOG10 = 71, LOG = 72, 
-    EXP = 73, POW = 74, SQRT = 75, SQUARE = 76, SIGN = 77, ROOT = 78, GEO_CONTAINS = 79, 
-    GEO_INTERSECT = 80, GEO_UNION = 81, PLUS = 82, MINUS = 83, ASTERISK = 84, 
-    DIVISION = 85, MODULO = 86, XOR = 87, EQUALS = 88, NOTEQUALS = 89, NOTEQUALS_GT_LT = 90, 
-    LPAREN = 91, RPAREN = 92, GREATER = 93, LESS = 94, GREATEREQ = 95, LESSEQ = 96, 
-    NOT = 97, OR = 98, AND = 99, BIT_OR = 100, BIT_AND = 101, L_SHIFT = 102, 
-    R_SHIFT = 103, FLOATLIT = 104, INTLIT = 105, ID = 106, BOOLEANLIT = 107, 
-    STRINGLIT = 108
+    EXP = 73, POW = 74, SQRT = 75, SQUARE = 76, SIGN = 77, ROOT = 78, ROUND = 79, 
+    CEIL = 80, FLOOR = 81, GEO_CONTAINS = 82, GEO_INTERSECT = 83, GEO_UNION = 84, 
+    PLUS = 85, MINUS = 86, ASTERISK = 87, DIVISION = 88, MODULO = 89, XOR = 90, 
+    EQUALS = 91, NOTEQUALS = 92, NOTEQUALS_GT_LT = 93, LPAREN = 94, RPAREN = 95, 
+    GREATER = 96, LESS = 97, GREATEREQ = 98, LESSEQ = 99, NOT = 100, OR = 101, 
+    AND = 102, BIT_OR = 103, BIT_AND = 104, L_SHIFT = 105, R_SHIFT = 106, 
+    FLOATLIT = 107, INTLIT = 108, ID = 109, BOOLEANLIT = 110, STRINGLIT = 111
   };
 
   enum {
@@ -797,6 +797,9 @@ public:
     antlr4::tree::TerminalNode *SQRT();
     antlr4::tree::TerminalNode *SQUARE();
     antlr4::tree::TerminalNode *SIGN();
+    antlr4::tree::TerminalNode *ROUND();
+    antlr4::tree::TerminalNode *FLOOR();
+    antlr4::tree::TerminalNode *CEIL();
     antlr4::tree::TerminalNode *YEAR();
     antlr4::tree::TerminalNode *MONTH();
     antlr4::tree::TerminalNode *DAY();

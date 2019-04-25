@@ -9837,3 +9837,118 @@ TEST(DispatcherTests, RootColConstInt)
 		ASSERT_EQ(expectedResultsInt[i], payloadsInt.intpayload().intdata()[i]);
 	}
 }
+
+
+TEST(DispatcherTests, RoundColFloat)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT ROUND(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResultsFloat;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i];
+		auto blockFloat = columnFloat->GetBlocksList()[i];
+
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if (blockInt->GetData()[k] >= 20)
+			{
+				expectedResultsFloat.push_back(round(blockFloat->GetData()[k]));
+			}
+		}
+	}
+
+	auto &payloadsFloat = result->payloads().at("ROUND(colFloat1)");
+
+	ASSERT_EQ(payloadsFloat.floatpayload().floatdata_size(), expectedResultsFloat.size());
+
+	for (int i = 0; i < payloadsFloat.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, FloorColFloat)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT FLOOR(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResultsFloat;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i];
+		auto blockFloat = columnFloat->GetBlocksList()[i];
+
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if (blockInt->GetData()[k] >= 20)
+			{
+				expectedResultsFloat.push_back(floor(blockFloat->GetData()[k]));
+			}
+		}
+	}
+
+	auto &payloadsFloat = result->payloads().at("FLOOR(colFloat1)");
+
+	ASSERT_EQ(payloadsFloat.floatpayload().floatdata_size(), expectedResultsFloat.size());
+
+	for (int i = 0; i < payloadsFloat.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, CeilColFloat)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT CEIL(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResultsFloat;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i];
+		auto blockFloat = columnFloat->GetBlocksList()[i];
+
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if (blockInt->GetData()[k] >= 20)
+			{
+				expectedResultsFloat.push_back(ceil(blockFloat->GetData()[k]));
+			}
+		}
+	}
+
+	auto &payloadsFloat = result->payloads().at("CEIL(colFloat1)");
+
+	ASSERT_EQ(payloadsFloat.floatpayload().floatdata_size(), expectedResultsFloat.size());
+
+	for (int i = 0; i < payloadsFloat.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
+	}
+}
