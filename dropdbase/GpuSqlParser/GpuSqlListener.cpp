@@ -11,8 +11,18 @@
 #include <locale>
 #include <iomanip>
 
+/// <summary>
+/// Definition of PI constant
+/// </summary>
 constexpr float pi() { return 3.1415926f; }
 
+/// <summary>
+/// GpuListner Constructor
+/// Initializes AST walk flags (insideAgg, insideGroupBy, etc.)
+/// Takes reference to database and dispatcher instances
+/// </summary>
+/// <param name="database">Database instance reference</param>
+/// <param name="dispatcher">Dispatcher instance reference</param>
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSqlDispatcher& dispatcher): 
 	database(database), 
 	dispatcher(dispatcher),
@@ -28,7 +38,12 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	GpuSqlDispatcher::linkTable.clear();
 }
 
-
+/// <summary>
+/// Method that executes on exit of binary operation node in the AST
+/// Pops the two operands from stack, reads operation from context and add dispatcher
+/// operation and operands to respective dispatcher queues. Pushes result back to parser stack
+/// </summary>
+/// <param name="ctx">Binary operation context</param>
 void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx)
 {
     std::pair<std::string, DataType> right = stackTopAndPop();
@@ -176,7 +191,12 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
     pushTempResult(reg, returnDataType);
 }
 
-
+/// <summary>
+/// Method that executes on exit of ternary operation node in the AST
+/// Pops the three operands from stack, reads operation from context and add dispatcher
+/// operation and operands to respective dispatcher queues. Pushes result back to parser stack
+/// </summary>
+/// <param name="ctx">Ternary operation context</param>
 void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext *ctx)
 {
     std::pair<std::string, DataType> op1 = stackTopAndPop();
@@ -204,6 +224,12 @@ void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext 
     pushTempResult(reg, DataType::COLUMN_INT8_T);
 }
 
+/// <summary>
+/// Method that executes on exit of unary operation node in the AST
+/// Pops the one operand from stack, reads operation from context and add dispatcher
+/// operation and operand to respective dispatcher queues. Pushes result back to parser stack
+/// </summary>
+/// <param name="ctx">Unary operation context</param>
 void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx)
 {
     std::pair<std::string, DataType> arg = stackTopAndPop();
@@ -341,6 +367,12 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     pushTempResult(reg, returnDataType);
 }
 
+/// <summary>
+/// Method that executes on enter of aggregation operation node in the AST
+/// Sets insideAgg, isAggSelectColumn parser flag
+/// Throws NestedAggregationException in case e.g SUM(SUM(colA))
+/// </summary>
+/// <param name="ctx">Aggregation context</param>
 void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
 {
 	if (insideAgg)
@@ -351,6 +383,12 @@ void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
 	isAggSelectColumn = insideSelectColumn;
 }
 
+/// <summary>
+/// Method that executes on exit of aggregation operation node in the AST
+/// Pops one operand from stack adds aggregation operation and argument to respective Dispatcher queues.
+/// Pushes result back to parser stack.
+/// </summary>
+/// <param name="ctx">Aggregation context</param>
 void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 {
     std::pair<std::string, DataType> arg = stackTopAndPop();
