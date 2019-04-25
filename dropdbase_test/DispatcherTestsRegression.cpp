@@ -107,9 +107,9 @@ TEST(DispatcherTestsRegression, PointAggregationCount)
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("COUNT(colPoint1)");
 
-	
 	auto columnPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colPoint1").get());
-	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+	ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
+	ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
 }
 
 TEST(DispatcherTestsRegression, Int32AggregationCount)
@@ -121,7 +121,7 @@ TEST(DispatcherTestsRegression, Int32AggregationCount)
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("COUNT(colInteger1)");
 
-	
 	auto columnPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
-	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+	ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
+	ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
 }

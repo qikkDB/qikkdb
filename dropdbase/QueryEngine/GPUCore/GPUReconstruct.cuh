@@ -9,8 +9,11 @@
 
 #include "../Context.h"
 #include "GPUMemory.cuh"
+#include "../../Types/Point.pb.h"
+#include "../../Types/ComplexPolygon.pb.h"
 
 #include "../../../cub/cub.cuh"
+
 
 template<typename T>
 __global__ void kernel_reconstruct_col(T *outData, T *ACol, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
@@ -49,11 +52,12 @@ __global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *
 	}
 }
 
+
 class GPUReconstruct {
 public:
 
-	template<typename T, typename M>
-	static void reconstructCol(T *outData, int32_t *outDataElementCount, T *ACol, M *inMask, int32_t dataElementCount)
+	template<typename T>
+	static void reconstructCol(T *outData, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
 	{
 		Context& context = Context::getInstance();
 
@@ -82,11 +86,9 @@ public:
 	}
 
 
-	template<typename T, typename M>
-	static void reconstructColKeep(T **outCol, int32_t *outDataElementCount, T *ACol, M *inMask, int32_t dataElementCount)
-    {
-        static_assert(std::is_same<M, int8_t>::value || std::is_same<M, int32_t>::value,
-                      "ReconstructCol: inMask have to be int8_t* or int32_t*");
+	template<typename T>
+	static void reconstructColKeep(T **outCol, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
+	{
 		Context& context = Context::getInstance();
 
 		if (inMask)		// If inMask is not nullptr
@@ -101,12 +103,12 @@ public:
 
 			PrefixSum(prefixSumPointer, inMask, dataElementCount);
 			GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
-			if(*outDataElementCount > 0)
-			{ 
+			if (*outDataElementCount > 0)
+			{
 				GPUMemory::alloc<T>(outCol, *outDataElementCount);
 				// Construct the output based on the prefix sum
 				kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-				(*outCol, ACol, prefixSumPointer, inMask, dataElementCount);
+					(*outCol, ACol, prefixSumPointer, inMask, dataElementCount);
 			}
 			else
 			{
@@ -126,7 +128,6 @@ public:
 		// Get last error
 		CheckCudaError(cudaGetLastError());
 	}
-
 
 
 	/// <summary>
@@ -233,3 +234,19 @@ public:
 };
 
 
+template<>
+void GPUReconstruct::reconstructCol<ColmnarDB::Types::Point>(ColmnarDB::Types::Point *outData,
+	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount);
+
+template<>
+void GPUReconstruct::reconstructCol<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon *outData,
+	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount);
+
+
+template<>
+void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::Point>(ColmnarDB::Types::Point **outCol,
+	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount);
+
+template<>
+void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon **outCol,
+	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount);
