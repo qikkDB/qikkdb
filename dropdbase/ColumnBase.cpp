@@ -1,7 +1,6 @@
 #include "ColumnBase.h"
 #include "PointFactory.h"
-#include "ComplexPolygonFactory.h"
-
+#include "Types/ComplexPolygon.pb.h"
 #include <numeric>
 #include <algorithm>
 #include <cmath>
@@ -63,7 +62,7 @@ void ColumnBase<int32_t>::setColumnStatistics()
 
 	std::vector<int64_t> numOfDataInBlocks;
 
-	for (auto& block : blocks_)
+	for (auto& block : this->GetBlocksList())
 	{
 		mins.push_back(block->GetMin());
 		maxs.push_back(block->GetMax());
@@ -75,6 +74,12 @@ void ColumnBase<int32_t>::setColumnStatistics()
 	max_ = *std::max_element(maxs.begin(), maxs.end());
 	sum_ = std::accumulate(sums.begin(), sums.end(), 0);
 	avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(),numOfDataInBlocks.end(), (float) 0.0);
+
+	if (!initAvgIsSet_) //TODO spravit toto tak, aby sa nastavil initAvg_ az ked sa priemer vyrata z aspon X riadkov
+	{
+		initAvgIsSet_ = true;
+		initAvg_ = avg_;
+	}
 }
 
 template<>
@@ -86,7 +91,7 @@ void ColumnBase<int64_t>::setColumnStatistics()
 
 	std::vector<int64_t> numOfDataInBlocks;
 
-	for (auto& block : blocks_)
+	for (auto& block : this->GetBlocksList())
 	{
 		mins.push_back(block->GetMin());
 		maxs.push_back(block->GetMax());
@@ -109,7 +114,7 @@ void ColumnBase<float>::setColumnStatistics()
 
 	std::vector<int64_t> numOfDataInBlocks;
 
-	for (auto& block : blocks_)
+	for (auto& block : this->GetBlocksList())
 	{
 		mins.push_back(block->GetMin());
 		maxs.push_back(block->GetMax());
@@ -132,7 +137,7 @@ void ColumnBase<double>::setColumnStatistics()
 
 	std::vector<int64_t> numOfDataInBlocks;
 
-	for (auto& block : blocks_)
+	for (auto& block : this->GetBlocksList())
 	{
 		mins.push_back(block->GetMin());
 		maxs.push_back(block->GetMax());
@@ -182,7 +187,7 @@ void ColumnBase<int8_t>::setColumnStatistics()
 
 	std::vector<int64_t> numOfDataInBlocks;
 
-	for (auto& block : blocks_)
+	for (auto& block : this->GetBlocksList())
 	{
 		mins.push_back(block->GetMin());
 		maxs.push_back(block->GetMax());

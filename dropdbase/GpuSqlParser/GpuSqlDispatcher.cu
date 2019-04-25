@@ -8,12 +8,15 @@
 #include "../Types/Point.pb.h"
 #include "ParserExceptions.h"
 #include "../QueryEngine/Context.h"
+#include "../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "../ComplexPolygonFactory.h"
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 std::mutex GpuSqlDispatcher::groupByMutex_;
 std::condition_variable GpuSqlDispatcher::groupByCV_;
 int32_t GpuSqlDispatcher::groupByDoneLimit_;
-//TODO:Dispatch implementation
+std::unordered_map<std::string, int32_t> GpuSqlDispatcher::linkTable;
+
 
 GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
 	database(database),
@@ -212,10 +215,34 @@ void GpuSqlDispatcher::addSubFunction(DataType left, DataType right)
     dispatcherFunctions.push_back(subFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-
 void GpuSqlDispatcher::addModFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(modFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+	dispatcherFunctions.push_back(modFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseOrFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseOrFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseAndFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseAndFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseXorFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseXorFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseLeftShiftFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseLeftShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addBitwiseRightShiftFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(bitwiseRightShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 void GpuSqlDispatcher::addPointFunction(DataType left, DataType right)
@@ -223,6 +250,21 @@ void GpuSqlDispatcher::addPointFunction(DataType left, DataType right)
 	dispatcherFunctions.push_back(pointFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
+void GpuSqlDispatcher::addLogarithmFunction(DataType number, DataType base)
+{
+	dispatcherFunctions.push_back(logarithmFunctions[DataType::DATA_TYPE_SIZE * number + base]);
+}
+
+
+void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
+{
+	dispatcherFunctions.push_back(powerFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
+}
+
+void GpuSqlDispatcher::addRootFunction(DataType base, DataType exponent)
+{
+	dispatcherFunctions.push_back(rootFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
+}
 
 void GpuSqlDispatcher::addContainsFunction(DataType left, DataType right)
 {
@@ -243,7 +285,6 @@ void GpuSqlDispatcher::addLogicalNotFunction(DataType type)
 {
     dispatcherFunctions.push_back(logicalNotFunctions[type]);
 }
-
 
 void GpuSqlDispatcher::addMinusFunction(DataType type)
 {
@@ -280,34 +321,114 @@ void GpuSqlDispatcher::addSecondFunction(DataType type)
 	dispatcherFunctions.push_back(secondFunctions[type]);
 }
 
-
-void GpuSqlDispatcher::addMinFunction(DataType key, DataType value)
+void GpuSqlDispatcher::addAbsoluteFunction(DataType type)
 {
-    dispatcherFunctions.push_back(minFunctions[DataType::DATA_TYPE_SIZE * key + value]);
+	dispatcherFunctions.push_back(absoluteFunctions[type]);
 }
 
-
-void GpuSqlDispatcher::addMaxFunction(DataType key, DataType value)
+void GpuSqlDispatcher::addSineFunction(DataType type)
 {
-    dispatcherFunctions.push_back(maxFunctions[DataType::DATA_TYPE_SIZE * key + value]);
+	dispatcherFunctions.push_back(sineFunctions[type]);
 }
 
-
-void GpuSqlDispatcher::addSumFunction(DataType key, DataType value)
+void GpuSqlDispatcher::addCosineFunction(DataType type)
 {
-    dispatcherFunctions.push_back(sumFunctions[DataType::DATA_TYPE_SIZE * key + value]);
+	dispatcherFunctions.push_back(cosineFunctions[type]);
 }
 
-
-void GpuSqlDispatcher::addCountFunction(DataType key, DataType value)
+void GpuSqlDispatcher::addTangentFunction(DataType type)
 {
-    dispatcherFunctions.push_back(countFunctions[DataType::DATA_TYPE_SIZE * key + value]);
+	dispatcherFunctions.push_back(tangentFunctions[type]);
 }
 
-
-void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value)
+void GpuSqlDispatcher::addArcsineFunction(DataType type)
 {
-    dispatcherFunctions.push_back(avgFunctions[DataType::DATA_TYPE_SIZE * key + value]);
+	dispatcherFunctions.push_back(arcsineFunctions[type]);
+}
+
+void GpuSqlDispatcher::addArccosineFunction(DataType type)
+{
+	dispatcherFunctions.push_back(arccosineFunctions[type]);
+}
+
+void GpuSqlDispatcher::addArctangentFunction(DataType type)
+{
+	dispatcherFunctions.push_back(arctangentFunctions[type]);
+}
+
+void GpuSqlDispatcher::addLogarithm10Function(DataType type)
+{
+	dispatcherFunctions.push_back(logarithm10Functions[type]);
+}
+
+void GpuSqlDispatcher::addLogarithmNaturalFunction(DataType type)
+{
+	dispatcherFunctions.push_back(logarithmNaturalFunctions[type]);
+}
+
+void GpuSqlDispatcher::addExponentialFunction(DataType type)
+{
+	dispatcherFunctions.push_back(exponentialFunctions[type]);
+}
+
+void GpuSqlDispatcher::addSquareFunction(DataType type)
+{
+	dispatcherFunctions.push_back(squareFunctions[type]);
+}
+
+void GpuSqlDispatcher::addSquareRootFunction(DataType type)
+{
+	dispatcherFunctions.push_back(squareRootFunctions[type]);
+}
+
+void GpuSqlDispatcher::addSignFunction(DataType type)
+{
+	dispatcherFunctions.push_back(signFunctions[type]);
+}
+
+void GpuSqlDispatcher::addRoundFunction(DataType type)
+{
+	dispatcherFunctions.push_back(roundFunctions[type]);
+}
+
+void GpuSqlDispatcher::addFloorFunction(DataType type)
+{
+	dispatcherFunctions.push_back(floorFunctions[type]);
+}
+
+void GpuSqlDispatcher::addCeilFunction(DataType type)
+{
+	dispatcherFunctions.push_back(ceilFunctions[type]);
+}
+
+void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)
+{
+    dispatcherFunctions.push_back((usingGroupBy ? minGroupByFunctions : minAggregationFunctions)
+		[DataType::DATA_TYPE_SIZE * key + value]);
+}
+
+void GpuSqlDispatcher::addMaxFunction(DataType key, DataType value, bool usingGroupBy)
+{
+    dispatcherFunctions.push_back((usingGroupBy ? maxGroupByFunctions : maxAggregationFunctions)
+		[DataType::DATA_TYPE_SIZE * key + value]);
+}
+
+void GpuSqlDispatcher::addSumFunction(DataType key, DataType value, bool usingGroupBy)
+{
+    dispatcherFunctions.push_back((usingGroupBy ? sumGroupByFunctions : sumAggregationFunctions)
+		[DataType::DATA_TYPE_SIZE * key + value]);
+}
+
+void GpuSqlDispatcher::addCountFunction(DataType key, DataType value, bool usingGroupBy)
+{
+    dispatcherFunctions.push_back((usingGroupBy ? countGroupByFunctions : countAggregationFunctions)
+		[DataType::DATA_TYPE_SIZE * key + value]);
+}
+
+void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value, bool usingGroupBy)
+{
+    dispatcherFunctions.push_back((usingGroupBy ? avgGroupByFunctions : avgAggregationFunctions)
+		[DataType::DATA_TYPE_SIZE * key + value]);
 }
 
 void GpuSqlDispatcher::addLoadFunction(DataType type)
@@ -408,7 +529,7 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 	arguments.reset();
 	for (auto& ptr : allocatedPointers)
 	{
-		if (std::get<2>(ptr.second))
+		if (std::get<0>(ptr.second) != 0 && std::get<2>(ptr.second))
 		{
 			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(ptr.second)));
 		}
@@ -416,7 +537,6 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 	usedRegisterMemory = 0;
 	allocatedPointers.clear();
 }
-
 
 int32_t GpuSqlDispatcher::fil()
 {
@@ -467,7 +587,7 @@ int32_t GpuSqlDispatcher::showDatabases()
 	
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 	insertIntoPayload(payload, outData, databases_map.size());
-	mergePayloadToResponse("Databases", payload);
+	MergePayloadToSelfResponse("Databases", payload);
 
 	return 2;
 }
@@ -487,7 +607,7 @@ int32_t GpuSqlDispatcher::showTables()
 
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 	insertIntoPayload(payload, outData, tables_map.size());
-	mergePayloadToResponse(db, payload);
+	MergePayloadToSelfResponse(db, payload);
 
 	return 3;
 }
@@ -516,8 +636,8 @@ int32_t GpuSqlDispatcher::showColumns()
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadType;
 	insertIntoPayload(payloadName, outDataName, columns_map.size());
 	insertIntoPayload(payloadType, outDataType, columns_map.size());
-	mergePayloadToResponse(tab + "_columns", payloadName);
-	mergePayloadToResponse(tab + "_types", payloadType);
+	MergePayloadToSelfResponse(tab + "_columns", payloadName);
+	MergePayloadToSelfResponse(tab + "_types", payloadType);
 	return 4;
 }
 
@@ -562,22 +682,103 @@ void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 	}
 }
 
-void GpuSqlDispatcher::mergePayloadToResponse(const std::string& key, ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
+void GpuSqlDispatcher::MergePayload(const std::string &trimmedKey, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage,
+	ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload)
+{
+	// If there is payload with new key
+	if (responseMessage->payloads().find(trimmedKey) == responseMessage->payloads().end())
+	{
+		responseMessage->mutable_payloads()->insert({ trimmedKey, payload });
+	}
+	else    // If there is payload with existing key, merge or aggregate according to key
+	{
+		// Find index of parenthesis (for finding out if it is aggregation function)
+		size_t keyParensIndex = trimmedKey.find('(');
+
+		bool aggregationOperationFound = false;
+		// If no function is used
+		if (keyParensIndex == std::string::npos)
+		{
+			aggregationOperationFound = false;
+		}
+		else
+		{
+			// Get operation name
+			std::string operation = trimmedKey.substr(0, keyParensIndex);
+			// To upper case
+			for (auto &c : operation)
+			{
+				c = toupper(c);
+			}
+			// Switch according to data type of payload (=column)
+			switch (payload.payload_case())
+			{
+			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+			{
+				std::pair<bool, int32_t> result =
+					AggregateOnCPU<int32_t>(operation, payload.intpayload().intdata()[0],
+						responseMessage->mutable_payloads()->at(trimmedKey).intpayload().intdata()[0]);
+				aggregationOperationFound = result.first;
+				if (aggregationOperationFound)
+				{
+					responseMessage->mutable_payloads()->at(trimmedKey).mutable_intpayload()->set_intdata(0, result.second);
+				}
+				break;
+			}
+			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+			{
+				std::pair<bool, int64_t> result =
+					AggregateOnCPU<int64_t>(operation, payload.int64payload().int64data()[0],
+						responseMessage->payloads().at(trimmedKey).int64payload().int64data()[0]);
+				aggregationOperationFound = result.first;
+				if (aggregationOperationFound)
+				{
+					responseMessage->mutable_payloads()->at(trimmedKey).mutable_int64payload()->set_int64data(0, result.second);
+				}
+				break;
+			}
+			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+			{
+				std::pair<bool, float> result =
+					AggregateOnCPU<float>(operation, payload.floatpayload().floatdata()[0],
+						responseMessage->mutable_payloads()->at(trimmedKey).floatpayload().floatdata()[0]);
+				aggregationOperationFound = result.first;
+				if (aggregationOperationFound)
+				{
+					responseMessage->mutable_payloads()->at(trimmedKey).mutable_floatpayload()->set_floatdata(0, result.second);
+				}
+				break;
+			}
+			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+			{
+				std::pair<bool, double> result =
+					AggregateOnCPU<double>(operation, payload.doublepayload().doubledata()[0],
+						responseMessage->mutable_payloads()->at(trimmedKey).doublepayload().doubledata()[0]);
+				aggregationOperationFound = result.first;
+				if (aggregationOperationFound)
+				{
+					responseMessage->mutable_payloads()->at(trimmedKey).mutable_doublepayload()->set_doubledata(0, result.second);
+				}
+				break;
+			}
+			}
+		}
+
+		if (!aggregationOperationFound)
+		{
+			responseMessage->mutable_payloads()->at(trimmedKey).MergeFrom(payload);
+		}
+	}
+}
+
+void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
 {
 	std::string trimmedKey = key.substr(0, std::string::npos);
 	if (!key.empty() && key.front() == '$')
 	{
 		trimmedKey = key.substr(1, std::string::npos);
 	}
-
-	if (responseMessage.payloads().find(trimmedKey) == responseMessage.payloads().end())
-	{
-		responseMessage.mutable_payloads()->insert({ trimmedKey, payload });
-	}
-	else
-	{
-		responseMessage.mutable_payloads()->at(trimmedKey).MergeFrom(payload);
-	}
+	MergePayload(trimmedKey, &responseMessage, payload);
 }
 
 bool GpuSqlDispatcher::isRegisterAllocated(std::string & reg)

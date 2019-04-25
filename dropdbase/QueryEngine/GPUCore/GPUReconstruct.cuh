@@ -78,7 +78,7 @@ public:
 		}
 
 		// Get last error
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 
@@ -101,11 +101,17 @@ public:
 
 			PrefixSum(prefixSumPointer, inMask, dataElementCount);
 			GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
-			GPUMemory::alloc<T>(outCol, *outDataElementCount);
-			// Construct the output based on the prefix sum
-			kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+			if(*outDataElementCount > 0)
+			{ 
+				GPUMemory::alloc<T>(outCol, *outDataElementCount);
+				// Construct the output based on the prefix sum
+				kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 				(*outCol, ACol, prefixSumPointer, inMask, dataElementCount);
-
+			}
+			else
+			{
+				*outCol = nullptr;
+			}
 			// Free the memory
 			GPUMemory::free(prefixSumPointer);
 			GPUMemory::free(outDataElementCountPointer);
@@ -118,7 +124,7 @@ public:
 		}
 
 		// Get last error
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 
@@ -134,17 +140,24 @@ public:
 	template<typename T, typename M>
 	static void GenerateIndexes(T *outData, int32_t *outDataElementCount, M *inMask, int32_t dataElementCount)
 	{
-		// New buffer for the output vector - GPU side
-		T *outDataGPUPointer = nullptr;
+		if (dataElementCount > 0)
+		{
+			// New buffer for the output vector - GPU side
+			T *outDataGPUPointer = nullptr;
 
-		// Call keep version
-		GenerateIndexesKeep(&outDataGPUPointer, outDataElementCount, inMask, dataElementCount);
+			// Call keep version
+			GenerateIndexesKeep(&outDataGPUPointer, outDataElementCount, inMask, dataElementCount);
 
-		// Copy the generated output from GPU (device) to host
-		GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
+			// Copy the generated output from GPU (device) to host
+			GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
 
-		// Free the memory
-		GPUMemory::free(outDataGPUPointer);
+			// Free the memory
+			GPUMemory::free(outDataGPUPointer);
+		}
+		else
+		{
+			*outDataElementCount = 0;
+		}
 	}
 
 	/// <summary>
@@ -175,25 +188,30 @@ public:
 			
 			// Copy the output size to host
 			GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
+			if (*outDataElementCount > 0)
+			{
+				// Allocate array for outData with needed size
+				GPUMemory::alloc<T>(outData, *outDataElementCount);
 
-			// Allocate array for outData with needed size
-			GPUMemory::alloc<T>(outData, *outDataElementCount);
-
-			// Call kernel for generating indexes
-			kernel_generate_indexes << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-				(*outData, prefixSumPointer, inMask, dataElementCount);
-
+				// Call kernel for generating indexes
+				kernel_generate_indexes << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+					(*outData, prefixSumPointer, inMask, dataElementCount);
+			}
+			else
+			{
+				*outData = nullptr;
+			}
 			// Free the memory
 			GPUMemory::free(prefixSumPointer);
 			GPUMemory::free(outDataElementCountPointer);
 		}
 		else  // Version without mask is not supported in GenerateIndexes
 		{
-			QueryEngineError::setType(QueryEngineError::GPU_EXTENSION_ERROR, "inMask cannot be nullptr in GenerateIndexes");
+			CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR, "inMask cannot be nullptr in GenerateIndexes");
 		}
 
 		// Get last error
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename M>

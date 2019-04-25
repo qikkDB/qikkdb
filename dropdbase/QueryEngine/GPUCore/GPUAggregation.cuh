@@ -33,12 +33,12 @@ public:
 	/// <param name="dataElementCount">the size of the input blocks in bytes</param>
 	/// <returns>GPU_EXTENSION_SUCCESS if operation was successful
 	/// or GPU_EXTENSION_ERROR if some error occured</returns>
-	template<typename AGG, typename T>
-	static void col(T *outValue, T *ACol, int32_t dataElementCount)
+	template<typename AGG, typename OUT, typename IN>
+	static void col(OUT *outValue, IN *ACol, int32_t dataElementCount)
 	{
 		// Kernel call
-		AGG::template agg<T>(outValue, ACol, dataElementCount);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		AGG::template agg<OUT, IN>(outValue, ACol, dataElementCount);
+		CheckCudaError(cudaGetLastError());
 	}
 };
 

@@ -65,6 +65,6 @@ public:
         kernel_polygon_clipping<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                 out, polygon1, polygon2, dataElementCount);
-        QueryEngineError::setCudaError(cudaGetLastError());
+        CheckCudaError(cudaGetLastError());
     }
 };

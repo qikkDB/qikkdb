@@ -22,11 +22,15 @@ public:
     AS = 39, IN = 40, BETWEEN = 41, ON = 42, ORDERBY = 43, DIR = 44, LIMIT = 45, 
     OFFSET = 46, SHOWDB = 47, SHOWTB = 48, SHOWCL = 49, AGG = 50, AVG = 51, 
     SUM = 52, MIN = 53, MAX = 54, COUNT = 55, YEAR = 56, MONTH = 57, DAY = 58, 
-    HOUR = 59, MINUTE = 60, SECOND = 61, GEO_CONTAINS = 62, GEO_INTERSECT = 63, 
-    GEO_UNION = 64, PLUS = 65, MINUS = 66, ASTERISK = 67, DIVISION = 68, 
-    MODULO = 69, EQUALS = 70, NOTEQUALS = 71, LPAREN = 72, RPAREN = 73, 
-    GREATER = 74, LESS = 75, GREATEREQ = 76, LESSEQ = 77, NOT = 78, OR = 79, 
-    AND = 80, FLOATLIT = 81, INTLIT = 82, ID = 83, BOOLEANLIT = 84, STRINGLIT = 85
+    HOUR = 59, MINUTE = 60, SECOND = 61, NOW = 62, PI = 63, ABS = 64, SIN = 65, 
+    COS = 66, TAN = 67, ASIN = 68, ACOS = 69, ATAN = 70, LOG10 = 71, LOG = 72, 
+    EXP = 73, POW = 74, SQRT = 75, SQUARE = 76, SIGN = 77, ROOT = 78, ROUND = 79, 
+    CEIL = 80, FLOOR = 81, GEO_CONTAINS = 82, GEO_INTERSECT = 83, GEO_UNION = 84, 
+    PLUS = 85, MINUS = 86, ASTERISK = 87, DIVISION = 88, MODULO = 89, XOR = 90, 
+    EQUALS = 91, NOTEQUALS = 92, NOTEQUALS_GT_LT = 93, LPAREN = 94, RPAREN = 95, 
+    GREATER = 96, LESS = 97, GREATEREQ = 98, LESSEQ = 99, NOT = 100, OR = 101, 
+    AND = 102, BIT_OR = 103, BIT_AND = 104, L_SHIFT = 105, R_SHIFT = 106, 
+    FLOATLIT = 107, INTLIT = 108, ID = 109, BOOLEANLIT = 110, STRINGLIT = 111
   };
 
   enum {
@@ -673,11 +677,11 @@ public:
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
-  class  StringLiteralContext : public ExpressionContext {
+  class  NowLiteralContext : public ExpressionContext {
   public:
-    StringLiteralContext(ExpressionContext *ctx);
+    NowLiteralContext(ExpressionContext *ctx);
 
-    antlr4::tree::TerminalNode *STRINGLIT();
+    antlr4::tree::TerminalNode *NOW();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
@@ -727,9 +731,12 @@ public:
     antlr4::tree::TerminalNode *LPAREN();
     antlr4::tree::TerminalNode *COMMA();
     antlr4::tree::TerminalNode *RPAREN();
-    antlr4::tree::TerminalNode *POINT();
+    antlr4::tree::TerminalNode *LOG();
     std::vector<ExpressionContext *> expression();
     ExpressionContext* expression(size_t i);
+    antlr4::tree::TerminalNode *POW();
+    antlr4::tree::TerminalNode *ROOT();
+    antlr4::tree::TerminalNode *POINT();
     antlr4::tree::TerminalNode *GEO_CONTAINS();
     antlr4::tree::TerminalNode *GEO_INTERSECT();
     antlr4::tree::TerminalNode *GEO_UNION();
@@ -738,12 +745,18 @@ public:
     antlr4::tree::TerminalNode *PLUS();
     antlr4::tree::TerminalNode *MINUS();
     antlr4::tree::TerminalNode *MODULO();
+    antlr4::tree::TerminalNode *XOR();
+    antlr4::tree::TerminalNode *BIT_AND();
+    antlr4::tree::TerminalNode *BIT_OR();
+    antlr4::tree::TerminalNode *L_SHIFT();
+    antlr4::tree::TerminalNode *R_SHIFT();
     antlr4::tree::TerminalNode *GREATER();
     antlr4::tree::TerminalNode *LESS();
     antlr4::tree::TerminalNode *GREATEREQ();
     antlr4::tree::TerminalNode *LESSEQ();
     antlr4::tree::TerminalNode *EQUALS();
     antlr4::tree::TerminalNode *NOTEQUALS();
+    antlr4::tree::TerminalNode *NOTEQUALS_GT_LT();
     antlr4::tree::TerminalNode *AND();
     antlr4::tree::TerminalNode *OR();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -771,6 +784,22 @@ public:
     antlr4::tree::TerminalNode *MINUS();
     antlr4::tree::TerminalNode *LPAREN();
     antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *ABS();
+    antlr4::tree::TerminalNode *SIN();
+    antlr4::tree::TerminalNode *COS();
+    antlr4::tree::TerminalNode *TAN();
+    antlr4::tree::TerminalNode *ASIN();
+    antlr4::tree::TerminalNode *ACOS();
+    antlr4::tree::TerminalNode *ATAN();
+    antlr4::tree::TerminalNode *LOG10();
+    antlr4::tree::TerminalNode *LOG();
+    antlr4::tree::TerminalNode *EXP();
+    antlr4::tree::TerminalNode *SQRT();
+    antlr4::tree::TerminalNode *SQUARE();
+    antlr4::tree::TerminalNode *SIGN();
+    antlr4::tree::TerminalNode *ROUND();
+    antlr4::tree::TerminalNode *FLOOR();
+    antlr4::tree::TerminalNode *CEIL();
     antlr4::tree::TerminalNode *YEAR();
     antlr4::tree::TerminalNode *MONTH();
     antlr4::tree::TerminalNode *DAY();
@@ -781,20 +810,38 @@ public:
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
-  class  BooleanLiteralContext : public ExpressionContext {
-  public:
-    BooleanLiteralContext(ExpressionContext *ctx);
-
-    antlr4::tree::TerminalNode *BOOLEANLIT();
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-  };
-
   class  VarReferenceContext : public ExpressionContext {
   public:
     VarReferenceContext(ExpressionContext *ctx);
 
     ColumnIdContext *columnId();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  PiLiteralContext : public ExpressionContext {
+  public:
+    PiLiteralContext(ExpressionContext *ctx);
+
+    antlr4::tree::TerminalNode *PI();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  StringLiteralContext : public ExpressionContext {
+  public:
+    StringLiteralContext(ExpressionContext *ctx);
+
+    antlr4::tree::TerminalNode *STRINGLIT();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  BooleanLiteralContext : public ExpressionContext {
+  public:
+    BooleanLiteralContext(ExpressionContext *ctx);
+
+    antlr4::tree::TerminalNode *BOOLEANLIT();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };

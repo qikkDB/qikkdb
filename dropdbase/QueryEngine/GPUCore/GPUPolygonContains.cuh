@@ -7,6 +7,7 @@
 #include <device_launch_parameters.h>
 
 #include "GPUMemory.cuh"
+#include "../GPUError.h"
 
 #include "../../NativeGeoPoint.h"
 #include "../Context.h"
@@ -100,14 +101,14 @@ public:
 
         if (pointCount != polygonCount && pointCount != 1 && polygonCount != 1)
         {
-            QueryEngineError::setType(QueryEngineError::GPU_EXTENSION_ERROR);
+            CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR);
             return;
         }
 
         kernel_point_in_polygon<<<context.calcGridDim((pointCount > polygonCount ? pointCount : polygonCount)),
                                   context.getBlockDim()>>>(outMask, polygonCol, polygonCount, geoPointCol, pointCount);
 
-        QueryEngineError::setCudaError(cudaGetLastError());
+        CheckCudaError(cudaGetLastError());
     }
 
     /// <summary>
@@ -132,6 +133,6 @@ public:
 		int8_t result;
 		GPUMemory::copyDeviceToHost(&result, outMask, 1);
 		GPUMemory::memset(outMask, result, retSize);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
     }
 };

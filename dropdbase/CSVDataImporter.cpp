@@ -35,7 +35,7 @@ CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimit
 /// <summary>
 /// Parses CSV file, guess types, create table (if not exists) and fills the table with parsed data.
 /// </summary>
-/// <param name="database">Database where data will be imported</param>
+/// <param name="database">Database where data will be imported.</param>
 void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 {
 	this->ExtractHeaders();
@@ -335,7 +335,7 @@ void CSVDataImporter::ExtractTypes()
 /// Identify data type based on vector of values. Returns maximum type from vector of types.
 /// COLUMN_INT < COLUMN_LONG < COLUMN_FLOAT < COLUMN_DOUBLE < COULMN_STRING.
 /// </summary>
-/// <param name="columnValues">vector of string values.</param>
+/// <param name="columnValues">Vector of string values.</param>
 /// <returns>Suitable data type.</returns>
 DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues)
 {
@@ -443,7 +443,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 /// Sets column types based on pre determined values.
 /// Disables type guessing.
 /// </summary>
-/// <param name="columnValues">vector of types values</param>
+/// <param name="columnValues">Vector of types values.</param>
 void CSVDataImporter::SetTypes(const std::vector<DataType>& types)
 {
 	dataTypes_ = types;

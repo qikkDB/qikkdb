@@ -5,10 +5,12 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+#include <stdexcept>
 
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
 #include "../../NativeGeoPoint.h"
+
 
 template<typename T>
 __global__ void kernel_fill_array(T *p_Block, T value, size_t dataElementCount)
@@ -43,6 +45,8 @@ public:
 		int32_t* polyCount;
 	};
 
+	static bool EvictWithLockList();
+
 	// Memory allocation
 	/// <summary>
 	/// Memory allocation of block on the GPU with the respective size of the input parameter type
@@ -55,8 +59,23 @@ public:
 	template<typename T>
 	static void alloc(T **p_Block, size_t dataElementCount)
 	{
-		*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
-		QueryEngineError::setCudaError(cudaGetLastError());
+		bool allocOK = false;
+		while (!allocOK)
+		{
+			try
+			{
+				*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
+				allocOK = true;
+			}
+			catch (const std::out_of_range& e)
+			{
+				if (!EvictWithLockList())
+				{
+					std::rethrow_exception(std::current_exception());
+				}
+			}
+		}
+		CheckCudaError(cudaGetLastError());
 	}
 
 	// malloc + memset
@@ -78,7 +97,7 @@ public:
 
 		memset(*p_Block, value, dataElementCount);
 
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	// Fill an array with a desired value
@@ -87,7 +106,7 @@ public:
 	{
 		//cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));	// Async version, uncomment if needed
 		cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 	#ifdef __CUDACC__
 	template<typename T>
@@ -96,7 +115,7 @@ public:
 		kernel_fill_array << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(p_Block, value, dataElementCount);
 
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 	#endif
 
@@ -114,7 +133,7 @@ public:
 	static void copyHostToDevice(T *p_BlockDevice, T *p_BlockHost, size_t dataElementCount)
 	{
 		cudaMemcpyAsync(p_BlockDevice, p_BlockHost, dataElementCount * sizeof(T), cudaMemcpyHostToDevice);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	// Moving data from device to host
@@ -131,14 +150,14 @@ public:
 	static void copyDeviceToHost(T *p_BlockHost, T *p_BlockDevice, size_t dataElementCount)
 	{
 		cudaMemcpy(p_BlockHost, p_BlockDevice, dataElementCount * sizeof(T), cudaMemcpyDeviceToHost);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename T>
 	static void copyDeviceToDevice(T *p_BlockDestination, T *p_BlockSource, size_t dataElementCount)
 	{
 		cudaMemcpy(p_BlockDestination, p_BlockSource, dataElementCount * sizeof(T), cudaMemcpyDeviceToDevice);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	// Freeing data
@@ -151,7 +170,7 @@ public:
 	static void free(void *p_block)
 	{
 		Context::getInstance().GetAllocatorForCurrentDevice().deallocate(static_cast<int8_t*>(p_block), 0);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename T>
@@ -160,14 +179,14 @@ public:
 		cudaHostRegister(hostPtr, dataElementCount * sizeof(T), cudaHostRegisterMapped);
 		cudaHostGetDevicePointer(devicePtr, hostPtr, 0);
 
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename T>
 	static void hostUnregister(T *hostPtr)
 	{
 		cudaHostUnregister(hostPtr);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	// Pin host memory
@@ -175,13 +194,13 @@ public:
 	static void hostPin(T* hostPtr, size_t dataElementCount)
 	{
 		cudaHostRegister(hostPtr, dataElementCount * sizeof(T), cudaHostRegisterDefault);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	// Wipe all allocated memory O(1)
 	static void clear()
 	{
 		Context::getInstance().GetAllocatorForCurrentDevice().Clear();
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 };

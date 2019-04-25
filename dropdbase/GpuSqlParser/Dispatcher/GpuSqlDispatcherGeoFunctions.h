@@ -5,7 +5,8 @@
 #include "../../QueryEngine/GPUCore/GPUConversion.cuh"
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
-
+#include "../../ComplexPolygonFactory.h"
+#include "../../PointFactory.h"
 
 template<typename T, typename U>
 int32_t GpuSqlDispatcher::pointColCol()

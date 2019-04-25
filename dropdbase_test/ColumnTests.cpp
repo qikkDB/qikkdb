@@ -81,25 +81,25 @@ TEST(ColumnTests, AddBlockWithoutData)
 	auto& blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
 
 	ASSERT_EQ(blockInt.EmptyBlockSpace(), 1024);
-	ASSERT_EQ(blockInt.EmptyBlockSpace(), dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList()[0].get()->EmptyBlockSpace());
+	ASSERT_EQ(blockInt.EmptyBlockSpace(), dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList()[0]->EmptyBlockSpace());
 
 	ASSERT_EQ(blockLong.EmptyBlockSpace(), 1024);
-	ASSERT_EQ(blockLong.EmptyBlockSpace(), dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList()[0].get()->EmptyBlockSpace());
+	ASSERT_EQ(blockLong.EmptyBlockSpace(), dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList()[0]->EmptyBlockSpace());
 
 	ASSERT_EQ(blockFloat.EmptyBlockSpace(), 1024);
-	ASSERT_EQ(blockFloat.EmptyBlockSpace(), dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList()[0].get()->EmptyBlockSpace());
+	ASSERT_EQ(blockFloat.EmptyBlockSpace(), dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList()[0]->EmptyBlockSpace());
 
 	ASSERT_EQ(blockDouble.EmptyBlockSpace(), 1024);
-	ASSERT_EQ(blockDouble.EmptyBlockSpace(), dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList()[0].get()->EmptyBlockSpace());
+	ASSERT_EQ(blockDouble.EmptyBlockSpace(), dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList()[0]->EmptyBlockSpace());
 
 	ASSERT_EQ(blockPoint.EmptyBlockSpace(), 1024);
-	ASSERT_EQ(blockPoint.EmptyBlockSpace(), dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList()[0].get()->EmptyBlockSpace());
+	ASSERT_EQ(blockPoint.EmptyBlockSpace(), dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList()[0]->EmptyBlockSpace());
 
 	ASSERT_EQ(blockPolygon.EmptyBlockSpace(), 1024);
-	ASSERT_EQ(blockPolygon.EmptyBlockSpace(), dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList()[0].get()->EmptyBlockSpace());
+	ASSERT_EQ(blockPolygon.EmptyBlockSpace(), dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList()[0]->EmptyBlockSpace());
 
 	ASSERT_EQ(blockString.EmptyBlockSpace(), 1024);
-	ASSERT_EQ(blockString.EmptyBlockSpace(), dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList()[0].get()->EmptyBlockSpace());
+	ASSERT_EQ(blockString.EmptyBlockSpace(), dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList()[0]->EmptyBlockSpace());
 }
 
 TEST(ColumnTests, InsertData_BlocksDoNotExist)
@@ -568,13 +568,13 @@ TEST(ColumnTests, InsertNull)
 	dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->InsertNullData(512);
 	dynamic_cast<ColumnBase<std::string>*>(columnString.get())->InsertNullData(512);
 
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList()[0].get()->GetSize(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList()[0].get()->GetSize(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList()[0].get()->GetSize(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList()[0].get()->GetSize(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList()[0].get()->GetSize(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList()[0].get()->GetSize(),512);
-	ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList()[0].get()->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList()[0]->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList()[0]->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList()[0]->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList()[0]->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())->GetBlocksList()[0]->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnPolygon").get())->GetBlocksList()[0]->GetSize(),512);
+	ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList()[0]->GetSize(),512);
 
 	std::vector<int32_t> dataInIntBlock;
 	std::vector<int64_t> dataInLongBlock;

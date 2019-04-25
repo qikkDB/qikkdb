@@ -41,7 +41,7 @@ int32_t GpuSqlDispatcher::retCol()
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload(payload, outData, outSize);
 				ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
-				mergePayloadToResponse(alias, payload);
+				MergePayloadToSelfResponse(alias, payload);
 			}
 			else
 			{
@@ -52,7 +52,7 @@ int32_t GpuSqlDispatcher::retCol()
 
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload(payload, outData, outSize);
-				mergePayloadToResponse(alias, payload);
+				MergePayloadToSelfResponse(alias, payload);
 			}
 		}
 	}
@@ -67,7 +67,7 @@ int32_t GpuSqlDispatcher::retCol()
 		std::cout << "dataSize: " << outSize << std::endl;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 		insertIntoPayload(payload, outData, outSize);
-		mergePayloadToResponse(alias, payload);
+		MergePayloadToSelfResponse(alias, payload);
 	}
 	return 0;
 }
@@ -100,7 +100,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 		}
 
 		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
+		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
 
 		auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
 			database->GetName(), colName, blockIndex, block->GetSize());

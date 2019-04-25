@@ -196,15 +196,3 @@ int32_t GpuSqlDispatcher::arithmeticConstConst()
 	}
 	return 0;
 }
-
-template<typename T>
-int32_t GpuSqlDispatcher::minusCol()
-{
-	return 0;
-}
-
-template<typename T>
-int32_t GpuSqlDispatcher::minusConst()
-{
-	return 0;
-}

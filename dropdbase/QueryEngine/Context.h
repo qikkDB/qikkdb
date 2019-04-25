@@ -9,10 +9,11 @@
 #include <memory>
 
 #include "../Configuration.h"
+#include "GPUError.h"
 #include "CudaMemAllocator.h"
 #include "GPUCore/GPUWhereInterpreter.h"
 #include "GPUMemoryCache.h"
-#include "QueryEngineError.h"
+#include "GPUError.h"
 #include "../DataType.h"
 class Database;
 
@@ -58,30 +59,30 @@ public:
     // Get class instance, if class was not initialized prior a GPU instance is returned
 	static Context& getInstance();
 
-    // Operations on the grid dimensions
+	// Operations on the grid dimensions
 	int32_t calcGridDim(int32_t dataElementCount);
 
-    // Get default block dimension
+	// Get default block dimension
 	const int32_t getBlockDim();
 
-    // Get currently bound device
+	// Get currently bound device
 	const int32_t getBoundDeviceID();
 
-    // Get found device count
+	// Get found device count
 	const int32_t getDeviceCount();
 
-    // Querying info about devices and rebinding devices to the context
+	// Querying info about devices and rebinding devices to the context
 	const std::vector<cudaDeviceProp>& getDevicesMetaInfoList();
 
-    // Bind device to context if neccessary, if id is out of range, bind the default device
+	// Bind device to context if neccessary, if id is out of range, bind the default device
 	void bindDeviceToContext(int32_t deviceID);
 
-    // Allocator methods
+	// Allocator methods
 	CudaMemAllocator& GetAllocatorForDevice(int32_t deviceID);
 
 	CudaMemAllocator& GetAllocatorForCurrentDevice();
 
-    // Cache methods
+	// Cache methods
 	GPUMemoryCache& getCacheForDevice(int32_t deviceID);
 
 	GPUMemoryCache& getCacheForCurrentDevice();

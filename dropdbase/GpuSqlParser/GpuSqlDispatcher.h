@@ -25,6 +25,8 @@
 #include "../ColumnBase.h"
 #include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
+#include "../NativeGeoPoint.h"
+#include "../QueryEngine/GPUCore/GPUMemory.cuh"
 
 class GpuSqlDispatcher
 {
@@ -77,6 +79,22 @@ private:
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> subFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseOrFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseAndFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseXorFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseLeftShiftFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions;
     static std::array<DispatchFunction,
@@ -87,8 +105,6 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> unionFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
-    static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE> minusFunctions;
 	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> yearFunctions;
 	static std::array<DispatchFunction, 
@@ -101,18 +117,64 @@ private:
 		DataType::DATA_TYPE_SIZE> minuteFunctions;
 	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> secondFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> minusFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> absoluteFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> sineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> cosineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> tangentFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arcsineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arccosineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arctangentFunctions;
     static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minFunctions;
+		DataType::DATA_TYPE_SIZE> logarithm10Functions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> logarithmNaturalFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> exponentialFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> squareRootFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> squareFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> signFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> roundFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> ceilFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> floorFunctions;
     static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxAggregationFunctions;
     static std::array<DispatchFunction,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countFunctions;
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumAggregationFunctions;
+    static std::array<DispatchFunction,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countAggregationFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE> ldFunctions;
+			DataType::DATA_TYPE_SIZE> ldFunctions;
+	static std::array<DispatchFunction,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgAggregationFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
@@ -159,6 +221,31 @@ public:
 		groupByDoneLimit_ = 0;
 	}
 
+	template<typename T>
+	static std::pair<bool, T> AggregateOnCPU(std::string& operation, T number1, T number2)
+	{
+		if (operation == "MIN")
+		{
+			return std::make_pair(true, number1 < number2 ? number1 : number2);
+		}
+		else if (operation == "MAX")
+		{
+			return std::make_pair(true, number1 > number2 ? number1 : number2);
+		}
+		else if (operation == "SUM" || operation == "AVG" || operation == "COUNT")
+		{
+			return std::make_pair(true, number1 + number2);
+		}
+		else    // Other operation (e.g. datetime)
+		{
+			return std::make_pair(false, T{ 0 });
+		}
+	}
+
+	static void MergePayload(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage,
+		ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
+
+
     GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);
 
 	~GpuSqlDispatcher();
@@ -197,7 +284,17 @@ public:
 
     void addSubFunction(DataType left, DataType right);
 
-    void addModFunction(DataType left, DataType right);
+	void addModFunction(DataType left, DataType right);
+
+    void addBitwiseOrFunction(DataType left, DataType right);
+
+	void addBitwiseAndFunction(DataType left, DataType right);
+
+	void addBitwiseXorFunction(DataType left, DataType right);
+
+	void addBitwiseLeftShiftFunction(DataType left, DataType right);
+
+	void addBitwiseRightShiftFunction(DataType left, DataType right);
 
 	void addPointFunction(DataType left, DataType right);
 
@@ -223,15 +320,53 @@ public:
 
 	void addSecondFunction(DataType type);
 
-    void addMinFunction(DataType key, DataType value);
+	void addAbsoluteFunction(DataType type);
 
-    void addMaxFunction(DataType key, DataType value);
+	void addSineFunction(DataType type);
 
-    void addSumFunction(DataType key, DataType value);
+	void addCosineFunction(DataType type);
 
-    void addCountFunction(DataType key, DataType value);
+	void addTangentFunction(DataType type);
 
-    void addAvgFunction(DataType key, DataType value);
+	void addArcsineFunction(DataType type);
+
+	void addArccosineFunction(DataType type);
+
+	void addArctangentFunction(DataType type);
+
+	void addLogarithm10Function(DataType type);
+
+	void addLogarithmFunction(DataType number, DataType base);
+
+	void addLogarithmNaturalFunction(DataType type);
+
+	void addExponentialFunction(DataType type);
+
+	void addPowerFunction(DataType base, DataType exponent);
+
+	void addSquareRootFunction(DataType type);
+
+	void addSquareFunction(DataType type);
+
+	void addSignFunction(DataType type);
+
+	void addRoundFunction(DataType type);
+
+	void addFloorFunction(DataType type);
+
+	void addCeilFunction(DataType type);
+
+	void addRootFunction(DataType base, DataType exponent);
+
+    void addMinFunction(DataType key, DataType value, bool usingGroupBy);
+
+    void addMaxFunction(DataType key, DataType value, bool usingGroupBy);
+
+    void addSumFunction(DataType key, DataType value, bool usingGroupBy);
+
+    void addCountFunction(DataType key, DataType value, bool usingGroupBy);
+
+    void addAvgFunction(DataType key, DataType value, bool usingGroupBy);
 
 	void addLoadFunction(DataType type);
 
@@ -257,7 +392,8 @@ public:
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
 
-	std::unordered_map<std::string, int32_t> linkTable;
+
+	static std::unordered_map<std::string, int32_t> linkTable;
 	std::vector<GPUOpCode> gpuWhereOpCodes;
 	
 	template<typename T>
@@ -291,14 +427,14 @@ public:
 		}
 	}
 
-	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
+	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
 	void insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	std::string insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 
-    template<typename T>
+  	template<typename T>
     int32_t retConst();
 
     template<typename T>
@@ -317,15 +453,6 @@ public:
 	int32_t showColumns();
 
 	void cleanUpGpuPointers();
-
-	template <>
-	int32_t retCol<ColmnarDB::Types::ComplexPolygon>();
-
-	template<>
-	int32_t retCol<ColmnarDB::Types::Point>();
-
-	template <>
-	int32_t retCol<std::string>();
 
 
 	//// FILTERS WITH FUNCTORS
@@ -366,17 +493,20 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t arithmeticConstConst();
 
+	template<typename OP, typename T>
+	int32_t arithmeticUnaryCol();
+
+	template<typename OP, typename T>
+	int32_t arithmeticUnaryConst();
+
 	template<typename OP, typename R, typename T, typename U>
-	int32_t aggregationColCol();
+	int32_t aggregationGroupBy();
 
 	template<typename OP, typename T, typename U>
-	int32_t aggregationColConst();
+	int32_t aggregationCol();
 
 	template<typename OP, typename T, typename U>
-	int32_t aggregationConstCol();
-
-	template<typename OP, typename T, typename U>
-	int32_t aggregationConstConst();
+	int32_t aggregationConst();
 
 	////
 
@@ -426,12 +556,6 @@ public:
     template<typename T>
     int32_t logicalNotConst();
 
-    template<typename T>
-    int32_t minusCol();
-
-    template<typename T>
-    int32_t minusConst();
-
 	template<typename OP>
 	int32_t dateExtractCol();
 
@@ -446,12 +570,6 @@ public:
 
 	template<typename T>
 	int32_t insertInto();
-
-	template<>
-	int32_t insertInto<ColmnarDB::Types::ComplexPolygon>();
-
-	template<>
-	int32_t insertInto<ColmnarDB::Types::Point>();
 
 	int32_t insertIntoDone();
 
@@ -540,6 +658,34 @@ public:
     {
         arguments.insert<T>(argument);
     }
+
 };
+
+template <>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
+
+template <>
+int32_t GpuSqlDispatcher::retCol<std::string>();
+
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<std::string>();
+
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::Point>();
 
 #endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H

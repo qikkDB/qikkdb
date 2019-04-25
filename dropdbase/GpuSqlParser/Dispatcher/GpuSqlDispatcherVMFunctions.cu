@@ -1,6 +1,7 @@
 #include "GpuSqlDispatcherVMFunctions.h"
 #include <array>
 #include "../ParserExceptions.h"
+#include "../../PointFactory.h"
 
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::retFunctions = { &GpuSqlDispatcher::retConst<int32_t>, &GpuSqlDispatcher::retConst<int64_t>, &GpuSqlDispatcher::retConst<float>, &GpuSqlDispatcher::retConst<double>, &GpuSqlDispatcher::retConst<ColmnarDB::Types::Point>, &GpuSqlDispatcher::retConst<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::retConst<std::string>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<int8_t>, &GpuSqlDispatcher::retCol<int32_t>, &GpuSqlDispatcher::retCol<int64_t>, &GpuSqlDispatcher::retCol<float>, &GpuSqlDispatcher::retCol<double>, &GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>, &GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::retCol<std::string>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<int8_t> };
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::ldFunctions = {};
@@ -41,7 +42,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 		}
 
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex].get());
+		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex]);
 		insertComplexPolygon(database->GetName(), colName,
 			std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(),
 				block->GetData() + block->GetSize()),
@@ -79,7 +80,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 		}
 
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::Point>*>(col->GetBlocksList()[blockIndex].get());
+		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::Point>*>(col->GetBlocksList()[blockIndex]);
 
 		std::vector<NativeGeoPoint> nativePoints;
 		std::transform(block->GetData(), block->GetData() + block->GetSize(), std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint { return NativeGeoPoint{ point.geopoint().latitude(), point.geopoint().longitude() }; });
@@ -118,7 +119,7 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>()
 		const std::string column = colName.substr(endOfPolyIdx + 1);
 
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex].get());
+		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex]);
 
 		noLoad = false;
 		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
@@ -152,7 +153,7 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>()
 			std::cout << "dataSize: " << outSize << std::endl;
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 			insertIntoPayload(payload, outData, outSize);
-			mergePayloadToResponse(alias, payload);
+			MergePayloadToSelfResponse(alias, payload);
 		}
 		else
 		{
@@ -166,7 +167,7 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>()
 			std::cout << "dataSize: " << block->GetSize() << std::endl;
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 			insertIntoPayload(payload, outData, block->GetSize());
-			mergePayloadToResponse(alias, payload);
+			MergePayloadToSelfResponse(alias, payload);
 		}
 	}
 	return 0;
@@ -210,7 +211,7 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>()
 		std::cout << "dataSize: " << outSize << std::endl;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 		insertIntoPayload(payload, outData, outSize);
-		mergePayloadToResponse(alias, payload);
+		MergePayloadToSelfResponse(alias, payload);
 	}
 	return 0;
 }
@@ -234,7 +235,7 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 		const std::string column = colName.substr(endOfPolyIdx + 1);
 
 		auto col = dynamic_cast<const ColumnBase<std::string>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<std::string>*>(col->GetBlocksList()[blockIndex].get());
+		auto block = dynamic_cast<BlockBase<std::string>*>(col->GetBlocksList()[blockIndex]);
 
 		noLoad = false;
 		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
@@ -269,7 +270,7 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 			std::cout << "dataSize: " << outSize << std::endl;
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 			insertIntoPayload(payload, outData, outSize);
-			mergePayloadToResponse(alias, payload);
+			MergePayloadToSelfResponse(alias, payload);
 		}
 		else
 		{
@@ -284,7 +285,7 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 			std::cout << "dataSize: " << block->GetSize() << std::endl;
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 			insertIntoPayload(payload, outData, block->GetSize());
-			mergePayloadToResponse(alias, payload);
+			MergePayloadToSelfResponse(alias, payload);
 		}
 	}
 	return 0;

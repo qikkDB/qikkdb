@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <mutex>
+#include <vector>
 #ifndef __CUDACC__
 #include <any>
 #endif
@@ -51,6 +52,7 @@ public:
 	/// </summary>
 	/// <param name="data">Name of column with inserting data.</param>
 	void InsertData(const std::unordered_map<std::string, std::any> &data);
+	int32_t AssignGroupId(std::vector<std::any>& rowData, std::vector<std::unique_ptr<IColumn>>& columns);
 #endif
 
 	/// <summary>
@@ -59,4 +61,6 @@ public:
 	/// <param name="column">Name of column.</param>
 	/// <returns>Return true, if table contains particular column. Returns false, if table does not contains particular column.</returns>
 	bool ContainsColumn(const char* column);
+	std::vector<int32_t> GetTableGroupIds(std::unordered_map<std::string, std::unique_ptr<IColumn>>& columns);
+	std::vector<int32_t> GetTableGroupIds(std::vector<std::unique_ptr<IColumn>>& columns);
 };
