@@ -25,7 +25,7 @@
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 
-#ifdef DEBUG
+#ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 #endif
 
