@@ -46,12 +46,15 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 
 GpuSqlDispatcher::~GpuSqlDispatcher()
 {
-	Context& context = Context::getInstance();
-	context.bindDeviceToContext(dispatcherThreadId);
+	if (dispatcherThreadId != -1)
+	{
+		Context& context = Context::getInstance();
+		context.bindDeviceToContext(dispatcherThreadId);
 #ifndef NDEBUG
-	AssertDeviceMatchesCurrentThread(dispatcherThreadId);
+		AssertDeviceMatchesCurrentThread(dispatcherThreadId);
 #endif
-	cleanUpGpuPointers();
+		cleanUpGpuPointers();
+	}
 }
 
 
