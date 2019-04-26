@@ -42,9 +42,6 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	isOverallLastBlock(false),
 	noLoad(true)
 {
-#ifndef NDEBUG
-	AssertDeviceMatchesCurrentThread(dispatcherThreadId);
-#endif
 }
 
 GpuSqlDispatcher::~GpuSqlDispatcher()
