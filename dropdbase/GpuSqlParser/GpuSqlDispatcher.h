@@ -24,6 +24,11 @@
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
+
+#ifdef DEBUG
+void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
+#endif
+
 class GpuSqlDispatcher
 {
 private:

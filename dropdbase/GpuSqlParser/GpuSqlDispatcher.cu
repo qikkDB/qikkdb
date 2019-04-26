@@ -17,6 +17,14 @@ std::condition_variable GpuSqlDispatcher::groupByCV_;
 int32_t GpuSqlDispatcher::groupByDoneLimit_;
 std::unordered_map<std::string, int32_t> GpuSqlDispatcher::linkTable;
 
+#ifdef DEBUG
+void AssertDeviceMatchesCurrentThread(int dispatcherThreadId)
+{
+	int device;
+	cudaGetDevice(&device);
+	assert(device == dispatcherThreadId);
+}
+#endif
 
 GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
 	database(database),
@@ -34,11 +42,16 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	isOverallLastBlock(false),
 	noLoad(true)
 {
-
+#ifdef DEBUG
+	AssertDeviceMatchesCurrentThread(dispatcherThreadId);
+#endif
 }
 
 GpuSqlDispatcher::~GpuSqlDispatcher()
 {
+#ifdef DEBUG
+	AssertDeviceMatchesCurrentThread(dispatcherThreadId);
+#endif
 	cleanUpGpuPointers();
 }
 
@@ -59,7 +72,12 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 
 		while (err == 0)
 		{
+
 			err = (this->*dispatcherFunctions[instructionPointer++])();
+#ifdef DEBUG
+			printf("tid:%d ip: %d \n", dispatcherThreadId, instructionPointer - 1);
+			AssertDeviceMatchesCurrentThread(dispatcherThreadId);
+#endif
 			if (err)
 			{
 				if (err == 1)
