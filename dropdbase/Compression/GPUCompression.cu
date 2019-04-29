@@ -28,7 +28,7 @@ template<typename T>
 bool compressAAFL(const int CWARP_SIZE, T* const hostUncompressed, int64_t uncompressedElementsCount, std::vector<T>& hostCompressed, int64_t& compressedElementsCount, T minValue, T maxValue)
 {
 	T offset = minValue;
-	if (minValue < 0)
+	if (minValue < 0 && maxValue > 0)
 	{
 		if (std::numeric_limits<T>::max() - maxValue < -minValue)
 			offset = 0;
@@ -55,6 +55,7 @@ bool compressAAFL(const int CWARP_SIZE, T* const hostUncompressed, int64_t uncom
 		
 	//copy M->G
 	cudaMemcpy(device_uncompressed, hostUncompressed, data_size, cudaMemcpyHostToDevice);
+	QueryEngineError::setCudaError(cudaGetLastError());
 
 	// Clean up before compression
 	cudaMemset(device_compressed, 0, data_size);
@@ -86,7 +87,7 @@ bool compressAAFL(const int CWARP_SIZE, T* const hostUncompressed, int64_t uncom
 
 		T* coded_sizes = reinterpret_cast<T*>(sizes);
 
-		int coded_data_position_id_start = (sizeof(int64_t) / sizeof(T) * 3);
+		int coded_data_position_id_start = (sizeof(int64_t) / (float)sizeof(T) * 3);
 		int coded_data_bit_length_start = coded_data_position_id_start + std::max((int)(sizeof(unsigned long) / (float)sizeof(T) * compression_blocks_count), 1);
 		int host_out_start = coded_data_bit_length_start + std::max((int)(sizeof(char) / (float)sizeof(T) * compression_blocks_count), 1);
 
@@ -150,18 +151,24 @@ bool CompressionGPU::compressDataAAFL<double>(double* const host_uncompressed, i
 template<>
 bool CompressionGPU::compressDataAAFL<float>(float* const host_uncompressed, int64_t size, std::vector<float>& host_compressed, int64_t& compressed_size, float min, float max)
 {
-	if (min > 0)
+	if ((min >= 0 && max >= 0) || (min <= 0 && max <= 0))
 	{
 		int32_t * host_uncompressed_int32 = reinterpret_cast<int32_t*>(host_uncompressed);
 		std::vector<int32_t> host_compressed_int32;
 		int32_t min_int32 = *(reinterpret_cast<int32_t*>(&min));
-		bool compressed = compressAAFL(32, host_uncompressed_int32, size, host_compressed_int32, compressed_size, min_int32, 0);
-		const int32_t *p_host_compressed_int32 = host_compressed_int32.data();
-		host_compressed.reserve(compressed_size);
-		const float *p_host_compressed = reinterpret_cast<const float *>(p_host_compressed_int32);
-		host_compressed.assign(p_host_compressed, p_host_compressed + compressed_size);
-		return compressed;
+		int32_t max_int32 = *(reinterpret_cast<int32_t*>(&max));
+		if (min_int32 > max_int32)
+			std::swap(min_int32, max_int32);
+		bool compressed = compressAAFL(32, host_uncompressed_int32, size, host_compressed_int32, compressed_size, min_int32, max_int32);
+		if (compressed) {
+			const int32_t *p_host_compressed_int32 = host_compressed_int32.data();
+			host_compressed.reserve(compressed_size);
+			const float *p_host_compressed = reinterpret_cast<const float *>(p_host_compressed_int32);
+			host_compressed.assign(p_host_compressed, p_host_compressed + compressed_size);
+			return true;
+		}
 	}
+	
 	return 0;
 }
 
@@ -215,39 +222,40 @@ bool decompressAAFL(const int CWARP_SIZE, T* const host_compressed, int64_t comp
 	auto& cudaAllocator = Context::getInstance().GetAllocatorForCurrentDevice();
 	device_uncompressed = reinterpret_cast<T*>(cudaAllocator.allocate(data_size));
 	device_compressed = reinterpret_cast<T*>(cudaAllocator.allocate(compressed_data_size));
-
 	device_bit_length = reinterpret_cast<unsigned char*>(cudaAllocator.allocate(compression_blocks_count * sizeof(unsigned char)));
 	device_position_id = reinterpret_cast<unsigned long*>(cudaAllocator.allocate(compression_blocks_count * sizeof(unsigned long)));
-	
+	QueryEngineError::setCudaError(cudaGetLastError());
+
 	int coded_data_position_id_start = (sizeof(int64_t) / (float)sizeof(T) * 3);
-	int coded_data_bit_length_start = coded_data_position_id_start + (sizeof(unsigned long) / (float)sizeof(T) * compression_blocks_count);
-	int host_out_start = coded_data_bit_length_start + (sizeof(char) / (float)sizeof(T) * compression_blocks_count);
+	int coded_data_bit_length_start = coded_data_position_id_start + std::max((int)(sizeof(unsigned long) / (float)sizeof(T) * compression_blocks_count), 1);
+	int host_out_start = coded_data_bit_length_start + std::max((int)(sizeof(char) / (float)sizeof(T) * compression_blocks_count), 1);
 
 	host_position_id = reinterpret_cast<unsigned long*>(&host_compressed[coded_data_position_id_start]);
 	host_bit_length = reinterpret_cast<unsigned char*>(&host_compressed[coded_data_bit_length_start]);
 	host_compressed_data = &host_compressed[host_out_start];
 
-	//for (int i = 0; i < 10; i++) {
-	//	printf("bit2 %d\n", host_bit_length[i]);
-	//}
-
-	cudaMemcpy(device_compressed, host_compressed_data, compressed_data_size, cudaMemcpyHostToDevice);
+	cudaMemcpy(device_compressed, host_compressed_data, compressed_data_size - (host_out_start * sizeof(T)), cudaMemcpyHostToDevice); // from compression size we need to subtract leading bytes with meta info
+	QueryEngineError::setCudaError(cudaGetLastError());
 	cudaMemcpy(device_position_id, host_position_id, compression_blocks_count * sizeof(unsigned long), cudaMemcpyHostToDevice);
+	QueryEngineError::setCudaError(cudaGetLastError());
 	cudaMemcpy(device_bit_length, host_bit_length, compression_blocks_count * sizeof(unsigned char), cudaMemcpyHostToDevice);
+	QueryEngineError::setCudaError(cudaGetLastError());
 
 	container_uncompressed<T> udata = { device_uncompressed, size };
 	container_aafl<T> cdata = { device_compressed, size, device_bit_length, device_position_id, NULL, offset };
-
 	gpu_fl_naive_launcher_decompression<T, 32, container_aafl<T>>::decompress(cdata, udata);
+	QueryEngineError::setCudaError(cudaGetLastError());
 	
 	std::unique_ptr<T[]> data = std::unique_ptr<T[]>(new T[data_size / sizeof(T)]);
 	cudaMemcpy(data.get(), device_uncompressed, data_size, cudaMemcpyDeviceToHost);
-	
+	QueryEngineError::setCudaError(cudaGetLastError());
+
 	cudaAllocator.deallocate(reinterpret_cast<int8_t*>(device_uncompressed), data_size);
 	cudaAllocator.deallocate(reinterpret_cast<int8_t*>(device_compressed), data_size);
 	cudaAllocator.deallocate(reinterpret_cast<int8_t*>(device_bit_length), compression_blocks_count * sizeof(unsigned char));
 	cudaAllocator.deallocate(reinterpret_cast<int8_t*>(device_position_id), compression_blocks_count * sizeof(unsigned long));
-	
+	QueryEngineError::setCudaError(cudaGetLastError());
+
 	host_uncompressed.reserve(size);
 	host_uncompressed.assign(data.get(), data.get() + size);
 
@@ -275,17 +283,22 @@ bool CompressionGPU::decompressDataAAFL<int8_t>(int8_t* const host_compressed, i
 template<>
 bool CompressionGPU::decompressDataAAFL<float>(float* const host_compressed, int64_t compressed_size, std::vector<float>& host_uncompressed, int64_t &size, float min, float max)
 {
-	if (min > 0)
+	if ((min > 0 && max > 0) || (min < 0 && max < 0))
 	{
 		int32_t * host_compressed_int32 = reinterpret_cast<int32_t*>(host_compressed);
 		std::vector<int32_t> host_uncompressed_int32;
 		int32_t min_int32 = *(reinterpret_cast<int32_t*>(&min));
-		bool compressed = decompressAAFL(32, host_compressed_int32, compressed_size, host_uncompressed_int32, size, min_int32, 0);
-		const int32_t *p_host_uncompressed_int32 = host_uncompressed_int32.data();
-		host_uncompressed.reserve(size);
-		const float *p_host_uncompressed = reinterpret_cast<const float *>(p_host_uncompressed_int32);
-		host_uncompressed.assign(p_host_uncompressed, p_host_uncompressed + size);
-		return compressed;
+		int32_t max_int32 = *(reinterpret_cast<int32_t*>(&max));
+		if (min_int32 > max_int32)
+			std::swap(min_int32, max_int32);
+		bool decompressed = decompressAAFL(32, host_compressed_int32, compressed_size, host_uncompressed_int32, size, min_int32, max_int32);
+		if (decompressed) {
+			const int32_t *p_host_uncompressed_int32 = host_uncompressed_int32.data();
+			host_uncompressed.reserve(size);
+			const float *p_host_uncompressed = reinterpret_cast<const float *>(p_host_uncompressed_int32);
+			host_uncompressed.assign(p_host_uncompressed, p_host_uncompressed + size);
+			return true;
+		}
 	}
 	return false;
 }
@@ -365,13 +378,16 @@ bool CompressionGPU::decompressDataAAFLOnDevice<int8_t>(int8_t* const device_com
 template<>
 bool CompressionGPU::decompressDataAAFLOnDevice<float>(float* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, float* const device_uncompressed, float min, float max)
 {
-	if (min > 0)
+	if ((min > 0 && max > 0) || (min < 0 && max < 0))
 	{
 		int32_t * device_compressed_int32 = reinterpret_cast<int32_t*>(device_compressed);
 		int32_t * device_uncompressed_int32 = reinterpret_cast<int32_t*>(device_uncompressed);
 		int32_t min_int32 = *(reinterpret_cast<int32_t*>(&min));
+		int32_t max_int32 = *(reinterpret_cast<int32_t*>(&max));
+		if (min_int32 > max_int32)
+			std::swap(min_int32, max_int32);
 		
-		bool compressed = decompressAAFLOnDevice(32, device_compressed_int32, data_size, compression_data_size, compression_blocks_count, device_uncompressed_int32, min_int32, 0);
+		bool compressed = decompressAAFLOnDevice(32, device_compressed_int32, data_size, compression_data_size, compression_blocks_count, device_uncompressed_int32, min_int32, max_int32);
 		return compressed;
 	}
 	return false;
