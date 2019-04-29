@@ -167,7 +167,7 @@ public:
 	/// Insert data into column considering empty space of last block and maximum size of blocks
 	/// </summary>
 	/// <param name="columnData">Data to be inserted</param>
-	void InsertData(const std::vector<T>& columnData)
+	void InsertData(const std::vector<T>& columnData, bool compress = false)
 	{
 		int startIdx = 0;
 		if (blocks_.size() > 0 && !blocks_.back()->IsFull())
@@ -176,7 +176,7 @@ public:
 			if (columnData.size() <= lastBlock->EmptyBlockSpace())
 			{
 				lastBlock->InsertData(columnData);
-				if (lastBlock->IsFull())
+				if (compress && lastBlock->IsFull())
 				{
 					lastBlock->CompressData();
 				}
@@ -184,7 +184,7 @@ public:
 			}
 			int emptySpace = lastBlock->EmptyBlockSpace();
 			lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
-			if (lastBlock->IsFull())
+			if (compress && lastBlock->IsFull())
 			{
 				lastBlock->CompressData();
 			}
@@ -196,7 +196,7 @@ public:
 			int toCopy = columnData.size() - startIdx < blockSize_
 				? columnData.size() - startIdx
 				: blockSize_;
-			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), true, false);
+			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), compress, false);
 			startIdx += toCopy;
 		}
 		setColumnStatistics();
