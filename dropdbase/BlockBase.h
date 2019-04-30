@@ -163,7 +163,9 @@ public:
 
 		bool decompressedSuccessfully = false;
 		std::vector<T> dataDecompressed;		
-		Compression::Decompress(column_.GetColumnType(), data_.get(), size_, dataDecompressed, min_, max_, decompressedSuccessfully);
+		int64_t uncompressedElementsCount = Compression::GetUncompressedDataElementsCount(data_.get());
+		int64_t compressionBlocksCount = Compression::GetCompressionBlocksCount(data_.get());
+		Compression::Decompress(column_.GetColumnType(), data_.get(), size_, dataDecompressed, uncompressedElementsCount, compressionBlocksCount, min_, max_, decompressedSuccessfully);
 		if (decompressedSuccessfully)
 		{
 			GPUMemory::hostUnregister(data_.get());
