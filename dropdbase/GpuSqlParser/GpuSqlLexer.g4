@@ -87,9 +87,11 @@ ABS         : A B S;
 SIN         : S I N;
 COS         : C O S;
 TAN         : T A N;
+COT         : C O T;
 ASIN        : A S I N;
 ACOS        : A C O S;
 ATAN        : A T A N;
+ATAN2       : A T A N '2';
 
 LOG10       : L O G '10';
 LOG         : L O G;

@@ -182,8 +182,13 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 	}
 	else if (op == "ROOT")
 	{
-	dispatcher.addRootFunction(leftOperandType, rightOperandType);
-	returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+		dispatcher.addRootFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == "ATAN2")
+	{
+		dispatcher.addArctangent2Function(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(DataType::COLUMN_FLOAT);
 	}
 
 	std::string reg = getRegString(ctx);
@@ -299,6 +304,11 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	else if (op == "TAN")
 	{
 		dispatcher.addTangentFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "COT")
+	{
+		dispatcher.addCotangentFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "ASIN")

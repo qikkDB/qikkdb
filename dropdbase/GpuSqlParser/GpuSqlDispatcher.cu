@@ -274,6 +274,10 @@ void GpuSqlDispatcher::addLogarithmFunction(DataType number, DataType base)
 	dispatcherFunctions.push_back(logarithmFunctions[DataType::DATA_TYPE_SIZE * number + base]);
 }
 
+void GpuSqlDispatcher::addArctangent2Function(DataType y, DataType x)
+{
+	dispatcherFunctions.push_back(arctangent2Functions[DataType::DATA_TYPE_SIZE * y + x]);
+}
 
 void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
 {
@@ -358,6 +362,11 @@ void GpuSqlDispatcher::addCosineFunction(DataType type)
 void GpuSqlDispatcher::addTangentFunction(DataType type)
 {
 	dispatcherFunctions.push_back(tangentFunctions[type]);
+}
+
+void GpuSqlDispatcher::addCotangentFunction(DataType type)
+{
+	dispatcherFunctions.push_back(cotangentFunctions[type]);
 }
 
 void GpuSqlDispatcher::addArcsineFunction(DataType type)
