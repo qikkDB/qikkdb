@@ -28,13 +28,10 @@
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 
-<<<<<<< HEAD
-=======
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 #endif
 
->>>>>>> develop
 class GpuSqlDispatcher
 {
 private:
