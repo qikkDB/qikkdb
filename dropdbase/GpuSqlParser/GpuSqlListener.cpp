@@ -16,6 +16,66 @@
 /// </summary>
 constexpr float pi() { return 3.1415926f; }
 
+void GpuSqlListener::addGpuWhereFunction(GPUWhereFunctions func, DataType left, DataType right)
+{
+	if (insideWhere)
+	{
+		auto gpuVMFunc = reinterpret_cast<GpuVMFunction>(func * DataType::COLUMN_INT * DataType::COLUMN_INT + getConstDataType(left) * DataType::COLUMN_INT + getConstDataType(right));
+		gpuOpCodes.push_back({ gpuVMFunc });
+	}
+}
+
+void GpuSqlListener::addGpuPushWhereFunction(DataType type, const char* token)
+{
+	if (insideWhere)
+	{
+		auto gpuVMFunc = reinterpret_cast<GpuVMFunction>(GPUWhereFunctions::PUSH_FUNC * DataType::COLUMN_INT * DataType::COLUMN_INT + type);
+		GPUOpCode opcode;
+		switch (type)
+		{
+		case DataType::CONST_INT:
+			opcode.fun_ptr = gpuVMFunc;
+			*reinterpret_cast<int32_t*>(opcode.data) = std::stoi(token);
+			gpuOpCodes.push_back(opcode);
+			break;
+		case DataType::CONST_LONG:
+			opcode.fun_ptr = gpuVMFunc;
+			*reinterpret_cast<int64_t*>(opcode.data) = std::stoll(token);
+			gpuOpCodes.push_back(opcode);
+			break;
+		case DataType::CONST_FLOAT:
+			opcode.fun_ptr = gpuVMFunc;
+			*reinterpret_cast<float*>(opcode.data) = std::stof(token);
+			gpuOpCodes.push_back(opcode);
+			break;
+		case DataType::CONST_DOUBLE:
+			opcode.fun_ptr = gpuVMFunc;
+			*reinterpret_cast<double*>(opcode.data) = std::stod(token);
+			gpuOpCodes.push_back(opcode);
+			break;
+		case DataType::CONST_POINT:
+		case DataType::CONST_POLYGON:
+		case DataType::CONST_STRING:
+			break;
+		case DataType::COLUMN_INT:
+		case DataType::COLUMN_LONG:
+		case DataType::COLUMN_FLOAT:
+		case DataType::COLUMN_DOUBLE:
+		case DataType::COLUMN_POINT:
+		case DataType::COLUMN_POLYGON:
+		case DataType::COLUMN_STRING:
+		case DataType::COLUMN_INT8_T:
+			opcode.fun_ptr = gpuVMFunc;
+			*reinterpret_cast<int32_t*>(opcode.data) = dispatcher.linkTable.at(token);
+			gpuOpCodes.push_back(opcode);
+			break;
+		case DataType::DATA_TYPE_SIZE:
+		case DataType::CONST_ERROR:
+			break;
+		}
+	}
+}
+
 /// <summary>
 /// GpuListner Constructor
 /// Initializes AST walk flags (insideAgg, insideGroupBy, etc.)
@@ -31,7 +91,8 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	resultOffset(0),
 	usingGroupBy(false), 
 	insideAgg(false), 
-	insideGroupBy(false), 
+	insideGroupBy(false),
+	insideWhere(false),
 	insideSelectColumn(false), 
 	isAggSelectColumn(false)
 {
@@ -58,10 +119,14 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
     pushArgument(std::get<0>(right).c_str(), rightOperandType);
     pushArgument(std::get<0>(left).c_str(), leftOperandType);
 
+	addGpuPushWhereFunction(rightOperandType, std::get<0>(right).c_str());
+	addGpuPushWhereFunction(leftOperandType, std::get<0>(left).c_str());
+
 	DataType returnDataType;
 
     if (op == ">")
     {
+		addGpuWhereFunction(GPUWhereFunctions::GT_FUNC, leftOperandType, rightOperandType);
         dispatcher.addGreaterFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
@@ -521,11 +586,17 @@ void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
     }
 }
 
+void GpuSqlListener::enterWhereClause(GpuSqlParser::WhereClauseContext * ctx)
+{
+	insideWhere = true;
+}
+
 void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext *ctx)
 {
     std::pair<std::string, DataType> arg = stackTopAndPop();
     dispatcher.addArgument<const std::string&>(std::get<0>(arg));
     dispatcher.addFilFunction();
+	insideWhere = false;
 }
 
 void GpuSqlListener::enterGroupByColumns(GpuSqlParser::GroupByColumnsContext * ctx)
@@ -888,7 +959,6 @@ void GpuSqlListener::pushTempResult(std::string reg, DataType type)
 
 void GpuSqlListener::pushArgument(const char *token, DataType dataType)
 {
-	// push gpu where op code
     switch (dataType)
     {
         case DataType::CONST_INT:
@@ -920,7 +990,6 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
         case DataType::CONST_ERROR:
             break;
     }
-
 }
 
 bool GpuSqlListener::isLong(const std::string &value)
@@ -996,4 +1065,9 @@ DataType GpuSqlListener::getReturnDataType(DataType operand)
 		return static_cast<DataType>(operand + DataType::COLUMN_INT);
 	}
 	return operand;
+}
+
+DataType GpuSqlListener::getConstDataType(DataType operand)
+{
+	return operand >= DataType::COLUMN_INT ? static_cast<DataType>(operand - DataType::COLUMN_INT) : operand;
 }

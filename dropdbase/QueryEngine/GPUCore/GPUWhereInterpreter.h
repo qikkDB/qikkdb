@@ -3,7 +3,6 @@
 #include <cstdint>
 #include "GPUStack.cuh"
 
-constexpr int32_t OPERATIONS_COUNT = 22;
 struct GPUOpCode;
 
 typedef void (*GpuVMFunction)(GPUOpCode, int32_t, GPUStack<2048>&, void**);

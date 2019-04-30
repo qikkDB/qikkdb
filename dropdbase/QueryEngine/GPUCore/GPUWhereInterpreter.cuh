@@ -58,6 +58,4 @@ __device__ void invalidContainsArgumentTypeHandler(GPUOpCode opCode, int32_t off
 
 __device__ void invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols);
 
-__device__ void containsFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols);
-
 __global__ void kernel_filter(int8_t* outMask, GPUOpCode* opCodes, int32_t opCodesCount, void** symbols, int32_t dataElementCount);

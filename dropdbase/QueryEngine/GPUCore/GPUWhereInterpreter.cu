@@ -4,6 +4,7 @@
 #include <cuda_runtime.h>
 #include "../Context.h"
 #include "../../DataType.h"
+#include "../GPUWhereFunctions.h"
 #include "GPUFilter.cuh"
 #include "GPULogic.cuh"
 #include "GPUArithmetic.cuh"
@@ -28,18 +29,6 @@ __global__ void kernel_filter(int8_t* outMask, GPUOpCode* opCodes, int32_t opCod
     }
 }
 
-__device__ void containsFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
-{
-	GPUMemory::GPUPolygon p;
-	p.pointCount = gpuStack.pop<int32_t*>();
-	p.pointIdx = gpuStack.pop<int32_t*>();
-	p.polyCount = gpuStack.pop<int32_t*>();
-	p.polyIdx = gpuStack.pop<int32_t*>();
-	p.polyPoints = gpuStack.pop<NativeGeoPoint*>();
-	//Zavolaj Contains,urob z neho device funkiu
-}
-
-
 __device__ void invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
 
@@ -63,16 +52,7 @@ __device__ GpuVMFunction add_gpu_div_function(int32_t dataTypes);
 __device__ GpuVMFunction add_gpu_add_function(int32_t dataTypes);
 __device__ GpuVMFunction add_gpu_sub_function(int32_t dataTypes);
 __device__ GpuVMFunction add_gpu_mod_function(int32_t dataTypes);
-__device__ GpuVMFunction add_gpu_contains_function(int32_t dataTypes);
-__device__ GpuVMFunction add_gpu_logicalNot_function(int32_t dataTypes);
-__device__ GpuVMFunction add_gpu_year_function(int32_t dataTypes);
-__device__ GpuVMFunction add_gpu_month_function(int32_t dataTypes);
-__device__ GpuVMFunction add_gpu_day_function(int32_t dataTypes);
-__device__ GpuVMFunction add_gpu_hour_function(int32_t dataTypes);
-__device__ GpuVMFunction add_gpu_minute_function(int32_t dataTypes);
-__device__ GpuVMFunction add_gpu_second_function(int32_t dataTypes);
-__device__ GpuVMFunction add_gpu_pushCol_function(int32_t dataTypes);
-__device__ GpuVMFunction add_gpu_pushConst_function(int32_t dataTypes);
+__device__ GpuVMFunction add_gpu_push_function(int32_t dataTypes);
 
 __global__ void kernel_fill_gpu_dispatch_table(GpuVMFunction * gpuDispatchPtr, size_t arraySize)
 {
@@ -81,8 +61,8 @@ __global__ void kernel_fill_gpu_dispatch_table(GpuVMFunction * gpuDispatchPtr, s
 
 	for (int32_t i = idx; i < arraySize; i += stride)
 	{
-		int32_t operation = i / OPERATIONS_COUNT;
-		int32_t dataTypes = i % (DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE);
+		int32_t operation = i / GPUWhereFunctions::FUNC_COUNT;
+		int32_t dataTypes = i % (DataType::COLUMN_INT * DataType::COLUMN_INT);
 
 		switch (operation)
 		{
@@ -126,35 +106,7 @@ __global__ void kernel_fill_gpu_dispatch_table(GpuVMFunction * gpuDispatchPtr, s
 			gpuDispatchPtr[i] = add_gpu_mod_function(dataTypes);
 			break;
 		case 13:
-			gpuDispatchPtr[i] = add_gpu_contains_function(dataTypes);
-			break;
-		case 14:
-			gpuDispatchPtr[i] = add_gpu_logicalNot_function(dataTypes);
-			break;
-		case 15:
-			gpuDispatchPtr[i] = add_gpu_year_function(dataTypes);
-			break;
-		case 16:
-			gpuDispatchPtr[i] = add_gpu_month_function(dataTypes);
-			break;
-		case 17:
-			gpuDispatchPtr[i] = add_gpu_day_function(dataTypes);
-			break;
-		case 18:
-			gpuDispatchPtr[i] = add_gpu_hour_function(dataTypes);
-			break;
-		case 19:
-			gpuDispatchPtr[i] = add_gpu_minute_function(dataTypes);
-			break;
-		case 20:
-			gpuDispatchPtr[i] = add_gpu_second_function(dataTypes);
-			break;
-		case 21:
-			gpuDispatchPtr[i] = add_gpu_pushCol_function(dataTypes);
-			break;
-		case 22:
-			gpuDispatchPtr[i] = add_gpu_pushConst_function(dataTypes);
-			break;
+			gpuDispatchPtr[i] = add_gpu_push_function(i % DataType::DATA_TYPE_SIZE);
 		default:
 			break;
 		}
@@ -1228,352 +1180,42 @@ __device__ GpuVMFunction add_gpu_mod_function(int32_t dataTypes)
 	}
 }
 
-__device__ GpuVMFunction add_gpu_logicalNot_function(int32_t dataTypes)
+__device__ GpuVMFunction add_gpu_push_function(int32_t dataTypes)
 {
 	switch (dataTypes)
 	{
-	case 0:
-		return &logicalNotFunction<LogicOperations::logicalNot, int32_t>;
-		break;
-	case 1:
-		return &logicalNotFunction<LogicOperations::logicalNot, int32_t>;
-		break;
-	case 2:
-		return &logicalNotFunction<LogicOperations::logicalNot, int32_t>;
-		break;
-	case 3:
-		return &logicalNotFunction<LogicOperations::logicalNot, int32_t>;
-		break;
-	case 7:
-		return &logicalNotFunction<LogicOperations::logicalNot, int32_t>;
-		break;
-	case 16:
-		return &logicalNotFunction<LogicOperations::logicalNot, int64_t>;
-		break;
-	case 17:
-		return &logicalNotFunction<LogicOperations::logicalNot, int64_t>;
-		break;
-	case 18:
-		return &logicalNotFunction<LogicOperations::logicalNot, int64_t>;
-		break;
-	case 19:
-		return &logicalNotFunction<LogicOperations::logicalNot, int64_t>;
-		break;
-	case 23:
-		return &logicalNotFunction<LogicOperations::logicalNot, int64_t>;
-		break;
-	case 32:
-		return &logicalNotFunction<LogicOperations::logicalNot, float>;
-		break;
-	case 33:
-		return &logicalNotFunction<LogicOperations::logicalNot, float>;
-		break;
-	case 34:
-		return &logicalNotFunction<LogicOperations::logicalNot, float>;
-		break;
-	case 35:
-		return &logicalNotFunction<LogicOperations::logicalNot, float>;
-		break;
-	case 39:
-		return &logicalNotFunction<LogicOperations::logicalNot, float>;
-		break;
-	case 48:
-		return &logicalNotFunction<LogicOperations::logicalNot, double>;
-		break;
-	case 49:
-		return &logicalNotFunction<LogicOperations::logicalNot, double>;
-		break;
-	case 50:
-		return &logicalNotFunction<LogicOperations::logicalNot, double>;
-		break;
-	case 51:
-		return &logicalNotFunction<LogicOperations::logicalNot, double>;
-		break;
-	case 55:
-		return &logicalNotFunction<LogicOperations::logicalNot, double>;
-		break;
-	case 112:
-		return &logicalNotFunction<LogicOperations::logicalNot, int8_t>;
-		break;
-	case 113:
-		return &logicalNotFunction<LogicOperations::logicalNot, int8_t>;
-		break;
-	case 114:
-		return &logicalNotFunction<LogicOperations::logicalNot, int8_t>;
-		break;
-	case 115:
-		return &logicalNotFunction<LogicOperations::logicalNot, int8_t>;
-		break;
-	case 119:
-		return &logicalNotFunction<LogicOperations::logicalNot, int8_t>;
-		break;
-	default:
-		return &invalidArgumentTypeHandler<LogicOperations::logicalNot>;
-		break;
-	}
-}
-
-__device__ GpuVMFunction add_gpu_contains_function(int32_t dataTypes)
-{
-	switch (dataTypes)
-	{
-	case 84:
-		return &containsFunction;
-		break;
-	default:
-		return &invalidContainsArgumentTypeHandler;
-		break;
-	}
-}
-
-__device__ GpuVMFunction add_gpu_year_function(int32_t dataTypes)
-{
-	switch (dataTypes)
-	{
-	case 17:
-		return &dateFunction<DateOperations::year>;
-		break;
-	default:
-		return &invalidArgumentTypeHandler<DateOperations::year>;
-		break;
-	}
-}
-
-
-__device__ GpuVMFunction add_gpu_month_function(int32_t dataTypes)
-{
-	switch (dataTypes)
-	{
-	case 17:
-		return &dateFunction<DateOperations::month>;
-		break;
-	default:
-		return &invalidArgumentTypeHandler<DateOperations::month>;
-		break;
-	}
-}
-
-
-__device__ GpuVMFunction add_gpu_day_function(int32_t dataTypes)
-{
-	switch (dataTypes)
-	{
-	case 17:
-		return &dateFunction<DateOperations::day>;
-		break;
-	default:
-		return &invalidArgumentTypeHandler<DateOperations::day>;
-		break;
-	}
-}
-
-
-__device__ GpuVMFunction add_gpu_hour_function(int32_t dataTypes)
-{
-	switch (dataTypes)
-	{
-	case 17:
-		return &dateFunction<DateOperations::hour>;
-		break;
-	default:
-		return &invalidArgumentTypeHandler<DateOperations::hour>;
-		break;
-	}
-}
-
-
-__device__ GpuVMFunction add_gpu_minute_function(int32_t dataTypes)
-{
-	switch (dataTypes)
-	{
-	case 17:
-		return &dateFunction<DateOperations::minute>;
-		break;
-	default:
-		return &invalidArgumentTypeHandler<DateOperations::minute>;
-		break;
-	}
-}
-
-
-__device__ GpuVMFunction add_gpu_second_function(int32_t dataTypes)
-{
-	switch (dataTypes)
-	{
-	case 17:
-		return &dateFunction<DateOperations::second>;
-		break;
-	default:
-		return &invalidArgumentTypeHandler<DateOperations::second>;
-		break;
-	}
-}
-
-__device__ GpuVMFunction add_gpu_pushCol_function(int32_t dataTypes)
-{
-	switch (dataTypes)
-	{
-	case 0:
-		return &pushColFunction<int32_t>;
-		break;
-	case 1:
-		return &pushColFunction<int32_t>;
-		break;
-	case 2:
-		return &pushColFunction<int32_t>;
-		break;
-	case 3:
-		return &pushColFunction<int32_t>;
-		break;
-	case 7:
-		return &pushColFunction<int32_t>;
-		break;
-	case 16:
-		return &pushColFunction<int64_t>;
-		break;
-	case 17:
-		return &pushColFunction<int64_t>;
-		break;
-	case 18:
-		return &pushColFunction<int64_t>;
-		break;
-	case 19:
-		return &pushColFunction<int64_t>;
-		break;
-	case 23:
-		return &pushColFunction<int64_t>;
-		break;
-	case 32:
-		return &pushColFunction<float>;
-		break;
-	case 33:
-		return &pushColFunction<float>;
-		break;
-	case 34:
-		return &pushColFunction<float>;
-		break;
-	case 35:
-		return &pushColFunction<float>;
-		break;
-	case 39:
-		return &pushColFunction<float>;
-		break;
-	case 48:
-		return &pushColFunction<double>;
-		break;
-	case 49:
-		return &pushColFunction<double>;
-		break;
-	case 50:
-		return &pushColFunction<double>;
-		break;
-	case 51:
-		return &pushColFunction<double>;
-		break;
-	case 55:
-		return &pushColFunction<double>;
-		break;
-	case 112:
-		return &pushColFunction<int8_t>;
-		break;
-	case 113:
-		return &pushColFunction<int8_t>;
-		break;
-	case 114:
-		return &pushColFunction<int8_t>;
-		break;
-	case 115:
-		return &pushColFunction<int8_t>;
-		break;
-	case 119:
-		return &pushColFunction<int8_t>;
-		break;
-	default:
+	case CONST_INT:
+		return &pushConstFunction<int32_t>;
+	case CONST_LONG:
+		return &pushConstFunction<int64_t>;
+	case CONST_FLOAT:
+		return &pushConstFunction<float>;
+	case CONST_DOUBLE:
+		return &pushConstFunction<double>;
+	case CONST_POINT:
 		return &invalidArgumentTypeHandler;
-		break;
-	}
-}
-
-
-__device__ GpuVMFunction add_gpu_pushConst_function(int32_t dataTypes)
-{
-	switch (dataTypes)
-	{
-	case 0:
-		return &pushConstFunction<int32_t>;
-		break;
-	case 1:
-		return &pushConstFunction<int32_t>;
-		break;
-	case 2:
-		return &pushConstFunction<int32_t>;
-		break;
-	case 3:
-		return &pushConstFunction<int32_t>;
-		break;
-	case 7:
-		return &pushConstFunction<int32_t>;
-		break;
-	case 16:
-		return &pushConstFunction<int64_t>;
-		break;
-	case 17:
-		return &pushConstFunction<int64_t>;
-		break;
-	case 18:
-		return &pushConstFunction<int64_t>;
-		break;
-	case 19:
-		return &pushConstFunction<int64_t>;
-		break;
-	case 23:
-		return &pushConstFunction<int64_t>;
-		break;
-	case 32:
-		return &pushConstFunction<float>;
-		break;
-	case 33:
-		return &pushConstFunction<float>;
-		break;
-	case 34:
-		return &pushConstFunction<float>;
-		break;
-	case 35:
-		return &pushConstFunction<float>;
-		break;
-	case 39:
-		return &pushConstFunction<float>;
-		break;
-	case 48:
-		return &pushConstFunction<double>;
-		break;
-	case 49:
-		return &pushConstFunction<double>;
-		break;
-	case 50:
-		return &pushConstFunction<double>;
-		break;
-	case 51:
-		return &pushConstFunction<double>;
-		break;
-	case 55:
-		return &pushConstFunction<double>;
-		break;
-	case 112:
+	case CONST_POLYGON:
+		return &invalidArgumentTypeHandler;
+	case CONST_STRING:
+		return &invalidArgumentTypeHandler;
+	case CONST_INT8_T:
 		return &pushConstFunction<int8_t>;
-		break;
-	case 113:
-		return &pushConstFunction<int8_t>;
-		break;
-	case 114:
-		return &pushConstFunction<int8_t>;
-		break;
-	case 115:
-		return &pushConstFunction<int8_t>;
-		break;
-	case 119:
-		return &pushConstFunction<int8_t>;
-		break;
+	case COLUMN_INT:
+		return &pushColFunction<int32_t>;
+	case COLUMN_LONG:
+		return &pushColFunction<int64_t>;
+	case COLUMN_FLOAT:
+		return &pushColFunction<float>;
+	case COLUMN_DOUBLE:
+		return &pushColFunction<float>;
+	case COLUMN_POINT:
+		return &invalidArgumentTypeHandler;
+	case COLUMN_POLYGON:
+		return &invalidArgumentTypeHandler;
+	case COLUMN_STRING:
+		return &invalidArgumentTypeHandler;
+	case COLUMN_INT8_T:
+		return &pushColFunction<int8_t>;
 	default:
 		return &invalidArgumentTypeHandler;
 		break;

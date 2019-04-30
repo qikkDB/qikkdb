@@ -12,6 +12,8 @@
 #include "../DataType.h"
 #include "../PointFactory.h"
 #include "../ComplexPolygonFactory.h"
+#include "../QueryEngine/GPUCore/GPUWhereInterpreter.h"
+#include "../QueryEngine/GPUWhereFunctions.h"
 #include <unordered_set>
 #include <unordered_map>
 #include <functional>
@@ -32,6 +34,7 @@ private:
 	std::unordered_map<std::string, std::string> tableAliases;
 	std::unordered_set<std::string> columnAliases;
     std::unordered_set<std::string> loadedTables;
+	std::vector<GPUOpCode> gpuOpCodes;
 	int32_t linkTableIndex;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
 	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
@@ -39,6 +42,7 @@ private:
     bool usingGroupBy;
     bool insideAgg;
 	bool insideGroupBy;
+	bool insideWhere;
 
 	bool insideSelectColumn;
 	bool isAggSelectColumn;
@@ -48,6 +52,10 @@ private:
     std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
     void pushTempResult(std::string reg, DataType type);
+
+	void addGpuWhereFunction(GPUWhereFunctions func, DataType left, DataType right);
+
+	void addGpuPushWhereFunction(DataType type, const char* token);
 
     void pushArgument(const char *token, DataType dataType);
 
@@ -64,6 +72,7 @@ private:
 	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
+	DataType getConstDataType(DataType operand);
 
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
@@ -106,6 +115,8 @@ public:
     void exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx) override;
 
     void exitFromTables(GpuSqlParser::FromTablesContext *ctx) override;
+
+	void enterWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 
     void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 
