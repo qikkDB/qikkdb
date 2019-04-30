@@ -23,14 +23,15 @@ public:
     OFFSET = 46, SHOWDB = 47, SHOWTB = 48, SHOWCL = 49, AGG = 50, AVG = 51, 
     SUM = 52, MIN = 53, MAX = 54, COUNT = 55, YEAR = 56, MONTH = 57, DAY = 58, 
     HOUR = 59, MINUTE = 60, SECOND = 61, NOW = 62, PI = 63, ABS = 64, SIN = 65, 
-    COS = 66, TAN = 67, ASIN = 68, ACOS = 69, ATAN = 70, LOG10 = 71, LOG = 72, 
-    EXP = 73, POW = 74, SQRT = 75, SQUARE = 76, SIGN = 77, ROOT = 78, ROUND = 79, 
-    CEIL = 80, FLOOR = 81, GEO_CONTAINS = 82, GEO_INTERSECT = 83, GEO_UNION = 84, 
-    PLUS = 85, MINUS = 86, ASTERISK = 87, DIVISION = 88, MODULO = 89, XOR = 90, 
-    EQUALS = 91, NOTEQUALS = 92, NOTEQUALS_GT_LT = 93, LPAREN = 94, RPAREN = 95, 
-    GREATER = 96, LESS = 97, GREATEREQ = 98, LESSEQ = 99, NOT = 100, OR = 101, 
-    AND = 102, BIT_OR = 103, BIT_AND = 104, L_SHIFT = 105, R_SHIFT = 106, 
-    FLOATLIT = 107, INTLIT = 108, ID = 109, BOOLEANLIT = 110, STRINGLIT = 111
+    COS = 66, TAN = 67, COT = 68, ASIN = 69, ACOS = 70, ATAN = 71, ATAN2 = 72, 
+    LOG10 = 73, LOG = 74, EXP = 75, POW = 76, SQRT = 77, SQUARE = 78, SIGN = 79, 
+    ROOT = 80, ROUND = 81, CEIL = 82, FLOOR = 83, GEO_CONTAINS = 84, GEO_INTERSECT = 85, 
+    GEO_UNION = 86, PLUS = 87, MINUS = 88, ASTERISK = 89, DIVISION = 90, 
+    MODULO = 91, XOR = 92, EQUALS = 93, NOTEQUALS = 94, NOTEQUALS_GT_LT = 95, 
+    LPAREN = 96, RPAREN = 97, GREATER = 98, LESS = 99, GREATEREQ = 100, 
+    LESSEQ = 101, NOT = 102, OR = 103, AND = 104, BIT_OR = 105, BIT_AND = 106, 
+    L_SHIFT = 107, R_SHIFT = 108, FLOATLIT = 109, INTLIT = 110, ID = 111, 
+    BOOLEANLIT = 112, STRINGLIT = 113
   };
 
   enum {
@@ -731,9 +732,10 @@ public:
     antlr4::tree::TerminalNode *LPAREN();
     antlr4::tree::TerminalNode *COMMA();
     antlr4::tree::TerminalNode *RPAREN();
-    antlr4::tree::TerminalNode *LOG();
+    antlr4::tree::TerminalNode *ATAN2();
     std::vector<ExpressionContext *> expression();
     ExpressionContext* expression(size_t i);
+    antlr4::tree::TerminalNode *LOG();
     antlr4::tree::TerminalNode *POW();
     antlr4::tree::TerminalNode *ROOT();
     antlr4::tree::TerminalNode *POINT();
@@ -788,6 +790,7 @@ public:
     antlr4::tree::TerminalNode *SIN();
     antlr4::tree::TerminalNode *COS();
     antlr4::tree::TerminalNode *TAN();
+    antlr4::tree::TerminalNode *COT();
     antlr4::tree::TerminalNode *ASIN();
     antlr4::tree::TerminalNode *ACOS();
     antlr4::tree::TerminalNode *ATAN();

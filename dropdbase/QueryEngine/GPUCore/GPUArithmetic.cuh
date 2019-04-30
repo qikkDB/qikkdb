@@ -200,6 +200,16 @@ namespace ArithmeticOperations
 		}
 	};
 
+	struct arctangent2
+	{
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U, typename V>
+		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		{
+			return atan2f(a, b);
+		}
+	};
+
 	struct power
 	{
 		static constexpr bool isFloatRetType = true;

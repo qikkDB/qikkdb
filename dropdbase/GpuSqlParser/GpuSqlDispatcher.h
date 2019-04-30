@@ -88,6 +88,8 @@ private:
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> arctangent2Functions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
@@ -123,6 +125,8 @@ private:
 		DataType::DATA_TYPE_SIZE> cosineFunctions;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> tangentFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> cotangentFunctions;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> arcsineFunctions;
 	static std::array<DispatchFunction,
@@ -320,6 +324,8 @@ public:
 
 	void addTangentFunction(DataType type);
 
+	void addCotangentFunction(DataType type);
+
 	void addArcsineFunction(DataType type);
 
 	void addArccosineFunction(DataType type);
@@ -329,6 +335,8 @@ public:
 	void addLogarithm10Function(DataType type);
 
 	void addLogarithmFunction(DataType number, DataType base);
+
+	void addArctangent2Function(DataType y, DataType x);
 
 	void addLogarithmNaturalFunction(DataType type);
 
