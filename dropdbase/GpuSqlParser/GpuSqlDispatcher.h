@@ -466,21 +466,21 @@ public:
 					database->GetName(), colName, blockIndex, uncompressedSize);
 				if (!std::get<2>(cacheEntry))
 				{
-					//GPUMemory::alloc(&std::get<0>(cacheEntry), uncompressedSize);
 					T* deviceCompressed;
 					GPUMemory::alloc(&deviceCompressed, compressedSize);
 					GPUMemory::copyHostToDevice(deviceCompressed, block->GetData(), compressedSize);
 					bool isDecompressed;
-					Compression::DecompressOnDevice(
+					Compression::Decompress(
 						col->GetColumnType(),
 						deviceCompressed,
-						Compression::GetUncompressedDataElementsCount(block->GetData()),
 						Compression::GetCompressedDataElementsCount(block->GetData()),
-						Compression::GetCompressionBlocksCount(block->GetData()),
-						std::get<0>(cacheEntry),						
+						std::get<0>(cacheEntry),
+						Compression::GetUncompressedDataElementsCount(block->GetData()),
+						Compression::GetCompressionBlocksCount(block->GetData()),						
 						block->GetMin(),
 						block->GetMax(),
-						isDecompressed
+						isDecompressed,
+						true
 					);
 					GPUMemory::free(deviceCompressed);					
 				}
