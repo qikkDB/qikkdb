@@ -216,7 +216,13 @@ bool CompressionGPU::compressDataAAFL<ColmnarDB::Types::Point>(ColmnarDB::Types:
 template<typename T>
 bool decompressAAFL(const int CWARP_SIZE, T* const hostCompressed, int64_t compressedElementsCount, std::vector<T>& hostUncompressed, int64_t &uncompressedElementsCount, T minValue, T maxValue)
 {
+	// Sets offset for data transformation (subtracting minimal value), it checkes if it is possible to transform within range of type T
 	T offset = minValue;
+	if (minValue < 0 && maxValue > 0)
+	{
+		if (std::numeric_limits<T>::max() - maxValue < -minValue)
+			offset = 0;
+	}
 
 	uncompressedElementsCount = reinterpret_cast<int64_t*>(hostCompressed)[0];
 	compressedElementsCount = reinterpret_cast<int64_t*>(hostCompressed)[1];
@@ -224,9 +230,7 @@ bool decompressAAFL(const int CWARP_SIZE, T* const hostCompressed, int64_t compr
 
 	int64_t uncompressedDataSize = uncompressedElementsCount * sizeof(T); // size in bytes
 	int64_t compressedDataSize = compressedElementsCount * sizeof(T); // size in bytes
-	
-	T *hostCompressedValuesData; // data of values only without meta data
-	
+
 	// Device pointers to compression data and metadata
 	T *deviceUncompressed;
 	T *deviceCompressed;
@@ -248,7 +252,7 @@ bool decompressAAFL(const int CWARP_SIZE, T* const hostCompressed, int64_t compr
 
 	unsigned char *hostPositionId = reinterpret_cast<unsigned long*>(&hostCompressed[positionCodedDataPositionId]);
 	unsigned long *hostBitLength = reinterpret_cast<unsigned char*>(&hostCompressed[positionCodedDataBitLength]);
-	hostCompressedValuesData = &hostCompressed[positionHostOut];
+	T *hostCompressedValuesData = &hostCompressed[positionHostOut]; // data of values only without meta data
 
 	// Copy data CPU->GPU
 	cudaMemcpy(deviceCompressed, hostCompressedValuesData, compressedDataSize - (positionHostOut * sizeof(T)), cudaMemcpyHostToDevice); // from compression size we need to subtract leading bytes with meta info
@@ -344,30 +348,41 @@ bool CompressionGPU::decompressDataAAFL<ColmnarDB::Types::Point>(ColmnarDB::Type
 
 
 
-
+/// <summary>
+	/// Decompresses input data directly on device and fills reserved space on device with decompressed data
+	/// </summary>
+	/// <param name="CWARP_SIZE">Warp size</param>	
+	/// <param name="deviceCompressed">Pointer to compressed data stored in device memory</param>
+	/// <param name="uncompressedElementsCount">Number of elements of uncompressed data</param>
+	/// <param name="compressedElementsCount">Number of elements of compressed data</param>
+	/// <param name="compressionBlocksCount">Number of elements of compression blocks</param>
+	/// <param name="deviceUncompressed">Pointer to compressed data stored in device memory</param>
+	/// <param name="minValue">Minimum value of uncompressed data</param>
+	/// <param name="maxValue">Maximum value of uncompressed data</param>
+	/// <param name="compressedSuccessfully">Output parameter representing result of decompression</param>
 template<typename T>
-bool decompressAAFLOnDevice(const int CWARP_SIZE, T* const device_compressed, int64_t data_size, int64_t compression_data_size, int64_t compression_blocks_count, T* const device_uncompressed, T min, T max)
+bool decompressAAFLOnDevice(const int CWARP_SIZE, T* const deviceCompressed, int64_t uncompressedElementsCount, int64_t compressedElementsCount, int64_t compressionBlocksCount, T* const deviceUncompressed, T minValue, T maxValue)
 {
-	T offset = min;
+	// Sets offset for data transformation (subtracting minimal value), it checkes if it is possible to transform within range of type T
+	T offset = minValue;
+	if (minValue < 0 && maxValue > 0)
+	{
+		if (std::numeric_limits<T>::max() - maxValue < -minValue)
+			offset = 0;
+	}
 
-	
-	T *device_compressed_data;
+	// Decoding single array of type T into separate arrays (of compression meta data)
+	int positionCodedDataPositionId = (sizeof(int64_t) / (float)sizeof(T) * 3);
+	int positionCodedDataBitLength = positionCodedDataPositionId + std::max((int)(sizeof(unsigned long) / (float)sizeof(T) * compressionBlocksCount), 1);
+	int positionDeviceOut = positionCodedDataBitLength + std::max((int)(sizeof(char) / (float)sizeof(T) * compressionBlocksCount), 1);
 
-	unsigned char *device_bit_length;
-	unsigned long *device_position_id;
-		
-	int coded_data_position_id_start = (sizeof(int64_t) / (float)sizeof(T) * 3);
-	int coded_data_bit_length_start = coded_data_position_id_start + std::max((int)(sizeof(unsigned long) / (float)sizeof(T) * compression_blocks_count), 1);
-	int device_out_start = coded_data_bit_length_start + std::max((int)(sizeof(char) / (float)sizeof(T) * compression_blocks_count), 1);
+	unsigned char *devicePositionId = reinterpret_cast<unsigned long*>(&deviceCompressed[positionCodedDataPositionId]);
+	unsigned long *deviceBitLength = reinterpret_cast<unsigned char*>(&deviceCompressed[positionCodedDataBitLength]);
+	T *deviceCompressedValuesData = &deviceCompressed[positionDeviceOut]; // data of values only without meta data
 
-	device_position_id = reinterpret_cast<unsigned long*>(&device_compressed[coded_data_position_id_start]);
-	device_bit_length = reinterpret_cast<unsigned char*>(&device_compressed[coded_data_bit_length_start]);
-	device_compressed_data = &device_compressed[device_out_start];
-
-	
-	container_uncompressed<T> udata = { device_uncompressed, data_size };
-	container_aafl<T> cdata = { device_compressed_data, data_size, device_bit_length, device_position_id, NULL, offset };
-
+	// Decompression
+	container_uncompressed<T> udata = { deviceUncompressed, uncompressedElementsCount };
+	container_aafl<T> cdata = { deviceCompressedValuesData, uncompressedElementsCount, deviceBitLength, devicePositionId, NULL, offset };
 	gpu_fl_naive_launcher_decompression<T, 32, container_aafl<T>>::decompress(cdata, udata);
 	QueryEngineError::setCudaError(cudaGetLastError());
 

@@ -42,8 +42,7 @@ public:
 	
 	/// <summary>
 	/// Decompresses input data directly on device and fills reserved space on device with decompressed data
-	/// </summary>
-	/// <param name="columnType">Type of column specified in DataType.h</param>
+	/// </summary>	
 	/// <param name="deviceCompressed">Pointer to compressed data stored in device memory</param>
 	/// <param name="uncompressedElementsCount">Number of elements of uncompressed data</param>
 	/// <param name="compressedElementsCount">Number of elements of compressed data</param>
