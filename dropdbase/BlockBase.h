@@ -94,7 +94,7 @@ public:
     std::tuple<int, int, bool>
     FindIndexAndRange(int indexInBlock, int range, const T& data)
     {
-        int newRange = 1;
+        int newRange = 0;
         int newIndexInBlock = indexInBlock;
         bool reachEnd = false;
 
@@ -106,13 +106,13 @@ public:
 		if (size_ == 0)
         {
             newIndexInBlock = 0;
-            newRange = 1;
+            newRange = 0;
             reachEnd = true;
         }
 
 		else
         {
-            for (int i = indexInBlock; i < indexInBlock + range; i++)
+            for (int i = indexInBlock; i <= indexInBlock + range; i++)
             {
                 // index out of block
                 if (i >= size_)

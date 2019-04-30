@@ -203,8 +203,8 @@ public:
 			    BlockBase<T>& block = *(blocks_[i].get());
 
 			    if (columnData >= blocks_[i]->GetMin() &&
-			        (remainingRange < block.GetSize() - startIndexInCurrentBlock ||
-			         (columnData <= blocks_[i]->GetMax() && (i == blocks_.size() - 1 || columnData <= blocks_[i + 1]->GetMin()))))
+			        (remainingRange <= block.GetSize() - startIndexInCurrentBlock ||
+			         (columnData <= blocks_[i]->GetMax() || (i == blocks_.size() - 1 || columnData <= blocks_[i + 1]->GetMin()))))
 			    {
 			        int tempIndexInBlock;
 			        std::tie(tempIndexInBlock, blockRange, reachEnd) =

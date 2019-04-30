@@ -205,12 +205,12 @@ TEST(BlockTests, FindIndexAndRange)
 
     std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(0, 2, 0);
     ASSERT_EQ(index, 0);
-    ASSERT_EQ(range, 1);
+    ASSERT_EQ(range, 0);
     ASSERT_EQ(reachEnd, false);
 
     std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(0, 7, 0);
     ASSERT_EQ(index, 0);
-    ASSERT_EQ(range, 1);
+    ASSERT_EQ(range, 0);
     ASSERT_EQ(reachEnd, false);
 
     std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(0, 7, 1);
@@ -220,12 +220,12 @@ TEST(BlockTests, FindIndexAndRange)
 
     std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(6, 1, 1);
     ASSERT_EQ(index, 6);
-    ASSERT_EQ(range, 1);
+    ASSERT_EQ(range, 0);
     ASSERT_EQ(reachEnd, false);
 
     std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(0, 2, 2);
     ASSERT_EQ(index, 2);
-    ASSERT_EQ(range, 1);
+    ASSERT_EQ(range, 0);
     ASSERT_EQ(reachEnd, false);
 
     std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(0, 7, 2);
@@ -236,7 +236,7 @@ TEST(BlockTests, FindIndexAndRange)
     std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(0, 8, 2);
     ASSERT_EQ(index, 4);
     ASSERT_EQ(range, 4);
-    ASSERT_EQ(reachEnd, false);
+    ASSERT_EQ(reachEnd, true);
 
     std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(0, 9, 2);
     ASSERT_EQ(index, 4);
@@ -261,14 +261,14 @@ TEST(BlockTests, FindIndexAndRange_valuesInsertedProgressively)
 
 	std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(0, 10, 1);
     ASSERT_EQ(index, 0);
-    ASSERT_EQ(range, 1);
+    ASSERT_EQ(range, 0);
     ASSERT_EQ(reachEnd, false);
 
 	blockInt.InsertDataOnSpecificPosition(0, 1);
 	
 	std::tie(index, range, reachEnd) = blockInt.FindIndexAndRange(0, 10, 5);
     ASSERT_EQ(index, 2);
-    ASSERT_EQ(range, 1);
+    ASSERT_EQ(range, 0);
     ASSERT_EQ(reachEnd, true);
 }
 
