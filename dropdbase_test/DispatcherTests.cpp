@@ -9988,3 +9988,79 @@ TEST(DispatcherTests, RoundColInt)
 		ASSERT_FLOAT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
 	}
 }
+
+TEST(DispatcherTests, CotColFloat)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COT(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResultsFloat;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i];
+		auto blockFloat = columnFloat->GetBlocksList()[i];
+
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if (blockInt->GetData()[k] >= 20)
+			{
+				expectedResultsFloat.push_back(1.0f / tanf(blockFloat->GetData()[k]));
+			}
+		}
+	}
+
+	auto &payloadsFloat = result->payloads().at("COT(colFloat1)");
+
+	ASSERT_EQ(payloadsFloat.floatpayload().floatdata_size(), expectedResultsFloat.size());
+
+	for (int i = 0; i < payloadsFloat.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, Atan2ColFloat)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT ATAN2(colFloat1, colFloat1 + 1) FROM TableA WHERE colInteger1 >= 20;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResultsFloat;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i];
+		auto blockFloat = columnFloat->GetBlocksList()[i];
+
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if (blockInt->GetData()[k] >= 20)
+			{
+				expectedResultsFloat.push_back(atan2f(blockFloat->GetData()[k], blockFloat->GetData()[k] + 1));
+			}
+		}
+	}
+
+	auto &payloadsFloat = result->payloads().at("ATAN2(colFloat1,colFloat1+1)");
+
+	ASSERT_EQ(payloadsFloat.floatpayload().floatdata_size(), expectedResultsFloat.size());
+
+	for (int i = 0; i < payloadsFloat.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
+	}
+}

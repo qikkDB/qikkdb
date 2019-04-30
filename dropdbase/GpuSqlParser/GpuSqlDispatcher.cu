@@ -17,6 +17,14 @@ std::condition_variable GpuSqlDispatcher::groupByCV_;
 int32_t GpuSqlDispatcher::groupByDoneLimit_;
 std::unordered_map<std::string, int32_t> GpuSqlDispatcher::linkTable;
 
+#ifndef NDEBUG
+void AssertDeviceMatchesCurrentThread(int dispatcherThreadId)
+{
+	int device;
+	cudaGetDevice(&device);
+	assert(device == dispatcherThreadId);
+}
+#endif
 
 GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
 	database(database),
@@ -34,12 +42,19 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	isOverallLastBlock(false),
 	noLoad(true)
 {
-
 }
 
 GpuSqlDispatcher::~GpuSqlDispatcher()
 {
-	cleanUpGpuPointers();
+	if (dispatcherThreadId != -1)
+	{
+		Context& context = Context::getInstance();
+		context.bindDeviceToContext(dispatcherThreadId);
+#ifndef NDEBUG
+		AssertDeviceMatchesCurrentThread(dispatcherThreadId);
+#endif
+		cleanUpGpuPointers();
+	}
 }
 
 void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
@@ -59,7 +74,12 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 
 		while (err == 0)
 		{
+
 			err = (this->*dispatcherFunctions[instructionPointer++])();
+#ifndef NDEBUG
+			printf("tid:%d ip: %d \n", dispatcherThreadId, instructionPointer - 1);
+			AssertDeviceMatchesCurrentThread(dispatcherThreadId);
+#endif
 			if (err)
 			{
 				if (err == 1)
@@ -255,6 +275,10 @@ void GpuSqlDispatcher::addLogarithmFunction(DataType number, DataType base)
 	dispatcherFunctions.push_back(logarithmFunctions[DataType::DATA_TYPE_SIZE * number + base]);
 }
 
+void GpuSqlDispatcher::addArctangent2Function(DataType y, DataType x)
+{
+	dispatcherFunctions.push_back(arctangent2Functions[DataType::DATA_TYPE_SIZE * y + x]);
+}
 
 void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
 {
@@ -339,6 +363,11 @@ void GpuSqlDispatcher::addCosineFunction(DataType type)
 void GpuSqlDispatcher::addTangentFunction(DataType type)
 {
 	dispatcherFunctions.push_back(tangentFunctions[type]);
+}
+
+void GpuSqlDispatcher::addCotangentFunction(DataType type)
+{
+	dispatcherFunctions.push_back(cotangentFunctions[type]);
 }
 
 void GpuSqlDispatcher::addArcsineFunction(DataType type)
