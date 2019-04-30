@@ -30,7 +30,7 @@ public:
 	Table(const std::shared_ptr<Database> &database, const char* name);
 	void CreateColumn(const char* columnName, DataType columnType);
 #ifndef __CUDACC__
-	void InsertData(const std::unordered_map<std::string, std::any> &data);
+	void InsertData(const std::unordered_map<std::string, std::any> &data, bool compress = false);
 #endif
 	bool ContainsColumn(const char* column);
 };

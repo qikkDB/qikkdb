@@ -8,6 +8,7 @@
 #include "Types/Point.pb.h"
 #include "PointFactory.h"
 #include "ComplexPolygonFactory.h"
+#include "Configuration.h"
 
 
 
@@ -221,7 +222,7 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 		if (position % blockSize == 0) {
 
 			insertMutex_.lock();
-			table.InsertData(data);
+			table.InsertData(data, Configuration::GetInstance().IsUsingCompression());
 			insertMutex_.unlock();
 
 			// clears parsed data so far
@@ -257,7 +258,7 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 
 	// inserts remaing rows into table
 	insertMutex_.lock();
-	table.InsertData(data);
+	table.InsertData(data, Configuration::GetInstance().IsUsingCompression());
 	insertMutex_.unlock();
 
 }
