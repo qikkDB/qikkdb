@@ -84,20 +84,24 @@ class ColumnBase : public IColumn
 private:
 	std::string name_;
 	int blockSize_;
-	std::vector<std::unique_ptr<BlockBase<T>>> blocks_;
+	std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
 
 	std::vector<T> NullArray(int length);
 	void setColumnStatistics();
 
-	T min_;
-	T max_;
-	float avg_;
-	T sum_;
+	T min_ = std::numeric_limits<T>::lowest();
+	T max_ = std::numeric_limits<T>::max();
+	float avg_ = 0.0;
+	T sum_ = T{};
+	float initAvg_ = 0.0; //initial average is needed, because avg_ is constantly changing and we need unchable value for comparing in binary index
+	bool initAvgIsSet_ = false;
 
 public:
 	ColumnBase(const std::string& name, int blockSize) :
 		name_(name), blockSize_(blockSize), blocks_()
 	{
+		std::vector<std::unique_ptr<BlockBase<T>>> blocks;
+		blocks_[-1] = std::move(blocks);
 	}
 
 	inline int GetBlockSize() const { return blockSize_; };
@@ -105,6 +109,16 @@ public:
 	virtual const std::string& GetName() const override
 	{
 		return name_;
+	}
+
+	virtual const float GetInitAvg() const override
+	{
+		return initAvg_;
+	}
+
+	virtual const bool GetInitAvgIsSet() const override
+	{
+		return initAvgIsSet_;
 	}
 
 	T GetMax()
@@ -131,19 +145,36 @@ public:
 	/// Blocks getter
 	/// </summary>
 	/// <returns>List of blocks in current column</returns>
-	const std::vector<std::unique_ptr<BlockBase<T>>>& GetBlocksList() const
+	const std::vector<BlockBase<T> *> GetBlocksList() const
 	{
-		return blocks_;
+		std::vector<BlockBase<T> *> ret;
+
+		for (auto& stuff : blocks_)
+		{
+			for (auto& ptr : stuff.second)
+			{
+				ret.emplace_back(ptr.get());
+			}
+		}
+
+		return ret;
 	};
 
 	/// <summary>
 	/// Add new block in column
 	/// </summary>
 	/// <returns>Last block of column</returns>
-	BlockBase<T>& AddBlock()
+	BlockBase<T>& AddBlock(int groupId = -1)
 	{
-		blocks_.push_back(std::make_unique<BlockBase<T>>(*this));
-		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
+		if (blocks_.find(groupId) == blocks_.end())
+		{
+			// key not found
+			std::vector<std::unique_ptr<BlockBase<T>>> blocks;
+			blocks_[groupId] = std::move(blocks);
+		}
+
+		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
+		return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
 	}
 
 	/// <summary>
@@ -151,15 +182,15 @@ public:
 	/// </summary>
 	/// <param name="data">Data to be inserted</param>
 	/// <returns>Last block of column</returns>
-	BlockBase<T>& AddBlock(const std::vector<T>& data, bool compress = false, bool isCompressed = false)
+	BlockBase<T>& AddBlock(const std::vector<T>& data, int groupId = -1, bool compress = false, bool isCompressed = false)
 	{
-		blocks_.push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed));
-		auto & lastBlock = blocks_.back();
+		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed));
+		auto & lastBlock = blocks_[groupId].back();
 		if (lastBlock->IsFull() && !isCompressed && compress)
 		{
 			lastBlock->CompressData();
 		}
-		return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
+		return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
 	}
 
 
@@ -167,12 +198,12 @@ public:
 	/// Insert data into column considering empty space of last block and maximum size of blocks
 	/// </summary>
 	/// <param name="columnData">Data to be inserted</param>
-	void InsertData(const std::vector<T>& columnData, bool compress = false)
+	void InsertData(const std::vector<T>& columnData, int groupId = -1, bool compress = false)
 	{
 		int startIdx = 0;
-		if (blocks_.size() > 0 && !blocks_.back()->IsFull())
+		if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
 		{
-			auto & lastBlock = blocks_.back();
+			auto & lastBlock = blocks_[groupId].back();
 			if (columnData.size() <= lastBlock->EmptyBlockSpace())
 			{
 				lastBlock->InsertData(columnData);
@@ -196,7 +227,7 @@ public:
 			int toCopy = columnData.size() - startIdx < blockSize_
 				? columnData.size() - startIdx
 				: blockSize_;
-			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), compress, false);
+			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), groupId, compress, false);
 			startIdx += toCopy;
 		}
 		setColumnStatistics();
@@ -250,6 +281,14 @@ public:
 
 	virtual int32_t GetBlockCount() const override
 	{
-		return blocks_.size();
+		int32_t ret = 0;
+
+		//TODO preiterovat celu mapu a zosumovat bloky
+		for (auto& stuff : blocks_)
+		{
+			ret += stuff.second.size();
+		}
+
+		return ret;
 	}
 };

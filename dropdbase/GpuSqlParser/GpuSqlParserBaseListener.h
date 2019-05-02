@@ -94,6 +94,9 @@ public:
   virtual void enterJoinTable(GpuSqlParser::JoinTableContext * /*ctx*/) override { }
   virtual void exitJoinTable(GpuSqlParser::JoinTableContext * /*ctx*/) override { }
 
+  virtual void enterFromTable(GpuSqlParser::FromTableContext * /*ctx*/) override { }
+  virtual void exitFromTable(GpuSqlParser::FromTableContext * /*ctx*/) override { }
+
   virtual void enterTable(GpuSqlParser::TableContext * /*ctx*/) override { }
   virtual void exitTable(GpuSqlParser::TableContext * /*ctx*/) override { }
 
@@ -102,6 +105,9 @@ public:
 
   virtual void enterDatabase(GpuSqlParser::DatabaseContext * /*ctx*/) override { }
   virtual void exitDatabase(GpuSqlParser::DatabaseContext * /*ctx*/) override { }
+
+  virtual void enterAlias(GpuSqlParser::AliasContext * /*ctx*/) override { }
+  virtual void exitAlias(GpuSqlParser::AliasContext * /*ctx*/) override { }
 
   virtual void enterLimit(GpuSqlParser::LimitContext * /*ctx*/) override { }
   virtual void exitLimit(GpuSqlParser::LimitContext * /*ctx*/) override { }
@@ -121,8 +127,8 @@ public:
   virtual void enterDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * /*ctx*/) override { }
   virtual void exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * /*ctx*/) override { }
 
-  virtual void enterStringLiteral(GpuSqlParser::StringLiteralContext * /*ctx*/) override { }
-  virtual void exitStringLiteral(GpuSqlParser::StringLiteralContext * /*ctx*/) override { }
+  virtual void enterNowLiteral(GpuSqlParser::NowLiteralContext * /*ctx*/) override { }
+  virtual void exitNowLiteral(GpuSqlParser::NowLiteralContext * /*ctx*/) override { }
 
   virtual void enterIntLiteral(GpuSqlParser::IntLiteralContext * /*ctx*/) override { }
   virtual void exitIntLiteral(GpuSqlParser::IntLiteralContext * /*ctx*/) override { }
@@ -142,11 +148,17 @@ public:
   virtual void enterUnaryOperation(GpuSqlParser::UnaryOperationContext * /*ctx*/) override { }
   virtual void exitUnaryOperation(GpuSqlParser::UnaryOperationContext * /*ctx*/) override { }
 
-  virtual void enterBooleanLiteral(GpuSqlParser::BooleanLiteralContext * /*ctx*/) override { }
-  virtual void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext * /*ctx*/) override { }
-
   virtual void enterVarReference(GpuSqlParser::VarReferenceContext * /*ctx*/) override { }
   virtual void exitVarReference(GpuSqlParser::VarReferenceContext * /*ctx*/) override { }
+
+  virtual void enterPiLiteral(GpuSqlParser::PiLiteralContext * /*ctx*/) override { }
+  virtual void exitPiLiteral(GpuSqlParser::PiLiteralContext * /*ctx*/) override { }
+
+  virtual void enterStringLiteral(GpuSqlParser::StringLiteralContext * /*ctx*/) override { }
+  virtual void exitStringLiteral(GpuSqlParser::StringLiteralContext * /*ctx*/) override { }
+
+  virtual void enterBooleanLiteral(GpuSqlParser::BooleanLiteralContext * /*ctx*/) override { }
+  virtual void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext * /*ctx*/) override { }
 
   virtual void enterGeometry(GpuSqlParser::GeometryContext * /*ctx*/) override { }
   virtual void exitGeometry(GpuSqlParser::GeometryContext * /*ctx*/) override { }

@@ -11,14 +11,19 @@
 template<class T>
 class ColumnBase;
 
+/// <summary>
+/// The main class representing block of data. Holds data of type T.
+/// </summary>
+/// <typeparam name="T">Data type of block.</typeparam>
 template<class T>
 class BlockBase
 {
 private:
-	T min_;
-	T max_;
-	float avg_;
-	T sum_;
+	T min_ = std::numeric_limits<T>::lowest();
+	T max_ = std::numeric_limits<T>::max();
+	float avg_ = 0.0;
+	T sum_ = T{};
+	int32_t groupId_ = -1; //index for group of blocks - binary index
 
 	void setBlockStatistics();	
 
@@ -31,6 +36,11 @@ private:
 	bool isCompressed_;
 
 public:
+	/// <summary>
+	/// Initializes a new instance of the <see cref="T:ColmnarDB.BloclBase"/> class filled with data.
+	/// </summary>
+	/// <param name="data">Data which will fill up the block.</param>
+	/// <param name="column">Column that will hold this new block.</param>
 	BlockBase(const std::vector<T>& data, ColumnBase<T>& column, bool isCompressed = false) :
 		column_(column), size_(0), isCompressed_(isCompressed)
 	{
@@ -47,6 +57,10 @@ public:
 		setBlockStatistics();
 	}
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="T:ColmnarDB.BloclBase"/> class without data.
+	/// </summary>
+	/// <param name="column">Column that will hold this new empty block.</param>
 	explicit BlockBase(ColumnBase<T>& column) :
 		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_])
 	{
@@ -82,6 +96,11 @@ public:
 		return sum_;
 	}
 
+	int32_t GetGroupId()
+	{
+		return groupId_;
+	}
+
 	T * const GetData()
 	{
 		return data_.get();
@@ -92,11 +111,19 @@ public:
 		return size_;
 	}
 
+	/// <summary>
+	/// Find out the amount of empty space in current block.
+	/// </summary>
+	/// <returns>Block space that is not filled with data.</returns>
 	int EmptyBlockSpace() const
 	{
 		return capacity_ - size_;
 	}
 
+	/// <summary>
+	/// Find out wheather current block is completely filled with data.
+	/// </summary>
+	/// <returns>Returns true if block is full. If block is not full, returns false.</returns>
 	bool IsFull() const
 	{
 		if (isCompressed_)
@@ -105,6 +132,11 @@ public:
 			return EmptyBlockSpace() == 0;
 	}
 
+	/// <summary>
+	/// Insert data into the current block.
+	/// </summary>
+	/// <param name="data">Data to be inserted.</param>
+	/// <exception cref="std::length_error">Attempted to insert data larger than remaining block size.</exception>
 	void InsertData(const std::vector<T>& data)
 	{
 		if (EmptyBlockSpace() < data.size())

@@ -5,13 +5,11 @@
 #include "dropdbase/Compression/feathergpu/fl/default.cuh"
 #include "GPUCompression.h"
 #include "dropdbase/QueryEngine/Context.h" 
-#include "dropdbase/QueryEngine/QueryEngineError.h" 
 #include <memory>
 #include <string>
 #include <limits>
 #include "dropdbase/Types/ComplexPolygon.pb.h"
 #include "dropdbase/Types/Point.pb.h"
-#include "dropdbase/QueryEngine/QueryEngineError.h"
 
 /// <summary>
 /// Compresses input data and fills output vector with compressed data
@@ -55,20 +53,20 @@ bool compressAAFL(const int CWARP_SIZE, T* const hostUncompressed, int64_t uncom
 		
 	// Copy data CPU->GPU
 	cudaMemcpy(deviceUncompressed, hostUncompressed, uncompressedDataSize, cudaMemcpyHostToDevice);
-	QueryEngineError::setCudaError(cudaGetLastError());
+	CheckCudaError(cudaGetLastError());
 
 	// Set before compression
 	cudaMemset(deviceCompressed, 0, uncompressedDataSize);
 	cudaMemset(deviceCompressedElementsCount, 0, sizeof(unsigned long));
 	cudaMemset(deviceBitLength, 0, compressionBlocksCount * sizeof(unsigned char));
 	cudaMemset(devicePositionId, 0, compressionBlocksCount * sizeof(unsigned long));
-	QueryEngineError::setCudaError(cudaGetLastError());
+	CheckCudaError(cudaGetLastError());
 
 	// Compression
 	container_uncompressed<T> udata = { deviceUncompressed, uncompressedElementsCount };
 	container_aafl<T> cdata = { deviceCompressed, uncompressedElementsCount, deviceBitLength, devicePositionId, deviceCompressedElementsCount, offset };
 	gpu_fl_naive_launcher_compression<T, 32, container_aafl<T>>::compress(udata, cdata);
-	QueryEngineError::setCudaError(cudaGetLastError());
+	CheckCudaError(cudaGetLastError());
 
 	// Gets compression elements (values only without meta data) count into RAM
 	unsigned long compressedValuesCount;
@@ -106,6 +104,7 @@ bool compressAAFL(const int CWARP_SIZE, T* const hostUncompressed, int64_t uncom
 		cudaMemcpy(data.get() + positionCodedDataPositionId, devicePositionId, compressionBlocksCount * sizeof(unsigned long), cudaMemcpyDeviceToHost);
 		cudaMemcpy(data.get() + positionCodedDataBitLength, deviceBitLength, compressionBlocksCount * sizeof(unsigned char), cudaMemcpyDeviceToHost);
 		cudaMemcpy(data.get() + positionHostOut, deviceCompressed, compressedDataSize, cudaMemcpyDeviceToHost);
+		CheckCudaError(cudaGetLastError());
 
 		// Assignment into output parameter
 		hostCompressed.assign(data.get(), data.get() + compressedElementsCount);
@@ -123,7 +122,7 @@ bool compressAAFL(const int CWARP_SIZE, T* const hostUncompressed, int64_t uncom
 	cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceBitLength), compressionBlocksCount * sizeof(unsigned char));
 	cudaAllocator.deallocate(reinterpret_cast<int8_t*>(devicePositionId), compressionBlocksCount * sizeof(unsigned long));
 	cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceCompressedElementsCount), sizeof(long));
-	QueryEngineError::setCudaError(cudaGetLastError());
+	CheckCudaError(cudaGetLastError());
 
 	return result;
 }
@@ -240,7 +239,7 @@ bool decompressAAFL(const int CWARP_SIZE, T* const hostCompressed, int64_t compr
 	deviceCompressed = reinterpret_cast<T*>(cudaAllocator.allocate(compressedDataSize));
 	deviceBitLength = reinterpret_cast<unsigned char*>(cudaAllocator.allocate(compressionBlocksCount * sizeof(unsigned char)));
 	devicePositionId = reinterpret_cast<unsigned long*>(cudaAllocator.allocate(compressionBlocksCount * sizeof(unsigned long)));
-	QueryEngineError::setCudaError(cudaGetLastError());
+	CheckCudaError(cudaGetLastError());
 
 	// Decoding single array of type T into separate arrays (of compression meta data)
 	int positionCodedDataPositionId = (sizeof(int64_t) / (float)sizeof(T) * 3);
@@ -255,25 +254,25 @@ bool decompressAAFL(const int CWARP_SIZE, T* const hostCompressed, int64_t compr
 	cudaMemcpy(deviceCompressed, hostCompressedValuesData, compressedDataSize - (positionHostOut * sizeof(T)), cudaMemcpyHostToDevice); // from compression size we need to subtract leading bytes with meta info
 	cudaMemcpy(devicePositionId, hostPositionId, compressionBlocksCount * sizeof(unsigned long), cudaMemcpyHostToDevice);
 	cudaMemcpy(deviceBitLength, hostBitLength, compressionBlocksCount * sizeof(unsigned char), cudaMemcpyHostToDevice);
-	QueryEngineError::setCudaError(cudaGetLastError());
+	CheckCudaError(cudaGetLastError());
 
 	// Decompression
 	container_uncompressed<T> udata = { deviceUncompressed, uncompressedElementsCount };
 	container_aafl<T> cdata = { deviceCompressed, uncompressedElementsCount, deviceBitLength, devicePositionId, NULL, offset };
 	gpu_fl_naive_launcher_decompression<T, 32, container_aafl<T>>::decompress(cdata, udata);
-	QueryEngineError::setCudaError(cudaGetLastError());
+	CheckCudaError(cudaGetLastError());
 	
 	// Copy result GPU->CPU into resulting pointer
 	std::unique_ptr<T[]> data = std::unique_ptr<T[]>(new T[uncompressedDataSize / sizeof(T)]);
 	cudaMemcpy(data.get(), deviceUncompressed, uncompressedDataSize, cudaMemcpyDeviceToHost);
-	QueryEngineError::setCudaError(cudaGetLastError());
+	CheckCudaError(cudaGetLastError());
 
 	// Clean up device allocations
 	cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceUncompressed), uncompressedDataSize);
 	cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceCompressed), uncompressedDataSize);
 	cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceBitLength), compressionBlocksCount * sizeof(unsigned char));
 	cudaAllocator.deallocate(reinterpret_cast<int8_t*>(devicePositionId), compressionBlocksCount * sizeof(unsigned long));
-	QueryEngineError::setCudaError(cudaGetLastError());
+	CheckCudaError(cudaGetLastError());
 
 	// Assignment into output parameter
 	hostUncompressed.reserve(uncompressedElementsCount);
@@ -381,7 +380,7 @@ bool decompressAAFLOnDevice(const int CWARP_SIZE, T* const deviceCompressed, int
 	container_uncompressed<T> udata = { deviceUncompressed, uncompressedElementsCount };
 	container_aafl<T> cdata = { deviceCompressedValuesData, uncompressedElementsCount, deviceBitLength, devicePositionId, NULL, offset };
 	gpu_fl_naive_launcher_decompression<T, 32, container_aafl<T>>::decompress(cdata, udata);
-	QueryEngineError::setCudaError(cudaGetLastError());
+	CheckCudaError(cudaGetLastError());
 
 	return true;
 }

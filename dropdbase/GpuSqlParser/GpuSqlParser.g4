@@ -20,7 +20,7 @@ sqlInsertInto   : INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN
 newTableColumns     : ((newTableColumn (COMMA newTableColumn)*));
 newTableColumn      : (columnId DATATYPE);
 selectColumns       : (((selectColumn) (COMMA selectColumn)*));
-selectColumn        : expression;
+selectColumn        : expression (AS alias)?;
 whereClause         : expression;
 orderByColumns      : ((orderByColumn (COMMA orderByColumn)*));
 orderByColumn       : (columnId DIR?);
@@ -29,19 +29,38 @@ insertIntoColumns   : ((columnId (COMMA columnId)*));
 groupByColumns      : ((groupByColumn (COMMA groupByColumn)*));
 groupByColumn       : expression;
 columnId            : (column)|(table DOT column);
-fromTables          : ((table (COMMA table)*));
+fromTables          : ((fromTable (COMMA fromTable)*));
 joinClauses         : (joinClause)+;
 joinClause          : (JOIN joinTable ON expression);
-joinTable           : table;
+joinTable           : table (AS alias)?;
+fromTable           : table (AS alias)?;
 table               : ID;
 column              : ID;
 database            : ID;
+alias               : ID;
 limit               : INTLIT;
 offset              : INTLIT;
 columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT|);
 
 expression : op=NOT expression                                                            # unaryOperation
            | op=MINUS expression                                                          # unaryOperation
+           | op=ABS LPAREN expression RPAREN                                              # unaryOperation
+           | op=SIN LPAREN expression RPAREN                                              # unaryOperation
+           | op=COS LPAREN expression RPAREN                                              # unaryOperation
+           | op=TAN LPAREN expression RPAREN                                              # unaryOperation
+           | op=COT LPAREN expression RPAREN                                              # unaryOperation
+           | op=ASIN LPAREN expression RPAREN                                             # unaryOperation
+           | op=ACOS LPAREN expression RPAREN                                             # unaryOperation
+           | op=ATAN LPAREN expression RPAREN                                             # unaryOperation
+           | op=LOG10 LPAREN expression RPAREN                                            # unaryOperation
+           | op=LOG LPAREN expression RPAREN                                              # unaryOperation
+           | op=EXP LPAREN expression RPAREN                                              # unaryOperation
+           | op=SQRT LPAREN expression RPAREN                                             # unaryOperation
+           | op=SQUARE LPAREN expression RPAREN                                           # unaryOperation
+           | op=SIGN LPAREN expression RPAREN                                             # unaryOperation
+           | op=ROUND LPAREN expression RPAREN                                            # unaryOperation
+           | op=FLOOR LPAREN expression RPAREN                                            # unaryOperation
+           | op=CEIL LPAREN expression RPAREN                                             # unaryOperation
            | op=YEAR LPAREN expression RPAREN                                             # unaryOperation
            | op=MONTH LPAREN expression RPAREN                                            # unaryOperation
            | op=DAY LPAREN expression RPAREN                                              # unaryOperation
@@ -50,10 +69,19 @@ expression : op=NOT expression                                                  
            | op=SECOND LPAREN expression RPAREN                                           # unaryOperation
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation
+           | left=expression op=MODULO right=expression                                   # binaryOperation
+           | op=ATAN2 LPAREN left=expression COMMA right=expression RPAREN                # binaryOperation
+           | op=LOG LPAREN left=expression COMMA right=expression RPAREN                  # binaryOperation
+           | op=POW LPAREN left=expression COMMA right=expression RPAREN                  # binaryOperation
+           | op=ROOT LPAREN left=expression COMMA right=expression RPAREN                 # binaryOperation
+           | left=expression op=XOR right=expression                                      # binaryOperation
+           | left=expression op=(BIT_AND|BIT_OR) right=expression                         # binaryOperation
+           | left=expression op=(L_SHIFT|R_SHIFT) right=expression                        # binaryOperation
            | left=expression op=(GREATER|LESS) right=expression                           # binaryOperation
            | left=expression op=(GREATEREQ|LESSEQ) right=expression                       # binaryOperation
            | left=expression op=(EQUALS|NOTEQUALS) right=expression                       # binaryOperation
-           | left=expression op=MODULO right=expression                                   # binaryOperation
+           | left=expression op=NOTEQUALS_GT_LT right=expression                          # binaryOperation
+           | op=POINT LPAREN left=expression COMMA right=expression RPAREN                # binaryOperation
            | op=GEO_CONTAINS LPAREN left=expression COMMA right=expression RPAREN         # binaryOperation
            | op=GEO_INTERSECT LPAREN left=expression COMMA right=expression RPAREN        # binaryOperation
            | op=GEO_UNION LPAREN left=expression COMMA right=expression RPAREN            # binaryOperation
@@ -65,6 +93,8 @@ expression : op=NOT expression                                                  
            | geometry                                                                     # geoReference
            | DATETIMELIT                                                                  # dateTimeLiteral
            | FLOATLIT                                                                     # decimalLiteral
+           | PI                                                                           # piLiteral
+           | NOW                                                                          # nowLiteral
            | INTLIT                                                                       # intLiteral
            | STRINGLIT                                                                    # stringLiteral
            | BOOLEANLIT                                                                   # booleanLiteral

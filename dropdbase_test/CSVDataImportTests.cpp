@@ -4,21 +4,22 @@
 #include "../dropdbase/DataType.h"
 #include "../dropdbase/ColumnBase.h"
 
+
 TEST(CSVDataImportTests, CreateTable)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase1", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header.csv", true, ',');
 	importer.ImportTables(database);
 
 	ASSERT_EQ(true, database->GetTables().find("valid_header") != database->GetTables().end());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase1");
 }
 
 TEST(CSVDataImportTests, ImportHeader)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase2", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header.csv", true, ',');
@@ -31,12 +32,12 @@ TEST(CSVDataImportTests, ImportHeader)
 	ASSERT_EQ(true, database->GetTables().find("valid_header")->second.GetColumns().find("ageId") != database->GetTables().find("valid_header")->second.GetColumns().end());
 	ASSERT_EQ(true, database->GetTables().find("valid_header")->second.GetColumns().find("wealthIndexId") != database->GetTables().find("valid_header")->second.GetColumns().end());
 	ASSERT_EQ(true, database->GetTables().find("valid_header")->second.GetColumns().find("hwOsId") != database->GetTables().find("valid_header")->second.GetColumns().end());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase2");
 }
 
 TEST(CSVDataImportTests, ImportWithoutHeader)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase3", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_no_header.csv", false, ',');
@@ -49,12 +50,12 @@ TEST(CSVDataImportTests, ImportWithoutHeader)
 	ASSERT_EQ(true, database->GetTables().find("valid_no_header")->second.GetColumns().find("C4") != database->GetTables().find("valid_no_header")->second.GetColumns().end());
 	ASSERT_EQ(true, database->GetTables().find("valid_no_header")->second.GetColumns().find("C5") != database->GetTables().find("valid_no_header")->second.GetColumns().end());
 	ASSERT_EQ(true, database->GetTables().find("valid_no_header")->second.GetColumns().find("C6") != database->GetTables().find("valid_no_header")->second.GetColumns().end());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase3");
 }
 
 TEST(CSVDataImportTests, GuessTypes)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase4", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header.csv", true, ',');
@@ -67,12 +68,12 @@ TEST(CSVDataImportTests, GuessTypes)
 	ASSERT_EQ(COLUMN_INT, database->GetTables().find("valid_header")->second.GetColumns().find("ageId")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_INT, database->GetTables().find("valid_header")->second.GetColumns().find("wealthIndexId")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_INT, database->GetTables().find("valid_header")->second.GetColumns().find("hwOsId")->second->GetColumnType());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase4");
 }
 
 TEST(CSVDataImportTests, GuessTypesMessedTypes)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase5", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header_messed_types.csv", true, ',');
@@ -83,12 +84,12 @@ TEST(CSVDataImportTests, GuessTypesMessedTypes)
 	ASSERT_EQ(COLUMN_LONG, database->GetTables().find("valid_header_messed_types")->second.GetColumns().find("targetId")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_FLOAT, database->GetTables().find("valid_header_messed_types")->second.GetColumns().find("genderId")->second->GetColumnType());	
 	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("valid_header_messed_types")->second.GetColumns().find("ageId")->second->GetColumnType());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase5");
 }
 
 TEST(CSVDataImportTests, ImportSingleThread)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase6", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header.csv", true, ',');
@@ -102,12 +103,12 @@ TEST(CSVDataImportTests, ImportSingleThread)
 	ASSERT_EQ(21.2282657634477f, dynamic_cast<ColumnBase<float>*>(database->GetTables().find("valid_header")->second.GetColumns().at("longitude").get())->GetBlocksList().front()->GetData()[11]);
 	ASSERT_EQ(-1, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("genderId").get())->GetBlocksList().front()->GetData()[12]);
 	ASSERT_EQ(3, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("hwOsId").get())->GetBlocksList().front()->GetData()[100]);
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase6");
 }
 
 TEST(CSVDataImportTests, ImportMultiThread)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase7", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/valid_header.csv", true, ',');
@@ -116,24 +117,24 @@ TEST(CSVDataImportTests, ImportMultiThread)
 
 
 	ASSERT_EQ(101, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetSize());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase7");
 }
 
 TEST(CSVDataImportTests, ImportSkipRow)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase8", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/invalid_row_header.csv", true, ',');
 	importer.ImportTables(database);
 
 	ASSERT_EQ(100, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("invalid_row_header")->second.GetColumns().at("targetId").get())->GetBlocksList().front()->GetSize());	
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase8");
 }
 
 TEST(CSVDataImportTests, WktTypes)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase9", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header.csv", true, ';');
@@ -143,12 +144,12 @@ TEST(CSVDataImportTests, WktTypes)
 	ASSERT_EQ(COLUMN_POLYGON, database->GetTables().find("wkt_header")->second.GetColumns().find("p2")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_INT, database->GetTables().find("wkt_header")->second.GetColumns().find("p3")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header")->second.GetColumns().find("p4")->second->GetColumnType());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase9");
 }
 
 TEST(CSVDataImportTests, WktTypesMessedTypes)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase10", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header_messed_types.csv", true, ';');
@@ -158,31 +159,31 @@ TEST(CSVDataImportTests, WktTypesMessedTypes)
 	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header_messed_types")->second.GetColumns().find("p2")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header_messed_types")->second.GetColumns().find("p3")->second->GetColumnType());
 	ASSERT_EQ(COLUMN_STRING, database->GetTables().find("wkt_header_messed_types")->second.GetColumns().find("p4")->second->GetColumnType());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase10");
 }
 
 TEST(CSVDataImportTests, WktImport)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase11", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header.csv", true, ';');
 	importer.ImportTables(database);
 
 	ASSERT_EQ(101, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetSize());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase11");
 }
 
 TEST(CSVDataImportTests, WktImportInvalidRow)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase12", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header_invalid_row.csv", true, ';');
 	importer.ImportTables(database);
 
 	ASSERT_EQ(100, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header_invalid_row")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetSize());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase12");
 }
 
 TEST(CSVDataImportTests, CreateTableFromString)
@@ -289,14 +290,14 @@ TEST(CSVDataImportTests, CreateTableFromString)
 17.1611149255593, 48.2063789784255, 99, 1, 5, 13, 3\n\
 17.5856587828356, 48.4160591122736, 100, 2, 6, 14, 5\n\
 18.099007734618, 48.3152594831971, 101, 1, 1, 13, 3";
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase13", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter(inputString, "valid_header", true, ',');
 	importer.ImportTables(database);
 
 	ASSERT_EQ(true, database->GetTables().find("valid_header") != database->GetTables().end());
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase13");
 }
 
 TEST(CSVDataImportTests, ImportFromString)
@@ -403,7 +404,7 @@ TEST(CSVDataImportTests, ImportFromString)
 17.1611149255593, 48.2063789784255, 99, 1, 5, 13, 3\n\
 17.5856587828356, 48.4160591122736, 100, 2, 6, 14, 5\n\
 18.099007734618, 48.3152594831971, 101, 1, 1, 13, 3";
-	auto database = std::make_shared<Database>("testDatabase", 1024);
+	auto database = std::make_shared<Database>("testDatabase14", 1024);
 	Database::AddToInMemoryDatabaseList(database);
 
 	CSVDataImporter importer = CSVDataImporter(inputString,"valid_header", true, ',');
@@ -414,5 +415,5 @@ TEST(CSVDataImportTests, ImportFromString)
 	ASSERT_EQ(21.2282657634477f, dynamic_cast<ColumnBase<float>*>(database->GetTables().find("valid_header")->second.GetColumns().at("longitude").get())->GetBlocksList().front()->GetData()[11]);
 	ASSERT_EQ(-1, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("genderId").get())->GetBlocksList().front()->GetData()[12]);
 	ASSERT_EQ(3, dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("valid_header")->second.GetColumns().at("hwOsId").get())->GetBlocksList().front()->GetData()[100]);
-	Database::DestroyDatabase("testDatabase");
+	Database::RemoveFromInMemoryDatabaseList("testDatabase14");
 }

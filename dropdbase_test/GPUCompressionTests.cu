@@ -28,7 +28,7 @@ protected:
 	{
 		Context::getInstance();
 		//Database::LoadDatabasesFromDisk();
-		database = std::make_shared<Database>("testDatabase", 1024);
+		database = std::make_shared<Database>("compressionDatabase", 1024);
 		Database::AddToInMemoryDatabaseList(database);
 
 		std::unordered_map<std::string, DataType> columnsTable1;
@@ -38,7 +38,7 @@ protected:
 		columnsTable1.insert({ "ColumnFloatPositive", COLUMN_FLOAT });
 		columnsTable1.insert({ "ColumnFloatNegative", COLUMN_FLOAT });
 		columnsTable1.insert({ "ColumnFloatMixed", COLUMN_FLOAT });
-		database->CreateTable(columnsTable1, "testTable");
+		database->CreateTable(columnsTable1, "compressionTable");
 
 		
 		for (int i = 0; i < database->GetBlockSize(); i++)
@@ -51,12 +51,12 @@ protected:
 			dataFloatMixed.push_back((float)((i - database->GetBlockSize() / 2) / 100.0));
 		}
 
-		auto& columnInt = database->GetTables().find("testTable")->second.GetColumns().at("ColumnInt");
-		auto& columnIntLarge = database->GetTables().find("testTable")->second.GetColumns().at("ColumnIntLarge");
-		auto& columnLong = database->GetTables().find("testTable")->second.GetColumns().at("ColumnLong");
-		auto& columnFloatPositive = database->GetTables().find("testTable")->second.GetColumns().at("ColumnFloatPositive");
-		auto& columnFloatNegative = database->GetTables().find("testTable")->second.GetColumns().at("ColumnFloatNegative");
-		auto& columnFloatMixed = database->GetTables().find("testTable")->second.GetColumns().at("ColumnFloatMixed");
+		auto& columnInt = database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnInt");
+		auto& columnIntLarge = database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnIntLarge");
+		auto& columnLong = database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnLong");
+		auto& columnFloatPositive = database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatPositive");
+		auto& columnFloatNegative = database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatNegative");
+		auto& columnFloatMixed = database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatMixed");
 
 		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertData(dataInt);
 		dynamic_cast<ColumnBase<int32_t>*>(columnIntLarge.get())->InsertData(dataIntLarge);
@@ -70,7 +70,7 @@ protected:
 	{
 		for (auto& db : Database::GetDatabaseNames())
 		{
-			Database::DestroyDatabase(db.c_str());
+			Database::RemoveFromInMemoryDatabaseList(db.c_str());
 		}
 	}
 };
@@ -78,7 +78,7 @@ protected:
 
 TEST_F(GPUCompressionTests, CompressionInt)
 {
-    BlockBase<int32_t>* block = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("testTable")->second.GetColumns().at("ColumnInt").get())->GetBlocksList().front().get();
+    BlockBase<int32_t>* block = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnInt").get())->GetBlocksList()[0];
 	block->CompressData();
 
 	ASSERT_EQ(1024, block->GetData()[0]);
@@ -102,7 +102,7 @@ TEST_F(GPUCompressionTests, CompressionInt)
 
 TEST_F(GPUCompressionTests, CompressionIntLarge)
 {
-	BlockBase<int32_t>* blockLarge = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("testTable")->second.GetColumns().at("ColumnIntLarge").get())->GetBlocksList().front().get();
+	BlockBase<int32_t>* blockLarge = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnIntLarge").get())->GetBlocksList()[0];
 	blockLarge->CompressData();
 
 	for (int i = 0; i < database->GetBlockSize(); i++) {
@@ -115,7 +115,7 @@ TEST_F(GPUCompressionTests, CompressionIntLarge)
 
 TEST_F(GPUCompressionTests, CompressionLong)
 {
-	BlockBase<int64_t>* block = dynamic_cast<ColumnBase<int64_t>*>(database->GetTables().find("testTable")->second.GetColumns().at("ColumnLong").get())->GetBlocksList().front().get();
+	BlockBase<int64_t>* block = dynamic_cast<ColumnBase<int64_t>*>(database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnLong").get())->GetBlocksList()[0];
 	block->CompressData();
 	
 	ASSERT_EQ(1024, block->GetData()[0]);
@@ -139,9 +139,9 @@ TEST_F(GPUCompressionTests, CompressionLong)
 
 TEST_F(GPUCompressionTests, CompressionFloatPositive)
 {
-	auto& columnPositive = database->GetTables().find("testTable")->second.GetColumns().at("ColumnFloatPositive");
+	auto& columnPositive = database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatPositive");
 
-	BlockBase<float>* blockPositive = dynamic_cast<ColumnBase<float>*>(database->GetTables().find("testTable")->second.GetColumns().at("ColumnFloatPositive").get())->GetBlocksList().front().get();
+	BlockBase<float>* blockPositive = dynamic_cast<ColumnBase<float>*>(database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatPositive").get())->GetBlocksList()[0];
 	blockPositive->CompressData();
 
 	int32_t * compressedDataPositive = reinterpret_cast<int32_t*>(blockPositive->GetData());
@@ -166,9 +166,9 @@ TEST_F(GPUCompressionTests, CompressionFloatPositive)
 
 TEST_F(GPUCompressionTests, CompressionFloatNegative)
 {
-	auto& columnNegative = database->GetTables().find("testTable")->second.GetColumns().at("ColumnFloatNegative");
+	auto& columnNegative = database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatNegative");
 	
-	BlockBase<float>* blockNegative = dynamic_cast<ColumnBase<float>*>(database->GetTables().find("testTable")->second.GetColumns().at("ColumnFloatNegative").get())->GetBlocksList().front().get();
+	BlockBase<float>* blockNegative = dynamic_cast<ColumnBase<float>*>(database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatNegative").get())->GetBlocksList()[0];
 	blockNegative->CompressData();
 
 	int32_t * compressedDataNegative = reinterpret_cast<int32_t*>(blockNegative->GetData());
@@ -191,7 +191,7 @@ TEST_F(GPUCompressionTests, CompressionFloatNegative)
 
 	// testing floats mixed
 
-	BlockBase<float>* blockMixed = dynamic_cast<ColumnBase<float>*>(database->GetTables().find("testTable")->second.GetColumns().at("ColumnFloatMixed").get())->GetBlocksList().front().get();
+	BlockBase<float>* blockMixed = dynamic_cast<ColumnBase<float>*>(database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatMixed").get())->GetBlocksList()[0];
 	blockMixed->CompressData();
 
 	for (int i = 0; i < database->GetBlockSize(); i++) {
@@ -201,9 +201,9 @@ TEST_F(GPUCompressionTests, CompressionFloatNegative)
 
 TEST_F(GPUCompressionTests, CompressionFloatMixed)
 {
-	auto& columnMixed = database->GetTables().find("testTable")->second.GetColumns().at("ColumnFloatMixed");
+	auto& columnMixed = database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatMixed");
 
-	BlockBase<float>* blockMixed = dynamic_cast<ColumnBase<float>*>(database->GetTables().find("testTable")->second.GetColumns().at("ColumnFloatMixed").get())->GetBlocksList().front().get();
+	BlockBase<float>* blockMixed = dynamic_cast<ColumnBase<float>*>(database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatMixed").get())->GetBlocksList()[0];
 	blockMixed->CompressData();
 
 	for (int i = 0; i < database->GetBlockSize(); i++) {
@@ -219,11 +219,11 @@ TEST_F(GPUCompressionTests, CompressionFloatMixed)
 TEST_F(GPUCompressionTests, CompressionDispatcherLoadInt)
 {
 
-	GpuSqlCustomParser parser(database, "SELECT ColumnInt FROM testTable;");
+	GpuSqlCustomParser parser(database, "SELECT ColumnInt FROM compressionTable;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	auto &payloads = result->payloads().at("testTable.ColumnInt");
+	auto &payloads = result->payloads().at("compressionTable.ColumnInt");
 
 	ASSERT_EQ(payloads.intpayload().intdata_size(), dataInt.size());
 
@@ -237,11 +237,11 @@ TEST_F(GPUCompressionTests, CompressionDispatcherLoadInt)
 TEST_F(GPUCompressionTests, CompressionDispatcherLoadLong)
 {
 
-	GpuSqlCustomParser parser(database, "SELECT ColumnLong FROM testTable;");
+	GpuSqlCustomParser parser(database, "SELECT ColumnLong FROM compressionTable;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	auto &payloads = result->payloads().at("testTable.ColumnLong");
+	auto &payloads = result->payloads().at("compressionTable.ColumnLong");
 
 	ASSERT_EQ(payloads.int64payload().int64data_size(), dataLong.size());
 
@@ -255,11 +255,11 @@ TEST_F(GPUCompressionTests, CompressionDispatcherLoadLong)
 TEST_F(GPUCompressionTests, CompressionDispatcherLoadFloat)
 {
 	
-	GpuSqlCustomParser parser(database, "SELECT ColumnFloatPositive FROM testTable;");
+	GpuSqlCustomParser parser(database, "SELECT ColumnFloatPositive FROM compressionTable;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	auto &payloads = result->payloads().at("testTable.ColumnFloatPositive");
+	auto &payloads = result->payloads().at("compressionTable.ColumnFloatPositive");
 
 	ASSERT_EQ(payloads.floatpayload().floatdata_size(), dataFloatPositive.size());
 

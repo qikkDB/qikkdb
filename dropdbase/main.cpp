@@ -20,25 +20,36 @@
 
 int main(int argc, char **argv)
 {
-    boost::log::add_file_log("../log/ColmnarDB.log");
-    boost::log::add_console_log(std::cout);
-	std::string dbName = "TestDatabase";
-	std::vector<std::string> tableNames = { "TestTable1" };
-	std::vector<DataType> columnTypes = { {COLUMN_INT},
-		 {COLUMN_INT},
-		 {COLUMN_LONG},
-		 {COLUMN_LONG},
-		 {COLUMN_LONG},
-		 {COLUMN_FLOAT},
-		 {COLUMN_FLOAT},
-		 {COLUMN_DOUBLE},
-		 {COLUMN_DOUBLE},
-		 {COLUMN_POLYGON},
-		 {COLUMN_POINT} };
-	std::shared_ptr<Database> compressionDatabase = DatabaseGenerator::GenerateDatabase(dbName.c_str(), 2, 1<<18, false, tableNames, columnTypes);
-	Database::AddToInMemoryDatabaseList(compressionDatabase);
-	Database::SaveAllToDisk();
-	return 0;
+    //boost::log::add_file_log("../log/ColmnarDB.log");
+    //boost::log::add_console_log(std::cout);
+	//std::string dbName = "TestDatabase";
+	//std::vector<std::string> tableNames = { "TestTable1" };
+	//std::vector<DataType> columnTypes = { {COLUMN_INT},
+	//	 {COLUMN_INT},
+	//	 {COLUMN_LONG},
+	//	 {COLUMN_LONG},
+	//	 {COLUMN_LONG},
+	//	 {COLUMN_FLOAT},
+	//	 {COLUMN_FLOAT},
+	//	 {COLUMN_DOUBLE},
+	//	 {COLUMN_DOUBLE},
+	//	 {COLUMN_POLYGON},
+	//	 {COLUMN_POINT} };
+	//std::shared_ptr<Database> compressionDatabase = DatabaseGenerator::GenerateDatabase(dbName.c_str(), 2, 1<<18, false, tableNames, columnTypes);
+	//Database::AddToInMemoryDatabaseList(compressionDatabase);
+	//Database::SaveAllToDisk();
+	//return 0;
+
+	//Context::getInstance();
+	//CSVDataImporter csvDataImporter(R"(C:\Users\pkratky\Desktop\DataGenerator\output\TargetLoc10M.csv)");
+	////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
+	//std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 1000000);
+	//Database::AddToInMemoryDatabaseList(database);
+	//std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
+	//csvDataImporter.ImportTables(database);
+	//Database::SaveAllToDisk();
+	//return 0;
+
 	Context::getInstance(); // Initialize CUDA context
 
 	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
@@ -72,7 +83,7 @@ int main(int argc, char **argv)
 	*/
 	for (auto& db : Database::GetDatabaseNames())
 	{
-		Database::DestroyDatabase(db.c_str());
+		Database::RemoveFromInMemoryDatabaseList(db.c_str());
 	}
 	return 0;
 }

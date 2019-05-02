@@ -16,203 +16,24 @@
 #include <condition_variable>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
-#include "../ComplexPolygonFactory.h"
-#include "../PointFactory.h"
 #include "../DataType.h"
 #include "../Database.h"
 #include "../Table.h"
 #include "../ColumnBase.h"
 #include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
-
-class GpuSqlDispatcher;
-
-template<typename T>
-int32_t retConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t retCol(GpuSqlDispatcher &dispatcher);
-
-int32_t fil(GpuSqlDispatcher &dispatcher);
-
-int32_t jmp(GpuSqlDispatcher &dispatcher);
-
-int32_t done(GpuSqlDispatcher &dispatcher);
-
-int32_t showDatabases(GpuSqlDispatcher &dispatcher);
-int32_t showTables(GpuSqlDispatcher &dispatcher);
-int32_t showColumns(GpuSqlDispatcher &dispatcher);
-int32_t insertIntoDone(GpuSqlDispatcher & dispatcher);
-
-//// FILTERS WITH FUNCTORS
-
-template<typename OP, typename T, typename U>
-int32_t filterColConst(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t filterConstCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t filterColCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t filterConstConst(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t logicalColConst(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t logicalConstCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t logicalColCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t logicalConstConst(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t aggregationColCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t aggregationColConst(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t aggregationConstConst(GpuSqlDispatcher &dispatcher);
-
-////
-
-//contains
-
-template<typename T, typename U>
-int32_t containsColConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-int32_t containsConstCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-int32_t containsColCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-int32_t containsConstConst(GpuSqlDispatcher &dispatcher);
-
-template <typename OP, typename T, typename U>
-int32_t polygonOperationColConst(GpuSqlDispatcher& dispatcher);
-
-template <typename OP, typename T, typename U>
-int32_t polygonOperationConstCol(GpuSqlDispatcher& dispatcher);
-
-template <typename OP, typename T, typename U>
-int32_t polygonOperationColCol(GpuSqlDispatcher& dispatcher);
-
-template <typename OP, typename T, typename U>
-int32_t polygonOperationConstConst(GpuSqlDispatcher& dispatcher);
-
-template<typename T>
-int32_t logicalNotCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t logicalNotConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t minusCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t minusConst(GpuSqlDispatcher &dispatcher);
-
-template<typename OP>
-int32_t dateExtractCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP>
-int32_t dateExtractConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t groupByConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t groupByCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t insertInto(GpuSqlDispatcher &dispatcher);
-
-//// FUNCTOR ERROR HANDLERS
-
-template<typename OP, typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T>
-int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
-
-template<typename OP, typename T>
-int32_t invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
-
-
-////
-
-template<typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T, typename U>
-int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-int32_t invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
-
-template<typename T>
-void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<T[]> &data, int32_t dataSize);
-
-template<>
-void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<int32_t[]> &data, int32_t dataSize);
-
-template<>
-void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<int64_t[]> &data, int32_t dataSize);
-
-template<>
-void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<float[]> &data, int32_t dataSize);
-
-template<>
-void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<double[]> &data, int32_t dataSize);
-
-template<>
-void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<std::string[]> &data, int32_t dataSize);
+#include "../NativeGeoPoint.h"
+#include "../QueryEngine/GPUCore/GPUMemory.cuh"
+
+#ifndef NDEBUG
+void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
+#endif
 
 class GpuSqlDispatcher
 {
-
 private:
-    std::vector<std::function<int32_t(GpuSqlDispatcher &)>> dispatcherFunctions;
+	typedef int32_t(GpuSqlDispatcher::*DispatchFunction)();
+    std::vector<DispatchFunction> dispatcherFunctions;
     MemoryStream arguments;
 	int32_t blockIndex;
 	int64_t usedRegisterMemory;
@@ -233,81 +54,154 @@ private:
 	bool isRegisterAllocated(std::string& reg);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> lessFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterEqualFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> lessEqualFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> equalFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> notEqualFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logicalAndFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logicalOrFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> mulFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> divFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> addFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> subFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseOrFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseAndFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseXorFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseLeftShiftFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> arctangent2Functions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions;
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> containsFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher&)>, 
+    static std::array<DispatchFunction, 
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> intersectFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher&)>, 
+    static std::array<DispatchFunction, 
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> unionFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE> minusFunctions;
-	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> yearFunctions;
-	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> monthFunctions;
-	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> dayFunctions;
-	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> hourFunctions;
-	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> minuteFunctions;
-	static std::array<std::function<int32_t(GpuSqlDispatcher &)>, 
+	static std::array<DispatchFunction, 
 		DataType::DATA_TYPE_SIZE> secondFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
-            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> minusFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> absoluteFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> sineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> cosineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> tangentFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> cotangentFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arcsineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arccosineFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> arctangentFunctions;
+    static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> logarithm10Functions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> logarithmNaturalFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> exponentialFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> squareRootFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> squareFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> signFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> roundFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> ceilFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> floorFunctions;
+    static std::array<DispatchFunction,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
+    static std::array<DispatchFunction,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxAggregationFunctions;
+    static std::array<DispatchFunction,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumAggregationFunctions;
+    static std::array<DispatchFunction,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countAggregationFunctions;
+    static std::array<DispatchFunction,
+            DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgAggregationFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
+	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
-    static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
-    static std::function<int32_t(GpuSqlDispatcher &)> filFunction;
-	static std::function<int32_t(GpuSqlDispatcher &)> jmpFunction;
-    static std::function<int32_t(GpuSqlDispatcher &)> doneFunction;
-	static std::function<int32_t(GpuSqlDispatcher &)> showDatabasesFunction;
-	static std::function<int32_t(GpuSqlDispatcher &)> showTablesFunction;
-	static std::function<int32_t(GpuSqlDispatcher &)> showColumnsFunction;
-	static std::array<std::function<int32_t(GpuSqlDispatcher &)>,
+    static DispatchFunction filFunction;
+	static DispatchFunction jmpFunction;
+    static DispatchFunction doneFunction;
+	static DispatchFunction showDatabasesFunction;
+	static DispatchFunction showTablesFunction;
+	static DispatchFunction showColumnsFunction;
+	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> insertIntoFunctions;
-	static std::function<int32_t(GpuSqlDispatcher &)> insertIntoDoneFunction;
+	static DispatchFunction insertIntoDoneFunction;
 
 	static int32_t groupByDoneCounter_;
 	static int32_t groupByDoneLimit_;
 
+	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<int32_t[]> &data, int32_t dataSize);
+
+	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<int64_t[]> &data, int32_t dataSize);
+
+	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<float[]> &data, int32_t dataSize);
+
+	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<double[]> &data, int32_t dataSize);
+
+	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<std::string[]> &data, int32_t dataSize);
 public:
 	static std::mutex groupByMutex_;
 	static std::condition_variable groupByCV_;
@@ -328,6 +222,31 @@ public:
 		groupByDoneLimit_ = 0;
 	}
 
+	template<typename T>
+	static std::pair<bool, T> AggregateOnCPU(std::string& operation, T number1, T number2)
+	{
+		if (operation == "MIN")
+		{
+			return std::make_pair(true, number1 < number2 ? number1 : number2);
+		}
+		else if (operation == "MAX")
+		{
+			return std::make_pair(true, number1 > number2 ? number1 : number2);
+		}
+		else if (operation == "SUM" || operation == "AVG" || operation == "COUNT")
+		{
+			return std::make_pair(true, number1 + number2);
+		}
+		else    // Other operation (e.g. datetime)
+		{
+			return std::make_pair(false, T{ 0 });
+		}
+	}
+
+	static void MergePayload(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage,
+		ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
+
+
     GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);
 
 	~GpuSqlDispatcher();
@@ -338,7 +257,7 @@ public:
 
 	void copyExecutionDataTo(GpuSqlDispatcher& other);
 
-	void execute(std::unique_ptr<google::protobuf::Message>& result);
+	void execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception);
 
 	const ColmnarDB::NetworkClient::Message::QueryResponseMessage &getQueryResponseMessage();
 
@@ -366,7 +285,19 @@ public:
 
     void addSubFunction(DataType left, DataType right);
 
-    void addModFunction(DataType left, DataType right);
+	void addModFunction(DataType left, DataType right);
+
+    void addBitwiseOrFunction(DataType left, DataType right);
+
+	void addBitwiseAndFunction(DataType left, DataType right);
+
+	void addBitwiseXorFunction(DataType left, DataType right);
+
+	void addBitwiseLeftShiftFunction(DataType left, DataType right);
+
+	void addBitwiseRightShiftFunction(DataType left, DataType right);
+
+	void addPointFunction(DataType left, DataType right);
 
     void addContainsFunction(DataType left, DataType right);
 
@@ -390,15 +321,57 @@ public:
 
 	void addSecondFunction(DataType type);
 
-    void addMinFunction(DataType key, DataType value);
+	void addAbsoluteFunction(DataType type);
 
-    void addMaxFunction(DataType key, DataType value);
+	void addSineFunction(DataType type);
 
-    void addSumFunction(DataType key, DataType value);
+	void addCosineFunction(DataType type);
 
-    void addCountFunction(DataType key, DataType value);
+	void addTangentFunction(DataType type);
 
-    void addAvgFunction(DataType key, DataType value);
+	void addCotangentFunction(DataType type);
+
+	void addArcsineFunction(DataType type);
+
+	void addArccosineFunction(DataType type);
+
+	void addArctangentFunction(DataType type);
+
+	void addLogarithm10Function(DataType type);
+
+	void addLogarithmFunction(DataType number, DataType base);
+
+	void addArctangent2Function(DataType y, DataType x);
+
+	void addLogarithmNaturalFunction(DataType type);
+
+	void addExponentialFunction(DataType type);
+
+	void addPowerFunction(DataType base, DataType exponent);
+
+	void addSquareRootFunction(DataType type);
+
+	void addSquareFunction(DataType type);
+
+	void addSignFunction(DataType type);
+
+	void addRoundFunction(DataType type);
+
+	void addFloorFunction(DataType type);
+
+	void addCeilFunction(DataType type);
+
+	void addRootFunction(DataType base, DataType exponent);
+
+    void addMinFunction(DataType key, DataType value, bool usingGroupBy);
+
+    void addMaxFunction(DataType key, DataType value, bool usingGroupBy);
+
+    void addSumFunction(DataType key, DataType value, bool usingGroupBy);
+
+    void addCountFunction(DataType key, DataType value, bool usingGroupBy);
+
+    void addAvgFunction(DataType key, DataType value, bool usingGroupBy);
 
     void addRetFunction(DataType type);
 
@@ -422,278 +395,298 @@ public:
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
 
-	template<typename T>
-	T* allocateRegister(const std::string& reg, int32_t size);
-
-	template<typename T>
-	void addCachedRegister(const std::string& reg, T* ptr, int32_t size);
+	static std::unordered_map<std::string, int32_t> linkTable;
 	
 	template<typename T>
-	int32_t loadCol(std::string& colName)
+	T* allocateRegister(const std::string& reg, int32_t size)
 	{
-        if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
-		{
-			std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
-
-			// split colName to table and column name
-			const size_t endOfPolyIdx = colName.find(".");
-			const std::string table = colName.substr(0, endOfPolyIdx);
-			const std::string column = colName.substr(endOfPolyIdx + 1);
-
-			const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
-			GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
-			if (blockIndex >= blockCount)
-			{
-				return 1;
-			}
-			if (blockIndex >= blockCount - Context::getInstance().getDeviceCount())
-			{
-				isLastBlockOfDevice = true;
-			}
-			if (blockIndex == blockCount - 1)
-			{
-				isOverallLastBlock = true;
-			}
-
-			auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
-			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex].get());
-
-			if (block->IsCompressed())
-			{
-				size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
-				size_t compressedSize = block->GetSize();
-				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-					database->GetName(), colName, blockIndex, uncompressedSize);
-				if (!std::get<2>(cacheEntry))
-				{
-					T* deviceCompressed;
-					GPUMemory::alloc(&deviceCompressed, compressedSize);
-					GPUMemory::copyHostToDevice(deviceCompressed, block->GetData(), compressedSize);
-					bool isDecompressed;
-					Compression::Decompress(
-						col->GetColumnType(),
-						deviceCompressed,
-						Compression::GetCompressedDataElementsCount(block->GetData()),
-						std::get<0>(cacheEntry),
-						Compression::GetUncompressedDataElementsCount(block->GetData()),
-						Compression::GetCompressionBlocksCount(block->GetData()),						
-						block->GetMin(),
-						block->GetMax(),
-						isDecompressed,
-						true
-					);
-					GPUMemory::free(deviceCompressed);					
-				}
-				addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize);
-
-				noLoad = false;
-			}
-			else
-			{
-				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-					database->GetName(), colName, blockIndex, block->GetSize());
-				if (!std::get<2>(cacheEntry))
-				{
-					GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
-				}
-				addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
-
-				noLoad = false;
-			}
-		}
-		return 0;
+		T * mask;
+		GPUMemory::alloc<T>(&mask, size);
+		allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(mask), size, true)});
+		usedRegisterMemory += size * sizeof(T);
+		return mask;
 	}
-	template <typename T>
-	void freeColumnIfRegister(const std::string& col);
 
-	void mergePayloadToResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
+	template<typename T>
+	void addCachedRegister(const std::string& reg, T* ptr, int32_t size)
+	{
+		allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(ptr), size, false) });
+	}
+
+	template<typename T>
+	int32_t loadCol(std::string& colName);
+
+	template <typename T>
+	void freeColumnIfRegister(const std::string& col)
+	{
+		if (usedRegisterMemory > maxRegisterMemory && !col.empty() && col.front() == '$')
+		{
+			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(col))));
+			usedRegisterMemory -= std::get<1>(allocatedPointers.at(col)) * sizeof(T);
+			allocatedPointers.erase(col);
+			std::cout << "Free: " << col << std::endl;
+		}
+	}
+
+	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
 	void insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	std::string insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 
-    template<typename T>
-    friend int32_t retConst(GpuSqlDispatcher &dispatcher);
+  	template<typename T>
+    int32_t retConst();
 
     template<typename T>
-    friend int32_t retCol(GpuSqlDispatcher &dispatcher);
+    int32_t retCol();
 
-    friend int32_t fil(GpuSqlDispatcher &dispatcher);
+    int32_t fil();
 
-	friend int32_t jmp(GpuSqlDispatcher &dispatcher);
+	int32_t jmp();
 
-    friend int32_t done(GpuSqlDispatcher &dispatcher);
+    int32_t done();
 
-	friend int32_t showDatabases(GpuSqlDispatcher &dispatcher);
+	int32_t showDatabases();
 
-	friend int32_t showTables(GpuSqlDispatcher &dispatcher);
+	int32_t showTables();
 
-	friend int32_t showColumns(GpuSqlDispatcher &dispatcher);
+	int32_t showColumns();
 
 	void cleanUpGpuPointers();
+
 
 	//// FILTERS WITH FUNCTORS
 
 	template<typename OP, typename T, typename U>
-	friend int32_t filterColConst(GpuSqlDispatcher &dispatcher);
+	int32_t filterColConst();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t filterConstCol(GpuSqlDispatcher &dispatcher);
+	int32_t filterConstCol();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t filterColCol (GpuSqlDispatcher &dispatcher);
+	int32_t filterColCol ();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t filterConstConst(GpuSqlDispatcher &dispatcher);
+	int32_t filterConstConst();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t logicalColConst(GpuSqlDispatcher &dispatcher);
+	int32_t logicalColConst();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t logicalConstCol(GpuSqlDispatcher &dispatcher);
+	int32_t logicalConstCol();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t logicalColCol(GpuSqlDispatcher &dispatcher);
+	int32_t logicalColCol();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t logicalConstConst(GpuSqlDispatcher &dispatcher);
+	int32_t logicalConstConst();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t arithmeticColConst(GpuSqlDispatcher &dispatcher);
+	int32_t arithmeticColConst();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t arithmeticConstCol(GpuSqlDispatcher &dispatcher);
+	int32_t arithmeticConstCol();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t arithmeticColCol(GpuSqlDispatcher &dispatcher);
+	int32_t arithmeticColCol();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t arithmeticConstConst(GpuSqlDispatcher &dispatcher);
+	int32_t arithmeticConstConst();
+
+	template<typename OP, typename T>
+	int32_t arithmeticUnaryCol();
+
+	template<typename OP, typename T>
+	int32_t arithmeticUnaryConst();
 
 	template<typename OP, typename R, typename T, typename U>
-	friend int32_t aggregationColCol(GpuSqlDispatcher &dispatcher);
+	int32_t aggregationGroupBy();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t aggregationColConst(GpuSqlDispatcher &dispatcher);
+	int32_t aggregationCol();
 
 	template<typename OP, typename T, typename U>
-	friend int32_t aggregationConstCol(GpuSqlDispatcher &dispatcher);
-
-	template<typename OP, typename T, typename U>
-	friend int32_t aggregationConstConst(GpuSqlDispatcher &dispatcher);
+	int32_t aggregationConst();
 
 	////
+
+	// point from columns
+
+	template<typename T, typename U>
+	int32_t pointColCol();
+
+	template<typename T, typename U>
+	int32_t pointColConst();
+
+	template<typename T, typename U>
+	int32_t pointConstCol();
 
 	//contains
 
     template<typename T, typename U>
-    friend int32_t containsColConst(GpuSqlDispatcher &dispatcher);
-
-
-    template<typename T, typename U>
-    friend int32_t containsConstCol(GpuSqlDispatcher &dispatcher);
-
+    int32_t containsColConst();
 
     template<typename T, typename U>
-    friend int32_t containsColCol(GpuSqlDispatcher &dispatcher);
+    int32_t containsConstCol();
+
+    template<typename T, typename U>
+    int32_t containsColCol();
 
     template <typename T, typename U>
-    friend int32_t containsConstConst(GpuSqlDispatcher& dispatcher);
+    int32_t containsConstConst();
 
 	template <typename OP, typename T, typename U>
-    friend int32_t polygonOperationColConst(GpuSqlDispatcher& dispatcher);
+    int32_t polygonOperationColConst();
 
     template <typename OP, typename T, typename U>
-    friend int32_t polygonOperationConstCol(GpuSqlDispatcher& dispatcher);
+    int32_t polygonOperationConstCol();
 
     template <typename OP, typename T, typename U>
-    friend int32_t polygonOperationColCol(GpuSqlDispatcher& dispatcher);
+    int32_t polygonOperationColCol();
 
     template <typename OP, typename T, typename U>
-    friend int32_t polygonOperationConstConst(GpuSqlDispatcher& dispatcher);
+    int32_t polygonOperationConstConst();
 
     int32_t between();
 
     template<typename T>
-    friend int32_t logicalNotCol(GpuSqlDispatcher &dispatcher);
+    int32_t logicalNotCol();
 
 
     template<typename T>
-    friend int32_t logicalNotConst(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t minusCol(GpuSqlDispatcher &dispatcher);
-
-    template<typename T>
-    friend int32_t minusConst(GpuSqlDispatcher &dispatcher);
+    int32_t logicalNotConst();
 
 	template<typename OP>
-	friend int32_t dateExtractCol(GpuSqlDispatcher &dispatcher);
+	int32_t dateExtractCol();
 
 	template<typename OP>
-	friend int32_t dateExtractConst(GpuSqlDispatcher &dispatcher);
+	int32_t dateExtractConst();
 
     template<typename T>
-    friend int32_t groupByCol(GpuSqlDispatcher &dispatcher);
+    int32_t groupByCol();
 
     template<typename T>
-    friend int32_t groupByConst(GpuSqlDispatcher &dispatcher);
+    int32_t groupByConst();
 
 	template<typename T>
-	friend int32_t insertInto(GpuSqlDispatcher &dispatcher);
+	int32_t insertInto();
 
-	friend int32_t insertIntoDone(GpuSqlDispatcher &dispatcher);
-
-    template<typename T, typename U>
-    friend int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
+	int32_t insertIntoDone();
 
     template<typename T, typename U>
-    friend int32_t invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher);
+    int32_t invalidOperandTypesErrorHandlerColConst()
+	{
+		return 0;
+	}
 
     template<typename T, typename U>
-    friend int32_t invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
+    int32_t invalidOperandTypesErrorHandlerConstCol()
+	{
+		return 0;
+	}
 
     template<typename T, typename U>
-    friend int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
+    int32_t invalidOperandTypesErrorHandlerColCol()
+	{
+		return 0;
+	}
+
+    template<typename T, typename U>
+    int32_t invalidOperandTypesErrorHandlerConstConst()
+	{
+		return 0;
+	}
 
 
 	//// FUNCTOR ERROR HANDLERS
 
 	template<typename OP, typename T, typename U>
-	friend int32_t invalidOperandTypesErrorHandlerColConst(GpuSqlDispatcher &dispatcher);
+	int32_t invalidOperandTypesErrorHandlerColConst()
+	{
+		return 0;
+	}
 
 
 	template<typename OP, typename T, typename U>
-	friend int32_t invalidOperandTypesErrorHandlerConstCol(GpuSqlDispatcher &dispatcher);
+	int32_t invalidOperandTypesErrorHandlerConstCol()
+	{
+		return 0;
+	}
 
 
 	template<typename OP, typename T, typename U>
-	friend int32_t invalidOperandTypesErrorHandlerColCol(GpuSqlDispatcher &dispatcher);
+	int32_t invalidOperandTypesErrorHandlerColCol()
+	{
+		return 0;
+	}
 
 
 	template<typename OP, typename T, typename U>
-	friend int32_t invalidOperandTypesErrorHandlerConstConst(GpuSqlDispatcher &dispatcher);
+	int32_t invalidOperandTypesErrorHandlerConstConst()
+	{
+		return 0;
+	}
 
 	template<typename OP, typename T>
-	friend int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
+	int32_t invalidOperandTypesErrorHandlerCol()
+	{
+		return 0;
+	}
 
 	template<typename OP, typename T>
-	friend int32_t invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
+	int32_t invalidOperandTypesErrorHandlerConst()
+	{
+		return 0;
+	}
 
 	////
 
 	template<typename T>
-	friend int32_t invalidOperandTypesErrorHandlerCol(GpuSqlDispatcher &dispatcher);
+	int32_t invalidOperandTypesErrorHandlerCol()
+	{
+		return 0;
+	}
 
 	template<typename T>
-	friend int32_t invalidOperandTypesErrorHandlerConst(GpuSqlDispatcher &dispatcher);
+	int32_t invalidOperandTypesErrorHandlerConst()
+	{
+		return 0;
+	}
 
     template<typename T>
     void addArgument(T argument)
     {
         arguments.insert<T>(argument);
     }
+
 };
+
+template <>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
+
+template <>
+int32_t GpuSqlDispatcher::retCol<std::string>();
+
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
+
+template<>
+int32_t GpuSqlDispatcher::retCol<std::string>();
+
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
+
+template<>
+int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::Point>();
 
 #endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
