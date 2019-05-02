@@ -10,7 +10,9 @@ template<>
 void BlockBase<int32_t>::setBlockStatistics()
 {
 	if (isCompressed_)
+	{
 		return;
+	}
 
 	min_ = *std::min_element(data_.get(), data_.get() + size_);
 	max_ = *std::max_element(data_.get(), data_.get() + size_);
@@ -22,7 +24,9 @@ template<>
 void BlockBase<int64_t>::setBlockStatistics()
 {
 	if (isCompressed_)
+	{
 		return;
+	}
 
 	min_ = *std::min_element(data_.get(), data_.get() + size_);
 	max_ = *std::max_element(data_.get(), data_.get() + size_);
@@ -34,7 +38,9 @@ template<>
 void BlockBase<float>::setBlockStatistics()
 {
 	if (isCompressed_)
+	{
 		return;
+	}
 
 	min_ = *std::min_element(data_.get(), data_.get() + size_);
 	max_ = *std::max_element(data_.get(), data_.get() + size_);
@@ -46,7 +52,9 @@ template<>
 void BlockBase<double>::setBlockStatistics()
 {
 	if (isCompressed_)
+	{
 		return;
+	}
 
 	min_ = *std::min_element(data_.get(), data_.get() + size_);
 	max_ = *std::max_element(data_.get(), data_.get() + size_);
@@ -85,7 +93,9 @@ template<>
 void BlockBase<int8_t>::setBlockStatistics()
 {
 	if (isCompressed_)
+	{
 		return;
+	}
 
 	min_ = *std::min_element(data_.get(), data_.get() + size_);
 	max_ = *std::max_element(data_.get(), data_.get() + size_);
