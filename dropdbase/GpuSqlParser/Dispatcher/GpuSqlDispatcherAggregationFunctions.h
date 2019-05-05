@@ -23,7 +23,27 @@ int32_t GpuSqlDispatcher::aggregationCol()
 	int32_t reconstructOutSize;
 
 	IN* reconstructOutReg = nullptr;
-	GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<IN*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+	if (std::is_same<OP, AggregationFunctions::count>::value)
+	{
+		// If mask is present - count suitable rows
+		if (filter_)
+		{
+			int32_t *indexes = nullptr;
+			GPUReconstruct::GenerateIndexesKeep(&indexes, &reconstructOutSize, reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+			if (indexes)
+			{
+				GPUMemory::free(indexes);
+			}
+		}
+		// If mask is nullptr - count full rows
+		else {
+			reconstructOutSize = std::get<1>(column);
+		}
+	}
+	else
+	{
+		GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<IN*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+	}
 
 	if (std::get<2>(column))
 	{

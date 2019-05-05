@@ -24,6 +24,7 @@
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "ParserExceptions.h"
 
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
@@ -503,7 +504,7 @@ public:
 	template<typename OP, typename R, typename T, typename U>
 	int32_t aggregationGroupBy();
 
-	template<typename OP, typename T, typename U>
+	template<typename OP, typename OUT, typename IN>
 	int32_t aggregationCol();
 
 	template<typename OP, typename T, typename U>
@@ -577,24 +578,40 @@ public:
     template<typename T, typename U>
     int32_t invalidOperandTypesErrorHandlerColConst()
 	{
+		U cnst = arguments.read<U>();
+		auto colName = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colName, std::string("cnst"), std::string("operation"));
 		return 0;
 	}
 
     template<typename T, typename U>
     int32_t invalidOperandTypesErrorHandlerConstCol()
 	{
+		auto colName = arguments.read<std::string>();
+		T cnst = arguments.read<T>();
+
+		throw InvalidOperandsException(colName, std::string("cnst"), std::string("operation"));
 		return 0;
 	}
 
     template<typename T, typename U>
     int32_t invalidOperandTypesErrorHandlerColCol()
 	{
+		auto colNameRight = arguments.read<std::string>();
+		auto colNameLeft = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colNameLeft, colNameRight, std::string("operation"));
 		return 0;
 	}
 
     template<typename T, typename U>
     int32_t invalidOperandTypesErrorHandlerConstConst()
 	{
+		U cnstRight = arguments.read<U>();
+		T cnstLeft = arguments.read<T>();
+
+		throw InvalidOperandsException(std::string("cnst"), std::string("cnst"), std::string("operation"));
 		return 0;
 	}
 
@@ -604,6 +621,10 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerColConst()
 	{
+		U cnst = arguments.read<U>();
+		auto colName = arguments.read<std::string>();
+
+		throw InvalidOperandsException (colName, std::string("cnst"), std::string(typeid(OP).name()));
 		return 0;
 	}
 
@@ -611,6 +632,10 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerConstCol()
 	{
+		auto colName = arguments.read<std::string>();
+		T cnst = arguments.read<T>();
+
+		throw InvalidOperandsException(colName, std::string("cnst"), std::string(typeid(OP).name()));
 		return 0;
 	}
 
@@ -618,6 +643,10 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerColCol()
 	{
+		auto colNameRight = arguments.read<std::string>();
+		auto colNameLeft = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colNameLeft, colNameRight, std::string(typeid(OP).name()));
 		return 0;
 	}
 
@@ -625,18 +654,28 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerConstConst()
 	{
+		U cnstRight = arguments.read<U>();
+		T cnstLeft = arguments.read<T>();
+
+		throw InvalidOperandsException(std::string("cnst"), std::string("cnst"), std::string(typeid(OP).name()));
 		return 0;
 	}
 
 	template<typename OP, typename T>
 	int32_t invalidOperandTypesErrorHandlerCol()
 	{
+		auto colName = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colName, std::string(""), std::string(typeid(OP).name()));
 		return 0;
 	}
 
 	template<typename OP, typename T>
 	int32_t invalidOperandTypesErrorHandlerConst()
 	{
+		T cnst = arguments.read<T>();
+
+		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string(typeid(OP).name()));
 		return 0;
 	}
 
@@ -645,12 +684,18 @@ public:
 	template<typename T>
 	int32_t invalidOperandTypesErrorHandlerCol()
 	{
+		auto colName = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colName, std::string(""), std::string("operation"));
 		return 0;
 	}
 
 	template<typename T>
 	int32_t invalidOperandTypesErrorHandlerConst()
 	{
+		T cnst = arguments.read<T>();
+
+		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string("operation"));
 		return 0;
 	}
 
