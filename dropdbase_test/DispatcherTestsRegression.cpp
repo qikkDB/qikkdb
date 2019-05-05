@@ -112,6 +112,34 @@ TEST(DispatcherTestsRegression, PointAggregationCount)
 	ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
 }
 
+TEST(DispatcherTestsRegression, PointAggregationCountWithWhere)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COUNT(colPoint1) FROM TableA WHERE colInteger1 > 0;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("COUNT(colPoint1)");
+
+	ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
+	// Count sufficient row on CPU
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	int32_t expectedCount = 0;
+	for (int i = 0; i < TEST_BLOCK_COUNT; i++)
+	{
+		auto blockFloat = columnInt->GetBlocksList()[i];
+		for (int k = 0; k < TEST_BLOCK_SIZE; k++)
+		{
+			if (blockFloat->GetData()[k] > 0)
+			{
+				expectedCount++;
+			}
+		}
+	}
+
+	ASSERT_EQ(payloads.int64payload().int64data()[0], expectedCount);  // DatabaseGenerator 
+}
+
 TEST(DispatcherTestsRegression, Int32AggregationCount)
 {
 	Context::getInstance();

@@ -1,7 +1,7 @@
 #include "GPUReconstruct.cuh"
 
 
-// Specialization for Point - not supported
+// Specialization for Point - not supported, just throw an error
 template<>
 void GPUReconstruct::reconstructCol<ColmnarDB::Types::Point>(ColmnarDB::Types::Point *outData,
 	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount)
@@ -10,7 +10,7 @@ void GPUReconstruct::reconstructCol<ColmnarDB::Types::Point>(ColmnarDB::Types::P
 		"ReconstructCol of Point not supported, use GenerateIndexes instead");
 }
 
-// Specialization for ComplexPolygon - not supported
+// Specialization for ComplexPolygon - not supported, just throw an error
 template<>
 void GPUReconstruct::reconstructCol<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon *outData,
 	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount)
@@ -19,7 +19,7 @@ void GPUReconstruct::reconstructCol<ColmnarDB::Types::ComplexPolygon>(ColmnarDB:
 		"ReconstructCol of ComplexPolygon not supported, use GenerateIndexes instead");
 }
 
-// Specialization for Point - not supported
+// Specialization for Point - not supported, just throw an error
 template<>
 void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::Point>(ColmnarDB::Types::Point **outCol,
 	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount)
@@ -28,7 +28,7 @@ void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::Point>(ColmnarDB::Type
 		"ReconstructColKeep of Point not supported, use GenerateIndexes instead");
 }
 
-// Specialization for ComplexPolygon - not supported
+// Specialization for ComplexPolygon - not supported, just throw an error
 template<>
 void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon **outCol,
 	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount)
