@@ -45,6 +45,11 @@ private:
     cudaError_t cudaError_;
 
 public:
+    /// <summary>
+    /// Create cuda_error from cudaError_t status
+    /// and contain the number and the name of the error in error message.
+    /// </summary>
+    /// <param name="cudaError">return value from cudaGetLastError()</param>
     explicit cuda_error(cudaError_t cudaError)
     : gpu_error("CUDA Error " + std::to_string(static_cast<int32_t>(cudaError)) + ": " +
                 std::string(cudaGetErrorName(cudaError)))
@@ -52,10 +57,14 @@ public:
         cudaError_ = cudaError;
     }
 
-	~cuda_error()
-	{
-	}
+    ~cuda_error()
+    {
+    }
 
+    /// <summary>
+    /// Return stored value from cudaGetLastError()
+    /// </summary>
+    /// <return>value from cudaGetLastError()</return>
     cudaError_t GetCudaError()
     {
         return cudaError_;
@@ -68,22 +77,32 @@ public:
 class query_engine_error : public gpu_error
 {
 private:
-    QueryEngineErrorType gpuErrorType_;
+    QueryEngineErrorType queryEngineErrorType_;
 
 public:
-    explicit query_engine_error(QueryEngineErrorType gpuErrorType, const std::string& message)
-    : gpu_error("GPU Error " + std::to_string(gpuErrorType) + (message.size() > 0 ? (": " + message) : ""))
+    /// <summary>
+    /// Create query_engine_error from QueryEngineErrorType status and some extra message
+    /// and contain the number and the extra message in error message.
+    /// </summary>
+    /// <param name="queryEngineErrorType">error type - value from enum QueryEngineErrorType</param>
+    /// <param name="message">extra message (can be empty string "")</param>
+    explicit query_engine_error(QueryEngineErrorType queryEngineErrorType, const std::string& message)
+    : gpu_error("GPU Error " + std::to_string(queryEngineErrorType) + (message.size() > 0 ? (": " + message) : ""))
     {
-        gpuErrorType_ = gpuErrorType;
+        queryEngineErrorType_ = queryEngineErrorType;
     }
 
-	~query_engine_error()
-	{
-	}
+    ~query_engine_error()
+    {
+ }
 
+    /// <summary>
+    /// Return stored value of error type
+    /// </summary>
+    /// <return>stored error type - value from enum QueryEngineErrorType</return>
     QueryEngineErrorType GetQueryEngineError()
     {
-        return gpuErrorType_;
+        return queryEngineErrorType_;
     }
 };
 
@@ -91,9 +110,12 @@ public:
 /// <summary>
 /// Check 'cudaError' and throw a cuda_error if it is not cudaSuccess
 /// </summary>
+/// <param name="cudaError">return value from cudaGetLastError()</param>
 void CheckCudaError(cudaError_t cudaError);
 
 /// <summary>
 /// Check 'errorType' and throw a query_engine_error if it is not GPU_EXTENSION_SUCCESS
 /// </summary>
+/// <param name="errorType">error type - value from enum QueryEngineErrorType</param>
+/// <param name="message">extra message (optional parameter)</param>
 void CheckQueryEngineError(const QueryEngineErrorType errorType, const std::string& message = std::string());
