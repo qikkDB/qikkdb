@@ -30,10 +30,8 @@ namespace LogicOperations
 	};
 }
 
-/// <summary>
 /// Bitwise AND operation kernel between query result Cols
 /// Requires two int8_t block Cols
-/// </summary>
 /// <param name="outCol">block of the result data</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
@@ -56,9 +54,7 @@ __global__ void kernel_logic(T *outCol, U ACol, V BCol, int32_t dataElementCount
 	}
 }
 
-/// <summary>
 /// NOT operation kernel on a result Col
-/// </summary>
 /// <param name="outCol">block of the result data</param>
 /// <param name="ACol">block of the input operands</param>
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
@@ -111,9 +107,7 @@ public:
 	}
 	
 	
-	/// <summary>
 	/// NOT operation on column
-	/// </summary>
 	/// <param name="outCol">block of the result data</param>
 	/// <param name="ACol">block of the input operands</param>
 	/// <param name="dataElementCount">the size of the input blocks in elements</param>
@@ -129,9 +123,7 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
-	/// <summary>
 	/// NOT operation on const
-	/// </summary>
 	/// <param name="outCol">block of the result data</param>
 	/// <param name="AConst">constant to be negated</param>
 	/// <param name="dataElementCount">the size of the input blocks in elements</param>

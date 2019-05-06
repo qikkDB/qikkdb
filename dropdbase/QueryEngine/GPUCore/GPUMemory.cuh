@@ -24,10 +24,11 @@ __global__ void kernel_fill_array(T *p_Block, T value, size_t dataElementCount)
 	}
 }
 
-// Memory methods
+/// Memory methods
 class GPUMemory {
 public:
 
+	/// Struct for polygon column (with pointers to condensed buffers)
 	struct GPUPolygon
 	{
 		// Points of polygons
@@ -44,10 +45,8 @@ public:
 
 	static bool EvictWithLockList();
 
-	// Memory allocation
-	/// <summary>
+	// malloc
 	/// Memory allocation of block on the GPU with the respective size of the input parameter type
-	/// </summary>
 	/// <param name="p_Block">pointer to pointer wich will points to allocated memory block on the GPU</param>
 	/// <param name="dataType">type of the resulting buffer</param>
 	/// <param name="size">count of elements in the block</param>
@@ -76,9 +75,7 @@ public:
 	}
 
 	// malloc + memset
-	/// <summary>
 	/// Memory allocation of block on the GPU with the respective size of the input parameter type
-	/// </summary>
 	/// <param name="p_Block">pointer to pointer wich will points to allocated memory block on the GPU</param>
 	/// <param name="dataType">type of the resulting buffer</param>
 	/// <param name="size">count of elements in the block</param>
@@ -117,9 +114,7 @@ public:
 	#endif
 
 	// Moving data from host to device
-		/// <summary>
 	/// Copy memory block with dataType numbers from host (RAM, CPU's memory) to device (GPU's memory).
-	/// </summary>
 	/// <param name="p_BlockDevice">pointer to memory block on device</param>
 	/// <param name="p_BlockHost">pointer to memory block on host</param>
 	/// <param name="dataType">type of the elements buffer</param>
@@ -134,9 +129,7 @@ public:
 	}
 
 	// Moving data from device to host
-		/// <summary>
 	/// Copy memory block with dataType numbers from device (GPU's memory) to host (RAM, CPU's memory).
-	/// </summary>
 	/// <param name="p_BlockHost">pointer to memory block on host</param>
 	/// <param name="p_BlockDevice">pointer to memory block on device</param>
 	/// <param name="dataType">type of the elements buffer</param>
@@ -158,9 +151,7 @@ public:
 	}
 
 	// Freeing data
-		/// <summary>
 	/// Free memory block from GPU's memory
-	/// </summary>
 	/// <param name="p_Block">pointer to memory block (on GPU memory)</param>
 	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
 	/// or some error occured (GPU_EXTENSION_ERROR)</returns>

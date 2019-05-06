@@ -69,9 +69,7 @@ namespace FilterConditions
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// <summary>
-/// Kernel for comparing values 
-/// </summary>
+/// Kernel for comparing values
 /// <param name="outMask">block of the result data</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>

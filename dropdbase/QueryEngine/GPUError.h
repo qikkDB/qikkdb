@@ -6,9 +6,7 @@
 #include <iostream>
 #include <string>
 
-/// <summary>
 /// Enum for different QueryEngine errors
-/// </summary>
 enum QueryEngineErrorType
 {
     GPU_EXTENSION_SUCCESS = 0, // Return code for successful operations
@@ -22,9 +20,7 @@ enum QueryEngineErrorType
     GPU_DRIVER_NOT_FOUND_EXCEPTION // Return code for not found nvidia driver
 };
 
-/// <summary>
 /// Generic GPU Error
-/// </summary>
 class gpu_error : public std::runtime_error
 {
 public:
@@ -36,19 +32,16 @@ public:
     }
 };
 
-/// <summary>
+
 /// Error for CUDA "internal" errors
-/// </summary>
 class cuda_error : public gpu_error
 {
 private:
     cudaError_t cudaError_;
 
 public:
-    /// <summary>
     /// Create cuda_error from cudaError_t status
     /// and contain the number and the name of the error in error message.
-    /// </summary>
     /// <param name="cudaError">return value from cudaGetLastError()</param>
     explicit cuda_error(cudaError_t cudaError)
     : gpu_error("CUDA Error " + std::to_string(static_cast<int32_t>(cudaError)) + ": " +
@@ -61,9 +54,7 @@ public:
     {
     }
 
-    /// <summary>
     /// Return stored value from cudaGetLastError()
-    /// </summary>
     /// <return>value from cudaGetLastError()</return>
     cudaError_t GetCudaError()
     {
@@ -71,19 +62,16 @@ public:
     }
 };
 
-/// <summary>
+
 /// Error for our QueryEngine errors
-/// </summary>
 class query_engine_error : public gpu_error
 {
 private:
     QueryEngineErrorType queryEngineErrorType_;
 
 public:
-    /// <summary>
     /// Create query_engine_error from QueryEngineErrorType status and some extra message
     /// and contain the number and the extra message in error message.
-    /// </summary>
     /// <param name="queryEngineErrorType">error type - value from enum QueryEngineErrorType</param>
     /// <param name="message">extra message (can be empty string "")</param>
     explicit query_engine_error(QueryEngineErrorType queryEngineErrorType, const std::string& message)
@@ -94,11 +82,9 @@ public:
 
     ~query_engine_error()
     {
- }
+    }
 
-    /// <summary>
     /// Return stored value of error type
-    /// </summary>
     /// <return>stored error type - value from enum QueryEngineErrorType</return>
     QueryEngineErrorType GetQueryEngineError()
     {
@@ -107,15 +93,11 @@ public:
 };
 
 
-/// <summary>
 /// Check 'cudaError' and throw a cuda_error if it is not cudaSuccess
-/// </summary>
 /// <param name="cudaError">return value from cudaGetLastError()</param>
 void CheckCudaError(cudaError_t cudaError);
 
-/// <summary>
 /// Check 'errorType' and throw a query_engine_error if it is not GPU_EXTENSION_SUCCESS
-/// </summary>
 /// <param name="errorType">error type - value from enum QueryEngineErrorType</param>
 /// <param name="message">extra message (optional parameter)</param>
 void CheckQueryEngineError(const QueryEngineErrorType errorType, const std::string& message = std::string());

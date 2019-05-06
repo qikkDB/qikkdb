@@ -34,7 +34,6 @@ private:
 	};
 
 
-
 	std::unordered_map<std::string, CacheEntry> cacheMap;
 	std::list<CacheEntryRefWrapper> lruQueue;
 
@@ -46,10 +45,9 @@ private:
 	{
 		return usedSize + sizeToInsert <= maxSize_;
 	}
-	///	<summary>
 	/// List of columns that must not be evicted
-	/// </summary>
 	static std::vector<std::string> lockList;
+
 public:
 	static void SetLockList(const std::vector<std::string>& lockList);
 	GPUMemoryCache(int32_t deviceID, size_t maximumSize);
