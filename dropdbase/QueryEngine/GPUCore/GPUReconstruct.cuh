@@ -94,15 +94,10 @@ public:
 		if (inMask)		// If inMask is not nullptr
 		{
 			int32_t* prefixSumPointer = nullptr;
-			int32_t* outDataElementCountPointer = nullptr;
 			try
 			{
 				// Malloc a new buffer for the prefix sum vector
-				
 				GPUMemory::alloc(&prefixSumPointer, dataElementCount);
-
-				// Malloc a new buffer for the output size
-				GPUMemory::alloc(&outDataElementCountPointer, 1);
 
 				PrefixSum(prefixSumPointer, inMask, dataElementCount);
 				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
@@ -119,18 +114,12 @@ public:
 				}
 				// Free the memory
 				GPUMemory::free(prefixSumPointer);
-				GPUMemory::free(outDataElementCountPointer);
 			}
 			catch(...)
 			{
 				if(prefixSumPointer)
 				{
 					GPUMemory::free(prefixSumPointer);
-				}
-
-				if(outDataElementCountPointer)
-				{
-					GPUMemory::free(outDataElementCountPointer);
 				}
 				
 				throw;
@@ -197,10 +186,6 @@ public:
 			// Malloc a new buffer for the prefix sum vector
 			int32_t* prefixSumPointer = nullptr;
 			GPUMemory::alloc(&prefixSumPointer, dataElementCount);
-
-			// Malloc a new buffer for the output size
-			int32_t* outDataElementCountPointer = nullptr;
-			GPUMemory::alloc(&outDataElementCountPointer, 1);
 			
 			// Run prefix sum
 			PrefixSum(prefixSumPointer, inMask, dataElementCount);
@@ -222,7 +207,6 @@ public:
 			}
 			// Free the memory
 			GPUMemory::free(prefixSumPointer);
-			GPUMemory::free(outDataElementCountPointer);
 		}
 		else  // Version without mask is not supported in GenerateIndexes
 		{
