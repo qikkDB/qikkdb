@@ -177,12 +177,16 @@ template<typename AGG, typename O, typename K, typename V>
 class GPUGroupBy : public IGroupBy
 {
 private:
-	K *keys_;							// Keys
-	V *values_;							// Values
-	int64_t *keyOccurenceCount_;		// Count of occurrances of keys		
+	/// Key buffer of the hash table
+	K *keys_ = nullptr;
+	/// Value buffer of the hash table
+	V *values_ = nullptr;
+	/// Count of values aggregated per key (helper buffer of the hash table)
+	int64_t *keyOccurenceCount_ = nullptr;
 
-	int32_t maxHashCount_;				// Maximum size of the result hash table
-
+	/// Size of the hash table (max. count of unique keys)
+	int32_t maxHashCount_;
+	/// Error flag swapper for error checking after kernel runs
 	ErrorFlagSwapper errorFlagSwapper_;
 
 public:
@@ -348,12 +352,16 @@ template<typename O, typename K, typename V>
 class GPUGroupBy<AggregationFunctions::avg, O, K, V> : public IGroupBy
 {
 private:
-	K *keys_;							// Keys
-	V *values_;							// Values
-	int64_t *keyOccurenceCount_;		// Count of occurrances of keys		
+	/// Key buffer of the hash table
+	K *keys_ = nullptr;
+	/// Value buffer of the hash table
+	V *values_ = nullptr;
+	/// Count of values aggregated per key (helper buffer of the hash table)
+	int64_t *keyOccurenceCount_ = nullptr;
 
-	int32_t maxHashCount_;				// Maximum size of the result hash table
-
+	/// Size of the hash table (max. count of unique keys)
+	int32_t maxHashCount_;
+	/// Error flag swapper for error checking after kernel runs
 	ErrorFlagSwapper errorFlagSwapper_;
 
 public:
@@ -372,7 +380,7 @@ public:
 
 	// Create Group By object with existing keys
 	GPUGroupBy(int32_t maxHashCount, K * keys) :
-		maxHashCount_(maxHashCount), keys_(keys)
+		maxHashCount_(maxHashCount)
 	{
 		GPUMemory::alloc(&keys_, maxHashCount_);
 		GPUMemory::alloc(&values_, maxHashCount_);
@@ -567,12 +575,16 @@ template<typename K, typename V>
 class GPUGroupBy<AggregationFunctions::count, int64_t, K, V> : public IGroupBy
 {
 private:
-	K *keys_;							// Keys
-	V *values_;							// Values
-	int64_t *keyOccurenceCount_;		// Count of occurrances of keys		
+	/// Key buffer of the hash table
+	K *keys_ = nullptr;
+	/// Value buffer of the hash table
+	V *values_ = nullptr;
+	/// Count of values aggregated per key (helper buffer of the hash table)
+	int64_t *keyOccurenceCount_ = nullptr;
 
-	int32_t maxHashCount_;				// Maximum size of the result hash table
-
+	/// Size of the hash table (max. count of unique keys)
+	int32_t maxHashCount_;
+	/// Error flag swapper for error checking after kernel runs
 	ErrorFlagSwapper errorFlagSwapper_;
 
 public:
@@ -591,7 +603,7 @@ public:
 
 	// Create Group By object with existing keys
 	GPUGroupBy(int32_t maxHashCount, K * keys) :
-		maxHashCount_(maxHashCount), keys_(keys)
+		maxHashCount_(maxHashCount)
 	{
 		GPUMemory::alloc(&keys_, maxHashCount_);
 		GPUMemory::alloc(&values_, maxHashCount_);
