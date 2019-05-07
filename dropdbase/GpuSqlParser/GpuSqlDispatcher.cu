@@ -64,6 +64,10 @@ void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
 	other.arguments = arguments;
 }
 
+/// Main execution loop of dispatcher
+/// Iterates through all dispatcher functions in the operations array (filled from GpuSqlListener) and executes them
+/// until running out of blocks
+/// <param name="result">Response message to the SQL statement</param>
 void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception)
 {
 	try
@@ -539,6 +543,9 @@ NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& p
 	return gpuPointer;
 }
 
+/// Create polygon gpu representation temporary buffers for protobuf polygon object
+/// <param name="polygon">Polygon object</param>
+/// <returns name="ret">String - Temporary buffer key</returns>
 std::string GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
 {
 	std::string ret = "constPolygon" + std::to_string(constPolygonCounter);
@@ -547,6 +554,9 @@ std::string GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPol
 	return ret;
 }
 
+
+/// Clears all allocated buffers
+/// Resets memory stream reading index to prepare for execution on the next block of data
 void GpuSqlDispatcher::cleanUpGpuPointers()
 {
 	usingGroupBy = false;
@@ -562,6 +572,10 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 	allocatedPointers.clear();
 }
 
+
+/// Implementation of FIL operation
+/// Marks WHERE clause result register as the filtering register
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::fil()
 {
     auto reg = arguments.read<std::string>();
@@ -570,6 +584,10 @@ int32_t GpuSqlDispatcher::fil()
 	return 0;
 }
 
+
+/// Implementation of JMP operation
+/// Determines next block index to process by this instance of dispatcher based on CUDA device count
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::jmp()
 {
 	Context& context = Context::getInstance();
@@ -592,6 +610,10 @@ int32_t GpuSqlDispatcher::jmp()
 	return 0;
 }
 
+
+/// Implementation of DONE operation
+/// Clears all allocated temporary result buffers
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::done()
 {
 	cleanUpGpuPointers();
@@ -599,6 +621,9 @@ int32_t GpuSqlDispatcher::done()
 	return 1;
 }
 
+/// Implementation of SHOW DATABASES operation
+/// Inserts database names to the response message
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::showDatabases()
 {
 	auto databases_map = Database::GetDatabaseNames();
@@ -616,6 +641,10 @@ int32_t GpuSqlDispatcher::showDatabases()
 	return 2;
 }
 
+
+/// Implementation of SHOW TABLES operation
+/// Inserts table names to the response message
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::showTables()
 {
 	std::string db = arguments.read<std::string>();
@@ -636,6 +665,9 @@ int32_t GpuSqlDispatcher::showTables()
 	return 3;
 }
 
+/// Implementation of SHOW COLUMN operation
+/// Inserts column names and their types to the response message
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::showColumns()
 {
 	std::string db = arguments.read<std::string>();
