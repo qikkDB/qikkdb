@@ -833,7 +833,7 @@ TEST(ColumnTests, ColumnStatistics)
     ASSERT_EQ(range, 1);
 }*/
 
-TEST(ColumnTests, FIndIndexAndRangeTemp)
+TEST(ColumnTests, FIndIndexAndRange)
 {
 	int indexBlock = 0;
 	int indexInBlock = 0;
