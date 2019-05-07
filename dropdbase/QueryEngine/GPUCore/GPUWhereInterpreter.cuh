@@ -50,6 +50,16 @@ __device__ void pushColFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>
 	gpuStack.push<T>(reinterpret_cast<T*>(symbols[opCode.data[0]])[offset]);
 }
 
+template <>
+__device__ void pushConstFunction<NativeGeoPoint>(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols);
+
+template <>
+__device__ void pushConstFunction<GPUMemory::GPUPolygon>(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols);
+
+template <>
+__device__ void pushColFunction<GPUMemory::GPUPolygon>(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols);
+
+
 template <typename OP>
 __device__ void invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {

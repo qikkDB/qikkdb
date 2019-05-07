@@ -65,6 +65,7 @@ set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlDispatcher.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/Context.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GpuCore/GPUWhereInterpreter.cu
+                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GpuCore/GPUPolygonContains.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherLogicFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherArithmeticFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherArithmeticUnaryFunctions.cu

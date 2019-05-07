@@ -12,6 +12,7 @@
 #include "GPUWhereInterpreter.cuh"
 #include "MaybeDeref.cuh"
 #include "GpuMemory.cuh"
+#include "GpuPolygonContains.cuh"
 
 __global__ void kernel_filter(int8_t* outMask, GPUOpCode* opCodes, int32_t opCodesCount, void** symbols, int32_t dataElementCount)
 {
@@ -30,6 +31,30 @@ __global__ void kernel_filter(int8_t* outMask, GPUOpCode* opCodes, int32_t opCod
     }
 }
 
+__device__ void containsColPolyFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
+{
+	GPUMemory::GPUPolygon p;
+	p.pointCount = gpuStack.pop<int32_t*>();
+	p.pointIdx = gpuStack.pop<int32_t*>();
+	p.polyCount = gpuStack.pop<int32_t*>();
+	p.polyIdx = gpuStack.pop<int32_t*>();
+	p.polyPoints = gpuStack.pop<NativeGeoPoint*>();
+	NativeGeoPoint point = gpuStack.pop<NativeGeoPoint>();
+	gpuStack.push<int8_t>(point_in_polygon(offset,p,point));
+}
+
+__device__ void containsValsFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
+{
+	GPUMemory::GPUPolygon p;
+	p.pointCount = gpuStack.pop<int32_t*>();
+	p.pointIdx = gpuStack.pop<int32_t*>();
+	p.polyCount = gpuStack.pop<int32_t*>();
+	p.polyIdx = gpuStack.pop<int32_t*>();
+	p.polyPoints = gpuStack.pop<NativeGeoPoint*>();
+	NativeGeoPoint point = gpuStack.pop<NativeGeoPoint>();
+	gpuStack.push<int8_t>(point_in_polygon(0,p,point));
+}
+
 __device__ void invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
 	gpuStack.push(0);
@@ -38,6 +63,15 @@ __device__ void invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPU
 __device__ void invalidContainsArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
 
+}
+
+template <>
+__device__ void pushConstFunction<NativeGeoPoint>(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
+{
+	NativeGeoPoint gp;
+	gp.latitude = (*reinterpret_cast<float*>(opCode.data));
+	gp.longitude = (*reinterpret_cast<float*>(opCode.data + sizeof(float)));
+	gpuStack.push<NativeGeoPoint>(gp);
 }
 
 __device__ GpuVMFunction add_gpu_greater_function(int32_t dataTypes);
