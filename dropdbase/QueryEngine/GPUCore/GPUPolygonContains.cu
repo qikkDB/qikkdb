@@ -1,4 +1,4 @@
-#include "GPUPolygonyContains.cuh"
+#include "GPUPolygonContains.cuh"
 
 /// <summary>
 /// Check whether point is in given polygon using GPU
