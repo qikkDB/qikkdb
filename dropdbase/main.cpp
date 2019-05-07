@@ -1,3 +1,14 @@
+/// \mainpage Project summary
+/// SQL-like database application with query executing on GPU.
+/// <br />
+/// <b>Used programming language:</b>
+///   - C++
+///
+/// <b>Used technologies:</b>
+///   - CUDA
+///   - Antlr
+///   - Google Protocol Buffers
+
 #include "CSVDataImporter.h"
 #include <cstdio>
 #include <iostream>
@@ -18,6 +29,10 @@
 #include "QueryEngine/GPUMemoryCache.h"
 
 
+/// Startup function, called automatically.
+/// <param name="argc">not used parameter</param>
+/// <param name="argv">not used parameter</param>
+/// <returns>Exit code (0 - OK)</returns>
 int main(int argc, char **argv)
 {
     boost::log::add_file_log("../log/ColmnarDB.log");
@@ -64,7 +79,7 @@ int main(int argc, char **argv)
 	*/
 	for (auto& db : Database::GetDatabaseNames())
 	{
-		Database::DestroyDatabase(db.c_str());
+		Database::RemoveFromInMemoryDatabaseList(db.c_str());
 	}
 	return 0;
 }

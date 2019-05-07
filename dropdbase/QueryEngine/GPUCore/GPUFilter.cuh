@@ -69,9 +69,7 @@ namespace FilterConditions
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// <summary>
-/// Kernel for comparing values 
-/// </summary>
+/// Kernel for comparing values
 /// <param name="outMask">block of the result data</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
@@ -100,7 +98,7 @@ public:
 	{
 		kernel_filter <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BCol, dataElementCount);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
@@ -108,7 +106,7 @@ public:
 	{
 		kernel_filter <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, ACol, BConst, dataElementCount);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
@@ -116,14 +114,14 @@ public:
 	{
 		kernel_filter <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(outMask, AConst, BCol, dataElementCount);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 	template<typename OP, typename T, typename U>
 	static void constConst(int8_t *outMask, T AConst, U BConst, int32_t dataElementCount)
 	{
 		GPUMemory::memset(outMask, OP{}(AConst, BConst), dataElementCount);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 };

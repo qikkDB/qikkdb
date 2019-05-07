@@ -92,6 +92,9 @@ public:
   virtual void enterJoinTable(GpuSqlParser::JoinTableContext *ctx) = 0;
   virtual void exitJoinTable(GpuSqlParser::JoinTableContext *ctx) = 0;
 
+  virtual void enterFromTable(GpuSqlParser::FromTableContext *ctx) = 0;
+  virtual void exitFromTable(GpuSqlParser::FromTableContext *ctx) = 0;
+
   virtual void enterTable(GpuSqlParser::TableContext *ctx) = 0;
   virtual void exitTable(GpuSqlParser::TableContext *ctx) = 0;
 
@@ -100,6 +103,9 @@ public:
 
   virtual void enterDatabase(GpuSqlParser::DatabaseContext *ctx) = 0;
   virtual void exitDatabase(GpuSqlParser::DatabaseContext *ctx) = 0;
+
+  virtual void enterAlias(GpuSqlParser::AliasContext *ctx) = 0;
+  virtual void exitAlias(GpuSqlParser::AliasContext *ctx) = 0;
 
   virtual void enterLimit(GpuSqlParser::LimitContext *ctx) = 0;
   virtual void exitLimit(GpuSqlParser::LimitContext *ctx) = 0;
@@ -119,8 +125,8 @@ public:
   virtual void enterDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext *ctx) = 0;
   virtual void exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext *ctx) = 0;
 
-  virtual void enterStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
-  virtual void exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
+  virtual void enterNowLiteral(GpuSqlParser::NowLiteralContext *ctx) = 0;
+  virtual void exitNowLiteral(GpuSqlParser::NowLiteralContext *ctx) = 0;
 
   virtual void enterIntLiteral(GpuSqlParser::IntLiteralContext *ctx) = 0;
   virtual void exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx) = 0;
@@ -140,11 +146,17 @@ public:
   virtual void enterUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) = 0;
   virtual void exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) = 0;
 
-  virtual void enterBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;
-  virtual void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;
-
   virtual void enterVarReference(GpuSqlParser::VarReferenceContext *ctx) = 0;
   virtual void exitVarReference(GpuSqlParser::VarReferenceContext *ctx) = 0;
+
+  virtual void enterPiLiteral(GpuSqlParser::PiLiteralContext *ctx) = 0;
+  virtual void exitPiLiteral(GpuSqlParser::PiLiteralContext *ctx) = 0;
+
+  virtual void enterStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
+  virtual void exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx) = 0;
+
+  virtual void enterBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;
+  virtual void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;
 
   virtual void enterGeometry(GpuSqlParser::GeometryContext *ctx) = 0;
   virtual void exitGeometry(GpuSqlParser::GeometryContext *ctx) = 0;

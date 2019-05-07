@@ -19,7 +19,7 @@
 #include "AggregationFunctions.cuh"
 #include "GPUTypes.h"
 
-// Universal null key calculator
+/// Universal null key calculator
 template<typename K>
 __device__ __host__ constexpr K getEmptyValue()
 {
@@ -36,6 +36,7 @@ __device__ __host__ constexpr K getEmptyValue()
 	}
 }
 
+/// Generic atomic CAS (compare and set) for any 4 and 8 bytes long data type.
 template<typename T>
 __device__ T genericAtomicCAS(T * address, T compare, T val)
 {
@@ -57,7 +58,16 @@ __device__ T genericAtomicCAS(T * address, T compare, T val)
 }
 
 
-// Kernel
+/// GROUP BY Kernel processes input (inKeys and inValues). New keys from inKeys are added
+/// to the hash table and values from inValues are aggregated.
+/// <param name="keys">key buffer of the hash table</param>
+/// <param name="values">value buffer of the hash table</param>
+/// <param name="keyOccurenceCount">key occurences in the hash table</param>
+/// <param name="maxHashCount">size of the hash table (max. number of keys)</param>
+/// <param name="inKeys">input buffer with keys</param>
+/// <param name="inValues">input buffer with values</param>
+/// <param name="dataElementCount">count of rows in input</param>
+/// <param name="errorFlag">GPU pointer to error flag</param>
 template<typename AGG, typename K, typename V>
 __global__ void group_by_kernel(
 	K *keys,
@@ -123,7 +133,7 @@ __global__ void group_by_kernel(
 					}
 					else // keys[index] != inKeys[i]
 					{
-						printf("this will never happen: %d\n", inKeys[i]);
+						printf("This will never happen: %d\n", inKeys[i]);
 						continue; // try to find another index
 					}
 				}*/
@@ -142,7 +152,7 @@ __global__ void group_by_kernel(
 		// else if we found a valid index
 		if (foundIndex == -1)
 		{
-			atomicExch(errorFlag, static_cast<int32_t>(QueryEngineError::GPU_HASH_TABLE_FULL));
+			atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_HASH_TABLE_FULL));
 		}
 		else
 		{
@@ -154,6 +164,7 @@ __global__ void group_by_kernel(
 }
 
 // TODO remake to filter colConst
+/// Helper kernel for mask creation from key buffer of the hash table.
 template<typename K>
 __global__ void is_bucket_occupied_kernel(int8_t *occupancyMask, K *keys, int32_t maxHashCount)
 {
@@ -173,21 +184,26 @@ __global__ void is_bucket_occupied_kernel(int8_t *occupancyMask, K *keys, int32_
 	}
 }
 
+/// GROUP BY generic class (for MIN, MAX and SUM).
 template<typename AGG, typename O, typename K, typename V>
 class GPUGroupBy : public IGroupBy
 {
 private:
-	K *keys_;							// Keys
-	V *values_;							// Values
-	int64_t *keyOccurenceCount_;		// Count of occurrances of keys		
+	/// Key buffer of the hash table
+	K *keys_ = nullptr;
+	/// Value buffer of the hash table
+	V *values_ = nullptr;
+	/// Count of values aggregated per key (helper buffer of the hash table)
+	int64_t *keyOccurenceCount_ = nullptr;
 
-	int32_t maxHashCount_;				// Maximum size of the result hash table
-
+	/// Size of the hash table (max. count of unique keys)
+	int32_t maxHashCount_;
+	/// Error flag swapper for error checking after kernel runs
 	ErrorFlagSwapper errorFlagSwapper_;
 
 public:
-	// Constructor
-	// Allocates hash table of element count: hashHashCount
+	/// Create GPUGroupBy object and allocate a hash table (buffers for key, values and key occurence counts)
+	/// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
 	GPUGroupBy(int32_t maxHashCount) :
 		maxHashCount_(maxHashCount)
 	{
@@ -199,7 +215,9 @@ public:
 		GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), maxHashCount_);
 	}
 
-	// Create Group By object with existing keys
+	/// Create GPUGroupBy object with existing keys (allocate whole new hash table)
+	/// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
+	/// <param name="keys">GPU buffer with existing keys (will be copied to a new buffer)</param>
 	GPUGroupBy(int32_t maxHashCount, K * keys) :
 		maxHashCount_(maxHashCount)
 	{
@@ -211,7 +229,6 @@ public:
 		GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), maxHashCount_);
 	}
 
-	// Destructor
 	~GPUGroupBy()
 	{
 		GPUMemory::free(keys_);
@@ -222,30 +239,46 @@ public:
 	GPUGroupBy(const GPUGroupBy &) = delete;
 	GPUGroupBy& operator=(const GPUGroupBy &) = delete;
 
-	// Group By - callable on the blocks of the input dataset
+	/// Run GROUP BY on one input buffer - callable repeatedly on the blocks of the input columns
+	/// <param name="inKeys">input buffer with keys</param>
+	/// <param name="inValues">input buffer with values</param>
+	/// <param name="dataElementCount">row count to process</param>
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
-		group_by_kernel <AGG> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		if (dataElementCount > 0)
+		{
+			group_by_kernel <AGG> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.GetFlagPointer());
+			errorFlagSwapper_.Swap();
+		}
 	}
 
-	// Get the size of hash table (max count of keys)
+	/// Get the size of the hash table (max. count of unique keys)
+	/// <returns>size of the hash table</returns>
 	int32_t getMaxHashCount()
 	{
 		return maxHashCount_;
 	}
 
-	// Reconstruct needed raw fields (do not calculate final results yet)
+	/// Reconstruct needed raw fields (do not calculate final results yet)
+	/// Reconstruct keys, values and key occurence counts separately
+	/// <param name="keys">output buffer to fill with reconstructed keys</param>
+	/// <param name="values">output buffer to fill with reconstructed values</param>
+	/// <param name="occurences">not used buffer if using operations MIN, MAX or SUM - nullptr can be used</param>
+	/// <param name="elementCount">ouptut buffer to fill with element count (one int32_t number)</param>
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructCol(values, elementCount, values_, occupancyMask.get(), maxHashCount_);
 	}
 
-	// Get the final hash table results - for operations Min, Max and Sum
+	/// Get the final results of GROUP BY operation - for operations Min, Max and Sum on single GPU
+	/// <param name="outKeys">double pointer of output GPU buffer (will be allocated and filled with final keys)</param>
+	/// <param name="outValues">double pointer of output GPU buffer (will be allocated and filled with final values)</param>
+	/// <param name="outDataElementCount">output CPU buffer (will be filled with count of reconstructed elements)</param>
 	void getResults(K **outKeys, O **outValues, int32_t *outDataElementCount)
 	{
 		static_assert(!std::is_same<AGG, AggregationFunctions::avg>::value &&
@@ -256,22 +289,26 @@ public:
 		static_assert(std::is_integral<V>::value || std::is_floating_point<V>::value,
 			"GPUGroupBy<min/max/sum>.getResults V (values) must be integral or floating point");
 //		static_assert(std::is_same<O, V>::value,
-	//		"GPUGroupBy<min/max/sum>.getResults O (outValue) and V (value) must be of the same type (for Min/Max/Sum)");
+//			"GPUGroupBy<min/max/sum>.getResults O (outValue) and V (value) must be of the same type (for Min/Max/Sum)");
 
 		// Create buffer for bucket compression - reconstruct
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 
-		// Reconstruct the output
+		// Reconstruct the hash table to ouput buffers
 		// Copy back the results based on the operation
 		GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_, occupancyMask.get(), maxHashCount_);
 	}
 	
-	// Merge results from all devices and store to fields on default device
+	/// Merge results from all devices and store to buffers on default device (multi GPU function)
+	/// <param name="outKeys">double pointer of output GPU buffer (will be allocated and filled with final keys)</param>
+	/// <param name="outValues">double pointer of output GPU buffer (will be allocated and filled with final values)</param>
+	/// <param name="outDataElementCount">output CPU buffer (will be filled with count of reconstructed elements)</param>
+	/// <param name="tables">vector of unique pointers to IGroupBy objects with hash tables on every device (GPU)</param>
 	void getResults(K** outKeys,
 					O** outValues,
 					int32_t* outDataElementCount,
@@ -317,37 +354,50 @@ public:
 			}
 
 			Context::getInstance().bindDeviceToContext(oldDeviceId);
-			cuda_ptr<K> keysAllGPU(sumElementCount);
-			cuda_ptr<V> valuesAllGPU(sumElementCount);
+			if (sumElementCount > 0)
+			{
+				cuda_ptr<K> keysAllGPU(sumElementCount);
+				cuda_ptr<V> valuesAllGPU(sumElementCount);
 
-			// Copy the condens from host to default device
-			GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
+				// Copy the condens from host to default device
+				GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
 
-			// Merge results
-			GPUGroupBy<AGG, O, K, V> finalGroupBy(sumElementCount);
-			finalGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
-			finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+				// Merge results
+				GPUGroupBy<AGG, O, K, V> finalGroupBy(sumElementCount);
+				finalGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
+				finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+			}
+			else
+			{
+				*outDataElementCount = 0;
+			}
 		}
 	}
 
 };
 
+
+/// GROUP BY specialized class for AVG.
 template<typename O, typename K, typename V>
 class GPUGroupBy<AggregationFunctions::avg, O, K, V> : public IGroupBy
 {
 private:
-	K *keys_;							// Keys
-	V *values_;							// Values
-	int64_t *keyOccurenceCount_;		// Count of occurrances of keys		
+	/// Key buffer of the hash table
+	K *keys_ = nullptr;
+	/// Value buffer of the hash table
+	V *values_ = nullptr;
+	/// Count of values aggregated per key (helper buffer of the hash table)
+	int64_t *keyOccurenceCount_ = nullptr;
 
-	int32_t maxHashCount_;				// Maximum size of the result hash table
-
+	/// Size of the hash table (max. count of unique keys)
+	int32_t maxHashCount_;
+	/// Error flag swapper for error checking after kernel runs
 	ErrorFlagSwapper errorFlagSwapper_;
 
 public:
-	// Constructor
-	// Allocates hash table of element count: hashHashCount
+	/// Create GPUGroupBy object and allocate a hash table (buffers for key, values and key occurence counts)
+	/// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
 	GPUGroupBy(int32_t maxHashCount) :
 		maxHashCount_(maxHashCount)
 	{
@@ -359,9 +409,11 @@ public:
 		GPUMemory::fillArray(values_, AggregationFunctions::avg::template getInitValue<V>(), maxHashCount_);
 	}
 
-	// Create Group By object with existing keys
+	/// Create GPUGroupBy object with existing keys (allocate whole new hash table)
+	/// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
+	/// <param name="keys">GPU buffer with existing keys (will be copied to a new buffer)</param>
 	GPUGroupBy(int32_t maxHashCount, K * keys) :
-		maxHashCount_(maxHashCount), keys_(keys)
+		maxHashCount_(maxHashCount)
 	{
 		GPUMemory::alloc(&keys_, maxHashCount_);
 		GPUMemory::alloc(&values_, maxHashCount_);
@@ -371,7 +423,6 @@ public:
 		GPUMemory::fillArray(values_, AggregationFunctions::avg::template getInitValue<V>(), maxHashCount_);
 	}
 
-	// Destructor
 	~GPUGroupBy()
 	{
 		GPUMemory::free(keys_);
@@ -382,31 +433,47 @@ public:
 	GPUGroupBy(const GPUGroupBy &) = delete;
 	GPUGroupBy& operator=(const GPUGroupBy &) = delete;
 
-	// Group By - callable on the blocks of the input dataset
+	/// Run GROUP BY on one input buffer - callable repeatedly on the blocks of the input columns
+	/// <param name="inKeys">input buffer with keys</param>
+	/// <param name="inValues">input buffer with values</param>
+	/// <param name="dataElementCount">row count to process</param>
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
-		group_by_kernel <AggregationFunctions::avg> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		if (dataElementCount > 0)
+		{
+			group_by_kernel <AggregationFunctions::avg> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.GetFlagPointer());
+			errorFlagSwapper_.Swap();
+		}
 	}
 
-	// Get the size of hash table (max count of keys)
+	/// Get the size of the hash table (max. count of unique keys)
+	/// <returns>size of the hash table</returns>
 	int32_t getMaxHashCount()
 	{
 		return maxHashCount_;
 	}
 
-	// Reconstruct needed raw fields (do not calculate final results yet)
+	/// Reconstruct needed raw fields (do not calculate final results yet)
+	/// Reconstruct keys, values and key occurence counts separately
+	/// <param name="keys">output buffer to fill with reconstructed keys</param>
+	/// <param name="values">output buffer to fill with reconstructed values</param>
+	/// <param name="occurences">output buffer to fill with reconstructed occurences</param>
+	/// <param name="elementCount">ouptut buffer to fill with element count (one int32_t number)</param>
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructCol(values, elementCount, values_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructCol(occurences, elementCount, keyOccurenceCount_, occupancyMask.get(), maxHashCount_);
 	}
 
-	// Get the final hash table results - for operation Average
+	/// Get the final results of GROUP BY operation - for operation Average on single GPU
+	/// <param name="outKeys">double pointer of output GPU buffer (will be allocated and filled with final keys)</param>
+	/// <param name="outValues">double pointer of output GPU buffer (will be allocated and filled with final values)</param>
+	/// <param name="outDataElementCount">output CPU buffer (will be filled with count of reconstructed elements)</param>
 	void getResults(K **outKeys, O **outValues, int32_t *outDataElementCount)
 	{
 		static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value,
@@ -421,7 +488,7 @@ public:
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 
 		// TODO maybe somewhen optimize if O and V is the same data type - dont copy values
@@ -436,7 +503,18 @@ public:
 		*/
 		cuda_ptr<O> outValuesGPU(maxHashCount_);
 		// Divide by counts to get averages for buckets
-		GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(), values_, keyOccurenceCount_, maxHashCount_);
+		try
+		{
+			GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(), values_, keyOccurenceCount_, maxHashCount_);
+		}
+		catch (query_engine_error& err)
+		{
+			if (err.GetQueryEngineError() != QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR)
+			{
+				throw err; // Rethrow
+			}
+			// else ignore, because div by zero is OK here
+		}
 		// Reonstruct result with original occupancyMask
 		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, outValuesGPU.get(), occupancyMask.get(), maxHashCount_);
 		/*
@@ -445,7 +523,11 @@ public:
 		GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask.get(), maxHashCount_);
 	}
 
-	// Merge results from all devices and store to fields on default device
+	/// Merge results from all devices and store to buffers on default device (multi GPU function)
+	/// <param name="outKeys">double pointer of output GPU buffer (will be allocated and filled with final keys)</param>
+	/// <param name="outValues">double pointer of output GPU buffer (will be allocated and filled with final values)</param>
+	/// <param name="outDataElementCount">output CPU buffer (will be filled with count of reconstructed elements)</param>
+	/// <param name="tables">vector of unique pointers to IGroupBy objects with hash tables on every device (GPU)</param>
 	void getResults(K** outKeys,
 					O** outValues,
 					int32_t* outDataElementCount,
@@ -495,56 +577,69 @@ public:
 			}
 
 			Context::getInstance().bindDeviceToContext(oldDeviceId);
-			cuda_ptr<K> keysAllGPU(sumElementCount);
-			cuda_ptr<V> valuesAllGPU(sumElementCount);
-			cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
+			if (sumElementCount > 0)
+			{
+				cuda_ptr<K> keysAllGPU(sumElementCount);
+				cuda_ptr<V> valuesAllGPU(sumElementCount);
+				cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
 
-			// Copy the condens from host to default device
-			GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
+				// Copy the condens from host to default device
+				GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
 
-			// Merge results
-			V* valuesMerged;
-			int64_t* occurencesMerged;
+				// Merge results
+				V* valuesMerged = nullptr;
+				int64_t* occurencesMerged;
 
-			// Calculate sum of values
-			// Initialize new empty sumGroupBy table
-			K* tmpKeys;
-			GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
-			sumGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
-			sumGroupBy.getResults(&tmpKeys, &valuesMerged, outDataElementCount);
+				// Calculate sum of values
+				// Initialize new empty sumGroupBy table
+				K* tmpKeys;
+				GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
+				sumGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
+				sumGroupBy.getResults(&tmpKeys, &valuesMerged, outDataElementCount);
 
-			// Calculate sum of occurences
-			// Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
-			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, tmpKeys);
-			countGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
-			countGroupBy.getResults(outKeys, &occurencesMerged, outDataElementCount);
-
-			GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurencesMerged, *outDataElementCount);
-			GPUMemory::free(valuesMerged);
-			GPUMemory::free(occurencesMerged);
-			GPUMemory::free(tmpKeys);
+				// Calculate sum of occurences
+				// Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
+				GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, tmpKeys);
+				countGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
+				countGroupBy.getResults(outKeys, &occurencesMerged, outDataElementCount);
+				GPUMemory::alloc(outValues, *outDataElementCount);
+				GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurencesMerged, *outDataElementCount);
+				GPUMemory::free(valuesMerged);
+				GPUMemory::free(occurencesMerged);
+				GPUMemory::free(tmpKeys);
+			}
+			else
+			{
+				*outDataElementCount = 0;
+			}
 		}
 	}
 
 };
 
+
+/// GROUP BY specialized class for COUNT.
 template<typename K, typename V>
 class GPUGroupBy<AggregationFunctions::count, int64_t, K, V> : public IGroupBy
 {
 private:
-	K *keys_;							// Keys
-	V *values_;							// Values
-	int64_t *keyOccurenceCount_;		// Count of occurrances of keys		
+	/// Key buffer of the hash table
+	K *keys_ = nullptr;
+	/// Value buffer of the hash table
+	V *values_ = nullptr;
+	/// Count of values aggregated per key (helper buffer of the hash table)
+	int64_t *keyOccurenceCount_ = nullptr;
 
-	int32_t maxHashCount_;				// Maximum size of the result hash table
-
+	/// Size of the hash table (max. count of unique keys)
+	int32_t maxHashCount_;
+	/// Error flag swapper for error checking after kernel runs
 	ErrorFlagSwapper errorFlagSwapper_;
 
 public:
-	// Constructor
-	// Allocates hash table of element count: hashHashCount
+	/// Create GPUGroupBy object and allocate a hash table (buffers for key, values and key occurence counts)
+	/// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
 	GPUGroupBy(int32_t maxHashCount) :
 		maxHashCount_(maxHashCount)
 	{
@@ -556,9 +651,11 @@ public:
 		GPUMemory::fillArray(values_, AggregationFunctions::count::template getInitValue<V>(), maxHashCount_);
 	}
 
-	// Create Group By object with existing keys
+	/// Create GPUGroupBy object with existing keys (allocate whole new hash table)
+	/// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
+	/// <param name="keys">GPU buffer with existing keys (will be copied to a new buffer)</param>
 	GPUGroupBy(int32_t maxHashCount, K * keys) :
-		maxHashCount_(maxHashCount), keys_(keys)
+		maxHashCount_(maxHashCount)
 	{
 		GPUMemory::alloc(&keys_, maxHashCount_);
 		GPUMemory::alloc(&values_, maxHashCount_);
@@ -568,7 +665,6 @@ public:
 		GPUMemory::fillArray(values_, AggregationFunctions::count::template getInitValue<V>(), maxHashCount_);
 	}
 
-	// Destructor
 	~GPUGroupBy()
 	{
 		GPUMemory::free(keys_);
@@ -579,30 +675,46 @@ public:
 	GPUGroupBy(const GPUGroupBy &) = delete;
 	GPUGroupBy& operator=(const GPUGroupBy &) = delete;
 
-	// Group By - callable on the blocks of the input dataset
+	/// Run GROUP BY on one input buffer - callable repeatedly on the blocks of the input columns
+	/// <param name="inKeys">input buffer with keys</param>
+	/// <param name="inValues">input buffer with values</param>
+	/// <param name="dataElementCount">row count to process</param>
 	void groupBy(K *inKeys, V *inValues, int32_t dataElementCount)
 	{
-		group_by_kernel <AggregationFunctions::count> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.getFlagPointer());
+		if (dataElementCount > 0)
+		{
+			group_by_kernel <AggregationFunctions::count> << <  Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+				(keys_, values_, keyOccurenceCount_, maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.GetFlagPointer());
+			errorFlagSwapper_.Swap();
+		}
 	}
 
-	// Get the size of hash table (max count of keys)
+	/// Get the size of the hash table (max. count of unique keys)
+	/// <returns>size of the hash table</returns>
 	int32_t getMaxHashCount()
 	{
 		return maxHashCount_;
 	}
 
-	// Reconstruct needed raw fields (do not calculate final results yet)
+	/// Reconstruct needed raw fields (do not calculate final results yet)
+	/// Reconstruct keys, values and key occurence counts separately
+	/// <param name="keys">output buffer to fill with reconstructed keys</param>
+	/// <param name="values">not used buffer if using operations COUNT - nullptr can be used</param>
+	/// <param name="occurences">output buffer to fill with reconstructed occurences</param>
+	/// <param name="elementCount">ouptut buffer to fill with element count (one int32_t number)</param>
 	void reconstructRawNumbers(K * keys, V * values, int64_t * occurences, int32_t * elementCount)
 	{
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
 		GPUReconstruct::reconstructCol(occurences, elementCount, keyOccurenceCount_, occupancyMask.get(), maxHashCount_);
 	}
 
-	// Get the final hash table results - for operation Count
+	/// Get the final results of GROUP BY operation - for operation Count on single GPU
+	/// <param name="outKeys">double pointer of output GPU buffer (will be allocated and filled with final keys)</param>
+	/// <param name="outValues">double pointer of output GPU buffer (will be allocated and filled with final values)</param>
+	/// <param name="outDataElementCount">output CPU buffer (will be filled with count of reconstructed elements)</param>
 	void getResults(K **outKeys, int64_t **outValues, int32_t *outDataElementCount)
 	{
 		static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value,
@@ -614,7 +726,7 @@ public:
 		cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
 
 		// Calculate occupancy mask
-		is_bucket_occupied_kernel << <  Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 
 		// Reconstruct the output
@@ -622,7 +734,11 @@ public:
 		GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, keyOccurenceCount_, occupancyMask.get(), maxHashCount_);
 	}
 
-	// Merge results from all devices and store to fields on default device
+	/// Merge results from all devices and store to buffers on default device (multi GPU function)
+	/// <param name="outKeys">double pointer of output GPU buffer (will be allocated and filled with final keys)</param>
+	/// <param name="outValues">double pointer of output GPU buffer (will be allocated and filled with final values)</param>
+	/// <param name="outDataElementCount">output CPU buffer (will be filled with count of reconstructed elements)</param>
+	/// <param name="tables">vector of unique pointers to IGroupBy objects with hash tables on every device (GPU)</param>
 	void getResults(K** outKeys,
 					int64_t** outValues,
 					int32_t* outDataElementCount,
@@ -668,17 +784,24 @@ public:
 			}
 
 			Context::getInstance().bindDeviceToContext(oldDeviceId);
-			cuda_ptr<K> keysAllGPU(sumElementCount);
-			cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
+			if (sumElementCount > 0)
+			{
+				cuda_ptr<K> keysAllGPU(sumElementCount);
+				cuda_ptr<int64_t> occurencesAllGPU(sumElementCount);
 
-			// Copy the condens from host to default device
-			GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
-			GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
+				// Copy the condens from host to default device
+				GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(occurencesAllGPU.get(), occurencesAllHost.data(), sumElementCount);
 
-			// Merge results
-			GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> finalGroupBy(sumElementCount);
-			finalGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
-			finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+				// Merge results
+				GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> finalGroupBy(sumElementCount);
+				finalGroupBy.groupBy(keysAllGPU.get(), occurencesAllGPU.get(), sumElementCount);
+				finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
+			}
+			else
+			{
+				*outDataElementCount = 0;
+			}
 		}
 	}
 

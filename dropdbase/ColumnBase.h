@@ -90,86 +90,114 @@ template <class T>
 class ColumnBase : public IColumn
 {
 private:
-    std::string name_;
-    int blockSize_;
-    std::vector<std::unique_ptr<BlockBase<T>>> blocks_;
+	std::string name_;
+	int blockSize_;
+	std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
 
     std::vector<T> NullArray(int length);
     void setColumnStatistics();
 
-    T min_;
-    T max_;
-    float avg_;
-    T sum_;
+	T min_ = std::numeric_limits<T>::lowest();
+	T max_ = std::numeric_limits<T>::max();
+	float avg_ = 0.0;
+	T sum_ = T{};
+	float initAvg_ = 0.0; //initial average is needed, because avg_ is constantly changing and we need unchable value for comparing in binary index
+	bool initAvgIsSet_ = false;
 
 public:
-    ColumnBase(const std::string& name, int blockSize)
-    : name_(name), blockSize_(blockSize), blocks_()
-    {
-    }
+	ColumnBase(const std::string& name, int blockSize) :
+		name_(name), blockSize_(blockSize), blocks_()
+	{
+		std::vector<std::unique_ptr<BlockBase<T>>> blocks;
+		blocks_[-1] = std::move(blocks);
+	}
 
-    inline int GetBlockSize() const
-    {
-        return blockSize_;
-    };
+	inline int GetBlockSize() const { return blockSize_; };
 
-    virtual const std::string& GetName() const override
-    {
-        return name_;
-    }
+	virtual const std::string& GetName() const override
+	{
+		return name_;
+	}
 
-    T GetMax()
-    {
-        return max_;
-    }
+	virtual const float GetInitAvg() const override
+	{
+		return initAvg_;
+	}
 
-    T GetMin()
-    {
-        return min_;
-    }
+	virtual const bool GetInitAvgIsSet() const override
+	{
+		return initAvgIsSet_;
+	}
 
-    float GetAvg()
-    {
-        return avg_;
-    }
+	T GetMax()
+	{
+		return max_;
+	}
 
-    T GetSum()
-    {
-        return sum_;
-    }
+	T GetMin()
+	{
+		return min_;
+	}
 
-    /// <summary>
-    /// Blocks getter
-    /// </summary>
-    /// <returns>List of blocks in current column</returns>
-    const std::vector<std::unique_ptr<BlockBase<T>>>& GetBlocksList() const
-    {
-        return blocks_;
-    };
+	float GetAvg()
+	{
+		return avg_;
+	}
 
-    /// <summary>
-    /// Add new block in column
-    /// </summary>
-    /// <returns>Last block of column</returns>
-    BlockBase<T>& AddBlock()
-    {
-        blocks_.push_back(std::make_unique<BlockBase<T>>(*this));
-        return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
-    }
+	T GetSum()
+	{
+		return sum_;
+	}
 
-    /// <summary>
-    /// Add new block with proper data into column
-    /// </summary>
-    /// <param name="data">Data to be inserted</param>
-    /// <returns>Last block of column</returns>
-    BlockBase<T>& AddBlock(const std::vector<T>& data)
-    {
-        blocks_.push_back(std::make_unique<BlockBase<T>>(data, *this));
-        return *(dynamic_cast<BlockBase<T>*>(blocks_.back().get()));
-    }
+	/// <summary>
+	/// Blocks getter
+	/// </summary>
+	/// <returns>List of blocks in current column</returns>
+	const std::vector<BlockBase<T> *> GetBlocksList() const
+	{
+		std::vector<BlockBase<T> *> ret;
+
+		for (auto& stuff : blocks_)
+		{
+			for (auto& ptr : stuff.second)
+			{
+				ret.emplace_back(ptr.get());
+			}
+		}
+
+		return ret;
+	};
+
+	/// <summary>
+	/// Add new block in column
+	/// </summary>
+	/// <returns>Last block of column</returns>
+	BlockBase<T>& AddBlock(int groupId = -1)
+	{
+		if (blocks_.find(groupId) == blocks_.end())
+		{
+			// key not found
+			std::vector<std::unique_ptr<BlockBase<T>>> blocks;
+			blocks_[groupId] = std::move(blocks);
+		}
+
+		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
+		return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
+	}
+
+	/// <summary>
+	/// Add new block with proper data into column
+	/// </summary>
+	/// <param name="data">Data to be inserted</param>
+	/// <returns>Last block of column</returns>
+	BlockBase<T>& AddBlock(const std::vector<T>& data, int groupId = -1)
+	{
+		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this));
+		return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
+	}
 
     std::tuple<int, int, int>
-    FindIndexAndRange(int indexBlock, int indexInBlock, int range, const T& columnData)
+    FindIndexAndRange(int indexBlock, int indexInBlock, int range, const T& columnData, int groupId = -1)
     {
         int remainingRange = range;
         int blockRange;
@@ -190,7 +218,7 @@ public:
 
 		else if (blocks_.size() == 1)
         {
-            BlockBase<T>& block = *(blocks_[0].get());
+            BlockBase<T>& block = *(blocks_[groupId][0].get());
             newIndexBlock = 0;
             std::tie(newIndexInBlock, newRange, reachEnd) =
                 block.FindIndexAndRange(indexInBlock, range, columnData);
@@ -200,11 +228,11 @@ public:
         {
 			for (int i = indexBlock; i < blocks_.size() && reachEnd && remainingRange > 0; i++)
 			{
-			    BlockBase<T>& block = *(blocks_[i].get());
+			    BlockBase<T>& block = *(blocks_[groupId][i].get());
 
-			    if (columnData >= blocks_[i]->GetMin() &&
+			    if (columnData >= blocks_[groupId][i]->GetMin() &&
 			        (remainingRange <= block.GetSize() - startIndexInCurrentBlock ||
-			         (columnData <= blocks_[i]->GetMax() || (i == blocks_.size() - 1 || columnData <= blocks_[i + 1]->GetMin()))))
+			         (columnData <= blocks_[groupId][i]->GetMax() || (i == blocks_.size() - 1 || columnData <= blocks_[groupId][i + 1]->GetMin()))))
 			    {
 			        int tempIndexInBlock;
 			        std::tie(tempIndexInBlock, blockRange, reachEnd) =
@@ -220,29 +248,28 @@ public:
 			    remainingRange -= block.GetSize() - startIndexInCurrentBlock;
 			    startIndexInCurrentBlock = 0;
 			}
-			
         }
         return std::make_tuple(newIndexBlock, newIndexInBlock, newRange);
     }
 
-    void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData)
+    void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData, int groupId = -1)
     {
         if (blocks_.size() == 0)
         {
             BlockBase<T>& block = AddBlock();
         }
-        BlockBase<T>& block = *(blocks_[indexBlock].get());
+        BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
         block.InsertDataOnSpecificPosition(indexInBlock, columnData);
 
         if (block.IsFull())
         {
-            BlockSplit(blocks_[indexBlock]);
+            BlockSplit(blocks_[groupId][indexBlock]);
         }
 
         setColumnStatistics();
     }
 
-    void BlockSplit(std::unique_ptr<BlockBase<T>>& blockPtr)
+    void BlockSplit(std::unique_ptr<BlockBase<T>>& blockPtr, int groupId = -1)
     {
         BlockBase<T>& block = *(blockPtr.get());
         std::vector<T> data1;
@@ -264,11 +291,11 @@ public:
         std::unique_ptr<BlockBase<T>> block1 = std::make_unique<BlockBase<T>>(data1, *this);
         std::unique_ptr<BlockBase<T>> block2 = std::make_unique<BlockBase<T>>(data2, *this);
 
-        auto blockIndex = std::find(blocks_.begin(), blocks_.end(), blockPtr);
-        blocks_.erase(blockIndex);
+        auto blockIndex = std::find(blocks_[groupId].begin(), blocks_[groupId].end(), blockPtr);
+        blocks_[groupId].erase(blockIndex);
 
-        blocks_.insert(blockIndex, std::move(block2));
-        blocks_.insert(blockIndex, std::move(block1));
+        blocks_[groupId].insert(blockIndex, std::move(block2));
+        blocks_[groupId].insert(blockIndex, std::move(block1));
     }
 
 
@@ -276,30 +303,32 @@ public:
     /// Insert data into column considering empty space of last block and maximum size of blocks
     /// </summary>
     /// <param name="columnData">Data to be inserted</param>
-    void InsertData(const std::vector<T>& columnData)
-    {
-        int startIdx = 0;
-        if (blocks_.size() > 0 && !blocks_.back()->IsFull())
-        {
-            auto& lastBlock = blocks_.back();
-            if (columnData.size() <= lastBlock->EmptyBlockSpace())
-            {
-                lastBlock->InsertData(columnData);
-                return;
-            }
-            int emptySpace = lastBlock->EmptyBlockSpace();
-            lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
-            startIdx += emptySpace;
-        }
+	void InsertData(const std::vector<T>& columnData, int groupId = -1)
+	{
+		int startIdx = 0;
+		if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
+		{
+			auto & lastBlock = blocks_[groupId].back();
+			if (columnData.size() <= lastBlock->EmptyBlockSpace())
+			{
+				lastBlock->InsertData(columnData);
+				return;
+			}
+			int emptySpace = lastBlock->EmptyBlockSpace();
+			lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
+			startIdx += emptySpace;
+		}
 
-        while (startIdx < columnData.size())
-        {
-            int toCopy = columnData.size() - startIdx < blockSize_ ? columnData.size() - startIdx : blockSize_;
-            AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy));
-            startIdx += toCopy;
-        }
-        setColumnStatistics();
-    }
+		while (startIdx < columnData.size())
+		{
+			int toCopy = columnData.size() - startIdx < blockSize_
+				? columnData.size() - startIdx
+				: blockSize_;
+			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy));
+			startIdx += toCopy;
+		}
+		setColumnStatistics();
+	}
 
     /// <summary>
     /// Get all unique values for this column
@@ -355,6 +384,14 @@ public:
 
     virtual int32_t GetBlockCount() const override
     {
-        return blocks_.size();
-    }
+		int32_t ret = 0;
+
+		//TODO preiterovat celu mapu a zosumovat bloky
+		for (auto& stuff : blocks_)
+		{
+			ret += stuff.second.size();
+		}
+
+		return ret;
+	}
 };

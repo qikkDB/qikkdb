@@ -12,6 +12,15 @@
 class CSVDataImporter
 {
 public:
+	/// <summary>
+	/// Initializes a new instance of the <see cref="T:ColmnarDB.CSVDataImporter"/> class. Imports data from string.
+	/// </summary>
+	/// <param name="inputString">Input string of data which will be imported.</param>
+	/// <param name="tableName">Name of table into which data will be imported.</param>
+	/// <param name="header">True, if CSV file has a header. Default value is 'true'.</param>
+	/// <param name="delimiter">Delimiter between values. Default value is ','.</param>
+	/// <param name="quotes">Character used for quoting. Default value is '.</param>
+	/// <param name="decimal">Character used as decimal point. Default value is '.'.</param>
 	CSVDataImporter(const char* inputString, const char* tableName, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.') :
 		input_(inputString),
 		inputSize_(strlen(inputString)),
@@ -23,6 +32,14 @@ public:
 	{			
 	}
 	
+	/// <summary>
+	/// Initializes a new instance of the <see cref="T:ColmnarDB.CSVDataImporter"/> class. Imports data from CSV file.
+	/// </summary>
+	/// <param name="fileName">Path to the CSV file.</param>
+	/// <param name="header">True, if CSV file has a header. Default value is 'true'.</param>
+	/// <param name="delimiter">Delimiter between values. Default value is ','.</param>
+	/// <param name="quotes">Character used for quoting. Default value is '.</param>
+	/// <param name="decimal">Character used as decimal point. Default value is '.'.</param>
 	CSVDataImporter(const char* fileName, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.');
 	
 	void ImportTables(std::shared_ptr<Database>& database);

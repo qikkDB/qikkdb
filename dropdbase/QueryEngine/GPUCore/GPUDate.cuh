@@ -7,20 +7,30 @@
 #include <cstdint>
 
 #include "../Context.h"
-#include "../QueryEngineError.h"
+#include "../GPUError.h"
 #include "MaybeDeref.cuh"
 
+/// Namespace with date-time device functors to extract year/month/day and hour/minute/second.
+/// Time (hours, minutes and seconds) is in regular cycles 86400 seconds long.
+/// Date counts with leap years, so 400 years long regular cycle is used in calculations.
 namespace DateOperations
 {
-	constexpr int64_t SECONDS_BETWEEN_1600_1970 = 11676096000LL;			// number of seconds between years 1600 and 1970
-	constexpr int64_t DAYS_IN_400_YEARS = 146097LL;						// days in 400 years cycle (e.g. between 1600 and 2000)
-	constexpr int64_t SECONDS_IN_400_YEARS = DAYS_IN_400_YEARS * 86400LL;	// seconds in 400 years cycle (e.g. between 1600 and 2000)
+	/// Number of seconds between years 1600 and 1970
+	constexpr int64_t SECONDS_BETWEEN_1600_1970 = 11676096000LL;
+
+	/// Days in 400 years cycle (e.g. between 1600 and 2000)
+	constexpr int64_t DAYS_IN_400_YEARS = 146097LL;
+
+	/// Seconds in 400 years cycle (e.g. between 1600 and 2000)
+	constexpr int64_t SECONDS_IN_400_YEARS = DAYS_IN_400_YEARS * 86400LL;
 	
+	/// GPU constant buffer to accelerate date processing
 	__constant__ int64_t START_DAYS_OF_LEAP_YEARS[] = { 0, 1461, 2922, 4383, 5844, 7305, 8766, 10227, 11688, 13149, 14610, 16071, 17532, 18993, 20454, 21915, 23376, 24837, 26298, 27759, 29220, 30681, 32142, 33603, 35064,
 		37985, 39446, 40907, 42368, 43829, 45290, 46751, 48212, 49673, 51134, 52595, 54056, 55517, 56978, 58439, 59900, 61361, 62822, 64283, 65744, 67205, 68666, 70127, 71588,
 		74509, 75970, 77431, 78892, 80353, 81814, 83275, 84736, 86197, 87658, 89119, 90580, 92041, 93502, 94963, 96424, 97885, 99346, 100807, 102268, 103729, 105190, 106651, 108112,
 		111033, 112494, 113955, 115416, 116877, 118338, 119799, 121260, 122721, 124182, 125643, 127104, 128565, 130026, 131487, 132948, 134409, 135870, 137331, 138792, 140253, 141714, 143175, 144636 };
 
+	/// GPU constant buffer to accelerate date processing
 	__constant__ int64_t START_DAYS_OF_MONTHS[] = { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335,
 		366, 397, 425, 456, 486, 517, 547, 578, 609, 639, 670, 700,
 		731, 762, 790, 821, 851, 882, 912, 943, 974, 1004, 1035, 1065,
@@ -30,6 +40,7 @@ namespace DateOperations
 		2191, 2222, 2250, 2281, 2311, 2342, 2372, 2403, 2434, 2464, 2495, 2525,
 		2556, 2587, 2615, 2646, 2676, 2707, 2737, 2768, 2799, 2829, 2860, 2890 };
 
+	/// Year
 	struct year
 	{
 		__device__ int32_t operator()(int64_t dateTime) const
@@ -67,6 +78,7 @@ namespace DateOperations
 		}
 	};
 
+	/// Month 1-12
 	struct month
 	{
 		__device__ int32_t operator()(int64_t dateTime) const
@@ -103,6 +115,7 @@ namespace DateOperations
 		}
 	};
 
+	/// Day 1-28/29/30/31
 	struct day
 	{
 		__device__ int32_t operator()(int64_t dateTime) const
@@ -140,6 +153,7 @@ namespace DateOperations
 		}
 	};
 
+	/// Hour 0-23
 	struct hour
 	{
 		__device__ int32_t operator()(int64_t dateTime) const
@@ -155,6 +169,7 @@ namespace DateOperations
 		}
 	};
 
+	/// Minute 0-59
 	struct minute
 	{
 		__device__ int32_t operator()(int64_t dateTime) const
@@ -170,6 +185,7 @@ namespace DateOperations
 		}
 	};
 
+	/// Second 0-59
 	struct second
 	{
 		__device__ int32_t operator()(int64_t dateTime) const
@@ -187,10 +203,8 @@ namespace DateOperations
 }
 
 
-/// <summary>
 /// Kernel for extracting date or time variable (e.g. days, hours)
 /// from datetime column or constant
-/// </summary>
 /// <param name="output">block of the result data</param>
 /// <param name="dateTimeCol">input timestamp (column or constant)</param>
 /// <param name="dataElementCount">the count of elements in the input block
@@ -207,29 +221,35 @@ __global__ void kernel_extract(int32_t * output, T dateTimeCol, int32_t dataElem
 	}
 }
 
-/// <summary>
 /// GPUDate class is for extracting (conversion) variables (e.g. days, hours)
 /// from datetime column or constant
-/// </summary>
 class GPUDate
 {
 public:
+	/// Extract values (one value - year/month/dat/hour/minute/second - per row) from a datetime column
+	/// <param name="output">Output GPU buffer for result (int32_t)</param>
+	/// <param name="dateTimeCol">Input GPU buffer - datetime (int64_t)</param>
+	/// <param name="dataElementCount">Row count (e.g. size of block to process)</param>
 	template<typename OP>
 	static void extractCol(int32_t * output, int64_t * dateTimeCol, int32_t dataElementCount)
 	{
 		kernel_extract <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, dateTimeCol, dataElementCount);
 		cudaDeviceSynchronize();
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Extract a value (year/month/dat/hour/minute/second) from a datetime constant
+	/// <param name="output">Output GPU buffer for result (int32_t)</param>
+	/// <param name="dateTimeConst">Input datetime (int64_t)</param>
+	/// <param name="dataElementCount">Output row count (how many times duplicate the value extracted from the constant)</param>
 	template<typename OP>
 	static void extractConst(int32_t * output, int64_t dateTimeConst, int32_t dataElementCount)
 	{
 		kernel_extract <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
 			(output, dateTimeConst, dataElementCount);
 		cudaDeviceSynchronize();
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 
 };

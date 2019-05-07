@@ -28,9 +28,7 @@ namespace PolygonFunctions
 	};
 }
 
-/// <summary>
 /// Check whether point is in given polygon using GPU
-/// </summary>
 /// <param name="outMask">pointer to output mask</param>
 /// <param name="geoPointsInput">points to check for inclusion</param>
 /// <param name="geoPoints">points of all polygons</param>
@@ -107,20 +105,23 @@ __global__ void kernel_point_in_polygon(int8_t* outMask,
 class GPUPolygon
 {
 public:
-    /// <summary>
     /// Check whether point is in given polygon
-    /// </summary>
     /// <param name="outMask">pointer to output mask</param>
     /// <param name="geoPointsInput">points to check for inclusion</param>
     /// <param name="geoPoints">points of all polygons</param>
     /// <param name="complexPolygonIdx">Start indices of range of polygons in polygon arrays, for
-    /// each complex polygon</param> <param name="complexPolygonCnt">Length of the polygon range for
-    /// each complex polygon</param> <param name="polygonIdx">Start indices of range of points in
-    /// points array, for each polygon</param> <param name="polygonCnt">Length of the point range
-    /// for each polygon</param> <param name="pointCount">Length of geoPointsInput</param> <param
-    /// name="polygonCount">Length of complexPolygonIdx and complexPolygonCnt</param> <returns>return
-    /// code tells if operation was successful (GPU_EXTENSION_SUCCESS) or some error occured
-    /// (GPU_EXTENSION_ERROR)</returns> <remarks>If point count is equal to 1, the point is checked
+    ///   each complex polygon</param>
+    /// <param name="complexPolygonCnt">Length of the polygon range for
+    ///   each complex polygon</param>
+    /// <param name="polygonIdx">Start indices of range of points in
+    ///   points array, for each polygon</param>
+    /// <param name="polygonCnt">Length of the point range
+    ///   for each polygon</param>
+    /// <param name="pointCount">Length of geoPointsInput</param>
+    /// <param name="polygonCount">Length of complexPolygonIdx and complexPolygonCnt</param>
+    /// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS) or some error
+    ///   occured (GPU_EXTENSION_ERROR)</returns>
+    /// <remarks>If point count is equal to 1, the point is checked
     /// against every polygon. If polygon count is equal to 1, the polygon is checked against every
     /// point. If point count is equal to polygon count, points are checked one to one against
     /// polygons on the same array index.
@@ -139,7 +140,8 @@ public:
 
         if (pointCount != polygonCount && pointCount != 1 && polygonCount != 1)
         {
-            QueryEngineError::setType(QueryEngineError::GPU_EXTENSION_ERROR);
+            CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR, "PointCount=" + std::to_string(pointCount) +
+				", PolygonCount=" + std::to_string(polygonCount) + ": not allowed combination");
             return;
         }
 
@@ -148,26 +150,25 @@ public:
                                                            complexPolygonIdx, complexPolygonCnt, polygonIdx,
                                                            polygonCnt, pointCount, polygonCount);
 
-        QueryEngineError::setCudaError(cudaGetLastError());
+        CheckCudaError(cudaGetLastError());
     }
-	/// <summary>
-  /// Check whether point is in given polygon
-  /// </summary>
-  /// <param name="outMask">pointer to output mask</param>
-  /// <param name="geoPointsInput">points to check for inclusion</param>
-  /// <param name="geoPoints">points of all polygons</param>
-  /// <param name="complexPolygonIdx">Start indices of range of polygons in polygon arrays, for
-  /// each complex polygon</param> <param name="complexPolygonCnt">Length of the polygon range for
-  /// each complex polygon</param> <param name="polygonIdx">Start indices of range of points in
-  /// points array, for each polygon</param> <param name="polygonCnt">Length of the point range
-  /// for each polygon</param> <param name="pointCount">Length of geoPointsInput</param> <param
-  /// name="polygonCount">Length of complexPolygonIdx and complexPolygonCnt</param> <returns>return
-  /// code tells if operation was successful (GPU_EXTENSION_SUCCESS) or some error occured
-  /// (GPU_EXTENSION_ERROR)</returns> <remarks>If point count is equal to 1, the point is checked
-  /// against every polygon. If polygon count is equal to 1, the polygon is checked against every
-  /// point. If point count is equal to polygon count, points are checked one to one against
-  /// polygons on the same array index.
-  /// </remarks>
+
+    /// Check whether point is in given polygon
+    /// <param name="outMask">pointer to output mask</param>
+    /// <param name="geoPointsInput">points to check for inclusion</param>
+    /// <param name="geoPoints">points of all polygons</param>
+    /// <param name="complexPolygonIdx">Start indices of range of polygons in polygon arrays, for
+    /// each complex polygon</param> <param name="complexPolygonCnt">Length of the polygon range for
+    /// each complex polygon</param> <param name="polygonIdx">Start indices of range of points in
+    /// points array, for each polygon</param> <param name="polygonCnt">Length of the point range
+    /// for each polygon</param> <param name="pointCount">Length of geoPointsInput</param> <param
+    /// name="polygonCount">Length of complexPolygonIdx and complexPolygonCnt</param> <returns>return
+    /// code tells if operation was successful (GPU_EXTENSION_SUCCESS) or some error occured
+    /// (GPU_EXTENSION_ERROR)</returns> <remarks>If point count is equal to 1, the point is checked
+    /// against every polygon. If polygon count is equal to 1, the polygon is checked against every
+    /// point. If point count is equal to polygon count, points are checked one to one against
+    /// polygons on the same array index.
+    /// </remarks>
 	static void containsConst(int8_t* outMask,
 		NativeGeoPoint* geoPointsInput,
 		NativeGeoPoint* geoPoints,
@@ -187,6 +188,6 @@ public:
 		int8_t result;
 		GPUMemory::copyDeviceToHost(&result, outMask, 1);
 		GPUMemory::memset(outMask, result, retSize);
-		QueryEngineError::setCudaError(cudaGetLastError());
+		CheckCudaError(cudaGetLastError());
 	}
 };

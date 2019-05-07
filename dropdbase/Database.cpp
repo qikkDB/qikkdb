@@ -21,7 +21,7 @@ std::mutex Database::dbMutex_;
 /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
 /// </summary>
 /// <param name="databaseName">Database name.</param>
-/// <param name="blockSize">Block size of all blocks in this database</param>
+/// <param name="blockSize">Block size of all blocks in this database.</param>
 Database::Database(const char* databaseName, int32_t blockSize)
 {
     name_ = databaseName;
@@ -130,7 +130,7 @@ void Database::Persist(const char* path)
 /// <summary>
 /// Save all databases currently in memory to disk. All databases will be saved in the same directory
 /// </summary>
-/// <param name="path">Path to database storage directory</param>
+/// <param name="path">Path to database storage directory.</param>
 void Database::SaveAllToDisk()
 {
 	auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
@@ -142,7 +142,7 @@ void Database::SaveAllToDisk()
 
 /// <summary>
 /// Load databases from disk storage. Databases .db and .col files have to be in the same directory,
-/// so all databases have to be in the same dorectory to be loaded using this procedure
+/// so all databases have to be in the same dorectory to be loaded using this procedure.
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
@@ -203,9 +203,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 
         std::unique_ptr<char[]> tableName(new char[tableNameLength]);
         dbFile.read(tableName.get(), tableNameLength); // read table name
-
-        database->tables_.insert({tableName.get(), Table(database, tableName.get())});
-
+        database->tables_.emplace(std::make_pair(std::string(tableName.get()), Table(database, tableName.get())));
         int32_t columnCount;
         dbFile.read(reinterpret_cast<char*>(&columnCount), sizeof(int32_t)); // read number of columns
 
@@ -277,6 +275,9 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int32_t index;
             colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
 
+			int32_t groupId;
+			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
+
             // this is needed because of how EOF is checked:
             if (colFile.eof())
             {
@@ -321,7 +322,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                     byteIndex += entryByteLength;
                 }
 
-                columnPolygon.AddBlock(dataPolygon);
+                columnPolygon.AddBlock(dataPolygon, groupId);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added ComplexPolygon block with data at index: " << index << "." << std::endl;
             }
@@ -342,6 +343,9 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
         {
             int32_t index;
             colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+
+			int32_t groupId;
+			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
             // this is needed because of how EOF is checked:
             if (colFile.eof())
@@ -387,7 +391,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                     byteIndex += entryByteLength;
                 }
 
-                columnPoint.AddBlock(dataPoint);
+                columnPoint.AddBlock(dataPoint, groupId);
 
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added Point block with data at index: " << index << "." << std::endl;
@@ -408,6 +412,9 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
         {
             int32_t index;
             colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+
+			int32_t groupId;
+			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
             // this is needed because of how EOF is checked:
             if (colFile.eof())
@@ -450,7 +457,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                     byteIndex += entryByteLength;
                 }
 
-                columnString.AddBlock(dataString);
+                columnString.AddBlock(dataString, groupId);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added String block with data at index: " << index << "." << std::endl;
             }
@@ -470,6 +477,9 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
         {
             int32_t index;
             colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+
+			int32_t groupId;
+			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
             // this is needed because of how EOF is checked:
             if (colFile.eof())
@@ -499,7 +509,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int8_t*>(data.get());
                 std::vector<int8_t> dataInt(dataTemp, dataTemp + dataLength);
 
-                columnInt.AddBlock(dataInt);
+                columnInt.AddBlock(dataInt, groupId);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added Int8 block with data at index: " << index << "." << std::endl;
             }
@@ -519,6 +529,9 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
         {
             int32_t index;
             colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+
+			int32_t groupId;
+			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
             // this is needed because of how EOF is checked:
             if (colFile.eof())
@@ -548,7 +561,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int32_t*>(data.get());
                 std::vector<int32_t> dataInt(dataTemp, dataTemp + dataLength);
 
-                columnInt.AddBlock(dataInt);
+                columnInt.AddBlock(dataInt, groupId);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added Int32 block with data at index: " << index << "." << std::endl;
             }
@@ -568,6 +581,9 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
         {
             int32_t index;
             colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+
+			int32_t groupId;
+			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
             // this is needed because of how EOF is checked:
             if (colFile.eof())
@@ -597,7 +613,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int64_t*>(data.get());
                 std::vector<int64_t> dataLong(dataTemp, dataTemp + dataLength);
 
-                columnLong.AddBlock(dataLong);
+                columnLong.AddBlock(dataLong, groupId);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added Int64 block with data at index: " << index << "." << std::endl;
             }
@@ -617,6 +633,9 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
         {
             int32_t index;
             colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+
+			int32_t groupId;
+			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
             // this is needed because of how EOF is checked:
             if (colFile.eof())
@@ -646,7 +665,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<float*>(data.get());
                 std::vector<float> dataFloat(dataTemp, dataTemp + dataLength);
 
-                columnFloat.AddBlock(dataFloat);
+                columnFloat.AddBlock(dataFloat, groupId);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added Float block with data at index: " << index << "." << std::endl;
             }
@@ -666,6 +685,9 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
         {
             int32_t index;
             colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+
+			int32_t groupId;
+			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
             // this is needed because of how EOF is checked:
             if (colFile.eof())
@@ -695,7 +717,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<double*>(data.get());
                 std::vector<double> dataDouble(dataTemp, dataTemp + dataLength);
 
-                columnDouble.AddBlock(dataDouble);
+                columnDouble.AddBlock(dataDouble, groupId);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Added Double block with data at index: " << index << "." << std::endl;
             }
@@ -748,7 +770,7 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
     }
     else
     {
-        tables_.insert({tableName, Table(Database::GetDatabaseByName(name_), tableName)});
+        tables_.emplace(std::make_pair(tableName, Table(Database::GetDatabaseByName(name_), tableName)));
         auto& table = tables_.at(tableName);
 
         for (auto& entry : columns)
@@ -761,9 +783,9 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 }
 
 /// <summary>
-/// Add database to in memory list
+/// Add database to in memory list.
 /// </summary>
-/// <param name="database">Database to add</param>
+/// <param name="database">Database to be added.</param>
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
 	std::lock_guard<std::mutex> lock(dbMutex_);
@@ -773,17 +795,21 @@ void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 	}
 }
 
-void Database::DestroyDatabase(const char* databaseName)
+/// <summary>
+/// Remove database from in memory database list.
+/// </summary>
+/// <param name="databaseName">Name of database to be removed.</param>
+void Database::RemoveFromInMemoryDatabaseList(const char* databaseName)
 {
-	// Erase db from map
+	// erase db from map
 	std::lock_guard<std::mutex> lock(dbMutex_);
 	Context::getInstance().GetLoadedDatabases().erase(databaseName);
 }
 
 /// <summary>
-/// Get number of blocks
+/// Get number of blocks.
 /// </summary>
-/// <returns>Number of blocks</param>
+/// <returns>Number of blocks.</param>
 int Database::GetBlockCount()
 {
     for (auto& table : tables_)
@@ -833,6 +859,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                 << "Saving block of ComplexPolygon data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
             int64_t dataByteSize = 0;
 
@@ -846,6 +873,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
                 for (size_t i = 0; i < dataLength; i++)
                 {
@@ -875,6 +903,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             BOOST_LOG_TRIVIAL(debug) << "Saving block of Point data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
             int64_t dataByteSize = 0;
 
@@ -888,6 +917,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
                 for (size_t i = 0; i < dataLength; i++)
                 {
@@ -918,6 +948,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                 << "Saving block of String data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
             int64_t dataByteSize = 0;
 
@@ -931,6 +962,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
                 for (size_t i = 0; i < dataLength; i++)
                 {
@@ -956,11 +988,13 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             BOOST_LOG_TRIVIAL(debug) << "Saving block of Int8 data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
 
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
                 colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int8_t)); // write block of data
                 index += 1;
@@ -980,11 +1014,13 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
 
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
                 colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int32_t)); // write block of data
                 index += 1;
@@ -1004,11 +1040,13 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
 
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
                 colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int64_t)); // write block of data
                 index += 1;
@@ -1028,11 +1066,13 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
 
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
                 colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(float)); // write block of data
                 index += 1;
@@ -1053,11 +1093,13 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                 << "Saving block of Double data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
 
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
                 colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(double)); // write block of data
                 index += 1;

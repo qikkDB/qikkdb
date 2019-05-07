@@ -8,7 +8,7 @@
 
 #include <memory>
 
-#include "QueryEngineError.h"
+#include "GPUError.h"
 #include "CudaMemAllocator.h"
 #include "GPUMemoryCache.h"
 #include "../Configuration.h"
@@ -134,6 +134,10 @@ public:
 	// Operations on the grid dimensions
 	int32_t calcGridDim(int32_t dataElementCount)
 	{
+		if (dataElementCount <= 0)
+		{
+			CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR, "Data Element Count must be > 0");
+		}
 		int blockCount = (dataElementCount + getBlockDim() - 1) / getBlockDim();
 		if (blockCount >= (DEFAULT_GRID_DIMENSION_LIMIT + 1))
 		{

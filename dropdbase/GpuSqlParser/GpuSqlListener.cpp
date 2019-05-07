@@ -11,21 +11,39 @@
 #include <locale>
 #include <iomanip>
 
+/// <summary>
+/// Definition of PI constant
+/// </summary>
+constexpr float pi() { return 3.1415926f; }
 
+/// <summary>
+/// GpuListner Constructor
+/// Initializes AST walk flags (insideAgg, insideGroupBy, etc.)
+/// Takes reference to database and dispatcher instances
+/// </summary>
+/// <param name="database">Database instance reference</param>
+/// <param name="dispatcher">Dispatcher instance reference</param>
 GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSqlDispatcher& dispatcher): 
 	database(database), 
-	dispatcher(dispatcher), 
-	resultLimit(-1), 
-	resultOffset(-1),
+	dispatcher(dispatcher),
+	linkTableIndex(0),
+	resultLimit(std::numeric_limits<int64_t>::max()), 
+	resultOffset(0),
 	usingGroupBy(false), 
 	insideAgg(false), 
 	insideGroupBy(false), 
 	insideSelectColumn(false), 
 	isAggSelectColumn(false)
 {
+	GpuSqlDispatcher::linkTable.clear();
 }
 
-
+/// <summary>
+/// Method that executes on exit of binary operation node in the AST
+/// Pops the two operands from stack, reads operation from context and add dispatcher
+/// operation and operands to respective dispatcher queues. Pushes result back to parser stack
+/// </summary>
+/// <param name="ctx">Binary operation context</param>
 void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx)
 {
     std::pair<std::string, DataType> right = stackTopAndPop();
@@ -67,7 +85,7 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
         dispatcher.addEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
-	else if (op == "!=")
+	else if (op == "!=" || op == "<>")
     {
         dispatcher.addNotEqualFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
@@ -106,7 +124,37 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
     {
         dispatcher.addModFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } 
+    }
+	else if (op == "|")
+	{
+		dispatcher.addBitwiseOrFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == "&")
+	{
+		dispatcher.addBitwiseAndFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == "^")
+	{
+		dispatcher.addBitwiseXorFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == "<<")
+	{
+		dispatcher.addBitwiseLeftShiftFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == ">>")
+	{
+		dispatcher.addBitwiseRightShiftFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == "POINT")
+	{
+		dispatcher.addPointFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_POINT;
+	}
 	else if (op == "GEO_CONTAINS")
     {
         dispatcher.addContainsFunction(leftOperandType, rightOperandType);
@@ -122,13 +170,38 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
         dispatcher.addUnionFunction(leftOperandType, rightOperandType);
         returnDataType = DataType::COLUMN_POLYGON;
     }
+	else if (op == "LOG")
+	{
+		dispatcher.addLogarithmFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "POW")
+	{
+		dispatcher.addPowerFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == "ROOT")
+	{
+		dispatcher.addRootFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+	}
+	else if (op == "ATAN2")
+	{
+		dispatcher.addArctangent2Function(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(DataType::COLUMN_FLOAT);
+	}
 
 	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
 }
 
-
+/// <summary>
+/// Method that executes on exit of ternary operation node in the AST
+/// Pops the three operands from stack, reads operation from context and add dispatcher
+/// operation and operands to respective dispatcher queues. Pushes result back to parser stack
+/// </summary>
+/// <param name="ctx">Ternary operation context</param>
 void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext *ctx)
 {
     std::pair<std::string, DataType> op1 = stackTopAndPop();
@@ -156,6 +229,12 @@ void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext 
     pushTempResult(reg, DataType::COLUMN_INT8_T);
 }
 
+/// <summary>
+/// Method that executes on exit of unary operation node in the AST
+/// Pops the one operand from stack, reads operation from context and add dispatcher
+/// operation and operand to respective dispatcher queues. Pushes result back to parser stack
+/// </summary>
+/// <param name="ctx">Unary operation context</param>
 void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx)
 {
     std::pair<std::string, DataType> arg = stackTopAndPop();
@@ -207,12 +286,103 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 		dispatcher.addSecondFunction(operandType);
 		returnDataType = COLUMN_INT;
 	}
+	else if (op == "ABS")
+	{
+		dispatcher.addAbsoluteFunction(operandType);
+		returnDataType = getReturnDataType(operandType);
+	}
+	else if (op == "SIN")
+	{
+		dispatcher.addSineFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "COS")
+	{
+		dispatcher.addCosineFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "TAN")
+	{
+		dispatcher.addTangentFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "COT")
+	{
+		dispatcher.addCotangentFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "ASIN")
+	{
+		dispatcher.addArcsineFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "ACOS")
+	{
+		dispatcher.addArccosineFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "ATAN")
+	{
+		dispatcher.addArctangentFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+    else if (op == "LOG10")
+    {
+        dispatcher.addLogarithm10Function(operandType);
+        returnDataType = DataType::COLUMN_FLOAT;
+    }
+	else if (op == "LOG")
+	{
+		dispatcher.addLogarithmNaturalFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "EXP")
+	{
+		dispatcher.addExponentialFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SQRT")
+	{
+		dispatcher.addSquareRootFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SQUARE")
+	{
+		dispatcher.addSquareFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SIGN")
+	{
+		dispatcher.addSignFunction(operandType);
+		returnDataType = DataType::COLUMN_INT;
+	}
+	else if (op == "ROUND")
+	{
+		dispatcher.addRoundFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "FLOOR")
+	{
+		dispatcher.addFloorFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "CEIL")
+	{
+		dispatcher.addCeilFunction(operandType);
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
 
 	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
 }
 
+/// <summary>
+/// Method that executes on enter of aggregation operation node in the AST
+/// Sets insideAgg, isAggSelectColumn parser flag
+/// Throws NestedAggregationException in case e.g SUM(SUM(colA))
+/// </summary>
+/// <param name="ctx">Aggregation context</param>
 void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
 {
 	if (insideAgg)
@@ -223,6 +393,12 @@ void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
 	isAggSelectColumn = insideSelectColumn;
 }
 
+/// <summary>
+/// Method that executes on exit of aggregation operation node in the AST
+/// Pops one operand from stack adds aggregation operation and argument to respective Dispatcher queues.
+/// Pushes result back to parser stack.
+/// </summary>
+/// <param name="ctx">Aggregation context</param>
 void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 {
     std::pair<std::string, DataType> arg = stackTopAndPop();
@@ -247,27 +423,27 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 
     if (op == "MIN")
     {
-        dispatcher.addMinFunction(groupByType, operandType);
+        dispatcher.addMinFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "MAX")
     {
-        dispatcher.addMaxFunction(groupByType, operandType);
+        dispatcher.addMaxFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "SUM")
     {
-        dispatcher.addSumFunction(groupByType, operandType);
+        dispatcher.addSumFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     } 
 	else if (op == "COUNT")
     {
-        dispatcher.addCountFunction(groupByType, operandType);
+        dispatcher.addCountFunction(groupByType, operandType, groupByType);
 		returnDataType = DataType::COLUMN_LONG;
     } 
 	else if (op == "AVG")
     {
-        dispatcher.addAvgFunction(groupByType, operandType);
+        dispatcher.addAvgFunction(groupByType, operandType, groupByType);
 		returnDataType = getReturnDataType(operandType);
     }
 
@@ -302,20 +478,46 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 	DataType retType = std::get<1>(arg);
 	dispatcher.addRetFunction(retType);
 	dispatcher.addArgument<const std::string&>(colName);
+	
+	if (ctx->alias())
+	{
+		std::string alias = ctx->alias()->getText();
+		if (columnAliases.find(alias) != columnAliases.end())
+		{
+			throw AliasRedefinitionException();
+		}
+		columnAliases.insert(alias);
+		dispatcher.addArgument<const std::string&>(alias);
+	}
+	else
+	{
+		dispatcher.addArgument<const std::string&>(colName);
+	}
+
 	insideSelectColumn = false;
 	isAggSelectColumn = false;
 }
 
 void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
 {
-
-    for (auto table : ctx->table())
+    for (auto fromTable : ctx->fromTable())
     {
-        if (database->GetTables().find(table->getText()) == database->GetTables().end())
+		std::string table = fromTable->table()->getText();
+        if (database->GetTables().find(table) == database->GetTables().end())
         {
             throw TableNotFoundFromException();
         }
-        loadedTables.insert(table->getText());
+        loadedTables.insert(table);
+
+		if (fromTable->alias())
+		{
+			std::string alias = fromTable->alias()->getText();
+			if (tableAliases.find(alias) != tableAliases.end())
+			{
+				throw AliasRedefinitionException();
+			}
+			tableAliases.insert({ alias, table });
+		}
     }
 }
 
@@ -545,8 +747,13 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
     std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
     const DataType columnType = std::get<1>(tableColumnData);
 	const std::string tableColumn = std::get<0>(tableColumnData);
-	
-    parserStack.push(std::make_pair(tableColumn, columnType));
+
+	parserStack.push(std::make_pair(tableColumn, columnType));
+
+	if (GpuSqlDispatcher::linkTable.find(tableColumn) == GpuSqlDispatcher::linkTable.end())
+	{
+		GpuSqlDispatcher::linkTable.insert({ tableColumn, linkTableIndex++ });
+	}
 }
 
 void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * ctx)
@@ -567,6 +774,17 @@ void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * 
 	ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
 	std::time_t epochTime = std::mktime(&t);
 
+	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
+}
+
+void GpuSqlListener::exitPiLiteral(GpuSqlParser::PiLiteralContext * ctx)
+{
+	parserStack.push(std::make_pair(std::to_string(pi()), DataType::CONST_FLOAT));
+}
+
+void GpuSqlListener::exitNowLiteral(GpuSqlParser::NowLiteralContext * ctx)
+{
+	std::time_t epochTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
 }
 
@@ -599,6 +817,11 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
     {
         table = ctx->table()->getText();
         column = ctx->column()->getText();
+
+		if (tableAliases.find(table) != tableAliases.end())
+		{
+			table = tableAliases.at(table);
+		}
 
         if (loadedTables.find(table) == loadedTables.end())
         {
