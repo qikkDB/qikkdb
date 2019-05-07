@@ -2,6 +2,9 @@
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPUArithmetic.cuh"
 
+/// Implementation of generic binary arithmetic function dispatching given by the functor OP
+/// Implementation for column constant case
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::arithmeticColConst()
 {
@@ -50,6 +53,9 @@ int32_t GpuSqlDispatcher::arithmeticColConst()
 	return 0;
 }
 
+/// Implementation of generic binary arithmetic function dispatching given by the functor OP
+/// Implementation for constant column case
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::arithmeticConstCol()
 {
@@ -100,6 +106,9 @@ int32_t GpuSqlDispatcher::arithmeticConstCol()
 	return 0;
 }
 
+/// Implementation of generic binary arithmetic function dispatching given by the functor OP
+/// Implementation for column column case
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::arithmeticColCol()
 {
@@ -171,6 +180,9 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 	return 0;
 }
 
+/// Implementation of generic binary arithmetic function dispatching given by the functor OP
+/// Implementation for constant constant case
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::arithmeticConstConst()
 {

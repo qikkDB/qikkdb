@@ -2,6 +2,9 @@
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPUArithmeticUnary.cuh"
 
+/// Implementation of generic unary arithmetic function dispatching given by the functor OP
+/// Implementation for column case
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T>
 int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 {
@@ -45,6 +48,9 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 	return 0;
 }
 
+/// Implementation of generic unary arithmetic function dispatching given by the functor OP
+/// Implementation for constant case
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T>
 int32_t GpuSqlDispatcher::arithmeticUnaryConst()
 {
