@@ -90,7 +90,7 @@ public:
 
 	GpuVMFunction* getDispatchTableForDevice(int32_t deviceID);
 
-	GpuVMFunction* getDispatchTablesForCurrentDevice();
+	GpuVMFunction* getDispatchTableForCurrentDevice();
 
 	std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases();
 };

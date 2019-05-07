@@ -23,7 +23,8 @@ __global__ void kernel_filter(int8_t* outMask, GPUOpCode* opCodes, int32_t opCod
 		GPUStack<2048> gpuStack;
 		for (int32_t j = 0; j < opCodesCount; j++)
 		{
-            opCodes[i].fun_ptr(opCodes[i], i, gpuStack, symbols);
+            opCodes[j].fun_ptr(opCodes[j], i, gpuStack, symbols);
+			__syncthreads();
 		}
         outMask[i] = gpuStack.pop<int8_t>(); 
     }
@@ -31,7 +32,7 @@ __global__ void kernel_filter(int8_t* outMask, GPUOpCode* opCodes, int32_t opCod
 
 __device__ void invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
-
+	gpuStack.push(0);
 }
 
 __device__ void invalidContainsArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
@@ -61,9 +62,8 @@ __global__ void kernel_fill_gpu_dispatch_table(GpuVMFunction * gpuDispatchPtr, s
 
 	for (int32_t i = idx; i < arraySize; i += stride)
 	{
-		int32_t operation = i / GPUWhereFunctions::FUNC_COUNT;
+		int32_t operation = i / (DataType::COLUMN_INT * DataType::COLUMN_INT);
 		int32_t dataTypes = i % (DataType::COLUMN_INT * DataType::COLUMN_INT);
-
 		switch (operation)
 		{
 		case 0:
@@ -107,7 +107,9 @@ __global__ void kernel_fill_gpu_dispatch_table(GpuVMFunction * gpuDispatchPtr, s
 			break;
 		case 13:
 			gpuDispatchPtr[i] = add_gpu_push_function(i % DataType::DATA_TYPE_SIZE);
+			break;
 		default:
+			gpuDispatchPtr[i] = reinterpret_cast<GpuVMFunction>(0xcccccccccccccccc);
 			break;
 		}
 	}
@@ -132,64 +134,64 @@ __device__ GpuVMFunction add_gpu_greater_function(int32_t dataTypes)
 	case 7:
 		return &filterFunction<FilterConditions::greater, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &filterFunction<FilterConditions::greater, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &filterFunction<FilterConditions::greater, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &filterFunction<FilterConditions::greater, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &filterFunction<FilterConditions::greater, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &filterFunction<FilterConditions::greater, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &filterFunction<FilterConditions::greater, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &filterFunction<FilterConditions::greater, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &filterFunction<FilterConditions::greater, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &filterFunction<FilterConditions::greater, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &filterFunction<FilterConditions::greater, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &filterFunction<FilterConditions::greater, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &filterFunction<FilterConditions::greater, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &filterFunction<FilterConditions::greater, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &filterFunction<FilterConditions::greater, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &filterFunction<FilterConditions::greater, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &filterFunction<FilterConditions::greater, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &filterFunction<FilterConditions::greater, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &filterFunction<FilterConditions::greater, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &filterFunction<FilterConditions::greater, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &filterFunction<FilterConditions::greater, int8_t, int8_t>;
 		break;
 	default:
@@ -218,64 +220,64 @@ __device__ GpuVMFunction add_gpu_less_function(int32_t dataTypes)
 	case 7:
 		return &filterFunction<FilterConditions::less, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &filterFunction<FilterConditions::less, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &filterFunction<FilterConditions::less, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &filterFunction<FilterConditions::less, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &filterFunction<FilterConditions::less, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &filterFunction<FilterConditions::less, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &filterFunction<FilterConditions::less, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &filterFunction<FilterConditions::less, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &filterFunction<FilterConditions::less, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &filterFunction<FilterConditions::less, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &filterFunction<FilterConditions::less, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &filterFunction<FilterConditions::less, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &filterFunction<FilterConditions::less, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &filterFunction<FilterConditions::less, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &filterFunction<FilterConditions::less, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &filterFunction<FilterConditions::less, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &filterFunction<FilterConditions::less, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &filterFunction<FilterConditions::less, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &filterFunction<FilterConditions::less, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &filterFunction<FilterConditions::less, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &filterFunction<FilterConditions::less, int8_t, int8_t>;
 		break;
 	default:
@@ -304,64 +306,64 @@ __device__ GpuVMFunction add_gpu_greaterEqual_function(int32_t dataTypes)
 	case 7:
 		return &filterFunction<FilterConditions::greaterEqual, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &filterFunction<FilterConditions::greaterEqual, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &filterFunction<FilterConditions::greaterEqual, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &filterFunction<FilterConditions::greaterEqual, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &filterFunction<FilterConditions::greaterEqual, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &filterFunction<FilterConditions::greaterEqual, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &filterFunction<FilterConditions::greaterEqual, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &filterFunction<FilterConditions::greaterEqual, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &filterFunction<FilterConditions::greaterEqual, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &filterFunction<FilterConditions::greaterEqual, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &filterFunction<FilterConditions::greaterEqual, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &filterFunction<FilterConditions::greaterEqual, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &filterFunction<FilterConditions::greaterEqual, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &filterFunction<FilterConditions::greaterEqual, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &filterFunction<FilterConditions::greaterEqual, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &filterFunction<FilterConditions::greaterEqual, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &filterFunction<FilterConditions::greaterEqual, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &filterFunction<FilterConditions::greaterEqual, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &filterFunction<FilterConditions::greaterEqual, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &filterFunction<FilterConditions::greaterEqual, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &filterFunction<FilterConditions::greaterEqual, int8_t, int8_t>;
 		break;
 	default:
@@ -390,64 +392,64 @@ __device__ GpuVMFunction add_gpu_lessEqual_function(int32_t dataTypes)
 	case 7:
 		return &filterFunction<FilterConditions::lessEqual, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &filterFunction<FilterConditions::lessEqual, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &filterFunction<FilterConditions::lessEqual, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &filterFunction<FilterConditions::lessEqual, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &filterFunction<FilterConditions::lessEqual, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &filterFunction<FilterConditions::lessEqual, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &filterFunction<FilterConditions::lessEqual, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &filterFunction<FilterConditions::lessEqual, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &filterFunction<FilterConditions::lessEqual, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &filterFunction<FilterConditions::lessEqual, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &filterFunction<FilterConditions::lessEqual, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &filterFunction<FilterConditions::lessEqual, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &filterFunction<FilterConditions::lessEqual, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &filterFunction<FilterConditions::lessEqual, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &filterFunction<FilterConditions::lessEqual, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &filterFunction<FilterConditions::lessEqual, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &filterFunction<FilterConditions::lessEqual, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &filterFunction<FilterConditions::lessEqual, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &filterFunction<FilterConditions::lessEqual, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &filterFunction<FilterConditions::lessEqual, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &filterFunction<FilterConditions::lessEqual, int8_t, int8_t>;
 		break;
 	default:
@@ -476,64 +478,64 @@ __device__ GpuVMFunction add_gpu_equal_function(int32_t dataTypes)
 	case 7:
 		return &filterFunction<FilterConditions::equal, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &filterFunction<FilterConditions::equal, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &filterFunction<FilterConditions::equal, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &filterFunction<FilterConditions::equal, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &filterFunction<FilterConditions::equal, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &filterFunction<FilterConditions::equal, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &filterFunction<FilterConditions::equal, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &filterFunction<FilterConditions::equal, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &filterFunction<FilterConditions::equal, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &filterFunction<FilterConditions::equal, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &filterFunction<FilterConditions::equal, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &filterFunction<FilterConditions::equal, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &filterFunction<FilterConditions::equal, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &filterFunction<FilterConditions::equal, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &filterFunction<FilterConditions::equal, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &filterFunction<FilterConditions::equal, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &filterFunction<FilterConditions::equal, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &filterFunction<FilterConditions::equal, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &filterFunction<FilterConditions::equal, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &filterFunction<FilterConditions::equal, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &filterFunction<FilterConditions::equal, int8_t, int8_t>;
 		break;
 	default:
@@ -562,64 +564,64 @@ __device__ GpuVMFunction add_gpu_notEqual_function(int32_t dataTypes)
 	case 7:
 		return &filterFunction<FilterConditions::notEqual, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &filterFunction<FilterConditions::notEqual, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &filterFunction<FilterConditions::notEqual, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &filterFunction<FilterConditions::notEqual, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &filterFunction<FilterConditions::notEqual, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &filterFunction<FilterConditions::notEqual, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &filterFunction<FilterConditions::notEqual, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &filterFunction<FilterConditions::notEqual, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &filterFunction<FilterConditions::notEqual, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &filterFunction<FilterConditions::notEqual, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &filterFunction<FilterConditions::notEqual, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &filterFunction<FilterConditions::notEqual, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &filterFunction<FilterConditions::notEqual, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &filterFunction<FilterConditions::notEqual, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &filterFunction<FilterConditions::notEqual, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &filterFunction<FilterConditions::notEqual, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &filterFunction<FilterConditions::notEqual, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &filterFunction<FilterConditions::notEqual, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &filterFunction<FilterConditions::notEqual, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &filterFunction<FilterConditions::notEqual, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &filterFunction<FilterConditions::notEqual, int8_t, int8_t>;
 		break;
 	default:
@@ -648,64 +650,64 @@ __device__ GpuVMFunction add_gpu_logicalAnd_function(int32_t dataTypes)
 	case 7:
 		return &filterFunction<LogicOperations::logicalAnd, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &filterFunction<LogicOperations::logicalAnd, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &filterFunction<LogicOperations::logicalAnd, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &filterFunction<LogicOperations::logicalAnd, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &filterFunction<LogicOperations::logicalAnd, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &filterFunction<LogicOperations::logicalAnd, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &filterFunction<LogicOperations::logicalAnd, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &filterFunction<LogicOperations::logicalAnd, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &filterFunction<LogicOperations::logicalAnd, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &filterFunction<LogicOperations::logicalAnd, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &filterFunction<LogicOperations::logicalAnd, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &filterFunction<LogicOperations::logicalAnd, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &filterFunction<LogicOperations::logicalAnd, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &filterFunction<LogicOperations::logicalAnd, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &filterFunction<LogicOperations::logicalAnd, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &filterFunction<LogicOperations::logicalAnd, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &filterFunction<LogicOperations::logicalAnd, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &filterFunction<LogicOperations::logicalAnd, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &filterFunction<LogicOperations::logicalAnd, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &filterFunction<LogicOperations::logicalAnd, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &filterFunction<LogicOperations::logicalAnd, int8_t, int8_t>;
 		break;
 	default:
@@ -713,6 +715,7 @@ __device__ GpuVMFunction add_gpu_logicalAnd_function(int32_t dataTypes)
 		break;
 	}
 }
+
 
 __device__ GpuVMFunction add_gpu_logicalOr_function(int32_t dataTypes)
 {
@@ -733,64 +736,64 @@ __device__ GpuVMFunction add_gpu_logicalOr_function(int32_t dataTypes)
 	case 7:
 		return &filterFunction<LogicOperations::logicalOr, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &filterFunction<LogicOperations::logicalOr, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &filterFunction<LogicOperations::logicalOr, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &filterFunction<LogicOperations::logicalOr, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &filterFunction<LogicOperations::logicalOr, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &filterFunction<LogicOperations::logicalOr, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &filterFunction<LogicOperations::logicalOr, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &filterFunction<LogicOperations::logicalOr, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &filterFunction<LogicOperations::logicalOr, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &filterFunction<LogicOperations::logicalOr, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &filterFunction<LogicOperations::logicalOr, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &filterFunction<LogicOperations::logicalOr, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &filterFunction<LogicOperations::logicalOr, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &filterFunction<LogicOperations::logicalOr, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &filterFunction<LogicOperations::logicalOr, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &filterFunction<LogicOperations::logicalOr, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &filterFunction<LogicOperations::logicalOr, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &filterFunction<LogicOperations::logicalOr, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &filterFunction<LogicOperations::logicalOr, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &filterFunction<LogicOperations::logicalOr, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &filterFunction<LogicOperations::logicalOr, int8_t, int8_t>;
 		break;
 	default:
@@ -798,6 +801,7 @@ __device__ GpuVMFunction add_gpu_logicalOr_function(int32_t dataTypes)
 		break;
 	}
 }
+
 
 __device__ GpuVMFunction add_gpu_mul_function(int32_t dataTypes)
 {
@@ -818,64 +822,64 @@ __device__ GpuVMFunction add_gpu_mul_function(int32_t dataTypes)
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::mul, int32_t, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &arithmeticFunction<ArithmeticOperations::mul, int64_t, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &arithmeticFunction<ArithmeticOperations::mul, int64_t, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &arithmeticFunction<ArithmeticOperations::mul, int64_t, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &arithmeticFunction<ArithmeticOperations::mul, int64_t, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &arithmeticFunction<ArithmeticOperations::mul, int64_t, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &arithmeticFunction<ArithmeticOperations::mul, float, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &arithmeticFunction<ArithmeticOperations::mul, float, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &arithmeticFunction<ArithmeticOperations::mul, float, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &arithmeticFunction<ArithmeticOperations::mul, float, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &arithmeticFunction<ArithmeticOperations::mul, float, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &arithmeticFunction<ArithmeticOperations::mul, double, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &arithmeticFunction<ArithmeticOperations::mul, double, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &arithmeticFunction<ArithmeticOperations::mul, double, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &arithmeticFunction<ArithmeticOperations::mul, double, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &arithmeticFunction<ArithmeticOperations::mul, double, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &arithmeticFunction<ArithmeticOperations::mul, int8_t, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &arithmeticFunction<ArithmeticOperations::mul, int8_t, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &arithmeticFunction<ArithmeticOperations::mul, int8_t, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &arithmeticFunction<ArithmeticOperations::mul, int8_t, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &arithmeticFunction<ArithmeticOperations::mul, int8_t, int8_t, int8_t>;
 		break;
 	default:
@@ -904,64 +908,64 @@ __device__ GpuVMFunction add_gpu_div_function(int32_t dataTypes)
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::div, int32_t, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &arithmeticFunction<ArithmeticOperations::div, int64_t, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &arithmeticFunction<ArithmeticOperations::div, int64_t, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &arithmeticFunction<ArithmeticOperations::div, int64_t, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &arithmeticFunction<ArithmeticOperations::div, int64_t, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &arithmeticFunction<ArithmeticOperations::div, int64_t, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &arithmeticFunction<ArithmeticOperations::div, float, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &arithmeticFunction<ArithmeticOperations::div, float, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &arithmeticFunction<ArithmeticOperations::div, float, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &arithmeticFunction<ArithmeticOperations::div, float, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &arithmeticFunction<ArithmeticOperations::div, float, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &arithmeticFunction<ArithmeticOperations::div, double, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &arithmeticFunction<ArithmeticOperations::div, double, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &arithmeticFunction<ArithmeticOperations::div, double, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &arithmeticFunction<ArithmeticOperations::div, double, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &arithmeticFunction<ArithmeticOperations::div, double, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &arithmeticFunction<ArithmeticOperations::div, int8_t, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &arithmeticFunction<ArithmeticOperations::div, int8_t, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &arithmeticFunction<ArithmeticOperations::div, int8_t, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &arithmeticFunction<ArithmeticOperations::div, int8_t, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &arithmeticFunction<ArithmeticOperations::div, int8_t, int8_t, int8_t>;
 		break;
 	default:
@@ -990,64 +994,64 @@ __device__ GpuVMFunction add_gpu_add_function(int32_t dataTypes)
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::add, int32_t, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &arithmeticFunction<ArithmeticOperations::add, int64_t, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &arithmeticFunction<ArithmeticOperations::add, int64_t, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &arithmeticFunction<ArithmeticOperations::add, int64_t, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &arithmeticFunction<ArithmeticOperations::add, int64_t, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &arithmeticFunction<ArithmeticOperations::add, int64_t, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &arithmeticFunction<ArithmeticOperations::add, float, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &arithmeticFunction<ArithmeticOperations::add, float, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &arithmeticFunction<ArithmeticOperations::add, float, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &arithmeticFunction<ArithmeticOperations::add, float, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &arithmeticFunction<ArithmeticOperations::add, float, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &arithmeticFunction<ArithmeticOperations::add, double, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &arithmeticFunction<ArithmeticOperations::add, double, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &arithmeticFunction<ArithmeticOperations::add, double, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &arithmeticFunction<ArithmeticOperations::add, double, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &arithmeticFunction<ArithmeticOperations::add, double, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &arithmeticFunction<ArithmeticOperations::add, int8_t, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &arithmeticFunction<ArithmeticOperations::add, int8_t, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &arithmeticFunction<ArithmeticOperations::add, int8_t, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &arithmeticFunction<ArithmeticOperations::add, int8_t, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &arithmeticFunction<ArithmeticOperations::add, int8_t, int8_t, int8_t>;
 		break;
 	default:
@@ -1076,64 +1080,64 @@ __device__ GpuVMFunction add_gpu_sub_function(int32_t dataTypes)
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::sub, int32_t, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &arithmeticFunction<ArithmeticOperations::sub, int64_t, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &arithmeticFunction<ArithmeticOperations::sub, int64_t, int64_t, int64_t>;
 		break;
-	case 18:
+	case 10:
 		return &arithmeticFunction<ArithmeticOperations::sub, int64_t, int64_t, float>;
 		break;
-	case 19:
+	case 11:
 		return &arithmeticFunction<ArithmeticOperations::sub, int64_t, int64_t, double>;
 		break;
-	case 23:
+	case 15:
 		return &arithmeticFunction<ArithmeticOperations::sub, int64_t, int64_t, int8_t>;
 		break;
-	case 32:
+	case 16:
 		return &arithmeticFunction<ArithmeticOperations::sub, float, float, int32_t>;
 		break;
-	case 33:
+	case 17:
 		return &arithmeticFunction<ArithmeticOperations::sub, float, float, int64_t>;
 		break;
-	case 34:
+	case 18:
 		return &arithmeticFunction<ArithmeticOperations::sub, float, float, float>;
 		break;
-	case 35:
+	case 19:
 		return &arithmeticFunction<ArithmeticOperations::sub, float, float, double>;
 		break;
-	case 39:
+	case 23:
 		return &arithmeticFunction<ArithmeticOperations::sub, float, float, int8_t>;
 		break;
-	case 48:
+	case 24:
 		return &arithmeticFunction<ArithmeticOperations::sub, double, double, int32_t>;
 		break;
-	case 49:
+	case 25:
 		return &arithmeticFunction<ArithmeticOperations::sub, double, double, int64_t>;
 		break;
-	case 50:
+	case 26:
 		return &arithmeticFunction<ArithmeticOperations::sub, double, double, float>;
 		break;
-	case 51:
+	case 27:
 		return &arithmeticFunction<ArithmeticOperations::sub, double, double, double>;
 		break;
-	case 55:
+	case 31:
 		return &arithmeticFunction<ArithmeticOperations::sub, double, double, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &arithmeticFunction<ArithmeticOperations::sub, int8_t, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &arithmeticFunction<ArithmeticOperations::sub, int8_t, int8_t, int64_t>;
 		break;
-	case 114:
+	case 58:
 		return &arithmeticFunction<ArithmeticOperations::sub, int8_t, int8_t, float>;
 		break;
-	case 115:
+	case 59:
 		return &arithmeticFunction<ArithmeticOperations::sub, int8_t, int8_t, double>;
 		break;
-	case 119:
+	case 63:
 		return &arithmeticFunction<ArithmeticOperations::sub, int8_t, int8_t, int8_t>;
 		break;
 	default:
@@ -1156,22 +1160,22 @@ __device__ GpuVMFunction add_gpu_mod_function(int32_t dataTypes)
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::mod, int32_t, int32_t, int8_t>;
 		break;
-	case 16:
+	case 8:
 		return &arithmeticFunction<ArithmeticOperations::mod, int64_t, int64_t, int32_t>;
 		break;
-	case 17:
+	case 9:
 		return &arithmeticFunction<ArithmeticOperations::mod, int64_t, int64_t, int64_t>;
 		break;
-	case 23:
+	case 15:
 		return &arithmeticFunction<ArithmeticOperations::mod, int64_t, int64_t, int8_t>;
 		break;
-	case 112:
+	case 56:
 		return &arithmeticFunction<ArithmeticOperations::mod, int8_t, int8_t, int32_t>;
 		break;
-	case 113:
+	case 57:
 		return &arithmeticFunction<ArithmeticOperations::mod, int8_t, int8_t, int64_t>;
 		break;
-	case 119:
+	case 63:
 		return &arithmeticFunction<ArithmeticOperations::mod, int8_t, int8_t, int8_t>;
 		break;
 	default:

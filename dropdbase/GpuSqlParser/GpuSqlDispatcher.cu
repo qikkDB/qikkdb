@@ -9,6 +9,7 @@
 #include "ParserExceptions.h"
 #include "../QueryEngine/Context.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "../QueryEngine/GPUCore/GPUWhereInterpreter.cuh"
 #include "../ComplexPolygonFactory.h"
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
@@ -33,6 +34,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	constPointCounter(0),
 	constPolygonCounter(0),
 	filter_(0),
+	symbolTable(nullptr),
 	usedRegisterMemory(0),
 	maxRegisterMemory(0), // TODO value from config e.g.
 	groupByTables(groupByTables),
@@ -62,6 +64,8 @@ void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
 	other.dispatcherFunctions = dispatcherFunctions;
 	other.arguments = arguments;
 	other.linkTable = linkTable;
+	other.symbolTable = std::unique_ptr<void*[]>(new void*[linkTable.size()]);
+	other.gpuOpCodes = gpuOpCodes;
 }
 
 void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception)
@@ -475,6 +479,61 @@ void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType o
     //TODO: Between
 }
 
+void GpuSqlDispatcher::addGpuWhereFunction(GPUWhereFunctions func, DataType left, DataType right)
+{
+	printf("%d\n", func * DataType::COLUMN_INT * DataType::COLUMN_INT + getConstDataType(left) * DataType::COLUMN_INT + getConstDataType(right));
+	auto gpuVMFunc = reinterpret_cast<GpuVMFunction>(func * DataType::COLUMN_INT * DataType::COLUMN_INT + getConstDataType(left) * DataType::COLUMN_INT + getConstDataType(right));
+	gpuOpCodes.push_back({ gpuVMFunc });
+}
+
+void GpuSqlDispatcher::addGpuPushWhereFunction(DataType type, const char* token)
+{		
+	auto gpuVMFunc = reinterpret_cast<GpuVMFunction>(GPUWhereFunctions::PUSH_FUNC * DataType::COLUMN_INT * DataType::COLUMN_INT + type);
+	GPUOpCode opcode;
+	switch (type)
+	{
+	case DataType::CONST_INT:
+		opcode.fun_ptr = gpuVMFunc;
+		*reinterpret_cast<int32_t*>(opcode.data) = std::stoi(token);
+		gpuOpCodes.push_back(opcode);
+		break;
+	case DataType::CONST_LONG:
+		opcode.fun_ptr = gpuVMFunc;
+		*reinterpret_cast<int64_t*>(opcode.data) = std::stoll(token);
+		gpuOpCodes.push_back(opcode);
+		break;
+	case DataType::CONST_FLOAT:
+		opcode.fun_ptr = gpuVMFunc;
+		*reinterpret_cast<float*>(opcode.data) = std::stof(token);
+		gpuOpCodes.push_back(opcode);
+		break;
+	case DataType::CONST_DOUBLE:
+		opcode.fun_ptr = gpuVMFunc;
+		*reinterpret_cast<double*>(opcode.data) = std::stod(token);
+		gpuOpCodes.push_back(opcode);
+		break;
+	case DataType::CONST_POINT:
+	case DataType::CONST_POLYGON:
+	case DataType::CONST_STRING:
+		break;
+	case DataType::COLUMN_INT:
+	case DataType::COLUMN_LONG:
+	case DataType::COLUMN_FLOAT:
+	case DataType::COLUMN_DOUBLE:
+	case DataType::COLUMN_POINT:
+	case DataType::COLUMN_POLYGON:
+	case DataType::COLUMN_STRING:
+	case DataType::COLUMN_INT8_T:
+		opcode.fun_ptr = gpuVMFunc;
+		*reinterpret_cast<int8_t*>(opcode.data) = linkTable.at(token);
+		gpuOpCodes.push_back(opcode);
+		break;
+	case DataType::DATA_TYPE_SIZE:
+	case DataType::CONST_ERROR:
+		break;
+	}	
+}
+
 void GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache)
 {
 	if (useCache)
@@ -572,6 +631,38 @@ int32_t GpuSqlDispatcher::fil()
     auto reg = arguments.read<std::string>();
     std::cout << "Filter: " << reg << std::endl;
 	filter_ = std::get<0>(allocatedPointers.at(reg));
+
+	//GPU DISPATCH
+
+	int32_t dataElementCount = std::numeric_limits<int32_t>::max();
+	for (auto& column : linkTable)
+	{
+		symbolTable[column.second] = reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(column.first)));
+		if (std::get<1>(allocatedPointers.at(column.first)) < dataElementCount)
+		{
+			dataElementCount = std::get<1>(allocatedPointers.at(column.first));
+		}
+	}
+
+	auto gpuDispatcherMask = allocateRegister<int8_t>("gpuDispatcherMask", dataElementCount);
+
+	auto gpuDispatchSymbolTable = allocateRegister<void*>("gpuDispatchSymbolTable", linkTable.size());
+	GPUMemory::copyHostToDevice(gpuDispatchSymbolTable, symbolTable.get(), linkTable.size());
+	
+	if (blockIndex == 0)
+	{
+		for (auto& gpuOpCode : gpuOpCodes)
+		{
+			auto idx = reinterpret_cast<std::uintptr_t>(gpuOpCode.fun_ptr);
+			gpuOpCode.fun_ptr = Context::getInstance().getDispatchTableForCurrentDevice()[idx];
+		}
+	}
+
+	auto gpuDispatchOpCodes = allocateRegister<GPUOpCode>("gpuDispatchOpCodes", gpuOpCodes.size());
+	GPUMemory::copyHostToDevice(gpuDispatchOpCodes, gpuOpCodes.data(), gpuOpCodes.size());
+
+	GPUWhereDispatcher::gpuWhere(gpuDispatcherMask, gpuDispatchOpCodes, gpuOpCodes.size(), gpuDispatchSymbolTable, dataElementCount);
+	filter_ = reinterpret_cast<uintptr_t>(gpuDispatcherMask);
 	return 0;
 }
 

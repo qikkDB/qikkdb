@@ -20,3 +20,9 @@ enum DataType {
 	COLUMN_INT8_T = 15,
 	DATA_TYPE_SIZE = 16
 };
+
+
+inline DataType getConstDataType(DataType operand)
+{
+	return operand >= DataType::COLUMN_INT ? static_cast<DataType>(operand - DataType::COLUMN_INT) : operand;
+}

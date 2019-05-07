@@ -18,23 +18,25 @@ public:
 	template<typename T>
 	__device__ void push(T value)
 	{
-		if (sp + sizeof(T) < N)
+		int alignedSize = sizeof(T) % 4 == 0 ? sizeof(T) : sizeof(T) + 4 - (sizeof(T) % 4);
+		if (sp + alignedSize < N)
 		{
 			*(reinterpret_cast<T*>(stackArray + sp)) = value;
-			sp += sizeof(T);
+			sp += alignedSize;
 		}
 	}
 
 	template<typename T>
 	__device__ T pop()
 	{
-		if (sp - sizeof(T) < 0)
+		int alignedSize = sizeof(T) % 4 == 0 ? sizeof(T) : sizeof(T) + 4 - (sizeof(T) % 4);
+		if (sp - alignedSize < 0)
 		{
 			return T{};
 		}
 		else
 		{
-			sp -= sizeof(T);
+			sp -= alignedSize;
 			return *(reinterpret_cast<T*>(stackArray + sp));
 		}
 	}
@@ -42,13 +44,14 @@ public:
 	template<typename T>
 	__device__ T top()
 	{
-		if (sp - sizeof(T) < 0)
+		int alignedSize = sizeof(T) % 4 == 0 ? sizeof(T) : sizeof(T) + 4 - (sizeof(T) % 4);
+		if (sp - alignedSize < 0)
 		{
 			return T{};
 		}
 		else
 		{
-			return *(reinterpret_cast<T*>(stackArray + sp - sizeof(T)));
+			return *(reinterpret_cast<T*>(stackArray + sp - alignedSize));
 		}
 	}
 };

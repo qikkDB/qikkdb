@@ -17,6 +17,7 @@
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
 #include "../QueryEngine/GPUCore/GPUWhereInterpreter.h"
+#include "../QueryEngine/GPUWhereFunctions.h"
 #include "../ComplexPolygonFactory.h"
 #include "../PointFactory.h"
 #include "../DataType.h"
@@ -49,6 +50,8 @@ private:
 	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
+	std::unique_ptr<void*[]> symbolTable;
+	std::vector<GPUOpCode> gpuOpCodes;
 	bool usingGroupBy;
 	bool isLastBlockOfDevice;
 	bool isOverallLastBlock;
@@ -403,6 +406,10 @@ public:
     void addGroupByFunction(DataType type);
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
+
+	void addGpuWhereFunction(GPUWhereFunctions func, DataType left, DataType right);
+
+	void addGpuPushWhereFunction(DataType type, const char* token);
 
 
 	static std::unordered_map<std::string, int32_t> linkTable;

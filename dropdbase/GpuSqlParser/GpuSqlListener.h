@@ -12,8 +12,6 @@
 #include "../DataType.h"
 #include "../PointFactory.h"
 #include "../ComplexPolygonFactory.h"
-#include "../QueryEngine/GPUCore/GPUWhereInterpreter.h"
-#include "../QueryEngine/GPUWhereFunctions.h"
 #include <unordered_set>
 #include <unordered_map>
 #include <functional>
@@ -34,7 +32,6 @@ private:
 	std::unordered_map<std::string, std::string> tableAliases;
 	std::unordered_set<std::string> columnAliases;
     std::unordered_set<std::string> loadedTables;
-	std::vector<GPUOpCode> gpuOpCodes;
 	int32_t linkTableIndex;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
 	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
@@ -52,10 +49,6 @@ private:
     std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
     void pushTempResult(std::string reg, DataType type);
-
-	void addGpuWhereFunction(GPUWhereFunctions func, DataType left, DataType right);
-
-	void addGpuPushWhereFunction(DataType type, const char* token);
 
     void pushArgument(const char *token, DataType dataType);
 

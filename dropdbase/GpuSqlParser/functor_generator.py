@@ -510,7 +510,7 @@ print()
 
 for operation in filter_operations + logical_operations:
     print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
+    print('__device__ GpuVMFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
     print('{')
     print('\tswitch(dataTypes)')
     print('\t{')
@@ -531,7 +531,7 @@ for operation in filter_operations + logical_operations:
                 validCombination = False
 
             if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
+                print('\t\tcase ' + str(colIdx * len(types) + rowIdx) + ':')
                 print(
                     '\t\t\treturn &filterFunction<' + namespace + operation + ", " + dataTypeCombination + ">;")
                 print('\t\tbreak;')
@@ -544,7 +544,7 @@ for operation in filter_operations + logical_operations:
 
 for operation in arithmetic_operations:
     print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
+    print('__device__ GpuVMFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
     print('{')
     print('\tswitch(dataTypes)')
     print('\t{')
@@ -564,7 +564,7 @@ for operation in arithmetic_operations:
                 validCombination = False
 
             if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
+                print('\t\tcase ' + str(colIdx * len(types) + rowIdx) + ':')
                 print(
                     '\t\t\treturn &arithmeticFunction<' + namespace + operation + ", " + dataTypeCombination + ">;")
                 print('\t\tbreak;')
@@ -577,7 +577,7 @@ for operation in arithmetic_operations:
 
 for operation in operations_date:
     print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
+    print('__device__ GpuVMFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
     print('{')
     print('\tswitch(dataTypes)')
     print('\t{')
@@ -591,7 +591,7 @@ for operation in operations_date:
                 validCombination = False
 
             if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
+                print('\t\tcase ' + str(colIdx * len(types) + rowIdx) + ':')
                 print(
                     '\t\t\treturn &dateFunction<' + namespace + operation + ">;")
                 print('\t\tbreak;')
@@ -604,7 +604,7 @@ for operation in operations_date:
 
 for operation in ['contains']:
     print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
+    print('__device__ GpuVMFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
     print('{')
     print('\tswitch(dataTypes)')
     print('\t{')
@@ -618,7 +618,7 @@ for operation in ['contains']:
                 validCombination = False
 
             if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
+                print('\t\tcase ' + str(colIdx * len(types) + rowIdx) + ':')
                 print(
                     '\t\t\treturn &containsFunction;')
                 print('\t\tbreak;')
@@ -631,7 +631,7 @@ for operation in ['contains']:
 
 for operation in ['logicalNot']:
     print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
+    print('__device__ GpuVMFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
     print('{')
     print('\tswitch(dataTypes)')
     print('\t{')
@@ -648,7 +648,7 @@ for operation in ['logicalNot']:
                 validCombination = False
 
             if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
+                print('\t\tcase ' + str(colIdx * len(types) + rowIdx) + ':')
                 print(
                     '\t\t\treturn &logicalNotFunction<' + namespace + operation + ' ,' + colVal + ">;")
                 print('\t\tbreak;')
@@ -661,7 +661,7 @@ for operation in ['logicalNot']:
 
 for operation in ['pushCol']:
     print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
+    print('__device__ GpuVMFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
     print('{')
     print('\tswitch(dataTypes)')
     print('\t{')
@@ -677,7 +677,7 @@ for operation in ['pushCol']:
                 validCombination = False
 
             if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
+                print('\t\tcase ' + str(colIdx * len(types) + rowIdx) + ':')
                 print(
                     '\t\t\treturn &pushColFunction<' + colVal + '>;')
                 print('\t\tbreak;')
@@ -690,7 +690,7 @@ for operation in ['pushCol']:
 
 for operation in ['pushConst']:
     print('\n')
-    print('__device__ DispatchFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
+    print('__device__ GpuVMFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
     print('{')
     print('\tswitch(dataTypes)')
     print('\t{')
@@ -706,7 +706,7 @@ for operation in ['pushConst']:
                 validCombination = False
 
             if validCombination:
-                print('\t\tcase ' + str(colIdx * len(all_types) + rowIdx) + ':')
+                print('\t\tcase ' + str(colIdx * len(types) + rowIdx) + ':')
                 print(
                     '\t\t\treturn &pushConstFunction<' + colVal + '>;')
                 print('\t\tbreak;')

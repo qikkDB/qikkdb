@@ -54,8 +54,21 @@ __device__ void invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPU
 
 }
 
+__global__ void kernel_filter(int8_t* outMask, GPUOpCode* opCodes, int32_t opCodesCount, void** symbols, int32_t dataElementCount);
+
 __device__ void invalidContainsArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols);
 
 __device__ void invalidArgumentTypeHandler(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols);
 
-__global__ void kernel_filter(int8_t* outMask, GPUOpCode* opCodes, int32_t opCodesCount, void** symbols, int32_t dataElementCount);
+
+class GPUWhereDispatcher
+{
+public:
+	static void gpuWhere(int8_t* outMask, GPUOpCode* opCodes, int32_t opCodesCount, void** symbols, int32_t dataElementCount)
+	{
+		kernel_filter << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+			(outMask, opCodes, opCodesCount, symbols, dataElementCount);
+		cudaDeviceSynchronize();
+		CheckCudaError(cudaGetLastError());
+	}
+};
