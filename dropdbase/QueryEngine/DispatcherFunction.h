@@ -1,6 +1,6 @@
 #pragma once
 
-enum GPUWhereFunctions
+enum DispatcherFunction
 {
 	GT_FUNC = 0,
 	LT_FUNC = 1,

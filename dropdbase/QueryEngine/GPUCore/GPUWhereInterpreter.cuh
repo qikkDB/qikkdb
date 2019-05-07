@@ -29,6 +29,8 @@ __device__ void dateFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& g
 	gpuStack.push<int32_t>(OP{}(left));
 }
 
+// TODO: Unary Functions
+
 template <typename OP, typename L>
 __device__ void logicalNotFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {

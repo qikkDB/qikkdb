@@ -17,7 +17,7 @@
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
 #include "../QueryEngine/GPUCore/GPUWhereInterpreter.h"
-#include "../QueryEngine/GPUWhereFunctions.h"
+#include "../QueryEngine/DispatcherFunction.h"
 #include "../ComplexPolygonFactory.h"
 #include "../PointFactory.h"
 #include "../DataType.h"
@@ -271,107 +271,9 @@ public:
 
 	const ColmnarDB::NetworkClient::Message::QueryResponseMessage &getQueryResponseMessage();
 
-    void addGreaterFunction(DataType left, DataType right);
+	void addDispatcherBinaryFunction(DispatcherFunction fun, DataType left, DataType right);
 
-    void addLessFunction(DataType left, DataType right);
-
-    void addGreaterEqualFunction(DataType left, DataType right);
-
-    void addLessEqualFunction(DataType left, DataType right);
-
-    void addEqualFunction(DataType left, DataType right);
-
-    void addNotEqualFunction(DataType left, DataType right);
-
-    void addLogicalAndFunction(DataType left, DataType right);
-
-    void addLogicalOrFunction(DataType left, DataType right);
-
-    void addMulFunction(DataType left, DataType right);
-
-    void addDivFunction(DataType left, DataType right);
-
-    void addAddFunction(DataType left, DataType right);
-
-    void addSubFunction(DataType left, DataType right);
-
-	void addModFunction(DataType left, DataType right);
-
-    void addBitwiseOrFunction(DataType left, DataType right);
-
-	void addBitwiseAndFunction(DataType left, DataType right);
-
-	void addBitwiseXorFunction(DataType left, DataType right);
-
-	void addBitwiseLeftShiftFunction(DataType left, DataType right);
-
-	void addBitwiseRightShiftFunction(DataType left, DataType right);
-
-	void addPointFunction(DataType left, DataType right);
-
-    void addContainsFunction(DataType left, DataType right);
-
-	void addIntersectFunction(DataType left, DataType right);
-
-	void addUnionFunction(DataType left, DataType right);
-
-    void addLogicalNotFunction(DataType type);
-
-    void addMinusFunction(DataType type);
-
-	void addYearFunction(DataType type);
-
-	void addMonthFunction(DataType type);
-
-	void addDayFunction(DataType type);
-
-	void addHourFunction(DataType type);
-
-	void addMinuteFunction(DataType type);
-
-	void addSecondFunction(DataType type);
-
-	void addAbsoluteFunction(DataType type);
-
-	void addSineFunction(DataType type);
-
-	void addCosineFunction(DataType type);
-
-	void addTangentFunction(DataType type);
-
-	void addCotangentFunction(DataType type);
-
-	void addArcsineFunction(DataType type);
-
-	void addArccosineFunction(DataType type);
-
-	void addArctangentFunction(DataType type);
-
-	void addLogarithm10Function(DataType type);
-
-	void addLogarithmFunction(DataType number, DataType base);
-
-	void addArctangent2Function(DataType y, DataType x);
-
-	void addLogarithmNaturalFunction(DataType type);
-
-	void addExponentialFunction(DataType type);
-
-	void addPowerFunction(DataType base, DataType exponent);
-
-	void addSquareRootFunction(DataType type);
-
-	void addSquareFunction(DataType type);
-
-	void addSignFunction(DataType type);
-
-	void addRoundFunction(DataType type);
-
-	void addFloorFunction(DataType type);
-
-	void addCeilFunction(DataType type);
-
-	void addRootFunction(DataType base, DataType exponent);
+	void addDispatcherUnaryFunction(DispatcherFunction fun, DataType type);
 
     void addMinFunction(DataType key, DataType value, bool usingGroupBy);
 
@@ -407,7 +309,9 @@ public:
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
 
-	void addGpuWhereFunction(GPUWhereFunctions func, DataType left, DataType right);
+	void addGpuWhereBinaryFunction(DispatcherFunction func, DataType left, DataType right);
+
+	void addGpuWhereUnaryFunction(DispatcherFunction func, DataType type);
 
 	void addGpuPushWhereFunction(DataType type, const char* token);
 

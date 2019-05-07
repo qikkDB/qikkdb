@@ -37,7 +37,7 @@ Context::Context()
 
 		// Get the correct blockDim from the device - use always based on the bound device - optimal for kernels
 		queriedBlockDimensionList.push_back(deviceProp.maxThreadsPerBlock);
-		const int32_t DISPATCH_ARRAY_SIZE = DataType::COLUMN_INT * DataType::COLUMN_INT * GPUWhereFunctions::FUNC_COUNT;
+		const int32_t DISPATCH_ARRAY_SIZE = DataType::COLUMN_INT * DataType::COLUMN_INT * DispatcherFunction::FUNC_COUNT;
 		std::unique_ptr<GpuVMFunction[]> dispatchTable(new GpuVMFunction[DISPATCH_ARRAY_SIZE]);
 		CheckCudaError(cudaHostRegister(dispatchTable.get(), DISPATCH_ARRAY_SIZE * sizeof(GpuVMFunction),
 			cudaHostRegisterDefault));

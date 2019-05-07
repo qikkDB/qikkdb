@@ -4,7 +4,7 @@
 #include <cuda_runtime.h>
 #include "../Context.h"
 #include "../../DataType.h"
-#include "../GPUWhereFunctions.h"
+#include "../DispatcherFunction.h"
 #include "GPUFilter.cuh"
 #include "GPULogic.cuh"
 #include "GPUArithmetic.cuh"

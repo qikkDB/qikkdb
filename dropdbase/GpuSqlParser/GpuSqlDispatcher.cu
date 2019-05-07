@@ -122,6 +122,177 @@ const ColmnarDB::NetworkClient::Message::QueryResponseMessage &GpuSqlDispatcher:
 	return responseMessage;
 }
 
+void GpuSqlDispatcher::addDispatcherBinaryFunction(DispatcherFunction fun, DataType left, DataType right)
+{
+	switch (fun)
+	{
+	case DispatcherFunction::GT_FUNC:
+		dispatcherFunctions.push_back(greaterFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::LT_FUNC:
+		dispatcherFunctions.push_back(lessFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::GTEQ_FUNC:
+		dispatcherFunctions.push_back(greaterEqualFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::LTEQ_FUNC:
+		dispatcherFunctions.push_back(lessEqualFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::EQ_FUNC:
+		dispatcherFunctions.push_back(equalFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::NEQ_FUNC:
+		dispatcherFunctions.push_back(notEqualFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::AND_FUNC:
+		dispatcherFunctions.push_back(logicalAndFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::OR_FUNC:
+		dispatcherFunctions.push_back(logicalOrFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::MUL_FUNC:
+		dispatcherFunctions.push_back(mulFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::DIV_FUNC:
+		dispatcherFunctions.push_back(divFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::ADD_FUNC:
+		dispatcherFunctions.push_back(addFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::SUB_FUNC:
+		dispatcherFunctions.push_back(subFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::MOD_FUNC:
+		dispatcherFunctions.push_back(modFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::BIT_OR_FUNC:
+		dispatcherFunctions.push_back(bitwiseOrFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::BIT_AND_FUNC:
+		dispatcherFunctions.push_back(bitwiseAndFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::BIT_XOR_FUNC:
+		dispatcherFunctions.push_back(bitwiseXorFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::LEFT_SHIFT_FUNC:
+		dispatcherFunctions.push_back(bitwiseLeftShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::RIGHT_SHIFT_FUNC:
+		dispatcherFunctions.push_back(bitwiseRightShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::POINT_FUNC:
+		dispatcherFunctions.push_back(pointFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::GEO_CONTAINS_FUNC:
+		dispatcherFunctions.push_back(containsFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::GEO_INTERSECT_FUNC:
+		dispatcherFunctions.push_back(intersectFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::GEO_UNION_FUNC:
+		dispatcherFunctions.push_back(unionFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::LOG_BIN_FUNC:
+		dispatcherFunctions.push_back(logarithmFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::POW_BIN_FUNC:
+		dispatcherFunctions.push_back(powerFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::ROOT_BIN_FUNC:
+		dispatcherFunctions.push_back(rootFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	case DispatcherFunction::ATAN2_FUNC:
+		dispatcherFunctions.push_back(arctangent2Functions[DataType::DATA_TYPE_SIZE * left + right]);
+		break;
+	default:
+		break;
+	}
+}
+
+void GpuSqlDispatcher::addDispatcherUnaryFunction(DispatcherFunction fun, DataType type)
+{
+	switch (fun)
+	{
+	case DispatcherFunction::NOT_FUNC:
+		dispatcherFunctions.push_back(logicalNotFunctions[type]);
+		break;
+	case DispatcherFunction::MINUS_FUNC:
+		dispatcherFunctions.push_back(minusFunctions[type]);
+		break;
+	case DispatcherFunction::YEAR_FUNC:
+		dispatcherFunctions.push_back(yearFunctions[type]);
+		break;
+	case DispatcherFunction::MONTH_FUNC:
+		dispatcherFunctions.push_back(monthFunctions[type]);
+		break;
+	case DispatcherFunction::DAY_FUNC:
+		dispatcherFunctions.push_back(dayFunctions[type]);
+		break;
+	case DispatcherFunction::HOUR_FUNC:
+		dispatcherFunctions.push_back(hourFunctions[type]);
+		break;
+	case DispatcherFunction::MINUTE_FUNC:
+		dispatcherFunctions.push_back(minuteFunctions[type]);
+		break;
+	case DispatcherFunction::SECOND_FUNC:
+		dispatcherFunctions.push_back(secondFunctions[type]);
+		break;
+	case DispatcherFunction::ABS_FUNC:
+		dispatcherFunctions.push_back(absoluteFunctions[type]);
+		break;
+	case DispatcherFunction::SIN_FUNC:
+		dispatcherFunctions.push_back(sineFunctions[type]);
+		break;
+	case DispatcherFunction::COS_FUNC:
+		dispatcherFunctions.push_back(cosineFunctions[type]);
+		break;
+	case DispatcherFunction::TAN_FUNC:
+		dispatcherFunctions.push_back(tangentFunctions[type]);
+		break;
+	case DispatcherFunction::COT_FUNC:
+		dispatcherFunctions.push_back(cotangentFunctions[type]);
+		break;
+	case DispatcherFunction::ASIN_FUNC:
+		dispatcherFunctions.push_back(arcsineFunctions[type]);
+		break;
+	case DispatcherFunction::ACOS_FUNC:
+		dispatcherFunctions.push_back(arccosineFunctions[type]);
+		break;
+	case DispatcherFunction::ATAN_FUNC:
+		dispatcherFunctions.push_back(arctangentFunctions[type]);
+		break;
+	case DispatcherFunction::LOG10_FUNC:
+		dispatcherFunctions.push_back(logarithm10Functions[type]);
+		break;
+	case DispatcherFunction::LOG_FUNC:
+		dispatcherFunctions.push_back(logarithmNaturalFunctions[type]);
+		break;
+	case DispatcherFunction::EXP_FUNC:
+		dispatcherFunctions.push_back(exponentialFunctions[type]);
+		break;
+	case DispatcherFunction::SQRT_FUNC:
+		dispatcherFunctions.push_back(squareRootFunctions[type]);
+		break;
+	case DispatcherFunction::SQUARE_FUNC:
+		dispatcherFunctions.push_back(squareFunctions[type]);
+		break;
+	case DispatcherFunction::SIGN_FUNC:
+		dispatcherFunctions.push_back(signFunctions[type]);
+		break;
+	case DispatcherFunction::ROUND_FUNC:
+		dispatcherFunctions.push_back(roundFunctions[type]);
+		break;
+	case DispatcherFunction::FLOOR_FUNC:
+		dispatcherFunctions.push_back(floorFunctions[type]);
+		break;
+	case DispatcherFunction::CEIL_FUNC:
+		dispatcherFunctions.push_back(ceilFunctions[type]);
+		break;
+	default:
+		break;
+	}
+}
+
 void GpuSqlDispatcher::addRetFunction(DataType type)
 {
     dispatcherFunctions.push_back(retFunctions[type]);
@@ -165,273 +336,6 @@ void GpuSqlDispatcher::addInsertIntoFunction(DataType type)
 void GpuSqlDispatcher::addInsertIntoDoneFunction()
 {
 	dispatcherFunctions.push_back(insertIntoDoneFunction);
-}
-
-void GpuSqlDispatcher::addGreaterFunction(DataType left, DataType right)
-{
-
-    dispatcherFunctions.push_back(greaterFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-
-void GpuSqlDispatcher::addLessFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(lessFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-
-void GpuSqlDispatcher::addGreaterEqualFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(greaterEqualFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-
-void GpuSqlDispatcher::addLessEqualFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(lessEqualFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-
-void GpuSqlDispatcher::addEqualFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(equalFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-
-void GpuSqlDispatcher::addNotEqualFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(notEqualFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-
-void GpuSqlDispatcher::addLogicalAndFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(logicalAndFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-
-void GpuSqlDispatcher::addLogicalOrFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(logicalOrFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-
-void GpuSqlDispatcher::addMulFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(mulFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-
-void GpuSqlDispatcher::addDivFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(divFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-
-void GpuSqlDispatcher::addAddFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(addFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-
-void GpuSqlDispatcher::addSubFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(subFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-void GpuSqlDispatcher::addModFunction(DataType left, DataType right)
-{
-	dispatcherFunctions.push_back(modFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-void GpuSqlDispatcher::addBitwiseOrFunction(DataType left, DataType right)
-{
-	dispatcherFunctions.push_back(bitwiseOrFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-void GpuSqlDispatcher::addBitwiseAndFunction(DataType left, DataType right)
-{
-	dispatcherFunctions.push_back(bitwiseAndFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-void GpuSqlDispatcher::addBitwiseXorFunction(DataType left, DataType right)
-{
-	dispatcherFunctions.push_back(bitwiseXorFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-void GpuSqlDispatcher::addBitwiseLeftShiftFunction(DataType left, DataType right)
-{
-	dispatcherFunctions.push_back(bitwiseLeftShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-void GpuSqlDispatcher::addBitwiseRightShiftFunction(DataType left, DataType right)
-{
-	dispatcherFunctions.push_back(bitwiseRightShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-void GpuSqlDispatcher::addPointFunction(DataType left, DataType right)
-{
-	dispatcherFunctions.push_back(pointFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-void GpuSqlDispatcher::addLogarithmFunction(DataType number, DataType base)
-{
-	dispatcherFunctions.push_back(logarithmFunctions[DataType::DATA_TYPE_SIZE * number + base]);
-}
-
-void GpuSqlDispatcher::addArctangent2Function(DataType y, DataType x)
-{
-	dispatcherFunctions.push_back(arctangent2Functions[DataType::DATA_TYPE_SIZE * y + x]);
-}
-
-void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
-{
-	dispatcherFunctions.push_back(powerFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
-}
-
-void GpuSqlDispatcher::addRootFunction(DataType base, DataType exponent)
-{
-	dispatcherFunctions.push_back(rootFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
-}
-
-void GpuSqlDispatcher::addContainsFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(containsFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-void GpuSqlDispatcher::addIntersectFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(intersectFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-void GpuSqlDispatcher::addUnionFunction(DataType left, DataType right)
-{
-    dispatcherFunctions.push_back(unionFunctions[DataType::DATA_TYPE_SIZE * left + right]);
-}
-
-void GpuSqlDispatcher::addLogicalNotFunction(DataType type)
-{
-    dispatcherFunctions.push_back(logicalNotFunctions[type]);
-}
-
-void GpuSqlDispatcher::addMinusFunction(DataType type)
-{
-    dispatcherFunctions.push_back(minusFunctions[type]);
-}
-
-void GpuSqlDispatcher::addYearFunction(DataType type)
-{
-	dispatcherFunctions.push_back(yearFunctions[type]);
-}
-
-void GpuSqlDispatcher::addMonthFunction(DataType type)
-{
-	dispatcherFunctions.push_back(monthFunctions[type]);
-}
-
-void GpuSqlDispatcher::addDayFunction(DataType type)
-{
-	dispatcherFunctions.push_back(dayFunctions[type]);
-}
-
-void GpuSqlDispatcher::addHourFunction(DataType type)
-{
-	dispatcherFunctions.push_back(hourFunctions[type]);
-}
-
-void GpuSqlDispatcher::addMinuteFunction(DataType type)
-{
-	dispatcherFunctions.push_back(minuteFunctions[type]);
-}
-
-void GpuSqlDispatcher::addSecondFunction(DataType type)
-{
-	dispatcherFunctions.push_back(secondFunctions[type]);
-}
-
-void GpuSqlDispatcher::addAbsoluteFunction(DataType type)
-{
-	dispatcherFunctions.push_back(absoluteFunctions[type]);
-}
-
-void GpuSqlDispatcher::addSineFunction(DataType type)
-{
-	dispatcherFunctions.push_back(sineFunctions[type]);
-}
-
-void GpuSqlDispatcher::addCosineFunction(DataType type)
-{
-	dispatcherFunctions.push_back(cosineFunctions[type]);
-}
-
-void GpuSqlDispatcher::addTangentFunction(DataType type)
-{
-	dispatcherFunctions.push_back(tangentFunctions[type]);
-}
-
-void GpuSqlDispatcher::addCotangentFunction(DataType type)
-{
-	dispatcherFunctions.push_back(cotangentFunctions[type]);
-}
-
-void GpuSqlDispatcher::addArcsineFunction(DataType type)
-{
-	dispatcherFunctions.push_back(arcsineFunctions[type]);
-}
-
-void GpuSqlDispatcher::addArccosineFunction(DataType type)
-{
-	dispatcherFunctions.push_back(arccosineFunctions[type]);
-}
-
-void GpuSqlDispatcher::addArctangentFunction(DataType type)
-{
-	dispatcherFunctions.push_back(arctangentFunctions[type]);
-}
-
-void GpuSqlDispatcher::addLogarithm10Function(DataType type)
-{
-	dispatcherFunctions.push_back(logarithm10Functions[type]);
-}
-
-void GpuSqlDispatcher::addLogarithmNaturalFunction(DataType type)
-{
-	dispatcherFunctions.push_back(logarithmNaturalFunctions[type]);
-}
-
-void GpuSqlDispatcher::addExponentialFunction(DataType type)
-{
-	dispatcherFunctions.push_back(exponentialFunctions[type]);
-}
-
-void GpuSqlDispatcher::addSquareFunction(DataType type)
-{
-	dispatcherFunctions.push_back(squareFunctions[type]);
-}
-
-void GpuSqlDispatcher::addSquareRootFunction(DataType type)
-{
-	dispatcherFunctions.push_back(squareRootFunctions[type]);
-}
-
-void GpuSqlDispatcher::addSignFunction(DataType type)
-{
-	dispatcherFunctions.push_back(signFunctions[type]);
-}
-
-void GpuSqlDispatcher::addRoundFunction(DataType type)
-{
-	dispatcherFunctions.push_back(roundFunctions[type]);
-}
-
-void GpuSqlDispatcher::addFloorFunction(DataType type)
-{
-	dispatcherFunctions.push_back(floorFunctions[type]);
-}
-
-void GpuSqlDispatcher::addCeilFunction(DataType type)
-{
-	dispatcherFunctions.push_back(ceilFunctions[type]);
 }
 
 void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)
@@ -479,16 +383,21 @@ void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType o
     //TODO: Between
 }
 
-void GpuSqlDispatcher::addGpuWhereFunction(GPUWhereFunctions func, DataType left, DataType right)
+void GpuSqlDispatcher::addGpuWhereBinaryFunction(DispatcherFunction func, DataType left, DataType right)
 {
-	printf("%d\n", func * DataType::COLUMN_INT * DataType::COLUMN_INT + getConstDataType(left) * DataType::COLUMN_INT + getConstDataType(right));
 	auto gpuVMFunc = reinterpret_cast<GpuVMFunction>(func * DataType::COLUMN_INT * DataType::COLUMN_INT + getConstDataType(left) * DataType::COLUMN_INT + getConstDataType(right));
+	gpuOpCodes.push_back({ gpuVMFunc });
+}
+
+void GpuSqlDispatcher::addGpuWhereUnaryFunction(DispatcherFunction func, DataType type)
+{
+	auto gpuVMFunc = reinterpret_cast<GpuVMFunction>(func * DataType::COLUMN_INT * DataType::COLUMN_INT + getConstDataType(type));
 	gpuOpCodes.push_back({ gpuVMFunc });
 }
 
 void GpuSqlDispatcher::addGpuPushWhereFunction(DataType type, const char* token)
 {		
-	auto gpuVMFunc = reinterpret_cast<GpuVMFunction>(GPUWhereFunctions::PUSH_FUNC * DataType::COLUMN_INT * DataType::COLUMN_INT + type);
+	auto gpuVMFunc = reinterpret_cast<GpuVMFunction>(DispatcherFunction::PUSH_FUNC * DataType::COLUMN_INT * DataType::COLUMN_INT + type);
 	GPUOpCode opcode;
 	switch (type)
 	{

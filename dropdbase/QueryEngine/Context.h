@@ -12,7 +12,7 @@
 #include "GPUError.h"
 #include "CudaMemAllocator.h"
 #include "GPUCore/GPUWhereInterpreter.h"
-#include "GPUWhereFunctions.h"
+#include "DispatcherFunction.h"
 #include "GPUMemoryCache.h"
 #include "GPUError.h"
 #include "../DataType.h"

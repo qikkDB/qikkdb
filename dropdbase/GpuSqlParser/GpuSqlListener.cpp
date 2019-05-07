@@ -55,154 +55,138 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 
     DataType rightOperandType = std::get<1>(right);
     DataType leftOperandType = std::get<1>(left);
-	
-    pushArgument(std::get<0>(right).c_str(), rightOperandType);
-    pushArgument(std::get<0>(left).c_str(), leftOperandType);
 
 	DataType returnDataType;
-	GPUWhereFunctions gpuFunction;
+	DispatcherFunction gpuFunction;
 
     if (op == ">")
     {
-		gpuFunction = GPUWhereFunctions::GT_FUNC;
-        dispatcher.addGreaterFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::GT_FUNC;
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
 	else if (op == "<")
     {
-		gpuFunction = GPUWhereFunctions::LT_FUNC;
-        dispatcher.addLessFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::LT_FUNC;
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
 	else if (op == ">=")
     {
-		gpuFunction = GPUWhereFunctions::GTEQ_FUNC;
-        dispatcher.addGreaterEqualFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::GTEQ_FUNC;
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
 	else if (op == "<=")
     {
-		gpuFunction = GPUWhereFunctions::LTEQ_FUNC;
-        dispatcher.addLessEqualFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::LTEQ_FUNC;
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
 	else if (op == "=")
     {
-		gpuFunction = GPUWhereFunctions::EQ_FUNC;
-        dispatcher.addEqualFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::EQ_FUNC;
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
 	else if (op == "!=" || op == "<>")
     {
-		gpuFunction = GPUWhereFunctions::NEQ_FUNC;
-        dispatcher.addNotEqualFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::NEQ_FUNC;
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
 	else if (op == "AND")
     {
-		gpuFunction = GPUWhereFunctions::AND_FUNC;
-        dispatcher.addLogicalAndFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::AND_FUNC;
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
 	else if (op == "OR")
     {
-		gpuFunction = GPUWhereFunctions::OR_FUNC;
-        dispatcher.addLogicalOrFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::OR_FUNC;
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
 	else if (op == "*")
     {
-		gpuFunction = GPUWhereFunctions::MUL_FUNC;
-        dispatcher.addMulFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::MUL_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     } 
 	else if (op == "/")
     {
-		gpuFunction = GPUWhereFunctions::DIV_FUNC;
-        dispatcher.addDivFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::DIV_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     } 
 	else if (op == "+")
     {
-		gpuFunction = GPUWhereFunctions::ADD_FUNC;
-        dispatcher.addAddFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::ADD_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     } 
 	else if (op == "-")
     {
-		gpuFunction = GPUWhereFunctions::SUB_FUNC;
-        dispatcher.addSubFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::SUB_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     } 
 	else if (op == "%")
     {
-		gpuFunction = GPUWhereFunctions::MOD_FUNC;
-        dispatcher.addModFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::MOD_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
     }
 	else if (op == "|")
 	{
-		dispatcher.addBitwiseOrFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::BIT_OR_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "&")
 	{
-		dispatcher.addBitwiseAndFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::BIT_AND_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "^")
 	{
-		dispatcher.addBitwiseXorFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::BIT_XOR_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "<<")
 	{
-		dispatcher.addBitwiseLeftShiftFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::LEFT_SHIFT_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == ">>")
 	{
-		dispatcher.addBitwiseRightShiftFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::RIGHT_SHIFT_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "POINT")
 	{
-		dispatcher.addPointFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::POINT_FUNC;
 		returnDataType = DataType::COLUMN_POINT;
 	}
 	else if (op == "GEO_CONTAINS")
     {
-        dispatcher.addContainsFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::GEO_CONTAINS_FUNC;
 		returnDataType = DataType::COLUMN_INT8_T;
     }
     else if (op == "GEO_INTERSECT")
     {
-        dispatcher.addIntersectFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::GEO_INTERSECT_FUNC;
         returnDataType = DataType::COLUMN_POLYGON;
     }
     else if (op == "GEO_UNION")
     {
-        dispatcher.addUnionFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::GEO_UNION_FUNC;
         returnDataType = DataType::COLUMN_POLYGON;
     }
 	else if (op == "LOG")
-	{
-		dispatcher.addLogarithmFunction(leftOperandType, rightOperandType);
+	{	
+		gpuFunction = DispatcherFunction::LOG_BIN_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "POW")
 	{
-		dispatcher.addPowerFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::POW_BIN_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "ROOT")
 	{
-		dispatcher.addRootFunction(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::ROOT_BIN_FUNC;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "ATAN2")
 	{
-		dispatcher.addArctangent2Function(leftOperandType, rightOperandType);
+		gpuFunction = DispatcherFunction::ATAN2_FUNC;
 		returnDataType = getReturnDataType(DataType::COLUMN_FLOAT);
 	}
 
@@ -210,7 +194,13 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 	{
 		dispatcher.addGpuPushWhereFunction(leftOperandType, std::get<0>(left).c_str());
 		dispatcher.addGpuPushWhereFunction(rightOperandType, std::get<0>(right).c_str());
-		dispatcher.addGpuWhereFunction(gpuFunction, leftOperandType, rightOperandType);
+		dispatcher.addGpuWhereBinaryFunction(gpuFunction, leftOperandType, rightOperandType);
+	}
+	else
+	{
+		pushArgument(std::get<0>(right).c_str(), rightOperandType);
+		pushArgument(std::get<0>(left).c_str(), leftOperandType);
+		dispatcher.addDispatcherBinaryFunction(gpuFunction, leftOperandType, rightOperandType);
 	}
 
 	std::string reg = getRegString(ctx);
@@ -264,134 +254,145 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     std::string op = ctx->op->getText();
     stringToUpper(op);
     DataType operandType = std::get<1>(arg);
-    pushArgument(std::get<0>(arg).c_str(), operandType);
 
 	DataType returnDataType;
+	DispatcherFunction gpuFunction;
 
     if (op == "!")
     {
-        dispatcher.addLogicalNotFunction(operandType);
+		gpuFunction = DispatcherFunction::NOT_FUNC;
 		returnDataType = DataType::COLUMN_INT8_T;
     } 
 	else if (op == "-")
     {
-        dispatcher.addMinusFunction(operandType);
+		gpuFunction = DispatcherFunction::MINUS_FUNC;
 		returnDataType = getReturnDataType(operandType);
     }
 	else if (op == "YEAR")
 	{
-		dispatcher.addYearFunction(operandType);
+		gpuFunction = DispatcherFunction::YEAR_FUNC;
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "MONTH")
 	{
-		dispatcher.addMonthFunction(operandType);
+		gpuFunction = DispatcherFunction::MONTH_FUNC;
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "DAY")
 	{
-		dispatcher.addDayFunction(operandType);
+		gpuFunction = DispatcherFunction::DAY_FUNC;
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "HOUR")
 	{
-		dispatcher.addHourFunction(operandType);
+		gpuFunction = DispatcherFunction::HOUR_FUNC;
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "MINUTE")
 	{
-		dispatcher.addMinuteFunction(operandType);
+		gpuFunction = DispatcherFunction::MINUTE_FUNC;
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "SECOND")
 	{
-		dispatcher.addSecondFunction(operandType);
+		gpuFunction = DispatcherFunction::SECOND_FUNC;
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "ABS")
 	{
-		dispatcher.addAbsoluteFunction(operandType);
+		gpuFunction = DispatcherFunction::ABS_FUNC;
 		returnDataType = getReturnDataType(operandType);
 	}
 	else if (op == "SIN")
 	{
-		dispatcher.addSineFunction(operandType);
+		gpuFunction = DispatcherFunction::SIN_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "COS")
 	{
-		dispatcher.addCosineFunction(operandType);
+		gpuFunction = DispatcherFunction::COS_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "TAN")
 	{
-		dispatcher.addTangentFunction(operandType);
+		gpuFunction = DispatcherFunction::TAN_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "COT")
 	{
-		dispatcher.addCotangentFunction(operandType);
+		gpuFunction = DispatcherFunction::COT_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "ASIN")
 	{
-		dispatcher.addArcsineFunction(operandType);
+		gpuFunction = DispatcherFunction::ASIN_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "ACOS")
 	{
-		dispatcher.addArccosineFunction(operandType);
+		gpuFunction = DispatcherFunction::ACOS_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "ATAN")
 	{
-		dispatcher.addArctangentFunction(operandType);
+		gpuFunction = DispatcherFunction::ATAN_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
     else if (op == "LOG10")
     {
-        dispatcher.addLogarithm10Function(operandType);
+		gpuFunction = DispatcherFunction::LOG10_FUNC;
         returnDataType = DataType::COLUMN_FLOAT;
     }
 	else if (op == "LOG")
 	{
-		dispatcher.addLogarithmNaturalFunction(operandType);
+		gpuFunction = DispatcherFunction::LOG_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "EXP")
 	{
-		dispatcher.addExponentialFunction(operandType);
+		gpuFunction = DispatcherFunction::EXP_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "SQRT")
 	{
-		dispatcher.addSquareRootFunction(operandType);
+		gpuFunction = DispatcherFunction::SQRT_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "SQUARE")
 	{
-		dispatcher.addSquareFunction(operandType);
+		gpuFunction = DispatcherFunction::SQUARE_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "SIGN")
 	{
-		dispatcher.addSignFunction(operandType);
+		gpuFunction = DispatcherFunction::SIGN_FUNC;
 		returnDataType = DataType::COLUMN_INT;
 	}
 	else if (op == "ROUND")
 	{
-		dispatcher.addRoundFunction(operandType);
+		gpuFunction = DispatcherFunction::ROUND_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "FLOOR")
 	{
-		dispatcher.addFloorFunction(operandType);
+		gpuFunction = DispatcherFunction::FLOOR_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "CEIL")
 	{
-		dispatcher.addCeilFunction(operandType);
+		gpuFunction = DispatcherFunction::CEIL_FUNC;
 		returnDataType = DataType::COLUMN_FLOAT;
+	}
+
+	if (insideWhere)
+	{
+		dispatcher.addGpuPushWhereFunction(operandType, std::get<0>(arg).c_str());
+		dispatcher.addGpuWhereUnaryFunction(gpuFunction, operandType);
+	}
+	else
+	{
+		pushArgument(std::get<0>(arg).c_str(), operandType);
+		dispatcher.addDispatcherUnaryFunction(gpuFunction, operandType);
 	}
 
 	std::string reg = getRegString(ctx);
