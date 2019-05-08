@@ -15,8 +15,10 @@
 
 // WARNING - This version clips only the 0th polygon of a complex polygon !!!
 
+/// The polygon clip operation functor
 namespace PolygonFunctions
 {
+	/// Create an intersection
 struct polyIntersect
 {
     __device__ __host__ void operator()(bool* into) const
@@ -26,6 +28,7 @@ struct polyIntersect
     }
 };
 
+/// Create a union
 struct polyUnion
 {
     __device__ __host__ void operator()(bool* into) const
@@ -36,7 +39,7 @@ struct polyUnion
 };
 } // namespace PolygonFunctions
 
-// Struct for the polygon Doubly Linked List construction on the GPU
+/// Struct for the polygon Doubly Linked List construction on the GPU
 __device__ struct PolygonNodeDLL
 {
     NativeGeoPoint point;
@@ -51,7 +54,7 @@ __device__ struct PolygonNodeDLL
     int32_t cross_link; // Cross ink also indicates if a node is a intersect or not = only intersects have positive cross links
 };
 
-// A kernel for counting the number of vertices that a complex polygon has
+/// A kernel for counting the number of vertices that a complex polygon has
 inline __global__ void kernel_calculate_point_count_in_complex_polygon(int32_t* pointCounts,
                                                                        GPUMemory::GPUPolygon complexPolygon,
                                                                        int32_t dataElementCount)
@@ -76,6 +79,19 @@ inline __global__ void kernel_calculate_point_count_in_complex_polygon(int32_t* 
     }
 }
 
+/// The kernel for operations on polygons
+/// <param name="complexPolygonOut"> The resulting complex polygon list uncompressed</param>
+/// <param name="complexPolygon1"> The input comp[lex polygon list 1</param>
+/// <param name="complexPolygon2"> The input comp[lex polygon list 2</param>
+/// <param name="dataElementCount"> Number of complex polygons in the input</param>
+/// <param name="poly1VertexCounts"> Number of vertices in the input polygons 1</param>
+/// <param name="poly2VertexCounts">Number of vertices in the input polygons 2</param>
+/// <param name="DLLVertexCounts"> Capacity of the DLL for each vertex of the polygon pairs</param>
+/// <param name="DLLVertexCountOffsets">Offset of each DLL sandbox vertex for computation</param>
+/// <param name="DLLPolygonCounts">Capacity of the DLL for each polygon of the polygon pairs</param>
+/// <param name="DLLPolygonCountOffsets">Offset of each DLL sandbox polygon for computation</param>
+/// <param name="poly1DLList">A place for stroring the DLL 1 during calculation</param>
+/// <param name="poly2DLList">A place for stroring the DLL 2 during calculation</param>
 template <typename OP>
 __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
                                         GPUMemory::GPUPolygon complexPolygon1,
@@ -635,7 +651,7 @@ __global__ void kernel_polygon_clipping(GPUMemory::GPUPolygon complexPolygonOut,
     }
 }
 
-// Offset the inclusive sum to a exclusive sum
+/// Offset the inclusive sum to a exclusive sum
 template <typename T>
 __global__ void kernel_transform_inclusive_to_exclusive_sum(T* in, T* out, int32_t dataElementCount)
 {
@@ -651,8 +667,8 @@ __global__ void kernel_transform_inclusive_to_exclusive_sum(T* in, T* out, int32
     }
 }
 
-// Compress the poygin/vertex counts into one single array based on the initial sandbox offsets
-// This function is set up to accept inclusive prefix sums only !!!
+/// Compress the poygin/vertex counts into one single array based on the initial sandbox offsets
+/// This function is set up to accept inclusive prefix sums only !!!
 template <typename T>
 __global__ void kernel_compress_based_on_offset_element_counts_inclusive(T* outCompressedData,
                                                                          T* inUncompressedData,
@@ -684,9 +700,19 @@ __global__ void kernel_compress_based_on_offset_element_counts_inclusive(T* outC
     }
 }
 
+/// A class encapsulating the polygon clipping operation
 class GPUPolygonClipping
 {
 public:
+    /// This method performs the operation of polygon intersect or polugon union based on the greiner-hormann
+	/// polygon clipping algorithm, it considers only the first complex polygon from the input of each two 
+	/// complex polygon pairs to be compared, this is due to the basic implementation
+    /// <param name="OP"> Template operation type: polyIntersect or polyUnion </param>
+    /// <param name="polygonOut"> A nullptr pointer, that is allocated on the GPU and filled with the 
+	/// resulting complex polygons; WARNING - this needs to be deallocated afterwards manually</param>
+    /// <param name="polygon1">A column of input complex polygons</param>
+    /// <param name="polygon2">A column of input complex polygons</param>
+    /// <param name="dataElementCount">The count of complex polygons in the columns</param>
     template <typename OP>
     static void
     ColCol(GPUMemory::GPUPolygon& polygonOut, GPUMemory::GPUPolygon polygon1, GPUMemory::GPUPolygon polygon2, int32_t dataElementCount)
