@@ -250,6 +250,7 @@ namespace ArithmeticOperations
 
 /// Kernel for arithmetic operation with column and column
 /// (For mod as U and V never use floating point type!)
+/// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
@@ -281,6 +282,7 @@ class GPUArithmetic
 {
 public:
 	/// Arithmetic operation with two columns
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
 	/// <param name="output">output GPU buffer</param>
 	/// <param name="ACol">buffer with left side operands</param>
 	/// <param name="BCol">buffer with right side operands</param>
@@ -297,6 +299,7 @@ public:
 	}
 
 	/// Arithmetic operation with column and constant
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
 	/// <param name="output">output GPU buffer</param>
 	/// <param name="ACol">buffer with left side operands</param>
 	/// <param name="BConst">right side operand constant</param>
@@ -313,6 +316,7 @@ public:
 	}
 
 	/// Arithmetic operation with constant and column
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
 	/// <param name="output">output GPU buffer</param>
 	/// <param name="AConst">left side operand constant</param>
 	/// <param name="BCol">buffer with right side operands</param>
@@ -329,6 +333,7 @@ public:
 	}
 
 	/// Arithmetic operation with two constants
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
 	/// <param name="output">output GPU buffer</param>
 	/// <param name="AConst">left side operand constant</param>
 	/// <param name="BConst">right side operand constant</param>

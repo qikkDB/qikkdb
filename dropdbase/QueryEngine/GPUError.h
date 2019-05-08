@@ -7,17 +7,25 @@
 #include <string>
 
 /// Enum for different QueryEngine errors
-enum QueryEngineErrorType
-{
-    GPU_EXTENSION_SUCCESS = 0, // Return code for successful operations
-    GPU_EXTENSION_ERROR, // Return code for all CUDA errors
-    GPU_DIVISION_BY_ZERO_ERROR, // Return code for division by zero
-    GPU_INTEGER_OVERFLOW_ERROR, // Return code for integer overflow
-    GPU_HASH_TABLE_FULL, // Return code for exceeding hash table limit (e.g. at group by with too many buckets)
-    GPU_UNKNOWN_AGG_FUN, // The used function in the group by command is unknown
-    GPU_NOT_FOUND_ERROR, // Return code for no detected GPU
-    GPU_MEMORY_MAPPING_NOT_SUPPORTED_ERROR, // Return code for no memory mapping
-    GPU_DRIVER_NOT_FOUND_EXCEPTION // Return code for not found nvidia driver
+/// < param name="GPU_EXTENSION_SUCCESS"> Return code for successful operations</param>
+/// < param name="GPU_EXTENSION_ERROR"> Return code for all CUDA errors</param>
+/// < param name="GPU_DIVISION_BY_ZERO_ERROR"> Return code for division by zero</param>
+/// < param name="GPU_INTEGER_OVERFLOW_ERROR"> Return code for integer overflow</param>
+/// < param name="GPU_HASH_TABLE_FULL"> Return code for exceeding hash table limit (e.g. at group by with too many buckets)</param>
+/// < param name="GPU_UNKNOWN_AGG_FUN"> The used function in the group by command is unknown</param>
+/// < param name="GPU_NOT_FOUND_ERROR"> Return code for no detected GPU</param>
+/// < param name="GPU_MEMORY_MAPPING_NOT_SUPPORTED_ERROR"> Return code for no memory mapping</param>
+/// < param name="GPU_DRIVER_NOT_FOUND_EXCEPTION"> Return code for not found nvidia driver</param>
+enum QueryEngineErrorType {
+    GPU_EXTENSION_SUCCESS = 0,
+    GPU_EXTENSION_ERROR,
+    GPU_DIVISION_BY_ZERO_ERROR,
+    GPU_INTEGER_OVERFLOW_ERROR,
+    GPU_HASH_TABLE_FULL,
+    GPU_UNKNOWN_AGG_FUN,
+    GPU_NOT_FOUND_ERROR,
+    GPU_MEMORY_MAPPING_NOT_SUPPORTED_ERROR,
+    GPU_DRIVER_NOT_FOUND_EXCEPTION
 };
 
 /// Generic GPU Error
@@ -41,7 +49,7 @@ private:
 
 public:
     /// Create cuda_error from cudaError_t status
-    /// and contain the number and the name of the error in error message.
+    /// and contain the number and the name of the error in an error message.
     /// <param name="cudaError">return value from cudaGetLastError()</param>
     explicit cuda_error(cudaError_t cudaError)
     : gpu_error("CUDA Error " + std::to_string(static_cast<int32_t>(cudaError)) + ": " +

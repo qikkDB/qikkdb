@@ -219,6 +219,7 @@ namespace ArithmeticUnaryOperations
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Kernel for arithmetic unary operation with column and column
+/// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="dataElementCount">count of elements in the input blocks</param>
@@ -248,6 +249,7 @@ class GPUArithmeticUnary
 {
 public:
 	/// Arithmetic unary operation with values from column
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
 	/// <param name="output">output GPU buffer</param>
 	/// <param name="ACol">buffer with operands</param>
 	/// <param name="dataElementCount">data element count of the input block</param>
@@ -263,6 +265,7 @@ public:
 	}
 
 	/// Arithmetic unary operation with constant
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
 	/// <param name="output">output GPU buffer</param>
 	/// <param name="AConst">operand (constant)</param>
 	/// <param name="dataElementCount">data element count of the output buffer (how many times copy result)</param>

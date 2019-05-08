@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <stdexcept>
 
+/// Initiaize the neccessary data structures for the GPUallocator
 CudaMemAllocator::CudaMemAllocator(int32_t deviceID) :
 	deviceID_(deviceID)
 {
@@ -33,6 +34,7 @@ CudaMemAllocator::CudaMemAllocator(int32_t deviceID) :
 	cudaSetDevice(oldDevice);
 }
 
+/// Destroy the allocator
 CudaMemAllocator::~CudaMemAllocator()
 {
 	if (cudaBufferStart_ != nullptr)
@@ -52,6 +54,9 @@ CudaMemAllocator::~CudaMemAllocator()
 #endif // DEBUG_ALLOC
 }
 
+/// Allocate data with the allocator
+/// < param name="numBytes">number of bytes to be allocated like size_t</param>
+/// <returns> a chunk of allocated memory on the GPU</returns>
 int8_t * CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 {
 	if (numBytes <= 0)
@@ -80,6 +85,9 @@ int8_t * CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 	return static_cast<int8_t*>((*blockInfoIt).ptr);
 }
 
+/// Deallocate data with the allocator
+/// < param name="ptr">the pointer to be freed</param>
+/// < param name="numBytes">number of byte to free</param>
 void CudaMemAllocator::deallocate(int8_t * ptr, size_t numBytes)
 {
 #ifdef DEBUG_ALLOC
@@ -133,6 +141,7 @@ void CudaMemAllocator::SplitBlock(std::multimap<size_t, std::list<BlockInfo>::it
 	(*blockInfoIt).blockSize = requestedSize;
 }
 
+/// Clear the allocator's contents - free all memory
 void CudaMemAllocator::Clear()
 {
 #ifdef DEBUG_ALLOC
