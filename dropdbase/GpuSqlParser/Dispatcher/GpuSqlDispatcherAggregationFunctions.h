@@ -5,6 +5,12 @@
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
 
+/// Implementation of generic aggregation operation based on functor OP
+/// Used when GROUP BY Clause is not present
+/// Loads data on demand
+/// COUNT operation is handled more efficiently
+/// If WHERE clause is present filtering is done before agreggation
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename OUT, typename IN>
 int32_t GpuSqlDispatcher::aggregationCol()
 {
@@ -23,7 +29,27 @@ int32_t GpuSqlDispatcher::aggregationCol()
 	int32_t reconstructOutSize;
 
 	IN* reconstructOutReg = nullptr;
-	GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<IN*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+	if (std::is_same<OP, AggregationFunctions::count>::value)
+	{
+		// If mask is present - count suitable rows
+		if (filter_)
+		{
+			int32_t *indexes = nullptr;
+			GPUReconstruct::GenerateIndexesKeep(&indexes, &reconstructOutSize, reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+			if (indexes)
+			{
+				GPUMemory::free(indexes);
+			}
+		}
+		// If mask is nullptr - count full rows
+		else {
+			reconstructOutSize = std::get<1>(column);
+		}
+	}
+	else
+	{
+		GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<IN*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+	}
 
 	if (std::get<2>(column))
 	{
@@ -55,6 +81,15 @@ int32_t GpuSqlDispatcher::aggregationConst()
 	return 0;
 }
 
+/// Implementation of generic aggregation operation based on functor OP
+/// Used when GROUP BY Clause is present
+/// Loads data on demand
+/// If WHERE clause is present filtering is done before agreggation
+/// For each block it updates group by hash table
+/// To handle multi-gpu functionality - each dipatcher instance signals when it processes its last block
+/// The dispatcher instance handling the overall last block waits for all other dispatcher instances to finish their last blocks
+/// and saves the result of group by
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename R, typename T, typename U>
 int32_t GpuSqlDispatcher::aggregationGroupBy()
 {
@@ -138,6 +173,10 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 	return 0;
 }
 
+/// This executes first (dor each block) when GROUP BY clause is used
+/// It loads the group by column (if it is firt encountered reference to the column)
+/// and filters it according to WHERE clause
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T>
 int32_t GpuSqlDispatcher::groupByCol()
 {

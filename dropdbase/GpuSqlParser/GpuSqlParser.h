@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/David/source/repos/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -23,14 +23,15 @@ public:
     OFFSET = 46, SHOWDB = 47, SHOWTB = 48, SHOWCL = 49, AGG = 50, AVG = 51, 
     SUM = 52, MIN = 53, MAX = 54, COUNT = 55, YEAR = 56, MONTH = 57, DAY = 58, 
     HOUR = 59, MINUTE = 60, SECOND = 61, NOW = 62, PI = 63, ABS = 64, SIN = 65, 
-    COS = 66, TAN = 67, ASIN = 68, ACOS = 69, ATAN = 70, LOG10 = 71, LOG = 72, 
-    EXP = 73, POW = 74, SQRT = 75, SQUARE = 76, SIGN = 77, ROOT = 78, GEO_CONTAINS = 79, 
-    GEO_INTERSECT = 80, GEO_UNION = 81, PLUS = 82, MINUS = 83, ASTERISK = 84, 
-    DIVISION = 85, MODULO = 86, XOR = 87, EQUALS = 88, NOTEQUALS = 89, NOTEQUALS_GT_LT = 90, 
-    LPAREN = 91, RPAREN = 92, GREATER = 93, LESS = 94, GREATEREQ = 95, LESSEQ = 96, 
-    NOT = 97, OR = 98, AND = 99, BIT_OR = 100, BIT_AND = 101, L_SHIFT = 102, 
-    R_SHIFT = 103, FLOATLIT = 104, INTLIT = 105, ID = 106, BOOLEANLIT = 107, 
-    STRINGLIT = 108
+    COS = 66, TAN = 67, COT = 68, ASIN = 69, ACOS = 70, ATAN = 71, ATAN2 = 72, 
+    LOG10 = 73, LOG = 74, EXP = 75, POW = 76, SQRT = 77, SQUARE = 78, SIGN = 79, 
+    ROOT = 80, ROUND = 81, CEIL = 82, FLOOR = 83, GEO_CONTAINS = 84, GEO_INTERSECT = 85, 
+    GEO_UNION = 86, PLUS = 87, MINUS = 88, ASTERISK = 89, DIVISION = 90, 
+    MODULO = 91, XOR = 92, EQUALS = 93, NOTEQUALS = 94, NOTEQUALS_GT_LT = 95, 
+    LPAREN = 96, RPAREN = 97, GREATER = 98, LESS = 99, GREATEREQ = 100, 
+    LESSEQ = 101, NOT = 102, OR = 103, AND = 104, BIT_OR = 105, BIT_AND = 106, 
+    L_SHIFT = 107, R_SHIFT = 108, FLOATLIT = 109, INTLIT = 110, ID = 111, 
+    BOOLEANLIT = 112, STRINGLIT = 113
   };
 
   enum {
@@ -731,9 +732,10 @@ public:
     antlr4::tree::TerminalNode *LPAREN();
     antlr4::tree::TerminalNode *COMMA();
     antlr4::tree::TerminalNode *RPAREN();
-    antlr4::tree::TerminalNode *LOG();
+    antlr4::tree::TerminalNode *ATAN2();
     std::vector<ExpressionContext *> expression();
     ExpressionContext* expression(size_t i);
+    antlr4::tree::TerminalNode *LOG();
     antlr4::tree::TerminalNode *POW();
     antlr4::tree::TerminalNode *ROOT();
     antlr4::tree::TerminalNode *POINT();
@@ -788,6 +790,7 @@ public:
     antlr4::tree::TerminalNode *SIN();
     antlr4::tree::TerminalNode *COS();
     antlr4::tree::TerminalNode *TAN();
+    antlr4::tree::TerminalNode *COT();
     antlr4::tree::TerminalNode *ASIN();
     antlr4::tree::TerminalNode *ACOS();
     antlr4::tree::TerminalNode *ATAN();
@@ -797,6 +800,9 @@ public:
     antlr4::tree::TerminalNode *SQRT();
     antlr4::tree::TerminalNode *SQUARE();
     antlr4::tree::TerminalNode *SIGN();
+    antlr4::tree::TerminalNode *ROUND();
+    antlr4::tree::TerminalNode *FLOOR();
+    antlr4::tree::TerminalNode *CEIL();
     antlr4::tree::TerminalNode *YEAR();
     antlr4::tree::TerminalNode *MONTH();
     antlr4::tree::TerminalNode *DAY();

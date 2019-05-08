@@ -24,6 +24,12 @@
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "ParserExceptions.h"
+
+#ifndef NDEBUG
+void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
+#endif
+
 class GpuSqlDispatcher
 {
 private:
@@ -86,11 +92,13 @@ private:
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> arctangent2Functions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions;
     static std::array<DispatchFunction,
@@ -124,6 +132,8 @@ private:
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> tangentFunctions;
 	static std::array<DispatchFunction,
+		DataType::DATA_TYPE_SIZE> cotangentFunctions;
+	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> arcsineFunctions;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> arccosineFunctions;
@@ -141,6 +151,12 @@ private:
 		DataType::DATA_TYPE_SIZE> squareFunctions;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> signFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> roundFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> ceilFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> floorFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
@@ -314,6 +330,8 @@ public:
 
 	void addTangentFunction(DataType type);
 
+	void addCotangentFunction(DataType type);
+
 	void addArcsineFunction(DataType type);
 
 	void addArccosineFunction(DataType type);
@@ -323,6 +341,8 @@ public:
 	void addLogarithm10Function(DataType type);
 
 	void addLogarithmFunction(DataType number, DataType base);
+
+	void addArctangent2Function(DataType y, DataType x);
 
 	void addLogarithmNaturalFunction(DataType type);
 
@@ -335,6 +355,12 @@ public:
 	void addSquareFunction(DataType type);
 
 	void addSignFunction(DataType type);
+
+	void addRoundFunction(DataType type);
+
+	void addFloorFunction(DataType type);
+
+	void addCeilFunction(DataType type);
 
 	void addRootFunction(DataType base, DataType exponent);
 
@@ -480,7 +506,7 @@ public:
 	template<typename OP, typename R, typename T, typename U>
 	int32_t aggregationGroupBy();
 
-	template<typename OP, typename T, typename U>
+	template<typename OP, typename OUT, typename IN>
 	int32_t aggregationCol();
 
 	template<typename OP, typename T, typename U>
@@ -554,24 +580,40 @@ public:
     template<typename T, typename U>
     int32_t invalidOperandTypesErrorHandlerColConst()
 	{
+		U cnst = arguments.read<U>();
+		auto colName = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colName, std::string("cnst"), std::string("operation"));
 		return 0;
 	}
 
     template<typename T, typename U>
     int32_t invalidOperandTypesErrorHandlerConstCol()
 	{
+		auto colName = arguments.read<std::string>();
+		T cnst = arguments.read<T>();
+
+		throw InvalidOperandsException(colName, std::string("cnst"), std::string("operation"));
 		return 0;
 	}
 
     template<typename T, typename U>
     int32_t invalidOperandTypesErrorHandlerColCol()
 	{
+		auto colNameRight = arguments.read<std::string>();
+		auto colNameLeft = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colNameLeft, colNameRight, std::string("operation"));
 		return 0;
 	}
 
     template<typename T, typename U>
     int32_t invalidOperandTypesErrorHandlerConstConst()
 	{
+		U cnstRight = arguments.read<U>();
+		T cnstLeft = arguments.read<T>();
+
+		throw InvalidOperandsException(std::string("cnst"), std::string("cnst"), std::string("operation"));
 		return 0;
 	}
 
@@ -581,6 +623,10 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerColConst()
 	{
+		U cnst = arguments.read<U>();
+		auto colName = arguments.read<std::string>();
+
+		throw InvalidOperandsException (colName, std::string("cnst"), std::string(typeid(OP).name()));
 		return 0;
 	}
 
@@ -588,6 +634,10 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerConstCol()
 	{
+		auto colName = arguments.read<std::string>();
+		T cnst = arguments.read<T>();
+
+		throw InvalidOperandsException(colName, std::string("cnst"), std::string(typeid(OP).name()));
 		return 0;
 	}
 
@@ -595,6 +645,10 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerColCol()
 	{
+		auto colNameRight = arguments.read<std::string>();
+		auto colNameLeft = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colNameLeft, colNameRight, std::string(typeid(OP).name()));
 		return 0;
 	}
 
@@ -602,18 +656,28 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerConstConst()
 	{
+		U cnstRight = arguments.read<U>();
+		T cnstLeft = arguments.read<T>();
+
+		throw InvalidOperandsException(std::string("cnst"), std::string("cnst"), std::string(typeid(OP).name()));
 		return 0;
 	}
 
 	template<typename OP, typename T>
 	int32_t invalidOperandTypesErrorHandlerCol()
 	{
+		auto colName = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colName, std::string(""), std::string(typeid(OP).name()));
 		return 0;
 	}
 
 	template<typename OP, typename T>
 	int32_t invalidOperandTypesErrorHandlerConst()
 	{
+		T cnst = arguments.read<T>();
+
+		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string(typeid(OP).name()));
 		return 0;
 	}
 
@@ -622,12 +686,18 @@ public:
 	template<typename T>
 	int32_t invalidOperandTypesErrorHandlerCol()
 	{
+		auto colName = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colName, std::string(""), std::string("operation"));
 		return 0;
 	}
 
 	template<typename T>
 	int32_t invalidOperandTypesErrorHandlerConst()
 	{
+		T cnst = arguments.read<T>();
+
+		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string("operation"));
 		return 0;
 	}
 

@@ -9,9 +9,12 @@
 
 #include "../Context.h"
 #include "GPUMemory.cuh"
+#include "../../Types/Point.pb.h"
+#include "../../Types/ComplexPolygon.pb.h"
 
 #include "../../../cub/cub.cuh"
 
+/// Kernel for reconstructing buffer according to calculated prefixSum and inMask
 template<typename T>
 __global__ void kernel_reconstruct_col(T *outData, T *ACol, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
 {
@@ -30,7 +33,7 @@ __global__ void kernel_reconstruct_col(T *outData, T *ACol, int32_t *prefixSum, 
 	}
 }
 
-// Kernel for generating array with sorted indexes which point to values where mask is 1.
+/// Kernel for generating array with sorted indexes which point to values where mask is 1.
 template<typename T>
 __global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
 {
@@ -49,11 +52,18 @@ __global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *
 	}
 }
 
+/// Class for reconstructing buffers according to mask
 class GPUReconstruct {
 public:
 
-	template<typename T, typename M>
-	static void reconstructCol(T *outData, int32_t *outDataElementCount, T *ACol, M *inMask, int32_t dataElementCount)
+	/// Reconstruct block of column and copy result to host (CPU)
+	/// <param name="outCol">CPU buffer which will be filled with result</param>
+	/// <param name="outDataElementCount">CPU pointer, will be filled with one number representing reconstructed rows in block</param>
+	/// <param name="ACol">input block</param>
+	/// <param name="inMask">input mask</param>
+	/// <param name="dataElementCount">data element count of the input block</param>
+	template<typename T>
+	static void reconstructCol(T *outData, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
 	{
 		Context& context = Context::getInstance();
 
@@ -81,40 +91,50 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
-
-	template<typename T, typename M>
-	static void reconstructColKeep(T **outCol, int32_t *outDataElementCount, T *ACol, M *inMask, int32_t dataElementCount)
-    {
-        static_assert(std::is_same<M, int8_t>::value || std::is_same<M, int32_t>::value,
-                      "ReconstructCol: inMask have to be int8_t* or int32_t*");
+	/// Reconstruct block of column and keep reuslt on GPU
+	/// <param name="outCol">will be allocated on GPU and filled with result</param>
+	/// <param name="outDataElementCount">CPU pointer, will be filled with one number representing reconstructed rows in block</param>
+	/// <param name="ACol">input block</param>
+	/// <param name="inMask">input mask</param>
+	/// <param name="dataElementCount">data element count of the input block</param>
+	template<typename T>
+	static void reconstructColKeep(T **outCol, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
+	{
 		Context& context = Context::getInstance();
 
 		if (inMask)		// If inMask is not nullptr
 		{
-			// Malloc a new buffer for the prefix sum vector
 			int32_t* prefixSumPointer = nullptr;
-			GPUMemory::alloc(&prefixSumPointer, dataElementCount);
-
-			// Malloc a new buffer for the output size
-			int32_t* outDataElementCountPointer = nullptr;
-			GPUMemory::alloc(&outDataElementCountPointer, 1);
-
-			PrefixSum(prefixSumPointer, inMask, dataElementCount);
-			GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
-			if(*outDataElementCount > 0)
-			{ 
-				GPUMemory::alloc<T>(outCol, *outDataElementCount);
-				// Construct the output based on the prefix sum
-				kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-				(*outCol, ACol, prefixSumPointer, inMask, dataElementCount);
-			}
-			else
+			try
 			{
-				*outCol = nullptr;
+				// Malloc a new buffer for the prefix sum vector
+				GPUMemory::alloc(&prefixSumPointer, dataElementCount);
+
+				PrefixSum(prefixSumPointer, inMask, dataElementCount);
+				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
+				if(*outDataElementCount > 0)
+				{ 
+					GPUMemory::alloc<T>(outCol, *outDataElementCount);
+					// Construct the output based on the prefix sum
+					kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+							(*outCol, ACol, prefixSumPointer, inMask, dataElementCount);
+				}
+				else
+				{
+					*outCol = nullptr;
+				}
+				// Free the memory
+				GPUMemory::free(prefixSumPointer);
 			}
-			// Free the memory
-			GPUMemory::free(prefixSumPointer);
-			GPUMemory::free(outDataElementCountPointer);
+			catch(...)
+			{
+				if(prefixSumPointer)
+				{
+					GPUMemory::free(prefixSumPointer);
+				}
+				
+				throw;
+			}
 		}
 		else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
 		{
@@ -128,11 +148,8 @@ public:
 	}
 
 
-
-	/// <summary>
 	/// Function for generating array with sorted indexes which point to values where mask is 1.
 	/// Result is copied to host.
-	/// </summary>
 	/// <param name="outData">result array (must be allocated on host)</param>
 	/// <param name="outDataElementCount">result data element count</param>
 	/// <param name="inMask">input mask to process (on device)</param>
@@ -160,10 +177,8 @@ public:
 		}
 	}
 
-	/// <summary>
 	/// Function for generating array with sorted indexes which point to values where mask is 1.
-	/// Result is keeped on device.
-	/// </summary>
+	/// Result is kept on device.
 	/// <param name="outData">pointer to result array (this function also allocates it)</param>
 	/// <param name="outDataElementCount">result data element count</param>
 	/// <param name="inMask">input mask to process (on device)</param>
@@ -178,10 +193,6 @@ public:
 			// Malloc a new buffer for the prefix sum vector
 			int32_t* prefixSumPointer = nullptr;
 			GPUMemory::alloc(&prefixSumPointer, dataElementCount);
-
-			// Malloc a new buffer for the output size
-			int32_t* outDataElementCountPointer = nullptr;
-			GPUMemory::alloc(&outDataElementCountPointer, 1);
 			
 			// Run prefix sum
 			PrefixSum(prefixSumPointer, inMask, dataElementCount);
@@ -203,7 +214,6 @@ public:
 			}
 			// Free the memory
 			GPUMemory::free(prefixSumPointer);
-			GPUMemory::free(outDataElementCountPointer);
 		}
 		else  // Version without mask is not supported in GenerateIndexes
 		{
@@ -214,6 +224,10 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Calculate just prefix sum from input mask (keep result on GPU)
+	/// <param name="prefixSumPointer">output GPU buffer which will be filled with result</param>
+	/// <param name="inMask">input mask</param>
+	/// <param name="dataElementCount">data element count of the input block</param>
 	template<typename M>
 	static void PrefixSum(int32_t* prefixSumPointer, M* inMask, int32_t dataElementCount)
 	{
@@ -232,4 +246,23 @@ public:
 
 };
 
+/// Specialization for Point (not supported but need to be implemented)
+template<>
+void GPUReconstruct::reconstructCol<ColmnarDB::Types::Point>(ColmnarDB::Types::Point *outData,
+	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount);
 
+/// Specialization for ComplexPolygon (not supported but need to be implemented)
+template<>
+void GPUReconstruct::reconstructCol<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon *outData,
+	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount);
+
+
+/// Specialization for Point (not supported but need to be implemented)
+template<>
+void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::Point>(ColmnarDB::Types::Point **outCol,
+	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount);
+
+/// Specialization for ComplexPolygon (not supported but need to be implemented)
+template<>
+void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon **outCol,
+	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount);

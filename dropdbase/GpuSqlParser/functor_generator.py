@@ -34,8 +34,9 @@ all_types = [INT,
 
 bitwise_operations = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift"]
 arithmetic_operations = ["mul", "div", "add", "sub", "mod", "logarithm", "power"]
-unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'arcsine', 'arccosine', 'arctangent',
-                               'logarithm10', 'logarithmNatural', 'exponential', 'squareRoot', 'square', 'sign']
+unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'cotangent', 'arcsine', 'arccosine', 'arctangent',
+                               'logarithm10', 'logarithmNatural', 'exponential', 'squareRoot', 'square', 'sign',
+                               'round', 'floor', 'ceil']
 geo_operations = ["contains"]
 polygon_operations = ["intersect", "union"]
 filter_operations = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
@@ -51,7 +52,7 @@ operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "n
 operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operations_logical = ["logicalAnd", "logicalOr"]
 operations_arithmetic = ["mul", "div", "add", "sub", "mod", "bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift",
-                         "bitwiseRightShift", "power", "logarithm", "root"]
+                         "bitwiseRightShift", "power", "logarithm", "arctangent2", "root"]
 operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg", "year", "month", "day", "hour",
                     "minute", "second"]
 operations_aggregation = ["min", "max", "sum", "count", "avg"]
@@ -385,7 +386,7 @@ for operation in operations_aggregation:
         elif colIdx >= len(types):
             col = "Col"
 
-        if (colVal in geo_types or colVal == STRING) or (colVal == BOOL):
+        if (colVal in geo_types and operation != "count") or (colVal == STRING) or (colVal == BOOL):
             op = "invalidOperandTypesErrorHandler"
         else:
             op = "aggregation"

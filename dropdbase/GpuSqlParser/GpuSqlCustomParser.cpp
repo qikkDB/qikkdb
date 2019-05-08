@@ -22,7 +22,15 @@ GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database> &database
 	isSingleGpuStatement(false)
 {}
 
-
+/// Parses SQL statement
+/// SELECT statment is parsed in order: FROM, WHERE, GROUP BY, SELECT, LIMIT, OFFSET, ORDER BY
+/// Other statments are parsed as whole
+/// SELECT statement supports multi-gpu execution
+/// One dummy dispatcher instance is created to populate argument and operation queues
+/// One real dispatcher instance is created for every CUDA device found on the machine which inherits executin data from dummy dispatcher
+/// All real dispatcher instances are exucuted in separate threads and their results are aggregated
+/// Limit anf Offset are applied on final result set
+/// <returns="responseMessage">Final protobuf response message of executed statement (query result set)</returns>
 std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 {
 	Context& context = Context::getInstance();
@@ -171,6 +179,11 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	return std::move(mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
 }
 
+/// Merges partial dispatcher respnse messages to final response message
+/// <param="dispatcherResults">Partial dispatcher result messages</param>
+/// <param="resultLimit">Row limit</param>
+/// <param="resultOffset">Row offset</param>
+/// <returns="reponseMessage">Merged response message</returns>
 std::unique_ptr<google::protobuf::Message>
 GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults, int64_t resultLimit, int64_t resultOffset)
 {
@@ -193,6 +206,10 @@ GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::p
 	return std::move(responseMessage);
 }
 
+/// Trims all payloads of result message according to limit and offset
+/// <param="responseMessage">Response message to be trimmed</param>
+/// <param="limit">Row limit</param>
+/// <param="offset">Row offset</param>
 void GpuSqlCustomParser::trimResponseMessage(google::protobuf::Message *responseMessage, int64_t limit, int64_t offset)
 {	
 	auto queryResponseMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(responseMessage);
@@ -204,6 +221,10 @@ void GpuSqlCustomParser::trimResponseMessage(google::protobuf::Message *response
 	}
 }
 
+/// Trims single payload of result message according to limit and offset
+/// <param="payload">Payload to be trimmed</param>
+/// <param="limit">Row limit</param>
+/// <param="offset">Row offset</param>
 void GpuSqlCustomParser::trimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload & payload, int64_t limit, int64_t offset)
 {
 	switch (payload.payload_case())

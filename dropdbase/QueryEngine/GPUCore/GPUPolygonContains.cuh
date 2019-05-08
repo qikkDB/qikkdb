@@ -11,13 +11,14 @@
 #include "../../NativeGeoPoint.h"
 #include "../Context.h"
 
-/// <summary>
-/// Check whether point is in given polygon using GPU
-/// </summary>
+/// Kernel for checking whether point is in given polygon.
+/// This is performed in parallel per row, so 1 point is checked with 1 complex polygon,
+/// but supported are also versions 1 : n and n : 1.
 /// <param name="outMask">pointer to output mask</param>
-/// <param name="geoPointCol">points to check for inclusion</param>
-/// <param name="pointCount">Length of geoPointCol</param>
-/// <param name="polygonCount">Length of complexPolygonIdx and complexPolygonCnt</param>
+/// <param name="polygonCol">column with complex polygons (structure with GPU pointers to start of arrays)</param>
+/// <param name="polygonCount">number of complex polygons</param>
+/// <param name="geoPointCol">column with pointsto check for inclusion</param>
+/// <param name="pointCount">number of points</param>
 /// <remarks>If point count is equal to 1, the point is checked against every polygon.
 /// If polygon count is equal to 1, the polygon is checked against every point.
 /// If point count is equal to polygon count, points are checked one to one against polygons on the same array index.
@@ -77,12 +78,11 @@ kernel_point_in_polygon(int8_t* outMask, GPUMemory::GPUPolygon polygonCol, int32
     }
 }
 
+/// Class for checking whether points are in given polygons
 class GPUPolygonContains
 {
 public:
-    /// <summary>
-    /// Check whether point is in given polygon
-    /// </summary>
+    /// Check whether point is in given polygon (versions n:n, 1:n, n:1)
     /// <param name="outMask">pointer to output mask</param>
     /// <param name="polygonCol">A structure to represent a complex polygon column</param>
     /// <param name="geoPointCol">points to check for inclusion</param>
@@ -111,9 +111,7 @@ public:
         CheckCudaError(cudaGetLastError());
     }
 
-    /// <summary>
-    /// Check whether point is in given polygon
-    /// </summary>
+    /// Check whether point is in given polygon (const version - 1 : 1)
     /// <param name="outMask">pointer to output mask</param>
     /// <param name="polygonCol">A structure to represent a complex polygon</param>
     /// <param name="geoPointCol">points to check for inclusion</param>

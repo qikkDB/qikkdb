@@ -87,9 +87,11 @@ ABS         : A B S;
 SIN         : S I N;
 COS         : C O S;
 TAN         : T A N;
+COT         : C O T;
 ASIN        : A S I N;
 ACOS        : A C O S;
 ATAN        : A T A N;
+ATAN2       : A T A N '2';
 
 LOG10       : L O G '10';
 LOG         : L O G;
@@ -99,6 +101,9 @@ SQRT        : S Q R T;
 SQUARE      : S Q U A R E;
 SIGN        : S I G N;
 ROOT        : R O O T;
+ROUND       : R O U N D;
+CEIL        : C E I L;
+FLOOR       : F L O O R;
 
 
 GEO_CONTAINS        : G E O UNDERSCORE C O N T A I N S;

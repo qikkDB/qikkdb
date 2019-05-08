@@ -17,6 +17,14 @@ std::condition_variable GpuSqlDispatcher::groupByCV_;
 int32_t GpuSqlDispatcher::groupByDoneLimit_;
 std::unordered_map<std::string, int32_t> GpuSqlDispatcher::linkTable;
 
+#ifndef NDEBUG
+void AssertDeviceMatchesCurrentThread(int dispatcherThreadId)
+{
+	int device;
+	cudaGetDevice(&device);
+	assert(device == dispatcherThreadId);
+}
+#endif
 
 GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
 	database(database),
@@ -34,12 +42,19 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	isOverallLastBlock(false),
 	noLoad(true)
 {
-
 }
 
 GpuSqlDispatcher::~GpuSqlDispatcher()
 {
-	cleanUpGpuPointers();
+	if (dispatcherThreadId != -1)
+	{
+		Context& context = Context::getInstance();
+		context.bindDeviceToContext(dispatcherThreadId);
+#ifndef NDEBUG
+		AssertDeviceMatchesCurrentThread(dispatcherThreadId);
+#endif
+		cleanUpGpuPointers();
+	}
 }
 
 
@@ -49,6 +64,10 @@ void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
 	other.arguments = arguments;
 }
 
+/// Main execution loop of dispatcher
+/// Iterates through all dispatcher functions in the operations array (filled from GpuSqlListener) and executes them
+/// until running out of blocks
+/// <param name="result">Response message to the SQL statement</param>
 void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception)
 {
 	try
@@ -59,7 +78,12 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 
 		while (err == 0)
 		{
+
 			err = (this->*dispatcherFunctions[instructionPointer++])();
+#ifndef NDEBUG
+			printf("tid:%d ip: %d \n", dispatcherThreadId, instructionPointer - 1);
+			AssertDeviceMatchesCurrentThread(dispatcherThreadId);
+#endif
 			if (err)
 			{
 				if (err == 1)
@@ -254,6 +278,10 @@ void GpuSqlDispatcher::addLogarithmFunction(DataType number, DataType base)
 	dispatcherFunctions.push_back(logarithmFunctions[DataType::DATA_TYPE_SIZE * number + base]);
 }
 
+void GpuSqlDispatcher::addArctangent2Function(DataType y, DataType x)
+{
+	dispatcherFunctions.push_back(arctangent2Functions[DataType::DATA_TYPE_SIZE * y + x]);
+}
 
 void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
 {
@@ -340,6 +368,11 @@ void GpuSqlDispatcher::addTangentFunction(DataType type)
 	dispatcherFunctions.push_back(tangentFunctions[type]);
 }
 
+void GpuSqlDispatcher::addCotangentFunction(DataType type)
+{
+	dispatcherFunctions.push_back(cotangentFunctions[type]);
+}
+
 void GpuSqlDispatcher::addArcsineFunction(DataType type)
 {
 	dispatcherFunctions.push_back(arcsineFunctions[type]);
@@ -383,6 +416,21 @@ void GpuSqlDispatcher::addSquareRootFunction(DataType type)
 void GpuSqlDispatcher::addSignFunction(DataType type)
 {
 	dispatcherFunctions.push_back(signFunctions[type]);
+}
+
+void GpuSqlDispatcher::addRoundFunction(DataType type)
+{
+	dispatcherFunctions.push_back(roundFunctions[type]);
+}
+
+void GpuSqlDispatcher::addFloorFunction(DataType type)
+{
+	dispatcherFunctions.push_back(floorFunctions[type]);
+}
+
+void GpuSqlDispatcher::addCeilFunction(DataType type)
+{
+	dispatcherFunctions.push_back(ceilFunctions[type]);
 }
 
 void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)
@@ -498,6 +546,9 @@ NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& p
 }
 
 // TODO change to return GPUMemory::GPUPolygon struct
+/// Copy polygon column to GPU memory - create polygon gpu representation temporary buffers from protobuf polygon object
+/// <param name="polygon">Polygon object (protobuf type)</param>
+/// <returns>Struct with GPU pointers to start of polygon arrays</returns>
 GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
 {
 	std::string name = "constPolygon" + std::to_string(constPolygonCounter);
@@ -505,6 +556,9 @@ GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::
 	return insertComplexPolygon(database->GetName(), name, { polygon }, 1);
 }
 
+
+/// Clears all allocated buffers
+/// Resets memory stream reading index to prepare for execution on the next block of data
 void GpuSqlDispatcher::cleanUpGpuPointers()
 {
 	usingGroupBy = false;
@@ -520,6 +574,10 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 	allocatedPointers.clear();
 }
 
+
+/// Implementation of FIL operation
+/// Marks WHERE clause result register as the filtering register
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::fil()
 {
     auto reg = arguments.read<std::string>();
@@ -528,6 +586,10 @@ int32_t GpuSqlDispatcher::fil()
 	return 0;
 }
 
+
+/// Implementation of JMP operation
+/// Determines next block index to process by this instance of dispatcher based on CUDA device count
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::jmp()
 {
 	Context& context = Context::getInstance();
@@ -550,6 +612,10 @@ int32_t GpuSqlDispatcher::jmp()
 	return 0;
 }
 
+
+/// Implementation of DONE operation
+/// Clears all allocated temporary result buffers
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::done()
 {
 	cleanUpGpuPointers();
@@ -557,6 +623,9 @@ int32_t GpuSqlDispatcher::done()
 	return 1;
 }
 
+/// Implementation of SHOW DATABASES operation
+/// Inserts database names to the response message
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::showDatabases()
 {
 	auto databases_map = Database::GetDatabaseNames();
@@ -574,6 +643,10 @@ int32_t GpuSqlDispatcher::showDatabases()
 	return 2;
 }
 
+
+/// Implementation of SHOW TABLES operation
+/// Inserts table names to the response message
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::showTables()
 {
 	std::string db = arguments.read<std::string>();
@@ -594,6 +667,9 @@ int32_t GpuSqlDispatcher::showTables()
 	return 3;
 }
 
+/// Implementation of SHOW COLUMN operation
+/// Inserts column names and their types to the response message
+/// <returns name="statusCode">Finish status code of the operation</returns>
 int32_t GpuSqlDispatcher::showColumns()
 {
 	std::string db = arguments.read<std::string>();

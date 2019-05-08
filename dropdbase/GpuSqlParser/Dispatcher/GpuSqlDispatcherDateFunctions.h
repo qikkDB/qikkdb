@@ -4,7 +4,10 @@
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 
-
+/// Implementation of generic date part extract function dispatching given by the functor OP
+/// Implementation for column case
+/// Pops data from argument memory stream and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP>
 int32_t GpuSqlDispatcher::dateExtractCol()
 {
@@ -32,6 +35,10 @@ int32_t GpuSqlDispatcher::dateExtractCol()
 	return 0;
 }
 
+/// Implementation of generic date part extract function dispatching given by the functor OP
+/// Implementation for constant case
+/// Pops data from argument memory stream and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP>
 int32_t GpuSqlDispatcher::dateExtractConst()
 {

@@ -48,6 +48,7 @@ expression : op=NOT expression                                                  
            | op=SIN LPAREN expression RPAREN                                              # unaryOperation
            | op=COS LPAREN expression RPAREN                                              # unaryOperation
            | op=TAN LPAREN expression RPAREN                                              # unaryOperation
+           | op=COT LPAREN expression RPAREN                                              # unaryOperation
            | op=ASIN LPAREN expression RPAREN                                             # unaryOperation
            | op=ACOS LPAREN expression RPAREN                                             # unaryOperation
            | op=ATAN LPAREN expression RPAREN                                             # unaryOperation
@@ -57,6 +58,9 @@ expression : op=NOT expression                                                  
            | op=SQRT LPAREN expression RPAREN                                             # unaryOperation
            | op=SQUARE LPAREN expression RPAREN                                           # unaryOperation
            | op=SIGN LPAREN expression RPAREN                                             # unaryOperation
+           | op=ROUND LPAREN expression RPAREN                                            # unaryOperation
+           | op=FLOOR LPAREN expression RPAREN                                            # unaryOperation
+           | op=CEIL LPAREN expression RPAREN                                             # unaryOperation
            | op=YEAR LPAREN expression RPAREN                                             # unaryOperation
            | op=MONTH LPAREN expression RPAREN                                            # unaryOperation
            | op=DAY LPAREN expression RPAREN                                              # unaryOperation
@@ -66,6 +70,7 @@ expression : op=NOT expression                                                  
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation
            | left=expression op=MODULO right=expression                                   # binaryOperation
+           | op=ATAN2 LPAREN left=expression COMMA right=expression RPAREN                # binaryOperation
            | op=LOG LPAREN left=expression COMMA right=expression RPAREN                  # binaryOperation
            | op=POW LPAREN left=expression COMMA right=expression RPAREN                  # binaryOperation
            | op=ROOT LPAREN left=expression COMMA right=expression RPAREN                 # binaryOperation
