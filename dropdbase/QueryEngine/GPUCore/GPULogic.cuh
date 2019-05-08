@@ -8,8 +8,10 @@
 
 #include "MaybeDeref.cuh"
 
+/// Logic relation operation functors
 namespace LogicOperations
 {
+	/// A logical binary AND operation
 	struct logicalAnd
 	{
 		template<typename T, typename U, typename V>
@@ -20,6 +22,7 @@ namespace LogicOperations
 
 	};
 
+	/// A logical binary OR operation
 	struct logicalOr
 	{
 		template<typename T, typename U, typename V>
@@ -30,8 +33,8 @@ namespace LogicOperations
 	};
 }
 
-/// Bitwise AND operation kernel between query result Cols
-/// Requires two int8_t block Cols
+/// A bitwise relation logic operation kernel
+/// <param name="OP">Template parameter for the choice of the logic relation operation</param>
 /// <param name="outCol">block of the result data</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
@@ -54,7 +57,7 @@ __global__ void kernel_logic(T *outCol, U ACol, V BCol, int32_t dataElementCount
 	}
 }
 
-/// NOT operation kernel on a result Col
+/// An unary NOT operation kernel
 /// <param name="outCol">block of the result data</param>
 /// <param name="ACol">block of the input operands</param>
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
@@ -71,9 +74,15 @@ __global__ void kernel_operator_not(T *outCol, U ACol, int32_t dataElementCount)
 	}
 }
 
-
+/// A class for relational logic operations
 class GPULogic {
 public:
+    /// Relational binary logic operation with two columns of numerical values
+    /// <param name="OP">Template parameter for the choice of the logic operation</param>
+    /// <param name="outMask">output GPU buffer mask</param>
+    /// <param name="ACol">buffer with left side operands</param>
+    /// <param name="BCol">buffer with right side operands</param>
+    /// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U>
 	static void colCol(int8_t *outMask, T *ACol, U *BCol, int32_t dataElementCount)
 	{
@@ -82,6 +91,12 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Relational binary logic operation between a column and a constant
+	/// <param name="OP">Template parameter for the choice of the logic operation</param>
+    /// <param name="outMask">output GPU buffer mask</param>
+    /// <param name="ACol">buffer with left side operands</param>
+    /// <param name="BConst">right side constant operand</param>
+    /// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U>
 	static void colConst(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount)
 	{
@@ -90,6 +105,13 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
+
+	/// Relational binary logic operation between a column and a constant
+    /// <param name="OP">Template parameter for the choice of the logic operation</param>
+    /// <param name="outMask">output GPU buffer mask</param>
+    /// <param name="AConst">left side constant operand</param>
+    /// <param name="BCol">buffer with right side operands</param>
+    /// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U>
 	static void constCol(int8_t *outMask, T AConst, U *BCol, int32_t dataElementCount)
 	{
@@ -98,6 +120,12 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Relational binary logic operation between two  constants
+    /// <param name="OP">Template parameter for the choice of the logic operation</param>
+    /// <param name="outMask">output GPU buffer mask</param>
+    /// <param name="AConst">left side constant operand</param>
+    /// <param name="BConst">right side constant operand</param>
+    /// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U>
 	static void constConst(int8_t *outMask, T AConst, U BConst, int32_t dataElementCount)
 	{
@@ -107,11 +135,10 @@ public:
 	}
 	
 	
-	/// NOT operation on column
+	/// Unary NOT operation on a column of data
 	/// <param name="outCol">block of the result data</param>
 	/// <param name="ACol">block of the input operands</param>
 	/// <param name="dataElementCount">the size of the input blocks in elements</param>
-	/// <returns>if operation was successful (GPU_EXTENSION_SUCCESS or GPU_EXTENSION_ERROR)</returns>
 	template<typename T, typename U>
 	static void not_col(T *outCol, U *ACol, int32_t dataElementCount)
 	{
@@ -123,11 +150,10 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
-	/// NOT operation on const
+	/// Unary NOT operation on a constant value
 	/// <param name="outCol">block of the result data</param>
 	/// <param name="AConst">constant to be negated</param>
 	/// <param name="dataElementCount">the size of the input blocks in elements</param>
-	/// <returns>if operation was successful (GPU_EXTENSION_SUCCESS or GPU_EXTENSION_ERROR)</returns>
 	template<typename T, typename U>
 	static void not_const(T *outCol, U AConst, int32_t dataElementCount)
 	{
