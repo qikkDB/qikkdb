@@ -7,6 +7,10 @@
 #include "../../ComplexPolygonFactory.h"
 #include "../../PointFactory.h"
 
+/// Implementation of POINT(a, b) operation dispatching - concatenation of two numeric attributes to single point column
+/// Implementation for column column case
+/// Pops data from argument memory stream and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T, typename U>
 int32_t GpuSqlDispatcher::pointColCol()
 {
@@ -43,6 +47,10 @@ int32_t GpuSqlDispatcher::pointColCol()
 	return 0;
 }
 
+/// Implementation of POINT(a, b) operation dispatching - concatenation of two numeric attributes to single point column
+/// Implementation for column constant case
+/// Pops data from argument memory stream and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T, typename U>
 int32_t GpuSqlDispatcher::pointColConst()
 {
@@ -72,6 +80,10 @@ int32_t GpuSqlDispatcher::pointColConst()
 	return 0;
 }
 
+/// Implementation of POINT(a, b) operation dispatching - concatenation of two numeric attributes to single point column
+/// Implementation for onstant column case
+/// Pops data from argument memory stream and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T, typename U>
 int32_t GpuSqlDispatcher::pointConstCol()
 {
@@ -101,6 +113,10 @@ int32_t GpuSqlDispatcher::pointConstCol()
 	return 0;
 }
 
+/// Implementation of CONTAINS(a, b) operation dispatching - point in polygon
+/// Implementation for column constant case
+/// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T, typename U>
 int32_t GpuSqlDispatcher::containsColConst()
 {
@@ -135,6 +151,10 @@ int32_t GpuSqlDispatcher::containsColConst()
 	return 0;
 }
 
+/// Implementation of CONTAINS(a, b) operation dispatching - point in polygon
+/// Implementation for constant column case
+/// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T, typename U>
 int32_t GpuSqlDispatcher::containsConstCol()
 {
@@ -175,6 +195,10 @@ int32_t GpuSqlDispatcher::containsConstCol()
 	return 0;
 }
 
+/// Implementation of CONTAINS(a, b) operation dispatching - point in polygon
+/// Implementation for column column case
+/// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T, typename U>
 int32_t GpuSqlDispatcher::containsColCol()
 {
@@ -210,6 +234,10 @@ int32_t GpuSqlDispatcher::containsColCol()
 	return 0;
 }
 
+/// Implementation of CONTAINS(a, b) operation dispatching - point in polygon
+/// Implementation for constant constant case
+/// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T, typename U>
 int32_t GpuSqlDispatcher::containsConstConst()
 {
@@ -247,6 +275,11 @@ int32_t GpuSqlDispatcher::containsConstConst()
 	return 0;
 }
 
+/// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does not meet this requrement) based on functor OP
+/// eg. INTRSECT(a,b), UNION(a,b)
+/// Implementation for column constant case
+/// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::polygonOperationColConst()
 {
@@ -254,13 +287,22 @@ int32_t GpuSqlDispatcher::polygonOperationColConst()
 	return 0;
 }
 
+/// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does not meet this requrement) based on functor OP
+/// eg. INTRSECT(a,b), UNION(a,b)
+/// Implementation for constant column case
+/// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::polygonOperationConstCol()
 {
 	std::cout << "Polygon operation: " << std::endl;
 	return 0;
 }
-
+/// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does not meet this requrement) based on functor OP
+/// eg. INTRSECT(a,b), UNION(a,b)
+/// Implementation for column column case
+/// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::polygonOperationColCol()
 {
@@ -272,6 +314,11 @@ int32_t GpuSqlDispatcher::polygonOperationColCol()
 	return 0;
 }
 
+/// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does not meet this requrement) based on functor OP
+/// eg. INTRSECT(a,b), UNION(a,b)
+/// Implementation for constant constant case
+/// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::polygonOperationConstConst()
 {

@@ -4,6 +4,7 @@
 
 /// Implementation of generic unary arithmetic function dispatching given by the functor OP
 /// Implementation for column case
+/// Pops data from argument memory stream and loads data to GPU on demand 
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T>
 int32_t GpuSqlDispatcher::arithmeticUnaryCol()
@@ -50,6 +51,7 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 
 /// Implementation of generic unary arithmetic function dispatching given by the functor OP
 /// Implementation for constant case
+/// Pops data from argument memory stream and loads data to GPU on demand 
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T>
 int32_t GpuSqlDispatcher::arithmeticUnaryConst()
