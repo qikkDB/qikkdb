@@ -247,8 +247,6 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 
 					
 					std::tie(blockIndex, indexInBlock, range) = castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i]);
-                    std::cout << blockIndex << " " << indexInBlock << " " << range << " "
-                              << " " << dataIndexedColumn[i] << std::endl;
                 }
 
 				if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<int64_t>))

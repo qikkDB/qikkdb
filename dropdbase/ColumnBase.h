@@ -208,7 +208,7 @@ public:
         bool reachEnd = true;
         bool found = false;
 
-		if (blocks_.size() == 0)
+		if (blocks_[groupId].size() == 0)
         {
             BlockBase<T>& block = AddBlock();
             newIndexBlock = 0;
@@ -216,7 +216,7 @@ public:
                 block.FindIndexAndRange(indexInBlock, range, columnData);
 		}
 
-		else if (blocks_.size() == 1)
+		else if (blocks_[groupId].size() == 1)
         {
             BlockBase<T>& block = *(blocks_[groupId][0].get());
             newIndexBlock = 0;
@@ -226,13 +226,13 @@ public:
 
         else
         {
-			for (int i = indexBlock; i < blocks_.size() && reachEnd && remainingRange > 0; i++)
+			for (int i = indexBlock; i < blocks_[groupId].size() && reachEnd && remainingRange > 0; i++)
 			{
 			    BlockBase<T>& block = *(blocks_[groupId][i].get());
 
 			    if (columnData >= blocks_[groupId][i]->GetMin() &&
 			        (remainingRange <= block.GetSize() - startIndexInCurrentBlock ||
-			         (columnData <= blocks_[groupId][i]->GetMax() || (i == blocks_.size() - 1 || columnData <= blocks_[groupId][i + 1]->GetMin()))))
+			         (columnData <= blocks_[groupId][i]->GetMax() || (i == blocks_[groupId].size() - 1 || columnData <= blocks_[groupId][i + 1]->GetMin()))))
 			    {
 			        int tempIndexInBlock;
 			        std::tie(tempIndexInBlock, blockRange, reachEnd) =
@@ -254,7 +254,7 @@ public:
 
     void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData, int groupId = -1)
     {
-        if (blocks_.size() == 0)
+        if (blocks_[groupId].size() == 0)
         {
             BlockBase<T>& block = AddBlock();
         }
