@@ -16,8 +16,12 @@
 #include "GPUMemoryCache.h"
 #include "GPUError.h"
 #include "../DataType.h"
+
 class Database;
 
+/// This class encapsulates the contex or state of the whole CUDA api in this program as an abstract state machine
+/// This class isused for obtainign CUDA device meta information for kernel launches and device switching
+/// This class utilizes Meyer's singleton for accesibility troughout the program
 class Context
 {
 private:
@@ -34,7 +38,6 @@ private:
     // The found devices and their metadata
     int32_t deviceCount_;
     std::vector<cudaDeviceProp> devicesMetaInfoList_;
-
 
     // Move cannot be implemented for allocator and cache, they keep iterators to internal vectors
     std::vector<std::unique_ptr<CudaMemAllocator>> gpuAllocators_;

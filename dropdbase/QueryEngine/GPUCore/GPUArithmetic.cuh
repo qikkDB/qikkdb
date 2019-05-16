@@ -14,8 +14,10 @@
 #include "MaybeDeref.cuh"
 #include "../NullConstants.cuh"
 
+/// Namespace for arithmetic operation generic functors
 namespace ArithmeticOperations
 {
+	/// Arithmetic operation add
 	struct add
 	{
 		template<typename T, typename U, typename V>
@@ -36,6 +38,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Arithmetic operation subtraction
 	struct sub
 	{
 		template<typename T, typename U, typename V>
@@ -56,6 +59,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Arithmetic operation multiply
 	struct mul
 	{
 		template<typename T, typename U, typename V>
@@ -108,6 +112,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Arithmetic operation divide
 	struct div
 	{
 		template<typename T, typename U, typename V>
@@ -125,6 +130,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Arithmetic operation modulo
 	struct mod
 	{
 		template<typename T, typename U, typename V>
@@ -145,6 +151,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Bitwise operation and
 	struct bitwiseAnd
 	{
 		template<typename T, typename U, typename V>
@@ -154,6 +161,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Bitwise operation or
 	struct bitwiseOr
 	{
 		template<typename T, typename U, typename V>
@@ -163,6 +171,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Bitwise operation xor
 	struct bitwiseXor
 	{
 		template<typename T, typename U, typename V>
@@ -172,6 +181,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Bitwise operation left shift
 	struct bitwiseLeftShift
 	{
 		template<typename T, typename U, typename V>
@@ -181,6 +191,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Bitwise operation right shift
 	struct bitwiseRightShift
 	{
 		template<typename T, typename U, typename V>
@@ -190,6 +201,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Mathematical function logarithm
 	struct logarithm
 	{
 		static constexpr bool isFloatRetType = true;
@@ -200,6 +212,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Mathematical function arcus tangent
 	struct arctangent2
 	{
 		static constexpr bool isFloatRetType = true;
@@ -210,6 +223,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Mathematical function power
 	struct power
 	{
 		static constexpr bool isFloatRetType = true;
@@ -220,6 +234,7 @@ namespace ArithmeticOperations
 		}
 	};
 
+	/// Mathematical function root
 	struct root
 	{
 		static constexpr bool isFloatRetType = true;
@@ -233,10 +248,9 @@ namespace ArithmeticOperations
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// <summary>
 /// Kernel for arithmetic operation with column and column
 /// (For mod as U and V never use floating point type!)
-/// </summary>
+/// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
@@ -263,9 +277,16 @@ __global__ void kernel_arithmetic(T* output, U ACol, V BCol, int32_t dataElement
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// Class for binary arithmetic functions
 class GPUArithmetic
 {
 public:
+	/// Arithmetic operation with two columns
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
+	/// <param name="output">output GPU buffer</param>
+	/// <param name="ACol">buffer with left side operands</param>
+	/// <param name="BCol">buffer with right side operands</param>
+	/// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U, typename V>
 	static void colCol(T *output, U *ACol, V *BCol, int32_t dataElementCount)
 	{
@@ -277,6 +298,12 @@ public:
 		errorFlagSwapper.Swap();
 	}
 
+	/// Arithmetic operation with column and constant
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
+	/// <param name="output">output GPU buffer</param>
+	/// <param name="ACol">buffer with left side operands</param>
+	/// <param name="BConst">right side operand constant</param>
+	/// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U, typename V>
 	static void colConst(T *output, U *ACol, V BConst, int32_t dataElementCount)
 	{
@@ -288,6 +315,12 @@ public:
 		errorFlagSwapper.Swap();
 	}
 
+	/// Arithmetic operation with constant and column
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
+	/// <param name="output">output GPU buffer</param>
+	/// <param name="AConst">left side operand constant</param>
+	/// <param name="BCol">buffer with right side operands</param>
+	/// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U, typename V>
 	static void constCol(T *output, U AConst, V *BCol, int32_t dataElementCount)
 	{
@@ -299,6 +332,12 @@ public:
 		errorFlagSwapper.Swap();
 	}
 
+	/// Arithmetic operation with two constants
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
+	/// <param name="output">output GPU buffer</param>
+	/// <param name="AConst">left side operand constant</param>
+	/// <param name="BConst">right side operand constant</param>
+	/// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U, typename V>
 	static void constConst(T *output, U AConst, V BConst, int32_t dataElementCount)
 	{

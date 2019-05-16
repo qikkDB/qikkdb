@@ -418,7 +418,7 @@ void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
 
 /// <summary>
 /// Method that executes on exit of aggregation operation node in the AST
-/// Pops one operand from stack adds aggregation operation and argument to respective Dispatcher queues.
+/// Pops one operand from stack, adds aggregation operation and argument to respective Dispatcher queues.
 /// Pushes result back to parser stack.
 /// </summary>
 /// <param name="ctx">Aggregation context</param>
@@ -477,17 +477,31 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     pushTempResult(reg, returnDataType);
 }
 
+/// Method that executes on exit of SELECT clause (return columns)
+/// Generates jump operation (used to iterate blocks) and done operation (marking end of exucution)
+/// <param name="ctx">Select Columns context</param>
 void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 {
 	dispatcher.addJmpInstruction();
 	dispatcher.addDoneFunction();
 }
 
+
+/// Method that executes on enter of SELECT clause (return columns)
+/// Sets insideSelectColumn parser flag
+/// <param name="ctx">Select Columns context</param>
 void GpuSqlListener::enterSelectColumn(GpuSqlParser::SelectColumnContext * ctx)
 {
 	insideSelectColumn = true;
 }
 
+
+/// Method that executes on exit of single SELECT column (return column)
+/// Checks if a column is either aggregation or group by column
+/// Pops from parser stack and generates return operation
+/// Sets column alias if present and checks its potential redefinition
+/// Resets insideAggregation and insideSelectColumn parser flags
+/// <param name="ctx">Select Column context</param>
 void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 {
 	std::pair<std::string, DataType> arg = stackTopAndPop();
@@ -521,6 +535,11 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 	isAggSelectColumn = false;
 }
 
+
+/// Method that executes on exit of FROM clause (tables)
+/// Checks for table existance
+/// Sets table alias if present and checks its potential redefinition
+/// <param name="ctx">From Tables context</param>
 void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
 {
     for (auto fromTable : ctx->fromTable())
@@ -549,6 +568,10 @@ void GpuSqlListener::enterWhereClause(GpuSqlParser::WhereClauseContext * ctx)
 	insideWhere = true;
 }
 
+/// Method that executes on exit of WHERE clause
+/// Pops from parser stack, generates fil operation which marks register
+/// used as final filtration mask in recostruct operations
+/// <param name="ctx">Where Clause context</param>
 void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext *ctx)
 {
     std::pair<std::string, DataType> arg = stackTopAndPop();
@@ -557,17 +580,30 @@ void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext *ctx)
 	insideWhere = false;
 }
 
+
+/// Method that executes on enter of GROUP BY clause
+/// Sets insideGroupBy parser flag.
+/// <param name="ctx">Group By Columns context</param>
 void GpuSqlListener::enterGroupByColumns(GpuSqlParser::GroupByColumnsContext * ctx)
 {
 	insideGroupBy = true;
 }
 
+
+/// Method that executes on exit of GROUP BY clause
+/// Sets usingGroupBy and resets insideGoupBy parser flags
+/// <param name="ctx">Group By Columns context</param>
 void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx)
 {
     usingGroupBy = true;
 	insideGroupBy = false;
 }
 
+
+/// Method that executes on exit of a single GROUP BY column
+/// Pops from parser stack and generates group by operation
+/// Appends to list of group by columns
+/// <param name="ctx">Group By Column context</param>
 void GpuSqlListener::exitGroupByColumn(GpuSqlParser::GroupByColumnContext * ctx)
 {
 	std::pair<std::string, DataType> operand = stackTopAndPop();
@@ -580,11 +616,20 @@ void GpuSqlListener::exitGroupByColumn(GpuSqlParser::GroupByColumnContext * ctx)
 	}
 }
 
+
+/// Method that executes on exit of SHOW DATABASES command
+/// Generates show databases operation
+/// <param name="ctx">Show Databases context</param>
 void GpuSqlListener::exitShowDatabases(GpuSqlParser::ShowDatabasesContext * ctx)
 {
 	dispatcher.addShowDatabasesFunction();
 }
 
+/// Method that executes on exit of SHOW TABLES command
+/// Generates show tables operation
+/// Checks if database with given name exists
+/// If no database name is provided uses currently bound database
+/// <param name="ctx">Show Tables context</param>
 void GpuSqlListener::exitShowTables(GpuSqlParser::ShowTablesContext * ctx)
 {
 	dispatcher.addShowTablesFunction();
@@ -614,6 +659,12 @@ void GpuSqlListener::exitShowTables(GpuSqlParser::ShowTablesContext * ctx)
 	dispatcher.addArgument<const std::string&>(db);
 }
 
+/// Method that executes on exit of SHOW COLUMNS command
+/// Generates show tables operation
+/// Checks if database with given name exists
+/// If no database name is provided uses currently bound database
+/// Checks if table with given name exists
+/// <param name="ctx">Show Columns context</param>
 void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext * ctx)
 {
 	dispatcher.addShowColumnsFunction();
@@ -654,6 +705,14 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext * ctx)
 	dispatcher.addArgument<const std::string&>(table);
 }
 
+/// Method that executes on exit of INSERT INTO command
+/// Generates insert into operation
+/// Checks if table with given name exists
+/// Checks if table.column (dot notation) is not used
+/// Checks if column with given name exists
+/// Checks if the same column is not referenced multiple times
+/// Checks if same number of values and columns is provided
+/// <param name="ctx">Sql Insert Into context</param>
 void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 {
 	std::string table = ctx->table()->getText();
@@ -726,16 +785,26 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 	dispatcher.addInsertIntoDoneFunction();
 }
 
+/// Method that executes on exit of LIMIT clause
+/// Sets the row limit count
+/// <param name="ctx">Limit context</param>
 void GpuSqlListener::exitLimit(GpuSqlParser::LimitContext* ctx)
 {
     resultLimit = std::stoi(ctx->getText());
 }
 
+/// Method that executes on exit of OFFSET clause
+/// Sets the row offset count
+/// <param name="ctx">Offset context</param>
 void GpuSqlListener::exitOffset(GpuSqlParser::OffsetContext* ctx)
 {
     resultOffset = std::stoi(ctx->getText());
 }
 
+/// Method that executes on exit of integer literal (10, 20, 5, ...)
+/// Infers token data type (int or long)
+/// Pushes the literal token to parser stack along with its inferred data type (int or long)
+/// <param name="ctx">Int Literal context</param>
 void GpuSqlListener::exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx)
 {
     std::string token = ctx->getText();
@@ -748,6 +817,10 @@ void GpuSqlListener::exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx)
     }
 }
 
+/// Method that executes on exit of decimal literal (10.5, 20.6, 5.2, ...)
+/// Infers token data type (float or double)
+/// Pushes the literal token to parser stack along with its inferred data type (float or double)
+/// <param name="ctx">Decimal Literal context</param>
 void GpuSqlListener::exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx)
 {
     std::string token = ctx->getText();
@@ -760,17 +833,28 @@ void GpuSqlListener::exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx
     }
 }
 
+/// Method that executes on exit of string literal ("Hello", ...)
+/// Pushes the literal token to parser stack along with its data type
+/// <param name="ctx">String Literal context</param>
 void GpuSqlListener::exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx)
 {
     parserStack.push(std::make_pair(ctx->getText(), DataType::CONST_STRING));
 }
 
-
+/// Method that executes on exit of boolean literal (True, False)
+/// Pushes the literal token to parser stack along with its data type
+/// <param name="ctx">Boolean Literal context</param>
 void GpuSqlListener::exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx)
 {
     parserStack.push(std::make_pair(ctx->getText(), DataType::CONST_INT8_T));
 }
 
+/// Method that executes on exit of column name reference (colInt1, tableA.colInt, ...)
+/// Validates column existance and generates its full name in dot notation (table.column)
+/// Pushes the token to the parser stack
+/// Fills link table (used for gpu where dispatch) with column name and ordinal number of
+/// its first appearance in the AST traversal
+/// <param name="ctx">Var Reference context</param>
 void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 {
     std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
@@ -787,6 +871,9 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 	}
 }
 
+/// Method that executes on exit of date time literal in format of yyyy-mm-dd hh:mm:ss
+/// Converts the literal to epoch time and pushes is to parser stack as LONG data type literal
+/// <param name="ctx">Date Time Literal context</param>
 void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * ctx)
 {
 	auto start = ctx->start->getStartIndex();
@@ -808,20 +895,28 @@ void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * 
 	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
 }
 
+/// Method that executes on exit of PI() literal (3.1415926)
+/// Pushes pi literal to stack as float data type
+/// <param name="ctx">Pi Literal context</param>
 void GpuSqlListener::exitPiLiteral(GpuSqlParser::PiLiteralContext * ctx)
 {
 	parserStack.push(std::make_pair(std::to_string(pi()), DataType::CONST_FLOAT));
 }
 
+/// Method that executes on exit of NOW() literal (current date time)
+/// Converts the current date time to epoch time and pushes it to parser stack as long data type literal
+/// <param name="ctx">Now Literal context</param>
 void GpuSqlListener::exitNowLiteral(GpuSqlParser::NowLiteralContext * ctx)
 {
 	std::time_t epochTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
 }
 
+/// Method that executes on exit of polygon and point literals
+/// Infers the type of literal (polygon or point) and pushes it to parser stack
+/// <param name="ctx">Geo Reference context</param>
 void GpuSqlListener::exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx)
 {
-
     auto start = ctx->start->getStartIndex();
     auto stop = ctx->stop->getStopIndex();
     antlr4::misc::Interval interval(start, stop);
@@ -836,7 +931,13 @@ void GpuSqlListener::exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx)
     }
 }
 
-
+/// Method used to generate column name in dot notation (table.column) and validation of its name
+/// Checks for table existance if provided
+/// Infers table name if not provided and checks for column ambiguity between tables
+/// Retrieves the column data type
+/// Checks if column is used in aggregation or group by clause if its present 
+/// <param name="ctx">Column Id context</param>
+/// <returns="tableColumnPair">Column name in dot notation (table.column)</returns>
 std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx)
 {
     std::string table;
@@ -903,6 +1004,8 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
     return tableColumnPair;
 }
 
+/// Method used to pop contnt from parser stack
+/// <returns="value">Pair of content string and contnet data type</returns>
 std::pair<std::string, DataType> GpuSqlListener::stackTopAndPop()
 {
     std::pair<std::string, DataType> value = parserStack.top();
@@ -910,11 +1013,19 @@ std::pair<std::string, DataType> GpuSqlListener::stackTopAndPop()
     return value;
 }
 
+/// Method used to push temp results to parser stack 
+/// <param name="reg">String representing the literal</param>
+/// <param name="type">Data type of the literal</param>
 void GpuSqlListener::pushTempResult(std::string reg, DataType type)
 {
     parserStack.push(std::make_pair(reg, type));
 }
 
+/// Method used to push argument to dispatcher argument queue
+/// Converts the string token to actual numeric data if its numeric literal
+/// Keeps it as a string in case of polygons, points and column names
+/// <param name="token">String representing the literal</param>
+/// <param name="type">Data type of the literal</param>
 void GpuSqlListener::pushArgument(const char *token, DataType dataType)
 {
     switch (dataType)
@@ -950,6 +1061,9 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
     }
 }
 
+/// Checks if given integer literal is long
+/// <param name="value">String representing the literal</param>
+/// <returns="isLong">True if literal is long</returns>
 bool GpuSqlListener::isLong(const std::string &value)
 {
     try
@@ -964,6 +1078,8 @@ bool GpuSqlListener::isLong(const std::string &value)
     return false;
 }
 
+/// Checks if given decimal literal is double
+/// <param nameDouble">True if literal is double</returns>
 bool GpuSqlListener::isDouble(const std::string &value)
 {
     try
@@ -978,16 +1094,25 @@ bool GpuSqlListener::isDouble(const std::string &value)
     return false;
 }
 
+
+/// Checks if given geo literal is point
+/// <param name="value">String representing the literal</param>
+/// <returns="isPoints">True if literal is point</returns>
 bool GpuSqlListener::isPoint(const std::string &value)
 {
 	return (value.find("POINT") == 0);
 }
 
+/// Checks if given geo literal is polygon
+/// <param name="value">String representing the literal</param>
+/// <returns="isPolygon">True if literal is polygon</returns>
 bool GpuSqlListener::isPolygon(const std::string &value)
 {
 	return (value.find("POLYGON") == 0);
 }
 
+/// Converts string to uppercase
+/// <param name="value">String to convert</param>
 void GpuSqlListener::stringToUpper(std::string &str)
 {
     for (auto &c : str)
@@ -996,11 +1121,21 @@ void GpuSqlListener::stringToUpper(std::string &str)
     }
 }
 
+/// Prefixes temporary result key (register) with an $
+/// Content of arbitrary parser rule context is used temporar result key
+/// <param name="ctx">Parser Rule Context</param>
+/// <returns="reg">Prefixed register name</returns>
 std::string GpuSqlListener::getRegString(antlr4::ParserRuleContext* ctx)
 {
 	return std::string("$") + ctx->getText();
 }
 
+/// Defines return data type for binary operation
+/// If operand type is a constant data type its converted to column data type
+/// Data type with higher ordinal number (the ordering is designed with this feature in mind) is chosen
+/// <param name="left">Left operand data type</param>
+/// <param name="right">Right operand data type</param>
+/// <returns="result">Operation result data type</returns>
 DataType GpuSqlListener::getReturnDataType(DataType left, DataType right)
 {
 	if (right < DataType::COLUMN_INT)
@@ -1016,6 +1151,10 @@ DataType GpuSqlListener::getReturnDataType(DataType left, DataType right)
 	return result;
 }
 
+/// Defines return data type for unary operation
+/// If operand type is a constant data type its converted to column data type
+/// <param name="operand">Operand data type</param>
+/// <returns="result">Operation result data type</returns>
 DataType GpuSqlListener::getReturnDataType(DataType operand)
 {
 	if (operand < DataType::COLUMN_INT)

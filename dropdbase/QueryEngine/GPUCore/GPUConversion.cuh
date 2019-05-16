@@ -11,9 +11,10 @@
 #include "GPUMemory.cuh"
 #include "MaybeDeref.cuh"
 
-/// <summary>
-/// </summary>
-/// <param name=""></param>
+/// Make Point column from latitude and longitude columns
+/// <param name="outCol">output NativeGeoPoint column</param>
+/// <param name="LatCol">input latitude column</param>
+/// <param name="LonCol">input longitude column</param>
 /// <param name="dataElementCount">the count of elements in the input block</param>
 template <typename T, typename U>
 __global__ void kernel_convert_lat_lon_to_point(NativeGeoPoint* outCol, T LatCol, U LonCol, int32_t dataElementCount)
@@ -27,12 +28,11 @@ __global__ void kernel_convert_lat_lon_to_point(NativeGeoPoint* outCol, T LatCol
     }
 }
 
+/// Class for converting lat and lon columns to new point column
 class GPUConversion
 {
 public:
-    /// <summary>
     /// Convert two arithmetic (e.g. float) arrays to one NativeGeoPoint array
-    /// </summary>
     /// <param name="outCol">output array of points</param>
     /// <param name="LatCol">input array for latitude</param>
     /// <param name="LonCol">input array for longitude</param>
@@ -49,9 +49,7 @@ public:
         CheckCudaError(cudaGetLastError());
     }
 
-    /// <summary>
     /// Convert arithmetic (e.g. float) array and arithmetic constant to NativeGeoPoint array
-    /// </summary>
     /// <param name="outCol">output array of points</param>
     /// <param name="LatCol">input array for latitude</param>
     /// <param name="LonCol">input constant for longitude</param>
@@ -68,9 +66,7 @@ public:
         CheckCudaError(cudaGetLastError());
     }
 
-    /// <summary>
     /// Convert arithmetic (e.g. float) constant and array to NativeGeoPoint array
-    /// </summary>
     /// <param name="outCol">output array of points</param>
     /// <param name="LatCol">input constant for latitude</param>
     /// <param name="LonCol">input array for longitude</param>
@@ -87,9 +83,7 @@ public:
         CheckCudaError(cudaGetLastError());
     }
 
-    /// <summary>
     /// Convert two arithmetic (e.g. float) constant to NativeGeoPoint array
-    /// </summary>
     /// <param name="outCol">output array of points</param>
     /// <param name="LatCol">input constant for latitude</param>
     /// <param name="LonCol">input constant for longitude</param>
