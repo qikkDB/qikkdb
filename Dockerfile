@@ -32,6 +32,4 @@ RUN mkdir -p ./boost/src \
 	
 RUN	cmake -GNinja -DCMAKE_CXX_COMPILER=clang++-7 -DCMAKE_C_COMPILER=clang-7 -DBOOST_ROOT=/opt/boost_1.69 -DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.1/bin/nvcc -DCMAKE_BUILD_TYPE=Release ../dropdbase_instarea
 
-RUN ninja googletest
 RUN ninja
-./dropdbase/dropdbase_instarea
