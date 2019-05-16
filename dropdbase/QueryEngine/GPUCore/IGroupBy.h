@@ -1,5 +1,6 @@
 #pragma once
 
+/// Interface for abstracting GPUGroupBy instances
 class IGroupBy
 {
 protected:

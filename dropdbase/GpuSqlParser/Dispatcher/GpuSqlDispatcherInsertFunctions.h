@@ -1,6 +1,10 @@
 #pragma once
 #include "../GpuSqlDispatcher.h"
 
+/// Implementation of INSERT INTO operation
+/// This executes once for every column-value pair
+/// Insert value in column is referenced in the INSERT into command or null value if not
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T>
 int32_t GpuSqlDispatcher::insertInto()
 {

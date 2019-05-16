@@ -3,10 +3,9 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-/// <summary>
 /// This function returns constant of type T which is used as null
 /// (e.g. result of division by 0 should be this constant)
-/// </summary>
+/// <returns>"null" constant</returns>
 template <typename T>
 __device__ __host__ constexpr T GetNullConstant()
 {

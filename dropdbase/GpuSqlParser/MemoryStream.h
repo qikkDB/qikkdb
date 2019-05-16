@@ -9,6 +9,8 @@
 #include <string>
 #include <iostream>
 
+/// Custom byte array memory stream used to store and read arbitrary data type operands
+/// of dispatcher functions
 class MemoryStream
 {
 
