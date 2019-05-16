@@ -225,7 +225,6 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 	if (!sortingColumns.empty())
 	{
         int oneColumnDataSize = getDataSizeOfInsertedColumns(data);
-        std::cout << oneColumnDataSize << std::endl;
 		
 		for (int i = 0; i < oneColumnDataSize; i++)
         {
@@ -236,7 +235,6 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 
             for (auto sortingColumn : sortingColumns)
             {
-                std::cout << sortingColumn << std::endl;
                 auto currentSortingColumn = (columns.find(sortingColumn)->second.get());
                 const auto& wrappedCurrentSortingColumnData = data.at(sortingColumn);
 

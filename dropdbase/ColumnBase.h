@@ -202,8 +202,8 @@ public:
         int remainingRange = range;
         int blockRange;
         int newRange = 0;
-        int newIndexInBlock;
-        int newIndexBlock;
+        int newIndexInBlock = indexInBlock;
+        int newIndexBlock = indexBlock;
         int startIndexInCurrentBlock = indexInBlock;
         bool reachEnd = true;
         bool found = false;
@@ -292,10 +292,11 @@ public:
         std::unique_ptr<BlockBase<T>> block2 = std::make_unique<BlockBase<T>>(data2, *this);
 
         auto blockIndex = std::find(blocks_[groupId].begin(), blocks_[groupId].end(), blockPtr);
+		int32_t blockIdx = blockIndex - blocks_[groupId].begin();
         blocks_[groupId].erase(blockIndex);
 
-        blocks_[groupId].insert(blockIndex, std::move(block2));
-        blocks_[groupId].insert(blockIndex, std::move(block1));
+        blocks_[groupId].insert(blocks_[groupId].begin() + blockIdx, std::move(block2));
+        blocks_[groupId].insert(blocks_[groupId].begin() + blockIdx, std::move(block1));
     }
 
 
