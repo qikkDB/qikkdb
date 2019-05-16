@@ -1,8 +1,10 @@
 FROM ubuntu:18.04
 
-WORKDIR /build
+WORKDIR /build/dropdbase_instarea
 
 COPY . ./
+
+WORKDIR /build
 
 RUN apt-get update && apt-get install -y build-essential \
 	cmake \
