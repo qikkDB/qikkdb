@@ -17,7 +17,7 @@ RUN mkdir -p ./yaml-cpp/src \
 	&& cd ./yaml-cpp/src \
     && curl -SL https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz \
     | tar -xz \
-	&& cd ../build 
+	&& cd ../build \
 	&& cmake -DCMAKE_BUILD_TYPE=Release ../src/yaml-cpp-yaml-cpp-0.6.2 \
 	&& make \
 	&& make install
