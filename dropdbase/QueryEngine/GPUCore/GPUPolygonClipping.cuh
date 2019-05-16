@@ -950,7 +950,8 @@ public:
         GPUMemory::copyDeviceToHost(complexPolygonCntRes, polygonOut.polyCount, dataElementCount);
         GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOut.pointIdx, complexPolygonOutCount);
         GPUMemory::copyDeviceToHost(polygonCntRes, polygonOut.pointCount, complexPolygonOutCount);
-        
+        
+
         printf("\n\nVertices\n");
         for (int s = 0; s < pointOutCount; s++)
         {

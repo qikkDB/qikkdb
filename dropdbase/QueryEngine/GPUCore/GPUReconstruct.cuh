@@ -52,6 +52,9 @@ __global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *
 	}
 }
 
+/// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays)
+__global__ void kernel_generate_subpoly_mask(int8_t *outMask, int8_t *inMask, int32_t *polyIdx, int32_t *polyCount, int32_t polyIdxSize);
+
 /// Class for reconstructing buffers according to mask
 class GPUReconstruct {
 public:
@@ -147,6 +150,11 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
+	static void ReconstructPolyCol(GPUMemory::GPUPolygon outData, int32_t *outDataElementCount,
+		GPUMemory::GPUPolygon ACol, int8_t *inMask, int32_t dataElementCount);
+
+	static void ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
+		GPUMemory::GPUPolygon ACol, int8_t *inMask, int32_t dataElementCount);
 
 	/// Function for generating array with sorted indexes which point to values where mask is 1.
 	/// Result is copied to host.
@@ -241,6 +249,27 @@ public:
 		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
 		// Run inclusive prefix sum
 		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
+		GPUMemory::free(tempBuffer);
+	}
+
+
+	/// Calculate exclusive prefix sum from input mask (keep result on GPU)
+	/// <param name="prefixSumPointer">output GPU buffer which will be filled with result</param>
+	/// <param name="inMask">input mask</param>
+	/// <param name="dataElementCount">data element count in the inMask</param>
+	template<typename M>
+	static void PrefixSumExclusive(int32_t* prefixSumPointer, M* inMask, int32_t dataElementCount)
+	{
+		// Start the collumn reconstruction
+		void* tempBuffer = nullptr;
+		size_t tempBufferSize = 0;
+		// Calculate the prefix sum
+		// in-place scan
+		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
+		// Allocate temporary storage
+		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+		// Run inclusive prefix sum
+		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 		GPUMemory::free(tempBuffer);
 	}
 
