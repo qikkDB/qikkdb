@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y build-essential \
 	ninja-build \
 	clang-7 \
 	clang++-7 \
-	curl
+	curl \
+	python2.7-dev
 
 # Install yaml	
 RUN mkdir -p ./yaml-cpp/src \
@@ -25,7 +26,7 @@ RUN mkdir -p ./yaml-cpp/src \
 # Install boost
 RUN mkdir -p ./boost/src \
 	&& cd ./boost/src \
-    && curl -SL https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz | tar -xz \
+    && curl -S -L https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz | tar -xz \
 	&& cd boost_1_69_0 \
 	&& ./bootstrap.sh \
 	&& ./b2
