@@ -14,21 +14,8 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showTablesFunction = &GpuSq
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showColumnsFunction = &GpuSqlDispatcher::showColumns;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::insertIntoDoneFunction = &GpuSqlDispatcher::insertIntoDone;
 
-int32_t GpuSqlDispatcher::ldByLink()
-{
-	for(const auto & column : linkTable)
-	{
-		if(!loadCol(column.first))
-		{
-			return 1;
-		}
-		
-	}
-	return 0;
-}
-
 template <>
-int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName)
+int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(const std::string& colName)
 {
 	if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
 	{
@@ -66,7 +53,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 }
 
 template <>
-int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
+int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(const std::string& colName)
 {
 	if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
 	{
@@ -299,6 +286,70 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 			insertIntoPayload(payload, outData, block->GetSize());
 			MergePayloadToSelfResponse(alias, payload);
+		}
+	}
+	return 0;
+}
+
+
+int32_t GpuSqlDispatcher::ldByLink()
+{
+	for (const auto & column : linkTable)
+	{
+		DataType columnType = std::get<1>(column.second);
+
+		switch (columnType)
+		{
+		case COLUMN_INT:
+			if (loadCol<int32_t>(column.first))
+			{
+				return 1;
+			}
+			break;
+		case COLUMN_LONG:
+			if (loadCol<int64_t>(column.first))
+			{
+				return 1;
+			}
+			break;
+		case COLUMN_FLOAT:
+			if (loadCol<float>(column.first))
+			{
+				return 1;
+			}
+			break;
+		case COLUMN_DOUBLE:
+			if (loadCol<double>(column.first))
+			{
+				return 1;
+			}
+			break;
+		case COLUMN_POINT:
+			if (loadCol<ColmnarDB::Types::Point>(column.first))
+			{
+				return 1;
+			}
+			break;
+		case COLUMN_POLYGON:
+			if (loadCol<ColmnarDB::Types::ComplexPolygon>(column.first))
+			{
+				return 1;
+			}
+			break;
+		case COLUMN_STRING:
+			if (loadCol<std::string>(column.first))
+			{
+				return 1;
+			}
+			break;
+		case COLUMN_INT8_T:
+			if (loadCol<int8_t>(column.first))
+			{
+				return 1;
+			}
+			break;
+		default:
+			break;
 		}
 	}
 	return 0;

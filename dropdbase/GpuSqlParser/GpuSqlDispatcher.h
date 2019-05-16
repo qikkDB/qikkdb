@@ -318,7 +318,7 @@ public:
 	void addGpuPushWhereFunction(DataType type, const char* token);
 
 
-	static std::unordered_map<std::string, int32_t> linkTable;
+	static std::unordered_map<std::string, std::pair<int32_t, DataType>> linkTable;
 	std::vector<GPUOpCode> gpuWhereOpCodes;
 	
 	template<typename T>
@@ -338,7 +338,7 @@ public:
 	}
 
 	template<typename T>
-	int32_t loadCol(std::string& colName);
+	int32_t loadCol(const std::string& colName);
 
 	template <typename T>
 	void freeColumnIfRegister(const std::string& col)

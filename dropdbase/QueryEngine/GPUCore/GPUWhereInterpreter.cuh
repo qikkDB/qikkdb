@@ -22,14 +22,20 @@ __device__ void arithmeticFunction(GPUOpCode opCode, int32_t offset, GPUStack<20
 	gpuStack.push<T>(OP{}.template operator() < T, L, R > (left, right, &errorFlag, std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max()));
 }
 
+template <typename OP, typename T, typename U>
+__device__ void arithmeticUnaryFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
+{
+	U arg = gpuStack.pop<U>();
+	int32_t errorFlag;
+	gpuStack.push<T>(OP{}.template operator() < T, U> (arg, &errorFlag, std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max()));
+}
+
 template <typename OP>
 __device__ void dateFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
-	int64_t left = gpuStack.pop<int64_t>();
-	gpuStack.push<int32_t>(OP{}(left));
+	int64_t arg = gpuStack.pop<int64_t>();
+	gpuStack.push<int32_t>(OP{}(arg));
 }
-
-// TODO: Unary Functions
 
 template <typename OP, typename L>
 __device__ void logicalNotFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
@@ -47,7 +53,7 @@ __device__ void pushConstFunction(GPUOpCode opCode, int32_t offset, GPUStack<204
 template <typename T>
 __device__ void pushColFunction(GPUOpCode opCode, int32_t offset, GPUStack<2048>& gpuStack, void** symbols)
 {
-	gpuStack.push<T>(reinterpret_cast<T*>(symbols[opCode.data[0]])[offset]);
+	gpuStack.push<T>(reinterpret_cast<T*>(symbols[*reinterpret_cast<int32_t*>(opCode.data)])[offset]);
 }
 
 template <>

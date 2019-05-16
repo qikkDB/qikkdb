@@ -190,10 +190,18 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 		returnDataType = getReturnDataType(DataType::COLUMN_FLOAT);
 	}
 
+	std::string reg = getRegString(ctx);
+
 	if (insideWhere)
 	{
-		dispatcher.addGpuPushWhereFunction(leftOperandType, std::get<0>(left).c_str());
-		dispatcher.addGpuPushWhereFunction(rightOperandType, std::get<0>(right).c_str());
+		if (std::get<0>(left)[0] != '$')
+		{
+			dispatcher.addGpuPushWhereFunction(leftOperandType, std::get<0>(left).c_str());
+		}
+		if (std::get<0>(right)[1] != '$')
+		{
+			dispatcher.addGpuPushWhereFunction(rightOperandType, std::get<0>(right).c_str());
+		}
 		dispatcher.addGpuWhereBinaryFunction(gpuFunction, leftOperandType, rightOperandType);
 	}
 	else
@@ -201,10 +209,9 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 		pushArgument(std::get<0>(right).c_str(), rightOperandType);
 		pushArgument(std::get<0>(left).c_str(), leftOperandType);
 		dispatcher.addDispatcherBinaryFunction(gpuFunction, leftOperandType, rightOperandType);
+		pushArgument(reg.c_str(), returnDataType);
 	}
 
-	std::string reg = getRegString(ctx);
-	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
 }
 
@@ -384,19 +391,23 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 
+	std::string reg = getRegString(ctx);
+
 	if (insideWhere)
 	{
-		dispatcher.addGpuPushWhereFunction(operandType, std::get<0>(arg).c_str());
+		if (std::get<0>(arg)[0] != '$')
+		{
+			dispatcher.addGpuPushWhereFunction(operandType, std::get<0>(arg).c_str());
+		}
 		dispatcher.addGpuWhereUnaryFunction(gpuFunction, operandType);
 	}
 	else
 	{
 		pushArgument(std::get<0>(arg).c_str(), operandType);
 		dispatcher.addDispatcherUnaryFunction(gpuFunction, operandType);
+		pushArgument(reg.c_str(), returnDataType);
 	}
 
-	std::string reg = getRegString(ctx);
-	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
 }
 
@@ -865,7 +876,7 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 
 	if (dispatcher.linkTable.find(tableColumn) == dispatcher.linkTable.end())
 	{
-		dispatcher.linkTable.insert({ tableColumn, linkTableIndex++ });
+		dispatcher.linkTable.insert({ tableColumn, {linkTableIndex++, columnType} });
 		//dispatcher.addLoadFunction(columnType);
 		//dispatcher.addArgument<const std::string&>(tableColumn);
 	}

@@ -32,9 +32,73 @@ all_types = [INT,
              STRING,
              BOOL]
 
+operations_enum = [
+    'GT_FUNC',
+    'LT_FUNC',
+    'GTEQ_FUNC',
+    'LTEQ_FUNC',
+    'EQ_FUNC',
+    'NEQ_FUNC',
+    'AND_FUNC',
+    'OR_FUNC',
+    'MUL_FUNC',
+    'DIV_FUNC',
+    'ADD_FUNC',
+    'SUB_FUNC',
+    'MOD_FUNC',
+    'BIT_OR_FUNC',
+    'BIT_AND_FUNC',
+    'BIT_XOR_FUNC',
+    'LEFT_SHIFT_FUNC',
+    'RIGHT_SHIFT_FUNC',
+    'POINT_FUNC',
+    'GEO_CONTAINS_FUNC',
+    'GEO_INTERSECT_FUNC',
+    'GEO_UNION_FUNC',
+    'LOG_BIN_FUNC',
+    'POW_BIN_FUNC',
+    'ROOT_BIN_FUNC',
+    'ATAN2_FUNC',
+    'NOT_FUNC',
+    'MINUS_FUNC',
+    'YEAR_FUNC',
+    'MONTH_FUNC',
+    'DAY_FUNC',
+    'HOUR_FUNC',
+    'MINUTE_FUNC',
+    'SECOND_FUNC',
+    'ABS_FUNC',
+    'SIN_FUNC',
+    'COS_FUNC',
+    'TAN_FUNC',
+    'COT_FUNC',
+    'ASIN_FUNC',
+    'ACOS_FUNC',
+    'ATAN_FUNC',
+    'LOG10_FUNC',
+    'LOG_FUNC',
+    'EXP_FUNC',
+    'SQRT_FUNC',
+    'SQUARE_FUNC',
+    'SIGN_FUNC',
+    'ROUND_FUNC',
+    'FLOOR_FUNC',
+    'CEIL_FUNC']
+
+all_operations = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual", "logicalAnd", "logicalOr",
+                  "mul", "div", "add", "sub", "mod", "bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift",
+                  "bitwiseRightShift", "point", "contains", "intersect", "union", "logarithm", "power", "root",
+                  "arctangent2",
+                  "logicalNot", "minus", "year", "month", "day", "hour", "minute", "second", 'absolute', 'sine',
+                  'cosine', 'tangent', 'cotangent', 'arcsine', 'arccosine',
+                  'arctangent',
+                  'logarithm10', 'logarithmNatural', 'exponential', 'squareRoot', 'square', 'sign',
+                  'round', 'floor', 'ceil']
+
 bitwise_operations = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift"]
 arithmetic_operations = ["mul", "div", "add", "sub", "mod", "logarithm", "power"]
-unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'cotangent', 'arcsine', 'arccosine', 'arctangent',
+unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'cotangent', 'arcsine', 'arccosine',
+                               'arctangent',
                                'logarithm10', 'logarithmNatural', 'exponential', 'squareRoot', 'square', 'sign',
                                'round', 'floor', 'ceil']
 geo_operations = ["contains"]
@@ -52,7 +116,7 @@ operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "n
 operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operations_logical = ["logicalAnd", "logicalOr"]
 operations_arithmetic = ["mul", "div", "add", "sub", "mod", "bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift",
-                         "bitwiseRightShift", "power", "logarithm", "arctangent2", "root"]
+                         "bitwiseRightShift", "logarithm", "power", "root", "arctangent2"]
 operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg", "year", "month", "day", "hour",
                     "minute", "second"]
 operations_aggregation = ["min", "max", "sum", "count", "avg"]
@@ -542,7 +606,7 @@ for operation in filter_operations + logical_operations:
     print('\t}')
     print('}')
 
-for operation in arithmetic_operations:
+for operation in operations_arithmetic:
     print('\n')
     print('__device__ GpuVMFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
     print('{')
@@ -560,7 +624,7 @@ for operation in arithmetic_operations:
             elif colVal == STRING or rowVal == STRING:
                 validCombination = False
 
-            elif operation == 'mod' and (colVal in floating_types or rowVal in floating_types):
+            elif (operation == 'mod' or operation in bitwise_operations) and (colVal in floating_types or rowVal in floating_types):
                 validCombination = False
 
             if validCombination:
@@ -575,6 +639,35 @@ for operation in arithmetic_operations:
     print('\t}')
     print('}')
 
+for operation in unary_arithmetic_operations:
+    print('\n')
+    print('__device__ GpuVMFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
+    print('{')
+    print('\tswitch(dataTypes)')
+    print('\t{')
+    namespace = 'ArithmeticUnaryOperations::'
+    for rowIdx, rowVal in enumerate(types):
+        dataTypeCombination = rowVal + ', ' + rowVal
+        validCombination = True
+
+        if rowVal in geo_types:
+            validCombination = False
+
+        elif rowVal == STRING:
+            validCombination = False
+
+        if validCombination:
+            print('\t\tcase ' + str(rowIdx) + ':')
+            print(
+                '\t\t\treturn &arithmeticUnaryFunction<' + namespace + operation + ", " + dataTypeCombination + ">;")
+            print('\t\tbreak;')
+
+    print('\t\tdefault:')
+    print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
+    print('\t\tbreak;')
+    print('\t}')
+    print('}')
+
 for operation in operations_date:
     print('\n')
     print('__device__ GpuVMFunction add_gpu_' + operation + '_function(int32_t dataTypes)')
@@ -582,19 +675,18 @@ for operation in operations_date:
     print('\tswitch(dataTypes)')
     print('\t{')
     namespace = 'DateOperations::'
-    for colIdx, colVal in enumerate(types):
-        for rowIdx, rowVal in enumerate(types):
-            dataTypeCombination = colVal
-            validCombination = True
+    for rowIdx, rowVal in enumerate(types):
+        dataTypeCombination = rowVal
+        validCombination = True
 
-            if colVal != LONG or rowVal != LONG:
-                validCombination = False
+        if rowVal != LONG:
+            validCombination = False
 
-            if validCombination:
-                print('\t\tcase ' + str(colIdx * len(types) + rowIdx) + ':')
-                print(
-                    '\t\t\treturn &dateFunction<' + namespace + operation + ">;")
-                print('\t\tbreak;')
+        if validCombination:
+            print('\t\tcase ' + str(rowIdx) + ':')
+            print(
+                '\t\t\treturn &dateFunction<' + namespace + operation + ">;")
+            print('\t\tbreak;')
 
     print('\t\tdefault:')
     print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
@@ -636,22 +728,21 @@ for operation in ['logicalNot']:
     print('\tswitch(dataTypes)')
     print('\t{')
     namespace = 'LogicOperations::'
-    for colIdx, colVal in enumerate(types):
-        for rowIdx, rowVal in enumerate(types):
-            dataTypeCombination = colVal
-            validCombination = True
+    for rowIdx, rowVal in enumerate(types):
+        dataTypeCombination = rowVal
+        validCombination = True
 
-            if colVal in geo_types or rowVal in geo_types:
-                validCombination = False
+        if rowVal in geo_types:
+            validCombination = False
 
-            elif colVal == STRING or rowVal == STRING:
-                validCombination = False
+        elif rowVal == STRING:
+            validCombination = False
 
-            if validCombination:
-                print('\t\tcase ' + str(colIdx * len(types) + rowIdx) + ':')
-                print(
-                    '\t\t\treturn &logicalNotFunction<' + namespace + operation + ' ,' + colVal + ">;")
-                print('\t\tbreak;')
+        if validCombination:
+            print('\t\tcase ' + str(rowIdx) + ':')
+            print(
+                '\t\t\treturn &logicalNotFunction<' + namespace + operation + ' ,' + rowVal + ">;")
+            print('\t\tbreak;')
 
     print('\t\tdefault:')
     print('\t\t\treturn &invalidArgumentTypeHandler<' + namespace + operation + '>;')
@@ -749,3 +840,17 @@ for colIdx, colVal in enumerate(all_types):
             declaration += ("&" + function + ", ")
 
 print(declaration)
+
+print('switch (operation)')
+print('{')
+for i in range(len(all_operations)):
+    print(f'case DispatcherFunction::{operations_enum[i]}:')
+    print(f'\tgpuDispatchPtr[i] = add_gpu_{all_operations[i]}_function(dataTypes);')
+    print('break;')
+print(f'default:')
+print(f'\tgpuDispatchPtr[i] = reinterpret_cast<GpuVMFunction>(0xcccccccccccccccc);')
+print('break;')
+print('}')
+
+for i in range(len(all_operations)):
+    print(f'__device__ GpuVMFunction add_gpu_{all_operations[i]}_function(int32_t dataTypes);')

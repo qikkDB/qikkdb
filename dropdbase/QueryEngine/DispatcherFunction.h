@@ -54,5 +54,5 @@ enum DispatcherFunction
 	FLOOR_FUNC = 49,
 	CEIL_FUNC = 50,
 	PUSH_FUNC = 51,
-	FUNC_COUNT = 53
+	FUNC_COUNT = 52
 };

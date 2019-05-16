@@ -16,7 +16,7 @@ int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 std::mutex GpuSqlDispatcher::groupByMutex_;
 std::condition_variable GpuSqlDispatcher::groupByCV_;
 int32_t GpuSqlDispatcher::groupByDoneLimit_;
-std::unordered_map<std::string, int32_t> GpuSqlDispatcher::linkTable;
+std::unordered_map<std::string, std::pair<int32_t, DataType>> GpuSqlDispatcher::linkTable;
 
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId)
@@ -440,7 +440,7 @@ void GpuSqlDispatcher::addGpuPushWhereFunction(DataType type, const char* token)
 	case DataType::COLUMN_STRING:
 	case DataType::COLUMN_INT8_T:
 		opcode.fun_ptr = gpuVMFunc;
-		*reinterpret_cast<int8_t*>(opcode.data) = linkTable.at(token);
+		*reinterpret_cast<int32_t*>(opcode.data) = linkTable.at(token).first;
 		gpuOpCodes.push_back(opcode);
 		break;
 	case DataType::DATA_TYPE_SIZE:
@@ -555,14 +555,13 @@ int32_t GpuSqlDispatcher::fil()
 {
     auto reg = arguments.read<std::string>();
     std::cout << "Filter: " << reg << std::endl;
-	filter_ = std::get<0>(allocatedPointers.at(reg));
 
 	//GPU DISPATCH
 
 	int32_t dataElementCount = std::numeric_limits<int32_t>::max();
 	for (auto& column : linkTable)
 	{
-		symbolTable[column.second] = reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(column.first)));
+		symbolTable[column.second.first] = reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(column.first)));
 		if (std::get<1>(allocatedPointers.at(column.first)) < dataElementCount)
 		{
 			dataElementCount = std::get<1>(allocatedPointers.at(column.first));

@@ -83,7 +83,7 @@ int32_t GpuSqlDispatcher::retCol()
 /// Sets the last block (for current dispatcher instance and overall) flags
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T>
-int32_t GpuSqlDispatcher::loadCol(std::string& colName)
+int32_t GpuSqlDispatcher::loadCol(const std::string& colName)
 {
 	if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
 	{
