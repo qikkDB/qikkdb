@@ -44,6 +44,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	isOverallLastBlock(false),
 	noLoad(true)
 {
+	dispatcherFunctions.push_back(ldByLinkFunction);
 }
 
 GpuSqlDispatcher::~GpuSqlDispatcher()
@@ -371,6 +372,7 @@ void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value, bool usingGr
 void GpuSqlDispatcher::addLoadFunction(DataType type)
 {
 	dispatcherFunctions.push_back(ldFunctions[type]);
+	//dispatcherFunctions.insert(dispatcherFunctions.begin(),ldFunctions[type]);
 }
 
 void GpuSqlDispatcher::addGroupByFunction(DataType type)

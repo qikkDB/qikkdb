@@ -190,6 +190,7 @@ private:
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
+	static DispatchFunction ldByLinkFunction;
     static DispatchFunction filFunction;
 	static DispatchFunction jmpFunction;
     static DispatchFunction doneFunction;
@@ -368,6 +369,8 @@ public:
 	int32_t jmp();
 
     int32_t done();
+
+	int32_t ldByLink();
 
 	int32_t showDatabases();
 

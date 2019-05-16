@@ -11,8 +11,8 @@
 #include "GPUDate.cuh"
 #include "GPUWhereInterpreter.cuh"
 #include "MaybeDeref.cuh"
-#include "GpuMemory.cuh"
-#include "GpuPolygonContains.cuh"
+#include "GPUMemory.cuh"
+#include "GPUPolygonContains.cuh"
 
 __global__ void kernel_filter(int8_t* outMask, GPUOpCode* opCodes, int32_t opCodesCount, void** symbols, int32_t dataElementCount)
 {
