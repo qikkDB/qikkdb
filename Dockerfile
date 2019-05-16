@@ -23,6 +23,8 @@ RUN mkdir -p ./yaml-cpp/src \
 	&& make \
 	&& make install
 	
+WORKDIR /build	
+	
 # Install boost
 RUN mkdir -p ./boost/src \
 	&& cd ./boost/src \
@@ -30,6 +32,8 @@ RUN mkdir -p ./boost/src \
 	&& cd boost_1_69_0 \
 	&& ./bootstrap.sh \
 	&& ./b2
+	
+WORKDIR /build	
 	
 RUN	cmake -GNinja -DCMAKE_CXX_COMPILER=clang++-7 -DCMAKE_C_COMPILER=clang-7 -DBOOST_ROOT=/opt/boost_1.69 -DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.1/bin/nvcc -DCMAKE_BUILD_TYPE=Release ../dropdbase_instarea
 
