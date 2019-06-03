@@ -615,7 +615,8 @@ for operation in operations_arithmetic:
     namespace = 'ArithmeticOperations::'
     for colIdx, colVal in enumerate(types):
         for rowIdx, rowVal in enumerate(types):
-            dataTypeCombination = colVal + ', ' + colVal + ', ' + rowVal
+            retVal = colVal if (colIdx >= rowIdx and colVal != BOOL) or rowVal == BOOL else rowVal
+            dataTypeCombination = retVal + ', ' + colVal + ', ' + rowVal
             validCombination = True
 
             if colVal in geo_types or rowVal in geo_types:
@@ -647,7 +648,7 @@ for operation in unary_arithmetic_operations:
     print('\t{')
     namespace = 'ArithmeticUnaryOperations::'
     for rowIdx, rowVal in enumerate(types):
-        dataTypeCombination = rowVal + ', ' + rowVal
+        dataTypeCombination = f'std::conditional<std::is_same<{namespace + operation}::retType, void>::value, {rowVal}, {namespace + operation}::retType>::type, {rowVal}'
         validCombination = True
 
         if rowVal in geo_types:

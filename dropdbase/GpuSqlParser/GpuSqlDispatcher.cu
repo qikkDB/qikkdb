@@ -405,11 +405,13 @@ void GpuSqlDispatcher::addGpuPushWhereFunction(DataType type, const char* token)
 {		
 	auto gpuVMFunc = reinterpret_cast<GpuVMFunction>(DispatcherFunction::PUSH_FUNC * DataType::COLUMN_INT * DataType::COLUMN_INT + type);
 	GPUOpCode opcode;
+	int32_t tmp;
 	switch (type)
 	{
 	case DataType::CONST_INT:
 		opcode.fun_ptr = gpuVMFunc;
-		*reinterpret_cast<int32_t*>(opcode.data) = std::stoi(token);
+		tmp = std::stoi(token);
+		*reinterpret_cast<int32_t*>(opcode.data) = tmp;
 		gpuOpCodes.push_back(opcode);
 		break;
 	case DataType::CONST_LONG:

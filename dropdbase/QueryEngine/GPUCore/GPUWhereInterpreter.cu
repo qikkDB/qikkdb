@@ -71,7 +71,7 @@ __device__ void pushConstFunction<NativeGeoPoint>(GPUOpCode opCode, int32_t offs
 {
 	NativeGeoPoint gp;
 	gp.latitude = (*reinterpret_cast<float*>(opCode.data));
-	gp.longitude = (*reinterpret_cast<float*>(opCode.data + sizeof(float)));
+	gp.longitude = (*reinterpret_cast<float*>(opCode.data) + sizeof(float));
 	gpuStack.push<NativeGeoPoint>(gp);
 }
 
@@ -285,6 +285,7 @@ __global__ void kernel_fill_gpu_dispatch_table(GpuVMFunction * gpuDispatchPtr, s
 		}
 	}
 }
+
 
 __device__ GpuVMFunction add_gpu_greater_function(int32_t dataTypes)
 {
@@ -982,13 +983,13 @@ __device__ GpuVMFunction add_gpu_mul_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::mul, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::mul, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::mul, int64_t, int32_t, int64_t>;
 		break;
 	case 2:
-		return &arithmeticFunction<ArithmeticOperations::mul, int32_t, int32_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::mul, float, int32_t, float>;
 		break;
 	case 3:
-		return &arithmeticFunction<ArithmeticOperations::mul, int32_t, int32_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::mul, double, int32_t, double>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::mul, int32_t, int32_t, int8_t>;
@@ -1000,10 +1001,10 @@ __device__ GpuVMFunction add_gpu_mul_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::mul, int64_t, int64_t, int64_t>;
 		break;
 	case 10:
-		return &arithmeticFunction<ArithmeticOperations::mul, int64_t, int64_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::mul, float, int64_t, float>;
 		break;
 	case 11:
-		return &arithmeticFunction<ArithmeticOperations::mul, int64_t, int64_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::mul, double, int64_t, double>;
 		break;
 	case 15:
 		return &arithmeticFunction<ArithmeticOperations::mul, int64_t, int64_t, int8_t>;
@@ -1018,7 +1019,7 @@ __device__ GpuVMFunction add_gpu_mul_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::mul, float, float, float>;
 		break;
 	case 19:
-		return &arithmeticFunction<ArithmeticOperations::mul, float, float, double>;
+		return &arithmeticFunction<ArithmeticOperations::mul, double, float, double>;
 		break;
 	case 23:
 		return &arithmeticFunction<ArithmeticOperations::mul, float, float, int8_t>;
@@ -1039,16 +1040,16 @@ __device__ GpuVMFunction add_gpu_mul_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::mul, double, double, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::mul, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::mul, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::mul, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::mul, int64_t, int8_t, int64_t>;
 		break;
 	case 58:
-		return &arithmeticFunction<ArithmeticOperations::mul, int8_t, int8_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::mul, float, int8_t, float>;
 		break;
 	case 59:
-		return &arithmeticFunction<ArithmeticOperations::mul, int8_t, int8_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::mul, double, int8_t, double>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::mul, int8_t, int8_t, int8_t>;
@@ -1068,13 +1069,13 @@ __device__ GpuVMFunction add_gpu_div_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::div, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::div, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::div, int64_t, int32_t, int64_t>;
 		break;
 	case 2:
-		return &arithmeticFunction<ArithmeticOperations::div, int32_t, int32_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::div, float, int32_t, float>;
 		break;
 	case 3:
-		return &arithmeticFunction<ArithmeticOperations::div, int32_t, int32_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::div, double, int32_t, double>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::div, int32_t, int32_t, int8_t>;
@@ -1086,10 +1087,10 @@ __device__ GpuVMFunction add_gpu_div_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::div, int64_t, int64_t, int64_t>;
 		break;
 	case 10:
-		return &arithmeticFunction<ArithmeticOperations::div, int64_t, int64_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::div, float, int64_t, float>;
 		break;
 	case 11:
-		return &arithmeticFunction<ArithmeticOperations::div, int64_t, int64_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::div, double, int64_t, double>;
 		break;
 	case 15:
 		return &arithmeticFunction<ArithmeticOperations::div, int64_t, int64_t, int8_t>;
@@ -1104,7 +1105,7 @@ __device__ GpuVMFunction add_gpu_div_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::div, float, float, float>;
 		break;
 	case 19:
-		return &arithmeticFunction<ArithmeticOperations::div, float, float, double>;
+		return &arithmeticFunction<ArithmeticOperations::div, double, float, double>;
 		break;
 	case 23:
 		return &arithmeticFunction<ArithmeticOperations::div, float, float, int8_t>;
@@ -1125,16 +1126,16 @@ __device__ GpuVMFunction add_gpu_div_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::div, double, double, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::div, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::div, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::div, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::div, int64_t, int8_t, int64_t>;
 		break;
 	case 58:
-		return &arithmeticFunction<ArithmeticOperations::div, int8_t, int8_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::div, float, int8_t, float>;
 		break;
 	case 59:
-		return &arithmeticFunction<ArithmeticOperations::div, int8_t, int8_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::div, double, int8_t, double>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::div, int8_t, int8_t, int8_t>;
@@ -1154,13 +1155,13 @@ __device__ GpuVMFunction add_gpu_add_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::add, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::add, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::add, int64_t, int32_t, int64_t>;
 		break;
 	case 2:
-		return &arithmeticFunction<ArithmeticOperations::add, int32_t, int32_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::add, float, int32_t, float>;
 		break;
 	case 3:
-		return &arithmeticFunction<ArithmeticOperations::add, int32_t, int32_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::add, double, int32_t, double>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::add, int32_t, int32_t, int8_t>;
@@ -1172,10 +1173,10 @@ __device__ GpuVMFunction add_gpu_add_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::add, int64_t, int64_t, int64_t>;
 		break;
 	case 10:
-		return &arithmeticFunction<ArithmeticOperations::add, int64_t, int64_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::add, float, int64_t, float>;
 		break;
 	case 11:
-		return &arithmeticFunction<ArithmeticOperations::add, int64_t, int64_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::add, double, int64_t, double>;
 		break;
 	case 15:
 		return &arithmeticFunction<ArithmeticOperations::add, int64_t, int64_t, int8_t>;
@@ -1190,7 +1191,7 @@ __device__ GpuVMFunction add_gpu_add_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::add, float, float, float>;
 		break;
 	case 19:
-		return &arithmeticFunction<ArithmeticOperations::add, float, float, double>;
+		return &arithmeticFunction<ArithmeticOperations::add, double, float, double>;
 		break;
 	case 23:
 		return &arithmeticFunction<ArithmeticOperations::add, float, float, int8_t>;
@@ -1211,16 +1212,16 @@ __device__ GpuVMFunction add_gpu_add_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::add, double, double, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::add, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::add, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::add, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::add, int64_t, int8_t, int64_t>;
 		break;
 	case 58:
-		return &arithmeticFunction<ArithmeticOperations::add, int8_t, int8_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::add, float, int8_t, float>;
 		break;
 	case 59:
-		return &arithmeticFunction<ArithmeticOperations::add, int8_t, int8_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::add, double, int8_t, double>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::add, int8_t, int8_t, int8_t>;
@@ -1240,13 +1241,13 @@ __device__ GpuVMFunction add_gpu_sub_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::sub, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::sub, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::sub, int64_t, int32_t, int64_t>;
 		break;
 	case 2:
-		return &arithmeticFunction<ArithmeticOperations::sub, int32_t, int32_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::sub, float, int32_t, float>;
 		break;
 	case 3:
-		return &arithmeticFunction<ArithmeticOperations::sub, int32_t, int32_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::sub, double, int32_t, double>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::sub, int32_t, int32_t, int8_t>;
@@ -1258,10 +1259,10 @@ __device__ GpuVMFunction add_gpu_sub_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::sub, int64_t, int64_t, int64_t>;
 		break;
 	case 10:
-		return &arithmeticFunction<ArithmeticOperations::sub, int64_t, int64_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::sub, float, int64_t, float>;
 		break;
 	case 11:
-		return &arithmeticFunction<ArithmeticOperations::sub, int64_t, int64_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::sub, double, int64_t, double>;
 		break;
 	case 15:
 		return &arithmeticFunction<ArithmeticOperations::sub, int64_t, int64_t, int8_t>;
@@ -1276,7 +1277,7 @@ __device__ GpuVMFunction add_gpu_sub_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::sub, float, float, float>;
 		break;
 	case 19:
-		return &arithmeticFunction<ArithmeticOperations::sub, float, float, double>;
+		return &arithmeticFunction<ArithmeticOperations::sub, double, float, double>;
 		break;
 	case 23:
 		return &arithmeticFunction<ArithmeticOperations::sub, float, float, int8_t>;
@@ -1297,16 +1298,16 @@ __device__ GpuVMFunction add_gpu_sub_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::sub, double, double, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::sub, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::sub, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::sub, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::sub, int64_t, int8_t, int64_t>;
 		break;
 	case 58:
-		return &arithmeticFunction<ArithmeticOperations::sub, int8_t, int8_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::sub, float, int8_t, float>;
 		break;
 	case 59:
-		return &arithmeticFunction<ArithmeticOperations::sub, int8_t, int8_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::sub, double, int8_t, double>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::sub, int8_t, int8_t, int8_t>;
@@ -1326,7 +1327,7 @@ __device__ GpuVMFunction add_gpu_mod_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::mod, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::mod, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::mod, int64_t, int32_t, int64_t>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::mod, int32_t, int32_t, int8_t>;
@@ -1341,10 +1342,10 @@ __device__ GpuVMFunction add_gpu_mod_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::mod, int64_t, int64_t, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::mod, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::mod, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::mod, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::mod, int64_t, int8_t, int64_t>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::mod, int8_t, int8_t, int8_t>;
@@ -1355,6 +1356,7 @@ __device__ GpuVMFunction add_gpu_mod_function(int32_t dataTypes)
 	}
 }
 
+
 __device__ GpuVMFunction add_gpu_bitwiseOr_function(int32_t dataTypes)
 {
 	switch (dataTypes)
@@ -1363,7 +1365,7 @@ __device__ GpuVMFunction add_gpu_bitwiseOr_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::bitwiseOr, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseOr, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseOr, int64_t, int32_t, int64_t>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::bitwiseOr, int32_t, int32_t, int8_t>;
@@ -1378,10 +1380,10 @@ __device__ GpuVMFunction add_gpu_bitwiseOr_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::bitwiseOr, int64_t, int64_t, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseOr, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseOr, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseOr, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseOr, int64_t, int8_t, int64_t>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::bitwiseOr, int8_t, int8_t, int8_t>;
@@ -1401,7 +1403,7 @@ __device__ GpuVMFunction add_gpu_bitwiseAnd_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::bitwiseAnd, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseAnd, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseAnd, int64_t, int32_t, int64_t>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::bitwiseAnd, int32_t, int32_t, int8_t>;
@@ -1416,10 +1418,10 @@ __device__ GpuVMFunction add_gpu_bitwiseAnd_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::bitwiseAnd, int64_t, int64_t, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseAnd, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseAnd, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseAnd, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseAnd, int64_t, int8_t, int64_t>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::bitwiseAnd, int8_t, int8_t, int8_t>;
@@ -1439,7 +1441,7 @@ __device__ GpuVMFunction add_gpu_bitwiseXor_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::bitwiseXor, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseXor, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseXor, int64_t, int32_t, int64_t>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::bitwiseXor, int32_t, int32_t, int8_t>;
@@ -1454,10 +1456,10 @@ __device__ GpuVMFunction add_gpu_bitwiseXor_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::bitwiseXor, int64_t, int64_t, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseXor, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseXor, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseXor, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseXor, int64_t, int8_t, int64_t>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::bitwiseXor, int8_t, int8_t, int8_t>;
@@ -1477,7 +1479,7 @@ __device__ GpuVMFunction add_gpu_bitwiseLeftShift_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::bitwiseLeftShift, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseLeftShift, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseLeftShift, int64_t, int32_t, int64_t>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::bitwiseLeftShift, int32_t, int32_t, int8_t>;
@@ -1492,10 +1494,10 @@ __device__ GpuVMFunction add_gpu_bitwiseLeftShift_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::bitwiseLeftShift, int64_t, int64_t, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseLeftShift, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseLeftShift, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseLeftShift, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseLeftShift, int64_t, int8_t, int64_t>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::bitwiseLeftShift, int8_t, int8_t, int8_t>;
@@ -1515,7 +1517,7 @@ __device__ GpuVMFunction add_gpu_bitwiseRightShift_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::bitwiseRightShift, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseRightShift, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseRightShift, int64_t, int32_t, int64_t>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::bitwiseRightShift, int32_t, int32_t, int8_t>;
@@ -1530,10 +1532,10 @@ __device__ GpuVMFunction add_gpu_bitwiseRightShift_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::bitwiseRightShift, int64_t, int64_t, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseRightShift, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseRightShift, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::bitwiseRightShift, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::bitwiseRightShift, int64_t, int8_t, int64_t>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::bitwiseRightShift, int8_t, int8_t, int8_t>;
@@ -1553,13 +1555,13 @@ __device__ GpuVMFunction add_gpu_logarithm_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::logarithm, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::logarithm, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::logarithm, int64_t, int32_t, int64_t>;
 		break;
 	case 2:
-		return &arithmeticFunction<ArithmeticOperations::logarithm, int32_t, int32_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::logarithm, float, int32_t, float>;
 		break;
 	case 3:
-		return &arithmeticFunction<ArithmeticOperations::logarithm, int32_t, int32_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::logarithm, double, int32_t, double>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::logarithm, int32_t, int32_t, int8_t>;
@@ -1571,10 +1573,10 @@ __device__ GpuVMFunction add_gpu_logarithm_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::logarithm, int64_t, int64_t, int64_t>;
 		break;
 	case 10:
-		return &arithmeticFunction<ArithmeticOperations::logarithm, int64_t, int64_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::logarithm, float, int64_t, float>;
 		break;
 	case 11:
-		return &arithmeticFunction<ArithmeticOperations::logarithm, int64_t, int64_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::logarithm, double, int64_t, double>;
 		break;
 	case 15:
 		return &arithmeticFunction<ArithmeticOperations::logarithm, int64_t, int64_t, int8_t>;
@@ -1589,7 +1591,7 @@ __device__ GpuVMFunction add_gpu_logarithm_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::logarithm, float, float, float>;
 		break;
 	case 19:
-		return &arithmeticFunction<ArithmeticOperations::logarithm, float, float, double>;
+		return &arithmeticFunction<ArithmeticOperations::logarithm, double, float, double>;
 		break;
 	case 23:
 		return &arithmeticFunction<ArithmeticOperations::logarithm, float, float, int8_t>;
@@ -1610,16 +1612,16 @@ __device__ GpuVMFunction add_gpu_logarithm_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::logarithm, double, double, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::logarithm, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::logarithm, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::logarithm, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::logarithm, int64_t, int8_t, int64_t>;
 		break;
 	case 58:
-		return &arithmeticFunction<ArithmeticOperations::logarithm, int8_t, int8_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::logarithm, float, int8_t, float>;
 		break;
 	case 59:
-		return &arithmeticFunction<ArithmeticOperations::logarithm, int8_t, int8_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::logarithm, double, int8_t, double>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::logarithm, int8_t, int8_t, int8_t>;
@@ -1639,13 +1641,13 @@ __device__ GpuVMFunction add_gpu_power_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::power, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::power, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::power, int64_t, int32_t, int64_t>;
 		break;
 	case 2:
-		return &arithmeticFunction<ArithmeticOperations::power, int32_t, int32_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::power, float, int32_t, float>;
 		break;
 	case 3:
-		return &arithmeticFunction<ArithmeticOperations::power, int32_t, int32_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::power, double, int32_t, double>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::power, int32_t, int32_t, int8_t>;
@@ -1657,10 +1659,10 @@ __device__ GpuVMFunction add_gpu_power_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::power, int64_t, int64_t, int64_t>;
 		break;
 	case 10:
-		return &arithmeticFunction<ArithmeticOperations::power, int64_t, int64_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::power, float, int64_t, float>;
 		break;
 	case 11:
-		return &arithmeticFunction<ArithmeticOperations::power, int64_t, int64_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::power, double, int64_t, double>;
 		break;
 	case 15:
 		return &arithmeticFunction<ArithmeticOperations::power, int64_t, int64_t, int8_t>;
@@ -1675,7 +1677,7 @@ __device__ GpuVMFunction add_gpu_power_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::power, float, float, float>;
 		break;
 	case 19:
-		return &arithmeticFunction<ArithmeticOperations::power, float, float, double>;
+		return &arithmeticFunction<ArithmeticOperations::power, double, float, double>;
 		break;
 	case 23:
 		return &arithmeticFunction<ArithmeticOperations::power, float, float, int8_t>;
@@ -1696,16 +1698,16 @@ __device__ GpuVMFunction add_gpu_power_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::power, double, double, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::power, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::power, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::power, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::power, int64_t, int8_t, int64_t>;
 		break;
 	case 58:
-		return &arithmeticFunction<ArithmeticOperations::power, int8_t, int8_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::power, float, int8_t, float>;
 		break;
 	case 59:
-		return &arithmeticFunction<ArithmeticOperations::power, int8_t, int8_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::power, double, int8_t, double>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::power, int8_t, int8_t, int8_t>;
@@ -1725,13 +1727,13 @@ __device__ GpuVMFunction add_gpu_root_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::root, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::root, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::root, int64_t, int32_t, int64_t>;
 		break;
 	case 2:
-		return &arithmeticFunction<ArithmeticOperations::root, int32_t, int32_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::root, float, int32_t, float>;
 		break;
 	case 3:
-		return &arithmeticFunction<ArithmeticOperations::root, int32_t, int32_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::root, double, int32_t, double>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::root, int32_t, int32_t, int8_t>;
@@ -1743,10 +1745,10 @@ __device__ GpuVMFunction add_gpu_root_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::root, int64_t, int64_t, int64_t>;
 		break;
 	case 10:
-		return &arithmeticFunction<ArithmeticOperations::root, int64_t, int64_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::root, float, int64_t, float>;
 		break;
 	case 11:
-		return &arithmeticFunction<ArithmeticOperations::root, int64_t, int64_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::root, double, int64_t, double>;
 		break;
 	case 15:
 		return &arithmeticFunction<ArithmeticOperations::root, int64_t, int64_t, int8_t>;
@@ -1761,7 +1763,7 @@ __device__ GpuVMFunction add_gpu_root_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::root, float, float, float>;
 		break;
 	case 19:
-		return &arithmeticFunction<ArithmeticOperations::root, float, float, double>;
+		return &arithmeticFunction<ArithmeticOperations::root, double, float, double>;
 		break;
 	case 23:
 		return &arithmeticFunction<ArithmeticOperations::root, float, float, int8_t>;
@@ -1782,16 +1784,16 @@ __device__ GpuVMFunction add_gpu_root_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::root, double, double, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::root, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::root, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::root, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::root, int64_t, int8_t, int64_t>;
 		break;
 	case 58:
-		return &arithmeticFunction<ArithmeticOperations::root, int8_t, int8_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::root, float, int8_t, float>;
 		break;
 	case 59:
-		return &arithmeticFunction<ArithmeticOperations::root, int8_t, int8_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::root, double, int8_t, double>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::root, int8_t, int8_t, int8_t>;
@@ -1811,13 +1813,13 @@ __device__ GpuVMFunction add_gpu_arctangent2_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::arctangent2, int32_t, int32_t, int32_t>;
 		break;
 	case 1:
-		return &arithmeticFunction<ArithmeticOperations::arctangent2, int32_t, int32_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::arctangent2, int64_t, int32_t, int64_t>;
 		break;
 	case 2:
-		return &arithmeticFunction<ArithmeticOperations::arctangent2, int32_t, int32_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::arctangent2, float, int32_t, float>;
 		break;
 	case 3:
-		return &arithmeticFunction<ArithmeticOperations::arctangent2, int32_t, int32_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::arctangent2, double, int32_t, double>;
 		break;
 	case 7:
 		return &arithmeticFunction<ArithmeticOperations::arctangent2, int32_t, int32_t, int8_t>;
@@ -1829,10 +1831,10 @@ __device__ GpuVMFunction add_gpu_arctangent2_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::arctangent2, int64_t, int64_t, int64_t>;
 		break;
 	case 10:
-		return &arithmeticFunction<ArithmeticOperations::arctangent2, int64_t, int64_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::arctangent2, float, int64_t, float>;
 		break;
 	case 11:
-		return &arithmeticFunction<ArithmeticOperations::arctangent2, int64_t, int64_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::arctangent2, double, int64_t, double>;
 		break;
 	case 15:
 		return &arithmeticFunction<ArithmeticOperations::arctangent2, int64_t, int64_t, int8_t>;
@@ -1847,7 +1849,7 @@ __device__ GpuVMFunction add_gpu_arctangent2_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::arctangent2, float, float, float>;
 		break;
 	case 19:
-		return &arithmeticFunction<ArithmeticOperations::arctangent2, float, float, double>;
+		return &arithmeticFunction<ArithmeticOperations::arctangent2, double, float, double>;
 		break;
 	case 23:
 		return &arithmeticFunction<ArithmeticOperations::arctangent2, float, float, int8_t>;
@@ -1868,16 +1870,16 @@ __device__ GpuVMFunction add_gpu_arctangent2_function(int32_t dataTypes)
 		return &arithmeticFunction<ArithmeticOperations::arctangent2, double, double, int8_t>;
 		break;
 	case 56:
-		return &arithmeticFunction<ArithmeticOperations::arctangent2, int8_t, int8_t, int32_t>;
+		return &arithmeticFunction<ArithmeticOperations::arctangent2, int32_t, int8_t, int32_t>;
 		break;
 	case 57:
-		return &arithmeticFunction<ArithmeticOperations::arctangent2, int8_t, int8_t, int64_t>;
+		return &arithmeticFunction<ArithmeticOperations::arctangent2, int64_t, int8_t, int64_t>;
 		break;
 	case 58:
-		return &arithmeticFunction<ArithmeticOperations::arctangent2, int8_t, int8_t, float>;
+		return &arithmeticFunction<ArithmeticOperations::arctangent2, float, int8_t, float>;
 		break;
 	case 59:
-		return &arithmeticFunction<ArithmeticOperations::arctangent2, int8_t, int8_t, double>;
+		return &arithmeticFunction<ArithmeticOperations::arctangent2, double, int8_t, double>;
 		break;
 	case 63:
 		return &arithmeticFunction<ArithmeticOperations::arctangent2, int8_t, int8_t, int8_t>;
@@ -1893,19 +1895,19 @@ __device__ GpuVMFunction add_gpu_minus_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::minus, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::minus, std::conditional<std::is_same<ArithmeticUnaryOperations::minus::retType, void>::value, int32_t, ArithmeticUnaryOperations::minus::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::minus, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::minus, std::conditional<std::is_same<ArithmeticUnaryOperations::minus::retType, void>::value, int64_t, ArithmeticUnaryOperations::minus::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::minus, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::minus, std::conditional<std::is_same<ArithmeticUnaryOperations::minus::retType, void>::value, float, ArithmeticUnaryOperations::minus::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::minus, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::minus, std::conditional<std::is_same<ArithmeticUnaryOperations::minus::retType, void>::value, double, ArithmeticUnaryOperations::minus::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::minus, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::minus, std::conditional<std::is_same<ArithmeticUnaryOperations::minus::retType, void>::value, int8_t, ArithmeticUnaryOperations::minus::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::minus>;
@@ -1919,19 +1921,19 @@ __device__ GpuVMFunction add_gpu_absolute_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::absolute, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::absolute, std::conditional<std::is_same<ArithmeticUnaryOperations::absolute::retType, void>::value, int32_t, ArithmeticUnaryOperations::absolute::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::absolute, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::absolute, std::conditional<std::is_same<ArithmeticUnaryOperations::absolute::retType, void>::value, int64_t, ArithmeticUnaryOperations::absolute::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::absolute, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::absolute, std::conditional<std::is_same<ArithmeticUnaryOperations::absolute::retType, void>::value, float, ArithmeticUnaryOperations::absolute::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::absolute, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::absolute, std::conditional<std::is_same<ArithmeticUnaryOperations::absolute::retType, void>::value, double, ArithmeticUnaryOperations::absolute::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::absolute, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::absolute, std::conditional<std::is_same<ArithmeticUnaryOperations::absolute::retType, void>::value, int8_t, ArithmeticUnaryOperations::absolute::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::absolute>;
@@ -1945,19 +1947,19 @@ __device__ GpuVMFunction add_gpu_sine_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sine, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sine, std::conditional<std::is_same<ArithmeticUnaryOperations::sine::retType, void>::value, int32_t, ArithmeticUnaryOperations::sine::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sine, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sine, std::conditional<std::is_same<ArithmeticUnaryOperations::sine::retType, void>::value, int64_t, ArithmeticUnaryOperations::sine::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sine, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sine, std::conditional<std::is_same<ArithmeticUnaryOperations::sine::retType, void>::value, float, ArithmeticUnaryOperations::sine::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sine, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sine, std::conditional<std::is_same<ArithmeticUnaryOperations::sine::retType, void>::value, double, ArithmeticUnaryOperations::sine::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sine, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sine, std::conditional<std::is_same<ArithmeticUnaryOperations::sine::retType, void>::value, int8_t, ArithmeticUnaryOperations::sine::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::sine>;
@@ -1971,19 +1973,19 @@ __device__ GpuVMFunction add_gpu_cosine_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cosine, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cosine, std::conditional<std::is_same<ArithmeticUnaryOperations::cosine::retType, void>::value, int32_t, ArithmeticUnaryOperations::cosine::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cosine, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cosine, std::conditional<std::is_same<ArithmeticUnaryOperations::cosine::retType, void>::value, int64_t, ArithmeticUnaryOperations::cosine::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cosine, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cosine, std::conditional<std::is_same<ArithmeticUnaryOperations::cosine::retType, void>::value, float, ArithmeticUnaryOperations::cosine::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cosine, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cosine, std::conditional<std::is_same<ArithmeticUnaryOperations::cosine::retType, void>::value, double, ArithmeticUnaryOperations::cosine::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cosine, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cosine, std::conditional<std::is_same<ArithmeticUnaryOperations::cosine::retType, void>::value, int8_t, ArithmeticUnaryOperations::cosine::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::cosine>;
@@ -1997,19 +1999,19 @@ __device__ GpuVMFunction add_gpu_tangent_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::tangent, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::tangent, std::conditional<std::is_same<ArithmeticUnaryOperations::tangent::retType, void>::value, int32_t, ArithmeticUnaryOperations::tangent::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::tangent, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::tangent, std::conditional<std::is_same<ArithmeticUnaryOperations::tangent::retType, void>::value, int64_t, ArithmeticUnaryOperations::tangent::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::tangent, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::tangent, std::conditional<std::is_same<ArithmeticUnaryOperations::tangent::retType, void>::value, float, ArithmeticUnaryOperations::tangent::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::tangent, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::tangent, std::conditional<std::is_same<ArithmeticUnaryOperations::tangent::retType, void>::value, double, ArithmeticUnaryOperations::tangent::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::tangent, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::tangent, std::conditional<std::is_same<ArithmeticUnaryOperations::tangent::retType, void>::value, int8_t, ArithmeticUnaryOperations::tangent::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::tangent>;
@@ -2023,19 +2025,19 @@ __device__ GpuVMFunction add_gpu_cotangent_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cotangent, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cotangent, std::conditional<std::is_same<ArithmeticUnaryOperations::cotangent::retType, void>::value, int32_t, ArithmeticUnaryOperations::cotangent::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cotangent, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cotangent, std::conditional<std::is_same<ArithmeticUnaryOperations::cotangent::retType, void>::value, int64_t, ArithmeticUnaryOperations::cotangent::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cotangent, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cotangent, std::conditional<std::is_same<ArithmeticUnaryOperations::cotangent::retType, void>::value, float, ArithmeticUnaryOperations::cotangent::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cotangent, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cotangent, std::conditional<std::is_same<ArithmeticUnaryOperations::cotangent::retType, void>::value, double, ArithmeticUnaryOperations::cotangent::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cotangent, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::cotangent, std::conditional<std::is_same<ArithmeticUnaryOperations::cotangent::retType, void>::value, int8_t, ArithmeticUnaryOperations::cotangent::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::cotangent>;
@@ -2049,19 +2051,19 @@ __device__ GpuVMFunction add_gpu_arcsine_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arcsine, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arcsine, std::conditional<std::is_same<ArithmeticUnaryOperations::arcsine::retType, void>::value, int32_t, ArithmeticUnaryOperations::arcsine::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arcsine, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arcsine, std::conditional<std::is_same<ArithmeticUnaryOperations::arcsine::retType, void>::value, int64_t, ArithmeticUnaryOperations::arcsine::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arcsine, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arcsine, std::conditional<std::is_same<ArithmeticUnaryOperations::arcsine::retType, void>::value, float, ArithmeticUnaryOperations::arcsine::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arcsine, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arcsine, std::conditional<std::is_same<ArithmeticUnaryOperations::arcsine::retType, void>::value, double, ArithmeticUnaryOperations::arcsine::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arcsine, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arcsine, std::conditional<std::is_same<ArithmeticUnaryOperations::arcsine::retType, void>::value, int8_t, ArithmeticUnaryOperations::arcsine::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::arcsine>;
@@ -2075,19 +2077,19 @@ __device__ GpuVMFunction add_gpu_arccosine_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arccosine, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arccosine, std::conditional<std::is_same<ArithmeticUnaryOperations::arccosine::retType, void>::value, int32_t, ArithmeticUnaryOperations::arccosine::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arccosine, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arccosine, std::conditional<std::is_same<ArithmeticUnaryOperations::arccosine::retType, void>::value, int64_t, ArithmeticUnaryOperations::arccosine::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arccosine, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arccosine, std::conditional<std::is_same<ArithmeticUnaryOperations::arccosine::retType, void>::value, float, ArithmeticUnaryOperations::arccosine::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arccosine, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arccosine, std::conditional<std::is_same<ArithmeticUnaryOperations::arccosine::retType, void>::value, double, ArithmeticUnaryOperations::arccosine::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arccosine, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arccosine, std::conditional<std::is_same<ArithmeticUnaryOperations::arccosine::retType, void>::value, int8_t, ArithmeticUnaryOperations::arccosine::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::arccosine>;
@@ -2101,19 +2103,19 @@ __device__ GpuVMFunction add_gpu_arctangent_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arctangent, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arctangent, std::conditional<std::is_same<ArithmeticUnaryOperations::arctangent::retType, void>::value, int32_t, ArithmeticUnaryOperations::arctangent::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arctangent, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arctangent, std::conditional<std::is_same<ArithmeticUnaryOperations::arctangent::retType, void>::value, int64_t, ArithmeticUnaryOperations::arctangent::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arctangent, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arctangent, std::conditional<std::is_same<ArithmeticUnaryOperations::arctangent::retType, void>::value, float, ArithmeticUnaryOperations::arctangent::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arctangent, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arctangent, std::conditional<std::is_same<ArithmeticUnaryOperations::arctangent::retType, void>::value, double, ArithmeticUnaryOperations::arctangent::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arctangent, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::arctangent, std::conditional<std::is_same<ArithmeticUnaryOperations::arctangent::retType, void>::value, int8_t, ArithmeticUnaryOperations::arctangent::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::arctangent>;
@@ -2127,19 +2129,19 @@ __device__ GpuVMFunction add_gpu_logarithm10_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithm10, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithm10, std::conditional<std::is_same<ArithmeticUnaryOperations::logarithm10::retType, void>::value, int32_t, ArithmeticUnaryOperations::logarithm10::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithm10, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithm10, std::conditional<std::is_same<ArithmeticUnaryOperations::logarithm10::retType, void>::value, int64_t, ArithmeticUnaryOperations::logarithm10::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithm10, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithm10, std::conditional<std::is_same<ArithmeticUnaryOperations::logarithm10::retType, void>::value, float, ArithmeticUnaryOperations::logarithm10::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithm10, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithm10, std::conditional<std::is_same<ArithmeticUnaryOperations::logarithm10::retType, void>::value, double, ArithmeticUnaryOperations::logarithm10::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithm10, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithm10, std::conditional<std::is_same<ArithmeticUnaryOperations::logarithm10::retType, void>::value, int8_t, ArithmeticUnaryOperations::logarithm10::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::logarithm10>;
@@ -2153,19 +2155,19 @@ __device__ GpuVMFunction add_gpu_logarithmNatural_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithmNatural, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithmNatural, std::conditional<std::is_same<ArithmeticUnaryOperations::logarithmNatural::retType, void>::value, int32_t, ArithmeticUnaryOperations::logarithmNatural::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithmNatural, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithmNatural, std::conditional<std::is_same<ArithmeticUnaryOperations::logarithmNatural::retType, void>::value, int64_t, ArithmeticUnaryOperations::logarithmNatural::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithmNatural, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithmNatural, std::conditional<std::is_same<ArithmeticUnaryOperations::logarithmNatural::retType, void>::value, float, ArithmeticUnaryOperations::logarithmNatural::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithmNatural, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithmNatural, std::conditional<std::is_same<ArithmeticUnaryOperations::logarithmNatural::retType, void>::value, double, ArithmeticUnaryOperations::logarithmNatural::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithmNatural, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::logarithmNatural, std::conditional<std::is_same<ArithmeticUnaryOperations::logarithmNatural::retType, void>::value, int8_t, ArithmeticUnaryOperations::logarithmNatural::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::logarithmNatural>;
@@ -2179,19 +2181,19 @@ __device__ GpuVMFunction add_gpu_exponential_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::exponential, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::exponential, std::conditional<std::is_same<ArithmeticUnaryOperations::exponential::retType, void>::value, int32_t, ArithmeticUnaryOperations::exponential::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::exponential, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::exponential, std::conditional<std::is_same<ArithmeticUnaryOperations::exponential::retType, void>::value, int64_t, ArithmeticUnaryOperations::exponential::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::exponential, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::exponential, std::conditional<std::is_same<ArithmeticUnaryOperations::exponential::retType, void>::value, float, ArithmeticUnaryOperations::exponential::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::exponential, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::exponential, std::conditional<std::is_same<ArithmeticUnaryOperations::exponential::retType, void>::value, double, ArithmeticUnaryOperations::exponential::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::exponential, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::exponential, std::conditional<std::is_same<ArithmeticUnaryOperations::exponential::retType, void>::value, int8_t, ArithmeticUnaryOperations::exponential::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::exponential>;
@@ -2205,19 +2207,19 @@ __device__ GpuVMFunction add_gpu_squareRoot_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::squareRoot, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::squareRoot, std::conditional<std::is_same<ArithmeticUnaryOperations::squareRoot::retType, void>::value, int32_t, ArithmeticUnaryOperations::squareRoot::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::squareRoot, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::squareRoot, std::conditional<std::is_same<ArithmeticUnaryOperations::squareRoot::retType, void>::value, int64_t, ArithmeticUnaryOperations::squareRoot::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::squareRoot, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::squareRoot, std::conditional<std::is_same<ArithmeticUnaryOperations::squareRoot::retType, void>::value, float, ArithmeticUnaryOperations::squareRoot::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::squareRoot, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::squareRoot, std::conditional<std::is_same<ArithmeticUnaryOperations::squareRoot::retType, void>::value, double, ArithmeticUnaryOperations::squareRoot::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::squareRoot, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::squareRoot, std::conditional<std::is_same<ArithmeticUnaryOperations::squareRoot::retType, void>::value, int8_t, ArithmeticUnaryOperations::squareRoot::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::squareRoot>;
@@ -2231,19 +2233,19 @@ __device__ GpuVMFunction add_gpu_square_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::square, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::square, std::conditional<std::is_same<ArithmeticUnaryOperations::square::retType, void>::value, int32_t, ArithmeticUnaryOperations::square::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::square, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::square, std::conditional<std::is_same<ArithmeticUnaryOperations::square::retType, void>::value, int64_t, ArithmeticUnaryOperations::square::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::square, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::square, std::conditional<std::is_same<ArithmeticUnaryOperations::square::retType, void>::value, float, ArithmeticUnaryOperations::square::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::square, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::square, std::conditional<std::is_same<ArithmeticUnaryOperations::square::retType, void>::value, double, ArithmeticUnaryOperations::square::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::square, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::square, std::conditional<std::is_same<ArithmeticUnaryOperations::square::retType, void>::value, int8_t, ArithmeticUnaryOperations::square::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::square>;
@@ -2257,19 +2259,19 @@ __device__ GpuVMFunction add_gpu_sign_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sign, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sign, std::conditional<std::is_same<ArithmeticUnaryOperations::sign::retType, void>::value, int32_t, ArithmeticUnaryOperations::sign::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sign, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sign, std::conditional<std::is_same<ArithmeticUnaryOperations::sign::retType, void>::value, int64_t, ArithmeticUnaryOperations::sign::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sign, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sign, std::conditional<std::is_same<ArithmeticUnaryOperations::sign::retType, void>::value, float, ArithmeticUnaryOperations::sign::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sign, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sign, std::conditional<std::is_same<ArithmeticUnaryOperations::sign::retType, void>::value, double, ArithmeticUnaryOperations::sign::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sign, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::sign, std::conditional<std::is_same<ArithmeticUnaryOperations::sign::retType, void>::value, int8_t, ArithmeticUnaryOperations::sign::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::sign>;
@@ -2283,19 +2285,19 @@ __device__ GpuVMFunction add_gpu_round_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::round, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::round, std::conditional<std::is_same<ArithmeticUnaryOperations::round::retType, void>::value, int32_t, ArithmeticUnaryOperations::round::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::round, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::round, std::conditional<std::is_same<ArithmeticUnaryOperations::round::retType, void>::value, int64_t, ArithmeticUnaryOperations::round::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::round, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::round, std::conditional<std::is_same<ArithmeticUnaryOperations::round::retType, void>::value, float, ArithmeticUnaryOperations::round::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::round, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::round, std::conditional<std::is_same<ArithmeticUnaryOperations::round::retType, void>::value, double, ArithmeticUnaryOperations::round::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::round, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::round, std::conditional<std::is_same<ArithmeticUnaryOperations::round::retType, void>::value, int8_t, ArithmeticUnaryOperations::round::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::round>;
@@ -2309,19 +2311,19 @@ __device__ GpuVMFunction add_gpu_floor_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::floor, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::floor, std::conditional<std::is_same<ArithmeticUnaryOperations::floor::retType, void>::value, int32_t, ArithmeticUnaryOperations::floor::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::floor, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::floor, std::conditional<std::is_same<ArithmeticUnaryOperations::floor::retType, void>::value, int64_t, ArithmeticUnaryOperations::floor::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::floor, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::floor, std::conditional<std::is_same<ArithmeticUnaryOperations::floor::retType, void>::value, float, ArithmeticUnaryOperations::floor::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::floor, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::floor, std::conditional<std::is_same<ArithmeticUnaryOperations::floor::retType, void>::value, double, ArithmeticUnaryOperations::floor::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::floor, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::floor, std::conditional<std::is_same<ArithmeticUnaryOperations::floor::retType, void>::value, int8_t, ArithmeticUnaryOperations::floor::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::floor>;
@@ -2335,19 +2337,19 @@ __device__ GpuVMFunction add_gpu_ceil_function(int32_t dataTypes)
 	switch (dataTypes)
 	{
 	case 0:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::ceil, int32_t, int32_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::ceil, std::conditional<std::is_same<ArithmeticUnaryOperations::ceil::retType, void>::value, int32_t, ArithmeticUnaryOperations::ceil::retType>::type, int32_t>;
 		break;
 	case 1:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::ceil, int64_t, int64_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::ceil, std::conditional<std::is_same<ArithmeticUnaryOperations::ceil::retType, void>::value, int64_t, ArithmeticUnaryOperations::ceil::retType>::type, int64_t>;
 		break;
 	case 2:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::ceil, float, float>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::ceil, std::conditional<std::is_same<ArithmeticUnaryOperations::ceil::retType, void>::value, float, ArithmeticUnaryOperations::ceil::retType>::type, float>;
 		break;
 	case 3:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::ceil, double, double>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::ceil, std::conditional<std::is_same<ArithmeticUnaryOperations::ceil::retType, void>::value, double, ArithmeticUnaryOperations::ceil::retType>::type, double>;
 		break;
 	case 7:
-		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::ceil, int8_t, int8_t>;
+		return &arithmeticUnaryFunction<ArithmeticUnaryOperations::ceil, std::conditional<std::is_same<ArithmeticUnaryOperations::ceil::retType, void>::value, int8_t, ArithmeticUnaryOperations::ceil::retType>::type, int8_t>;
 		break;
 	default:
 		return &invalidArgumentTypeHandler<ArithmeticUnaryOperations::ceil>;

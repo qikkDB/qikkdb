@@ -6,6 +6,7 @@ void CheckCudaError(cudaError_t cudaError)
     if (cudaError != cudaSuccess)
     {
         std::cout << "CUDA Error " << cudaError << ": " << cudaGetErrorName(cudaError) << std::endl;
+		abort();
         throw cuda_error(cudaError);
     }
 }

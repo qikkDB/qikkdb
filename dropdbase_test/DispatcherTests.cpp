@@ -6623,7 +6623,7 @@ TEST(DispatcherTests, DoubleSubColumnConstLtConst)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 - 5 < 500;");
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 - 5.0 < 500.0;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
