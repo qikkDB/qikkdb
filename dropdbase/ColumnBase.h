@@ -207,6 +207,9 @@ public:
         int startIndexInCurrentBlock = indexInBlock;
         bool reachEnd = true;
         bool found = false;
+		int nextBlockMin;
+		int currentBlockMin;
+		int currentMax;
 
 		if (blocks_[groupId].size() == 0)
         {
@@ -230,9 +233,23 @@ public:
 			{
 			    BlockBase<T>& block = *(blocks_[groupId][i].get());
 
-			    if (columnData >= blocks_[groupId][i]->GetMin() &&
+				currentBlockMin = block.GetData()[startIndexInCurrentBlock];
+
+				if ((i + 1) != blocks_[groupId].size()) {
+					BlockBase<T>& nextBlock = *(blocks_[groupId][i + 1].get());
+					nextBlockMin = nextBlock.GetData()[0];
+				}
+				
+				if (remainingRange >= block.GetSize() - startIndexInCurrentBlock) {
+					currentMax = block.GetData()[block.GetSize()];
+				}
+				else {
+					currentMax = block.GetData()[startIndexInCurrentBlock + remainingRange];
+				}
+
+			    if (columnData >= currentBlockMin &&
 			        (remainingRange <= block.GetSize() - startIndexInCurrentBlock ||
-			         (columnData <= blocks_[groupId][i]->GetMax() || (i == blocks_[groupId].size() - 1 || columnData <= blocks_[groupId][i + 1]->GetMin()))))
+			         (columnData <= currentMax || (i == blocks_[groupId].size() - 1 || columnData <= nextBlockMin))))
 			    {
 			        int tempIndexInBlock;
 			        std::tie(tempIndexInBlock, blockRange, reachEnd) =
