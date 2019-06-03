@@ -83,8 +83,8 @@ void TestReconstructPolyCol(std::vector<int8_t> mask, std::vector<std::string> p
 	int32_t subpolyCounts = hostPolyIdx[outCount - 1] + hostPolyCount[outCount - 1];
 	std::unique_ptr<int32_t[]> hostPointIdx = std::make_unique<int32_t[]>(subpolyCounts);
 	std::unique_ptr<int32_t[]> hostPointCount = std::make_unique<int32_t[]>(subpolyCounts);
-	//GPUMemory::copyDeviceToHost(hostPointIdx.get(), outCol.pointIdx, subpolyCounts);
-	//GPUMemory::copyDeviceToHost(hostPointCount.get(), outCol.pointCount, subpolyCounts);
+	GPUMemory::copyDeviceToHost(hostPointIdx.get(), outCol.pointIdx, subpolyCounts);
+	GPUMemory::copyDeviceToHost(hostPointCount.get(), outCol.pointCount, subpolyCounts);
 	
 	std::cout << "Complex polys:" << std::endl;
 	for (int32_t i = 0; i < outCount; i++)

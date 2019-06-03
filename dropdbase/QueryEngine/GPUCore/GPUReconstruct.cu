@@ -28,50 +28,68 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 
 	if (inMask)		// If inMask is not nullptr
 	{
-		int32_t* prefixSumPointer = nullptr;
-		try
+		// Malloc a new buffer for the prefix sum vector
+		cuda_ptr<int32_t> polyPrefixSumPointer(dataElementCount);
+		PrefixSum(polyPrefixSumPointer.get(), inMask, dataElementCount);
+		GPUMemory::copyDeviceToHost(outDataElementCount, polyPrefixSumPointer.get() + dataElementCount - 1, 1);
+		if (*outDataElementCount > 0)
 		{
-			// Malloc a new buffer for the prefix sum vector
-			GPUMemory::alloc(&prefixSumPointer, dataElementCount);
+			int32_t totalInSubpolySize;
+			int32_t lastInSubpolySize;
+			GPUMemory::copyDeviceToHost(&totalInSubpolySize, ACol.polyIdx + dataElementCount - 1, 1);
+			GPUMemory::copyDeviceToHost(&lastInSubpolySize, ACol.polyCount + dataElementCount - 1, 1);
+			totalInSubpolySize += lastInSubpolySize;
 
-			PrefixSum(prefixSumPointer, inMask, dataElementCount);
-			GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
-			if (*outDataElementCount > 0)
-			{
-				GPUMemory::alloc(&(outCol->polyCount), *outDataElementCount);
-				GPUMemory::alloc(&(outCol->polyIdx), *outDataElementCount);
-				// Reconstruct each array independently
-				kernel_reconstruct_col << < context.calcGridDim(*outDataElementCount), context.getBlockDim() >> >
-					(outCol->polyCount, ACol.polyCount, prefixSumPointer, inMask, dataElementCount);
-				PrefixSumExclusive(outCol->polyIdx, outCol->polyCount, dataElementCount);
-				
-				int32_t totalSubpolySize;
-				int32_t lastSubpolySize;
-				GPUMemory::copyDeviceToHost(&totalSubpolySize, outCol->polyIdx + dataElementCount - 1, 1);
-				GPUMemory::copyDeviceToHost(&lastSubpolySize, outCol->polyCount + dataElementCount - 1, 1);
-				totalSubpolySize += lastSubpolySize;
+			// Reconstruct each array independently
+			GPUMemory::alloc(&(outCol->polyCount), *outDataElementCount);
+			GPUMemory::alloc(&(outCol->polyIdx), *outDataElementCount);
 
-				cuda_ptr<int8_t> subpolyMask(totalSubpolySize);
-				kernel_generate_subpoly_mask << < context.calcGridDim(*outDataElementCount), context.getBlockDim() >> >
-					(subpolyMask.get(), inMask, outCol->polyIdx, outCol->polyCount, *outDataElementCount);
-				// TODO subpoly (pointCount and pointIdx) reconstruction based on subpolyMask
-				// and then polyPoints reconstruction
-			}
-			else
-			{
-				*outCol = ACol;
-			}
-			// Free the memory
-			GPUMemory::free(prefixSumPointer);
+			// Reconstruct polyCount and sum it to polyIdx
+			kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+				(outCol->polyCount, ACol.polyCount, polyPrefixSumPointer.get(), inMask, dataElementCount);
+			PrefixSumExclusive(outCol->polyIdx, outCol->polyCount, *outDataElementCount);
+
+			int32_t totalOutSubpolySize;
+			int32_t lastOutSubpolySize;
+			GPUMemory::copyDeviceToHost(&totalOutSubpolySize, outCol->polyIdx + *outDataElementCount - 1, 1);
+			GPUMemory::copyDeviceToHost(&lastOutSubpolySize, outCol->polyCount + *outDataElementCount - 1, 1);
+			totalOutSubpolySize += lastOutSubpolySize;
+
+			cuda_ptr<int8_t> subpolyMask(totalInSubpolySize);
+			kernel_generate_subpoly_mask << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+				(subpolyMask.get(), inMask, ACol.polyIdx, ACol.polyCount, dataElementCount);
+
+			GPUMemory::alloc(&(outCol->pointCount), totalOutSubpolySize);
+			GPUMemory::alloc(&(outCol->pointIdx), totalOutSubpolySize);
+			cuda_ptr<int32_t> pointPrefixSumPointer(totalInSubpolySize);
+			PrefixSum(pointPrefixSumPointer.get(), subpolyMask.get(), totalInSubpolySize);
+
+			kernel_reconstruct_col << < context.calcGridDim(totalInSubpolySize), context.getBlockDim() >> >
+				(outCol->pointCount, ACol.pointCount, pointPrefixSumPointer.get(), subpolyMask.get(), totalInSubpolySize);
+			PrefixSumExclusive(outCol->pointIdx, outCol->pointCount, totalOutSubpolySize);
+
+			int32_t totalOutPointSize;
+			int32_t lastOutPointSize;
+			GPUMemory::copyDeviceToHost(&totalOutPointSize, outCol->pointIdx + totalOutSubpolySize - 1, 1);
+			GPUMemory::copyDeviceToHost(&lastOutPointSize, outCol->pointCount + totalOutSubpolySize - 1, 1);
+			totalOutPointSize += lastOutPointSize;
+
+			int32_t totalInPointSize;
+			int32_t lastInPointSize;
+			GPUMemory::copyDeviceToHost(&totalInPointSize, ACol.pointIdx + totalInSubpolySize - 1, 1);  //TODO
+			GPUMemory::copyDeviceToHost(&lastInPointSize, ACol.pointCount + totalInSubpolySize - 1, 1); //TODO
+			totalInPointSize += lastInPointSize;
+
+			GPUMemory::alloc(&(outCol->polyPoints), totalOutPointSize);
+			cuda_ptr<int32_t> polyPointsPrefixSumPointer(totalInSubpolySize);
+			PrefixSum(polyPointsPrefixSumPointer.get(), subpolyMask.get(), totalInSubpolySize);
+
+			kernel_reconstruct_col << < context.calcGridDim(totalInSubpolySize), context.getBlockDim() >> >
+				(outCol->polyPoints, ACol.polyPoints, pointPrefixSumPointer.get(), subpolyMask.get(), totalInSubpolySize); // TODO
 		}
-		catch (...)
+		else
 		{
-			if (prefixSumPointer)
-			{
-				GPUMemory::free(prefixSumPointer);
-			}
-
-			throw;
+			*outCol = ACol;
 		}
 	}
 	else	// If inMask is nullptr, just copy pointers from ACol to outCol
