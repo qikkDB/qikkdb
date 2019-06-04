@@ -55,14 +55,18 @@ __global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *
 /// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays)
 __global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t *polyIdx, int32_t *polyCount, int32_t polyIdxSize);
 
+/// Kernel for predicitng lenghts of WKT strings based on GPUPolygon struct
+__global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount);
+
 /// Class for reconstructing buffers according to mask
 class GPUReconstruct {
 private:
-
 	/// Calculate count of elements in subarray (for GPUPolygon or GPUString struct arrays)
 	static int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int32_t size);
 
 public:
+	/// Precision of generated WKT floats as number of decimal places
+	static constexpr int32_t WKT_DECIMAL_PLACES = 4;	// 4 is for about 10 m accuracy, 3 for 100 m
 
 	/// Reconstruct block of column and copy result to host (CPU)
 	/// <param name="outCol">CPU buffer which will be filled with result</param>

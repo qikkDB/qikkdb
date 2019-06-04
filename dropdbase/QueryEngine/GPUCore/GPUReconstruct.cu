@@ -15,6 +15,25 @@ __global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t
 	}
 }
 
+
+__global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		int32_t subpolyStartIdx = inPolygonCol.polyIdx[i];
+		int32_t subpolyCount = inPolygonCol.polyCount[i];
+		for (int32_t j = subpolyStartIdx; j < subpolyStartIdx + subpolyCount; j++)
+		{
+			// fmodf()
+			// TODO
+		}
+		
+	}
+}
+
 int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int32_t size)
 {
 	int32_t lastIndex;
@@ -27,10 +46,10 @@ int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int3
 void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
 	GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount)
 {
-
 	if (inMask)		// If mask is used (if inMask is not nullptr)
 	{
 		CheckQueryEngineError(GPU_EXTENSION_ERROR, "ReconstructStringCol with mask not implemented yet");
+		// todo later if needed
 	}
 	else	// If mask is not used
 	{
@@ -56,7 +75,9 @@ void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *o
 void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
 	GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount)
 {
-	// TODO
+	GPUMemory::alloc(&(outStringCol->stringStarts), dataElementCount);
+	GPUMemory::alloc(&(outStringCol->stringLengths), dataElementCount);
+
 }
 
 void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
