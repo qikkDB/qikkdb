@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ColmnarDB.NetworkClient;
+using System.Linq;
 
 namespace ColmnarDB.BenchmarkUtility
 {
@@ -26,9 +27,8 @@ namespace ColmnarDB.BenchmarkUtility
             {
                 //execute query:
                 client.Query(queryString);
-                Dictionary<string, List<object>> queryResult = new Dictionary<string, List<object>>();
                 (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
-                result = client.GetNextQueryResult().queryResult;
+                result = client.GetNextQueryResult();
 
                 //save query result to a file:
                 resultFile.WriteLine(result.executionTimes.Values.Sum());
