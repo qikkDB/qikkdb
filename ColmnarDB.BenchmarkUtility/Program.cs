@@ -15,11 +15,8 @@ namespace ColmnarDB.BenchmarkUtility
         {
             ColumnarDBClient client = new ColumnarDBClient(IpAddress,Port);
             client.Connect();
-            
-            UseDatabase use = new UseDatabase();
-            Query query = new Query();
 
-            use.Use("TargetLoc1B", client); //use database TargetLoc1B
+            client.UseDatabase("TargetLoc1B"); //use database TargetLoc1B
 
             System.IO.StreamWriter resultFile = new System.IO.StreamWriter(@".\results.txt");
             System.IO.StreamReader queryFile = new System.IO.StreamReader(@".\benchmark_queries.sql");
