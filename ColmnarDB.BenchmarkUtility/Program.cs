@@ -20,7 +20,7 @@ namespace ColmnarDB.BenchmarkUtility
 
             System.IO.StreamWriter resultFile = new System.IO.StreamWriter(@".\results.txt");
             System.IO.StreamReader queryFile = new System.IO.StreamReader(@".\benchmark_queries.sql");
-            std::string queryString;
+            string queryString;
             while ((queryString = queryFile.ReadLine()) != null)
             {
                 //execute query:
