@@ -115,7 +115,10 @@ public:
 
 		while (!tryInsert(sizeToInsert)) 
 		{
-			evict();
+			if(!evict())
+			{
+				throw std::length_error("Not enough space left in cache");
+			}
 		}
 
 		T* newPtr = reinterpret_cast<T*>(GetAllocator().allocate(size*sizeof(T)));
