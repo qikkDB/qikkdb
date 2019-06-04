@@ -24,10 +24,39 @@ int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int3
 	return lastIndex + lastCount;
 }
 
-void GPUReconstruct::ReconstructPolyCol(GPUMemory::GPUPolygon outData, int32_t *outDataElementCount,
-	GPUMemory::GPUPolygon ACol, int8_t *inMask, int32_t dataElementCount)
+void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
+	GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount)
 {
-	
+
+	if (inMask)		// If mask is used (if inMask is not nullptr)
+	{
+		CheckQueryEngineError(GPU_EXTENSION_ERROR, "ReconstructStringCol with mask not implemented yet");
+	}
+	else	// If mask is not used
+	{
+		*outDataElementCount = inDataElementCount;
+		std::unique_ptr<int32_t[]> hostStringStarts = std::make_unique<int32_t[]>(inDataElementCount);
+		std::unique_ptr<int32_t[]> hostStringLengths = std::make_unique<int32_t[]>(inDataElementCount);
+		GPUMemory::copyDeviceToHost(hostStringStarts.get(), inStringCol.stringStarts, inDataElementCount);
+		GPUMemory::copyDeviceToHost(hostStringLengths.get(), inStringCol.stringLengths, inDataElementCount);
+		int32_t fullCharCount = hostStringStarts[inDataElementCount - 1] +
+								hostStringLengths[inDataElementCount - 1];
+
+		std::unique_ptr<char[]> hostAllChars = std::make_unique<char[]>(fullCharCount);
+		GPUMemory::copyDeviceToHost(hostAllChars.get(), inStringCol.allChars, fullCharCount);
+
+		for (int32_t i = 0; i < inDataElementCount; i++)
+		{
+			outStringData[i] = std::string(hostAllChars.get() + hostStringStarts[i],
+				static_cast<size_t>(hostStringLengths[i]));
+		}
+	}
+}
+
+void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
+	GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount)
+{
+	// TODO
 }
 
 void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
@@ -53,6 +82,7 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			GPUMemory::alloc(&(outCol->polyIdx), *outDataElementCount);
 			kernel_reconstruct_col << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
 				(outCol->polyCount, inCol.polyCount, inPrefixSumPointer.get(), inMask, inDataElementCount);
+			CheckCudaError(cudaGetLastError());
 			PrefixSumExclusive(outCol->polyIdx, outCol->polyCount, *outDataElementCount);
 
 			// Subpolygons (reconstruct pointCount and sum it to pointIdx)
@@ -61,6 +91,7 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			cuda_ptr<int8_t> subpolyMask(inSubpolySize);
 			kernel_generate_submask << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
 				(subpolyMask.get(), inMask, inCol.polyIdx, inCol.polyCount, inDataElementCount);
+			CheckCudaError(cudaGetLastError());
 			int8_t spm[1000];
 			GPUMemory::copyDeviceToHost(spm, subpolyMask.get(), inSubpolySize);
 
@@ -71,6 +102,7 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			GPUMemory::alloc(&(outCol->pointIdx), outSubpolySize);
 			kernel_reconstruct_col << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
 				(outCol->pointCount, inCol.pointCount, subpolyPrefixSumPointer.get(), subpolyMask.get(), inSubpolySize);
+			CheckCudaError(cudaGetLastError());
 			PrefixSumExclusive(outCol->pointIdx, outCol->pointCount, outSubpolySize);
 
 			// Points (reconstruct polyPoints)
@@ -79,6 +111,7 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			cuda_ptr<int8_t> pointMask(inPointSize);
 			kernel_generate_submask << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
 				(pointMask.get(), subpolyMask.get(), inCol.pointIdx, inCol.pointCount, inSubpolySize);
+			CheckCudaError(cudaGetLastError());
 			int8_t pm[1000];
 			GPUMemory::copyDeviceToHost(pm, pointMask.get(), inPointSize);
 
@@ -88,9 +121,9 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			GPUMemory::alloc(&(outCol->polyPoints), outPointSize);
 			kernel_reconstruct_col << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
 				(outCol->polyPoints, inCol.polyPoints, pointPrefixSumPointer.get(), pointMask.get(), inPointSize);
+			CheckCudaError(cudaGetLastError());
 			NativeGeoPoint ngp[1000];
 			GPUMemory::copyDeviceToHost(ngp, outCol->polyPoints, outPointSize);
-
 		}
 		else	// Empty result set
 		{
@@ -109,6 +142,14 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 
 	// Get last error
 	CheckCudaError(cudaGetLastError());
+}
+
+void GPUReconstruct::ReconstructPolyColToWKT(std::string *outStringData, int32_t *outDataElementCount,
+	GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount)
+{
+	GPUMemory::GPUPolygon reconstructedPolygonCol;
+	ReconstructPolyColKeep(&reconstructedPolygonCol, outDataElementCount, inPolygonCol, inMask, inDataElementCount);
+	// TODO convert to WKT and "reconstruct" string
 }
 
 

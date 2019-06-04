@@ -57,6 +57,11 @@ __global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t
 
 /// Class for reconstructing buffers according to mask
 class GPUReconstruct {
+private:
+
+	/// Calculate count of elements in subarray (for GPUPolygon or GPUString struct arrays)
+	static int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int32_t size);
+
 public:
 
 	/// Reconstruct block of column and copy result to host (CPU)
@@ -150,13 +155,17 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
-	static int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int32_t size);
+	static void ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
+		GPUMemory::GPUString inPolygonCol, int8_t *inMask, int32_t inDataElementCount);
 
-	static void ReconstructPolyCol(GPUMemory::GPUPolygon outData, int32_t *outDataElementCount,
-		GPUMemory::GPUPolygon ACol, int8_t *inMask, int32_t dataElementCount);
+	static void ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
+		GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount);
 
 	static void ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
-		GPUMemory::GPUPolygon ACol, int8_t *inMask, int32_t dataElementCount);
+		GPUMemory::GPUPolygon inCol, int8_t *inMask, int32_t inDataElementCount);
+
+	static void ReconstructPolyColToWKT(std::string * outStringData, int32_t *outDataElementCount,
+		GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount);
 
 	/// Function for generating array with sorted indexes which point to values where mask is 1.
 	/// Result is copied to host.

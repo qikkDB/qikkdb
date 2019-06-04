@@ -34,7 +34,7 @@ __global__ void kernel_fill_array(T *p_Block, T value, size_t dataElementCount)
 class GPUMemory {
 public:
 
-    /// Struct for polygon column (with pointers to condensed buffers).
+    /// Struct for polygon column (with pointers to start of condensed buffers).
     /// A structure representing the data type of a complex polygon used
     /// for representing polygons and holes in them. This data structure is
     /// used during point in polygon and polygon intersect operations. It is the result
@@ -43,14 +43,25 @@ public:
 	{
 		/// Points of polygons
 		NativeGeoPoint* polyPoints;
-		/// Start indexes of each polygon in point array
+		/// Start indices of each polygon in point array
 		int32_t* pointIdx;
 		/// Number of points of each polygon
 		int32_t* pointCount;
-		/// Start indexes of each complex polygon in polygon array
+		/// Start indices of each complex polygon in polygon array
 		int32_t* polyIdx;
 		/// Number of polygons of each complex polygon
 		int32_t* polyCount;
+	};
+
+	/// Struct for GPU representation of string column (with pointers to start of condensed buffers).
+	struct GPUString
+	{
+		/// All chars from all strings condensed
+		char * allChars;
+		/// Start indices of each string in allChars array
+		int32_t * stringStarts;
+		/// Lengths of strings (number of chars for each string)
+		int32_t * stringLengths;
 	};
 
 	static bool EvictWithLockList();
