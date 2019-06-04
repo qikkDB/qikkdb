@@ -198,7 +198,7 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 		{
 			dispatcher.addGpuPushWhereFunction(leftOperandType, std::get<0>(left).c_str());
 		}
-		if (std::get<0>(right)[1] != '$')
+		if (std::get<0>(right)[0] != '$')
 		{
 			dispatcher.addGpuPushWhereFunction(rightOperandType, std::get<0>(right).c_str());
 		}
