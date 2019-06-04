@@ -2492,7 +2492,7 @@ __device__ GpuVMFunction add_gpu_push_function(int32_t dataTypes)
 	case COLUMN_FLOAT:
 		return &pushColFunction<float>;
 	case COLUMN_DOUBLE:
-		return &pushColFunction<float>;
+		return &pushColFunction<double>;
 	case COLUMN_POINT:
 		return &invalidArgumentTypeHandler;
 	case COLUMN_POLYGON:
