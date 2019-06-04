@@ -22,7 +22,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = false;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return -a;
 		}
@@ -33,7 +33,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = false;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return abs(a);
 		}
@@ -44,7 +44,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return sinf(a);
 		}
@@ -55,7 +55,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return cosf(a);
 		}
@@ -66,7 +66,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return tanf(a);
 		}
@@ -77,7 +77,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return 1.0f/tanf(a);
 		}
@@ -88,7 +88,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return asinf(a);
 		}
@@ -99,7 +99,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return acosf(a);
 		}
@@ -110,7 +110,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return atanf(a);
 		}
@@ -121,7 +121,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return log10f(a);
 		}
@@ -132,7 +132,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return logf(a);
 		}
@@ -143,7 +143,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return expf(a);
 		}
@@ -154,7 +154,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return sqrtf(a);
 		}
@@ -165,7 +165,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
 		{
 			return powf(a, 2);
 		}
@@ -176,7 +176,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = false;
 		template<typename T, typename U>
-		__device__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U val, int32_t* errorFlag, T min, T max) const
 		{
 			return (U{ 0 } < val) - (val < U{ 0 });
 		}
@@ -187,7 +187,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U val, int32_t* errorFlag, T min, T max) const
 		{
 			return roundf(val);
 		}
@@ -198,7 +198,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U val, int32_t* errorFlag, T min, T max) const
 		{
 			return floorf(val);
 		}
@@ -209,7 +209,7 @@ namespace ArithmeticUnaryOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U val, int32_t* errorFlag, T min, T max) const
 		{
 			return ceilf(val);
 		}

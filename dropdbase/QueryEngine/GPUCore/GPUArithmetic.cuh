@@ -38,6 +38,15 @@ namespace ArithmeticOperations
 		}
 	};
 
+	struct addNoCheck
+	{
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		{
+			return a + b;
+		}
+	};
+
 	/// Arithmetic operation subtraction
 	struct sub
 	{
@@ -55,6 +64,15 @@ namespace ArithmeticOperations
 					return GetNullConstant<T>();
 				}
 			}
+			return a - b;
+		}
+	};
+
+	struct subNoCheck
+	{
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		{
 			return a - b;
 		}
 	};
@@ -112,6 +130,15 @@ namespace ArithmeticOperations
 		}
 	};
 
+	struct mulNoCheck
+	{
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		{
+			return a * b;
+		}
+	};
+
 	/// Arithmetic operation divide
 	struct div
 	{
@@ -127,6 +154,15 @@ namespace ArithmeticOperations
 			{
 				return a / b;
 			}
+		}
+	};
+
+	struct divNoCheck
+	{
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		{
+			return a / b;
 		}
 	};
 
@@ -151,11 +187,24 @@ namespace ArithmeticOperations
 		}
 	};
 
+	struct modNoCheck
+	{
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		{
+			//modulo is not defined for floating point type
+			static_assert(!std::is_floating_point<U>::value && !std::is_floating_point<V>::value,
+				"None of the input columns of operation modulo cannot be floating point type!");
+
+			return a % b;
+		}
+	};
+
 	/// Bitwise operation and
 	struct bitwiseAnd
 	{
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
 		{
 			return a & b;
 		}
@@ -165,7 +214,7 @@ namespace ArithmeticOperations
 	struct bitwiseOr
 	{
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
 		{
 			return a | b;
 		}
@@ -175,7 +224,7 @@ namespace ArithmeticOperations
 	struct bitwiseXor
 	{
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
 		{
 			return a ^ b;
 		}
@@ -185,7 +234,7 @@ namespace ArithmeticOperations
 	struct bitwiseLeftShift
 	{
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
 		{
 			return a << b;
 		}
@@ -195,7 +244,7 @@ namespace ArithmeticOperations
 	struct bitwiseRightShift
 	{
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
 		{
 			return a >> b;
 		}
@@ -206,7 +255,7 @@ namespace ArithmeticOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			return logf(a) / logf(b);
 		}
@@ -217,7 +266,7 @@ namespace ArithmeticOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			return atan2f(a, b);
 		}
@@ -228,7 +277,7 @@ namespace ArithmeticOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			return powf(a, b);
 		}
@@ -239,7 +288,7 @@ namespace ArithmeticOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			return powf(a, 1/b);
 		}

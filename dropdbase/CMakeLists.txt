@@ -41,6 +41,8 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/ParserExceptions.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlListener.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlListener.h
+		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuWhereEvaluationListener.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuWhereEvaluationListener.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlDispatcher.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/MemoryStream.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/MemoryStream.cpp

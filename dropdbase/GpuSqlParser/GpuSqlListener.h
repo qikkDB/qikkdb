@@ -45,25 +45,26 @@ private:
 
     std::pair<std::string, DataType> stackTopAndPop();
 
-    std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
-
     void pushTempResult(std::string reg, DataType type);
 
     void pushArgument(const char *token, DataType dataType);
 
-    bool isLong(const std::string &value);
-
-    bool isDouble(const std::string &value);
-
-    bool isPoint(const std::string &value);
-
-    bool isPolygon(const std::string &value);
-
-    void stringToUpper(std::string &str);
-
 	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
+
+protected:
+	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+
+	bool isLong(const std::string &value);
+
+	bool isDouble(const std::string &value);
+
+	bool isPoint(const std::string &value);
+
+	bool isPolygon(const std::string &value);
+
+	void stringToUpper(std::string &str);
 
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
