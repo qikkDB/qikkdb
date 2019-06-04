@@ -1,101 +1,110 @@
 #include "GPUReconstruct.cuh"
 #include "cuda_ptr.h"
 
-__global__ void kernel_generate_subpoly_mask(int8_t *outMask, int8_t *inMask, int32_t *polyIdx, int32_t *polyCount, int32_t polyIdxSize)
+__global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t *indices, int32_t *counts, int32_t size)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
 
-	for (int32_t i = idx; i < polyIdxSize; i += stride)
+	for (int32_t i = idx; i < size; i += stride)
 	{
-		for (int32_t j = 0; j < polyCount[i]; j++)
+		for (int32_t j = 0; j < counts[i]; j++)
 		{
-			outMask[polyIdx[i] + j] = inMask[i];
+			outMask[indices[i] + j] = inMask[i];
 		}
 	}
+}
+
+int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int32_t size)
+{
+	int32_t lastIndex;
+	int32_t lastCount;
+	GPUMemory::copyDeviceToHost(&lastIndex, indices + size - 1, 1);
+	GPUMemory::copyDeviceToHost(&lastCount, counts + size - 1, 1);
+	return lastIndex + lastCount;
 }
 
 void GPUReconstruct::ReconstructPolyCol(GPUMemory::GPUPolygon outData, int32_t *outDataElementCount,
 	GPUMemory::GPUPolygon ACol, int8_t *inMask, int32_t dataElementCount)
 {
-
+	
 }
 
 void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
-	GPUMemory::GPUPolygon ACol, int8_t *inMask, int32_t dataElementCount)
+	GPUMemory::GPUPolygon inCol, int8_t *inMask, int32_t inDataElementCount)
 {
 	Context& context = Context::getInstance();
 
-	if (inMask)		// If inMask is not nullptr
+	if (inMask)		// If mask is used (if inMask is not nullptr)
 	{
 		// Malloc a new buffer for the prefix sum vector
-		cuda_ptr<int32_t> polyPrefixSumPointer(dataElementCount);
-		PrefixSum(polyPrefixSumPointer.get(), inMask, dataElementCount);
-		GPUMemory::copyDeviceToHost(outDataElementCount, polyPrefixSumPointer.get() + dataElementCount - 1, 1);
-		if (*outDataElementCount > 0)
-		{
-			int32_t totalInSubpolySize;
-			int32_t lastInSubpolySize;
-			GPUMemory::copyDeviceToHost(&totalInSubpolySize, ACol.polyIdx + dataElementCount - 1, 1);
-			GPUMemory::copyDeviceToHost(&lastInSubpolySize, ACol.polyCount + dataElementCount - 1, 1);
-			totalInSubpolySize += lastInSubpolySize;
+		cuda_ptr<int32_t> inPrefixSumPointer(inDataElementCount);
+		PrefixSum(inPrefixSumPointer.get(), inMask, inDataElementCount);
+		GPUMemory::copyDeviceToHost(outDataElementCount, inPrefixSumPointer.get() + inDataElementCount - 1, 1);
 
+		if (*outDataElementCount > 0)	// Not empty result set
+		{
 			// Reconstruct each array independently
+			int32_t inSubpolySize = CalculateCount(inCol.polyIdx, inCol.polyCount, inDataElementCount);
+			int32_t inPointSize = CalculateCount(inCol.pointIdx, inCol.pointCount, inSubpolySize);
+
+			// Comlex polygons (reconstruct polyCount and sum it to polyIdx)
 			GPUMemory::alloc(&(outCol->polyCount), *outDataElementCount);
 			GPUMemory::alloc(&(outCol->polyIdx), *outDataElementCount);
-
-			// Reconstruct polyCount and sum it to polyIdx
-			kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-				(outCol->polyCount, ACol.polyCount, polyPrefixSumPointer.get(), inMask, dataElementCount);
+			kernel_reconstruct_col << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
+				(outCol->polyCount, inCol.polyCount, inPrefixSumPointer.get(), inMask, inDataElementCount);
 			PrefixSumExclusive(outCol->polyIdx, outCol->polyCount, *outDataElementCount);
 
-			int32_t totalOutSubpolySize;
-			int32_t lastOutSubpolySize;
-			GPUMemory::copyDeviceToHost(&totalOutSubpolySize, outCol->polyIdx + *outDataElementCount - 1, 1);
-			GPUMemory::copyDeviceToHost(&lastOutSubpolySize, outCol->polyCount + *outDataElementCount - 1, 1);
-			totalOutSubpolySize += lastOutSubpolySize;
+			// Subpolygons (reconstruct pointCount and sum it to pointIdx)
+			int32_t outSubpolySize = CalculateCount(outCol->polyIdx, outCol->polyCount, *outDataElementCount);
 
-			cuda_ptr<int8_t> subpolyMask(totalInSubpolySize);
-			kernel_generate_subpoly_mask << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-				(subpolyMask.get(), inMask, ACol.polyIdx, ACol.polyCount, dataElementCount);
+			cuda_ptr<int8_t> subpolyMask(inSubpolySize);
+			kernel_generate_submask << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
+				(subpolyMask.get(), inMask, inCol.polyIdx, inCol.polyCount, inDataElementCount);
+			int8_t spm[1000];
+			GPUMemory::copyDeviceToHost(spm, subpolyMask.get(), inSubpolySize);
 
-			GPUMemory::alloc(&(outCol->pointCount), totalOutSubpolySize);
-			GPUMemory::alloc(&(outCol->pointIdx), totalOutSubpolySize);
-			cuda_ptr<int32_t> pointPrefixSumPointer(totalInSubpolySize);
-			PrefixSum(pointPrefixSumPointer.get(), subpolyMask.get(), totalInSubpolySize);
+			cuda_ptr<int32_t> subpolyPrefixSumPointer(inSubpolySize);
+			PrefixSum(subpolyPrefixSumPointer.get(), subpolyMask.get(), inSubpolySize);
 
-			kernel_reconstruct_col << < context.calcGridDim(totalInSubpolySize), context.getBlockDim() >> >
-				(outCol->pointCount, ACol.pointCount, pointPrefixSumPointer.get(), subpolyMask.get(), totalInSubpolySize);
-			PrefixSumExclusive(outCol->pointIdx, outCol->pointCount, totalOutSubpolySize);
+			GPUMemory::alloc(&(outCol->pointCount), outSubpolySize);
+			GPUMemory::alloc(&(outCol->pointIdx), outSubpolySize);
+			kernel_reconstruct_col << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
+				(outCol->pointCount, inCol.pointCount, subpolyPrefixSumPointer.get(), subpolyMask.get(), inSubpolySize);
+			PrefixSumExclusive(outCol->pointIdx, outCol->pointCount, outSubpolySize);
 
-			int32_t totalOutPointSize;
-			int32_t lastOutPointSize;
-			GPUMemory::copyDeviceToHost(&totalOutPointSize, outCol->pointIdx + totalOutSubpolySize - 1, 1);
-			GPUMemory::copyDeviceToHost(&lastOutPointSize, outCol->pointCount + totalOutSubpolySize - 1, 1);
-			totalOutPointSize += lastOutPointSize;
+			// Points (reconstruct polyPoints)
+			int32_t outPointSize = CalculateCount(outCol->pointIdx, outCol->pointCount, outSubpolySize);
 
-			int32_t totalInPointSize;
-			int32_t lastInPointSize;
-			GPUMemory::copyDeviceToHost(&totalInPointSize, ACol.pointIdx + totalInSubpolySize - 1, 1);  //TODO
-			GPUMemory::copyDeviceToHost(&lastInPointSize, ACol.pointCount + totalInSubpolySize - 1, 1); //TODO
-			totalInPointSize += lastInPointSize;
+			cuda_ptr<int8_t> pointMask(inPointSize);
+			kernel_generate_submask << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
+				(pointMask.get(), subpolyMask.get(), inCol.pointIdx, inCol.pointCount, inSubpolySize);
+			int8_t pm[1000];
+			GPUMemory::copyDeviceToHost(pm, pointMask.get(), inPointSize);
 
-			GPUMemory::alloc(&(outCol->polyPoints), totalOutPointSize);
-			cuda_ptr<int32_t> polyPointsPrefixSumPointer(totalInSubpolySize);
-			PrefixSum(polyPointsPrefixSumPointer.get(), subpolyMask.get(), totalInSubpolySize);
+			cuda_ptr<int32_t> pointPrefixSumPointer(inPointSize);
+			PrefixSum(pointPrefixSumPointer.get(), pointMask.get(), inPointSize);
 
-			kernel_reconstruct_col << < context.calcGridDim(totalInSubpolySize), context.getBlockDim() >> >
-				(outCol->polyPoints, ACol.polyPoints, pointPrefixSumPointer.get(), subpolyMask.get(), totalInSubpolySize); // TODO
+			GPUMemory::alloc(&(outCol->polyPoints), outPointSize);
+			kernel_reconstruct_col << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
+				(outCol->polyPoints, inCol.polyPoints, pointPrefixSumPointer.get(), pointMask.get(), inPointSize);
+			NativeGeoPoint ngp[1000];
+			GPUMemory::copyDeviceToHost(ngp, outCol->polyPoints, outPointSize);
+
 		}
-		else
+		else	// Empty result set
 		{
-			*outCol = ACol;
+			outCol->polyPoints = nullptr;
+			outCol->pointIdx = nullptr;
+			outCol->pointCount = nullptr;
+			outCol->polyIdx = nullptr;
+			outCol->polyCount = nullptr;
 		}
 	}
-	else	// If inMask is nullptr, just copy pointers from ACol to outCol
+	else	// If mask is not used (is nullptr), just copy pointers from inCol to outCol
 	{
-		*outCol = ACol;
-		*outDataElementCount = dataElementCount;
+		*outCol = inCol;
+		*outDataElementCount = inDataElementCount;
 	}
 
 	// Get last error

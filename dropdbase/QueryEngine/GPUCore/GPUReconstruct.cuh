@@ -53,7 +53,7 @@ __global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *
 }
 
 /// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays)
-__global__ void kernel_generate_subpoly_mask(int8_t *outMask, int8_t *inMask, int32_t *polyIdx, int32_t *polyCount, int32_t polyIdxSize);
+__global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t *polyIdx, int32_t *polyCount, int32_t polyIdxSize);
 
 /// Class for reconstructing buffers according to mask
 class GPUReconstruct {
@@ -149,6 +149,8 @@ public:
 		// Get last error
 		CheckCudaError(cudaGetLastError());
 	}
+
+	static int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int32_t size);
 
 	static void ReconstructPolyCol(GPUMemory::GPUPolygon outData, int32_t *outDataElementCount,
 		GPUMemory::GPUPolygon ACol, int8_t *inMask, int32_t dataElementCount);
