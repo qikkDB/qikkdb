@@ -26,6 +26,7 @@ namespace ColmnarDB.BenchmarkUtility
             {
                 //execute query:
                 client.Query(queryString);
+                Dictionary<string, List<object>> queryResult = new Dictionary<string, List<object>>();
                 (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
                 result = client.GetNextQueryResult().queryResult;
 
