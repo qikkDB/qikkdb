@@ -256,10 +256,10 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(IT
 {
 	auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
 	std::string tableName = bulkImportMessage.tablename();
-	std::string columnName = bulkImportMessage.columname();
-	DataType columnType = bulkImportMessage.columntype();
+	std::string columnName = bulkImportMessage.columnname();
+	DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
 	int32_t elementCount = bulkImportMessage.elemcount();
-	auto sharedDb = database.lock();
+	auto sharedDb = worker.currentDatabase_.lock();
 	if(sharedDb == nullptr)
 	{
 		resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
@@ -272,16 +272,16 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(IT
 	{
 		std::unordered_map<std::string, DataType> columns;
 		columns.insert({columnName, columnType});
-		sharedDb->CreateTable(columns, tableName.c_str())
+		sharedDb->CreateTable(columns, tableName.c_str());
 	}
 
-	auto& table = tables[tableName];
+	auto& table = tables.at(tableName);
 	if(!table.ContainsColumn(columnName.c_str()))
 	{
 		table.CreateColumn(columnName.c_str(),columnType);
 	}
 
-	auto& column = table.GetColumns()[columnName];
+	auto& column = table.GetColumns().at(columnName);
 
 	if(column->GetColumnType() != columnType)
 	{
@@ -295,31 +295,31 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(IT
 	{
 		std::vector<int8_t> dataVector;
 		std::copy(dataBuffer, dataBuffer + elementCount, std::back_inserter(dataVector));
-		columnData.push_back({columnName, dataVector});	
+		columnData.insert({columnName, dataVector});	
 	}
 	else if(columnType == COLUMN_INT)
 	{
 		std::vector<int32_t> dataVector;
-		std::copy(reinterpret_cast<int32_t*>(dataBuffer), reinterpret_cast<int32_t*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
-		columnData.push_back({columnName, dataVector});
+		std::copy(reinterpret_cast<const int32_t*>(dataBuffer), reinterpret_cast<const int32_t*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
+		columnData.insert({columnName, dataVector});
 	}
 	else if(columnType == COLUMN_LONG)
 	{
 		std::vector<int64_t> dataVector;
-		std::copy(reinterpret_cast<int64_t*>(dataBuffer), reinterpret_cast<int64_t*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
-		columnData.push_back({columnName, dataVector});
+		std::copy(reinterpret_cast<const int64_t*>(dataBuffer), reinterpret_cast<const int64_t*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
+		columnData.insert({columnName, dataVector});
 	}
 	else if(columnType == COLUMN_FLOAT)
 	{
 		std::vector<float> dataVector;
-		std::copy(reinterpret_cast<float*>(dataBuffer), reinterpret_cast<float*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
-		columnData.push_back({columnName, dataVector});
+		std::copy(reinterpret_cast<const float*>(dataBuffer), reinterpret_cast<const float*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
+		columnData.insert({columnName, dataVector});
 	}
 	else if(columnType == COLUMN_DOUBLE)
 	{
 		std::vector<double> dataVector;
-		std::copy(reinterpret_cast<double*>(dataBuffer), reinterpret_cast<double*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
-		columnData.push_back({columnName, dataVector});
+		std::copy(reinterpret_cast<const double*>(dataBuffer), reinterpret_cast<const double*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
+		columnData.insert({columnName, dataVector});
 	}
 	else if(columnType == COLUMN_POINT)
 	{
@@ -328,13 +328,13 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(IT
 		while(i < elementCount)
 		{
 			ColmnarDB::Types::Point point;
-			int32_t size = *reinterpret_cast<int32_t>(databuffer + i);
+			int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
 			i += 4;
-			point.ParseFormArray(dataBuffer + i, size);
+			point.ParseFromArray(dataBuffer + i, size);
 			i += size;
 			dataVector.push_back(point);
 		}
-		columnData.push_back({columnName, dataVector});
+		columnData.insert({columnName, dataVector});
 	}
 	else if(columnType == COLUMN_POLYGON)
 	{
@@ -343,28 +343,30 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(IT
 		while(i < elementCount)
 		{
 			ColmnarDB::Types::ComplexPolygon polygon;
-			int32_t size = *reinterpret_cast<int32_t>(databuffer + i);
+			int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
 			i += 4;
-			polygon.ParseFormArray(dataBuffer + i, size);
+			polygon.ParseFromArray(dataBuffer + i, size);
 			i += size;
 			dataVector.push_back(polygon);
 		}
-		columnData.push_back({columnName, dataVector});
+		columnData.insert({columnName, dataVector});
 	}
 	else if(columnType == COLUMN_STRING)
 	{
 		std::vector<std::string> dataVector;
+		int i = 0;
 		while(i < elementCount)
 		{
 			
-			int32_t size = *reinterpret_cast<int32_t>(databuffer + i);
+			int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
 			i += 4;
 			std::string str(dataBuffer + i, size);
 			i += size;
 			dataVector.push_back(str);
 		}
-		columnData.push_back({columnName, dataVector});
+		columnData.insert({columnName, dataVector});
 	}
+	table.InsertData(columnData);
 	resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 	resultMessage->set_message("");
 	return resultMessage;

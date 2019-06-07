@@ -93,7 +93,7 @@ void ClientPoolWorker::HandleClient()
 			{
 				BOOST_LOG_TRIVIAL(debug) << "BulkImport message from " << socket_.remote_endpoint().address().to_string() << "\n";
 				char dataBuffer[8192];
-				DataType columnType = bulkImportMessage.columntype();
+				DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
 				int32_t elementCount = bulkImportMessage.elemcount();
 				NetworkMessage::ReadRaw(socket_, dataBuffer, elementCount, columnType);
 				std::unique_ptr<google::protobuf::Message> importResultMessage = clientHandler_->HandleBulkImport(*this, bulkImportMessage, dataBuffer);

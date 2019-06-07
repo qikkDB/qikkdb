@@ -23,5 +23,5 @@ public:
 	/// <returns>Any protobuffer message.</param>
 	static google::protobuf::Any ReadFromNetwork(boost::asio::ip::tcp::socket& socket);
 	
-	static void ReadRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType columnType)
+	static void ReadRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType columnType);
 };

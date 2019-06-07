@@ -2,6 +2,7 @@
 #include "../dropdbase/IClientHandler.h"
 #include "../dropdbase/ClientPoolWorker.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
+#include "../dropdbase/messages/BulkImportMessage.pb.h"
 #include "../dropdbase/messages/SetDatabaseMessage.pb.h"
 #include "../dropdbase/TCPServer.h"
 #include "../dropdbase/NetworkMessage.h"
@@ -49,6 +50,10 @@ class DummyClientHandler : public IClientHandler
 		ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 		ret->set_message("");
 		return ret;
+	}
+	virtual std::unique_ptr<google::protobuf::Message> HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer) 
+	{
+
 	}
 };
 
