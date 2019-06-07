@@ -19,7 +19,7 @@ namespace ColmnarDB.BenchmarkUtility
             client.Connect();
 
             //TODO toto zmenit na prijatie argumentu z mainu !!!!!!!!
-            client.ImportCSV("TargetLoc1M", "test-data/TargeLoc1M.csv");
+            client.ImportCSV("TargetLoc1M", "test-data/TargetLoc1M.csv");
 
             client.UseDatabase("TargetLoc1M");
 
