@@ -128,6 +128,48 @@ protected:
 
 		ASSERT_EQ(0, payloads.intpayload().intdata_size()) << "size is not correct";
 	}
+
+	void PolygonReconstruct(std::vector<std::string> inputWkt,
+		int32_t whereThreshold,
+		std::vector<std::string> expectedResult)
+	{
+		auto columns = std::unordered_map<std::string, DataType>();
+		columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
+		columns.insert(std::make_pair<std::string, DataType>("colPolygon", DataType::COLUMN_POLYGON));
+		geoDatabase->CreateTable(columns, tableName.c_str());
+
+		// Create column with IDs
+		std::vector<int32_t> colID;
+		for (int i = 0; i < inputWkt.size(); i++)
+		{
+			colID.push_back(i);
+		}
+		reinterpret_cast<ColumnBase<int32_t>*>(geoDatabase->GetTables().at(tableName.c_str()).
+			GetColumns().at("colID").get())->InsertData(colID);
+
+		// Create column with polygons
+		std::vector<ColmnarDB::Types::ComplexPolygon> colPolygon;
+		for (auto wkt : inputWkt)
+		{
+			colPolygon.push_back(ComplexPolygonFactory::FromWkt(wkt));
+		}
+		reinterpret_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(geoDatabase->GetTables().at("SimpleTable").
+			GetColumns().at("colPolygon").get())->InsertData(colPolygon);
+
+		// Execute the query
+		GpuSqlCustomParser parser(geoDatabase, "SELECT colPolygon FROM " + tableName + " WHERE colID >= " +
+			std::to_string(whereThreshold) + ";");
+		auto resultPtr = parser.parse();
+		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+		auto &payloads = result->payloads().at("SimpleTable.colPolygon");
+
+		ASSERT_EQ(expectedResult.size(), payloads.stringpayload().stringdata_size()) << "size is not correct";
+		for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+		{
+			ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
+		}
+		FAIL();
+	}
 };
 
 
@@ -183,4 +225,16 @@ TEST_F(DispatcherGeoTests, GeoNotConstPolyConstPoint)
 {
 	GeoContainsNotConstPolyConstPointTest("POLYGON((0 0,10 0,10 10,0 10,0 0),(5 5,7 5,7 7,5 5))",
 		"POINT(-2 1)");
+}
+
+TEST_F(DispatcherGeoTests, PolygonReconstructHalfMask)
+{
+//	std::string polygon0("POLYGON((4 4, 12 4, 16 16, 4 12, 4 4), (5 5, 7 5, 7 7, 5 5))");
+//	std::string polygon1("POLYGON((-7 -7, -0.6 3.2, -9.99 89.5, -7 -7), (3.2 4.5, 2.6 4.2, 150.1305 4.1, 10.5 2.1, 0.6 2.5, 3.2 4.5))");
+	std::string polygon0("POLYGON((4.0000 4.0000, 12.0000 4.0000, 16.0000 16.0000, 4.0000 12.0000, 4.0000 4.0000), (5.0000 5.0000, 7.0000 5.0000, 7.0000 7.0000, 5.0000 5.0000))");
+	std::string polygon1("POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 4.5000, 2.6000 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 4.5000))");
+	PolygonReconstruct(
+		{ polygon0, polygon1 },
+		0,
+		{ polygon0, polygon1 });
 }

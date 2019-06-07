@@ -58,10 +58,9 @@ public:
 	{
 		/// All chars from all strings condensed
 		char * allChars;
-		/// Start indices of each string in allChars array
-		int32_t * stringStarts;
-		/// Lengths of strings (number of chars for each string)
-		int32_t * stringLengths;
+		/// Start indices of each string in allChars array,
+		/// shifted by 1 string to left (last one is total count of chars)
+		int64_t * stringIndices;
 	};
 
 	static bool EvictWithLockList();

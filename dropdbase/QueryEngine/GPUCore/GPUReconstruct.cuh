@@ -14,6 +14,12 @@
 
 #include "../../../cub/cub.cuh"
 
+/// Precision of generated WKT floats as number of decimal places
+__device__ const int32_t WKT_DECIMAL_PLACES = 4;	// 4 is for about 10 m accuracy, 3 for 100 m
+
+/// POLYGON word
+__device__ const char WKT_POLYGON[] = "POLYGON";
+
 /// Kernel for reconstructing buffer according to calculated prefixSum and inMask
 template<typename T>
 __global__ void kernel_reconstruct_col(T *outData, T *ACol, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
@@ -58,15 +64,16 @@ __global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t
 /// Kernel for predicitng lenghts of WKT strings based on GPUPolygon struct
 __global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount);
 
+/// Kernel for convertion of GPUPolygon representation to WKT GPUString
+__global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount);
+
 /// Class for reconstructing buffers according to mask
 class GPUReconstruct {
 private:
 	/// Calculate count of elements in subarray (for GPUPolygon or GPUString struct arrays)
-	static int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int32_t size);
+	static int32_t CalculateCount(int32_t * indices, int32_t * counts, int32_t size);
 
 public:
-	/// Precision of generated WKT floats as number of decimal places
-	static constexpr int32_t WKT_DECIMAL_PLACES = 4;	// 4 is for about 10 m accuracy, 3 for 100 m
 
 	/// Reconstruct block of column and copy result to host (CPU)
 	/// <param name="outCol">CPU buffer which will be filled with result</param>
@@ -251,8 +258,8 @@ public:
 	/// <param name="prefixSumPointer">output GPU buffer which will be filled with result</param>
 	/// <param name="inMask">input mask</param>
 	/// <param name="dataElementCount">data element count of the input block</param>
-	template<typename M>
-	static void PrefixSum(int32_t* prefixSumPointer, M* inMask, int32_t dataElementCount)
+	template<typename T, typename M>
+	static void PrefixSum(T* prefixSumPointer, M* inMask, int32_t dataElementCount)
 	{
 		// Start the collumn reconstruction
 		void* tempBuffer = nullptr;

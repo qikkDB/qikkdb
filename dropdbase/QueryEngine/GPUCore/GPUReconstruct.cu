@@ -1,5 +1,9 @@
 #include "GPUReconstruct.cuh"
 #include "cuda_ptr.h"
+// == POLYGON WKT FORMAT ==
+//
+// POLYGON((179.9999 89.9999, 0.0000 0.0000, 179.9999 89.9999), (-179.9999 -89.9999, 52.1300 -27.0380, -179.9999 -89.9999))
+//
 
 __global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t *indices, int32_t *counts, int32_t size)
 {
@@ -15,6 +19,12 @@ __global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t
 	}
 }
 
+/// Helping function to calculate number of digints of integer part of float
+__device__ int32_t GetNumberOfIntegerPartDigits(float number)
+{
+	return (floorf(fabsf(number)) > 3.0f ?
+		static_cast<int32_t>(log10f(floorf(fabsf(number)))) : 0) + 1 + (number < 0 ? 1 : 0);
+}
 
 __global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount)
 {
@@ -23,14 +33,42 @@ __global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		int32_t subpolyStartIdx = inPolygonCol.polyIdx[i];
-		int32_t subpolyCount = inPolygonCol.polyCount[i];
-		for (int32_t j = subpolyStartIdx; j < subpolyStartIdx + subpolyCount; j++)
+		// Count POLYGON word and parentheses ("POLYGON((), ())")
+		int32_t charCounter = 11 + (4 * (inPolygonCol.polyCount[i] - 1));
+		const int32_t subpolyStartIdx = inPolygonCol.polyIdx[i];
+		const int32_t subpolyEndIdx = subpolyStartIdx + inPolygonCol.polyCount[i];
+		for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++)
 		{
-			// fmodf()
-			// TODO
+			const int32_t pointCount = inPolygonCol.pointCount[j] - 2;
+			const int32_t pointStartIdx = inPolygonCol.pointIdx[j] + 1;
+			const int32_t pointEndIdx = pointStartIdx + pointCount;
+
+			// Count the decimal part and colons between points (".0000 .0000, .0000 .0000")
+			charCounter += pointCount * (2 * WKT_DECIMAL_PLACES + 5) - 2;
+			for (int32_t k = pointStartIdx; k < pointEndIdx; k++)
+			{
+				// Count the integer part ("150".0000, "-0".1000)
+				charCounter += GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[k].latitude) +
+					GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[k].longitude);
+			}
 		}
-		
+		outStringLengths[i] = charCounter;
+	}
+}
+
+
+__global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		int64_t startIndex = i == 0 ? 0 : outWkt.stringIndices[i - 1];
+		for (int32_t j = 0; j < 7; j++)
+		{
+			outWkt.allChars[startIndex + j] = WKT_POLYGON[j];
+		}
 	}
 }
 
@@ -54,20 +92,19 @@ void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *o
 	else	// If mask is not used
 	{
 		*outDataElementCount = inDataElementCount;
-		std::unique_ptr<int32_t[]> hostStringStarts = std::make_unique<int32_t[]>(inDataElementCount);
-		std::unique_ptr<int32_t[]> hostStringLengths = std::make_unique<int32_t[]>(inDataElementCount);
-		GPUMemory::copyDeviceToHost(hostStringStarts.get(), inStringCol.stringStarts, inDataElementCount);
-		GPUMemory::copyDeviceToHost(hostStringLengths.get(), inStringCol.stringLengths, inDataElementCount);
-		int32_t fullCharCount = hostStringStarts[inDataElementCount - 1] +
-								hostStringLengths[inDataElementCount - 1];
+		std::unique_ptr<int64_t[]> hostStringStarts = std::make_unique<int64_t[]>(inDataElementCount);
+		GPUMemory::copyDeviceToHost(hostStringStarts.get(), inStringCol.stringIndices, inDataElementCount);
+		int32_t fullCharCount = hostStringStarts[inDataElementCount - 1];
 
 		std::unique_ptr<char[]> hostAllChars = std::make_unique<char[]>(fullCharCount);
 		GPUMemory::copyDeviceToHost(hostAllChars.get(), inStringCol.allChars, fullCharCount);
 
 		for (int32_t i = 0; i < inDataElementCount; i++)
 		{
-			outStringData[i] = std::string(hostAllChars.get() + hostStringStarts[i],
-				static_cast<size_t>(hostStringLengths[i]));
+			size_t length = static_cast<size_t>(i == 0 ? hostStringStarts[0] :
+				hostStringStarts[i] - hostStringStarts[i - 1]);
+			outStringData[i] = std::string(hostAllChars.get() +
+				(i == 0 ? 0 : hostStringStarts[i - 1]), length);
 		}
 	}
 }
@@ -75,9 +112,20 @@ void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *o
 void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
 	GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount)
 {
-	GPUMemory::alloc(&(outStringCol->stringStarts), dataElementCount);
-	GPUMemory::alloc(&(outStringCol->stringLengths), dataElementCount);
+	Context& context = Context::getInstance();
+	int32_t * stringLengths = nullptr;
+	GPUMemory::alloc(&stringLengths, dataElementCount);
+	kernel_predict_wkt_lengths << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+				(stringLengths, inPolygonCol, dataElementCount);
 
+	GPUMemory::alloc(&(outStringCol->stringIndices), dataElementCount);
+	PrefixSum(outStringCol->stringIndices, stringLengths, dataElementCount);
+	int64_t totalCharCount;
+	GPUMemory::copyDeviceToHost(&totalCharCount, outStringCol->stringIndices + dataElementCount - 1, 1);
+	GPUMemory::alloc(&(outStringCol->allChars), dataElementCount);
+	
+	kernel_convert_poly_to_wkt << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+		(*outStringCol, inPolygonCol, dataElementCount);
 }
 
 void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
@@ -170,7 +218,9 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string *outStringData, int32_t
 {
 	GPUMemory::GPUPolygon reconstructedPolygonCol;
 	ReconstructPolyColKeep(&reconstructedPolygonCol, outDataElementCount, inPolygonCol, inMask, inDataElementCount);
-	// TODO convert to WKT and "reconstruct" string
+	GPUMemory::GPUString gpuWkt;
+	ConvertPolyColToWKTCol(&gpuWkt, reconstructedPolygonCol, *outDataElementCount);
+	ReconstructStringCol(outStringData, outDataElementCount, gpuWkt, nullptr, inDataElementCount);
 }
 
 
