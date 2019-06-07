@@ -4,6 +4,7 @@
 #include "messages/QueryMessage.pb.h"
 #include "messages/CSVImportMessage.pb.h"
 #include "messages/SetDatabaseMessage.pb.h"
+#include "messages/BulkImportMessage.pb.h"
 #include "IClientHandler.h"
 #include <boost/log/trivial.hpp>
 
@@ -50,6 +51,7 @@ void ClientPoolWorker::HandleClient()
 			ColmnarDB::NetworkClient::Message::QueryMessage queryMessage;
 			ColmnarDB::NetworkClient::Message::CSVImportMessage csvImportMessage;
 			ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDatabaseMessage;
+			ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
 			if (recvMsg.UnpackTo(&infoMessage))
 			{
 				BOOST_LOG_TRIVIAL(debug) << "Info message from " << socket_.remote_endpoint().address().to_string() << "\n";
@@ -85,6 +87,19 @@ void ClientPoolWorker::HandleClient()
 				if (setDatabaseResult != nullptr)
 				{
 					NetworkMessage::WriteToNetwork(*setDatabaseResult, socket_);
+				}
+			}
+			else if (recvMsg.UnpackTo(&bulkImportMessage))
+			{
+				BOOST_LOG_TRIVIAL(debug) << "BulkImport message from " << socket_.remote_endpoint().address().to_string() << "\n";
+				char dataBuffer[8192];
+				DataType columnType = bulkImportMessage.columntype();
+				int32_t elementCount = bulkImportMessage.elemcount();
+				NetworkMessage::ReadRaw(socket_, dataBuffer, elementCount, columnType);
+				std::unique_ptr<google::protobuf::Message> importResultMessage = clientHandler_->HandleBulkImport(*this, bulkImportMessage, dataBuffer);
+				if (importResultMessage != nullptr)
+				{
+					NetworkMessage::WriteToNetwork(*importResultMessage, socket_);
 				}
 			}
 			else

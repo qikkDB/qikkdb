@@ -39,3 +39,34 @@ google::protobuf::Any NetworkMessage::ReadFromNetwork(boost::asio::ip::tcp::sock
 	}
 	return ret;
 }
+
+void NetworkMessage::ReadRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType columnType)
+{
+	int32_t elementSize = 0;
+	switch(columnType)
+	{
+		case COLUMN_INT:
+		case CONST_INT:
+			elementSize = sizeof(int32_t);
+			break;
+		case COLUMN_LONG:
+		case CONST_LONG:
+			elementSize = sizeof(int64_t);
+			break;
+		case COLUMN_DOUBLE:
+		case CONST_DOUBLE:
+			elementSize = sizeof(double);
+			break;
+		case COLUMN_FLOAT:
+		case CONST_FLOAT:
+			elementSize = sizeof(float);
+			break;
+		default:
+			elementSize = sizeof(int8_t);
+			break;
+	}
+
+	int32_t totalSize = elementCount * elementSize;
+	boost::asio::read(socket, boost::asio::buffer(dataBuffer, elementSize));
+
+}
