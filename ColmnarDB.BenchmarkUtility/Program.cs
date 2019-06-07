@@ -18,7 +18,7 @@ namespace ColmnarDB.BenchmarkUtility
             ColumnarDBClient client = new ColumnarDBClient(IpAddress,Port);
             client.Connect();
 
-            client.ImportCSV("TargetLoc1M", "../../test-data/TargeLoc1M.csv");
+            client.ImportCSV("TargetLoc1M", "./test-data/TargeLoc1M.csv");
 
             client.UseDatabase("TargetLoc1M");
 
