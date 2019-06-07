@@ -14,6 +14,10 @@ protected:
 	const std::string dbName = "GeoTestDb";
 	const std::string tableName = "SimpleTable";
 	const int32_t blockSize = 1 << 8; //length of a block
+	const std::vector<std::string> testPolygons = {
+		"POLYGON((4.0000 4.0000, 12.0000 4.0000, 16.0000 16.0000, 4.0000 12.0000, 4.0000 4.0000), (5.0000 5.0000, 7.0000 5.0000, 7.0000 7.0000, 5.0000 5.0000))",
+		"POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 4.5000, 2.6789 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 4.5000))"
+	};
 
 	std::shared_ptr<Database> geoDatabase;
 
@@ -168,7 +172,6 @@ protected:
 		{
 			ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
 		}
-		FAIL();
 	}
 };
 
@@ -227,14 +230,26 @@ TEST_F(DispatcherGeoTests, GeoNotConstPolyConstPoint)
 		"POINT(-2 1)");
 }
 
+TEST_F(DispatcherGeoTests, PolygonReconstructEmptyMask)
+{
+	PolygonReconstruct(
+		testPolygons,
+		2,
+		{});
+}
+
 TEST_F(DispatcherGeoTests, PolygonReconstructHalfMask)
 {
-//	std::string polygon0("POLYGON((4 4, 12 4, 16 16, 4 12, 4 4), (5 5, 7 5, 7 7, 5 5))");
-//	std::string polygon1("POLYGON((-7 -7, -0.6 3.2, -9.99 89.5, -7 -7), (3.2 4.5, 2.6 4.2, 150.1305 4.1, 10.5 2.1, 0.6 2.5, 3.2 4.5))");
-	std::string polygon0("POLYGON((4.0000 4.0000, 12.0000 4.0000, 16.0000 16.0000, 4.0000 12.0000, 4.0000 4.0000), (5.0000 5.0000, 7.0000 5.0000, 7.0000 7.0000, 5.0000 5.0000))");
-	std::string polygon1("POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 4.5000, 2.6000 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 4.5000))");
 	PolygonReconstruct(
-		{ polygon0, polygon1 },
+		testPolygons,
+		1,
+		{ testPolygons[1] });
+}
+
+TEST_F(DispatcherGeoTests, PolygonReconstructFullMask)
+{
+	PolygonReconstruct(
+		testPolygons,
 		0,
-		{ polygon0, polygon1 });
+		testPolygons);
 }

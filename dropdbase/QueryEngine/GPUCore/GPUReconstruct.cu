@@ -19,6 +19,7 @@ __global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t
 	}
 }
 
+
 /// Helping function to calculate number of digints of integer part of float
 __device__ int32_t GetNumberOfIntegerPartDigits(float number)
 {
@@ -57,20 +58,92 @@ __global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory
 }
 
 
-__global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount)
+/// Helping function to "print" float to GPU char array
+__device__ void FloorToString(char * allChars, int64_t &startIndex, float number)
+{
+	if (number < 0)
+	{
+		allChars[startIndex] = '-';	// There is no ++ at charId because "digits" will count with negative sign
+	}
+	int32_t integerPart = static_cast<int32_t>(floorf(fabsf(number)));
+	int32_t digits = GetNumberOfIntegerPartDigits(number);
+	startIndex += digits;
+	do
+	{
+		allChars[--startIndex] = ('0' + (integerPart % 10));
+		integerPart /= 10;
+	} while (integerPart > 0);
+	startIndex += digits - (number < 0 ? 1 : 0);
+
+	int32_t decimalPart = static_cast<int32_t>(roundf(fmodf(fabsf(number), 1.0f)*powf(10.0f, WKT_DECIMAL_PLACES)));
+	allChars[startIndex++] = '.';
+	startIndex += WKT_DECIMAL_PLACES;
+	for (int32_t i = 0; i < WKT_DECIMAL_PLACES; i++)
+	{
+		allChars[--startIndex] = ('0' + (decimalPart % 10));
+		decimalPart /= 10;
+	}
+	startIndex += WKT_DECIMAL_PLACES;
+}
+
+__global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
 
-	for (int32_t i = idx; i < dataElementCount; i += stride)
+	for (int32_t i = idx; i < dataElementCount; i += stride)	// via complex polygons
 	{
-		int64_t startIndex = i == 0 ? 0 : outWkt.stringIndices[i - 1];
+		// "POLYGON("
+		const int64_t stringStartIndex = (i == 0 ? 0 : outWkt.stringIndices[i - 1]);
 		for (int32_t j = 0; j < 7; j++)
 		{
-			outWkt.allChars[startIndex + j] = WKT_POLYGON[j];
+			outWkt.allChars[stringStartIndex + j] = WKT_POLYGON[j];
 		}
+		int64_t charId = stringStartIndex + 7;
+		outWkt.allChars[charId++] = '(';
+
+
+		const int32_t subpolyStartIdx = inPolygonCol.polyIdx[i];
+		const int32_t subpolyEndIdx = subpolyStartIdx + inPolygonCol.polyCount[i];
+
+		for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++)	// via sub-polygons
+		{
+			outWkt.allChars[charId++] = '(';
+			const int32_t pointCount = inPolygonCol.pointCount[j] - 2;
+			const int32_t pointStartIdx = inPolygonCol.pointIdx[j] + 1;
+			const int32_t pointEndIdx = pointStartIdx + pointCount;
+
+			for (int32_t k = pointStartIdx; k < pointEndIdx; k++)	// via points
+			{
+				FloorToString(outWkt.allChars, charId, inPolygonCol.polyPoints[k].latitude);
+				outWkt.allChars[charId++] = ' ';
+				FloorToString(outWkt.allChars, charId, inPolygonCol.polyPoints[k].longitude);
+
+				if (k < pointEndIdx - 1)
+				{
+					outWkt.allChars[charId++] = ',';
+					outWkt.allChars[charId++] = ' ';
+				}
+			}
+
+			outWkt.allChars[charId++] = ')';
+			if (j < subpolyEndIdx - 1)
+			{
+				outWkt.allChars[charId++] = ',';
+				outWkt.allChars[charId++] = ' ';
+			}
+		}
+		outWkt.allChars[charId++] = ')';
+		/*
+		// Lengths mis-match check
+		if (charId != outWkt.stringIndices[i])
+		{
+			printf("Not match fin id! %d\n", outWkt.stringIndices[i] - charId);
+		}
+		*/
 	}
 }
+
 
 int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int32_t size)
 {
