@@ -124,7 +124,13 @@ public:
 
 	void exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext *ctx) override;
 
+	void exitSqlDropDb(GpuSqlParser::SqlDropDbContext *ctx) override;
+
 	void exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext *ctx) override;
+
+	void exitSqlDropTable(GpuSqlParser::SqlDropTableContext *ctx) override;
+
+	void exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext *ctx) override;
 
 	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
 

@@ -686,8 +686,21 @@ void GpuSqlListener::exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext * ctx)
 		throw DatabaseAlreadyExistsException();
 	}
 
-	std::shared_ptr<Database> newDb = std::make_shared<Database>(newDbName.c_str());
-	Database::AddToInMemoryDatabaseList(newDb);
+	dispatcher.addCreateDatabaseFunction();
+	dispatcher.addArgument<const std::string&>(newDbName);
+}
+
+void GpuSqlListener::exitSqlDropDb(GpuSqlParser::SqlDropDbContext * ctx)
+{
+	std::string dbName = ctx->database()->getText();
+
+	if (!Database::Exists(dbName))
+	{
+		throw DatabaseNotFoundException();
+	}
+
+	dispatcher.addDropDatabaseFunction();
+	dispatcher.addArgument<const std::string&>(dbName);
 }
 
 void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ctx)
@@ -716,9 +729,62 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ct
 
 			newColumns.insert({ newColumnContext->columnId()->getText(), newColumnDataType });
 		}
+		//Handle index addition
 	}
 
 	database->CreateTable(newColumns, newTableName.c_str());
+}
+
+void GpuSqlListener::exitSqlDropTable(GpuSqlParser::SqlDropTableContext * ctx)
+{
+	std::string tableName = ctx->table()->getText();
+
+	if (database->GetTables().find(tableName) == database->GetTables().end())
+	{
+		throw TableNotFoundFromException();
+	}
+
+	database->GetTables().erase(tableName);
+}
+
+void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext * ctx)
+{
+	std::string tableName = ctx->table()->getText();
+
+	if (database->GetTables().find(tableName) == database->GetTables().end())
+	{
+		throw TableNotFoundFromException();
+	}
+	 
+	for (auto &entry : ctx->alterTableEntries()->alterTableEntry())
+	{
+		if (entry->addColumn())
+		{
+			auto addColumnContext = entry->addColumn();
+			DataType addColumnDataType = getDataTypeFromString(addColumnContext->DATATYPE()->getText());
+			std::string addColumnName = addColumnContext->columnId()->getText();
+
+			if (database->GetTables().at(tableName).GetColumns().find(addColumnName) != database->GetTables().at(tableName).GetColumns().end())
+			{
+				throw ColumnAlreadyExistsException();
+			}
+
+			database->GetTables().at(tableName).CreateColumn(addColumnName.c_str(), addColumnDataType);
+		}
+		else if (entry->dropColumn())
+		{
+			auto dropColumnContext = entry->addColumn();
+			std::string dropColumnName = dropColumnContext->columnId()->getText();
+
+			if (database->GetTables().at(tableName).GetColumns().find(dropColumnName) == database->GetTables().at(tableName).GetColumns().end())
+			{
+				throw ColumnNotFoundException();
+			}
+
+			database->GetTables().at(tableName).EraseColumn(dropColumnName);
+		}
+		// Alter Column - type casting
+	}
 }
 
 /// Method that executes on exit of INSERT INTO command

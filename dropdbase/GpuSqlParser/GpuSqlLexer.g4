@@ -46,7 +46,13 @@ POLYTYPE    : P O L Y G O N;
 
 INSERTINTO  : I N S E R T ' ' I N T O;
 CREATEDB    : C R E A T E ' ' D A T A B A S E;
+DROPDB      : D R O P ' ' D A T A B A S E;
 CREATETABLE : C R E A T E ' ' T A B L E;
+DROPTABLE   : D R O P ' ' T A B L E;
+ALTERTABLE  : A L T E R ' ' T A B L E;
+ADD         : A D D;
+DROPCOLUMN  : D R O P ' ' C O L U M N;
+ALTERCOLUMN : A L T E R ' ' C O L U M N;
 CREATEINDEX : C R E A T E ' ' INDEX;
 INDEX       : I N D E X;
 PRIMARYKEY  : P R I M A R Y ' ' K E Y;

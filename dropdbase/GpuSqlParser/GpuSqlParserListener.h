@@ -38,8 +38,17 @@ public:
   virtual void enterSqlCreateDb(GpuSqlParser::SqlCreateDbContext *ctx) = 0;
   virtual void exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext *ctx) = 0;
 
+  virtual void enterSqlDropDb(GpuSqlParser::SqlDropDbContext *ctx) = 0;
+  virtual void exitSqlDropDb(GpuSqlParser::SqlDropDbContext *ctx) = 0;
+
   virtual void enterSqlCreateTable(GpuSqlParser::SqlCreateTableContext *ctx) = 0;
   virtual void exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext *ctx) = 0;
+
+  virtual void enterSqlDropTable(GpuSqlParser::SqlDropTableContext *ctx) = 0;
+  virtual void exitSqlDropTable(GpuSqlParser::SqlDropTableContext *ctx) = 0;
+
+  virtual void enterSqlAlterTable(GpuSqlParser::SqlAlterTableContext *ctx) = 0;
+  virtual void exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext *ctx) = 0;
 
   virtual void enterSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) = 0;
   virtual void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) = 0;
@@ -52,6 +61,21 @@ public:
 
   virtual void enterNewTableEntry(GpuSqlParser::NewTableEntryContext *ctx) = 0;
   virtual void exitNewTableEntry(GpuSqlParser::NewTableEntryContext *ctx) = 0;
+
+  virtual void enterAlterTableEntries(GpuSqlParser::AlterTableEntriesContext *ctx) = 0;
+  virtual void exitAlterTableEntries(GpuSqlParser::AlterTableEntriesContext *ctx) = 0;
+
+  virtual void enterAlterTableEntry(GpuSqlParser::AlterTableEntryContext *ctx) = 0;
+  virtual void exitAlterTableEntry(GpuSqlParser::AlterTableEntryContext *ctx) = 0;
+
+  virtual void enterAddColumn(GpuSqlParser::AddColumnContext *ctx) = 0;
+  virtual void exitAddColumn(GpuSqlParser::AddColumnContext *ctx) = 0;
+
+  virtual void enterDropColumn(GpuSqlParser::DropColumnContext *ctx) = 0;
+  virtual void exitDropColumn(GpuSqlParser::DropColumnContext *ctx) = 0;
+
+  virtual void enterAlterColumn(GpuSqlParser::AlterColumnContext *ctx) = 0;
+  virtual void exitAlterColumn(GpuSqlParser::AlterColumnContext *ctx) = 0;
 
   virtual void enterNewTableColumn(GpuSqlParser::NewTableColumnContext *ctx) = 0;
   virtual void exitNewTableColumn(GpuSqlParser::NewTableColumnContext *ctx) = 0;

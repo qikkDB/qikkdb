@@ -11,6 +11,11 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showDatabasesFunction = &Gp
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showTablesFunction = &GpuSqlDispatcher::showTables;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showColumnsFunction = &GpuSqlDispatcher::showColumns;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::insertIntoDoneFunction = &GpuSqlDispatcher::insertIntoDone;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createDatabaseFunction = &GpuSqlDispatcher::createDatabase;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::dropDatabaseFunction = &GpuSqlDispatcher::dropDatabase;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createTableFunction = &GpuSqlDispatcher::createTable;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::dropTableFunction = &GpuSqlDispatcher::dropTable;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::alterTableFunction = &GpuSqlDispatcher::alterTable;
 
 
 template <>

@@ -34,6 +34,11 @@ const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColum
 	return columns;
 }
 
+void Table::EraseColumn(std::string & columnName)
+{
+	columns.erase(columnName);
+}
+
 /// <summary>
 /// Initializes a new instance of the <see cref="T:ColmnarDB.Table"/> class. Also gets from database
 /// the block size and initializes with this value the private variable blockSize. Finally, it initializes columnsMutex_.

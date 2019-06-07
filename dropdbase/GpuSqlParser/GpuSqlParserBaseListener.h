@@ -40,8 +40,17 @@ public:
   virtual void enterSqlCreateDb(GpuSqlParser::SqlCreateDbContext * /*ctx*/) override { }
   virtual void exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext * /*ctx*/) override { }
 
+  virtual void enterSqlDropDb(GpuSqlParser::SqlDropDbContext * /*ctx*/) override { }
+  virtual void exitSqlDropDb(GpuSqlParser::SqlDropDbContext * /*ctx*/) override { }
+
   virtual void enterSqlCreateTable(GpuSqlParser::SqlCreateTableContext * /*ctx*/) override { }
   virtual void exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * /*ctx*/) override { }
+
+  virtual void enterSqlDropTable(GpuSqlParser::SqlDropTableContext * /*ctx*/) override { }
+  virtual void exitSqlDropTable(GpuSqlParser::SqlDropTableContext * /*ctx*/) override { }
+
+  virtual void enterSqlAlterTable(GpuSqlParser::SqlAlterTableContext * /*ctx*/) override { }
+  virtual void exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext * /*ctx*/) override { }
 
   virtual void enterSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * /*ctx*/) override { }
   virtual void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * /*ctx*/) override { }
@@ -54,6 +63,21 @@ public:
 
   virtual void enterNewTableEntry(GpuSqlParser::NewTableEntryContext * /*ctx*/) override { }
   virtual void exitNewTableEntry(GpuSqlParser::NewTableEntryContext * /*ctx*/) override { }
+
+  virtual void enterAlterTableEntries(GpuSqlParser::AlterTableEntriesContext * /*ctx*/) override { }
+  virtual void exitAlterTableEntries(GpuSqlParser::AlterTableEntriesContext * /*ctx*/) override { }
+
+  virtual void enterAlterTableEntry(GpuSqlParser::AlterTableEntryContext * /*ctx*/) override { }
+  virtual void exitAlterTableEntry(GpuSqlParser::AlterTableEntryContext * /*ctx*/) override { }
+
+  virtual void enterAddColumn(GpuSqlParser::AddColumnContext * /*ctx*/) override { }
+  virtual void exitAddColumn(GpuSqlParser::AddColumnContext * /*ctx*/) override { }
+
+  virtual void enterDropColumn(GpuSqlParser::DropColumnContext * /*ctx*/) override { }
+  virtual void exitDropColumn(GpuSqlParser::DropColumnContext * /*ctx*/) override { }
+
+  virtual void enterAlterColumn(GpuSqlParser::AlterColumnContext * /*ctx*/) override { }
+  virtual void exitAlterColumn(GpuSqlParser::AlterColumnContext * /*ctx*/) override { }
 
   virtual void enterNewTableColumn(GpuSqlParser::NewTableColumnContext * /*ctx*/) override { }
   virtual void exitNewTableColumn(GpuSqlParser::NewTableColumnContext * /*ctx*/) override { }

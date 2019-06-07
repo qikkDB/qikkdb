@@ -106,6 +106,26 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 				{
 					std::cout << "Insert into completed sucessfully" << std::endl;
 				}
+				if (err == 6)
+				{
+					std::cout << "Create database completed sucessfully" << std::endl;
+				}
+				if (err == 7)
+				{
+					std::cout << "Drop database completed sucessfully" << std::endl;
+				}
+				if (err == 8)
+				{
+					std::cout << "Create table completed sucessfully" << std::endl;				
+				}
+				if (err == 9)
+				{
+					std::cout << "Drop table completed sucessfully" << std::endl;
+				}
+				if (err == 10)
+				{
+					std::cout << "Alter table completed sucessfully" << std::endl;
+				}
 				break;
 			}
 		}
@@ -155,6 +175,31 @@ void GpuSqlDispatcher::addShowTablesFunction()
 void GpuSqlDispatcher::addShowColumnsFunction()
 {
 	dispatcherFunctions.push_back(showColumnsFunction);
+}
+
+void GpuSqlDispatcher::addCreateDatabaseFunction()
+{
+	dispatcherFunctions.push_back(createDatabaseFunction);
+}
+
+void GpuSqlDispatcher::addDropDatabaseFunction()
+{
+	dispatcherFunctions.push_back(dropDatabaseFunction);
+}
+
+void GpuSqlDispatcher::addCreateTableFunction()
+{
+	dispatcherFunctions.push_back(createDatabaseFunction);
+}
+
+void GpuSqlDispatcher::addDropTableFunction()
+{
+	dispatcherFunctions.push_back(dropTableFunction);
+}
+
+void GpuSqlDispatcher::addAlterTableFunction()
+{
+	dispatcherFunctions.push_back(alterTableFunction);
 }
 
 void GpuSqlDispatcher::addInsertIntoFunction(DataType type)
@@ -695,6 +740,37 @@ int32_t GpuSqlDispatcher::showColumns()
 	MergePayloadToSelfResponse(tab + "_columns", payloadName);
 	MergePayloadToSelfResponse(tab + "_types", payloadType);
 	return 4;
+}
+
+int32_t GpuSqlDispatcher::createDatabase()
+{
+	std::string newDbName = arguments.read<std::string>();
+	std::shared_ptr<Database> newDb = std::make_shared<Database>(newDbName.c_str());
+	Database::AddToInMemoryDatabaseList(newDb);
+	return 6;
+}
+
+int32_t GpuSqlDispatcher::dropDatabase()
+{
+	std::string dbName = arguments.read<std::string>();
+	Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
+	//Remove database from list
+	return 7;
+}
+
+int32_t GpuSqlDispatcher::createTable()
+{
+	return 8;
+}
+
+int32_t GpuSqlDispatcher::dropTable()
+{
+	return 9;
+}
+
+int32_t GpuSqlDispatcher::alterTable()
+{
+	return 10;
 }
 
 
