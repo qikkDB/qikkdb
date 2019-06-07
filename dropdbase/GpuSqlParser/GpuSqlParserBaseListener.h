@@ -43,6 +43,9 @@ public:
   virtual void enterSqlCreateTable(GpuSqlParser::SqlCreateTableContext * /*ctx*/) override { }
   virtual void exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * /*ctx*/) override { }
 
+  virtual void enterSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * /*ctx*/) override { }
+  virtual void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * /*ctx*/) override { }
+
   virtual void enterSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * /*ctx*/) override { }
   virtual void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * /*ctx*/) override { }
 
@@ -51,6 +54,9 @@ public:
 
   virtual void enterNewTableColumn(GpuSqlParser::NewTableColumnContext * /*ctx*/) override { }
   virtual void exitNewTableColumn(GpuSqlParser::NewTableColumnContext * /*ctx*/) override { }
+
+  virtual void enterNewTableIndex(GpuSqlParser::NewTableIndexContext * /*ctx*/) override { }
+  virtual void exitNewTableIndex(GpuSqlParser::NewTableIndexContext * /*ctx*/) override { }
 
   virtual void enterSelectColumns(GpuSqlParser::SelectColumnsContext * /*ctx*/) override { }
   virtual void exitSelectColumns(GpuSqlParser::SelectColumnsContext * /*ctx*/) override { }
@@ -72,6 +78,9 @@ public:
 
   virtual void enterInsertIntoColumns(GpuSqlParser::InsertIntoColumnsContext * /*ctx*/) override { }
   virtual void exitInsertIntoColumns(GpuSqlParser::InsertIntoColumnsContext * /*ctx*/) override { }
+
+  virtual void enterIndexColumns(GpuSqlParser::IndexColumnsContext * /*ctx*/) override { }
+  virtual void exitIndexColumns(GpuSqlParser::IndexColumnsContext * /*ctx*/) override { }
 
   virtual void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext * /*ctx*/) override { }
   virtual void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext * /*ctx*/) override { }
@@ -108,6 +117,9 @@ public:
 
   virtual void enterAlias(GpuSqlParser::AliasContext * /*ctx*/) override { }
   virtual void exitAlias(GpuSqlParser::AliasContext * /*ctx*/) override { }
+
+  virtual void enterIndexName(GpuSqlParser::IndexNameContext * /*ctx*/) override { }
+  virtual void exitIndexName(GpuSqlParser::IndexNameContext * /*ctx*/) override { }
 
   virtual void enterLimit(GpuSqlParser::LimitContext * /*ctx*/) override { }
   virtual void exitLimit(GpuSqlParser::LimitContext * /*ctx*/) override { }

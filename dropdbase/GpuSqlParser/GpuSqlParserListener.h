@@ -41,6 +41,9 @@ public:
   virtual void enterSqlCreateTable(GpuSqlParser::SqlCreateTableContext *ctx) = 0;
   virtual void exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext *ctx) = 0;
 
+  virtual void enterSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) = 0;
+  virtual void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) = 0;
+
   virtual void enterSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) = 0;
   virtual void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) = 0;
 
@@ -49,6 +52,9 @@ public:
 
   virtual void enterNewTableColumn(GpuSqlParser::NewTableColumnContext *ctx) = 0;
   virtual void exitNewTableColumn(GpuSqlParser::NewTableColumnContext *ctx) = 0;
+
+  virtual void enterNewTableIndex(GpuSqlParser::NewTableIndexContext *ctx) = 0;
+  virtual void exitNewTableIndex(GpuSqlParser::NewTableIndexContext *ctx) = 0;
 
   virtual void enterSelectColumns(GpuSqlParser::SelectColumnsContext *ctx) = 0;
   virtual void exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx) = 0;
@@ -70,6 +76,9 @@ public:
 
   virtual void enterInsertIntoColumns(GpuSqlParser::InsertIntoColumnsContext *ctx) = 0;
   virtual void exitInsertIntoColumns(GpuSqlParser::InsertIntoColumnsContext *ctx) = 0;
+
+  virtual void enterIndexColumns(GpuSqlParser::IndexColumnsContext *ctx) = 0;
+  virtual void exitIndexColumns(GpuSqlParser::IndexColumnsContext *ctx) = 0;
 
   virtual void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) = 0;
   virtual void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) = 0;
@@ -106,6 +115,9 @@ public:
 
   virtual void enterAlias(GpuSqlParser::AliasContext *ctx) = 0;
   virtual void exitAlias(GpuSqlParser::AliasContext *ctx) = 0;
+
+  virtual void enterIndexName(GpuSqlParser::IndexNameContext *ctx) = 0;
+  virtual void exitIndexName(GpuSqlParser::IndexNameContext *ctx) = 0;
 
   virtual void enterLimit(GpuSqlParser::LimitContext *ctx) = 0;
   virtual void exitLimit(GpuSqlParser::LimitContext *ctx) = 0;

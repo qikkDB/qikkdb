@@ -18,37 +18,38 @@ public:
     MULTILINESTRING = 19, POLYGON = 20, MULTIPOLYGON = 21, INTTYPE = 22, 
     LONGTYPE = 23, FLOATTYPE = 24, DOUBLETYPE = 25, STRINGTYPE = 26, BOOLEANTYPE = 27, 
     POINTTYPE = 28, POLYTYPE = 29, INSERTINTO = 30, CREATEDB = 31, CREATETABLE = 32, 
-    VALUES = 33, SELECT = 34, FROM = 35, JOIN = 36, WHERE = 37, GROUPBY = 38, 
-    AS = 39, IN = 40, BETWEEN = 41, ON = 42, ORDERBY = 43, DIR = 44, LIMIT = 45, 
-    OFFSET = 46, SHOWDB = 47, SHOWTB = 48, SHOWCL = 49, AGG = 50, AVG = 51, 
-    SUM = 52, MIN = 53, MAX = 54, COUNT = 55, YEAR = 56, MONTH = 57, DAY = 58, 
-    HOUR = 59, MINUTE = 60, SECOND = 61, NOW = 62, PI = 63, ABS = 64, SIN = 65, 
-    COS = 66, TAN = 67, COT = 68, ASIN = 69, ACOS = 70, ATAN = 71, ATAN2 = 72, 
-    LOG10 = 73, LOG = 74, EXP = 75, POW = 76, SQRT = 77, SQUARE = 78, SIGN = 79, 
-    ROOT = 80, ROUND = 81, CEIL = 82, FLOOR = 83, GEO_CONTAINS = 84, GEO_INTERSECT = 85, 
-    GEO_UNION = 86, PLUS = 87, MINUS = 88, ASTERISK = 89, DIVISION = 90, 
-    MODULO = 91, XOR = 92, EQUALS = 93, NOTEQUALS = 94, NOTEQUALS_GT_LT = 95, 
-    LPAREN = 96, RPAREN = 97, GREATER = 98, LESS = 99, GREATEREQ = 100, 
-    LESSEQ = 101, NOT = 102, OR = 103, AND = 104, BIT_OR = 105, BIT_AND = 106, 
-    L_SHIFT = 107, R_SHIFT = 108, FLOATLIT = 109, INTLIT = 110, ID = 111, 
-    BOOLEANLIT = 112, STRINGLIT = 113
+    CREATEINDEX = 33, INDEX = 34, PRIMARYKEY = 35, VALUES = 36, SELECT = 37, 
+    FROM = 38, JOIN = 39, WHERE = 40, GROUPBY = 41, AS = 42, IN = 43, BETWEEN = 44, 
+    ON = 45, ORDERBY = 46, DIR = 47, LIMIT = 48, OFFSET = 49, SHOWDB = 50, 
+    SHOWTB = 51, SHOWCL = 52, AGG = 53, AVG = 54, SUM = 55, MIN = 56, MAX = 57, 
+    COUNT = 58, YEAR = 59, MONTH = 60, DAY = 61, HOUR = 62, MINUTE = 63, 
+    SECOND = 64, NOW = 65, PI = 66, ABS = 67, SIN = 68, COS = 69, TAN = 70, 
+    COT = 71, ASIN = 72, ACOS = 73, ATAN = 74, ATAN2 = 75, LOG10 = 76, LOG = 77, 
+    EXP = 78, POW = 79, SQRT = 80, SQUARE = 81, SIGN = 82, ROOT = 83, ROUND = 84, 
+    CEIL = 85, FLOOR = 86, GEO_CONTAINS = 87, GEO_INTERSECT = 88, GEO_UNION = 89, 
+    PLUS = 90, MINUS = 91, ASTERISK = 92, DIVISION = 93, MODULO = 94, XOR = 95, 
+    EQUALS = 96, NOTEQUALS = 97, NOTEQUALS_GT_LT = 98, LPAREN = 99, RPAREN = 100, 
+    GREATER = 101, LESS = 102, GREATEREQ = 103, LESSEQ = 104, NOT = 105, 
+    OR = 106, AND = 107, BIT_OR = 108, BIT_AND = 109, L_SHIFT = 110, R_SHIFT = 111, 
+    FLOATLIT = 112, INTLIT = 113, ID = 114, BOOLEANLIT = 115, STRINGLIT = 116
   };
 
   enum {
     RuleSqlFile = 0, RuleStatement = 1, RuleShowStatement = 2, RuleShowDatabases = 3, 
     RuleShowTables = 4, RuleShowColumns = 5, RuleSqlSelect = 6, RuleSqlCreateDb = 7, 
-    RuleSqlCreateTable = 8, RuleSqlInsertInto = 9, RuleNewTableColumns = 10, 
-    RuleNewTableColumn = 11, RuleSelectColumns = 12, RuleSelectColumn = 13, 
-    RuleWhereClause = 14, RuleOrderByColumns = 15, RuleOrderByColumn = 16, 
-    RuleInsertIntoValues = 17, RuleInsertIntoColumns = 18, RuleGroupByColumns = 19, 
-    RuleGroupByColumn = 20, RuleColumnId = 21, RuleFromTables = 22, RuleJoinClauses = 23, 
-    RuleJoinClause = 24, RuleJoinTable = 25, RuleFromTable = 26, RuleTable = 27, 
-    RuleColumn = 28, RuleDatabase = 29, RuleAlias = 30, RuleLimit = 31, 
-    RuleOffset = 32, RuleColumnValue = 33, RuleExpression = 34, RuleGeometry = 35, 
-    RulePointGeometry = 36, RuleLineStringGeometry = 37, RulePolygonGeometry = 38, 
-    RuleMultiPointGeometry = 39, RuleMultiLineStringGeometry = 40, RuleMultiPolygonGeometry = 41, 
-    RulePointOrClosedPoint = 42, RulePolygon = 43, RuleLineString = 44, 
-    RulePoint = 45
+    RuleSqlCreateTable = 8, RuleSqlCreateIndex = 9, RuleSqlInsertInto = 10, 
+    RuleNewTableColumns = 11, RuleNewTableColumn = 12, RuleNewTableIndex = 13, 
+    RuleSelectColumns = 14, RuleSelectColumn = 15, RuleWhereClause = 16, 
+    RuleOrderByColumns = 17, RuleOrderByColumn = 18, RuleInsertIntoValues = 19, 
+    RuleInsertIntoColumns = 20, RuleIndexColumns = 21, RuleGroupByColumns = 22, 
+    RuleGroupByColumn = 23, RuleColumnId = 24, RuleFromTables = 25, RuleJoinClauses = 26, 
+    RuleJoinClause = 27, RuleJoinTable = 28, RuleFromTable = 29, RuleTable = 30, 
+    RuleColumn = 31, RuleDatabase = 32, RuleAlias = 33, RuleIndexName = 34, 
+    RuleLimit = 35, RuleOffset = 36, RuleColumnValue = 37, RuleExpression = 38, 
+    RuleGeometry = 39, RulePointGeometry = 40, RuleLineStringGeometry = 41, 
+    RulePolygonGeometry = 42, RuleMultiPointGeometry = 43, RuleMultiLineStringGeometry = 44, 
+    RuleMultiPolygonGeometry = 45, RulePointOrClosedPoint = 46, RulePolygon = 47, 
+    RuleLineString = 48, RulePoint = 49
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -70,9 +71,11 @@ public:
   class SqlSelectContext;
   class SqlCreateDbContext;
   class SqlCreateTableContext;
+  class SqlCreateIndexContext;
   class SqlInsertIntoContext;
   class NewTableColumnsContext;
   class NewTableColumnContext;
+  class NewTableIndexContext;
   class SelectColumnsContext;
   class SelectColumnContext;
   class WhereClauseContext;
@@ -80,6 +83,7 @@ public:
   class OrderByColumnContext;
   class InsertIntoValuesContext;
   class InsertIntoColumnsContext;
+  class IndexColumnsContext;
   class GroupByColumnsContext;
   class GroupByColumnContext;
   class ColumnIdContext;
@@ -92,6 +96,7 @@ public:
   class ColumnContext;
   class DatabaseContext;
   class AliasContext;
+  class IndexNameContext;
   class LimitContext;
   class OffsetContext;
   class ColumnValueContext;
@@ -130,6 +135,7 @@ public:
     SqlSelectContext *sqlSelect();
     SqlCreateDbContext *sqlCreateDb();
     SqlCreateTableContext *sqlCreateTable();
+    SqlCreateIndexContext *sqlCreateIndex();
     SqlInsertIntoContext *sqlInsertInto();
     ShowStatementContext *showStatement();
 
@@ -258,6 +264,7 @@ public:
     antlr4::tree::TerminalNode *LPAREN();
     NewTableColumnsContext *newTableColumns();
     antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *SEMICOL();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -265,6 +272,26 @@ public:
   };
 
   SqlCreateTableContext* sqlCreateTable();
+
+  class  SqlCreateIndexContext : public antlr4::ParserRuleContext {
+  public:
+    SqlCreateIndexContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *CREATEINDEX();
+    IndexNameContext *indexName();
+    antlr4::tree::TerminalNode *ON();
+    TableContext *table();
+    antlr4::tree::TerminalNode *LPAREN();
+    IndexColumnsContext *indexColumns();
+    antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *SEMICOL();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  SqlCreateIndexContext* sqlCreateIndex();
 
   class  SqlInsertIntoContext : public antlr4::ParserRuleContext {
   public:
@@ -294,6 +321,8 @@ public:
     virtual size_t getRuleIndex() const override;
     std::vector<NewTableColumnContext *> newTableColumn();
     NewTableColumnContext* newTableColumn(size_t i);
+    std::vector<NewTableIndexContext *> newTableIndex();
+    NewTableIndexContext* newTableIndex(size_t i);
     std::vector<antlr4::tree::TerminalNode *> COMMA();
     antlr4::tree::TerminalNode* COMMA(size_t i);
 
@@ -317,6 +346,23 @@ public:
   };
 
   NewTableColumnContext* newTableColumn();
+
+  class  NewTableIndexContext : public antlr4::ParserRuleContext {
+  public:
+    NewTableIndexContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *INDEX();
+    IndexNameContext *indexName();
+    antlr4::tree::TerminalNode *LPAREN();
+    IndexColumnsContext *indexColumns();
+    antlr4::tree::TerminalNode *RPAREN();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  NewTableIndexContext* newTableIndex();
 
   class  SelectColumnsContext : public antlr4::ParserRuleContext {
   public:
@@ -423,6 +469,22 @@ public:
   };
 
   InsertIntoColumnsContext* insertIntoColumns();
+
+  class  IndexColumnsContext : public antlr4::ParserRuleContext {
+  public:
+    IndexColumnsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<ColumnContext *> column();
+    ColumnContext* column(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  IndexColumnsContext* indexColumns();
 
   class  GroupByColumnsContext : public antlr4::ParserRuleContext {
   public:
@@ -595,6 +657,19 @@ public:
   };
 
   AliasContext* alias();
+
+  class  IndexNameContext : public antlr4::ParserRuleContext {
+  public:
+    IndexNameContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ID();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  IndexNameContext* indexName();
 
   class  LimitContext : public antlr4::ParserRuleContext {
   public:
