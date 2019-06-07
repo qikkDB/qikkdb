@@ -19,22 +19,46 @@ private:
 	{
 		if (leftDataType == CONST_LONG && rightDataType == CONST_LONG)
 		{
-			return OP{}.template operator() < int64_t, int64_t > (left, right);
+			return OP{}.template operator() <int64_t, int64_t > (left, right);
 		}
 
 		else if (leftDataType == CONST_LONG && rightDataType == CONST_DOUBLE)
 		{
-			return OP{}.template operator() < int64_t, double > (left, *reinterpret_cast<double*>(&right));
+			return OP{}.template operator() <int64_t, double > (left, *reinterpret_cast<double*>(&right));
 		}
 
 		else if (leftDataType == CONST_DOUBLE && rightDataType == CONST_LONG)
 		{
-			return OP{}.template operator() < double, int64_t > (*reinterpret_cast<double*>(&left), right);
+			return OP{}.template operator() <double, int64_t > (*reinterpret_cast<double*>(&left), right);
 		}
 
 		else if (leftDataType == CONST_DOUBLE && rightDataType == CONST_DOUBLE)
 		{
-			return OP{}.template operator() < double, double > (*reinterpret_cast<double*>(&left), *reinterpret_cast<double*>(&right));
+			return OP{}.template operator() <double, double > (*reinterpret_cast<double*>(&left), *reinterpret_cast<double*>(&right));
+		}
+	}
+
+	template<typename OP, typename T>
+	T arithmeticOperation(int64_t left, int64_t right, DataType leftDataType, DataType rightDataType)
+	{
+		if (leftDataType == CONST_LONG && rightDataType == CONST_LONG)
+		{
+			return OP{}.template operator() <T, int64_t, int64_t> (left, right, nullptr, std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+		}
+
+		else if (leftDataType == CONST_LONG && rightDataType == CONST_DOUBLE)
+		{
+			return OP{}.template operator() <T, int64_t, double> (left, *reinterpret_cast<double*>(&right), nullptr, std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+		}
+
+		else if (leftDataType == CONST_DOUBLE && rightDataType == CONST_LONG)
+		{
+			return OP{}.template operator() <T, double, int64_t> (*reinterpret_cast<double*>(&left), right, nullptr, std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+		}
+
+		else if (leftDataType == CONST_DOUBLE && rightDataType == CONST_DOUBLE)
+		{
+			return OP{}.template operator() <T, double, double> (*reinterpret_cast<double*>(&left), *reinterpret_cast<double*>(&right), nullptr, std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
 		}
 	}
 

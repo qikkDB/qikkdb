@@ -122,19 +122,68 @@ void GpuWhereEvaluationListener::exitBinaryOperation(GpuSqlParser::BinaryOperati
 	}
 	else if (op == "*")
 	{
-
+		ignoreFlag = std::get<1>(left) || std::get<1>(right);
+		if (ignoreFlag)
+		{
+			parserStack.push(std::make_tuple(0, ignoreFlag, DataType::CONST_LONG));
+		}
+		else
+		{
+			double filterResult = arithmeticOperation<ArithmeticOperations::mulNoCheck, double>(std::get<0>(left), std::get<0>(right), std::get<2>(left), std::get<2>(right));
+			parserStack.push(std::make_tuple(filterResult, ignoreFlag, DataType::CONST_DOUBLE));
+		}
 	}
 	else if (op == "/")
 	{
+		ignoreFlag = std::get<1>(left) || std::get<1>(right);
+		if (ignoreFlag)
+		{
+			parserStack.push(std::make_tuple(0, ignoreFlag, DataType::CONST_LONG));
+		}
+		else
+		{
+			double filterResult = arithmeticOperation<ArithmeticOperations::divNoCheck, double>(std::get<0>(left), std::get<0>(right), std::get<2>(left), std::get<2>(right));
+			parserStack.push(std::make_tuple(filterResult, ignoreFlag, DataType::CONST_DOUBLE));
+		}
 	}
 	else if (op == "+")
 	{
+		ignoreFlag = std::get<1>(left) || std::get<1>(right);
+		if (ignoreFlag)
+		{
+			parserStack.push(std::make_tuple(0, ignoreFlag, DataType::CONST_LONG));
+		}
+		else
+		{
+			double filterResult = arithmeticOperation<ArithmeticOperations::addNoCheck, double>(std::get<0>(left), std::get<0>(right), std::get<2>(left), std::get<2>(right));
+			parserStack.push(std::make_tuple(filterResult, ignoreFlag, DataType::CONST_DOUBLE));
+		}
 	}
 	else if (op == "-")
 	{
+		ignoreFlag = std::get<1>(left) || std::get<1>(right);
+		if (ignoreFlag)
+		{
+			parserStack.push(std::make_tuple(0, ignoreFlag, DataType::CONST_LONG));
+		}
+		else
+		{
+			double filterResult = arithmeticOperation<ArithmeticOperations::subNoCheck, double>(std::get<0>(left), std::get<0>(right), std::get<2>(left), std::get<2>(right));
+			parserStack.push(std::make_tuple(filterResult, ignoreFlag, DataType::CONST_DOUBLE));
+		}
 	}
 	else if (op == "%")
 	{
+		ignoreFlag = std::get<1>(left) || std::get<1>(right);
+		if (ignoreFlag)
+		{
+			parserStack.push(std::make_tuple(0, ignoreFlag, DataType::CONST_LONG));
+		}
+		else
+		{
+			int64_t filterResult = arithmeticOperation<ArithmeticOperations::modNoCheck, int64_t>(std::get<0>(left), std::get<0>(right), std::get<2>(left), std::get<2>(right));
+			parserStack.push(std::make_tuple(filterResult, ignoreFlag, DataType::CONST_LONG));
+		}
 	}
 	else if (op == "|")
 	{
