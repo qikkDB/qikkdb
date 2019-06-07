@@ -15,6 +15,14 @@ struct DatabaseNotFoundException : public std::exception
     }
 };
 
+struct DatabaseAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Database already exists.";
+	}
+};
+
 struct TableNotFoundFromException : public std::exception
 {
     const char* what() const noexcept override
@@ -23,12 +31,28 @@ struct TableNotFoundFromException : public std::exception
     }
 };
 
+struct TableAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Table already exists.";
+	}
+};
+
 struct ColumnAmbiguityException : public std::exception
 {
     const char* what() const noexcept override
     {
         return "Column was found in more than one table.";
     }
+};
+
+struct ColumnAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Column already exists.";
+	}
 };
 
 struct ColumnNotFoundException : public std::exception

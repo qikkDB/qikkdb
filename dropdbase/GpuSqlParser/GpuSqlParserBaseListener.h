@@ -49,8 +49,11 @@ public:
   virtual void enterSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * /*ctx*/) override { }
   virtual void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * /*ctx*/) override { }
 
-  virtual void enterNewTableColumns(GpuSqlParser::NewTableColumnsContext * /*ctx*/) override { }
-  virtual void exitNewTableColumns(GpuSqlParser::NewTableColumnsContext * /*ctx*/) override { }
+  virtual void enterNewTableEntries(GpuSqlParser::NewTableEntriesContext * /*ctx*/) override { }
+  virtual void exitNewTableEntries(GpuSqlParser::NewTableEntriesContext * /*ctx*/) override { }
+
+  virtual void enterNewTableEntry(GpuSqlParser::NewTableEntryContext * /*ctx*/) override { }
+  virtual void exitNewTableEntry(GpuSqlParser::NewTableEntryContext * /*ctx*/) override { }
 
   virtual void enterNewTableColumn(GpuSqlParser::NewTableColumnContext * /*ctx*/) override { }
   virtual void exitNewTableColumn(GpuSqlParser::NewTableColumnContext * /*ctx*/) override { }

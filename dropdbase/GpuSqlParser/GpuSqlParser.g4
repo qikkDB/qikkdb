@@ -14,11 +14,12 @@ showColumns     : SHOWCL (FROM|IN) table ((FROM|IN) database)? SEMICOL;
 
 sqlSelect       : SELECT selectColumns FROM fromTables (joinClauses)? (WHERE whereClause)? (GROUPBY groupByColumns)? (ORDERBY orderByColumns)? (LIMIT limit)? (OFFSET offset)? SEMICOL;
 sqlCreateDb     : CREATEDB database SEMICOL;
-sqlCreateTable  : CREATETABLE table LPAREN newTableColumns RPAREN SEMICOL;
+sqlCreateTable  : CREATETABLE table LPAREN newTableEntries RPAREN SEMICOL;
 sqlCreateIndex  : CREATEINDEX indexName ON table LPAREN indexColumns RPAREN SEMICOL;
 sqlInsertInto   : INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN insertIntoValues RPAREN SEMICOL;
 
-newTableColumns     : (((newTableColumn|newTableIndex) (COMMA (newTableColumn|newTableIndex))*));
+newTableEntries     : ((newTableEntry (COMMA newTableEntry)*));
+newTableEntry       : (newTableColumn|newTableIndex);
 newTableColumn      : (columnId DATATYPE);
 newTableIndex       : (INDEX indexName LPAREN indexColumns RPAREN);
 selectColumns       : (((selectColumn) (COMMA selectColumn)*));

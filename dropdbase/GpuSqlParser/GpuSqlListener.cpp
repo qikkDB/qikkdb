@@ -677,6 +677,50 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext * ctx)
 	dispatcher.addArgument<const std::string&>(table);
 }
 
+void GpuSqlListener::exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext * ctx)
+{
+	std::string newDbName = ctx->database()->getText();
+
+	if (Database::Exists(newDbName))
+	{
+		throw DatabaseAlreadyExistsException();
+	}
+
+	std::shared_ptr<Database> newDb = std::make_shared<Database>(newDbName.c_str());
+	Database::AddToInMemoryDatabaseList(newDb);
+}
+
+void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ctx)
+{
+	std::string newTableName = ctx->table()->getText();
+
+	if (database->GetTables().find(newTableName) != database->GetTables().end())
+	{
+		throw TableAlreadyExistsException();
+	}
+
+	std::unordered_map<std::string, DataType> newColumns;
+
+	for (auto &entry : ctx->newTableEntries()->newTableEntry())
+	{
+		if (entry->newTableColumn())
+		{
+			auto newColumnContext = entry->newTableColumn();
+			DataType newColumnDataType = getDataTypeFromString(newColumnContext->DATATYPE()->getText());
+			std::string newColumnName = newColumnContext->columnId()->getText();
+			
+			if (newColumns.find(newColumnName) != newColumns.end())
+			{
+				throw ColumnAlreadyExistsException();
+			}
+
+			newColumns.insert({ newColumnContext->columnId()->getText(), newColumnDataType });
+		}
+	}
+
+	database->CreateTable(newColumns, newTableName.c_str());
+}
+
 /// Method that executes on exit of INSERT INTO command
 /// Generates insert into operation
 /// Checks if table with given name exists
@@ -1133,4 +1177,47 @@ DataType GpuSqlListener::getReturnDataType(DataType operand)
 		return static_cast<DataType>(operand + DataType::COLUMN_INT);
 	}
 	return operand;
+}
+
+DataType GpuSqlListener::getDataTypeFromString(std::string dataType)
+{
+	std::string type = dataType;
+	stringToUpper(type);
+
+	if (type == "INT")
+	{
+		return DataType::COLUMN_INT;
+	}
+	else if (type == "LONG")
+	{
+		return DataType::COLUMN_LONG;
+	}
+	else if (type == "FLOAT")
+	{
+		return DataType::COLUMN_FLOAT;
+	}
+	else if (type == "DOUBLE")
+	{
+		return DataType::COLUMN_DOUBLE;
+	}
+	else if (type == "POINT")
+	{
+		return DataType::COLUMN_POINT;
+	}
+	else if (type == "POLYGON")
+	{
+		return DataType::COLUMN_POLYGON;
+	}
+	else if (type == "STRING")
+	{
+		return DataType::COLUMN_STRING;
+	}
+	else if (type == "BOOLEAN")
+	{
+		return DataType::COLUMN_INT8_T;
+	}
+	else
+	{
+		return DataType::CONST_ERROR;
+	}
 }

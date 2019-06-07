@@ -38,18 +38,18 @@ public:
     RuleSqlFile = 0, RuleStatement = 1, RuleShowStatement = 2, RuleShowDatabases = 3, 
     RuleShowTables = 4, RuleShowColumns = 5, RuleSqlSelect = 6, RuleSqlCreateDb = 7, 
     RuleSqlCreateTable = 8, RuleSqlCreateIndex = 9, RuleSqlInsertInto = 10, 
-    RuleNewTableColumns = 11, RuleNewTableColumn = 12, RuleNewTableIndex = 13, 
-    RuleSelectColumns = 14, RuleSelectColumn = 15, RuleWhereClause = 16, 
-    RuleOrderByColumns = 17, RuleOrderByColumn = 18, RuleInsertIntoValues = 19, 
-    RuleInsertIntoColumns = 20, RuleIndexColumns = 21, RuleGroupByColumns = 22, 
-    RuleGroupByColumn = 23, RuleColumnId = 24, RuleFromTables = 25, RuleJoinClauses = 26, 
-    RuleJoinClause = 27, RuleJoinTable = 28, RuleFromTable = 29, RuleTable = 30, 
-    RuleColumn = 31, RuleDatabase = 32, RuleAlias = 33, RuleIndexName = 34, 
-    RuleLimit = 35, RuleOffset = 36, RuleColumnValue = 37, RuleExpression = 38, 
-    RuleGeometry = 39, RulePointGeometry = 40, RuleLineStringGeometry = 41, 
-    RulePolygonGeometry = 42, RuleMultiPointGeometry = 43, RuleMultiLineStringGeometry = 44, 
-    RuleMultiPolygonGeometry = 45, RulePointOrClosedPoint = 46, RulePolygon = 47, 
-    RuleLineString = 48, RulePoint = 49
+    RuleNewTableEntries = 11, RuleNewTableEntry = 12, RuleNewTableColumn = 13, 
+    RuleNewTableIndex = 14, RuleSelectColumns = 15, RuleSelectColumn = 16, 
+    RuleWhereClause = 17, RuleOrderByColumns = 18, RuleOrderByColumn = 19, 
+    RuleInsertIntoValues = 20, RuleInsertIntoColumns = 21, RuleIndexColumns = 22, 
+    RuleGroupByColumns = 23, RuleGroupByColumn = 24, RuleColumnId = 25, 
+    RuleFromTables = 26, RuleJoinClauses = 27, RuleJoinClause = 28, RuleJoinTable = 29, 
+    RuleFromTable = 30, RuleTable = 31, RuleColumn = 32, RuleDatabase = 33, 
+    RuleAlias = 34, RuleIndexName = 35, RuleLimit = 36, RuleOffset = 37, 
+    RuleColumnValue = 38, RuleExpression = 39, RuleGeometry = 40, RulePointGeometry = 41, 
+    RuleLineStringGeometry = 42, RulePolygonGeometry = 43, RuleMultiPointGeometry = 44, 
+    RuleMultiLineStringGeometry = 45, RuleMultiPolygonGeometry = 46, RulePointOrClosedPoint = 47, 
+    RulePolygon = 48, RuleLineString = 49, RulePoint = 50
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -73,7 +73,8 @@ public:
   class SqlCreateTableContext;
   class SqlCreateIndexContext;
   class SqlInsertIntoContext;
-  class NewTableColumnsContext;
+  class NewTableEntriesContext;
+  class NewTableEntryContext;
   class NewTableColumnContext;
   class NewTableIndexContext;
   class SelectColumnsContext;
@@ -262,7 +263,7 @@ public:
     antlr4::tree::TerminalNode *CREATETABLE();
     TableContext *table();
     antlr4::tree::TerminalNode *LPAREN();
-    NewTableColumnsContext *newTableColumns();
+    NewTableEntriesContext *newTableEntries();
     antlr4::tree::TerminalNode *RPAREN();
     antlr4::tree::TerminalNode *SEMICOL();
 
@@ -315,14 +316,12 @@ public:
 
   SqlInsertIntoContext* sqlInsertInto();
 
-  class  NewTableColumnsContext : public antlr4::ParserRuleContext {
+  class  NewTableEntriesContext : public antlr4::ParserRuleContext {
   public:
-    NewTableColumnsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    NewTableEntriesContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    std::vector<NewTableColumnContext *> newTableColumn();
-    NewTableColumnContext* newTableColumn(size_t i);
-    std::vector<NewTableIndexContext *> newTableIndex();
-    NewTableIndexContext* newTableIndex(size_t i);
+    std::vector<NewTableEntryContext *> newTableEntry();
+    NewTableEntryContext* newTableEntry(size_t i);
     std::vector<antlr4::tree::TerminalNode *> COMMA();
     antlr4::tree::TerminalNode* COMMA(size_t i);
 
@@ -331,7 +330,21 @@ public:
    
   };
 
-  NewTableColumnsContext* newTableColumns();
+  NewTableEntriesContext* newTableEntries();
+
+  class  NewTableEntryContext : public antlr4::ParserRuleContext {
+  public:
+    NewTableEntryContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    NewTableColumnContext *newTableColumn();
+    NewTableIndexContext *newTableIndex();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  NewTableEntryContext* newTableEntry();
 
   class  NewTableColumnContext : public antlr4::ParserRuleContext {
   public:
