@@ -23,8 +23,8 @@ namespace ColmnarDB.BenchmarkUtility
 
             client.UseDatabase("TargetLoc1M");
 
-            System.IO.StreamWriter resultFile = new System.IO.StreamWriter(@".\results.txt");
-            System.IO.StreamReader queryFile = new System.IO.StreamReader(@".\benchmark_queries.sql");
+            System.IO.StreamWriter resultFile = new System.IO.StreamWriter("ColmnarDB.BenchmarkUtility/results.txt");
+            System.IO.StreamReader queryFile = new System.IO.StreamReader("ColmnarDB.BenchmarkUtility/benchmark_queries.sql");
             string queryString;
             while ((queryString = queryFile.ReadLine()) != null)
             {
