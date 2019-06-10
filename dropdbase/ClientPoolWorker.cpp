@@ -95,6 +95,12 @@ void ClientPoolWorker::HandleClient()
 				char dataBuffer[8192];
 				DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
 				int32_t elementCount = bulkImportMessage.elemcount();
+				if(elementCount*GetDataTypeSize(columnType) > 8192)
+				{
+					outInfo.set_message("Data fragment larger than allowed");
+					outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+					NetworkMessage::WriteToNetwork(outInfo, socket_);
+				}
 				NetworkMessage::ReadRaw(socket_, dataBuffer, elementCount, columnType);
 				std::unique_ptr<google::protobuf::Message> importResultMessage = clientHandler_->HandleBulkImport(*this, bulkImportMessage, dataBuffer);
 				if (importResultMessage != nullptr)
