@@ -8,6 +8,8 @@
 #include "IClientHandler.h"
 #include <boost/log/trivial.hpp>
 
+const int32_t MAXIMUM_BULK_FRAGMENT_SIZE = 8192*1024;
+
 /// <summary>
 /// Create new instance of ClientPoolWorker object
 /// </summary>
@@ -92,10 +94,10 @@ void ClientPoolWorker::HandleClient()
 			else if (recvMsg.UnpackTo(&bulkImportMessage))
 			{
 				BOOST_LOG_TRIVIAL(debug) << "BulkImport message from " << socket_.remote_endpoint().address().to_string() << "\n";
-				char dataBuffer[8192];
+				char dataBuffer[MAXIMUM_BULK_FRAGMENT_SIZE];
 				DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
 				int32_t elementCount = bulkImportMessage.elemcount();
-				if(elementCount*GetDataTypeSize(columnType) > 8192)
+				if(elementCount*GetDataTypeSize(columnType) > MAXIMUM_BULK_FRAGMENT_SIZE)
 				{
 					outInfo.set_message("Data fragment larger than allowed");
 					outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
