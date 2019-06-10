@@ -16,7 +16,7 @@ namespace ColmnarDB.BenchmarkUtility
 
         public static readonly string telcoDataCsvPath = "test-data/TargetLoc1B.csv";
         public static readonly string telcoDbName = "TargetLoc1B";
-        public static readonly string telcoQueriesPath = "benchmark_queries.sql";
+        public static readonly string telcoQueriesPath = "telco_queries.sql";
 
         public static readonly string geoDataCsvPath = "test-data/zones335.csv";
         public static readonly string geoDbName = "zones335";
@@ -39,7 +39,7 @@ namespace ColmnarDB.BenchmarkUtility
             var resultFile = new System.IO.StreamWriter(resultFilePath);
 
             //test telco queries:
-            Console.Out.WriteLine("Starting importing CSV file named: " + telcoDataCsvPath);
+            Console.Out.WriteLine("Importing CSV file named: " + telcoDataCsvPath + ". Please wait.");
             var start = DateTime.Now;
             client.ImportCSV(telcoDbName, telcoDataCsvPath);
             var timeDiff = DateTime.Now - start;
