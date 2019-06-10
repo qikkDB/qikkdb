@@ -1,9 +1,8 @@
 #include "GPUReconstruct.cuh"
 #include "cuda_ptr.h"
-// == POLYGON WKT FORMAT ==
-//
+
+// Polygon WKT format:
 // POLYGON((179.9999 89.9999, 0.0000 0.0000, 179.9999 89.9999), (-179.9999 -89.9999, 52.1300 -27.0380, -179.9999 -89.9999))
-//
 
 __global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t *indices, int32_t *counts, int32_t size)
 {
@@ -61,10 +60,14 @@ __global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory
 /// Helping function to "print" float to GPU char array
 __device__ void FloorToString(char * allChars, int64_t &startIndex, float number)
 {
+	// Append sign
 	if (number < 0)
 	{
-		allChars[startIndex] = '-';	// There is no ++ at charId because "digits" will count with negative sign
+		allChars[startIndex] = '-';
+		// (note that there is no addres move because we will count with negative sign later)
 	}
+
+	// Append integer part
 	int32_t integerPart = static_cast<int32_t>(floorf(fabsf(number)));
 	int32_t digits = GetNumberOfIntegerPartDigits(number);
 	startIndex += digits;
@@ -72,19 +75,21 @@ __device__ void FloorToString(char * allChars, int64_t &startIndex, float number
 	{
 		allChars[--startIndex] = ('0' + (integerPart % 10));
 		integerPart /= 10;
-	} while (integerPart > 0);
+	} while (integerPart > 0);		// Dynamic integer part places
 	startIndex += digits - (number < 0 ? 1 : 0);
 
+	// Append decimal part
 	int32_t decimalPart = static_cast<int32_t>(roundf(fmodf(fabsf(number), 1.0f)*powf(10.0f, WKT_DECIMAL_PLACES)));
 	allChars[startIndex++] = '.';
 	startIndex += WKT_DECIMAL_PLACES;
-	for (int32_t i = 0; i < WKT_DECIMAL_PLACES; i++)
+	for (int32_t i = 0; i < WKT_DECIMAL_PLACES; i++)	// Fixed decimal places
 	{
 		allChars[--startIndex] = ('0' + (decimalPart % 10));
 		decimalPart /= 10;
 	}
 	startIndex += WKT_DECIMAL_PLACES;
 }
+
 
 __global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount)
 {
@@ -166,23 +171,27 @@ void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *o
 		*outDataElementCount = inDataElementCount;
 		if (inDataElementCount > 0)
 		{
-			std::unique_ptr<int64_t[]> hostStringStarts = std::make_unique<int64_t[]>(inDataElementCount);
-			GPUMemory::copyDeviceToHost(hostStringStarts.get(), inStringCol.stringIndices, inDataElementCount);
-			int32_t fullCharCount = hostStringStarts[inDataElementCount - 1];
+			// Copy string indices to host
+			std::unique_ptr<int64_t[]> hostStringIndices = std::make_unique<int64_t[]>(inDataElementCount);
+			GPUMemory::copyDeviceToHost(hostStringIndices.get(), inStringCol.stringIndices, inDataElementCount);
+			int32_t fullCharCount = hostStringIndices[inDataElementCount - 1];
 
+			// Copy all chars to host
 			std::unique_ptr<char[]> hostAllChars = std::make_unique<char[]>(fullCharCount);
 			GPUMemory::copyDeviceToHost(hostAllChars.get(), inStringCol.allChars, fullCharCount);
 
+			// Fill output string array
 			for (int32_t i = 0; i < inDataElementCount; i++)
 			{
-				size_t length = static_cast<size_t>(i == 0 ? hostStringStarts[0] :
-					hostStringStarts[i] - hostStringStarts[i - 1]);
+				size_t length = static_cast<size_t>(i == 0 ? hostStringIndices[0] :
+					hostStringIndices[i] - hostStringIndices[i - 1]);
 				outStringData[i] = std::string(hostAllChars.get() +
-					(i == 0 ? 0 : hostStringStarts[i - 1]), length);
+					(i == 0 ? 0 : hostStringIndices[i - 1]), length);
 			}
 		}
 	}
 }
+
 
 void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
 	GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount)
@@ -190,19 +199,23 @@ void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
 	Context& context = Context::getInstance();
 	if (dataElementCount > 0)
 	{
+		// "Predict" (pre-calculate) string lengths
 		int32_t * stringLengths = nullptr;
 		GPUMemory::alloc(&stringLengths, dataElementCount);
 		kernel_predict_wkt_lengths << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(stringLengths, inPolygonCol, dataElementCount);
 		CheckCudaError(cudaGetLastError());
 
+		// Alloc and compute string indices as a prefix sum of the string lengths
 		GPUMemory::alloc(&(outStringCol->stringIndices), dataElementCount);
 		PrefixSum(outStringCol->stringIndices, stringLengths, dataElementCount);
 
+		// Get total char count and alloc array for all chars
 		int64_t totalCharCount;
 		GPUMemory::copyDeviceToHost(&totalCharCount, outStringCol->stringIndices + dataElementCount - 1, 1);
 		GPUMemory::alloc(&(outStringCol->allChars), totalCharCount);
 
+		// Finally convert polygons to WKTs
 		kernel_convert_poly_to_wkt << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 			(*outStringCol, inPolygonCol, dataElementCount);
 		CheckCudaError(cudaGetLastError());
@@ -213,6 +226,7 @@ void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
 		outStringCol->stringIndices = nullptr;
 	}
 }
+
 
 void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
 	GPUMemory::GPUPolygon inCol, int8_t *inMask, int32_t inDataElementCount)
@@ -293,6 +307,7 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 	CheckCudaError(cudaGetLastError());
 }
 
+
 void GPUReconstruct::ReconstructPolyColToWKT(std::string *outStringData, int32_t *outDataElementCount,
 	GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount)
 {
@@ -300,6 +315,7 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string *outStringData, int32_t
 	ReconstructPolyColKeep(&reconstructedPolygonCol, outDataElementCount, inPolygonCol, inMask, inDataElementCount);
 	GPUMemory::GPUString gpuWkt;
 	ConvertPolyColToWKTCol(&gpuWkt, reconstructedPolygonCol, *outDataElementCount);
+	// Use reconstruct without mask - just to convert GPUString to CPU string array
 	ReconstructStringCol(outStringData, outDataElementCount, gpuWkt, nullptr, *outDataElementCount);
 }
 

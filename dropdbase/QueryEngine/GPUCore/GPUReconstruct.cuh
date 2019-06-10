@@ -59,19 +59,21 @@ __global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *
 	}
 }
 
-/// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays)
+/// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays).
+/// Expanding is performed by propagating values from inMask based on counts.
 __global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t *polyIdx, int32_t *polyCount, int32_t polyIdxSize);
 
 /// Kernel for predicitng lenghts of WKT strings based on GPUPolygon struct
 __global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount);
 
-/// Kernel for convertion of GPUPolygon representation to WKT GPUString
+/// Kernel for convertion of GPUPolygon representation to WKT representation (GPUString)
 __global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount);
 
 /// Class for reconstructing buffers according to mask
 class GPUReconstruct {
 private:
-	/// Calculate count of elements in subarray (for GPUPolygon or GPUString struct arrays)
+	/// Calculate count of elements in subarray (for GPUPolygon struct arrays)
+	/// based on last number in indices and counts
 	static int32_t CalculateCount(int32_t * indices, int32_t * counts, int32_t size);
 
 public:
@@ -167,15 +169,37 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Reconstruct GPUString column and copy to CPU memory
+	/// <param name="outStringData">output CPU string array</param>
+	/// <param name="outDataElementCount">reconstructed data elemen (string) count</param>
+	/// <param name="inStringCol">input GPUString column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (string) count</param>
 	static void ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
-		GPUMemory::GPUString inPolygonCol, int8_t *inMask, int32_t inDataElementCount);
+		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
 
+	/// Convert polygons to WKTs (GPUPolygon column to GPUString columns)
+	/// <param name="outStringCol">output GPUString column</param>
+	/// <param name="inPolygonCol">input GPUPolygon column</param>
+	/// <param name="dataElementCount">input data element (complex polygon) count</param>
 	static void ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
 		GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount);
 
+	/// Recontruct GPUPolygon column and keep on GPU in the same format
+	/// <param name="outCol">output GPUPolygon column</param>
+	/// <param name="outDataElementCount">reconstructed data element (complex polygon) count</param>
+	/// <param name="inCol">input GPUPolygon column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (complex polygon) count</param>
 	static void ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
 		GPUMemory::GPUPolygon inCol, int8_t *inMask, int32_t inDataElementCount);
 
+	/// Reconstruct GPUPolygon column and convert to WKT string array on CPU
+	/// <param name="outStringData">output CPU string array</param>
+	/// <param name="outDataElementCount">reconstructed data element (WKT string) count</param>
+	/// <param name="inPolygonCol">input GPUPolygon column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (complex polygon) count</param>
 	static void ReconstructPolyColToWKT(std::string * outStringData, int32_t *outDataElementCount,
 		GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount);
 
