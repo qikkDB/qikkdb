@@ -55,12 +55,28 @@ struct ColumnAlreadyExistsException : public std::exception
 	}
 };
 
+struct ColumnAlreadyExistsInIndexException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Column already referenced multiple times in single index.";
+	}
+};
+
 struct ColumnNotFoundException : public std::exception
 {
     const char* what() const noexcept override
     {
         return "Column was not found in table.";
     }
+};
+
+struct IndexAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Index already exists in table.";
+	}
 };
 
 struct ColumnGroupByException : public std::exception

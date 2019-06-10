@@ -713,8 +713,9 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ct
 	}
 
 	std::unordered_map<std::string, DataType> newColumns;
+	std::unordered_map<std::string, std::unordered_set<std::string>> newIndices;
 
-	for (auto &entry : ctx->newTableEntries()->newTableEntry())
+	for (auto& entry : ctx->newTableEntries()->newTableEntry())
 	{
 		if (entry->newTableColumn())
 		{
@@ -729,10 +730,48 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ct
 
 			newColumns.insert({ newColumnContext->columnId()->getText(), newColumnDataType });
 		}
-		//Handle index addition
+		if (entry->newTableIndex())
+		{
+			auto newColumnContext = entry->newTableIndex();
+			std::string indexName = newColumnContext->indexName()->getText();
+
+			if (newIndices.find(indexName) != newIndices.end())
+			{
+				throw IndexAlreadyExistsException();
+			}
+
+			std::unordered_set<std::string> indexColumns;
+			for (auto& column : newColumnContext->indexColumns()->column())
+			{
+				if (indexColumns.find(column->getText()) != indexColumns.end())
+				{
+					throw ColumnAlreadyExistsInIndexException();
+				}
+			}
+			newIndices.insert({indexName, indexColumns});
+		}
 	}
 
-	database->CreateTable(newColumns, newTableName.c_str());
+	dispatcher.addCreateTableFunction();
+
+	dispatcher.addArgument<const std::string&>(newTableName);
+	dispatcher.addArgument<int32_t>(newColumns.size());
+	for (auto& newColumn : newColumns)
+	{
+		dispatcher.addArgument<const std::string&>(newColumn.first);
+		dispatcher.addArgument<int32_t>(static_cast<int32_t>(newColumn.second));
+	}
+
+	dispatcher.addArgument<int32_t>(newIndices.size());
+	for (auto& newIndex : newIndices)
+	{
+		dispatcher.addArgument<const std::string&>(newIndex.first);
+		dispatcher.addArgument<int32_t>(newIndex.second.size());
+		for (auto& indexColumn : newIndex.second)
+		{
+			dispatcher.addArgument<const std::string&>(indexColumn);
+		}
+	}
 }
 
 void GpuSqlListener::exitSqlDropTable(GpuSqlParser::SqlDropTableContext * ctx)

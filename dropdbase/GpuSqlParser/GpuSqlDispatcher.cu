@@ -760,6 +760,35 @@ int32_t GpuSqlDispatcher::dropDatabase()
 
 int32_t GpuSqlDispatcher::createTable()
 {
+	std::unordered_map<std::string, DataType> newColumns;
+	std::unordered_map<std::string, std::unordered_set<std::string>> newIndices;
+
+	std::string newTableName = arguments.read<std::string>();
+
+	int32_t newColumnsCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < newColumnsCount; i++)
+	{
+		std::string newColumnName = arguments.read<std::string>();
+		int32_t newColumnDataType = arguments.read<int32_t>();
+		newColumns.insert({ newColumnName, static_cast<DataType>(newColumnDataType) });
+	}
+
+	int32_t newIndexCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < newIndexCount; i++)
+	{
+		std::string newIndexName = arguments.read<std::string>();
+		int32_t newIndexColumnCount = arguments.read<int32_t>();
+		std::unordered_set<std::string> newIndexColumns;
+
+		for (int32_t j = 0; j < newIndexColumnCount; j++)
+		{
+			std::string newIndexColumn = arguments.read<std::string>();
+			newIndexColumns.insert(newIndexColumn);
+		}
+		newIndices.insert({ newIndexName, newIndexColumns });
+	}
+
+	database->CreateTable(newColumns, newTableName.c_str());
 	return 8;
 }
 
