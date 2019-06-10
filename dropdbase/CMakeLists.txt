@@ -1,5 +1,8 @@
+include_directories(.)
 set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/messages/BulkImportMessage.pb.cc
+        ${CMAKE_CURRENT_SOURCE_DIR}/messages/BulkImportMessage.pb.h
         ${CMAKE_CURRENT_SOURCE_DIR}/messages/InfoMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/messages/InfoMessage.pb.h
         ${CMAKE_CURRENT_SOURCE_DIR}/messages/QueryMessage.pb.cc

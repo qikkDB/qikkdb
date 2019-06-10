@@ -1,4 +1,5 @@
 
+include_directories(../dropdbase)
 set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/AllocatorTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ColumnTests.cpp
