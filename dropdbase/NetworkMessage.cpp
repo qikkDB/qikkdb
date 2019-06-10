@@ -39,3 +39,18 @@ google::protobuf::Any NetworkMessage::ReadFromNetwork(boost::asio::ip::tcp::sock
 	}
 	return ret;
 }
+
+void NetworkMessage::WriteRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType dataType)
+{
+	int32_t elementSize = GetDataTypeSize(dataType);
+	int32_t totalSize = elementCount * elementSize;
+	boost::asio::write(socket, boost::asio::buffer(dataBuffer, totalSize));
+}
+
+void NetworkMessage::ReadRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType dataType)
+{
+	int32_t elementSize = GetDataTypeSize(dataType);
+	int32_t totalSize = elementCount * elementSize;
+	boost::asio::read(socket, boost::asio::buffer(dataBuffer, totalSize));
+
+}

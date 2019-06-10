@@ -4,6 +4,7 @@
 #include "messages/InfoMessage.pb.h"
 #include "messages/QueryMessage.pb.h"
 #include "messages/CSVImportMessage.pb.h"
+#include "messages/BulkImportMessage.pb.h"
 #include "messages/SetDatabaseMessage.pb.h"
 
 class ITCPWorker;
@@ -33,6 +34,13 @@ public:
 	/// <param name="csvImportMessage">Message to handle</param>
 	/// <returns>InfoMessage representing success state of the operation</returns>
 	virtual std::unique_ptr<google::protobuf::Message> HandleCSVImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::CSVImportMessage& csvImportMessage) = 0;
+	/// <summary>
+	/// Bulk import data
+	/// </summary>
+	/// <param name="worker">Worker that requested handling</param>
+	/// <param name="bulkImportMessage">Message to handle</param>
+	/// <returns>InfoMessage representing success state of the operation</returns>
+	virtual std::unique_ptr<google::protobuf::Message> HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer) = 0;
 	/// <summary>
 	/// Set working database
 	/// </summary>

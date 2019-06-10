@@ -251,3 +251,123 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleSetDatabase(I
 	}
 	return resultMessage;
 }
+
+std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer)
+{
+	auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+	std::string tableName = bulkImportMessage.tablename();
+	std::string columnName = bulkImportMessage.columnname();
+	DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
+	int32_t elementCount = bulkImportMessage.elemcount();
+	auto sharedDb = worker.currentDatabase_.lock();
+	if(sharedDb == nullptr)
+	{
+		resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+		resultMessage->set_message("Database was not found");
+		return resultMessage;
+	}
+	auto& tables = sharedDb->GetTables();
+	auto search = tables.find(tableName);
+	if (search == tables.end()) 
+	{
+		std::unordered_map<std::string, DataType> columns;
+		columns.insert({columnName, columnType});
+		sharedDb->CreateTable(columns, tableName.c_str());
+	}
+
+	auto& table = tables.at(tableName);
+	if(!table.ContainsColumn(columnName.c_str()))
+	{
+		table.CreateColumn(columnName.c_str(),columnType);
+	}
+
+	auto& column = table.GetColumns().at(columnName);
+
+	if(column->GetColumnType() != columnType)
+	{
+		resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+		resultMessage->set_message((std::string("Column type mismatch in column ") + columnName).c_str());
+		return resultMessage;
+
+	}
+	std::unordered_map<std::string, std::any> columnData;
+	if(columnType == COLUMN_INT8_T)
+	{
+		std::vector<int8_t> dataVector;
+		std::copy(dataBuffer, dataBuffer + elementCount, std::back_inserter(dataVector));
+		columnData.insert({columnName, dataVector});	
+	}
+	else if(columnType == COLUMN_INT)
+	{
+		std::vector<int32_t> dataVector;
+		std::copy(reinterpret_cast<const int32_t*>(dataBuffer), reinterpret_cast<const int32_t*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
+		columnData.insert({columnName, dataVector});
+	}
+	else if(columnType == COLUMN_LONG)
+	{
+		std::vector<int64_t> dataVector;
+		std::copy(reinterpret_cast<const int64_t*>(dataBuffer), reinterpret_cast<const int64_t*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
+		columnData.insert({columnName, dataVector});
+	}
+	else if(columnType == COLUMN_FLOAT)
+	{
+		std::vector<float> dataVector;
+		std::copy(reinterpret_cast<const float*>(dataBuffer), reinterpret_cast<const float*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
+		columnData.insert({columnName, dataVector});
+	}
+	else if(columnType == COLUMN_DOUBLE)
+	{
+		std::vector<double> dataVector;
+		std::copy(reinterpret_cast<const double*>(dataBuffer), reinterpret_cast<const double*>(dataBuffer) + elementCount, std::back_inserter(dataVector));
+		columnData.insert({columnName, dataVector});
+	}
+	else if(columnType == COLUMN_POINT)
+	{
+		std::vector<ColmnarDB::Types::Point> dataVector;
+		int i = 0;
+		while(i < elementCount)
+		{
+			ColmnarDB::Types::Point point;
+			int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
+			i += 4;
+			point.ParseFromArray(dataBuffer + i, size);
+			i += size;
+			dataVector.push_back(point);
+		}
+		columnData.insert({columnName, dataVector});
+	}
+	else if(columnType == COLUMN_POLYGON)
+	{
+		std::vector<ColmnarDB::Types::ComplexPolygon> dataVector;
+		int i = 0;
+		while(i < elementCount)
+		{
+			ColmnarDB::Types::ComplexPolygon polygon;
+			int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
+			i += 4;
+			polygon.ParseFromArray(dataBuffer + i, size);
+			i += size;
+			dataVector.push_back(polygon);
+		}
+		columnData.insert({columnName, dataVector});
+	}
+	else if(columnType == COLUMN_STRING)
+	{
+		std::vector<std::string> dataVector;
+		int i = 0;
+		while(i < elementCount)
+		{
+			
+			int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
+			i += 4;
+			std::string str(dataBuffer + i, size);
+			i += size;
+			dataVector.push_back(str);
+		}
+		columnData.insert({columnName, dataVector});
+	}
+	table.InsertData(columnData);
+	resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+	resultMessage->set_message("");
+	return resultMessage;
+}
