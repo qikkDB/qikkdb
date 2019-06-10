@@ -45,10 +45,16 @@ public:
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size)
 	{
-		T * mask;
-		GPUMemory::alloc<T>(&mask, size);
-		allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(mask), size, true) });
-		usedRegisterMemory += size * sizeof(T);
-		return mask;
+		void* allocatedMemory = operator new(size * sizeof(T));
+		allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(allocatedMemory), size, true) });
+		return reinterpret_cast<T*>(allocatedMemory);
+	}
+
+	~CpuSqlDispatcher()
+	{
+		for (auto& pointer : allocatedPointers)
+		{
+			operator delete(reinterpret_cast<void*>(std::get<0>(pointer.second)));
+		}
 	}
 };
