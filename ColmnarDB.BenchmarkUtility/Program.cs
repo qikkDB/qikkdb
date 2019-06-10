@@ -59,21 +59,31 @@ namespace ColmnarDB.BenchmarkUtility
 
             while ((queryString = queryFile.ReadLine()) != null)
             {
-                float resultSum = 0;
-
                 Console.Out.WriteLine("Executing benchmark query: " + queryString);
+                resultFile.WriteLine(queryString);
 
-                //execute query n times:
+                //execute query first time (no cache):
+                client.Query(queryString);
+                (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
+                result = client.GetNextQueryResult();
+                float resultSum = result.executionTimes.Values.Sum();
+                
+                //save query result to a file:
+                resultFile.WriteLine((resultSum).ToString() + " (first run)");
+
+                resultSum = 0;
+
+                //execute query n times (used cache):
                 for (int i = 0; i < numberOfQueryExec; i++)
                 {
                     client.Query(queryString);
-                    (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
+                    result = (null, null);
                     result = client.GetNextQueryResult();
                     resultSum += result.executionTimes.Values.Sum();
                 } 
 
                 //save query result to a file:
-                resultFile.WriteLine((resultSum / numberOfQueryExec).ToString());
+                resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached run)");
             }
             queryFile.Close();
 
@@ -95,21 +105,31 @@ namespace ColmnarDB.BenchmarkUtility
 
             while ((queryString = queryFile.ReadLine()) != null)
             {
-                float resultSum = 0;
-
                 Console.Out.WriteLine("Executing benchmark query: " + queryString);
+                resultFile.WriteLine(queryString);
 
-                //execute query n times:
+                //execute query first time (no cache):
+                client.Query(queryString);
+                (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
+                result = client.GetNextQueryResult();
+                float resultSum = result.executionTimes.Values.Sum();
+
+                //save query result to a file:
+                resultFile.WriteLine((resultSum).ToString() + " (first run)");
+
+                resultSum = 0;
+
+                //execute query n times (used cache):
                 for (int i = 0; i < numberOfQueryExec; i++)
                 {
                     client.Query(queryString);
-                    (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
+                    result = (null, null);
                     result = client.GetNextQueryResult();
                     resultSum += result.executionTimes.Values.Sum();
                 }
 
                 //save query result to a file:
-                resultFile.WriteLine((resultSum / numberOfQueryExec).ToString());
+                resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached run)");
             }
             queryFile.Close();
             resultFile.Close();
