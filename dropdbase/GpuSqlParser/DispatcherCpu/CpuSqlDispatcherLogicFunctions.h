@@ -1,15 +1,10 @@
 #pragma once
 #include "../CpuSqlDispatcher.h"
 #include <tuple>
-#include <stack>
-
-
-std::stack<>
 
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::filterConstConst()
 {
-
 	U constRight = arguments.read<U>();
 	T constLeft = arguments.read<T>();
 	auto reg = arguments.read<std::string>();
