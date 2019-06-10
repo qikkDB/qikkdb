@@ -8004,12 +8004,6 @@ TEST(DispatcherTests, DateTimeCol)
 	}
 }
 
-void AssertEqPolygons(ColmnarDB::Types::ComplexPolygon poly1, std::string wkt2)
-{
-	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(poly1),
-		ComplexPolygonFactory::WktFromPolygon(ComplexPolygonFactory::FromWkt(wkt2)));
-}
-
 TEST(DispatcherTests, RetPolygons)
 {
 	Context::getInstance();
@@ -8019,7 +8013,7 @@ TEST(DispatcherTests, RetPolygons)
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	std::vector<ColmnarDB::Types::ComplexPolygon> expectedResultsPolygons;
+	std::vector<std::string> expectedResultsPolygons;
 
 	auto column = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colPolygon1").get());
 
@@ -8028,7 +8022,7 @@ TEST(DispatcherTests, RetPolygons)
 		auto block = column->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			expectedResultsPolygons.push_back(block->GetData()[k]);
+			expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k], true));
 		}
 	}
 
@@ -8038,7 +8032,7 @@ TEST(DispatcherTests, RetPolygons)
 
 	for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
 	{
-		AssertEqPolygons(expectedResultsPolygons[i], payloads.stringpayload().stringdata()[i]);
+		ASSERT_EQ(expectedResultsPolygons[i], payloads.stringpayload().stringdata()[i]);
 	}
 }
 
@@ -8051,7 +8045,7 @@ TEST(DispatcherTests, RetPolygonsWhere)
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	std::vector<ColmnarDB::Types::ComplexPolygon> expectedResultsPolygons;
+	std::vector<std::string> expectedResultsPolygons;
 
 	auto column = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colPolygon1").get());
 
@@ -8060,19 +8054,9 @@ TEST(DispatcherTests, RetPolygonsWhere)
 		auto block = column->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			if (k % 2)
+			if ((k % 1024) * (k % 2 ? 1 : -1) < 20)
 			{
-				if ((k % 1024) < 20)
-				{
-					expectedResultsPolygons.push_back(block->GetData()[k]);
-				}
-			}
-			else
-			{
-				if (((k % 1024) * -1) < 20)
-				{
-					expectedResultsPolygons.push_back(block->GetData()[k]);
-				}
+				expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k], true));
 			}
 		}
 	}
@@ -8083,7 +8067,7 @@ TEST(DispatcherTests, RetPolygonsWhere)
 
 	for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
 	{
-		AssertEqPolygons(expectedResultsPolygons[i], payloads.stringpayload().stringdata()[i]);
+		ASSERT_EQ(expectedResultsPolygons[i], payloads.stringpayload().stringdata()[i]);
 	}
 }
 
