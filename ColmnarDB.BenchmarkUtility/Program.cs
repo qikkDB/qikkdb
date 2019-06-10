@@ -16,11 +16,11 @@ namespace ColmnarDB.BenchmarkUtility
 
         public static readonly string telcoDataCsvPath = "test-data/TargetLoc1B.csv";
         public static readonly string telcoDbName = "TargetLoc1B";
-        public static readonly string telcoQueriesPath = "telco_queries.sql";
+        public static readonly string telcoQueriesPath = "ColmnarDB.BenchmarkUtility/telco_queries.sql";
 
         public static readonly string geoDataCsvPath = "test-data/zones335.csv";
         public static readonly string geoDbName = "zones335";
-        public static readonly string geoQueriesPath = "geo_queries.sql";
+        public static readonly string geoQueriesPath = "ColmnarDB.BenchmarkUtility/geo_queries.sql";
 
         /// <summary>
         /// Load benchmark queries from a file, execute them one by one and save results.
