@@ -189,7 +189,7 @@ void GpuSqlDispatcher::addDropDatabaseFunction()
 
 void GpuSqlDispatcher::addCreateTableFunction()
 {
-	dispatcherFunctions.push_back(createDatabaseFunction);
+	dispatcherFunctions.push_back(createTableFunction);
 }
 
 void GpuSqlDispatcher::addDropTableFunction()
@@ -754,7 +754,7 @@ int32_t GpuSqlDispatcher::dropDatabase()
 {
 	std::string dbName = arguments.read<std::string>();
 	Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
-	//Remove database from list
+	//Delete from disk
 	return 7;
 }
 
@@ -794,11 +794,33 @@ int32_t GpuSqlDispatcher::createTable()
 
 int32_t GpuSqlDispatcher::dropTable()
 {
+	std::string tableName = arguments.read<std::string>();
+	database->GetTables().erase(tableName);
+	//Delete from disk
 	return 9;
 }
 
 int32_t GpuSqlDispatcher::alterTable()
 {
+	std::string tableName = arguments.read<std::string>();
+
+	int32_t addColumnsCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < addColumnsCount; i++)
+	{
+		std::string addColumnName = arguments.read<std::string>();
+		int32_t addColumnDataType = arguments.read<int32_t>();
+		database->GetTables().at(tableName).CreateColumn(addColumnName.c_str(), static_cast<DataType>(addColumnDataType));
+		int64_t tableSize = database->GetTables().at(tableName).GetSize();
+		database->GetTables().at(tableName).GetColumns().at(addColumnName)->InsertNullData(tableSize);
+	}
+
+	int32_t dropColumnsCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < dropColumnsCount; i++)
+	{
+		std::string dropColumnName = arguments.read<std::string>();
+		database->GetTables().at(tableName).EraseColumn(dropColumnName);
+		//Delete from disk
+	}
 	return 10;
 }
 

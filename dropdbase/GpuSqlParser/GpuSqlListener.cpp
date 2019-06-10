@@ -743,10 +743,15 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ct
 			std::unordered_set<std::string> indexColumns;
 			for (auto& column : newColumnContext->indexColumns()->column())
 			{
+				if (newColumns.find(column->getText()) == newColumns.end())
+				{
+					throw ColumnNotFoundException();
+				}
 				if (indexColumns.find(column->getText()) != indexColumns.end())
 				{
 					throw ColumnAlreadyExistsInIndexException();
 				}
+				indexColumns.insert(column->getText());
 			}
 			newIndices.insert({indexName, indexColumns});
 		}
@@ -783,7 +788,8 @@ void GpuSqlListener::exitSqlDropTable(GpuSqlParser::SqlDropTableContext * ctx)
 		throw TableNotFoundFromException();
 	}
 
-	database->GetTables().erase(tableName);
+	dispatcher.addDropTableFunction();
+	dispatcher.addArgument<const std::string&>(tableName);
 }
 
 void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext * ctx)
@@ -794,6 +800,9 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext * ctx)
 	{
 		throw TableNotFoundFromException();
 	}
+
+	std::unordered_map<std::string, DataType> addColumns;
+	std::unordered_set<std::string> dropColumns;
 	 
 	for (auto &entry : ctx->alterTableEntries()->alterTableEntry())
 	{
@@ -803,26 +812,44 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext * ctx)
 			DataType addColumnDataType = getDataTypeFromString(addColumnContext->DATATYPE()->getText());
 			std::string addColumnName = addColumnContext->columnId()->getText();
 
-			if (database->GetTables().at(tableName).GetColumns().find(addColumnName) != database->GetTables().at(tableName).GetColumns().end())
+			if (database->GetTables().at(tableName).GetColumns().find(addColumnName) != database->GetTables().at(tableName).GetColumns().end() ||
+				addColumns.find(addColumnName) != addColumns.end())
 			{
 				throw ColumnAlreadyExistsException();
 			}
 
-			database->GetTables().at(tableName).CreateColumn(addColumnName.c_str(), addColumnDataType);
+			addColumns.insert({ addColumnName, addColumnDataType });
 		}
 		else if (entry->dropColumn())
 		{
-			auto dropColumnContext = entry->addColumn();
+			auto dropColumnContext = entry->dropColumn();
 			std::string dropColumnName = dropColumnContext->columnId()->getText();
 
-			if (database->GetTables().at(tableName).GetColumns().find(dropColumnName) == database->GetTables().at(tableName).GetColumns().end())
+			if (database->GetTables().at(tableName).GetColumns().find(dropColumnName) == database->GetTables().at(tableName).GetColumns().end() ||
+				dropColumns.find(dropColumnName) != dropColumns.end())
 			{
 				throw ColumnNotFoundException();
 			}
 
-			database->GetTables().at(tableName).EraseColumn(dropColumnName);
+			dropColumns.insert({ dropColumnName });
 		}
 		// Alter Column - type casting
+	}
+
+	dispatcher.addAlterTableFunction();
+	dispatcher.addArgument<const std::string&>(tableName);
+
+	dispatcher.addArgument<int32_t>(addColumns.size());
+	for (auto& addColumn : addColumns)
+	{
+		dispatcher.addArgument<const std::string&>(addColumn.first);
+		dispatcher.addArgument<int32_t>(static_cast<int32_t>(addColumn.second));
+	}
+
+	dispatcher.addArgument<int32_t>(dropColumns.size());
+	for (auto& dropColumn : dropColumns)
+	{
+		dispatcher.addArgument<const std::string&>(dropColumn);
 	}
 }
 

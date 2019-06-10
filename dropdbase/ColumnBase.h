@@ -1,3 +1,4 @@
+
 #pragma once
 #include <string>
 #include <typeinfo>
@@ -83,6 +84,7 @@ class ColumnBase : public IColumn
 {
 private:
 	std::string name_;
+	int64_t size_;
 	int blockSize_;
 	std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
 
@@ -98,7 +100,7 @@ private:
 
 public:
 	ColumnBase(const std::string& name, int blockSize) :
-		name_(name), blockSize_(blockSize), blocks_()
+		name_(name), blockSize_(blockSize), blocks_(), size_(0)
 	{
 		std::vector<std::unique_ptr<BlockBase<T>>> blocks;
 		blocks_[-1] = std::move(blocks);
@@ -195,6 +197,7 @@ public:
 	/// <param name="columnData">Data to be inserted</param>
 	void InsertData(const std::vector<T>& columnData, int groupId = -1)
 	{
+		size_ += columnData.size();
 		int startIdx = 0;
 		if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
 		{
@@ -202,6 +205,7 @@ public:
 			if (columnData.size() <= lastBlock->EmptyBlockSpace())
 			{
 				lastBlock->InsertData(columnData);
+				setColumnStatistics();
 				return;
 			}
 			int emptySpace = lastBlock->EmptyBlockSpace();
@@ -242,9 +246,14 @@ public:
 	/// Insert null data into column
 	/// </summary>
 	/// <param name="length">Length of inserted data</param>
-	void InsertNullData(int length)
+	virtual void InsertNullData(int length) override
 	{
 		InsertData(NullArray(length));
+	}
+
+	virtual int64_t GetSize() const override
+	{
+		return size_;
 	}
 
 	/// <summary>

@@ -53,7 +53,7 @@ alias               : ID;
 indexName           : ID;
 limit               : INTLIT;
 offset              : INTLIT;
-columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT|);
+columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT);
 
 expression : op=NOT expression                                                            # unaryOperation
            | op=MINUS expression                                                          # unaryOperation
