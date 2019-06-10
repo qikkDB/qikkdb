@@ -102,7 +102,6 @@ __global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemor
 		int64_t charId = stringStartIndex + 7;
 		outWkt.allChars[charId++] = '(';
 
-
 		const int32_t subpolyStartIdx = inPolygonCol.polyIdx[i];
 		const int32_t subpolyEndIdx = subpolyStartIdx + inPolygonCol.polyCount[i];
 
@@ -165,19 +164,22 @@ void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *o
 	else	// If mask is not used
 	{
 		*outDataElementCount = inDataElementCount;
-		std::unique_ptr<int64_t[]> hostStringStarts = std::make_unique<int64_t[]>(inDataElementCount);
-		GPUMemory::copyDeviceToHost(hostStringStarts.get(), inStringCol.stringIndices, inDataElementCount);
-		int32_t fullCharCount = hostStringStarts[inDataElementCount - 1];
-
-		std::unique_ptr<char[]> hostAllChars = std::make_unique<char[]>(fullCharCount);
-		GPUMemory::copyDeviceToHost(hostAllChars.get(), inStringCol.allChars, fullCharCount);
-
-		for (int32_t i = 0; i < inDataElementCount; i++)
+		if (inDataElementCount > 0)
 		{
-			size_t length = static_cast<size_t>(i == 0 ? hostStringStarts[0] :
-				hostStringStarts[i] - hostStringStarts[i - 1]);
-			outStringData[i] = std::string(hostAllChars.get() +
-				(i == 0 ? 0 : hostStringStarts[i - 1]), length);
+			std::unique_ptr<int64_t[]> hostStringStarts = std::make_unique<int64_t[]>(inDataElementCount);
+			GPUMemory::copyDeviceToHost(hostStringStarts.get(), inStringCol.stringIndices, inDataElementCount);
+			int32_t fullCharCount = hostStringStarts[inDataElementCount - 1];
+
+			std::unique_ptr<char[]> hostAllChars = std::make_unique<char[]>(fullCharCount);
+			GPUMemory::copyDeviceToHost(hostAllChars.get(), inStringCol.allChars, fullCharCount);
+
+			for (int32_t i = 0; i < inDataElementCount; i++)
+			{
+				size_t length = static_cast<size_t>(i == 0 ? hostStringStarts[0] :
+					hostStringStarts[i] - hostStringStarts[i - 1]);
+				outStringData[i] = std::string(hostAllChars.get() +
+					(i == 0 ? 0 : hostStringStarts[i - 1]), length);
+			}
 		}
 	}
 }
@@ -186,19 +188,30 @@ void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
 	GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount)
 {
 	Context& context = Context::getInstance();
-	int32_t * stringLengths = nullptr;
-	GPUMemory::alloc(&stringLengths, dataElementCount);
-	kernel_predict_wkt_lengths << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-				(stringLengths, inPolygonCol, dataElementCount);
+	if (dataElementCount > 0)
+	{
+		int32_t * stringLengths = nullptr;
+		GPUMemory::alloc(&stringLengths, dataElementCount);
+		kernel_predict_wkt_lengths << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+			(stringLengths, inPolygonCol, dataElementCount);
+		CheckCudaError(cudaGetLastError());
 
-	GPUMemory::alloc(&(outStringCol->stringIndices), dataElementCount);
-	PrefixSum(outStringCol->stringIndices, stringLengths, dataElementCount);
-	int64_t totalCharCount;
-	GPUMemory::copyDeviceToHost(&totalCharCount, outStringCol->stringIndices + dataElementCount - 1, 1);
-	GPUMemory::alloc(&(outStringCol->allChars), dataElementCount);
-	
-	kernel_convert_poly_to_wkt << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-		(*outStringCol, inPolygonCol, dataElementCount);
+		GPUMemory::alloc(&(outStringCol->stringIndices), dataElementCount);
+		PrefixSum(outStringCol->stringIndices, stringLengths, dataElementCount);
+
+		int64_t totalCharCount;
+		GPUMemory::copyDeviceToHost(&totalCharCount, outStringCol->stringIndices + dataElementCount - 1, 1);
+		GPUMemory::alloc(&(outStringCol->allChars), totalCharCount);
+
+		kernel_convert_poly_to_wkt << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+			(*outStringCol, inPolygonCol, dataElementCount);
+		CheckCudaError(cudaGetLastError());
+	}
+	else
+	{
+		outStringCol->allChars = nullptr;
+		outStringCol->stringIndices = nullptr;
+	}
 }
 
 void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
@@ -234,8 +247,6 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			kernel_generate_submask << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
 				(subpolyMask.get(), inMask, inCol.polyIdx, inCol.polyCount, inDataElementCount);
 			CheckCudaError(cudaGetLastError());
-			int8_t spm[1000];
-			GPUMemory::copyDeviceToHost(spm, subpolyMask.get(), inSubpolySize);
 
 			cuda_ptr<int32_t> subpolyPrefixSumPointer(inSubpolySize);
 			PrefixSum(subpolyPrefixSumPointer.get(), subpolyMask.get(), inSubpolySize);
@@ -254,8 +265,6 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			kernel_generate_submask << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
 				(pointMask.get(), subpolyMask.get(), inCol.pointIdx, inCol.pointCount, inSubpolySize);
 			CheckCudaError(cudaGetLastError());
-			int8_t pm[1000];
-			GPUMemory::copyDeviceToHost(pm, pointMask.get(), inPointSize);
 
 			cuda_ptr<int32_t> pointPrefixSumPointer(inPointSize);
 			PrefixSum(pointPrefixSumPointer.get(), pointMask.get(), inPointSize);
@@ -264,8 +273,6 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			kernel_reconstruct_col << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
 				(outCol->polyPoints, inCol.polyPoints, pointPrefixSumPointer.get(), pointMask.get(), inPointSize);
 			CheckCudaError(cudaGetLastError());
-			NativeGeoPoint ngp[1000];
-			GPUMemory::copyDeviceToHost(ngp, outCol->polyPoints, outPointSize);
 		}
 		else	// Empty result set
 		{
@@ -293,7 +300,7 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string *outStringData, int32_t
 	ReconstructPolyColKeep(&reconstructedPolygonCol, outDataElementCount, inPolygonCol, inMask, inDataElementCount);
 	GPUMemory::GPUString gpuWkt;
 	ConvertPolyColToWKTCol(&gpuWkt, reconstructedPolygonCol, *outDataElementCount);
-	ReconstructStringCol(outStringData, outDataElementCount, gpuWkt, nullptr, inDataElementCount);
+	ReconstructStringCol(outStringData, outDataElementCount, gpuWkt, nullptr, *outDataElementCount);
 }
 
 

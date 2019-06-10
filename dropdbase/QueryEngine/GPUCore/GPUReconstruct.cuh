@@ -15,7 +15,8 @@
 #include "../../../cub/cub.cuh"
 
 /// Precision of generated WKT floats as number of decimal places
-__device__ const int32_t WKT_DECIMAL_PLACES = 4;		// 4 is for about 10 m accuracy, 3 for 100 m
+/// (4 is for about 10 m accuracy, 3 for 100 m)
+__device__ const int32_t WKT_DECIMAL_PLACES = 4;
 
 /// POLYGON word
 __device__ const char WKT_POLYGON[] = "POLYGON";
