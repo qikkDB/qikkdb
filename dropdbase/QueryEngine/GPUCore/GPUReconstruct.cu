@@ -58,7 +58,7 @@ __global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory
 
 
 /// Helping function to "print" float to GPU char array
-__device__ void FloorToString(char * allChars, int64_t &startIndex, float number)
+__device__ void FloatToString(char * allChars, int64_t &startIndex, float number)
 {
 	// Append sign
 	if (number < 0)
@@ -119,9 +119,9 @@ __global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemor
 
 			for (int32_t k = pointStartIdx; k < pointEndIdx; k++)	// via points
 			{
-				FloorToString(outWkt.allChars, charId, inPolygonCol.polyPoints[k].latitude);
+				FloatToString(outWkt.allChars, charId, inPolygonCol.polyPoints[k].latitude);
 				outWkt.allChars[charId++] = ' ';
-				FloorToString(outWkt.allChars, charId, inPolygonCol.polyPoints[k].longitude);
+				FloatToString(outWkt.allChars, charId, inPolygonCol.polyPoints[k].longitude);
 
 				if (k < pointEndIdx - 1)
 				{
@@ -246,7 +246,7 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			int32_t inSubpolySize = CalculateCount(inCol.polyIdx, inCol.polyCount, inDataElementCount);
 			int32_t inPointSize = CalculateCount(inCol.pointIdx, inCol.pointCount, inSubpolySize);
 
-			// Comlex polygons (reconstruct polyCount and sum it to polyIdx)
+			// Complex polygons (reconstruct polyCount and sum it to polyIdx)
 			GPUMemory::alloc(&(outCol->polyCount), *outDataElementCount);
 			GPUMemory::alloc(&(outCol->polyIdx), *outDataElementCount);
 			kernel_reconstruct_col << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
