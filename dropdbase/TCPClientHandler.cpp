@@ -268,7 +268,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(IT
 	}
 	auto& tables = sharedDb->GetTables();
 	auto search = tables.find(tableName);
-	if (search != tables.end()) 
+	if (search == tables.end()) 
 	{
 		std::unordered_map<std::string, DataType> columns;
 		columns.insert({columnName, columnType});

@@ -24,4 +24,5 @@ public:
 	static google::protobuf::Any ReadFromNetwork(boost::asio::ip::tcp::socket& socket);
 	
 	static void ReadRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType columnType);
+	static void WriteRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType dataType);
 };

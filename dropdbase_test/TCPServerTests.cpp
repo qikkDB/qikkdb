@@ -53,7 +53,31 @@ class DummyClientHandler : public IClientHandler
 	}
 	virtual std::unique_ptr<google::protobuf::Message> HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer) 
 	{
-
+		std::unique_ptr<ColmnarDB::NetworkClient::Message::InfoMessage> ret = std::make_unique< ColmnarDB::NetworkClient::Message::InfoMessage>();
+		if(std::string(bulkImportMessage.columnname()) != "test" || std::string(bulkImportMessage.tablename()) != "test" 
+		|| bulkImportMessage.columntype() != DataType::COLUMN_INT || bulkImportMessage.elemcount() != 5)
+		{
+			printf("Something wrong.\n");
+			ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);	
+		}
+		else
+		{
+			ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+			const int32_t* intData = reinterpret_cast<const int32_t*>(dataBuffer);
+			for(int i = 0; i < 5; i++)
+			{
+				if(intData[i] != i+1)
+				{
+					printf("Data mismatch %d != %d.\n",intData[i],i+1);
+					ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);	
+					break;
+				}
+			}
+			
+		}
+				
+		ret->set_message("");
+		return ret;
 	}
 };
 
@@ -131,6 +155,22 @@ void setDatabase(boost::asio::ip::tcp::socket& sock, const char* name)
 	ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDbMsg;
 	setDbMsg.set_databasename(name);
 	NetworkMessage::WriteToNetwork(setDbMsg, sock);
+	auto response = NetworkMessage::ReadFromNetwork(sock);
+	ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+	ASSERT_TRUE(response.UnpackTo(&infoMessage));
+	ASSERT_EQ(infoMessage.code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+}
+
+void bulkImport(boost::asio::ip::tcp::socket& sock)
+{
+	ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
+	bulkImportMessage.set_tablename("test");
+	bulkImportMessage.set_columnname("test");
+	bulkImportMessage.set_columntype(static_cast<ColmnarDB::NetworkClient::Message::DataType>(DataType::COLUMN_INT));
+	bulkImportMessage.set_elemcount(5);
+	int32_t dataBuff[] = {1,2,3,4,5};
+	NetworkMessage::WriteToNetwork(bulkImportMessage, sock);
+	NetworkMessage::WriteRaw(sock, reinterpret_cast<char*>(dataBuff), 5, DataType::COLUMN_INT);
 	auto response = NetworkMessage::ReadFromNetwork(sock);
 	ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
 	ASSERT_TRUE(response.UnpackTo(&infoMessage));
@@ -224,6 +264,30 @@ TEST(TCPServer, ServerMessageCSV)
 		testServer.Abort();
 		future.join();
 		printf("\nServerMessageCSVEnd\n");
+	}
+	catch (std::exception& e)
+	{
+		ASSERT_TRUE(false);
+	}
+}
+
+
+TEST(TCPServer, ServerMessageBulkImport)
+{
+	try
+	{
+		printf("\nServerMessageBulkImport\n");
+		ITCPWorker::ResetGlobalQuitFlag();
+		TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
+		auto future = std::thread([&testServer]() {testServer.Run(); });
+		boost::asio::io_context context;
+		auto sock = connectSocketToTestServer(context);
+		ASSERT_NO_THROW(connect(sock));
+		ASSERT_NO_THROW(bulkImport(sock));
+		ASSERT_NO_THROW(disconnect(sock));
+		testServer.Abort();
+		future.join();
+		printf("\nServerMessageBulkImportEnd\n");
 	}
 	catch (std::exception& e)
 	{
