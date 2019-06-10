@@ -96,24 +96,46 @@ int32_t Table::getDataRangeInSortingColumn()
 		auto &blocks = castedColumn->GetBlocksList();
 		int blockCount = castedColumn->GetBlockCount();
 
-		for (size_t i = 0; i < blockCount; i++)
+		for (int i = 0; i < blockCount; i++)
 		{
 			size += blocks[i]->GetSize();
 		}
-		
 	}
 
-	//TODO
 	if (columnType == COLUMN_LONG)
 	{
+		auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(firstSortingColumn);
+		auto &blocks = castedColumn->GetBlocksList();
+		int blockCount = castedColumn->GetBlockCount();
+
+		for (int i = 0; i < blockCount; i++)
+		{
+			size += blocks[i]->GetSize();
+		}
 	}
 
 	if (columnType == COLUMN_DOUBLE)
 	{
+		auto castedColumn = dynamic_cast<ColumnBase<double>*>(firstSortingColumn);
+		auto &blocks = castedColumn->GetBlocksList();
+		int blockCount = castedColumn->GetBlockCount();
+
+		for (int i = 0; i < blockCount; i++)
+		{
+			size += blocks[i]->GetSize();
+		}
 	}
 
 	if (columnType == COLUMN_FLOAT)
 	{
+		auto castedColumn = dynamic_cast<ColumnBase<float>*>(firstSortingColumn);
+		auto &blocks = castedColumn->GetBlocksList();
+		int blockCount = castedColumn->GetBlockCount();
+
+		for (int i = 0; i < blockCount; i++)
+		{
+			size += blocks[i]->GetSize();
+		}
 	}
 
 	return size;

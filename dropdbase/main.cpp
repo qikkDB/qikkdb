@@ -55,28 +55,21 @@ int main(int argc, char **argv)
 	Database::AddToInMemoryDatabaseList(database);
 	std::cout << "Loading TargetLoc.csv ..." << std::endl;
 	csvDataImporter.ImportTables(database);*/
-    /*
+	/*
 	for (int i = 0; i < 2; i++)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
 
 		GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT ageId, COUNT(ageId) FROM TargetLoc1B WHERE latitude > 48.163267512773274 AND latitude < 48.17608989851882 AND longitude > 17.19991468973717 AND longitude < 17.221200700479358 GROUP BY ageId;");
 		parser.parse();// ->PrintDebugString();
->>>>>>> origin/develop
 
-    auto end = std::chrono::high_resolution_clock::now();
+		auto end = std::chrono::high_resolution_clock::now();
 
-<<<<<<< HEAD
-    std::chrono::duration<double> elapsed(end - start);
-
-	std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
-	
-		
-=======
 		std::chrono::duration<double> elapsed(end - start);
 		std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
 	}
 	*/
+
 	for (auto& db : Database::GetDatabaseNames())
 	{
 		Database::RemoveFromInMemoryDatabaseList(db.c_str());

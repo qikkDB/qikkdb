@@ -220,16 +220,16 @@ public:
 
     void InsertDataOnSpecificPosition(int index, const T& data)
     {
-        int fullBlockSpace = column_.GetBlockSize() - EmptyBlockSpace();
+        int filledBlockSpace = column_.GetBlockSize() - EmptyBlockSpace();
 
         if (EmptyBlockSpace() == 0)
         {
             throw std::length_error("Attempted to insert data larger than remaining block size");
         }
 
-        else if (index < fullBlockSpace)
+        else if (index < filledBlockSpace)
         {
-            for (int j = fullBlockSpace - 1; j >= index; j--)
+            for (int j = filledBlockSpace - 1; j >= index; j--)
             {
                 data_[j + 1] = data_[j];
             }
