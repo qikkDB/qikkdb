@@ -228,12 +228,14 @@ TEST(ClientHandlerTests, TestHandlerBulkImportProtobufColumn)
 	bulkImportMessage.set_columntype(static_cast<ColmnarDB::NetworkClient::Message::DataType>(DataType::COLUMN_POINT));
 	bulkImportMessage.set_elemcount(5);
 	ColmnarDB::Types::Point aPoint;
-	aPoint.mutable_geopoint()->set_latitude(5.5f);
-	aPoint.mutable_geopoint()->set_longitude(5.5f);
-	int32_t arraySize = aPoint.ByteSize() * 5;
+	aPoint.mutable_geopoint()->set_latitude(5);
+	aPoint.mutable_geopoint()->set_longitude(5);
+	int32_t arraySize = aPoint.ByteSize() * 5 + sizeof(int32_t) * 5;
 	std::unique_ptr<char[]> dataBuff = std::make_unique<char[]>(arraySize);
 	for(int i = 0; i < arraySize; i += aPoint.ByteSize())
 	{
+		*reinterpret_cast<int32_t*>(dataBuff.get() + i)  = aPoint.ByteSize();
+		i += 4;
 		aPoint.SerializeToArray(dataBuff.get() + i, aPoint.ByteSize());
 	}
 	handlerPtr->HandleBulkImport(tempWorker,bulkImportMessage, dataBuff.get());
