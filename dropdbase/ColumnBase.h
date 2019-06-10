@@ -330,6 +330,7 @@ public:
 			if (columnData.size() <= lastBlock->EmptyBlockSpace())
 			{
 				lastBlock->InsertData(columnData);
+				setColumnStatistics();
 				return;
 			}
 			int emptySpace = lastBlock->EmptyBlockSpace();
