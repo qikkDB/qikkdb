@@ -11,8 +11,8 @@ class GpuWhereEvaluationListener : public GpuSqlListener
 private:
 	const std::shared_ptr<Database> &database;
 	int32_t blockIndex;
-	std::stack<std::tuple<int64_t, bool, DataType>> parserStack;
-	std::tuple<int64_t, bool, DataType> stackTopAndPop();
+	std::stack<std::pair<std::string, DataType>> parserStack;
+	std::pair<std::string, DataType> stackTopAndPop();
 
 	template<typename OP>
 	int64_t filterOperation(int64_t left, int64_t right, DataType leftDataType, DataType rightDataType) 
