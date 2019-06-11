@@ -853,6 +853,46 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext * ctx)
 	}
 }
 
+void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * ctx)
+{
+	std::string indexName = ctx->indexName()->getText();
+	std::string tableName = ctx->table()->getText();
+
+	if (database->GetTables().find(tableName) == database->GetTables().end())
+	{
+		throw TableNotFoundFromException();
+	}
+
+	//check if index already exists
+
+	std::unordered_set<std::string> indexColumns;
+
+	for (auto& column : ctx->indexColumns()->column())
+	{
+		if (database->GetTables().at(tableName).GetColumns().find(column->getText()) ==
+			database->GetTables().at(tableName).GetColumns().end())
+		{
+			throw ColumnNotFoundException();
+		}
+		if (indexColumns.find(column->getText()) != indexColumns.end())
+		{
+			throw ColumnAlreadyExistsInIndexException();
+		}
+		indexColumns.insert(column->getText());
+	}
+
+	dispatcher.addCreateIndexFunction();
+
+	dispatcher.addArgument<const std::string&>(indexName);
+	dispatcher.addArgument<const std::string&>(tableName);
+
+	dispatcher.addArgument<int32_t>(indexColumns.size());
+	for (auto& indexColumn : indexColumns)
+	{
+		dispatcher.addArgument<const std::string&>(indexColumn);
+	}
+}
+
 /// Method that executes on exit of INSERT INTO command
 /// Generates insert into operation
 /// Checks if table with given name exists

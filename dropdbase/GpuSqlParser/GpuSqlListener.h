@@ -134,6 +134,8 @@ public:
 
 	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
 
+	void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) override;
+
 	void exitLimit(GpuSqlParser::LimitContext *ctx) override;
 
 	void exitOffset(GpuSqlParser::OffsetContext *ctx) override;

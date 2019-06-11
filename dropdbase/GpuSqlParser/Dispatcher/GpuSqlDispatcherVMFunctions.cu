@@ -16,7 +16,7 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::dropDatabaseFunction = &Gpu
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createTableFunction = &GpuSqlDispatcher::createTable;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::dropTableFunction = &GpuSqlDispatcher::dropTable;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::alterTableFunction = &GpuSqlDispatcher::alterTable;
-
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createIndexFunction = &GpuSqlDispatcher::createIndex;
 
 template <>
 int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName)

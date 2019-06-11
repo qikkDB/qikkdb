@@ -126,6 +126,10 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 				{
 					std::cout << "Alter table completed sucessfully" << std::endl;
 				}
+				if (err == 11)
+				{
+					std::cout << "Create index completed sucessfully" << std::endl;
+				}
 				break;
 			}
 		}
@@ -200,6 +204,11 @@ void GpuSqlDispatcher::addDropTableFunction()
 void GpuSqlDispatcher::addAlterTableFunction()
 {
 	dispatcherFunctions.push_back(alterTableFunction);
+}
+
+void GpuSqlDispatcher::addCreateIndexFunction()
+{
+	dispatcherFunctions.push_back(createIndexFunction);
 }
 
 void GpuSqlDispatcher::addInsertIntoFunction(DataType type)
@@ -822,6 +831,22 @@ int32_t GpuSqlDispatcher::alterTable()
 		//Delete from disk
 	}
 	return 10;
+}
+
+int32_t GpuSqlDispatcher::createIndex()
+{
+	std::string	indexName = arguments.read<std::string>();
+	std::string tableName = arguments.read<std::string>();
+	std::unordered_set<std::string> indexColumns;
+
+	int32_t indexColumnCount = arguments.read<int32_t>();
+	for (int i = 0; i < indexColumnCount; i++)
+	{
+		std::string indexColumn = arguments.read<std::string>();
+		indexColumns.insert(indexColumn);
+	}
+
+	return 11;
 }
 
 

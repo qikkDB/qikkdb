@@ -192,6 +192,7 @@ private:
 	static DispatchFunction createTableFunction;
 	static DispatchFunction dropTableFunction;
 	static DispatchFunction alterTableFunction;
+	static DispatchFunction createIndexFunction;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> insertIntoFunctions;
 	static DispatchFunction insertIntoDoneFunction;
@@ -403,6 +404,8 @@ public:
 
 	void addAlterTableFunction();
 
+	void addCreateIndexFunction();
+
 	void addInsertIntoFunction(DataType type);
 
 	void addInsertIntoDoneFunction();
@@ -478,6 +481,8 @@ public:
 	int32_t dropTable();
 
 	int32_t alterTable();
+
+	int32_t createIndex();
 
 	void cleanUpGpuPointers();
 
