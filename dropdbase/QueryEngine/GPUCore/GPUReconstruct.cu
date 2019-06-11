@@ -4,6 +4,27 @@
 // Polygon WKT format:
 // POLYGON((179.9999 89.9999, 0.0000 0.0000, 179.9999 89.9999), (-179.9999 -89.9999, 52.1300 -27.0380, -179.9999 -89.9999))
 
+
+__global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCol,
+	GPUMemory::GPUString inStringCol, int32_t * inStringLengths,
+	int32_t *prefixSum, int8_t *inMask, int32_t stringCount)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < stringCount; i += stride)
+	{
+		if (inMask[i] && (prefixSum[i] - 1) >= 0)
+		{
+			for (int32_t j = 0; j < inStringLengths[i]; j++)
+			{
+				outStringCol.allChars[outStringCol.stringIndices[prefixSum[i] - 1] + j] =
+					inStringCol.allChars[inStringCol.stringIndices[i] + j];
+			}
+		}
+	}
+}
+
 __global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t *indices, int32_t *counts, int32_t size)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -158,36 +179,93 @@ int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int3
 	return lastIndex + lastCount;
 }
 
+void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString *outStringCol, int32_t *outDataElementCount,
+	GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount)
+{
+	Context& context = Context::getInstance();
+
+	if (inMask)		// If mask is used (if inMask is not nullptr)
+	{
+		// Malloc a new buffer for the prefix sum vector
+		cuda_ptr<int32_t> inPrefixSumPointer(inDataElementCount);
+		PrefixSum(inPrefixSumPointer.get(), inMask, inDataElementCount);
+		GPUMemory::copyDeviceToHost(outDataElementCount, inPrefixSumPointer.get() + inDataElementCount - 1, 1);
+
+		if (*outDataElementCount > 0)	// Not empty result set
+		{
+			int64_t inTotalCharCount;
+			GPUMemory::copyDeviceToHost(&inTotalCharCount, inStringCol.stringIndices + inDataElementCount - 1, 1);
+
+			// Compute lenghts from indices (reversed inclusive prefix sum)
+			cuda_ptr<int32_t> lengths(inDataElementCount);
+			kernel_lengths_from_indices << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
+				(lengths.get(), inStringCol.stringIndices, inDataElementCount);
+
+			// Reconstruct lenghts according to mask
+			cuda_ptr<int32_t> outLengths(*outDataElementCount);
+			kernel_reconstruct_col << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
+				(outLengths.get(), lengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
+
+			// Compute new indices as prefix sum of reconstructed lengths
+			GPUMemory::alloc(&(outStringCol->stringIndices), *outDataElementCount);
+			PrefixSum(outStringCol->stringIndices, outLengths.get(), *outDataElementCount);
+
+			int64_t outTotalCharCount;
+			GPUMemory::copyDeviceToHost(&outTotalCharCount, outStringCol->stringIndices + inDataElementCount - 1, 1);
+			GPUMemory::alloc(&(outStringCol->allChars), outTotalCharCount);
+
+			// Reconstruct chars
+			kernel_reconstruct_string_chars << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
+				(outStringCol, inStringCol, lengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
+		}
+		else	// Empty result set
+		{
+			outStringCol->allChars = nullptr;
+			outStringCol->stringIndices = nullptr;
+		}
+	}
+	else	// If mask is not used (is nullptr), just copy pointers from inCol to outCol
+	{
+		*outStringCol = inStringCol;
+		*outDataElementCount = inDataElementCount;
+	}
+
+	// Get last error
+	CheckCudaError(cudaGetLastError());
+}
+
 void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
 	GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount)
 {
+	GPUMemory::GPUString outStringCol;
 	if (inMask)		// If mask is used (if inMask is not nullptr)
 	{
-		CheckQueryEngineError(GPU_EXTENSION_ERROR, "ReconstructStringCol with mask not implemented yet");
-		// todo later if needed
+		ReconstructStringColKeep(&outStringCol, outDataElementCount, inStringCol, inMask, inDataElementCount);
 	}
 	else	// If mask is not used
 	{
 		*outDataElementCount = inDataElementCount;
-		if (inDataElementCount > 0)
+		outStringCol = inStringCol;
+	}
+
+	if (*outDataElementCount > 0)
+	{
+		// Copy string indices to host
+		std::unique_ptr<int64_t[]> hostStringIndices = std::make_unique<int64_t[]>(*outDataElementCount);
+		GPUMemory::copyDeviceToHost(hostStringIndices.get(), outStringCol.stringIndices, *outDataElementCount);
+		int32_t fullCharCount = hostStringIndices[*outDataElementCount - 1];
+
+		// Copy all chars to host
+		std::unique_ptr<char[]> hostAllChars = std::make_unique<char[]>(fullCharCount);
+		GPUMemory::copyDeviceToHost(hostAllChars.get(), outStringCol.allChars, fullCharCount);
+
+		// Fill output string array
+		for (int32_t i = 0; i < *outDataElementCount; i++)
 		{
-			// Copy string indices to host
-			std::unique_ptr<int64_t[]> hostStringIndices = std::make_unique<int64_t[]>(inDataElementCount);
-			GPUMemory::copyDeviceToHost(hostStringIndices.get(), inStringCol.stringIndices, inDataElementCount);
-			int32_t fullCharCount = hostStringIndices[inDataElementCount - 1];
-
-			// Copy all chars to host
-			std::unique_ptr<char[]> hostAllChars = std::make_unique<char[]>(fullCharCount);
-			GPUMemory::copyDeviceToHost(hostAllChars.get(), inStringCol.allChars, fullCharCount);
-
-			// Fill output string array
-			for (int32_t i = 0; i < inDataElementCount; i++)
-			{
-				size_t length = static_cast<size_t>(i == 0 ? hostStringIndices[0] :
-					hostStringIndices[i] - hostStringIndices[i - 1]);
-				outStringData[i] = std::string(hostAllChars.get() +
-					(i == 0 ? 0 : hostStringIndices[i - 1]), length);
-			}
+			size_t length = static_cast<size_t>(i == 0 ? hostStringIndices[0] :
+				hostStringIndices[i] - hostStringIndices[i - 1]);
+			outStringData[i] = std::string(hostAllChars.get() +
+				(i == 0 ? 0 : hostStringIndices[i - 1]), length);
 		}
 	}
 }
