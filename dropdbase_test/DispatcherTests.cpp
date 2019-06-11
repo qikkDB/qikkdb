@@ -8225,6 +8225,38 @@ TEST(DispatcherTests, RetStringWhere)
 	}
 }
 
+TEST(DispatcherTests, RetStringNoWhere)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colString1 FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<std::string> expectedResultsStrings;
+
+	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colString1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = column->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResultsStrings.push_back(block->GetData()[k]);
+		}
+	}
+
+	auto &payloads = result->payloads().at("TableA.colString1");
+
+	ASSERT_EQ(payloads.stringpayload().stringdata_size(), expectedResultsStrings.size());
+
+	for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsStrings[i], payloads.stringpayload().stringdata()[i]);
+	}
+}
+
 TEST(DispatcherTests, PointFromColCol)
 {
 	Context::getInstance();
