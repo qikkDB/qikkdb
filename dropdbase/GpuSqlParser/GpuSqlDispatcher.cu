@@ -284,6 +284,10 @@ void GpuSqlDispatcher::addArctangent2Function(DataType y, DataType x)
 	dispatcherFunctions.push_back(arctangent2Functions[DataType::DATA_TYPE_SIZE * y + x]);
 }
 
+void GpuSqlDispatcher::addConcatFunction(DataType left, DataType right)
+{
+}
+
 void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
 {
 	dispatcherFunctions.push_back(powerFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
@@ -432,6 +436,26 @@ void GpuSqlDispatcher::addFloorFunction(DataType type)
 void GpuSqlDispatcher::addCeilFunction(DataType type)
 {
 	dispatcherFunctions.push_back(ceilFunctions[type]);
+}
+
+void GpuSqlDispatcher::addLtrimFunction(DataType type)
+{
+}
+
+void GpuSqlDispatcher::addRtrimFunction(DataType type)
+{
+}
+
+void GpuSqlDispatcher::addLowerFunction(DataType type)
+{
+}
+
+void GpuSqlDispatcher::addUpperFunction(DataType type)
+{
+}
+
+void GpuSqlDispatcher::addLenFunction(DataType type)
+{
 }
 
 void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)

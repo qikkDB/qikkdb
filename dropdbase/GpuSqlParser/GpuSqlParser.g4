@@ -40,7 +40,7 @@ database            : ID;
 alias               : ID;
 limit               : INTLIT;
 offset              : INTLIT;
-columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT|);
+columnValue         : (INTLIT|FLOATLIT|geometry|STRING);
 
 expression : op=NOT expression                                                            # unaryOperation
            | op=MINUS expression                                                          # unaryOperation
@@ -67,6 +67,11 @@ expression : op=NOT expression                                                  
            | op=HOUR LPAREN expression RPAREN                                             # unaryOperation
            | op=MINUTE LPAREN expression RPAREN                                           # unaryOperation
            | op=SECOND LPAREN expression RPAREN                                           # unaryOperation
+           | op=LTRIM LPAREN expression RPAREN                                            # unaryOperation
+           | op=RTRIM LPAREN expression RPAREN                                            # unaryOperation
+           | op=LOWER LPAREN expression RPAREN                                            # unaryOperation
+           | op=UPPER LPAREN expression RPAREN                                            # unaryOperation
+           | op=LEN LPAREN expression RPAREN                                              # unaryOperation
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation
            | left=expression op=MODULO right=expression                                   # binaryOperation
@@ -85,6 +90,7 @@ expression : op=NOT expression                                                  
            | op=GEO_CONTAINS LPAREN left=expression COMMA right=expression RPAREN         # binaryOperation
            | op=GEO_INTERSECT LPAREN left=expression COMMA right=expression RPAREN        # binaryOperation
            | op=GEO_UNION LPAREN left=expression COMMA right=expression RPAREN            # binaryOperation
+           | op=CONCAT LPAREN left=expression COMMA right=expression RPAREN               # binaryOperation
            | expression op=BETWEEN expression op2=AND expression                          # ternaryOperation
            | left=expression op=AND right=expression                                      # binaryOperation
            | left=expression op=OR right=expression                                       # binaryOperation
@@ -96,7 +102,7 @@ expression : op=NOT expression                                                  
            | PI                                                                           # piLiteral
            | NOW                                                                          # nowLiteral
            | INTLIT                                                                       # intLiteral
-           | STRINGLIT                                                                    # stringLiteral
+           | STRING                                                                       # stringLiteral
            | BOOLEANLIT                                                                   # booleanLiteral
            | AGG LPAREN expression RPAREN                                                 # aggregation;
 

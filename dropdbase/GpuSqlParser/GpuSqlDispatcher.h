@@ -344,6 +344,8 @@ public:
 
 	void addArctangent2Function(DataType y, DataType x);
 
+	void addConcatFunction(DataType left, DataType right);
+
 	void addLogarithmNaturalFunction(DataType type);
 
 	void addExponentialFunction(DataType type);
@@ -361,6 +363,16 @@ public:
 	void addFloorFunction(DataType type);
 
 	void addCeilFunction(DataType type);
+
+	void addLtrimFunction(DataType type);
+
+	void addRtrimFunction(DataType type);
+
+	void addLowerFunction(DataType type);
+
+	void addUpperFunction(DataType type);
+
+	void addLenFunction(DataType type);
 
 	void addRootFunction(DataType base, DataType exponent);
 
