@@ -58,6 +58,13 @@ public:
 	std::unordered_map<std::string, Table>& GetTables() { return tables_; }
 	static bool Exists(const std::string& databaseName) { return Context::getInstance().GetLoadedDatabases().find(databaseName) != Context::getInstance().GetLoadedDatabases().end(); }
 	static std::vector<std::string> GetDatabaseNames();
+
+	/// <summary>
+	/// Save only .db file to disk.
+	/// </summary>
+	/// <param name="path">Path to database storage directory.</param>
+	void Database::PersistOnlyDbFile(const char* path);
+
 	/// <summary>
 	/// Save database from memory to disk.
 	/// </summary>
