@@ -253,9 +253,9 @@ TEST_F(DatabaseTests, IntegrationTest)
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(secondTableColumns.at("colPolygon").get())->GetBlocksList().at(i)->GetData();
-		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[0]), "POLYGON((10 11,11.11 12.13,10 11),(21 30,35.55 36,30.11 20.26,21 30),(61 80.11,90 89.15,112.12 110,61 80.11))");
-		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[1]), "POLYGON((15 11,11.11 12.13,15 11),(21 30,35.55 36,30.11 20.26,21 30),(61 87.11,90 89.15,112.12 110,61 87.11))");
-		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[2]), "POLYGON((15 18,11.11 12.13,15 18),(21 38,35.55 36,30.11 20.26,21 38),(64 80.11,90 89.15,112.12 110,64 80.11))");
+		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[0]), "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11, 90 89.15, 112.12 110, 61 80.11))");
+		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[1]), "POLYGON((15 11, 11.11 12.13, 15 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 87.11, 90 89.15, 112.12 110, 61 87.11))");
+		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[2]), "POLYGON((15 18, 11.11 12.13, 15 18), (21 38, 35.55 36, 30.11 20.26, 21 38), (64 80.11, 90 89.15, 112.12 110, 64 80.11))");
 	}
 
 	//second table colPoint:

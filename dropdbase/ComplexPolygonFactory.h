@@ -37,5 +37,5 @@ public:
 	/// Method that converts class to a string representation.
 	/// </summary>
 	/// <returns>ComplexPolygon in format of well known text.</returns>
-	static std::string WktFromPolygon(const ColmnarDB::Types::ComplexPolygon& polygon);
+	static std::string WktFromPolygon(const ColmnarDB::Types::ComplexPolygon& polygon, bool fixedPrecision = false);
 };

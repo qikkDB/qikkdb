@@ -2,6 +2,8 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/any.pb.h>
 #include <boost/asio.hpp>
+#include "DataType.h"
+
 class NetworkMessage final
 {
 private:
@@ -20,4 +22,7 @@ public:
 	/// <param name="socket">Socket from which the message will be read.</param>
 	/// <returns>Any protobuffer message.</param>
 	static google::protobuf::Any ReadFromNetwork(boost::asio::ip::tcp::socket& socket);
+	
+	static void ReadRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType columnType);
+	static void WriteRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType dataType);
 };

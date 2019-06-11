@@ -99,7 +99,6 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 	return 0;
 }
 
-
 template <>
 int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>()
 {
@@ -109,65 +108,26 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>()
 	}
 	else
 	{
-		auto colName = arguments.read<std::string>();
+		auto col = arguments.read<std::string>();
 		auto alias = arguments.read<std::string>();
-		std::cout << "RetPolygonCol: " << colName << ", thread: " << dispatcherThreadId << std::endl;
 
-		const size_t endOfPolyIdx = colName.find(".");
-		const std::string table = colName.substr(0, endOfPolyIdx);
-		const std::string column = colName.substr(endOfPolyIdx + 1);
-
-		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex]);
-
-		noLoad = false;
-		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
-
-		if (blockIndex >= blockCount)
+		int32_t loadFlag = loadCol<ColmnarDB::Types::ComplexPolygon>(col);
+		if (loadFlag)
 		{
-			return 1;
+			return loadFlag;
 		}
-		if (blockIndex >= blockCount - Context::getInstance().getDeviceCount())
-		{
-			isLastBlockOfDevice = true;
-		}
-		if (blockIndex == blockCount - 1)
-		{
-			isOverallLastBlock = true;
-		}
+		std::cout << "RetPolygonCol: " << col << ", thread: " << dispatcherThreadId << std::endl;
 
-		if (reinterpret_cast<int8_t*>(filter_))
-		{
-			std::unique_ptr<int32_t[]> outIndexes(new int32_t[block->GetSize()]);
-			int32_t outSize;
-			GPUReconstruct::GenerateIndexes<int32_t, int8_t>(outIndexes.get(), &outSize, reinterpret_cast<int8_t*>(filter_), block->GetSize());
+		std::unique_ptr<std::string[]> outData(new std::string[database->GetBlockSize()]);
+		std::tuple<GPUMemory::GPUPolygon, int32_t> ACol = findComplexPolygon(col);
+		int32_t outSize;
+		GPUReconstruct::ReconstructPolyColToWKT(outData.get(), &outSize,
+			std::get<0>(ACol), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
 
-			std::unique_ptr<std::string[]> outData(new std::string[outSize]);
-
-			for (int i = 0; i < outSize; i++)
-			{
-				outData[i] = ComplexPolygonFactory::WktFromPolygon(block->GetData()[outIndexes.get()[i]]);
-			}
-
-			std::cout << "dataSize: " << outSize << std::endl;
-			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-			insertIntoPayload(payload, outData, outSize);
-			MergePayloadToSelfResponse(alias, payload);
-		}
-		else
-		{
-			std::unique_ptr<std::string[]> outData(new std::string[block->GetSize()]);
-
-			for (int i = 0; i < block->GetSize(); i++)
-			{
-				outData[i] = ComplexPolygonFactory::WktFromPolygon(block->GetData()[i]);
-			}
-
-			std::cout << "dataSize: " << block->GetSize() << std::endl;
-			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-			insertIntoPayload(payload, outData, block->GetSize());
-			MergePayloadToSelfResponse(alias, payload);
-		}
+		std::cout << "dataSize: " << outSize << std::endl;
+		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+		insertIntoPayload(payload, outData, outSize);
+		MergePayloadToSelfResponse(alias, payload);
 	}
 	return 0;
 }

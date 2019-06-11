@@ -727,7 +727,7 @@ TEST(ColumnTests, ColumnStatistics)
 		dataFloat.push_back((float) 0.1111);
 		dataDouble.push_back((double) 0.1111);
 		dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
-		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))"));
+		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11, 90 89.15, 112.12 110, 61 80.11))"));
 		dataString.push_back("abc");
 	}
 
@@ -738,7 +738,7 @@ TEST(ColumnTests, ColumnStatistics)
 		dataFloat.push_back((float) 0.5555);
 		dataDouble.push_back((double) 0.5555);
 		dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
-		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))"));
+		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11, 90 89.15, 112.12 110, 61 80.11))"));
 		dataString.push_back("abc");
 	}
 
@@ -775,9 +775,9 @@ TEST(ColumnTests, ColumnStatistics)
 	ASSERT_EQ(PointFactory::WktFromPoint(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->GetSum()), "POINT(0 0)");
 	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->GetAvg(), 0);
 
-	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetMin()), "POLYGON((0 0),(0 0))");
-	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetMax()), "POLYGON((0 0),(0 0))");
-	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetSum()), "POLYGON((0 0),(0 0))");
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetMin()), "POLYGON((0 0), (0 0))");
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetMax()), "POLYGON((0 0), (0 0))");
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetSum()), "POLYGON((0 0), (0 0))");
 	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetAvg(), 0);
 
 	ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(columnString.get())->GetMin(), "");
