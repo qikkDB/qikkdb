@@ -94,7 +94,7 @@ void ClientPoolWorker::HandleClient()
 			else if (recvMsg.UnpackTo(&bulkImportMessage))
 			{
 				BOOST_LOG_TRIVIAL(debug) << "BulkImport message from " << socket_.remote_endpoint().address().to_string() << "\n";
-				char dataBuffer[MAXIMUM_BULK_FRAGMENT_SIZE];
+				std::unique_ptr<char[]> dataBuffer(new char[MAXIMUM_BULK_FRAGMENT_SIZE]);
 				DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
 				int32_t elementCount = bulkImportMessage.elemcount();
 				if(elementCount*GetDataTypeSize(columnType) > MAXIMUM_BULK_FRAGMENT_SIZE)
@@ -104,8 +104,8 @@ void ClientPoolWorker::HandleClient()
 					NetworkMessage::WriteToNetwork(outInfo, socket_);
 					continue;
 				}
-				NetworkMessage::ReadRaw(socket_, dataBuffer, elementCount, columnType);
-				std::unique_ptr<google::protobuf::Message> importResultMessage = clientHandler_->HandleBulkImport(*this, bulkImportMessage, dataBuffer);
+				NetworkMessage::ReadRaw(socket_, dataBuffer.get(), elementCount, columnType);
+				std::unique_ptr<google::protobuf::Message> importResultMessage = clientHandler_->HandleBulkImport(*this, bulkImportMessage, dataBuffer.get());
 				if (importResultMessage != nullptr)
 				{
 					NetworkMessage::WriteToNetwork(*importResultMessage, socket_);
