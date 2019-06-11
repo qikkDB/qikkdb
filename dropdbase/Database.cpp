@@ -178,8 +178,8 @@ void Database::DeleteDatabaseFromDisk()
 
 	if (boost::filesystem::exists(path))
 	{
-		Context::getInstance().GetLoadedDatabases().erase(name_);
 		std::string prefix(name_ + "_");
+		RemoveFromInMemoryDatabaseList(name_.c_str());
 
 		for (auto& p : boost::filesystem::directory_iterator(path))
 		{

@@ -279,7 +279,7 @@ TEST_F(DatabaseTests, SaveLoadTest)
 
 TEST_F(DatabaseTests, DeleteTest)
 {
-	std::string path = Configuration::GetInstance().GetDatabaseDir() ;
+	std::string path = Configuration::GetInstance().GetDatabaseDir();
 
 	std::string dbName = "DropDb";
 
@@ -401,7 +401,7 @@ TEST_F(DatabaseTests, DeleteTest)
 	Database::SaveAllToDisk();
 
 	//drop column colBool:
-	Database::DeleteColumnFromDisk(dbName.c_str(), std::string("TestTable2").c_str(), std::string("colBool").c_str());
+	database->DeleteColumnFromDisk(std::string("TestTable2").c_str(), std::string("colBool").c_str());
 	std::string filePath = Configuration::GetInstance().GetDatabaseDir() + "DropDb_TestTable2_colBool.col";
 	bool exists = false;
 
@@ -412,7 +412,7 @@ TEST_F(DatabaseTests, DeleteTest)
 	ASSERT_FALSE(exists);
 
 	//drop table TestTable2:
-	Database::DeleteTableFromDisk(dbName.c_str(), std::string("TestTable2").c_str());
+	database->DeleteTableFromDisk(std::string("TestTable2").c_str());
 	bool deleted = true;
 
 	std::string prefix = "DropDb_TestTable2_";
@@ -428,7 +428,7 @@ TEST_F(DatabaseTests, DeleteTest)
 	ASSERT_TRUE(deleted);
 
 	//drop database TestDatabase:
-	Database::DeleteDatabaseFromDisk(dbName.c_str());
+	database->DeleteDatabaseFromDisk();
 	deleted = true;
 
 	prefix = "DropDb_";
