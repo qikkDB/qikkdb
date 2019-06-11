@@ -40,6 +40,12 @@ public:
 	Table(const std::shared_ptr<Database> &database, const char* name);
 
 	/// <summary>
+	/// Removes column from columns.
+	/// </summary>
+	/// <param name="columnName">Name of column to be removed.</param>
+	void RemoveColumn(const char* columnName);
+
+	/// <summary>
 	/// Insert new column with proper data type into the table.
 	/// </summary>
 	/// <param name="columnName">Name of column.</param>

@@ -23,7 +23,7 @@ private:
 	std::unordered_map<std::string, Table> tables_;
 
 	/// <summary>
-	/// Load column of a table into memory from disc.
+	/// Load column of a table into memory from disk.
 	/// </summary>
 	/// <param name="path">Path directory, where column file (*.col) is.</param>
 	/// <param name="table">Instance of table into which the column should be added.</param>
@@ -76,7 +76,28 @@ public:
 	static void LoadDatabasesFromDisk();
 
 	/// <summary>
-	/// Load database from disc into memory.
+	/// Delete database from disk. Deletes .db and .col files which belong to the specified database.
+	/// </summary>
+	void DeleteDatabaseFromDisk();
+
+	/// <summary>
+	/// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
+	/// <param name="tableName">Name of the table to be deleted.</param>
+	/// Delete table from disk. Deletes .col files which belong to the specified table of currently loaded database.
+	/// To alter .db file, this action also calls a function Persist.
+	/// </summary>
+	void DeleteTableFromDisk(const char* tableName);
+
+	/// <summary>
+	/// <param name="tableName">Name of the table which have the specified column that will be deleted.</param>
+	/// <param name="columnName">Name of the column file (*.col) without the ".col" suffix that will be deleted.</param>
+	/// Delete column of a table. Deletes single .col file which belongs to specified column and specified table.
+	/// To alter .db file, this action also calls a function Persist.
+	/// </summary>
+	void DeleteColumnFromDisk(const char* tableName, const char* columnName);
+
+	/// <summary>
+	/// Load database from disk into memory.
 	/// </summary>
 	/// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
 	/// <param name="path">Path to directory in which database files are.</param>

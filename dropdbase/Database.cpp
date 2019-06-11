@@ -124,7 +124,7 @@ void Database::Persist(const char* path)
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disc." << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk." << std::endl;
 }
 
 /// <summary>
@@ -170,7 +170,96 @@ void Database::LoadDatabasesFromDisk()
 }
 
 /// <summary>
-/// Load database from disc into memory.
+/// Delete database from disk. Deletes .db and .col files which belong to the specified database.
+/// </summary>
+void Database::DeleteDatabaseFromDisk()
+{
+	auto &path = Configuration::GetInstance().GetDatabaseDir();
+
+	if (boost::filesystem::exists(path))
+	{
+		Context::getInstance().GetLoadedDatabases().erase(name_);
+		std::string prefix(name_ + "_");
+
+		for (auto& p : boost::filesystem::directory_iterator(path))
+		{
+			//delete files which starts with prefix of db name:
+			if (!p.path().string().compare(0, prefix.size(), prefix))
+			{
+				boost::filesystem::remove(p.path());
+			}
+		}
+
+		BOOST_LOG_TRIVIAL(info) << "Database " << name_ << " was successfully removed from disk." << std::endl;
+	}
+	else
+	{
+		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists." << std::endl;
+	}
+}
+
+/// <summary>
+/// <param name="tableName">Name of the table to be deleted.</param>
+/// Delete table from disk. Deletes .col files which belong to the specified table of currently loaded database.
+/// To alter .db file, this action also calls a function Persist.
+/// </summary>
+void Database::DeleteTableFromDisk(const char* tableName)
+{
+	auto &path = Configuration::GetInstance().GetDatabaseDir();
+
+	if (boost::filesystem::exists(path))
+	{
+		std::string prefix(name_ + "_" + std::string(tableName) + "_");
+
+		for (auto& p : boost::filesystem::directory_iterator(path))
+		{
+			//delete files which starts with prefix of db name and table name:
+			if (!p.path().string().compare(0, prefix.size(), prefix))
+			{
+				boost::filesystem::remove(p.path());
+			}
+		}
+
+		tables_.erase(tableName);
+		Persist(Configuration::GetInstance().GetDatabaseDir().c_str());
+
+		BOOST_LOG_TRIVIAL(info) << "Table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
+	}
+	else
+	{
+		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists." << std::endl;
+	}
+}
+
+/// <summary>
+/// <param name="tableName">Name of the table which have the specified column that will be deleted.</param>
+/// <param name="columnName">Name of the column file (*.col) without the ".col" suffix that will be deleted.</param>
+/// Delete column of a table. Deletes single .col file which belongs to specified column and specified table.
+/// To alter .db file, this action also calls a function Persist.
+/// </summary>
+void Database::DeleteColumnFromDisk(const char* tableName, const char* columnName)
+{
+	auto &path = Configuration::GetInstance().GetDatabaseDir();
+
+	std::string filePath = path + name_ + "_" + std::string(tableName) + "_" + std::string(columnName) + ".col";
+
+	if (boost::filesystem::exists(filePath))
+	{
+		boost::filesystem::remove(filePath);
+
+		tables_[tableName].RemoveColumn(columnName);
+		Persist(Configuration::GetInstance().GetDatabaseDir().c_str());
+
+		BOOST_LOG_TRIVIAL(info) << "Column " << columnName << " from table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
+	}
+	else
+	{
+		BOOST_LOG_TRIVIAL(error) << "File " << path << " does not exists." << std::endl;
+	}
+}
+
+/// <summary>
+/// Load database from disk into memory.
 /// </summary>
 /// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
 /// <param name="path">Path to directory in which database files are.</param>
@@ -241,7 +330,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 }
 
 /// <summary>
-/// Load column of a table into memory from disc.
+/// Load column of a table into memory from disk.
 /// </summary>
 /// <param name="path">Path directory, where column file (*.col) is.</param>
 /// <param name="table">Instance of table into which the column should be added.</param>
