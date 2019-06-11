@@ -247,7 +247,7 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 	{
 		boost::filesystem::remove(filePath);
 
-		tables_[tableName].RemoveColumn(columnName);
+		tables_.at(tableName).RemoveColumn(columnName);
 		Persist(Configuration::GetInstance().GetDatabaseDir().c_str());
 
 		BOOST_LOG_TRIVIAL(info) << "Column " << columnName << " from table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
