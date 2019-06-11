@@ -47,6 +47,10 @@ const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColum
 	return columns;
 }
 
+/// <summary>
+/// Removes column from columns.
+/// </summary>
+/// <param name="columnName">Name of column to be removed.</param>
 void Table::EraseColumn(std::string & columnName)
 {
 	columns.erase(columnName);
@@ -61,15 +65,6 @@ void Table::EraseColumn(std::string & columnName)
 Table::Table(const std::shared_ptr<Database> &database, const char* name) : database(database), name(name), columnsMutex_(std::make_unique<std::mutex>())
 {
 	blockSize = database->GetBlockSize();
-}
-
-/// <summary>
-/// Removes column from columns.
-/// </summary>
-/// <param name="columnName">Name of column to be removed.</param>
-void Table::RemoveColumn(const char* columnName)
-{
-	columns.erase(columnName);
 }
 
 /// <summary>

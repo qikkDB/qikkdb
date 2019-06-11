@@ -77,7 +77,6 @@ namespace ColmnarDB.BenchmarkUtility
                 for (int i = 0; i < numberOfQueryExec; i++)
                 {
                     client.Query(queryString);
-                    result = (null, null);
                     result = client.GetNextQueryResult();
                     resultSum += result.executionTimes.Values.Sum();
                 } 
@@ -123,7 +122,6 @@ namespace ColmnarDB.BenchmarkUtility
                 for (int i = 0; i < numberOfQueryExec; i++)
                 {
                     client.Query(queryString);
-                    result = (null, null);
                     result = client.GetNextQueryResult();
                     resultSum += result.executionTimes.Values.Sum();
                 }

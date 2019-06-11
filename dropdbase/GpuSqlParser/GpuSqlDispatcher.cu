@@ -765,7 +765,7 @@ int32_t GpuSqlDispatcher::dropDatabase()
 {
 	std::string dbName = arguments.read<std::string>();
 	Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
-	//Delete from disk
+	database->DeleteDatabaseFromDisk();
 	return 7;
 }
 
@@ -807,7 +807,7 @@ int32_t GpuSqlDispatcher::dropTable()
 {
 	std::string tableName = arguments.read<std::string>();
 	database->GetTables().erase(tableName);
-	//Delete from disk
+	database->DeleteTableFromDisk(tableName.c_str());
 	return 9;
 }
 
@@ -830,7 +830,7 @@ int32_t GpuSqlDispatcher::alterTable()
 	{
 		std::string dropColumnName = arguments.read<std::string>();
 		database->GetTables().at(tableName).EraseColumn(dropColumnName);
-		//Delete from disk
+		database->DeleteColumnFromDisk(tableName.c_str(), dropColumnName.c_str());
 	}
 	return 10;
 }

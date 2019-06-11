@@ -31,6 +31,11 @@ public:
 	int32_t GetBlockCount() const;
 	int64_t GetSize() const;
 	const std::unordered_map<std::string, std::unique_ptr<IColumn>> &GetColumns() const;
+
+	/// <summary>
+	/// Removes column from columns.
+	/// </summary>
+	/// <param name="columnName">Name of column to be removed.</param>
 	void EraseColumn(std::string& columnName);
 
 	/// <summary>
@@ -40,12 +45,6 @@ public:
 	/// <param name="database">Pointer to the database which will contains the new table.</param>
 	/// <param name="name">Name of the newly created table.</param>
 	Table(const std::shared_ptr<Database> &database, const char* name);
-
-	/// <summary>
-	/// Removes column from columns.
-	/// </summary>
-	/// <param name="columnName">Name of column to be removed.</param>
-	void RemoveColumn(const char* columnName);
 
 	/// <summary>
 	/// Insert new column with proper data type into the table.
