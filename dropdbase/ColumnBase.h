@@ -241,7 +241,7 @@ public:
 				}
 				
 				if (remainingRange >= block.GetSize() - startIndexInCurrentBlock) {
-					currentMax = block.GetData()[block.GetSize()];
+					currentMax = block.GetData()[block.GetSize() - 1];
 				}
 				else {
 					currentMax = block.GetData()[startIndexInCurrentBlock + remainingRange];
