@@ -4,7 +4,7 @@ options { tokenVocab=GpuSqlLexer; }
 
 sqlFile     : statement* EOF ;
 
-statement   : sqlSelect|sqlCreateDb|sqlCreateTable|sqlInsertInto|showStatement;
+statement   : sqlSelect|sqlCreateDb|sqlDropDb|sqlCreateTable|sqlDropTable|sqlAlterTable|sqlCreateIndex|sqlInsertInto|showStatement;
 
 showStatement   : (showDatabases|showTables|showColumns);
 
@@ -14,11 +14,22 @@ showColumns     : SHOWCL (FROM|IN) table ((FROM|IN) database)? SEMICOL;
 
 sqlSelect       : SELECT selectColumns FROM fromTables (joinClauses)? (WHERE whereClause)? (GROUPBY groupByColumns)? (ORDERBY orderByColumns)? (LIMIT limit)? (OFFSET offset)? SEMICOL;
 sqlCreateDb     : CREATEDB database SEMICOL;
-sqlCreateTable  : CREATETABLE table LPAREN newTableColumns RPAREN;
+sqlDropDb       : DROPDB database SEMICOL;
+sqlCreateTable  : CREATETABLE table LPAREN newTableEntries RPAREN SEMICOL;
+sqlDropTable    : DROPTABLE table SEMICOL;
+sqlAlterTable   : ALTERTABLE table alterTableEntries SEMICOL;
+sqlCreateIndex  : CREATEINDEX indexName ON table LPAREN indexColumns RPAREN SEMICOL;
 sqlInsertInto   : INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN insertIntoValues RPAREN SEMICOL;
 
-newTableColumns     : ((newTableColumn (COMMA newTableColumn)*));
+newTableEntries     : ((newTableEntry (COMMA newTableEntry)*));
+newTableEntry       : (newTableColumn|newTableIndex);
+alterTableEntries   : ((alterTableEntry (COMMA alterTableEntry)*));
+alterTableEntry     : (addColumn | dropColumn | alterColumn);
+addColumn           : (ADD columnId DATATYPE);
+dropColumn          : (DROPCOLUMN columnId);
+alterColumn         : (ALTERCOLUMN columnId DATATYPE);
 newTableColumn      : (columnId DATATYPE);
+newTableIndex       : (INDEX indexName LPAREN indexColumns RPAREN);
 selectColumns       : (((selectColumn) (COMMA selectColumn)*));
 selectColumn        : expression (AS alias)?;
 whereClause         : expression;
@@ -26,6 +37,7 @@ orderByColumns      : ((orderByColumn (COMMA orderByColumn)*));
 orderByColumn       : (columnId DIR?);
 insertIntoValues    : ((columnValue (COMMA columnValue)*));
 insertIntoColumns   : ((columnId (COMMA columnId)*));
+indexColumns        : ((column (COMMA column)*));
 groupByColumns      : ((groupByColumn (COMMA groupByColumn)*));
 groupByColumn       : expression;
 columnId            : (column)|(table DOT column);
@@ -38,9 +50,10 @@ table               : ID;
 column              : ID;
 database            : ID;
 alias               : ID;
+indexName           : ID;
 limit               : INTLIT;
 offset              : INTLIT;
-columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT|);
+columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT);
 
 expression : op=NOT expression                                                            # unaryOperation
            | op=MINUS expression                                                          # unaryOperation
