@@ -224,10 +224,10 @@ void Database::DeleteDatabaseFromDisk()
 {
 	auto &path = Configuration::GetInstance().GetDatabaseDir();
 
+	RemoveFromInMemoryDatabaseList(name_.c_str());
 	if (boost::filesystem::exists(path))
 	{
 		std::string prefix(name_ + "_");
-		RemoveFromInMemoryDatabaseList(name_.c_str());
 
 		for (auto& p : boost::filesystem::directory_iterator(path))
 		{
@@ -255,6 +255,7 @@ void Database::DeleteTableFromDisk(const char* tableName)
 {
 	auto &path = Configuration::GetInstance().GetDatabaseDir();
 
+	tables_.erase(tableName);
 	if (boost::filesystem::exists(path))
 	{
 		std::string prefix(name_ + "_" + std::string(tableName) + "_");
@@ -268,7 +269,6 @@ void Database::DeleteTableFromDisk(const char* tableName)
 			}
 		}
 
-		tables_.erase(tableName);
 		PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
 
 		BOOST_LOG_TRIVIAL(info) << "Table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
@@ -291,11 +291,11 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 
 	std::string filePath = path + name_ + "_" + std::string(tableName) + "_" + std::string(columnName) + ".col";
 
+	tables_.at(tableName).RemoveColumn(columnName);
 	if (boost::filesystem::exists(filePath))
 	{
 		boost::filesystem::remove(filePath);
 
-		tables_.at(tableName).RemoveColumn(columnName);
 		PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
 
 		BOOST_LOG_TRIVIAL(info) << "Column " << columnName << " from table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
