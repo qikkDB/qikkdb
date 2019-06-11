@@ -8022,7 +8022,7 @@ TEST(DispatcherTests, RetPolygons)
 		auto block = column->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k]));
+			expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k], true));
 		}
 	}
 
@@ -8054,19 +8054,9 @@ TEST(DispatcherTests, RetPolygonsWhere)
 		auto block = column->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			if (k % 2)
+			if ((k % 1024) * (k % 2 ? 1 : -1) < 20)
 			{
-				if ((k % 1024) < 20)
-				{
-					expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k]));
-				}
-			}
-			else
-			{
-				if (((k % 1024) * -1) < 20)
-				{
-					expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k]));
-				}
+				expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k], true));
 			}
 		}
 	}
@@ -8339,6 +8329,7 @@ TEST(DispatcherTests, PointFromConstCol)
 	}
 }
 
+// Aggregation tests
 TEST(DispatcherTests, AggregationMin)
 {
 	Context::getInstance();
@@ -8478,6 +8469,7 @@ TEST(DispatcherTests, AggregationCount)
 	ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
 }
 
+
 TEST(DispatcherTests, Alias)
 {
 	Context::getInstance();
@@ -8522,6 +8514,7 @@ TEST(DispatcherTests, Alias)
 		ASSERT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
 	}
 }
+
 
 TEST(DispatcherTests, LimitOffset)
 {
@@ -9965,7 +9958,7 @@ TEST(DispatcherTests, RoundColInt)
 	std::vector<float> expectedResultsFloat;
 
 	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
-	
+
 	for (int i = 0; i < 2; i++)
 	{
 		auto blockInt = columnInt->GetBlocksList()[i];
@@ -10064,3 +10057,20 @@ TEST(DispatcherTests, Atan2ColFloat)
 		ASSERT_FLOAT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
 	}
 }
+
+// Polygon clipping tests
+/*
+// TODO: fix zero allocation, finish polygon clippin and add asserts
+TEST(DispatcherTests, PolygonClippingAndContains)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+		"SELECT colInteger1 FROM TableA WHERE GEO_CONTAINS(GEO_INTERSECT(colPolygon1, colPolygon2), colPoint1);");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<std::string> expectedResultsPoints;
+}
+*/

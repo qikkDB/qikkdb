@@ -394,9 +394,9 @@ TEST(BlockTests, BlockStatistics)
 	ASSERT_EQ(PointFactory::WktFromPoint(blockPoint.GetSum()), "POINT(0 0)");
 	ASSERT_FLOAT_EQ(blockPoint.GetAvg(), 0);
 
-	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetMin()), "POLYGON((0 0),(0 0))");
-	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetMax()), "POLYGON((0 0),(0 0))");
-	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetSum()), "POLYGON((0 0),(0 0))");
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetMin()), "POLYGON((0 0), (0 0))");
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetMax()), "POLYGON((0 0), (0 0))");
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetSum()), "POLYGON((0 0), (0 0))");
 	ASSERT_FLOAT_EQ(blockPolygon.GetAvg(), 0);
 
 	ASSERT_EQ(blockString.GetMin(), "");
