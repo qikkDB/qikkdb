@@ -133,6 +133,13 @@ namespace ColmnarDB.BenchmarkUtility
             }
             queryFile.Close();
             resultFile.Close();
+
+            //drop databases:
+            queryString = "DROP DATABASE " + telcoDbName + ";";
+            client.Query(queryString);
+
+            queryString = "DROP DATABASE " + geoDbName + ";";
+            client.Query(queryString);
         }    
     }
 }
