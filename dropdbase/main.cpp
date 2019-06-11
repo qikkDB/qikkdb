@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 	Database::AddToInMemoryDatabaseList(database);
 	std::cout << "Loading TargetLoc.csv ..." << std::endl;
 	csvDataImporter.ImportTables(database);*/
-	/*
+    /*
 	for (int i = 0; i < 2; i++)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
@@ -69,7 +69,6 @@ int main(int argc, char **argv)
 		std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
 	}
 	*/
-
 	for (auto& db : Database::GetDatabaseNames())
 	{
 		Database::RemoveFromInMemoryDatabaseList(db.c_str());
