@@ -276,6 +276,8 @@ TEST_F(DatabaseTests, IntegrationTest)
 		ASSERT_EQ(data[2], 1);
 	}
 
+	Database::SaveAllToDisk();
+
 	//drop column colBool:
 	database->DeleteColumnFromDisk(std::string("TestTable2").c_str(), std::string("colBool").c_str());
 	std::string filePath = Configuration::GetInstance().GetDatabaseDir() + dbName + "_TestTable2_colBool.col";
