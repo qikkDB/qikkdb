@@ -190,6 +190,11 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 		dispatcher.addArctangent2Function(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(DataType::COLUMN_FLOAT);
 	}
+	else if (op == "CONCAT")
+	{
+		//dispatcher.addArctangent2Function(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
 
 	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
@@ -370,6 +375,31 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	{
 		dispatcher.addCeilFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "LTRIM")
+	{
+		//dispatcher.addCeilFunction(operandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "RTRIM")
+	{
+		//dispatcher.addCeilFunction(operandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "LOWER")
+	{
+		//dispatcher.addCeilFunction(operandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "UPPER")
+	{
+		//dispatcher.addCeilFunction(operandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "LEN")
+	{
+		//dispatcher.addCeilFunction(operandType);
+		returnDataType = DataType::COLUMN_INT;
 	}
 
 	std::string reg = getRegString(ctx);
