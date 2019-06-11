@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 enum DataType {
 	CONST_ERROR = -1,
@@ -20,3 +21,24 @@ enum DataType {
 	COLUMN_INT8_T = 15,
 	DATA_TYPE_SIZE = 16
 };
+
+constexpr int32_t GetDataTypeSize(DataType type)
+{
+	switch(type)
+	{
+		case COLUMN_INT:
+		case CONST_INT:
+			return sizeof(int32_t);
+		case COLUMN_LONG:
+		case CONST_LONG:
+			return sizeof(int64_t);
+		case COLUMN_DOUBLE:
+		case CONST_DOUBLE:
+			return sizeof(double);
+		case COLUMN_FLOAT:
+		case CONST_FLOAT:
+			return sizeof(float);
+		default:
+			return sizeof(int8_t);
+	}
+}
