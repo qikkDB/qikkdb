@@ -22,14 +22,25 @@ private:
 	std::string name;
 	int32_t blockSize;
 	std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
+	std::vector<std::string> sortingColumns;
 	std::unique_ptr<std::mutex> columnsMutex_;
 
+#ifndef __CUDACC__
+    void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
+                                               int indexBlock,
+                                               int indexInBlock,
+                                               int iterator);
+    int32_t getDataRangeInSortingColumn();
+	int32_t getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any> &data);
+#endif
 public:
-	const std::shared_ptr<Database> &GetDatabase() const;
+    const std::shared_ptr<Database>& GetDatabase();
 	const std::string &GetName() const;
 	int32_t GetBlockSize() const;
 	int32_t GetBlockCount() const;
 	const std::unordered_map<std::string, std::unique_ptr<IColumn>> &GetColumns() const;
+	std::vector<std::string> GetSortingColumns();
+	void SetSortingColumns(std::vector<std::string> columns);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="T:ColmnarDB.Table"/> class. Also gets from database

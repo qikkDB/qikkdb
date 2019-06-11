@@ -785,3 +785,135 @@ TEST(ColumnTests, ColumnStatistics)
 	ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(columnString.get())->GetSum(), "");
 	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<std::string>*>(columnString.get())->GetAvg(), 0);
 }
+
+/*TEST(ColumnTests, FindBlockIndexAndRange)
+{
+    int indexBlock;
+    int indexInBlock;
+	int range;
+
+    auto database = std::make_shared<Database>("testDatabase", 4);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnInt", COLUMN_INT);
+    auto& columnInt = table.GetColumns().at("ColumnInt");
+
+	std::vector<int32_t> dataInt = {0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 6, 7, 7, 7};
+
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertData(dataInt);
+
+	std::tie(indexBlock, indexInBlock, range) = 
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 2, 6, 1);
+    ASSERT_EQ(indexBlock, 0);
+    ASSERT_EQ(indexInBlock, 2);
+    ASSERT_EQ(range, 2);
+
+	std::tie(indexBlock, indexInBlock, range) =
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 2, 8, 2);
+    ASSERT_EQ(indexBlock, 1);
+    ASSERT_EQ(indexInBlock, 0);
+    ASSERT_EQ(range, 3);
+
+	std::tie(indexBlock, indexInBlock, range) =
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 2, 8, 3);
+    ASSERT_EQ(indexBlock, 1);
+    ASSERT_EQ(indexInBlock, 3);
+    ASSERT_EQ(range, 2);
+
+	std::tie(indexBlock, indexInBlock, range) =
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 16, 7);
+    ASSERT_EQ(indexBlock, 3);
+    ASSERT_EQ(indexInBlock, 1);
+    ASSERT_EQ(range, 3);
+
+	std::tie(indexBlock, indexInBlock, range) =
+        dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(1, 1, 2, 7);
+    ASSERT_EQ(indexBlock, 1);
+    ASSERT_EQ(indexInBlock, 3);
+    ASSERT_EQ(range, 1);
+}*/
+
+TEST(ColumnTests, FIndIndexAndRange)
+{
+	int indexBlock = 0;
+	int indexInBlock = 0;
+	int range = INT_MAX;
+
+	auto database = std::make_shared<Database>("testDatabase", 4);
+	Table table(database, "testTable");
+
+	table.CreateColumn("ColumnInt", COLUMN_INT);
+	auto& columnInt = table.GetColumns().at("ColumnInt");
+
+	std::tie(indexBlock, indexInBlock, range) =
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 0, 2);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 0);
+	ASSERT_EQ(range, 0);
+
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 2);
+
+	std::tie(indexBlock, indexInBlock, range) =
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 1, 1);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 0);
+	ASSERT_EQ(range, 0);
+
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 1);
+
+	std::tie(indexBlock, indexInBlock, range) =
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 2, 5);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 2);
+	ASSERT_EQ(range, 0);
+
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 5);
+
+	std::tie(indexBlock, indexInBlock, range) =
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 3, 8);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 3);
+	ASSERT_EQ(range, 0);
+
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 8);
+
+	std::tie(indexBlock, indexInBlock, range) =
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 4, 102);
+	ASSERT_EQ(indexBlock, 1);
+	ASSERT_EQ(indexInBlock, 2);
+	ASSERT_EQ(range, 0);
+	
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 102);
+	
+	std::tie(indexBlock, indexInBlock, range) =
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 5, 67);
+	ASSERT_EQ(indexBlock, 1);
+	ASSERT_EQ(indexInBlock, 2);
+	ASSERT_EQ(range, 0);
+
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 67);
+	
+	std::tie(indexBlock, indexInBlock, range) =
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 6, 5);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 2);
+	ASSERT_EQ(range, 1);
+	
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 5);
+
+	std::tie(indexBlock, indexInBlock, range) =
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 7, 1);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 0);
+	ASSERT_EQ(range, 1);
+
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 1);
+	
+	std::tie(indexBlock, indexInBlock, range) =
+		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 8, 12);
+	ASSERT_EQ(indexBlock, 2);
+	ASSERT_EQ(indexInBlock, 2);
+	ASSERT_EQ(range, 0);
+
+	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 12);
+}
