@@ -84,14 +84,15 @@ public:
 
 	/// <summary>
 	/// Delete database from disk. Deletes .db and .col files which belong to the specified database.
+	/// Database is not deleted from memory.
 	/// </summary>
 	void DeleteDatabaseFromDisk();
 
 	/// <summary>
-	/// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
 	/// <param name="tableName">Name of the table to be deleted.</param>
 	/// Delete table from disk. Deletes .col files which belong to the specified table of currently loaded database.
-	/// To alter .db file, this action also calls a function Persist.
+	/// To alter .db file, this action also calls a function PersistOnlyDbFile().
+	/// Table needs to be deleted from memory before calling this method, so that .db file can be updated correctly.
 	/// </summary>
 	void DeleteTableFromDisk(const char* tableName);
 
@@ -100,6 +101,7 @@ public:
 	/// <param name="columnName">Name of the column file (*.col) without the ".col" suffix that will be deleted.</param>
 	/// Delete column of a table. Deletes single .col file which belongs to specified column and specified table.
 	/// To alter .db file, this action also calls a function Persist.
+	/// Column needs to be deleted from memory before calling this method, so that .db file can be updated correctly.
 	/// </summary>
 	void DeleteColumnFromDisk(const char* tableName, const char* columnName);
 

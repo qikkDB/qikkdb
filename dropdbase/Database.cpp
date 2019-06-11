@@ -219,12 +219,12 @@ void Database::LoadDatabasesFromDisk()
 
 /// <summary>
 /// Delete database from disk. Deletes .db and .col files which belong to the specified database.
+/// Database is not deleted from memory.
 /// </summary>
 void Database::DeleteDatabaseFromDisk()
 {
 	auto &path = Configuration::GetInstance().GetDatabaseDir();
 
-	RemoveFromInMemoryDatabaseList(name_.c_str());
 	if (boost::filesystem::exists(path))
 	{
 		std::string prefix(name_ + "_");
@@ -249,13 +249,13 @@ void Database::DeleteDatabaseFromDisk()
 /// <summary>
 /// <param name="tableName">Name of the table to be deleted.</param>
 /// Delete table from disk. Deletes .col files which belong to the specified table of currently loaded database.
-/// To alter .db file, this action also calls a function Persist.
+/// To alter .db file, this action also calls a function PersistOnlyDbFile().
+/// Table needs to be deleted from memory before calling this method, so that .db file can be updated correctly.
 /// </summary>
 void Database::DeleteTableFromDisk(const char* tableName)
 {
 	auto &path = Configuration::GetInstance().GetDatabaseDir();
 
-	tables_.erase(tableName);
 	if (boost::filesystem::exists(path))
 	{
 		std::string prefix(name_ + "_" + std::string(tableName) + "_");
@@ -269,14 +269,14 @@ void Database::DeleteTableFromDisk(const char* tableName)
 			}
 		}
 
-		PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
-
 		BOOST_LOG_TRIVIAL(info) << "Table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
 	}
 	else
 	{
 		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists." << std::endl;
 	}
+
+	PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
 }
 
 /// <summary>
@@ -284,6 +284,7 @@ void Database::DeleteTableFromDisk(const char* tableName)
 /// <param name="columnName">Name of the column file (*.col) without the ".col" suffix that will be deleted.</param>
 /// Delete column of a table. Deletes single .col file which belongs to specified column and specified table.
 /// To alter .db file, this action also calls a function Persist.
+/// Column needs to be deleted from memory before calling this method, so that .db file can be updated correctly.
 /// </summary>
 void Database::DeleteColumnFromDisk(const char* tableName, const char* columnName)
 {
@@ -291,12 +292,9 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 
 	std::string filePath = path + name_ + "_" + std::string(tableName) + "_" + std::string(columnName) + ".col";
 
-	tables_.at(tableName).RemoveColumn(columnName);
 	if (boost::filesystem::exists(filePath))
 	{
 		boost::filesystem::remove(filePath);
-
-		PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
 
 		BOOST_LOG_TRIVIAL(info) << "Column " << columnName << " from table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
 	}
@@ -304,6 +302,8 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 	{
 		BOOST_LOG_TRIVIAL(error) << "File " << path << " does not exists." << std::endl;
 	}
+
+	PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
 }
 
 /// <summary>
