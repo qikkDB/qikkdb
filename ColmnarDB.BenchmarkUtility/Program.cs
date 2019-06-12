@@ -67,6 +67,12 @@ namespace ColmnarDB.BenchmarkUtility
                 (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
                 result = client.GetNextQueryResult();
                 float resultSum = result.executionTimes.Values.Sum();
+
+                foreach (var key in result.executionTimes.Keys)
+                {
+                    Console.Out.WriteLine("Execution times key: " + key);
+                }
+                
                 
                 //save query result to a file:
                 resultFile.WriteLine((resultSum).ToString() + " (first run)");

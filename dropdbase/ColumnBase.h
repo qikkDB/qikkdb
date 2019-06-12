@@ -271,8 +271,15 @@ public:
         return std::make_tuple(newIndexBlock, newIndexInBlock, newRange);
     }
 
+	virtual int64_t GetSize() const override
+	{
+		return size_;
+	}
+
     void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData, int groupId = -1)
     {
+		size_ += 1;
+
         if (blocks_[groupId].size() == 0)
         {
             BlockBase<T>& block = AddBlock();
