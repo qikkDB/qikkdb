@@ -59,10 +59,10 @@ namespace ColmnarDB.BenchmarkUtility
                 (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
                 result = client.GetNextQueryResult();
                 float resultSum = result.executionTimes.Values.Sum();
-                Console.Out.WriteLine("Execution time was: " + result.executionTimes.Values.Sum());
                 
                 //save query result to a file:
                 resultFile.WriteLine((resultSum).ToString() + " (first run)");
+                Console.Out.WriteLine((resultSum).ToString() + " (first run)");
 
                 resultSum = 0;
 
@@ -75,7 +75,8 @@ namespace ColmnarDB.BenchmarkUtility
                 } 
 
                 //save query result to a file:
-                resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached run)");
+                resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached N runs)");
+                Console.Out.WriteLine((resultSum / numberOfQueryExec) + " (average cached N runs)");
             }
             queryFile.Close();
 
@@ -101,6 +102,7 @@ namespace ColmnarDB.BenchmarkUtility
 
                 //save query result to a file:
                 resultFile.WriteLine((resultSum).ToString() + " (first run)");
+                Console.Out.WriteLine((resultSum).ToString() + " (first run)");
 
                 resultSum = 0;
 
@@ -113,7 +115,8 @@ namespace ColmnarDB.BenchmarkUtility
                 }
 
                 //save query result to a file:
-                resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached run)");
+                resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached N runs)");
+                Console.Out.WriteLine((resultSum / numberOfQueryExec) + " (average cached N runs)");
             }
             queryFile.Close();
             resultFile.Close();
