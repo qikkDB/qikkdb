@@ -33,6 +33,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	instructionPointer(0),
 	constPointCounter(0),
 	constPolygonCounter(0),
+	constStringCounter(0),
 	filter_(0),
 	usedRegisterMemory(0),
 	maxRegisterMemory(0), // TODO value from config e.g.
@@ -440,18 +441,22 @@ void GpuSqlDispatcher::addCeilFunction(DataType type)
 
 void GpuSqlDispatcher::addLtrimFunction(DataType type)
 {
+	dispatcherFunctions.push_back(ltrimFunctions[type]);
 }
 
 void GpuSqlDispatcher::addRtrimFunction(DataType type)
 {
+	dispatcherFunctions.push_back(rtrimFunctions[type]);
 }
 
 void GpuSqlDispatcher::addLowerFunction(DataType type)
 {
+	dispatcherFunctions.push_back(lowerFunctions[type]);
 }
 
 void GpuSqlDispatcher::addUpperFunction(DataType type)
 {
+	dispatcherFunctions.push_back(upperFunctions[type]);
 }
 
 void GpuSqlDispatcher::addLenFunction(DataType type)
@@ -623,6 +628,13 @@ GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::
 	std::string name = "constPolygon" + std::to_string(constPolygonCounter);
 	constPolygonCounter++;
 	return insertComplexPolygon(database->GetName(), name, { polygon }, 1);
+}
+
+GPUMemory::GPUString GpuSqlDispatcher::insertConstStringGpu(const std::string& str)
+{
+	std::string name = "constString" + std::to_string(constStringCounter);
+	constStringCounter++;
+	return insertString(database->GetName(), name, { str }, 1);
 }
 
 

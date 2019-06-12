@@ -43,6 +43,7 @@ private:
 	int32_t instructionPointer;
 	int32_t constPointCounter;
 	int32_t constPolygonCounter;
+	int32_t constStringCounter;
     const std::shared_ptr<Database> &database;
 	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
@@ -157,6 +158,14 @@ private:
 		DataType::DATA_TYPE_SIZE> ceilFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 		DataType::DATA_TYPE_SIZE> floorFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> ltrimFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> rtrimFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> lowerFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> upperFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
@@ -453,6 +462,7 @@ public:
 	std::tuple<GPUMemory::GPUString, int32_t> findStringColumn(const std::string &colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
+	GPUMemory::GPUString insertConstStringGpu(const std::string& str);
 
   	template<typename T>
     int32_t retConst();
@@ -518,6 +528,12 @@ public:
 
 	template<typename OP, typename T>
 	int32_t arithmeticUnaryConst();
+
+	template<typename OP, typename T>
+	int32_t stringUnaryCol();
+
+	template<typename OP, typename T>
+	int32_t stringUnaryConst();
 
 	template<typename OP, typename R, typename T, typename U>
 	int32_t aggregationGroupBy();
