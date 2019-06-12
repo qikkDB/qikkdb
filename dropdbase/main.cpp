@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
 	//Context::getInstance();
 	//CSVDataImporter csvDataImporter(R"(C:\Users\pkratky\Desktop\DataGenerator\output\TargetLoc10M.csv)");
-	////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
+	//////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
 	//std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 1000000);
 	//Database::AddToInMemoryDatabaseList(database);
 	//std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
