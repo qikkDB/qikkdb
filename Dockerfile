@@ -103,6 +103,6 @@ RUN systemctl enable nvidia-persistenced
 
 WORKDIR /build
 
-COPY --from=builder /build/dropdbase/dropdbase_instarea .
+COPY --from=builder /build/build_dropdbase/dropdbase/dropdbase_instarea .
 
 ENTRYPOINT ["dropdbase_instarea"]
