@@ -52,6 +52,24 @@ namespace StringUnaryOperations
 			return GPUMemory::GPUString();
 		}
 	};
+
+	struct reverse
+	{
+		typedef GPUMemory::GPUString returnType;
+		__device__ GPUMemory::GPUString operator()(GPUMemory::GPUString a) const
+		{
+			return GPUMemory::GPUString();
+		}
+	};
+
+	struct len
+	{
+		typedef int64_t returnType;
+		__device__ int64_t operator()(GPUMemory::GPUString a) const
+		{
+			return 0;
+		}
+	};
 }
 
 

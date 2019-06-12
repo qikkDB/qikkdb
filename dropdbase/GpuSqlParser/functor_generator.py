@@ -59,7 +59,9 @@ operations_aggregation = ["min", "max", "sum", "count", "avg"]
 operations_date = ["year", "month", "day", "hour", "minute", "second"]
 operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
-operations_string_unary = ['ltrim', 'rtrim', 'lower', 'upper']
+operations_string_unary = ['ltrim', 'rtrim', 'lower', 'upper', 'reverse', 'len']
+
+operations_string_binary = ['left', 'right']
 
 for operation in operations_binary:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
@@ -565,6 +567,40 @@ for operation in operations_string_unary:
             declaration += ("&" + function + "};")
         else:
             declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+
+for operation in operations_string_binary:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
+
+            if (operation == 'left' or operation == 'right') and (colVal != STRING or rowVal not in [INT, LONG]):
+                op = "invalidOperandTypesErrorHandler"
+
+            else:
+                op = "stringBinary"
+
+            function = "GpuSqlDispatcher::" + op + col + row + "<StringBinaryOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
 
     print(declaration)
 print()

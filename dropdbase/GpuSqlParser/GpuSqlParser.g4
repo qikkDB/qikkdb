@@ -71,6 +71,7 @@ expression : op=NOT expression                                                  
            | op=RTRIM LPAREN expression RPAREN                                            # unaryOperation
            | op=LOWER LPAREN expression RPAREN                                            # unaryOperation
            | op=UPPER LPAREN expression RPAREN                                            # unaryOperation
+           | op=REVERSE LPAREN expression RPAREN                                            # unaryOperation
            | op=LEN LPAREN expression RPAREN                                              # unaryOperation
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation
@@ -91,6 +92,8 @@ expression : op=NOT expression                                                  
            | op=GEO_INTERSECT LPAREN left=expression COMMA right=expression RPAREN        # binaryOperation
            | op=GEO_UNION LPAREN left=expression COMMA right=expression RPAREN            # binaryOperation
            | op=CONCAT LPAREN left=expression COMMA right=expression RPAREN               # binaryOperation
+           | op=LEFT LPAREN left=expression COMMA right=expression RPAREN                 # binaryOperation
+           | op=RIGHT LPAREN left=expression COMMA right=expression RPAREN                # binaryOperation
            | expression op=BETWEEN expression op2=AND expression                          # ternaryOperation
            | left=expression op=AND right=expression                                      # binaryOperation
            | left=expression op=OR right=expression                                       # binaryOperation

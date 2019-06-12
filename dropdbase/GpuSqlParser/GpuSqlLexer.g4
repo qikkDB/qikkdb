@@ -110,7 +110,10 @@ LTRIM       : L T R I M;
 RTRIM       : R T R I M;
 LOWER       : L O W E R;
 UPPER       : U P P E R;
+REVERSE     : R E V E R S E;
 LEN         : L E N;
+LEFT        : L E F T;
+RIGHT       : R I G H T;
 CONCAT      : C O N C A T;
 
 

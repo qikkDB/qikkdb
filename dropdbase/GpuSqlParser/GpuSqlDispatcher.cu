@@ -289,6 +289,16 @@ void GpuSqlDispatcher::addConcatFunction(DataType left, DataType right)
 {
 }
 
+void GpuSqlDispatcher::addLeftFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(leftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addRightFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(rightFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
 void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
 {
 	dispatcherFunctions.push_back(powerFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
@@ -459,8 +469,14 @@ void GpuSqlDispatcher::addUpperFunction(DataType type)
 	dispatcherFunctions.push_back(upperFunctions[type]);
 }
 
+void GpuSqlDispatcher::addReverseFunction(DataType type)
+{
+	dispatcherFunctions.push_back(reverseFunctions[type]);
+}
+
 void GpuSqlDispatcher::addLenFunction(DataType type)
 {
+	dispatcherFunctions.push_back(lenFunctions[type]);
 }
 
 void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)

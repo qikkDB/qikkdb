@@ -192,7 +192,17 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 	}
 	else if (op == "CONCAT")
 	{
-		//dispatcher.addArctangent2Function(leftOperandType, rightOperandType);
+		dispatcher.addConcatFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "LEFT")
+	{
+		dispatcher.addLeftFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "RIGHT")
+	{
+		dispatcher.addRightFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_STRING;
 	}
 
@@ -378,27 +388,32 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	}
 	else if (op == "LTRIM")
 	{
-		//dispatcher.addCeilFunction(operandType);
+		dispatcher.addLtrimFunction(operandType);
 		returnDataType = DataType::COLUMN_STRING;
 	}
 	else if (op == "RTRIM")
 	{
-		//dispatcher.addCeilFunction(operandType);
+		dispatcher.addRtrimFunction(operandType);
 		returnDataType = DataType::COLUMN_STRING;
 	}
 	else if (op == "LOWER")
 	{
-		//dispatcher.addCeilFunction(operandType);
+		dispatcher.addLowerFunction(operandType);
 		returnDataType = DataType::COLUMN_STRING;
 	}
 	else if (op == "UPPER")
 	{
-		//dispatcher.addCeilFunction(operandType);
+		dispatcher.addUpperFunction(operandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "REVERSE")
+	{
+		dispatcher.addReverseFunction(operandType);
 		returnDataType = DataType::COLUMN_STRING;
 	}
 	else if (op == "LEN")
 	{
-		//dispatcher.addCeilFunction(operandType);
+		dispatcher.addLenFunction(operandType);
 		returnDataType = DataType::COLUMN_INT;
 	}
 

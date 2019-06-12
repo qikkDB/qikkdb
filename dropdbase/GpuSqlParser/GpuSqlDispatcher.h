@@ -108,6 +108,10 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> intersectFunctions;
     static std::array<DispatchFunction, 
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> unionFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> leftFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rightFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
 	static std::array<DispatchFunction, 
@@ -166,6 +170,10 @@ private:
 		DataType::DATA_TYPE_SIZE> lowerFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 		DataType::DATA_TYPE_SIZE> upperFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> reverseFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> lenFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
@@ -355,6 +363,10 @@ public:
 
 	void addConcatFunction(DataType left, DataType right);
 
+	void addLeftFunction(DataType left, DataType right);
+
+	void addRightFunction(DataType left, DataType right);
+
 	void addLogarithmNaturalFunction(DataType type);
 
 	void addExponentialFunction(DataType type);
@@ -380,6 +392,8 @@ public:
 	void addLowerFunction(DataType type);
 
 	void addUpperFunction(DataType type);
+
+	void addReverseFunction(DataType type);
 
 	void addLenFunction(DataType type);
 
@@ -534,6 +548,18 @@ public:
 
 	template<typename OP, typename T>
 	int32_t stringUnaryConst();
+
+	template<typename OP, typename T, typename U>
+	int32_t stringBinaryColCol();
+
+	template<typename OP, typename T, typename U>
+	int32_t stringBinaryColConst();
+
+	template<typename OP, typename T, typename U>
+	int32_t stringBinaryConstCol();
+
+	template<typename OP, typename T, typename U>
+	int32_t stringBinaryConstConst();
 
 	template<typename OP, typename R, typename T, typename U>
 	int32_t aggregationGroupBy();
