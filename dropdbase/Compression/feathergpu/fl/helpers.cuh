@@ -1,6 +1,6 @@
 #pragma once
 #include "../util/macro.cuh"
-
+#include "../util/shfl.cuh"
 template < typename T, char CWARP_SIZE >
 __forceinline__ __device__ unsigned long get_data_id()
 {

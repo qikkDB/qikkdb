@@ -324,7 +324,7 @@ public:
     /// Insert data into column considering empty space of last block and maximum size of blocks
     /// </summary>
     /// <param name="columnData">Data to be inserted</param>
-	void InsertData(const std::vector<T>& columnData, int groupId = -1)
+	void InsertData(const std::vector<T>& columnData, int groupId = -1, bool compress = false)
 	{
 		int startIdx = 0;
 		if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())

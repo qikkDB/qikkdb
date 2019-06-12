@@ -10,6 +10,7 @@
 #include "delta_aafl.cuh"
 #include "afl_signed_experimental.cuh"
 #include "delta_signed_experimental.cuh"
+#include "../util/cuda.cuh"
 
 template < typename T, char CWARP_SIZE, typename CCONT>
 __global__ void gpu_default_decompress_kernel (CCONT cdata, container_uncompressed<T> udata)

@@ -69,6 +69,14 @@ public:
 		isCompressed_ = false;
 	}
 
+	void setBlockStatistics(T min, T max, float avg, T sum)
+	{
+		min_ = min;
+		max_ = max;
+		avg_ = avg;
+		sum_ = sum;
+	}
+	
 	T GetMax()
 	{
 		return max_;

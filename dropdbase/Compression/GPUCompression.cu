@@ -63,8 +63,8 @@ bool compressAAFL(const int CWARP_SIZE, T* const hostUncompressed, int64_t uncom
 	CheckCudaError(cudaGetLastError());
 
 	// Compression
-	container_uncompressed<T> udata = { deviceUncompressed, uncompressedElementsCount };
-	container_aafl<T> cdata = { deviceCompressed, uncompressedElementsCount, deviceBitLength, devicePositionId, deviceCompressedElementsCount, offset };
+	container_uncompressed<T> udata = { deviceUncompressed, static_cast<unsigned long>(uncompressedElementsCount) };
+	container_aafl<T> cdata = { deviceCompressed, static_cast<unsigned long>(uncompressedElementsCount), deviceBitLength, devicePositionId, deviceCompressedElementsCount, offset };
 	gpu_fl_naive_launcher_compression<T, 32, container_aafl<T>>::compress(udata, cdata);
 	CheckCudaError(cudaGetLastError());
 
@@ -257,8 +257,8 @@ bool decompressAAFL(const int CWARP_SIZE, T* const hostCompressed, int64_t compr
 	CheckCudaError(cudaGetLastError());
 
 	// Decompression
-	container_uncompressed<T> udata = { deviceUncompressed, uncompressedElementsCount };
-	container_aafl<T> cdata = { deviceCompressed, uncompressedElementsCount, deviceBitLength, devicePositionId, NULL, offset };
+	container_uncompressed<T> udata = { deviceUncompressed, static_cast<unsigned long>(uncompressedElementsCount) };
+	container_aafl<T> cdata = { deviceCompressed, static_cast<unsigned long>(uncompressedElementsCount), deviceBitLength, devicePositionId, NULL, offset };
 	gpu_fl_naive_launcher_decompression<T, 32, container_aafl<T>>::decompress(cdata, udata);
 	CheckCudaError(cudaGetLastError());
 	
@@ -377,8 +377,8 @@ bool decompressAAFLOnDevice(const int CWARP_SIZE, T* const deviceCompressed, int
 	T *deviceCompressedValuesData = &deviceCompressed[positionDeviceOut]; // data of values only without meta data
 
 	// Decompression
-	container_uncompressed<T> udata = { deviceUncompressed, uncompressedElementsCount };
-	container_aafl<T> cdata = { deviceCompressedValuesData, uncompressedElementsCount, deviceBitLength, devicePositionId, NULL, offset };
+	container_uncompressed<T> udata = { deviceUncompressed, static_cast<unsigned long>(uncompressedElementsCount) };
+	container_aafl<T> cdata = { deviceCompressedValuesData, static_cast<unsigned long>(uncompressedElementsCount), deviceBitLength, devicePositionId, NULL, offset };
 	gpu_fl_naive_launcher_decompression<T, 32, container_aafl<T>>::decompress(cdata, udata);
 	CheckCudaError(cudaGetLastError());
 
