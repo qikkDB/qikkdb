@@ -80,6 +80,13 @@ COPY . ./
 
 WORKDIR /build
 
+# Install needed packages in non-interactive mode
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && apt-get install -y build-essential \
+	wget \
+	
+WORKDIR /build
+
 # Install NVIDIA repo metadata
 RUN mkdir -p ./cuda/src && cd ./cuda/src
 RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-repo-ubuntu1804_10.1.168-1_amd64.deb
