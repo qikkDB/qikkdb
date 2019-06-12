@@ -60,49 +60,49 @@ operations_date = ["year", "month", "day", "hour", "minute", "second"]
 operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
 
-# for operation in operations_binary:
-#     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
-#                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
-#
-#     for colIdx, colVal in enumerate(all_types):
-#         for rowIdx, rowVal in enumerate(all_types):
-#
-#             if colIdx < len(types):
-#                 col = "Const"
-#             elif colIdx >= len(types):
-#                 col = "Col"
-#
-#             if rowIdx < len(types):
-#                 row = "Const"
-#             elif rowIdx >= len(types):
-#                 row = "Col"
-#
-#             if operation != 'contains' and (colVal in geo_types or rowVal in geo_types):
-#                 op = "invalidOperandTypesErrorHandler"
-#
-#             elif colVal == STRING or rowVal == STRING:
-#                 op = "invalidOperandTypesErrorHandler"
-#
-#             elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
-#                 op = "invalidOperandTypesErrorHandler"
-#
-#             elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
-#                 op = "invalidOperandTypesErrorHandler"
-#
-#             elif operation == "contains" and (colVal != POLYGON or rowVal != POINT):
-#                 op = "invalidOperandTypesErrorHandler"
-#
-#             else:
-#                 op = operation
-#             function = "CpuSqlDispatcher::" + op + col + row + "<" + colVal + ", " + rowVal + ">"
-#
-#             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
-#                 declaration += ("&" + function + "};")
-#             else:
-#                 declaration += ("&" + function + ", ")
-#
-#     print(declaration)
-# print()
+for operation in operations_binary:
+    declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
+
+            if operation != 'contains' and (colVal in geo_types or rowVal in geo_types):
+                op = "invalidOperandTypesErrorHandler"
+
+            elif colVal == STRING or rowVal == STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
+                op = "invalidOperandTypesErrorHandler"
+
+            elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
+                op = "invalidOperandTypesErrorHandler"
+
+            elif operation == "contains" and (colVal != POLYGON or rowVal != POINT):
+                op = "invalidOperandTypesErrorHandler"
+
+            else:
+                op = operation
+            function = "CpuSqlDispatcher::" + op + col + row + "<" + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
 #
 # for operation in operations_binary:
 #     print("void add" + operation[0].upper() + operation[1:] + "Function(DataType left, DataType right);")
@@ -281,49 +281,49 @@ for operation in operations_logical:
     print(declaration)
 print()
 
-# for operation in operations_arithmetic:
-#     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
-#                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
-#
-#     for colIdx, colVal in enumerate(all_types):
-#         for rowIdx, rowVal in enumerate(all_types):
-#
-#             if colIdx < len(types):
-#                 col = "Const"
-#             elif colIdx >= len(types):
-#                 col = "Col"
-#
-#             if rowIdx < len(types):
-#                 row = "Const"
-#             elif rowIdx >= len(types):
-#                 row = "Col"
-#
-#             if colVal in geo_types or rowVal in geo_types:
-#                 op = "invalidOperandTypesErrorHandler"
-#
-#             elif colVal == STRING or rowVal == STRING:
-#                 op = "invalidOperandTypesErrorHandler"
-#
-#             elif colVal == BOOL or rowVal == BOOL:
-#                 op = "invalidOperandTypesErrorHandler"
-#
-#             elif (operation == "mod" or operation in bitwise_operations) and (
-#                     colVal in floating_types or rowVal in floating_types):
-#                 op = "invalidOperandTypesErrorHandler"
-#
-#             else:
-#                 op = "arithmetic"
-#
-#             function = "CpuSqlDispatcher::" + op + col + row + "<ArithmeticOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
-#
-#             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
-#                 declaration += ("&" + function + "};")
-#             else:
-#                 declaration += ("&" + function + ", ")
-#
-#     print(declaration)
-# print()
-#
+for operation in ["mul", "div", "add", "sub", "mod"]:
+    declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
+
+            if colVal in geo_types or rowVal in geo_types:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif colVal == STRING or rowVal == STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif colVal == BOOL or rowVal == BOOL:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif (operation == "mod" or operation in bitwise_operations) and (
+                    colVal in floating_types or rowVal in floating_types):
+                op = "invalidOperandTypesErrorHandler"
+
+            else:
+                op = "arithmetic"
+
+            function = "CpuSqlDispatcher::" + op + col + row + "<ArithmeticOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
 # for operation in unary_arithmetic_operations:
 #     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
 #                   "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"

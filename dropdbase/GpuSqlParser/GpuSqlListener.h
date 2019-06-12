@@ -43,16 +43,6 @@ private:
 	bool insideSelectColumn;
 	bool isAggSelectColumn;
 
-    std::pair<std::string, DataType> stackTopAndPop();
-
-    void pushTempResult(std::string reg, DataType type);
-
-    void pushArgument(const char *token, DataType dataType);
-
-	std::string getRegString(antlr4::ParserRuleContext* ctx);
-	DataType getReturnDataType(DataType left, DataType right);
-	DataType getReturnDataType(DataType operand);
-
 protected:
 	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
@@ -65,6 +55,17 @@ protected:
 	bool isPolygon(const std::string &value);
 
 	void stringToUpper(std::string &str);
+
+	std::pair<std::string, DataType> stackTopAndPop();
+
+	void pushTempResult(std::string reg, DataType type);
+
+	void pushArgument(const char *token, DataType dataType);
+
+	std::string getRegString(antlr4::ParserRuleContext* ctx);
+	DataType getReturnDataType(DataType left, DataType right);
+	DataType getReturnDataType(DataType operand);
+
 
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);

@@ -13,100 +13,123 @@ void GpuWhereEvaluationListener::exitBinaryOperation(GpuSqlParser::BinaryOperati
 	std::string op = ctx->op->getText();
 	stringToUpper(op);
 
+	DataType rightOperandType = std::get<1>(right);
+	DataType leftOperandType = std::get<1>(left);
+
+	pushArgument(std::get<0>(left).c_str(), leftOperandType);
+	pushArgument(std::get<0>(right).c_str(), rightOperandType);
+
 	DataType returnDataType;
-	bool ignoreFlag;
 
 	if (op == ">")
 	{
-		
+		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "<")
 	{
-		
+		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == ">=")
 	{
-		
+		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "<=")
 	{
-		
+		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "=")
 	{
-		
+		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "!=" || op == "<>")
 	{
-		
+		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "AND")
 	{
-		
+		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "OR")
 	{
-		
+		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "*")
 	{
-		
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "/")
 	{
-		
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "+")
 	{
-		
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "-")
 	{
-		
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "%")
 	{
-		
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "|")
 	{
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "&")
 	{
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "^")
 	{
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "<<")
 	{
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == ">>")
 	{
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "POINT")
 	{
+		returnDataType = DataType::COLUMN_POINT;
 	}
 	else if (op == "GEO_CONTAINS")
 	{
+		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "GEO_INTERSECT")
 	{
+		returnDataType = DataType::COLUMN_POLYGON;
 	}
 	else if (op == "GEO_UNION")
 	{
+		returnDataType = DataType::COLUMN_POLYGON;
 	}
 	else if (op == "LOG")
 	{
+		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "POW")
 	{
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "ROOT")
 	{
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "ATAN2")
 	{
+		returnDataType = getReturnDataType(DataType::COLUMN_FLOAT);
 	}
+	dispatcher.addBinaryOperation(leftOperandType, rightOperandType, op);
+
+	std::string reg = getRegString(ctx);
+	pushArgument(reg.c_str(), returnDataType);
+	pushTempResult(reg, returnDataType);
 }
 
 void GpuWhereEvaluationListener::exitIntLiteral(GpuSqlParser::IntLiteralContext * ctx)
@@ -164,11 +187,4 @@ void GpuWhereEvaluationListener::exitVarReference(GpuSqlParser::VarReferenceCont
 	const std::string tableColumn = std::get<0>(tableColumnData);
 
 	parserStack.push(std::make_pair(tableColumn, columnType));
-}
-
-std::pair<std::string, DataType> GpuWhereEvaluationListener::stackTopAndPop()
-{
-	std::pair<std::string, DataType> value = parserStack.top();
-	parserStack.pop();
-	return value;
 }

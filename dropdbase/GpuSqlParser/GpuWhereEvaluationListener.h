@@ -1,5 +1,6 @@
 #pragma once
 #include "GpuSqlListener.h"
+#include "CpuSqlDispatcher.h"
 
 #include "../DataType.h"
 #include "../Database.h"
@@ -11,8 +12,8 @@ class GpuWhereEvaluationListener : public GpuSqlListener
 private:
 	const std::shared_ptr<Database> &database;
 	int32_t blockIndex;
+	CpuSqlDispatcher &dispatcher;
 	std::stack<std::pair<std::string, DataType>> parserStack;
-	std::pair<std::string, DataType> stackTopAndPop();
 
 	template<typename OP>
 	int64_t filterOperation(int64_t left, int64_t right, DataType leftDataType, DataType rightDataType) 

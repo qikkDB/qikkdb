@@ -1,7 +1,23 @@
 #include "CpuSqlDispatcher.h"
+
+CpuSqlDispatcher::CpuSqlDispatcher(const std::shared_ptr<Database> &database) :
+	database(database),
+	blockIndex(0)
+{
+}
+
 bool CpuSqlDispatcher::isRegisterAllocated(std::string & reg)
 {
 	return allocatedPointers.find(reg) != allocatedPointers.end();
+}
+
+std::pair<std::string, std::string> CpuSqlDispatcher::splitColumnName(const std::string & name)
+{
+	const size_t separatorPosition = name.find(".");
+	const std::string table = name.substr(0, separatorPosition);
+	const std::string column = name.substr(separatorPosition + 1);
+
+	return std::make_pair(table, column);
 }
 
 void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const std::string & op)

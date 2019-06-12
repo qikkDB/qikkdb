@@ -57,6 +57,10 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlParserListener.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlParser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlParser.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/CpuSqlDispatcher.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/CpuSqlDispatcher.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuSqlDispatcherLogicFunctions.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuSqlDispatcherArithmeticFunctions.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/IColumn.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.h
