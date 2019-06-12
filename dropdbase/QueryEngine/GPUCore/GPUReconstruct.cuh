@@ -196,13 +196,18 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
-
+	/// Reconstruct GPUString column (keep result on GPU)
+	/// <param name="outStringCol">output GPUString column</param>
+	/// <param name="outDataElementCount">reconstructed data element (string) count</param>
+	/// <param name="inStringCol">input GPUString column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (string) count</param>
 	static void ReconstructStringColKeep(GPUMemory::GPUString *outStringCol, int32_t *outDataElementCount,
 		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
 
 	/// Reconstruct GPUString column and copy to CPU memory
 	/// <param name="outStringData">output CPU string array</param>
-	/// <param name="outDataElementCount">reconstructed data elemen (string) count</param>
+	/// <param name="outDataElementCount">reconstructed data element (string) count</param>
 	/// <param name="inStringCol">input GPUString column</param>
 	/// <param name="inMask">input mask for the reconstruction</param>
 	/// <param name="inDataElementCount">input data element (string) count</param>
