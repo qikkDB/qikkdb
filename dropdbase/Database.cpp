@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <thread>
+#include <stdio.h>
 
 #include "ColumnBase.h"
 #include "Configuration.h"
@@ -234,11 +235,16 @@ void Database::DeleteDatabaseFromDisk()
 			//delete files which starts with prefix of db name:
 			if (!p.path().string().compare(0, prefix.size(), prefix))
 			{
-				boost::filesystem::remove(p.path());
+				if (boost::filesystem::remove(p.path().string().c_str()) != 0)
+				{
+					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was NOT removed from disk. No such file or write access." << std::endl;
+				}
+				else
+				{
+					BOOST_LOG_TRIVIAL(info) << "Database " << name_ << " was successfully removed from disk." << std::endl;
+				}
 			}
 		}
-
-		BOOST_LOG_TRIVIAL(info) << "Database " << name_ << " was successfully removed from disk." << std::endl;
 	}
 	else
 	{
@@ -265,18 +271,27 @@ void Database::DeleteTableFromDisk(const char* tableName)
 			//delete files which starts with prefix of db name and table name:
 			if (!p.path().string().compare(0, prefix.size(), prefix))
 			{
-				boost::filesystem::remove(p.path());
+				if (boost::filesystem::remove(p.path().string().c_str()) != 0)
+				{
+					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was NOT removed from disk. No such file or write access." << std::endl;
+				}
+				else
+				{
+					BOOST_LOG_TRIVIAL(info) << "Table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
+				}
 			}
 		}
-
-		BOOST_LOG_TRIVIAL(info) << "Table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
 	}
 	else
 	{
 		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists." << std::endl;
 	}
 
-	PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
+	//persist only db file, so that changes are saved, BUT PERSIST ONLY if there already is a .db file, so it is not only in memory
+	if (boost::filesystem::exists(path + name_ + ".db"))
+	{
+		PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
+	}
 }
 
 /// <summary>
@@ -294,16 +309,25 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 
 	if (boost::filesystem::exists(filePath))
 	{
-		boost::filesystem::remove(filePath);
-
-		BOOST_LOG_TRIVIAL(info) << "Column " << columnName << " from table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
+		if (boost::filesystem::remove(filePath.c_str()) != 0)
+		{
+			BOOST_LOG_TRIVIAL(info) << "File " << filePath << " was NOT removed from disk. No such file or write access." << std::endl;
+		}
+		else
+		{
+			BOOST_LOG_TRIVIAL(info) << "Column " << columnName << " from table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
+		}
 	}
 	else
 	{
 		BOOST_LOG_TRIVIAL(error) << "File " << path << " does not exists." << std::endl;
 	}
 
-	PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
+		//persist only db file, so that changes are saved, BUT PERSIST ONLY if there already is a .db file, so it is not only in memory
+	if (boost::filesystem::exists(path + name_ + ".db"))
+	{
+		PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
+	}
 }
 
 /// <summary>
