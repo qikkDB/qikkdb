@@ -8,5 +8,5 @@ SELECT COUNT(ageId) FROM TargetLoc1B WHERE latitude > 48.1689 AND latitude < 48.
 SELECT COUNT(ageId) FROM TargetLoc1B WHERE latitude > 48.179  AND latitude < 48.1977 AND longitude > 17.1218 AND longitude < 17.1397 GROUP BY ageId;
 SELECT COUNT(ageId) FROM TargetLoc1B WHERE latitude > 48.1868 AND latitude < 48.1991 AND longitude > 17.1299 AND longitude < 17.1411 GROUP BY ageId;
 SELECT COUNT(ageId) FROM TargetLoc1B WHERE latitude > 48.1946 AND latitude < 48.2142 AND longitude > 17.1386 AND longitude < 17.1512 GROUP BY ageId;
-SELECT longitude, latitude, sum(wealthIndexId) AS sum_wealthIndexId FROM TargetLoc1B WHERE (latitude - longitude) < 35;
+SELECT sum(wealthIndexId) AS sum_wealthIndexId FROM TargetLoc1B WHERE (latitude - longitude) < 15;
 SELECT min(longitude), max(latitude) FROM TargetLoc1B;
