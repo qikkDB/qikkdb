@@ -152,6 +152,9 @@ public:
   virtual void enterOffset(GpuSqlParser::OffsetContext *ctx) = 0;
   virtual void exitOffset(GpuSqlParser::OffsetContext *ctx) = 0;
 
+  virtual void enterBlockSize(GpuSqlParser::BlockSizeContext *ctx) = 0;
+  virtual void exitBlockSize(GpuSqlParser::BlockSizeContext *ctx) = 0;
+
   virtual void enterColumnValue(GpuSqlParser::ColumnValueContext *ctx) = 0;
   virtual void exitColumnValue(GpuSqlParser::ColumnValueContext *ctx) = 0;
 

@@ -13,10 +13,10 @@ showTables      : SHOWTB ((FROM|IN) database)? SEMICOL;
 showColumns     : SHOWCL (FROM|IN) table ((FROM|IN) database)? SEMICOL;
 
 sqlSelect       : SELECT selectColumns FROM fromTables (joinClauses)? (WHERE whereClause)? (GROUPBY groupByColumns)? (ORDERBY orderByColumns)? (LIMIT limit)? (OFFSET offset)? SEMICOL;
-sqlCreateDb     : CREATEDB database SEMICOL;
+sqlCreateDb     : CREATEDB database (blockSize)? SEMICOL;
 sqlDropDb       : DROPDB database SEMICOL;
 sqlCreateTable  : CREATETABLE table LPAREN newTableEntries RPAREN SEMICOL;
-sqlDropTable    : DROPTABLE table SEMICOL;
+sqlDropTable    : DROPTABLE table  SEMICOL;
 sqlAlterTable   : ALTERTABLE table alterTableEntries SEMICOL;
 sqlCreateIndex  : CREATEINDEX indexName ON table LPAREN indexColumns RPAREN SEMICOL;
 sqlInsertInto   : INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN insertIntoValues RPAREN SEMICOL;
@@ -53,6 +53,7 @@ alias               : ID;
 indexName           : ID;
 limit               : INTLIT;
 offset              : INTLIT;
+blockSize           : INTLIT;
 columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT);
 
 expression : op=NOT expression                                                            # unaryOperation

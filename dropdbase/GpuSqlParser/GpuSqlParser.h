@@ -50,10 +50,11 @@ public:
     RuleFromTables = 34, RuleJoinClauses = 35, RuleJoinClause = 36, RuleJoinTable = 37, 
     RuleFromTable = 38, RuleTable = 39, RuleColumn = 40, RuleDatabase = 41, 
     RuleAlias = 42, RuleIndexName = 43, RuleLimit = 44, RuleOffset = 45, 
-    RuleColumnValue = 46, RuleExpression = 47, RuleGeometry = 48, RulePointGeometry = 49, 
-    RuleLineStringGeometry = 50, RulePolygonGeometry = 51, RuleMultiPointGeometry = 52, 
-    RuleMultiLineStringGeometry = 53, RuleMultiPolygonGeometry = 54, RulePointOrClosedPoint = 55, 
-    RulePolygon = 56, RuleLineString = 57, RulePoint = 58
+    RuleBlockSize = 46, RuleColumnValue = 47, RuleExpression = 48, RuleGeometry = 49, 
+    RulePointGeometry = 50, RuleLineStringGeometry = 51, RulePolygonGeometry = 52, 
+    RuleMultiPointGeometry = 53, RuleMultiLineStringGeometry = 54, RuleMultiPolygonGeometry = 55, 
+    RulePointOrClosedPoint = 56, RulePolygon = 57, RuleLineString = 58, 
+    RulePoint = 59
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -112,6 +113,7 @@ public:
   class IndexNameContext;
   class LimitContext;
   class OffsetContext;
+  class BlockSizeContext;
   class ColumnValueContext;
   class ExpressionContext;
   class GeometryContext;
@@ -263,6 +265,7 @@ public:
     antlr4::tree::TerminalNode *CREATEDB();
     DatabaseContext *database();
     antlr4::tree::TerminalNode *SEMICOL();
+    BlockSizeContext *blockSize();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -845,6 +848,19 @@ public:
   };
 
   OffsetContext* offset();
+
+  class  BlockSizeContext : public antlr4::ParserRuleContext {
+  public:
+    BlockSizeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *INTLIT();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  BlockSizeContext* blockSize();
 
   class  ColumnValueContext : public antlr4::ParserRuleContext {
   public:

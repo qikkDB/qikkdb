@@ -686,8 +686,20 @@ void GpuSqlListener::exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext * ctx)
 		throw DatabaseAlreadyExistsException();
 	}
 
+	int32_t newDbBlockSize;
+	
+	if (ctx->blockSize())
+	{
+		newDbBlockSize = std::stoi(ctx->blockSize()->getText());
+	}
+	else
+	{
+		newDbBlockSize = Configuration::GetInstance().GetBlockSize();
+	}	
+
 	dispatcher.addCreateDatabaseFunction();
 	dispatcher.addArgument<const std::string&>(newDbName);
+	dispatcher.addArgument<int32_t>(newDbBlockSize);
 }
 
 void GpuSqlListener::exitSqlDropDb(GpuSqlParser::SqlDropDbContext * ctx)
@@ -861,6 +873,11 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * ct
 	if (database->GetTables().find(tableName) == database->GetTables().end())
 	{
 		throw TableNotFoundFromException();
+	}
+
+	if (database->GetTables().at(tableName).GetSize() > 0)
+	{
+		throw TableIsFilledException();
 	}
 
 	//check if index already exists

@@ -756,7 +756,8 @@ int32_t GpuSqlDispatcher::showColumns()
 int32_t GpuSqlDispatcher::createDatabase()
 {
 	std::string newDbName = arguments.read<std::string>();
-	std::shared_ptr<Database> newDb = std::make_shared<Database>(newDbName.c_str());
+	int32_t newDbBlockSize = arguments.read<int32_t>();
+	std::shared_ptr<Database> newDb = std::make_shared<Database>(newDbName.c_str(), newDbBlockSize);
 	Database::AddToInMemoryDatabaseList(newDb);
 	return 6;
 }
@@ -784,6 +785,8 @@ int32_t GpuSqlDispatcher::createTable()
 		newColumns.insert({ newColumnName, static_cast<DataType>(newColumnDataType) });
 	}
 
+	std::unordered_set<std::string> allIndexColumns;
+
 	int32_t newIndexCount = arguments.read<int32_t>();
 	for (int32_t i = 0; i < newIndexCount; i++)
 	{
@@ -795,11 +798,13 @@ int32_t GpuSqlDispatcher::createTable()
 		{
 			std::string newIndexColumn = arguments.read<std::string>();
 			newIndexColumns.insert(newIndexColumn);
+			allIndexColumns.insert(newIndexColumn);
 		}
 		newIndices.insert({ newIndexName, newIndexColumns });
 	}
 
-	database->CreateTable(newColumns, newTableName.c_str());
+	std::vector<std::string> allIndexColumnsVector(allIndexColumns.begin(), allIndexColumns.end());
+	database->CreateTable(newColumns, newTableName.c_str()).SetSortingColumns(allIndexColumnsVector);
 	return 8;
 }
 
@@ -840,13 +845,23 @@ int32_t GpuSqlDispatcher::createIndex()
 	std::string	indexName = arguments.read<std::string>();
 	std::string tableName = arguments.read<std::string>();
 	std::unordered_set<std::string> indexColumns;
+	std::unordered_set<std::string> sortingColumns;
 
 	int32_t indexColumnCount = arguments.read<int32_t>();
 	for (int i = 0; i < indexColumnCount; i++)
 	{
 		std::string indexColumn = arguments.read<std::string>();
 		indexColumns.insert(indexColumn);
+		sortingColumns.insert(indexColumn);
 	}
+
+	for (auto& column : database->GetTables().at(tableName).GetSortingColumns())
+	{
+		sortingColumns.insert(column);
+	}
+
+	std::vector<std::string> sortingColumnsVector(sortingColumns.begin(), sortingColumns.end());
+	database->GetTables().at(tableName).SetSortingColumns(sortingColumnsVector);
 
 	return 11;
 }

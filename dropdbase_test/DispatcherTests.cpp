@@ -10096,10 +10096,20 @@ TEST(DispatcherTests, CreateAlterDropTable)
 
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "CREATE TABLE tblA (colA int, colB float);");
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "CREATE TABLE tblA (colA int, colB float, INDEX ind (colA, colB));");
 	auto resultPtr = parser.parse();
-	
+
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") != DispatcherObjs::GetInstance().database->GetTables().end());
+
+	std::vector<std::string> expectedSortingColumns = { "colA", "colB" };
+	std::vector<std::string> resultSortingColumns = DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetSortingColumns();
+	
+	ASSERT_TRUE(expectedSortingColumns.size() == resultSortingColumns.size());
+
+	for (int i = 0; i < expectedSortingColumns.size(); i++)
+	{
+		ASSERT_TRUE(expectedSortingColumns[i] == resultSortingColumns[i]);
+	}
 
 	GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database, "INSERT INTO tblA (colA, colB) VALUES (1, 2.0);");
 	

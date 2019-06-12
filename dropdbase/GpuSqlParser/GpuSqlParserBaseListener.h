@@ -154,6 +154,9 @@ public:
   virtual void enterOffset(GpuSqlParser::OffsetContext * /*ctx*/) override { }
   virtual void exitOffset(GpuSqlParser::OffsetContext * /*ctx*/) override { }
 
+  virtual void enterBlockSize(GpuSqlParser::BlockSizeContext * /*ctx*/) override { }
+  virtual void exitBlockSize(GpuSqlParser::BlockSizeContext * /*ctx*/) override { }
+
   virtual void enterColumnValue(GpuSqlParser::ColumnValueContext * /*ctx*/) override { }
   virtual void exitColumnValue(GpuSqlParser::ColumnValueContext * /*ctx*/) override { }
 

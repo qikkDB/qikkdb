@@ -40,6 +40,14 @@ struct TableAlreadyExistsException : public std::exception
 	}
 };
 
+struct TableIsFilledException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Index cannot be created on filled table.";
+	}
+};
+
 struct ColumnAmbiguityException : public std::exception
 {
     const char* what() const noexcept override
