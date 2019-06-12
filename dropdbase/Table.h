@@ -26,7 +26,7 @@ private:
 	std::unique_ptr<std::mutex> columnsMutex_;
 
 #ifndef __CUDACC__
-    void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
+    void InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
                                                int indexBlock,
                                                int indexInBlock,
                                                int iterator);
