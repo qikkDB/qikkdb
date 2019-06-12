@@ -35,7 +35,7 @@ int32_t GpuSqlDispatcher::stringUnaryCol()
 		if (!isRegisterAllocated(reg))
 		{
 			GPUMemory::GPUString result;
-			GPUStringUnary::col<OP>(result, std::get<0>(column), std::get<1>(column));
+			GPUStringUnary::Col<OP>(result, std::get<0>(column), std::get<1>(column));
 			fillStringRegister(result, reg, std::get<1>(column));
 		}
 	}
@@ -59,7 +59,7 @@ int32_t GpuSqlDispatcher::stringUnaryConst()
 	if (!isRegisterAllocated(reg))
 	{
 		GPUMemory::GPUString result;
-		GPUStringUnary::cnst<OP>(result, gpuString, retSize);
+		GPUStringUnary::Const<OP>(result, gpuString, retSize);
 		fillStringRegister(result, reg, retSize);
 	}
 	return 0;
