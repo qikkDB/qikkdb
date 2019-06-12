@@ -27,7 +27,7 @@ endif()
 
 ###### Google Protocol Buffers external project ########
 
-set(PROTOBUF_TAR_GZ https://github.com/protocolbuffers/protobuf/archive/v3.6.1.tar.gz)
+set(PROTOBUF_TAR_GZ https://github.com/protocolbuffers/protobuf/archive/v3.8.0.tar.gz)
 
 ExternalProject_Add(
   protobuf-external
@@ -70,6 +70,16 @@ include_directories(${ANTLR4_INCLUDE_DIRS})
 ###### Antlr4 external project ########
 
 ###### Google Test external project ########
+string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
+
+IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	message("DEBUG MODE")
+	set(GTEST_MAIN_BUILD_PATH third_party/src/googletest-build/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_maind${suffix} )
+    set(GTEST_BUILD_PATH third_party/src/googletest-build/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtestd${suffix} )
+ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	set(GTEST_MAIN_BUILD_PATH third_party/src/googletest-build/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${suffix} )
+	set(GTEST_BUILD_PATH third_party/src/googletest-build/googletest/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${suffix} )
+ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 
 ExternalProject_Add(
     googletest
@@ -93,13 +103,15 @@ ExternalProject_Add(
     # Wrap download, configure and build steps in a script to log output
     LOG_DOWNLOAD ON
     LOG_CONFIGURE ON
-LOG_BUILD ON)
+	LOG_BUILD ON
+	BUILD_BYPRODUCTS ${GTEST_MAIN_BUILD_PATH} ${GTEST_BUILD_PATH}
+)
 ExternalProject_Get_Property(googletest source_dir)
 set(GTEST_INCLUDE_DIR ${source_dir}/googletest/include)
 
 # Library
 ExternalProject_Get_Property(googletest binary_dir)
-string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
+
 
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 	message("DEBUG MODE")

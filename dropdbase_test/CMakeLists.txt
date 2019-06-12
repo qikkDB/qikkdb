@@ -1,4 +1,5 @@
 
+include_directories(../dropdbase)
 set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/AllocatorTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ColumnTests.cpp
@@ -13,12 +14,13 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp)
-				
+
 set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUArtithmeticTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUAggregationTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUDateTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUCompressionTests.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/GPUPolygonClippingTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUReconstructTests.cu)
 
 if(WIN32)

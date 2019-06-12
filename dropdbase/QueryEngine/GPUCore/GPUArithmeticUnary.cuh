@@ -14,8 +14,10 @@
 #include "../GPUError.h"
 #include "MaybeDeref.cuh"
 
+/// Namespace for unary arithmetic operation generic functors
 namespace ArithmeticUnaryOperations
 {
+	/// Arithmetic unary minus
 	struct minus
 	{
 		static constexpr bool isFloatRetType = false;
@@ -26,6 +28,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Arithmetic unary absolute
 	struct absolute
 	{
 		static constexpr bool isFloatRetType = false;
@@ -36,6 +39,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function sine
 	struct sine
 	{
 		static constexpr bool isFloatRetType = true;
@@ -46,6 +50,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function cosine
 	struct cosine
 	{
 		static constexpr bool isFloatRetType = true;
@@ -56,6 +61,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function tangent
 	struct tangent
 	{
 		static constexpr bool isFloatRetType = true;
@@ -66,6 +72,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function cotangent
 	struct cotangent
 	{
 		static constexpr bool isFloatRetType = true;
@@ -76,6 +83,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function arcus sine
 	struct arcsine
 	{
 		static constexpr bool isFloatRetType = true;
@@ -86,6 +94,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function arcus cosine
 	struct arccosine
 	{
 		static constexpr bool isFloatRetType = true;
@@ -96,6 +105,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function arcus tangent
 	struct arctangent
 	{
 		static constexpr bool isFloatRetType = true;
@@ -106,6 +116,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function logarithm with base 10
 	struct logarithm10
 	{
 		static constexpr bool isFloatRetType = true;
@@ -116,6 +127,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function logarithm with base e
 	struct logarithmNatural
 	{
 		static constexpr bool isFloatRetType = true;
@@ -126,6 +138,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function exponential
 	struct exponential
 	{
 		static constexpr bool isFloatRetType = true;
@@ -136,6 +149,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function square root
 	struct squareRoot
 	{
 		static constexpr bool isFloatRetType = true;
@@ -146,6 +160,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function square
 	struct square
 	{
 		static constexpr bool isFloatRetType = true;
@@ -156,6 +171,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function sign
 	struct sign
 	{
 		static constexpr bool isFloatRetType = false;
@@ -166,6 +182,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function round
 	struct round
 	{
 		static constexpr bool isFloatRetType = true;
@@ -176,6 +193,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function floor
 	struct floor
 	{
 		static constexpr bool isFloatRetType = true;
@@ -186,6 +204,7 @@ namespace ArithmeticUnaryOperations
 		}
 	};
 
+	/// Mathematical function ceil
 	struct ceil
 	{
 		static constexpr bool isFloatRetType = true;
@@ -199,9 +218,8 @@ namespace ArithmeticUnaryOperations
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// <summary>
 /// Kernel for arithmetic unary operation with column and column
-/// </summary>
+/// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="dataElementCount">count of elements in the input blocks</param>
@@ -226,9 +244,15 @@ __global__ void kernel_arithmetic_unary(T* output, U ACol, int32_t dataElementCo
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// Class for unary arithmetic functions
 class GPUArithmeticUnary
 {
 public:
+	/// Arithmetic unary operation with values from column
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
+	/// <param name="output">output GPU buffer</param>
+	/// <param name="ACol">buffer with operands</param>
+	/// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U>
 	static void col(T *output, U *ACol, int32_t dataElementCount)
 	{
@@ -240,6 +264,11 @@ public:
 		errorFlagSwapper.Swap();
 	}
 
+	/// Arithmetic unary operation with constant
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
+	/// <param name="output">output GPU buffer</param>
+	/// <param name="AConst">operand (constant)</param>
+	/// <param name="dataElementCount">data element count of the output buffer (how many times copy result)</param>
 	template<typename OP, typename T, typename U>
 	static void cnst(T *output, U AConst, int32_t dataElementCount)
 	{

@@ -11,7 +11,10 @@
 #include "../CudaMemAllocator.h"
 #include "../../NativeGeoPoint.h"
 
-
+/// Kernel for filling a buffer in parallel with data
+/// <param name="p_Block">the data buffer to be filled</param>
+/// <param name="value">a value to be put in the p_Block buffer</param>
+/// <param name="dataElementCount">the count of elements in the input block</param>
 template<typename T>
 __global__ void kernel_fill_array(T *p_Block, T value, size_t dataElementCount)
 {
@@ -24,35 +27,47 @@ __global__ void kernel_fill_array(T *p_Block, T value, size_t dataElementCount)
 	}
 }
 
-// Memory methods
+/// A class wrapping a custom memory allocator for fast memory operations on CUDA
+/// This class provides means for allocation and deallocation of CUDA buffers
+/// as well as data movement between host and device memory
+/// Convinience methods are provided for filling the buffers with predefined data
 class GPUMemory {
 public:
 
+    /// Struct for polygon column (with pointers to start of condensed buffers).
+    /// A structure representing the data type of a complex polygon used
+    /// for representing polygons and holes in them. This data structure is
+    /// used during point in polygon and polygon intersect operations. It is the result
+    /// of polygon intersect operations.
 	struct GPUPolygon
 	{
-		// Points of polygons
+		/// Points of polygons
 		NativeGeoPoint* polyPoints;
-		// Start indexes of each polygon in point array
+		/// Start indices of each polygon in point array
 		int32_t* pointIdx;
-		// Number of points of each polygon
+		/// Number of points of each polygon
 		int32_t* pointCount;
-		// Start indexes of each complex polygon in polygon array
+		/// Start indices of each complex polygon in polygon array
 		int32_t* polyIdx;
-		// Number of polygons of each complex polygon
+		/// Number of polygons of each complex polygon
 		int32_t* polyCount;
+	};
+
+	/// Struct for GPU representation of string column (with pointers to start of condensed buffers).
+	struct GPUString
+	{
+		/// All chars from all strings condensed
+		char * allChars;
+		/// Start indices of each string in allChars array,
+		/// shifted by 1 string to left (last one is total count of chars)
+		int64_t * stringIndices;
 	};
 
 	static bool EvictWithLockList();
 
-	// Memory allocation
-	/// <summary>
-	/// Memory allocation of block on the GPU with the respective size of the input parameter type
-	/// </summary>
+	/// Memory allocation of data blocks(buffers) on the GPU with the respective size of the input parameter type
 	/// <param name="p_Block">pointer to pointer wich will points to allocated memory block on the GPU</param>
-	/// <param name="dataType">type of the resulting buffer</param>
-	/// <param name="size">count of elements in the block</param>
-	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
-	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
+	/// <param name="dataElementCount">count of elements in the block with size sizeof(T)*dataElementCount</param>
 	template<typename T>
 	static void alloc(T **p_Block, size_t dataElementCount)
 	{
@@ -75,18 +90,14 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
-	// malloc + memset
-	/// <summary>
-	/// Memory allocation of block on the GPU with the respective size of the input parameter type
-	/// </summary>
+	/// Synchronous memory allocation and setting of data blocks(buffers) on the GPU with the respective 
+	/// size of the input parameter type
 	/// <param name="p_Block">pointer to pointer wich will points to allocated memory block on the GPU</param>
-	/// <param name="dataType">type of the resulting buffer</param>
-	/// <param name="size">count of elements in the block</param>
 	/// <param name="value">value to set the memory to
 	/// (always has to be int, because of cudaMemset; and just lowest byte will be used
-	/// and all bytes in the allocated buffer will be set to that byte value)</param>
-	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
-	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
+	/// and all bytes in the allocated buffer will be set to that byte value) 
+	/// e.g. min: 0, max: 255, only these values are valid </param>
+    /// <param name="dataElementCount">count of elements in the block with size sizeof(T)*dataElementCount</param>
 	template<typename T>
 	static void allocAndSet(T **p_Block, int value, size_t dataElementCount)
 	{
@@ -97,11 +108,16 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
-	// Fill an array with a desired value
+	/// Asynchronous memory allocation and setting of data blocks(buffers) on the GPU with the
+    /// respective size of the input parameter type 
+	///<param name="p_Block">pointer to pointer wich will points to allocated memory block on the GPU</param> 
+	/// <param name="value">value to set the memory to (always has to be int, because of cudaMemset; and 
+	/// just lowest byte will be used and all bytes in the allocated buffer will be set to that byte value) 
+	/// e.g. min: 0, max: 255, only these values are valid </param> 
+	/// <param name="dataElementCount">count of elements in the block with size sizeof(T)*dataElementCount</param>
 	template<typename T>
 	static void memset(T *p_Block, int value, size_t dataElementCount)
 	{
-		//cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));	// Async version, uncomment if needed
 		cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));
 		CheckCudaError(cudaGetLastError());
 	}
@@ -116,16 +132,11 @@ public:
 	}
 	#endif
 
-	// Moving data from host to device
-		/// <summary>
-	/// Copy memory block with dataType numbers from host (RAM, CPU's memory) to device (GPU's memory).
-	/// </summary>
-	/// <param name="p_BlockDevice">pointer to memory block on device</param>
-	/// <param name="p_BlockHost">pointer to memory block on host</param>
-	/// <param name="dataType">type of the elements buffer</param>
-	/// <param name="size">count of int8_t numbers</param>
-	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
-	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
+	/// Moving data from host to device
+	/// Copy a memory block with dataType numbers from host (RAM, CPU's memory) to device (GPU's memory). 
+	/// <param name="p_BlockDevice">pointer to destination device memory</param>
+    /// <param name="p_BlockHost">pointer to source host memory</param>
+    /// <param name="dataElementCount"> count of elements in the blocks with size sizeof(T)*dataElementCount</param>
 	template<typename T>
 	static void copyHostToDevice(T *p_BlockDevice, T *p_BlockHost, size_t dataElementCount)
 	{
@@ -133,16 +144,11 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
-	// Moving data from device to host
-		/// <summary>
-	/// Copy memory block with dataType numbers from device (GPU's memory) to host (RAM, CPU's memory).
-	/// </summary>
-	/// <param name="p_BlockHost">pointer to memory block on host</param>
-	/// <param name="p_BlockDevice">pointer to memory block on device</param>
-	/// <param name="dataType">type of the elements buffer</param>
-	/// <param name="size">count of int8_t numbers</param>
-	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
-	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
+	/// Moving data from device to host
+    /// Copy a memory block with dataType numbers from device (GPU's memory) to host (RAM, CPU's memory). 
+	/// <param name="p_BlockHost">pointer to destination host memory</param>
+    /// <param name="p_BlockDevice">pointer to source device memory</param>
+    /// <param name="dataElementCount"> count of elements in the blocks with size sizeof(T)*dataElementCount</param>
 	template<typename T>
 	static void copyDeviceToHost(T *p_BlockHost, T *p_BlockDevice, size_t dataElementCount)
 	{
@@ -150,6 +156,11 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Moving data between buffers on the device
+    /// Copy a memory block with dataType numbers from host (RAM, CPU's memory) to device (GPU's memory).
+    /// <param name="p_BlockDestination">pointer to destination device memory</param>
+    /// <param name="p_BlockSource">pointer to source device memory</param>
+    /// <param name="dataElementCount"> count of elements in the blocks with size sizeof(T)*dataElementCount</param>
 	template<typename T>
 	static void copyDeviceToDevice(T *p_BlockDestination, T *p_BlockSource, size_t dataElementCount)
 	{
@@ -157,19 +168,19 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
-	// Freeing data
-		/// <summary>
+	/// Freeing data
 	/// Free memory block from GPU's memory
-	/// </summary>
-	/// <param name="p_Block">pointer to memory block (on GPU memory)</param>
-	/// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS)
-	/// or some error occured (GPU_EXTENSION_ERROR)</returns>
+	/// <param name="p_Block">pointer to a memory block in GPU memory</param>
 	static void free(void *p_block)
 	{
 		Context::getInstance().GetAllocatorForCurrentDevice().deallocate(static_cast<int8_t*>(p_block), 0);
 		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Register a piece of unpaged host memory to be used for fast memory transfers between host and device
+    /// < param name="devicePtr">pointer to device memory to be mapped</param> 
+	/// < param name="hostPtr">pointer to host memory to be mapped into</param>
+    /// <param name="dataElementCount"> count of elements to be mapped with size sizeof(T)*dataElementCount</param>
 	template<typename T>
 	static void hostRegister(T **devicePtr, T *hostPtr, size_t dataElementCount)
 	{
@@ -179,6 +190,8 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Un-Register a piece of unpaged host memory to be used for fast memory transfers between host and device
+    /// < param name="hostPtr">pointer to host memory to be unmapped/freed into</param>
 	template<typename T>
 	static void hostUnregister(T *hostPtr)
 	{
@@ -194,7 +207,8 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
-	// Wipe all allocated memory O(1)
+	/// Clear all custom allocated memory with the memory allocator.
+	/// This is a O(1) operation
 	static void clear()
 	{
 		Context::getInstance().GetAllocatorForCurrentDevice().Clear();

@@ -5,6 +5,10 @@
 #include "GpuSqlDispatcherVMFunctions.h"
 #include <tuple>
 
+/// Implementation of generic filter operation (<, >, =, ...) dispatching based on functor OP
+/// Implementation for column constant case
+/// Pops data from argument memory stream, and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::filterColConst()
 {
@@ -33,6 +37,10 @@ int32_t GpuSqlDispatcher::filterColConst()
 	return 0;
 }
 
+/// Implementation of generic filter operation (<, >, =, ...) dispatching based on functor OP
+/// Implementation for constant column case
+/// Pops data from argument memory stream, and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::filterConstCol()
 {
@@ -61,6 +69,10 @@ int32_t GpuSqlDispatcher::filterConstCol()
 	return 0;
 }
 
+/// Implementation of generic filter operation (<, >, =, ...) dispatching based on functor OP
+/// Implementation for column column case
+/// Pops data from argument memory stream, and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::filterColCol()
 {
@@ -96,7 +108,10 @@ int32_t GpuSqlDispatcher::filterColCol()
 	return 0;
 }
 
-
+/// Implementation of genric filter operation (<, >, =, ...) dispatching based on functor OP
+/// Implementation for constant constant case
+/// Pops data from argument memory stream, and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::filterConstConst()
 {
@@ -112,6 +127,10 @@ int32_t GpuSqlDispatcher::filterConstConst()
 	return 0;
 }
 
+/// Implementation of generic logical operation (AND, OR) dispatching based on functor OP
+/// Implementation for column constant case
+/// Pops data from argument memory stream, and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::logicalColConst()
 {
@@ -138,6 +157,10 @@ int32_t GpuSqlDispatcher::logicalColConst()
 	return 0;
 }
 
+/// Implementation of generic logical operation (AND, OR) dispatching based on functor OP
+/// Implementation for constant column case
+/// Pops data from argument memory stream, and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::logicalConstCol()
 {
@@ -164,6 +187,10 @@ int32_t GpuSqlDispatcher::logicalConstCol()
 	return 0;
 }
 
+/// Implementation of generic logical operation (AND, OR) dispatching based on functor OP
+/// Implementation for column column case
+/// Pops data from argument memory stream, and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::logicalColCol()
 {
@@ -200,6 +227,10 @@ int32_t GpuSqlDispatcher::logicalColCol()
 	return 0;
 }
 
+/// Implementation of generic logical operation (AND, OR) dispatching based on functor OP
+/// Implementation for constant constant case
+/// Pops data from argument memory stream, and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::logicalConstConst()
 {
@@ -216,7 +247,10 @@ int32_t GpuSqlDispatcher::logicalConstConst()
 	return 0;
 }
 
-
+/// Implementation of NOT operation dispatching
+/// Implementation for column case
+/// Pops data from argument memory stream, and loads data to GPU on demand 
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T>
 int32_t GpuSqlDispatcher::logicalNotCol()
 {

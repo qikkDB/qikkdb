@@ -1,3 +1,14 @@
+/// \mainpage Project summary
+/// SQL-like database application with query executing on GPU.
+/// <br />
+/// <b>Used programming language:</b>
+///   - C++
+///
+/// <b>Used technologies:</b>
+///   - CUDA
+///   - Antlr
+///   - Google Protocol Buffers
+
 #include "CSVDataImporter.h"
 #include <cstdio>
 #include <iostream>
@@ -18,6 +29,10 @@
 #include "QueryEngine/GPUMemoryCache.h"
 
 
+/// Startup function, called automatically.
+/// <param name="argc">not used parameter</param>
+/// <param name="argv">not used parameter</param>
+/// <returns>Exit code (0 - OK)</returns>
 int main(int argc, char **argv)
 {
     //boost::log::add_file_log("../log/ColmnarDB.log");
@@ -67,7 +82,7 @@ int main(int argc, char **argv)
 	Database::AddToInMemoryDatabaseList(database);
 	std::cout << "Loading TargetLoc.csv ..." << std::endl;
 	csvDataImporter.ImportTables(database);*/
-    /*
+	/*
 	for (int i = 0; i < 2; i++)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
@@ -81,6 +96,7 @@ int main(int argc, char **argv)
 		std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
 	}
 	*/
+
 	for (auto& db : Database::GetDatabaseNames())
 	{
 		Database::RemoveFromInMemoryDatabaseList(db.c_str());

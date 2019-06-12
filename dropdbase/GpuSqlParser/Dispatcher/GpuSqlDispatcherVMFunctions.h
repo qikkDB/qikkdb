@@ -11,6 +11,12 @@ int32_t GpuSqlDispatcher::retConst()
 	return 0;
 }
 
+/// Implementation of column return from SELECT clause
+/// If GROUP BY clause is not present each column block is reconstructed based on the filter mask 
+/// (generated from WHERE clause) and merged to response message
+/// If GROUP BY is present nothing is reconstructed as the filtering was done prior to GROUP BY (in aggregation)
+/// If GROUP BY is present the results are only coppied from GPU and merged to response message
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T>
 int32_t GpuSqlDispatcher::retCol()
 {
@@ -72,6 +78,10 @@ int32_t GpuSqlDispatcher::retCol()
 	return 0;
 }
 
+/// Implementation of the LOAD operation
+/// Loads the current block of given column
+/// Sets the last block (for current dispatcher instance and overall) flags
+/// <returns name="statusCode">Finish status code of the operation</returns>
 template<typename T>
 int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 {

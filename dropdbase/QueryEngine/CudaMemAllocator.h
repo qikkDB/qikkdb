@@ -5,9 +5,12 @@
 #include <unordered_map>
 #include <list>
 #include <cstdio>
+
+/// A class for memory allocation operations
 class CudaMemAllocator
 {
 private:
+	/// Reserved memory for the GPU, allocating the entire GPU is forbidden
 	static const int32_t RESERVED_MEMORY = 256000000;
 
 	struct BlockInfo 

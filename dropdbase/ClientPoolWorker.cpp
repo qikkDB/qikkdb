@@ -4,8 +4,11 @@
 #include "messages/QueryMessage.pb.h"
 #include "messages/CSVImportMessage.pb.h"
 #include "messages/SetDatabaseMessage.pb.h"
+#include "messages/BulkImportMessage.pb.h"
 #include "IClientHandler.h"
 #include <boost/log/trivial.hpp>
+
+const int32_t MAXIMUM_BULK_FRAGMENT_SIZE = 8192*1024;
 
 /// <summary>
 /// Create new instance of ClientPoolWorker object
@@ -50,6 +53,7 @@ void ClientPoolWorker::HandleClient()
 			ColmnarDB::NetworkClient::Message::QueryMessage queryMessage;
 			ColmnarDB::NetworkClient::Message::CSVImportMessage csvImportMessage;
 			ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDatabaseMessage;
+			ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
 			if (recvMsg.UnpackTo(&infoMessage))
 			{
 				BOOST_LOG_TRIVIAL(debug) << "Info message from " << socket_.remote_endpoint().address().to_string() << "\n";
@@ -85,6 +89,26 @@ void ClientPoolWorker::HandleClient()
 				if (setDatabaseResult != nullptr)
 				{
 					NetworkMessage::WriteToNetwork(*setDatabaseResult, socket_);
+				}
+			}
+			else if (recvMsg.UnpackTo(&bulkImportMessage))
+			{
+				BOOST_LOG_TRIVIAL(debug) << "BulkImport message from " << socket_.remote_endpoint().address().to_string() << "\n";
+				std::unique_ptr<char[]> dataBuffer(new char[MAXIMUM_BULK_FRAGMENT_SIZE]);
+				DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
+				int32_t elementCount = bulkImportMessage.elemcount();
+				if(elementCount*GetDataTypeSize(columnType) > MAXIMUM_BULK_FRAGMENT_SIZE)
+				{
+					outInfo.set_message("Data fragment larger than allowed");
+					outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+					NetworkMessage::WriteToNetwork(outInfo, socket_);
+					continue;
+				}
+				NetworkMessage::ReadRaw(socket_, dataBuffer.get(), elementCount, columnType);
+				std::unique_ptr<google::protobuf::Message> importResultMessage = clientHandler_->HandleBulkImport(*this, bulkImportMessage, dataBuffer.get());
+				if (importResultMessage != nullptr)
+				{
+					NetworkMessage::WriteToNetwork(*importResultMessage, socket_);
 				}
 			}
 			else
