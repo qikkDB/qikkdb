@@ -16,10 +16,11 @@ __global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCo
 	{
 		if (inMask[i] && (prefixSum[i] - 1) >= 0)
 		{
+			int64_t inIndex = (i == 0)? 0 : inStringCol.stringIndices[i - 1];
+			int64_t outIndex = (prefixSum[i] - 1 == 0)? 0 : outStringCol.stringIndices[prefixSum[i] - 2];
 			for (int32_t j = 0; j < inStringLengths[i]; j++)
 			{
-				outStringCol.allChars[outStringCol.stringIndices[prefixSum[i] - 1] + j] =
-					inStringCol.allChars[inStringCol.stringIndices[i] + j];
+				outStringCol.allChars[outIndex + j] = inStringCol.allChars[inIndex + j];
 			}
 		}
 	}
@@ -197,26 +198,26 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString *outStringCol
 			GPUMemory::copyDeviceToHost(&inTotalCharCount, inStringCol.stringIndices + inDataElementCount - 1, 1);
 
 			// Compute lenghts from indices (reversed inclusive prefix sum)
-			cuda_ptr<int32_t> lengths(inDataElementCount);
+			cuda_ptr<int32_t> inLengths(inDataElementCount);
 			kernel_lengths_from_indices << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
-				(lengths.get(), inStringCol.stringIndices, inDataElementCount);
+				(inLengths.get(), inStringCol.stringIndices, inDataElementCount);
 
 			// Reconstruct lenghts according to mask
 			cuda_ptr<int32_t> outLengths(*outDataElementCount);
 			kernel_reconstruct_col << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
-				(outLengths.get(), lengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
+				(outLengths.get(), inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
 
 			// Compute new indices as prefix sum of reconstructed lengths
 			GPUMemory::alloc(&(outStringCol->stringIndices), *outDataElementCount);
 			PrefixSum(outStringCol->stringIndices, outLengths.get(), *outDataElementCount);
 
 			int64_t outTotalCharCount;
-			GPUMemory::copyDeviceToHost(&outTotalCharCount, outStringCol->stringIndices + inDataElementCount - 1, 1);
+			GPUMemory::copyDeviceToHost(&outTotalCharCount, outStringCol->stringIndices + *outDataElementCount - 1, 1);
 			GPUMemory::alloc(&(outStringCol->allChars), outTotalCharCount);
 
 			// Reconstruct chars
 			kernel_reconstruct_string_chars << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
-				(outStringCol, inStringCol, lengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
+				(*outStringCol, inStringCol, inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
 		}
 		else	// Empty result set
 		{
