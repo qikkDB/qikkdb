@@ -7,21 +7,16 @@
 
 #include "GpuSqlParser.h"
 #include "GpuSqlParserBaseListener.h"
-#include "ParserExceptions.h"
-#include "../Database.h"
 #include "../DataType.h"
-#include "../PointFactory.h"
-#include "../ComplexPolygonFactory.h"
 #include <unordered_set>
 #include <unordered_map>
-#include <functional>
 #include <string>
 #include <memory>
 #include <stack>
-#include <regex>
 #include <boost/functional/hash.hpp>
 
 class GpuSqlDispatcher;
+class Database;
 
 class GpuSqlListener : public GpuSqlParserBaseListener
 {

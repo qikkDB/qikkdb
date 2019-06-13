@@ -10,6 +10,8 @@
 #include "../QueryEngine/Context.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../ComplexPolygonFactory.h"
+#include "../Database.h"
+#include "../Table.h"
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 std::mutex GpuSqlDispatcher::groupByMutex_;

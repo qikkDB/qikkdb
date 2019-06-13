@@ -17,10 +17,6 @@
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
 #include "../DataType.h"
-#include "../Database.h"
-#include "../Table.h"
-#include "../ColumnBase.h"
-#include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
@@ -29,6 +25,8 @@
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 #endif
+
+class Database;
 
 class GpuSqlDispatcher
 {

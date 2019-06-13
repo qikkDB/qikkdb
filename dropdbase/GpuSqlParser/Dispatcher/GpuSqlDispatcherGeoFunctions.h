@@ -7,6 +7,7 @@
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include "../../ComplexPolygonFactory.h"
 #include "../../PointFactory.h"
+#include "../../Database.h"
 
 /// Implementation of POINT(a, b) operation dispatching - concatenation of two numeric attributes to single point column
 /// Implementation for column column case

@@ -2,6 +2,10 @@
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "../../Database.h"
+#include "../../Table.h"
+#include "../../ColumnBase.h"
+#include "../../BlockBase.h"
 
 template<typename T>
 int32_t GpuSqlDispatcher::retConst()

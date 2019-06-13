@@ -154,7 +154,7 @@ struct AliasRedefinitionException : public std::exception
 
 struct InvalidOperandsException : public std::exception
 {
-	InvalidOperandsException(std::string left, std::string right, std::string op) : 
+	InvalidOperandsException(const std::string& left, const std::string& right, const std::string &op) : 
 		message_("Invalid operands: " + left + " " + right + " for operation: " + op)
 	{
 
