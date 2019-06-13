@@ -1,7 +1,7 @@
 #pragma once
 #include <google/protobuf/message.h>
 #include <google/protobuf/any.pb.h>
-#include <boost/asio.hpp>
+#include <boost/asio/ip/tcp.hpp>
 #include "DataType.h"
 
 class NetworkMessage final

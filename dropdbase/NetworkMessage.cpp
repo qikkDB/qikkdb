@@ -1,6 +1,7 @@
 #include "NetworkMessage.h"
 #include <boost/endian/conversion.hpp>
 #include <stdexcept>
+#include <boost/asio.hpp>
 
 /// <summary>
 /// Write protobuffer message to the network.
