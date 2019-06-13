@@ -84,8 +84,7 @@ if(NOT WIN32)
     set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "--compiler-bindir=${CMAKE_CXX_COMPILER}")
 endif(NOT WIN32)
 add_library(${PROJECT_NAME}_obj OBJECT ${SOURCE_FILES} ${CUDA_FILES})
-add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
-target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_obj)
+add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:${PROJECT_NAME}_obj> ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
@@ -98,3 +97,13 @@ target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${YAML_CPP_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_obj PUBLIC antlr4_static)
 
+# CMake 3.10 does not yet support linking of OBJECT libraries, so dependencies need to be linked manually to both targets
+IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	target_link_libraries(${PROJECT_NAME} PUBLIC ${prefix}protobufd${suffix})
+ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	target_link_libraries(${PROJECT_NAME} PUBLIC ${prefix}protobuf${suffix})
+ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${YAML_CPP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC antlr4_static)

@@ -35,8 +35,6 @@ target_include_directories(${PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIR})
 
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 
-target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME}_obj)
-
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
     target_link_libraries(${PROJECT_NAME}_test gtestd)
 	target_link_libraries(${PROJECT_NAME}_test gtest_maind)
@@ -44,6 +42,17 @@ ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 	target_link_libraries(${PROJECT_NAME}_test gtest)
 	target_link_libraries(${PROJECT_NAME}_test gtest_main)
 ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+
+# CMake 3.10 does not yet support linking of OBJECT libraries, so dependencies need to be linked manually to both targets
+IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	target_link_libraries(${PROJECT_NAME}_test ${prefix}protobufd${suffix})
+ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+	target_link_libraries(${PROJECT_NAME}_test ${prefix}protobuf${suffix})
+ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+
+target_link_libraries(${PROJECT_NAME}_test ${YAML_CPP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_test ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_test antlr4_static)
 
 add_custom_command(
         TARGET ${PROJECT_NAME}_test POST_BUILD
