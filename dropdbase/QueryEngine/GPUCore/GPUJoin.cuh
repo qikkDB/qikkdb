@@ -135,7 +135,7 @@ __global__ void kernel_distribute_results_to_buffer(T* QTableA,
             // Check if a bucket is empty, if yes, break the probing now
             if (HashTableHisto[j] == 0)
             {
-                break;
+                continue;
             }
 
             // Otherwise probe and count the number of matching entries
@@ -190,7 +190,7 @@ public:
 	template <typename T>
     void HashBlock(T* RTable, int32_t dataElementCount)
     {
-        //////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////
 		// Check for hash table limits
 		if (dataElementCount < 0 || dataElementCount > hashTableSize_)
 		{
@@ -235,16 +235,18 @@ public:
 
 		//////////////////////////////////////////////////////////////////////////////
         // Reset the prefix sum buffer
+		/*
         GPUArithmetic::colCol<ArithmeticOperations::sub>(HashTablePrefixSum_, 
 														 HashTablePrefixSum_,
                                                          HashTableHisto_, 
 														 hashTableSize_);
+		*/
     }
 
 	template<typename T>
     void JoinBlock(T* QTableA, T* QTableB, int32_t* resultTableSize, T* STable, int32_t dataElementCount)
 	{
-        //////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////
         // Check for join table limits
         if (dataElementCount < 0 || dataElementCount > joinTableSize_)
         {
@@ -254,7 +256,7 @@ public:
 
         //////////////////////////////////////////////////////////////////////////////
         // Calculate the prbing result histograms
-        kernel_calc_join_histo<<<Context::getInstance().calcGridDim(hashTableSize_),
+        kernel_calc_join_histo<<<Context::getInstance().calcGridDim(joinTableSize_),
                                  Context::getInstance().getBlockDim()>>>(JoinTableHisto_, 
 																		 joinTableSize_,
                                                                          HashTableHisto_, 
@@ -284,7 +286,7 @@ public:
 
 		//////////////////////////////////////////////////////////////////////////////
 		// Distribute the result data to the result buffer
-        kernel_distribute_results_to_buffer<<<Context::getInstance().calcGridDim(hashTableSize_),
+        kernel_distribute_results_to_buffer<<<Context::getInstance().calcGridDim(joinTableSize_),
                                               Context::getInstance().getBlockDim()>>>(QTableA, 
 																					  QTableB,
 																					  resultTableSize, 
@@ -297,5 +299,45 @@ public:
 																					  hashTableSize_, 
 																					  STable, 
 																					  dataElementCount);
+	}
+
+	void printDebugInfo()
+	{
+		hashTableSize_;
+		joinTableSize_;
+
+		int32_t* h_HashTableHisto_ = new int32_t[hashTableSize_];
+		int32_t* h_HashTablePrefixSum_ = new int32_t[hashTableSize_];
+		int32_t* h_HashTableHashBuckets_ = new int32_t[hashTableSize_];
+
+		int32_t* h_JoinTableHisto_ = new int32_t[joinTableSize_];
+		int32_t* h_JoinTablePrefixSum_ = new int32_t[joinTableSize_];
+
+		GPUMemory::copyDeviceToHost(h_HashTableHisto_, HashTableHisto_, hashTableSize_);
+		GPUMemory::copyDeviceToHost(h_HashTablePrefixSum_, HashTablePrefixSum_, hashTableSize_);
+		GPUMemory::copyDeviceToHost(h_HashTableHashBuckets_, HashTableHashBuckets_, hashTableSize_);
+
+		GPUMemory::copyDeviceToHost(h_JoinTableHisto_, JoinTableHisto_, joinTableSize_);
+		GPUMemory::copyDeviceToHost(h_JoinTablePrefixSum_, JoinTablePrefixSum_, joinTableSize_);
+
+		std::printf("####################\n");
+		std::printf("#### DEBUG INFO ####\n");
+		for (int32_t i = 0; i < hashTableSize_; i++)
+		{
+			std::printf("%d %d %d\n", h_HashTableHisto_[i], h_HashTablePrefixSum_[i], h_HashTableHashBuckets_[i]);
+		}
+
+		for (int32_t i = 0; i < joinTableSize_; i++)
+		{
+			std::printf("%d %d\n", h_JoinTableHisto_[i], h_JoinTablePrefixSum_[i]);
+		}
+		std::printf("#####################\n");
+
+		delete[] h_HashTableHisto_;
+		delete[] h_HashTablePrefixSum_;
+		delete[] h_HashTableHashBuckets_;
+
+		delete[] h_JoinTableHisto_;
+		delete[] h_JoinTablePrefixSum_;
 	}
 };

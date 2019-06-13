@@ -9,7 +9,7 @@ TEST(GPUJoinTests, JoinTest)
 
     const int32_t RTableDataElementCount = 16;
     const int32_t STableDataElementCount = 8;
-	const int32_t QTableDataElementCount = 16;
+	const int32_t QTableDataElementCount = blockSize;
 
     int32_t RTable[RTableDataElementCount] = {5, 1, 0, 2, 0, 2, 1, 7, 0, 2, 5, 0, 1, 1, 7, 0};
     int32_t STable[STableDataElementCount] = {5, 1, 7, 0, 2, 3, 4, 6};
@@ -27,8 +27,8 @@ TEST(GPUJoinTests, JoinTest)
     GPUMemory::alloc(&d_QATable, QTableDataElementCount);
     GPUMemory::alloc(&d_QBTable, QTableDataElementCount);
 
-    GPUMemory::copyHostToDevice(d_RTable, RTable, RTableDataElementCount);
-    GPUMemory::copyHostToDevice(d_STable, STable, STableDataElementCount);
+	GPUMemory::copyHostToDevice(d_RTable, RTable, RTableDataElementCount);
+	GPUMemory::copyHostToDevice(d_STable, STable, STableDataElementCount);
 
     // Create a join instance
     GPUJoin gpuJoin(hashTableSize);
@@ -36,20 +36,24 @@ TEST(GPUJoinTests, JoinTest)
 	// Hash the values and then join them
 	for (int32_t i = 0; i < RTableDataElementCount; i += blockSize)
 	{
-        gpuJoin.HashBlock(&d_RTable[i * blockSize], RTableDataElementCount % blockSize);
-        for (int32_t j = 0; j < STableDataElementCount; j += blockSize)
-        {
-			gpuJoin.JoinBlock(d_QATable, d_QBTable, nullptr, &d_STable[j * blockSize], STableDataElementCount % blockSize);
-        }
-
-		// DEBUG - Copy the blocks back and write their content
-		GPUMemory::copyDeviceToHost(QATable, d_QATable, QTableDataElementCount);
-		GPUMemory::copyDeviceToHost(QBTable, d_QBTable, QTableDataElementCount);
-
-		for (int32_t debug_idx = 0; debug_idx < QTableDataElementCount; debug_idx++)
+        gpuJoin.HashBlock(&d_RTable[i], blockSize);
+		for (int32_t j = 0; j < STableDataElementCount; j += blockSize)
 		{
-			std::printf("%d %d\n", QATable[debug_idx], QBTable[debug_idx]);
+			gpuJoin.JoinBlock(d_QATable, d_QBTable, nullptr, &d_STable[j], blockSize);
+
+			// DEBUG - Copy the blocks back and print their content
+			GPUMemory::copyDeviceToHost(QATable, d_QATable, QTableDataElementCount);
+			GPUMemory::copyDeviceToHost(QBTable, d_QBTable, QTableDataElementCount);
+
+			std::printf("#### RESULT INFO ###\n");
+			for (int32_t debug_idx = 0; debug_idx < QTableDataElementCount; debug_idx++)
+			{
+				std::printf("%d %d\n", QATable[debug_idx], QBTable[debug_idx]);
+			}
 		}
+
+		// DEBUG - Info about inner buffers
+		gpuJoin.printDebugInfo();
 	}
 
     GPUMemory::free(d_RTable);
