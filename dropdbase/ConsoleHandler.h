@@ -1,7 +1,9 @@
 #pragma once
-#include "TCPServer.h"
-#include "TCPClientHandler.h"
-#include "ClientPoolWorker.h"
+class TCPClientHandler;
+class ClientPoolWorker;
+
+template<class ClientHandler, class Worker>
+class TCPServer; 
 
 /// <summary>
 /// Register Handler to Ctrl+C sequence in system.
