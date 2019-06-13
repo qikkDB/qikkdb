@@ -24,7 +24,7 @@ __global__ void kernel_per_char_unary(char* outChars, char* inChars, int64_t cha
 	}
 }
 
-__global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GPUString inCol, int64_t charCount);
+__global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GPUString inCol, int32_t stringCount);
 
 /// Namespace for implementation of unary string operations on GPU
 /// Hierarchy: Length Variabilities -> Operations

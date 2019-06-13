@@ -3,7 +3,7 @@
 #include "cuda_ptr.h"
 
 
-__global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GPUString inCol, int64_t stringCount)
+__global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GPUString inCol, int32_t stringCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
