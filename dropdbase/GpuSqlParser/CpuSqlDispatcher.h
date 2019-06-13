@@ -18,6 +18,7 @@ private:
 	const std::shared_ptr<Database> &database;
 	int32_t blockIndex;
 	MemoryStream arguments;
+	int32_t instructionPointer;
 
 	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
 	bool isRegisterAllocated(std::string& reg);
@@ -50,9 +51,13 @@ private:
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
 
+	static CpuDispatchFunction whereFunction;
+
 public:
 	CpuSqlDispatcher(const std::shared_ptr<Database> &database);
 	void addBinaryOperation(DataType left, DataType right, const std::string& op);
+	void addWhereResultFunction(DataType dataType);
+	void execute();
 
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size)
@@ -65,8 +70,8 @@ public:
 	template<typename T>
 	T getBlockMin(const std::string& tableName, const std::string& columnName)
 	{
-		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(tableName).GetColumns().at(columnName));
-		auto block = dynamic_cast<BlockBase<T>*>(col);
+		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(tableName).GetColumns().find(columnName)->second.get());
+		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
 
 		return block->GetMin();
 	}
@@ -74,8 +79,8 @@ public:
 	template<typename T>
 	T getBlockMax(const std::string& tableName, const std::string& columnName)
 	{
-		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(tableName).GetColumns().at(columnName));
-		auto block = dynamic_cast<BlockBase<T>*>(col);
+		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(tableName).GetColumns().find(columnName)->second.get());
+		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
 
 		return block->GetMax();
 	}
@@ -162,5 +167,11 @@ public:
 
 		throw InvalidOperandsException(colNameLeft, colNameRight, std::string(typeid(OP).name()));
 		return 0;
+	}
+
+	template<typename T>
+	void addArgument(T argument)
+	{
+		arguments.insert<T>(argument);
 	}
 };

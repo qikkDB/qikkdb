@@ -188,3 +188,188 @@ void GpuWhereEvaluationListener::exitVarReference(GpuSqlParser::VarReferenceCont
 
 	parserStack.push(std::make_pair(tableColumn, columnType));
 }
+
+void GpuWhereEvaluationListener::exitWhereClause(GpuSqlParser::WhereClauseContext * ctx)
+{
+	std::pair<std::string, DataType> arg = stackTopAndPop();
+	dispatcher.addArgument<const std::string&>(std::get<0>(arg));
+	dispatcher.addWhereResultFunction(std::get<1>(arg));
+}
+
+void GpuWhereEvaluationListener::pushArgument(const char * token, DataType dataType)
+{
+	switch (dataType)
+	{
+	case DataType::CONST_INT:
+		dispatcher.addArgument<int32_t>(std::stoi(token));
+		break;
+	case DataType::CONST_LONG:
+		dispatcher.addArgument<int64_t>(std::stoll(token));
+		break;
+	case DataType::CONST_FLOAT:
+		dispatcher.addArgument<float>(std::stof(token));
+		break;
+	case DataType::CONST_DOUBLE:
+		dispatcher.addArgument<double>(std::stod(token));
+		break;
+	case DataType::CONST_POINT:
+	case DataType::CONST_POLYGON:
+	case DataType::CONST_STRING:
+	case DataType::COLUMN_INT:
+	case DataType::COLUMN_LONG:
+	case DataType::COLUMN_FLOAT:
+	case DataType::COLUMN_DOUBLE:
+	case DataType::COLUMN_POINT:
+	case DataType::COLUMN_POLYGON:
+	case DataType::COLUMN_STRING:
+	case DataType::COLUMN_INT8_T:
+		dispatcher.addArgument<const std::string&>(token);
+		break;
+	case DataType::DATA_TYPE_SIZE:
+	case DataType::CONST_ERROR:
+		break;
+	}
+}
+
+std::pair<std::string, DataType> GpuWhereEvaluationListener::stackTopAndPop()
+{
+	std::pair<std::string, DataType> value = parserStack.top();
+	parserStack.pop();
+	return value;
+}
+
+void GpuWhereEvaluationListener::stringToUpper(std::string & str)
+{
+	for (auto &c : str)
+	{
+		c = toupper(c);
+	}
+}
+
+void GpuWhereEvaluationListener::pushTempResult(std::string reg, DataType type)
+{
+	parserStack.push(std::make_pair(reg, type));
+}
+
+bool GpuWhereEvaluationListener::isLong(const std::string & value)
+{
+	try
+	{
+		std::stoi(value);
+	}
+	catch (std::out_of_range &e)
+	{
+		std::stoll(value);
+		return true;
+	}
+	return false;
+}
+
+bool GpuWhereEvaluationListener::isDouble(const std::string & value)
+{
+	try
+    {
+        std::stof(value);
+    }
+    catch (std::out_of_range &e)
+    {
+        std::stod(value);
+        return true;
+    }
+    return false;
+}
+
+bool GpuWhereEvaluationListener::isPoint(const std::string & value)
+{
+	return (value.find("POINT") == 0);
+}
+
+bool GpuWhereEvaluationListener::isPolygon(const std::string & value)
+{
+	return (value.find("POLYGON") == 0);
+}
+
+std::string GpuWhereEvaluationListener::getRegString(antlr4::ParserRuleContext * ctx)
+{
+	return std::string("$") + ctx->getText();
+}
+
+DataType GpuWhereEvaluationListener::getReturnDataType(DataType left, DataType right)
+{
+	if (right < DataType::COLUMN_INT)
+	{
+		right = static_cast<DataType>(right + DataType::COLUMN_INT);
+	}
+	if (left < DataType::COLUMN_INT)
+	{
+		left = static_cast<DataType>(left + DataType::COLUMN_INT);
+	}
+	DataType result = std::max<DataType>(left, right);
+
+	return result;
+}
+
+DataType GpuWhereEvaluationListener::getReturnDataType(DataType operand)
+{
+	if (operand < DataType::COLUMN_INT)
+	{
+		return static_cast<DataType>(operand + DataType::COLUMN_INT);
+	}
+	return operand;
+}
+
+std::pair<std::string, DataType> GpuWhereEvaluationListener::generateAndValidateColumnName(GpuSqlParser::ColumnIdContext * ctx)
+{
+	std::string table;
+	std::string column;
+	
+	std::string col = ctx->column()->getText();
+	
+	if (ctx->table())
+	{
+		table = ctx->table()->getText();
+		column = ctx->column()->getText();
+	
+		if (tableAliases.find(table) != tableAliases.end())
+		{
+			table = tableAliases.at(table);
+		}
+	
+		if (loadedTables.find(table) == loadedTables.end())
+		{
+			throw TableNotFoundFromException();
+		}
+		if (database->GetTables().at(table).GetColumns().find(column) == database->GetTables().at(table).GetColumns().end())
+		{
+			throw ColumnNotFoundException();
+		}
+	}
+	else
+	{
+		int uses = 0;
+		for (auto &tab : loadedTables)
+		{
+			if (database->GetTables().at(tab).GetColumns().find(col) != database->GetTables().at(tab).GetColumns().end())
+			{
+				table = tab;
+				column = col;
+				uses++;
+			}
+			if (uses > 1)
+			{
+				throw ColumnAmbiguityException();
+			}
+		}
+		if (column.empty())
+		{
+			throw ColumnNotFoundException();
+		}
+	}
+	
+	std::string tableColumn = table + "." + column;
+	DataType columnType = database->GetTables().at(table).GetColumns().at(column)->GetColumnType();
+	
+	std::pair<std::string, DataType> tableColumnPair = std::make_pair(tableColumn, columnType);
+	
+	return tableColumnPair;
+}

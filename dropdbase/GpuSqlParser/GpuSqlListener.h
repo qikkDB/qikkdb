@@ -43,8 +43,11 @@ private:
 	bool insideSelectColumn;
 	bool isAggSelectColumn;
 
-protected:
-	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+	void pushArgument(const char *token, DataType dataType);
+	std::pair<std::string, DataType> stackTopAndPop();
+	void stringToUpper(std::string &str);
+
+	void pushTempResult(std::string reg, DataType type);
 
 	bool isLong(const std::string &value);
 
@@ -54,17 +57,11 @@ protected:
 
 	bool isPolygon(const std::string &value);
 
-	void stringToUpper(std::string &str);
-
-	std::pair<std::string, DataType> stackTopAndPop();
-
-	void pushTempResult(std::string reg, DataType type);
-
-	void pushArgument(const char *token, DataType dataType);
-
 	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
+
+	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
 
 public:

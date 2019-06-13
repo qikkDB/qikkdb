@@ -41,7 +41,7 @@ namespace ArithmeticOperations
 	struct addNoCheck
 	{
 		template<typename T, typename U, typename V>
-		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b) const
 		{
 			return a + b;
 		}
@@ -71,7 +71,7 @@ namespace ArithmeticOperations
 	struct subNoCheck
 	{
 		template<typename T, typename U, typename V>
-		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b) const
 		{
 			return a - b;
 		}
@@ -133,7 +133,7 @@ namespace ArithmeticOperations
 	struct mulNoCheck
 	{
 		template<typename T, typename U, typename V>
-		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b) const
 		{
 			return a * b;
 		}
@@ -160,7 +160,7 @@ namespace ArithmeticOperations
 	struct divNoCheck
 	{
 		template<typename T, typename U, typename V>
-		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b) const
 		{
 			return a / b;
 		}
@@ -190,7 +190,7 @@ namespace ArithmeticOperations
 	struct modNoCheck
 	{
 		template<typename T, typename U, typename V>
-		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b) const
 		{
 			//modulo is not defined for floating point type
 			static_assert(!std::is_floating_point<U>::value && !std::is_floating_point<V>::value,

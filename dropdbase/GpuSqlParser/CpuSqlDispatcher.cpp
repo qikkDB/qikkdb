@@ -2,7 +2,8 @@
 
 CpuSqlDispatcher::CpuSqlDispatcher(const std::shared_ptr<Database> &database) :
 	database(database),
-	blockIndex(0)
+	blockIndex(0),
+	instructionPointer(0)
 {
 }
 
@@ -74,4 +75,20 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const s
 	{
 		cpuDispatcherFunctions.push_back(modFunctions[left * DataType::DATA_TYPE_SIZE + right]);
 	}
+}
+
+void CpuSqlDispatcher::addWhereResultFunction(DataType dataType)
+{
+	
+}
+
+void CpuSqlDispatcher::execute()
+{
+	int32_t err = 0;
+
+	while (err == 0)
+	{
+		err = (this->*cpuDispatcherFunctions[instructionPointer++])();
+	}
+	
 }

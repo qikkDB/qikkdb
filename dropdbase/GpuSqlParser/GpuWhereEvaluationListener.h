@@ -7,61 +7,35 @@
 #include <any>
 #include <stack>
 
-class GpuWhereEvaluationListener : public GpuSqlListener
+class GpuWhereEvaluationListener : public GpuSqlParserBaseListener
 {
 private:
 	const std::shared_ptr<Database> &database;
 	int32_t blockIndex;
 	CpuSqlDispatcher &dispatcher;
+	std::unordered_map<std::string, std::string> tableAliases;
+	std::unordered_set<std::string> loadedTables;
 	std::stack<std::pair<std::string, DataType>> parserStack;
 
-	template<typename OP>
-	int64_t filterOperation(int64_t left, int64_t right, DataType leftDataType, DataType rightDataType) 
-	{
-		if (leftDataType == CONST_LONG && rightDataType == CONST_LONG)
-		{
-			return OP{}.template operator() <int64_t, int64_t > (left, right);
-		}
+	void pushArgument(const char *token, DataType dataType);
+	std::pair<std::string, DataType> stackTopAndPop();
+	void stringToUpper(std::string &str);
 
-		else if (leftDataType == CONST_LONG && rightDataType == CONST_DOUBLE)
-		{
-			return OP{}.template operator() <int64_t, double > (left, *reinterpret_cast<double*>(&right));
-		}
+	void pushTempResult(std::string reg, DataType type);
 
-		else if (leftDataType == CONST_DOUBLE && rightDataType == CONST_LONG)
-		{
-			return OP{}.template operator() <double, int64_t > (*reinterpret_cast<double*>(&left), right);
-		}
+	bool isLong(const std::string &value);
 
-		else if (leftDataType == CONST_DOUBLE && rightDataType == CONST_DOUBLE)
-		{
-			return OP{}.template operator() <double, double > (*reinterpret_cast<double*>(&left), *reinterpret_cast<double*>(&right));
-		}
-	}
+	bool isDouble(const std::string &value);
 
-	template<typename OP, typename T>
-	T arithmeticOperation(int64_t left, int64_t right, DataType leftDataType, DataType rightDataType)
-	{
-		if (leftDataType == CONST_LONG && rightDataType == CONST_LONG)
-		{
-			return OP{}.template operator() <T, int64_t, int64_t> (left, right, nullptr, std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-		}
+	bool isPoint(const std::string &value);
 
-		else if (leftDataType == CONST_LONG && rightDataType == CONST_DOUBLE)
-		{
-			return OP{}.template operator() <T, int64_t, double> (left, *reinterpret_cast<double*>(&right), nullptr, std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-		}
+	bool isPolygon(const std::string &value);
 
-		else if (leftDataType == CONST_DOUBLE && rightDataType == CONST_LONG)
-		{
-			return OP{}.template operator() <T, double, int64_t> (*reinterpret_cast<double*>(&left), right, nullptr, std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-		}
+	std::string getRegString(antlr4::ParserRuleContext* ctx);
+	DataType getReturnDataType(DataType left, DataType right);
+	DataType getReturnDataType(DataType operand);
 
-		else if (leftDataType == CONST_DOUBLE && rightDataType == CONST_DOUBLE)
-		{
-			return OP{}.template operator() <T, double, double> (*reinterpret_cast<double*>(&left), *reinterpret_cast<double*>(&right), nullptr, std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-		}
-	}
+	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
 public:
 	void exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) override;
@@ -87,4 +61,6 @@ public:
 	void exitPiLiteral(GpuSqlParser::PiLiteralContext *ctx) override;
 
 	void exitNowLiteral(GpuSqlParser::NowLiteralContext *ctx) override;
+
+	void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 };

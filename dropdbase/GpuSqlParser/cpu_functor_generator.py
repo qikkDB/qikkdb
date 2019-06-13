@@ -314,7 +314,7 @@ for operation in ["mul", "div", "add", "sub", "mod"]:
             else:
                 op = "arithmetic"
 
-            function = "CpuSqlDispatcher::" + op + col + row + "<ArithmeticOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+            function = "CpuSqlDispatcher::" + op + col + row + "<ArithmeticOperations::" + operation + "NoCheck, " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
