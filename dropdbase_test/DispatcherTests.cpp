@@ -10068,6 +10068,7 @@ void AssertEqStringCol(ColmnarDB::NetworkClient::Message::QueryResponsePayload p
 
 	for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
 	{
+		std::cout << payloads.stringpayload().stringdata()[i] << std::endl;
 		ASSERT_EQ(expected[i], payloads.stringpayload().stringdata()[i]) << " at row " << i;
 	}
 }
@@ -10132,6 +10133,30 @@ TEST(DispatcherTests, StringUpper)
 			{
 				edited += toupper(c);
 			}
+			expectedResultsStrings.push_back(edited);
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringReverse)
+{
+	const std::string col = "colString1";
+	const std::string table = "TableA";
+	auto &payloads = StringFunctionHelp("REVERSE", col, table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(col).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = column->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			std::string edited(block->GetData()[k]);
+			std::reverse(edited.begin(), edited.end());
 			expectedResultsStrings.push_back(edited);
 		}
 	}

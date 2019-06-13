@@ -9,6 +9,7 @@
 #include "../Context.h"
 #include "../GPUError.h"
 #include "MaybeDeref.cuh"
+#include "GPUMemory.cuh"
 
 
 template <typename OP>
@@ -23,50 +24,12 @@ __global__ void kernel_per_char_unary(char* outChars, char* inChars, int64_t cha
 	}
 }
 
+__global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GPUString inCol, int64_t charCount);
 
 /// Namespace for implementation of unary string operations on GPU
 /// Hierarchy: Length Variabilities -> Operations
 namespace StringUnaryOpHierarchy
 {
-	struct variable
-	{
-		typedef GPUMemory::GPUString returnType;
-		template <typename OP>
-		GPUMemory::GPUString operator()(int32_t outStringCount,
-			GPUMemory::GPUString input, bool inputIsCol) const
-		{
-			return GPUMemory::GPUString(); // TODO
-		}
-	};
-
-	struct fixed
-	{
-		typedef GPUMemory::GPUString returnType;
-		template <typename OP>
-		GPUMemory::GPUString operator()(int32_t outStringCount,
-			GPUMemory::GPUString input, bool inputIsCol) const
-		{
-			GPUMemory::GPUString outCol;
-			if (inputIsCol)	// Col
-			{
-				GPUMemory::alloc(&(outCol.stringIndices), outStringCount);
-				GPUMemory::copyDeviceToDevice(outCol.stringIndices, input.stringIndices, outStringCount);
-				int64_t totalCharCount;
-				GPUMemory::copyDeviceToHost(&totalCharCount, input.stringIndices + outStringCount - 1, 1);
-				GPUMemory::alloc(&(outCol.allChars), totalCharCount);
-				kernel_per_char_unary<OP> << <Context::getInstance().calcGridDim(totalCharCount),
-					Context::getInstance().getBlockDim() >> >
-					(outCol.allChars, input.allChars, totalCharCount);
-				CheckCudaError(cudaGetLastError());
-			}
-			else	// Const (expand 1 const result to col)
-			{
-				// TODO
-			}
-			return outCol;
-		}
-	};
-
 	/// Namespace for variable length unary operations
 	namespace VariableLength
 	{
@@ -99,7 +62,64 @@ namespace StringUnaryOpHierarchy
 				return (c >= 'a' && c <= 'z')? (c & 0xDF) : c;
 			}
 		};
+
+		struct reverse
+		{
+			__device__ char operator()(char c) const
+			{
+				return c;
+			}
+		};
+
 	} // namespace FixedLength
+
+	struct variable
+	{
+		typedef GPUMemory::GPUString returnType;
+		template <typename OP>
+		GPUMemory::GPUString operator()(int32_t outStringCount,
+			GPUMemory::GPUString input, bool inputIsCol) const
+		{
+			return GPUMemory::GPUString(); // TODO
+		}
+	};
+
+	struct fixed
+	{
+		typedef GPUMemory::GPUString returnType;
+		template <typename OP>
+		GPUMemory::GPUString operator()(int32_t outStringCount,
+			GPUMemory::GPUString input, bool inputIsCol) const
+		{
+			GPUMemory::GPUString outCol;
+			if (inputIsCol)	// Col
+			{
+				GPUMemory::alloc(&(outCol.stringIndices), outStringCount);
+				GPUMemory::copyDeviceToDevice(outCol.stringIndices, input.stringIndices, outStringCount);
+				int64_t totalCharCount;
+				GPUMemory::copyDeviceToHost(&totalCharCount, input.stringIndices + outStringCount - 1, 1);
+				GPUMemory::alloc(&(outCol.allChars), totalCharCount);
+				if (std::is_same<OP, StringUnaryOpHierarchy::FixedLength::reverse>::value)
+				{
+					kernel_reverse_string << <Context::getInstance().calcGridDim(outStringCount),
+						Context::getInstance().getBlockDim() >> >
+						(outCol, input, outStringCount);
+				}
+				else
+				{
+					kernel_per_char_unary<OP> << <Context::getInstance().calcGridDim(totalCharCount),
+						Context::getInstance().getBlockDim() >> >
+						(outCol.allChars, input.allChars, totalCharCount);
+				}
+				CheckCudaError(cudaGetLastError());
+			}
+			else	// Const (expand 1 const result to col)
+			{
+				// TODO
+			}
+			return outCol;
+		}
+	};
 
 } // namespace StringUnaryOperations
 
@@ -162,7 +182,7 @@ namespace StringUnaryOperations
 			GPUMemory::GPUString input, bool inputIsCol) const
 		{
 			return StringUnaryOpHierarchy::fixed{}.template operator()
-				< StringUnaryOpHierarchy::FixedLength::upper >
+				< StringUnaryOpHierarchy::FixedLength::reverse >
 				(outStringCount, input, inputIsCol);
 		}
 	};
