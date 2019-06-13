@@ -158,18 +158,24 @@ namespace StringUnaryOperations
 	struct reverse
 	{
 		typedef GPUMemory::GPUString returnType;
-		__device__ GPUMemory::GPUString operator()(GPUMemory::GPUString a) const
+		GPUMemory::GPUString operator()(int32_t outStringCount,
+			GPUMemory::GPUString input, bool inputIsCol) const
 		{
-			return GPUMemory::GPUString();
+			return StringUnaryOpHierarchy::fixed{}.template operator()
+				< StringUnaryOpHierarchy::FixedLength::upper >
+				(outStringCount, input, inputIsCol);
 		}
 	};
-
+	
 	struct len
 	{
 		typedef int64_t returnType;
-		__device__ int64_t operator()(GPUMemory::GPUString a) const
+		GPUMemory::GPUString operator()(int32_t outStringCount,
+			GPUMemory::GPUString input, bool inputIsCol) const
 		{
-			return 0;
+			return StringUnaryOpHierarchy::fixed{}.template operator()
+				< StringUnaryOpHierarchy::FixedLength::upper >
+				(outStringCount, input, inputIsCol);
 		}
 	};
 }
