@@ -8,11 +8,13 @@ __global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GP
 
 	for (int32_t i = idx; i < stringCount; i += stride)
 	{
-		int64_t length = (i == 0) ? inCol.stringIndices[i] : (inCol.stringIndices[i] - inCol.stringIndices[i - 1]);
-		int64_t index = (i == 0) ? 0 : inCol.stringIndices[i - 1];
+		const int64_t firstCharIndex = (i == 0) ? 0 : inCol.stringIndices[i - 1];
+		const int64_t length = inCol.stringIndices[i] - firstCharIndex;
+		const int64_t lastCharIndex = inCol.stringIndices[i] - 1;
+
 		for (int32_t j = 0; j < length; j++)
 		{
-			outCol.allChars[index + j] = inCol.allChars[index + length - 1 - j];
+			outCol.allChars[firstCharIndex + j] = inCol.allChars[lastCharIndex - j];
 		}
 	}
 }
