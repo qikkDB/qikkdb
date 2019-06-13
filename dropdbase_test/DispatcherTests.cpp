@@ -10058,6 +10058,87 @@ TEST(DispatcherTests, Atan2ColFloat)
 	}
 }
 
+
+//== STRING FUNCTIONS ==
+/// Assert equality of returned string column and expected values
+void AssertEqStringCol(ColmnarDB::NetworkClient::Message::QueryResponsePayload payloads,
+	std::vector<std::string> expected)
+{
+	ASSERT_EQ(payloads.stringpayload().stringdata_size(), expected.size());
+
+	for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+	{
+		ASSERT_EQ(expected[i], payloads.stringpayload().stringdata()[i]) << " at row " << i;
+	}
+}
+
+/// Run query SELECT function(column) FROM table; and return result payload
+ColmnarDB::NetworkClient::Message::QueryResponsePayload StringFunctionHelp(
+	std::string function, std::string column, std::string table)
+{
+	std::string retFunCol = function + "(" + column + ")";
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT " + retFunCol + " FROM " + table + ";");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	return result->payloads().at(retFunCol);
+}
+
+TEST(DispatcherTests, StringLower)
+{
+	const std::string col = "colString1";
+	const std::string table = "TableA";
+	auto &payloads = StringFunctionHelp("LOWER", col, table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(col).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = column->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			std::string edited;
+			for (char c : block->GetData()[k])
+			{
+				edited += tolower(c);
+			}
+			expectedResultsStrings.push_back(edited);
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringUpper)
+{
+	const std::string col = "colString1";
+	const std::string table = "TableA";
+	auto &payloads = StringFunctionHelp("UPPER", col, table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(col).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = column->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			std::string edited;
+			for (char c : block->GetData()[k])
+			{
+				edited += toupper(c);
+			}
+			expectedResultsStrings.push_back(edited);
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
 // Polygon clipping tests
 /*
 // TODO: fix zero allocation, finish polygon clippin and add asserts
