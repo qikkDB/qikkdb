@@ -38,9 +38,16 @@ public:
 	const std::string &GetName() const;
 	int32_t GetBlockSize() const;
 	int32_t GetBlockCount() const;
+	int64_t GetSize() const;
 	const std::unordered_map<std::string, std::unique_ptr<IColumn>> &GetColumns() const;
 	std::vector<std::string> GetSortingColumns();
 	void SetSortingColumns(std::vector<std::string> columns);
+
+	/// <summary>
+	/// Removes column from columns.
+	/// </summary>
+	/// <param name="columnName">Name of column to be removed.</param>
+	void EraseColumn(std::string& columnName);
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="T:ColmnarDB.Table"/> class. Also gets from database

@@ -64,6 +64,7 @@ private:
 	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
+	DataType getDataTypeFromString(std::string dataType);
 
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
@@ -121,7 +122,19 @@ public:
 
 	void exitShowColumns(GpuSqlParser::ShowColumnsContext *ctx) override;
 
+	void exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext *ctx) override;
+
+	void exitSqlDropDb(GpuSqlParser::SqlDropDbContext *ctx) override;
+
+	void exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext *ctx) override;
+
+	void exitSqlDropTable(GpuSqlParser::SqlDropTableContext *ctx) override;
+
+	void exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext *ctx) override;
+
 	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
+
+	void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) override;
 
 	void exitLimit(GpuSqlParser::LimitContext *ctx) override;
 

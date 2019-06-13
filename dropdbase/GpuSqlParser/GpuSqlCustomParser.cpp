@@ -124,8 +124,58 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	}
 	else if (statement->sqlInsertInto())
 	{
+		if (database == nullptr)
+		{
+			throw DatabaseNotFoundException();
+		}
+
 		isSingleGpuStatement = true;
 		walker.walk(&gpuSqlListener, statement->sqlInsertInto());
+	}
+	else if (statement->sqlCreateDb())
+	{
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlCreateDb());
+	}
+	else if (statement->sqlDropDb())
+	{
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlDropDb());
+	}
+	else if (statement->sqlCreateTable())
+	{
+		if (database == nullptr)
+		{
+			throw DatabaseNotFoundException();
+		}
+
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlCreateTable());
+	}
+	else if (statement->sqlDropTable())
+	{
+		if (database == nullptr)
+		{
+			throw DatabaseNotFoundException();
+		}
+
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlDropTable());
+	}
+	else if (statement->sqlAlterTable())
+	{
+		if (database == nullptr)
+		{
+			throw DatabaseNotFoundException();
+		}
+
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlAlterTable());
+	}
+	else if (statement->sqlCreateIndex())
+	{
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlCreateIndex());
 	}
 
 	int32_t threadCount = isSingleGpuStatement ? 1 : context.getDeviceCount();

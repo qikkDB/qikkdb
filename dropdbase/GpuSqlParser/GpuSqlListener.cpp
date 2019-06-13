@@ -677,6 +677,239 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext * ctx)
 	dispatcher.addArgument<const std::string&>(table);
 }
 
+void GpuSqlListener::exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext * ctx)
+{
+	std::string newDbName = ctx->database()->getText();
+
+	if (Database::Exists(newDbName))
+	{
+		throw DatabaseAlreadyExistsException();
+	}
+
+	int32_t newDbBlockSize;
+	
+	if (ctx->blockSize())
+	{
+		newDbBlockSize = std::stoi(ctx->blockSize()->getText());
+	}
+	else
+	{
+		newDbBlockSize = Configuration::GetInstance().GetBlockSize();
+	}	
+
+	dispatcher.addCreateDatabaseFunction();
+	dispatcher.addArgument<const std::string&>(newDbName);
+	dispatcher.addArgument<int32_t>(newDbBlockSize);
+}
+
+void GpuSqlListener::exitSqlDropDb(GpuSqlParser::SqlDropDbContext * ctx)
+{
+	std::string dbName = ctx->database()->getText();
+
+	if (!Database::Exists(dbName))
+	{
+		throw DatabaseNotFoundException();
+	}
+
+	dispatcher.addDropDatabaseFunction();
+	dispatcher.addArgument<const std::string&>(dbName);
+}
+
+void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ctx)
+{
+	std::string newTableName = ctx->table()->getText();
+
+	if (database->GetTables().find(newTableName) != database->GetTables().end())
+	{
+		throw TableAlreadyExistsException();
+	}
+
+	std::unordered_map<std::string, DataType> newColumns;
+	std::unordered_map<std::string, std::unordered_set<std::string>> newIndices;
+
+	for (auto& entry : ctx->newTableEntries()->newTableEntry())
+	{
+		if (entry->newTableColumn())
+		{
+			auto newColumnContext = entry->newTableColumn();
+			DataType newColumnDataType = getDataTypeFromString(newColumnContext->DATATYPE()->getText());
+			std::string newColumnName = newColumnContext->columnId()->getText();
+			
+			if (newColumns.find(newColumnName) != newColumns.end())
+			{
+				throw ColumnAlreadyExistsException();
+			}
+
+			newColumns.insert({ newColumnContext->columnId()->getText(), newColumnDataType });
+		}
+		if (entry->newTableIndex())
+		{
+			auto newColumnContext = entry->newTableIndex();
+			std::string indexName = newColumnContext->indexName()->getText();
+
+			if (newIndices.find(indexName) != newIndices.end())
+			{
+				throw IndexAlreadyExistsException();
+			}
+
+			std::unordered_set<std::string> indexColumns;
+			for (auto& column : newColumnContext->indexColumns()->column())
+			{
+				if (newColumns.find(column->getText()) == newColumns.end())
+				{
+					throw ColumnNotFoundException();
+				}
+				if (indexColumns.find(column->getText()) != indexColumns.end())
+				{
+					throw ColumnAlreadyExistsInIndexException();
+				}
+				indexColumns.insert(column->getText());
+			}
+			newIndices.insert({indexName, indexColumns});
+		}
+	}
+
+	dispatcher.addCreateTableFunction();
+
+	dispatcher.addArgument<const std::string&>(newTableName);
+	dispatcher.addArgument<int32_t>(newColumns.size());
+	for (auto& newColumn : newColumns)
+	{
+		dispatcher.addArgument<const std::string&>(newColumn.first);
+		dispatcher.addArgument<int32_t>(static_cast<int32_t>(newColumn.second));
+	}
+
+	dispatcher.addArgument<int32_t>(newIndices.size());
+	for (auto& newIndex : newIndices)
+	{
+		dispatcher.addArgument<const std::string&>(newIndex.first);
+		dispatcher.addArgument<int32_t>(newIndex.second.size());
+		for (auto& indexColumn : newIndex.second)
+		{
+			dispatcher.addArgument<const std::string&>(indexColumn);
+		}
+	}
+}
+
+void GpuSqlListener::exitSqlDropTable(GpuSqlParser::SqlDropTableContext * ctx)
+{
+	std::string tableName = ctx->table()->getText();
+
+	if (database->GetTables().find(tableName) == database->GetTables().end())
+	{
+		throw TableNotFoundFromException();
+	}
+
+	dispatcher.addDropTableFunction();
+	dispatcher.addArgument<const std::string&>(tableName);
+}
+
+void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext * ctx)
+{
+	std::string tableName = ctx->table()->getText();
+
+	if (database->GetTables().find(tableName) == database->GetTables().end())
+	{
+		throw TableNotFoundFromException();
+	}
+
+	std::unordered_map<std::string, DataType> addColumns;
+	std::unordered_set<std::string> dropColumns;
+	 
+	for (auto &entry : ctx->alterTableEntries()->alterTableEntry())
+	{
+		if (entry->addColumn())
+		{
+			auto addColumnContext = entry->addColumn();
+			DataType addColumnDataType = getDataTypeFromString(addColumnContext->DATATYPE()->getText());
+			std::string addColumnName = addColumnContext->columnId()->getText();
+
+			if (database->GetTables().at(tableName).GetColumns().find(addColumnName) != database->GetTables().at(tableName).GetColumns().end() ||
+				addColumns.find(addColumnName) != addColumns.end())
+			{
+				throw ColumnAlreadyExistsException();
+			}
+
+			addColumns.insert({ addColumnName, addColumnDataType });
+		}
+		else if (entry->dropColumn())
+		{
+			auto dropColumnContext = entry->dropColumn();
+			std::string dropColumnName = dropColumnContext->columnId()->getText();
+
+			if (database->GetTables().at(tableName).GetColumns().find(dropColumnName) == database->GetTables().at(tableName).GetColumns().end() ||
+				dropColumns.find(dropColumnName) != dropColumns.end())
+			{
+				throw ColumnNotFoundException();
+			}
+
+			dropColumns.insert({ dropColumnName });
+		}
+		// Alter Column - type casting
+	}
+
+	dispatcher.addAlterTableFunction();
+	dispatcher.addArgument<const std::string&>(tableName);
+
+	dispatcher.addArgument<int32_t>(addColumns.size());
+	for (auto& addColumn : addColumns)
+	{
+		dispatcher.addArgument<const std::string&>(addColumn.first);
+		dispatcher.addArgument<int32_t>(static_cast<int32_t>(addColumn.second));
+	}
+
+	dispatcher.addArgument<int32_t>(dropColumns.size());
+	for (auto& dropColumn : dropColumns)
+	{
+		dispatcher.addArgument<const std::string&>(dropColumn);
+	}
+}
+
+void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * ctx)
+{
+	std::string indexName = ctx->indexName()->getText();
+	std::string tableName = ctx->table()->getText();
+
+	if (database->GetTables().find(tableName) == database->GetTables().end())
+	{
+		throw TableNotFoundFromException();
+	}
+
+	if (database->GetTables().at(tableName).GetSize() > 0)
+	{
+		throw TableIsFilledException();
+	}
+
+	//check if index already exists
+
+	std::unordered_set<std::string> indexColumns;
+
+	for (auto& column : ctx->indexColumns()->column())
+	{
+		if (database->GetTables().at(tableName).GetColumns().find(column->getText()) ==
+			database->GetTables().at(tableName).GetColumns().end())
+		{
+			throw ColumnNotFoundException();
+		}
+		if (indexColumns.find(column->getText()) != indexColumns.end())
+		{
+			throw ColumnAlreadyExistsInIndexException();
+		}
+		indexColumns.insert(column->getText());
+	}
+
+	dispatcher.addCreateIndexFunction();
+
+	dispatcher.addArgument<const std::string&>(indexName);
+	dispatcher.addArgument<const std::string&>(tableName);
+
+	dispatcher.addArgument<int32_t>(indexColumns.size());
+	for (auto& indexColumn : indexColumns)
+	{
+		dispatcher.addArgument<const std::string&>(indexColumn);
+	}
+}
+
 /// Method that executes on exit of INSERT INTO command
 /// Generates insert into operation
 /// Checks if table with given name exists
@@ -1133,4 +1366,47 @@ DataType GpuSqlListener::getReturnDataType(DataType operand)
 		return static_cast<DataType>(operand + DataType::COLUMN_INT);
 	}
 	return operand;
+}
+
+DataType GpuSqlListener::getDataTypeFromString(std::string dataType)
+{
+	std::string type = dataType;
+	stringToUpper(type);
+
+	if (type == "INT")
+	{
+		return DataType::COLUMN_INT;
+	}
+	else if (type == "LONG")
+	{
+		return DataType::COLUMN_LONG;
+	}
+	else if (type == "FLOAT")
+	{
+		return DataType::COLUMN_FLOAT;
+	}
+	else if (type == "DOUBLE")
+	{
+		return DataType::COLUMN_DOUBLE;
+	}
+	else if (type == "POINT")
+	{
+		return DataType::COLUMN_POINT;
+	}
+	else if (type == "POLYGON")
+	{
+		return DataType::COLUMN_POLYGON;
+	}
+	else if (type == "STRING")
+	{
+		return DataType::COLUMN_STRING;
+	}
+	else if (type == "BOOLEAN")
+	{
+		return DataType::COLUMN_INT8_T;
+	}
+	else
+	{
+		return DataType::CONST_ERROR;
+	}
 }

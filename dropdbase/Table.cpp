@@ -166,6 +166,19 @@ int32_t Table::GetBlockCount() const
 	return 0;
 }
 
+int64_t Table::GetSize() const
+{
+	int64_t size = 0;
+	for (auto& column : columns)
+	{
+		if (column.second->GetSize() > size)
+		{
+			size = column.second->GetSize();
+		}
+	}
+	return size;
+}
+
 const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColumns() const
 {
 	return columns;
@@ -179,6 +192,15 @@ std::vector<std::string> Table::GetSortingColumns()
 void Table::SetSortingColumns(std::vector<std::string> columns)
 {
 	sortingColumns = columns;
+}
+
+/// <summary>
+/// Removes column from columns.
+/// </summary>
+/// <param name="columnName">Name of column to be removed.</param>
+void Table::EraseColumn(std::string & columnName)
+{
+	columns.erase(columnName);
 }
 
 /// <summary>
