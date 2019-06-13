@@ -63,7 +63,7 @@ public:
 	/// Save only .db file to disk.
 	/// </summary>
 	/// <param name="path">Path to database storage directory.</param>
-	void Database::PersistOnlyDbFile(const char* path);
+	void PersistOnlyDbFile(const char* path);
 
 	/// <summary>
 	/// Save database from memory to disk.
