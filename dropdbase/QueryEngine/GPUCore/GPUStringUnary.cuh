@@ -88,7 +88,7 @@ namespace StringUnaryOpHierarchy
 		{
 			__device__ char operator()(char c) const
 			{
-				return (c >= 'a' && c <= 'z')? (c & 0xDF) : c;
+				return (c >= 'A' && c <= 'Z') ? (c | 0x20) : c;
 			}
 		};
 
@@ -96,7 +96,7 @@ namespace StringUnaryOpHierarchy
 		{
 			__device__ char operator()(char c) const
 			{
-				return (c >= 'A' && c <= 'Z') ? (c | 0x20) : c;
+				return (c >= 'a' && c <= 'z')? (c & 0xDF) : c;
 			}
 		};
 	} // namespace FixedLength
