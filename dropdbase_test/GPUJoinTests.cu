@@ -1,59 +1,61 @@
-#include "gtest/gtest.h"
-
-TEST(GPUJoinTests, JoinTest)
-{
-
-    ASSERT_EQ(false, true);
-}
-
-/*
 #include "../dropdbase/QueryEngine/GPUCore/GPUJoin.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
 #include "gtest/gtest.h"
 
 TEST(GPUJoinTests, JoinTest)
 {
-    const int32_t resultTablePageSize = 2;
+    const int32_t blockSize = 8;
+    const int32_t hashTableSize = blockSize;
 
-    const int32_t tableABlockCount = 1;
-    const int32_t tableABlockSize = 16;
-    const int32_t tableATotalSize = tableABlockSize * tableABlockCount;
+    const int32_t RTableDataElementCount = 16;
+    const int32_t STableDataElementCount = 8;
+	const int32_t QTableDataElementCount = 16;
 
-    const int32_t tableBBlockCount = 1;
-    const int32_t tableBBlockSize = 8;
-    const int32_t tableBTotalSize = tableBBlockSize * tableBBlockCount;
+    int32_t RTable[RTableDataElementCount] = {5, 1, 0, 2, 0, 2, 1, 7, 0, 2, 5, 0, 1, 1, 7, 0};
+    int32_t STable[STableDataElementCount] = {5, 1, 7, 0, 2, 3, 4, 6};
 
-    int32_t tableA[tableATotalSize] = {5, 1, 0, 2, 0, 2, 1, 7, 0, 2, 5, 0, 1, 1, 7, 0};
-    int32_t tableB[tableBTotalSize] = {5, 1, 7, 0, 2, 3, 4, 6};
+	int32_t QATable[QTableDataElementCount];
+    int32_t QBTable[QTableDataElementCount];
 
-    int32_t* d_tableA;
-    int32_t* d_tableB;
+    int32_t* d_RTable;
+    int32_t* d_STable;
+    int32_t* d_QATable;
+    int32_t* d_QBTable;
 
-    GPUMemory::alloc(&d_tableA, tableATotalSize);
-    GPUMemory::alloc(&d_tableB, tableBTotalSize);
+    GPUMemory::alloc(&d_RTable, RTableDataElementCount);
+    GPUMemory::alloc(&d_STable, STableDataElementCount);
+    GPUMemory::alloc(&d_QATable, QTableDataElementCount);
+    GPUMemory::alloc(&d_QBTable, QTableDataElementCount);
 
-    GPUMemory::copyHostToDevice(d_tableA, tableA, tableATotalSize);
-    GPUMemory::copyHostToDevice(d_tableB, tableB, tableBTotalSize);
+    GPUMemory::copyHostToDevice(d_RTable, RTable, RTableDataElementCount);
+    GPUMemory::copyHostToDevice(d_STable, STable, STableDataElementCount);
 
     // Create a join instance
-    GPUJoin gpuJoin(tableABlockCount, tableABlockSize, resultTablePageSize);
+    GPUJoin gpuJoin(hashTableSize);
 
-    // Build hash table
-    for (int32_t i = 0; i < tableABlockCount; i++)
-    {
-        gpuJoin.HashBlock(&d_tableA[i * tableABlockSize], i);
-    }
+	// Hash the values and then join them
+	for (int32_t i = 0; i < RTableDataElementCount; i += blockSize)
+	{
+        gpuJoin.HashBlock(&d_RTable[i * blockSize], RTableDataElementCount % blockSize);
+        for (int32_t j = 0; j < STableDataElementCount; j += blockSize)
+        {
+			gpuJoin.JoinBlock(d_QATable, d_QBTable, nullptr, &d_STable[j * blockSize], STableDataElementCount % blockSize);
+        }
 
-    // Join the tables
-    for (int32_t i = 0; i < tableBBlockCount; i++)
-    {
-        gpuJoin.JoinBlockOnHashTable(&tableB[i * tableBBlockSize], tableBBlockSize);
-    }
+		// DEBUG - Copy the blocks back and write their content
+		GPUMemory::copyDeviceToHost(QATable, d_QATable, QTableDataElementCount);
+		GPUMemory::copyDeviceToHost(QBTable, d_QBTable, QTableDataElementCount);
 
-    gpuJoin.debugInfo();
+		for (int32_t debug_idx = 0; debug_idx < QTableDataElementCount; debug_idx++)
+		{
+			std::printf("%d %d\n", QATable[debug_idx], QBTable[debug_idx]);
+		}
+	}
 
-    GPUMemory::free(d_tableA);
+    GPUMemory::free(d_RTable);
+    GPUMemory::free(d_STable);
+    GPUMemory::free(d_QATable);
+    GPUMemory::free(d_QBTable);
 
     ASSERT_EQ(false, true);
 }
-*/

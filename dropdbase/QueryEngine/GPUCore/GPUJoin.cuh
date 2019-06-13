@@ -8,8 +8,10 @@
 #include <iostream>
 
 #include "../Context.h"
-#include "GPUMemory.h"
+#include "GPUMemory.cuh"
 #include "GPUArithmetic.cuh"
+
+#include "../../../cub/cub.cuh"
 
 __device__ const int32_t HASH_TABLE_SUB_SIZE = 0x400;
 __device__ const int32_t HASH_MOD = 0x3FF;
@@ -61,7 +63,7 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
         __syncthreads();
 
         int32_t hash_idx = hash(RTable[i]);
-        int32_t bucket_idx = atomicAdd(&shared_memory[hash], 1);
+        int32_t bucket_idx = atomicAdd(&shared_memory[hash_idx], 1);
         HashTableHashBuckets[bucket_idx] = RTable[i];
     }
 }
@@ -108,9 +110,45 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 }
 
 template <typename T>
-__global__ void kernel_join_table()
+__global__ void kernel_distribute_results_to_buffer(T* QTableA,
+                                                    T* QTableB,
+                                                    int32_t* resultTableSize,
+													int32_t* JoinTableHisto,
+                                                    int32_t* JoinTablePrefixSum,
+                                                    int32_t joinTableSize,
+                                                    int32_t* HashTableHisto,
+                                                    int32_t* HashTablePrefixSum,
+                                                    int32_t* HashTableHashBuckets,
+                                                    int32_t hashTableSize,
+                                                    T* STable,
+                                                    int32_t dataElementCount)
 {
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
 
+    for (int32_t i = idx; i < joinTableSize && i < dataElementCount; i += stride)
+    {
+        // Hash table buckets probing
+        int32_t hash_idx = hash(STable[i]);
+        for (int32_t j = hash_idx; j < hashTableSize; j += HASH_TABLE_SUB_SIZE)
+        {
+            // Check if a bucket is empty, if yes, break the probing now
+            if (HashTableHisto[j] == 0)
+            {
+                break;
+            }
+
+            // Otherwise probe and count the number of matching entries
+            for (int32_t k = 0; k < HashTableHisto[j]; k++)
+            {
+                if (HashTableHashBuckets[HashTablePrefixSum[j] + k] == STable[i])
+                {
+                    QTableA[JoinTablePrefixSum[i] + k] = HashTableHashBuckets[HashTablePrefixSum[j] + k];
+                    QTableB[JoinTablePrefixSum[i] + k] = STable[i];
+                }
+            }
+        }
+    }
 }
 
 class GPUJoin
@@ -204,8 +242,60 @@ public:
     }
 
 	template<typename T>
-    void JoinBlock(T* QTable, T* STable, int32_t dataElementCount)
+    void JoinBlock(T* QTableA, T* QTableB, int32_t* resultTableSize, T* STable, int32_t dataElementCount)
 	{
+        //////////////////////////////////////////////////////////////////////////////
+        // Check for join table limits
+        if (dataElementCount < 0 || dataElementCount > joinTableSize_)
+        {
+            std::cerr << "Data element count exceeded join table size" << std::endl;
+            return;
+        }
 
+        //////////////////////////////////////////////////////////////////////////////
+        // Calculate the prbing result histograms
+        kernel_calc_join_histo<<<Context::getInstance().calcGridDim(hashTableSize_),
+                                 Context::getInstance().getBlockDim()>>>(JoinTableHisto_, 
+																		 joinTableSize_,
+                                                                         HashTableHisto_, 
+																		 HashTablePrefixSum_,
+                                                                         HashTableHashBuckets_, 
+																		 hashTableSize_,
+                                                                         STable, 
+																		 dataElementCount);
+
+		//////////////////////////////////////////////////////////////////////////////
+        // Calculate the prefix sum for probing results
+
+        void* tempBuffer = nullptr;
+        size_t tempBufferSize = 0;
+
+        // Calculate the prefix sum
+        cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, JoinTableHisto_,
+                                      JoinTablePrefixSum_, joinTableSize_);
+
+        // Allocate temporary storage
+        GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+
+        // Run exclusive prefix sum
+        cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, JoinTableHisto_,
+                                      JoinTablePrefixSum_, joinTableSize_);
+        GPUMemory::free(tempBuffer);
+
+		//////////////////////////////////////////////////////////////////////////////
+		// Distribute the result data to the result buffer
+        kernel_distribute_results_to_buffer<<<Context::getInstance().calcGridDim(hashTableSize_),
+                                              Context::getInstance().getBlockDim()>>>(QTableA, 
+																					  QTableB,
+																					  resultTableSize, 
+																					  JoinTableHisto_, 
+																					  JoinTablePrefixSum_,
+																					  joinTableSize_, 
+																					  HashTableHisto_,
+																					  HashTablePrefixSum_,
+																					  HashTableHashBuckets_, 
+																					  hashTableSize_, 
+																					  STable, 
+																					  dataElementCount);
 	}
 };
