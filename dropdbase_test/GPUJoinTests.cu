@@ -1,3 +1,12 @@
+#include "gtest/gtest.h"
+
+TEST(GPUJoinTests, JoinTest)
+{
+
+    ASSERT_EQ(false, true);
+}
+
+/*
 #include "../dropdbase/QueryEngine/GPUCore/GPUJoin.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
 #include "gtest/gtest.h"
@@ -10,7 +19,7 @@ TEST(GPUJoinTests, JoinTest)
     const int32_t tableABlockSize = 16;
     const int32_t tableATotalSize = tableABlockSize * tableABlockCount;
 
-	const int32_t tableBBlockCount = 1;
+    const int32_t tableBBlockCount = 1;
     const int32_t tableBBlockSize = 8;
     const int32_t tableBTotalSize = tableBBlockSize * tableBBlockCount;
 
@@ -26,24 +35,25 @@ TEST(GPUJoinTests, JoinTest)
     GPUMemory::copyHostToDevice(d_tableA, tableA, tableATotalSize);
     GPUMemory::copyHostToDevice(d_tableB, tableB, tableBTotalSize);
 
-	// Create a join instance
+    // Create a join instance
     GPUJoin gpuJoin(tableABlockCount, tableABlockSize, resultTablePageSize);
 
-	// Build hash table
+    // Build hash table
     for (int32_t i = 0; i < tableABlockCount; i++)
     {
         gpuJoin.HashBlock(&d_tableA[i * tableABlockSize], i);
-	}
+    }
 
-	// Join the tables
+    // Join the tables
     for (int32_t i = 0; i < tableBBlockCount; i++)
     {
         gpuJoin.JoinBlockOnHashTable(&tableB[i * tableBBlockSize], tableBBlockSize);
     }
 
-	gpuJoin.debugInfo();
+    gpuJoin.debugInfo();
 
     GPUMemory::free(d_tableA);
 
     ASSERT_EQ(false, true);
 }
+*/
