@@ -31,12 +31,13 @@ int32_t GpuSqlDispatcher::stringUnaryCol()
 	else if (isLastBlockOfDevice || !usingGroupBy)
 	{
 		auto column = findStringColumn(colName);
+		int32_t retSize = std::get<1>(column);
 
 		if (!isRegisterAllocated(reg))
 		{
 			GPUMemory::GPUString result;
-			GPUStringUnary::Col<OP>(result, std::get<0>(column), std::get<1>(column));
-			fillStringRegister(result, reg, std::get<1>(column));
+			GPUStringUnary::Col<OP>(result, std::get<0>(column), retSize);
+			fillStringRegister(result, reg, retSize);
 		}
 	}
 	return 0;
@@ -64,6 +65,67 @@ int32_t GpuSqlDispatcher::stringUnaryConst()
 	}
 	return 0;
 }
+
+template<typename OP, typename T>
+int32_t GpuSqlDispatcher::stringIntUnaryCol()
+{
+	auto colName = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+
+	// TODO STD conditional :: if OP == abs return type = T
+
+	typedef typename OP::returnType ResultType;
+
+	int32_t loadFlag = loadCol<T>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::cout << "StringIntUnaryCol: " << colName << " " << reg << std::endl;
+
+	if (groupByColumns.find(colName) != groupByColumns.end())
+	{
+		throw StringGroupByException();
+	}
+	else if (isLastBlockOfDevice || !usingGroupBy)
+	{
+		auto column = findStringColumn(colName);
+		int32_t retSize = std::get<1>(column);
+
+		if (!isRegisterAllocated(reg))
+		{
+			int32_t* result = allocateRegister<int32_t>(reg, retSize);
+			GPUStringUnary::Col<OP>(result, std::get<0>(column), retSize);
+			fillStringRegister(result, reg, retSize);
+		}
+	}
+	return 0;
+}
+
+template<typename OP, typename T>
+int32_t GpuSqlDispatcher::stringIntUnaryConst()
+{
+	T cnst = arguments.read<T>();
+	auto reg = arguments.read<std::string>();
+
+	// TODO STD conditional :: if OP == abs return type = T
+	typedef typename OP::returnType ResultType;
+
+	std::cout << "StringUnaryConst: " << reg << std::endl;
+
+	GPUMemory::GPUString gpuString = insertConstStringGpu(cnst);
+	int32_t retSize = 1;
+
+	if (!isRegisterAllocated(reg))
+	{
+		int32_t* result = allocateRegister<int32_t>(reg, retSize);
+		GPUStringUnary::Const<OP>(result, gpuString, retSize);
+		fillStringRegister(result, reg, retSize);
+	}
+	return 0;
+}
+
 
 template<typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::stringBinaryColCol()

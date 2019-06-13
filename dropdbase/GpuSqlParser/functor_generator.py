@@ -59,7 +59,7 @@ operations_aggregation = ["min", "max", "sum", "count", "avg"]
 operations_date = ["year", "month", "day", "hour", "minute", "second"]
 operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
-operations_string_unary = ['ltrim', 'rtrim', 'lower', 'upper', 'reverse', 'len']
+operations_string_unary = ['ltrim', 'rtrim', 'lower', 'upper', 'reverse']
 
 operations_string_binary = ['left', 'right']
 
@@ -562,6 +562,33 @@ for operation in operations_string_unary:
             op = "stringUnary"
 
         function = "GpuSqlDispatcher::" + op + col + "<StringUnaryOperations::" + operation + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+
+for operation in ['len']:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal != STRING:
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = "stringIntUnary"
+
+        function = "GpuSqlDispatcher::" + op + col + "<StringIntUnaryOperations::" + operation + ", " + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")

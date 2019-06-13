@@ -549,6 +549,12 @@ public:
 	template<typename OP, typename T>
 	int32_t stringUnaryConst();
 
+	template<typename OP, typename T>
+	int32_t stringIntUnaryCol();
+
+	template<typename OP, typename T>
+	int32_t stringIntUnaryConst();
+
 	template<typename OP, typename T, typename U>
 	int32_t stringBinaryColCol();
 
