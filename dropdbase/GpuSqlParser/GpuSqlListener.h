@@ -36,6 +36,9 @@ private:
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
 	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
 
+	bool usingLoad;
+	bool usingWhere;
+
     bool usingGroupBy;
     bool insideAgg;
 	bool insideGroupBy;
@@ -127,7 +130,9 @@ public:
 
 	void exitOffset(GpuSqlParser::OffsetContext *ctx) override;
 
+	bool GetUsingLoad();
 
+	bool GetUsingWhere();
 };
 
 

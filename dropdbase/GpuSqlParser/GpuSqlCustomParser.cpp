@@ -116,6 +116,11 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		{
 			walker.walk(&gpuSqlListener, statement->sqlSelect()->orderByColumns());
 		}
+		
+		if (!gpuSqlListener.GetUsingLoad() && !gpuSqlListener.GetUsingWhere())
+		{
+			isSingleGpuStatement = true;
+		}
 	}
 	else if (statement->showStatement())
 	{
@@ -141,7 +146,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		const std::string dbName = database->GetName();
 		for (auto& tableName : GpuSqlDispatcher::linkTable)
 		{
-
 			lockList.push_back(dbName + "." + tableName.first);
 		}
 		GPUMemoryCache::SetLockList(lockList);

@@ -29,6 +29,8 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	linkTableIndex(0),
 	resultLimit(std::numeric_limits<int64_t>::max()), 
 	resultOffset(0),
+	usingLoad(false),
+	usingWhere(false),
 	usingGroupBy(false), 
 	insideAgg(false), 
 	insideGroupBy(false), 
@@ -547,6 +549,7 @@ void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
 /// <param name="ctx">Where Clause context</param>
 void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext *ctx)
 {
+	usingWhere = true;
     std::pair<std::string, DataType> arg = stackTopAndPop();
     dispatcher.addArgument<const std::string&>(std::get<0>(arg));
     dispatcher.addFilFunction();
@@ -773,6 +776,16 @@ void GpuSqlListener::exitOffset(GpuSqlParser::OffsetContext* ctx)
     resultOffset = std::stoi(ctx->getText());
 }
 
+bool GpuSqlListener::GetUsingLoad()
+{
+	return usingLoad;
+}
+
+bool GpuSqlListener::GetUsingWhere()
+{
+	return usingWhere;
+}
+
 /// Method that executes on exit of integer literal (10, 20, 5, ...)
 /// Infers token data type (int or long)
 /// Pushes the literal token to parser stack along with its inferred data type (int or long)
@@ -834,6 +847,7 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 	const std::string tableColumn = std::get<0>(tableColumnData);
 
 	parserStack.push(std::make_pair(tableColumn, columnType));
+	usingLoad = true;
 
 	if (GpuSqlDispatcher::linkTable.find(tableColumn) == GpuSqlDispatcher::linkTable.end())
 	{

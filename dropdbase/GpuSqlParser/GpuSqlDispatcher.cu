@@ -597,8 +597,6 @@ int32_t GpuSqlDispatcher::jmp()
 	if (noLoad)
 	{
 		cleanUpGpuPointers();
-		isLastBlockOfDevice = true;
-		isOverallLastBlock = true;
 		return 0;
 	}
 
