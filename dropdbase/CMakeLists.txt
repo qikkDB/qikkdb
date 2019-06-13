@@ -76,9 +76,6 @@ set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherInsertFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherGeoFunctions.cu)
 
-set(SOURCE_FILES ${SOURCE_FILES} PARENT_SCOPE)
-set(CUDA_FILES ${CUDA_FILES} PARENT_SCOPE)
-
 if(WIN32)
 	set_source_files_properties(${SOURCE_FILES} main.cpp PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275 /bigobj")
 	set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "-Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\" -Xcompiler=\"/bigobj\"")
@@ -86,7 +83,8 @@ endif(WIN32)
 if(NOT WIN32)
     set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "--compiler-bindir=${CMAKE_CXX_COMPILER}")
 endif(NOT WIN32)
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${CUDA_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+add_library(${PROJECT_NAME}_obj OBJECT ${SOURCE_FILES} ${CUDA_FILES})
+add_executable(${PROJECT_NAME} $<TARGET_OBJECTS:${PROJECT_NAME}_obj> ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
