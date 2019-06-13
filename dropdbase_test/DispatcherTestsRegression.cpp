@@ -153,3 +153,16 @@ TEST(DispatcherTestsRegression, Int32AggregationCount)
 	ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
 	ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
 }
+
+TEST(DispatcherTestsRegression, ConstOpOnMultiGPU)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT 2+2 FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("2+2");
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+	ASSERT_EQ(payloads.intpayload().intdata()[0], 4);
+
+}
