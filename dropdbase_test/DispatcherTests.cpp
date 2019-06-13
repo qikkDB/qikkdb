@@ -10068,7 +10068,6 @@ void AssertEqStringCol(ColmnarDB::NetworkClient::Message::QueryResponsePayload p
 
 	for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
 	{
-		std::cout << payloads.stringpayload().stringdata()[i] << std::endl;
 		ASSERT_EQ(expected[i], payloads.stringpayload().stringdata()[i]) << " at row " << i;
 	}
 }
@@ -10158,6 +10157,60 @@ TEST(DispatcherTests, StringReverse)
 			std::string edited(block->GetData()[k]);
 			std::reverse(edited.begin(), edited.end());
 			expectedResultsStrings.push_back(edited);
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringLTrim)
+{
+	const std::string col = "colString1";
+	const std::string table = "TableA";
+	auto &payloads = StringFunctionHelp("LTRIM", col, table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(col).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = column->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			std::string rowString(block->GetData()[k]);
+			size_t index = rowString.find_first_not_of(' ');
+			std::string trimmed;
+			if (index < rowString.length())
+			{
+				trimmed = rowString.substr(index, rowString.length() - index);
+			}
+			expectedResultsStrings.push_back(trimmed);
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringRTrim)
+{
+	const std::string col = "colString1";
+	const std::string table = "TableA";
+	auto &payloads = StringFunctionHelp("RTRIM", col, table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(col).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = column->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			std::string rowString(block->GetData()[k]);
+			size_t index = rowString.find_last_not_of(' ');
+			std::string trimmed = rowString.substr(0, index + 1);
+			expectedResultsStrings.push_back(trimmed);
 		}
 	}
 

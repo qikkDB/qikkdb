@@ -22,7 +22,7 @@ __global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GP
 }
 
 
-void GPUStringUnary::ColLen(int32_t * outCol, GPUMemory::GPUString inCol, int32_t dataElementCount)
+void GPUStringUnary::Col(int32_t * outCol, GPUMemory::GPUString inCol, int32_t dataElementCount)
 {
 	Context& context = Context::getInstance();
 	kernel_lengths_from_indices << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >

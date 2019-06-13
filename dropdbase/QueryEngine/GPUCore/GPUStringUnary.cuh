@@ -207,7 +207,7 @@ namespace StringUnaryOpHierarchy
 } // namespace StringUnaryOperations
 
 
-/// Namespace for unary string operation generic functors
+/// Namespace for unary string to string operation generic functors
 namespace StringUnaryOperations
 {
 	struct ltrim
@@ -283,6 +283,16 @@ namespace StringUnaryOperations
 	};
 }
 
+/// Namespace for unary string to int operation generic functors
+namespace StringIntUnaryOperations
+{
+	/// Length of string
+	struct len
+	{
+
+	};
+}
+
 
 class GPUStringUnary
 {
@@ -299,5 +309,5 @@ public:
 		output = OP{}(dataElementCount, AConst, false);
     }
 	
-	static void ColLen(int32_t * outCol, GPUMemory::GPUString inCol, int32_t dataElementCount);
+	static void Col(int32_t * outCol, GPUMemory::GPUString inCol, int32_t dataElementCount);
 };
