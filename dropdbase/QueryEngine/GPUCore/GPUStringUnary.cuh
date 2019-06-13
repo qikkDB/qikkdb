@@ -75,7 +75,6 @@ namespace StringUnaryOpHierarchy
 
 	struct variable
 	{
-		typedef GPUMemory::GPUString returnType;
 		template <typename OP>
 		GPUMemory::GPUString operator()(int32_t outStringCount,
 			GPUMemory::GPUString input, bool inputIsCol) const
@@ -86,7 +85,6 @@ namespace StringUnaryOpHierarchy
 
 	struct fixed
 	{
-		typedef GPUMemory::GPUString returnType;
 		template <typename OP>
 		GPUMemory::GPUString operator()(int32_t outStringCount,
 			GPUMemory::GPUString input, bool inputIsCol) const
@@ -215,4 +213,6 @@ public:
     {
 		output = OP{}(dataElementCount, AConst, false);
     }
+	
+	static void ColLen(int32_t * outCol, GPUMemory::GPUString inCol, int32_t dataElementCount);
 };

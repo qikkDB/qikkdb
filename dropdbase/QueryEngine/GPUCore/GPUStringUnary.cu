@@ -1,4 +1,6 @@
 #include "GPUStringUnary.cuh"
+#include "GPUReconstruct.cuh"
+#include "cuda_ptr.h"
 
 
 __global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GPUString inCol, int64_t stringCount)
@@ -17,4 +19,13 @@ __global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GP
 			outCol.allChars[firstCharIndex + j] = inCol.allChars[lastCharIndex - j];
 		}
 	}
+}
+
+
+void GPUStringUnary::ColLen(int32_t * outCol, GPUMemory::GPUString inCol, int32_t dataElementCount)
+{
+	Context& context = Context::getInstance();
+	kernel_lengths_from_indices << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+		(outCol, inCol.stringIndices, dataElementCount);
+	CheckCudaError(cudaGetLastError());
 }
