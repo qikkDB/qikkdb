@@ -10,7 +10,48 @@
 #include "../GPUError.h"
 #include "MaybeDeref.cuh"
 #include "GPUMemory.cuh"
+#include "GPUReconstruct.cuh"
+#include "cuda_ptr.h"
 
+
+template <typename OP>
+__global__ void kernel_predict_length_xtrim(int32_t * newLengths, GPUMemory::GPUString inCol, int32_t stringCount)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < stringCount; i += stride)
+	{
+		const int64_t index = (i == 0) ? 0 : inCol.stringIndices[i - 1];
+		const int32_t length = static_cast<int32_t>(inCol.stringIndices[i] - index);
+		int32_t j = 0;
+		while (inCol.allChars[index + OP::GetIndex(j, length)] == ' ' && j < length)
+		{
+			j++;
+		}
+		newLengths[i] = length - j;
+	}
+}
+
+template <typename OP>
+__global__ void kernel_string_xtrim(GPUMemory::GPUString outCol, GPUMemory::GPUString inCol, int32_t stringCount)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < stringCount; i += stride)
+	{
+		const int64_t inIndex = (i == 0) ? 0 : inCol.stringIndices[i - 1];
+		const int32_t inLength = static_cast<int32_t>(inCol.stringIndices[i] - inIndex);
+		const int64_t outIndex = (i == 0) ? 0 : outCol.stringIndices[i - 1];
+		const int32_t outLength = static_cast<int32_t>(outCol.stringIndices[i] - outIndex);
+		const int64_t inStart = inIndex + OP::GetOffset(inLength, outLength);
+		for (int32_t j = 0; j < outLength; j++)
+		{
+			outCol.allChars[outIndex + j] = inCol.allChars[inStart + j];
+		}
+	}
+}
 
 template <typename OP>
 __global__ void kernel_per_char_unary(char* outChars, char* inChars, int64_t charCount)
@@ -35,12 +76,28 @@ namespace StringUnaryOpHierarchy
 	{
 		struct ltrim
 		{
+			__device__ static const int32_t GetIndex(int32_t j, int32_t length)
+			{
+				return j;	// normal order of finding spaces
+			}
 
+			__device__ static const int32_t GetOffset(int32_t inLength, int32_t outLength)
+			{
+				return inLength - outLength;	// offset on string start
+			}
 		};
 
 		struct rtrim
 		{
+			__device__ static const int32_t GetIndex(int32_t j, int32_t length)
+			{
+				return length - 1 - j;	// reverse order of finding spaces
+			}
 
+			__device__ static const int32_t GetOffset(int32_t inLength, int32_t outLength)
+			{
+				return 0;	// no offset on string start
+			}
 		};
 	} // namespace VariableLength
 
@@ -65,7 +122,7 @@ namespace StringUnaryOpHierarchy
 
 		struct reverse
 		{
-			__device__ char operator()(char c) const
+			__device__ char operator()(char c) const	// not used function
 			{
 				return c;
 			}
@@ -79,7 +136,34 @@ namespace StringUnaryOpHierarchy
 		GPUMemory::GPUString operator()(int32_t outStringCount,
 			GPUMemory::GPUString input, bool inputIsCol) const
 		{
-			return GPUMemory::GPUString(); // TODO
+			Context& context = Context::getInstance();
+			GPUMemory::GPUString outCol;
+			if (inputIsCol)	// Col
+			{
+				// Predict new lengths
+				cuda_ptr<int32_t> newLengths(outStringCount);
+				kernel_predict_length_xtrim <OP> << <context.calcGridDim(outStringCount),
+					context.getBlockDim() >> >
+					(newLengths.get(), input, outStringCount);
+
+				// Calculate new indices
+				GPUMemory::alloc(&(outCol.stringIndices), outStringCount);
+				GPUReconstruct::PrefixSum(outCol.stringIndices, newLengths.get(), outStringCount);
+
+				// Do the xtrim ('x' will be l or r) by copying chars
+				int64_t newTotalCharCount;
+				GPUMemory::copyDeviceToHost(&newTotalCharCount, outCol.stringIndices + outStringCount - 1, 1);
+				GPUMemory::alloc(&(outCol.allChars), newTotalCharCount);
+				kernel_string_xtrim <OP> << <context.calcGridDim(outStringCount),
+					context.getBlockDim() >> >
+					(outCol, input, outStringCount);
+			}
+			else	// Const (expand 1 const result to col)
+			{
+				// TODO
+			}
+			CheckCudaError(cudaGetLastError());
+			return outCol;
 		}
 	};
 
@@ -89,6 +173,7 @@ namespace StringUnaryOpHierarchy
 		GPUMemory::GPUString operator()(int32_t outStringCount,
 			GPUMemory::GPUString input, bool inputIsCol) const
 		{
+			Context& context = Context::getInstance();
 			GPUMemory::GPUString outCol;
 			if (inputIsCol)	// Col
 			{
@@ -99,22 +184,22 @@ namespace StringUnaryOpHierarchy
 				GPUMemory::alloc(&(outCol.allChars), totalCharCount);
 				if (std::is_same<OP, StringUnaryOpHierarchy::FixedLength::reverse>::value)
 				{
-					kernel_reverse_string << <Context::getInstance().calcGridDim(outStringCount),
-						Context::getInstance().getBlockDim() >> >
+					kernel_reverse_string << <context.calcGridDim(outStringCount),
+						context.getBlockDim() >> >
 						(outCol, input, outStringCount);
 				}
 				else
 				{
-					kernel_per_char_unary<OP> << <Context::getInstance().calcGridDim(totalCharCount),
-						Context::getInstance().getBlockDim() >> >
+					kernel_per_char_unary<OP> << <context.calcGridDim(totalCharCount),
+						context.getBlockDim() >> >
 						(outCol.allChars, input.allChars, totalCharCount);
 				}
-				CheckCudaError(cudaGetLastError());
 			}
 			else	// Const (expand 1 const result to col)
 			{
 				// TODO
 			}
+			CheckCudaError(cudaGetLastError());
 			return outCol;
 		}
 	};
