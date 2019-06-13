@@ -12,6 +12,9 @@
 #include "QueryType.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../QueryEngine/Context.h"
+#include <google/protobuf/message.h>
+#include "../messages/QueryResponseMessage.pb.h"
+#include "../Database.h"
 #include <iostream>
 #include <future>
 #include <thread>

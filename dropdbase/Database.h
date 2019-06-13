@@ -7,11 +7,14 @@
 #include <thread>
 #include <mutex>
 #include "DataType.h"
-#include "Table.h"
 #include "QueryEngine/Context.h"
 /// <summary>
 /// The main class representing database containing tables with data.
 /// </summary>
+
+class Table;
+class IColumn;
+
 class Database
 {
 	friend class DatabaseGenerator;

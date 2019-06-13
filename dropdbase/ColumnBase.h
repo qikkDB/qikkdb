@@ -7,7 +7,6 @@
 #include "BlockBase.h"
 #include "ComplexPolygonFactory.h"
 #include "IColumn.h"
-#include "Table.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 
