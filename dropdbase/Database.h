@@ -8,11 +8,11 @@
 #include <mutex>
 #include "DataType.h"
 #include "QueryEngine/Context.h"
+#include "Table.h"
 /// <summary>
 /// The main class representing database containing tables with data.
 /// </summary>
 
-class Table;
 class IColumn;
 
 class Database
