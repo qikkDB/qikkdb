@@ -1,10 +1,8 @@
 #pragma once
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <device_launch_parameters.h>
-#include <iostream>
+#include <driver_types.h>
 #include <string>
+#include <stdexcept>
 
 /// Enum for different QueryEngine errors
 /// < param name="GPU_EXTENSION_SUCCESS"> Return code for successful operations</param>
@@ -51,12 +49,8 @@ public:
     /// Create cuda_error from cudaError_t status
     /// and contain the number and the name of the error in an error message.
     /// <param name="cudaError">return value from cudaGetLastError()</param>
-    explicit cuda_error(cudaError_t cudaError)
-    : gpu_error("CUDA Error " + std::to_string(static_cast<int32_t>(cudaError)) + ": " +
-                std::string(cudaGetErrorName(cudaError)))
-    {
-        cudaError_ = cudaError;
-    }
+    explicit cuda_error(cudaError_t cudaError);
+
 
     ~cuda_error()
     {
@@ -82,11 +76,7 @@ public:
     /// and contain the number and the extra message in error message.
     /// <param name="queryEngineErrorType">error type - value from enum QueryEngineErrorType</param>
     /// <param name="message">extra message (can be empty string "")</param>
-    explicit query_engine_error(QueryEngineErrorType queryEngineErrorType, const std::string& message)
-    : gpu_error("GPU Error " + std::to_string(queryEngineErrorType) + (message.size() > 0 ? (": " + message) : ""))
-    {
-        queryEngineErrorType_ = queryEngineErrorType;
-    }
+    explicit query_engine_error(QueryEngineErrorType queryEngineErrorType, const std::string& message);
 
     ~query_engine_error()
     {

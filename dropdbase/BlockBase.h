@@ -1,7 +1,5 @@
 #pragma once
 #include "QueryEngine/GPUCore/GPUMemory.cuh"
-#include "Types/ComplexPolygon.pb.h"
-#include "Types/Point.pb.h"
 #include <algorithm>
 #include <memory>
 #include <stdexcept>

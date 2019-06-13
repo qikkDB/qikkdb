@@ -7,11 +7,14 @@
 #include <thread>
 #include <mutex>
 #include "DataType.h"
-#include "Table.h"
 #include "QueryEngine/Context.h"
+#include "Table.h"
 /// <summary>
 /// The main class representing database containing tables with data.
 /// </summary>
+
+class IColumn;
+
 class Database
 {
 	friend class DatabaseGenerator;
@@ -63,7 +66,7 @@ public:
 	/// Save only .db file to disk.
 	/// </summary>
 	/// <param name="path">Path to database storage directory.</param>
-	void Database::PersistOnlyDbFile(const char* path);
+	void PersistOnlyDbFile(const char* path);
 
 	/// <summary>
 	/// Save database from memory to disk.

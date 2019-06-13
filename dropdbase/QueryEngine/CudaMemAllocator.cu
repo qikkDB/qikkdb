@@ -2,7 +2,9 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+#ifdef DEBUG_ALLOC
 #include <cstdio>
+#endif
 #include <stdexcept>
 
 /// Initiaize the neccessary data structures for the GPUallocator

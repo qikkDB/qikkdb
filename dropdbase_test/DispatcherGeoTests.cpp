@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "../dropdbase/Database.h"
+#include "../dropdbase/Table.h"
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"

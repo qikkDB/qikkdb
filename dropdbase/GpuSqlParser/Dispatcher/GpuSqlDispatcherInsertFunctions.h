@@ -1,5 +1,8 @@
 #pragma once
 #include "../GpuSqlDispatcher.h"
+#include "../../Database.h"
+#include "../../Table.h"
+#include "../../ColumnBase.h"
 
 /// Implementation of INSERT INTO operation
 /// This executes once for every column-value pair

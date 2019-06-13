@@ -4,6 +4,10 @@
 
 #include "GpuSqlListener.h"
 #include "../Table.h"
+#include "../Database.h"
+#include "../PointFactory.h"
+#include "../ComplexPolygonFactory.h"
+#include "ParserExceptions.h"
 #include "GpuSqlDispatcher.h"
 #include <ctime>
 #include <iostream>

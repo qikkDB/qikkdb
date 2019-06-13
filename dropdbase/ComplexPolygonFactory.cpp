@@ -5,6 +5,9 @@
 #include <algorithm>
 #include <iomanip>
 #include "QueryEngine/Context.h"
+#include "Types/ComplexPolygon.pb.h"
+#include "NativeGeoPoint.h"
+
 
 /// <summary>
 /// Converts polygons to GPU representation.
