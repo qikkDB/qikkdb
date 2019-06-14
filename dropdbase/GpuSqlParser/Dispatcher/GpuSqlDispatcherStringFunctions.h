@@ -12,10 +12,6 @@ int32_t GpuSqlDispatcher::stringUnaryCol()
 	auto colName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	// TODO STD conditional :: if OP == abs return type = T
-
-	typedef typename OP::returnType ResultType;
-
 	int32_t loadFlag = loadCol<T>(colName);
 	if (loadFlag)
 	{
@@ -49,9 +45,6 @@ int32_t GpuSqlDispatcher::stringUnaryConst()
 	T cnst = arguments.read<T>();
 	auto reg = arguments.read<std::string>();
 
-	// TODO STD conditional :: if OP == abs return type = T
-	typedef typename OP::returnType ResultType;
-
 	std::cout << "StringUnaryConst: " << reg << std::endl;
 
 	GPUMemory::GPUString gpuString = insertConstStringGpu(cnst);
@@ -71,10 +64,6 @@ int32_t GpuSqlDispatcher::stringIntUnaryCol()
 {
 	auto colName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
-
-	// TODO STD conditional :: if OP == abs return type = T
-
-	typedef typename OP::returnType ResultType;
 
 	int32_t loadFlag = loadCol<T>(colName);
 	if (loadFlag)
@@ -97,7 +86,6 @@ int32_t GpuSqlDispatcher::stringIntUnaryCol()
 		{
 			int32_t* result = allocateRegister<int32_t>(reg, retSize);
 			GPUStringUnary::Col<OP>(result, std::get<0>(column), retSize);
-			fillStringRegister(result, reg, retSize);
 		}
 	}
 	return 0;
@@ -109,9 +97,6 @@ int32_t GpuSqlDispatcher::stringIntUnaryConst()
 	T cnst = arguments.read<T>();
 	auto reg = arguments.read<std::string>();
 
-	// TODO STD conditional :: if OP == abs return type = T
-	typedef typename OP::returnType ResultType;
-
 	std::cout << "StringUnaryConst: " << reg << std::endl;
 
 	GPUMemory::GPUString gpuString = insertConstStringGpu(cnst);
@@ -121,7 +106,6 @@ int32_t GpuSqlDispatcher::stringIntUnaryConst()
 	{
 		int32_t* result = allocateRegister<int32_t>(reg, retSize);
 		GPUStringUnary::Const<OP>(result, gpuString, retSize);
-		fillStringRegister(result, reg, retSize);
 	}
 	return 0;
 }
@@ -133,9 +117,6 @@ int32_t GpuSqlDispatcher::stringBinaryColCol()
 	auto colNameRight = arguments.read<std::string>();
 	auto colNameLeft = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
-
-	// TODO STD conditional :: if OP == abs return type = T
-	typedef typename OP::returnType ResultType;
 
 	std::cout << "StringBinaryColCol: " << reg << std::endl;
 
@@ -149,9 +130,6 @@ int32_t GpuSqlDispatcher::stringBinaryColConst()
 	auto colName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	// TODO STD conditional :: if OP == abs return type = T
-	typedef typename OP::returnType ResultType;
-
 	std::cout << "StringBinaryColConst: " << reg << std::endl;
 
 	return 0;
@@ -164,9 +142,6 @@ int32_t GpuSqlDispatcher::stringBinaryConstCol()
 	T cnst = arguments.read<T>();
 	auto reg = arguments.read<std::string>();
 
-	// TODO STD conditional :: if OP == abs return type = T
-	typedef typename OP::returnType ResultType;
-
 	std::cout << "StringBinaryConstCol: " << reg << std::endl;
 
 	return 0;
@@ -178,9 +153,6 @@ int32_t GpuSqlDispatcher::stringBinaryConstConst()
 	U cnstRight = arguments.read<U>();
 	T cnstLeft = arguments.read<T>();
 	auto reg = arguments.read<std::string>();
-
-	// TODO STD conditional :: if OP == abs return type = T
-	typedef typename OP::returnType ResultType;
 
 	std::cout << "StringBinaryConstConst: " << reg << std::endl;
 

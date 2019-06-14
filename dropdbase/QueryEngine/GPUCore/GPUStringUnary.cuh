@@ -212,7 +212,6 @@ namespace StringUnaryOperations
 {
 	struct ltrim
 	{
-		typedef GPUMemory::GPUString returnType;
 		GPUMemory::GPUString operator()(int32_t outStringCount,
 			GPUMemory::GPUString input, bool inputIsCol) const
 		{
@@ -224,7 +223,6 @@ namespace StringUnaryOperations
 
 	struct rtrim
 	{
-		typedef GPUMemory::GPUString returnType;
 		GPUMemory::GPUString operator()(int32_t outStringCount,
 			GPUMemory::GPUString input, bool inputIsCol) const
 		{
@@ -236,7 +234,6 @@ namespace StringUnaryOperations
 
 	struct lower
 	{
-		typedef GPUMemory::GPUString returnType;
 		GPUMemory::GPUString operator()(int32_t outStringCount,
 			GPUMemory::GPUString input, bool inputIsCol) const
 		{
@@ -248,7 +245,6 @@ namespace StringUnaryOperations
 
 	struct upper
 	{
-		typedef GPUMemory::GPUString returnType;
 		GPUMemory::GPUString operator()(int32_t outStringCount,
 			GPUMemory::GPUString input, bool inputIsCol) const
 		{
@@ -260,7 +256,6 @@ namespace StringUnaryOperations
 
 	struct reverse
 	{
-		typedef GPUMemory::GPUString returnType;
 		GPUMemory::GPUString operator()(int32_t outStringCount,
 			GPUMemory::GPUString input, bool inputIsCol) const
 		{
@@ -272,7 +267,6 @@ namespace StringUnaryOperations
 	
 	struct len
 	{
-		typedef int64_t returnType;
 		GPUMemory::GPUString operator()(int32_t outStringCount,
 			GPUMemory::GPUString input, bool inputIsCol) const
 		{
@@ -309,5 +303,18 @@ public:
 		output = OP{}(dataElementCount, AConst, false);
     }
 	
-	static void Col(int32_t * outCol, GPUMemory::GPUString inCol, int32_t dataElementCount);
+    template <typename OP>
+	static void Col(int32_t * outCol, GPUMemory::GPUString inCol, int32_t dataElementCount)
+	{
+		Context& context = Context::getInstance();
+		kernel_lengths_from_indices << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+			(outCol, inCol.stringIndices, dataElementCount);
+		CheckCudaError(cudaGetLastError());
+	}
+
+    template <typename OP>
+	static void Const(int32_t * outCol, GPUMemory::GPUString inCol, int32_t dataElementCount)
+	{
+		// TODO
+	}
 };
