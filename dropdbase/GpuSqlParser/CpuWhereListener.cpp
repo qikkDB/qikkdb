@@ -1,11 +1,20 @@
-#include "GpuWhereEvaluationListener.h"
+#include "CpuWhereListener.h"
 #include "../ColumnBase.h"
 #include "../QueryEngine/GPUCore/GPUFilter.cuh"
 #include "../QueryEngine/GPUCore/GPULogic.cuh"
 #include "../QueryEngine/GPUCore/GPUArithmetic.cuh"
 #include "../QueryEngine/GPUCore/GPUArithmeticUnary.cuh"
 
-void GpuWhereEvaluationListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext * ctx)
+
+constexpr float pi() { return 3.1415926f; }
+
+CpuWhereListener::CpuWhereListener(const std::shared_ptr<Database>& database, CpuSqlDispatcher& dispatcher) :
+	database(database),
+	dispatcher(dispatcher)
+{
+}
+
+void CpuWhereListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext * ctx)
 {
 	std::pair<std::string, DataType> right = stackTopAndPop();
 	std::pair<std::string, DataType> left = stackTopAndPop();
@@ -132,7 +141,15 @@ void GpuWhereEvaluationListener::exitBinaryOperation(GpuSqlParser::BinaryOperati
 	pushTempResult(reg, returnDataType);
 }
 
-void GpuWhereEvaluationListener::exitIntLiteral(GpuSqlParser::IntLiteralContext * ctx)
+void CpuWhereListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext * ctx)
+{
+}
+
+void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext * ctx)
+{
+}
+
+void CpuWhereListener::exitIntLiteral(GpuSqlParser::IntLiteralContext * ctx)
 {
 	std::string token = ctx->getText();
 	if (isLong(token))
@@ -145,7 +162,7 @@ void GpuWhereEvaluationListener::exitIntLiteral(GpuSqlParser::IntLiteralContext 
 	}
 }
 
-void GpuWhereEvaluationListener::exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext * ctx)
+void CpuWhereListener::exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext * ctx)
 {
 	std::string token = ctx->getText();
 	if (isDouble(token))
@@ -158,12 +175,17 @@ void GpuWhereEvaluationListener::exitDecimalLiteral(GpuSqlParser::DecimalLiteral
 	}
 }
 
-void GpuWhereEvaluationListener::exitStringLiteral(GpuSqlParser::StringLiteralContext * ctx)
+void CpuWhereListener::exitStringLiteral(GpuSqlParser::StringLiteralContext * ctx)
 {
 	parserStack.push(std::make_pair(ctx->getText(), DataType::CONST_STRING));
 }
 
-void GpuWhereEvaluationListener::exitGeoReference(GpuSqlParser::GeoReferenceContext * ctx)
+void CpuWhereListener::exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext * ctx)
+{
+	parserStack.push(std::make_pair(ctx->getText(), DataType::CONST_INT8_T));
+}
+
+void CpuWhereListener::exitGeoReference(GpuSqlParser::GeoReferenceContext * ctx)
 {
 	auto start = ctx->start->getStartIndex();
 	auto stop = ctx->stop->getStopIndex();
@@ -180,7 +202,7 @@ void GpuWhereEvaluationListener::exitGeoReference(GpuSqlParser::GeoReferenceCont
 	}
 }
 
-void GpuWhereEvaluationListener::exitVarReference(GpuSqlParser::VarReferenceContext * ctx)
+void CpuWhereListener::exitVarReference(GpuSqlParser::VarReferenceContext * ctx)
 {
 	std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
 	const DataType columnType = std::get<1>(tableColumnData);
@@ -189,14 +211,69 @@ void GpuWhereEvaluationListener::exitVarReference(GpuSqlParser::VarReferenceCont
 	parserStack.push(std::make_pair(tableColumn, columnType));
 }
 
-void GpuWhereEvaluationListener::exitWhereClause(GpuSqlParser::WhereClauseContext * ctx)
+void CpuWhereListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * ctx)
+{
+	auto start = ctx->start->getStartIndex();
+	auto stop = ctx->stop->getStopIndex();
+	antlr4::misc::Interval interval(start, stop);
+	std::string dateValue = ctx->start->getInputStream()->getText(interval);
+	dateValue = dateValue.substr(1, dateValue.size() - 2);
+
+	if (dateValue.size() <= 10)
+	{
+		dateValue += " 00:00:00";
+	}
+
+	std::tm t;
+	std::istringstream ss(dateValue);
+	ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
+	std::time_t epochTime = std::mktime(&t);
+
+	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
+}
+
+void CpuWhereListener::exitPiLiteral(GpuSqlParser::PiLiteralContext * ctx)
+{
+	parserStack.push(std::make_pair(std::to_string(pi()), DataType::CONST_FLOAT));
+}
+
+void CpuWhereListener::exitNowLiteral(GpuSqlParser::NowLiteralContext * ctx)
+{
+	std::time_t epochTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
+}
+
+void CpuWhereListener::exitWhereClause(GpuSqlParser::WhereClauseContext * ctx)
 {
 	std::pair<std::string, DataType> arg = stackTopAndPop();
 	dispatcher.addArgument<const std::string&>(std::get<0>(arg));
 	dispatcher.addWhereResultFunction(std::get<1>(arg));
 }
 
-void GpuWhereEvaluationListener::pushArgument(const char * token, DataType dataType)
+void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
+{
+	for (auto fromTable : ctx->fromTable())
+	{
+		std::string table = fromTable->table()->getText();
+		if (database->GetTables().find(table) == database->GetTables().end())
+		{
+			throw TableNotFoundFromException();
+		}
+		loadedTables.insert(table);
+
+		if (fromTable->alias())
+		{
+			std::string alias = fromTable->alias()->getText();
+			if (tableAliases.find(alias) != tableAliases.end())
+			{
+				throw AliasRedefinitionException();
+			}
+			tableAliases.insert({ alias, table });
+		}
+	}
+}
+
+void CpuWhereListener::pushArgument(const char * token, DataType dataType)
 {
 	switch (dataType)
 	{
@@ -231,14 +308,14 @@ void GpuWhereEvaluationListener::pushArgument(const char * token, DataType dataT
 	}
 }
 
-std::pair<std::string, DataType> GpuWhereEvaluationListener::stackTopAndPop()
+std::pair<std::string, DataType> CpuWhereListener::stackTopAndPop()
 {
 	std::pair<std::string, DataType> value = parserStack.top();
 	parserStack.pop();
 	return value;
 }
 
-void GpuWhereEvaluationListener::stringToUpper(std::string & str)
+void CpuWhereListener::stringToUpper(std::string & str)
 {
 	for (auto &c : str)
 	{
@@ -246,12 +323,12 @@ void GpuWhereEvaluationListener::stringToUpper(std::string & str)
 	}
 }
 
-void GpuWhereEvaluationListener::pushTempResult(std::string reg, DataType type)
+void CpuWhereListener::pushTempResult(std::string reg, DataType type)
 {
 	parserStack.push(std::make_pair(reg, type));
 }
 
-bool GpuWhereEvaluationListener::isLong(const std::string & value)
+bool CpuWhereListener::isLong(const std::string & value)
 {
 	try
 	{
@@ -265,7 +342,7 @@ bool GpuWhereEvaluationListener::isLong(const std::string & value)
 	return false;
 }
 
-bool GpuWhereEvaluationListener::isDouble(const std::string & value)
+bool CpuWhereListener::isDouble(const std::string & value)
 {
 	try
     {
@@ -279,22 +356,22 @@ bool GpuWhereEvaluationListener::isDouble(const std::string & value)
     return false;
 }
 
-bool GpuWhereEvaluationListener::isPoint(const std::string & value)
+bool CpuWhereListener::isPoint(const std::string & value)
 {
 	return (value.find("POINT") == 0);
 }
 
-bool GpuWhereEvaluationListener::isPolygon(const std::string & value)
+bool CpuWhereListener::isPolygon(const std::string & value)
 {
 	return (value.find("POLYGON") == 0);
 }
 
-std::string GpuWhereEvaluationListener::getRegString(antlr4::ParserRuleContext * ctx)
+std::string CpuWhereListener::getRegString(antlr4::ParserRuleContext * ctx)
 {
 	return std::string("$") + ctx->getText();
 }
 
-DataType GpuWhereEvaluationListener::getReturnDataType(DataType left, DataType right)
+DataType CpuWhereListener::getReturnDataType(DataType left, DataType right)
 {
 	if (right < DataType::COLUMN_INT)
 	{
@@ -309,7 +386,7 @@ DataType GpuWhereEvaluationListener::getReturnDataType(DataType left, DataType r
 	return result;
 }
 
-DataType GpuWhereEvaluationListener::getReturnDataType(DataType operand)
+DataType CpuWhereListener::getReturnDataType(DataType operand)
 {
 	if (operand < DataType::COLUMN_INT)
 	{
@@ -318,7 +395,7 @@ DataType GpuWhereEvaluationListener::getReturnDataType(DataType operand)
 	return operand;
 }
 
-std::pair<std::string, DataType> GpuWhereEvaluationListener::generateAndValidateColumnName(GpuSqlParser::ColumnIdContext * ctx)
+std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName(GpuSqlParser::ColumnIdContext * ctx)
 {
 	std::string table;
 	std::string column;

@@ -60,6 +60,32 @@ operations_date = ["year", "month", "day", "hour", "minute", "second"]
 operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
 
+for operation in ["whereResult"]:
+    declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal in [STRING,POINT,POLYGON]:
+            op = "invalidOperandTypesErrorHandler"
+
+        else:
+            op = operation
+        function = "CpuSqlDispatcher::" + op + col + "<" + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
 for operation in operations_binary:
     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"

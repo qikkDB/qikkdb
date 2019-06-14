@@ -7,7 +7,7 @@
 #include <any>
 #include <stack>
 
-class GpuWhereEvaluationListener : public GpuSqlParserBaseListener
+class CpuWhereListener : public GpuSqlParserBaseListener
 {
 private:
 	const std::shared_ptr<Database> &database;
@@ -38,6 +38,8 @@ private:
 	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
 public:
+	CpuWhereListener(const std::shared_ptr<Database> &database, CpuSqlDispatcher &dispatcher);
+
 	void exitBinaryOperation(GpuSqlParser::BinaryOperationContext *ctx) override;
 
 	void exitTernaryOperation(GpuSqlParser::TernaryOperationContext *ctx) override;
@@ -63,4 +65,6 @@ public:
 	void exitNowLiteral(GpuSqlParser::NowLiteralContext *ctx) override;
 
 	void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
+
+	void exitFromTables(GpuSqlParser::FromTablesContext *ctx) override;
 };

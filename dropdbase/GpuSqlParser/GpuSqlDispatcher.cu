@@ -40,7 +40,8 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	usingGroupBy(false),
 	isLastBlockOfDevice(false),
 	isOverallLastBlock(false),
-	noLoad(true)
+	noLoad(true),
+	cpuDispatcher(database)
 {
 }
 
@@ -58,10 +59,11 @@ GpuSqlDispatcher::~GpuSqlDispatcher()
 }
 
 
-void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
+void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other, CpuSqlDispatcher & sourceCpuDispatcher)
 {
 	other.dispatcherFunctions = dispatcherFunctions;
 	other.arguments = arguments;
+	sourceCpuDispatcher.copyExecutionDataTo(other.cpuDispatcher);
 }
 
 /// Main execution loop of dispatcher

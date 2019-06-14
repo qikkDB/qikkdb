@@ -1,3 +1,5 @@
+#pragma once
+
 #include <memory>
 #include <array>
 #include <tuple>
@@ -17,6 +19,8 @@ private:
 	std::vector<CpuDispatchFunction> cpuDispatcherFunctions;
 	const std::shared_ptr<Database> &database;
 	int32_t blockIndex;
+	int64_t whereResult;
+	bool evaluateMin;
 	MemoryStream arguments;
 	int32_t instructionPointer;
 
@@ -51,13 +55,14 @@ private:
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
 
-	static CpuDispatchFunction whereFunction;
+	static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> whereResultFunctions;
 
 public:
 	CpuSqlDispatcher(const std::shared_ptr<Database> &database);
 	void addBinaryOperation(DataType left, DataType right, const std::string& op);
 	void addWhereResultFunction(DataType dataType);
-	void execute();
+	int64_t execute(int32_t index);
+	void copyExecutionDataTo(CpuSqlDispatcher& other);
 
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size)
@@ -128,45 +133,83 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t arithmeticConstConst();
 
+	template<typename T>
+	int32_t whereResultCol() 
+	{
+		auto colName = arguments.read<std::string>();
+		auto reg = allocatedPointers.at(colName);
+		T* resultArray = reinterpret_cast<T*>(std::get<1>(reg));
+		whereResult = static_cast<int64_t>(resultArray[0]); 
+
+		return 1;
+	}
+
+	template<typename T>
+	int32_t whereResultConst()
+	{
+		T cnst = arguments.read<T>();
+		whereResult = static_cast<int64_t>(cnst);
+
+		return 1;
+	}
+
 
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerConstCol()
 	{
-		auto colName = arguments.read<std::string>();
 		T cnst = arguments.read<T>();
+		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colName, std::string("cnst"), std::string(typeid(OP).name()));
-		return 0;
+		return 1;
 	}
 
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerColConst()
 	{
-		U cnst = arguments.read<U>();
 		auto colName = arguments.read<std::string>();
+		U cnst = arguments.read<U>();
 
 		throw InvalidOperandsException(colName, std::string("cnst"), std::string(typeid(OP).name()));
-		return 0;
+		return 1;
 	}
 
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerConstConst()
 	{
-		U cnstRight = arguments.read<U>();
 		T cnstLeft = arguments.read<T>();
+		U cnstRight = arguments.read<U>();
 
 		throw InvalidOperandsException(std::string("cnst"), std::string("cnst"), std::string(typeid(OP).name()));
-		return 0;
+		return 1;
 	}
 
 	template<typename OP, typename T, typename U>
 	int32_t invalidOperandTypesErrorHandlerColCol()
 	{
-		auto colNameRight = arguments.read<std::string>();
 		auto colNameLeft = arguments.read<std::string>();
+		auto colNameRight = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colNameLeft, colNameRight, std::string(typeid(OP).name()));
-		return 0;
+		return 1;
+	}
+
+	template<typename T>
+	int32_t invalidOperandTypesErrorHandlerCol()
+	{
+		auto colName = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colName, std::string(""), std::string("operation"));
+		return 1;
+	}
+
+	template<typename T>
+	int32_t invalidOperandTypesErrorHandlerConst()
+	{
+		T cnst = arguments.read<T>();
+
+		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string("operation"));
+		return 1;
 	}
 
 	template<typename T>

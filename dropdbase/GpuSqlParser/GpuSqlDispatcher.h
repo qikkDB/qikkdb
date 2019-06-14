@@ -25,6 +25,7 @@
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "ParserExceptions.h"
+#include "CpuSqlDispatcher.h"
 
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
@@ -54,6 +55,7 @@ private:
 	std::unordered_set<std::string> groupByColumns;
 	bool isRegisterAllocated(std::string& reg);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
+	CpuSqlDispatcher cpuDispatcher;
 
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -256,7 +258,7 @@ public:
 
 	GpuSqlDispatcher& operator=(const GpuSqlDispatcher&) = delete;
 
-	void copyExecutionDataTo(GpuSqlDispatcher& other);
+	void copyExecutionDataTo(GpuSqlDispatcher& other, CpuSqlDispatcher& sourceCpuDispatcher);
 
 	void execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception);
 

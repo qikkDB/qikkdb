@@ -1,9 +1,14 @@
 #include "CpuSqlDispatcher.h"
 
+std::array<CpuSqlDispatcher::CpuDispatchFunction, DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::whereResultFunctions = { &CpuSqlDispatcher::whereResultConst<int32_t>, &CpuSqlDispatcher::whereResultConst<int64_t>, &CpuSqlDispatcher::whereResultConst<float>, &CpuSqlDispatcher::whereResultConst<double>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<std::string>, &CpuSqlDispatcher::whereResultConst<int8_t>, &CpuSqlDispatcher::whereResultCol<int32_t>, &CpuSqlDispatcher::whereResultCol<int64_t>, &CpuSqlDispatcher::whereResultCol<float>, &CpuSqlDispatcher::whereResultCol<double>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<std::string>, &CpuSqlDispatcher::whereResultCol<int8_t> };
+
+
 CpuSqlDispatcher::CpuSqlDispatcher(const std::shared_ptr<Database> &database) :
 	database(database),
 	blockIndex(0),
-	instructionPointer(0)
+	instructionPointer(0),
+	evaluateMin(false),
+	whereResult(1)
 {
 }
 
@@ -79,16 +84,38 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const s
 
 void CpuSqlDispatcher::addWhereResultFunction(DataType dataType)
 {
-	
+	cpuDispatcherFunctions.push_back(whereResultFunctions[dataType]);
 }
 
-void CpuSqlDispatcher::execute()
+int64_t CpuSqlDispatcher::execute(int32_t index)
 {
-	int32_t err = 0;
+	blockIndex = index;
 
+	evaluateMin = true;
+	int32_t err = 0;
 	while (err == 0)
 	{
 		err = (this->*cpuDispatcherFunctions[instructionPointer++])();
 	}
-	
+	int64_t whereResultMin = whereResult;
+	instructionPointer = 0;
+	arguments.reset();
+
+	evaluateMin = false;
+	err = 0;
+	while (err == 0)
+	{
+		err = (this->*cpuDispatcherFunctions[instructionPointer++])();
+	}
+	int64_t whereResultMax = whereResult;
+	instructionPointer = 0;
+	arguments.reset();
+
+	return whereResultMin || whereResultMax;
+}
+
+void CpuSqlDispatcher::copyExecutionDataTo(CpuSqlDispatcher& other)
+{
+	other.cpuDispatcherFunctions = cpuDispatcherFunctions;
+	other.arguments = arguments;
 }

@@ -23,14 +23,9 @@ inline int32_t CpuSqlDispatcher::arithmeticColConst()
 
 	std::tie(tableName, columnName) = splitColumnName(colName);
 
-	T min = getBlockMin<T>(tableName, columnName);
-	T max = getBlockMax<T>(tableName, columnName);
-
-	//TODO there is only implementation with min, but also should work with max
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
-	int32_t retSize = std::get<1>(column);
-	ResultType * result = allocateRegister<ResultType>(reg, retSize);
-	*result = OP{}.template operator() < T, U > (min, cnst);
+	ResultType * result = allocateRegister<ResultType>(reg, 1);
+	T colVal = evaluateMin ? getBlockMin<T>(tableName, columnName) : getBlockMax<T>(tableName, columnName);
+	*result = OP{}.template operator() < T, U > (colVal, cnst);
 	return 0;
 }
 
@@ -55,14 +50,9 @@ inline int32_t CpuSqlDispatcher::arithmeticConstCol()
 
 	std::tie(tableName, columnName) = splitColumnName(colName);
 
-	U min = getBlockMin<U>(tableName, columnName);
-	U max = getBlockMax<U>(tableName, columnName);
-
-	//TODO there is only implementation with min, but also should work with max
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
-	int32_t retSize = std::get<1>(column);
-	ResultType * result = allocateRegister<ResultType>(reg, retSize);
-	//
+	ResultType * result = allocateRegister<ResultType>(reg, 1);
+	U colVal = evaluateMin ? getBlockMin<U>(tableName, columnName) : getBlockMax<U>(tableName, columnName);
+	*result = OP{}.template operator() < T, U > (cnst, colVal);
 	return 0;
 }
 
@@ -103,6 +93,7 @@ inline int32_t CpuSqlDispatcher::arithmeticConstConst()
 	>::type ResultType;
 	
 	ResultType * result = allocateRegister<ResultType>(reg, 1);
-	//
+	*result = OP{}.template operator() < T, U > (constLeft, constRight);
+
 	return 0;
 }

@@ -14,12 +14,9 @@ inline int32_t CpuSqlDispatcher::filterColConst()
 
 	std::tie(tableName, columnName) = splitColumnName(colName);
 
-	T min = getBlockMin<T>(tableName, columnName);
-	T max = getBlockMax<T>(tableName, columnName);
-
-	//TODO there is only implementation with min, but also should work with max
 	int8_t * mask = allocateRegister<int8_t>(reg, 1);
-	*mask = OP{}.template operator() < T, U > (min, cnst);
+	T colVal = evaluateMin ? getBlockMin<T>(tableName, columnName) : getBlockMax<T>(tableName, columnName);
+	*mask = OP{}.template operator() < T, U > (colVal, cnst);
 
 	return 0;
 }
@@ -36,12 +33,9 @@ inline int32_t CpuSqlDispatcher::filterConstCol()
 
 	std::tie(tableName, columnName) = splitColumnName(colName);
 
-	U min = getBlockMin<U>(tableName, columnName);
-	U max = getBlockMax<U>(tableName, columnName);
-
-	//TODO there is only implementation with min, but also should work with max
 	int8_t * mask = allocateRegister<int8_t>(reg, 1);
-	*mask = OP{}.template operator() < T, U > (cnst, min);
+	U colVal = evaluateMin ? getBlockMin<U>(tableName, columnName) : getBlockMax<U>(tableName, columnName);
+	*mask = OP{}.template operator() < T, U > (cnst, colVal);
 
 	return 0;
 }
@@ -84,12 +78,9 @@ inline int32_t CpuSqlDispatcher::logicalColConst()
 
 	std::tie(tableName, columnName) = splitColumnName(colName);
 
-	T min = getBlockMin<T>(tableName, columnName);
-	T max = getBlockMax<T>(tableName, columnName);
-
-	//TODO there is only implementation with min, but also should work with max
 	int8_t * mask = allocateRegister<int8_t>(reg, 1);
-	*mask = OP{}.template operator() < T, U > (min, cnst);
+	T colVal = evaluateMin ? getBlockMin<T>(tableName, columnName) : getBlockMax<T>(tableName, columnName);
+	*mask = OP{}.template operator() < T, U > (colVal, cnst);
 
 	return 0;
 }
@@ -106,12 +97,9 @@ inline int32_t CpuSqlDispatcher::logicalConstCol()
 
 	std::tie(tableName, columnName) = splitColumnName(colName);
 
-	U min = getBlockMin<U>(tableName, columnName);
-	U max = getBlockMax<U>(tableName, columnName);
-
-	//TODO there is only implementation with min, but also should work with max
 	int8_t * mask = allocateRegister<int8_t>(reg, 1);
-	*mask = OP{}.template operator() < T, U > (cnst, min);
+	U colVal = evaluateMin ? getBlockMin<U>(tableName, columnName) : getBlockMax<U>(tableName, columnName);
+	*mask = OP{}.template operator() < T, U > (cnst, colVal);
 
 	return 0;
 }
