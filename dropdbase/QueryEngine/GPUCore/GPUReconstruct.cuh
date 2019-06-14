@@ -125,30 +125,41 @@ public:
 	{
 		Context& context = Context::getInstance();
 
-		if (inMask)		// If inMask is not nullptr
+		try
 		{
-			// Malloc a new buffer for the prefix sum vector
-			cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
-
-			PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
-			GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
-			if(*outDataElementCount > 0)
-			{ 
-				GPUMemory::alloc<T>(outCol, *outDataElementCount);
-				// Construct the output based on the prefix sum
-				kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-						(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
-			}
-			else
+			if (inMask)		// If inMask is not nullptr
 			{
-				*outCol = nullptr;
+				// Malloc a new buffer for the prefix sum vector
+				cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
+
+				PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
+				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
+				if(*outDataElementCount > 0)
+				{ 
+					GPUMemory::alloc<T>(outCol, *outDataElementCount);
+					// Construct the output based on the prefix sum
+					kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+							(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
+				}
+				else
+				{
+					*outCol = nullptr;
+				}
+			}
+			else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+			{
+				GPUMemory::alloc<T>(outCol, dataElementCount);
+				GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
+				*outDataElementCount = dataElementCount;
 			}
 		}
-		else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+		catch (...)
 		{
-			GPUMemory::alloc<T>(outCol, dataElementCount);
-			GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
-			*outDataElementCount = dataElementCount;
+			if (outCol)
+			{
+				GPUMemory::free(outCol);
+			}
+			throw;
 		}
 
 		// Get last error
@@ -255,7 +266,7 @@ public:
 					*outData = nullptr;
 				}
 			}
-			catch(...)
+			catch (...)
 			{
 				if(outData)
 				{
