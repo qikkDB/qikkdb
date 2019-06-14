@@ -173,6 +173,14 @@ namespace GPUMemory
 	/// <param name="p_Block">pointer to a memory block in GPU memory</param>
 	void free(void *p_block);
 
+	/// Free all memory blocks of GPUPolygon struct from GPU's memory
+	/// <param name="polygonCol">GPUPolygon struct with GPU pointers</param>
+	void free(GPUPolygon polygonCol);
+
+	/// Free all memory blocks of GPUString struct from GPU's memory
+	/// <param name="polygonCol">GPUString struct with GPU pointers</param>
+	void free(GPUString stringCol);
+
 	/// Register a piece of unpaged host memory to be used for fast memory transfers between host and device
     /// < param name="devicePtr">pointer to device memory to be mapped</param> 
 	/// < param name="hostPtr">pointer to host memory to be mapped into</param>
