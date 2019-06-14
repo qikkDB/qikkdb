@@ -64,7 +64,7 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
 
         int32_t hash_idx = hash(RTable[i]);
         int32_t bucket_idx = atomicAdd(&shared_memory[hash_idx], 1);
-        HashTableHashBuckets[bucket_idx] = RTable[i];
+		HashTableHashBuckets[bucket_idx] = i;//RTable[i];
     }
 }
 
@@ -74,7 +74,9 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 									   int32_t* HashTableHisto, 
 									   int32_t* HashTablePrefixSum,
                                        int32_t* HashTableHashBuckets,
-                                       int32_t hashTableSize, 
+                                       int32_t hashTableSize,
+									   T* RTable, 
+									   int32_t dataElementCountRTable,
 									   T* STable,
                                        int32_t dataElementCount)
 {
@@ -93,13 +95,13 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 			// Check if a bucket is empty, if yes, break the probing now
             if (HashTableHisto[j] == 0)
 			{
-                break;
+                continue;
 			}
 
 			// Otherwise probe and count the number of matching entries
             for (int32_t k = 0; k < HashTableHisto[j]; k++)
             {
-                if (HashTableHashBuckets[HashTablePrefixSum[j] + k] == STable[i])
+                if (RTable[HashTableHashBuckets[HashTablePrefixSum[j] + k]] == STable[i])
 				{
                     hashMatchCounter++;
 				}
@@ -120,6 +122,8 @@ __global__ void kernel_distribute_results_to_buffer(T* QTableA,
                                                     int32_t* HashTablePrefixSum,
                                                     int32_t* HashTableHashBuckets,
                                                     int32_t hashTableSize,
+													T* RTable,
+													int32_t dataElementCountRTable,
                                                     T* STable,
                                                     int32_t dataElementCount)
 {
@@ -141,10 +145,10 @@ __global__ void kernel_distribute_results_to_buffer(T* QTableA,
             // Otherwise probe and count the number of matching entries
             for (int32_t k = 0; k < HashTableHisto[j]; k++)
             {
-                if (HashTableHashBuckets[HashTablePrefixSum[j] + k] == STable[i])
+                if (RTable[HashTableHashBuckets[HashTablePrefixSum[j] + k]] == STable[i])
                 {
                     QTableA[JoinTablePrefixSum[i] + k] = HashTableHashBuckets[HashTablePrefixSum[j] + k];
-                    QTableB[JoinTablePrefixSum[i] + k] = STable[i];
+					QTableB[JoinTablePrefixSum[i] + k] = i;//STable[i];
                 }
             }
         }
@@ -244,11 +248,11 @@ public:
     }
 
 	template<typename T>
-    void JoinBlock(T* QTableA, T* QTableB, int32_t* resultTableSize, T* STable, int32_t dataElementCount)
+    void JoinBlock(T* QTableA, T* QTableB, int32_t* resultTableSize, T* RTable, int32_t dataElementCountRTable, T* STable, int32_t dataElementCountSTable)
 	{
 		//////////////////////////////////////////////////////////////////////////////
         // Check for join table limits
-        if (dataElementCount < 0 || dataElementCount > joinTableSize_)
+        if (dataElementCountSTable < 0 || dataElementCountSTable > joinTableSize_)
         {
             std::cerr << "Data element count exceeded join table size" << std::endl;
             return;
@@ -263,8 +267,10 @@ public:
 																		 HashTablePrefixSum_,
                                                                          HashTableHashBuckets_, 
 																		 hashTableSize_,
+																		 RTable,
+																		 dataElementCountRTable,
                                                                          STable, 
-																		 dataElementCount);
+																		 dataElementCountSTable);
 
 		//////////////////////////////////////////////////////////////////////////////
         // Calculate the prefix sum for probing results
@@ -296,9 +302,11 @@ public:
 																					  HashTableHisto_,
 																					  HashTablePrefixSum_,
 																					  HashTableHashBuckets_, 
-																					  hashTableSize_, 
+																					  hashTableSize_,
+																					  RTable,
+																					  dataElementCountRTable,
 																					  STable, 
-																					  dataElementCount);
+																					  dataElementCountSTable);
 	}
 
 	void printDebugInfo()

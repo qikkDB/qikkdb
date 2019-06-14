@@ -39,7 +39,7 @@ TEST(GPUJoinTests, JoinTest)
         gpuJoin.HashBlock(&d_RTable[i], blockSize);
 		for (int32_t j = 0; j < STableDataElementCount; j += blockSize)
 		{
-			gpuJoin.JoinBlock(d_QATable, d_QBTable, nullptr, &d_STable[j], blockSize);
+			gpuJoin.JoinBlock(d_QATable, d_QBTable, nullptr, &d_RTable[i], blockSize, &d_STable[j], blockSize);
 
 			// DEBUG - Copy the blocks back and print their content
 			GPUMemory::copyDeviceToHost(QATable, d_QATable, QTableDataElementCount);
