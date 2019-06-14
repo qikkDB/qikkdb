@@ -6,10 +6,11 @@
 #include <memory>
 #include <set>
 #include <boost/log/trivial.hpp>
-#include "IClientHandler.h"
 #include "ITCPWorker.h"
 #include <atomic>
 #include "Configuration.h"
+
+class IClientHandler;
 
 /// <summary>
 /// TCP listener and client processor

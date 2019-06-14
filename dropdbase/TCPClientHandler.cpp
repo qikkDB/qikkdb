@@ -8,6 +8,8 @@
 #include <chrono>
 #include "messages/QueryResponseMessage.pb.h"
 #include <boost/log/trivial.hpp>
+#include "Table.h"
+#include "ColumnBase.h"
 
 std::mutex TCPClientHandler::queryMutex_;
 

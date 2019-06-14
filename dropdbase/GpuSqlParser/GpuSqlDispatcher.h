@@ -17,10 +17,6 @@
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
 #include "../DataType.h"
-#include "../Database.h"
-#include "../Table.h"
-#include "../ColumnBase.h"
-#include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
@@ -29,6 +25,8 @@
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 #endif
+
+class Database;
 
 class GpuSqlDispatcher
 {
@@ -204,6 +202,12 @@ private:
 	static DispatchFunction showDatabasesFunction;
 	static DispatchFunction showTablesFunction;
 	static DispatchFunction showColumnsFunction;
+	static DispatchFunction createDatabaseFunction;
+	static DispatchFunction dropDatabaseFunction;
+	static DispatchFunction createTableFunction;
+	static DispatchFunction dropTableFunction;
+	static DispatchFunction alterTableFunction;
+	static DispatchFunction createIndexFunction;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> insertIntoFunctions;
 	static DispatchFunction insertIntoDoneFunction;
@@ -423,6 +427,18 @@ public:
 
 	void addShowColumnsFunction();
 
+	void addCreateDatabaseFunction();
+
+	void addDropDatabaseFunction();
+
+	void addCreateTableFunction();
+
+	void addDropTableFunction();
+
+	void addAlterTableFunction();
+
+	void addCreateIndexFunction();
+
 	void addInsertIntoFunction(DataType type);
 
 	void addInsertIntoDoneFunction();
@@ -495,6 +511,18 @@ public:
 	int32_t showTables();
 
 	int32_t showColumns();
+
+	int32_t createDatabase();
+
+	int32_t dropDatabase();
+
+	int32_t createTable();
+
+	int32_t dropTable();
+
+	int32_t alterTable();
+
+	int32_t createIndex();
 
 	void cleanUpGpuPointers();
 

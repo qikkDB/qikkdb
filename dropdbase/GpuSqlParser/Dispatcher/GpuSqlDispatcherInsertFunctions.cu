@@ -2,6 +2,9 @@
 #include <array>
 #include "../../PointFactory.h"
 #include "../../ComplexPolygonFactory.h"
+#include "../../Database.h"
+#include "../../Table.h"
+#include "../../ColumnBase.h"
 
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::insertIntoFunctions = { &GpuSqlDispatcher::insertInto<int32_t>, &GpuSqlDispatcher::insertInto<int64_t>, &GpuSqlDispatcher::insertInto<float>, &GpuSqlDispatcher::insertInto<double>, &GpuSqlDispatcher::insertInto<ColmnarDB::Types::Point>, &GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::insertInto<std::string>, &GpuSqlDispatcher::insertInto<int8_t>, &GpuSqlDispatcher::insertInto<int32_t>, &GpuSqlDispatcher::insertInto<int64_t>, &GpuSqlDispatcher::insertInto<float>, &GpuSqlDispatcher::insertInto<double>, &GpuSqlDispatcher::insertInto<ColmnarDB::Types::Point>, &GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::insertInto<std::string>, &GpuSqlDispatcher::insertInto<int8_t> };
 
