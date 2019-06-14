@@ -559,6 +559,11 @@ void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext *ctx)
     dispatcher.addFilFunction();
 }
 
+void GpuSqlListener::enterWhereClause(GpuSqlParser::WhereClauseContext * ctx)
+{
+	dispatcher.addWhereEvaluationFunction();
+}
+
 
 /// Method that executes on enter of GROUP BY clause
 /// Sets insideGroupBy parser flag.

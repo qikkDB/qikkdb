@@ -50,6 +50,7 @@ private:
 	bool isLastBlockOfDevice;
 	bool isOverallLastBlock;
 	bool noLoad;
+	int64_t loadNecessary;
 	std::unordered_set<std::string> groupByColumns;
 	bool isRegisterAllocated(std::string& reg);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
@@ -182,6 +183,7 @@ private:
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
     static DispatchFunction filFunction;
+	static DispatchFunction whereEvaluationFunction;
 	static DispatchFunction jmpFunction;
     static DispatchFunction doneFunction;
 	static DispatchFunction showDatabasesFunction;
@@ -384,6 +386,8 @@ public:
 
     void addFilFunction();
 
+	void addWhereEvaluationFunction();
+
 	void addJmpInstruction();
 
     void addDoneFunction();
@@ -463,6 +467,8 @@ public:
     int32_t retCol();
 
     int32_t fil();
+
+	int32_t whereEvaluation();
 
 	int32_t jmp();
 

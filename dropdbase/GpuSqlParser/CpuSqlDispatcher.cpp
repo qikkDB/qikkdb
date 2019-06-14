@@ -101,6 +101,12 @@ int64_t CpuSqlDispatcher::execute(int32_t index)
 	instructionPointer = 0;
 	arguments.reset();
 
+	for (auto& pointer : allocatedPointers)
+	{
+		operator delete(reinterpret_cast<void*>(std::get<0>(pointer.second)));
+	}
+	allocatedPointers.clear();
+
 	evaluateMin = false;
 	err = 0;
 	while (err == 0)
@@ -111,6 +117,12 @@ int64_t CpuSqlDispatcher::execute(int32_t index)
 	instructionPointer = 0;
 	arguments.reset();
 
+	for (auto& pointer : allocatedPointers)
+	{
+		operator delete(reinterpret_cast<void*>(std::get<0>(pointer.second)));
+	}
+	allocatedPointers.clear();
+
 	return whereResultMin || whereResultMax;
 }
 
@@ -118,4 +130,9 @@ void CpuSqlDispatcher::copyExecutionDataTo(CpuSqlDispatcher& other)
 {
 	other.cpuDispatcherFunctions = cpuDispatcherFunctions;
 	other.arguments = arguments;
+}
+
+std::string CpuSqlDispatcher::getPointerName(const std::string & colName)
+{
+	return colName + (evaluateMin ? "_min" : "_max");
 }

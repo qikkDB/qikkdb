@@ -96,7 +96,26 @@ public:
 		{
 			operator delete(reinterpret_cast<void*>(std::get<0>(pointer.second)));
 		}
+
+		allocatedPointers.clear();
 	}
+
+	template<typename T>
+	void loadCol(std::string& colName)
+	{
+		if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
+		{
+			std::string tableName;
+			std::string columnName;
+
+			std::tie(tableName, columnName) = splitColumnName(colName);
+			std::string reg = colName + (evaluateMin ? "_min" : "_max");
+			T * mask = allocateRegister<T>(reg, 1);
+			T colVal = evaluateMin ? getBlockMin<T>(tableName, columnName) : getBlockMax<T>(tableName, columnName);
+			*mask = colVal;
+		}
+	}
+
 	template<typename OP, typename T, typename U>
 	int32_t filterColConst();
 
@@ -138,8 +157,10 @@ public:
 	{
 		auto colName = arguments.read<std::string>();
 		auto reg = allocatedPointers.at(colName);
-		T* resultArray = reinterpret_cast<T*>(std::get<1>(reg));
+		T* resultArray = reinterpret_cast<T*>(std::get<0>(reg));
 		whereResult = static_cast<int64_t>(resultArray[0]); 
+
+		std::cout << "Where result col: " << colName << ", " << whereResult << std::endl;
 
 		return 1;
 	}
@@ -149,6 +170,8 @@ public:
 	{
 		T cnst = arguments.read<T>();
 		whereResult = static_cast<int64_t>(cnst);
+
+		std::cout << "Where result const: " << whereResult << std::endl;
 
 		return 1;
 	}
@@ -217,4 +240,6 @@ public:
 	{
 		arguments.insert<T>(argument);
 	}
+
+	std::string getPointerName(const std::string& colName);
 };

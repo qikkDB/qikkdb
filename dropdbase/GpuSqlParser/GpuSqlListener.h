@@ -107,6 +107,8 @@ public:
 
     void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 
+    void enterWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
+
 	void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
 
     void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;

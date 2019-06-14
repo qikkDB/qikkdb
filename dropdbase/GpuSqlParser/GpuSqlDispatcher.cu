@@ -43,6 +43,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	isLastBlockOfDevice(false),
 	isOverallLastBlock(false),
 	noLoad(true),
+	loadNecessary(1),
 	cpuDispatcher(database)
 {
 }
@@ -158,6 +159,11 @@ void GpuSqlDispatcher::addRetFunction(DataType type)
 void GpuSqlDispatcher::addFilFunction()
 {
     dispatcherFunctions.push_back(filFunction);
+}
+
+void GpuSqlDispatcher::addWhereEvaluationFunction()
+{
+	dispatcherFunctions.push_back(whereEvaluationFunction);
 }
 
 void GpuSqlDispatcher::addJmpInstruction()
@@ -641,6 +647,14 @@ int32_t GpuSqlDispatcher::fil()
     auto reg = arguments.read<std::string>();
     std::cout << "Filter: " << reg << std::endl;
 	filter_ = std::get<0>(allocatedPointers.at(reg));
+	return 0;
+}
+
+int32_t GpuSqlDispatcher::whereEvaluation()
+{
+	loadNecessary = cpuDispatcher.execute(blockIndex);
+	std::cout << "Where load evaluation: " << loadNecessary << std::endl;
+	// TODO skip to jmp
 	return 0;
 }
 

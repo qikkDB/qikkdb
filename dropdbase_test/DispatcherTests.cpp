@@ -2083,6 +2083,8 @@ TEST(DispatcherTests, IntEqLtConstColumn)
 	{
 		ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
 	}
+
+	FAIL();
 }
 
 TEST(DispatcherTests, IntEqLtColumnColumn)
