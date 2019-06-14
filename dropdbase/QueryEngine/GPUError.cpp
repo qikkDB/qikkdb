@@ -3,9 +3,16 @@
 
 void CheckCudaError(cudaError_t cudaError)
 {
-    if (cudaError != cudaSuccess)
-    {
-        std::cout << "CUDA Error " << cudaError << ": " << cudaGetErrorName(cudaError) << std::endl;
+#ifdef DEBUG
+	cudaDeviceSynchronize();
+#endif // DEBUG
+
+	if (cudaError != cudaSuccess)
+	{
+		std::cout << "CUDA Error " << cudaError << ": " << cudaGetErrorName(cudaError) << std::endl;
+#ifdef DEBUG
+		abort();
+#endif
         throw cuda_error(cudaError);
     }
 }
