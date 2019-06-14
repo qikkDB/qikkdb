@@ -213,20 +213,21 @@ public:
 			GPUMemory::alloc(&values_, maxHashCount_);
 			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
 		}
-		catch
+		catch(...)
 		{
-			if(keys)
+			if(keys_)
 			{
-				GPUMemory::free(keys);
+				GPUMemory::free(keys_);
 			}
-			if(values)
+			if(values_)
 			{
-				GPUMemory::free(values);
+				GPUMemory::free(values_);
 			}
 			if(keyOccurenceCount_)
 			{
 				GPUMemory::free(keyOccurenceCount_);
 			}
+			throw;
 		}
 		GPUMemory::fillArray(keys_, getEmptyValue<K>(), maxHashCount_);
 		GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), maxHashCount_);
@@ -244,20 +245,21 @@ public:
 			GPUMemory::alloc(&values_, maxHashCount_);
 			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
 		}
-		catch
+		catch(...)
 		{
-			if(keys)
+			if(keys_)
 			{
-				GPUMemory::free(keys);
+				GPUMemory::free(keys_);
 			}
-			if(values)
+			if(values_)
 			{
-				GPUMemory::free(values);
+				GPUMemory::free(values_);
 			}
 			if(keyOccurenceCount_)
 			{
 				GPUMemory::free(keyOccurenceCount_);
 			}
+			throw;
 		}
 
 		GPUMemory::copyDeviceToDevice(keys_, keys, maxHashCount_);
@@ -442,20 +444,21 @@ public:
 			GPUMemory::alloc(&values_, maxHashCount_);
 			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
 		}
-		catch
+		catch(...)
 		{
-			if(keys)
+			if(keys_)
 			{
-				GPUMemory::free(keys);
+				GPUMemory::free(keys_);
 			}
-			if(values)
+			if(values_)
 			{
-				GPUMemory::free(values);
+				GPUMemory::free(values_);
 			}
 			if(keyOccurenceCount_)
 			{
 				GPUMemory::free(keyOccurenceCount_);
 			}
+			throw;
 		}
 
 		GPUMemory::fillArray(keys_, getEmptyValue<K>(), maxHashCount_);
@@ -474,20 +477,21 @@ public:
 			GPUMemory::alloc(&values_, maxHashCount_);
 			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
 		}
-		catch
+		catch(...)
 		{
-			if(keys)
+			if(keys_)
 			{
-				GPUMemory::free(keys);
+				GPUMemory::free(keys_);
 			}
-			if(values)
+			if(values_)
 			{
-				GPUMemory::free(values);
+				GPUMemory::free(values_);
 			}
 			if(keyOccurenceCount_)
 			{
 				GPUMemory::free(keyOccurenceCount_);
 			}
+			throw;
 		}
 
 		GPUMemory::copyDeviceToDevice(keys_, keys, maxHashCount_);
@@ -720,20 +724,21 @@ public:
 			GPUMemory::alloc(&values_, maxHashCount_);
 			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
 		}
-		catch
+		catch(...)
 		{
-			if(keys)
+			if(keys_)
 			{
-				GPUMemory::free(keys);
+				GPUMemory::free(keys_);
 			}
-			if(values)
+			if(values_)
 			{
-				GPUMemory::free(values);
+				GPUMemory::free(values_);
 			}
 			if(keyOccurenceCount_)
 			{
 				GPUMemory::free(keyOccurenceCount_);
 			}
+			throw;
 		}
 
 		GPUMemory::fillArray(keys_, getEmptyValue<K>(), maxHashCount_);
@@ -752,20 +757,21 @@ public:
 			GPUMemory::alloc(&values_, maxHashCount_);
 			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
 		}
-		catch
+		catch(...)
 		{
-			if(keys)
+			if(keys_)
 			{
-				GPUMemory::free(keys);
+				GPUMemory::free(keys_);
 			}
-			if(values)
+			if(values_)
 			{
-				GPUMemory::free(values);
+				GPUMemory::free(values_);
 			}
 			if(keyOccurenceCount_)
 			{
 				GPUMemory::free(keyOccurenceCount_);
 			}
+			throw;
 		}
 
 		GPUMemory::copyDeviceToDevice(keys_, keys, maxHashCount_);

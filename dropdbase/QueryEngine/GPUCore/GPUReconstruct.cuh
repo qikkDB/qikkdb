@@ -247,28 +247,42 @@ public:
 		{
 			// Malloc a new buffer for the prefix sum vector
 			int32_t* prefixSumPointer = nullptr;
-			GPUMemory::alloc(&prefixSumPointer, dataElementCount);
-			
-			// Run prefix sum
-			PrefixSum(prefixSumPointer, inMask, dataElementCount);
-			
-			// Copy the output size to host
-			GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
-			if (*outDataElementCount > 0)
+			try
 			{
-				// Allocate array for outData with needed size
-				GPUMemory::alloc<T>(outData, *outDataElementCount);
+				GPUMemory::alloc(&prefixSumPointer, dataElementCount);
+				
+				// Run prefix sum
+				PrefixSum(prefixSumPointer, inMask, dataElementCount);
+				
+				// Copy the output size to host
+				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
+				if (*outDataElementCount > 0)
+				{
+					// Allocate array for outData with needed size
+					GPUMemory::alloc<T>(outData, *outDataElementCount);
 
-				// Call kernel for generating indexes
-				kernel_generate_indexes << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-					(*outData, prefixSumPointer, inMask, dataElementCount);
+					// Call kernel for generating indexes
+					kernel_generate_indexes << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+						(*outData, prefixSumPointer, inMask, dataElementCount);
+				}
+				else
+				{
+					*outData = nullptr;
+				}
+				// Free the memory
+				GPUMemory::free(prefixSumPointer);
 			}
-			else
+			catch(...)
 			{
-				*outData = nullptr;
+				if(prefixSumPointer)
+				{
+					GPUMemory::free(prefixSumPointer);
+				}
+				if(outData)
+				{
+					GPUMemory::free(outData);
+				}
 			}
-			// Free the memory
-			GPUMemory::free(prefixSumPointer);
 		}
 		else  // Version without mask is not supported in GenerateIndexes
 		{
