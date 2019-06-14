@@ -10079,7 +10079,8 @@ ColmnarDB::NetworkClient::Message::QueryResponsePayload RunFunctionQuery(
 	std::string retFunCol = function + "(" + column + ")";
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT " + retFunCol + " FROM " + table + ";");
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+		"SELECT " + retFunCol + " FROM " + table + ";");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	return result->payloads().at(retFunCol);
@@ -10112,6 +10113,22 @@ TEST(DispatcherTests, StringLower)
 	AssertEqStringCol(payloads, expectedResultsStrings);
 }
 
+TEST(DispatcherTests, StringLowerConst)
+{
+	const std::string text = "\"ABCDabcdzZ [{\|}]_#90\"";
+	auto &payloads = RunFunctionQuery("LOWER", text, "TableA LIMIT 1");
+
+	std::vector<std::string> expectedResultsStrings;
+	std::string edited;
+	for (char c : text.substr(1, text.length() - 2))
+	{
+		edited += tolower(c);
+	}
+	expectedResultsStrings.push_back(edited);
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
 TEST(DispatcherTests, StringUpper)
 {
 	const std::string col = "colString1";
@@ -10139,6 +10156,22 @@ TEST(DispatcherTests, StringUpper)
 	AssertEqStringCol(payloads, expectedResultsStrings);
 }
 
+TEST(DispatcherTests, StringUpperConst)
+{
+	const std::string text = "\"ABCDabcdzZ [{\|}]_#90\"";
+	auto &payloads = RunFunctionQuery("UPPER", text, "TableA LIMIT 1");
+
+	std::vector<std::string> expectedResultsStrings;
+	std::string edited;
+	for (char c : text.substr(1, text.length() - 2))
+	{
+		edited += toupper(c);
+	}
+	expectedResultsStrings.push_back(edited);
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
 TEST(DispatcherTests, StringReverse)
 {
 	const std::string col = "colString1";
@@ -10159,6 +10192,19 @@ TEST(DispatcherTests, StringReverse)
 			expectedResultsStrings.push_back(edited);
 		}
 	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringReverseConst)
+{
+	const std::string text = "\"ABCDabcdzZ [{\|}]_#90\"";
+	auto &payloads = RunFunctionQuery("REVERSE", text, "TableA LIMIT 1");
+
+	std::vector<std::string> expectedResultsStrings;
+	std::string edited(text.substr(1, text.length() - 2));
+	std::reverse(edited.begin(), edited.end());
+	expectedResultsStrings.push_back(edited);
 
 	AssertEqStringCol(payloads, expectedResultsStrings);
 }
@@ -10192,6 +10238,25 @@ TEST(DispatcherTests, StringLtrim)
 	AssertEqStringCol(payloads, expectedResultsStrings);
 }
 
+TEST(DispatcherTests, StringLtrimConst)
+{
+	const std::string text = "\"  ABCDabcdzZ [{\|}]_#90  \"";
+	auto &payloads = RunFunctionQuery("LTRIM", text, "TableA LIMIT 1");
+
+	std::vector<std::string> expectedResultsStrings;
+
+	std::string edited(text.substr(1, text.length() - 2));
+	size_t index = edited.find_first_not_of(' ');
+	std::string trimmed;
+	if (index < edited.length())
+	{
+		trimmed = edited.substr(index, edited.length() - index);
+	}
+	expectedResultsStrings.push_back(trimmed);
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
 TEST(DispatcherTests, StringRtrim)
 {
 	const std::string col = "colString1";
@@ -10217,6 +10282,20 @@ TEST(DispatcherTests, StringRtrim)
 	AssertEqStringCol(payloads, expectedResultsStrings);
 }
 
+TEST(DispatcherTests, StringRtrimConst)
+{
+	const std::string text = "\"  ABCDabcdzZ [{\|}]_#90  \"";
+	auto &payloads = RunFunctionQuery("RTRIM", text, "TableA LIMIT 1");
+
+	std::vector<std::string> expectedResultsStrings;
+
+	std::string edited(text.substr(1, text.length() - 2));;
+	size_t index = edited.find_last_not_of(' ');
+	std::string trimmed = edited.substr(0, index + 1);
+	expectedResultsStrings.push_back(trimmed);
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
 
 TEST(DispatcherTests, StringLen)
 {
@@ -10243,6 +10322,15 @@ TEST(DispatcherTests, StringLen)
 	{
 		ASSERT_EQ(expectedResults[i], payloads.intpayload().intdata()[i]) << " at row " << i;
 	}
+}
+
+TEST(DispatcherTests, StringLenConst)
+{
+	const std::string text = "\"  ABCDabcdzZ [{\|}]_#90  \"";
+	auto &payloads = RunFunctionQuery("LEN", text, "TableA LIMIT 1");
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+	ASSERT_EQ(payloads.intpayload().intdata()[0], text.length() - 2); // - 2 because of two quotes ""
 }
 
 // Polygon clipping tests

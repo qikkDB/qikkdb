@@ -855,7 +855,8 @@ void GpuSqlListener::exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx
 /// <param name="ctx">String Literal context</param>
 void GpuSqlListener::exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx)
 {
-    parserStack.push(std::make_pair(ctx->getText(), DataType::CONST_STRING));
+	std::string strLit = ctx->getText().substr(1, ctx->getText().length() - 2);
+    parserStack.push(std::make_pair(strLit, DataType::CONST_STRING));
 }
 
 /// Method that executes on exit of boolean literal (True, False)

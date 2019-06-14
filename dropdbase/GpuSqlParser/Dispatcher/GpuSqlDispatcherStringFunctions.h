@@ -48,13 +48,12 @@ int32_t GpuSqlDispatcher::stringUnaryConst()
 	std::cout << "StringUnaryConst: " << reg << std::endl;
 
 	GPUMemory::GPUString gpuString = insertConstStringGpu(cnst);
-	int32_t retSize = 1;
 
 	if (!isRegisterAllocated(reg))
 	{
 		GPUMemory::GPUString result;
-		GPUStringUnary::Const<OP>(result, gpuString, retSize);
-		fillStringRegister(result, reg, retSize);
+		GPUStringUnary::Const<OP>(result, gpuString);
+		fillStringRegister(result, reg, 1);
 	}
 	return 0;
 }
@@ -100,12 +99,11 @@ int32_t GpuSqlDispatcher::stringIntUnaryConst()
 	std::cout << "StringUnaryConst: " << reg << std::endl;
 
 	GPUMemory::GPUString gpuString = insertConstStringGpu(cnst);
-	int32_t retSize = 1;
 
 	if (!isRegisterAllocated(reg))
 	{
-		int32_t* result = allocateRegister<int32_t>(reg, retSize);
-		GPUStringUnary::Const<OP>(result, gpuString, retSize);
+		int32_t* result = allocateRegister<int32_t>(reg, 1);
+		GPUStringUnary::Const<OP>(result, gpuString);
 	}
 	return 0;
 }

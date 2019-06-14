@@ -130,36 +130,36 @@ namespace StringUnaryOpHierarchy
 	struct variable
 	{
 		template <typename OP>
-		GPUMemory::GPUString operator()(int32_t outStringCount,
-			GPUMemory::GPUString input, bool inputIsCol) const
+		GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
 		{
-			Context& context = Context::getInstance();
 			GPUMemory::GPUString outCol;
-			if (inputIsCol)	// Col
+			if (stringCount > 0)
 			{
+				Context& context = Context::getInstance();
 				// Predict new lengths
-				cuda_ptr<int32_t> newLengths(outStringCount);
-				kernel_predict_length_xtrim <OP> << <context.calcGridDim(outStringCount),
+				cuda_ptr<int32_t> newLengths(stringCount);
+				kernel_predict_length_xtrim <OP> << <context.calcGridDim(stringCount),
 					context.getBlockDim() >> >
-					(newLengths.get(), input, outStringCount);
+					(newLengths.get(), input, stringCount);
 
 				// Calculate new indices
-				GPUMemory::alloc(&(outCol.stringIndices), outStringCount);
-				GPUReconstruct::PrefixSum(outCol.stringIndices, newLengths.get(), outStringCount);
+				GPUMemory::alloc(&(outCol.stringIndices), stringCount);
+				GPUReconstruct::PrefixSum(outCol.stringIndices, newLengths.get(), stringCount);
 
 				// Do the xtrim ('x' will be l or r) by copying chars
 				int64_t newTotalCharCount;
-				GPUMemory::copyDeviceToHost(&newTotalCharCount, outCol.stringIndices + outStringCount - 1, 1);
+				GPUMemory::copyDeviceToHost(&newTotalCharCount, outCol.stringIndices + stringCount - 1, 1);
 				GPUMemory::alloc(&(outCol.allChars), newTotalCharCount);
-				kernel_string_xtrim <OP> << <context.calcGridDim(outStringCount),
+				kernel_string_xtrim <OP> << <context.calcGridDim(stringCount),
 					context.getBlockDim() >> >
-					(outCol, input, outStringCount);
+					(outCol, input, stringCount);
+				CheckCudaError(cudaGetLastError());
 			}
-			else	// Const (expand 1 const result to col)
+			else
 			{
-				// TODO
+				outCol.stringIndices = nullptr;
+				outCol.allChars = nullptr;
 			}
-			CheckCudaError(cudaGetLastError());
 			return outCol;
 		}
 	};
@@ -177,24 +177,24 @@ namespace StringUnaryOpHierarchy
 		}
 
 		template <typename OP>
-		GPUMemory::GPUString operator()(int32_t outStringCount,
-			GPUMemory::GPUString input, bool inputIsCol) const
+		GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
 		{
 			GPUMemory::GPUString outCol;
-			if (inputIsCol)	// Col
+			if(stringCount > 0)
 			{
-				GPUMemory::alloc(&(outCol.stringIndices), outStringCount);
-				GPUMemory::copyDeviceToDevice(outCol.stringIndices, input.stringIndices, outStringCount);
+				GPUMemory::alloc(&(outCol.stringIndices), stringCount);
+				GPUMemory::copyDeviceToDevice(outCol.stringIndices, input.stringIndices, stringCount);
 				int64_t totalCharCount;
-				GPUMemory::copyDeviceToHost(&totalCharCount, input.stringIndices + outStringCount - 1, 1);
+				GPUMemory::copyDeviceToHost(&totalCharCount, input.stringIndices + stringCount - 1, 1);
 				GPUMemory::alloc(&(outCol.allChars), totalCharCount);
-				CallKernel<OP>(outCol, input, outStringCount, totalCharCount);
+				CallKernel<OP>(outCol, input, stringCount, totalCharCount);
+				CheckCudaError(cudaGetLastError());
 			}
-			else	// Const (expand 1 const result to col)
+			else
 			{
-				// TODO
+				outCol.stringIndices = nullptr;
+				outCol.allChars = nullptr;
 			}
-			CheckCudaError(cudaGetLastError());
 			return outCol;
 		}
 	};
@@ -212,56 +212,51 @@ namespace StringUnaryOperations
 {
 	struct ltrim
 	{
-		GPUMemory::GPUString operator()(int32_t outStringCount,
-			GPUMemory::GPUString input, bool inputIsCol) const
+		GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
 		{
 			return StringUnaryOpHierarchy::variable{}.template operator()
 				< StringUnaryOpHierarchy::VariableLength::ltrim >
-				(outStringCount, input, inputIsCol);
+				(input, stringCount);
 		}
 	};
 
 	struct rtrim
 	{
-		GPUMemory::GPUString operator()(int32_t outStringCount,
-			GPUMemory::GPUString input, bool inputIsCol) const
+		GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
 		{
 			return StringUnaryOpHierarchy::variable{}.template operator()
 				< StringUnaryOpHierarchy::VariableLength::rtrim >
-				(outStringCount, input, inputIsCol);
+				(input, stringCount);
 		}
 	};
 
 	struct lower
 	{
-		GPUMemory::GPUString operator()(int32_t outStringCount,
-			GPUMemory::GPUString input, bool inputIsCol) const
+		GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
 		{
 			return StringUnaryOpHierarchy::fixed{}.template operator()
 				< StringUnaryOpHierarchy::FixedLength::lower >
-				(outStringCount, input, inputIsCol);
+				(input, stringCount);
 		}
 	};
 
 	struct upper
 	{
-		GPUMemory::GPUString operator()(int32_t outStringCount,
-			GPUMemory::GPUString input, bool inputIsCol) const
+		GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
 		{
 			return StringUnaryOpHierarchy::fixed{}.template operator()
 				< StringUnaryOpHierarchy::FixedLength::upper >
-				(outStringCount, input, inputIsCol);
+				(input, stringCount);
 		}
 	};
 
 	struct reverse
 	{
-		GPUMemory::GPUString operator()(int32_t outStringCount,
-			GPUMemory::GPUString input, bool inputIsCol) const
+		GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
 		{
 			return StringUnaryOpHierarchy::fixed{}.template operator()
 				< StringUnaryOpHierarchy::FixedLength::reverse >
-				(outStringCount, input, inputIsCol);
+				(input, stringCount);
 		}
 	};
 }
@@ -283,13 +278,13 @@ public:
     template <typename OP>
     static void Col(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, int32_t dataElementCount)
     {
-        output = OP{}(dataElementCount, ACol, true);
+        output = OP{}(ACol, dataElementCount);
     }
 
     template <typename OP>
-    static void Const(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, int32_t dataElementCount)
+    static void Const(GPUMemory::GPUString& output, GPUMemory::GPUString AConst)
     {
-		output = OP{}(dataElementCount, AConst, false);
+		output = OP{}(AConst, 1);
     }
 	
     template <typename OP>
@@ -302,8 +297,13 @@ public:
 	}
 
     template <typename OP>
-	static void Const(int32_t * outCol, GPUMemory::GPUString inCol, int32_t dataElementCount)
+	static void Const(int32_t * outCol, GPUMemory::GPUString inCol)
 	{
-		// TODO
+		// Copy single index to host
+		int64_t hostIndex;
+		GPUMemory::copyDeviceToHost(&hostIndex, inCol.stringIndices, 1);
+		// Cast to int32 and copy to return result
+		int32_t length = static_cast<int32_t>(hostIndex);
+		GPUMemory::copyHostToDevice(outCol, &length, 1);
 	}
 };
