@@ -92,7 +92,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
         int32_t hash_idx = hash(STable[i]);
         for (int32_t j = hash_idx; j < hashTableSize; j += HASH_TABLE_SUB_SIZE)
 		{
-			// Check if a bucket is empty, if yes, break the probing now
+			// Check if a bucket is empty, if yes, try the next bucket with the same hash
             if (HashTableHisto[j] == 0)
 			{
                 continue;
@@ -136,7 +136,7 @@ __global__ void kernel_distribute_results_to_buffer(T* QTableA,
         int32_t hash_idx = hash(STable[i]);
         for (int32_t j = hash_idx; j < hashTableSize; j += HASH_TABLE_SUB_SIZE)
         {
-            // Check if a bucket is empty, if yes, break the probing now
+            // Check if a bucket is empty, if yes, try the next bucket with the same hash
             if (HashTableHisto[j] == 0)
             {
                 continue;
@@ -337,12 +337,12 @@ public:
 		std::printf("HASH TABLE\n");
 		for (int32_t i = 0; i < hashTableSize_; i++)
 		{
-			std::printf("%d %d %d\n", h_HashTableHisto_[i], h_HashTablePrefixSum_[i], h_HashTableHashBuckets_[i]);
+			std::printf("%d %d %d\n", h_HashTableHisto_[i], i == 0 ? 0 : h_HashTablePrefixSum_[i - 1], h_HashTableHashBuckets_[i]);
 		}
 		std::printf("JOIN TABLE\n");
 		for (int32_t i = 0; i < joinTableSize_; i++)
 		{
-			std::printf("%d %d\n", h_JoinTableHisto_[i], h_JoinTablePrefixSum_[i]);
+			std::printf("%d %d\n", h_JoinTableHisto_[i], i == 0 ? 0 : h_JoinTablePrefixSum_[i - 1]);
 		}
 		std::printf("#####################\n");
 

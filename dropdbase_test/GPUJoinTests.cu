@@ -15,7 +15,7 @@ void basicUsage()
 	const int32_t STableDataElementCount = 8;
 	const int32_t QTableDataElementCount = blockSize;
 
-	int32_t RTable[RTableDataElementCount] = { 5, 1, 0, 2, 0, 2, 1, 7, 0, 2, 5, 0, 1, 1, 7, 0 };
+	int32_t RTable[RTableDataElementCount] = { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 };//{ 5, 1, 0, 2, 0, 2, 1, 7, 0, 2, 5, 0, 1, 1, 7, 0 };
 	int32_t STable[STableDataElementCount] = { 5, 5, 5, 5, 5, 5, 5, 5 };//{ 5, 1, 7, 0, 2, 3, 4, 6 };
 
 	int32_t QATable[QTableDataElementCount];
@@ -65,21 +65,23 @@ void basicUsage()
 	GPUMemory::free(d_STable);
 	GPUMemory::free(d_QATable);
 	GPUMemory::free(d_QBTable);
+
+	FAIL();
 }
 
 
 TEST(GPUJoinTests, JoinTest)
 {
-
+	/*
 	// Alloc the buffers
 	const int32_t SEED = 42;
 
 	// hash block size <= table size !!!!
 	const int32_t HASH_BLOCK_SIZE = 1 << 12;
 
-	const int32_t RTABLE_SIZE = 1 << 20;
-	const int32_t STABLE_SIZE = 1 << 20;
-	const int32_t QTABLE_SIZE = std::max(RTABLE_SIZE, STABLE_SIZE);
+	const int32_t RTABLE_SIZE = 1 << 14;
+	const int32_t STABLE_SIZE = 1 << 14;
+	const int32_t QTABLE_SIZE = RTABLE_SIZE * STABLE_SIZE;
 
 	std::vector<int32_t> RTable(RTABLE_SIZE);	// The first input table
 	std::vector<int32_t> STable(STABLE_SIZE);	// The second input table
@@ -92,8 +94,8 @@ TEST(GPUJoinTests, JoinTest)
 	// Fill the buffers with random data
 	srand(SEED);
 
-	for (int32_t i = 0; i < RTABLE_SIZE; i++) { RTable[i] = rand(); }
-	for (int32_t i = 0; i < STABLE_SIZE; i++) { STable[i] = rand(); }
+	for (int32_t i = 0; i < RTABLE_SIZE; i++) { RTable[i] = 5; }//rand(); }
+	for (int32_t i = 0; i < STABLE_SIZE; i++) { STable[i] = 5; }//rand(); }
 	for (int32_t i = 0; i < QTABLE_SIZE; i++) { QATable[i] = 0; QBTable[i] = 0; }
 
 	// Alloc GPU buffers
@@ -140,6 +142,12 @@ TEST(GPUJoinTests, JoinTest)
 			GPUMemory::copyHostToDevice(d_STableBlock, &STable[s], processedSBlockSize);
 			gpuJoin.JoinBlock(d_QATableBlock, d_QBTableBlock, &processedQBlockResultSize, d_RTableBlock, processedRBlockSize, d_STableBlock, processedSBlockSize);
 
+			// Check if the result is not empty
+			if(processedQBlockResultSize == 0)
+			{
+				continue;
+			}
+
 			// Copy the result blocks back and store them in the result set
 			int32_t QAresult[HASH_BLOCK_SIZE];
 			int32_t QBresult[HASH_BLOCK_SIZE];
@@ -149,8 +157,8 @@ TEST(GPUJoinTests, JoinTest)
 			
 			for(int32_t i = 0; i < processedQBlockResultSize; i++)
 			{
-				QATable[QTableResultSizeTotal] = QAresult[i];
-				QBTable[QTableResultSizeTotal] = QBresult[i];
+				QATable[QTableResultSizeTotal] = r + QAresult[i];	// Write the original idx
+				QBTable[QTableResultSizeTotal] = s + QBresult[i];   // Write the original idx
 				QTableResultSizeTotal++;
 			}
 		}
@@ -166,12 +174,11 @@ TEST(GPUJoinTests, JoinTest)
 
 	for(int32_t i = 0; i < QTableResultSizeTotal; i++)
 	{
-		std::printf("%d %d\n", QATable[i], QBTable[i]);
-
-		if(i > 100) 
-			break;
+		//std::printf("%d %d\n", QATable[i], QBTable[i]);
+		// Check if indexed values are equal
+		ASSERT_EQ(RTable[QATable[i]], STable[QBTable[i]]);
 	}
-
-	//basicUsage();
-    FAIL();
+	*/
+	basicUsage();
+	//FAIL();
 }
