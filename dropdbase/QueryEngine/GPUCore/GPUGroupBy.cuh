@@ -665,11 +665,11 @@ public:
 
 				// Merge results
 				V* valuesMerged = nullptr;
-				int64_t* occurencesMerged;
+				int64_t* occurencesMerged = nullptr;
 
 				// Calculate sum of values
 				// Initialize new empty sumGroupBy table
-				K* tmpKeys;
+				K* tmpKeys = nullptr;
 				GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
 				sumGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
 				sumGroupBy.getResults(&tmpKeys, &valuesMerged, outDataElementCount);
