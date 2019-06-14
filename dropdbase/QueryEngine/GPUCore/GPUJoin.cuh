@@ -59,7 +59,7 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
 
     for (int32_t i = idx; i < hashTableSize && i < dataElementCount; i += stride)
     {
-        shared_memory[threadIdx.x] = HashTablePrefixSum[i];
+        shared_memory[threadIdx.x] = (i == 0) ? 0 : HashTablePrefixSum[i - 1];
         __syncthreads();
 
         int32_t hash_idx = hash(RTable[i]);
@@ -78,12 +78,12 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 									   T* RTable, 
 									   int32_t dataElementCountRTable,
 									   T* STable,
-                                       int32_t dataElementCount)
+                                       int32_t dataElementCountSTable)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
-    for (int32_t i = idx; i < joinTableSize && i < dataElementCount; i += stride)
+    for (int32_t i = idx; i < joinTableSize && i < dataElementCountSTable; i += stride)
     {
         // Count the number of result hash matches for this entry
         int32_t hashMatchCounter = 0;
@@ -101,7 +101,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 			// Otherwise probe and count the number of matching entries
             for (int32_t k = 0; k < HashTableHisto[j]; k++)
             {
-                if (RTable[HashTableHashBuckets[HashTablePrefixSum[j] + k]] == STable[i])
+                if (RTable[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] == STable[i])
 				{
                     hashMatchCounter++;
 				}
@@ -125,12 +125,12 @@ __global__ void kernel_distribute_results_to_buffer(T* QTableA,
 													T* RTable,
 													int32_t dataElementCountRTable,
                                                     T* STable,
-                                                    int32_t dataElementCount)
+                                                    int32_t dataElementCountSTable)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
-    for (int32_t i = idx; i < joinTableSize && i < dataElementCount; i += stride)
+    for (int32_t i = idx; i < joinTableSize && i < dataElementCountSTable; i += stride)
     {
         // Hash table buckets probing
         int32_t hash_idx = hash(STable[i]);
@@ -145,10 +145,10 @@ __global__ void kernel_distribute_results_to_buffer(T* QTableA,
             // Otherwise probe and count the number of matching entries
             for (int32_t k = 0; k < HashTableHisto[j]; k++)
             {
-                if (RTable[HashTableHashBuckets[HashTablePrefixSum[j] + k]] == STable[i])
+                if (RTable[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] == STable[i])
                 {
-                    QTableA[JoinTablePrefixSum[i] + k] = HashTableHashBuckets[HashTablePrefixSum[j] + k];
-					QTableB[JoinTablePrefixSum[i] + k] = i;//STable[i];
+                    QTableA[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + k] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
+					QTableB[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + k] = i;//STable[i];
                 }
             }
         }
@@ -217,14 +217,14 @@ public:
         size_t tempBufferSize = 0;
 
         // Calculate the prefix sum
-        cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, HashTableHisto_,
+        cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, HashTableHisto_,
                                       HashTablePrefixSum_, hashTableSize_);
         
 		// Allocate temporary storage
         GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
         
 		// Run exclusive prefix sum
-        cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, HashTableHisto_,
+        cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, HashTableHisto_,
                                       HashTablePrefixSum_, hashTableSize_);
         GPUMemory::free(tempBuffer);
 
@@ -279,14 +279,14 @@ public:
         size_t tempBufferSize = 0;
 
         // Calculate the prefix sum
-        cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, JoinTableHisto_,
+        cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, JoinTableHisto_,
                                       JoinTablePrefixSum_, joinTableSize_);
 
         // Allocate temporary storage
         GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
 
         // Run exclusive prefix sum
-        cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, JoinTableHisto_,
+        cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, JoinTableHisto_,
                                       JoinTablePrefixSum_, joinTableSize_);
         GPUMemory::free(tempBuffer);
 
@@ -307,6 +307,10 @@ public:
 																					  dataElementCountRTable,
 																					  STable, 
 																					  dataElementCountSTable);
+		
+		//////////////////////////////////////////////////////////////////////////////
+		// Calculate the result table size
+		GPUMemory::copyDeviceToHost(resultTableSize, (JoinTablePrefixSum_ + joinTableSize_ - 1), 1);
 	}
 
 	void printDebugInfo()
@@ -330,11 +334,12 @@ public:
 
 		std::printf("####################\n");
 		std::printf("#### DEBUG INFO ####\n");
+		std::printf("HASH TABLE\n");
 		for (int32_t i = 0; i < hashTableSize_; i++)
 		{
 			std::printf("%d %d %d\n", h_HashTableHisto_[i], h_HashTablePrefixSum_[i], h_HashTableHashBuckets_[i]);
 		}
-
+		std::printf("JOIN TABLE\n");
 		for (int32_t i = 0; i < joinTableSize_; i++)
 		{
 			std::printf("%d %d\n", h_JoinTableHisto_[i], h_JoinTablePrefixSum_[i]);
