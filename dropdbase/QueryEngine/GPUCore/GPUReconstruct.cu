@@ -200,15 +200,14 @@ void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
 	if (dataElementCount > 0)
 	{
 		// "Predict" (pre-calculate) string lengths
-		int32_t * stringLengths = nullptr;
-		GPUMemory::alloc(&stringLengths, dataElementCount);
+		cuda_ptr<int32_t>stringLengths(dataElementCount);
 		kernel_predict_wkt_lengths << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-			(stringLengths, inPolygonCol, dataElementCount);
+			(stringLengths.get(), inPolygonCol, dataElementCount);
 		CheckCudaError(cudaGetLastError());
 
 		// Alloc and compute string indices as a prefix sum of the string lengths
 		GPUMemory::alloc(&(outStringCol->stringIndices), dataElementCount);
-		PrefixSum(outStringCol->stringIndices, stringLengths, dataElementCount);
+		PrefixSum(outStringCol->stringIndices, stringLengths.get(), dataElementCount);
 
 		// Get total char count and alloc array for all chars
 		int64_t totalCharCount;
@@ -235,7 +234,7 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 
 	if (inMask)		// If mask is used (if inMask is not nullptr)
 	{
-		// Malloc a new buffer for the prefix sum vector
+		// A buffer for the prefix sum vector
 		cuda_ptr<int32_t> inPrefixSumPointer(inDataElementCount);
 		PrefixSum(inPrefixSumPointer.get(), inMask, inDataElementCount);
 		GPUMemory::copyDeviceToHost(outDataElementCount, inPrefixSumPointer.get() + inDataElementCount - 1, 1);
@@ -315,8 +314,10 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string *outStringData, int32_t
 	ReconstructPolyColKeep(&reconstructedPolygonCol, outDataElementCount, inPolygonCol, inMask, inDataElementCount);
 	GPUMemory::GPUString gpuWkt;
 	ConvertPolyColToWKTCol(&gpuWkt, reconstructedPolygonCol, *outDataElementCount);
+	GPUMemory::free(reconstructedPolygonCol);
 	// Use reconstruct without mask - just to convert GPUString to CPU string array
 	ReconstructStringCol(outStringData, outDataElementCount, gpuWkt, nullptr, *outDataElementCount);
+	GPUMemory::free(gpuWkt);
 }
 
 
