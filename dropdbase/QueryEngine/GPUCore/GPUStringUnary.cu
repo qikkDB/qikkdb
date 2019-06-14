@@ -20,3 +20,14 @@ __global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GP
 		}
 	}
 }
+
+template <>
+void StringUnaryOpHierarchy::fixed::CallKernel<StringUnaryOpHierarchy::FixedLength::reverse>
+	(GPUMemory::GPUString outCol, GPUMemory::GPUString input,
+	int32_t stringCount, int64_t totalCharCount)
+{
+	Context& context = Context::getInstance();
+	kernel_reverse_string << <context.calcGridDim(stringCount),
+		context.getBlockDim() >> >
+		(outCol, input, stringCount);
+}

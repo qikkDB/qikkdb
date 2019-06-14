@@ -122,10 +122,7 @@ namespace StringUnaryOpHierarchy
 
 		struct reverse
 		{
-			__device__ char operator()(char c) const	// not used function
-			{
-				return c;
-			}
+			// no function needed
 		};
 
 	} // namespace FixedLength
@@ -170,10 +167,19 @@ namespace StringUnaryOpHierarchy
 	struct fixed
 	{
 		template <typename OP>
+		static void CallKernel(GPUMemory::GPUString outCol, GPUMemory::GPUString input,
+			int32_t stringCount, int64_t totalCharCount)
+		{
+			Context& context = Context::getInstance();
+			kernel_per_char_unary<OP> << <context.calcGridDim(totalCharCount),
+					context.getBlockDim() >> >
+					(outCol.allChars, input.allChars, totalCharCount);
+		}
+
+		template <typename OP>
 		GPUMemory::GPUString operator()(int32_t outStringCount,
 			GPUMemory::GPUString input, bool inputIsCol) const
 		{
-			Context& context = Context::getInstance();
 			GPUMemory::GPUString outCol;
 			if (inputIsCol)	// Col
 			{
@@ -182,18 +188,7 @@ namespace StringUnaryOpHierarchy
 				int64_t totalCharCount;
 				GPUMemory::copyDeviceToHost(&totalCharCount, input.stringIndices + outStringCount - 1, 1);
 				GPUMemory::alloc(&(outCol.allChars), totalCharCount);
-				if (std::is_same<OP, StringUnaryOpHierarchy::FixedLength::reverse>::value)
-				{
-					kernel_reverse_string << <context.calcGridDim(outStringCount),
-						context.getBlockDim() >> >
-						(outCol, input, outStringCount);
-				}
-				else
-				{
-					kernel_per_char_unary<OP> << <context.calcGridDim(totalCharCount),
-						context.getBlockDim() >> >
-						(outCol.allChars, input.allChars, totalCharCount);
-				}
+				CallKernel<OP>(outCol, input, outStringCount, totalCharCount);
 			}
 			else	// Const (expand 1 const result to col)
 			{
@@ -203,6 +198,11 @@ namespace StringUnaryOpHierarchy
 			return outCol;
 		}
 	};
+
+	template <>
+	void fixed::CallKernel<StringUnaryOpHierarchy::FixedLength::reverse>
+				(GPUMemory::GPUString outCol, GPUMemory::GPUString input,
+				int32_t stringCount, int64_t totalCharCount);
 
 } // namespace StringUnaryOperations
 
@@ -264,17 +264,6 @@ namespace StringUnaryOperations
 				(outStringCount, input, inputIsCol);
 		}
 	};
-	
-	struct len
-	{
-		GPUMemory::GPUString operator()(int32_t outStringCount,
-			GPUMemory::GPUString input, bool inputIsCol) const
-		{
-			return StringUnaryOpHierarchy::fixed{}.template operator()
-				< StringUnaryOpHierarchy::FixedLength::upper >
-				(outStringCount, input, inputIsCol);
-		}
-	};
 }
 
 /// Namespace for unary string to int operation generic functors
@@ -283,7 +272,7 @@ namespace StringIntUnaryOperations
 	/// Length of string
 	struct len
 	{
-
+		// no function needed
 	};
 }
 

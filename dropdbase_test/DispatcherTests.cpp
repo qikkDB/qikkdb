@@ -10163,7 +10163,7 @@ TEST(DispatcherTests, StringReverse)
 	AssertEqStringCol(payloads, expectedResultsStrings);
 }
 
-TEST(DispatcherTests, StringLTrim)
+TEST(DispatcherTests, StringLtrim)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
@@ -10192,7 +10192,7 @@ TEST(DispatcherTests, StringLTrim)
 	AssertEqStringCol(payloads, expectedResultsStrings);
 }
 
-TEST(DispatcherTests, StringRTrim)
+TEST(DispatcherTests, StringRtrim)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
