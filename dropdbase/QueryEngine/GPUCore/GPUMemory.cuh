@@ -79,7 +79,7 @@ namespace GPUMemory
 				*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
 				allocOK = true;
 			}
-			catch (const std::out_of_range& e)
+			catch (const std::out_of_range&)
 			{
 				if (!EvictWithLockList())
 				{

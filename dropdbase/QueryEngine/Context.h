@@ -137,7 +137,7 @@ public:
 
     /// Calculate the size of the CUDA grid for kernel launches
     /// <param name="dataElementCount">number of data elements for CUDA to process</param>
-    int32_t calcGridDim(int32_t dataElementCount)
+    int32_t calcGridDim(size_t dataElementCount)
     {
         if (dataElementCount <= 0)
         {
