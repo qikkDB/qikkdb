@@ -65,7 +65,7 @@ GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector
 		GPUMemory::alloc(&retPointers.polyPoints, polyPoints.size());
 		GPUMemory::copyHostToDevice(retPointers.polyPoints, polyPoints.data(), polyPoints.size());
 	}
-	catch
+	catch(...)
 	{
 		if(retPointers.pointCount)
 		{
