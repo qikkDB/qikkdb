@@ -10073,7 +10073,7 @@ void AssertEqStringCol(ColmnarDB::NetworkClient::Message::QueryResponsePayload p
 }
 
 /// Run query SELECT function(column) FROM table; and return result payload
-ColmnarDB::NetworkClient::Message::QueryResponsePayload StringFunctionHelp(
+ColmnarDB::NetworkClient::Message::QueryResponsePayload RunFunctionQuery(
 	std::string function, std::string column, std::string table)
 {
 	std::string retFunCol = function + "(" + column + ")";
@@ -10089,7 +10089,7 @@ TEST(DispatcherTests, StringLower)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = StringFunctionHelp("LOWER", col, table);
+	auto &payloads = RunFunctionQuery("LOWER", col, table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10116,7 +10116,7 @@ TEST(DispatcherTests, StringUpper)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = StringFunctionHelp("UPPER", col, table);
+	auto &payloads = RunFunctionQuery("UPPER", col, table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10143,7 +10143,7 @@ TEST(DispatcherTests, StringReverse)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = StringFunctionHelp("REVERSE", col, table);
+	auto &payloads = RunFunctionQuery("REVERSE", col, table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10167,7 +10167,7 @@ TEST(DispatcherTests, StringLtrim)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = StringFunctionHelp("LTRIM", col, table);
+	auto &payloads = RunFunctionQuery("LTRIM", col, table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10196,7 +10196,7 @@ TEST(DispatcherTests, StringRtrim)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = StringFunctionHelp("RTRIM", col, table);
+	auto &payloads = RunFunctionQuery("RTRIM", col, table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10215,6 +10215,34 @@ TEST(DispatcherTests, StringRtrim)
 	}
 
 	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+
+TEST(DispatcherTests, StringLen)
+{
+	const std::string col = "colString1";
+	const std::string table = "TableA";
+	auto &payloads = RunFunctionQuery("LEN", col, table);
+
+	std::vector<int32_t> expectedResults;
+	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(col).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = column->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResults.push_back(block->GetData()[k].length());
+		}
+	}
+
+	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResults.size());
+
+	for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResults[i], payloads.intpayload().intdata()[i]) << " at row " << i;
+	}
 }
 
 // Polygon clipping tests
