@@ -1,4 +1,4 @@
-#include <cmath>
+ #include <cmath>
 
 #include "gtest/gtest.h"
 #include "../dropdbase/DatabaseGenerator.h"
@@ -7,6 +7,7 @@
 #include "../dropdbase/PointFactory.h"
 #include "../dropdbase/ComplexPolygonFactory.h"
 #include "../dropdbase/Database.h"
+#include "../dropdbase/Table.h"
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
@@ -8022,7 +8023,7 @@ TEST(DispatcherTests, RetPolygons)
 		auto block = column->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k]));
+			expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k], true));
 		}
 	}
 
@@ -8054,19 +8055,9 @@ TEST(DispatcherTests, RetPolygonsWhere)
 		auto block = column->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			if (k % 2)
+			if ((k % 1024) * (k % 2 ? 1 : -1) < 20)
 			{
-				if ((k % 1024) < 20)
-				{
-					expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k]));
-				}
-			}
-			else
-			{
-				if (((k % 1024) * -1) < 20)
-				{
-					expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k]));
-				}
+				expectedResultsPolygons.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k], true));
 			}
 		}
 	}
@@ -8339,6 +8330,7 @@ TEST(DispatcherTests, PointFromConstCol)
 	}
 }
 
+// Aggregation tests
 TEST(DispatcherTests, AggregationMin)
 {
 	Context::getInstance();
@@ -8478,6 +8470,7 @@ TEST(DispatcherTests, AggregationCount)
 	ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
 }
 
+
 TEST(DispatcherTests, Alias)
 {
 	Context::getInstance();
@@ -8522,6 +8515,7 @@ TEST(DispatcherTests, Alias)
 		ASSERT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
 	}
 }
+
 
 TEST(DispatcherTests, LimitOffset)
 {
@@ -9965,7 +9959,7 @@ TEST(DispatcherTests, RoundColInt)
 	std::vector<float> expectedResultsFloat;
 
 	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
-	
+
 	for (int i = 0; i < 2; i++)
 	{
 		auto blockInt = columnInt->GetBlocksList()[i];
@@ -10064,3 +10058,136 @@ TEST(DispatcherTests, Atan2ColFloat)
 		ASSERT_FLOAT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
 	}
 }
+
+// Polygon clipping tests
+/*
+// TODO: fix zero allocation, finish polygon clippin and add asserts
+TEST(DispatcherTests, PolygonClippingAndContains)
+{
+	Context::getInstance();
+	int32_t polygonColumnCount = 1;
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+		"SELECT colInteger1 FROM TableA WHERE GEO_CONTAINS(GEO_INTERSECT(colPolygon1, colPolygon2), colPoint1);");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<std::string> expectedResultsPoints;
+}
+*/
+
+TEST(DispatcherTests, CreateDropDatabase)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "CREATE DATABASE createdDb;");
+	auto resultPtr = parser.parse();
+
+	ASSERT_TRUE(Database::Exists("createdDb"));
+
+	GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database, "DROP DATABASE createdDb;");
+	resultPtr = parser2.parse();
+
+	ASSERT_TRUE(!Database::Exists("createdDb"));
+}
+
+TEST(DispatcherTests, CreateAlterDropTable)
+{
+	Context::getInstance();
+
+	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "CREATE TABLE tblA (colA int, colB float, INDEX ind (colA, colB));");
+	auto resultPtr = parser.parse();
+
+	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") != DispatcherObjs::GetInstance().database->GetTables().end());
+
+	std::vector<std::string> expectedSortingColumns = { "colA", "colB" };
+	std::vector<std::string> resultSortingColumns = DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetSortingColumns();
+	
+	ASSERT_TRUE(expectedSortingColumns.size() == resultSortingColumns.size());
+
+	for (int i = 0; i < expectedSortingColumns.size(); i++)
+	{
+		ASSERT_TRUE(expectedSortingColumns[i] == resultSortingColumns[i]);
+	}
+
+	GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database, "INSERT INTO tblA (colA, colB) VALUES (1, 2.0);");
+	
+	for (int32_t i = 0; i < 5; i++)
+	{
+		resultPtr = parser2.parse();
+	}
+
+	GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database, "SELECT colA, colB from tblA;");
+	resultPtr = parser3.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResultsColA;
+	std::vector<float> expectedResultsColB;
+
+	for (int k = 0; k < 5; k++)
+	{
+		expectedResultsColA.push_back(1);
+		expectedResultsColB.push_back(2.0);
+	}
+
+	auto &payloadsColA = result->payloads().at("tblA.colA");
+	auto &payloadsColB = result->payloads().at("tblA.colB");
+
+	ASSERT_EQ(payloadsColA.intpayload().intdata_size(), expectedResultsColA.size());
+
+	for (int i = 0; i < payloadsColA.intpayload().intdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsColA[i], payloadsColA.intpayload().intdata()[i]);
+	}
+
+	ASSERT_EQ(payloadsColB.floatpayload().floatdata_size(), expectedResultsColB.size());
+
+	for (int i = 0; i < payloadsColB.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsColB[i], payloadsColB.floatpayload().floatdata()[i]);
+	}
+
+	GpuSqlCustomParser parser4(DispatcherObjs::GetInstance().database, "ALTER TABLE tblA DROP COLUMN colA, ADD colC float;");
+	resultPtr = parser4.parse();
+
+	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetColumns().find("colA") 
+		== DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetColumns().end());
+
+
+	GpuSqlCustomParser parser5(DispatcherObjs::GetInstance().database, "SELECT colB, colC from tblA;");
+	resultPtr = parser5.parse();
+	result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResultsColC;
+
+	for (int k = 0; k < 5; k++)
+	{
+		expectedResultsColC.push_back(0.0);
+	}
+
+	auto &payloadsColB2 = result->payloads().at("tblA.colB");
+	auto &payloadsColC = result->payloads().at("tblA.colC");
+
+
+	ASSERT_EQ(payloadsColB2.floatpayload().floatdata_size(), expectedResultsColB.size());
+
+	for (int i = 0; i < payloadsColB2.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsColB[i], payloadsColB2.floatpayload().floatdata()[i]);
+	}
+
+	ASSERT_EQ(payloadsColC.floatpayload().floatdata_size(), expectedResultsColC.size());
+
+	for (int i = 0; i < payloadsColC.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsColC[i], payloadsColC.floatpayload().floatdata()[i]);
+	}
+
+	GpuSqlCustomParser parser6(DispatcherObjs::GetInstance().database, "DROP TABLE tblA;");
+	resultPtr = parser6.parse();
+
+	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
+}
+

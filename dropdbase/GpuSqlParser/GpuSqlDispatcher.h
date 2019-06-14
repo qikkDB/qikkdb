@@ -17,10 +17,6 @@
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
 #include "../DataType.h"
-#include "../Database.h"
-#include "../Table.h"
-#include "../ColumnBase.h"
-#include "../BlockBase.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
@@ -30,6 +26,8 @@
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 #endif
+
+class Database;
 
 class GpuSqlDispatcher
 {
@@ -189,6 +187,12 @@ private:
 	static DispatchFunction showDatabasesFunction;
 	static DispatchFunction showTablesFunction;
 	static DispatchFunction showColumnsFunction;
+	static DispatchFunction createDatabaseFunction;
+	static DispatchFunction dropDatabaseFunction;
+	static DispatchFunction createTableFunction;
+	static DispatchFunction dropTableFunction;
+	static DispatchFunction alterTableFunction;
+	static DispatchFunction createIndexFunction;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> insertIntoFunctions;
 	static DispatchFunction insertIntoDoneFunction;
@@ -390,6 +394,18 @@ public:
 
 	void addShowColumnsFunction();
 
+	void addCreateDatabaseFunction();
+
+	void addDropDatabaseFunction();
+
+	void addCreateTableFunction();
+
+	void addDropTableFunction();
+
+	void addAlterTableFunction();
+
+	void addCreateIndexFunction();
+
 	void addInsertIntoFunction(DataType type);
 
 	void addInsertIntoDoneFunction();
@@ -409,6 +425,8 @@ public:
 		usedRegisterMemory += size * sizeof(T);
 		return mask;
 	}
+
+	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false);
 
 	template<typename T>
 	void addCachedRegister(const std::string& reg, T* ptr, int32_t size)
@@ -433,10 +451,10 @@ public:
 
 	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
-	void insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
+	GPUMemory::GPUPolygon insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
-	std::string insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
+	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 
   	template<typename T>
     int32_t retConst();
@@ -455,6 +473,18 @@ public:
 	int32_t showTables();
 
 	int32_t showColumns();
+
+	int32_t createDatabase();
+
+	int32_t dropDatabase();
+
+	int32_t createTable();
+
+	int32_t dropTable();
+
+	int32_t alterTable();
+
+	int32_t createIndex();
 
 	void cleanUpGpuPointers();
 

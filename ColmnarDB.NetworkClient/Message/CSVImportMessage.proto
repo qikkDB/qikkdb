@@ -1,0 +1,8 @@
+syntax = "proto3";
+package ColmnarDB.NetworkClient.Message;
+
+message CSVImportMessage {
+    string DatabaseName = 1;
+    string CSVName = 2;
+    string Payload = 3;
+}

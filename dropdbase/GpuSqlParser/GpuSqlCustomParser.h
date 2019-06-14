@@ -5,12 +5,30 @@
 #ifndef DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 #define DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 
-#include <google/protobuf/message.h>
-#include "../messages/QueryResponseMessage.pb.h"
-#include "../Database.h"
 #include "GpuSqlParser.h"
 #include <string>
 #include <memory>
+
+class Database;
+
+namespace ColmnarDB
+{
+	namespace NetworkClient
+	{
+		namespace Message
+		{
+			class QueryResponsePayload;
+		}
+	}
+}
+
+namespace google
+{
+	namespace protobuf
+	{
+		class Message;
+	}
+}
 
 class GpuSqlCustomParser
 {

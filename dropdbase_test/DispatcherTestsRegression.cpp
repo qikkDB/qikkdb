@@ -7,6 +7,7 @@
 #include "../dropdbase/PointFactory.h"
 #include "../dropdbase/ComplexPolygonFactory.h"
 #include "../dropdbase/Database.h"
+#include "../dropdbase/Table.h"
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
@@ -152,4 +153,17 @@ TEST(DispatcherTestsRegression, Int32AggregationCount)
 	auto columnPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
 	ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
 	ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+}
+
+TEST(DispatcherTestsRegression, ConstOpOnMultiGPU)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT 2+2 FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("2+2");
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
+	ASSERT_EQ(payloads.intpayload().intdata()[0], 4);
+
 }

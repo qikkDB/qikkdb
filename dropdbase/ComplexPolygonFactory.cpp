@@ -3,7 +3,11 @@
 #include <stdexcept>
 #include <regex>
 #include <algorithm>
+#include <iomanip>
 #include "QueryEngine/Context.h"
+#include "Types/ComplexPolygon.pb.h"
+#include "NativeGeoPoint.h"
+
 
 /// <summary>
 /// Converts polygons to GPU representation.
@@ -229,9 +233,15 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 /// Method that converts class to a string representation.
 /// </summary>
 /// <returns>ComplexPolygon in format of well known text.</returns>
-std::string ComplexPolygonFactory::WktFromPolygon(const ColmnarDB::Types::ComplexPolygon & complexPolygon)
+std::string ComplexPolygonFactory::WktFromPolygon(
+	const ColmnarDB::Types::ComplexPolygon & complexPolygon, bool fixedPrecision)
 {
 	std::ostringstream wktStream;
+	if (fixedPrecision)
+	{
+		wktStream << std::fixed;
+		wktStream << std::setprecision(4);
+	}
 	wktStream << "POLYGON(";
 	int polyCount = complexPolygon.polygons_size();
 	for (int i = 0; i < polyCount; i++)
@@ -246,13 +256,13 @@ std::string ComplexPolygonFactory::WktFromPolygon(const ColmnarDB::Types::Comple
 			wktStream << geopoint.latitude() << " " << geopoint.longitude();
 			if (j != geopointCount - 1)
 			{
-				wktStream << ",";
+				wktStream << ", ";
 			}
 		}
 		wktStream << ")";
 		if (i != polyCount - 1)
 		{
-			wktStream << ",";
+			wktStream << ", ";
 		}
 	}
 	wktStream << ")";

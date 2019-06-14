@@ -10,6 +10,8 @@
 #include "../QueryEngine/Context.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../ComplexPolygonFactory.h"
+#include "../Database.h"
+#include "../Table.h"
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 std::mutex GpuSqlDispatcher::groupByMutex_;
@@ -108,6 +110,30 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 				{
 					std::cout << "Insert into completed sucessfully" << std::endl;
 				}
+				if (err == 6)
+				{
+					std::cout << "Create database completed sucessfully" << std::endl;
+				}
+				if (err == 7)
+				{
+					std::cout << "Drop database completed sucessfully" << std::endl;
+				}
+				if (err == 8)
+				{
+					std::cout << "Create table completed sucessfully" << std::endl;				
+				}
+				if (err == 9)
+				{
+					std::cout << "Drop table completed sucessfully" << std::endl;
+				}
+				if (err == 10)
+				{
+					std::cout << "Alter table completed sucessfully" << std::endl;
+				}
+				if (err == 11)
+				{
+					std::cout << "Create index completed sucessfully" << std::endl;
+				}
 				break;
 			}
 		}
@@ -157,6 +183,36 @@ void GpuSqlDispatcher::addShowTablesFunction()
 void GpuSqlDispatcher::addShowColumnsFunction()
 {
 	dispatcherFunctions.push_back(showColumnsFunction);
+}
+
+void GpuSqlDispatcher::addCreateDatabaseFunction()
+{
+	dispatcherFunctions.push_back(createDatabaseFunction);
+}
+
+void GpuSqlDispatcher::addDropDatabaseFunction()
+{
+	dispatcherFunctions.push_back(dropDatabaseFunction);
+}
+
+void GpuSqlDispatcher::addCreateTableFunction()
+{
+	dispatcherFunctions.push_back(createTableFunction);
+}
+
+void GpuSqlDispatcher::addDropTableFunction()
+{
+	dispatcherFunctions.push_back(dropTableFunction);
+}
+
+void GpuSqlDispatcher::addAlterTableFunction()
+{
+	dispatcherFunctions.push_back(alterTableFunction);
+}
+
+void GpuSqlDispatcher::addCreateIndexFunction()
+{
+	dispatcherFunctions.push_back(createIndexFunction);
 }
 
 void GpuSqlDispatcher::addInsertIntoFunction(DataType type)
@@ -476,7 +532,16 @@ void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType o
     //TODO: Between
 }
 
-void GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache)
+void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string & reg, int32_t size, bool useCache)
+{
+	allocatedPointers.insert({ reg + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.polyPoints), size, !useCache) });
+	allocatedPointers.insert({ reg + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.pointIdx), size, !useCache) });
+	allocatedPointers.insert({ reg + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.pointCount), size, !useCache) });
+	allocatedPointers.insert({ reg + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size, !useCache) });
+	allocatedPointers.insert({ reg + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.polyCount), size, !useCache) });
+}
+
+GPUMemory::GPUPolygon GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache)
 {
 	if (useCache)
 	{
@@ -486,35 +551,28 @@ void GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName, con
 			Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx", blockIndex) &&
 			Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyCount", blockIndex))
 		{
-			auto polyPoints = Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints", blockIndex, size);
-			auto pointIdx = Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(databaseName, colName + "_pointIdx", blockIndex, size);
-			auto pointCount = Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex, size);
-			auto polyIdx = Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex, size);
-			auto polyCount = Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(databaseName, colName + "_polyCount", blockIndex, size);
-			allocatedPointers.insert({ colName + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(polyPoints)), size, false) });
-			allocatedPointers.insert({ colName + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(pointIdx)), size, false) });
-			allocatedPointers.insert({ colName + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(pointCount)), size, false) });
-			allocatedPointers.insert({ colName + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(polyIdx)), size, false) });
-			allocatedPointers.insert({ colName + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(std::get<0>(polyCount)), size, false) });
+			GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
+			GPUMemory::GPUPolygon polygon;
+			polygon.polyPoints = std::get<0>(cache.getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints", blockIndex, size));
+			polygon.pointIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex, size));
+			polygon.pointCount = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex, size));
+			polygon.polyIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex, size));
+			polygon.polyCount = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyCount", blockIndex, size));
+			fillPolygonRegister(polygon, colName, size, useCache);
+			return polygon;
 		}
 		else
 		{
 			GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons, databaseName, colName, blockIndex);
-			allocatedPointers.insert({ colName + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyPoints), size, false) });
-			allocatedPointers.insert({ colName + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointIdx), size, false) });
-			allocatedPointers.insert({ colName + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointCount), size, false) });
-			allocatedPointers.insert({ colName + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyIdx), size, false) });
-			allocatedPointers.insert({ colName + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyCount), size, false) });
+			fillPolygonRegister(polygon, colName, size, useCache);
+			return polygon;
 		}
 	}
 	else
 	{
 		GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons);
-		allocatedPointers.insert({ colName + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyPoints), size, true) });
-		allocatedPointers.insert({ colName + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointIdx), size, true) });
-		allocatedPointers.insert({ colName + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.pointCount), size, true) });
-		allocatedPointers.insert({ colName + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyIdx), size, true) });
-		allocatedPointers.insert({ colName + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygon.polyCount), size, true) });
+		fillPolygonRegister(polygon, colName, size, useCache);
+		return polygon;
 	}
 }
 
@@ -545,15 +603,15 @@ NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& p
 	return gpuPointer;
 }
 
-/// Create polygon gpu representation temporary buffers for protobuf polygon object
-/// <param name="polygon">Polygon object</param>
-/// <returns name="ret">String - Temporary buffer key</returns>
-std::string GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
+// TODO change to return GPUMemory::GPUPolygon struct
+/// Copy polygon column to GPU memory - create polygon gpu representation temporary buffers from protobuf polygon object
+/// <param name="polygon">Polygon object (protobuf type)</param>
+/// <returns>Struct with GPU pointers to start of polygon arrays</returns>
+GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
 {
-	std::string ret = "constPolygon" + std::to_string(constPolygonCounter);
-	insertComplexPolygon(database->GetName(), ret, { polygon }, 1);
+	std::string name = "constPolygon" + std::to_string(constPolygonCounter);
 	constPolygonCounter++;
-	return ret;
+	return insertComplexPolygon(database->GetName(), name, { polygon }, 1);
 }
 
 
@@ -697,6 +755,119 @@ int32_t GpuSqlDispatcher::showColumns()
 	MergePayloadToSelfResponse(tab + "_columns", payloadName);
 	MergePayloadToSelfResponse(tab + "_types", payloadType);
 	return 4;
+}
+
+int32_t GpuSqlDispatcher::createDatabase()
+{
+	std::string newDbName = arguments.read<std::string>();
+	int32_t newDbBlockSize = arguments.read<int32_t>();
+	std::shared_ptr<Database> newDb = std::make_shared<Database>(newDbName.c_str(), newDbBlockSize);
+	Database::AddToInMemoryDatabaseList(newDb);
+	return 6;
+}
+
+int32_t GpuSqlDispatcher::dropDatabase()
+{
+	std::string dbName = arguments.read<std::string>();
+	Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
+	database->DeleteDatabaseFromDisk();
+	return 7;
+}
+
+int32_t GpuSqlDispatcher::createTable()
+{
+	std::unordered_map<std::string, DataType> newColumns;
+	std::unordered_map<std::string, std::unordered_set<std::string>> newIndices;
+
+	std::string newTableName = arguments.read<std::string>();
+
+	int32_t newColumnsCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < newColumnsCount; i++)
+	{
+		std::string newColumnName = arguments.read<std::string>();
+		int32_t newColumnDataType = arguments.read<int32_t>();
+		newColumns.insert({ newColumnName, static_cast<DataType>(newColumnDataType) });
+	}
+
+	std::unordered_set<std::string> allIndexColumns;
+
+	int32_t newIndexCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < newIndexCount; i++)
+	{
+		std::string newIndexName = arguments.read<std::string>();
+		int32_t newIndexColumnCount = arguments.read<int32_t>();
+		std::unordered_set<std::string> newIndexColumns;
+
+		for (int32_t j = 0; j < newIndexColumnCount; j++)
+		{
+			std::string newIndexColumn = arguments.read<std::string>();
+			newIndexColumns.insert(newIndexColumn);
+			allIndexColumns.insert(newIndexColumn);
+		}
+		newIndices.insert({ newIndexName, newIndexColumns });
+	}
+
+	std::vector<std::string> allIndexColumnsVector(allIndexColumns.begin(), allIndexColumns.end());
+	database->CreateTable(newColumns, newTableName.c_str()).SetSortingColumns(allIndexColumnsVector);
+	return 8;
+}
+
+int32_t GpuSqlDispatcher::dropTable()
+{
+	std::string tableName = arguments.read<std::string>();
+	database->GetTables().erase(tableName);
+	database->DeleteTableFromDisk(tableName.c_str());
+	return 9;
+}
+
+int32_t GpuSqlDispatcher::alterTable()
+{
+	std::string tableName = arguments.read<std::string>();
+
+	int32_t addColumnsCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < addColumnsCount; i++)
+	{
+		std::string addColumnName = arguments.read<std::string>();
+		int32_t addColumnDataType = arguments.read<int32_t>();
+		database->GetTables().at(tableName).CreateColumn(addColumnName.c_str(), static_cast<DataType>(addColumnDataType));
+		int64_t tableSize = database->GetTables().at(tableName).GetSize();
+		database->GetTables().at(tableName).GetColumns().at(addColumnName)->InsertNullData(tableSize);
+	}
+
+	int32_t dropColumnsCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < dropColumnsCount; i++)
+	{
+		std::string dropColumnName = arguments.read<std::string>();
+		database->GetTables().at(tableName).EraseColumn(dropColumnName);
+		database->DeleteColumnFromDisk(tableName.c_str(), dropColumnName.c_str());
+	}
+	return 10;
+}
+
+int32_t GpuSqlDispatcher::createIndex()
+{
+	std::string	indexName = arguments.read<std::string>();
+	std::string tableName = arguments.read<std::string>();
+	std::unordered_set<std::string> indexColumns;
+	std::unordered_set<std::string> sortingColumns;
+
+	int32_t indexColumnCount = arguments.read<int32_t>();
+	for (int i = 0; i < indexColumnCount; i++)
+	{
+		std::string indexColumn = arguments.read<std::string>();
+		indexColumns.insert(indexColumn);
+		sortingColumns.insert(indexColumn);
+	}
+
+	for (auto& column : database->GetTables().at(tableName).GetSortingColumns())
+	{
+		sortingColumns.insert(column);
+	}
+
+	std::vector<std::string> sortingColumnsVector(sortingColumns.begin(), sortingColumns.end());
+	database->GetTables().at(tableName).SetSortingColumns(sortingColumnsVector);
+
+	return 11;
 }
 
 
