@@ -50,7 +50,7 @@ private:
 				//BOOST_LOG_TRIVIAL(info) << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
 				std::cerr << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
 			}
-			catch (YAML::TypedBadConversion<T>& e) {
+			catch (YAML::TypedBadConversion<T>&) {
 				//BOOST_LOG_TRIVIAL(warning) << "Configuration entry wrong conversion, using default value." << std::endl;
 				std::cerr << "Configuration entry wrong conversion, using default value." << std::endl;
 			}			
