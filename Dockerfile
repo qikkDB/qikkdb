@@ -105,4 +105,4 @@ WORKDIR /build
 
 COPY --from=builder /build/build_dropdbase/dropdbase/dropdbase_instarea .
 
-ENTRYPOINT ["dropdbase_instarea"]
+ENTRYPOINT ["./dropdbase_instarea"]
