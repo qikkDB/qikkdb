@@ -51,10 +51,10 @@ TEST(TableTests, InsertDataVector)
 
 	std::unordered_map<std::string, std::any> data;
 
-	std::vector<int32_t> dataInt(1024);
-	std::vector<int64_t> dataLong(1000000000000000000);
-	std::vector<float> dataFloat((float) 0.1111);
-	std::vector<double> dataDouble(0.1111111);
+	std::vector<int32_t> dataInt({1024});
+	std::vector<int64_t> dataLong({1000000000000000000});
+	std::vector<float> dataFloat({0.1111f});
+	std::vector<double> dataDouble({0.1111111});
 	std::vector<ColmnarDB::Types::Point> dataPoint({ PointFactory::FromWkt("POINT(10.11 11.1)") });
 	std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon({ ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))") });
 	std::vector<std::string> dataString({ "randomString" });

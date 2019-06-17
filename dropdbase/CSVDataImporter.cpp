@@ -178,11 +178,11 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 					columnIndex++;
 				}
 			}
-			catch (std::out_of_range& e) {
+			catch (std::out_of_range&) {
 				BOOST_LOG_TRIVIAL(warning) << "Import of file " << tableName_ << " failed on line " << position << " (column " << columnIndex + 1 << ")";
 				rowData.clear();
 			}
-			catch (std::invalid_argument& e) {
+			catch (std::invalid_argument&) {
 				BOOST_LOG_TRIVIAL(warning) << "Import of file " << tableName_ << " failed on line " << position << " (column " << columnIndex + 1 << ")";
 				rowData.clear();
 			}
@@ -360,9 +360,9 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 				continue;
 			}
 		}
-		catch (std::out_of_range& e) {
+		catch (std::out_of_range&) {
 		}
-		catch (std::invalid_argument& e) {
+		catch (std::invalid_argument&) {
 		}
 
 		// COLUMN_LONG
@@ -374,9 +374,9 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 				continue;
 			}
 		}
-		catch (std::out_of_range& e) {
+		catch (std::out_of_range&) {
 		}
-		catch (std::invalid_argument& e) {
+		catch (std::invalid_argument&) {
 		}
 
 		// COLUMN_FLOAT
@@ -388,9 +388,9 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 				continue;
 			}
 		}
-		catch (std::out_of_range& e) {
+		catch (std::out_of_range&) {
 		}
-		catch (std::invalid_argument& e) {
+		catch (std::invalid_argument&) {
 		}
 
 		// COLUMN_DOUBLE
@@ -402,9 +402,9 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 				continue;
 			}
 		}
-		catch (std::out_of_range& e) {
+		catch (std::out_of_range&) {
 		}
-		catch (std::invalid_argument& e) {
+		catch (std::invalid_argument&) {
 		}
 
 		// COLUMN_POINT
@@ -413,7 +413,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 			dataTypes.push_back(COLUMN_POINT);
 			continue;			
 		}
-		catch (std::invalid_argument& e) {
+		catch (std::invalid_argument&) {
 		}
 
 		// COLUMN_POLYGON
@@ -422,7 +422,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 			dataTypes.push_back(COLUMN_POLYGON);
 			continue;
 		}
-		catch (std::invalid_argument& e) {
+		catch (std::invalid_argument&) {
 		}
 
 		// COLUMN_STRING

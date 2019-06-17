@@ -193,7 +193,7 @@ TEST(TCPServer, ServerMessageInfo)
 		future.join();
 		printf("\nServerMessageInfoEnd\n");
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		ASSERT_TRUE(false);
 	}
@@ -216,7 +216,7 @@ TEST(TCPServer, ServerMessageSetDB)
 		future.join();
 		printf("\nServerMessageSetDBEnd\n");
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		ASSERT_TRUE(false);
 	}
@@ -242,7 +242,7 @@ TEST(TCPServer, ServerMessageQuery)
 		future.join();
 		printf("\nServerMessageQueryEnd\n");
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		ASSERT_TRUE(false);
 	}
@@ -265,7 +265,7 @@ TEST(TCPServer, ServerMessageCSV)
 		future.join();
 		printf("\nServerMessageCSVEnd\n");
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		ASSERT_TRUE(false);
 	}
@@ -289,7 +289,7 @@ TEST(TCPServer, ServerMessageBulkImport)
 		future.join();
 		printf("\nServerMessageBulkImportEnd\n");
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		ASSERT_TRUE(false);
 	}

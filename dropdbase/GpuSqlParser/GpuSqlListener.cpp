@@ -1299,7 +1299,7 @@ bool GpuSqlListener::isLong(const std::string &value)
     {
         std::stoi(value);
     }
-    catch (std::out_of_range &e)
+    catch (std::out_of_range &)
     {
         std::stoll(value);
         return true;
@@ -1315,7 +1315,7 @@ bool GpuSqlListener::isDouble(const std::string &value)
     {
         std::stof(value);
     }
-    catch (std::out_of_range &e)
+    catch (std::out_of_range &)
     {
         std::stod(value);
         return true;
