@@ -8008,7 +8008,6 @@ TEST(DispatcherTests, DateTimeCol)
 TEST(DispatcherTests, RetPolygons)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPolygon1 FROM TableA;");
 	auto resultPtr = parser.parse();
@@ -8040,7 +8039,6 @@ TEST(DispatcherTests, RetPolygons)
 TEST(DispatcherTests, RetPolygonsWhere)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPolygon1 FROM TableA WHERE colInteger1 < 20;");
 	auto resultPtr = parser.parse();
@@ -8075,7 +8073,6 @@ TEST(DispatcherTests, RetPolygonsWhere)
 TEST(DispatcherTests, RetPoints)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPoint1 FROM TableA;");
 	auto resultPtr = parser.parse();
@@ -8107,7 +8104,6 @@ TEST(DispatcherTests, RetPoints)
 TEST(DispatcherTests, RetPointsWhere)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPoint1 FROM TableA WHERE colInteger1 < 20;");
 	auto resultPtr = parser.parse();
@@ -8152,7 +8148,6 @@ TEST(DispatcherTests, RetPointsWhere)
 TEST(DispatcherTests, RetString)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colString1 FROM TableA;");
 	auto resultPtr = parser.parse();
@@ -8184,7 +8179,6 @@ TEST(DispatcherTests, RetString)
 TEST(DispatcherTests, RetStringWhere)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colString1 FROM TableA WHERE colInteger1 < 20;");
 	auto resultPtr = parser.parse();
@@ -8229,7 +8223,6 @@ TEST(DispatcherTests, RetStringWhere)
 TEST(DispatcherTests, PointFromColCol)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(colInteger1, colFloat1) FROM TableA;");
 	auto resultPtr = parser.parse();
@@ -8265,7 +8258,6 @@ TEST(DispatcherTests, PointFromColCol)
 TEST(DispatcherTests, PointFromColConst)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(colInteger1, 4.5) FROM TableA;");
 	auto resultPtr = parser.parse();
@@ -8299,7 +8291,6 @@ TEST(DispatcherTests, PointFromColConst)
 TEST(DispatcherTests, PointFromConstCol)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(7, colFloat1) FROM TableA;");
 	auto resultPtr = parser.parse();

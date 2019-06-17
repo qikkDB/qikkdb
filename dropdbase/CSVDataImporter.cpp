@@ -170,6 +170,9 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 					case COLUMN_STRING:
 						value = field;
 						break;
+					default:
+						throw std::out_of_range("Invalid CSV column data type");
+						break;
 					}
 					rowData.push_back(value);
 					columnIndex++;
@@ -189,7 +192,6 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 		columnIndex = 0;
 		for (auto& field : rowData) {
 			std::any &wrappedData = data.at(headers_[columnIndex]);
-			int v;
 			switch (dataTypes_[columnIndex])
 			{
 			case COLUMN_INT:
@@ -212,6 +214,9 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 				break;
 			case COLUMN_STRING:
 				std::any_cast<std::vector<std::string>&>(wrappedData).push_back(std::any_cast<std::string>(field));
+				break;
+			default:
+				throw std::out_of_range("Invalid CSV column data type");
 				break;
 			}
 
@@ -254,6 +259,9 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 					break;
 				case COLUMN_STRING:
 					std::any_cast<std::vector<std::string>&>(wrappedData).clear();
+					break;
+				default:
+					throw std::out_of_range("Invalid CSV column data type");
 					break;
 				}
 			}

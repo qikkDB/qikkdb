@@ -51,11 +51,11 @@ class DummyClientHandler : public IClientHandler
 		ret->set_message("");
 		return ret;
 	}
-	virtual std::unique_ptr<google::protobuf::Message> HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer) 
+	virtual std::unique_ptr<google::protobuf::Message> HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer) override 
 	{
 		std::unique_ptr<ColmnarDB::NetworkClient::Message::InfoMessage> ret = std::make_unique< ColmnarDB::NetworkClient::Message::InfoMessage>();
 		if(std::string(bulkImportMessage.columnname()) != "test" || std::string(bulkImportMessage.tablename()) != "test" 
-		|| bulkImportMessage.columntype() != DataType::COLUMN_INT || bulkImportMessage.elemcount() != 5)
+		|| bulkImportMessage.columntype() != ColmnarDB::NetworkClient::Message::DataType::COLUMN_INT || bulkImportMessage.elemcount() != 5)
 		{
 			printf("Something wrong.\n");
 			ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);	

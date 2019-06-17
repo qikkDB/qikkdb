@@ -46,7 +46,7 @@ private:
     Context()
     {
         // Save found device count and notify the user
-        if (cudaGetDeviceCount(&deviceCount_) != CUDA_SUCCESS)
+        if (cudaGetDeviceCount(&deviceCount_) != cudaSuccess)
         {
             throw std::invalid_argument("INFO: Unable to get device count");
         }
@@ -60,7 +60,7 @@ private:
 
             // Get devices information
             cudaDeviceProp deviceProp;
-            if (cudaGetDeviceProperties(&deviceProp, i) != CUDA_SUCCESS)
+            if (cudaGetDeviceProperties(&deviceProp, i) != cudaSuccess)
             {
                 throw std::invalid_argument("ERROR: Failed to get GPU info");
             }
@@ -96,7 +96,7 @@ private:
             if (i != DEFAULT_DEVICE_ID)
             {
                 int32_t canAccessPeer;
-                if (cudaDeviceCanAccessPeer(&canAccessPeer, DEFAULT_DEVICE_ID, i) != CUDA_SUCCESS)
+                if (cudaDeviceCanAccessPeer(&canAccessPeer, DEFAULT_DEVICE_ID, i) != cudaSuccess)
                 {
                     throw std::invalid_argument("ERROR: CUDA peer acces not supported");
                 }
@@ -154,14 +154,14 @@ public:
 
     /// Get default block dimension - the size of a stream multiprocessor
     /// <returns>the size of an optimal block</returns>
-    const int32_t getBlockDim()
+    int32_t getBlockDim() const
     {
         return queriedBlockDimensionList[getBoundDeviceID()];
     }
 
     /// Get the currently bound device to the context
     /// <returns>the bound device ID</returns>
-    const int32_t getBoundDeviceID()
+     int32_t getBoundDeviceID() const
     {
         int boundDeviceID;
         cudaGetDevice(&boundDeviceID);
@@ -170,7 +170,7 @@ public:
 
     /// Get the number of found devices on a platform
     /// <returns>the number of found devices</returns>
-    const int32_t getDeviceCount()
+    int32_t getDeviceCount() const
     {
         return deviceCount_;
     }
@@ -178,7 +178,7 @@ public:
     /// Query info about devices and rebinding devices to the context
     /// <returns>Returns a vector of structures of type cudaDeviceProp, the device properties obtainable from
 	/// this structre are documented in the CUDA documentation</returns>
-    const std::vector<cudaDeviceProp>& getDevicesMetaInfoList()
+    const std::vector<cudaDeviceProp>& getDevicesMetaInfoList() const
     {
         return devicesMetaInfoList_;
     }
