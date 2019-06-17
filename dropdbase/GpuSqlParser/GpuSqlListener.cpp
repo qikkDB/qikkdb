@@ -1276,6 +1276,13 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
         case DataType::COLUMN_INT8_T:
             dispatcher.addArgument<const std::string&>(token);
             break;
+		case DataType::CONST_INT8_T:
+		{
+			std::string booleanToken(token);
+			stringToUpper(booleanToken);
+			dispatcher.addArgument<int8_t>(booleanToken == "TRUE");
+		}
+			break;
         case DataType::DATA_TYPE_SIZE:
         case DataType::CONST_ERROR:
             break;
