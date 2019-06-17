@@ -116,8 +116,37 @@ int32_t GpuSqlDispatcher::stringBinaryColCol()
 	auto colNameLeft = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	std::cout << "StringBinaryColCol: " << reg << std::endl;
+	int32_t loadFlag = loadCol<T>(colNameLeft);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
+	loadFlag = loadCol<U>(colNameRight);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::cout << "StringBinaryColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+
+	if (groupByColumns.find(colNameLeft) != groupByColumns.end() || groupByColumns.find(colNameRight) != groupByColumns.end())
+	{
+		throw StringGroupByException();
+	}
+	else if (isLastBlockOfDevice || !usingGroupBy)
+	{
+		auto columnLeft = findStringColumn(colNameLeft);
+		std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(colNameRight);
+		int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+
+		if (!isRegisterAllocated(reg))
+		{
+			GPUMemory::GPUString result;
+			GPUStringBinary::ColCol<OP>(result, std::get<0>(columnLeft), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+			fillStringRegister(result, reg, 1);
+		}
+	}
 	return 0;
 }
 
@@ -128,8 +157,30 @@ int32_t GpuSqlDispatcher::stringBinaryColConst()
 	auto colName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
+	int32_t loadFlag = loadCol<T>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
 	std::cout << "StringBinaryColConst: " << reg << std::endl;
 
+	if (groupByColumns.find(colName) != groupByColumns.end())
+	{
+		throw StringGroupByException();
+	}
+	else if (isLastBlockOfDevice || !usingGroupBy)
+	{
+		auto column = findStringColumn(colName);
+		int32_t retSize = std::get<1>(column);
+
+		if (!isRegisterAllocated(reg))
+		{
+			GPUMemory::GPUString result;
+			GPUStringBinary::ColConst<OP>(result, std::get<0>(column), cnst, retSize);
+			fillStringRegister(result, reg, 1);
+		}
+	}
 	return 0;
 }
 
@@ -140,8 +191,31 @@ int32_t GpuSqlDispatcher::stringBinaryConstCol()
 	T cnst = arguments.read<T>();
 	auto reg = arguments.read<std::string>();
 
+	int32_t loadFlag = loadCol<U>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
 	std::cout << "StringBinaryConstCol: " << reg << std::endl;
 
+	if (groupByColumns.find(colName) != groupByColumns.end())
+	{
+		throw StringGroupByException();
+	}
+	else if (isLastBlockOfDevice || !usingGroupBy)
+	{
+		GPUMemory::GPUString gpuString = insertConstStringGpu(cnst);
+		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
+		int32_t retSize = std::get<1>(column);
+
+		if (!isRegisterAllocated(reg))
+		{
+			GPUMemory::GPUString result;
+			GPUStringBinary::ConstCol<OP>(result, gpuString, reinterpret_cast<U*>(std::get<0>(column)), retSize);
+			fillStringRegister(result, reg, 1);
+		}
+	}
 	return 0;
 }
 
@@ -154,5 +228,13 @@ int32_t GpuSqlDispatcher::stringBinaryConstConst()
 
 	std::cout << "StringBinaryConstConst: " << reg << std::endl;
 
+	GPUMemory::GPUString gpuString = insertConstStringGpu(cnstLeft);
+
+	if (!isRegisterAllocated(reg))
+	{
+		GPUMemory::GPUString result;
+		GPUStringBinary::ConstConst<OP>(result, gpuString, cnstRight, 1);
+		fillStringRegister(result, reg, 1);
+	}
 	return 0;
 }

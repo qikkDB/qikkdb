@@ -8,6 +8,7 @@
 
 #include "GPUMemory.cuh"
 #include "MaybeDeref.cuh"
+#include "GPUReconstruct.cuh"
 
 template <typename T>
 __global__ void
@@ -96,7 +97,7 @@ private:
 
 		// Alloc and compute new stringIndices
 		GPUMemory::alloc(&(outCol.stringIndices), outputCount);
-		PrefixSum(outCol.stringIndices, newLenghts.get(), outputCount);
+		GPUReconstruct::PrefixSum(outCol.stringIndices, newLenghts.get(), outputCount);
 
 		// Get total char count and alloc allChars
 		int64_t outTotalCharCount;
@@ -112,27 +113,27 @@ private:
 
 public:
     template <typename OP, typename T>
-    static void ColCol(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, T BCol, int32_t dataElementCount)
+    static void ColCol(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, T* BCol, int32_t dataElementCount)
     {
-		GPUStringBinary::Run(output, ACol, dataElementCount, BCol, dataElementCount);
+		GPUStringBinary::Run<T>(output, ACol, dataElementCount, BCol, dataElementCount);
     }
 
     template <typename OP, typename T>
     static void ColConst(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, T BConst, int32_t dataElementCount)
     {
-		GPUStringBinary::Run(output, ACol, dataElementCount, BConst, 1);
+		GPUStringBinary::Run<T>(output, ACol, dataElementCount, BConst, 1);
     }
 
     template <typename OP, typename T>
-    static void ConstCol(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, T BCol, int32_t dataElementCount)
+    static void ConstCol(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, T* BCol, int32_t dataElementCount)
     {
-		GPUStringBinary::Run(output, AConst, 1, BCol, dataElementCount);
+		GPUStringBinary::Run<T>(output, AConst, 1, BCol, dataElementCount);
     }
 
     template <typename OP, typename T>
     static void ConstConst(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, T BConst, int32_t dataElementCount)
     {
-		GPUStringBinary::Run(output, AConst, 1, BConst, 1);
+		GPUStringBinary::Run<T>(output, AConst, 1, BConst, 1);
 		// TODO expand?
     }
 };

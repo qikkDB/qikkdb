@@ -10087,6 +10087,21 @@ ColmnarDB::NetworkClient::Message::QueryResponsePayload RunFunctionQuery(
 	return result->payloads().at(retFunCol);
 }
 
+
+/// Run query SELECT function(column) FROM table; and return result payload
+ColmnarDB::NetworkClient::Message::QueryResponsePayload RunFunctionColConstQuery(
+	std::string function, std::string column, std::string cnst, std::string table)
+{
+	std::string retFunCol = function + "(" + column +"," + cnst + ")";
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+		"SELECT " + retFunCol + " FROM " + table + ";");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	return result->payloads().at(retFunCol);
+}
+
 TEST(DispatcherTests, StringLower)
 {
 	const std::string col = "colString1";
@@ -10333,6 +10348,51 @@ TEST(DispatcherTests, StringLenConst)
 	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
 	ASSERT_EQ(payloads.intpayload().intdata()[0], text.length() - 2); // - 2 because of two quotes ""
 }
+
+TEST(DispatcherTests, StringLeftColConst)
+{
+	const std::string col = "colString1";
+	const std::string table = "TableA";
+	auto &payloads = RunFunctionColConstQuery("LEFT", col, "2", table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(col).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = column->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResultsStrings.push_back(block->GetData()[k].substr(0,2));
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringRightColConst)
+{
+	const std::string col = "colString1";
+	const std::string table = "TableA";
+	auto &payloads = RunFunctionColConstQuery("RIGHT", col, "3", table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(col).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = column->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResultsStrings.push_back(block->GetData()[k].substr(block->GetData()[k].size() - 3));
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
 
 // Polygon clipping tests
 /*
