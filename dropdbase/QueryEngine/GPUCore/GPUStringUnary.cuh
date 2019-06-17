@@ -76,12 +76,12 @@ namespace StringUnaryOpHierarchy
 	{
 		struct ltrim
 		{
-			__device__ static const int32_t GetIndex(int32_t j, int32_t length)
+			__device__ static int32_t GetIndex(int32_t j, int32_t length)
 			{
 				return j;	// normal order of finding spaces
 			}
 
-			__device__ static const int32_t GetOffset(int32_t inLength, int32_t outLength)
+			__device__ static int32_t GetOffset(int32_t inLength, int32_t outLength)
 			{
 				return inLength - outLength;	// offset on string start
 			}
@@ -89,12 +89,12 @@ namespace StringUnaryOpHierarchy
 
 		struct rtrim
 		{
-			__device__ static const int32_t GetIndex(int32_t j, int32_t length)
+			__device__ static int32_t GetIndex(int32_t j, int32_t length)
 			{
 				return length - 1 - j;	// reverse order of finding spaces
 			}
 
-			__device__ static const int32_t GetOffset(int32_t inLength, int32_t outLength)
+			__device__ static int32_t GetOffset(int32_t inLength, int32_t outLength)
 			{
 				return 0;	// no offset on string start
 			}
