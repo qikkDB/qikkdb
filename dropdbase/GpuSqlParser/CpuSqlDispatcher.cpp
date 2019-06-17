@@ -82,6 +82,110 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const s
 	}
 }
 
+void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
+{
+	if (op == "!")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "-")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "YEAR")
+	{
+		cpuDispatcherFunctions.push_back(yearFunctions[type]);
+	}
+	else if (op == "MONTH")
+	{
+		cpuDispatcherFunctions.push_back(monthFunctions[type]);
+	}
+	else if (op == "DAY")
+	{
+		cpuDispatcherFunctions.push_back(dayFunctions[type]);
+	}
+	else if (op == "HOUR")
+	{
+		cpuDispatcherFunctions.push_back(hourFunctions[type]);
+	}
+	else if (op == "MINUTE")
+	{
+		cpuDispatcherFunctions.push_back(minuteFunctions[type]);
+	}
+	else if (op == "SECOND")
+	{
+		cpuDispatcherFunctions.push_back(secondFunctions[type]);
+	}
+	else if (op == "ABS")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "SIN")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "COS")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "TAN")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "COT")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "ASIN")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "ACOS")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "ATAN")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "LOG10")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "LOG")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "EXP")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "SQRT")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "SQUARE")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "SIGN")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "ROUND")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "FLOOR")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+	else if (op == "CEIL")
+	{
+		cpuDispatcherFunctions.push_back(subFunctions[type]);
+	}
+}
+
 void CpuSqlDispatcher::addWhereResultFunction(DataType dataType)
 {
 	cpuDispatcherFunctions.push_back(whereResultFunctions[dataType]);
@@ -134,5 +238,9 @@ void CpuSqlDispatcher::copyExecutionDataTo(CpuSqlDispatcher& other)
 
 std::string CpuSqlDispatcher::getPointerName(const std::string & colName)
 {
-	return colName + (evaluateMin ? "_min" : "_max");
+	if (colName.front() != '$')
+	{
+		return colName + (evaluateMin ? "_min" : "_max");
+	}
+	return colName;
 }

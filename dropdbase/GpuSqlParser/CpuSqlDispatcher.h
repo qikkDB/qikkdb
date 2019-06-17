@@ -55,20 +55,70 @@ private:
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
 
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> yearFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> monthFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> dayFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> hourFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> minuteFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> secondFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> minusFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> absoluteFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> sineFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> cosineFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> tangentFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> cotangentFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> arcsineFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> arccosineFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> arctangentFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> logarithm10Functions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> logarithmNaturalFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> exponentialFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> squareRootFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> squareFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> signFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> roundFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> ceilFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> floorFunctions;
+
 	static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> whereResultFunctions;
 
 public:
 	CpuSqlDispatcher(const std::shared_ptr<Database> &database);
 	void addBinaryOperation(DataType left, DataType right, const std::string& op);
+	void addUnaryOperation(DataType type, const std::string & op);
 	void addWhereResultFunction(DataType dataType);
 	int64_t execute(int32_t index);
 	void copyExecutionDataTo(CpuSqlDispatcher& other);
 
 	template<typename T>
-	T* allocateRegister(const std::string& reg, int32_t size)
+	T* allocateRegister(const std::string& reg, int32_t size, bool resultColColOperation)
 	{
 		void* allocatedMemory = operator new(size * sizeof(T));
-		allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(allocatedMemory), size, true) });
+		allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(allocatedMemory), size, resultColColOperation) });
 		return reinterpret_cast<T*>(allocatedMemory);
 	}
 
@@ -110,7 +160,7 @@ public:
 
 			std::tie(tableName, columnName) = splitColumnName(colName);
 			std::string reg = colName + (evaluateMin ? "_min" : "_max");
-			T * mask = allocateRegister<T>(reg, 1);
+			T * mask = allocateRegister<T>(reg, 1, false);
 			T colVal = evaluateMin ? getBlockMin<T>(tableName, columnName) : getBlockMax<T>(tableName, columnName);
 			*mask = colVal;
 		}
@@ -152,14 +202,27 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t arithmeticConstConst();
 
+	template<typename OP>
+	int32_t dateExtractCol();
+
+	template<typename OP>
+	int32_t dateExtractConst();
+
+	template<typename OP, typename T>
+	int32_t arithmeticUnaryCol();
+
+	template<typename OP, typename T>
+	int32_t arithmeticUnaryConst();
+
 	template<typename T>
 	int32_t whereResultCol() 
 	{
 		auto colName = arguments.read<std::string>();
 		auto reg = allocatedPointers.at(colName);
 		T* resultArray = reinterpret_cast<T*>(std::get<0>(reg));
-		whereResult = static_cast<int64_t>(resultArray[0]); 
 
+		whereResult = std::get<2>(reg) ? 1 : static_cast<int64_t>(resultArray[0]);
+		
 		std::cout << "Where result col: " << colName << ", " << whereResult << std::endl;
 
 		return 1;
@@ -232,6 +295,24 @@ public:
 		T cnst = arguments.read<T>();
 
 		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string("operation"));
+		return 1;
+	}
+
+	template<typename OP, typename T>
+	int32_t invalidOperandTypesErrorHandlerCol()
+	{
+		auto colName = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colName, std::string(""), std::string(typeid(OP).name()));
+		return 1;
+	}
+
+	template<typename OP, typename T>
+	int32_t invalidOperandTypesErrorHandlerConst()
+	{
+		T cnst = arguments.read<T>();
+
+		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string(typeid(OP).name()));
 		return 1;
 	}
 

@@ -42,6 +42,7 @@ private:
 	int32_t instructionPointer;
 	int32_t constPointCounter;
 	int32_t constPolygonCounter;
+	int32_t jmpInstuctionPosition;
     const std::shared_ptr<Database> &database;
 	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
@@ -152,11 +153,11 @@ private:
 		DataType::DATA_TYPE_SIZE> squareFunctions;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> signFunctions;
-	static std::array<GpuSqlDispatcher::DispatchFunction,
+	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> roundFunctions;
-	static std::array<GpuSqlDispatcher::DispatchFunction,
+	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> ceilFunctions;
-	static std::array<GpuSqlDispatcher::DispatchFunction,
+	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> floorFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;

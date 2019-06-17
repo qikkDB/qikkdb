@@ -44,7 +44,8 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	isOverallLastBlock(false),
 	noLoad(true),
 	loadNecessary(1),
-	cpuDispatcher(database)
+	cpuDispatcher(database),
+	jmpInstuctionPosition(0)
 {
 }
 
@@ -66,6 +67,7 @@ void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other, CpuSqlDispa
 {
 	other.dispatcherFunctions = dispatcherFunctions;
 	other.arguments = arguments;
+	other.jmpInstuctionPosition = jmpInstuctionPosition;
 	sourceCpuDispatcher.copyExecutionDataTo(other.cpuDispatcher);
 }
 
@@ -135,6 +137,10 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 				{
 					std::cout << "Create index completed sucessfully" << std::endl;
 				}
+				if (err == 12)
+				{
+					std::cout << "Load skipped" << std::endl;
+				}
 				break;
 			}
 		}
@@ -169,6 +175,7 @@ void GpuSqlDispatcher::addWhereEvaluationFunction()
 void GpuSqlDispatcher::addJmpInstruction()
 {
 	dispatcherFunctions.push_back(jmpFunction);
+	jmpInstuctionPosition = dispatcherFunctions.size() - 1;
 }
 
 void GpuSqlDispatcher::addDoneFunction()
@@ -654,7 +661,6 @@ int32_t GpuSqlDispatcher::whereEvaluation()
 {
 	loadNecessary = cpuDispatcher.execute(blockIndex);
 	std::cout << "Where load evaluation: " << loadNecessary << std::endl;
-	// TODO skip to jmp
 	return 0;
 }
 
@@ -666,7 +672,7 @@ int32_t GpuSqlDispatcher::jmp()
 {
 	Context& context = Context::getInstance();
 
-	if (noLoad)
+	if (noLoad && loadNecessary != 0)
 	{
 		cleanUpGpuPointers();
 		return 0;

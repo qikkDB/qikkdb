@@ -350,38 +350,66 @@ for operation in ["mul", "div", "add", "sub", "mod"]:
     print(declaration)
 print()
 
-# for operation in unary_arithmetic_operations:
-#     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
-#                   "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
-#
-#     for colIdx, colVal in enumerate(all_types):
-#
-#         if colIdx < len(types):
-#             col = "Const"
-#         elif colIdx >= len(types):
-#             col = "Col"
-#
-#         if colVal in geo_types:
-#             op = "invalidOperandTypesErrorHandler"
-#
-#         elif colVal == STRING:
-#             op = "invalidOperandTypesErrorHandler"
-#
-#         elif colVal == BOOL:
-#             op = "invalidOperandTypesErrorHandler"
-#
-#         else:
-#             op = "arithmeticUnary"
-#
-#         function = "CpuSqlDispatcher::" + op + col + "<ArithmeticUnaryOperations::" + operation + ", " + colVal + ">"
-#
-#         if colIdx == len(all_types) - 1:
-#             declaration += ("&" + function + "};")
-#         else:
-#             declaration += ("&" + function + ", ")
-#
-#     print(declaration)
-# print()
+for operation in operations_date:
+    declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction, " \
+                  "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal != LONG:
+            op = "invalidOperandTypesErrorHandler"
+            function = "CpuSqlDispatcher::" + op + col + "<DateOperations::" + operation + ", " + colVal + ">"
+        else:
+            op = "dateExtract"
+            function = "CpuSqlDispatcher::" + op + col + "<DateOperations::" + operation + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+for operation in unary_arithmetic_operations:
+    declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal in geo_types:
+            op = "invalidOperandTypesErrorHandler"
+
+        elif colVal == STRING:
+            op = "invalidOperandTypesErrorHandler"
+
+        elif colVal == BOOL:
+            op = "invalidOperandTypesErrorHandler"
+
+        else:
+            op = "arithmeticUnary"
+
+        function = "CpuSqlDispatcher::" + op + col + "<ArithmeticUnaryOperations::" + operation + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+
 #
 # operation = "insertInto"
 #
@@ -476,31 +504,7 @@ print()
 #     print(declaration)
 # print()
 #
-# for operation in operations_date:
-#     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction, " \
-#                   "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
-#
-#     for colIdx, colVal in enumerate(all_types):
-#
-#         if colIdx < len(types):
-#             col = "Const"
-#         elif colIdx >= len(types):
-#             col = "Col"
-#
-#         if colVal != LONG:
-#             op = "invalidOperandTypesErrorHandler"
-#             function = "CpuSqlDispatcher::" + op + col + "<DateOperations::" + operation + ", " + colVal + ">"
-#         else:
-#             op = "dateExtract"
-#             function = "CpuSqlDispatcher::" + op + col + "<DateOperations::" + operation + ">"
-#
-#         if colIdx == len(all_types) - 1:
-#             declaration += ("&" + function + "};")
-#         else:
-#             declaration += ("&" + function + ", ")
-#
-#     print(declaration)
-# print()
+
 #
 # for operation in polygon_operations:
 #     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \

@@ -1,9 +1,11 @@
+#pragma once
+
 #include "../CpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPUArithmetic.cuh"
 #include <tuple>
 
 template<typename OP, typename T, typename U>
-inline int32_t CpuSqlDispatcher::arithmeticColConst()
+int32_t CpuSqlDispatcher::arithmeticColConst()
 {
 	auto colName = arguments.read<std::string>();
 	U cnst = arguments.read<U>();
@@ -20,9 +22,11 @@ inline int32_t CpuSqlDispatcher::arithmeticColConst()
 
 	loadCol<T>(colName);
 
-	ResultType * result = allocateRegister<ResultType>(reg, 1);
 	std::string colPointerName = getPointerName(colName);
 	auto colVal = allocatedPointers.at(colPointerName);
+
+	ResultType * result = allocateRegister<ResultType>(reg, 1, std::get<2>(colVal));
+
 	result[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colVal))[0], cnst);
 	
 	std::cout << "Where evaluation arithmeticColConst: " << colName << ", " << reg << ": " << result[0] << std::endl;
@@ -31,7 +35,7 @@ inline int32_t CpuSqlDispatcher::arithmeticColConst()
 }
 
 template<typename OP, typename T, typename U>
-inline int32_t CpuSqlDispatcher::arithmeticConstCol()
+int32_t CpuSqlDispatcher::arithmeticConstCol()
 {
 	T cnst = arguments.read<T>();
 	auto colName = arguments.read<std::string>();
@@ -48,9 +52,12 @@ inline int32_t CpuSqlDispatcher::arithmeticConstCol()
 
 	loadCol<U>(colName);
 
-	ResultType * result = allocateRegister<ResultType>(reg, 1);
+
 	std::string colPointerName = getPointerName(colName);
 	auto colVal = allocatedPointers.at(colPointerName);
+
+	ResultType * result = allocateRegister<ResultType>(reg, 1, std::get<2>(colVal));
+
 	result[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colVal))[0]);
 
 	std::cout << "Where evaluation arithmeticConstCol: " << colName << ", " << reg << ": " << result[0] << std::endl;
@@ -59,7 +66,7 @@ inline int32_t CpuSqlDispatcher::arithmeticConstCol()
 }
 
 template<typename OP, typename T, typename U>
-inline int32_t CpuSqlDispatcher::arithmeticColCol()
+int32_t CpuSqlDispatcher::arithmeticColCol()
 {
 	auto colNameRight = arguments.read<std::string>();
 	auto colNameLeft = arguments.read<std::string>();
@@ -77,7 +84,7 @@ inline int32_t CpuSqlDispatcher::arithmeticColCol()
 
 	if (colNameLeft.front() != '$' &&  colNameRight.front() != '$')
 	{
-		result = allocateRegister<ResultType>(reg, 1);
+		result = allocateRegister<ResultType>(reg, 1, true);
 		result[0] = 1;
 	}
 	else
@@ -85,7 +92,7 @@ inline int32_t CpuSqlDispatcher::arithmeticColCol()
 		loadCol<T>(colNameLeft);
 		loadCol<U>(colNameRight);
 
-		result = allocateRegister<ResultType>(reg, 1);
+		result = allocateRegister<ResultType>(reg, 1, true);
 		std::string colPointerNameLeft = getPointerName(colNameLeft);
 		std::string colPointerNameRight = getPointerName(colNameRight);
 		auto colValLeft = allocatedPointers.at(colPointerNameLeft);
@@ -99,7 +106,7 @@ inline int32_t CpuSqlDispatcher::arithmeticColCol()
 }
 
 template<typename OP, typename T, typename U>
-inline int32_t CpuSqlDispatcher::arithmeticConstConst()
+int32_t CpuSqlDispatcher::arithmeticConstConst()
 {
 	T constLeft = arguments.read<T>();
 	U constRight = arguments.read<U>();
@@ -113,7 +120,7 @@ inline int32_t CpuSqlDispatcher::arithmeticConstConst()
 		typename std::conditional<std::is_floating_point< U>::value, U, void>::type>::type
 	>::type ResultType;
 	
-	ResultType * result = allocateRegister<ResultType>(reg, 1);
+	ResultType * result = allocateRegister<ResultType>(reg, 1, false);
 	result[0] = OP{}.template operator() < T, U > (constLeft, constRight);
 
 	std::cout << "Where evaluation arithmeticConstConst: " << reg << ": " << result[0] << std::endl;

@@ -43,8 +43,11 @@ namespace DateOperations
 	/// Year
 	struct year
 	{
-		__device__ int32_t operator()(int64_t dateTime) const
+		__device__ __host__ int32_t operator()(int64_t dateTime) const
 		{
+#ifndef __CUDACC__
+			using namespace std;
+#endif
 			int32_t year400;
 			int64_t value = dateTime + SECONDS_BETWEEN_1600_1970;
 			// value is now seconds from 1.1.1600 0:00:00
@@ -81,8 +84,11 @@ namespace DateOperations
 	/// Month 1-12
 	struct month
 	{
-		__device__ int32_t operator()(int64_t dateTime) const
+		__device__ __host__ int32_t operator()(int64_t dateTime) const
 		{
+#ifndef __CUDACC__
+			using namespace std;
+#endif
 			int64_t value = dateTime + SECONDS_BETWEEN_1600_1970;
 			// value is now seconds from 1.1.1600 0:00:00
 
@@ -118,8 +124,11 @@ namespace DateOperations
 	/// Day 1-28/29/30/31
 	struct day
 	{
-		__device__ int32_t operator()(int64_t dateTime) const
+		__device__ __host__ int32_t operator()(int64_t dateTime) const
 		{
+#ifndef __CUDACC__
+			using namespace std;
+#endif
 			int64_t value = dateTime + SECONDS_BETWEEN_1600_1970;
 			// value is now seconds from 1.1.1600 0:00:00
 

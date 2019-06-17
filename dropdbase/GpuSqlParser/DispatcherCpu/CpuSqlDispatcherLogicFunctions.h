@@ -1,9 +1,10 @@
 #pragma once
+
 #include "../CpuSqlDispatcher.h"
 #include <tuple>
 
 template<typename OP, typename T, typename U>
-inline int32_t CpuSqlDispatcher::filterColConst()
+int32_t CpuSqlDispatcher::filterColConst()
 {
 	auto colName = arguments.read<std::string>();
 	U cnst = arguments.read<U>();
@@ -11,10 +12,11 @@ inline int32_t CpuSqlDispatcher::filterColConst()
 
 	loadCol<T>(colName);
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1);
 	std::string colPointerName = getPointerName(colName);
-
 	auto colVal = allocatedPointers.at(colPointerName);
+
+	int8_t * mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colVal));
+
 	mask[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colVal))[0], cnst);
 
 	std::cout << "Where evaluation filterColConst: " << colName << ", " << reg << ": " << mask[0] << std::endl;
@@ -23,7 +25,7 @@ inline int32_t CpuSqlDispatcher::filterColConst()
 }
 
 template<typename OP, typename T, typename U>
-inline int32_t CpuSqlDispatcher::filterConstCol()
+int32_t CpuSqlDispatcher::filterConstCol()
 {
 	T cnst = arguments.read<T>();
 	auto colName = arguments.read<std::string>();
@@ -31,10 +33,11 @@ inline int32_t CpuSqlDispatcher::filterConstCol()
 
 	loadCol<U>(colName);
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1);
 	std::string colPointerName = getPointerName(colName);
-
 	auto colVal = allocatedPointers.at(colPointerName);
+
+	int8_t * mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colVal));
+
 	mask[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colVal))[0]);
 
 	std::cout << "Where evaluation filterConstCol: " << colName << ", " << reg << ": " << static_cast<int64_t>(mask[0]) << std::endl;
@@ -43,7 +46,7 @@ inline int32_t CpuSqlDispatcher::filterConstCol()
 }
 
 template<typename OP, typename T, typename U>
-inline int32_t CpuSqlDispatcher::filterColCol()
+int32_t CpuSqlDispatcher::filterColCol()
 {
 	auto colNameLeft = arguments.read<std::string>();
 	auto colNameRight = arguments.read<std::string>();
@@ -53,7 +56,7 @@ inline int32_t CpuSqlDispatcher::filterColCol()
 
 	if (colNameLeft.front() != '$' &&  colNameRight.front() != '$')
 	{
-		mask = allocateRegister<int8_t>(reg, 1);
+		mask = allocateRegister<int8_t>(reg, 1, true);
 		mask[0] = 1;
 	}
 	else
@@ -61,7 +64,7 @@ inline int32_t CpuSqlDispatcher::filterColCol()
 		loadCol<T>(colNameLeft);
 		loadCol<U>(colNameRight);
 
-		mask = allocateRegister<int8_t>(reg, 1);
+		mask = allocateRegister<int8_t>(reg, 1, true);
 		std::string colPointerNameLeft = getPointerName(colNameLeft);
 		std::string colPointerNameRight = getPointerName(colNameRight);
 
@@ -82,7 +85,7 @@ int32_t CpuSqlDispatcher::filterConstConst()
 	U constRight = arguments.read<U>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1);
+	int8_t * mask = allocateRegister<int8_t>(reg, 1, false);
 	mask[0] = OP{}.template operator() < T, U > (constLeft, constRight);
 
 	std::cout << "Where evaluation filterConstConst: " << reg << ": " << mask[0] << std::endl;
@@ -91,7 +94,7 @@ int32_t CpuSqlDispatcher::filterConstConst()
 }
 
 template<typename OP, typename T, typename U>
-inline int32_t CpuSqlDispatcher::logicalColConst()
+int32_t CpuSqlDispatcher::logicalColConst()
 {
 	auto colName = arguments.read<std::string>();
 	U cnst = arguments.read<U>();
@@ -99,9 +102,11 @@ inline int32_t CpuSqlDispatcher::logicalColConst()
 
 	loadCol<T>(colName);
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1);
 	std::string colPointerName = getPointerName(colName);
 	auto colVal = allocatedPointers.at(colPointerName);
+
+	int8_t * mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colVal));
+
 	mask[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colVal))[0], cnst);
 
 	std::cout << "Where evaluation logicalConstCol: " << colName << ", " << reg << ": " << mask[0] << std::endl;
@@ -110,7 +115,7 @@ inline int32_t CpuSqlDispatcher::logicalColConst()
 }
 
 template<typename OP, typename T, typename U>
-inline int32_t CpuSqlDispatcher::logicalConstCol()
+int32_t CpuSqlDispatcher::logicalConstCol()
 {
 	T cnst = arguments.read<T>();
 	auto colName = arguments.read<std::string>();
@@ -118,9 +123,11 @@ inline int32_t CpuSqlDispatcher::logicalConstCol()
 
 	loadCol<U>(colName);
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1);
 	std::string colPointerName = getPointerName(colName);
 	auto colVal = allocatedPointers.at(colPointerName);
+
+	int8_t * mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colVal));
+
 	mask[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colVal))[0]);
 
 	std::cout << "Where evaluation logicalColConst: " << colName << ", " << reg << ": " << mask[0] << std::endl;
@@ -129,7 +136,7 @@ inline int32_t CpuSqlDispatcher::logicalConstCol()
 }
 
 template<typename OP, typename T, typename U>
-inline int32_t CpuSqlDispatcher::logicalColCol()
+int32_t CpuSqlDispatcher::logicalColCol()
 {
 	auto colNameLeft = arguments.read<std::string>();
 	auto colNameRight = arguments.read<std::string>();
@@ -139,7 +146,8 @@ inline int32_t CpuSqlDispatcher::logicalColCol()
 
 	if (colNameLeft.front() != '$' &&  colNameRight.front() != '$')
 	{
-		mask = allocateRegister<int8_t>(reg, 1);
+
+		mask = allocateRegister<int8_t>(reg, 1, true);
 		mask[0] = 1;
 	}
 	else
@@ -147,7 +155,7 @@ inline int32_t CpuSqlDispatcher::logicalColCol()
 		loadCol<T>(colNameLeft);
 		loadCol<U>(colNameRight);
 
-		mask = allocateRegister<int8_t>(reg, 1);
+		mask = allocateRegister<int8_t>(reg, 1, true);
 		std::string colPointerNameLeft = getPointerName(colNameLeft);
 		std::string colPointerNameRight = getPointerName(colNameRight);
 		auto colValLeft = allocatedPointers.at(colPointerNameLeft);
@@ -161,14 +169,14 @@ inline int32_t CpuSqlDispatcher::logicalColCol()
 }
 
 template<typename OP, typename T, typename U>
-inline int32_t CpuSqlDispatcher::logicalConstConst()
+int32_t CpuSqlDispatcher::logicalConstConst()
 {
 	T constLeft = arguments.read<T>();
 	U constRight = arguments.read<U>();
 	auto reg = arguments.read<std::string>();
 
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1);
+	int8_t * mask = allocateRegister<int8_t>(reg, 1, false);
 	mask[0] = OP{}.template operator() < T, U > (constLeft, constRight);
 
 	std::cout << "Where evaluation logicalConstConst: " << reg << ": " << mask[0] << std::endl;
