@@ -52,8 +52,7 @@ namespace StringBinaryOperations
 {
 	struct left
 	{
-		template <typename T>
-		__device__ int32_t operator()(int32_t newLength, int64_t* oldIndices, int32_t i) const
+		__device__ int32_t operator()(int32_t newLength, int64_t* oldIndices, const int32_t i) const
 		{
 			return 0;
 		}
@@ -61,8 +60,7 @@ namespace StringBinaryOperations
 
 	struct right
 	{
-		template <typename T>
-		__device__ int32_t operator()(int32_t newLength, int32_t* oldIndices, int32_t i) const
+		__device__ int32_t operator()(int32_t newLength, int64_t* oldIndices, const int32_t i) const
 		{
 			return static_cast<int32_t>(oldIndices[i] - ((i == 0) ? 0 : oldIndices[i - 1])) - newLength;
 		}
@@ -95,6 +93,9 @@ private:
 		kernel_predict_length_cut << < context.calcGridDim(outputCount), context.getBlockDim() >> >
 			(newLenghts.get(), ACol, stringCount, BCol, numberCount);
 
+		//DEBUG
+		cudaDeviceSynchronize();
+
 		// Alloc and compute new stringIndices
 		GPUMemory::alloc(&(outCol.stringIndices), outputCount);
 		GPUReconstruct::PrefixSum(outCol.stringIndices, newLenghts.get(), outputCount);
@@ -115,25 +116,25 @@ public:
     template <typename OP, typename T>
     static void ColCol(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, T* BCol, int32_t dataElementCount)
     {
-		GPUStringBinary::Run<T>(output, ACol, dataElementCount, BCol, dataElementCount);
+		GPUStringBinary::Run<OP>(output, ACol, dataElementCount, BCol, dataElementCount);
     }
 
     template <typename OP, typename T>
     static void ColConst(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, T BConst, int32_t dataElementCount)
     {
-		GPUStringBinary::Run<T>(output, ACol, dataElementCount, BConst, 1);
+		GPUStringBinary::Run<OP>(output, ACol, dataElementCount, BConst, 1);
     }
 
     template <typename OP, typename T>
     static void ConstCol(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, T* BCol, int32_t dataElementCount)
     {
-		GPUStringBinary::Run<T>(output, AConst, 1, BCol, dataElementCount);
+		GPUStringBinary::Run<OP>(output, AConst, 1, BCol, dataElementCount);
     }
 
     template <typename OP, typename T>
     static void ConstConst(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, T BConst, int32_t dataElementCount)
     {
-		GPUStringBinary::Run<T>(output, AConst, 1, BConst, 1);
+		GPUStringBinary::Run<OP>(output, AConst, 1, BConst, 1);
 		// TODO expand?
     }
 };
