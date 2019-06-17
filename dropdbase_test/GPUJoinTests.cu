@@ -72,7 +72,6 @@ void basicUsage()
 
 TEST(GPUJoinTests, JoinTest)
 {
-	/*
 	// Alloc the buffers
 	const int32_t SEED = 42;
 
@@ -94,8 +93,8 @@ TEST(GPUJoinTests, JoinTest)
 	// Fill the buffers with random data
 	srand(SEED);
 
-	for (int32_t i = 0; i < RTABLE_SIZE; i++) { RTable[i] = 5; }//rand(); }
-	for (int32_t i = 0; i < STABLE_SIZE; i++) { STable[i] = 5; }//rand(); }
+	for (int32_t i = 0; i < RTABLE_SIZE; i++) { RTable[i] = rand(); }
+	for (int32_t i = 0; i < STABLE_SIZE; i++) { STable[i] = rand(); }
 	for (int32_t i = 0; i < QTABLE_SIZE; i++) { QATable[i] = 0; QBTable[i] = 0; }
 
 	// Alloc GPU buffers
@@ -106,8 +105,8 @@ TEST(GPUJoinTests, JoinTest)
 
 	GPUMemory::alloc(&d_RTableBlock, HASH_BLOCK_SIZE);
 	GPUMemory::alloc(&d_STableBlock, HASH_BLOCK_SIZE);
-	GPUMemory::alloc(&d_QATableBlock, HASH_BLOCK_SIZE);
-	GPUMemory::alloc(&d_QBTableBlock, HASH_BLOCK_SIZE);
+	GPUMemory::alloc(&d_QATableBlock, HASH_BLOCK_SIZE * HASH_BLOCK_SIZE);
+	GPUMemory::alloc(&d_QBTableBlock, HASH_BLOCK_SIZE * HASH_BLOCK_SIZE);
 
 	// Create a join instance
 	GPUJoin gpuJoin(HASH_BLOCK_SIZE);
@@ -117,7 +116,7 @@ TEST(GPUJoinTests, JoinTest)
 	{
 		// For the last block process only the remaining elements
 		int32_t processedRBlockSize = HASH_BLOCK_SIZE;
-		if((r + HASH_BLOCK_SIZE) > RTABLE_SIZE)
+		if((RTABLE_SIZE - r) < HASH_BLOCK_SIZE)
 		{
 			processedRBlockSize = RTABLE_SIZE - r;
 		}
@@ -130,7 +129,7 @@ TEST(GPUJoinTests, JoinTest)
 		{
 			// For the last block process only the remaining elements
 			int32_t processedSBlockSize = HASH_BLOCK_SIZE;
-			if((s + HASH_BLOCK_SIZE) > STABLE_SIZE)
+			if((STABLE_SIZE - s) < HASH_BLOCK_SIZE)
 			{
 				processedSBlockSize = STABLE_SIZE - s;
 			}
@@ -149,8 +148,9 @@ TEST(GPUJoinTests, JoinTest)
 			}
 
 			// Copy the result blocks back and store them in the result set
-			int32_t QAresult[HASH_BLOCK_SIZE];
-			int32_t QBresult[HASH_BLOCK_SIZE];
+			// The results can be at most n*n big
+			int32_t *QAresult = new int32_t[processedQBlockResultSize];
+			int32_t *QBresult = new int32_t[processedQBlockResultSize];
 
 			GPUMemory::copyDeviceToHost(QAresult, d_QATableBlock, processedQBlockResultSize);
 			GPUMemory::copyDeviceToHost(QBresult, d_QBTableBlock, processedQBlockResultSize);
@@ -161,6 +161,10 @@ TEST(GPUJoinTests, JoinTest)
 				QBTable[QTableResultSizeTotal] = s + QBresult[i];   // Write the original idx
 				QTableResultSizeTotal++;
 			}
+
+			delete[] QAresult;
+			delete[] QBresult;
+
 		}
 	}
 
@@ -174,11 +178,6 @@ TEST(GPUJoinTests, JoinTest)
 
 	for(int32_t i = 0; i < QTableResultSizeTotal; i++)
 	{
-		//std::printf("%d %d\n", QATable[i], QBTable[i]);
-		// Check if indexed values are equal
 		ASSERT_EQ(RTable[QATable[i]], STable[QBTable[i]]);
 	}
-	*/
-	basicUsage();
-	//FAIL();
 }

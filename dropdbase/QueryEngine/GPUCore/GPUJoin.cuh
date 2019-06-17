@@ -34,6 +34,7 @@ __global__ void kernel_calc_hash_histo(int32_t* HashTableHisto,
 
     for (int32_t i = idx; i < hashTableSize && i < dataElementCount; i += stride)
     {
+		// Count the occurances of hashes and accumulate them to the local memory
         shared_memory[threadIdx.x] = 0;
         __syncthreads();
 
@@ -46,7 +47,7 @@ __global__ void kernel_calc_hash_histo(int32_t* HashTableHisto,
 }
 
 template <typename T>
-__global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets, 
+__global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
 										   int32_t* HashTablePrefixSum, 
 										   int32_t hashTableSize,
                                            T* RTable,
@@ -63,7 +64,7 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
         __syncthreads();
 
         int32_t hash_idx = hash(RTable[i]);
-        int32_t bucket_idx = atomicAdd(&shared_memory[hash_idx], 1);
+		int32_t bucket_idx = atomicAdd(&shared_memory[hash_idx], 1);
 		HashTableHashBuckets[bucket_idx] = i;//RTable[i];
     }
 }
@@ -85,7 +86,10 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 
     for (int32_t i = idx; i < joinTableSize && i < dataElementCountSTable; i += stride)
     {
-        // Count the number of result hash matches for this entry
+		// Zero the histo array
+		JoinTableHisto[i] = 0;
+
+		// Count the number of result hash matches for this entry
         int32_t hashMatchCounter = 0;
         
 		// Hash table buckets probing and occurance counting
@@ -93,11 +97,6 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
         for (int32_t j = hash_idx; j < hashTableSize; j += HASH_TABLE_SUB_SIZE)
 		{
 			// Check if a bucket is empty, if yes, try the next bucket with the same hash
-            if (HashTableHisto[j] == 0)
-			{
-                continue;
-			}
-
 			// Otherwise probe and count the number of matching entries
             for (int32_t k = 0; k < HashTableHisto[j]; k++)
             {
@@ -132,27 +131,27 @@ __global__ void kernel_distribute_results_to_buffer(T* QTableA,
 
     for (int32_t i = idx; i < joinTableSize && i < dataElementCountSTable; i += stride)
     {
-        // Hash table buckets probing
-        int32_t hash_idx = hash(STable[i]);
-        for (int32_t j = hash_idx; j < hashTableSize; j += HASH_TABLE_SUB_SIZE)
-        {
-            // Check if a bucket is empty, if yes, try the next bucket with the same hash
-            if (HashTableHisto[j] == 0)
-            {
-                continue;
-            }
-
-            // Otherwise probe and count the number of matching entries
-            for (int32_t k = 0; k < HashTableHisto[j]; k++)
-            {
-                if (RTable[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] == STable[i])
-                {
-                    QTableA[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + k] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
-					QTableB[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + k] = i;//STable[i];
-                }
-            }
-        }
-    }
+		int32_t join_prefix_sum_offset_index = 0;
+		// Hash table buckets probing
+		int32_t hash_idx = hash(STable[i]);
+		for (int32_t j = hash_idx; j < hashTableSize; j += HASH_TABLE_SUB_SIZE)
+		{
+			// Check if a bucket is empty, if yes, try the next bucket with the same hash
+			// Otherwise write count the number of matching entries
+			for (int32_t k = 0; k < HashTableHisto[j]; k++)
+			{
+				// Write the results if the value in a bucket matches the present value
+				// Write them to the calculated offset of the prefix sum buffer
+				if (join_prefix_sum_offset_index < JoinTableHisto[i] && 
+					RTable[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] == STable[i])
+				{
+					QTableA[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
+					QTableB[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = i;//STable[i];
+					join_prefix_sum_offset_index++;
+				}
+			}
+		}
+	}
 }
 
 class GPUJoin
@@ -190,6 +189,13 @@ public:
 		GPUMemory::free(JoinTableHisto_);
         GPUMemory::free(JoinTablePrefixSum_);
     }
+
+	template <typename T>
+	void clean_buffer(T *buff, int32_t size)
+	{
+		kernel_clean_buffer << <Context::getInstance().calcGridDim(size),
+			Context::getInstance().getBlockDim() >> > (buff, size);
+	}
 
 	template <typename T>
     void HashBlock(T* RTable, int32_t dataElementCount)
@@ -231,20 +237,11 @@ public:
 		//////////////////////////////////////////////////////////////////////////////
         // Insert the keys into buckets
         kernel_put_data_to_buckets<<<Context::getInstance().calcGridDim(hashTableSize_),
-                                     Context::getInstance().getBlockDim()>>>(HashTableHashBuckets_, 
+                                     Context::getInstance().getBlockDim()>>>(HashTableHashBuckets_,
 																			 HashTablePrefixSum_,
                                                                              hashTableSize_,
                                                                              RTable, 
 																			 dataElementCount);
-
-		//////////////////////////////////////////////////////////////////////////////
-        // Reset the prefix sum buffer
-		/*
-        GPUArithmetic::colCol<ArithmeticOperations::sub>(HashTablePrefixSum_, 
-														 HashTablePrefixSum_,
-                                                         HashTableHisto_, 
-														 hashTableSize_);
-		*/
     }
 
 	template<typename T>
