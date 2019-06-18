@@ -185,3 +185,36 @@ int32_t CpuSqlDispatcher::logicalConstConst()
 
 	return 0;
 }
+
+template<typename T>
+int32_t CpuSqlDispatcher::logicalNotCol()
+{
+	auto colName = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+
+	loadCol<T>(colName);
+
+	std::string colPointerName = getPointerName(colName);
+	auto colVal = allocatedPointers.at(colPointerName);
+
+	int8_t * result = allocateRegister<int8_t>(reg, 1, std::get<2>(colVal));
+	result[0] = !reinterpret_cast<T*>(std::get<0>(colVal))[0];
+
+	std::cout << "Where evaluation logicalNotCol: " << colName << ", " << reg << ": " << result[0] << std::endl;
+
+	return 0;
+}
+
+template<typename T>
+int32_t CpuSqlDispatcher::logicalNotConst()
+{
+	T cnst = arguments.read<T>();
+	auto reg = arguments.read<std::string>();
+
+	int8_t * result = allocateRegister<int8_t>(reg, 1, false);
+	result[0] = !cnst;
+
+	std::cout << "Where evaluation logicalNotConst: " << reg << ": " << result[0] << std::endl;
+
+	return 0;
+}

@@ -20,9 +20,10 @@ namespace ArithmeticUnaryOperations
 	/// Arithmetic unary minus
 	struct minus
 	{
+		static constexpr bool isMonotonous = true;
 		static constexpr bool isFloatRetType = false;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return -a;
 		}
@@ -31,9 +32,10 @@ namespace ArithmeticUnaryOperations
 	/// Arithmetic unary absolute
 	struct absolute
 	{
+		static constexpr bool isMonotonous = false;
 		static constexpr bool isFloatRetType = false;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return abs(a);
 		}
@@ -42,9 +44,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function sine
 	struct sine
 	{
+		static constexpr bool isMonotonous = false;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return sinf(a);
 		}
@@ -53,9 +56,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function cosine
 	struct cosine
 	{
+		static constexpr bool isMonotonous = false;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return cosf(a);
 		}
@@ -64,9 +68,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function tangent
 	struct tangent
 	{
+		static constexpr bool isMonotonous = false;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return tanf(a);
 		}
@@ -75,9 +80,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function cotangent
 	struct cotangent
 	{
+		static constexpr bool isMonotonous = false;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return 1.0f/tanf(a);
 		}
@@ -86,9 +92,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function arcus sine
 	struct arcsine
 	{
+		static constexpr bool isMonotonous = true;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return asinf(a);
 		}
@@ -97,9 +104,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function arcus cosine
 	struct arccosine
 	{
+		static constexpr bool isMonotonous = true;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return acosf(a);
 		}
@@ -108,9 +116,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function arcus tangent
 	struct arctangent
 	{
+		static constexpr bool isMonotonous = true;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return atanf(a);
 		}
@@ -119,9 +128,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function logarithm with base 10
 	struct logarithm10
 	{
+		static constexpr bool isMonotonous = true;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return log10f(a);
 		}
@@ -130,9 +140,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function logarithm with base e
 	struct logarithmNatural
 	{
+		static constexpr bool isMonotonous = true;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return logf(a);
 		}
@@ -141,9 +152,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function exponential
 	struct exponential
 	{
+		static constexpr bool isMonotonous = true;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return expf(a);
 		}
@@ -152,9 +164,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function square root
 	struct squareRoot
 	{
+		static constexpr bool isMonotonous = false;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return sqrtf(a);
 		}
@@ -163,9 +176,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function square
 	struct square
 	{
+		static constexpr bool isMonotonous = false;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U a, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a) const
 		{
 			return powf(a, 2);
 		}
@@ -174,9 +188,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function sign
 	struct sign
 	{
+		static constexpr bool isMonotonous = true;
 		static constexpr bool isFloatRetType = false;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U val) const
 		{
 			return (U{ 0 } < val) - (val < U{ 0 });
 		}
@@ -185,9 +200,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function round
 	struct round
 	{
+		static constexpr bool isMonotonous = true;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U val) const
 		{
 			return roundf(val);
 		}
@@ -196,9 +212,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function floor
 	struct floor
 	{
+		static constexpr bool isMonotonous = true;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U val) const
 		{
 			return floorf(val);
 		}
@@ -207,9 +224,10 @@ namespace ArithmeticUnaryOperations
 	/// Mathematical function ceil
 	struct ceil
 	{
+		static constexpr bool isMonotonous = true;
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U>
-		__device__ __host__ T operator()(U val, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U val) const
 		{
 			return ceilf(val);
 		}
@@ -225,7 +243,7 @@ namespace ArithmeticUnaryOperations
 /// <param name="dataElementCount">count of elements in the input blocks</param>
 /// <param name="errorFlag">flag for error checking</param>
 template<typename OP, typename T, typename U>
-__global__ void kernel_arithmetic_unary(T* output, U ACol, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
+__global__ void kernel_arithmetic_unary(T* output, U ACol, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -235,10 +253,7 @@ __global__ void kernel_arithmetic_unary(T* output, U ACol, int32_t dataElementCo
 		output[i] = OP{}.template operator()
 			< T,
 			typename std::remove_pointer<U>::type>
-			(maybe_deref(ACol, i),
-				errorFlag,
-				min,
-				max);
+			(maybe_deref(ACol, i));
 	}
 }
 
@@ -256,12 +271,9 @@ public:
 	template<typename OP, typename T, typename U>
 	static void col(T *output, U *ACol, int32_t dataElementCount)
 	{
-		ErrorFlagSwapper errorFlagSwapper;
 		kernel_arithmetic_unary <OP>
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(output, ACol, dataElementCount, errorFlagSwapper.GetFlagPointer(),
-				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-		errorFlagSwapper.Swap();
+			(output, ACol, dataElementCount);
 	}
 
 	/// Arithmetic unary operation with constant
@@ -272,11 +284,8 @@ public:
 	template<typename OP, typename T, typename U>
 	static void cnst(T *output, U AConst, int32_t dataElementCount)
 	{
-		ErrorFlagSwapper errorFlagSwapper;
 		kernel_arithmetic_unary <OP>
 			<< < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(output, AConst, dataElementCount, errorFlagSwapper.GetFlagPointer(),
-				std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-		errorFlagSwapper.Swap();
+			(output, AConst, dataElementCount);
 	}
 };

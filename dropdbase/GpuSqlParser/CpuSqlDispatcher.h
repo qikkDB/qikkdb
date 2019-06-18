@@ -94,6 +94,8 @@ private:
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE> secondFunctions;
 	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> logicalNotFunctions;
+	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE> minusFunctions;
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE> absoluteFunctions;
@@ -216,6 +218,12 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t logicalConstConst();
 
+	template<typename T>
+	int32_t logicalNotCol();
+
+	template<typename T>
+	int32_t logicalNotConst();
+
 	template<typename OP, typename T, typename U>
 	int32_t arithmeticColConst();
 
@@ -239,6 +247,39 @@ public:
 
 	template<typename OP, typename T>
 	int32_t arithmeticUnaryConst();
+
+	template<typename T, typename U>
+	int32_t pointColCol();
+
+	template<typename T, typename U>
+	int32_t pointColConst();
+
+	template<typename T, typename U>
+	int32_t pointConstCol();
+
+	template<typename T, typename U>
+	int32_t containsColConst();
+
+	template<typename T, typename U>
+	int32_t containsConstCol();
+
+	template<typename T, typename U>
+	int32_t containsColCol();
+
+	template <typename T, typename U>
+	int32_t containsConstConst();
+
+	template <typename OP, typename T, typename U>
+	int32_t polygonOperationColConst();
+
+	template <typename OP, typename T, typename U>
+	int32_t polygonOperationConstCol();
+
+	template <typename OP, typename T, typename U>
+	int32_t polygonOperationColCol();
+
+	template <typename OP, typename T, typename U>
+	int32_t polygonOperationConstConst();
 
 	template<typename T>
 	int32_t whereResultCol() 
@@ -273,7 +314,6 @@ public:
 		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colName, std::string("cnst"), std::string(typeid(OP).name()));
-		return 1;
 	}
 
 	template<typename OP, typename T, typename U>
@@ -283,7 +323,6 @@ public:
 		U cnst = arguments.read<U>();
 
 		throw InvalidOperandsException(colName, std::string("cnst"), std::string(typeid(OP).name()));
-		return 1;
 	}
 
 	template<typename OP, typename T, typename U>
@@ -293,7 +332,6 @@ public:
 		U cnstRight = arguments.read<U>();
 
 		throw InvalidOperandsException(std::string("cnst"), std::string("cnst"), std::string(typeid(OP).name()));
-		return 1;
 	}
 
 	template<typename OP, typename T, typename U>
@@ -303,7 +341,6 @@ public:
 		auto colNameRight = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colNameLeft, colNameRight, std::string(typeid(OP).name()));
-		return 1;
 	}
 
 	template<typename T>
@@ -312,7 +349,6 @@ public:
 		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colName, std::string(""), std::string("operation"));
-		return 1;
 	}
 
 	template<typename T>
@@ -321,7 +357,42 @@ public:
 		T cnst = arguments.read<T>();
 
 		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string("operation"));
-		return 1;
+	}
+
+	template<typename T, typename U>
+	int32_t invalidOperandTypesErrorHandlerColConst()
+	{
+		U cnst = arguments.read<U>();
+		auto colName = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colName, std::string("cnst"), std::string("operation"));
+	}
+
+	template<typename T, typename U>
+	int32_t invalidOperandTypesErrorHandlerConstCol()
+	{
+		auto colName = arguments.read<std::string>();
+		T cnst = arguments.read<T>();
+
+		throw InvalidOperandsException(colName, std::string("cnst"), std::string("operation"));
+	}
+
+	template<typename T, typename U>
+	int32_t invalidOperandTypesErrorHandlerColCol()
+	{
+		auto colNameRight = arguments.read<std::string>();
+		auto colNameLeft = arguments.read<std::string>();
+
+		throw InvalidOperandsException(colNameLeft, colNameRight, std::string("operation"));
+	}
+
+	template<typename T, typename U>
+	int32_t invalidOperandTypesErrorHandlerConstConst()
+	{
+		U cnstRight = arguments.read<U>();
+		T cnstLeft = arguments.read<T>();
+
+		throw InvalidOperandsException(std::string("cnst"), std::string("cnst"), std::string("operation"));
 	}
 
 	template<typename OP, typename T>
@@ -330,7 +401,6 @@ public:
 		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colName, std::string(""), std::string(typeid(OP).name()));
-		return 1;
 	}
 
 	template<typename OP, typename T>
@@ -339,7 +409,6 @@ public:
 		T cnst = arguments.read<T>();
 
 		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string(typeid(OP).name()));
-		return 1;
 	}
 
 	template<typename T>

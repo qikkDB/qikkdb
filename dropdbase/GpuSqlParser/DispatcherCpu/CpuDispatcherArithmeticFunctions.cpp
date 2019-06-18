@@ -1,4 +1,4 @@
-#include "CpuSqlDispatcherArithmeticFunctions.h"
+#include "CpuDispatcherArithmeticFunctions.h"
 #include <array>
 #include "../../QueryEngine/GPUCore/GPUArithmetic.cuh"
 #include "../../Types/ComplexPolygon.pb.h"

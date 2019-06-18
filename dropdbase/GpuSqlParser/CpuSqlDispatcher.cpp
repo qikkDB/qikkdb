@@ -80,7 +80,6 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const s
 	{
 		cpuDispatcherFunctions.push_back(modFunctions[left * DataType::DATA_TYPE_SIZE + right]);
 	}
-
 	else if (op == "|")
 	{
 		cpuDispatcherFunctions.push_back(bitwiseOrFunctions[left * DataType::DATA_TYPE_SIZE + right]);
@@ -100,6 +99,22 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const s
 	else if (op == ">>")
 	{
 		cpuDispatcherFunctions.push_back(bitwiseRightShiftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "POINT")
+	{
+		cpuDispatcherFunctions.push_back(pointFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "GEO_CONTAINS")
+	{
+		cpuDispatcherFunctions.push_back(containsFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "GEO_INTERSECT")
+	{
+		cpuDispatcherFunctions.push_back(intersectFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "GEO_UNION")
+	{
+		cpuDispatcherFunctions.push_back(unionFunctions[left * DataType::DATA_TYPE_SIZE + right]);
 	}
 	else if (op == "LOG")
 	{
@@ -123,11 +138,11 @@ void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
 {
 	if (op == "!")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(logicalNotFunctions[type]);
 	}
 	else if (op == "-")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(minusFunctions[type]);
 	}
 	else if (op == "YEAR")
 	{
@@ -155,71 +170,71 @@ void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
 	}
 	else if (op == "ABS")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(absoluteFunctions[type]);
 	}
 	else if (op == "SIN")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(sineFunctions[type]);
 	}
 	else if (op == "COS")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(cosineFunctions[type]);
 	}
 	else if (op == "TAN")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(tangentFunctions[type]);
 	}
 	else if (op == "COT")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(cotangentFunctions[type]);
 	}
 	else if (op == "ASIN")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(arcsineFunctions[type]);
 	}
 	else if (op == "ACOS")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(arccosineFunctions[type]);
 	}
 	else if (op == "ATAN")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(arctangentFunctions[type]);
 	}
 	else if (op == "LOG10")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(logarithm10Functions[type]);
 	}
 	else if (op == "LOG")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(logarithmNaturalFunctions[type]);
 	}
 	else if (op == "EXP")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(exponentialFunctions[type]);
 	}
 	else if (op == "SQRT")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(squareRootFunctions[type]);
 	}
 	else if (op == "SQUARE")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(squareFunctions[type]);
 	}
 	else if (op == "SIGN")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(signFunctions[type]);
 	}
 	else if (op == "ROUND")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(roundFunctions[type]);
 	}
 	else if (op == "FLOOR")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(floorFunctions[type]);
 	}
 	else if (op == "CEIL")
 	{
-		cpuDispatcherFunctions.push_back(subFunctions[type]);
+		cpuDispatcherFunctions.push_back(ceilFunctions[type]);
 	}
 }
 

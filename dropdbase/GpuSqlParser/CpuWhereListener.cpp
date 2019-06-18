@@ -147,6 +147,120 @@ void CpuWhereListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContex
 
 void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext * ctx)
 {
+	std::pair<std::string, DataType> arg = stackTopAndPop();
+
+	std::string op = ctx->op->getText();
+	stringToUpper(op);
+	DataType operandType = std::get<1>(arg);
+	pushArgument(std::get<0>(arg).c_str(), operandType);
+
+	DataType returnDataType;
+
+	if (op == "!")
+	{
+		returnDataType = DataType::COLUMN_INT8_T;
+	}
+	else if (op == "-")
+	{
+		returnDataType = getReturnDataType(operandType);
+	}
+	else if (op == "YEAR")
+	{
+		returnDataType = COLUMN_INT;
+	}
+	else if (op == "MONTH")
+	{
+		returnDataType = COLUMN_INT;
+	}
+	else if (op == "DAY")
+	{
+		returnDataType = COLUMN_INT;
+	}
+	else if (op == "HOUR")
+	{
+		returnDataType = COLUMN_INT;
+	}
+	else if (op == "MINUTE")
+	{
+		returnDataType = COLUMN_INT;
+	}
+	else if (op == "SECOND")
+	{
+		returnDataType = COLUMN_INT;
+	}
+	else if (op == "ABS")
+	{
+		returnDataType = getReturnDataType(operandType);
+	}
+	else if (op == "SIN")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "COS")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "TAN")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "COT")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "ASIN")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "ACOS")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "ATAN")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "LOG10")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "LOG")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "EXP")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SQRT")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SQUARE")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "SIGN")
+	{
+		returnDataType = DataType::COLUMN_INT;
+	}
+	else if (op == "ROUND")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "FLOOR")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "CEIL")
+	{
+		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	dispatcher.addUnaryOperation(operandType, op);
+
+	std::string reg = getRegString(ctx);
+	pushArgument(reg.c_str(), returnDataType);
+	pushTempResult(reg, returnDataType);
 }
 
 void CpuWhereListener::exitIntLiteral(GpuSqlParser::IntLiteralContext * ctx)
