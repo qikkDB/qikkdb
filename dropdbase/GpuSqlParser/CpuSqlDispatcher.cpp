@@ -80,6 +80,43 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const s
 	{
 		cpuDispatcherFunctions.push_back(modFunctions[left * DataType::DATA_TYPE_SIZE + right]);
 	}
+
+	else if (op == "|")
+	{
+		cpuDispatcherFunctions.push_back(bitwiseOrFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "&")
+	{
+		cpuDispatcherFunctions.push_back(bitwiseAndFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "^")
+	{
+		cpuDispatcherFunctions.push_back(bitwiseXorFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "<<")
+	{
+		cpuDispatcherFunctions.push_back(bitwiseLeftShiftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == ">>")
+	{
+		cpuDispatcherFunctions.push_back(bitwiseRightShiftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "LOG")
+	{
+		cpuDispatcherFunctions.push_back(logarithmFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "POW")
+	{
+		cpuDispatcherFunctions.push_back(powerFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "ROOT")
+	{
+		cpuDispatcherFunctions.push_back(rootFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "ATAN2")
+	{
+		cpuDispatcherFunctions.push_back(arctangent2Functions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
 }
 
 void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)

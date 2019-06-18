@@ -15,7 +15,7 @@ int32_t CpuSqlDispatcher::arithmeticUnaryCol()
 	std::string colPointerName = getPointerName(colName);
 	auto colVal = allocatedPointers.at(colPointerName);
 
-	int32_t * result = allocateRegister<int32_t>(reg, 1, std::get<2>(colVal));
+	int32_t * result = allocateRegister<int32_t>(reg, 1, std::get<2>(colVal) || !OP::isMonotonous);
 	result[0] = OP{}.operator()(reinterpret_cast<T*>(std::get<0>(colVal))[0]);
 
 	std::cout << "Where evaluation arithmeticUnaryCol: " << colName << ", " << reg << ": " << result[0] << std::endl;

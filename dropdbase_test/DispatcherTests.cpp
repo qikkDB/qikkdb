@@ -4595,9 +4595,7 @@ TEST(DispatcherTests, DoubleAndConstConstFalseLeftZero)
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	auto &payloads = result->payloads().at("TableA.colDouble1");
-
-	ASSERT_EQ(payloads.doublepayload().doubledata_size(), 0);
+	ASSERT_EQ(result->payloads().size(), 0);
 }
 
 TEST(DispatcherTests, DoubleAndConstConstFalseBothZero)
@@ -4608,9 +4606,7 @@ TEST(DispatcherTests, DoubleAndConstConstFalseBothZero)
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	auto &payloads = result->payloads().at("TableA.colDouble1");
-
-	ASSERT_EQ(payloads.doublepayload().doubledata_size(), 0);
+	ASSERT_EQ(result->payloads().size(), 0);
 }
 
 
@@ -10193,3 +10189,20 @@ TEST(DispatcherTests, CreateAlterDropTable)
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
 }
 
+TEST(DispatcherTests, WhereEvaluation)
+{
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ((colInteger2 != 500) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	FAIL();
+}
+
+TEST(DispatcherTests, WhereEvaluationColColPropagation)
+{
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ((colInteger2 > colInteger1) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	FAIL();
+}

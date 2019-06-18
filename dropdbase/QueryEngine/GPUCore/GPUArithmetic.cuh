@@ -40,6 +40,7 @@ namespace ArithmeticOperations
 
 	struct addNoCheck
 	{
+		static constexpr bool isMonotonous = true;
 		template<typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b) const
 		{
@@ -70,6 +71,7 @@ namespace ArithmeticOperations
 
 	struct subNoCheck
 	{
+		static constexpr bool isMonotonous = true;
 		template<typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b) const
 		{
@@ -132,6 +134,7 @@ namespace ArithmeticOperations
 
 	struct mulNoCheck
 	{
+		static constexpr bool isMonotonous = true;
 		template<typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b) const
 		{
@@ -159,6 +162,7 @@ namespace ArithmeticOperations
 
 	struct divNoCheck
 	{
+		static constexpr bool isMonotonous = true;
 		template<typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b) const
 		{
@@ -189,6 +193,7 @@ namespace ArithmeticOperations
 
 	struct modNoCheck
 	{
+		static constexpr bool isMonotonous = true;
 		template<typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b) const
 		{
@@ -210,11 +215,31 @@ namespace ArithmeticOperations
 		}
 	};
 
+	struct bitwiseAndNoCheck
+	{
+		static constexpr bool isMonotonous = false;
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b)
+		{
+			return a & b;
+		}
+	};
+
 	/// Bitwise operation or
 	struct bitwiseOr
 	{
 		template<typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		{
+			return a | b;
+		}
+	};
+
+	struct bitwiseOrNoCheck
+	{
+		static constexpr bool isMonotonous = false;
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b)
 		{
 			return a | b;
 		}
@@ -230,6 +255,16 @@ namespace ArithmeticOperations
 		}
 	};
 
+	struct bitwiseXorNoCheck
+	{
+		static constexpr bool isMonotonous = false;
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b)
+		{
+			return a ^ b;
+		}
+	};
+
 	/// Bitwise operation left shift
 	struct bitwiseLeftShift
 	{
@@ -240,11 +275,31 @@ namespace ArithmeticOperations
 		}
 	};
 
+	struct bitwiseLeftShiftNoCheck
+	{
+		static constexpr bool isMonotonous = false;
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b)
+		{
+			return a << b;
+		}
+	};
+
 	/// Bitwise operation right shift
 	struct bitwiseRightShift
 	{
 		template<typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		{
+			return a >> b;
+		}
+	};
+
+	struct bitwiseRightShiftNoCheck
+	{
+		static constexpr bool isMonotonous = false;
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b)
 		{
 			return a >> b;
 		}
@@ -261,12 +316,34 @@ namespace ArithmeticOperations
 		}
 	};
 
+	struct logarithmNoCheck
+	{
+		static constexpr bool isMonotonous = true;
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b) const
+		{
+			return logf(a) / logf(b);
+		}
+	};
+
 	/// Mathematical function arcus tangent
 	struct arctangent2
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		{
+			return atan2f(a, b);
+		}
+	};
+
+	struct arctangent2NoCheck
+	{
+		static constexpr bool isMonotonous = true;
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b) const
 		{
 			return atan2f(a, b);
 		}
@@ -283,6 +360,17 @@ namespace ArithmeticOperations
 		}
 	};
 
+	struct powerNoCheck
+	{
+		static constexpr bool isMonotonous = false;
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b) const
+		{
+			return powf(a, b);
+		}
+	};
+
 	/// Mathematical function root
 	struct root
 	{
@@ -291,6 +379,17 @@ namespace ArithmeticOperations
 		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			return powf(a, 1/b);
+		}
+	};
+
+	struct rootNoCheck
+	{
+		static constexpr bool isMonotonous = false;
+		static constexpr bool isFloatRetType = true;
+		template<typename T, typename U, typename V>
+		__device__ __host__ T operator()(U a, V b) const
+		{
+			return powf(a, 1 / b);
 		}
 	};
 }

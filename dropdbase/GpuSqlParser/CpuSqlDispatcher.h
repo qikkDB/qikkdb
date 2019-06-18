@@ -54,6 +54,32 @@ private:
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> subFunctions;
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> modFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseOrFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseAndFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseXorFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseLeftShiftFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> arctangent2Functions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> containsFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> intersectFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> unionFunctions;
 
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE> yearFunctions;

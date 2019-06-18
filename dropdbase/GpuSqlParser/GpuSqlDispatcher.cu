@@ -140,6 +140,8 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 				if (err == 12)
 				{
 					std::cout << "Load skipped" << std::endl;
+					err = 0;
+					continue;
 				}
 				break;
 			}

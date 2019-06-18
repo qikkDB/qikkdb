@@ -19,7 +19,7 @@ int32_t CpuSqlDispatcher::filterColConst()
 
 	mask[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colVal))[0], cnst);
 
-	std::cout << "Where evaluation filterColConst: " << colName << ", " << reg << ": " << mask[0] << std::endl;
+	std::cout << "Where evaluation filterColConst" <<  (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " <<  reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
 
 	return 0;
 }
@@ -40,7 +40,7 @@ int32_t CpuSqlDispatcher::filterConstCol()
 
 	mask[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colVal))[0]);
 
-	std::cout << "Where evaluation filterConstCol: " << colName << ", " << reg << ": " << static_cast<int64_t>(mask[0]) << std::endl;
+	std::cout << "Where evaluation filterConstCol" << (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
 
 	return 0;
 }
@@ -64,16 +64,17 @@ int32_t CpuSqlDispatcher::filterColCol()
 		loadCol<T>(colNameLeft);
 		loadCol<U>(colNameRight);
 
-		mask = allocateRegister<int8_t>(reg, 1, true);
 		std::string colPointerNameLeft = getPointerName(colNameLeft);
 		std::string colPointerNameRight = getPointerName(colNameRight);
 
 		auto colValLeft = allocatedPointers.at(colPointerNameLeft);
 		auto colValRight = allocatedPointers.at(colPointerNameRight);
+
+		mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colValLeft) || std::get<2>(colValRight));
 		mask[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValLeft))[0], reinterpret_cast<U*>(std::get<0>(colValRight))[0]);
 	}
 
-	std::cout << "Where evaluation filterColCol: " << colNameLeft << ", " << colNameRight << ", " << reg << ": " << mask[0] << std::endl;
+	std::cout << "Where evaluation filterColCol" << (evaluateMin ? "_min" : "_max") << ": " << colNameLeft << ", " << colNameRight << ", " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
 
 	return 0;
 }
@@ -88,7 +89,7 @@ int32_t CpuSqlDispatcher::filterConstConst()
 	int8_t * mask = allocateRegister<int8_t>(reg, 1, false);
 	mask[0] = OP{}.template operator() < T, U > (constLeft, constRight);
 
-	std::cout << "Where evaluation filterConstConst: " << reg << ": " << mask[0] << std::endl;
+	std::cout << "Where evaluation filterConstConst" << (evaluateMin ? "_min" : "_max") << ": " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
 
 	return 0;
 }
@@ -109,7 +110,7 @@ int32_t CpuSqlDispatcher::logicalColConst()
 
 	mask[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colVal))[0], cnst);
 
-	std::cout << "Where evaluation logicalConstCol: " << colName << ", " << reg << ": " << mask[0] << std::endl;
+	std::cout << "Where evaluation logicalConstCol" << (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
 
 	return 0;
 }
@@ -130,7 +131,7 @@ int32_t CpuSqlDispatcher::logicalConstCol()
 
 	mask[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colVal))[0]);
 
-	std::cout << "Where evaluation logicalColConst: " << colName << ", " << reg << ": " << mask[0] << std::endl;
+	std::cout << "Where evaluation logicalColConst" << (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
 
 	return 0;
 }
@@ -155,15 +156,16 @@ int32_t CpuSqlDispatcher::logicalColCol()
 		loadCol<T>(colNameLeft);
 		loadCol<U>(colNameRight);
 
-		mask = allocateRegister<int8_t>(reg, 1, true);
 		std::string colPointerNameLeft = getPointerName(colNameLeft);
 		std::string colPointerNameRight = getPointerName(colNameRight);
 		auto colValLeft = allocatedPointers.at(colPointerNameLeft);
 		auto colValRight = allocatedPointers.at(colPointerNameRight);
+
+		mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colValLeft) || std::get<2>(colValRight));
 		mask[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValLeft))[0], reinterpret_cast<U*>(std::get<0>(colValRight))[0]);
 	}
 
-	std::cout << "Where evaluation logicalColCol: " << colNameLeft << ", " << colNameRight << ", " << reg << ": " << mask[0] << std::endl;
+	std::cout << "Where evaluation logicalColCol" << (evaluateMin ? "_min" : "_max") << ": " << colNameLeft << ", " << colNameRight << ", " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
 
 	return 0;
 }
@@ -179,7 +181,7 @@ int32_t CpuSqlDispatcher::logicalConstConst()
 	int8_t * mask = allocateRegister<int8_t>(reg, 1, false);
 	mask[0] = OP{}.template operator() < T, U > (constLeft, constRight);
 
-	std::cout << "Where evaluation logicalConstConst: " << reg << ": " << mask[0] << std::endl;
+	std::cout << "Where evaluation logicalConstConst" << (evaluateMin ? "_min" : "_max") << ": " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
 
 	return 0;
 }

@@ -60,6 +60,10 @@ operations_date = ["year", "month", "day", "hour", "minute", "second"]
 operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
 
+operation_binary_monotonous = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
+operation_arithmetic_monotonous = ["mul", "div", "add", "sub", "mod", "logarithm", "arctangent2"]
+operation_arithmetic_non_monotonous = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift", "power", "root"]
+
 for operation in ["whereResult"]:
     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
                   "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
@@ -307,7 +311,7 @@ for operation in operations_logical:
     print(declaration)
 print()
 
-for operation in ["mul", "div", "add", "sub", "mod"]:
+for operation in operations_arithmetic:
     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
 
@@ -349,6 +353,7 @@ for operation in ["mul", "div", "add", "sub", "mod"]:
 
     print(declaration)
 print()
+
 
 for operation in operations_date:
     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction, " \
