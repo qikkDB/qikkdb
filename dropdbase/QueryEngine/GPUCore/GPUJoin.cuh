@@ -22,8 +22,8 @@ __device__ int32_t hash(int32_t key)
 }
 
 template<typename T>
-__global__ void kernel_calc_hash_histo(int32_t* HashTableHisto, 
-									   int32_t hashTableSize, 
+__global__ void kernel_calc_hash_histo(int32_t* HashTableHisto,
+									   int32_t hashTableSize,
 									   T* RTable, 
 									   int32_t dataElementCount)
 {
@@ -48,10 +48,10 @@ __global__ void kernel_calc_hash_histo(int32_t* HashTableHisto,
 
 template <typename T>
 __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
-										   int32_t* HashTablePrefixSum, 
-										   int32_t hashTableSize,
+										   int32_t* HashTablePrefixSum,
+										   size_t hashTableSize,
                                            T* RTable,
-                                           int32_t dataElementCount)
+										   size_t dataElementCount)
 {
     __shared__ int32_t shared_memory[HASH_TABLE_SUB_SIZE];
 
@@ -70,16 +70,16 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
 }
 
 template <typename T>
-__global__ void kernel_calc_join_histo(int32_t* JoinTableHisto, 
-									   int32_t joinTableSize,
+__global__ void kernel_calc_join_histo(uint64_t* JoinTableHisto,
+									   size_t joinTableSize,
 									   int32_t* HashTableHisto, 
 									   int32_t* HashTablePrefixSum,
                                        int32_t* HashTableHashBuckets,
-                                       int32_t hashTableSize,
+									   size_t hashTableSize,
 									   T* RTable, 
-									   int32_t dataElementCountRTable,
+									   size_t dataElementCountRTable,
 									   T* STable,
-                                       int32_t dataElementCountSTable)
+									   size_t dataElementCountSTable)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -90,7 +90,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 		JoinTableHisto[i] = 0;
 
 		// Count the number of result hash matches for this entry
-        int32_t hashMatchCounter = 0;
+		uint64_t hashMatchCounter = 0;
         
 		// Hash table buckets probing and occurance counting
         int32_t hash_idx = hash(STable[i]);
@@ -113,25 +113,24 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 template <typename T>
 __global__ void kernel_distribute_results_to_buffer(T* QTableA,
                                                     T* QTableB,
-                                                    int32_t* resultTableSize,
-													int32_t* JoinTableHisto,
-                                                    int32_t* JoinTablePrefixSum,
-                                                    int32_t joinTableSize,
+													uint64_t* JoinTableHisto,
+													uint64_t* JoinTablePrefixSum,
+													size_t joinTableSize,
                                                     int32_t* HashTableHisto,
                                                     int32_t* HashTablePrefixSum,
                                                     int32_t* HashTableHashBuckets,
-                                                    int32_t hashTableSize,
+													size_t hashTableSize,
 													T* RTable,
-													int32_t dataElementCountRTable,
+													size_t dataElementCountRTable,
                                                     T* STable,
-                                                    int32_t dataElementCountSTable)
+													size_t dataElementCountSTable)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
     for (int32_t i = idx; i < joinTableSize && i < dataElementCountSTable; i += stride)
     {
-		int32_t join_prefix_sum_offset_index = 0;
+		uint64_t join_prefix_sum_offset_index = 0;
 		// Hash table buckets probing
 		int32_t hash_idx = hash(STable[i]);
 		for (int32_t j = hash_idx; j < hashTableSize; j += HASH_TABLE_SUB_SIZE)
@@ -157,18 +156,18 @@ __global__ void kernel_distribute_results_to_buffer(T* QTableA,
 class GPUJoin
 {
 private:
-    int32_t hashTableSize_;
-    int32_t joinTableSize_;
+	size_t hashTableSize_;
+	size_t joinTableSize_;
 
     int32_t* HashTableHisto_;
     int32_t* HashTablePrefixSum_;
     int32_t* HashTableHashBuckets_;
 
-	int32_t* JoinTableHisto_;
-    int32_t* JoinTablePrefixSum_;
+	uint64_t* JoinTableHisto_;
+	uint64_t* JoinTablePrefixSum_;
 
 public:
-    GPUJoin(int32_t hashTableSize) :
+    GPUJoin(size_t hashTableSize) :
 		hashTableSize_(hashTableSize), 
 		joinTableSize_(hashTableSize)
 	{
@@ -191,14 +190,7 @@ public:
     }
 
 	template <typename T>
-	void clean_buffer(T *buff, int32_t size)
-	{
-		kernel_clean_buffer << <Context::getInstance().calcGridDim(size),
-			Context::getInstance().getBlockDim() >> > (buff, size);
-	}
-
-	template <typename T>
-    void HashBlock(T* RTable, int32_t dataElementCount)
+    void HashBlock(T* RTable, size_t dataElementCount)
     {
 		//////////////////////////////////////////////////////////////////////////////
 		// Check for hash table limits
@@ -245,7 +237,7 @@ public:
     }
 
 	template<typename T>
-    void JoinBlock(T* QTableA, T* QTableB, int32_t* resultTableSize, T* RTable, int32_t dataElementCountRTable, T* STable, int32_t dataElementCountSTable)
+    void JoinBlockCountMatches(size_t* resultTableSize, T* RTable, size_t dataElementCountRTable, T* STable, size_t dataElementCountSTable)
 	{
 		//////////////////////////////////////////////////////////////////////////////
         // Check for join table limits
@@ -286,68 +278,32 @@ public:
         cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, JoinTableHisto_,
                                       JoinTablePrefixSum_, joinTableSize_);
         GPUMemory::free(tempBuffer);
-
-		//////////////////////////////////////////////////////////////////////////////
-		// Distribute the result data to the result buffer
-        kernel_distribute_results_to_buffer<<<Context::getInstance().calcGridDim(joinTableSize_),
-                                              Context::getInstance().getBlockDim()>>>(QTableA, 
-																					  QTableB,
-																					  resultTableSize, 
-																					  JoinTableHisto_, 
-																					  JoinTablePrefixSum_,
-																					  joinTableSize_, 
-																					  HashTableHisto_,
-																					  HashTablePrefixSum_,
-																					  HashTableHashBuckets_, 
-																					  hashTableSize_,
-																					  RTable,
-																					  dataElementCountRTable,
-																					  STable, 
-																					  dataElementCountSTable);
 		
 		//////////////////////////////////////////////////////////////////////////////
 		// Calculate the result table size
-		GPUMemory::copyDeviceToHost(resultTableSize, (JoinTablePrefixSum_ + joinTableSize_ - 1), 1);
+		uint64_t resultTableSizeTemp;
+		GPUMemory::copyDeviceToHost(&resultTableSizeTemp, (JoinTablePrefixSum_ + joinTableSize_ - 1), 1);
+		*resultTableSize = resultTableSizeTemp;
 	}
 
-	void printDebugInfo()
+	template<typename T>
+	void JoinBlockWriteResults(T* QTableA, T* QTableB, T* RTable, size_t dataElementCountRTable, T* STable, size_t dataElementCountSTable)
 	{
-		hashTableSize_;
-		joinTableSize_;
-
-		int32_t* h_HashTableHisto_ = new int32_t[hashTableSize_];
-		int32_t* h_HashTablePrefixSum_ = new int32_t[hashTableSize_];
-		int32_t* h_HashTableHashBuckets_ = new int32_t[hashTableSize_];
-
-		int32_t* h_JoinTableHisto_ = new int32_t[joinTableSize_];
-		int32_t* h_JoinTablePrefixSum_ = new int32_t[joinTableSize_];
-
-		GPUMemory::copyDeviceToHost(h_HashTableHisto_, HashTableHisto_, hashTableSize_);
-		GPUMemory::copyDeviceToHost(h_HashTablePrefixSum_, HashTablePrefixSum_, hashTableSize_);
-		GPUMemory::copyDeviceToHost(h_HashTableHashBuckets_, HashTableHashBuckets_, hashTableSize_);
-
-		GPUMemory::copyDeviceToHost(h_JoinTableHisto_, JoinTableHisto_, joinTableSize_);
-		GPUMemory::copyDeviceToHost(h_JoinTablePrefixSum_, JoinTablePrefixSum_, joinTableSize_);
-
-		std::printf("####################\n");
-		std::printf("#### DEBUG INFO ####\n");
-		std::printf("HASH TABLE\n");
-		for (int32_t i = 0; i < hashTableSize_; i++)
-		{
-			std::printf("%d %d %d\n", h_HashTableHisto_[i], i == 0 ? 0 : h_HashTablePrefixSum_[i - 1], h_HashTableHashBuckets_[i]);
-		}
-		std::printf("JOIN TABLE\n");
-		for (int32_t i = 0; i < joinTableSize_; i++)
-		{
-			std::printf("%d %d\n", h_JoinTableHisto_[i], i == 0 ? 0 : h_JoinTablePrefixSum_[i - 1]);
-		}
-		std::printf("#####################\n");
-
-		delete[] h_HashTableHisto_;
-		delete[] h_HashTablePrefixSum_;
-		delete[] h_HashTableHashBuckets_;
-
-		delete[] h_JoinTableHisto_;
-		delete[] h_JoinTablePrefixSum_;
+		//////////////////////////////////////////////////////////////////////////////
+		// Distribute the result data to the result buffer
+		kernel_distribute_results_to_buffer << <Context::getInstance().calcGridDim(joinTableSize_),
+			Context::getInstance().getBlockDim() >> > (QTableA,
+													   QTableB,
+													   JoinTableHisto_,
+													   JoinTablePrefixSum_,
+													   joinTableSize_,
+													   HashTableHisto_,
+													   HashTablePrefixSum_,
+													   HashTableHashBuckets_,
+													   hashTableSize_,
+													   RTable,
+													   dataElementCountRTable,
+													   STable,
+													   dataElementCountSTable);
 	}
 };
