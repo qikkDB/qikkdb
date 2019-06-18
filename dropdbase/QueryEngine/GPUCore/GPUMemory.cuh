@@ -90,6 +90,20 @@ namespace GPUMemory
 		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Asynchronous memory allocation and setting of data blocks(buffers) on the GPU with the
+    /// respective size of the input parameter type 
+	///<param name="p_Block">pointer to pointer wich will points to allocated memory block on the GPU</param> 
+	/// <param name="value">value to set the memory to (always has to be int, because of cudaMemset; and 
+	/// just lowest byte will be used and all bytes in the allocated buffer will be set to that byte value) 
+	/// e.g. min: 0, max: 255, only these values are valid </param> 
+	/// <param name="dataElementCount">count of elements in the block with size sizeof(T)*dataElementCount</param>
+	template<typename T>
+	void memset(T *p_Block, int value, size_t dataElementCount)
+	{
+		cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));
+		CheckCudaError(cudaGetLastError());
+	}
+
 	/// Synchronous memory allocation and setting of data blocks(buffers) on the GPU with the respective 
 	/// size of the input parameter type
 	/// <param name="p_Block">pointer to pointer wich will points to allocated memory block on the GPU</param>
@@ -108,19 +122,6 @@ namespace GPUMemory
 		CheckCudaError(cudaGetLastError());
 	}
 
-	/// Asynchronous memory allocation and setting of data blocks(buffers) on the GPU with the
-    /// respective size of the input parameter type 
-	///<param name="p_Block">pointer to pointer wich will points to allocated memory block on the GPU</param> 
-	/// <param name="value">value to set the memory to (always has to be int, because of cudaMemset; and 
-	/// just lowest byte will be used and all bytes in the allocated buffer will be set to that byte value) 
-	/// e.g. min: 0, max: 255, only these values are valid </param> 
-	/// <param name="dataElementCount">count of elements in the block with size sizeof(T)*dataElementCount</param>
-	template<typename T>
-	void memset(T *p_Block, int value, size_t dataElementCount)
-	{
-		cudaMemsetAsync(p_Block, value, dataElementCount * sizeof(T));
-		CheckCudaError(cudaGetLastError());
-	}
 	#ifdef __CUDACC__
 	template<typename T>
 	static void fillArray(T *p_Block, T value, size_t dataElementCount)
