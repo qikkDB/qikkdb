@@ -103,7 +103,7 @@ namespace GPUMemory
 	{
 		*p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
 
-		memset(*p_Block, value, dataElementCount);
+		GPUMemory::memset(*p_Block, value, dataElementCount);
 
 		CheckCudaError(cudaGetLastError());
 	}
