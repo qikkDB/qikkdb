@@ -17,7 +17,6 @@ query_engine_error::query_engine_error(QueryEngineErrorType queryEngineErrorType
 
 void CheckCudaError(cudaError_t cudaError)
 {
-#define DEBUG
 #ifdef DEBUG
 	cudaDeviceSynchronize();
 #endif // DEBUG

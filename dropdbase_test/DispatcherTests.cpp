@@ -10353,7 +10353,8 @@ TEST(DispatcherTests, StringLeftColConst)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunFunctionColConstQuery("LEFT", col, "2", table);
+	const int32_t testLen = 2;
+	auto &payloads = RunFunctionColConstQuery("LEFT", col, std::to_string(testLen), table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10364,7 +10365,7 @@ TEST(DispatcherTests, StringLeftColConst)
 		auto block = column->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			expectedResultsStrings.push_back(block->GetData()[k].substr(0,2));
+			expectedResultsStrings.push_back(block->GetData()[k].substr(0, testLen));
 		}
 	}
 
@@ -10375,7 +10376,8 @@ TEST(DispatcherTests, StringRightColConst)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunFunctionColConstQuery("RIGHT", col, "3", table);
+	const int32_t testLen = 3;
+	auto &payloads = RunFunctionColConstQuery("RIGHT", col, std::to_string(testLen), table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10386,7 +10388,8 @@ TEST(DispatcherTests, StringRightColConst)
 		auto block = column->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			expectedResultsStrings.push_back(block->GetData()[k].substr(block->GetData()[k].size() - 3));
+			size_t len = block->GetData()[k].size();
+			expectedResultsStrings.push_back(block->GetData()[k].substr(len < testLen ? 0 : len - testLen));
 		}
 	}
 

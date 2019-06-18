@@ -10,6 +10,18 @@
 #include "MaybeDeref.cuh"
 #include "GPUReconstruct.cuh"
 
+/// Get index of first char of string according to indices and index i
+__device__ int64_t GetIndex(int64_t * indices, const int64_t i)
+{
+	return (i == 0) ? 0 : indices[i - 1];
+}
+
+/// Get length of string according to indices and index i
+__device__ int32_t GetLength(int64_t * indices, const int64_t i)
+{
+	return static_cast<int32_t>(indices[i] - GetIndex(indices, i));
+}
+
 template <typename T>
 __global__ void
 kernel_predict_length_cut(int32_t* newLengths, GPUMemory::GPUString inCol, int32_t stringCount, T lengthLimit, int32_t numberCount)
@@ -18,11 +30,9 @@ kernel_predict_length_cut(int32_t* newLengths, GPUMemory::GPUString inCol, int32
     const int32_t stride = blockDim.x * gridDim.x;
 
     const bool stringCol = (stringCount > 1);
-    for (int32_t i = idx; i < stringCol ? stringCount : numberCount; i += stride)
+    for (int32_t i = idx; i < (stringCol ? stringCount : numberCount); i += stride)
     {
-        const int32_t stringI = stringCol ? i : 0;
-        const int64_t index = (stringI == 0) ? 0 : inCol.stringIndices[stringI - 1];
-        const int32_t length = static_cast<int32_t>(inCol.stringIndices[stringI] - index);
+        const int32_t length = GetLength(inCol.stringIndices, stringCol ? i : 0);
         newLengths[i] = min(length, static_cast<int32_t>(maybe_deref(lengthLimit, i)));
     }
 }
@@ -30,7 +40,8 @@ kernel_predict_length_cut(int32_t* newLengths, GPUMemory::GPUString inCol, int32
 
 template <typename OP>
 __global__ void
-kernel_string_cut(GPUMemory::GPUString outCol, int32_t* newLengths, int32_t outStringCount, GPUMemory::GPUString inCol, int32_t inStringCount)
+kernel_string_cut(GPUMemory::GPUString outCol, int32_t* newLengths, int32_t outStringCount,
+	GPUMemory::GPUString inCol, int32_t inStringCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -42,11 +53,13 @@ kernel_string_cut(GPUMemory::GPUString outCol, int32_t* newLengths, int32_t outS
 		const int32_t outI = (outStringCount > 1) ? i : 0;
         for (int32_t j = 0; j < newLengths[outI]; j++)
         {
-            outCol.allChars[outCol.stringIndices[outI] + j] =
-                inCol.allChars[inCol.stringIndices[inI] + j + OP{}(newLengths[outI], outCol.stringIndices, inI)];
+			outCol.allChars[GetIndex(outCol.stringIndices, outI) + j] =
+                inCol.allChars[GetIndex(inCol.stringIndices, inI) + j +
+				OP{}(newLengths[outI], inCol.stringIndices, inI)];
         }
     }
 }
+
 
 namespace StringBinaryOperations
 {
@@ -62,7 +75,7 @@ namespace StringBinaryOperations
 	{
 		__device__ int32_t operator()(int32_t newLength, int64_t* oldIndices, const int32_t i) const
 		{
-			return static_cast<int32_t>(oldIndices[i] - ((i == 0) ? 0 : oldIndices[i - 1])) - newLength;
+			return GetLength(oldIndices, i) - newLength;
 		}
 	};
 } // namespace StringBinaryOperations
@@ -89,16 +102,13 @@ private:
 		int32_t outputCount = max(stringCount, numberCount);
 
 		// Predict new lengths
-		cuda_ptr<int32_t> newLenghts(outputCount);
+		cuda_ptr<int32_t> newLengths(outputCount);
 		kernel_predict_length_cut << < context.calcGridDim(outputCount), context.getBlockDim() >> >
-			(newLenghts.get(), ACol, stringCount, BCol, numberCount);
-
-		//DEBUG
-		cudaDeviceSynchronize();
+			(newLengths.get(), ACol, stringCount, BCol, numberCount);
 
 		// Alloc and compute new stringIndices
 		GPUMemory::alloc(&(outCol.stringIndices), outputCount);
-		GPUReconstruct::PrefixSum(outCol.stringIndices, newLenghts.get(), outputCount);
+		GPUReconstruct::PrefixSum(outCol.stringIndices, newLengths.get(), outputCount);
 
 		// Get total char count and alloc allChars
 		int64_t outTotalCharCount;
@@ -107,7 +117,7 @@ private:
 
 		// Copy appropriate part of strings
 		kernel_string_cut<OP> << <context.calcGridDim(outputCount), context.getBlockDim() >> >
-			(outCol, newLenghts.get(), outputCount, ACol, stringCount);
+			(outCol, newLengths.get(), outputCount, ACol, stringCount);
 		
 		CheckCudaError(cudaGetLastError());
     }

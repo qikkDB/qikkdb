@@ -33,7 +33,7 @@ int32_t GpuSqlDispatcher::stringUnaryCol()
 		{
 			GPUMemory::GPUString result;
 			GPUStringUnary::Col<OP>(result, std::get<0>(column), retSize);
-			fillStringRegister(result, reg, retSize);
+			fillStringRegister(result, reg, retSize, true);
 		}
 	}
 	return 0;
@@ -53,7 +53,7 @@ int32_t GpuSqlDispatcher::stringUnaryConst()
 	{
 		GPUMemory::GPUString result;
 		GPUStringUnary::Const<OP>(result, gpuString);
-		fillStringRegister(result, reg, 1);
+		fillStringRegister(result, reg, 1, true);
 	}
 	return 0;
 }
@@ -144,7 +144,7 @@ int32_t GpuSqlDispatcher::stringBinaryColCol()
 		{
 			GPUMemory::GPUString result;
 			GPUStringBinary::ColCol<OP>(result, std::get<0>(columnLeft), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
-			fillStringRegister(result, reg, 1);
+			fillStringRegister(result, reg, retSize, true);
 		}
 	}
 	return 0;
@@ -178,7 +178,7 @@ int32_t GpuSqlDispatcher::stringBinaryColConst()
 		{
 			GPUMemory::GPUString result;
 			GPUStringBinary::ColConst<OP>(result, std::get<0>(column), cnst, retSize);
-			fillStringRegister(result, reg, 1);
+			fillStringRegister(result, reg, retSize, true);
 		}
 	}
 	return 0;
@@ -213,7 +213,7 @@ int32_t GpuSqlDispatcher::stringBinaryConstCol()
 		{
 			GPUMemory::GPUString result;
 			GPUStringBinary::ConstCol<OP>(result, gpuString, reinterpret_cast<U*>(std::get<0>(column)), retSize);
-			fillStringRegister(result, reg, 1);
+			fillStringRegister(result, reg, retSize, true);
 		}
 	}
 	return 0;
@@ -234,7 +234,7 @@ int32_t GpuSqlDispatcher::stringBinaryConstConst()
 	{
 		GPUMemory::GPUString result;
 		GPUStringBinary::ConstConst<OP>(result, gpuString, cnstRight, 1);
-		fillStringRegister(result, reg, 1);
+		fillStringRegister(result, reg, 1, true);
 	}
 	return 0;
 }
