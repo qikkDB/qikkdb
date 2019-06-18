@@ -339,8 +339,9 @@ public:
     }
 
 	template <typename T>
-	static void JoinTableRonS(std::vector<int32_t> &QATable, 
+	static void JoinTableRonS(std::vector<int32_t> &QATable,
 							  std::vector<int32_t> &QBTable,
+							  int32_t &resultQTableSize,
 							  std::vector<T> &RTable,
 							  std::vector<T> &STable)
 	{
@@ -349,6 +350,7 @@ public:
 		const int32_t RTABLE_SIZE = RTable.size();
 		const int32_t STABLE_SIZE = STable.size();
 
+		resultQTableSize = 0;
 		QATable.resize(0);
 		QBTable.resize(0);
 
@@ -410,20 +412,18 @@ public:
 
 				// Copy the result blocks back and store them in the result set
 				// The results can be at most n*n big
-				int32_t *QAresult = new int32_t[processedQBlockResultSize];
-				int32_t *QBresult = new int32_t[processedQBlockResultSize];
+				std::vector<int32_t> QAresult(processedQBlockResultSize);
+				std::vector<int32_t> QBresult(processedQBlockResultSize);
 
-				GPUMemory::copyDeviceToHost(QAresult, d_QATableBlock, processedQBlockResultSize);
-				GPUMemory::copyDeviceToHost(QBresult, d_QBTableBlock, processedQBlockResultSize);
+				GPUMemory::copyDeviceToHost(&QAresult[0], d_QATableBlock, processedQBlockResultSize);
+				GPUMemory::copyDeviceToHost(&QBresult[0], d_QBTableBlock, processedQBlockResultSize);
 
 				for (int32_t i = 0; i < processedQBlockResultSize; i++)
 				{
 					QATable.push_back(r + QAresult[i]);	// Write the original idx
 					QBTable.push_back(s + QBresult[i]);   // Write the original idx
+					resultQTableSize++;
 				}
-
-				delete[] QAresult;
-				delete[] QBresult;
 
 				GPUMemory::free(d_QATableBlock);
 				GPUMemory::free(d_QBTableBlock);

@@ -28,14 +28,15 @@ TEST(GPUJoinTests, JoinTest)
 	for (int32_t i = 0; i < STABLE_SIZE; i++) { STable.push_back(rand()); }
 
 	// Run the join
-	GPUJoin::JoinTableRonS(QATable, QBTable, RTable, STable);
+	int32_t resultQTableSize;
+	GPUJoin::JoinTableRonS(QATable, QBTable, resultQTableSize, RTable, STable);
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// Check the results 
-	/*
-	for(int32_t i = 0; i < QTableResultSizeTotal; i++)
+	
+	for(int32_t i = 0; i < resultQTableSize; i++)
 	{
 		ASSERT_EQ(RTable[QATable[i]], STable[QBTable[i]]);
 	}
-	*/
+	
 }
