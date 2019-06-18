@@ -11,10 +11,10 @@ TEST(GPUJoinTests, JoinTest)
 	const int32_t SEED = 42;
 
 	// hash block size <= table size !!!!
-	const size_t HASH_BLOCK_SIZE = 1 << 20;
+	const size_t HASH_BLOCK_SIZE = 1 << 21;
 
-	const size_t RTABLE_SIZE = 1 << 25;
-	const size_t STABLE_SIZE = 1 << 25;
+	const size_t RTABLE_SIZE = 1 << 23;
+	const size_t STABLE_SIZE = 1 << 23;
 
 	std::vector<int32_t> RTable(RTABLE_SIZE);	// The first input table
 	std::vector<int32_t> STable(STABLE_SIZE);	// The second input table
@@ -22,7 +22,7 @@ TEST(GPUJoinTests, JoinTest)
 	std::vector<int32_t> QATable;				// The first result table
 	std::vector<int32_t> QBTable;				// The second result table
 
-	int32_t QTableResultSizeTotal = 0;			// Total result size
+	size_t QTableResultSizeTotal = 0;			// Total result size
 
 	// Fill the buffers with random data
 	srand(SEED);
@@ -94,7 +94,7 @@ TEST(GPUJoinTests, JoinTest)
 			GPUMemory::copyDeviceToHost(QAresult, d_QATableBlock, processedQBlockResultSize);
 			GPUMemory::copyDeviceToHost(QBresult, d_QBTableBlock, processedQBlockResultSize);
 			
-			for(int32_t i = 0; i < processedQBlockResultSize; i++)
+			for(size_t i = 0; i < processedQBlockResultSize; i++)
 			{
 				QATable.push_back(r + QAresult[i]);	// Write the original idx
 				QBTable.push_back(s + QBresult[i]);   // Write the original idx
@@ -116,7 +116,7 @@ TEST(GPUJoinTests, JoinTest)
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// Check the results 
 
-	for(int32_t i = 0; i < QTableResultSizeTotal; i++)
+	for(size_t i = 0; i < QTableResultSizeTotal; i++)
 	{
 		ASSERT_EQ(RTable[QATable[i]], STable[QBTable[i]]);
 	}
