@@ -10349,6 +10349,33 @@ TEST(DispatcherTests, StringLenConst)
 	ASSERT_EQ(payloads.intpayload().intdata()[0], text.length() - 2); // - 2 because of two quotes ""
 }
 
+TEST(DispatcherTests, StringLeftColCol)
+{
+	const std::string colStrName = "colString1";
+	const std::string colIntName = "colInteger1";
+	const std::string table = "TableA";
+	const int32_t testLen = 2;
+	auto &payloads = RunFunctionColConstQuery("LEFT", colStrName, "ABS(" + colIntName + ")", table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(colStrName).get());
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(colIntName).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = columnString->GetBlocksList()[i];
+		auto blockInt = columnInt->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResultsStrings.push_back(block->GetData()[k].substr(0, abs(blockInt->GetData()[k])));
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
 TEST(DispatcherTests, StringLeftColConst)
 {
 	const std::string col = "colString1";
@@ -10366,6 +10393,71 @@ TEST(DispatcherTests, StringLeftColConst)
 		for (int k = 0; k < (1 << 11); k++)
 		{
 			expectedResultsStrings.push_back(block->GetData()[k].substr(0, testLen));
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringLeftConstCol)
+{
+	const std::string text = "  ABCDabcdzZ [{\|}]_#90  ";
+	const std::string colIntName = "colInteger1";
+	const std::string table = "TableA";
+	auto &payloads = RunFunctionColConstQuery("LEFT", "\"" + text + "\"", "ABS(" + colIntName + ")", table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(colIntName).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResultsStrings.push_back(text.substr(0, abs(blockInt->GetData()[k])));
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringLeftConstConst)
+{
+	const std::string text = "  ABCDabcdzZ [{\|}]_#90  ";
+	const int32_t testLen = 2;
+	auto &payloads = RunFunctionColConstQuery("LEFT", "\"" + text + "\"", std::to_string(testLen), "TableA LIMIT 1");
+
+	std::vector<std::string> expectedResultsStrings;
+	
+	expectedResultsStrings.push_back(text.substr(0, testLen));
+	
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+
+TEST(DispatcherTests, StringRightColCol)
+{
+	const std::string colStrName = "colString1";
+	const std::string colIntName = "colInteger1";
+	const std::string table = "TableA";
+	auto &payloads = RunFunctionColConstQuery("RIGHT", colStrName, "ABS(" + colIntName + ")", table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(colStrName).get());
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(colIntName).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = columnString->GetBlocksList()[i];
+		auto blockInt = columnInt->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			int32_t cutLen = abs(blockInt->GetData()[k]);
+			size_t origLen = block->GetData()[k].size();
+			expectedResultsStrings.push_back(block->GetData()[k].substr(origLen < cutLen ? 0 : origLen - cutLen));
 		}
 	}
 
@@ -10396,6 +10488,44 @@ TEST(DispatcherTests, StringRightColConst)
 	AssertEqStringCol(payloads, expectedResultsStrings);
 }
 
+TEST(DispatcherTests, StringRightConstCol)
+{
+	const std::string text = "  ABCDabcdzZ [{\|}]_#90  ";
+	const std::string colIntName = "colInteger1";
+	const std::string table = "TableA";
+	auto &payloads = RunFunctionColConstQuery("RIGHT", "\"" + text + "\"", "ABS(" + colIntName + ")", table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(colIntName).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			int32_t cutLen = abs(blockInt->GetData()[k]);
+			size_t origLen = text.size();
+			expectedResultsStrings.push_back(text.substr(origLen < cutLen ? 0 : origLen - cutLen));
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringRightConstConst)
+{
+	const std::string text = "  ABCDabcdzZ [{\|}]_#90  ";
+	const int32_t testLen = 2;
+	auto &payloads = RunFunctionColConstQuery("RIGHT", "\"" + text + "\"", std::to_string(testLen), "TableA LIMIT 1");
+
+	std::vector<std::string> expectedResultsStrings;
+
+	size_t origLen = text.size();
+	expectedResultsStrings.push_back(text.substr(origLen < testLen ? 0 : origLen - testLen));
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
 
 // Polygon clipping tests
 /*
