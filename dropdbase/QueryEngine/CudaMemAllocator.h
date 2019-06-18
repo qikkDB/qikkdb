@@ -4,7 +4,7 @@
 #include <map>
 #include <unordered_map>
 #include <list>
-#include <cstdio>
+
 
 /// A class for memory allocation operations
 class CudaMemAllocator

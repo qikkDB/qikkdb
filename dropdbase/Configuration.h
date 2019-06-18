@@ -48,16 +48,16 @@ private:
 			try {
 				configurationValue = yamlParsed_[entryKey].as<T>();
 				//BOOST_LOG_TRIVIAL(info) << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
-				//std::cout << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
+				std::cerr << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
 			}
-			catch (YAML::TypedBadConversion<T>& e) {
+			catch (YAML::TypedBadConversion<T>&) {
 				//BOOST_LOG_TRIVIAL(warning) << "Configuration entry wrong conversion, using default value." << std::endl;
-				//std::cout << "Configuration entry wrong conversion, using default value." << std::endl;
+				std::cerr << "Configuration entry wrong conversion, using default value." << std::endl;
 			}			
 		}
 		else {
             //BOOST_LOG_TRIVIAL(warning) << "Configuration entry not found, using default value." << std::endl;
-			//std::cout << "Configuration entry not found, using default value." << std::endl;
+			std::cerr << "Configuration entry not found, using default value." << std::endl;
 		}
 	}
 
@@ -65,27 +65,27 @@ public:
 	Configuration(Configuration const&) = delete;
 	void operator=(Configuration const&) = delete;
 	
-	const bool IsUsingGPU() {
+	bool IsUsingGPU() const {
 		return usingGPU_;
 	}
 
-	const std::string & GetDir() {
+	const std::string & GetDir() const {
 		return dir_;
 	}
 
-	const std::string & GetDatabaseDir() {
+	const std::string & GetDatabaseDir() const {
 		return databaseDir_;
 	}
 
-	const int GetBlockSize() {
+	int GetBlockSize() const {
 		return blockSize_;
 	}
 
-	const int GetBlockCount() {
+	int GetBlockCount() const {
 		return blockCount_;
 	}
 
-	const int GetGroupByBuckets() {
+	int GetGroupByBuckets() const {
 		return groupByBuckets_;
 	}
 
@@ -93,15 +93,15 @@ public:
 		return listenIP_;
 	}
 
-	const short GetListenPort() {
+	short GetListenPort() const {
 		return listenPort_;
 	}
 
-	const int GetTimeout() {
+	int GetTimeout() const {
 		return timeout_;
 	}
 
-	const int GetGPUCachePercentage()
+	int GetGPUCachePercentage() const
 	{
 		return GPUCachePercent_;
 	}
