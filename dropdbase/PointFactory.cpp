@@ -1,4 +1,5 @@
 #include "PointFactory.h"
+#include "Types/Point.pb.h"
 #include <sstream>
 #include <stdexcept>
 

@@ -10,6 +10,8 @@
 #include "../QueryEngine/Context.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../ComplexPolygonFactory.h"
+#include "../Database.h"
+#include "../Table.h"
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 std::mutex GpuSqlDispatcher::groupByMutex_;
@@ -106,6 +108,30 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 				{
 					std::cout << "Insert into completed sucessfully" << std::endl;
 				}
+				if (err == 6)
+				{
+					std::cout << "Create database completed sucessfully" << std::endl;
+				}
+				if (err == 7)
+				{
+					std::cout << "Drop database completed sucessfully" << std::endl;
+				}
+				if (err == 8)
+				{
+					std::cout << "Create table completed sucessfully" << std::endl;				
+				}
+				if (err == 9)
+				{
+					std::cout << "Drop table completed sucessfully" << std::endl;
+				}
+				if (err == 10)
+				{
+					std::cout << "Alter table completed sucessfully" << std::endl;
+				}
+				if (err == 11)
+				{
+					std::cout << "Create index completed sucessfully" << std::endl;
+				}
 				break;
 			}
 		}
@@ -155,6 +181,36 @@ void GpuSqlDispatcher::addShowTablesFunction()
 void GpuSqlDispatcher::addShowColumnsFunction()
 {
 	dispatcherFunctions.push_back(showColumnsFunction);
+}
+
+void GpuSqlDispatcher::addCreateDatabaseFunction()
+{
+	dispatcherFunctions.push_back(createDatabaseFunction);
+}
+
+void GpuSqlDispatcher::addDropDatabaseFunction()
+{
+	dispatcherFunctions.push_back(dropDatabaseFunction);
+}
+
+void GpuSqlDispatcher::addCreateTableFunction()
+{
+	dispatcherFunctions.push_back(createTableFunction);
+}
+
+void GpuSqlDispatcher::addDropTableFunction()
+{
+	dispatcherFunctions.push_back(dropTableFunction);
+}
+
+void GpuSqlDispatcher::addAlterTableFunction()
+{
+	dispatcherFunctions.push_back(alterTableFunction);
+}
+
+void GpuSqlDispatcher::addCreateIndexFunction()
+{
+	dispatcherFunctions.push_back(createIndexFunction);
 }
 
 void GpuSqlDispatcher::addInsertIntoFunction(DataType type)
@@ -699,6 +755,119 @@ int32_t GpuSqlDispatcher::showColumns()
 	return 4;
 }
 
+int32_t GpuSqlDispatcher::createDatabase()
+{
+	std::string newDbName = arguments.read<std::string>();
+	int32_t newDbBlockSize = arguments.read<int32_t>();
+	std::shared_ptr<Database> newDb = std::make_shared<Database>(newDbName.c_str(), newDbBlockSize);
+	Database::AddToInMemoryDatabaseList(newDb);
+	return 6;
+}
+
+int32_t GpuSqlDispatcher::dropDatabase()
+{
+	std::string dbName = arguments.read<std::string>();
+	Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
+	database->DeleteDatabaseFromDisk();
+	return 7;
+}
+
+int32_t GpuSqlDispatcher::createTable()
+{
+	std::unordered_map<std::string, DataType> newColumns;
+	std::unordered_map<std::string, std::unordered_set<std::string>> newIndices;
+
+	std::string newTableName = arguments.read<std::string>();
+
+	int32_t newColumnsCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < newColumnsCount; i++)
+	{
+		std::string newColumnName = arguments.read<std::string>();
+		int32_t newColumnDataType = arguments.read<int32_t>();
+		newColumns.insert({ newColumnName, static_cast<DataType>(newColumnDataType) });
+	}
+
+	std::unordered_set<std::string> allIndexColumns;
+
+	int32_t newIndexCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < newIndexCount; i++)
+	{
+		std::string newIndexName = arguments.read<std::string>();
+		int32_t newIndexColumnCount = arguments.read<int32_t>();
+		std::unordered_set<std::string> newIndexColumns;
+
+		for (int32_t j = 0; j < newIndexColumnCount; j++)
+		{
+			std::string newIndexColumn = arguments.read<std::string>();
+			newIndexColumns.insert(newIndexColumn);
+			allIndexColumns.insert(newIndexColumn);
+		}
+		newIndices.insert({ newIndexName, newIndexColumns });
+	}
+
+	std::vector<std::string> allIndexColumnsVector(allIndexColumns.begin(), allIndexColumns.end());
+	database->CreateTable(newColumns, newTableName.c_str()).SetSortingColumns(allIndexColumnsVector);
+	return 8;
+}
+
+int32_t GpuSqlDispatcher::dropTable()
+{
+	std::string tableName = arguments.read<std::string>();
+	database->GetTables().erase(tableName);
+	database->DeleteTableFromDisk(tableName.c_str());
+	return 9;
+}
+
+int32_t GpuSqlDispatcher::alterTable()
+{
+	std::string tableName = arguments.read<std::string>();
+
+	int32_t addColumnsCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < addColumnsCount; i++)
+	{
+		std::string addColumnName = arguments.read<std::string>();
+		int32_t addColumnDataType = arguments.read<int32_t>();
+		database->GetTables().at(tableName).CreateColumn(addColumnName.c_str(), static_cast<DataType>(addColumnDataType));
+		int64_t tableSize = database->GetTables().at(tableName).GetSize();
+		database->GetTables().at(tableName).GetColumns().at(addColumnName)->InsertNullData(tableSize);
+	}
+
+	int32_t dropColumnsCount = arguments.read<int32_t>();
+	for (int32_t i = 0; i < dropColumnsCount; i++)
+	{
+		std::string dropColumnName = arguments.read<std::string>();
+		database->GetTables().at(tableName).EraseColumn(dropColumnName);
+		database->DeleteColumnFromDisk(tableName.c_str(), dropColumnName.c_str());
+	}
+	return 10;
+}
+
+int32_t GpuSqlDispatcher::createIndex()
+{
+	std::string	indexName = arguments.read<std::string>();
+	std::string tableName = arguments.read<std::string>();
+	std::unordered_set<std::string> indexColumns;
+	std::unordered_set<std::string> sortingColumns;
+
+	int32_t indexColumnCount = arguments.read<int32_t>();
+	for (int i = 0; i < indexColumnCount; i++)
+	{
+		std::string indexColumn = arguments.read<std::string>();
+		indexColumns.insert(indexColumn);
+		sortingColumns.insert(indexColumn);
+	}
+
+	for (auto& column : database->GetTables().at(tableName).GetSortingColumns())
+	{
+		sortingColumns.insert(column);
+	}
+
+	std::vector<std::string> sortingColumnsVector(sortingColumns.begin(), sortingColumns.end());
+	database->GetTables().at(tableName).SetSortingColumns(sortingColumnsVector);
+
+	return 11;
+}
+
 
 void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<int32_t[]> &data, int32_t dataSize)
 {
@@ -819,6 +988,8 @@ void GpuSqlDispatcher::MergePayload(const std::string &trimmedKey, ColmnarDB::Ne
 				}
 				break;
 			}
+			default:
+				throw std::out_of_range("Unsupported aggregation type result");
 			}
 		}
 

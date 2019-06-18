@@ -16,12 +16,36 @@ struct DatabaseNotFoundException : public std::exception
     }
 };
 
+struct DatabaseAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Database already exists.";
+	}
+};
+
 struct TableNotFoundFromException : public std::exception
 {
     const char* what() const noexcept override
     {
         return "Table was not found in FROM clause.";
     }
+};
+
+struct TableAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Table already exists.";
+	}
+};
+
+struct TableIsFilledException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Index cannot be created on filled table.";
+	}
 };
 
 struct ColumnAmbiguityException : public std::exception
@@ -32,12 +56,36 @@ struct ColumnAmbiguityException : public std::exception
     }
 };
 
+struct ColumnAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Column already exists.";
+	}
+};
+
+struct ColumnAlreadyExistsInIndexException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Column already referenced multiple times in single index.";
+	}
+};
+
 struct ColumnNotFoundException : public std::exception
 {
     const char* what() const noexcept override
     {
         return "Column was not found in table.";
     }
+};
+
+struct IndexAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Index already exists in table.";
+	}
 };
 
 struct ColumnGroupByException : public std::exception
@@ -106,7 +154,7 @@ struct AliasRedefinitionException : public std::exception
 
 struct InvalidOperandsException : public std::exception
 {
-	InvalidOperandsException(std::string left, std::string right, std::string op) : 
+	InvalidOperandsException(const std::string& left, const std::string& right, const std::string &op) : 
 		message_("Invalid operands: " + left + " " + right + " for operation: " + op)
 	{
 

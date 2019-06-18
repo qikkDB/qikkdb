@@ -1,3 +1,4 @@
+
 #pragma once
 #include <string>
 #include <typeinfo>
@@ -6,7 +7,6 @@
 #include "BlockBase.h"
 #include "ComplexPolygonFactory.h"
 #include "IColumn.h"
-#include "Table.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 
@@ -91,6 +91,7 @@ class ColumnBase : public IColumn
 {
 private:
 	std::string name_;
+	int64_t size_;
 	int blockSize_;
 	std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
 
@@ -106,7 +107,7 @@ private:
 
 public:
 	ColumnBase(const std::string& name, int blockSize) :
-		name_(name), blockSize_(blockSize), blocks_()
+		name_(name), size_(0), blockSize_(blockSize), blocks_()
 	{
 		std::vector<std::unique_ptr<BlockBase<T>>> blocks;
 		blocks_[-1] = std::move(blocks);
@@ -119,12 +120,12 @@ public:
 		return name_;
 	}
 
-	virtual const float GetInitAvg() const override
+	virtual float GetInitAvg() const override
 	{
 		return initAvg_;
 	}
 
-	virtual const bool GetInitAvgIsSet() const override
+	virtual bool GetInitAvgIsSet() const override
 	{
 		return initAvgIsSet_;
 	}
@@ -273,11 +274,18 @@ public:
         return std::make_tuple(newIndexBlock, newIndexInBlock, newRange);
     }
 
+	virtual int64_t GetSize() const override
+	{
+		return size_;
+	}
+
     void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData, int groupId = -1)
     {
+		size_ += 1;
+
         if (blocks_[groupId].size() == 0)
         {
-            BlockBase<T>& block = AddBlock();
+            AddBlock();
         }
         BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
         block.InsertDataOnSpecificPosition(indexInBlock, columnData);
@@ -326,6 +334,7 @@ public:
     /// <param name="columnData">Data to be inserted</param>
 	void InsertData(const std::vector<T>& columnData, int groupId = -1, bool compress = false)
 	{
+		size_ += columnData.size();
 		int startIdx = 0;
 		if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
 		{
@@ -382,7 +391,7 @@ public:
     /// Insert null data into column
     /// </summary>
     /// <param name="length">Length of inserted data</param>
-    void InsertNullData(int length)
+    void InsertNullData(int length) override
     {
         InsertData(NullArray(length));
     }

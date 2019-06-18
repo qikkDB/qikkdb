@@ -7,6 +7,7 @@
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include "../../ComplexPolygonFactory.h"
 #include "../../PointFactory.h"
+#include "../../Database.h"
 
 /// Implementation of POINT(a, b) operation dispatching - concatenation of two numeric attributes to single point column
 /// Implementation for column column case
@@ -330,6 +331,7 @@ int32_t GpuSqlDispatcher::polygonOperationColCol()
 		GPUPolygonClipping::ColCol<OP>(outPolygon, std::get<0>(polygonLeft), std::get<0>(polygonRight), dataSize);
 		fillPolygonRegister(outPolygon, reg, dataSize);
 	}
+	return 0;
 }
 
 /// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does not meet this requrement) based on functor OP

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cuda.h>
 #include <cuda_runtime.h>
 
 /// This function returns constant of type T which is used as null

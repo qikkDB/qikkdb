@@ -1,9 +1,14 @@
 #pragma once
-#include <tuple>
-#include "Types/ComplexPolygon.pb.h"
-#include "NativeGeoPoint.h"
+
 #include "QueryEngine/GPUCore/GPUMemory.cuh"
 
+namespace ColmnarDB
+{
+	namespace Types
+	{
+		class ComplexPolygon;
+	}
+}
 
 class ComplexPolygonFactory
 {
