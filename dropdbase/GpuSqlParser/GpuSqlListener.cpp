@@ -31,15 +31,15 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	database(database), 
 	dispatcher(dispatcher),
 	linkTableIndex(0),
-	resultLimit(std::numeric_limits<int64_t>::max()), 
-	resultOffset(0),
 	usingLoad(false),
 	usingWhere(false),
 	usingGroupBy(false), 
 	insideAgg(false), 
 	insideGroupBy(false), 
 	insideSelectColumn(false), 
-	isAggSelectColumn(false)
+	isAggSelectColumn(false),
+	resultLimit(std::numeric_limits<int64_t>::max()),
+	resultOffset(0)
 {
 	GpuSqlDispatcher::linkTable.clear();
 }
@@ -64,7 +64,7 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
     pushArgument(std::get<0>(right).c_str(), rightOperandType);
     pushArgument(std::get<0>(left).c_str(), leftOperandType);
 
-	DataType returnDataType;
+	DataType returnDataType = DataType::CONST_ERROR;
 
     if (op == ">")
     {
@@ -250,7 +250,7 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     DataType operandType = std::get<1>(arg);
     pushArgument(std::get<0>(arg).c_str(), operandType);
 
-	DataType returnDataType;
+	DataType returnDataType = DataType::CONST_ERROR;
 
     if (op == "!")
     {
@@ -414,7 +414,7 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 
     DataType operandType = std::get<1>(arg);
     pushArgument(std::get<0>(arg).c_str(), operandType);
-	DataType returnDataType;
+	DataType returnDataType = DataType::CONST_ERROR;
 
 	DataType groupByType;
 	if (usingGroupBy)
@@ -1276,6 +1276,13 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
         case DataType::COLUMN_INT8_T:
             dispatcher.addArgument<const std::string&>(token);
             break;
+		case DataType::CONST_INT8_T:
+		{
+			std::string booleanToken(token);
+			stringToUpper(booleanToken);
+			dispatcher.addArgument<int8_t>(booleanToken == "TRUE");
+		}
+			break;
         case DataType::DATA_TYPE_SIZE:
         case DataType::CONST_ERROR:
             break;
@@ -1292,7 +1299,7 @@ bool GpuSqlListener::isLong(const std::string &value)
     {
         std::stoi(value);
     }
-    catch (std::out_of_range &e)
+    catch (std::out_of_range &)
     {
         std::stoll(value);
         return true;
@@ -1308,7 +1315,7 @@ bool GpuSqlListener::isDouble(const std::string &value)
     {
         std::stof(value);
     }
-    catch (std::out_of_range &e)
+    catch (std::out_of_range &)
     {
         std::stod(value);
         return true;

@@ -30,7 +30,7 @@ __device__ __host__ constexpr K getEmptyValue()
 	{
 		return std::numeric_limits<K>::min();
 	}
-	else if (std::is_floating_point<K>::value)
+	else
 	{
 		return std::numeric_limits<K>::quiet_NaN();
 	}

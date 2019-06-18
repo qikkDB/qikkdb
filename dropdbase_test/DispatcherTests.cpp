@@ -48,7 +48,7 @@ TEST(DispatcherTests, IntGtColumnConst)
 			}
 		}
 	}
-	
+
 	auto &payloads = result->payloads().at("TableA.colInteger1");
 
 	ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
@@ -367,9 +367,9 @@ TEST(DispatcherTests, FloatGtColumnConst)
 		{
 			if (j % 2)
 			{
-				if (((float)(j % 1024 + 0.1111)) > 5.5)
+				if ((static_cast<float>(j % 1024 + 0.1111)) > 5.5)
 				{
-					expectedResult.push_back((float)(j % 1024 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111));
 				}
 			}
 		}
@@ -401,16 +401,16 @@ TEST(DispatcherTests, FloatGtConstColumn)
 		{
 			if (j % 2)
 			{
-				if ((float)(j % 1024 + 0.1111) < 5.5)
+				if (static_cast<float>(j % 1024 + 0.1111) < 5.5)
 				{
-					expectedResult.push_back((float)(j % 1024 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111));
 				}
 			}
 			else
 			{
-				if ((float)((j % 1024 + 0.1111) * -1) < 5.5)
+				if (static_cast<float>((j % 1024 + 0.1111) * -1) < 5.5)
 				{
-					expectedResult.push_back((float)((j % 1024 + 0.1111) * -1));
+					expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * -1));
 				}
 			}
 		}
@@ -442,9 +442,9 @@ TEST(DispatcherTests, FloatGtColumnColumn)
 		{
 			if (j % 2)
 			{
-				if (((float)(j % 2048 + 0.1111)) > ((float)(j % 1024 + 0.1111)))
+				if ((static_cast<float>(j % 2048 + 0.1111)) > (static_cast<float>(j % 1024 + 0.1111)))
 				{
-					expectedResult.push_back((float)(j % 2048 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 2048 + 0.1111));
 				}
 			}
 		}
@@ -474,7 +474,7 @@ TEST(DispatcherTests, FloatGtConstConstTrue)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 		}
 	}
 
@@ -1025,16 +1025,16 @@ TEST(DispatcherTests, FloatLtColumnConst)
 		{
 			if (j % 2)
 			{
-				if ((float)(j % 1024 + 0.1111) < 5.5)
+				if (static_cast<float>(j % 1024 + 0.1111) < 5.5)
 				{
-					expectedResult.push_back((float)(j % 1024 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111));
 				}
 			}
 			else
 			{
-				if ((float)((j % 1024 + 0.1111) * -1) < 5.5)
+				if (static_cast<float>((j % 1024 + 0.1111) * -1) < 5.5)
 				{
-					expectedResult.push_back((float)((j % 1024 + 0.1111) * -1));
+					expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * -1));
 				}
 			}
 		}
@@ -1066,16 +1066,16 @@ TEST(DispatcherTests, FloatLtConstColumn)
 		{
 			if (j % 2)
 			{
-				if ((float)(j % 1024 + 0.1111) > 5.5)
+				if (static_cast<float>(j % 1024 + 0.1111) > 5.5)
 				{
-					expectedResult.push_back((float)(j % 1024 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111));
 				}
 			}
 			else
 			{
-				if ((float)((j % 1024 + 0.1111) * -1) > 5.5)
+				if (static_cast<float>((j % 1024 + 0.1111) * -1) > 5.5)
 				{
-					expectedResult.push_back((float)((j % 1024 + 0.1111) * -1));
+					expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * -1));
 				}
 			}
 		}
@@ -1107,16 +1107,16 @@ TEST(DispatcherTests, FloatLtColumnColumn)
 		{
 			if (j % 2)
 			{
-				if (((float)(j % 1024 + 0.1111)) < ((float)(j % 2048 + 0.1111)))
+				if ((static_cast<float>(j % 1024 + 0.1111)) < (static_cast<float>(j % 2048 + 0.1111)))
 				{
-					expectedResult.push_back((float)(j % 1024 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111));
 				}
 			}
 			else
 			{
-				if (((float)((j % 1024 + 0.1111) * (-1))) < ((float)((j % 2048 + 0.1111) * (-1))))
+				if ((static_cast<float>((j % 1024 + 0.1111) * (-1))) < (static_cast<float>((j % 2048 + 0.1111) * (-1))))
 				{
-					expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+					expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 				}
 			}
 		}
@@ -1146,7 +1146,7 @@ TEST(DispatcherTests, FloatLtConstConstTrue)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 		}
 	}
 
@@ -1688,16 +1688,16 @@ TEST(DispatcherTests, FloatEqGtColumnConst)
 		{
 			if (j % 2)
 			{
-				if (((float)(j % 1024 + 0.1111)) >= 5.5)
+				if ((static_cast<float>(j % 1024 + 0.1111)) >= 5.5)
 				{
-					expectedResult.push_back((float)(j % 1024 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111));
 				}
 			}
 			else
 			{
-				if (((float)((j % 1024 + 0.1111) * (-1))) >= 5.5)
+				if ((static_cast<float>((j % 1024 + 0.1111) * (-1))) >= 5.5)
 				{
-					expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+					expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 				}
 			}
 		}
@@ -1729,16 +1729,16 @@ TEST(DispatcherTests, FloatEqGtConstColumn)
 		{
 			if (j % 2)
 			{
-				if (((float)(j % 1024 + 0.1111)) <= 5.5)
+				if ((static_cast<float>(j % 1024 + 0.1111)) <= 5.5)
 				{
-					expectedResult.push_back((float)(j % 1024 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111));
 				}
 			}
 			else
 			{
-				if (((float)((j % 1024 + 0.1111) * (-1))) <= 5.5)
+				if ((static_cast<float>((j % 1024 + 0.1111) * (-1))) <= 5.5)
 				{
-					expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+					expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 				}
 			}
 		}
@@ -1770,16 +1770,16 @@ TEST(DispatcherTests, FloatEqGtColumnColumn)
 		{
 			if (j % 2)
 			{
-				if (((float)(j % 2048 + 0.1111)) >= ((float)(j % 1024 + 0.1111)))
+				if ((static_cast<float>(j % 2048 + 0.1111)) >= (static_cast<float>(j % 1024 + 0.1111)))
 				{
-					expectedResult.push_back((float)(j % 2048 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 2048 + 0.1111));
 				}
 			}
 			else
 			{
-				if (((float)((j % 2048 + 0.1111) * (-1))) >= ((float)((j % 1024 + 0.1111) * (-1))))
+				if ((static_cast<float>((j % 2048 + 0.1111) * (-1))) >= (static_cast<float>((j % 1024 + 0.1111) * (-1))))
 				{
-					expectedResult.push_back((float)((j % 2048 + 0.1111) * (-1)));
+					expectedResult.push_back(static_cast<float>((j % 2048 + 0.1111) * (-1)));
 				}
 			}
 		}
@@ -1809,7 +1809,7 @@ TEST(DispatcherTests, FloatEqGtConstConstTrue)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 		}
 	}
 
@@ -2354,16 +2354,16 @@ TEST(DispatcherTests, FloatEqLtColumnConst)
 		{
 			if (j % 2)
 			{
-				if (((float)(j % 1024 + 0.1111)) <= 5.5)
+				if ((static_cast<float>(j % 1024 + 0.1111)) <= 5.5)
 				{
-					expectedResult.push_back((float)(j % 1024 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111));
 				}
 			}
 			else
 			{
-				if (((float)((j % 1024 + 0.1111) * (-1))) <= 5.5)
+				if ((static_cast<float>((j % 1024 + 0.1111) * (-1))) <= 5.5)
 				{
-					expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+					expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 				}
 			}
 		}
@@ -2395,16 +2395,16 @@ TEST(DispatcherTests, FloatEqLtConstColumn)
 		{
 			if (j % 2)
 			{
-				if (((float)(j % 1024 + 0.1111)) >= 5.5)
+				if ((static_cast<float>(j % 1024 + 0.1111)) >= 5.5)
 				{
-					expectedResult.push_back((float)(j % 1024 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111));
 				}
 			}
 			else
 			{
-				if (((float)((j % 1024 + 0.1111) * (-1))) >= 5.5)
+				if ((static_cast<float>((j % 1024 + 0.1111) * (-1))) >= 5.5)
 				{
-					expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+					expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 				}
 			}
 		}
@@ -2436,16 +2436,16 @@ TEST(DispatcherTests, FloatEqLtColumnColumn)
 		{
 			if (j % 2)
 			{
-				if (((float)(j % 1024 + 0.1111)) <= ((float)(j % 2048 + 0.1111)))
+				if ((static_cast<float>(j % 1024 + 0.1111)) <= (static_cast<float>(j % 2048 + 0.1111)))
 				{
-					expectedResult.push_back((float)(j % 1024 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111));
 				}
 			}
 			else
 			{
-				if (((float)((j % 1024 + 0.1111) * (-1))) <= ((float)((j % 2048 + 0.1111) * (-1))))
+				if ((static_cast<float>((j % 1024 + 0.1111) * (-1))) <= (static_cast<float>((j % 2048 + 0.1111) * (-1))))
 				{
-					expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+					expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 				}
 			}
 		}
@@ -2475,7 +2475,7 @@ TEST(DispatcherTests, FloatEqLtConstConstTrue)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 		}
 	}
 
@@ -2615,7 +2615,7 @@ TEST(DispatcherTests, DoubleEqLtColumnColumn)
 					expectedResult.push_back((j % 1024 + 0.1111111) * ((-1)));
 				}
 			}
-			
+
 		}
 	}
 
@@ -2968,9 +2968,9 @@ TEST(DispatcherTests, FloatEqColumnConst)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (std::abs(((float)(j % 1024 + 0.1111)) - 5.1111) < 0.00005)
+			if (std::abs((static_cast<float>(j % 1024 + 0.1111)) - 5.1111) < 0.00005)
 			{
-				(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 			}
 	}
 
@@ -2997,9 +2997,9 @@ TEST(DispatcherTests, FloatEqConstColumn)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (std::abs(((float)(j % 1024 + 0.1111)) - 5.1111) < 0.00005)
+			if (std::abs((static_cast<float>(j % 1024 + 0.1111)) - 5.1111) < 0.00005)
 			{
-				(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 			}
 	}
 
@@ -3027,9 +3027,9 @@ TEST(DispatcherTests, FloatEqColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (std::abs(((float)(j % 2048 + 0.1111)) - ((float)(j % 1024 + 0.1111))) < 0.00005)
+			if (std::abs((static_cast<float>(j % 2048 + 0.1111)) - (static_cast<float>(j % 1024 + 0.1111))) < 0.00005)
 			{
-				(j % 2) ? expectedResult.push_back((float)(j % 2048 + 0.1111)) : expectedResult.push_back((float)((j % 2048 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j % 2048 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 2048 + 0.1111) * (-1)));
 			}
 		}
 	}
@@ -3058,7 +3058,7 @@ TEST(DispatcherTests, FloatEqConstConstTrue)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 		}
 	}
 
@@ -3558,9 +3558,9 @@ TEST(DispatcherTests, FloatNotEqColumnConst)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (std::abs(((float)(j % 1024 + 0.1111)) - 5.1111) > 0.00005)
+			if (std::abs((static_cast<float>(j % 1024 + 0.1111)) - 5.1111) > 0.00005)
 			{
-				(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 			}
 	}
 
@@ -3587,9 +3587,9 @@ TEST(DispatcherTests, FloatNotEqConstColumn)
 	for (int i = 0; i < 2; i++)
 	{
 		for (int j = 0; j < (1 << 11); j++)
-			if (std::abs(((float)(j % 1024 + 0.1111)) - 5.1111) > 0.00005)
+			if (std::abs((static_cast<float>(j % 1024 + 0.1111)) - 5.1111) > 0.00005)
 			{
-				(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 			}
 	}
 
@@ -3617,9 +3617,9 @@ TEST(DispatcherTests, FloatNotEqColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (std::abs(((float)(j % 2048 + 0.1111))-((float)(j % 1024 + 0.1111))) > 0.00005)
+			if (std::abs((static_cast<float>(j % 2048 + 0.1111))-(static_cast<float>(j % 1024 + 0.1111))) > 0.00005)
 			{
-				(j % 2) ? expectedResult.push_back((float)(j % 2048 + 0.1111)) : expectedResult.push_back((float)((j % 2048 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j % 2048 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 2048 + 0.1111) * (-1)));
 			}
 		}
 	}
@@ -3648,7 +3648,7 @@ TEST(DispatcherTests, FloatNotEqConstConstTrue)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 		}
 	}
 
@@ -4052,7 +4052,7 @@ TEST(DispatcherTests, LongAndColumnConstNonZero)
 			}
 		}
 	}
-	
+
 	auto &payloads = result->payloads().at("TableA.colLong1");
 
 	ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResult.size());
@@ -4252,9 +4252,9 @@ TEST(DispatcherTests, FloatAndColumnConstNonZero)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((float)(j % 1024 + 0.1111)) > std::numeric_limits<float>::epsilon())
+			if ((static_cast<float>(j % 1024 + 0.1111)) > std::numeric_limits<float>::epsilon())
 			{
-				(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 			}
 		}
 	}
@@ -4296,9 +4296,9 @@ TEST(DispatcherTests, FloatAndConstColumnNonZero)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((float)(j % 1024 + 0.1111)) > std::numeric_limits<float>::epsilon())
+			if ((static_cast<float>(j % 1024 + 0.1111)) > std::numeric_limits<float>::epsilon())
 			{
-				(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 			}
 		}
 	}
@@ -4340,9 +4340,9 @@ TEST(DispatcherTests, FloatAndColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((float)(j % 2048 + 0.1111) > std::numeric_limits<float>::epsilon()) && ((float)(j % 1024 + 0.1111) > std::numeric_limits<float>::epsilon()))
+			if ((static_cast<float>(j % 2048 + 0.1111) > std::numeric_limits<float>::epsilon()) && (static_cast<float>(j % 1024 + 0.1111) > std::numeric_limits<float>::epsilon()))
 			{
-				(j % 2) ? expectedResult.push_back((float)(j %1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j %1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 			}
 		}
 	}
@@ -4370,7 +4370,7 @@ TEST(DispatcherTests, FloatAndConstConstTrue)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 
 		}
 	}
@@ -5155,7 +5155,7 @@ TEST(DispatcherTests, FloatOrColumnConstNonZero)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 		}
 	}
 
@@ -5183,9 +5183,9 @@ TEST(DispatcherTests, FloatOrColumnConstZero)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((float)(j % 1024 + 0.1111)) > std::numeric_limits<float>::epsilon())
+			if ((static_cast<float>(j % 1024 + 0.1111)) > std::numeric_limits<float>::epsilon())
 			{
-				(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 			}
 		}
 	}
@@ -5214,7 +5214,7 @@ TEST(DispatcherTests, FloatOrConstColumnNonZero)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 		}
 	}
 
@@ -5242,9 +5242,9 @@ TEST(DispatcherTests, FloatOrConstColumnZero)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((float)(j % 1024 + 0.1111)) > std::numeric_limits<float>::epsilon())
+			if ((static_cast<float>(j % 1024 + 0.1111)) > std::numeric_limits<float>::epsilon())
 			{
-				(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 			}
 		}
 	}
@@ -5273,9 +5273,9 @@ TEST(DispatcherTests, FloatOrColumnColumn)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			if (((float)(j % 2048 + 0.1111) > std::numeric_limits<float>::epsilon()) || ((float)(j % 1024 + 0.1111) > std::numeric_limits<float>::epsilon()))
+			if ((static_cast<float>(j % 2048 + 0.1111) > std::numeric_limits<float>::epsilon()) || (static_cast<float>(j % 1024 + 0.1111) > std::numeric_limits<float>::epsilon()))
 			{
-				(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+				(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 			}
 		}
 	}
@@ -5303,7 +5303,7 @@ TEST(DispatcherTests, FloatOrConstConstNonZeroValues)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 		}
 	}
 
@@ -5331,7 +5331,7 @@ TEST(DispatcherTests, FloatOrConstConstFalseRightZero)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 		}
 	}
 
@@ -5359,7 +5359,7 @@ TEST(DispatcherTests, FloatOrConstConstFalseLeftZero)
 	{
 		for (int j = 0; j < (1 << 11); j++)
 		{
-			(j % 2) ? expectedResult.push_back((float)(j % 1024 + 0.1111)) : expectedResult.push_back((float)((j % 1024 + 0.1111) * (-1)));
+			(j % 2) ? expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111)) : expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * (-1)));
 		}
 	}
 
@@ -5738,16 +5738,16 @@ TEST(DispatcherTests, FloatNegation)
 		{
 			if (j % 2)
 			{
-				if ((float)(j % 1024 + 0.1111) <= 6.5555)
+				if (static_cast<float>(j % 1024 + 0.1111) <= 6.5555)
 				{
-					expectedResult.push_back((float)(j % 1024 + 0.1111));
+					expectedResult.push_back(static_cast<float>(j % 1024 + 0.1111));
 				}
 			}
 			else
 			{
-				if ((float)((j % 1024 + 0.1111) * -1) <= 6.5555)
+				if (static_cast<float>((j % 1024 + 0.1111) * -1) <= 6.5555)
 				{
-					expectedResult.push_back((float)((j % 1024 + 0.1111) * -1));
+					expectedResult.push_back(static_cast<float>((j % 1024 + 0.1111) * -1));
 				}
 			}
 		}
@@ -8008,7 +8008,6 @@ TEST(DispatcherTests, DateTimeCol)
 TEST(DispatcherTests, RetPolygons)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPolygon1 FROM TableA;");
 	auto resultPtr = parser.parse();
@@ -8040,7 +8039,6 @@ TEST(DispatcherTests, RetPolygons)
 TEST(DispatcherTests, RetPolygonsWhere)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPolygon1 FROM TableA WHERE colInteger1 < 20;");
 	auto resultPtr = parser.parse();
@@ -8075,7 +8073,6 @@ TEST(DispatcherTests, RetPolygonsWhere)
 TEST(DispatcherTests, RetPoints)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPoint1 FROM TableA;");
 	auto resultPtr = parser.parse();
@@ -8107,7 +8104,6 @@ TEST(DispatcherTests, RetPoints)
 TEST(DispatcherTests, RetPointsWhere)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPoint1 FROM TableA WHERE colInteger1 < 20;");
 	auto resultPtr = parser.parse();
@@ -8152,7 +8148,6 @@ TEST(DispatcherTests, RetPointsWhere)
 TEST(DispatcherTests, RetString)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colString1 FROM TableA;");
 	auto resultPtr = parser.parse();
@@ -8184,7 +8179,6 @@ TEST(DispatcherTests, RetString)
 TEST(DispatcherTests, RetStringWhere)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colString1 FROM TableA WHERE colInteger1 < 20;");
 	auto resultPtr = parser.parse();
@@ -8229,7 +8223,6 @@ TEST(DispatcherTests, RetStringWhere)
 TEST(DispatcherTests, PointFromColCol)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(colInteger1, colFloat1) FROM TableA;");
 	auto resultPtr = parser.parse();
@@ -8265,7 +8258,6 @@ TEST(DispatcherTests, PointFromColCol)
 TEST(DispatcherTests, PointFromColConst)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(colInteger1, 4.5) FROM TableA;");
 	auto resultPtr = parser.parse();
@@ -8299,7 +8291,6 @@ TEST(DispatcherTests, PointFromColConst)
 TEST(DispatcherTests, PointFromConstCol)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(7, colFloat1) FROM TableA;");
 	auto resultPtr = parser.parse();
@@ -8641,7 +8632,6 @@ TEST(DispatcherTests, Offset)
 TEST(DispatcherTests, LargeOffset)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 OFFSET 10000000;");
 	auto resultPtr = parser.parse();
@@ -8656,7 +8646,6 @@ TEST(DispatcherTests, LargeOffset)
 TEST(DispatcherTests, LargeLimit)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 LIMIT 10000000;");
 	auto resultPtr = parser.parse();
@@ -8691,7 +8680,6 @@ TEST(DispatcherTests, LargeLimit)
 TEST(DispatcherTests, BitwiseOrColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 | 20) > 100;");
 	auto resultPtr = parser.parse();
@@ -8726,7 +8714,6 @@ TEST(DispatcherTests, BitwiseOrColConstInt)
 TEST(DispatcherTests, BitwiseAndColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 & 20) > 100;");
 	auto resultPtr = parser.parse();
@@ -8761,7 +8748,6 @@ TEST(DispatcherTests, BitwiseAndColConstInt)
 TEST(DispatcherTests, BitwiseXorColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 ^ 20) > 100;");
 	auto resultPtr = parser.parse();
@@ -8796,7 +8782,6 @@ TEST(DispatcherTests, BitwiseXorColConstInt)
 TEST(DispatcherTests, BitwiseLeftShiftColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 << 2) > 100;");
 	auto resultPtr = parser.parse();
@@ -8831,7 +8816,6 @@ TEST(DispatcherTests, BitwiseLeftShiftColConstInt)
 TEST(DispatcherTests, BitwiseRightShiftColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 >> 2) > 100;");
 	auto resultPtr = parser.parse();
@@ -8866,7 +8850,6 @@ TEST(DispatcherTests, BitwiseRightShiftColConstInt)
 TEST(DispatcherTests, BitwiseOrColColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 | colInteger2) > 500;");
 	auto resultPtr = parser.parse();
@@ -8903,7 +8886,6 @@ TEST(DispatcherTests, BitwiseOrColColInt)
 TEST(DispatcherTests, BitwiseAndColColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 & colInteger2) > 10;");
 	auto resultPtr = parser.parse();
@@ -8940,7 +8922,6 @@ TEST(DispatcherTests, BitwiseAndColColInt)
 TEST(DispatcherTests, BitwiseXorColColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 ^ colInteger2) > 500;");
 	auto resultPtr = parser.parse();
@@ -8977,7 +8958,6 @@ TEST(DispatcherTests, BitwiseXorColColInt)
 TEST(DispatcherTests, NotEqualsAlternativeOperator)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 <> 20;");
 	auto resultPtr = parser.parse();
@@ -9012,7 +8992,6 @@ TEST(DispatcherTests, NotEqualsAlternativeOperator)
 TEST(DispatcherTests, MinusColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE -colInteger1 = 3;");
 	auto resultPtr = parser.parse();
@@ -9047,7 +9026,6 @@ TEST(DispatcherTests, MinusColInt)
 TEST(DispatcherTests, AbsColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ABS(colInteger1) = 3;");
 	auto resultPtr = parser.parse();
@@ -9082,7 +9060,6 @@ TEST(DispatcherTests, AbsColInt)
 TEST(DispatcherTests, SinColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIN(colInteger1) > 0.5;");
 	auto resultPtr = parser.parse();
@@ -9117,7 +9094,6 @@ TEST(DispatcherTests, SinColInt)
 TEST(DispatcherTests, CosColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE COS(colInteger1) > 0.5;");
 	auto resultPtr = parser.parse();
@@ -9152,7 +9128,6 @@ TEST(DispatcherTests, CosColInt)
 TEST(DispatcherTests, TanColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE TAN(colInteger1) > 2;");
 	auto resultPtr = parser.parse();
@@ -9187,7 +9162,6 @@ TEST(DispatcherTests, TanColInt)
 TEST(DispatcherTests, SinColFloat)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIN(colFloat1) > 0.5;");
 	auto resultPtr = parser.parse();
@@ -9224,7 +9198,6 @@ TEST(DispatcherTests, SinColFloat)
 TEST(DispatcherTests, CosColFloat)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE COS(colFloat1) > 0.5;");
 	auto resultPtr = parser.parse();
@@ -9261,7 +9234,6 @@ TEST(DispatcherTests, CosColFloat)
 TEST(DispatcherTests, TanColFloat)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE TAN(colFloat1) > 2;");
 	auto resultPtr = parser.parse();
@@ -9298,7 +9270,6 @@ TEST(DispatcherTests, TanColFloat)
 TEST(DispatcherTests, SinPiColFloat)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIN(colFloat1 + PI()) > 0.5;");
 	auto resultPtr = parser.parse();
@@ -9335,7 +9306,6 @@ TEST(DispatcherTests, SinPiColFloat)
 TEST(DispatcherTests, ArcSinColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ASIN(colInteger1 / 1024.0) > 0.5;");
 	auto resultPtr = parser.parse();
@@ -9370,7 +9340,6 @@ TEST(DispatcherTests, ArcSinColInt)
 TEST(DispatcherTests, ArcCosColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ACOS(colInteger1 / 1024.0) > 0.5;");
 	auto resultPtr = parser.parse();
@@ -9405,7 +9374,6 @@ TEST(DispatcherTests, ArcCosColInt)
 TEST(DispatcherTests, ArcTanColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ATAN(colInteger1) > 0.5;");
 	auto resultPtr = parser.parse();
@@ -9440,7 +9408,6 @@ TEST(DispatcherTests, ArcTanColInt)
 TEST(DispatcherTests, Logarithm10ColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE LOG10(colInteger1) > 1.5;");
 	auto resultPtr = parser.parse();
@@ -9475,7 +9442,6 @@ TEST(DispatcherTests, Logarithm10ColInt)
 TEST(DispatcherTests, LogarithmNaturalColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE LOG(colInteger1) > 1.5;");
 	auto resultPtr = parser.parse();
@@ -9510,7 +9476,6 @@ TEST(DispatcherTests, LogarithmNaturalColInt)
 TEST(DispatcherTests, LogarithmColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE LOG(colInteger1, 3.0) > 1.5;");
 	auto resultPtr = parser.parse();
@@ -9519,12 +9484,10 @@ TEST(DispatcherTests, LogarithmColConstInt)
 	std::vector<int32_t> expectedResultsInt;
 
 	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
-	auto columnInt2 = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger2").get());
 
 	for (int i = 0; i < 2; i++)
 	{
 		auto blockInt = columnInt->GetBlocksList()[i];
-		auto blockInt2 = columnInt2->GetBlocksList()[i];
 
 		for (int k = 0; k < (1 << 11); k++)
 		{
@@ -9547,7 +9510,6 @@ TEST(DispatcherTests, LogarithmColConstInt)
 TEST(DispatcherTests, ExponentialColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE EXP(colInteger1) > 2000;");
 	auto resultPtr = parser.parse();
@@ -9556,7 +9518,7 @@ TEST(DispatcherTests, ExponentialColInt)
 	std::vector<int32_t> expectedResultsInt;
 
 	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
-	
+
 	for (int i = 0; i < 2; i++)
 	{
 		auto blockInt = columnInt->GetBlocksList()[i];
@@ -9583,7 +9545,6 @@ TEST(DispatcherTests, ExponentialColInt)
 TEST(DispatcherTests, PowerColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE POW(colInteger1, 2) > 2000;");
 	auto resultPtr = parser.parse();
@@ -9619,7 +9580,6 @@ TEST(DispatcherTests, PowerColConstInt)
 TEST(DispatcherTests, SqrtColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SQRT(colInteger1) > 20;");
 	auto resultPtr = parser.parse();
@@ -9655,7 +9615,6 @@ TEST(DispatcherTests, SqrtColConstInt)
 TEST(DispatcherTests, SquareColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SQUARE(colInteger1) > 2000;");
 	auto resultPtr = parser.parse();
@@ -9691,7 +9650,6 @@ TEST(DispatcherTests, SquareColConstInt)
 TEST(DispatcherTests, SignPositiveColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIGN(colInteger1) = 1;");
 	auto resultPtr = parser.parse();
@@ -9727,7 +9685,6 @@ TEST(DispatcherTests, SignPositiveColConstInt)
 TEST(DispatcherTests, SignNegativeColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIGN(colInteger1) = -1;");
 	auto resultPtr = parser.parse();
@@ -9763,7 +9720,6 @@ TEST(DispatcherTests, SignNegativeColConstInt)
 TEST(DispatcherTests, SignZeroColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIGN(colInteger1) = 0;");
 	auto resultPtr = parser.parse();
@@ -9799,7 +9755,6 @@ TEST(DispatcherTests, SignZeroColConstInt)
 TEST(DispatcherTests, RootColConstInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ROOT(colInteger1, 3) > 20;");
 	auto resultPtr = parser.parse();
@@ -9836,7 +9791,6 @@ TEST(DispatcherTests, RootColConstInt)
 TEST(DispatcherTests, RoundColFloat)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT ROUND(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
 	auto resultPtr = parser.parse();
@@ -9874,7 +9828,6 @@ TEST(DispatcherTests, RoundColFloat)
 TEST(DispatcherTests, FloorColFloat)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT FLOOR(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
 	auto resultPtr = parser.parse();
@@ -9912,7 +9865,6 @@ TEST(DispatcherTests, FloorColFloat)
 TEST(DispatcherTests, CeilColFloat)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT CEIL(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
 	auto resultPtr = parser.parse();
@@ -9950,7 +9902,6 @@ TEST(DispatcherTests, CeilColFloat)
 TEST(DispatcherTests, RoundColInt)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT ROUND(colInteger1) FROM TableA WHERE colInteger1 >= 20;");
 	auto resultPtr = parser.parse();
@@ -9986,7 +9937,6 @@ TEST(DispatcherTests, RoundColInt)
 TEST(DispatcherTests, CotColFloat)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COT(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
 	auto resultPtr = parser.parse();
@@ -10024,7 +9974,6 @@ TEST(DispatcherTests, CotColFloat)
 TEST(DispatcherTests, Atan2ColFloat)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT ATAN2(colFloat1, colFloat1 + 1) FROM TableA WHERE colInteger1 >= 20;");
 	auto resultPtr = parser.parse();
@@ -10065,7 +10014,6 @@ TEST(DispatcherTests, Atan2ColFloat)
 TEST(DispatcherTests, PolygonClippingAndContains)
 {
 	Context::getInstance();
-	int32_t polygonColumnCount = 1;
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
 		"SELECT colInteger1 FROM TableA WHERE GEO_CONTAINS(GEO_INTERSECT(colPolygon1, colPolygon2), colPoint1);");
@@ -10104,7 +10052,7 @@ TEST(DispatcherTests, CreateAlterDropTable)
 
 	std::vector<std::string> expectedSortingColumns = { "colA", "colB" };
 	std::vector<std::string> resultSortingColumns = DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetSortingColumns();
-	
+
 	ASSERT_TRUE(expectedSortingColumns.size() == resultSortingColumns.size());
 
 	for (int i = 0; i < expectedSortingColumns.size(); i++)
@@ -10113,7 +10061,7 @@ TEST(DispatcherTests, CreateAlterDropTable)
 	}
 
 	GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database, "INSERT INTO tblA (colA, colB) VALUES (1, 2.0);");
-	
+
 	for (int32_t i = 0; i < 5; i++)
 	{
 		resultPtr = parser2.parse();
@@ -10152,7 +10100,7 @@ TEST(DispatcherTests, CreateAlterDropTable)
 	GpuSqlCustomParser parser4(DispatcherObjs::GetInstance().database, "ALTER TABLE tblA DROP COLUMN colA, ADD colC float;");
 	resultPtr = parser4.parse();
 
-	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetColumns().find("colA") 
+	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetColumns().find("colA")
 		== DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetColumns().end());
 
 

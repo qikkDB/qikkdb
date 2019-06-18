@@ -9,8 +9,8 @@ public:
 	virtual int32_t GetBlockCount() const = 0;
 	virtual int64_t GetSize() const = 0;
 	virtual void InsertNullData(int length) = 0;
-	virtual const float GetInitAvg() const = 0;
-	virtual const bool GetInitAvgIsSet() const = 0;
+	virtual float GetInitAvg() const = 0;
+	virtual bool GetInitAvgIsSet() const = 0;
 
 	virtual ~IColumn() {};
 };

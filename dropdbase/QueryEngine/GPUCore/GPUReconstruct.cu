@@ -174,7 +174,7 @@ void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *o
 			// Copy string indices to host
 			std::unique_ptr<int64_t[]> hostStringIndices = std::make_unique<int64_t[]>(inDataElementCount);
 			GPUMemory::copyDeviceToHost(hostStringIndices.get(), inStringCol.stringIndices, inDataElementCount);
-			int32_t fullCharCount = hostStringIndices[inDataElementCount - 1];
+			int64_t fullCharCount = hostStringIndices[inDataElementCount - 1];
 
 			// Copy all chars to host
 			std::unique_ptr<char[]> hostAllChars = std::make_unique<char[]>(fullCharCount);

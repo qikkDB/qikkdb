@@ -988,6 +988,8 @@ void GpuSqlDispatcher::MergePayload(const std::string &trimmedKey, ColmnarDB::Ne
 				}
 				break;
 			}
+			default:
+				throw std::out_of_range("Unsupported aggregation type result");
 			}
 		}
 

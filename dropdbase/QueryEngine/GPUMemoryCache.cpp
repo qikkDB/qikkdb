@@ -10,7 +10,7 @@ void GPUMemoryCache::SetLockList(const std::vector<std::string>& lockList)
 }
 
 GPUMemoryCache::GPUMemoryCache(int32_t deviceID, size_t maximumSize) :
-	usedSize(0), deviceID_(deviceID), maxSize_(maximumSize)
+	 maxSize_(maximumSize), deviceID_(deviceID), usedSize(0)
 {
 	BOOST_LOG_TRIVIAL(debug) << "Cache initialized for device " << deviceID;
 }

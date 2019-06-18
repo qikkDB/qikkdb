@@ -51,7 +51,6 @@ int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string
 {
     int size;
 
-    auto firstSortingColumn = (columns.find(sortingColumns[0])->second.get());
     const auto& dataOfFirstColumn = data.at(sortingColumns[0]);
 
     if (dataOfFirstColumn.type() == typeid(std::vector<int32_t>))
