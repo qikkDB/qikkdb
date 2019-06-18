@@ -90,9 +90,9 @@ bool compressAAFL(const int CWARP_SIZE, T* const hostUncompressed, int64_t uncom
 		int64_t sizes[3] = { uncompressedElementsCount , compressedElementsCount, compressionBlocksCount };
 		T* codedSizes = reinterpret_cast<T*>(sizes);
 
-		int positionCodedDataPositionId = (sizeof(int64_t) / (float)sizeof(T) * 3);
-		int positionCodedDataBitLength = positionCodedDataPositionId + std::max((int)(sizeof(unsigned long) / (float)sizeof(T) * compressionBlocksCount), 1);
-		int positionHostOut = positionCodedDataBitLength + std::max((int)(sizeof(char) / (float)sizeof(T) * compressionBlocksCount), 1);
+		int positionCodedDataPositionId = (sizeof(int64_t) * 3);
+		int positionCodedDataBitLength = positionCodedDataPositionId + (sizeof(unsigned long) * compressionBlocksCount);
+		int positionHostOut = positionCodedDataBitLength + (sizeof(char) * compressionBlocksCount);
 
 		hostCompressed.reserve(compressedDataSizeTotal / sizeof(T));
 		
@@ -100,10 +100,10 @@ bool compressAAFL(const int CWARP_SIZE, T* const hostUncompressed, int64_t uncom
 		std::unique_ptr<T[]> data = std::unique_ptr<T[]>(new T[(compressedDataSizeTotal / sizeof(T))]);
 
 		// Copy all compression data GPU -> CPU
-		std::move(codedSizes, codedSizes + (int)(sizeof(int64_t) / (float)sizeof(T) * 3), data.get());
-		cudaMemcpy(data.get() + positionCodedDataPositionId, devicePositionId, compressionBlocksCount * sizeof(unsigned long), cudaMemcpyDeviceToHost);
-		cudaMemcpy(data.get() + positionCodedDataBitLength, deviceBitLength, compressionBlocksCount * sizeof(unsigned char), cudaMemcpyDeviceToHost);
-		cudaMemcpy(data.get() + positionHostOut, deviceCompressed, compressedDataSize, cudaMemcpyDeviceToHost);
+		std::move(reinterpret_cast<char*>(codedSizes), reinterpret_cast<char*>(codedSizes) + (sizeof(int64_t) * 3), reinterpret_cast<char*>(data.get()));
+		cudaMemcpy(reinterpret_cast<char*>(data.get()) + positionCodedDataPositionId, devicePositionId, compressionBlocksCount * sizeof(unsigned long), cudaMemcpyDeviceToHost);
+		cudaMemcpy(reinterpret_cast<char*>(data.get()) + positionCodedDataBitLength, deviceBitLength, compressionBlocksCount * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+		cudaMemcpy(reinterpret_cast<char*>(data.get()) + positionHostOut, deviceCompressed, compressedDataSize, cudaMemcpyDeviceToHost);
 		CheckCudaError(cudaGetLastError());
 
 		// Assignment into output parameter
@@ -242,16 +242,16 @@ bool decompressAAFL(const int CWARP_SIZE, T* const hostCompressed, int64_t compr
 	CheckCudaError(cudaGetLastError());
 
 	// Decoding single array of type T into separate arrays (of compression meta data)
-	int positionCodedDataPositionId = (sizeof(int64_t) / (float)sizeof(T) * 3);
-	int positionCodedDataBitLength = positionCodedDataPositionId + std::max((int)(sizeof(unsigned long) / (float)sizeof(T) * compressionBlocksCount), 1);
-	int positionHostOut = positionCodedDataBitLength + std::max((int)(sizeof(char) / (float)sizeof(T) * compressionBlocksCount), 1);
+	int positionCodedDataPositionId = 3*sizeof(int64_t);
+	int positionCodedDataBitLength = positionCodedDataPositionId + (sizeof(unsigned long) * compressionBlocksCount);
+	int positionHostOut = positionCodedDataBitLength + (compressionBlocksCount);
 
-	unsigned long *hostPositionId = reinterpret_cast<unsigned long*>(&hostCompressed[positionCodedDataPositionId]);
-	unsigned char *hostBitLength = reinterpret_cast<unsigned char*>(&hostCompressed[positionCodedDataBitLength]);
-	T *hostCompressedValuesData = &hostCompressed[positionHostOut]; // data of values only without meta data
+	unsigned long *hostPositionId = reinterpret_cast<unsigned long*>(reinterpret_cast<char*>(hostCompressed) + positionCodedDataPositionId);
+	unsigned char *hostBitLength = reinterpret_cast<unsigned char*>(hostCompressed) + positionCodedDataBitLength;
+	T *hostCompressedValuesData = reinterpret_cast<T*>(reinterpret_cast<char*>(hostCompressed) + positionHostOut) ; // data of values only without meta data
 
 	// Copy data CPU->GPU
-	cudaMemcpy(deviceCompressed, hostCompressedValuesData, compressedDataSize - (positionHostOut * sizeof(T)), cudaMemcpyHostToDevice); // from compression size we need to subtract leading bytes with meta info
+	cudaMemcpy(deviceCompressed, hostCompressedValuesData, compressedDataSize - (positionHostOut), cudaMemcpyHostToDevice); // from compression size we need to subtract leading bytes with meta info
 	cudaMemcpy(devicePositionId, hostPositionId, compressionBlocksCount * sizeof(unsigned long), cudaMemcpyHostToDevice);
 	cudaMemcpy(deviceBitLength, hostBitLength, compressionBlocksCount * sizeof(unsigned char), cudaMemcpyHostToDevice);
 	CheckCudaError(cudaGetLastError());
@@ -368,13 +368,13 @@ bool decompressAAFLOnDevice(const int CWARP_SIZE, T* const deviceCompressed, int
 	}
 
 	// Decoding single array of type T into separate arrays (of compression meta data)
-	int positionCodedDataPositionId = (sizeof(int64_t) / (float)sizeof(T) * 3);
-	int positionCodedDataBitLength = positionCodedDataPositionId + std::max((int)(sizeof(unsigned long) / (float)sizeof(T) * compressionBlocksCount), 1);
-	int positionDeviceOut = positionCodedDataBitLength + std::max((int)(sizeof(char) / (float)sizeof(T) * compressionBlocksCount), 1);
+	int positionCodedDataPositionId = (sizeof(int64_t) * 3);
+	int positionCodedDataBitLength = positionCodedDataPositionId + (sizeof(unsigned long) * compressionBlocksCount);
+	int positionDeviceOut = positionCodedDataBitLength + compressionBlocksCount;
 
-	unsigned long *devicePositionId = reinterpret_cast<unsigned long*>(&deviceCompressed[positionCodedDataPositionId]);
-	unsigned char *deviceBitLength = reinterpret_cast<unsigned char*>(&deviceCompressed[positionCodedDataBitLength]);
-	T *deviceCompressedValuesData = &deviceCompressed[positionDeviceOut]; // data of values only without meta data
+	unsigned long *devicePositionId = reinterpret_cast<unsigned long*>(reinterpret_cast<char*>(deviceCompressed) + positionCodedDataPositionId);
+	unsigned char *deviceBitLength = reinterpret_cast<unsigned char*>(deviceCompressed) + positionCodedDataBitLength;
+	T *deviceCompressedValuesData = reinterpret_cast<T*>(reinterpret_cast<char*>(deviceCompressed) + positionDeviceOut); // data of values only without meta data
 
 	// Decompression
 	container_uncompressed<T> udata = { deviceUncompressed, static_cast<unsigned long>(uncompressedElementsCount) };
