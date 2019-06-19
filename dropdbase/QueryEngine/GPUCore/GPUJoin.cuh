@@ -114,8 +114,8 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 }
 
 template <typename T>
-__global__ void kernel_distribute_results_to_buffer(T* QTableA,
-                                                    T* QTableB,
+__global__ void kernel_distribute_results_to_buffer(T* resultColumnQABlockIdx,
+                                                    T* resultColumnQBBlockIdx,
 													int32_t* JoinTableHisto,
 													int32_t* JoinTablePrefixSum,
 													int32_t joinTableSize,
@@ -147,8 +147,8 @@ __global__ void kernel_distribute_results_to_buffer(T* QTableA,
 				if (join_prefix_sum_offset_index < JoinTableHisto[i] && 
 					ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] == ColumnSBlock[i])
 				{
-					QTableA[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
-					QTableB[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = i;//ColumnSBlock[i];
+					resultColumnQABlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
+					resultColumnQBBlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = i;//ColumnSBlock[i];
 					join_prefix_sum_offset_index++;
 				}
 			}
@@ -248,13 +248,13 @@ private:
 	}
 
 	template<typename T>
-	void JoinBlockWriteResults(T* QTableA, T* QTableB, T* ColumnRBlock, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int32_t dataElementCountColumnSBlock)
+	void JoinBlockWriteResults(T* resultColumnQABlockIdx, T* resultColumnQBBlockIdx, T* ColumnRBlock, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int32_t dataElementCountColumnSBlock)
 	{
 		//////////////////////////////////////////////////////////////////////////////
 		// Distribute the result data to the result buffer
 		kernel_distribute_results_to_buffer << <Context::getInstance().calcGridDim(joinTableSize_),
-			Context::getInstance().getBlockDim() >> > (QTableA,
-				QTableB,
+			Context::getInstance().getBlockDim() >> > (resultColumnQABlockIdx,
+				resultColumnQBBlockIdx,
 				JoinTableHisto_,
 				JoinTablePrefixSum_,
 				joinTableSize_,
@@ -308,17 +308,17 @@ public:
     }
 
 	template <typename T>
-	static void JoinTableRonS(std::vector<int32_t> &QATable,
-							  std::vector<int32_t> &QBTable,
-							  int32_t &resultQTableSize,
+	static void JoinTableRonS(std::vector<int32_t> &resultColumnQAJoinIdx,
+							  std::vector<int32_t> &resultColumnQBJoinIdx,
+							  int32_t &resultColumnQSize,
 							  ColumnBase<T> &ColumnR,
 							  ColumnBase<T> &ColumnS,
 							  int32_t blockSize)
 	{
 		// The result vector - reset
-		resultQTableSize = 0;
-		QATable.resize(0);
-		QBTable.resize(0);
+		resultColumnQSize = 0;
+		resultColumnQAJoinIdx.resize(0);
+		resultColumnQBJoinIdx.resize(0);
 
 		// Create a join instance
 		GPUJoin gpuJoin(blockSize);
@@ -381,9 +381,9 @@ public:
 
 				for (int32_t i = 0; i < processedQBlockResultSize; i++)
 				{
-					QATable.push_back(r * blockSize + QAresult[i]);	// Write the original idx
-					QBTable.push_back(s * blockSize + QBresult[i]);   // Write the original idx
-					resultQTableSize++;
+					resultColumnQAJoinIdx.push_back(r * blockSize + QAresult[i]);	// Write the original idx
+					resultColumnQBJoinIdx.push_back(s * blockSize + QBresult[i]);   // Write the original idx
+					resultColumnQSize++;
 				}
 
 				GPUMemory::free(d_QAResultBlock);
@@ -395,10 +395,10 @@ public:
 		GPUMemory::free(d_ColumnSBlock);
 	}
 
+	// Create a new OutBlock based on a portion of join indexes and input column
 	template<typename T>
-	static void reorderByJoinTableCPU(BlockBase<T> &OutBlock,
-									  std::vector<int32_t> JoinIdxVector)
+	static void reorderByJoinTableCPU()
 	{
-
+		
 	}
 };

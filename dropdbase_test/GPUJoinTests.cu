@@ -8,25 +8,25 @@
 
 #include "../dropdbase/ColumnBase.h"
 
+const int32_t SEED = 42;					// Random generator seed
+
+const int32_t BLOCK_COUNT = 10;				// Number of blocks in the input
+const int32_t BLOCK_SIZE = 1 << 10;			// The CUDA block size from the parser - simulated value
+
 TEST(GPUJoinTests, JoinTest)
 {
-	const int32_t SEED = 42;
-
-	const int32_t PARSER_BLOCK_COUNT = 10;				// Number of blocks in the input
-	const int32_t PARSER_BLOCK_SIZE = 1 << 10;			// The CUDA block size from the parser - simulated value
-
-	ColumnBase<int32_t> ColumnR_("ColumnR", PARSER_BLOCK_SIZE);
-	ColumnBase<int32_t> ColumnS_("ColumnS", PARSER_BLOCK_SIZE);
+	ColumnBase<int32_t> ColumnR_("ColumnR", BLOCK_SIZE);
+	ColumnBase<int32_t> ColumnS_("ColumnS", BLOCK_SIZE);
 
 	// Fill the buffers with random data
 	srand(SEED);
 
-	for (int32_t i = 0; i < PARSER_BLOCK_COUNT; i++)
+	for (int32_t i = 0; i < BLOCK_COUNT; i++)
 	{
 		auto& blockR = ColumnR_.AddBlock();
 		auto& blockS = ColumnS_.AddBlock();
 
-		for (int32_t j = 0; j < PARSER_BLOCK_SIZE; j++)
+		for (int32_t j = 0; j < BLOCK_SIZE; j++)
 		{
 			blockR.InsertData(std::vector<int32_t>{rand()});
 			blockS.InsertData(std::vector<int32_t>{rand()});
@@ -35,10 +35,10 @@ TEST(GPUJoinTests, JoinTest)
 
 	// Run the join and store the result cross index in two vectors
 	int32_t resultQTableSize;
-	std::vector<int32_t> QATable;
-	std::vector<int32_t> QBTable;
+	std::vector<int32_t> resultColumnQAJoinIdx;
+	std::vector<int32_t> resultColumnQBJoinIdx;
 
-	GPUJoin::JoinTableRonS(QATable, QBTable, resultQTableSize, ColumnR_, ColumnS_, PARSER_BLOCK_SIZE);
+	GPUJoin::JoinTableRonS(resultColumnQAJoinIdx, resultColumnQBJoinIdx, resultQTableSize, ColumnR_, ColumnS_, BLOCK_SIZE);
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// Check the results 
@@ -49,11 +49,11 @@ TEST(GPUJoinTests, JoinTest)
 
 	auto& ColumnRBlockList = ColumnR_.GetBlocksList();
 	auto& ColumnSBlockList = ColumnS_.GetBlocksList();
-	for (int32_t i = 0; i < PARSER_BLOCK_COUNT; i++)
+	for (int32_t i = 0; i < BLOCK_COUNT; i++)
 	{
 		auto& blockR = *ColumnRBlockList[i];
 		auto& blockS = *ColumnSBlockList[i];
-		for (int32_t j = 0; j < PARSER_BLOCK_SIZE; j++)
+		for (int32_t j = 0; j < BLOCK_SIZE; j++)
 		{
 			RTable.push_back(blockR.GetData()[j]);
 			STable.push_back(blockS.GetData()[j]);
@@ -63,11 +63,53 @@ TEST(GPUJoinTests, JoinTest)
 	// Check the results
 	for(int32_t i = 0; i < resultQTableSize; i++)
 	{
-		ASSERT_EQ(RTable[QATable[i]], STable[QBTable[i]]);
+		ASSERT_EQ(RTable[resultColumnQAJoinIdx[i]], STable[resultColumnQBJoinIdx[i]]);
 	}
 }
 
 TEST(GPUJoinTests, ReorderCPUTest)
 {
-	
+	ColumnBase<int32_t> ColumnR_("ColumnR", BLOCK_SIZE);
+	ColumnBase<int32_t> ColumnS_("ColumnS", BLOCK_SIZE);
+
+	// Fill the buffers with random data
+	srand(SEED);
+
+	for (int32_t i = 0; i < BLOCK_COUNT; i++)
+	{
+		auto& blockR = ColumnR_.AddBlock();
+		auto& blockS = ColumnS_.AddBlock();
+
+		for (int32_t j = 0; j < BLOCK_SIZE; j++)
+		{
+			blockR.InsertData(std::vector<int32_t>{rand()});
+			blockS.InsertData(std::vector<int32_t>{rand()});
+		}
+	}
+
+	// Run the join and store the result cross index in two vectors
+	int32_t resultQTableSize;
+	std::vector<int32_t> resultColumnQAJoinIdx;
+	std::vector<int32_t> resultColumnQBJoinIdx;
+
+	GPUJoin::JoinTableRonS(resultColumnQAJoinIdx, resultColumnQBJoinIdx, resultQTableSize, ColumnR_, ColumnS_, BLOCK_SIZE);
+
+	///////////////////////////////////////////////////////////////////////////////////////////
+	// Reorder the columns - put the data from a vector into a blockbase
+	for (int32_t i = 0; i < resultQTableSize; i += BLOCK_SIZE)
+	{
+		// Alloc and fill vectors with a subset of the result data
+		std::vector<int32_t> resultColumnQAJoinIdxBlock;
+		std::vector<int32_t> resultColumnQBJoinIdxBlock;
+
+		for (int32_t j = 0; j < BLOCK_SIZE && (j + i) < resultQTableSize; j++)
+		{
+			resultColumnQAJoinIdxBlock.push_back(resultColumnQAJoinIdx[i + j]);
+			resultColumnQBJoinIdxBlock.push_back(resultColumnQBJoinIdx[i + j]);
+		}
+
+		// Reconstruct the result based on the indexes
+
+
+	}
 }
