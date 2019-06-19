@@ -264,7 +264,7 @@ namespace StringUnaryOperations
 } // namespace StringUnaryOperations
 
 /// Namespace for unary string to int operation generic functors
-namespace StringIntUnaryOperations
+namespace StringUnaryNumericOperations
 {
     /// Length of string
     struct len

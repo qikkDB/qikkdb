@@ -343,6 +343,7 @@ void GpuSqlDispatcher::addArctangent2Function(DataType y, DataType x)
 
 void GpuSqlDispatcher::addConcatFunction(DataType left, DataType right)
 {
+	dispatcherFunctions.push_back(concatFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 void GpuSqlDispatcher::addLeftFunction(DataType left, DataType right)

@@ -95,6 +95,8 @@ private:
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> arctangent2Functions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> concatFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
@@ -583,29 +585,41 @@ public:
 	template<typename OP, typename T>
 	int32_t arithmeticUnaryConst();
 
-	template<typename OP, typename T>
+	template<typename OP>
 	int32_t stringUnaryCol();
 
-	template<typename OP, typename T>
+	template<typename OP>
 	int32_t stringUnaryConst();
 
-	template<typename OP, typename T>
-	int32_t stringIntUnaryCol();
+	template<typename OP>
+	int32_t stringUnaryNumericCol();
 
-	template<typename OP, typename T>
-	int32_t stringIntUnaryConst();
+	template<typename OP>
+	int32_t stringUnaryNumericConst();
 
-	template<typename OP, typename T, typename U>
+	template<typename OP>
 	int32_t stringBinaryColCol();
 
-	template<typename OP, typename T, typename U>
+	template<typename OP>
 	int32_t stringBinaryColConst();
 
-	template<typename OP, typename T, typename U>
+	template<typename OP>
 	int32_t stringBinaryConstCol();
 
-	template<typename OP, typename T, typename U>
+	template<typename OP>
 	int32_t stringBinaryConstConst();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericColCol();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericColConst();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericConstCol();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericConstConst();
 
 	template<typename OP, typename R, typename T, typename U>
 	int32_t aggregationGroupBy();
