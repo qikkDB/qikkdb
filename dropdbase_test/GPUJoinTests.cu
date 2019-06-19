@@ -2,64 +2,79 @@
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
 #include "gtest/gtest.h"
 
+#include <iostream>
 #include <cstdint>
 #include <vector>
 
-class GPUJoinTests : public ::testing::Test
+#include "../dropdbase/ColumnBase.h"
+
+TEST(GPUJoinTests, JoinTest)
 {
-public:
-	// Alloc the buffers
 	const int32_t SEED = 42;
 
-	const int32_t PARSER_BLOCK_SIZE = 1 << 30;		// The CUDA block size from the parser - simulated value
-	const int32_t HASH_BLOCK_SIZE = 1 << 20;	// THe hash table to itterazte trough the input data in a O(n^2) cycle
+	const int32_t PARSER_BLOCK_COUNT = 10;				// Number of blocks in the input
+	const int32_t PARSER_BLOCK_SIZE = 1 << 10;			// The CUDA block size from the parser - simulated value
 
-	const int32_t RTABLE_SIZE = 1 << 20;		// The first block must be the BIGGER ONE !!!!
-	const int32_t STABLE_SIZE = 1 << 10;
+	ColumnBase<int32_t> ColumnR_("ColumnR", PARSER_BLOCK_SIZE);
+	ColumnBase<int32_t> ColumnS_("ColumnS", PARSER_BLOCK_SIZE);
 
-	std::vector<int32_t> RTable;	// The first input table
-	std::vector<int32_t> STable;	// The second input table
+	// Fill the buffers with random data
+	srand(SEED);
 
-	std::vector<int32_t> QATable;	// The first result table
-	std::vector<int32_t> QBTable;	// The second result table
-
-	virtual void SetUp()
+	for (int32_t i = 0; i < PARSER_BLOCK_COUNT; i++)
 	{
-		// Fill the buffers with random data
-		srand(SEED);
+		auto& blockR = ColumnR_.AddBlock();
+		auto& blockS = ColumnS_.AddBlock();
 
-		for (int32_t i = 0; i < RTABLE_SIZE; i++) { RTable.push_back(rand()); }
-		for (int32_t i = 0; i < STABLE_SIZE; i++) { STable.push_back(rand()); }
+		for (int32_t j = 0; j < PARSER_BLOCK_SIZE; j++)
+		{
+			blockR.InsertData(std::vector<int32_t>{rand()});
+			blockS.InsertData(std::vector<int32_t>{rand()});
+		}
 	}
 
-	virtual void TearDown()
-	{
-
-
-	}
-};
-
-TEST_F(GPUJoinTests, JoinTest)
-{
-	// Run the join
+	// Run the join and store the result cross index in two vectors
 	int32_t resultQTableSize;
-	GPUJoin::JoinTableRonS(QATable, QBTable, resultQTableSize, RTable, STable);
+	std::vector<int32_t> QATable;
+	std::vector<int32_t> QBTable;
+
+	GPUJoin::JoinTableRonS(QATable, QBTable, resultQTableSize, ColumnR_, ColumnS_, PARSER_BLOCK_SIZE);
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// Check the results 
-	
-	for(int32_t i = 0; i < resultQTableSize; i++)
+
+	// DEBUG - convert tables to vectors
+	std::vector<int32_t> RTable;
+	std::vector<int32_t> STable;
+
+	auto& ColumnRBlockList = ColumnR_.GetBlocksList();
+	auto& ColumnSBlockList = ColumnS_.GetBlocksList();
+	for (int32_t i = 0; i < PARSER_BLOCK_COUNT; i++)
 	{
-		ASSERT_EQ(RTable[QATable[i]], STable[QBTable[i]]);
+		auto& blockR = *ColumnRBlockList[i];
+		auto& blockS = *ColumnSBlockList[i];
+		for (int32_t j = 0; j < PARSER_BLOCK_SIZE; j++)
+		{
+			RTable.push_back(blockR.GetData()[j]);
+			STable.push_back(blockS.GetData()[j]);
+		}
 	}
 	
+	std::printf("THIS: %d\n", ColumnS_.GetBlocksList()[0]->GetSize());
+	for(int32_t i = 0; i < resultQTableSize; i++)
+	{
+		std::printf("%d %d\n", RTable[QATable[i]], STable[QBTable[i]]);
+		ASSERT_EQ(RTable[QATable[i]], STable[QBTable[i]]);
+	}
 }
 
-TEST_F(GPUJoinTests, ReorderCPUTest)
+TEST(GPUJoinTests, ReorderCPUTest)
 {
+	/*
 	// Run the join
 	int32_t resultQTableSize;
 	GPUJoin::JoinTableRonS(QATable, QBTable, resultQTableSize, RTable, STable);
 
 	// Reorder - simulate the blockwise data input
+	*/
 }

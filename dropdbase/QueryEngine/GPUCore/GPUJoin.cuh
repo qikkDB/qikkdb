@@ -11,6 +11,8 @@
 #include "GPUMemory.cuh"
 #include "GPUArithmetic.cuh"
 
+#include "../../ColumnBase.h"
+
 #include "../../../cub/cub.cuh"
 
 __device__ const int32_t HASH_TABLE_SUB_SIZE = 0x400;
@@ -342,60 +344,49 @@ public:
 	static void JoinTableRonS(std::vector<int32_t> &QATable,
 							  std::vector<int32_t> &QBTable,
 							  int32_t &resultQTableSize,
-							  std::vector<T> &RTable,
-							  std::vector<T> &STable)
+							  ColumnBase<T> &ColumnR,
+							  ColumnBase<T> &ColumnS,
+							  int32_t blockSize)
 	{
-		const int32_t HASH_BLOCK_SIZE = 1 << 20;
-
-		const int32_t RTABLE_SIZE = RTable.size();
-		const int32_t STABLE_SIZE = STable.size();
-
+		// The result vector - reset
 		resultQTableSize = 0;
 		QATable.resize(0);
 		QBTable.resize(0);
 
-		// Alloc GPU buffers
-		int32_t *d_QATableBlock;
-		int32_t *d_QBTableBlock;
-		T *d_RTableBlock;
-		T *d_STableBlock;
-
-		GPUMemory::alloc(&d_RTableBlock, HASH_BLOCK_SIZE);
-		GPUMemory::alloc(&d_STableBlock, HASH_BLOCK_SIZE);
-
 		// Create a join instance
-		GPUJoin gpuJoin(HASH_BLOCK_SIZE);
+		GPUJoin gpuJoin(blockSize);
+
+		// Alloc GPU input block buffers
+		T *d_ColumnRBlock;
+		T *d_ColumnSBlock;
+
+		GPUMemory::alloc(&d_ColumnRBlock, blockSize);
+		GPUMemory::alloc(&d_ColumnSBlock, blockSize);
 
 		// Perform the GPU join
-		for (int32_t r = 0; r < RTABLE_SIZE; r += HASH_BLOCK_SIZE)
+		auto& ColumnRBlockList = ColumnR.GetBlocksList();
+		auto& ColumnSBlockList = ColumnS.GetBlocksList();
+		for (int32_t r = 0; r < ColumnR.GetBlockCount(); r++)
 		{
 			// For the last block process only the remaining elements
-			int32_t processedRBlockSize = HASH_BLOCK_SIZE;
-			if ((RTABLE_SIZE - r) < HASH_BLOCK_SIZE)
-			{
-				processedRBlockSize = RTABLE_SIZE - r;
-			}
+			int32_t processedRBlockSize = ColumnRBlockList[r]->GetSize();
 
 			// Copy the first table block to the GPU and perform the hashing
-			GPUMemory::copyHostToDevice(d_RTableBlock, &RTable[r], processedRBlockSize);
-			gpuJoin.HashBlock(d_RTableBlock, processedRBlockSize);
-
-			for (int32_t s = 0; s < STABLE_SIZE; s += HASH_BLOCK_SIZE)
+			GPUMemory::copyHostToDevice(d_ColumnRBlock, ColumnRBlockList[r]->GetData(), processedRBlockSize);
+			gpuJoin.HashBlock(d_ColumnRBlock, processedRBlockSize);
+			
+			for (int32_t s = 0; s < ColumnS.GetBlockCount(); s++)
 			{
-				// For the last block process only the remaining elements
-				int32_t processedSBlockSize = HASH_BLOCK_SIZE;
-				if ((STABLE_SIZE - s) < HASH_BLOCK_SIZE)
-				{
-					processedSBlockSize = STABLE_SIZE - s;
-				}
-
 				// The result block size
 				int32_t processedQBlockResultSize = 0;
 
+				// For the last block process only the remaining elements
+				int32_t processedSBlockSize = ColumnSBlockList[s]->GetSize();
+
 				// Copy the second table block to the GPU and perform the join
 				// Calculate the required space
-				GPUMemory::copyHostToDevice(d_STableBlock, &STable[s], processedSBlockSize);
-				gpuJoin.JoinBlockCountMatches(&processedQBlockResultSize, d_RTableBlock, processedRBlockSize, d_STableBlock, processedSBlockSize);
+				GPUMemory::copyHostToDevice(d_ColumnSBlock, ColumnSBlockList[s]->GetData(), processedSBlockSize);
+				gpuJoin.JoinBlockCountMatches(&processedQBlockResultSize, d_ColumnRBlock, processedRBlockSize, d_ColumnSBlock, processedSBlockSize);
 
 				// Check if the result is not empty
 				if (processedQBlockResultSize == 0)
@@ -404,34 +395,37 @@ public:
 				}
 
 				// Alloc the result buffers
-				GPUMemory::alloc(&d_QATableBlock, processedQBlockResultSize);
-				GPUMemory::alloc(&d_QBTableBlock, processedQBlockResultSize);
+				int32_t *d_QAResultBlock;
+				int32_t *d_QBResultBlock;
+
+				GPUMemory::alloc(&d_QAResultBlock, processedQBlockResultSize);
+				GPUMemory::alloc(&d_QBResultBlock, processedQBlockResultSize);
 
 				// Write the result data
-				gpuJoin.JoinBlockWriteResults(d_QATableBlock, d_QBTableBlock, d_RTableBlock, processedRBlockSize, d_STableBlock, processedSBlockSize);
+				gpuJoin.JoinBlockWriteResults(d_QAResultBlock, d_QBResultBlock, d_ColumnRBlock, processedRBlockSize, d_ColumnSBlock, processedSBlockSize);
 
 				// Copy the result blocks back and store them in the result set
 				// The results can be at most n*n big
 				std::vector<int32_t> QAresult(processedQBlockResultSize);
 				std::vector<int32_t> QBresult(processedQBlockResultSize);
 
-				GPUMemory::copyDeviceToHost(&QAresult[0], d_QATableBlock, processedQBlockResultSize);
-				GPUMemory::copyDeviceToHost(&QBresult[0], d_QBTableBlock, processedQBlockResultSize);
+				GPUMemory::copyDeviceToHost(&QAresult[0], d_QAResultBlock, processedQBlockResultSize);
+				GPUMemory::copyDeviceToHost(&QBresult[0], d_QBResultBlock, processedQBlockResultSize);
 
 				for (int32_t i = 0; i < processedQBlockResultSize; i++)
 				{
-					QATable.push_back(r + QAresult[i]);	// Write the original idx
-					QBTable.push_back(s + QBresult[i]);   // Write the original idx
+					QATable.push_back(r * blockSize + QAresult[i]);	// Write the original idx
+					QBTable.push_back(s * blockSize + QBresult[i]);   // Write the original idx
 					resultQTableSize++;
 				}
 
-				GPUMemory::free(d_QATableBlock);
-				GPUMemory::free(d_QBTableBlock);
+				GPUMemory::free(d_QAResultBlock);
+				GPUMemory::free(d_QBResultBlock);
 			}
 		}
 
-		GPUMemory::free(d_RTableBlock);
-		GPUMemory::free(d_STableBlock);
+		GPUMemory::free(d_ColumnRBlock);
+		GPUMemory::free(d_ColumnSBlock);
 	}
 
 	template<typename T>
