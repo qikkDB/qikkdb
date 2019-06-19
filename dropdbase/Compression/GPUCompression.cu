@@ -217,7 +217,9 @@ bool decompressAAFL(const int CWARP_SIZE, T* const hostCompressed, int64_t compr
 	if (minValue < 0 && maxValue > 0)
 	{
 		if (std::numeric_limits<T>::max() - maxValue < -minValue)
+		{
 			offset = 0;
+		}
 	}
 
 	uncompressedElementsCount = reinterpret_cast<int64_t*>(hostCompressed)[0];
@@ -364,7 +366,9 @@ bool decompressAAFLOnDevice(const int CWARP_SIZE, T* const deviceCompressed, int
 	if (minValue < 0 && maxValue > 0)
 	{
 		if (std::numeric_limits<T>::max() - maxValue < -minValue)
+		{
 			offset = 0;
+		}
 	}
 
 	// Decoding single array of type T into separate arrays (of compression meta data)

@@ -97,7 +97,8 @@ TEST_F(GPUCompressionTests, CompressionInt)
 
 	block->DecompressData();
 
-	for (int i = 0; i < database->GetBlockSize(); i++) {
+	for (int i = 0; i < database->GetBlockSize(); i++)
+	{
 		ASSERT_EQ(dataInt[i], block->GetData()[i]);
 	}
 	
@@ -109,7 +110,8 @@ TEST_F(GPUCompressionTests, CompressionIntLarge)
 	BlockBase<int32_t>* blockLarge = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnIntLarge").get())->GetBlocksList()[0];
 	blockLarge->CompressData();
 
-	for (int i = 0; i < database->GetBlockSize(); i++) {
+	for (int i = 0; i < database->GetBlockSize(); i++)
+	{
 		ASSERT_EQ(dataIntLarge[i], blockLarge->GetData()[i]);
 	}
 }
@@ -137,7 +139,8 @@ TEST_F(GPUCompressionTests, CompressionLong)
 	
 	block->DecompressData();
 
-	for (int i = 0; i < database->GetBlockSize(); i++) {
+	for (int i = 0; i < database->GetBlockSize(); i++)
+	{
 		ASSERT_EQ(dataLong[i], block->GetData()[i]);
 	}
 }
@@ -170,7 +173,8 @@ TEST_F(GPUCompressionTests, CompressionFloatPositive)
 
 	blockPositive->DecompressData();
 
-	for (int i = 0; i < database->GetBlockSize(); i++) {
+	for (int i = 0; i < database->GetBlockSize(); i++)
+	{
 		ASSERT_EQ(dataFloatPositive[i], blockPositive->GetData()[i]);
 	}
 }
@@ -201,7 +205,8 @@ TEST_F(GPUCompressionTests, CompressionFloatNegative)
 
 	blockNegative->DecompressData();
 
-	for (int i = 0; i < database->GetBlockSize(); i++) {
+	for (int i = 0; i < database->GetBlockSize(); i++)
+	{
 		ASSERT_EQ(dataFloatNegative[i], blockNegative->GetData()[i]);
 	}
 
@@ -210,7 +215,8 @@ TEST_F(GPUCompressionTests, CompressionFloatNegative)
 	BlockBase<float>* blockMixed = dynamic_cast<ColumnBase<float>*>(database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatMixed").get())->GetBlocksList()[0];
 	blockMixed->CompressData();
 
-	for (int i = 0; i < database->GetBlockSize(); i++) {
+	for (int i = 0; i < database->GetBlockSize(); i++)
+	{
 		ASSERT_EQ(dataFloatMixed[i], blockMixed->GetData()[i]);
 	}
 }
@@ -222,7 +228,8 @@ TEST_F(GPUCompressionTests, CompressionFloatMixed)
 	BlockBase<float>* blockMixed = dynamic_cast<ColumnBase<float>*>(database->GetTables().find("compressionTable")->second.GetColumns().at("ColumnFloatMixed").get())->GetBlocksList()[0];
 	blockMixed->CompressData();
 
-	for (int i = 0; i < database->GetBlockSize(); i++) {
+	for (int i = 0; i < database->GetBlockSize(); i++)
+	{
 		ASSERT_EQ(dataFloatMixed[i], blockMixed->GetData()[i]);
 	}
 }
