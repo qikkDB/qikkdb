@@ -20,7 +20,6 @@ private:
 	const std::shared_ptr<Database> &database;
 	int32_t blockIndex;
 	int64_t whereResult;
-	bool evaluateMin;
 	MemoryStream arguments;
 	int32_t instructionPointer;
 
@@ -290,11 +289,15 @@ public:
 	{
 		auto colName = arguments.read<std::string>();
 		auto reg = allocatedPointers.at(colName);
-		T* resultArray = reinterpret_cast<T*>(std::get<0>(reg));
+		T* resultMin = reinterpret_cast<T*>(std::get<0>(reg + "_min"));
+		T* resultMax = reinterpret_cast<T*>(std::get<0>(reg + "_max"));
 
-		whereResult = std::get<2>(reg) ? 1 : static_cast<int64_t>(resultArray[0]);
-		
-		std::cout << "Where result col: " << colName << ", " << whereResult << std::endl;
+		int64_t whereResultMin = std::get<2>(reg + "_min") ? 1 : static_cast<int64_t>(resultMin[0]);
+		int64_t whereResultMax = std::get<2>(reg + "_max") ? 1 : static_cast<int64_t>(resultMax[0]);
+
+		whereResult = whereResultMin || whereResultMax;
+
+		std::cout << "Where result: " << colName << ", " << whereResult << std::endl;
 
 		return 1;
 	}
