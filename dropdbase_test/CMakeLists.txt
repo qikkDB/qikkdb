@@ -30,6 +30,8 @@ if(NOT WIN32)
 	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "--compiler-bindir=${CMAKE_CXX_COMPILER} --expt-relaxed-constexpr")
 endif(NOT WIN32)
 add_executable(${PROJECT_NAME}_test ${TEST_FILES} ${CUDA_TEST_FILES})
+set_target_properties(${PROJECT_NAME}_test PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(${PROJECT_NAME}_test PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIR}) 
 

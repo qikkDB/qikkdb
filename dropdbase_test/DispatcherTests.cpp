@@ -10022,33 +10022,31 @@ void AssertEqStringCol(ColmnarDB::NetworkClient::Message::QueryResponsePayload p
 	}
 }
 
+/// Run query SELECT <col> <fromWhere>;
+ColmnarDB::NetworkClient::Message::QueryResponsePayload RunQuery(std::string col, std::string fromWhere)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT " + col + " " + fromWhere + ";");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	return result->payloads().at(col);
+}
+
 /// Run query SELECT function(column) FROM table; and return result payload
 ColmnarDB::NetworkClient::Message::QueryResponsePayload RunFunctionQuery(
 	std::string function, std::string column, std::string table)
 {
 	std::string retFunCol = function + "(" + column + ")";
-	Context::getInstance();
-
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-		"SELECT " + retFunCol + " FROM " + table + ";");
-	auto resultPtr = parser.parse();
-	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	return result->payloads().at(retFunCol);
+	return RunQuery(retFunCol, "FROM " + table);
 }
-
 
 /// Run query SELECT function(column) FROM table; and return result payload
 ColmnarDB::NetworkClient::Message::QueryResponsePayload RunFunctionColConstQuery(
 	std::string function, std::string column, std::string cnst, std::string table)
 {
 	std::string retFunCol = function + "(" + column +"," + cnst + ")";
-	Context::getInstance();
-
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-		"SELECT " + retFunCol + " FROM " + table + ";");
-	auto resultPtr = parser.parse();
-	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	return result->payloads().at(retFunCol);
+	return RunQuery(retFunCol, "FROM " + table);
 }
 
 TEST(DispatcherTests, StringLower)
@@ -10475,6 +10473,34 @@ TEST(DispatcherTests, StringRightConstConst)
 
 	AssertEqStringCol(payloads, expectedResultsStrings);
 }
+
+
+TEST(DispatcherTests, StringEqColConst)
+{
+	const std::string text = "Word0";
+	const std::string colStrName = "colString1";
+	const std::string table = "TableA";
+	auto &payloads = RunQuery(colStrName, "FROM " + table + " WHERE " + colStrName + " = \"" + text + "\"");
+
+	std::vector<std::string> expectedResultsStrings;
+	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(colStrName).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = columnString->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if (block->GetData()[k] == text)
+			{
+				expectedResultsStrings.push_back(block->GetData()[k]);
+			}
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
 
 // Polygon clipping tests
 /*

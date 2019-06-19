@@ -7,6 +7,7 @@
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/GPUFilter.cuh"
+#include "../dropdbase/StringFactory.h"
 
 
 // Count of the testing data elements:
@@ -614,4 +615,31 @@ TEST(GPUFilterTests, FiltersConstConst)
 	testConstConstFilter<int32_t>();
 	testConstConstFilter<int64_t>();
 	testConstConstFilter<float>();
+}
+
+template<typename OP>
+void TestFilterString(std::vector<std::string> inputStringACol, std::vector<std::string> inputStringBCol,
+	std::vector<int8_t> expectedResults)
+{
+	GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString(inputStringACol);
+	GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(inputStringBCol);
+	int32_t dataElementCount = std::min(inputStringACol.size(), inputStringBCol.size());
+	cuda_ptr<int8_t> gpuMask(dataElementCount);
+	GPUFilter::colCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
+	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+	
+	ASSERT_EQ(dataElementCount, expectedResults.size());
+	for (int32_t i = 0; i < dataElementCount; i++)
+	{
+		ASSERT_EQ(actualMask[i], expectedResults[i]) << " at row " << i;
+	}
+}
+
+TEST(GPUFilterTests, FiltersString)
+{
+	TestFilterString<FilterConditions::equal>(
+		{ std::string("Abcd"), std::string("XYZW"), std::string(" "), std::string("_#$\\"), std::string("xpr") },
+		{ std::string("Abcd"), std::string("road"), std::string("z"), std::string("_#$\\"), std::string("x") },
+		{ 1, 0, 0, 1, 0 });
 }
