@@ -617,8 +617,10 @@ TEST(GPUFilterTests, FiltersConstConst)
 	testConstConstFilter<float>();
 }
 
+
+// == String Filters ==
 template<typename OP>
-void TestFilterString(std::vector<std::string> inputStringACol, std::vector<std::string> inputStringBCol,
+void TestFilterStringColCol(std::vector<std::string> inputStringACol, std::vector<std::string> inputStringBCol,
 	std::vector<int8_t> expectedResults)
 {
 	GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString(inputStringACol);
@@ -632,14 +634,98 @@ void TestFilterString(std::vector<std::string> inputStringACol, std::vector<std:
 	ASSERT_EQ(dataElementCount, expectedResults.size());
 	for (int32_t i = 0; i < dataElementCount; i++)
 	{
-		ASSERT_EQ(actualMask[i], expectedResults[i]) << " at row " << i;
+		ASSERT_EQ(actualMask[i], expectedResults[i]) << " in ColCol at row " << i;
 	}
 }
 
-TEST(GPUFilterTests, FiltersString)
+template<typename OP>
+void TestFilterStringColConst(std::vector<std::string> inputStringACol, std::string inputStringBConst,
+	std::vector<int8_t> expectedResults)
 {
-	TestFilterString<FilterConditions::equal>(
-		{ std::string("Abcd"), std::string("XYZW"), std::string(" "), std::string("_#$\\"), std::string("xpr") },
-		{ std::string("Abcd"), std::string("road"), std::string("z"), std::string("_#$\\"), std::string("x") },
+	GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString(inputStringACol);
+	GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString({ inputStringBConst });
+	int32_t dataElementCount = inputStringACol.size();
+	cuda_ptr<int8_t> gpuMask(dataElementCount);
+	GPUFilter::colConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
+	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+
+	ASSERT_EQ(dataElementCount, expectedResults.size());
+	for (int32_t i = 0; i < dataElementCount; i++)
+	{
+		ASSERT_EQ(actualMask[i], expectedResults[i]) << " in ColConst at row " << i;
+	}
+}
+
+template<typename OP>
+void TestFilterStringConstCol(std::string inputStringAConst, std::vector<std::string> inputStringBCol,
+	std::vector<int8_t> expectedResults)
+{
+	GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString({ inputStringAConst });
+	GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(inputStringBCol);
+	int32_t dataElementCount = inputStringBCol.size();
+	cuda_ptr<int8_t> gpuMask(dataElementCount);
+	GPUFilter::constCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
+	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+
+	ASSERT_EQ(dataElementCount, expectedResults.size());
+	for (int32_t i = 0; i < dataElementCount; i++)
+	{
+		ASSERT_EQ(actualMask[i], expectedResults[i]) << " in ConstCol at row " << i;
+	}
+}
+
+template<typename OP>
+void TestFilterStringConstConst(std::string inputStringAConst, std::string inputStringBConst,
+	int8_t expectedResult)
+{
+	GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString({ inputStringAConst });
+	GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString({ inputStringBConst });
+	int32_t dataElementCount = 8;
+	cuda_ptr<int8_t> gpuMask(dataElementCount);
+	GPUFilter::constConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
+	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+
+	for (int32_t i = 0; i < dataElementCount; i++)
+	{
+		ASSERT_EQ(actualMask[i], expectedResult) << " in ConstConst at row " << i;
+	}
+}
+
+TEST(GPUFilterTests, FiltersStringEq)
+{
+	TestFilterStringColCol<FilterConditions::equal>(
+		{ "Abcd", "XYZW", " ", "_#$\\", "xpr" },
+		{ "Abcd", "road", "z", "_#$\\", "x" },
 		{ 1, 0, 0, 1, 0 });
+	TestFilterStringColConst<FilterConditions::equal>(
+		{ "Abcd", "XYZW", " ", "_#$\\", "xpr" },
+		"Abcd",
+		{ 1, 0, 0, 0, 0 });
+	TestFilterStringConstCol<FilterConditions::equal>(
+		"_#$\\",
+		{ "Abcd", "road", "z", "_#$\\", "x", "" },
+		{ 0, 0, 0, 1, 0, 0 });
+	TestFilterStringConstConst<FilterConditions::equal>("Abcd", "Abcd", 1);
+	TestFilterStringConstConst<FilterConditions::equal>("Abcd", "road", 0);
+}
+
+TEST(GPUFilterTests, FiltersStringNonEq)
+{
+	TestFilterStringColCol<FilterConditions::notEqual>(
+		{ "Abcd", "XYZW", " ", "_#$\\", "xpr" },
+		{ "Abcd", "road", "zzz", "_#$\\", "x" },
+		{ 0, 1, 1, 0, 1 });
+	TestFilterStringColConst<FilterConditions::notEqual>(
+		{ "Abcd", "XYZW", " ", "_#$\\", "xpr" },
+		"Abcd",
+		{ 0, 1, 1, 1, 1 });
+	TestFilterStringConstCol<FilterConditions::notEqual>(
+		"_#$\\",
+		{ "Abcd", "road", "z", "_#$\\", "x", "" },
+		{ 1, 1, 1, 0, 1, 1 });
+	TestFilterStringConstConst<FilterConditions::notEqual>("Abcd", "Abcd", 0);
+	TestFilterStringConstConst<FilterConditions::notEqual>("Abcd", "road", 1);
 }
