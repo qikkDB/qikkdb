@@ -27,9 +27,10 @@ int32_t CpuSqlDispatcher::arithmeticColConst()
 
 	ResultType * result = allocateRegister<ResultType>(reg, 1, std::get<2>(colVal) || !OP::isMonotonous);
 
-	result[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colVal))[0], cnst);
+	result[0] = OP{}.template operator() < ResultType, T, U > (reinterpret_cast<T*>(std::get<0>(colVal))[0], cnst);
 	
-	std::cout << "Where evaluation arithmeticColConst" << (evaluateMin ? "_min" : "_max") << ": " << colName << ", " << reg << ": " << result[0] << std::endl;
+	std::cout << std::string(typeid(ResultType).name()) << std::endl;
+	std::cout << "Where evaluation arithmeticColConst" << (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " << reg << ": " << result[0] << std::endl;
 
 	return 0;
 }
@@ -58,9 +59,9 @@ int32_t CpuSqlDispatcher::arithmeticConstCol()
 
 	ResultType * result = allocateRegister<ResultType>(reg, 1, std::get<2>(colVal) || !OP::isMonotonous);
 
-	result[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colVal))[0]);
+	result[0] = OP{}.template operator() < ResultType, T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colVal))[0]);
 
-	std::cout << "Where evaluation arithmeticConstCol" << (evaluateMin ? "_min" : "_max") << ": " << colName << ", " << reg << ": " << result[0] << std::endl;
+	std::cout << "Where evaluation arithmeticConstCol" << (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " << reg << ": " << result[0] << std::endl;
 
 	return 0;
 }
@@ -98,9 +99,8 @@ int32_t CpuSqlDispatcher::arithmeticColCol()
 		auto colValRight = allocatedPointers.at(colPointerNameRight);
 
 		result = allocateRegister<ResultType>(reg, 1, std::get<2>(colValLeft) || std::get<2>(colValRight));
-		result[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValLeft))[0], reinterpret_cast<U*>(std::get<0>(colValRight))[0]);
+		result[0] = OP{}.template operator() < ResultType, T, U > (reinterpret_cast<T*>(std::get<0>(colValLeft))[0], reinterpret_cast<U*>(std::get<0>(colValRight))[0]);
 	}
-
 	std::cout << "Where evaluation arithmeticColCol" << (evaluateMin ? "_min" : "_max") << ": " << colNameLeft << ", " << colNameRight << ", " << reg << ": " << result[0] << std::endl;
 
 	return 0;
@@ -122,7 +122,7 @@ int32_t CpuSqlDispatcher::arithmeticConstConst()
 	>::type ResultType;
 	
 	ResultType * result = allocateRegister<ResultType>(reg, 1, false);
-	result[0] = OP{}.template operator() < T, U > (constLeft, constRight);
+	result[0] = OP{}.template operator() < ResultType, T, U > (constLeft, constRight);
 
 	std::cout << "Where evaluation arithmeticConstConst" << (evaluateMin ? "_min" : "_max") << ": " << reg << ": " << result[0] << std::endl;
 

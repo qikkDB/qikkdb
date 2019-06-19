@@ -46,13 +46,20 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 			isOverallLastBlock = true;
 		}
 
+		noLoad = false;
+
+		if (loadNecessary == 0)
+		{
+			instructionPointer = jmpInstuctionPosition;
+			return 12;
+		}
+
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(database->GetTables().at(table).GetColumns().at(column).get());
 		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex]);
 		insertComplexPolygon(database->GetName(), colName,
 			std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(),
 				block->GetData() + block->GetSize()),
 			block->GetSize());
-		noLoad = false;
 	}
 	return 0;
 }
@@ -84,6 +91,14 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 			isOverallLastBlock = true;
 		}
 
+		noLoad = false;
+
+		if (loadNecessary == 0)
+		{
+			instructionPointer = jmpInstuctionPosition;
+			return 12;
+		}
+
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().at(table).GetColumns().at(column).get());
 		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::Point>*>(col->GetBlocksList()[blockIndex]);
 
@@ -100,7 +115,6 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 				nativePoints.size());
 		}
 		addCachedRegister(colName, std::get<0>(cacheEntry), nativePoints.size());
-		noLoad = false;
 	}
 	return 0;
 }

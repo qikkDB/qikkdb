@@ -17,9 +17,9 @@ int32_t CpuSqlDispatcher::arithmeticUnaryCol()
 	auto colVal = allocatedPointers.at(colPointerName);
 
 	ResultType * result = allocateRegister<ResultType>(reg, 1, std::get<2>(colVal) || !OP::isMonotonous);
-	result[0] = OP{}.template operator()<T>(reinterpret_cast<T*>(std::get<0>(colVal))[0]);
+	result[0] = OP{}.template operator()< ResultType, T>(reinterpret_cast<T*>(std::get<0>(colVal))[0]);
 
-	std::cout << "Where evaluation arithmeticUnaryCol: " << colName << ", " << reg << ": " << result[0] << std::endl;
+	std::cout << "Where evaluation arithmeticUnaryCol" << (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " << reg << ": " << result[0] << std::endl;
 
 	return 0;
 }
@@ -33,9 +33,9 @@ int32_t CpuSqlDispatcher::arithmeticUnaryConst()
 	typedef typename std::conditional < OP::isFloatRetType, float, T>::type ResultType;
 
 	ResultType * result = allocateRegister<ResultType>(reg, 1, !OP::isMonotonous);
-	result[0] = OP{}.template operator()<T>(cnst);
+	result[0] = OP{}.template operator()< ResultType, T>(cnst);
 
-	std::cout << "Where evaluation arithmeticUnaryConst: " << reg << ": " << result[0] << std::endl;
+	std::cout << "Where evaluation arithmeticUnaryConst" << (evaluateMin ? "_min" : "_max") << ": " <<  reg << ": " << result[0] << std::endl;
 
 	return 0;
 }
