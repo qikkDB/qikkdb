@@ -140,7 +140,7 @@ int32_t GpuSqlDispatcher::filterStringColConst()
 		return loadFlag;
 	}
 
-	std::cout << "FilterString: " << colName << " " << reg << std::endl;
+	std::cout << "FilterStringColConst: " << colName << " " << cnst << " " << reg << std::endl;
 
 	std::tuple<GPUMemory::GPUString, int32_t> column = findStringColumn(colName);
 	int32_t retSize = std::get<1>(column);
@@ -149,7 +149,7 @@ int32_t GpuSqlDispatcher::filterStringColConst()
 	{
 		GPUMemory::GPUString constString = insertConstStringGpu(cnst);
 		int8_t * mask = allocateRegister<int8_t>(reg, retSize);
-		GPUFilter::colCol<OP>(mask, std::get<0>(column), constString, retSize);
+		GPUFilter::colConst<OP>(mask, std::get<0>(column), constString, retSize);
 	}
 	return 0;
 }
@@ -167,7 +167,7 @@ int32_t GpuSqlDispatcher::filterStringConstCol()
 		return loadFlag;
 	}
 
-	std::cout << "FilterString: " << colName << " " << reg << std::endl;
+	std::cout << "FilterStringConstCol: " << cnst << " " << colName << " " << reg << std::endl;
 
 	std::tuple<GPUMemory::GPUString, int32_t> column = findStringColumn(colName);
 	int32_t retSize = std::get<1>(column);
@@ -176,7 +176,7 @@ int32_t GpuSqlDispatcher::filterStringConstCol()
 	{
 		GPUMemory::GPUString constString = insertConstStringGpu(cnst);
 		int8_t * mask = allocateRegister<int8_t>(reg, retSize);
-		GPUFilter::colCol<OP>(mask, std::get<0>(column), constString, retSize);
+		GPUFilter::constCol<OP>(mask, constString, std::get<0>(column), retSize);
 	}
 	return 0;
 }
@@ -199,11 +199,11 @@ int32_t GpuSqlDispatcher::filterStringColCol()
 		return loadFlag;
 	}
 
-	std::cout << "FilterString: " << colName << " " << reg << std::endl;
+	std::cout << "FilterStringColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
 	std::tuple<GPUMemory::GPUString, int32_t> columnLeft = findStringColumn(colNameLeft);
 	std::tuple<GPUMemory::GPUString, int32_t> columnRight = findStringColumn(colNameRight);
-	int32_t retSize = std::max(std::get<1>(columnLeft), std::get<1>(colRight));
+	int32_t retSize = std::max(std::get<1>(columnLeft), std::get<1>(columnRight));
 
 	if (!isRegisterAllocated(reg))
 	{
@@ -217,14 +217,16 @@ int32_t GpuSqlDispatcher::filterStringColCol()
 template<typename OP>
 int32_t GpuSqlDispatcher::filterStringConstConst()
 {
-	std::string constRight = arguments.read<std::string>();
-	std::string constLeft = arguments.read<std::string>();
+	std::string cnstRight = arguments.read<std::string>();
+	std::string cnstLeft = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
+
+	std::cout << "FilterStringConstConst: " << cnstLeft << " " << cnstRight << " " << reg << std::endl;
 
 	if (!isRegisterAllocated(reg))
 	{
-		GPUMemory::GPUString constStringLeft = insertConstStringGpu(constLeft);
-		GPUMemory::GPUString constStringRight = insertConstStringGpu(constRight);
+		GPUMemory::GPUString constStringLeft = insertConstStringGpu(cnstLeft);
+		GPUMemory::GPUString constStringRight = insertConstStringGpu(cnstRight);
 
 		int8_t * mask = allocateRegister<int8_t>(reg, database->GetBlockSize());
 		GPUFilter::constConst<OP>(mask, constStringLeft, constStringRight, database->GetBlockSize());

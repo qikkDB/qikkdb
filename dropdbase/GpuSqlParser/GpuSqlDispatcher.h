@@ -813,18 +813,16 @@ template<>
 int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
 
 template<>
-int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>();
-
-template<>
-int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
-
-template<>
-int32_t GpuSqlDispatcher::retCol<std::string>();
-
-template<>
-int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
-
-template<>
 int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::Point>();
+
+template<>
+int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName);
+
+template<>
+int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName);
+
+template<>
+int32_t GpuSqlDispatcher::loadCol<std::string>(std::string& colName);
+
 
 #endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
