@@ -64,7 +64,7 @@ int32_t GpuSqlDispatcher::stringUnaryNumericCol()
 	auto colName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int32_t loadFlag = loadCol<T>(colName);
+	int32_t loadFlag = loadCol<std::string>(colName);
 	if (loadFlag)
 	{
 		return loadFlag;
@@ -93,7 +93,7 @@ int32_t GpuSqlDispatcher::stringUnaryNumericCol()
 template<typename OP>
 int32_t GpuSqlDispatcher::stringUnaryNumericConst()
 {
-	T cnst = arguments.read<T>();
+	std::string cnst = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
 	std::cout << "StringUnaryConst: " << reg << std::endl;
@@ -188,7 +188,7 @@ template<typename OP, typename T>
 int32_t GpuSqlDispatcher::stringBinaryNumericConstCol()
 {
 	auto colName = arguments.read<std::string>();
-	T cnst = arguments.read<T>();
+	std::string cnst = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
 	int32_t loadFlag = loadCol<std::string>(colName);

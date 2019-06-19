@@ -144,7 +144,7 @@ private:
 		Context& context = Context::getInstance();
 		cuda_ptr<int32_t> newLengths(dataElementCount);
 		kernel_predict_length_concat << <context.calcGridDim(dataElementCount), context.getBlockDim() >> > (
-			newLengths.get(), ACol, isACol, BCol, isBCol, dataElementCount);
+			newLengths.get(), inputA, isACol, inputB, isBCol, dataElementCount);
 
 		// Alloc and compute new stringIndices
 		GPUMemory::alloc(&(output.stringIndices), dataElementCount);
@@ -157,7 +157,7 @@ private:
 
 		// Concat the strings
 		kernel_string_concat << <context.calcGridDim(dataElementCount), context.getBlockDim() >> > (
-			output, ACol, isACol, BCol, isBCol, dataElementCount);
+			output, inputA, isACol, inputB, isBCol, dataElementCount);
 	}
 
 public:
