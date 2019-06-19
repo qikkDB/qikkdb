@@ -83,7 +83,11 @@ TEST_F(GPUCompressionTests, CompressionInt)
 
 	ASSERT_EQ(1024, block->GetData()[0]);
 	ASSERT_EQ(0, block->GetData()[1]);
+#ifdef WIN32
+	ASSERT_EQ(366, block->GetData()[2]);
+#else
 	ASSERT_EQ(398, block->GetData()[2]);
+#endif
 	ASSERT_EQ(0, block->GetData()[3]);
 	ASSERT_EQ(32, block->GetData()[4]);
 	ASSERT_EQ(0, block->GetData()[5]);
@@ -119,7 +123,11 @@ TEST_F(GPUCompressionTests, CompressionLong)
 	block->CompressData();
 	
 	ASSERT_EQ(1024, block->GetData()[0]);
+#ifdef WIN32
+	ASSERT_EQ(471, block->GetData()[1]);
+#else
 	ASSERT_EQ(487, block->GetData()[1]);
+#endif
 	ASSERT_EQ(32, block->GetData()[2]);
 	ASSERT_EQ(0, block->GetData()[3]);
 	ASSERT_EQ(0, block->GetData()[4]);
@@ -148,7 +156,11 @@ TEST_F(GPUCompressionTests, CompressionFloatPositive)
 
 	ASSERT_EQ(1024, compressedDataPositive[0]);
 	ASSERT_EQ(0, compressedDataPositive[1]);
+#ifdef WIN32
+	ASSERT_EQ(814, compressedDataPositive[2]);
+#else
 	ASSERT_EQ(846, compressedDataPositive[2]);
+#endif
 	ASSERT_EQ(0, compressedDataPositive[3]);
 	ASSERT_EQ(32, compressedDataPositive[4]);
 	ASSERT_EQ(0, compressedDataPositive[5]);
@@ -175,7 +187,11 @@ TEST_F(GPUCompressionTests, CompressionFloatNegative)
 
 	ASSERT_EQ(1024, compressedDataNegative[0]);
 	ASSERT_EQ(0, compressedDataNegative[1]);
+#ifdef WIN32
+	ASSERT_EQ(718, compressedDataNegative[2]);
+#else
 	ASSERT_EQ(750, compressedDataNegative[2]);
+#endif
 	ASSERT_EQ(0, compressedDataNegative[3]);
 	ASSERT_EQ(32, compressedDataNegative[4]);
 	ASSERT_EQ(0, compressedDataNegative[5]);
