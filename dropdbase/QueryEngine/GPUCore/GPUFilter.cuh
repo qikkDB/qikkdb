@@ -9,6 +9,7 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "MaybeDeref.cuh"
+#include "GPUStringUnary.cuh"
 
 /// Functors for parallel binary filtration operations
 namespace FilterConditions
@@ -61,6 +62,25 @@ namespace FilterConditions
 		{
 			return a == b;
 		}
+
+		__device__ bool compareStrings(char * a, int32_t aLength, char * b, int32_t bLength)
+		{
+			if (aLength != bLength)
+			{
+				return false;
+			}
+			else
+			{
+				for (int32_t j = 0; j < aLength; j++)
+				{
+					if (a[j] != b[j])
+					{
+						return false;
+					}
+				}
+				return true;
+			}
+		}
 	};
 
 	/// An unequality operator != functor
@@ -92,6 +112,23 @@ __global__ void kernel_filter(int8_t *outMask, T ACol, U BCol, int32_t dataEleme
 		outMask[i] = OP{}.template operator()
 			< typename std::remove_pointer<T>::type, typename std::remove_pointer<U>::type >
 			(maybe_deref(ACol, i), maybe_deref(BCol, i));
+	}
+}
+
+/// Kernel for string comparison (equality, ...)
+template<typename OP>
+__global__ void kernel_filter_string(int8_t *outMask, GPUMemory::GPUString ACol, GPUMemory::GPUString BCol, int32_t dataElementCount)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		const int64_t aIndex = GetStringIndex(ACol.stringIndices, i);
+		const int32_t aLength = static_cast<int32_t>(ACol.stringIndices[i] - aIndex);
+		const int64_t bIndex = GetStringIndex(BCol.stringIndices, i);
+		const int32_t bLength = static_cast<int32_t>(BCol.stringIndices[i] - bIndex);
+		outMask[i] = OP{}.compareStrings(ACol.allChars + aIndex, aLength, BCol.allChars + bIndex, bLength);
 	}
 }
 
@@ -156,5 +193,12 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
-};
+	template<typename OP>
+	static void colCol(int8_t *outMask, GPUMemory::GPUString ACol, GPUMemory::GPUString BCol, int32_t dataElementCount)
+	{
+		kernel_filter_string <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+			(outMask, ACol, BCol, dataElementCount);
+		CheckCudaError(cudaGetLastError());
+	}
 
+};
