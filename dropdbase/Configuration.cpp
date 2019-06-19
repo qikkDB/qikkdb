@@ -21,6 +21,7 @@ void Configuration::LoadConfigurationFile()
 
 	// setting particular YAML entries into configuration values
 	this->SetupConfigurationValue("UsingGPU", this->usingGPU_);
+	this->SetupConfigurationValue("UsingCompression", this->usingCompression_);
 	this->SetupConfigurationValue("Dir", this->dir_);
 	this->SetupConfigurationValue("DatabaseDir", this->databaseDir_);
 	this->SetupConfigurationValue("BlockSize", this->blockSize_);

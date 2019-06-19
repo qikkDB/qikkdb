@@ -157,6 +157,6 @@ add_subdirectory(dropdbase)
 add_subdirectory(dropdbase_test)
 
 enable_testing()
-add_test(${PROJECT_NAME}_test ${PROJECT_NAME}_test)
+add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
 
 
