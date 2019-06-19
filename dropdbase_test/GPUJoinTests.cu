@@ -59,22 +59,15 @@ TEST(GPUJoinTests, JoinTest)
 			STable.push_back(blockS.GetData()[j]);
 		}
 	}
-	
-	std::printf("THIS: %d\n", ColumnS_.GetBlocksList()[0]->GetSize());
+
+	// Check the results
 	for(int32_t i = 0; i < resultQTableSize; i++)
 	{
-		std::printf("%d %d\n", RTable[QATable[i]], STable[QBTable[i]]);
 		ASSERT_EQ(RTable[QATable[i]], STable[QBTable[i]]);
 	}
 }
 
 TEST(GPUJoinTests, ReorderCPUTest)
 {
-	/*
-	// Run the join
-	int32_t resultQTableSize;
-	GPUJoin::JoinTableRonS(QATable, QBTable, resultQTableSize, RTable, STable);
-
-	// Reorder - simulate the blockwise data input
-	*/
+	
 }

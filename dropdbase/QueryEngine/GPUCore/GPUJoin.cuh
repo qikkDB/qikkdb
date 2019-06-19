@@ -12,6 +12,7 @@
 #include "GPUArithmetic.cuh"
 
 #include "../../ColumnBase.h"
+#include "../../BlockBase.h"
 
 #include "../../../cub/cub.cuh"
 
@@ -26,7 +27,7 @@ __device__ int32_t hash(int32_t key)
 template<typename T>
 __global__ void kernel_calc_hash_histo(int32_t* HashTableHisto,
 									   int32_t hashTableSize,
-									   T* RTable, 
+									   T* ColumnRBlock, 
 									   int32_t dataElementCount)
 {
     __shared__ int32_t shared_memory[HASH_TABLE_SUB_SIZE];
@@ -40,7 +41,7 @@ __global__ void kernel_calc_hash_histo(int32_t* HashTableHisto,
         shared_memory[threadIdx.x] = 0;
         __syncthreads();
 
-		int32_t hash_idx = hash(RTable[i]);
+		int32_t hash_idx = hash(ColumnRBlock[i]);
         atomicAdd(&shared_memory[hash_idx], 1);
 
 		__syncthreads();
@@ -52,7 +53,7 @@ template <typename T>
 __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
 										   int32_t* HashTablePrefixSum,
 										   int32_t hashTableSize,
-                                           T* RTable,
+                                           T* ColumnRBlock,
 										   int32_t dataElementCount)
 {
     __shared__ int32_t shared_memory[HASH_TABLE_SUB_SIZE];
@@ -65,9 +66,9 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
         shared_memory[threadIdx.x] = (i == 0) ? 0 : HashTablePrefixSum[i - 1];
         __syncthreads();
 
-        int32_t hash_idx = hash(RTable[i]);
+        int32_t hash_idx = hash(ColumnRBlock[i]);
 		int32_t bucket_idx = atomicAdd(&shared_memory[hash_idx], 1);
-		HashTableHashBuckets[bucket_idx] = i;//RTable[i];
+		HashTableHashBuckets[bucket_idx] = i;//ColumnRBlock[i];
     }
 }
 
@@ -78,15 +79,15 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 									   int32_t* HashTablePrefixSum,
                                        int32_t* HashTableHashBuckets,
 									   int32_t hashTableSize,
-									   T* RTable, 
-									   int32_t dataElementCountRTable,
-									   T* STable,
-									   int32_t dataElementCountSTable)
+									   T* ColumnRBlock, 
+									   int32_t dataElementCountColumnRBlock,
+									   T* ColumnSBlock,
+									   int32_t dataElementCountColumnSBlock)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
-    for (int32_t i = idx; i < joinTableSize && i < dataElementCountSTable; i += stride)
+    for (int32_t i = idx; i < joinTableSize && i < dataElementCountColumnSBlock; i += stride)
     {
 		// Zero the histo array
 		JoinTableHisto[i] = 0;
@@ -95,14 +96,14 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 		int32_t hashMatchCounter = 0;
         
 		// Hash table buckets probing and occurance counting
-        int32_t hash_idx = hash(STable[i]);
+        int32_t hash_idx = hash(ColumnSBlock[i]);
         for (int32_t j = hash_idx; j < hashTableSize; j += HASH_TABLE_SUB_SIZE)
 		{
 			// Check if a bucket is empty, if yes, try the next bucket with the same hash
 			// Otherwise probe and count the number of matching entries
             for (int32_t k = 0; k < HashTableHisto[j]; k++)
             {
-                if (RTable[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] == STable[i])
+                if (ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] == ColumnSBlock[i])
 				{
                     hashMatchCounter++;
 				}
@@ -122,19 +123,19 @@ __global__ void kernel_distribute_results_to_buffer(T* QTableA,
                                                     int32_t* HashTablePrefixSum,
                                                     int32_t* HashTableHashBuckets,
 													int32_t hashTableSize,
-													T* RTable,
-													int32_t dataElementCountRTable,
-                                                    T* STable,
-													int32_t dataElementCountSTable)
+													T* ColumnRBlock,
+													int32_t dataElementCountColumnRBlock,
+                                                    T* ColumnSBlock,
+													int32_t dataElementCountColumnSBlock)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
-    for (int32_t i = idx; i < joinTableSize && i < dataElementCountSTable; i += stride)
+    for (int32_t i = idx; i < joinTableSize && i < dataElementCountColumnSBlock; i += stride)
     {
 		int32_t join_prefix_sum_offset_index = 0;
 		// Hash table buckets probing
-		int32_t hash_idx = hash(STable[i]);
+		int32_t hash_idx = hash(ColumnSBlock[i]);
 		for (int32_t j = hash_idx; j < hashTableSize; j += HASH_TABLE_SUB_SIZE)
 		{
 			// Check if a bucket is empty, if yes, try the next bucket with the same hash
@@ -144,10 +145,10 @@ __global__ void kernel_distribute_results_to_buffer(T* QTableA,
 				// Write the results if the value in a bucket matches the present value
 				// Write them to the calculated offset of the prefix sum buffer
 				if (join_prefix_sum_offset_index < JoinTableHisto[i] && 
-					RTable[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] == STable[i])
+					ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] == ColumnSBlock[i])
 				{
 					QTableA[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
-					QTableB[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = i;//STable[i];
+					QTableB[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = i;//ColumnSBlock[i];
 					join_prefix_sum_offset_index++;
 				}
 			}
@@ -175,7 +176,7 @@ private:
 	size_t join_prefix_sum_temp_buffer_size_;
 
 	template <typename T>
-	void HashBlock(T* RTable, int32_t dataElementCount)
+	void HashBlock(T* ColumnRBlock, int32_t dataElementCount)
 	{
 		//////////////////////////////////////////////////////////////////////////////
 		// Check for hash table limits
@@ -190,28 +191,11 @@ private:
 		kernel_calc_hash_histo << <Context::getInstance().calcGridDim(hashTableSize_),
 			Context::getInstance().getBlockDim() >> > (HashTableHisto_,
 				hashTableSize_,
-				RTable,
+				ColumnRBlock,
 				dataElementCount);
 
 		//////////////////////////////////////////////////////////////////////////////
 		// Calculate the prefix sum for hashes
-
-		/*
-		void* tempBuffer = nullptr;
-		size_t tempBufferSize = 0;
-
-		// Calculate the prefix sum
-		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, HashTableHisto_,
-									  HashTablePrefixSum_, hashTableSize_);
-
-		// Allocate temporary storage
-		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
-
-		// Run inclusive prefix sum
-		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, HashTableHisto_,
-									  HashTablePrefixSum_, hashTableSize_);
-		GPUMemory::free(tempBuffer);
-		*/
 
 		// Run inclusive prefix sum
 		cub::DeviceScan::InclusiveSum(hash_prefix_sum_temp_buffer_, hash_prefix_sum_temp_buffer_size_,
@@ -223,16 +207,16 @@ private:
 			Context::getInstance().getBlockDim() >> > (HashTableHashBuckets_,
 				HashTablePrefixSum_,
 				hashTableSize_,
-				RTable,
+				ColumnRBlock,
 				dataElementCount);
 	}
 
 	template<typename T>
-	void JoinBlockCountMatches(int32_t* resultTableSize, T* RTable, int32_t dataElementCountRTable, T* STable, int32_t dataElementCountSTable)
+	void JoinBlockCountMatches(int32_t* resultTableSize, T* ColumnRBlock, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int32_t dataElementCountColumnSBlock)
 	{
 		//////////////////////////////////////////////////////////////////////////////
 		// Check for join table limits
-		if (dataElementCountSTable < 0 || dataElementCountSTable > joinTableSize_)
+		if (dataElementCountColumnSBlock < 0 || dataElementCountColumnSBlock > joinTableSize_)
 		{
 			std::cerr << "Data element count exceeded join table size" << std::endl;
 			return;
@@ -247,30 +231,13 @@ private:
 				HashTablePrefixSum_,
 				HashTableHashBuckets_,
 				hashTableSize_,
-				RTable,
-				dataElementCountRTable,
-				STable,
-				dataElementCountSTable);
+				ColumnRBlock,
+				dataElementCountColumnRBlock,
+				ColumnSBlock,
+				dataElementCountColumnSBlock);
 
 		//////////////////////////////////////////////////////////////////////////////
 		// Calculate the prefix sum for probing results
-
-		/*
-		void* tempBuffer = nullptr;
-		size_t tempBufferSize = 0;
-
-		// Calculate the prefix sum
-		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, JoinTableHisto_,
-									  JoinTablePrefixSum_, joinTableSize_);
-
-		// Allocate temporary storage
-		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
-
-		// Run exclusive prefix sum
-		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, JoinTableHisto_,
-									  JoinTablePrefixSum_, joinTableSize_);
-		GPUMemory::free(tempBuffer);
-		*/
 
 		cub::DeviceScan::InclusiveSum(join_prefix_sum_temp_buffer_, join_prefix_sum_temp_buffer_size_,
 			JoinTableHisto_, JoinTablePrefixSum_, joinTableSize_);
@@ -281,7 +248,7 @@ private:
 	}
 
 	template<typename T>
-	void JoinBlockWriteResults(T* QTableA, T* QTableB, T* RTable, int32_t dataElementCountRTable, T* STable, int32_t dataElementCountSTable)
+	void JoinBlockWriteResults(T* QTableA, T* QTableB, T* ColumnRBlock, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int32_t dataElementCountColumnSBlock)
 	{
 		//////////////////////////////////////////////////////////////////////////////
 		// Distribute the result data to the result buffer
@@ -295,10 +262,10 @@ private:
 				HashTablePrefixSum_,
 				HashTableHashBuckets_,
 				hashTableSize_,
-				RTable,
-				dataElementCountRTable,
-				STable,
-				dataElementCountSTable);
+				ColumnRBlock,
+				dataElementCountColumnRBlock,
+				ColumnSBlock,
+				dataElementCountColumnSBlock);
 	}
 
 public:
@@ -429,9 +396,8 @@ public:
 	}
 
 	template<typename T>
-	static void reorderByJoinTableCPU(std::vector<T> &OutBlock,
-									  std::vector<int32_t> &JoinBlock,
-									  std::vector<T> &InTable)
+	static void reorderByJoinTableCPU(BlockBase<T> &OutBlock,
+									  std::vector<int32_t> JoinIdxVector)
 	{
 
 	}
