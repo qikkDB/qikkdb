@@ -115,11 +115,11 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 
 		noLoad = false;
 
-		if (loadNecessary == 0)
-		{
-			instructionPointer = jmpInstuctionPosition;
-			return 12;
-		}
+		//if (loadNecessary == 0)
+		//{
+		//	instructionPointer = jmpInstuctionPosition;
+		//	return 12;
+		//}
 
 		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
 		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);

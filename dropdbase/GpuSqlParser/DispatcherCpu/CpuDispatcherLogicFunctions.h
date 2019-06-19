@@ -12,14 +12,21 @@ int32_t CpuSqlDispatcher::filterColConst()
 
 	loadCol<T>(colName);
 
-	std::string colPointerName = getPointerName(colName);
-	auto colVal = allocatedPointers.at(colPointerName);
+	std::string colPointeNameMin;
+	std::string colPointeNameMax;
+	std::tie<colPointerNameMin, colPointerNameMax> = getPointerNames(colName);
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colVal));
+	auto colValMin = allocatedPointers.at(colPointerNameMin);
+	auto colValMax = allocatedPointers.at(colPointerNameMax);
 
-	mask[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colVal))[0], cnst);
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValMin));
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValMax));
 
-	std::cout << "Where evaluation filterColConst" <<  (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " <<  reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
+	maskMin[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValMin))[0], cnst);
+	maskMax[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValMax))[0], cnst);
+
+	std::cout << "Where evaluation filterColConstMin: " << reinterpret_cast<T*>(std::get<0>(colValMin))[0] << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation filterColConstMax: " << reinterpret_cast<T*>(std::get<0>(colValMax))[0] << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
 
 	return 0;
 }
@@ -33,15 +40,21 @@ int32_t CpuSqlDispatcher::filterConstCol()
 
 	loadCol<U>(colName);
 
-	std::string colPointerName = getPointerName(colName);
-	auto colVal = allocatedPointers.at(colPointerName);
+	std::string colPointeNameMin;
+	std::string colPointeNameMax;
+	std::tie<colPointerNameMin, colPointerNameMax> = getPointerNames(colName);
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colVal));
+	auto colValMin = allocatedPointers.at(colPointerNameMin);
+	auto colValMax = allocatedPointers.at(colPointerNameMax);
 
-	mask[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colVal))[0]);
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValMin));
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValMax));
 
-	std::cout << "Where evaluation filterConstCol" << (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
+	maskMin[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colValMin))[0]);
+	maskMax[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colValMax))[0]);
 
+	std::cout << "Where evaluation filterConstColMin: " << reinterpret_cast<U*>(std::get<0>(colValMin))[0] << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation filterConstColMax: " << reinterpret_cast<U*>(std::get<0>(colValMax))[0] << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
 	return 0;
 }
 
@@ -52,30 +65,46 @@ int32_t CpuSqlDispatcher::filterColCol()
 	auto colNameRight = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = nullptr;
+	int8_t * maskMin = nullptr;
+	int8_t * maskMax = nullptr;
 
 	if (colNameLeft.front() != '$' &&  colNameRight.front() != '$')
 	{
-		mask = allocateRegister<int8_t>(reg, 1, true);
-		mask[0] = 1;
+		maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+		maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+		maskMin[0] = 1;
+		maskMax[0] = 1;
 	}
 	else
 	{
 		loadCol<T>(colNameLeft);
 		loadCol<U>(colNameRight);
 
-		std::string colPointerNameLeft = getPointerName(colNameLeft);
-		std::string colPointerNameRight = getPointerName(colNameRight);
+		std::string colPointeNameLeftMin;
+		std::string colPointeNameLeftMax;
+		std::tie<colPointerNameLeftMin, colPointerNameLeftMax> = getPointerNames(colNameLeft);
 
-		auto colValLeft = allocatedPointers.at(colPointerNameLeft);
-		auto colValRight = allocatedPointers.at(colPointerNameRight);
+		std::string colPointeNameRightMin;
+		std::string colPointeNameRightMax;
+		std::tie<colPointerNameRightMin, colPointerNameRightMax> = getPointerNames(colNameRight);
 
-		mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colValLeft) || std::get<2>(colValRight));
-		mask[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValLeft))[0], reinterpret_cast<U*>(std::get<0>(colValRight))[0]);
+		auto colValLeftMin = allocatedPointers.at(colPointerNameLeftMin);
+		auto colValLeftMax = allocatedPointers.at(colPointerNameLeftMax);
+
+		auto colValRightMin = allocatedPointers.at(colPointerNameRightMin);
+		auto colValRightMax = allocatedPointers.at(colPointerNameRightMax);
+
+		int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValLeftMin) || std::get<2>(colValRightMin));
+		int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValLeftMax) || std::get<2>(colValRightMax));
+
+		maskMin[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValLeftMin))[0], 
+			reinterpret_cast<U*>(std::get<0>(colValRightMin))[0]);
+		maskMax[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValLeftMax))[0],
+			reinterpret_cast<U*>(std::get<0>(colValRightMax))[0]);
 	}
 
-	std::cout << "Where evaluation filterColCol" << (evaluateMin ? "_min" : "_max") << ": " << colNameLeft << ", " << colNameRight << ", " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
-
+	std::cout << "Where evaluation filterColCol_min: " << colNameLeft << ", " << colNameRight << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation filterColCol_max: " << colNameLeft << ", " << colNameRight << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
 	return 0;
 }
 
@@ -86,10 +115,14 @@ int32_t CpuSqlDispatcher::filterConstConst()
 	U constRight = arguments.read<U>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, false);
-	mask[0] = OP{}.template operator() < T, U > (constLeft, constRight);
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, false);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, false);
 
-	std::cout << "Where evaluation filterConstConst" << (evaluateMin ? "_min" : "_max") << ": " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
+	maskMin[0] = OP{}.template operator() < T, U > (constLeft, constRight);
+	maskMax[0] = OP{}.template operator() < T, U > (constLeft, constRight);
+
+	std::cout << "Where evaluation filterConstConst_min: " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation filterConstConst_max: " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
 
 	return 0;
 }
@@ -103,14 +136,21 @@ int32_t CpuSqlDispatcher::logicalColConst()
 
 	loadCol<T>(colName);
 
-	std::string colPointerName = getPointerName(colName);
-	auto colVal = allocatedPointers.at(colPointerName);
+	std::string colPointeNameMin;
+	std::string colPointeNameMax;
+	std::tie<colPointerNameMin, colPointerNameMax> = getPointerNames(colName);
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colVal));
+	auto colValMin = allocatedPointers.at(colPointerNameMin);
+	auto colValMax = allocatedPointers.at(colPointerNameMax);
 
-	mask[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colVal))[0], cnst);
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValMin));
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValMax));
 
-	std::cout << "Where evaluation logicalConstCol" << (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
+	maskMin[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValMin))[0], cnst);
+	maskMax[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValMax))[0], cnst);
+
+	std::cout << "Where evaluation logicalColConstMin: " << reinterpret_cast<T*>(std::get<0>(colValMin))[0] << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation logicalColConstMax: " << reinterpret_cast<T*>(std::get<0>(colValMax))[0] << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
 
 	return 0;
 }
@@ -124,14 +164,21 @@ int32_t CpuSqlDispatcher::logicalConstCol()
 
 	loadCol<U>(colName);
 
-	std::string colPointerName = getPointerName(colName);
-	auto colVal = allocatedPointers.at(colPointerName);
+	std::string colPointeNameMin;
+	std::string colPointeNameMax;
+	std::tie<colPointerNameMin, colPointerNameMax> = getPointerNames(colName);
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colVal));
+	auto colValMin = allocatedPointers.at(colPointerNameMin);
+	auto colValMax = allocatedPointers.at(colPointerNameMax);
 
-	mask[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colVal))[0]);
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValMin));
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValMax));
 
-	std::cout << "Where evaluation logicalColConst" << (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
+	maskMin[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colValMin))[0]);
+	maskMax[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colValMax))[0]);
+
+	std::cout << "Where evaluation logicalConstColMin: " << reinterpret_cast<U*>(std::get<0>(colValMin))[0] << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation logicalConstColMax: " << reinterpret_cast<U*>(std::get<0>(colValMax))[0] << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
 
 	return 0;
 }
@@ -143,29 +190,46 @@ int32_t CpuSqlDispatcher::logicalColCol()
 	auto colNameRight = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t* mask = nullptr;
+	int8_t* maskMin = nullptr;
+	int8_t* maskMax = nullptr;
 
 	if (colNameLeft.front() != '$' &&  colNameRight.front() != '$')
 	{
-
-		mask = allocateRegister<int8_t>(reg, 1, true);
-		mask[0] = 1;
+		maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+		maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+		maskMin[0] = 1;
+		maskMax[0] = 1;
 	}
 	else
 	{
 		loadCol<T>(colNameLeft);
 		loadCol<U>(colNameRight);
 
-		std::string colPointerNameLeft = getPointerName(colNameLeft);
-		std::string colPointerNameRight = getPointerName(colNameRight);
-		auto colValLeft = allocatedPointers.at(colPointerNameLeft);
-		auto colValRight = allocatedPointers.at(colPointerNameRight);
+		std::string colPointeNameLeftMin;
+		std::string colPointeNameLeftMax;
+		std::tie<colPointerNameLeftMin, colPointerNameLeftMax> = getPointerNames(colNameLeft);
 
-		mask = allocateRegister<int8_t>(reg, 1, std::get<2>(colValLeft) || std::get<2>(colValRight));
-		mask[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValLeft))[0], reinterpret_cast<U*>(std::get<0>(colValRight))[0]);
+		std::string colPointeNameRightMin;
+		std::string colPointeNameRightMax;
+		std::tie<colPointerNameRightMin, colPointerNameRightMax> = getPointerNames(colNameRight);
+
+		auto colValLeftMin = allocatedPointers.at(colPointerNameLeftMin);
+		auto colValLeftMax = allocatedPointers.at(colPointerNameLeftMax);
+
+		auto colValRightMin = allocatedPointers.at(colPointerNameRightMin);
+		auto colValRightMax = allocatedPointers.at(colPointerNameRightMax);
+
+		int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValLeftMin) || std::get<2>(colValRightMin));
+		int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValLeftMax) || std::get<2>(colValRightMax));
+
+		maskMin[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValLeftMin))[0],
+			reinterpret_cast<U*>(std::get<0>(colValRightMin))[0]);
+		maskMax[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValLeftMax))[0],
+			reinterpret_cast<U*>(std::get<0>(colValRightMax))[0]);
 	}
 
-	std::cout << "Where evaluation logicalColCol" << (evaluateMin ? "_min" : "_max") << ": " << colNameLeft << ", " << colNameRight << ", " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
+	std::cout << "Where evaluation logicalColCol_min: " << colNameLeft << ", " << colNameRight << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation logicalColCol_max: " << colNameLeft << ", " << colNameRight << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
 
 	return 0;
 }
@@ -177,12 +241,13 @@ int32_t CpuSqlDispatcher::logicalConstConst()
 	U constRight = arguments.read<U>();
 	auto reg = arguments.read<std::string>();
 
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, false);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, false);
+	maskMin[0] = OP{}.template operator() < T, U > (constLeft, constRight);
+	maskMax[0] = OP{}.template operator() < T, U > (constLeft, constRight);
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, false);
-	mask[0] = OP{}.template operator() < T, U > (constLeft, constRight);
-
-	std::cout << "Where evaluation logicalConstConst" << (evaluateMin ? "_min" : "_max") << ": " << reg << ": " << static_cast<int32_t>(mask[0]) << std::endl;
-
+	std::cout << "Where evaluation logicalConstConst_min: " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation logicalConstConst_max: " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
 	return 0;
 }
 
@@ -194,14 +259,20 @@ int32_t CpuSqlDispatcher::logicalNotCol()
 
 	loadCol<T>(colName);
 
-	std::string colPointerName = getPointerName(colName);
-	auto colVal = allocatedPointers.at(colPointerName);
+	std::string colPointerNameMin;
+	std::string colPointerNameMax;
 
-	int8_t * result = allocateRegister<int8_t>(reg, 1, std::get<2>(colVal));
-	result[0] = !reinterpret_cast<T*>(std::get<0>(colVal))[0];
+	std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+	auto colValMin = allocatedPointers.at(colPointerNameMin);
+	auto colValMax = allocatedPointers.at(colPointerNameMax);
 
-	std::cout << "Where evaluation logicalNotCol: " << colName << ", " << reg << ": " << result[0] << std::endl;
+	int8_t * resultMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValMin));
+	int8_t * resultMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValMax));
+	resultMin[0] = !reinterpret_cast<T*>(std::get<0>(colValMin))[0];
+	resultMax[0] = !reinterpret_cast<T*>(std::get<0>(colValMax))[0];
 
+	std::cout << "Where evaluation logicalNotCol_min: " << colName << ", " << reg + '_min' << ": " << resultMin[0] << std::endl;
+	std::cout << "Where evaluation logicalNotCol_max: " << colName << ", " << reg + '_max' << ": " << resultMax[0] << std::endl;
 	return 0;
 }
 
@@ -211,10 +282,14 @@ int32_t CpuSqlDispatcher::logicalNotConst()
 	T cnst = arguments.read<T>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * result = allocateRegister<int8_t>(reg, 1, false);
-	result[0] = !cnst;
+	int8_t * resultMin = allocateRegister<int8_t>(reg + '_min', 1, false);
+	int8_t * resultMax = allocateRegister<int8_t>(reg + '_max', 1, false);
 
-	std::cout << "Where evaluation logicalNotConst: " << reg << ": " << result[0] << std::endl;
+	resultMin[0] = !cnst;
+	resultMax[0] = !cnst;
+
+	std::cout << "Where evaluation logicalNotConstMin: " << reg + "_min" << ": " << resultMin[0] << std::endl;
+	std::cout << "Where evaluation logicalNotConstMax: " << reg + "_max" << ": " << resultMax[0] << std::endl;
 
 	return 0;
 }

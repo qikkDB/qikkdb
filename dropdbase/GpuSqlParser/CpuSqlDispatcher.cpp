@@ -288,11 +288,7 @@ void CpuSqlDispatcher::copyExecutionDataTo(CpuSqlDispatcher& other)
 	other.arguments = arguments;
 }
 
-std::string CpuSqlDispatcher::getPointerName(const std::string & colName)
+std::pair<std::string, std::string> CpuSqlDispatcher::getPointerNames(const std::string & colName)
 {
-	if (colName.front() != '$')
-	{
-		return colName + (evaluateMin ? "_min" : "_max");
-	}
-	return colName;
+	return { colName + "_min", colName + "_max" };
 }

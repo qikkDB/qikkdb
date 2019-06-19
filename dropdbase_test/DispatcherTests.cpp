@@ -9363,6 +9363,7 @@ TEST(DispatcherTests, ArcSinColInt)
 	{
 		ASSERT_EQ(expectedResultsInt[i], payloadsInt.intpayload().intdata()[i]);
 	}
+	FAIL();
 }
 
 TEST(DispatcherTests, ArcCosColInt)
