@@ -26,7 +26,6 @@ private:
 	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
 	bool isRegisterAllocated(std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& name);
-	std::string getPointerName(const std::string & colName);
 	std::pair<std::string, std::string> getPointerNames(const std::string & colName);
 
 	static std::array<CpuDispatchFunction,
@@ -288,12 +287,13 @@ public:
 	int32_t whereResultCol() 
 	{
 		auto colName = arguments.read<std::string>();
-		auto reg = allocatedPointers.at(colName);
-		T* resultMin = reinterpret_cast<T*>(std::get<0>(reg + "_min"));
-		T* resultMax = reinterpret_cast<T*>(std::get<0>(reg + "_max"));
+		auto regMin = allocatedPointers.at(colName + "_min");
+		auto regMax = allocatedPointers.at(colName + "_max");
+		T* resultMin = reinterpret_cast<T*>(std::get<0>(regMin));
+		T* resultMax = reinterpret_cast<T*>(std::get<0>(regMax));
 
-		int64_t whereResultMin = std::get<2>(reg + "_min") ? 1 : static_cast<int64_t>(resultMin[0]);
-		int64_t whereResultMax = std::get<2>(reg + "_max") ? 1 : static_cast<int64_t>(resultMax[0]);
+		int64_t whereResultMin = std::get<2>(regMin) ? 1 : static_cast<int64_t>(resultMin[0]);
+		int64_t whereResultMax = std::get<2>(regMax) ? 1 : static_cast<int64_t>(resultMax[0]);
 
 		whereResult = whereResultMin || whereResultMax;
 

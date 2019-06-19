@@ -48,6 +48,7 @@ int32_t GpuSqlDispatcher::retCol()
 				std::unique_ptr<T[]> outData(new T[outSize]);
 				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(keyCol)), outSize);
 
+				std::cout << "dataSize: " << outSize << std::endl;
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload(payload, outData, outSize);
 				ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
@@ -60,6 +61,7 @@ int32_t GpuSqlDispatcher::retCol()
 				std::unique_ptr<T[]> outData(new T[outSize]);
 				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(valueCol)), outSize);
 
+				std::cout << "dataSize: " << outSize << std::endl;
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload(payload, outData, outSize);
 				MergePayloadToSelfResponse(alias, payload);
@@ -115,11 +117,11 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 
 		noLoad = false;
 
-		//if (loadNecessary == 0)
-		//{
-		//	instructionPointer = jmpInstuctionPosition;
-		//	return 12;
-		//}
+		if (loadNecessary == 0)
+		{
+			instructionPointer = jmpInstuctionPosition;
+			return 12;
+		}
 
 		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
 		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
