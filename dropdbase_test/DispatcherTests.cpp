@@ -10475,6 +10475,91 @@ TEST(DispatcherTests, StringRightConstConst)
 }
 
 
+TEST(DispatcherTests, StringConcatColCol)
+{
+	const std::string colStrName = "colString1";
+	const std::string table = "TableA";
+	const int32_t testLen = 2;
+	auto &payloads = RunQuery("CONCAT("+ colStrName + ", " + colStrName + ")", "FROM " + table);
+	
+	std::vector<std::string> expectedResultsStrings;
+	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(colStrName).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = columnString->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResultsStrings.push_back(block->GetData()[k] + block->GetData()[k]);
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringConcatColConst)
+{
+	const std::string colStrName = "colString1";
+	const std::string text = "az#7";
+	const std::string table = "TableA";
+	const int32_t testLen = 2;
+	auto &payloads = RunQuery("CONCAT(" + colStrName + ", \"" + text + "\")", "FROM " + table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(colStrName).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = columnString->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResultsStrings.push_back(block->GetData()[k] + text);
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringConcatConstCol)
+{
+	const std::string text = "az#7";
+	const std::string colStrName = "colString1";
+	const std::string table = "TableA";
+	const int32_t testLen = 2;
+	auto &payloads = RunQuery("CONCAT(\"" + text + "\", " + colStrName + ")", "FROM " + table);
+
+	std::vector<std::string> expectedResultsStrings;
+	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at(table).GetColumns().at(colStrName).get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = columnString->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResultsStrings.push_back(text + block->GetData()[k]);
+		}
+	}
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
+TEST(DispatcherTests, StringConcatConstConst)
+{
+	const std::string text1 = "abcd";
+	const std::string text2 = "XYZ_2";
+	const std::string table = "TableA";
+	auto &payloads = RunQuery("CONCAT(\"" + text1 + "\", \"" + text2 + "\")", "FROM " + table + " LIMIT 1");
+
+	std::vector<std::string> expectedResultsStrings;
+
+	expectedResultsStrings.push_back(text1 + text2);
+
+	AssertEqStringCol(payloads, expectedResultsStrings);
+}
+
 TEST(DispatcherTests, StringEqColConst)
 {
 	const std::string text = "Word0";
