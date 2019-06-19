@@ -51,6 +51,12 @@ __global__ void kernel_string_cut(GPUMemory::GPUString outCol,
     }
 }
 
+__global__ void kernel_predict_length_concat(int32_t* newLengths, GPUMemory::GPUString inputA, bool isACol,
+	GPUMemory::GPUString inputB, bool isBCol, int32_t dataElementCount);
+
+__global__ void kernel_string_concat(GPUMemory::GPUString output, GPUMemory::GPUString inputA, bool isACol,
+	GPUMemory::GPUString inputB, bool isBCol, int32_t dataElementCount);
+
 /// Namespace for string binary operations
 namespace StringBinaryOperations
 {
@@ -69,6 +75,11 @@ namespace StringBinaryOperations
             return GetStringLength(oldIndices, i) - newLength;
         }
     };
+
+	struct concat
+	{
+
+	};
 } // namespace StringBinaryOperations
 
 
@@ -123,6 +134,32 @@ private:
         CheckCudaError(cudaGetLastError());
     }
 
+	template <typename OP>
+	static void Run(GPUMemory::GPUString& output, GPUMemory::GPUString inputA, bool isACol,
+		GPUMemory::GPUString inputB, bool isBCol, int32_t dataElementCount)
+	{
+		static_assert(std::is_same<OP, StringBinaryOperations::concat>::value, "Operation not implemented for String-String.");
+
+		// Predict new lengths
+		Context& context = Context::getInstance();
+		cuda_ptr<int32_t> newLengths(dataElementCount);
+		kernel_predict_length_concat << <context.calcGridDim(dataElementCount), context.getBlockDim() >> > (
+			newLengths.get(), ACol, isACol, BCol, isBCol, dataElementCount);
+
+		// Alloc and compute new stringIndices
+		GPUMemory::alloc(&(output.stringIndices), dataElementCount);
+		GPUReconstruct::PrefixSum(output.stringIndices, newLengths.get(), dataElementCount);
+
+		// Get total char count and alloc allChars
+		int64_t outTotalCharCount;
+		GPUMemory::copyDeviceToHost(&outTotalCharCount, output.stringIndices + dataElementCount - 1, 1);
+		GPUMemory::alloc(&(output.allChars), outTotalCharCount);
+
+		// Concat the strings
+		kernel_string_concat << <context.calcGridDim(dataElementCount), context.getBlockDim() >> > (
+			output, ACol, isACol, BCol, isBCol, dataElementCount);
+	}
+
 public:
     /// Binary string operation column - column
     /// <param name="output">output string column</param>
@@ -168,4 +205,51 @@ public:
         GPUStringBinary::Run<OP>(output, AConst, 1, BConst, 1);
         // TODO expand?
     }
+
+
+	/// Binary string operation string column - string column, output is also string column
+	/// <param name="output">output string column</param>
+	/// <param name="ACol">first input string column (GPUString)</param>
+	/// <param name="BCol">second input string column (GPUString)</param>
+	/// <param name="dataElementCount">count of strings</param>
+	template <typename OP>
+	static void ColCol(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, GPUMemory::GPUString BCol, int32_t dataElementCount)
+	{
+		GPUStringBinary::Run<OP>(output, ACol, true, BCol, true, dataElementCount);
+	}
+
+	/// Binary string operation string column - string constant, output is string column
+	/// <param name="output">output string column</param>
+	/// <param name="ACol">first input string column (GPUString)</param>
+	/// <param name="BConst">second input string constant (GPUString)</param>
+	/// <param name="dataElementCount">count of strings</param>
+	template <typename OP>
+	static void ColConst(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, GPUMemory::GPUString BConst, int32_t dataElementCount)
+	{
+		GPUStringBinary::Run<OP>(output, ACol, true, BConst, false, dataElementCount);
+	}
+
+	/// Binary string operation string constant - string column, output is string column
+	/// <param name="output">output string column</param>
+	/// <param name="AConst">first input string constant (GPUString)</param>
+	/// <param name="BCol">second input string column (GPUString)</param>
+	/// <param name="dataElementCount">count of strings</param>
+	template <typename OP>
+	static void ConstCol(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, GPUMemory::GPUString BCol, int32_t dataElementCount)
+	{
+		GPUStringBinary::Run<OP>(output, AConst, false, BCol, true, dataElementCount);
+	}
+
+	/// Binary string operation string constant - string constant, output is string constant
+	/// <param name="output">output string constant (GPUString column with 1 constant)</param>
+	/// <param name="AConst">first input string constant (GPUString)</param>
+	/// <param name="BCol">second input string constant (GPUString)</param>
+	/// <param name="dataElementCount">count of strings</param>
+	template <typename OP>
+	static void ConstConst(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, GPUMemory::GPUString BConst, int32_t dataElementCount)
+	{
+		GPUStringBinary::Run<OP>(output, AConst, false, BConst, false, 1);
+		//TODO expand?
+	}
+
 };
