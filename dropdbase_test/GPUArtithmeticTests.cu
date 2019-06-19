@@ -11,8 +11,6 @@
 #include "../dropdbase/QueryEngine/NullConstants.cuh"
 #include "gtest/gtest.h"
 
-// Initialize random generators with a seed
-const int32_t SEED = 42;
 
 // Count of the testing data elements:
 const int32_t DATA_ELEMENT_COUNT = 1 << 18;

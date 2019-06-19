@@ -83,7 +83,7 @@ public:
 		return groupId_;
 	}
 
-    T* const GetData()
+    T * GetData() 
     {
         return data_.get();
     }

@@ -107,7 +107,7 @@ private:
 
 public:
 	ColumnBase(const std::string& name, int blockSize) :
-		name_(name), blockSize_(blockSize), blocks_(), size_(0)
+		name_(name), size_(0), blockSize_(blockSize), blocks_()
 	{
 		std::vector<std::unique_ptr<BlockBase<T>>> blocks;
 		blocks_[-1] = std::move(blocks);
@@ -120,12 +120,12 @@ public:
 		return name_;
 	}
 
-	virtual const float GetInitAvg() const override
+	virtual float GetInitAvg() const override
 	{
 		return initAvg_;
 	}
 
-	virtual const bool GetInitAvgIsSet() const override
+	virtual bool GetInitAvgIsSet() const override
 	{
 		return initAvgIsSet_;
 	}
@@ -281,7 +281,7 @@ public:
 
         if (blocks_[groupId].size() == 0)
         {
-            BlockBase<T>& block = AddBlock();
+            AddBlock();
         }
         BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
         block.InsertDataOnSpecificPosition(indexInBlock, columnData);
@@ -380,7 +380,7 @@ public:
     /// Insert null data into column
     /// </summary>
     /// <param name="length">Length of inserted data</param>
-    void InsertNullData(int length)
+    void InsertNullData(int length) override
     {
         InsertData(NullArray(length));
     }

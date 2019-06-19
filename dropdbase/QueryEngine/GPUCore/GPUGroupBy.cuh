@@ -30,7 +30,7 @@ __device__ __host__ constexpr K getEmptyValue()
 	{
 		return std::numeric_limits<K>::min();
 	}
-	else if (std::is_floating_point<K>::value)
+	else
 	{
 		return std::numeric_limits<K>::quiet_NaN();
 	}
@@ -207,10 +207,28 @@ public:
 	GPUGroupBy(int32_t maxHashCount) :
 		maxHashCount_(maxHashCount)
 	{
-		GPUMemory::alloc(&keys_, maxHashCount_);
-		GPUMemory::alloc(&values_, maxHashCount_);
-		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
-
+		try
+		{
+			GPUMemory::alloc(&keys_, maxHashCount_);
+			GPUMemory::alloc(&values_, maxHashCount_);
+			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		}
+		catch(...)
+		{
+			if(keys_)
+			{
+				GPUMemory::free(keys_);
+			}
+			if(values_)
+			{
+				GPUMemory::free(values_);
+			}
+			if(keyOccurenceCount_)
+			{
+				GPUMemory::free(keyOccurenceCount_);
+			}
+			throw;
+		}
 		GPUMemory::fillArray(keys_, getEmptyValue<K>(), maxHashCount_);
 		GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), maxHashCount_);
 	}
@@ -221,9 +239,28 @@ public:
 	GPUGroupBy(int32_t maxHashCount, K * keys) :
 		maxHashCount_(maxHashCount)
 	{
-		GPUMemory::alloc(&keys_, maxHashCount_);
-		GPUMemory::alloc(&values_, maxHashCount_);
-		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		try
+		{
+			GPUMemory::alloc(&keys_, maxHashCount_);
+			GPUMemory::alloc(&values_, maxHashCount_);
+			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		}
+		catch(...)
+		{
+			if(keys_)
+			{
+				GPUMemory::free(keys_);
+			}
+			if(values_)
+			{
+				GPUMemory::free(values_);
+			}
+			if(keyOccurenceCount_)
+			{
+				GPUMemory::free(keyOccurenceCount_);
+			}
+			throw;
+		}
 
 		GPUMemory::copyDeviceToDevice(keys_, keys, maxHashCount_);
 		GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), maxHashCount_);
@@ -401,9 +438,28 @@ public:
 	GPUGroupBy(int32_t maxHashCount) :
 		maxHashCount_(maxHashCount)
 	{
-		GPUMemory::alloc(&keys_, maxHashCount_);
-		GPUMemory::alloc(&values_, maxHashCount_);
-		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		try
+		{
+			GPUMemory::alloc(&keys_, maxHashCount_);
+			GPUMemory::alloc(&values_, maxHashCount_);
+			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		}
+		catch(...)
+		{
+			if(keys_)
+			{
+				GPUMemory::free(keys_);
+			}
+			if(values_)
+			{
+				GPUMemory::free(values_);
+			}
+			if(keyOccurenceCount_)
+			{
+				GPUMemory::free(keyOccurenceCount_);
+			}
+			throw;
+		}
 
 		GPUMemory::fillArray(keys_, getEmptyValue<K>(), maxHashCount_);
 		GPUMemory::fillArray(values_, AggregationFunctions::avg::template getInitValue<V>(), maxHashCount_);
@@ -415,9 +471,28 @@ public:
 	GPUGroupBy(int32_t maxHashCount, K * keys) :
 		maxHashCount_(maxHashCount)
 	{
-		GPUMemory::alloc(&keys_, maxHashCount_);
-		GPUMemory::alloc(&values_, maxHashCount_);
-		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		try
+		{
+			GPUMemory::alloc(&keys_, maxHashCount_);
+			GPUMemory::alloc(&values_, maxHashCount_);
+			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		}
+		catch(...)
+		{
+			if(keys_)
+			{
+				GPUMemory::free(keys_);
+			}
+			if(values_)
+			{
+				GPUMemory::free(values_);
+			}
+			if(keyOccurenceCount_)
+			{
+				GPUMemory::free(keyOccurenceCount_);
+			}
+			throw;
+		}
 
 		GPUMemory::copyDeviceToDevice(keys_, keys, maxHashCount_);
 		GPUMemory::fillArray(values_, AggregationFunctions::avg::template getInitValue<V>(), maxHashCount_);
@@ -590,11 +665,11 @@ public:
 
 				// Merge results
 				V* valuesMerged = nullptr;
-				int64_t* occurencesMerged;
+				int64_t* occurencesMerged = nullptr;
 
 				// Calculate sum of values
 				// Initialize new empty sumGroupBy table
-				K* tmpKeys;
+				K* tmpKeys = nullptr;
 				GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
 				sumGroupBy.groupBy(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount);
 				sumGroupBy.getResults(&tmpKeys, &valuesMerged, outDataElementCount);
@@ -643,9 +718,28 @@ public:
 	GPUGroupBy(int32_t maxHashCount) :
 		maxHashCount_(maxHashCount)
 	{
-		GPUMemory::alloc(&keys_, maxHashCount_);
-		GPUMemory::alloc(&values_, maxHashCount_);
-		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		try
+		{
+			GPUMemory::alloc(&keys_, maxHashCount_);
+			GPUMemory::alloc(&values_, maxHashCount_);
+			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		}
+		catch(...)
+		{
+			if(keys_)
+			{
+				GPUMemory::free(keys_);
+			}
+			if(values_)
+			{
+				GPUMemory::free(values_);
+			}
+			if(keyOccurenceCount_)
+			{
+				GPUMemory::free(keyOccurenceCount_);
+			}
+			throw;
+		}
 
 		GPUMemory::fillArray(keys_, getEmptyValue<K>(), maxHashCount_);
 		GPUMemory::fillArray(values_, AggregationFunctions::count::template getInitValue<V>(), maxHashCount_);
@@ -657,9 +751,28 @@ public:
 	GPUGroupBy(int32_t maxHashCount, K * keys) :
 		maxHashCount_(maxHashCount)
 	{
-		GPUMemory::alloc(&keys_, maxHashCount_);
-		GPUMemory::alloc(&values_, maxHashCount_);
-		GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		try
+		{
+			GPUMemory::alloc(&keys_, maxHashCount_);
+			GPUMemory::alloc(&values_, maxHashCount_);
+			GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+		}
+		catch(...)
+		{
+			if(keys_)
+			{
+				GPUMemory::free(keys_);
+			}
+			if(values_)
+			{
+				GPUMemory::free(values_);
+			}
+			if(keyOccurenceCount_)
+			{
+				GPUMemory::free(keyOccurenceCount_);
+			}
+			throw;
+		}
 
 		GPUMemory::copyDeviceToDevice(keys_, keys, maxHashCount_);
 		GPUMemory::fillArray(values_, AggregationFunctions::count::template getInitValue<V>(), maxHashCount_);

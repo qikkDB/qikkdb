@@ -28,7 +28,7 @@ TEST(ColumnTests, AddBlockWithData)
 
 	std::vector<int32_t> dataInt({ 1024 });
 	std::vector<int64_t> dataLong({ 1000000000000000000 });
-	std::vector<float> dataFloat({ (float) 0.1111 });
+	std::vector<float> dataFloat({ 0.1111f });
 	std::vector<double> dataDouble({ 0.1111111 });
 	std::vector<ColmnarDB::Types::Point> dataPoint({ PointFactory::FromWkt("POINT(10.11 11.1)") });
 	std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon({ ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))") });
@@ -135,8 +135,8 @@ TEST(ColumnTests, InsertData_BlocksDoNotExist)
 	{
 		dataInt.push_back(i);
 		dataLong.push_back(i * 1000000000);
-		dataFloat.push_back((float) 0.1111 * i);
-		dataDouble.push_back((double)i);
+		dataFloat.push_back( 0.1111f * i);
+		dataDouble.push_back(static_cast<double>(i));
 		dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
 		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))"));
 		dataString.push_back("abc");
@@ -260,8 +260,8 @@ TEST(ColumnTests, InsertData_BlocksExistAndNewDataFitIntoThem)
 	{
 		dataInt.push_back(i);
 		dataLong.push_back(i * 1000000000);
-		dataFloat.push_back((float) 0.1111 * i);
-		dataDouble.push_back((double)i);
+		dataFloat.push_back( 0.1111f * i);
+		dataDouble.push_back(static_cast<double>(i));
 		dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
 		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))"));
 		dataString.push_back("abc");
@@ -393,8 +393,8 @@ TEST(ColumnTests, InsertData_BlocksExistAndNewDataDoNotFitIntoThem)
 	{
 		dataInt.push_back(i);
 		dataLong.push_back(i * 1000000000);
-		dataFloat.push_back((float) 0.1111 * i);
-		dataDouble.push_back((double)i);
+		dataFloat.push_back( 0.1111f * i);
+		dataDouble.push_back(static_cast<double>(i));
 		dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
 		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))"));
 		dataString.push_back("abc");
@@ -506,13 +506,13 @@ TEST(ColumnTests, GetUniqueBuckets)
 	auto& columnPolygon = table.GetColumns().at("ColumnPolygon");
 	auto& columnString = table.GetColumns().at("ColumnString");
 
-	std::vector<int32_t> dataInt({ { 1024 }, { 256 }, { 512 }, { 1024 }, { 512 } });
-	std::vector<int64_t> dataLong({ { 1000000000000000000 }, {1000000000000000001}, {1000000000000000000} });
-	std::vector<float> dataFloat({ { (float) 0.1111 },{ (float) 0.1112 },{ (float) 0.1113 },{ (float) 0.1114 },{ (float) 0.1111 } });
-	std::vector<double> dataDouble({ { 0.1111111 }, { 0.1111116 }, { 0.1111111 } });
-	std::vector<ColmnarDB::Types::Point> dataPoint({ { PointFactory::FromWkt("POINT(10.11 11.1)") },{ PointFactory::FromWkt("POINT(10.11 11.1)") } });
+	std::vector<int32_t> dataInt({ 1024, 256, 512, 1024, 512 });
+	std::vector<int64_t> dataLong({ 1000000000000000000, 1000000000000000001, 1000000000000000000 });
+	std::vector<float> dataFloat({  0.1111f, 0.1112f, 0.1113f , 0.1114f , 0.1111f });
+	std::vector<double> dataDouble({ 0.1111111 , 0.1111116 , 0.1111111 });
+	std::vector<ColmnarDB::Types::Point> dataPoint({ PointFactory::FromWkt("POINT(10.11 11.1)") , PointFactory::FromWkt("POINT(10.11 11.1)") });
 	std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon({ ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))") });
-	std::vector<std::string> dataString({ { "randomString" }, { "abc" } });
+	std::vector<std::string> dataString({ "randomString", "abc" });
 
 	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertData(dataInt);
 	dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->InsertData(dataLong);
@@ -724,8 +724,8 @@ TEST(ColumnTests, ColumnStatistics)
 	{
 		dataInt.push_back(1);
 		dataLong.push_back(100000);
-		dataFloat.push_back((float) 0.1111);
-		dataDouble.push_back((double) 0.1111);
+		dataFloat.push_back(0.1111f);
+		dataDouble.push_back(0.1111);
 		dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
 		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11, 90 89.15, 112.12 110, 61 80.11))"));
 		dataString.push_back("abc");
@@ -735,8 +735,8 @@ TEST(ColumnTests, ColumnStatistics)
 	{
 		dataInt.push_back(5);
 		dataLong.push_back(500000);
-		dataFloat.push_back((float) 0.5555);
-		dataDouble.push_back((double) 0.5555);
+		dataFloat.push_back(0.5555f);
+		dataDouble.push_back(0.5555);
 		dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
 		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11, 90 89.15, 112.12 110, 61 80.11))"));
 		dataString.push_back("abc");

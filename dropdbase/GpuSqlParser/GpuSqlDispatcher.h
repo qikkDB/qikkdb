@@ -676,7 +676,6 @@ public:
 		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colName, std::string("cnst"), std::string("operation"));
-		return 0;
 	}
 
     template<typename T, typename U>
@@ -686,7 +685,6 @@ public:
 		T cnst = arguments.read<T>();
 
 		throw InvalidOperandsException(colName, std::string("cnst"), std::string("operation"));
-		return 0;
 	}
 
     template<typename T, typename U>
@@ -696,7 +694,6 @@ public:
 		auto colNameLeft = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colNameLeft, colNameRight, std::string("operation"));
-		return 0;
 	}
 
     template<typename T, typename U>
@@ -706,7 +703,6 @@ public:
 		T cnstLeft = arguments.read<T>();
 
 		throw InvalidOperandsException(std::string("cnst"), std::string("cnst"), std::string("operation"));
-		return 0;
 	}
 
 
@@ -719,7 +715,6 @@ public:
 		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException (colName, std::string("cnst"), std::string(typeid(OP).name()));
-		return 0;
 	}
 
 
@@ -730,7 +725,6 @@ public:
 		T cnst = arguments.read<T>();
 
 		throw InvalidOperandsException(colName, std::string("cnst"), std::string(typeid(OP).name()));
-		return 0;
 	}
 
 
@@ -741,7 +735,6 @@ public:
 		auto colNameLeft = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colNameLeft, colNameRight, std::string(typeid(OP).name()));
-		return 0;
 	}
 
 
@@ -752,7 +745,6 @@ public:
 		T cnstLeft = arguments.read<T>();
 
 		throw InvalidOperandsException(std::string("cnst"), std::string("cnst"), std::string(typeid(OP).name()));
-		return 0;
 	}
 
 	template<typename OP, typename T>
@@ -761,7 +753,6 @@ public:
 		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colName, std::string(""), std::string(typeid(OP).name()));
-		return 0;
 	}
 
 	template<typename OP, typename T>
@@ -770,7 +761,6 @@ public:
 		T cnst = arguments.read<T>();
 
 		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string(typeid(OP).name()));
-		return 0;
 	}
 
 	////
@@ -781,7 +771,6 @@ public:
 		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colName, std::string(""), std::string("operation"));
-		return 0;
 	}
 
 	template<typename T>
@@ -790,7 +779,6 @@ public:
 		T cnst = arguments.read<T>();
 
 		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string("operation"));
-		return 0;
 	}
 
     template<typename T>

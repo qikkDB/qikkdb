@@ -11,6 +11,7 @@
 #include "GPUMemory.cuh"
 #include "../../Types/Point.pb.h"
 #include "../../Types/ComplexPolygon.pb.h"
+#include "cuda_ptr.h"
 
 #include "../../../cub/cub.cuh"
 
@@ -151,45 +152,41 @@ public:
 	{
 		Context& context = Context::getInstance();
 
-		if (inMask)		// If inMask is not nullptr
+		try
 		{
-			int32_t* prefixSumPointer = nullptr;
-			try
+			if (inMask)		// If inMask is not nullptr
 			{
 				// Malloc a new buffer for the prefix sum vector
-				GPUMemory::alloc(&prefixSumPointer, dataElementCount);
+				cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
 
-				PrefixSum(prefixSumPointer, inMask, dataElementCount);
-				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
+				PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
+				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
 				if(*outDataElementCount > 0)
 				{ 
 					GPUMemory::alloc<T>(outCol, *outDataElementCount);
 					// Construct the output based on the prefix sum
 					kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-							(*outCol, ACol, prefixSumPointer, inMask, dataElementCount);
+							(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
 				}
 				else
 				{
 					*outCol = nullptr;
 				}
-				// Free the memory
-				GPUMemory::free(prefixSumPointer);
 			}
-			catch(...)
+			else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
 			{
-				if(prefixSumPointer)
-				{
-					GPUMemory::free(prefixSumPointer);
-				}
-				
-				throw;
+				GPUMemory::alloc<T>(outCol, dataElementCount);
+				GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
+				*outDataElementCount = dataElementCount;
 			}
 		}
-		else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+		catch (...)
 		{
-			GPUMemory::alloc<T>(outCol, dataElementCount);
-			GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
-			*outDataElementCount = dataElementCount;
+			if (outCol)
+			{
+				GPUMemory::free(outCol);
+			}
+			throw;
 		}
 
 		// Get last error
@@ -281,30 +278,38 @@ public:
 
 		if (inMask)
 		{
-			// Malloc a new buffer for the prefix sum vector
-			int32_t* prefixSumPointer = nullptr;
-			GPUMemory::alloc(&prefixSumPointer, dataElementCount);
-			
-			// Run prefix sum
-			PrefixSum(prefixSumPointer, inMask, dataElementCount);
-			
-			// Copy the output size to host
-			GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
-			if (*outDataElementCount > 0)
+			try
 			{
-				// Allocate array for outData with needed size
-				GPUMemory::alloc<T>(outData, *outDataElementCount);
+				// A new buffer for the prefix sum vector
+				cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
+			
+				// Run prefix sum
+				PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
+			
+				// Copy the output size to host
+				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
+				if (*outDataElementCount > 0)
+				{
+					// Allocate array for outData with needed size
+					GPUMemory::alloc<T>(outData, *outDataElementCount);
 
-				// Call kernel for generating indexes
-				kernel_generate_indexes << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-					(*outData, prefixSumPointer, inMask, dataElementCount);
+					// Call kernel for generating indexes
+					kernel_generate_indexes << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+						(*outData, prefixSumPointer.get(), inMask, dataElementCount);
+				}
+				else
+				{
+					*outData = nullptr;
+				}
 			}
-			else
+			catch (...)
 			{
-				*outData = nullptr;
+				if(outData)
+				{
+					GPUMemory::free(outData);
+				}
+				throw;
 			}
-			// Free the memory
-			GPUMemory::free(prefixSumPointer);
 		}
 		else  // Version without mask is not supported in GenerateIndexes
 		{
@@ -323,16 +328,13 @@ public:
 	static void PrefixSum(T* prefixSumPointer, M* inMask, int32_t dataElementCount)
 	{
 		// Start the collumn reconstruction
-		void* tempBuffer = nullptr;
 		size_t tempBufferSize = 0;
-		// Calculate the prefix sum
-		// in-place scan
-		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
-		// Allocate temporary storage
-		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+		// Calculate the prefix sum for getting tempBufferSize (in-place scan)
+		cub::DeviceScan::InclusiveSum(nullptr, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
+		// Temporary storage
+		cuda_ptr<int8_t>tempBuffer(tempBufferSize);
 		// Run inclusive prefix sum
-		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
-		GPUMemory::free(tempBuffer);
+		cub::DeviceScan::InclusiveSum(tempBuffer.get(), tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 	}
 
 
@@ -344,16 +346,13 @@ public:
 	static void PrefixSumExclusive(int32_t* prefixSumPointer, M* inMask, int32_t dataElementCount)
 	{
 		// Start the collumn reconstruction
-		void* tempBuffer = nullptr;
 		size_t tempBufferSize = 0;
-		// Calculate the prefix sum
-		// in-place scan
-		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
-		// Allocate temporary storage
-		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
-		// Run inclusive prefix sum
-		cub::DeviceScan::ExclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
-		GPUMemory::free(tempBuffer);
+		// Calculate the prefix sum for getting tempBufferSize (in-place scan)
+		cub::DeviceScan::ExclusiveSum(nullptr, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
+		// Temporary storage
+		cuda_ptr<int8_t>tempBuffer(tempBufferSize);
+		// Run exclusive prefix sum
+		cub::DeviceScan::ExclusiveSum(tempBuffer.get(), tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 	}
 
 };

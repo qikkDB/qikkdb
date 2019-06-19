@@ -153,10 +153,12 @@ BIT_AND         : '&';
 L_SHIFT         : '<<';
 R_SHIFT         : '>>';
 
+BOOLEANLIT  : (TRUE|FALSE);
+TRUE        : T R U E;
+FALSE       : F A L S E;
 FLOATLIT    : ('-')?('0.'[0-9]+|[1-9][0-9]* '.'[0-9]+);
 INTLIT      : ('-')?('0'|[1-9][0-9]*);
 ID          : [_]*[A-Za-z0-9_][A-Za-z0-9_]* ;
-BOOLEANLIT  : ('True'|'False');
 
 fragment A : [aA];
 fragment B : [bB];

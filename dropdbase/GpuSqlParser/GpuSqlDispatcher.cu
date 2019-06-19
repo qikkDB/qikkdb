@@ -1085,6 +1085,14 @@ void GpuSqlDispatcher::MergePayload(const std::string &trimmedKey, ColmnarDB::Ne
 				}
 				break;
 			}
+			default:
+				// This case is taken even without aggregation functions, because Points are considered functions 
+				// for some reason
+				if(aggregationOperationFound)
+				{
+					throw std::out_of_range("Unsupported aggregation type result");
+				}
+				break;
 			}
 		}
 
