@@ -27,6 +27,7 @@ private:
 	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
 	bool isRegisterAllocated(std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& name);
+	std::string getPointerName(const std::string & colName);
 	std::pair<std::string, std::string> getPointerNames(const std::string & colName);
 
 	static std::array<CpuDispatchFunction,
@@ -188,8 +189,8 @@ public:
 			std::string columnName;
 
 			std::tie(tableName, columnName) = splitColumnName(colName);
-			std::string reg_min = colName "_min";
-			std::string reg_max = colName "_max";
+			std::string reg_min = colName + "_min";
+			std::string reg_max = colName + "_max";
 			T * mask_min = allocateRegister<T>(reg_min, 1, false);
 			T * mask_max = allocateRegister<T>(reg_max, 1, false);
 			mask_min[0] = getBlockMin<T>(tableName, columnName);

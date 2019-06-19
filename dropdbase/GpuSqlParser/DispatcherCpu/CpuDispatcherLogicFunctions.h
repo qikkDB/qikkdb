@@ -12,9 +12,9 @@ int32_t CpuSqlDispatcher::filterColConst()
 
 	loadCol<T>(colName);
 
-	std::string colPointeNameMin;
-	std::string colPointeNameMax;
-	std::tie<colPointerNameMin, colPointerNameMax> = getPointerNames(colName);
+	std::string colPointerNameMin;
+	std::string colPointerNameMax;
+	std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
 
 	auto colValMin = allocatedPointers.at(colPointerNameMin);
 	auto colValMax = allocatedPointers.at(colPointerNameMax);
@@ -40,9 +40,9 @@ int32_t CpuSqlDispatcher::filterConstCol()
 
 	loadCol<U>(colName);
 
-	std::string colPointeNameMin;
-	std::string colPointeNameMax;
-	std::tie<colPointerNameMin, colPointerNameMax> = getPointerNames(colName);
+	std::string colPointerNameMin;
+	std::string colPointerNameMax;
+	std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
 
 	auto colValMin = allocatedPointers.at(colPointerNameMin);
 	auto colValMax = allocatedPointers.at(colPointerNameMax);
@@ -80,13 +80,13 @@ int32_t CpuSqlDispatcher::filterColCol()
 		loadCol<T>(colNameLeft);
 		loadCol<U>(colNameRight);
 
-		std::string colPointeNameLeftMin;
-		std::string colPointeNameLeftMax;
-		std::tie<colPointerNameLeftMin, colPointerNameLeftMax> = getPointerNames(colNameLeft);
+		std::string colPointerNameLeftMin;
+		std::string colPointerNameLeftMax;
+		std::tie(colPointerNameLeftMin, colPointerNameLeftMax) = getPointerNames(colNameLeft);
 
-		std::string colPointeNameRightMin;
-		std::string colPointeNameRightMax;
-		std::tie<colPointerNameRightMin, colPointerNameRightMax> = getPointerNames(colNameRight);
+		std::string colPointerNameRightMin;
+		std::string colPointerNameRightMax;
+		std::tie(colPointerNameRightMin, colPointerNameRightMax) = getPointerNames(colNameRight);
 
 		auto colValLeftMin = allocatedPointers.at(colPointerNameLeftMin);
 		auto colValLeftMax = allocatedPointers.at(colPointerNameLeftMax);
@@ -94,8 +94,8 @@ int32_t CpuSqlDispatcher::filterColCol()
 		auto colValRightMin = allocatedPointers.at(colPointerNameRightMin);
 		auto colValRightMax = allocatedPointers.at(colPointerNameRightMax);
 
-		int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValLeftMin) || std::get<2>(colValRightMin));
-		int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValLeftMax) || std::get<2>(colValRightMax));
+		maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValLeftMin) || std::get<2>(colValRightMin));
+		maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValLeftMax) || std::get<2>(colValRightMax));
 
 		maskMin[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValLeftMin))[0], 
 			reinterpret_cast<U*>(std::get<0>(colValRightMin))[0]);
@@ -136,9 +136,9 @@ int32_t CpuSqlDispatcher::logicalColConst()
 
 	loadCol<T>(colName);
 
-	std::string colPointeNameMin;
-	std::string colPointeNameMax;
-	std::tie<colPointerNameMin, colPointerNameMax> = getPointerNames(colName);
+	std::string colPointerNameMin;
+	std::string colPointerNameMax;
+	std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
 
 	auto colValMin = allocatedPointers.at(colPointerNameMin);
 	auto colValMax = allocatedPointers.at(colPointerNameMax);
@@ -164,9 +164,9 @@ int32_t CpuSqlDispatcher::logicalConstCol()
 
 	loadCol<U>(colName);
 
-	std::string colPointeNameMin;
-	std::string colPointeNameMax;
-	std::tie<colPointerNameMin, colPointerNameMax> = getPointerNames(colName);
+	std::string colPointerNameMin;
+	std::string colPointerNameMax;
+	std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
 
 	auto colValMin = allocatedPointers.at(colPointerNameMin);
 	auto colValMax = allocatedPointers.at(colPointerNameMax);
@@ -205,13 +205,13 @@ int32_t CpuSqlDispatcher::logicalColCol()
 		loadCol<T>(colNameLeft);
 		loadCol<U>(colNameRight);
 
-		std::string colPointeNameLeftMin;
-		std::string colPointeNameLeftMax;
-		std::tie<colPointerNameLeftMin, colPointerNameLeftMax> = getPointerNames(colNameLeft);
+		std::string colPointerNameLeftMin;
+		std::string colPointerNameLeftMax;
+		std::tie(colPointerNameLeftMin, colPointerNameLeftMax) = getPointerNames(colNameLeft);
 
-		std::string colPointeNameRightMin;
-		std::string colPointeNameRightMax;
-		std::tie<colPointerNameRightMin, colPointerNameRightMax> = getPointerNames(colNameRight);
+		std::string colPointerNameRightMin;
+		std::string colPointerNameRightMax;
+		std::tie(colPointerNameRightMin, colPointerNameRightMax) = getPointerNames(colNameRight);
 
 		auto colValLeftMin = allocatedPointers.at(colPointerNameLeftMin);
 		auto colValLeftMax = allocatedPointers.at(colPointerNameLeftMax);
@@ -219,8 +219,8 @@ int32_t CpuSqlDispatcher::logicalColCol()
 		auto colValRightMin = allocatedPointers.at(colPointerNameRightMin);
 		auto colValRightMax = allocatedPointers.at(colPointerNameRightMax);
 
-		int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValLeftMin) || std::get<2>(colValRightMin));
-		int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValLeftMax) || std::get<2>(colValRightMax));
+		maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValLeftMin) || std::get<2>(colValRightMin));
+		maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValLeftMax) || std::get<2>(colValRightMax));
 
 		maskMin[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValLeftMin))[0],
 			reinterpret_cast<U*>(std::get<0>(colValRightMin))[0]);
@@ -271,8 +271,8 @@ int32_t CpuSqlDispatcher::logicalNotCol()
 	resultMin[0] = !reinterpret_cast<T*>(std::get<0>(colValMin))[0];
 	resultMax[0] = !reinterpret_cast<T*>(std::get<0>(colValMax))[0];
 
-	std::cout << "Where evaluation logicalNotCol_min: " << colName << ", " << reg + '_min' << ": " << resultMin[0] << std::endl;
-	std::cout << "Where evaluation logicalNotCol_max: " << colName << ", " << reg + '_max' << ": " << resultMax[0] << std::endl;
+	std::cout << "Where evaluation logicalNotCol_min: " << colName << ", " << reg + "_min" << ": " << resultMin[0] << std::endl;
+	std::cout << "Where evaluation logicalNotCol_max: " << colName << ", " << reg + "_max" << ": " << resultMax[0] << std::endl;
 	return 0;
 }
 
@@ -282,8 +282,8 @@ int32_t CpuSqlDispatcher::logicalNotConst()
 	T cnst = arguments.read<T>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * resultMin = allocateRegister<int8_t>(reg + '_min', 1, false);
-	int8_t * resultMax = allocateRegister<int8_t>(reg + '_max', 1, false);
+	int8_t * resultMin = allocateRegister<int8_t>(reg + "_min", 1, false);
+	int8_t * resultMax = allocateRegister<int8_t>(reg + "_max", 1, false);
 
 	resultMin[0] = !cnst;
 	resultMax[0] = !cnst;
