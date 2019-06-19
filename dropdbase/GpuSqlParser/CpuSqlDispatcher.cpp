@@ -247,13 +247,11 @@ int64_t CpuSqlDispatcher::execute(int32_t index)
 {
 	blockIndex = index;
 
-	evaluateMin = true;
 	int32_t err = 0;
 	while (err == 0)
 	{
 		err = (this->*cpuDispatcherFunctions[instructionPointer++])();
 	}
-	int64_t whereResultMin = whereResult;
 	instructionPointer = 0;
 	arguments.reset();
 
@@ -263,23 +261,7 @@ int64_t CpuSqlDispatcher::execute(int32_t index)
 	}
 	allocatedPointers.clear();
 
-	evaluateMin = false;
-	err = 0;
-	while (err == 0)
-	{
-		err = (this->*cpuDispatcherFunctions[instructionPointer++])();
-	}
-	int64_t whereResultMax = whereResult;
-	instructionPointer = 0;
-	arguments.reset();
-
-	for (auto& pointer : allocatedPointers)
-	{
-		operator delete(reinterpret_cast<void*>(std::get<0>(pointer.second)));
-	}
-	allocatedPointers.clear();
-
-	return whereResultMin || whereResultMax;
+	return whereResult;
 }
 
 void CpuSqlDispatcher::copyExecutionDataTo(CpuSqlDispatcher& other)
