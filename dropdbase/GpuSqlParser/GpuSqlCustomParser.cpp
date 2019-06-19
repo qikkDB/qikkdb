@@ -385,8 +385,7 @@ void GpuSqlCustomParser::trimPayload(ColmnarDB::NetworkClient::Message::QueryRes
 		payload.mutable_stringpayload()->mutable_stringdata()->erase(begin + clampedLimit, end);
 	}
 		break;	
-	default:
-		throw std::out_of_range("Invalid result payload type");	
+	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::PAYLOAD_NOT_SET:
 		break;
 	}
 }
