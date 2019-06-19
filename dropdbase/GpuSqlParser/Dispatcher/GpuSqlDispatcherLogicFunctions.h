@@ -127,6 +127,111 @@ int32_t GpuSqlDispatcher::filterConstConst()
 	return 0;
 }
 
+template<typename OP>
+int32_t GpuSqlDispatcher::filterStringColConst()
+{
+	std::string cnst = arguments.read<std::string>();
+	auto colName = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+
+	int32_t loadFlag = loadCol<std::string>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::cout << "FilterString: " << colName << " " << reg << std::endl;
+
+	std::tuple<GPUMemory::GPUString, int32_t> column = findStringColumn(colName);
+	int32_t retSize = std::get<1>(column);
+
+	if (!isRegisterAllocated(reg))
+	{
+		GPUMemory::GPUString constString = insertConstStringGpu(cnst);
+		int8_t * mask = allocateRegister<int8_t>(reg, retSize);
+		GPUFilter::colCol<OP>(mask, std::get<0>(column), constString, retSize);
+	}
+	return 0;
+}
+
+template<typename OP>
+int32_t GpuSqlDispatcher::filterStringConstCol()
+{
+	auto colName = arguments.read<std::string>();
+	std::string cnst = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+
+	int32_t loadFlag = loadCol<std::string>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::cout << "FilterString: " << colName << " " << reg << std::endl;
+
+	std::tuple<GPUMemory::GPUString, int32_t> column = findStringColumn(colName);
+	int32_t retSize = std::get<1>(column);
+
+	if (!isRegisterAllocated(reg))
+	{
+		GPUMemory::GPUString constString = insertConstStringGpu(cnst);
+		int8_t * mask = allocateRegister<int8_t>(reg, retSize);
+		GPUFilter::colCol<OP>(mask, std::get<0>(column), constString, retSize);
+	}
+	return 0;
+}
+
+template<typename OP>
+int32_t GpuSqlDispatcher::filterStringColCol()
+{
+	auto colNameRight = arguments.read<std::string>();
+	auto colNameLeft = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+
+	int32_t loadFlag = loadCol<std::string>(colNameRight);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+	loadFlag = loadCol<std::string>(colNameLeft);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::cout << "FilterString: " << colName << " " << reg << std::endl;
+
+	std::tuple<GPUMemory::GPUString, int32_t> columnLeft = findStringColumn(colNameLeft);
+	std::tuple<GPUMemory::GPUString, int32_t> columnRight = findStringColumn(colNameRight);
+	int32_t retSize = std::max(std::get<1>(columnLeft), std::get<1>(colRight));
+
+	if (!isRegisterAllocated(reg))
+	{
+		int8_t * mask = allocateRegister<int8_t>(reg, retSize);
+		GPUFilter::colCol<OP>(mask, std::get<0>(columnLeft), std::get<0>(columnRight), retSize);
+	}
+	return 0;
+}
+
+
+template<typename OP>
+int32_t GpuSqlDispatcher::filterStringConstConst()
+{
+	std::string constRight = arguments.read<std::string>();
+	std::string constLeft = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+
+	if (!isRegisterAllocated(reg))
+	{
+		GPUMemory::GPUString constStringLeft = insertConstStringGpu(constLeft);
+		GPUMemory::GPUString constStringRight = insertConstStringGpu(constRight);
+
+		int8_t * mask = allocateRegister<int8_t>(reg, database->GetBlockSize());
+		GPUFilter::constConst<OP>(mask, constStringLeft, constStringRight, database->GetBlockSize());
+	}
+	return 0;
+}
+
 /// Implementation of generic logical operation (AND, OR) dispatching based on functor OP
 /// Implementation for column constant case
 /// Pops data from argument memory stream, and loads data to GPU on demand 

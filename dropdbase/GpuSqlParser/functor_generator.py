@@ -225,7 +225,10 @@ for operation in operations_filter:
             if colVal in geo_types or rowVal in geo_types:
                 op = "invalidOperandTypesErrorHandler"
 
-            elif colVal == STRING or rowVal == STRING:
+            elif colVal == STRING and rowVal != STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif colVal != STRING and rowVal == STRING:
                 op = "invalidOperandTypesErrorHandler"
 
             elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
@@ -234,9 +237,15 @@ for operation in operations_filter:
             elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
                 op = "invalidOperandTypesErrorHandler"
 
+            elif colVal == STRING and rowVal == STRING:
+                op = "filterString"
             else:
                 op = "filter"
-            function = "GpuSqlDispatcher::" + op + col + row + "<FilterConditions::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if op == "filterString":
+                function = "GpuSqlDispatcher::" + op + col + row + "<FilterConditions::" + operation + ">"
+            else:
+                function = "GpuSqlDispatcher::" + op + col + row + "<FilterConditions::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
