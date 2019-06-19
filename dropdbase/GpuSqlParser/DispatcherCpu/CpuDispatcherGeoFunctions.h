@@ -9,8 +9,12 @@ int32_t CpuSqlDispatcher::pointColCol()
 	auto colNameRight = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, true);
-	mask[0] = 1;
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+
+	maskMin[0] = 1;
+	maskMax[0] = 1;
+	
 	return 0;
 }
 
@@ -25,8 +29,12 @@ int32_t CpuSqlDispatcher::pointColConst()
 	U cnst = arguments.read<U>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, true);
-	mask[0] = 1;
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+
+	maskMin[0] = 1;
+	maskMax[0] = 1;
+
 	return 0;
 }
 
@@ -41,8 +49,12 @@ int32_t CpuSqlDispatcher::pointConstCol()
 	auto colNameRight = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, true);
-	mask[0] = 1;
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+
+	maskMin[0] = 1;
+	maskMax[0] = 1;
+
 	return 0;
 }
 
@@ -57,8 +69,12 @@ int32_t CpuSqlDispatcher::containsColConst()
 	auto constWkt = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, true);
-	mask[0] = 1;
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+
+	maskMin[0] = 1;
+	maskMax[0] = 1;
+	
 	return 0;
 }
 
@@ -73,8 +89,12 @@ int32_t CpuSqlDispatcher::containsConstCol()
 	auto constWkt = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, true);
-	mask[0] = 1;
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+
+	maskMin[0] = 1;
+	maskMax[0] = 1;
+
 	return 0;
 }
 
@@ -89,8 +109,12 @@ int32_t CpuSqlDispatcher::containsColCol()
 	auto colNamePoint = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, true);
-	mask[0] = 1;
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+
+	maskMin[0] = 1;
+	maskMax[0] = 1;
+	
 	return 0;
 }
 
@@ -105,8 +129,12 @@ int32_t CpuSqlDispatcher::containsConstConst()
 	auto constPointWkt = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, true);
-	mask[0] = 1;
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+
+	maskMin[0] = 1;
+	maskMax[0] = 1;
+
 	return 0;
 }
 
@@ -122,8 +150,12 @@ int32_t CpuSqlDispatcher::polygonOperationColConst()
 	auto constWkt = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, true);
-	mask[0] = 1;
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+
+	maskMin[0] = 1;
+	maskMax[0] = 1;
+
 	return 0;
 }
 
@@ -139,8 +171,12 @@ int32_t CpuSqlDispatcher::polygonOperationConstCol()
 	auto colName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, true);
-	mask[0] = 1;
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+
+	maskMin[0] = 1;
+	maskMax[0] = 1;
+
 	return 0;
 }
 /// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does not meet this requrement) based on functor OP
@@ -155,8 +191,12 @@ int32_t CpuSqlDispatcher::polygonOperationColCol()
 	auto colNameRight = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, true);
-	mask[0] = 1;
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+
+	maskMin[0] = 1;
+	maskMax[0] = 1;
+
 	return 0;
 }
 
@@ -172,8 +212,11 @@ int32_t CpuSqlDispatcher::polygonOperationConstConst()
 	auto constWktRight = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int8_t * mask = allocateRegister<int8_t>(reg, 1, true);
-	mask[0] = 1;
-	return 0;
+	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+
+	maskMin[0] = 1;
+	maskMax[0] = 1;
+
 	return 0;
 }

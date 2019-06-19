@@ -13,13 +13,21 @@ int32_t CpuSqlDispatcher::arithmeticUnaryCol()
 
 	loadCol<T>(colName);
 
-	std::string colPointerName = getPointerName(colName);
-	auto colVal = allocatedPointers.at(colPointerName);
+	std::string colPointerNameMin;
+	std::string colPointerNameMax;
+	std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
 
-	ResultType * result = allocateRegister<ResultType>(reg, 1, std::get<2>(colVal) || !OP::isMonotonous);
-	result[0] = OP{}.template operator()< ResultType, T>(reinterpret_cast<T*>(std::get<0>(colVal))[0]);
+	auto colValMin = allocatedPointers.at(colPointerNameMin);
+	auto colValMax = allocatedPointers.at(colPointerNameMax);
 
-	std::cout << "Where evaluation arithmeticUnaryCol" << (evaluateMin ? "_min" : "_max") << ": " << reinterpret_cast<T*>(std::get<0>(colVal))[0] << ", " << reg << ": " << result[0] << std::endl;
+	ResultType * resultMin = allocateRegister<ResultType>(reg + "_min", 1, std::get<2>(colValMin) || !OP::isMonotonous);
+	ResultType * resultMax = allocateRegister<ResultType>(reg + "_max", 1, std::get<2>(colValMax) || !OP::isMonotonous);
+	
+	resultMin[0] = OP{}.template operator()< ResultType, T>(reinterpret_cast<T*>(std::get<0>(colValMin))[0]);
+	resultMax[0] = OP{}.template operator()< ResultType, T>(reinterpret_cast<T*>(std::get<0>(colValMax))[0]);
+
+	std::cout << "Where evaluation arithmeticUnaryCol_min: " << reinterpret_cast<T*>(std::get<0>(colValMin))[0] << ", " << reg + "_min" << ": " << resultMin[0] << std::endl;
+	std::cout << "Where evaluation arithmeticUnaryCol_max: " << reinterpret_cast<T*>(std::get<0>(colValMax))[0] << ", " << reg + "_max" << ": " << resultMax[0] << std::endl;
 
 	return 0;
 }
@@ -32,10 +40,14 @@ int32_t CpuSqlDispatcher::arithmeticUnaryConst()
 
 	typedef typename std::conditional < OP::isFloatRetType, float, T>::type ResultType;
 
-	ResultType * result = allocateRegister<ResultType>(reg, 1, !OP::isMonotonous);
-	result[0] = OP{}.template operator()< ResultType, T>(cnst);
+	ResultType * resultMin = allocateRegister<ResultType>(reg + "_min", 1, !OP::isMonotonous);
+	ResultType * resultMax = allocateRegister<ResultType>(reg + "_max", 1, !OP::isMonotonous);
 
-	std::cout << "Where evaluation arithmeticUnaryConst" << (evaluateMin ? "_min" : "_max") << ": " <<  reg << ": " << result[0] << std::endl;
+	resultMin[0] = OP{}.template operator()< ResultType, T>(cnst);
+	resultMax[0] = OP{}.template operator()< ResultType, T>(cnst);
+
+	std::cout << "Where evaluation arithmeticUnaryConst_min: " <<  reg + "_min" << ": " << resultMin[0] << std::endl;
+	std::cout << "Where evaluation arithmeticUnaryConst_max: " <<  reg + "_max" << ": " << resultMax[0] << std::endl;
 
 	return 0;
 }
