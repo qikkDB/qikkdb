@@ -10480,7 +10480,7 @@ TEST(DispatcherTests, StringConcatColCol)
 	const std::string colStrName = "colString1";
 	const std::string table = "TableA";
 	const int32_t testLen = 2;
-	auto &payloads = RunQuery("CONCAT("+ colStrName + ", " + colStrName + ")", "FROM " + table);
+	auto &payloads = RunQuery("CONCAT("+ table + "." + colStrName + "," + table + "." + colStrName + ")", "FROM " + table);
 	
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10504,7 +10504,7 @@ TEST(DispatcherTests, StringConcatColConst)
 	const std::string text = "az#7";
 	const std::string table = "TableA";
 	const int32_t testLen = 2;
-	auto &payloads = RunQuery("CONCAT(" + colStrName + ", \"" + text + "\")", "FROM " + table);
+	auto &payloads = RunQuery("CONCAT(" + table + "." + colStrName + ",\"" + text + "\")", "FROM " + table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10528,7 +10528,7 @@ TEST(DispatcherTests, StringConcatConstCol)
 	const std::string colStrName = "colString1";
 	const std::string table = "TableA";
 	const int32_t testLen = 2;
-	auto &payloads = RunQuery("CONCAT(\"" + text + "\", " + colStrName + ")", "FROM " + table);
+	auto &payloads = RunQuery("CONCAT(\"" + text + "\"," + table + "." + colStrName + ")", "FROM " + table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10551,7 +10551,7 @@ TEST(DispatcherTests, StringConcatConstConst)
 	const std::string text1 = "abcd";
 	const std::string text2 = "XYZ_2";
 	const std::string table = "TableA";
-	auto &payloads = RunQuery("CONCAT(\"" + text1 + "\", \"" + text2 + "\")", "FROM " + table + " LIMIT 1");
+	auto &payloads = RunQuery("CONCAT(\"" + text1 + "\",\"" + text2 + "\")", "FROM " + table + " LIMIT 1");
 
 	std::vector<std::string> expectedResultsStrings;
 
