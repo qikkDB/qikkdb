@@ -13,8 +13,10 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTestsRegression.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp)
-				
+				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/GPUCompressionTests.cpp
+				)
+
 set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUArtithmeticTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUAggregationTests.cu

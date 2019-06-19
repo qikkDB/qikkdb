@@ -24,6 +24,7 @@ private:
 	// configuration values
 	std::string configurationFile = "../configuration/config.yml";
 	bool usingGPU_ = true;
+	bool usingCompression_ = true;
 	std::string dir_ = "./";
 	std::string databaseDir_ = "../databases/";
 	int blockSize_ = 1024;
@@ -69,7 +70,12 @@ public:
 		return usingGPU_;
 	}
 
+	bool IsUsingCompression() const {
+		return usingCompression_;
+	}
+	
 	const std::string & GetDir() const {
+
 		return dir_;
 	}
 

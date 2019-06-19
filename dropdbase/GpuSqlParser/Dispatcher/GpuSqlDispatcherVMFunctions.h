@@ -116,15 +116,48 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
 		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
 
-		auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-			database->GetName(), colName, blockIndex, block->GetSize());
-		if (!std::get<2>(cacheEntry))
+		if (block->IsCompressed())
 		{
-			GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
-		}
-		addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
+			size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
+			size_t compressedSize = block->GetSize();
+			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+				database->GetName(), colName, blockIndex, uncompressedSize);
+			if (!std::get<2>(cacheEntry))
+			{
+				T* deviceCompressed;
+				GPUMemory::alloc(&deviceCompressed, compressedSize);
+				GPUMemory::copyHostToDevice(deviceCompressed, block->GetData(), compressedSize);
+				bool isDecompressed;
+				Compression::Decompress(
+					col->GetColumnType(),
+					deviceCompressed,
+					Compression::GetCompressedDataElementsCount(block->GetData()),
+					std::get<0>(cacheEntry),
+					Compression::GetUncompressedDataElementsCount(block->GetData()),
+					Compression::GetCompressionBlocksCount(block->GetData()),
+					block->GetMin(),
+					block->GetMax(),
+					isDecompressed,
+					true
+				);
+				GPUMemory::free(deviceCompressed);
+			}
+			addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize);
 
-		noLoad = false;
+			noLoad = false;
+		}
+		else
+		{
+			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+				database->GetName(), colName, blockIndex, block->GetSize());
+			if (!std::get<2>(cacheEntry))
+			{
+				GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+			}
+			addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
+
+			noLoad = false;
+		}
 	}
 	return 0;
 }

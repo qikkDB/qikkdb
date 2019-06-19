@@ -263,7 +263,8 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 /// Insert data into proper column of table considering empty space of last block and maximum size of blocks.
 /// </summary>
 /// <param name="data">Name of column with inserting data.</param>
-void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
+/// <param name="compress">Whether data will be compressed.</param>
+void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bool compress)
 {
 	if (!sortingColumns.empty())
 	{
