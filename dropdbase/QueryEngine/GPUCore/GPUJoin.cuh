@@ -433,4 +433,12 @@ public:
 		GPUMemory::free(d_RTableBlock);
 		GPUMemory::free(d_STableBlock);
 	}
+
+	template<typename T>
+	static void reorderByJoinTableCPU(std::vector<T> &OutBlock,
+									  std::vector<int32_t> &JoinBlock,
+									  std::vector<T> &InTable)
+	{
+
+	}
 };
