@@ -308,17 +308,21 @@ public:
     }
 
 	template <typename T>
-	static void JoinTableRonS(std::vector<int32_t> &resultColumnQAJoinIdx,
-							  std::vector<int32_t> &resultColumnQBJoinIdx,
-							  int32_t &resultColumnQSize,
+	static void JoinTableRonS(std::vector <std::vector<int32_t>> &resultColumnQAJoinIdx,
+							  std::vector <std::vector<int32_t>> &resultColumnQBJoinIdx,
 							  ColumnBase<T> &ColumnR,
 							  ColumnBase<T> &ColumnS,
 							  int32_t blockSize)
 	{
 		// The result vector - reset
-		resultColumnQSize = 0;
 		resultColumnQAJoinIdx.resize(0);
 		resultColumnQBJoinIdx.resize(0);
+
+		// Alloc the first block
+		int32_t currentQAResultBlockIdx = 0;
+		int32_t currentQBResultBlockIdx = 0;
+		resultColumnQAJoinIdx.push_back(std::vector<int32_t>{});
+		resultColumnQBJoinIdx.push_back(std::vector<int32_t>{});
 
 		// Create a join instance
 		GPUJoin gpuJoin(blockSize);
@@ -381,9 +385,20 @@ public:
 
 				for (int32_t i = 0; i < processedQBlockResultSize; i++)
 				{
-					resultColumnQAJoinIdx.push_back(r * blockSize + QAresult[i]);	// Write the original idx
-					resultColumnQBJoinIdx.push_back(s * blockSize + QBresult[i]);   // Write the original idx
-					resultColumnQSize++;
+					if (resultColumnQAJoinIdx[currentQAResultBlockIdx].size() == blockSize)
+					{
+						resultColumnQAJoinIdx.push_back(std::vector<int32_t>{});
+						currentQAResultBlockIdx++;
+					}
+
+					if (resultColumnQBJoinIdx[currentQBResultBlockIdx].size() == blockSize)
+					{
+						resultColumnQBJoinIdx.push_back(std::vector<int32_t>{});
+						currentQBResultBlockIdx++;
+					}
+
+					resultColumnQAJoinIdx[currentQAResultBlockIdx].push_back(r * blockSize + QAresult[i]);	 // Write the original idx
+					resultColumnQBJoinIdx[currentQBResultBlockIdx].push_back(s * blockSize + QBresult[i]);   // Write the original idx
 				}
 
 				GPUMemory::free(d_QAResultBlock);
@@ -395,10 +410,36 @@ public:
 		GPUMemory::free(d_ColumnSBlock);
 	}
 
-	// Create a new OutBlock based on a portion of join indexes and input column
+	// Create a new outBlock based on a portion of join indexes and input column
 	template<typename T>
-	static void reorderByJoinTableCPU()
+	static void reorderByJoinTableCPU(T *outBlock,
+									  int32_t &outBlockDataElementCount,
+									  ColumnBase<T> &inColumn, 
+									  int32_t resultColumnQJoinIdxBlockIdx,
+									  std::vector<std::vector<int32_t>> &resultColumnQJoinIdx,
+									  int32_t blockSize)
 	{
-		
+		if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
+		{
+			std::cerr << "[ERROR]  Column block index out of bounds" << std::endl;
+		}
+
+		// Allocan output CPU vector
+		std::vector<T> outBlockVector;
+
+		// Reorder the data by iterating trough the input
+		outBlockDataElementCount = 0;
+		for (int32_t i = 0; i < resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size(); i++)
+		{
+			int32_t columnBlockId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] / blockSize;
+			int32_t columnRowId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] % blockSize;
+
+			int32_t val = inColumn.GetBlocksList()[columnBlockId]->GetData()[columnRowId];
+			outBlockVector.push_back(val);
+		}
+
+		// Copy the results to the GPU
+		outBlockDataElementCount = outBlockVector.size();
+		GPUMemory::copyHostToDevice(outBlock, outBlockVector.data(), outBlockDataElementCount);
 	}
 };

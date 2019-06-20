@@ -33,37 +33,30 @@ TEST(GPUJoinTests, JoinTest)
 		}
 	}
 
-	// Run the join and store the result cross index in two vectors
-	int32_t resultQTableSize;
-	std::vector<int32_t> resultColumnQAJoinIdx;
-	std::vector<int32_t> resultColumnQBJoinIdx;
+	// Run the join and store the result cross index in two vectors of vectors each containing a vector of max BLOCK_SIZE
+	std::vector<std::vector<int32_t>> resultColumnQAJoinIdx;
+	std::vector<std::vector<int32_t>> resultColumnQBJoinIdx;
 
-	GPUJoin::JoinTableRonS(resultColumnQAJoinIdx, resultColumnQBJoinIdx, resultQTableSize, ColumnR_, ColumnS_, BLOCK_SIZE);
+	GPUJoin::JoinTableRonS(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE);
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// Check the results 
 
-	// DEBUG - convert tables to vectors
-	std::vector<int32_t> RTable;
-	std::vector<int32_t> STable;
-
-	auto& ColumnRBlockList = ColumnR_.GetBlocksList();
-	auto& ColumnSBlockList = ColumnS_.GetBlocksList();
-	for (int32_t i = 0; i < BLOCK_COUNT; i++)
+	for(int32_t i = 0; i < resultColumnQAJoinIdx.size(); i++)
 	{
-		auto& blockR = *ColumnRBlockList[i];
-		auto& blockS = *ColumnSBlockList[i];
-		for (int32_t j = 0; j < BLOCK_SIZE; j++)
+		for (int32_t j = 0; j < resultColumnQAJoinIdx[i].size(); j++)
 		{
-			RTable.push_back(blockR.GetData()[j]);
-			STable.push_back(blockS.GetData()[j]);
-		}
-	}
+			int32_t RColumnBlockId = resultColumnQAJoinIdx[i][j] / BLOCK_SIZE;
+			int32_t RColumnRowId = resultColumnQAJoinIdx[i][j] % BLOCK_SIZE;
 
-	// Check the results
-	for(int32_t i = 0; i < resultQTableSize; i++)
-	{
-		ASSERT_EQ(RTable[resultColumnQAJoinIdx[i]], STable[resultColumnQBJoinIdx[i]]);
+			int32_t SColumnBlockId = resultColumnQBJoinIdx[i][j] / BLOCK_SIZE;
+			int32_t SColumnRowId = resultColumnQBJoinIdx[i][j] % BLOCK_SIZE;
+
+			int32_t val1 = ColumnR_.GetBlocksList()[RColumnBlockId]->GetData()[RColumnRowId];
+			int32_t val2 = ColumnS_.GetBlocksList()[SColumnBlockId]->GetData()[SColumnRowId];
+
+			ASSERT_EQ(val1, val2);
+		}
 	}
 }
 
@@ -87,29 +80,39 @@ TEST(GPUJoinTests, ReorderCPUTest)
 		}
 	}
 
-	// Run the join and store the result cross index in two vectors
-	int32_t resultQTableSize;
-	std::vector<int32_t> resultColumnQAJoinIdx;
-	std::vector<int32_t> resultColumnQBJoinIdx;
+	// Run the join and store the result cross index in two vectors of vectors each containing a vector of max BLOCK_SIZE
+	std::vector<std::vector<int32_t>> resultColumnQAJoinIdx;
+	std::vector<std::vector<int32_t>> resultColumnQBJoinIdx;
 
-	GPUJoin::JoinTableRonS(resultColumnQAJoinIdx, resultColumnQBJoinIdx, resultQTableSize, ColumnR_, ColumnS_, BLOCK_SIZE);
+	GPUJoin::JoinTableRonS(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE);
 
 	///////////////////////////////////////////////////////////////////////////////////////////
-	// Reorder the columns - put the data from a vector into a blockbase
-	for (int32_t i = 0; i < resultQTableSize; i += BLOCK_SIZE)
+	// Reorder the blocks
+	int32_t *d_outRBlock;
+	int32_t *d_outSBlock;
+
+	GPUMemory::alloc(&d_outRBlock, BLOCK_SIZE);
+	GPUMemory::alloc(&d_outSBlock, BLOCK_SIZE);
+
+	int32_t outRBlockDataElementCount;
+	int32_t outSBlockDataElementCount;
+
+	std::vector<int32_t> outRBlock(BLOCK_SIZE);
+	std::vector<int32_t> outSBlock(BLOCK_SIZE);
+
+	int32_t outBlockCount = resultColumnQAJoinIdx.size();
+
+	for (int32_t i = 0; i < outBlockCount; i++)
 	{
-		// Alloc and fill vectors with a subset of the result data
-		std::vector<int32_t> resultColumnQAJoinIdxBlock;
-		std::vector<int32_t> resultColumnQBJoinIdxBlock;
-
-		for (int32_t j = 0; j < BLOCK_SIZE && (j + i) < resultQTableSize; j++)
+		GPUJoin::reorderByJoinTableCPU(d_outRBlock, outRBlockDataElementCount, ColumnR_, i, resultColumnQAJoinIdx, BLOCK_SIZE);
+		GPUJoin::reorderByJoinTableCPU(d_outSBlock, outSBlockDataElementCount, ColumnS_, i, resultColumnQBJoinIdx, BLOCK_SIZE);
+	
+		// Test if the results are equal
+		GPUMemory::copyDeviceToHost(outRBlock.data(), d_outRBlock, outRBlockDataElementCount);
+		GPUMemory::copyDeviceToHost(outSBlock.data(), d_outSBlock, outSBlockDataElementCount);
+		for (int32_t j = 0; j < outRBlockDataElementCount; j++)
 		{
-			resultColumnQAJoinIdxBlock.push_back(resultColumnQAJoinIdx[i + j]);
-			resultColumnQBJoinIdxBlock.push_back(resultColumnQBJoinIdx[i + j]);
+			ASSERT_EQ(outRBlock[j], outSBlock[j]);
 		}
-
-		// Reconstruct the result based on the indexes
-
-
 	}
 }
