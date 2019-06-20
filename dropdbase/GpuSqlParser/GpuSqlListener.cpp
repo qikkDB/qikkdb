@@ -8,6 +8,7 @@
 #include "../PointFactory.h"
 #include "../ComplexPolygonFactory.h"
 #include "ParserExceptions.h"
+#include "JoinType.h"
 #include "GpuSqlDispatcher.h"
 #include <ctime>
 #include <iostream>
@@ -589,6 +590,53 @@ void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
 			tableAliases.insert({ alias, table });
 		}
     }
+}
+
+void GpuSqlListener::exitJoinClause(GpuSqlParser::JoinClauseContext * ctx)
+{
+	std::string joinTable = ctx->joinTable()->getText();
+
+	if (database->GetTables().find(joinTable) == database->GetTables().end())
+	{
+		throw TableNotFoundFromException();
+	}
+
+	loadedTables.insert(joinTable);
+
+	std::string leftColName;
+	DataType leftColType;
+	std::tie(leftColName, leftColType) = generateAndValidateColumnName(ctx->joinColumnLeft()->columnId());
+
+	std::string rightColName;
+	DataType rightColType;
+	std::tie(rightColName, rightColType) = generateAndValidateColumnName(ctx->joinColumnRight()->columnId());
+
+	JoinType joinType = JoinType::INNER_JOIN;
+	if (ctx->joinType())
+	{
+		std::string joinTypeName = ctx->joinType()->getText();
+		stringToUpper(joinTypeName);
+
+		if (joinTypeName == "INNER")
+		{
+			joinType = JoinType::INNER_JOIN;
+		}
+		else if (joinTypeName == "LEFT")
+		{
+			joinType = JoinType::LEFT_JOIN;
+		}
+		else if (joinTypeName == "RIGHT")
+		{
+			joinType = JoinType::RIGHT_JOIN;
+		}
+		else if (joinTypeName == "FULL OUTER")
+		{
+			joinType = JoinType::FULL_OUTER_JOIN;
+		}
+	}
+
+	dispatcher.addArgument<std::string>(leftColName);
+	dispatcher.addArgument<std::string>(rightColName);
 }
 
 

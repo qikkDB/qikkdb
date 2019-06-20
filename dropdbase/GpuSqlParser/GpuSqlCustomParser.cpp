@@ -67,6 +67,11 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
 		walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
 
+		if (statement->sqlSelect()->joinClauses())
+		{
+			walker.walk(&gpuSqlListener, statement->sqlSelect()->joinClauses());
+		}
+
 		if (statement->sqlSelect()->whereClause())
 		{
 			walker.walk(&gpuSqlListener, statement->sqlSelect()->whereClause());

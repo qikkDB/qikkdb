@@ -72,6 +72,9 @@ DIR         : (A S C) | (D E S C);
 LIMIT       : L I M I T;
 OFFSET      : O F F S E T;
 
+INNER       : I N N E R;
+FULLOUTER   : F U L L ' ' O U T E R;
+
 SHOWDB      : S H O W ' ' D A T A B A S E S;
 SHOWTB      : S H O W ' ' T A B L E S;
 SHOWCL      : S H O W ' ' C O L U M N S;

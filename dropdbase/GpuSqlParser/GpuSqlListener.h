@@ -106,6 +106,8 @@ public:
 
     void exitFromTables(GpuSqlParser::FromTablesContext *ctx) override;
 
+	void exitJoinClause(GpuSqlParser::JoinClauseContext *ctx) override;
+
     void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 
 	void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;

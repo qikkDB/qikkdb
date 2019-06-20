@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/mstano/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -22,20 +22,20 @@ public:
     DROPCOLUMN = 38, ALTERCOLUMN = 39, CREATEINDEX = 40, INDEX = 41, PRIMARYKEY = 42, 
     VALUES = 43, SELECT = 44, FROM = 45, JOIN = 46, WHERE = 47, GROUPBY = 48, 
     AS = 49, IN = 50, BETWEEN = 51, ON = 52, ORDERBY = 53, DIR = 54, LIMIT = 55, 
-    OFFSET = 56, SHOWDB = 57, SHOWTB = 58, SHOWCL = 59, AGG = 60, AVG = 61, 
-    SUM = 62, MIN = 63, MAX = 64, COUNT = 65, YEAR = 66, MONTH = 67, DAY = 68, 
-    HOUR = 69, MINUTE = 70, SECOND = 71, NOW = 72, PI = 73, ABS = 74, SIN = 75, 
-    COS = 76, TAN = 77, COT = 78, ASIN = 79, ACOS = 80, ATAN = 81, ATAN2 = 82, 
-    LOG10 = 83, LOG = 84, EXP = 85, POW = 86, SQRT = 87, SQUARE = 88, SIGN = 89, 
-    ROOT = 90, ROUND = 91, CEIL = 92, FLOOR = 93, LTRIM = 94, RTRIM = 95, 
-    LOWER = 96, UPPER = 97, REVERSE = 98, LEN = 99, LEFT = 100, RIGHT = 101, 
-    CONCAT = 102, GEO_CONTAINS = 103, GEO_INTERSECT = 104, GEO_UNION = 105, 
-    PLUS = 106, MINUS = 107, ASTERISK = 108, DIVISION = 109, MODULO = 110, 
-    XOR = 111, EQUALS = 112, NOTEQUALS = 113, NOTEQUALS_GT_LT = 114, LPAREN = 115, 
-    RPAREN = 116, GREATER = 117, LESS = 118, GREATEREQ = 119, LESSEQ = 120, 
-    NOT = 121, OR = 122, AND = 123, BIT_OR = 124, BIT_AND = 125, L_SHIFT = 126, 
-    R_SHIFT = 127, BOOLEANLIT = 128, TRUE = 129, FALSE = 130, FLOATLIT = 131, 
-    INTLIT = 132, ID = 133
+    OFFSET = 56, INNER = 57, FULLOUTER = 58, SHOWDB = 59, SHOWTB = 60, SHOWCL = 61, 
+    AGG = 62, AVG = 63, SUM = 64, MIN = 65, MAX = 66, COUNT = 67, YEAR = 68, 
+    MONTH = 69, DAY = 70, HOUR = 71, MINUTE = 72, SECOND = 73, NOW = 74, 
+    PI = 75, ABS = 76, SIN = 77, COS = 78, TAN = 79, COT = 80, ASIN = 81, 
+    ACOS = 82, ATAN = 83, ATAN2 = 84, LOG10 = 85, LOG = 86, EXP = 87, POW = 88, 
+    SQRT = 89, SQUARE = 90, SIGN = 91, ROOT = 92, ROUND = 93, CEIL = 94, 
+    FLOOR = 95, LTRIM = 96, RTRIM = 97, LOWER = 98, UPPER = 99, REVERSE = 100, 
+    LEN = 101, LEFT = 102, RIGHT = 103, CONCAT = 104, GEO_CONTAINS = 105, 
+    GEO_INTERSECT = 106, GEO_UNION = 107, PLUS = 108, MINUS = 109, ASTERISK = 110, 
+    DIVISION = 111, MODULO = 112, XOR = 113, EQUALS = 114, NOTEQUALS = 115, 
+    NOTEQUALS_GT_LT = 116, LPAREN = 117, RPAREN = 118, GREATER = 119, LESS = 120, 
+    GREATEREQ = 121, LESSEQ = 122, NOT = 123, OR = 124, AND = 125, BIT_OR = 126, 
+    BIT_AND = 127, L_SHIFT = 128, R_SHIFT = 129, BOOLEANLIT = 130, TRUE = 131, 
+    FALSE = 132, FLOATLIT = 133, INTLIT = 134, ID = 135
   };
 
   enum {
@@ -48,15 +48,16 @@ public:
     RuleNewTableIndex = 22, RuleSelectColumns = 23, RuleSelectColumn = 24, 
     RuleWhereClause = 25, RuleOrderByColumns = 26, RuleOrderByColumn = 27, 
     RuleInsertIntoValues = 28, RuleInsertIntoColumns = 29, RuleIndexColumns = 30, 
-    RuleGroupByColumns = 31, RuleGroupByColumn = 32, RuleColumnId = 33, 
-    RuleFromTables = 34, RuleJoinClauses = 35, RuleJoinClause = 36, RuleJoinTable = 37, 
-    RuleFromTable = 38, RuleTable = 39, RuleColumn = 40, RuleDatabase = 41, 
-    RuleAlias = 42, RuleIndexName = 43, RuleLimit = 44, RuleOffset = 45, 
-    RuleBlockSize = 46, RuleColumnValue = 47, RuleExpression = 48, RuleGeometry = 49, 
-    RulePointGeometry = 50, RuleLineStringGeometry = 51, RulePolygonGeometry = 52, 
-    RuleMultiPointGeometry = 53, RuleMultiLineStringGeometry = 54, RuleMultiPolygonGeometry = 55, 
-    RulePointOrClosedPoint = 56, RulePolygon = 57, RuleLineString = 58, 
-    RulePoint = 59
+    RuleGroupByColumns = 31, RuleGroupByColumn = 32, RuleFromTables = 33, 
+    RuleJoinClauses = 34, RuleJoinClause = 35, RuleJoinTable = 36, RuleJoinColumnLeft = 37, 
+    RuleJoinColumnRight = 38, RuleJoinOperator = 39, RuleJoinType = 40, 
+    RuleFromTable = 41, RuleColumnId = 42, RuleTable = 43, RuleColumn = 44, 
+    RuleDatabase = 45, RuleAlias = 46, RuleIndexName = 47, RuleLimit = 48, 
+    RuleOffset = 49, RuleBlockSize = 50, RuleColumnValue = 51, RuleExpression = 52, 
+    RuleGeometry = 53, RulePointGeometry = 54, RuleLineStringGeometry = 55, 
+    RulePolygonGeometry = 56, RuleMultiPointGeometry = 57, RuleMultiLineStringGeometry = 58, 
+    RuleMultiPolygonGeometry = 59, RulePointOrClosedPoint = 60, RulePolygon = 61, 
+    RuleLineString = 62, RulePoint = 63
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -102,12 +103,16 @@ public:
   class IndexColumnsContext;
   class GroupByColumnsContext;
   class GroupByColumnContext;
-  class ColumnIdContext;
   class FromTablesContext;
   class JoinClausesContext;
   class JoinClauseContext;
   class JoinTableContext;
+  class JoinColumnLeftContext;
+  class JoinColumnRightContext;
+  class JoinOperatorContext;
+  class JoinTypeContext;
   class FromTableContext;
+  class ColumnIdContext;
   class TableContext;
   class ColumnContext;
   class DatabaseContext;
@@ -669,21 +674,6 @@ public:
 
   GroupByColumnContext* groupByColumn();
 
-  class  ColumnIdContext : public antlr4::ParserRuleContext {
-  public:
-    ColumnIdContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    ColumnContext *column();
-    TableContext *table();
-    antlr4::tree::TerminalNode *DOT();
-
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
-  };
-
-  ColumnIdContext* columnId();
-
   class  FromTablesContext : public antlr4::ParserRuleContext {
   public:
     FromTablesContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -721,7 +711,10 @@ public:
     antlr4::tree::TerminalNode *JOIN();
     JoinTableContext *joinTable();
     antlr4::tree::TerminalNode *ON();
-    ExpressionContext *expression();
+    JoinColumnLeftContext *joinColumnLeft();
+    JoinOperatorContext *joinOperator();
+    JoinColumnRightContext *joinColumnRight();
+    JoinTypeContext *joinType();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -745,6 +738,67 @@ public:
 
   JoinTableContext* joinTable();
 
+  class  JoinColumnLeftContext : public antlr4::ParserRuleContext {
+  public:
+    JoinColumnLeftContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    ColumnIdContext *columnId();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  JoinColumnLeftContext* joinColumnLeft();
+
+  class  JoinColumnRightContext : public antlr4::ParserRuleContext {
+  public:
+    JoinColumnRightContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    ColumnIdContext *columnId();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  JoinColumnRightContext* joinColumnRight();
+
+  class  JoinOperatorContext : public antlr4::ParserRuleContext {
+  public:
+    JoinOperatorContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *GREATER();
+    antlr4::tree::TerminalNode *LESS();
+    antlr4::tree::TerminalNode *GREATEREQ();
+    antlr4::tree::TerminalNode *LESSEQ();
+    antlr4::tree::TerminalNode *EQUALS();
+    antlr4::tree::TerminalNode *NOTEQUALS();
+    antlr4::tree::TerminalNode *NOTEQUALS_GT_LT();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  JoinOperatorContext* joinOperator();
+
+  class  JoinTypeContext : public antlr4::ParserRuleContext {
+  public:
+    JoinTypeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *INNER();
+    antlr4::tree::TerminalNode *LEFT();
+    antlr4::tree::TerminalNode *RIGHT();
+    antlr4::tree::TerminalNode *FULLOUTER();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  JoinTypeContext* joinType();
+
   class  FromTableContext : public antlr4::ParserRuleContext {
   public:
     FromTableContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -759,6 +813,21 @@ public:
   };
 
   FromTableContext* fromTable();
+
+  class  ColumnIdContext : public antlr4::ParserRuleContext {
+  public:
+    ColumnIdContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    ColumnContext *column();
+    TableContext *table();
+    antlr4::tree::TerminalNode *DOT();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  ColumnIdContext* columnId();
 
   class  TableContext : public antlr4::ParserRuleContext {
   public:
