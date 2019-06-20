@@ -1,4 +1,5 @@
 #include "../dropdbase/QueryEngine/GPUCore/GPUJoin.cuh"
+#include "../dropdbase/QueryEngine/GPUCore/GPUFilterConditions.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
 #include "gtest/gtest.h"
 
@@ -37,7 +38,7 @@ TEST(GPUJoinTests, JoinTest)
 	std::vector<std::vector<int32_t>> resultColumnQAJoinIdx;
 	std::vector<std::vector<int32_t>> resultColumnQBJoinIdx;
 
-	GPUJoin::JoinTableRonS(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE);
+	GPUJoin::JoinTableRonS<FilterConditions::equal>(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE);
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// Check the results 
@@ -84,7 +85,7 @@ TEST(GPUJoinTests, ReorderCPUTest)
 	std::vector<std::vector<int32_t>> resultColumnQAJoinIdx;
 	std::vector<std::vector<int32_t>> resultColumnQBJoinIdx;
 
-	GPUJoin::JoinTableRonS(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE);
+	GPUJoin::JoinTableRonS<FilterConditions::equal>(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE);
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// Reorder the blocks

@@ -10,11 +10,14 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "GPUArithmetic.cuh"
+#include "GPUFilterConditions.cuh"
 
 #include "../../ColumnBase.h"
 #include "../../BlockBase.h"
 
 #include "../../../cub/cub.cuh"
+
+
 
 __device__ const int32_t HASH_TABLE_SUB_SIZE = 0x400;
 __device__ const int32_t HASH_MOD = 0x3FF;
@@ -72,7 +75,7 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
     }
 }
 
-template <typename T>
+template <typename OP, typename T>
 __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 									   int32_t joinTableSize,
 									   int32_t* HashTableHisto, 
@@ -103,7 +106,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 			// Otherwise probe and count the number of matching entries
             for (int32_t k = 0; k < HashTableHisto[j]; k++)
             {
-                if (ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] == ColumnSBlock[i])
+                if (OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]], ColumnSBlock[i]))
 				{
                     hashMatchCounter++;
 				}
@@ -113,7 +116,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
     }
 }
 
-template <typename T>
+template <typename OP, typename T>
 __global__ void kernel_distribute_results_to_buffer(T* resultColumnQABlockIdx,
                                                     T* resultColumnQBBlockIdx,
 													int32_t* JoinTableHisto,
@@ -145,7 +148,7 @@ __global__ void kernel_distribute_results_to_buffer(T* resultColumnQABlockIdx,
 				// Write the results if the value in a bucket matches the present value
 				// Write them to the calculated offset of the prefix sum buffer
 				if (join_prefix_sum_offset_index < JoinTableHisto[i] && 
-					ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] == ColumnSBlock[i])
+					OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] , ColumnSBlock[i]))
 				{
 					resultColumnQABlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
 					resultColumnQBBlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = i;//ColumnSBlock[i];
@@ -211,7 +214,7 @@ private:
 				dataElementCount);
 	}
 
-	template<typename T>
+	template<typename OP, typename T>
 	void JoinBlockCountMatches(int32_t* resultTableSize, T* ColumnRBlock, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int32_t dataElementCountColumnSBlock)
 	{
 		//////////////////////////////////////////////////////////////////////////////
@@ -224,7 +227,7 @@ private:
 
 		//////////////////////////////////////////////////////////////////////////////
 		// Calculate the prbing result histograms
-		kernel_calc_join_histo << <Context::getInstance().calcGridDim(joinTableSize_),
+		kernel_calc_join_histo<OP> << <Context::getInstance().calcGridDim(joinTableSize_),
 			Context::getInstance().getBlockDim() >> > (JoinTableHisto_,
 				joinTableSize_,
 				HashTableHisto_,
@@ -247,12 +250,12 @@ private:
 		GPUMemory::copyDeviceToHost(resultTableSize, (JoinTablePrefixSum_ + joinTableSize_ - 1), 1);
 	}
 
-	template<typename T>
+	template<typename OP, typename T>
 	void JoinBlockWriteResults(T* resultColumnQABlockIdx, T* resultColumnQBBlockIdx, T* ColumnRBlock, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int32_t dataElementCountColumnSBlock)
 	{
 		//////////////////////////////////////////////////////////////////////////////
 		// Distribute the result data to the result buffer
-		kernel_distribute_results_to_buffer << <Context::getInstance().calcGridDim(joinTableSize_),
+		kernel_distribute_results_to_buffer <OP> << <Context::getInstance().calcGridDim(joinTableSize_),
 			Context::getInstance().getBlockDim() >> > (resultColumnQABlockIdx,
 				resultColumnQBBlockIdx,
 				JoinTableHisto_,
@@ -307,7 +310,7 @@ public:
 		GPUMemory::free(join_prefix_sum_temp_buffer_);
     }
 
-	template <typename T>
+	template <typename OP, typename T>
 	static void JoinTableRonS(std::vector <std::vector<int32_t>> &resultColumnQAJoinIdx,
 							  std::vector <std::vector<int32_t>> &resultColumnQBJoinIdx,
 							  ColumnBase<T> &ColumnR,
@@ -357,7 +360,7 @@ public:
 				// Copy the second table block to the GPU and perform the join
 				// Calculate the required space
 				GPUMemory::copyHostToDevice(d_ColumnSBlock, ColumnSBlockList[s]->GetData(), processedSBlockSize);
-				gpuJoin.JoinBlockCountMatches(&processedQBlockResultSize, d_ColumnRBlock, processedRBlockSize, d_ColumnSBlock, processedSBlockSize);
+				gpuJoin.JoinBlockCountMatches<OP>(&processedQBlockResultSize, d_ColumnRBlock, processedRBlockSize, d_ColumnSBlock, processedSBlockSize);
 
 				// Check if the result is not empty
 				if (processedQBlockResultSize == 0)
@@ -373,7 +376,7 @@ public:
 				GPUMemory::alloc(&d_QBResultBlock, processedQBlockResultSize);
 
 				// Write the result data
-				gpuJoin.JoinBlockWriteResults(d_QAResultBlock, d_QBResultBlock, d_ColumnRBlock, processedRBlockSize, d_ColumnSBlock, processedSBlockSize);
+				gpuJoin.JoinBlockWriteResults<OP>(d_QAResultBlock, d_QBResultBlock, d_ColumnRBlock, processedRBlockSize, d_ColumnSBlock, processedSBlockSize);
 
 				// Copy the result blocks back and store them in the result set
 				// The results can be at most n*n big

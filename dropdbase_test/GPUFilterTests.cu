@@ -7,6 +7,7 @@
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/GPUFilter.cuh"
+#include "../dropdbase/QueryEngine/GPUCore/GPUFilterConditions.cuh"
 #include "../dropdbase/StringFactory.h"
 
 

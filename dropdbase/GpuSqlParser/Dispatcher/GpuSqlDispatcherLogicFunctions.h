@@ -2,6 +2,7 @@
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPULogic.cuh"
 #include "../../QueryEngine/GPUCore/GPUFilter.cuh"
+#include "../../QueryEngine/GPUCore/GPUFilterConditions.cuh"
 #include "GpuSqlDispatcherVMFunctions.h"
 #include <tuple>
 
