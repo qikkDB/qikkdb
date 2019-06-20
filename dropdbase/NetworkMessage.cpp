@@ -1,6 +1,7 @@
 #include "NetworkMessage.h"
 #include <boost/endian/conversion.hpp>
 #include <stdexcept>
+#include <boost/asio.hpp>
 
 /// <summary>
 /// Write protobuffer message to the network.
@@ -27,7 +28,7 @@ void NetworkMessage::WriteToNetwork(const google::protobuf::Message & message, b
 google::protobuf::Any NetworkMessage::ReadFromNetwork(boost::asio::ip::tcp::socket & socket)
 {
 	std::array<char, 4> readBuff;
-	size_t read = boost::asio::read(socket, boost::asio::buffer(readBuff, 4));
+	boost::asio::read(socket, boost::asio::buffer(readBuff, 4));
 	int32_t readSize = *(reinterpret_cast<int32_t*>(readBuff.data()));
 	boost::endian::big_to_native_inplace(readSize);
 	std::unique_ptr<char[]> serializedMessage = std::make_unique<char[]>(readSize);
@@ -38,4 +39,19 @@ google::protobuf::Any NetworkMessage::ReadFromNetwork(boost::asio::ip::tcp::sock
 		throw std::invalid_argument("Failed to parse message from stream");
 	}
 	return ret;
+}
+
+void NetworkMessage::WriteRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType dataType)
+{
+	int32_t elementSize = GetDataTypeSize(dataType);
+	int32_t totalSize = elementCount * elementSize;
+	boost::asio::write(socket, boost::asio::buffer(dataBuffer, totalSize));
+}
+
+void NetworkMessage::ReadRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType dataType)
+{
+	int32_t elementSize = GetDataTypeSize(dataType);
+	int32_t totalSize = elementCount * elementSize;
+	boost::asio::read(socket, boost::asio::buffer(dataBuffer, totalSize));
+
 }

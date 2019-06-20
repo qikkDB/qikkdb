@@ -13,6 +13,7 @@ UNDERSCORE  : '_';
 COLON       : ':';
 COMMA       : ',';
 DOT         : '.';
+STRING: '"' ( ~[\\"\r\n] )* '"';
 
 DATELIT                 : YEARLIT MINUS MONTHLIT MINUS DAYLIT;
 
@@ -26,8 +27,6 @@ fragment HOURLIT        : [0-1][0-9]|[2][0-3];
 fragment MINUTELIT      : [0-5][0-9];
 fragment SECONDLIT      : [0-5][0-9];
 
-DATATYPE    : (INTTYPE|FLOATTYPE|STRINGTYPE|BOOLEANTYPE);
-
 POINT           : 'POINT';
 MULTIPOINT      : 'MULTIPOINT';
 LINESTRING      : 'LINESTRING';
@@ -35,18 +34,29 @@ MULTILINESTRING : 'MULTILINESTRING';
 POLYGON         : 'POLYGON';
 MULTIPOLYGON    : 'MULTIPOLYGON';
 
+DATATYPE    : (INTTYPE|LONGTYPE|FLOATTYPE|DOUBLETYPE|STRINGTYPE|BOOLEANTYPE|POINTTYPE|POLYTYPE);
+
 INTTYPE     : I N T;
 LONGTYPE    : L O N G;
 FLOATTYPE   : F L O A T;
 DOUBLETYPE  : D O U B L E;
 STRINGTYPE  : S T R I N G;
 BOOLEANTYPE : B O O L E A N;
-POINTTYPE   : P O I N T;
-POLYTYPE    : P O L Y G O N;
+POINTTYPE   : G E O '_' P O I N T;
+POLYTYPE    : G E O '_' P O L Y G O N;
 
 INSERTINTO  : I N S E R T ' ' I N T O;
 CREATEDB    : C R E A T E ' ' D A T A B A S E;
+DROPDB      : D R O P ' ' D A T A B A S E;
 CREATETABLE : C R E A T E ' ' T A B L E;
+DROPTABLE   : D R O P ' ' T A B L E;
+ALTERTABLE  : A L T E R ' ' T A B L E;
+ADD         : A D D;
+DROPCOLUMN  : D R O P ' ' C O L U M N;
+ALTERCOLUMN : A L T E R ' ' C O L U M N;
+CREATEINDEX : C R E A T E ' ' INDEX;
+INDEX       : I N D E X;
+PRIMARYKEY  : P R I M A R Y ' ' K E Y;
 VALUES      : V A L U E S;
 SELECT      : S E L E C T;
 FROM        : F R O M;
@@ -105,6 +115,16 @@ ROUND       : R O U N D;
 CEIL        : C E I L;
 FLOOR       : F L O O R;
 
+LTRIM       : L T R I M;
+RTRIM       : R T R I M;
+LOWER       : L O W E R;
+UPPER       : U P P E R;
+REVERSE     : R E V E R S E;
+LEN         : L E N;
+LEFT        : L E F T;
+RIGHT       : R I G H T;
+CONCAT      : C O N C A T;
+
 
 GEO_CONTAINS        : G E O UNDERSCORE C O N T A I N S;
 GEO_INTERSECT       : G E O UNDERSCORE I N T E R S E C T;
@@ -133,11 +153,12 @@ BIT_AND         : '&';
 L_SHIFT         : '<<';
 R_SHIFT         : '>>';
 
+BOOLEANLIT  : (TRUE|FALSE);
+TRUE        : T R U E;
+FALSE       : F A L S E;
 FLOATLIT    : ('-')?('0.'[0-9]+|[1-9][0-9]* '.'[0-9]+);
 INTLIT      : ('-')?('0'|[1-9][0-9]*);
 ID          : [_]*[A-Za-z0-9_][A-Za-z0-9_]* ;
-BOOLEANLIT  : ('True'|'False');
-STRINGLIT   : '"'ID'"';
 
 fragment A : [aA];
 fragment B : [bB];

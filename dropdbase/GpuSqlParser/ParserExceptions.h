@@ -6,6 +6,7 @@
 #define DROPDBASE_INSTAREA_PARSEREXCEPTIONS_H
 
 #include <exception>
+#include <string>
 
 struct DatabaseNotFoundException : public std::exception
 {
@@ -13,6 +14,14 @@ struct DatabaseNotFoundException : public std::exception
     {
         return "Database was not found.";
     }
+};
+
+struct DatabaseAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Database already exists.";
+	}
 };
 
 struct TableNotFoundFromException : public std::exception
@@ -23,6 +32,22 @@ struct TableNotFoundFromException : public std::exception
     }
 };
 
+struct TableAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Table already exists.";
+	}
+};
+
+struct TableIsFilledException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Index cannot be created on filled table.";
+	}
+};
+
 struct ColumnAmbiguityException : public std::exception
 {
     const char* what() const noexcept override
@@ -31,12 +56,36 @@ struct ColumnAmbiguityException : public std::exception
     }
 };
 
+struct ColumnAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Column already exists.";
+	}
+};
+
+struct ColumnAlreadyExistsInIndexException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Column already referenced multiple times in single index.";
+	}
+};
+
 struct ColumnNotFoundException : public std::exception
 {
     const char* what() const noexcept override
     {
         return "Column was not found in table.";
     }
+};
+
+struct IndexAlreadyExistsException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Index already exists in table.";
+	}
 };
 
 struct ColumnGroupByException : public std::exception
@@ -95,6 +144,14 @@ struct RetStringGroupByException : public std::exception
     }
 };
 
+struct StringGroupByException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "String is not allowed as a key while using group by.";
+	}
+};
+
 struct AliasRedefinitionException : public std::exception
 {
     const char* what() const noexcept override
@@ -105,11 +162,18 @@ struct AliasRedefinitionException : public std::exception
 
 struct InvalidOperandsException : public std::exception
 {
-	InvalidOperandsException(std::string left, std::string right, std::string op) : 
-		std::exception(std::string("Invalid operands: " + left + " " + right + " for operation: " + op).c_str())
+	InvalidOperandsException(const std::string& left, const std::string& right, const std::string &op) : 
+		message_("Invalid operands: " + left + " " + right + " for operation: " + op)
 	{
 
 	}
+
+    const char* what() const noexcept override
+    {
+        return message_.c_str();
+    }
+private:
+    std::string message_;
 };
 
 

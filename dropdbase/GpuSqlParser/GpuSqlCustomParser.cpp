@@ -12,14 +12,17 @@
 #include "QueryType.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../QueryEngine/Context.h"
+#include <google/protobuf/message.h>
+#include "../messages/QueryResponseMessage.pb.h"
+#include "../Database.h"
 #include <iostream>
 #include <future>
 #include <thread>
 
 GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query) : 
 	database(database),
-	query(query),
-	isSingleGpuStatement(false)
+	isSingleGpuStatement(false),
+	query(query)
 {}
 
 /// Parses SQL statement
@@ -116,6 +119,11 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		{
 			walker.walk(&gpuSqlListener, statement->sqlSelect()->orderByColumns());
 		}
+		
+		if (!gpuSqlListener.GetUsingLoad() && !gpuSqlListener.GetUsingWhere())
+		{
+			isSingleGpuStatement = true;
+		}
 	}
 	else if (statement->showStatement())
 	{
@@ -124,8 +132,58 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	}
 	else if (statement->sqlInsertInto())
 	{
+		if (database == nullptr)
+		{
+			throw DatabaseNotFoundException();
+		}
+
 		isSingleGpuStatement = true;
 		walker.walk(&gpuSqlListener, statement->sqlInsertInto());
+	}
+	else if (statement->sqlCreateDb())
+	{
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlCreateDb());
+	}
+	else if (statement->sqlDropDb())
+	{
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlDropDb());
+	}
+	else if (statement->sqlCreateTable())
+	{
+		if (database == nullptr)
+		{
+			throw DatabaseNotFoundException();
+		}
+
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlCreateTable());
+	}
+	else if (statement->sqlDropTable())
+	{
+		if (database == nullptr)
+		{
+			throw DatabaseNotFoundException();
+		}
+
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlDropTable());
+	}
+	else if (statement->sqlAlterTable())
+	{
+		if (database == nullptr)
+		{
+			throw DatabaseNotFoundException();
+		}
+
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlAlterTable());
+	}
+	else if (statement->sqlCreateIndex())
+	{
+		isSingleGpuStatement = true;
+		walker.walk(&gpuSqlListener, statement->sqlCreateIndex());
 	}
 
 	int32_t threadCount = isSingleGpuStatement ? 1 : context.getDeviceCount();
@@ -141,7 +199,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		const std::string dbName = database->GetName();
 		for (auto& tableName : GpuSqlDispatcher::linkTable)
 		{
-
 			lockList.push_back(dbName + "." + tableName.first);
 		}
 		GPUMemoryCache::SetLockList(lockList);
@@ -176,7 +233,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	}
 	
 		
-	return std::move(mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
+	return (mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
 }
 
 /// Merges partial dispatcher respnse messages to final response message
@@ -327,7 +384,9 @@ void GpuSqlCustomParser::trimPayload(ColmnarDB::NetworkClient::Message::QueryRes
 		auto end = payload.mutable_stringpayload()->mutable_stringdata()->end();
 		payload.mutable_stringpayload()->mutable_stringdata()->erase(begin + clampedLimit, end);
 	}
-		break;		
+		break;	
+	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::PAYLOAD_NOT_SET:
+		break;
 	}
 }
 

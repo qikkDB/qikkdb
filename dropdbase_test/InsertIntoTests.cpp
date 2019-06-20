@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "../dropdbase/DataType.h"
 #include "../dropdbase/Database.h"
+#include "../dropdbase/Table.h"
 #include "../dropdbase/DatabaseGenerator.h"
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/ColumnBase.h"
@@ -12,8 +13,8 @@ TEST(InsertIntoTests, InsertIntoCorrect)
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
 	int blockSize = 1 << 5;
 
-	std::vector<std::string> tableNames = { {"TableA"}};
-	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
+	std::vector<std::string> tableNames = {"TableA"};
+	std::vector<DataType> columnTypes = { COLUMN_INT, COLUMN_LONG, COLUMN_FLOAT, COLUMN_POLYGON, COLUMN_POINT};
 	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, blockSize, true, tableNames, columnTypes);
 	Database::AddToInMemoryDatabaseList(database);
 
@@ -85,8 +86,8 @@ TEST(InsertIntoTests, InsertIntoTableNotFound)
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
 	int blockSize = 1 << 5;
 
-	std::vector<std::string> tableNames = { {"TableA"} };
-	std::vector<DataType> columnTypes = { {COLUMN_INT}, {COLUMN_LONG}, {COLUMN_FLOAT}, {COLUMN_POLYGON}, {COLUMN_POINT} };
+	std::vector<std::string> tableNames = {"TableA"};
+	std::vector<DataType> columnTypes = {COLUMN_INT, COLUMN_LONG, COLUMN_FLOAT, COLUMN_POLYGON, COLUMN_POINT };
 	std::shared_ptr<Database> database = DatabaseGenerator::GenerateDatabase("TestDb", 1, blockSize, true, tableNames, columnTypes);
 	Database::AddToInMemoryDatabaseList(database);
 	

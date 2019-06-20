@@ -5,6 +5,7 @@
 #include "../dropdbase/ColumnBase.h"
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
+#include "../dropdbase/Types/Point.pb.h"
 
 TEST(ClientHandlerTests, TestHandlerInfo)
 {
@@ -109,5 +110,137 @@ TEST(ClientHandlerTests, TestHandlerQuery)
 	ASSERT_EQ(payload[0], 1);
 	ASSERT_EQ(payload[1], 2);
 	ASSERT_EQ(payload[2], 3);
+	Database::RemoveFromInMemoryDatabaseList("test");
+}
+
+TEST(ClientHandlerTests, TestHandlerBulkImportSingleColumn)
+{
+	std::shared_ptr<Database> db = std::make_shared<Database>("test");
+	Database::AddToInMemoryDatabaseList(db);
+	std::unique_ptr<IClientHandler> handler = std::make_unique<TCPClientHandler>();
+	boost::asio::io_context context;
+	IClientHandler* handlerPtr = handler.get();
+	ClientPoolWorker tempWorker(std::move(handler), boost::asio::ip::tcp::socket(context), 60000);
+	ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDatabaseMessage;
+	setDatabaseMessage.set_databasename("test");
+	handlerPtr->HandleSetDatabase(tempWorker,setDatabaseMessage);
+	ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
+	bulkImportMessage.set_tablename("test");
+	bulkImportMessage.set_columnname("test");
+	bulkImportMessage.set_columntype(static_cast<ColmnarDB::NetworkClient::Message::DataType>(DataType::COLUMN_INT));
+	bulkImportMessage.set_elemcount(5);
+	int32_t dataBuff[] = {1,2,3,4,5};
+	handlerPtr->HandleBulkImport(tempWorker,bulkImportMessage,reinterpret_cast<char*>(dataBuff));
+	auto& column1 = db->GetTables().at("test").GetColumns().at("test");
+	ASSERT_EQ(1, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column1).GetBlocksList()[0]).GetData()[0]);
+	ASSERT_EQ(5, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column1).GetBlocksList()[0]).GetData()[4]);
+	Database::RemoveFromInMemoryDatabaseList("test");
+}
+
+
+TEST(ClientHandlerTests, TestHandlerBulkImportMultiColumn)
+{
+	std::shared_ptr<Database> db = std::make_shared<Database>("test");
+	Database::AddToInMemoryDatabaseList(db);
+	std::unique_ptr<IClientHandler> handler = std::make_unique<TCPClientHandler>();
+	boost::asio::io_context context;
+	IClientHandler* handlerPtr = handler.get();
+	ClientPoolWorker tempWorker(std::move(handler), boost::asio::ip::tcp::socket(context), 60000);
+	ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDatabaseMessage;
+	setDatabaseMessage.set_databasename("test");
+	handlerPtr->HandleSetDatabase(tempWorker,setDatabaseMessage);
+	ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
+	bulkImportMessage.set_tablename("test");
+	bulkImportMessage.set_columnname("test");
+	bulkImportMessage.set_columntype(static_cast<ColmnarDB::NetworkClient::Message::DataType>(DataType::COLUMN_INT));
+	bulkImportMessage.set_elemcount(5);
+	int32_t dataBuff[] = {1,2,3,4,5};
+	handlerPtr->HandleBulkImport(tempWorker,bulkImportMessage,reinterpret_cast<char*>(dataBuff));
+	bulkImportMessage.set_tablename("test");
+	bulkImportMessage.set_columnname("test2");
+	bulkImportMessage.set_columntype(static_cast<ColmnarDB::NetworkClient::Message::DataType>(DataType::COLUMN_INT));
+	bulkImportMessage.set_elemcount(5);
+	int32_t dataBuff2[] = {6,7,8,9,10};
+	handlerPtr->HandleBulkImport(tempWorker,bulkImportMessage,reinterpret_cast<char*>(dataBuff2));
+	auto& column1 = db->GetTables().at("test").GetColumns().at("test");
+	auto& column2 = db->GetTables().at("test").GetColumns().at("test2");
+	ASSERT_EQ(1, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column1).GetBlocksList()[0]).GetData()[0]);
+	ASSERT_EQ(5, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column1).GetBlocksList()[0]).GetData()[4]);
+	ASSERT_EQ(6, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column2).GetBlocksList()[0]).GetData()[0]);
+	ASSERT_EQ(10, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column2).GetBlocksList()[0]).GetData()[4]);
+	Database::RemoveFromInMemoryDatabaseList("test");
+}
+
+TEST(ClientHandlerTests, TestHandlerBulkImportMultiSplitColumn)
+{
+	std::shared_ptr<Database> db = std::make_shared<Database>("test");
+	Database::AddToInMemoryDatabaseList(db);
+	std::unique_ptr<IClientHandler> handler = std::make_unique<TCPClientHandler>();
+	boost::asio::io_context context;
+	IClientHandler* handlerPtr = handler.get();
+	ClientPoolWorker tempWorker(std::move(handler), boost::asio::ip::tcp::socket(context), 60000);
+	ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDatabaseMessage;
+	setDatabaseMessage.set_databasename("test");
+	handlerPtr->HandleSetDatabase(tempWorker,setDatabaseMessage);
+	ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
+	bulkImportMessage.set_tablename("test");
+	bulkImportMessage.set_columnname("test");
+	bulkImportMessage.set_columntype(static_cast<ColmnarDB::NetworkClient::Message::DataType>(DataType::COLUMN_INT));
+	bulkImportMessage.set_elemcount(5);
+	int32_t dataBuff[] = {1,2,3,4,5};
+	handlerPtr->HandleBulkImport(tempWorker,bulkImportMessage,reinterpret_cast<char*>(dataBuff));
+	ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage2;
+	bulkImportMessage2.set_tablename("test");
+	bulkImportMessage2.set_columnname("test2");
+	bulkImportMessage2.set_columntype(static_cast<ColmnarDB::NetworkClient::Message::DataType>(DataType::COLUMN_INT));
+	bulkImportMessage2.set_elemcount(5);
+	int32_t dataBuff2[] = {6,7,8,9,10};
+	handlerPtr->HandleBulkImport(tempWorker,bulkImportMessage2,reinterpret_cast<char*>(dataBuff2));
+	handlerPtr->HandleBulkImport(tempWorker,bulkImportMessage,reinterpret_cast<char*>(dataBuff2));
+	handlerPtr->HandleBulkImport(tempWorker,bulkImportMessage2,reinterpret_cast<char*>(dataBuff));
+	auto& column1 = db->GetTables().at("test").GetColumns().at("test");
+	auto& column2 = db->GetTables().at("test").GetColumns().at("test2");
+	ASSERT_EQ(1, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column1).GetBlocksList()[0]).GetData()[0]);
+	ASSERT_EQ(5, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column1).GetBlocksList()[0]).GetData()[4]);
+	ASSERT_EQ(6, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column1).GetBlocksList()[0]).GetData()[5]);
+	ASSERT_EQ(10, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column1).GetBlocksList()[0]).GetData()[9]);
+	ASSERT_EQ(6, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column2).GetBlocksList()[0]).GetData()[0]);
+	ASSERT_EQ(10, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column2).GetBlocksList()[0]).GetData()[4]);
+	ASSERT_EQ(1, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column2).GetBlocksList()[0]).GetData()[5]);
+	ASSERT_EQ(5, dynamic_cast<BlockBase<int>&>(*dynamic_cast<ColumnBase<int>&>(*column2).GetBlocksList()[0]).GetData()[9]);
+	Database::RemoveFromInMemoryDatabaseList("test");
+}
+
+TEST(ClientHandlerTests, TestHandlerBulkImportProtobufColumn)
+{
+	std::shared_ptr<Database> db = std::make_shared<Database>("test");
+	Database::AddToInMemoryDatabaseList(db);
+	std::unique_ptr<IClientHandler> handler = std::make_unique<TCPClientHandler>();
+	boost::asio::io_context context;
+	IClientHandler* handlerPtr = handler.get();
+	ClientPoolWorker tempWorker(std::move(handler), boost::asio::ip::tcp::socket(context), 60000);
+	ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDatabaseMessage;
+	setDatabaseMessage.set_databasename("test");
+	handlerPtr->HandleSetDatabase(tempWorker,setDatabaseMessage);
+	ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
+	bulkImportMessage.set_tablename("test");
+	bulkImportMessage.set_columnname("test");
+	bulkImportMessage.set_columntype(static_cast<ColmnarDB::NetworkClient::Message::DataType>(DataType::COLUMN_POINT));
+	bulkImportMessage.set_elemcount(5);
+	ColmnarDB::Types::Point aPoint;
+	aPoint.mutable_geopoint()->set_latitude(5);
+	aPoint.mutable_geopoint()->set_longitude(5);
+	int32_t arraySize = aPoint.ByteSize() * 5 + sizeof(int32_t) * 5;
+	std::unique_ptr<char[]> dataBuff = std::make_unique<char[]>(arraySize);
+	for(int i = 0; i < arraySize; i += aPoint.ByteSize())
+	{
+		*reinterpret_cast<int32_t*>(dataBuff.get() + i)  = aPoint.ByteSize();
+		i += 4;
+		aPoint.SerializeToArray(dataBuff.get() + i, aPoint.ByteSize());
+	}
+	handlerPtr->HandleBulkImport(tempWorker,bulkImportMessage, dataBuff.get());
+	auto& column1 = db->GetTables().at("test").GetColumns().at("test");
+	ASSERT_EQ(aPoint.geopoint().latitude(), dynamic_cast<BlockBase<ColmnarDB::Types::Point>&>(*dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*column1).GetBlocksList()[0]).GetData()[0].geopoint().latitude());
+	ASSERT_EQ(aPoint.geopoint().longitude(), dynamic_cast<BlockBase<ColmnarDB::Types::Point>&>(*dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*column1).GetBlocksList()[0]).GetData()[0].geopoint().longitude());
 	Database::RemoveFromInMemoryDatabaseList("test");
 }

@@ -10,11 +10,18 @@ public:
 	DispatcherObjs()
 	{
 		tableNames = { "TableA" };
-		columnTypes = { {COLUMN_INT},    {COLUMN_INT},     {COLUMN_LONG},  {COLUMN_LONG},
-					   {COLUMN_LONG},  {COLUMN_FLOAT},   {COLUMN_FLOAT}, {COLUMN_DOUBLE}, {COLUMN_DOUBLE},
-					   {COLUMN_POLYGON}, {COLUMN_POINT}, {COLUMN_STRING} };
+		columnTypes = { COLUMN_INT,   COLUMN_INT,     COLUMN_LONG,  COLUMN_LONG,
+					   COLUMN_LONG,  COLUMN_FLOAT,  COLUMN_FLOAT, COLUMN_DOUBLE, COLUMN_DOUBLE,
+					   COLUMN_POLYGON, COLUMN_POLYGON, COLUMN_POINT, COLUMN_STRING };
+
 		database = DatabaseGenerator::GenerateDatabase("TestDb", TEST_BLOCK_COUNT, TEST_BLOCK_SIZE, false, tableNames, columnTypes);
+		Database::AddToInMemoryDatabaseList(database);
 	}
+
+	~DispatcherObjs()
+	{
+	}
+
 	static DispatcherObjs GetInstance()
 	{
 		static DispatcherObjs objs;

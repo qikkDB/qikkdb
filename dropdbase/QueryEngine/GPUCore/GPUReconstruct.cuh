@@ -11,8 +11,16 @@
 #include "GPUMemory.cuh"
 #include "../../Types/Point.pb.h"
 #include "../../Types/ComplexPolygon.pb.h"
+#include "cuda_ptr.h"
 
 #include "../../../cub/cub.cuh"
+
+/// Precision of generated WKT floats as number of decimal places
+/// (4 is for about 10 m accuracy, 3 for 100 m)
+__device__ const int32_t WKT_DECIMAL_PLACES = 4;
+
+/// POLYGON word
+__device__ const char WKT_POLYGON[] = "POLYGON";
 
 /// Kernel for reconstructing buffer according to calculated prefixSum and inMask
 template<typename T>
@@ -52,8 +60,50 @@ __global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *
 	}
 }
 
+/// Kernel for calculating lengths from indices (difference of indices)
+/// - reversed inclusive prefix sum.
+template<typename L, typename I>
+__global__ void kernel_lengths_from_indices(L * outLengths, I * inIndices, int32_t dataElementCount)
+{
+
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		if (i == 0)
+		{
+			outLengths[i] = inIndices[i];
+		}
+		else
+		{
+			outLengths[i] = inIndices[i] - inIndices[i - 1];
+		}
+	}
+}
+
+/// Kernel for reconstruction of chars in GPUString
+__global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCol,
+	GPUMemory::GPUString inStringCol, int32_t * inStringLengths,
+	int32_t *prefixSum, int8_t *inMask, int32_t stringCount);
+
+/// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays).
+/// Expanding is performed by propagating values from inMask based on counts.
+__global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t *polyIdx, int32_t *polyCount, int32_t polyIdxSize);
+
+/// Kernel for predicitng lenghts of WKT strings based on GPUPolygon struct
+__global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount);
+
+/// Kernel for convertion of GPUPolygon representation to WKT representation (GPUString)
+__global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount);
+
 /// Class for reconstructing buffers according to mask
 class GPUReconstruct {
+private:
+	/// Calculate count of elements in subarray (for GPUPolygon struct arrays)
+	/// based on last number in indices and counts
+	static int32_t CalculateCount(int32_t * indices, int32_t * counts, int32_t size);
+
 public:
 
 	/// Reconstruct block of column and copy result to host (CPU)
@@ -102,51 +152,89 @@ public:
 	{
 		Context& context = Context::getInstance();
 
-		if (inMask)		// If inMask is not nullptr
+		try
 		{
-			int32_t* prefixSumPointer = nullptr;
-			try
+			if (inMask)		// If inMask is not nullptr
 			{
 				// Malloc a new buffer for the prefix sum vector
-				GPUMemory::alloc(&prefixSumPointer, dataElementCount);
+				cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
 
-				PrefixSum(prefixSumPointer, inMask, dataElementCount);
-				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
+				PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
+				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
 				if(*outDataElementCount > 0)
 				{ 
 					GPUMemory::alloc<T>(outCol, *outDataElementCount);
 					// Construct the output based on the prefix sum
 					kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-							(*outCol, ACol, prefixSumPointer, inMask, dataElementCount);
+							(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
 				}
 				else
 				{
 					*outCol = nullptr;
 				}
-				// Free the memory
-				GPUMemory::free(prefixSumPointer);
 			}
-			catch(...)
+			else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
 			{
-				if(prefixSumPointer)
-				{
-					GPUMemory::free(prefixSumPointer);
-				}
-				
-				throw;
+				GPUMemory::alloc<T>(outCol, dataElementCount);
+				GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
+				*outDataElementCount = dataElementCount;
 			}
 		}
-		else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+		catch (...)
 		{
-			GPUMemory::alloc<T>(outCol, dataElementCount);
-			GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
-			*outDataElementCount = dataElementCount;
+			if (outCol)
+			{
+				GPUMemory::free(outCol);
+			}
+			throw;
 		}
 
 		// Get last error
 		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Reconstruct GPUString column (keep result on GPU)
+	/// <param name="outStringCol">output GPUString column</param>
+	/// <param name="outDataElementCount">reconstructed data element (string) count</param>
+	/// <param name="inStringCol">input GPUString column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (string) count</param>
+	static void ReconstructStringColKeep(GPUMemory::GPUString *outStringCol, int32_t *outDataElementCount,
+		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
+
+	/// Reconstruct GPUString column and copy to CPU memory
+	/// <param name="outStringData">output CPU string array</param>
+	/// <param name="outDataElementCount">reconstructed data element (string) count</param>
+	/// <param name="inStringCol">input GPUString column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (string) count</param>
+	static void ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
+		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
+
+	/// Convert polygons to WKTs (GPUPolygon column to GPUString columns)
+	/// <param name="outStringCol">output GPUString column</param>
+	/// <param name="inPolygonCol">input GPUPolygon column</param>
+	/// <param name="dataElementCount">input data element (complex polygon) count</param>
+	static void ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
+		GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount);
+
+	/// Recontruct GPUPolygon column and keep on GPU in the same format
+	/// <param name="outCol">output GPUPolygon column</param>
+	/// <param name="outDataElementCount">reconstructed data element (complex polygon) count</param>
+	/// <param name="inCol">input GPUPolygon column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (complex polygon) count</param>
+	static void ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
+		GPUMemory::GPUPolygon inCol, int8_t *inMask, int32_t inDataElementCount);
+
+	/// Reconstruct GPUPolygon column and convert to WKT string array on CPU
+	/// <param name="outStringData">output CPU string array</param>
+	/// <param name="outDataElementCount">reconstructed data element (WKT string) count</param>
+	/// <param name="inPolygonCol">input GPUPolygon column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (complex polygon) count</param>
+	static void ReconstructPolyColToWKT(std::string * outStringData, int32_t *outDataElementCount,
+		GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount);
 
 	/// Function for generating array with sorted indexes which point to values where mask is 1.
 	/// Result is copied to host.
@@ -190,30 +278,38 @@ public:
 
 		if (inMask)
 		{
-			// Malloc a new buffer for the prefix sum vector
-			int32_t* prefixSumPointer = nullptr;
-			GPUMemory::alloc(&prefixSumPointer, dataElementCount);
-			
-			// Run prefix sum
-			PrefixSum(prefixSumPointer, inMask, dataElementCount);
-			
-			// Copy the output size to host
-			GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer + dataElementCount - 1, 1);
-			if (*outDataElementCount > 0)
+			try
 			{
-				// Allocate array for outData with needed size
-				GPUMemory::alloc<T>(outData, *outDataElementCount);
+				// A new buffer for the prefix sum vector
+				cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
+			
+				// Run prefix sum
+				PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
+			
+				// Copy the output size to host
+				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
+				if (*outDataElementCount > 0)
+				{
+					// Allocate array for outData with needed size
+					GPUMemory::alloc<T>(outData, *outDataElementCount);
 
-				// Call kernel for generating indexes
-				kernel_generate_indexes << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-					(*outData, prefixSumPointer, inMask, dataElementCount);
+					// Call kernel for generating indexes
+					kernel_generate_indexes << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+						(*outData, prefixSumPointer.get(), inMask, dataElementCount);
+				}
+				else
+				{
+					*outData = nullptr;
+				}
 			}
-			else
+			catch (...)
 			{
-				*outData = nullptr;
+				if(outData)
+				{
+					GPUMemory::free(outData);
+				}
+				throw;
 			}
-			// Free the memory
-			GPUMemory::free(prefixSumPointer);
 		}
 		else  // Version without mask is not supported in GenerateIndexes
 		{
@@ -228,20 +324,35 @@ public:
 	/// <param name="prefixSumPointer">output GPU buffer which will be filled with result</param>
 	/// <param name="inMask">input mask</param>
 	/// <param name="dataElementCount">data element count of the input block</param>
-	template<typename M>
-	static void PrefixSum(int32_t* prefixSumPointer, M* inMask, int32_t dataElementCount)
+	template<typename T, typename M>
+	static void PrefixSum(T* prefixSumPointer, M* inMask, int32_t dataElementCount)
 	{
 		// Start the collumn reconstruction
-		void* tempBuffer = nullptr;
 		size_t tempBufferSize = 0;
-		// Calculate the prefix sum
-		// in-place scan
-		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
-		// Allocate temporary storage
-		GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+		// Calculate the prefix sum for getting tempBufferSize (in-place scan)
+		cub::DeviceScan::InclusiveSum(nullptr, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
+		// Temporary storage
+		cuda_ptr<int8_t>tempBuffer(tempBufferSize);
 		// Run inclusive prefix sum
-		cub::DeviceScan::InclusiveSum(tempBuffer, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
-		GPUMemory::free(tempBuffer);
+		cub::DeviceScan::InclusiveSum(tempBuffer.get(), tempBufferSize, inMask, prefixSumPointer, dataElementCount);
+	}
+
+
+	/// Calculate exclusive prefix sum from input mask (keep result on GPU)
+	/// <param name="prefixSumPointer">output GPU buffer which will be filled with result</param>
+	/// <param name="inMask">input mask</param>
+	/// <param name="dataElementCount">data element count in the inMask</param>
+	template<typename M>
+	static void PrefixSumExclusive(int32_t* prefixSumPointer, M* inMask, int32_t dataElementCount)
+	{
+		// Start the collumn reconstruction
+		size_t tempBufferSize = 0;
+		// Calculate the prefix sum for getting tempBufferSize (in-place scan)
+		cub::DeviceScan::ExclusiveSum(nullptr, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
+		// Temporary storage
+		cuda_ptr<int8_t>tempBuffer(tempBufferSize);
+		// Run exclusive prefix sum
+		cub::DeviceScan::ExclusiveSum(tempBuffer.get(), tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 	}
 
 };

@@ -1,9 +1,14 @@
 #pragma once
-#include <tuple>
-#include "Types/ComplexPolygon.pb.h"
-#include "NativeGeoPoint.h"
+
 #include "QueryEngine/GPUCore/GPUMemory.cuh"
 
+namespace ColmnarDB
+{
+	namespace Types
+	{
+		class ComplexPolygon;
+	}
+}
 
 class ComplexPolygonFactory
 {
@@ -37,5 +42,5 @@ public:
 	/// Method that converts class to a string representation.
 	/// </summary>
 	/// <returns>ComplexPolygon in format of well known text.</returns>
-	static std::string WktFromPolygon(const ColmnarDB::Types::ComplexPolygon& polygon);
+	static std::string WktFromPolygon(const ColmnarDB::Types::ComplexPolygon& polygon, bool fixedPrecision = false);
 };

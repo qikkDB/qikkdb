@@ -3,7 +3,11 @@
 #include <stdexcept>
 #include <regex>
 #include <algorithm>
+#include <iomanip>
 #include "QueryEngine/Context.h"
+#include "Types/ComplexPolygon.pb.h"
+#include "NativeGeoPoint.h"
+
 
 /// <summary>
 /// Converts polygons to GPU representation.
@@ -43,21 +47,48 @@ GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector
 			polyPoints.push_back({ 0, 0 });
 		}
 	}
-	GPUMemory::GPUPolygon retPointers;
-	GPUMemory::alloc(&retPointers.pointCount, pointCount.size());
-	GPUMemory::copyHostToDevice(retPointers.pointCount, pointCount.data(), pointCount.size());
+	GPUMemory::GPUPolygon retPointers = {nullptr, nullptr, nullptr, nullptr, nullptr};
+	try
+	{
+		GPUMemory::alloc(&retPointers.pointCount, pointCount.size());
+		GPUMemory::copyHostToDevice(retPointers.pointCount, pointCount.data(), pointCount.size());
 
-	GPUMemory::alloc(&retPointers.pointIdx, pointIdx.size());
-	GPUMemory::copyHostToDevice(retPointers.pointIdx, pointIdx.data(), pointIdx.size());
+		GPUMemory::alloc(&retPointers.pointIdx, pointIdx.size());
+		GPUMemory::copyHostToDevice(retPointers.pointIdx, pointIdx.data(), pointIdx.size());
 
-	GPUMemory::alloc(&retPointers.polyCount, polyCount.size());
-	GPUMemory::copyHostToDevice(retPointers.polyCount, polyCount.data(), polyCount.size());
+		GPUMemory::alloc(&retPointers.polyCount, polyCount.size());
+		GPUMemory::copyHostToDevice(retPointers.polyCount, polyCount.data(), polyCount.size());
 
-	GPUMemory::alloc(&retPointers.polyIdx, polyIdx.size());
-	GPUMemory::copyHostToDevice(retPointers.polyIdx, polyIdx.data(), polyIdx.size());
+		GPUMemory::alloc(&retPointers.polyIdx, polyIdx.size());
+		GPUMemory::copyHostToDevice(retPointers.polyIdx, polyIdx.data(), polyIdx.size());
 
-	GPUMemory::alloc(&retPointers.polyPoints, polyPoints.size());
-	GPUMemory::copyHostToDevice(retPointers.polyPoints, polyPoints.data(), polyPoints.size());
+		GPUMemory::alloc(&retPointers.polyPoints, polyPoints.size());
+		GPUMemory::copyHostToDevice(retPointers.polyPoints, polyPoints.data(), polyPoints.size());
+	}
+	catch(...)
+	{
+		if(retPointers.pointCount)
+		{
+			GPUMemory::free(retPointers.pointCount);
+		}
+		if(retPointers.pointIdx)
+		{
+			GPUMemory::free(retPointers.pointIdx);
+		}
+		if(retPointers.polyCount)
+		{
+			GPUMemory::free(retPointers.polyCount);
+		}
+		if(retPointers.polyIdx)
+		{
+			GPUMemory::free(retPointers.polyIdx);
+		}
+		if(retPointers.polyPoints)
+		{
+			GPUMemory::free(retPointers.polyPoints);
+		}
+		throw;
+	}
 	return retPointers;
 }
 
@@ -229,9 +260,15 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 /// Method that converts class to a string representation.
 /// </summary>
 /// <returns>ComplexPolygon in format of well known text.</returns>
-std::string ComplexPolygonFactory::WktFromPolygon(const ColmnarDB::Types::ComplexPolygon & complexPolygon)
+std::string ComplexPolygonFactory::WktFromPolygon(
+	const ColmnarDB::Types::ComplexPolygon & complexPolygon, bool fixedPrecision)
 {
 	std::ostringstream wktStream;
+	if (fixedPrecision)
+	{
+		wktStream << std::fixed;
+		wktStream << std::setprecision(4);
+	}
 	wktStream << "POLYGON(";
 	int polyCount = complexPolygon.polygons_size();
 	for (int i = 0; i < polyCount; i++)
@@ -246,13 +283,13 @@ std::string ComplexPolygonFactory::WktFromPolygon(const ColmnarDB::Types::Comple
 			wktStream << geopoint.latitude() << " " << geopoint.longitude();
 			if (j != geopointCount - 1)
 			{
-				wktStream << ",";
+				wktStream << ", ";
 			}
 		}
 		wktStream << ")";
 		if (i != polyCount - 1)
 		{
-			wktStream << ",";
+			wktStream << ", ";
 		}
 	}
 	wktStream << ")";

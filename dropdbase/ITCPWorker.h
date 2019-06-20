@@ -1,11 +1,8 @@
 #pragma once
 #include <memory>
-#include <set>
-#include <boost/asio.hpp>
-#include <optional>
-#include "Database.h"
-
+#include <boost/asio/ip/tcp.hpp>
 class IClientHandler;
+class Database;
 
 /// <summary>
 /// Receiving and dispatching for network requests

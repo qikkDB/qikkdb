@@ -7,21 +7,16 @@
 
 #include "GpuSqlParser.h"
 #include "GpuSqlParserBaseListener.h"
-#include "ParserExceptions.h"
-#include "../Database.h"
 #include "../DataType.h"
-#include "../PointFactory.h"
-#include "../ComplexPolygonFactory.h"
 #include <unordered_set>
 #include <unordered_map>
-#include <functional>
 #include <string>
 #include <memory>
 #include <stack>
-#include <regex>
 #include <boost/functional/hash.hpp>
 
 class GpuSqlDispatcher;
+class Database;
 
 class GpuSqlListener : public GpuSqlParserBaseListener
 {
@@ -35,6 +30,9 @@ private:
 	int32_t linkTableIndex;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
 	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
+
+	bool usingLoad;
+	bool usingWhere;
 
     bool usingGroupBy;
     bool insideAgg;
@@ -64,6 +62,7 @@ private:
 	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
+	DataType getDataTypeFromString(std::string dataType);
 
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
@@ -121,13 +120,27 @@ public:
 
 	void exitShowColumns(GpuSqlParser::ShowColumnsContext *ctx) override;
 
+	void exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext *ctx) override;
+
+	void exitSqlDropDb(GpuSqlParser::SqlDropDbContext *ctx) override;
+
+	void exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext *ctx) override;
+
+	void exitSqlDropTable(GpuSqlParser::SqlDropTableContext *ctx) override;
+
+	void exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext *ctx) override;
+
 	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
+
+	void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) override;
 
 	void exitLimit(GpuSqlParser::LimitContext *ctx) override;
 
 	void exitOffset(GpuSqlParser::OffsetContext *ctx) override;
 
+	bool GetUsingLoad();
 
+	bool GetUsingWhere();
 };
 
 

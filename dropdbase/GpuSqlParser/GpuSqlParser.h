@@ -13,42 +13,50 @@ class  GpuSqlParser : public antlr4::Parser {
 public:
   enum {
     DATETIMELIT = 1, LF = 2, CR = 3, CRLF = 4, WS = 5, SEMICOL = 6, SQOUTE = 7, 
-    DQOUTE = 8, UNDERSCORE = 9, COLON = 10, COMMA = 11, DOT = 12, DATELIT = 13, 
-    TIMELIT = 14, DATATYPE = 15, POINT = 16, MULTIPOINT = 17, LINESTRING = 18, 
-    MULTILINESTRING = 19, POLYGON = 20, MULTIPOLYGON = 21, INTTYPE = 22, 
-    LONGTYPE = 23, FLOATTYPE = 24, DOUBLETYPE = 25, STRINGTYPE = 26, BOOLEANTYPE = 27, 
-    POINTTYPE = 28, POLYTYPE = 29, INSERTINTO = 30, CREATEDB = 31, CREATETABLE = 32, 
-    VALUES = 33, SELECT = 34, FROM = 35, JOIN = 36, WHERE = 37, GROUPBY = 38, 
-    AS = 39, IN = 40, BETWEEN = 41, ON = 42, ORDERBY = 43, DIR = 44, LIMIT = 45, 
-    OFFSET = 46, SHOWDB = 47, SHOWTB = 48, SHOWCL = 49, AGG = 50, AVG = 51, 
-    SUM = 52, MIN = 53, MAX = 54, COUNT = 55, YEAR = 56, MONTH = 57, DAY = 58, 
-    HOUR = 59, MINUTE = 60, SECOND = 61, NOW = 62, PI = 63, ABS = 64, SIN = 65, 
-    COS = 66, TAN = 67, COT = 68, ASIN = 69, ACOS = 70, ATAN = 71, ATAN2 = 72, 
-    LOG10 = 73, LOG = 74, EXP = 75, POW = 76, SQRT = 77, SQUARE = 78, SIGN = 79, 
-    ROOT = 80, ROUND = 81, CEIL = 82, FLOOR = 83, GEO_CONTAINS = 84, GEO_INTERSECT = 85, 
-    GEO_UNION = 86, PLUS = 87, MINUS = 88, ASTERISK = 89, DIVISION = 90, 
-    MODULO = 91, XOR = 92, EQUALS = 93, NOTEQUALS = 94, NOTEQUALS_GT_LT = 95, 
-    LPAREN = 96, RPAREN = 97, GREATER = 98, LESS = 99, GREATEREQ = 100, 
-    LESSEQ = 101, NOT = 102, OR = 103, AND = 104, BIT_OR = 105, BIT_AND = 106, 
-    L_SHIFT = 107, R_SHIFT = 108, FLOATLIT = 109, INTLIT = 110, ID = 111, 
-    BOOLEANLIT = 112, STRINGLIT = 113
+    DQOUTE = 8, UNDERSCORE = 9, COLON = 10, COMMA = 11, DOT = 12, STRING = 13, 
+    DATELIT = 14, TIMELIT = 15, POINT = 16, MULTIPOINT = 17, LINESTRING = 18, 
+    MULTILINESTRING = 19, POLYGON = 20, MULTIPOLYGON = 21, DATATYPE = 22, 
+    INTTYPE = 23, LONGTYPE = 24, FLOATTYPE = 25, DOUBLETYPE = 26, STRINGTYPE = 27, 
+    BOOLEANTYPE = 28, POINTTYPE = 29, POLYTYPE = 30, INSERTINTO = 31, CREATEDB = 32, 
+    DROPDB = 33, CREATETABLE = 34, DROPTABLE = 35, ALTERTABLE = 36, ADD = 37, 
+    DROPCOLUMN = 38, ALTERCOLUMN = 39, CREATEINDEX = 40, INDEX = 41, PRIMARYKEY = 42, 
+    VALUES = 43, SELECT = 44, FROM = 45, JOIN = 46, WHERE = 47, GROUPBY = 48, 
+    AS = 49, IN = 50, BETWEEN = 51, ON = 52, ORDERBY = 53, DIR = 54, LIMIT = 55, 
+    OFFSET = 56, SHOWDB = 57, SHOWTB = 58, SHOWCL = 59, AGG = 60, AVG = 61, 
+    SUM = 62, MIN = 63, MAX = 64, COUNT = 65, YEAR = 66, MONTH = 67, DAY = 68, 
+    HOUR = 69, MINUTE = 70, SECOND = 71, NOW = 72, PI = 73, ABS = 74, SIN = 75, 
+    COS = 76, TAN = 77, COT = 78, ASIN = 79, ACOS = 80, ATAN = 81, ATAN2 = 82, 
+    LOG10 = 83, LOG = 84, EXP = 85, POW = 86, SQRT = 87, SQUARE = 88, SIGN = 89, 
+    ROOT = 90, ROUND = 91, CEIL = 92, FLOOR = 93, LTRIM = 94, RTRIM = 95, 
+    LOWER = 96, UPPER = 97, REVERSE = 98, LEN = 99, LEFT = 100, RIGHT = 101, 
+    CONCAT = 102, GEO_CONTAINS = 103, GEO_INTERSECT = 104, GEO_UNION = 105, 
+    PLUS = 106, MINUS = 107, ASTERISK = 108, DIVISION = 109, MODULO = 110, 
+    XOR = 111, EQUALS = 112, NOTEQUALS = 113, NOTEQUALS_GT_LT = 114, LPAREN = 115, 
+    RPAREN = 116, GREATER = 117, LESS = 118, GREATEREQ = 119, LESSEQ = 120, 
+    NOT = 121, OR = 122, AND = 123, BIT_OR = 124, BIT_AND = 125, L_SHIFT = 126, 
+    R_SHIFT = 127, BOOLEANLIT = 128, TRUE = 129, FALSE = 130, FLOATLIT = 131, 
+    INTLIT = 132, ID = 133
   };
 
   enum {
     RuleSqlFile = 0, RuleStatement = 1, RuleShowStatement = 2, RuleShowDatabases = 3, 
     RuleShowTables = 4, RuleShowColumns = 5, RuleSqlSelect = 6, RuleSqlCreateDb = 7, 
-    RuleSqlCreateTable = 8, RuleSqlInsertInto = 9, RuleNewTableColumns = 10, 
-    RuleNewTableColumn = 11, RuleSelectColumns = 12, RuleSelectColumn = 13, 
-    RuleWhereClause = 14, RuleOrderByColumns = 15, RuleOrderByColumn = 16, 
-    RuleInsertIntoValues = 17, RuleInsertIntoColumns = 18, RuleGroupByColumns = 19, 
-    RuleGroupByColumn = 20, RuleColumnId = 21, RuleFromTables = 22, RuleJoinClauses = 23, 
-    RuleJoinClause = 24, RuleJoinTable = 25, RuleFromTable = 26, RuleTable = 27, 
-    RuleColumn = 28, RuleDatabase = 29, RuleAlias = 30, RuleLimit = 31, 
-    RuleOffset = 32, RuleColumnValue = 33, RuleExpression = 34, RuleGeometry = 35, 
-    RulePointGeometry = 36, RuleLineStringGeometry = 37, RulePolygonGeometry = 38, 
-    RuleMultiPointGeometry = 39, RuleMultiLineStringGeometry = 40, RuleMultiPolygonGeometry = 41, 
-    RulePointOrClosedPoint = 42, RulePolygon = 43, RuleLineString = 44, 
-    RulePoint = 45
+    RuleSqlDropDb = 8, RuleSqlCreateTable = 9, RuleSqlDropTable = 10, RuleSqlAlterTable = 11, 
+    RuleSqlCreateIndex = 12, RuleSqlInsertInto = 13, RuleNewTableEntries = 14, 
+    RuleNewTableEntry = 15, RuleAlterTableEntries = 16, RuleAlterTableEntry = 17, 
+    RuleAddColumn = 18, RuleDropColumn = 19, RuleAlterColumn = 20, RuleNewTableColumn = 21, 
+    RuleNewTableIndex = 22, RuleSelectColumns = 23, RuleSelectColumn = 24, 
+    RuleWhereClause = 25, RuleOrderByColumns = 26, RuleOrderByColumn = 27, 
+    RuleInsertIntoValues = 28, RuleInsertIntoColumns = 29, RuleIndexColumns = 30, 
+    RuleGroupByColumns = 31, RuleGroupByColumn = 32, RuleColumnId = 33, 
+    RuleFromTables = 34, RuleJoinClauses = 35, RuleJoinClause = 36, RuleJoinTable = 37, 
+    RuleFromTable = 38, RuleTable = 39, RuleColumn = 40, RuleDatabase = 41, 
+    RuleAlias = 42, RuleIndexName = 43, RuleLimit = 44, RuleOffset = 45, 
+    RuleBlockSize = 46, RuleColumnValue = 47, RuleExpression = 48, RuleGeometry = 49, 
+    RulePointGeometry = 50, RuleLineStringGeometry = 51, RulePolygonGeometry = 52, 
+    RuleMultiPointGeometry = 53, RuleMultiLineStringGeometry = 54, RuleMultiPolygonGeometry = 55, 
+    RulePointOrClosedPoint = 56, RulePolygon = 57, RuleLineString = 58, 
+    RulePoint = 59
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -69,10 +77,21 @@ public:
   class ShowColumnsContext;
   class SqlSelectContext;
   class SqlCreateDbContext;
+  class SqlDropDbContext;
   class SqlCreateTableContext;
+  class SqlDropTableContext;
+  class SqlAlterTableContext;
+  class SqlCreateIndexContext;
   class SqlInsertIntoContext;
-  class NewTableColumnsContext;
+  class NewTableEntriesContext;
+  class NewTableEntryContext;
+  class AlterTableEntriesContext;
+  class AlterTableEntryContext;
+  class AddColumnContext;
+  class DropColumnContext;
+  class AlterColumnContext;
   class NewTableColumnContext;
+  class NewTableIndexContext;
   class SelectColumnsContext;
   class SelectColumnContext;
   class WhereClauseContext;
@@ -80,6 +99,7 @@ public:
   class OrderByColumnContext;
   class InsertIntoValuesContext;
   class InsertIntoColumnsContext;
+  class IndexColumnsContext;
   class GroupByColumnsContext;
   class GroupByColumnContext;
   class ColumnIdContext;
@@ -92,8 +112,10 @@ public:
   class ColumnContext;
   class DatabaseContext;
   class AliasContext;
+  class IndexNameContext;
   class LimitContext;
   class OffsetContext;
+  class BlockSizeContext;
   class ColumnValueContext;
   class ExpressionContext;
   class GeometryContext;
@@ -129,7 +151,11 @@ public:
     virtual size_t getRuleIndex() const override;
     SqlSelectContext *sqlSelect();
     SqlCreateDbContext *sqlCreateDb();
+    SqlDropDbContext *sqlDropDb();
     SqlCreateTableContext *sqlCreateTable();
+    SqlDropTableContext *sqlDropTable();
+    SqlAlterTableContext *sqlAlterTable();
+    SqlCreateIndexContext *sqlCreateIndex();
     SqlInsertIntoContext *sqlInsertInto();
     ShowStatementContext *showStatement();
 
@@ -241,6 +267,7 @@ public:
     antlr4::tree::TerminalNode *CREATEDB();
     DatabaseContext *database();
     antlr4::tree::TerminalNode *SEMICOL();
+    BlockSizeContext *blockSize();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -249,6 +276,21 @@ public:
 
   SqlCreateDbContext* sqlCreateDb();
 
+  class  SqlDropDbContext : public antlr4::ParserRuleContext {
+  public:
+    SqlDropDbContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *DROPDB();
+    DatabaseContext *database();
+    antlr4::tree::TerminalNode *SEMICOL();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  SqlDropDbContext* sqlDropDb();
+
   class  SqlCreateTableContext : public antlr4::ParserRuleContext {
   public:
     SqlCreateTableContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -256,8 +298,9 @@ public:
     antlr4::tree::TerminalNode *CREATETABLE();
     TableContext *table();
     antlr4::tree::TerminalNode *LPAREN();
-    NewTableColumnsContext *newTableColumns();
+    NewTableEntriesContext *newTableEntries();
     antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *SEMICOL();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -265,6 +308,57 @@ public:
   };
 
   SqlCreateTableContext* sqlCreateTable();
+
+  class  SqlDropTableContext : public antlr4::ParserRuleContext {
+  public:
+    SqlDropTableContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *DROPTABLE();
+    TableContext *table();
+    antlr4::tree::TerminalNode *SEMICOL();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  SqlDropTableContext* sqlDropTable();
+
+  class  SqlAlterTableContext : public antlr4::ParserRuleContext {
+  public:
+    SqlAlterTableContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ALTERTABLE();
+    TableContext *table();
+    AlterTableEntriesContext *alterTableEntries();
+    antlr4::tree::TerminalNode *SEMICOL();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  SqlAlterTableContext* sqlAlterTable();
+
+  class  SqlCreateIndexContext : public antlr4::ParserRuleContext {
+  public:
+    SqlCreateIndexContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *CREATEINDEX();
+    IndexNameContext *indexName();
+    antlr4::tree::TerminalNode *ON();
+    TableContext *table();
+    antlr4::tree::TerminalNode *LPAREN();
+    IndexColumnsContext *indexColumns();
+    antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *SEMICOL();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  SqlCreateIndexContext* sqlCreateIndex();
 
   class  SqlInsertIntoContext : public antlr4::ParserRuleContext {
   public:
@@ -288,12 +382,12 @@ public:
 
   SqlInsertIntoContext* sqlInsertInto();
 
-  class  NewTableColumnsContext : public antlr4::ParserRuleContext {
+  class  NewTableEntriesContext : public antlr4::ParserRuleContext {
   public:
-    NewTableColumnsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    NewTableEntriesContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    std::vector<NewTableColumnContext *> newTableColumn();
-    NewTableColumnContext* newTableColumn(size_t i);
+    std::vector<NewTableEntryContext *> newTableEntry();
+    NewTableEntryContext* newTableEntry(size_t i);
     std::vector<antlr4::tree::TerminalNode *> COMMA();
     antlr4::tree::TerminalNode* COMMA(size_t i);
 
@@ -302,7 +396,96 @@ public:
    
   };
 
-  NewTableColumnsContext* newTableColumns();
+  NewTableEntriesContext* newTableEntries();
+
+  class  NewTableEntryContext : public antlr4::ParserRuleContext {
+  public:
+    NewTableEntryContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    NewTableColumnContext *newTableColumn();
+    NewTableIndexContext *newTableIndex();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  NewTableEntryContext* newTableEntry();
+
+  class  AlterTableEntriesContext : public antlr4::ParserRuleContext {
+  public:
+    AlterTableEntriesContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<AlterTableEntryContext *> alterTableEntry();
+    AlterTableEntryContext* alterTableEntry(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  AlterTableEntriesContext* alterTableEntries();
+
+  class  AlterTableEntryContext : public antlr4::ParserRuleContext {
+  public:
+    AlterTableEntryContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    AddColumnContext *addColumn();
+    DropColumnContext *dropColumn();
+    AlterColumnContext *alterColumn();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  AlterTableEntryContext* alterTableEntry();
+
+  class  AddColumnContext : public antlr4::ParserRuleContext {
+  public:
+    AddColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ADD();
+    ColumnIdContext *columnId();
+    antlr4::tree::TerminalNode *DATATYPE();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  AddColumnContext* addColumn();
+
+  class  DropColumnContext : public antlr4::ParserRuleContext {
+  public:
+    DropColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *DROPCOLUMN();
+    ColumnIdContext *columnId();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  DropColumnContext* dropColumn();
+
+  class  AlterColumnContext : public antlr4::ParserRuleContext {
+  public:
+    AlterColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ALTERCOLUMN();
+    ColumnIdContext *columnId();
+    antlr4::tree::TerminalNode *DATATYPE();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  AlterColumnContext* alterColumn();
 
   class  NewTableColumnContext : public antlr4::ParserRuleContext {
   public:
@@ -317,6 +500,23 @@ public:
   };
 
   NewTableColumnContext* newTableColumn();
+
+  class  NewTableIndexContext : public antlr4::ParserRuleContext {
+  public:
+    NewTableIndexContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *INDEX();
+    IndexNameContext *indexName();
+    antlr4::tree::TerminalNode *LPAREN();
+    IndexColumnsContext *indexColumns();
+    antlr4::tree::TerminalNode *RPAREN();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  NewTableIndexContext* newTableIndex();
 
   class  SelectColumnsContext : public antlr4::ParserRuleContext {
   public:
@@ -423,6 +623,22 @@ public:
   };
 
   InsertIntoColumnsContext* insertIntoColumns();
+
+  class  IndexColumnsContext : public antlr4::ParserRuleContext {
+  public:
+    IndexColumnsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<ColumnContext *> column();
+    ColumnContext* column(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  IndexColumnsContext* indexColumns();
 
   class  GroupByColumnsContext : public antlr4::ParserRuleContext {
   public:
@@ -596,6 +812,19 @@ public:
 
   AliasContext* alias();
 
+  class  IndexNameContext : public antlr4::ParserRuleContext {
+  public:
+    IndexNameContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ID();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  IndexNameContext* indexName();
+
   class  LimitContext : public antlr4::ParserRuleContext {
   public:
     LimitContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -622,6 +851,19 @@ public:
 
   OffsetContext* offset();
 
+  class  BlockSizeContext : public antlr4::ParserRuleContext {
+  public:
+    BlockSizeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *INTLIT();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  BlockSizeContext* blockSize();
+
   class  ColumnValueContext : public antlr4::ParserRuleContext {
   public:
     ColumnValueContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -629,7 +871,7 @@ public:
     antlr4::tree::TerminalNode *INTLIT();
     antlr4::tree::TerminalNode *FLOATLIT();
     GeometryContext *geometry();
-    antlr4::tree::TerminalNode *STRINGLIT();
+    antlr4::tree::TerminalNode *STRING();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -742,6 +984,9 @@ public:
     antlr4::tree::TerminalNode *GEO_CONTAINS();
     antlr4::tree::TerminalNode *GEO_INTERSECT();
     antlr4::tree::TerminalNode *GEO_UNION();
+    antlr4::tree::TerminalNode *CONCAT();
+    antlr4::tree::TerminalNode *LEFT();
+    antlr4::tree::TerminalNode *RIGHT();
     antlr4::tree::TerminalNode *DIVISION();
     antlr4::tree::TerminalNode *ASTERISK();
     antlr4::tree::TerminalNode *PLUS();
@@ -809,6 +1054,12 @@ public:
     antlr4::tree::TerminalNode *HOUR();
     antlr4::tree::TerminalNode *MINUTE();
     antlr4::tree::TerminalNode *SECOND();
+    antlr4::tree::TerminalNode *LTRIM();
+    antlr4::tree::TerminalNode *RTRIM();
+    antlr4::tree::TerminalNode *LOWER();
+    antlr4::tree::TerminalNode *UPPER();
+    antlr4::tree::TerminalNode *REVERSE();
+    antlr4::tree::TerminalNode *LEN();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
@@ -835,7 +1086,7 @@ public:
   public:
     StringLiteralContext(ExpressionContext *ctx);
 
-    antlr4::tree::TerminalNode *STRINGLIT();
+    antlr4::tree::TerminalNode *STRING();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };

@@ -59,6 +59,9 @@ operations_aggregation = ["min", "max", "sum", "count", "avg"]
 operations_date = ["year", "month", "day", "hour", "minute", "second"]
 operations_move = ["load", "ret", "groupBy"]
 operations_ternary = ["between"]
+operations_string_unary = ['ltrim', 'rtrim', 'lower', 'upper', 'reverse']
+
+operations_string_binary = ['left', 'right']
 
 for operation in operations_binary:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
@@ -222,7 +225,10 @@ for operation in operations_filter:
             if colVal in geo_types or rowVal in geo_types:
                 op = "invalidOperandTypesErrorHandler"
 
-            elif colVal == STRING or rowVal == STRING:
+            elif colVal == STRING and rowVal != STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif colVal != STRING and rowVal == STRING:
                 op = "invalidOperandTypesErrorHandler"
 
             elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
@@ -231,9 +237,15 @@ for operation in operations_filter:
             elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
                 op = "invalidOperandTypesErrorHandler"
 
+            elif colVal == STRING and rowVal == STRING:
+                op = "filterString"
             else:
                 op = "filter"
-            function = "GpuSqlDispatcher::" + op + col + row + "<FilterConditions::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if op == "filterString":
+                function = "GpuSqlDispatcher::" + op + col + row + "<FilterConditions::" + operation + ">"
+            else:
+                function = "GpuSqlDispatcher::" + op + col + row + "<FilterConditions::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -541,3 +553,138 @@ for colIdx, colVal in enumerate(all_types):
 
 print(declaration)
 print()
+
+for operation in operations_string_unary:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal != STRING:
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = "stringUnary"
+
+        if op == "stringUnary":
+            function = "GpuSqlDispatcher::" + op + col + "<StringUnaryOperations::" + operation + ">"
+
+        else:
+            function = "GpuSqlDispatcher::" + op + col + "<StringUnaryOperations::" + operation + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+
+for operation in ['len']:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal != STRING:
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = "stringUnaryNumeric"
+
+        if op == "stringUnaryNumeric":
+            function = "GpuSqlDispatcher::" + op + col + "<StringUnaryNumericOperations::" + operation + ">"
+
+        else:
+            function = "GpuSqlDispatcher::" + op + col + "<StringUnaryNumericOperations::" + operation + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+
+for operation in operations_string_binary:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
+
+            if (operation == 'left' or operation == 'right') and (colVal != STRING or rowVal not in [INT, LONG]):
+                op = "invalidOperandTypesErrorHandler"
+
+            else:
+                op = "stringBinaryNumeric"
+
+            if op == "stringBinaryNumeric":
+                function = "GpuSqlDispatcher::" + op + col + row + "<StringBinaryOperations::" + operation + ", " + rowVal + ">"
+            else:
+                function = "GpuSqlDispatcher::" + op + col + row + "<StringBinaryOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+for operation in ["concat"]:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
+
+            if colVal != STRING or rowVal != STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            else:
+                op = "stringBinary"
+
+            if op == "stringBinary":
+                function = "GpuSqlDispatcher::" + op + col + row + "<StringBinaryOperations::" + operation + ">"
+            else:
+                function = "GpuSqlDispatcher::" + op + col + row + "<StringBinaryOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+

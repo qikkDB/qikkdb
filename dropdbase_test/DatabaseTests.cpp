@@ -11,7 +11,7 @@
 class DatabaseTests : public ::testing::Test
 {
 protected:
-	const std::string path = Configuration::GetInstance().GetDatabaseDir() + "/testDatabase/";
+	const std::string path = Configuration::GetInstance().GetDatabaseDir() + "testDatabase/";
 	const std::string dbName = "TestDatabase";
 	const int32_t blockNum = 2; //number of blocks
 	const int32_t blockSize = 3; //length of a block
@@ -38,7 +38,10 @@ protected:
 ///  - LoadColumns()
 ///  - CreateTable()
 ///  - AddToInMemoryDatabaseList()
-TEST_F(DatabaseTests, SaveLoadTest)
+///  - DropColumn()
+///  - DropTable()
+///  - DropDatabase()
+TEST_F(DatabaseTests, IntegrationTest)
 {
 	boost::filesystem::current_path();
 
@@ -156,7 +159,7 @@ TEST_F(DatabaseTests, SaveLoadTest)
 
 	Database::SaveAllToDisk();
 
-	//load different database. but with the same data:
+	//load different database, but with the same data:
 	Database::LoadDatabasesFromDisk();
 	
 	auto& loadedTables = Database::GetDatabaseByName(dbName)->GetTables();
@@ -250,9 +253,9 @@ TEST_F(DatabaseTests, SaveLoadTest)
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(secondTableColumns.at("colPolygon").get())->GetBlocksList().at(i)->GetData();
-		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[0]), "POLYGON((10 11,11.11 12.13,10 11),(21 30,35.55 36,30.11 20.26,21 30),(61 80.11,90 89.15,112.12 110,61 80.11))");
-		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[1]), "POLYGON((15 11,11.11 12.13,15 11),(21 30,35.55 36,30.11 20.26,21 30),(61 87.11,90 89.15,112.12 110,61 87.11))");
-		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[2]), "POLYGON((15 18,11.11 12.13,15 18),(21 38,35.55 36,30.11 20.26,21 38),(64 80.11,90 89.15,112.12 110,64 80.11))");
+		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[0]), "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11, 90 89.15, 112.12 110, 61 80.11))");
+		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[1]), "POLYGON((15 11, 11.11 12.13, 15 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 87.11, 90 89.15, 112.12 110, 61 87.11))");
+		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[2]), "POLYGON((15 18, 11.11 12.13, 15 18), (21 38, 35.55 36, 30.11 20.26, 21 38), (64 80.11, 90 89.15, 112.12 110, 64 80.11))");
 	}
 
 	//second table colPoint:
@@ -272,4 +275,48 @@ TEST_F(DatabaseTests, SaveLoadTest)
 		ASSERT_EQ(data[1], 0);
 		ASSERT_EQ(data[2], 1);
 	}
+
+	Database::SaveAllToDisk();
+
+	//drop column colBool:
+	database->DeleteColumnFromDisk(std::string("TestTable2").c_str(), std::string("colBool").c_str());
+	std::string filePath = Configuration::GetInstance().GetDatabaseDir() + dbName + "_TestTable2_colBool.col";
+	bool exists = false;
+
+	if (boost::filesystem::exists(filePath))
+	{
+		exists = true;
+	}
+	ASSERT_FALSE(exists);
+
+	//drop table TestTable2:
+	database->DeleteTableFromDisk(std::string("TestTable2").c_str());
+	bool deleted = true;
+
+	std::string prefix = dbName + "_TestTable2_";
+
+	for (auto& p : boost::filesystem::directory_iterator(Configuration::GetInstance().GetDatabaseDir()))
+	{
+		//delete files which starts with prefix of db name and table name:
+		if (!p.path().string().compare(0, prefix.size(), prefix))
+		{
+			deleted = false;
+		}
+	}
+	ASSERT_TRUE(deleted);
+
+	//drop database TestDatabase:
+	database->DeleteDatabaseFromDisk();
+	deleted = true;
+
+	prefix = dbName + "_";
+
+	for (auto& p : boost::filesystem::directory_iterator(Configuration::GetInstance().GetDatabaseDir()))
+	{
+		if (!p.path().string().compare(0, prefix.size(), prefix))
+		{
+			deleted = false;
+		}
+	}
+	ASSERT_TRUE(deleted);
 }
