@@ -21,6 +21,7 @@ set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUArtithmeticTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUAggregationTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUDateTests.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/GPUGroupByTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUPolygonClippingTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUReconstructTests.cu)
 
