@@ -166,12 +166,19 @@ protected:
 			std::to_string(whereThreshold) + ";");
 		auto resultPtr = parser.parse();
 		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-		auto &payloads = result->payloads().at("SimpleTable.colPolygon");
 
-		ASSERT_EQ(expectedResult.size(), payloads.stringpayload().stringdata_size()) << "size is not correct";
-		for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+		if(expectedResult.size() > 0)
 		{
-			ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
+			auto &payloads = result->payloads().at("SimpleTable.colPolygon");
+			ASSERT_EQ(expectedResult.size(), payloads.stringpayload().stringdata_size()) << "size is not correct";
+			for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+			{
+				ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
+			}
+		}
+		else
+		{
+			ASSERT_EQ(result->payloads().size(), 0);
 		}
 	}
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../CpuSqlDispatcher.h"
+#include "CpuFilterInterval.h"
 #include <tuple>
 
 template<typename OP, typename T, typename U>
@@ -22,8 +23,20 @@ int32_t CpuSqlDispatcher::filterColConst()
 	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValMin));
 	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValMax));
 
-	maskMin[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValMin))[0], cnst);
-	maskMax[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValMax))[0], cnst);
+	switch (OP::interval)
+	{
+	case CpuFilterInterval::OUTER:
+	case CpuFilterInterval::INNER:
+		maskMin[0] = cnst >= reinterpret_cast<T*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<T*>(std::get<0>(colValMax))[0];
+		maskMax[0] = cnst >= reinterpret_cast<T*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<T*>(std::get<0>(colValMax))[0];
+		break;
+
+	case CpuFilterInterval::NONE:
+	default:
+		maskMin[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValMin))[0], cnst);
+		maskMax[0] = OP{}.template operator() < T, U > (reinterpret_cast<T*>(std::get<0>(colValMax))[0], cnst);
+		break;
+	}
 
 	std::cout << "Where evaluation filterColConstMin: " << reinterpret_cast<T*>(std::get<0>(colValMin))[0] << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
 	std::cout << "Where evaluation filterColConstMax: " << reinterpret_cast<T*>(std::get<0>(colValMax))[0] << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
@@ -50,8 +63,20 @@ int32_t CpuSqlDispatcher::filterConstCol()
 	int8_t * maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValMin));
 	int8_t * maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValMax));
 
-	maskMin[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colValMin))[0]);
-	maskMax[0] = OP{}.template operator() < T, U > (cnst, reinterpret_cast<U*>(std::get<0>(colValMax))[0]);
+	switch (OP::interval)
+	{
+	case CpuFilterInterval::INNER:
+	case CpuFilterInterval::OUTER:
+		maskMin[0] = cnst >= reinterpret_cast<U*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<U*>(std::get<0>(colValMax))[0];
+		maskMax[0] = cnst >= reinterpret_cast<U*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<U*>(std::get<0>(colValMax))[0];
+		break;
+
+	case CpuFilterInterval::NONE:
+	default:
+		maskMin[0] = OP{}.template operator() < T, U > (reinterpret_cast<U*>(std::get<0>(colValMin))[0], cnst);
+		maskMax[0] = OP{}.template operator() < T, U > (reinterpret_cast<U*>(std::get<0>(colValMax))[0], cnst);
+		break;
+	}
 
 	std::cout << "Where evaluation filterConstColMin: " << reinterpret_cast<U*>(std::get<0>(colValMin))[0] << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
 	std::cout << "Where evaluation filterConstColMax: " << reinterpret_cast<U*>(std::get<0>(colValMax))[0] << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;

@@ -48,8 +48,11 @@ TEST(DispatcherTestsRegression, EmptyResultFromGroupByAvg)
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT AVG(colInteger1) FROM TableA WHERE colInteger1 > 4096 GROUP BY colInteger1;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto &payloads = result->payloads().at("AVG(colInteger1)");
 
-	ASSERT_EQ(result->payloads().size(), 0);
+	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);
+
+	FAIL();
 }
 
 TEST(DispatcherTestsRegression, EmptyResultFromGroupBySum)

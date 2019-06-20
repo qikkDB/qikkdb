@@ -9,6 +9,7 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "MaybeDeref.cuh"
+#include "../../GpuSqlParser/DispatcherCpu/CpuFilterInterval.h"
 
 /// Functors for parallel binary filtration operations
 namespace FilterConditions
@@ -16,6 +17,7 @@ namespace FilterConditions
 	/// A greater than operator > functor
 	struct greater
 	{
+		static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
 		template<typename T, typename U>
 		__device__ __host__ int8_t operator()(T a, U b) const
 		{
@@ -26,6 +28,7 @@ namespace FilterConditions
 	/// A greater than or equal operator >= functor
 	struct greaterEqual
 	{
+		static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
 		template<typename T, typename U>
 		__device__ __host__ int8_t operator()(T a, U b) const
 		{
@@ -36,6 +39,7 @@ namespace FilterConditions
 	/// A less than operator < functor
 	struct less
 	{
+		static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
 		template<typename T, typename U>
 		__device__ __host__ int8_t operator()(T a, U b) const
 		{
@@ -46,6 +50,7 @@ namespace FilterConditions
 	/// A less than or equal operator <= functor
 	struct lessEqual
 	{
+		static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
 		template<typename T, typename U>
 		__device__ __host__ int8_t operator()(T a, U b) const
 		{
@@ -56,6 +61,7 @@ namespace FilterConditions
 	/// An equality operator == functor
 	struct equal
 	{
+		static constexpr CpuFilterInterval interval = CpuFilterInterval::INNER;
 		template<typename T, typename U>
 		__device__ __host__ int8_t operator()(T a, U b) const
 		{
@@ -66,6 +72,7 @@ namespace FilterConditions
 	/// An unequality operator != functor
 	struct notEqual
 	{
+		static constexpr CpuFilterInterval interval = CpuFilterInterval::OUTER;
 		template<typename T, typename U>
 		__device__ __host__ int8_t operator()(T a, U b) const
 		{
