@@ -27,6 +27,8 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.h
         ${CMAKE_CURRENT_SOURCE_DIR}/ComplexPolygonFactory.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ComplexPolygonFactory.h
+		${CMAKE_CURRENT_SOURCE_DIR}/StringFactory.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/StringFactory.h
 		${CMAKE_CURRENT_SOURCE_DIR}/ConsoleHandler.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ClientPoolWorker.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/ITCPWorker.cpp
@@ -65,12 +67,15 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseGenerator.h)
 
 set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu 
-                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUReconstruct.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUPolygonClipping.cu
+                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUReconstruct.cu
+                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUStringBinary.cu
+                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUStringUnary.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlDispatcher.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/Compression/GPUCompression.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherLogicFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherArithmeticFunctions.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherStringFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherArithmeticUnaryFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherAggregationFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherDateFunctions.cu
@@ -86,6 +91,10 @@ if(NOT WIN32)
     set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "--compiler-bindir=${CMAKE_CXX_COMPILER} --expt-relaxed-constexpr")
 endif(NOT WIN32)
 add_library(${PROJECT_NAME}_obj STATIC ${SOURCE_FILES} ${CUDA_FILES})
+set_target_properties(${PROJECT_NAME}_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(${PROJECT_NAME}_obj PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+
 add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 

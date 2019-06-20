@@ -13,6 +13,7 @@ UNDERSCORE  : '_';
 COLON       : ':';
 COMMA       : ',';
 DOT         : '.';
+STRING: '"' ( ~[\\"\r\n] )* '"';
 
 DATELIT                 : YEARLIT MINUS MONTHLIT MINUS DAYLIT;
 
@@ -114,6 +115,16 @@ ROUND       : R O U N D;
 CEIL        : C E I L;
 FLOOR       : F L O O R;
 
+LTRIM       : L T R I M;
+RTRIM       : R T R I M;
+LOWER       : L O W E R;
+UPPER       : U P P E R;
+REVERSE     : R E V E R S E;
+LEN         : L E N;
+LEFT        : L E F T;
+RIGHT       : R I G H T;
+CONCAT      : C O N C A T;
+
 
 GEO_CONTAINS        : G E O UNDERSCORE C O N T A I N S;
 GEO_INTERSECT       : G E O UNDERSCORE I N T E R S E C T;
@@ -148,7 +159,6 @@ FALSE       : F A L S E;
 FLOATLIT    : ('-')?('0.'[0-9]+|[1-9][0-9]* '.'[0-9]+);
 INTLIT      : ('-')?('0'|[1-9][0-9]*);
 ID          : [_]*[A-Za-z0-9_][A-Za-z0-9_]* ;
-STRINGLIT   : '"'ID'"';
 
 fragment A : [aA];
 fragment B : [bB];

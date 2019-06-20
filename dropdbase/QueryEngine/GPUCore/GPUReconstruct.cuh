@@ -60,6 +60,33 @@ __global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *
 	}
 }
 
+/// Kernel for calculating lengths from indices (difference of indices)
+/// - reversed inclusive prefix sum.
+template<typename L, typename I>
+__global__ void kernel_lengths_from_indices(L * outLengths, I * inIndices, int32_t dataElementCount)
+{
+
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		if (i == 0)
+		{
+			outLengths[i] = inIndices[i];
+		}
+		else
+		{
+			outLengths[i] = inIndices[i] - inIndices[i - 1];
+		}
+	}
+}
+
+/// Kernel for reconstruction of chars in GPUString
+__global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCol,
+	GPUMemory::GPUString inStringCol, int32_t * inStringLengths,
+	int32_t *prefixSum, int8_t *inMask, int32_t stringCount);
+
 /// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays).
 /// Expanding is performed by propagating values from inMask based on counts.
 __global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t *polyIdx, int32_t *polyCount, int32_t polyIdxSize);
@@ -166,9 +193,18 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Reconstruct GPUString column (keep result on GPU)
+	/// <param name="outStringCol">output GPUString column</param>
+	/// <param name="outDataElementCount">reconstructed data element (string) count</param>
+	/// <param name="inStringCol">input GPUString column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (string) count</param>
+	static void ReconstructStringColKeep(GPUMemory::GPUString *outStringCol, int32_t *outDataElementCount,
+		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
+
 	/// Reconstruct GPUString column and copy to CPU memory
 	/// <param name="outStringData">output CPU string array</param>
-	/// <param name="outDataElementCount">reconstructed data elemen (string) count</param>
+	/// <param name="outDataElementCount">reconstructed data element (string) count</param>
 	/// <param name="inStringCol">input GPUString column</param>
 	/// <param name="inMask">input mask for the reconstruction</param>
 	/// <param name="inDataElementCount">input data element (string) count</param>

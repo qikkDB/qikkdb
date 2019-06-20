@@ -10,6 +10,7 @@
 #include "../QueryEngine/Context.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../ComplexPolygonFactory.h"
+#include "../StringFactory.h"
 #include "../Database.h"
 #include "../Table.h"
 
@@ -34,6 +35,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	instructionPointer(0),
 	constPointCounter(0),
 	constPolygonCounter(0),
+	constStringCounter(0),
 	filter_(0),
 	usedRegisterMemory(0),
 	maxRegisterMemory(0), // TODO value from config e.g.
@@ -339,6 +341,21 @@ void GpuSqlDispatcher::addArctangent2Function(DataType y, DataType x)
 	dispatcherFunctions.push_back(arctangent2Functions[DataType::DATA_TYPE_SIZE * y + x]);
 }
 
+void GpuSqlDispatcher::addConcatFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(concatFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addLeftFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(leftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
+void GpuSqlDispatcher::addRightFunction(DataType left, DataType right)
+{
+	dispatcherFunctions.push_back(rightFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+}
+
 void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
 {
 	dispatcherFunctions.push_back(powerFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
@@ -489,6 +506,36 @@ void GpuSqlDispatcher::addCeilFunction(DataType type)
 	dispatcherFunctions.push_back(ceilFunctions[type]);
 }
 
+void GpuSqlDispatcher::addLtrimFunction(DataType type)
+{
+	dispatcherFunctions.push_back(ltrimFunctions[type]);
+}
+
+void GpuSqlDispatcher::addRtrimFunction(DataType type)
+{
+	dispatcherFunctions.push_back(rtrimFunctions[type]);
+}
+
+void GpuSqlDispatcher::addLowerFunction(DataType type)
+{
+	dispatcherFunctions.push_back(lowerFunctions[type]);
+}
+
+void GpuSqlDispatcher::addUpperFunction(DataType type)
+{
+	dispatcherFunctions.push_back(upperFunctions[type]);
+}
+
+void GpuSqlDispatcher::addReverseFunction(DataType type)
+{
+	dispatcherFunctions.push_back(reverseFunctions[type]);
+}
+
+void GpuSqlDispatcher::addLenFunction(DataType type)
+{
+	dispatcherFunctions.push_back(lenFunctions[type]);
+}
+
 void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)
 {
     dispatcherFunctions.push_back((usingGroupBy ? minGroupByFunctions : minAggregationFunctions)
@@ -539,6 +586,12 @@ void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn,
 	allocatedPointers.insert({ reg + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.polyCount), size, !useCache) });
 }
 
+void GpuSqlDispatcher::fillStringRegister(GPUMemory::GPUString & stringColumn, const std::string & reg, int32_t size, bool useCache)
+{
+	allocatedPointers.insert({ reg + "_stringIndices", std::make_tuple(reinterpret_cast<uintptr_t>(stringColumn.stringIndices), size, !useCache) });
+	allocatedPointers.insert({ reg + "_allChars", std::make_tuple(reinterpret_cast<uintptr_t>(stringColumn.allChars), size, !useCache) });
+}
+
 GPUMemory::GPUPolygon GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache)
 {
 	if (useCache)
@@ -574,6 +627,35 @@ GPUMemory::GPUPolygon GpuSqlDispatcher::insertComplexPolygon(const std::string& 
 	}
 }
 
+GPUMemory::GPUString GpuSqlDispatcher::insertString(const std::string& databaseName, const std::string& colName, const std::vector<std::string>& strings, int32_t size, bool useCache)
+{
+	if (useCache)
+	{
+		if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_stringIndices", blockIndex) &&
+			Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_allChars", blockIndex))
+		{
+			GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
+			GPUMemory::GPUString gpuString;
+			gpuString.stringIndices = std::get<0>(cache.getColumn<int64_t>(databaseName, colName + "_stringIndices", blockIndex, size));
+			gpuString.allChars = std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex, size));
+			fillStringRegister(gpuString, colName, size, useCache);
+			return gpuString;
+		}
+		else
+		{
+			GPUMemory::GPUString gpuString = StringFactory::PrepareGPUString(strings, databaseName, colName, blockIndex);
+			fillStringRegister(gpuString, colName, size, useCache);
+			return gpuString;
+		}
+	}
+	else
+	{
+		GPUMemory::GPUString gpuString = StringFactory::PrepareGPUString(strings);
+		fillStringRegister(gpuString, colName, size, useCache);
+		return gpuString;
+	}
+}
+
 std::tuple<GPUMemory::GPUPolygon, int32_t> GpuSqlDispatcher::findComplexPolygon(std::string colName)
 {
 	GPUMemory::GPUPolygon polygon;
@@ -586,6 +668,15 @@ std::tuple<GPUMemory::GPUPolygon, int32_t> GpuSqlDispatcher::findComplexPolygon(
 	polygon.polyCount = reinterpret_cast<int32_t*>(std::get<0>(allocatedPointers.at(colName + "_polyCount")));
 
 	return std::make_tuple(polygon, size);
+}
+
+std::tuple<GPUMemory::GPUString, int32_t> GpuSqlDispatcher::findStringColumn(const std::string & colName)
+{
+	GPUMemory::GPUString gpuString;
+	int32_t size = std::get<1>(allocatedPointers.at(colName + "_stringIndices"));
+	gpuString.stringIndices = reinterpret_cast<int64_t*>(std::get<0>(allocatedPointers.at(colName + "_stringIndices")));
+	gpuString.allChars = reinterpret_cast<char*>(std::get<0>(allocatedPointers.at(colName + "_allChars")));
+	return std::make_tuple(gpuString, size);
 }
 
 NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& point)
@@ -610,6 +701,13 @@ GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::
 	std::string name = "constPolygon" + std::to_string(constPolygonCounter);
 	constPolygonCounter++;
 	return insertComplexPolygon(database->GetName(), name, { polygon }, 1);
+}
+
+GPUMemory::GPUString GpuSqlDispatcher::insertConstStringGpu(const std::string& str)
+{
+	std::string name = "constString" + std::to_string(constStringCounter);
+	constStringCounter++;
+	return insertString(database->GetName(), name, { str }, 1);
 }
 
 

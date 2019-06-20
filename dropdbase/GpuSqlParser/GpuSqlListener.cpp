@@ -196,6 +196,21 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 		dispatcher.addArctangent2Function(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(DataType::COLUMN_FLOAT);
 	}
+	else if (op == "CONCAT")
+	{
+		dispatcher.addConcatFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "LEFT")
+	{
+		dispatcher.addLeftFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "RIGHT")
+	{
+		dispatcher.addRightFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
 
 	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
@@ -376,6 +391,36 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	{
 		dispatcher.addCeilFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
+	}
+	else if (op == "LTRIM")
+	{
+		dispatcher.addLtrimFunction(operandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "RTRIM")
+	{
+		dispatcher.addRtrimFunction(operandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "LOWER")
+	{
+		dispatcher.addLowerFunction(operandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "UPPER")
+	{
+		dispatcher.addUpperFunction(operandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "REVERSE")
+	{
+		dispatcher.addReverseFunction(operandType);
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "LEN")
+	{
+		dispatcher.addLenFunction(operandType);
+		returnDataType = DataType::COLUMN_INT;
 	}
 
 	std::string reg = getRegString(ctx);
@@ -1060,7 +1105,8 @@ void GpuSqlListener::exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx
 /// <param name="ctx">String Literal context</param>
 void GpuSqlListener::exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx)
 {
-    parserStack.push(std::make_pair(ctx->getText(), DataType::CONST_STRING));
+	std::string strLit = ctx->getText().substr(1, ctx->getText().length() - 2);
+    parserStack.push(std::make_pair(strLit, DataType::CONST_STRING));
 }
 
 /// Method that executes on exit of boolean literal (True, False)
