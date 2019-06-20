@@ -9762,12 +9762,12 @@ TEST(DispatcherTests, CreateDropDatabase)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "CREATE DATABASE createdDb;");
+	GpuSqlCustomParser parser(nullptr, "CREATE DATABASE createdDb;");
 	auto resultPtr = parser.parse();
 
 	ASSERT_TRUE(Database::Exists("createdDb"));
 
-	GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database, "DROP DATABASE createdDb;");
+	GpuSqlCustomParser parser2(nullptr, "DROP DATABASE createdDb;");
 	resultPtr = parser2.parse();
 
 	ASSERT_TRUE(!Database::Exists("createdDb"));
@@ -9889,4 +9889,69 @@ TEST(DispatcherTests, WhereEvaluationColColPropagation)
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	FAIL();
+}
+
+std::string GetInsertIntoValuesString(const std::vector<std::vector<int32_t>>& data, int32_t index)
+{
+	std::string values;
+	for (const auto& vctr : data)
+	{
+		values += (std::to_string(vctr[index]) + ", ");
+	}
+	return values.substr(0, values.length() - 2);
+}
+
+TEST(DispatcherTests, WhereEvaluationAdvanced)
+{
+	GpuSqlCustomParser parserCreateDatabase(nullptr, "CREATE DATABASE WhereEvalDatabase 10;");
+	auto resultPtr = parserCreateDatabase.parse();
+
+	GpuSqlCustomParser parserCreateTable(Database::GetDatabaseByName("WhereEvalDatabase"), "CREATE TABLE TableA (ColA INT, ColB INT, ColC INT, ColD INT, INDEX IndA(ColA, ColB, ColC));");
+	resultPtr = parserCreateTable.parse();
+
+	std::vector<int32_t> dataIntA({ 1,  2, 3, 4,  5, 12, 17, 16, 19, 20, 1, 5, 3, 4,  2, 40, 150, 59, 110, 70});
+	std::vector<int32_t> dataIntB({ 4, 10, 1, 2,  3,  1,  3,  2,  3,  2, 7, 1, 1, 2, 10,  1,   1,  1,   1,  1});
+	std::vector<int32_t> dataIntC({ 6,  8, 1, 2,  1,  1,  3,  1,  4,  1, 7, 3, 2, 1,  6,  1,   1,  1,   1,  1});
+	std::vector<int32_t> dataIntD({ 1,  4, 5, 8, 10, 20, 40, 30, 50,  1, 2, 9, 6, 7,  3,  2,   6,  3,   5,  4});
+
+	for (int32_t i = 0; i < dataIntA.size(); i++)
+	{
+		GpuSqlCustomParser parserInsertInto(Database::GetDatabaseByName("WhereEvalDatabase"), "INSERT INTO TableA (ColA, ColB, ColC, ColD) VALUES (" + GetInsertIntoValuesString({ dataIntA, dataIntB, dataIntC, dataIntD }, i) + ");");
+		resultPtr = parserInsertInto.parse();
+	}
+
+	std::vector<int32_t> dataIntASorted({ 1, 1,  2,  2, 3, 3, 4, 4, 5,  5, 12, 16, 17, 19, 20, 40, 59, 70, 110, 150});
+	std::vector<int32_t> dataIntBSorted({ 4, 7, 10, 10, 1, 1, 2, 2, 1,  3,  1,  2,  3,  3,  2,  1,  1,  1,   1,   1});
+	std::vector<int32_t> dataIntCSorted({ 6, 7,  6,  8, 1, 2, 1, 2, 3,  1,  1,  1,  3,  4,  1,  1,  1,  1,   1,   1});
+	std::vector<int32_t> dataIntDSorted({ 1, 2,  3,  4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50,  1,  2,  3,  4,   5,   6});
+
+	std::shared_ptr<Database> database = Database::GetDatabaseByName("WhereEvalDatabase");
+	auto& table = database->GetTables().at("TableA");
+
+	auto& blocksColA = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColA").get())->GetBlocksList();
+	std::vector<int32_t> dataColA;
+	for (int i = 0; i < blocksColA.size(); i++)
+	{
+		for (int j = 0; j < blocksColA[i]->GetSize(); j++)
+		{
+			dataColA.push_back(blocksColA[i]->GetData()[j]);
+		}
+	}
+	for (int i = 0; i < dataColA.size(); i++)
+	{
+		std::cout << dataColA[i] << std::endl;
+	}
+
+	ASSERT_EQ(dataIntASorted.size(), dataColA.size());
+	for (int i = 0; i < dataColA.size(); i++)
+	{
+		ASSERT_EQ(dataIntASorted[i], dataColA[i]) << "sorting columns: " << table.GetSortingColumns()[0] << ", " << table.GetSortingColumns()[1] << ", " << table.GetSortingColumns()[2] << ", index: " <<  i << ", sorted: " << dataIntASorted[i] << ", in block: " << dataColA[i];
+	}
+
+	GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE WhereEvalDatabase;");
+	resultPtr = parserDropDatabase.parse();
+
+
+	//GpuSqlCustomParser parser(Database::GetDatabaseByName("WhereEvalDatabase"), "SELECT colA FROM testTable WHERE ((((colA >= 10) AND (ColA < 50)) OR (5 < (ColC + ColD))) AND SIN(ColD))");
+
 }

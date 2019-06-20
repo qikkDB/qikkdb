@@ -95,7 +95,6 @@ private:
 	int blockSize_;
 	std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
 
-    std::vector<T> NullArray(int length);
     void setColumnStatistics();
 
 	T min_ = std::numeric_limits<T>::lowest();
@@ -129,6 +128,8 @@ public:
 	{
 		return initAvgIsSet_;
 	}
+
+	static std::vector<T> NullArray(int length);
 
 	T GetMax()
 	{
@@ -382,7 +383,7 @@ public:
     /// <param name="length">Length of inserted data</param>
     void InsertNullData(int length)
     {
-        InsertData(NullArray(length));
+        InsertData(ColumnBase<T>::NullArray(length));
     }
 
     /// <summary>

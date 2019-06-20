@@ -62,6 +62,7 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/CpuWhereListener.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/CpuSqlDispatcher.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/CpuSqlDispatcher.h
+		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherInsertFunctions.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherLogicFunctions.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherArithmeticFunctions.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherArithmeticUnaryFunctions.cpp
@@ -82,7 +83,6 @@ set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherAggregationFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherDateFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherVMFunctions.cu
-				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherInsertFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherGeoFunctions.cu)
 
 if(WIN32)

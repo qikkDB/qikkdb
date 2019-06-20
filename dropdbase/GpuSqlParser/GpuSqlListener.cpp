@@ -988,7 +988,6 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 
 		bool isReferencedColumn = std::find(columns.begin(), columns.end(), columnPair) != columns.end();
 
-		dispatcher.addArgument<const std::string&>(table);
 		dispatcher.addArgument<const std::string&>(columnName);
 		dispatcher.addArgument<bool>(isReferencedColumn);
 
@@ -999,6 +998,7 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 			pushArgument(values[valueIndex].c_str(), static_cast<DataType>(static_cast<int>(columnDataType) - DataType::COLUMN_INT));
 		}
 	}
+	dispatcher.addArgument<const std::string&>(table);
 	dispatcher.addInsertIntoDoneFunction();
 }
 

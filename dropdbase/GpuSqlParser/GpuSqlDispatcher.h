@@ -2,8 +2,7 @@
 // Created by Martin Staňo on 2019-01-15.
 //
 
-#ifndef DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
-#define DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
+#pragma once
 
 #include <functional>
 #include <vector>
@@ -13,6 +12,10 @@
 #include <regex>
 #include <string>
 #include <mutex>
+#include <unordered_map>
+#ifndef __CUDACC__
+#include <any>
+#endif
 #include <condition_variable>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
@@ -22,6 +25,8 @@
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "ParserExceptions.h"
 #include "CpuSqlDispatcher.h"
+#include "../ComplexPolygonFactory.h"
+#include "../PointFactory.h"
 
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
@@ -56,6 +61,10 @@ private:
 	bool isRegisterAllocated(std::string& reg);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 	CpuSqlDispatcher cpuDispatcher;
+
+#ifndef __CUDACC__
+	std::unordered_map<std::string, std::any> insertIntoData;
+#endif
 
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -759,18 +768,4 @@ template<>
 int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
 
 template<>
-int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>();
-
-template<>
-int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
-
-template<>
-int32_t GpuSqlDispatcher::retCol<std::string>();
-
-template<>
-int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
-
-template<>
 int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::Point>();
-
-#endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H

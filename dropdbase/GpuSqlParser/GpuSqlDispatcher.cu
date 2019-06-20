@@ -791,8 +791,8 @@ int32_t GpuSqlDispatcher::createDatabase()
 int32_t GpuSqlDispatcher::dropDatabase()
 {
 	std::string dbName = arguments.read<std::string>();
+	Database::GetDatabaseByName(dbName)->DeleteDatabaseFromDisk();
 	Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
-	database->DeleteDatabaseFromDisk();
 	return 7;
 }
 
