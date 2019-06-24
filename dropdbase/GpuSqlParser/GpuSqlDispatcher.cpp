@@ -12,6 +12,10 @@
 #include "../ComplexPolygonFactory.h"
 #include "../Database.h"
 #include "../Table.h"
+#include <any>
+#include <string>
+#include <unordered_map>
+#include "InsertIntoStruct.h"
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 std::mutex GpuSqlDispatcher::groupByMutex_;
@@ -45,7 +49,8 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	noLoad(true),
 	loadNecessary(1),
 	cpuDispatcher(database),
-	jmpInstuctionPosition(0)
+	jmpInstuctionPosition(0),
+	insertIntoData(std::make_unique<InsertIntoStruct>())
 {
 }
 
@@ -603,30 +608,6 @@ std::tuple<GPUMemory::GPUPolygon, int32_t> GpuSqlDispatcher::findComplexPolygon(
 	polygon.polyCount = reinterpret_cast<int32_t*>(std::get<0>(allocatedPointers.at(colName + "_polyCount")));
 
 	return std::make_tuple(polygon, size);
-}
-
-NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& point)
-{
-	NativeGeoPoint nativePoint;
-	nativePoint.latitude = point.geopoint().latitude();
-	nativePoint.longitude = point.geopoint().longitude();
-
-	NativeGeoPoint *gpuPointer = allocateRegister<NativeGeoPoint>("constPoint" + std::to_string(constPointCounter), 1);
-	constPointCounter++;
-
-	GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<NativeGeoPoint*>(&nativePoint), 1);
-	return gpuPointer;
-}
-
-// TODO change to return GPUMemory::GPUPolygon struct
-/// Copy polygon column to GPU memory - create polygon gpu representation temporary buffers from protobuf polygon object
-/// <param name="polygon">Polygon object (protobuf type)</param>
-/// <returns>Struct with GPU pointers to start of polygon arrays</returns>
-GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
-{
-	std::string name = "constPolygon" + std::to_string(constPolygonCounter);
-	constPolygonCounter++;
-	return insertComplexPolygon(database->GetName(), name, { polygon }, 1);
 }
 
 

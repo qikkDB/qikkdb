@@ -9928,6 +9928,7 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
 	std::shared_ptr<Database> database = Database::GetDatabaseByName("WhereEvalDatabase");
 	auto& table = database->GetTables().at("TableA");
 
+	//ColA testing for correct sort
 	auto& blocksColA = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColA").get())->GetBlocksList();
 	std::vector<int32_t> dataColA;
 	for (int i = 0; i < blocksColA.size(); i++)
@@ -9937,21 +9938,74 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
 			dataColA.push_back(blocksColA[i]->GetData()[j]);
 		}
 	}
-	for (int i = 0; i < dataColA.size(); i++)
-	{
-		std::cout << dataColA[i] << std::endl;
-	}
 
 	ASSERT_EQ(dataIntASorted.size(), dataColA.size());
 	for (int i = 0; i < dataColA.size(); i++)
 	{
-		ASSERT_EQ(dataIntASorted[i], dataColA[i]) << "sorting columns: " << table.GetSortingColumns()[0] << ", " << table.GetSortingColumns()[1] << ", " << table.GetSortingColumns()[2] << ", index: " <<  i << ", sorted: " << dataIntASorted[i] << ", in block: " << dataColA[i];
+		ASSERT_EQ(dataIntASorted[i], dataColA[i]);
 	}
+
+	//ColB testing for correct sort
+	auto& blocksColB = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColB").get())->GetBlocksList();
+	std::vector<int32_t> dataColB;
+	ASSERT_EQ(blocksColB.size(), 4);
+	for (int i = 0; i < blocksColB.size(); i++)
+	{
+		ASSERT_EQ(blocksColB[i]->GetSize(), 5);
+		for (int j = 0; j < blocksColB[i]->GetSize(); j++)
+		{
+			dataColB.push_back(blocksColB[i]->GetData()[j]);
+		}
+	}
+
+	ASSERT_EQ(dataIntBSorted.size(), dataColB.size());
+	for (int i = 0; i < dataColB.size(); i++)
+	{
+		ASSERT_EQ(dataIntBSorted[i], dataColB[i]);
+	}
+
+	//ColC testing for correct sort
+	auto& blocksColC = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColC").get())->GetBlocksList();
+	std::vector<int32_t> dataColC;
+	for (int i = 0; i < blocksColC.size(); i++)
+	{
+		for (int j = 0; j < blocksColC[i]->GetSize(); j++)
+		{
+			dataColC.push_back(blocksColC[i]->GetData()[j]);
+		}
+	}
+
+	ASSERT_EQ(dataIntCSorted.size(), dataColC.size());
+	for (int i = 0; i < dataColC.size(); i++)
+	{
+		ASSERT_EQ(dataIntCSorted[i], dataColC[i]);
+	}
+
+	//ColD testing for correct sort
+	auto& blocksColD = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColD").get())->GetBlocksList();
+	std::vector<int32_t> dataColD;
+	for (int i = 0; i < blocksColD.size(); i++)
+	{
+		for (int j = 0; j < blocksColD[i]->GetSize(); j++)
+		{
+			dataColD.push_back(blocksColD[i]->GetData()[j]);
+		}
+	}
+
+	ASSERT_EQ(dataIntDSorted.size(), dataColD.size());
+	for (int i = 0; i < dataColD.size(); i++)
+	{
+		ASSERT_EQ(dataIntDSorted[i], dataColD[i]);
+	}
+
+	GpuSqlCustomParser parser(Database::GetDatabaseByName("WhereEvalDatabase"), "SELECT ColA FROM TableA WHERE (ColA >= 10 AND ColA < 50) AND ((5 < (ColB + ColC)) AND SIN(ColD));");
+	resultPtr = parser.parse();
+
 
 	GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE WhereEvalDatabase;");
 	resultPtr = parserDropDatabase.parse();
 
 
-	//GpuSqlCustomParser parser(Database::GetDatabaseByName("WhereEvalDatabase"), "SELECT colA FROM testTable WHERE ((((colA >= 10) AND (ColA < 50)) OR (5 < (ColC + ColD))) AND SIN(ColD))");
-
+	FAIL();
+	
 }

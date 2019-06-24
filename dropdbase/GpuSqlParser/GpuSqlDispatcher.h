@@ -13,9 +13,6 @@
 #include <string>
 #include <mutex>
 #include <unordered_map>
-#ifndef __CUDACC__
-#include <any>
-#endif
 #include <condition_variable>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
@@ -33,6 +30,7 @@ void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 #endif
 
 class Database;
+struct InsertIntoStruct;
 
 class GpuSqlDispatcher
 {
@@ -62,9 +60,7 @@ private:
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 	CpuSqlDispatcher cpuDispatcher;
 
-#ifndef __CUDACC__
-	std::unordered_map<std::string, std::any> insertIntoData;
-#endif
+	std::unique_ptr<InsertIntoStruct> insertIntoData;
 
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
