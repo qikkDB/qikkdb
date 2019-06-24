@@ -93,10 +93,10 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 	{
 		std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
 
-		// split colName to table and column name
-		const size_t endOfPolyIdx = colName.find(".");
-		const std::string table = colName.substr(0, endOfPolyIdx);
-		const std::string column = colName.substr(endOfPolyIdx + 1);
+		std::string table;
+		std::string column;
+
+		std::tie(table, column) = splitColumnName(colName);
 
 		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
 		GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);

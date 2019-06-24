@@ -22,7 +22,7 @@
 __device__ const int32_t HASH_TABLE_SUB_SIZE = 0x400;
 __device__ const int32_t HASH_MOD = 0x3FF;
 
-__device__ int32_t hash(int32_t key)
+__device__ constexpr int32_t hash(int32_t key)
 {
     return key & HASH_MOD;
 }
@@ -117,8 +117,8 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 }
 
 template <typename OP, typename T>
-__global__ void kernel_distribute_results_to_buffer(T* resultColumnQABlockIdx,
-                                                    T* resultColumnQBBlockIdx,
+__global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlockIdx,
+                                                    int32_t* resultColumnQBBlockIdx,
 													int32_t* JoinTableHisto,
 													int32_t* JoinTablePrefixSum,
 													int32_t joinTableSize,
@@ -251,7 +251,7 @@ private:
 	}
 
 	template<typename OP, typename T>
-	void JoinBlockWriteResults(T* resultColumnQABlockIdx, T* resultColumnQBBlockIdx, T* ColumnRBlock, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int32_t dataElementCountColumnSBlock)
+	void JoinBlockWriteResults(int32_t* resultColumnQABlockIdx, int32_t* resultColumnQBBlockIdx, T* ColumnRBlock, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int32_t dataElementCountColumnSBlock)
 	{
 		//////////////////////////////////////////////////////////////////////////////
 		// Distribute the result data to the result buffer

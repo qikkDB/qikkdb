@@ -611,6 +611,11 @@ void GpuSqlListener::exitJoinClause(GpuSqlParser::JoinClauseContext * ctx)
 	DataType rightColType;
 	std::tie(rightColName, rightColType) = generateAndValidateColumnName(ctx->joinColumnRight()->columnId());
 
+	if (leftColType != rightColType)
+	{
+		throw JoinColumnTypeException();
+	}
+
 	JoinType joinType = JoinType::INNER_JOIN;
 	if (ctx->joinType())
 	{
@@ -635,8 +640,12 @@ void GpuSqlListener::exitJoinClause(GpuSqlParser::JoinClauseContext * ctx)
 		}
 	}
 
-	dispatcher.addArgument<std::string>(leftColName);
-	dispatcher.addArgument<std::string>(rightColName);
+	std::string joinOperator = ctx->joinOperator()->getText();
+
+	dispatcher.addJoinFunction(leftColType, joinOperator);
+	dispatcher.addArgument<const std::string&>(leftColName);
+	dispatcher.addArgument<const std::string&>(rightColName);
+	dispatcher.addArgument<int32_t>(joinType);
 }
 
 

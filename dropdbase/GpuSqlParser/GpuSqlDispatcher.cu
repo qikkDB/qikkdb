@@ -566,6 +566,34 @@ void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value, bool usingGr
 		[DataType::DATA_TYPE_SIZE * key + value]);
 }
 
+void GpuSqlDispatcher::addJoinFunction(DataType type, std::string op)
+{
+	if (op == "=")
+	{
+		dispatcherFunctions.push_back(joinEqualFunctions[type]);
+	}
+	else if (op == ">")
+	{
+		dispatcherFunctions.push_back(joinGreaterFunctions[type]);
+	}
+	else if (op == "<")
+	{
+		dispatcherFunctions.push_back(joinLessFunctions[type]);
+	}
+	else if (op == ">=")
+	{
+		dispatcherFunctions.push_back(joinGreaterEqualFunctions[type]);
+	}
+	else if (op == "<=")
+	{
+		dispatcherFunctions.push_back(joinLessEqualFunctions[type]);
+	}
+	else if (op == "=" || op == "<>")
+	{
+		dispatcherFunctions.push_back(joinNotEqualFunctions[type]);
+	}
+}
+
 
 void GpuSqlDispatcher::addGroupByFunction(DataType type)
 {
@@ -1117,4 +1145,12 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, Colmna
 bool GpuSqlDispatcher::isRegisterAllocated(std::string & reg)
 {
 	return allocatedPointers.find(reg) != allocatedPointers.end();
+}
+
+std::pair<std::string, std::string> GpuSqlDispatcher::splitColumnName(const std::string& colName)
+{
+	const size_t splitIdx = colName.find(".");
+	const std::string table = colName.substr(0, splitIdx);
+	const std::string column = colName.substr(splitIdx + 1);
+	return {table, column};
 }

@@ -52,6 +52,7 @@ private:
 	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
 	bool isRegisterAllocated(std::string& reg);
+	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 
     static std::array<DispatchFunction,
@@ -185,15 +186,27 @@ private:
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgAggregationFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> joinEqualFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> joinGreaterFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> joinLessFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> joinGreaterEqualFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> joinLessEqualFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> joinNotEqualFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
@@ -415,6 +428,8 @@ public:
 
     void addAvgFunction(DataType key, DataType value, bool usingGroupBy);
 
+	void addJoinFunction(DataType type, std::string op);
+
     void addRetFunction(DataType type);
 
     void addFilFunction();
@@ -495,6 +510,12 @@ public:
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 	GPUMemory::GPUString insertConstStringGpu(const std::string& str);
+
+	template<typename OP, typename T>
+	int32_t joinCol();
+
+	template<typename OP, typename T>
+	int32_t joinConst();
 
   	template<typename T>
     int32_t retConst();
