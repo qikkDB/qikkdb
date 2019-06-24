@@ -416,10 +416,10 @@ public:
 	// Create a new outBlock based on a portion of join indexes and input column
 	template<typename T>
 	static void reorderByJoinTableCPU(T *outBlock,
-									  int32_t &outBlockDataElementCount,
-									  ColumnBase<T> &inColumn, 
+									  int32_t& outDataSize,
+									  const ColumnBase<T> &inColumn, 
 									  int32_t resultColumnQJoinIdxBlockIdx,
-									  std::vector<std::vector<int32_t>> &resultColumnQJoinIdx,
+									  const std::vector<std::vector<int32_t>> &resultColumnQJoinIdx,
 									  int32_t blockSize)
 	{
 		if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
@@ -430,8 +430,6 @@ public:
 		// Allocan output CPU vector
 		std::vector<T> outBlockVector;
 
-		// Reorder the data by iterating trough the input
-		outBlockDataElementCount = 0;
 		for (int32_t i = 0; i < resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size(); i++)
 		{
 			int32_t columnBlockId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] / blockSize;
@@ -441,8 +439,8 @@ public:
 			outBlockVector.push_back(val);
 		}
 
-		// Copy the results to the GPU
-		outBlockDataElementCount = outBlockVector.size();
-		GPUMemory::copyHostToDevice(outBlock, outBlockVector.data(), outBlockDataElementCount);
+		outDataSize = outBlockVector.size();
+
+		GPUMemory::copyHostToDevice(outBlock, outBlockVector.data(), outDataSize);
 	}
 };

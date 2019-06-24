@@ -43,10 +43,12 @@ private:
 	int32_t constPolygonCounter;
 	int32_t constStringCounter;
     const std::shared_ptr<Database> &database;
+	std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIndices;
 	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 	bool usingGroupBy;
+	bool usingJoin;
 	bool isLastBlockOfDevice;
 	bool isOverallLastBlock;
 	bool noLoad;
@@ -195,18 +197,6 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
-	static std::array<DispatchFunction,
-			DataType::DATA_TYPE_SIZE> joinEqualFunctions;
-	static std::array<DispatchFunction,
-			DataType::DATA_TYPE_SIZE> joinGreaterFunctions;
-	static std::array<DispatchFunction,
-			DataType::DATA_TYPE_SIZE> joinLessFunctions;
-	static std::array<DispatchFunction,
-			DataType::DATA_TYPE_SIZE> joinGreaterEqualFunctions;
-	static std::array<DispatchFunction,
-			DataType::DATA_TYPE_SIZE> joinLessEqualFunctions;
-	static std::array<DispatchFunction,
-			DataType::DATA_TYPE_SIZE> joinNotEqualFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
@@ -293,6 +283,8 @@ public:
 	GpuSqlDispatcher& operator=(const GpuSqlDispatcher&) = delete;
 
 	void copyExecutionDataTo(GpuSqlDispatcher& other);
+
+	void setJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx);
 
 	void execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception);
 
@@ -428,8 +420,6 @@ public:
 
     void addAvgFunction(DataType key, DataType value, bool usingGroupBy);
 
-	void addJoinFunction(DataType type, std::string op);
-
     void addRetFunction(DataType type);
 
     void addFilFunction();
@@ -510,12 +500,6 @@ public:
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 	GPUMemory::GPUString insertConstStringGpu(const std::string& str);
-
-	template<typename OP, typename T>
-	int32_t joinCol();
-
-	template<typename OP, typename T>
-	int32_t joinConst();
 
   	template<typename T>
     int32_t retConst();

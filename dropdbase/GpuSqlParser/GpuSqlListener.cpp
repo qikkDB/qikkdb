@@ -10,6 +10,7 @@
 #include "ParserExceptions.h"
 #include "JoinType.h"
 #include "GpuSqlDispatcher.h"
+#include "GpuSqlJoinDispatcher.h"
 #include <ctime>
 #include <iostream>
 #include <sstream>
@@ -28,9 +29,10 @@ constexpr float pi() { return 3.1415926f; }
 /// </summary>
 /// <param name="database">Database instance reference</param>
 /// <param name="dispatcher">Dispatcher instance reference</param>
-GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSqlDispatcher& dispatcher): 
-	database(database), 
+GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSqlDispatcher& dispatcher, GpuSqlJoinDispatcher& joinDispatcher) :
+	database(database),
 	dispatcher(dispatcher),
+	joinDispatcher(joinDispatcher),
 	linkTableIndex(0),
 	usingLoad(false),
 	usingWhere(false),
@@ -642,10 +644,15 @@ void GpuSqlListener::exitJoinClause(GpuSqlParser::JoinClauseContext * ctx)
 
 	std::string joinOperator = ctx->joinOperator()->getText();
 
-	dispatcher.addJoinFunction(leftColType, joinOperator);
-	dispatcher.addArgument<const std::string&>(leftColName);
-	dispatcher.addArgument<const std::string&>(rightColName);
-	dispatcher.addArgument<int32_t>(joinType);
+	joinDispatcher.addJoinFunction(leftColType, joinOperator);
+	joinDispatcher.addArgument<const std::string&>(leftColName);
+	joinDispatcher.addArgument<const std::string&>(rightColName);
+	joinDispatcher.addArgument<int32_t>(joinType);
+}
+
+void GpuSqlListener::exitJoinClauses(GpuSqlParser::JoinClausesContext * ctx)
+{
+	joinDispatcher.addJoinDoneFunction();
 }
 
 

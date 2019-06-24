@@ -2,6 +2,7 @@
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "../../QueryEngine/GPUCore/GPUJoin.cuh"
 #include "../../Database.h"
 #include "../../Table.h"
 #include "../../ColumnBase.h"
@@ -116,7 +117,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
 		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
 
-		if (block->IsCompressed())
+		if (block->IsCompressed() && !usingJoin)
 		{
 			size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
 			size_t compressedSize = block->GetSize();
@@ -148,11 +149,21 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 		}
 		else
 		{
+			int32_t loadSize = usingJoin ? joinIndices->at(table)[blockIndex].size() : block->GetSize();
 			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-				database->GetName(), colName, blockIndex, block->GetSize());
+				database->GetName(), colName, blockIndex, loadSize);
 			if (!std::get<2>(cacheEntry))
 			{
-				GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+				if (usingJoin)
+				{
+					std::cout << "Loading joined block." << std::endl;
+					int32_t outDataSize;
+					GPUJoin::reorderByJoinTableCPU<T>(std::get<0>(cacheEntry), outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+				}
+				else
+				{
+					GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+				}
 			}
 			addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
 

@@ -616,8 +616,8 @@ for operation in ['len']:
 print()
 
 for opIdx, operation in enumerate(['joinEqual', 'joinGreater', 'joinLess', 'joinGreaterEqual', 'joinLessEqual', 'joinNotEqual']):
-    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
-                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+    declaration = "std::array<GpuSqlJoinDispatcher::DispatchJoinFunction," \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlJoinDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
 
@@ -631,7 +631,7 @@ for opIdx, operation in enumerate(['joinEqual', 'joinGreater', 'joinLess', 'join
         else:
             op = "join"
 
-        function = "GpuSqlDispatcher::" + op + col + "<FilterConditions::" + filter_operations[opIdx] + ", " + colVal + ">"
+        function = "GpuSqlJoinDispatcher::" + op + col + "<FilterConditions::" + filter_operations[opIdx] + ", " + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")

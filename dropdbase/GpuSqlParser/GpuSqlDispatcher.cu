@@ -42,9 +42,11 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
+	usingJoin(false),
 	isLastBlockOfDevice(false),
 	isOverallLastBlock(false),
-	noLoad(true)
+	noLoad(true),
+	joinIndices(nullptr) 
 {
 }
 
@@ -66,6 +68,12 @@ void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
 {
 	other.dispatcherFunctions = dispatcherFunctions;
 	other.arguments = arguments;
+}
+
+void GpuSqlDispatcher::setJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx)
+{
+	joinIndices = joinIdx;
+	usingJoin = true;
 }
 
 /// Main execution loop of dispatcher
@@ -565,35 +573,6 @@ void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value, bool usingGr
     dispatcherFunctions.push_back((usingGroupBy ? avgGroupByFunctions : avgAggregationFunctions)
 		[DataType::DATA_TYPE_SIZE * key + value]);
 }
-
-void GpuSqlDispatcher::addJoinFunction(DataType type, std::string op)
-{
-	if (op == "=")
-	{
-		dispatcherFunctions.push_back(joinEqualFunctions[type]);
-	}
-	else if (op == ">")
-	{
-		dispatcherFunctions.push_back(joinGreaterFunctions[type]);
-	}
-	else if (op == "<")
-	{
-		dispatcherFunctions.push_back(joinLessFunctions[type]);
-	}
-	else if (op == ">=")
-	{
-		dispatcherFunctions.push_back(joinGreaterEqualFunctions[type]);
-	}
-	else if (op == "<=")
-	{
-		dispatcherFunctions.push_back(joinLessEqualFunctions[type]);
-	}
-	else if (op == "=" || op == "<>")
-	{
-		dispatcherFunctions.push_back(joinNotEqualFunctions[type]);
-	}
-}
-
 
 void GpuSqlDispatcher::addGroupByFunction(DataType type)
 {
