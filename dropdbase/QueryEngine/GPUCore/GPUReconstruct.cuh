@@ -211,6 +211,11 @@ public:
 	static void ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
 		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
 
+	/// Reconstruct GPUString column to two arrays: string lengths and all chars
+	/// and copy them to the CPU.
+	static void ReconstructStringColRaw(std::vector<int32_t>& keysStringLengths, std::vector<char>& keysAllChars,
+		int32_t *outDataElementCount, GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
+
 	/// Convert polygons to WKTs (GPUPolygon column to GPUString columns)
 	/// <param name="outStringCol">output GPUString column</param>
 	/// <param name="inPolygonCol">input GPUPolygon column</param>

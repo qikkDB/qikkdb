@@ -180,6 +180,7 @@ int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int3
 	return lastIndex + lastCount;
 }
 
+
 void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString *outStringCol, int32_t *outDataElementCount,
 	GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount)
 {
@@ -235,6 +236,7 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString *outStringCol
 	CheckCudaError(cudaGetLastError());
 }
 
+
 void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
 	GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount)
 {
@@ -269,6 +271,72 @@ void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *o
 				(i == 0 ? 0 : hostStringIndices[i - 1]), length);
 		}
 	}
+}
+
+
+void GPUReconstruct::ReconstructStringColRaw(std::vector<int32_t>& keysStringLengths, std::vector<char>& keysAllChars,
+	int32_t *outDataElementCount, GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount)
+{
+	Context& context = Context::getInstance();
+
+	if (inMask)		// If mask is used (if inMask is not nullptr)
+	{
+		// Malloc a new buffer for the prefix sum vector
+		cuda_ptr<int32_t> inPrefixSumPointer(inDataElementCount);
+		PrefixSum(inPrefixSumPointer.get(), inMask, inDataElementCount);
+		GPUMemory::copyDeviceToHost(outDataElementCount, inPrefixSumPointer.get() + inDataElementCount - 1, 1);
+
+		if (*outDataElementCount > 0)	// Not empty result set
+		{
+			// Compute lenghts from indices (reversed inclusive prefix sum)
+			cuda_ptr<int32_t> inLengths(inDataElementCount);
+			kernel_lengths_from_indices << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
+				(inLengths.get(), inStringCol.stringIndices, inDataElementCount);
+
+			// Reconstruct lenghts according to mask
+			cuda_ptr<int32_t> outLengths(*outDataElementCount);
+			kernel_reconstruct_col << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
+				(outLengths.get(), inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
+			// Copy lengths to host
+			keysStringLengths.reserve(*outDataElementCount);
+			GPUMemory::copyDeviceToHost(keysStringLengths.data(), outLengths.get(), *outDataElementCount);
+
+			// Compute new indices as prefix sum of reconstructed lengths
+			GPUMemory::GPUString outStringCol;
+			GPUMemory::alloc(&(outStringCol.stringIndices), *outDataElementCount);
+			PrefixSum(outStringCol.stringIndices, outLengths.get(), *outDataElementCount);
+
+			int64_t outTotalCharCount;
+			GPUMemory::copyDeviceToHost(&outTotalCharCount, outStringCol.stringIndices + *outDataElementCount - 1, 1);
+			GPUMemory::alloc(&(outStringCol.allChars), outTotalCharCount);
+
+			// Reconstruct chars
+			kernel_reconstruct_string_chars << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
+				(outStringCol, inStringCol, inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
+			// Copy chars to host
+			keysAllChars.reserve(outTotalCharCount);
+			GPUMemory::copyDeviceToHost(keysAllChars.data(), outStringCol.allChars, outTotalCharCount);
+			GPUMemory::free(outStringCol);
+		}
+	}
+	else	// If mask is not used (is nullptr), just copy pointers from inCol to outCol
+	{
+		*outDataElementCount = inDataElementCount;
+
+		// Compute lenghts from indices (reversed inclusive prefix sum)
+		int64_t outTotalCharCount;
+		GPUMemory::copyDeviceToHost(&outTotalCharCount, inStringCol.stringIndices + inDataElementCount - 1, 1);
+		cuda_ptr<int32_t> lengths(inDataElementCount);
+		kernel_lengths_from_indices << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
+			(lengths.get(), inStringCol.stringIndices, inDataElementCount);
+		keysStringLengths.reserve(inDataElementCount);
+		GPUMemory::copyDeviceToHost(keysStringLengths.data(), lengths.get(), inDataElementCount);
+		keysAllChars.reserve(outTotalCharCount);
+		GPUMemory::copyDeviceToHost(keysAllChars.data(), inStringCol.allChars, outTotalCharCount);
+	}
+
+	// Get last error
+	CheckCudaError(cudaGetLastError());
 }
 
 
