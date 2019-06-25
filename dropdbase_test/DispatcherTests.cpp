@@ -10053,7 +10053,7 @@ TEST(DispatcherTests, StringLower)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunFunctionQuery("LOWER", col, table);
+	auto payloads = RunFunctionQuery("LOWER", col, table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10079,7 +10079,7 @@ TEST(DispatcherTests, StringLower)
 TEST(DispatcherTests, StringLowerConst)
 {
 	const std::string text = "\"ABCDabcdzZ [{|}]_#90\"";
-	auto &payloads = RunFunctionQuery("LOWER", text, "TableA LIMIT 1");
+	auto payloads = RunFunctionQuery("LOWER", text, "TableA LIMIT 1");
 
 	std::vector<std::string> expectedResultsStrings;
 	std::string edited;
@@ -10096,7 +10096,7 @@ TEST(DispatcherTests, StringUpper)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunFunctionQuery("UPPER", col, table);
+	auto payloads = RunFunctionQuery("UPPER", col, table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10122,7 +10122,7 @@ TEST(DispatcherTests, StringUpper)
 TEST(DispatcherTests, StringUpperConst)
 {
 	const std::string text = "\"ABCDabcdzZ [{|}]_#90\"";
-	auto &payloads = RunFunctionQuery("UPPER", text, "TableA LIMIT 1");
+	auto payloads = RunFunctionQuery("UPPER", text, "TableA LIMIT 1");
 
 	std::vector<std::string> expectedResultsStrings;
 	std::string edited;
@@ -10139,7 +10139,7 @@ TEST(DispatcherTests, StringReverse)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunFunctionQuery("REVERSE", col, table);
+	auto payloads = RunFunctionQuery("REVERSE", col, table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10162,7 +10162,7 @@ TEST(DispatcherTests, StringReverse)
 TEST(DispatcherTests, StringReverseConst)
 {
 	const std::string text = "\"ABCDabcdzZ [{|}]_#90\"";
-	auto &payloads = RunFunctionQuery("REVERSE", text, "TableA LIMIT 1");
+	auto payloads = RunFunctionQuery("REVERSE", text, "TableA LIMIT 1");
 
 	std::vector<std::string> expectedResultsStrings;
 	std::string edited(text.substr(1, text.length() - 2));
@@ -10176,7 +10176,7 @@ TEST(DispatcherTests, StringLtrim)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunFunctionQuery("LTRIM", col, table);
+	auto payloads = RunFunctionQuery("LTRIM", col, table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10204,7 +10204,7 @@ TEST(DispatcherTests, StringLtrim)
 TEST(DispatcherTests, StringLtrimConst)
 {
 	const std::string text = "\"  ABCDabcdzZ [{|}]_#90  \"";
-	auto &payloads = RunFunctionQuery("LTRIM", text, "TableA LIMIT 1");
+	auto payloads = RunFunctionQuery("LTRIM", text, "TableA LIMIT 1");
 
 	std::vector<std::string> expectedResultsStrings;
 
@@ -10224,7 +10224,7 @@ TEST(DispatcherTests, StringRtrim)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunFunctionQuery("RTRIM", col, table);
+	auto payloads = RunFunctionQuery("RTRIM", col, table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10248,7 +10248,7 @@ TEST(DispatcherTests, StringRtrim)
 TEST(DispatcherTests, StringRtrimConst)
 {
 	const std::string text = "\"  ABCDabcdzZ [{|}]_#90  \"";
-	auto &payloads = RunFunctionQuery("RTRIM", text, "TableA LIMIT 1");
+	auto payloads = RunFunctionQuery("RTRIM", text, "TableA LIMIT 1");
 
 	std::vector<std::string> expectedResultsStrings;
 
@@ -10264,7 +10264,7 @@ TEST(DispatcherTests, StringLen)
 {
 	const std::string col = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunFunctionQuery("LEN", col, table);
+	auto payloads = RunFunctionQuery("LEN", col, table);
 
 	std::vector<int32_t> expectedResults;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10290,7 +10290,7 @@ TEST(DispatcherTests, StringLen)
 TEST(DispatcherTests, StringLenConst)
 {
 	const std::string text = "\"  ABCDabcdzZ [{|}]_#90  \"";
-	auto &payloads = RunFunctionQuery("LEN", text, "TableA LIMIT 1");
+	auto payloads = RunFunctionQuery("LEN", text, "TableA LIMIT 1");
 
 	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
 	ASSERT_EQ(payloads.intpayload().intdata()[0], text.length() - 2); // - 2 because of two quotes ""
@@ -10302,7 +10302,7 @@ TEST(DispatcherTests, StringLeftColCol)
 	const std::string colIntName = "colInteger1";
 	const std::string table = "TableA";
 	const int32_t testLen = 2;
-	auto &payloads = RunFunctionColConstQuery("LEFT", colStrName, "ABS(" + colIntName + ")", table);
+	auto payloads = RunFunctionColConstQuery("LEFT", colStrName, "ABS(" + colIntName + ")", table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10328,7 +10328,7 @@ TEST(DispatcherTests, StringLeftColConst)
 	const std::string col = "colString1";
 	const std::string table = "TableA";
 	const int32_t testLen = 2;
-	auto &payloads = RunFunctionColConstQuery("LEFT", col, std::to_string(testLen), table);
+	auto payloads = RunFunctionColConstQuery("LEFT", col, std::to_string(testLen), table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10351,7 +10351,7 @@ TEST(DispatcherTests, StringLeftConstCol)
 	const std::string text = "  ABCDabcdzZ [{|}]_#90  ";
 	const std::string colIntName = "colInteger1";
 	const std::string table = "TableA";
-	auto &payloads = RunFunctionColConstQuery("LEFT", "\"" + text + "\"", "ABS(" + colIntName + ")", table);
+	auto payloads = RunFunctionColConstQuery("LEFT", "\"" + text + "\"", "ABS(" + colIntName + ")", table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->
@@ -10373,7 +10373,7 @@ TEST(DispatcherTests, StringLeftConstConst)
 {
 	const std::string text = "  ABCDabcdzZ [{|}]_#90  ";
 	const int32_t testLen = 2;
-	auto &payloads = RunFunctionColConstQuery("LEFT", "\"" + text + "\"", std::to_string(testLen), "TableA LIMIT 1");
+	auto payloads = RunFunctionColConstQuery("LEFT", "\"" + text + "\"", std::to_string(testLen), "TableA LIMIT 1");
 
 	std::vector<std::string> expectedResultsStrings;
 	
@@ -10388,7 +10388,7 @@ TEST(DispatcherTests, StringRightColCol)
 	const std::string colStrName = "colString1";
 	const std::string colIntName = "colInteger1";
 	const std::string table = "TableA";
-	auto &payloads = RunFunctionColConstQuery("RIGHT", colStrName, "ABS(" + colIntName + ")", table);
+	auto payloads = RunFunctionColConstQuery("RIGHT", colStrName, "ABS(" + colIntName + ")", table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10416,7 +10416,7 @@ TEST(DispatcherTests, StringRightColConst)
 	const std::string col = "colString1";
 	const std::string table = "TableA";
 	const int32_t testLen = 3;
-	auto &payloads = RunFunctionColConstQuery("RIGHT", col, std::to_string(testLen), table);
+	auto payloads = RunFunctionColConstQuery("RIGHT", col, std::to_string(testLen), table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto column = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10440,7 +10440,7 @@ TEST(DispatcherTests, StringRightConstCol)
 	const std::string text = "  ABCDabcdzZ [{|}]_#90  ";
 	const std::string colIntName = "colInteger1";
 	const std::string table = "TableA";
-	auto &payloads = RunFunctionColConstQuery("RIGHT", "\"" + text + "\"", "ABS(" + colIntName + ")", table);
+	auto payloads = RunFunctionColConstQuery("RIGHT", "\"" + text + "\"", "ABS(" + colIntName + ")", table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->
@@ -10464,7 +10464,7 @@ TEST(DispatcherTests, StringRightConstConst)
 {
 	const std::string text = "  ABCDabcdzZ [{|}]_#90  ";
 	const int32_t testLen = 2;
-	auto &payloads = RunFunctionColConstQuery("RIGHT", "\"" + text + "\"", std::to_string(testLen), "TableA LIMIT 1");
+	auto payloads = RunFunctionColConstQuery("RIGHT", "\"" + text + "\"", std::to_string(testLen), "TableA LIMIT 1");
 
 	std::vector<std::string> expectedResultsStrings;
 
@@ -10480,7 +10480,7 @@ TEST(DispatcherTests, StringConcatColCol)
 	const std::string colStrName = "colString1";
 	const std::string table = "TableA";
 	const int32_t testLen = 2;
-	auto &payloads = RunQuery("CONCAT("+ table + "." + colStrName + "," + table + "." + colStrName + ")", "FROM " + table);
+	auto payloads = RunQuery("CONCAT("+ table + "." + colStrName + "," + table + "." + colStrName + ")", "FROM " + table);
 	
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10504,7 +10504,7 @@ TEST(DispatcherTests, StringConcatColConst)
 	const std::string text = "az#7";
 	const std::string table = "TableA";
 	const int32_t testLen = 2;
-	auto &payloads = RunQuery("CONCAT(" + table + "." + colStrName + ",\"" + text + "\")", "FROM " + table);
+	auto payloads = RunQuery("CONCAT(" + table + "." + colStrName + ",\"" + text + "\")", "FROM " + table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10528,7 +10528,7 @@ TEST(DispatcherTests, StringConcatConstCol)
 	const std::string colStrName = "colString1";
 	const std::string table = "TableA";
 	const int32_t testLen = 2;
-	auto &payloads = RunQuery("CONCAT(\"" + text + "\"," + table + "." + colStrName + ")", "FROM " + table);
+	auto payloads = RunQuery("CONCAT(\"" + text + "\"," + table + "." + colStrName + ")", "FROM " + table);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10551,7 +10551,7 @@ TEST(DispatcherTests, StringConcatConstConst)
 	const std::string text1 = "abcd";
 	const std::string text2 = "XYZ_2";
 	const std::string table = "TableA";
-	auto &payloads = RunQuery("CONCAT(\"" + text1 + "\",\"" + text2 + "\")", "FROM " + table + " LIMIT 1");
+	auto payloads = RunQuery("CONCAT(\"" + text1 + "\",\"" + text2 + "\")", "FROM " + table + " LIMIT 1");
 
 	std::vector<std::string> expectedResultsStrings;
 
@@ -10565,7 +10565,7 @@ TEST(DispatcherTests, StringEqColConst)
 	const std::string text = "Word0";
 	const std::string colStrName = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + colStrName + " = \"" + text + "\"");
+	auto payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + colStrName + " = \"" + text + "\"");
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10591,7 +10591,7 @@ TEST(DispatcherTests, StringNotEqColConst)
 	const std::string text = "Word0";
 	const std::string colStrName = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + colStrName + " != \"" + text + "\"");
+	auto payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + colStrName + " != \"" + text + "\"");
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10617,7 +10617,7 @@ TEST(DispatcherTests, StringEqConstCol)
 	const std::string text = "Word0";
 	const std::string colStrName = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + "\"" + text + "\"" + " = " + colStrName);
+	auto payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + "\"" + text + "\"" + " = " + colStrName);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10643,7 +10643,7 @@ TEST(DispatcherTests, StringNotEqConstCol)
 	const std::string text = "Word0";
 	const std::string colStrName = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + "\"" + text + "\"" + " != " + colStrName);
+	auto payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + "\"" + text + "\"" + " != " + colStrName);
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10669,7 +10669,7 @@ TEST(DispatcherTests, StringEqConstConst)
 	const std::string text = "Word0";
 	const std::string colStrName = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + "\"" + text + "\"" + " = \"" + text + "\"");
+	auto payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + "\"" + text + "\"" + " = \"" + text + "\"");
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
@@ -10692,7 +10692,7 @@ TEST(DispatcherTests, StringNotEqConstConst)
 	const std::string text = "Word0";
 	const std::string colStrName = "colString1";
 	const std::string table = "TableA";
-	auto &payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + "\"" + text + "diff" + "\"" + " != \"" + text + "\"");
+	auto payloads = RunQuery(table + "." + colStrName, "FROM " + table + " WHERE " + "\"" + text + "diff" + "\"" + " != \"" + text + "\"");
 
 	std::vector<std::string> expectedResultsStrings;
 	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->
