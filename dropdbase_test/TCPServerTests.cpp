@@ -51,11 +51,11 @@ class DummyClientHandler : public IClientHandler
 		ret->set_message("");
 		return ret;
 	}
-	virtual std::unique_ptr<google::protobuf::Message> HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer) 
+	virtual std::unique_ptr<google::protobuf::Message> HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer) override 
 	{
 		std::unique_ptr<ColmnarDB::NetworkClient::Message::InfoMessage> ret = std::make_unique< ColmnarDB::NetworkClient::Message::InfoMessage>();
 		if(std::string(bulkImportMessage.columnname()) != "test" || std::string(bulkImportMessage.tablename()) != "test" 
-		|| bulkImportMessage.columntype() != DataType::COLUMN_INT || bulkImportMessage.elemcount() != 5)
+		|| bulkImportMessage.columntype() != ColmnarDB::NetworkClient::Message::DataType::COLUMN_INT || bulkImportMessage.elemcount() != 5)
 		{
 			printf("Something wrong.\n");
 			ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);	
@@ -193,7 +193,7 @@ TEST(TCPServer, ServerMessageInfo)
 		future.join();
 		printf("\nServerMessageInfoEnd\n");
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		ASSERT_TRUE(false);
 	}
@@ -216,7 +216,7 @@ TEST(TCPServer, ServerMessageSetDB)
 		future.join();
 		printf("\nServerMessageSetDBEnd\n");
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		ASSERT_TRUE(false);
 	}
@@ -242,7 +242,7 @@ TEST(TCPServer, ServerMessageQuery)
 		future.join();
 		printf("\nServerMessageQueryEnd\n");
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		ASSERT_TRUE(false);
 	}
@@ -265,7 +265,7 @@ TEST(TCPServer, ServerMessageCSV)
 		future.join();
 		printf("\nServerMessageCSVEnd\n");
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		ASSERT_TRUE(false);
 	}
@@ -289,7 +289,7 @@ TEST(TCPServer, ServerMessageBulkImport)
 		future.join();
 		printf("\nServerMessageBulkImportEnd\n");
 	}
-	catch (std::exception& e)
+	catch (...)
 	{
 		ASSERT_TRUE(false);
 	}

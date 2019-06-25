@@ -8,8 +8,6 @@
 #include <chrono>
 #include "messages/QueryResponseMessage.pb.h"
 #include <boost/log/trivial.hpp>
-#include "Table.h"
-#include "ColumnBase.h"
 
 std::mutex TCPClientHandler::queryMutex_;
 
@@ -20,7 +18,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 	{
 		if (lastQueryResult_.valid())
 		{
-			lastResultMessage_ = std::move(lastQueryResult_.get());
+			lastResultMessage_ = lastQueryResult_.get();
 		}
 		else
 		{
@@ -63,6 +61,9 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 				break;
 			case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
 				lastResultLen_ = std::max(payload.second.stringpayload().stringdata().size(), lastResultLen_);
+				break;
+			default:
+				throw std::out_of_range("Invalid networking payload case");
 				break;
 			}
 		}
@@ -132,6 +133,9 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 			{
 				finalPayload.mutable_stringpayload()->add_stringdata(payload.second.stringpayload().stringdata()[i]);
 			}
+			break;
+		default:
+			throw std::out_of_range("Invalid networking payload case");
 			break;
 		}
 		smallPayload->mutable_payloads()->insert({ payload.first,finalPayload });

@@ -13,8 +13,10 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTestsRegression.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
-				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp)
-				
+				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/GPUCompressionTests.cpp
+				)
+
 set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUArtithmeticTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUAggregationTests.cu
@@ -23,13 +25,15 @@ set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUReconstructTests.cu)
 
 if(WIN32)
-	set_source_files_properties(${TEST_FILES} PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275")
-	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "-Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\" -Xcompiler=\"/bigobj\"")
+	set_source_files_properties(${TEST_FILES} PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275 /wd4244 /wd4267 /wd4305")
+	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "-Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\" -Xcompiler=\"/bigobj /wd4251 /wd4275 /wd4244 /wd4267 /wd4305\" --expt-relaxed-constexpr")
 endif(WIN32)
 if(NOT WIN32)
-	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "--compiler-bindir=${CMAKE_CXX_COMPILER}")
+	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "--compiler-bindir=${CMAKE_CXX_COMPILER} --expt-relaxed-constexpr")
 endif(NOT WIN32)
 add_executable(${PROJECT_NAME}_test ${TEST_FILES} ${CUDA_TEST_FILES})
+set_target_properties(${PROJECT_NAME}_test PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(${PROJECT_NAME}_test PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIR}) 
 

@@ -47,21 +47,48 @@ GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector
 			polyPoints.push_back({ 0, 0 });
 		}
 	}
-	GPUMemory::GPUPolygon retPointers;
-	GPUMemory::alloc(&retPointers.pointCount, pointCount.size());
-	GPUMemory::copyHostToDevice(retPointers.pointCount, pointCount.data(), pointCount.size());
+	GPUMemory::GPUPolygon retPointers = {nullptr, nullptr, nullptr, nullptr, nullptr};
+	try
+	{
+		GPUMemory::alloc(&retPointers.pointCount, pointCount.size());
+		GPUMemory::copyHostToDevice(retPointers.pointCount, pointCount.data(), pointCount.size());
 
-	GPUMemory::alloc(&retPointers.pointIdx, pointIdx.size());
-	GPUMemory::copyHostToDevice(retPointers.pointIdx, pointIdx.data(), pointIdx.size());
+		GPUMemory::alloc(&retPointers.pointIdx, pointIdx.size());
+		GPUMemory::copyHostToDevice(retPointers.pointIdx, pointIdx.data(), pointIdx.size());
 
-	GPUMemory::alloc(&retPointers.polyCount, polyCount.size());
-	GPUMemory::copyHostToDevice(retPointers.polyCount, polyCount.data(), polyCount.size());
+		GPUMemory::alloc(&retPointers.polyCount, polyCount.size());
+		GPUMemory::copyHostToDevice(retPointers.polyCount, polyCount.data(), polyCount.size());
 
-	GPUMemory::alloc(&retPointers.polyIdx, polyIdx.size());
-	GPUMemory::copyHostToDevice(retPointers.polyIdx, polyIdx.data(), polyIdx.size());
+		GPUMemory::alloc(&retPointers.polyIdx, polyIdx.size());
+		GPUMemory::copyHostToDevice(retPointers.polyIdx, polyIdx.data(), polyIdx.size());
 
-	GPUMemory::alloc(&retPointers.polyPoints, polyPoints.size());
-	GPUMemory::copyHostToDevice(retPointers.polyPoints, polyPoints.data(), polyPoints.size());
+		GPUMemory::alloc(&retPointers.polyPoints, polyPoints.size());
+		GPUMemory::copyHostToDevice(retPointers.polyPoints, polyPoints.data(), polyPoints.size());
+	}
+	catch(...)
+	{
+		if(retPointers.pointCount)
+		{
+			GPUMemory::free(retPointers.pointCount);
+		}
+		if(retPointers.pointIdx)
+		{
+			GPUMemory::free(retPointers.pointIdx);
+		}
+		if(retPointers.polyCount)
+		{
+			GPUMemory::free(retPointers.polyCount);
+		}
+		if(retPointers.polyIdx)
+		{
+			GPUMemory::free(retPointers.polyIdx);
+		}
+		if(retPointers.polyPoints)
+		{
+			GPUMemory::free(retPointers.polyPoints);
+		}
+		throw;
+	}
 	return retPointers;
 }
 

@@ -46,6 +46,7 @@ private:
 	int32_t constPointCounter;
 	int32_t constPolygonCounter;
 	int32_t jmpInstuctionPosition;
+	int32_t constStringCounter;
     const std::shared_ptr<Database> &database;
 	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
@@ -103,6 +104,8 @@ private:
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> arctangent2Functions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> concatFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions;
@@ -114,6 +117,10 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> intersectFunctions;
     static std::array<DispatchFunction, 
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> unionFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> leftFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rightFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
 	static std::array<DispatchFunction, 
@@ -164,6 +171,18 @@ private:
 		DataType::DATA_TYPE_SIZE> ceilFunctions;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> floorFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> ltrimFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> rtrimFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> lowerFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> upperFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> reverseFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+		DataType::DATA_TYPE_SIZE> lenFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minAggregationFunctions;
     static std::array<DispatchFunction,
@@ -358,6 +377,12 @@ public:
 
 	void addArctangent2Function(DataType y, DataType x);
 
+	void addConcatFunction(DataType left, DataType right);
+
+	void addLeftFunction(DataType left, DataType right);
+
+	void addRightFunction(DataType left, DataType right);
+
 	void addLogarithmNaturalFunction(DataType type);
 
 	void addExponentialFunction(DataType type);
@@ -375,6 +400,18 @@ public:
 	void addFloorFunction(DataType type);
 
 	void addCeilFunction(DataType type);
+
+	void addLtrimFunction(DataType type);
+
+	void addRtrimFunction(DataType type);
+
+	void addLowerFunction(DataType type);
+
+	void addUpperFunction(DataType type);
+
+	void addReverseFunction(DataType type);
+
+	void addLenFunction(DataType type);
 
 	void addRootFunction(DataType base, DataType exponent);
 
@@ -438,6 +475,8 @@ public:
 
 	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false);
 
+	void fillStringRegister(GPUMemory::GPUString& stringColumn, const std::string& reg, int32_t size, bool useCache = false);
+
 	template<typename T>
 	void addCachedRegister(const std::string& reg, T* ptr, int32_t size)
 	{
@@ -462,9 +501,12 @@ public:
 	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
 	GPUMemory::GPUPolygon insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
+	GPUMemory::GPUString insertString(const std::string& databaseName, const std::string& colName, const std::vector<std::string>& strings, int32_t size, bool useCache = false);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
+	std::tuple<GPUMemory::GPUString, int32_t> findStringColumn(const std::string &colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
+	GPUMemory::GPUString insertConstStringGpu(const std::string& str);
 
   	template<typename T>
     int32_t retConst();
@@ -515,6 +557,18 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t filterConstConst();
 
+	template<typename OP>
+	int32_t filterStringColConst();
+
+	template<typename OP>
+	int32_t filterStringConstCol();
+
+	template<typename OP>
+	int32_t filterStringColCol();
+
+	template<typename OP>
+	int32_t filterStringConstConst();
+
 	template<typename OP, typename T, typename U>
 	int32_t logicalColConst();
 
@@ -544,6 +598,42 @@ public:
 
 	template<typename OP, typename T>
 	int32_t arithmeticUnaryConst();
+
+	template<typename OP>
+	int32_t stringUnaryCol();
+
+	template<typename OP>
+	int32_t stringUnaryConst();
+
+	template<typename OP>
+	int32_t stringUnaryNumericCol();
+
+	template<typename OP>
+	int32_t stringUnaryNumericConst();
+
+	template<typename OP>
+	int32_t stringBinaryColCol();
+
+	template<typename OP>
+	int32_t stringBinaryColConst();
+
+	template<typename OP>
+	int32_t stringBinaryConstCol();
+
+	template<typename OP>
+	int32_t stringBinaryConstConst();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericColCol();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericColConst();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericConstCol();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericConstConst();
 
 	template<typename OP, typename R, typename T, typename U>
 	int32_t aggregationGroupBy();
@@ -598,7 +688,6 @@ public:
     template<typename T>
     int32_t logicalNotCol();
 
-
     template<typename T>
     int32_t logicalNotConst();
 
@@ -626,7 +715,6 @@ public:
 		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colName, std::string("cnst"), std::string("operation"));
-		return 0;
 	}
 
     template<typename T, typename U>
@@ -636,7 +724,6 @@ public:
 		T cnst = arguments.read<T>();
 
 		throw InvalidOperandsException(colName, std::string("cnst"), std::string("operation"));
-		return 0;
 	}
 
     template<typename T, typename U>
@@ -646,7 +733,6 @@ public:
 		auto colNameLeft = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colNameLeft, colNameRight, std::string("operation"));
-		return 0;
 	}
 
     template<typename T, typename U>
@@ -656,7 +742,6 @@ public:
 		T cnstLeft = arguments.read<T>();
 
 		throw InvalidOperandsException(std::string("cnst"), std::string("cnst"), std::string("operation"));
-		return 0;
 	}
 
 
@@ -669,7 +754,6 @@ public:
 		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException (colName, std::string("cnst"), std::string(typeid(OP).name()));
-		return 0;
 	}
 
 
@@ -680,7 +764,6 @@ public:
 		T cnst = arguments.read<T>();
 
 		throw InvalidOperandsException(colName, std::string("cnst"), std::string(typeid(OP).name()));
-		return 0;
 	}
 
 
@@ -691,7 +774,6 @@ public:
 		auto colNameLeft = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colNameLeft, colNameRight, std::string(typeid(OP).name()));
-		return 0;
 	}
 
 
@@ -702,7 +784,6 @@ public:
 		T cnstLeft = arguments.read<T>();
 
 		throw InvalidOperandsException(std::string("cnst"), std::string("cnst"), std::string(typeid(OP).name()));
-		return 0;
 	}
 
 	template<typename OP, typename T>
@@ -711,7 +792,6 @@ public:
 		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colName, std::string(""), std::string(typeid(OP).name()));
-		return 0;
 	}
 
 	template<typename OP, typename T>
@@ -720,7 +800,6 @@ public:
 		T cnst = arguments.read<T>();
 
 		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string(typeid(OP).name()));
-		return 0;
 	}
 
 	////
@@ -731,7 +810,6 @@ public:
 		auto colName = arguments.read<std::string>();
 
 		throw InvalidOperandsException(colName, std::string(""), std::string("operation"));
-		return 0;
 	}
 
 	template<typename T>
@@ -740,7 +818,6 @@ public:
 		T cnst = arguments.read<T>();
 
 		throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string("operation"));
-		return 0;
 	}
 
     template<typename T>
@@ -765,3 +842,15 @@ int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
 
 template<>
 int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::Point>();
+
+template<>
+int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName);
+
+template<>
+int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName);
+
+template<>
+int32_t GpuSqlDispatcher::loadCol<std::string>(std::string& colName);
+
+
+#endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H

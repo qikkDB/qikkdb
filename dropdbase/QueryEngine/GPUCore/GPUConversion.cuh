@@ -24,7 +24,8 @@ __global__ void kernel_convert_lat_lon_to_point(NativeGeoPoint* outCol, T LatCol
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        outCol[i] = {maybe_deref(LatCol, i), maybe_deref(LonCol, i)};
+        outCol[i] = {static_cast<float>(maybe_deref(LatCol, i)), 
+			static_cast<float>(maybe_deref(LonCol, i))};
     }
 }
 

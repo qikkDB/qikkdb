@@ -22,8 +22,8 @@
 
 GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query) : 
 	database(database),
-	query(query),
-	isSingleGpuStatement(false)
+	isSingleGpuStatement(false),
+	query(query)
 {}
 
 /// Parses SQL statement
@@ -241,7 +241,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	}
 	
 		
-	return std::move(mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
+	return (mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
 }
 
 /// Merges partial dispatcher respnse messages to final response message
@@ -392,7 +392,9 @@ void GpuSqlCustomParser::trimPayload(ColmnarDB::NetworkClient::Message::QueryRes
 		auto end = payload.mutable_stringpayload()->mutable_stringdata()->end();
 		payload.mutable_stringpayload()->mutable_stringdata()->erase(begin + clampedLimit, end);
 	}
-		break;		
+		break;	
+	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::PAYLOAD_NOT_SET:
+		break;
 	}
 }
 

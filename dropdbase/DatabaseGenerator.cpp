@@ -287,7 +287,10 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						stringData.push_back(sameDataInBlocks ? "Word1enD1" : "Word" + std::to_string(k % (1024 * stringColumnCount)));
+						stringData.push_back(sameDataInBlocks ? "Word1enD1" : 
+							((k % 4 == 1? " " : "") +
+							(k % 4 != 2? ("Word" + std::to_string(k % (1024 * stringColumnCount))) : " ") +
+							(k % 4 == 3? " " : "")));
 					}
 					column.AddBlock(stringData);
 				}

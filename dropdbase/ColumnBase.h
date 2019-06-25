@@ -106,7 +106,7 @@ private:
 
 public:
 	ColumnBase(const std::string& name, int blockSize) :
-		name_(name), blockSize_(blockSize), blocks_(), size_(0)
+		name_(name), size_(0), blockSize_(blockSize), blocks_()
 	{
 		std::vector<std::unique_ptr<BlockBase<T>>> blocks;
 		blocks_[-1] = std::move(blocks);
@@ -119,12 +119,12 @@ public:
 		return name_;
 	}
 
-	virtual const float GetInitAvg() const override
+	virtual float GetInitAvg() const override
 	{
 		return initAvg_;
 	}
 
-	virtual const bool GetInitAvgIsSet() const override
+	virtual bool GetInitAvgIsSet() const override
 	{
 		return initAvgIsSet_;
 	}
@@ -192,9 +192,14 @@ public:
 	/// </summary>
 	/// <param name="data">Data to be inserted</param>
 	/// <returns>Last block of column</returns>
-	BlockBase<T>& AddBlock(const std::vector<T>& data, int groupId = -1)
+	BlockBase<T>& AddBlock(const std::vector<T>& data, int groupId = -1, bool compress = false, bool isCompressed = false)
 	{
-		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this));
+		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed));
+		auto & lastBlock = blocks_[groupId].back();
+		if (lastBlock->IsFull() && !isCompressed && compress)
+		{
+			lastBlock->CompressData();
+		}
 		return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
 	}
 
@@ -220,7 +225,6 @@ public:
             std::tie(newIndexInBlock, newRange, reachEnd) =
                 block.FindIndexAndRange(indexInBlock, range, columnData);
 		}
-
 		else if (blocks_[groupId].size() == 1)
         {
             BlockBase<T>& block = *(blocks_[groupId][0].get());
@@ -282,7 +286,7 @@ public:
 
         if (blocks_[groupId].size() == 0)
         {
-            BlockBase<T>& block = AddBlock();
+            AddBlock();
         }
         BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
         block.InsertDataOnSpecificPosition(indexInBlock, columnData);
@@ -325,12 +329,11 @@ public:
         blocks_[groupId].insert(blocks_[groupId].begin() + blockIdx, std::move(block1));
     }
 
-
     /// <summary>
     /// Insert data into column considering empty space of last block and maximum size of blocks
     /// </summary>
     /// <param name="columnData">Data to be inserted</param>
-	void InsertData(const std::vector<T>& columnData, int groupId = -1)
+	void InsertData(const std::vector<T>& columnData, int groupId = -1, bool compress = false)
 	{
 		size_ += columnData.size();
 		int startIdx = 0;
@@ -340,11 +343,19 @@ public:
 			if (columnData.size() <= lastBlock->EmptyBlockSpace())
 			{
 				lastBlock->InsertData(columnData);
+				if (compress && lastBlock->IsFull())
+				{
+					lastBlock->CompressData();
+				}
 				setColumnStatistics();
 				return;
 			}
 			int emptySpace = lastBlock->EmptyBlockSpace();
 			lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
+			if (compress && lastBlock->IsFull())
+			{
+				lastBlock->CompressData();
+			}
 			startIdx += emptySpace;
 		}
 
@@ -353,7 +364,7 @@ public:
 			int toCopy = columnData.size() - startIdx < blockSize_
 				? columnData.size() - startIdx
 				: blockSize_;
-			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy));
+			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), groupId, compress, false);
 			startIdx += toCopy;
 		}
 		setColumnStatistics();
@@ -381,7 +392,7 @@ public:
     /// Insert null data into column
     /// </summary>
     /// <param name="length">Length of inserted data</param>
-    void InsertNullData(int length)
+    void InsertNullData(int length) override
     {
         InsertData(ColumnBase<T>::NullArray(length));
     }
