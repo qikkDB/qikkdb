@@ -42,14 +42,31 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                 auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentColumn);
                 castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataFloat[iterator]);
             }
-			//TODO string, point, polygon
+			else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
+			{
+				std::vector<ColmnarDB::Types::Point> dataPoint = std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData);
+				auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(currentColumn);
+				castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataPoint[iterator]);
+			}
+			else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
+			{
+				std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon = std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData);
+				auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(currentColumn);
+				castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataPolygon[iterator]);
+			}
+			else if (wrappedData.type() == typeid(std::vector<std::string>))
+			{
+				std::vector<std::string> dataString = std::any_cast<std::vector<std::string>>(wrappedData);
+				auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentColumn);
+				castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataString[iterator]);
+			}
         }
     }
 }
 
 int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data)
 {
-    int size;
+    int size = 0;
 
     const auto& dataOfFirstColumn = data.at(sortingColumns[0]);
 
@@ -59,27 +76,31 @@ int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string
         size = dataIndexedColumn.size();
 	}
 
-	if (dataOfFirstColumn.type() == typeid(std::vector<int64_t>))
+	else if (dataOfFirstColumn.type() == typeid(std::vector<int64_t>))
     {
         std::vector<int64_t> dataIndexedColumn = std::any_cast<std::vector<int64_t>>(dataOfFirstColumn);
         size = dataIndexedColumn.size();
     }
 
-	if (dataOfFirstColumn.type() == typeid(std::vector<double>))
+	else if (dataOfFirstColumn.type() == typeid(std::vector<double>))
     {
         std::vector<double> dataIndexedColumn = std::any_cast<std::vector<double>>(dataOfFirstColumn);
         size = dataIndexedColumn.size();
     }
 
-	if (dataOfFirstColumn.type() == typeid(std::vector<float>))
+	else if (dataOfFirstColumn.type() == typeid(std::vector<float>))
     {
         std::vector<float> dataIndexedColumn = std::any_cast<std::vector<float>>(dataOfFirstColumn);
         size = dataIndexedColumn.size();
     }
 
-	//TODO for polygon, point and string
+	else if (dataOfFirstColumn.type() == typeid(std::vector<std::string>))
+	{
+		std::vector<std::string> dataIndexedColumn = std::any_cast<std::vector<std::string>>(dataOfFirstColumn);
+		size = dataIndexedColumn.size();
+	}
 
-		return size;
+	return size;
 }
 
 int32_t Table::getDataRangeInSortingColumn()
@@ -101,7 +122,7 @@ int32_t Table::getDataRangeInSortingColumn()
 		}
 	}
 
-	if (columnType == COLUMN_LONG)
+	else if (columnType == COLUMN_LONG)
 	{
 		auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(firstSortingColumn);
 		auto &blocks = castedColumn->GetBlocksList();
@@ -113,7 +134,7 @@ int32_t Table::getDataRangeInSortingColumn()
 		}
 	}
 
-	if (columnType == COLUMN_DOUBLE)
+	else if (columnType == COLUMN_DOUBLE)
 	{
 		auto castedColumn = dynamic_cast<ColumnBase<double>*>(firstSortingColumn);
 		auto &blocks = castedColumn->GetBlocksList();
@@ -125,7 +146,7 @@ int32_t Table::getDataRangeInSortingColumn()
 		}
 	}
 
-	if (columnType == COLUMN_FLOAT)
+	else if (columnType == COLUMN_FLOAT)
 	{
 		auto castedColumn = dynamic_cast<ColumnBase<float>*>(firstSortingColumn);
 		auto &blocks = castedColumn->GetBlocksList();
@@ -137,6 +158,17 @@ int32_t Table::getDataRangeInSortingColumn()
 		}
 	}
 
+	else if (columnType == COLUMN_STRING)
+	{
+		auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(firstSortingColumn);
+		auto& blocks = castedColumn->GetBlocksList();
+		int blockCount = castedColumn->GetBlockCount();
+
+		for (int i = 0; i < blockCount; i++)
+		{
+			size += blocks[i]->GetSize();
+		}
+	}
 	return size;
 }
 #endif
@@ -273,7 +305,6 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bo
 		for (int i = 0; i < oneColumnDataSize; i++)
         {
 			int range = getDataRangeInSortingColumn();
-            //int range = INT_MAX;
             int blockIndex = 0;
             int indexInBlock = 0;
 
@@ -318,7 +349,15 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bo
                         castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i]);
                 }
 
-				//TODO string, polygon, point
+				//TODO for string
+				if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<std::string>))
+				{
+					std::vector<std::string> dataIndexedColumn = std::any_cast<std::vector<std::string>>(wrappedCurrentSortingColumnData);
+					auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentSortingColumn);
+				
+					std::tie(blockIndex, indexInBlock, range) =
+						castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i]);
+				}
             }
 
 			InsertValuesOnSpecificPosition(data,blockIndex,indexInBlock,i);

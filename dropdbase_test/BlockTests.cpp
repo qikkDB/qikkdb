@@ -544,8 +544,12 @@ TEST(BlockTests, BlockStatistics)
 		dataDouble.push_back((double) 0.1111);
 		dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
 		dataPolygon.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))"));
-		dataString.push_back("abc");
 	}
+
+	dataString.push_back("abc");
+	dataString.push_back("aaaaa");
+	dataString.push_back("aa");
+	dataString.push_back("jkjlo");
 
 	blockInt.InsertData(dataInt);
 	blockLong.InsertData(dataLong);
@@ -585,8 +589,8 @@ TEST(BlockTests, BlockStatistics)
 	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetSum()), "POLYGON((0 0), (0 0))");
 	ASSERT_FLOAT_EQ(blockPolygon.GetAvg(), 0);
 
-	ASSERT_EQ(blockString.GetMin(), "");
-	ASSERT_EQ(blockString.GetMax(), "");
+	ASSERT_EQ(blockString.GetMin(), "aa");
+	ASSERT_EQ(blockString.GetMax(), "jkjlo");
 	ASSERT_EQ(blockString.GetSum(), "");
 	ASSERT_FLOAT_EQ(blockString.GetAvg(), 0);
 
@@ -606,8 +610,12 @@ TEST(BlockTests, BlockStatistics)
 		dataDouble2.push_back((double) 0.3333);
 		dataPoint2.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
 		dataPolygon2.push_back(ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))"));
-		dataString2.push_back("abc");
 	}
+
+	dataString2.push_back("z");
+	dataString2.push_back("zzz");
+	dataString2.push_back("dfg");
+	dataString2.push_back("wert");
 
 	blockInt.InsertData(dataInt2);
 	blockLong.InsertData(dataLong2);
@@ -636,4 +644,9 @@ TEST(BlockTests, BlockStatistics)
 	ASSERT_DOUBLE_EQ(blockDouble.GetMax(), 0.3333);
 	ASSERT_DOUBLE_EQ(blockDouble.GetSum(), 0.8888);
 	ASSERT_FLOAT_EQ(blockDouble.GetAvg(), 0.2222);
+
+	ASSERT_EQ(blockString.GetMin(), "aa");
+	ASSERT_EQ(blockString.GetMax(), "zzz");
+	ASSERT_EQ(blockString.GetSum(), "");
+	ASSERT_FLOAT_EQ(blockString.GetAvg(), 0);
 }

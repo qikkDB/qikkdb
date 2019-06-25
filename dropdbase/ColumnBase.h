@@ -214,9 +214,9 @@ public:
         int startIndexInCurrentBlock = indexInBlock;
         bool reachEnd = true;
         bool found = false;
-		int nextBlockMin;
-		int currentBlockMin;
-		int currentMax;
+		T nextBlockMin;
+		T currentBlockMin;
+		T currentMax;
 
 		if (blocks_[groupId].size() == 0)
         {

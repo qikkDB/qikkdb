@@ -34,7 +34,8 @@ all_types = [INT,
 
 bitwise_operations = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift"]
 arithmetic_operations = ["mul", "div", "add", "sub", "mod", "logarithm", "power"]
-unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'cotangent', 'arcsine', 'arccosine', 'arctangent',
+unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'cotangent', 'arcsine', 'arccosine',
+                               'arctangent',
                                'logarithm10', 'logarithmNatural', 'exponential', 'squareRoot', 'square', 'sign',
                                'round', 'floor', 'ceil']
 geo_operations = ["contains"]
@@ -62,7 +63,8 @@ operations_ternary = ["between"]
 
 operation_binary_monotonous = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operation_arithmetic_monotonous = ["mul", "div", "add", "sub", "mod", "logarithm", "arctangent2"]
-operation_arithmetic_non_monotonous = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift", "power", "root"]
+operation_arithmetic_non_monotonous = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift",
+                                       "power", "root"]
 
 for operation in ["whereResult"]:
     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
@@ -75,7 +77,7 @@ for operation in ["whereResult"]:
         elif colIdx >= len(types):
             col = "Col"
 
-        if colVal in [STRING,POINT,POLYGON]:
+        if colVal in [STRING, POINT, POLYGON]:
             op = "invalidOperandTypesErrorHandler"
 
         else:
@@ -252,7 +254,11 @@ for operation in operations_filter:
             if colVal in geo_types or rowVal in geo_types:
                 op = "invalidOperandTypesErrorHandler"
 
-            elif colVal == STRING or rowVal == STRING:
+            elif colVal == STRING and rowVal != STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            elif colVal != STRING and rowVal == STRING:
+
                 op = "invalidOperandTypesErrorHandler"
 
             elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
@@ -261,9 +267,15 @@ for operation in operations_filter:
             elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
                 op = "invalidOperandTypesErrorHandler"
 
+            elif colVal == STRING and rowVal == STRING:
+                op = "filterString"
             else:
                 op = "filter"
-            function = "CpuSqlDispatcher::" + op + col + row + "<FilterConditions::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if op == "filterString":
+                function = "CpuSqlDispatcher::" + op + col + row + "<FilterConditions::" + operation + ">"
+            else:
+                function = "CpuSqlDispatcher::" + op + col + row + "<FilterConditions::" + operation + ", " + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -354,7 +366,6 @@ for operation in operations_arithmetic:
     print(declaration)
 print()
 
-
 for operation in operations_date:
     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction, " \
                   "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
@@ -413,7 +424,6 @@ for operation in unary_arithmetic_operations:
 
     print(declaration)
 print()
-
 
 #
 # operation = "insertInto"

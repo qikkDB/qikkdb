@@ -4,6 +4,156 @@
 #include "CpuFilterInterval.h"
 #include <tuple>
 
+template<typename OP>
+int32_t CpuSqlDispatcher::filterStringColConst()
+{
+	auto colName = arguments.read<std::string>();
+	std::string cnst = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+
+	loadCol<std::string>(colName);
+
+	std::string colPointerNameMin;
+	std::string colPointerNameMax;
+	std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+
+	auto colValMin = allocatedPointers.at(colPointerNameMin);
+	auto colValMax = allocatedPointers.at(colPointerNameMax);
+
+	int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValMin));
+	int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValMax));
+
+	switch (OP::interval)
+	{
+	case CpuFilterInterval::OUTER:
+	case CpuFilterInterval::INNER:
+		maskMin[0] = cnst >= reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<std::string*>(std::get<0>(colValMax))[0];
+		maskMax[0] = cnst >= reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<std::string*>(std::get<0>(colValMax))[0];
+		break;
+
+	case CpuFilterInterval::NONE:
+	default:
+		maskMin[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValMin))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValMin))[0].size(), cnst.c_str(), cnst.size());
+		maskMax[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValMax))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValMax))[0].size(), cnst.c_str(), cnst.size());
+		break;
+	}
+
+	std::cout << "Where evaluation filterStringColConstMin: " << reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation filterStringColConstMax: " << reinterpret_cast<std::string*>(std::get<0>(colValMax))[0] << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
+
+	return 0;
+}
+
+template<typename OP>
+int32_t CpuSqlDispatcher::filterStringConstCol()
+{
+	std::string cnst = arguments.read<std::string>();
+	auto colName = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+	
+	loadCol<std::string>(colName);
+
+	std::string colPointerNameMin;
+	std::string colPointerNameMax;
+	std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+
+	auto colValMin = allocatedPointers.at(colPointerNameMin);
+	auto colValMax = allocatedPointers.at(colPointerNameMax);
+
+	int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValMin));
+	int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValMax));
+
+	switch (OP::interval)
+	{
+	case CpuFilterInterval::OUTER:
+	case CpuFilterInterval::INNER:
+		maskMin[0] = cnst >= reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<std::string*>(std::get<0>(colValMax))[0];
+		maskMax[0] = cnst >= reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<std::string*>(std::get<0>(colValMax))[0];
+		break;
+
+	case CpuFilterInterval::NONE:
+	default:
+		maskMin[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValMin))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValMin))[0].size(), cnst.c_str(), cnst.size());
+		maskMax[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValMax))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValMax))[0].size(), cnst.c_str(), cnst.size());
+		break;
+	}
+
+	std::cout << "Where evaluation filterStringConstColMin: " << reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation filterStringConstColMax: " << reinterpret_cast<std::string*>(std::get<0>(colValMax))[0] << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
+
+	return 0;
+}
+
+template<typename OP>
+int32_t CpuSqlDispatcher::filterStringColCol()
+{
+	auto colNameLeft = arguments.read<std::string>();
+	auto colNameRight = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+	
+	int8_t* maskMin = nullptr;
+	int8_t* maskMax = nullptr;
+
+	if (colNameLeft.front() != '$' && colNameRight.front() != '$')
+	{
+		maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
+		maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+		maskMin[0] = 1;
+		maskMax[0] = 1;
+	}
+	else
+	{
+		loadCol<std::string>(colNameLeft);
+		loadCol<std::string>(colNameRight);
+
+		std::string colPointerNameLeftMin;
+		std::string colPointerNameLeftMax;
+		std::tie(colPointerNameLeftMin, colPointerNameLeftMax) = getPointerNames(colNameLeft);
+
+		std::string colPointerNameRightMin;
+		std::string colPointerNameRightMax;
+		std::tie(colPointerNameRightMin, colPointerNameRightMax) = getPointerNames(colNameRight);
+
+		auto colValLeftMin = allocatedPointers.at(colPointerNameLeftMin);
+		auto colValLeftMax = allocatedPointers.at(colPointerNameLeftMax);
+
+		auto colValRightMin = allocatedPointers.at(colPointerNameRightMin);
+		auto colValRightMax = allocatedPointers.at(colPointerNameRightMax);
+
+		maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValLeftMin) || std::get<2>(colValRightMin));
+		maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValLeftMax) || std::get<2>(colValRightMax));
+
+		maskMin[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValLeftMin))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValLeftMin))[0].size(),
+			reinterpret_cast<std::string*>(std::get<0>(colValRightMin))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValRightMin))[0].size());
+		maskMax[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValLeftMax))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValLeftMax))[0].size(),
+			reinterpret_cast<std::string*>(std::get<0>(colValRightMax))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValRightMax))[0].size());
+	}
+
+	std::cout << "Where evaluation filterStringColCol_min: " << colNameLeft << ", " << colNameRight << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation filterStringColCol_max: " << colNameLeft << ", " << colNameRight << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
+	return 0;
+}
+
+
+template<typename OP>
+int32_t CpuSqlDispatcher::filterStringConstConst()
+{
+	std::string cnstRight = arguments.read<std::string>();
+	std::string cnstLeft = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+
+	int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, false);
+	int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, false);
+
+	maskMin[0] = OP{}.compareStrings(cnstLeft.c_str(), cnstLeft.size(), cnstRight.c_str(), cnstRight.size());
+	maskMax[0] = OP{}.compareStrings(cnstLeft.c_str(), cnstLeft.size(), cnstRight.c_str(), cnstRight.size());
+
+	std::cout << "Where evaluation filterStringConstConst_min: " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation filterStringConstConst_max: " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
+
+	return 0;
+}
+
 template<typename OP, typename T, typename U>
 int32_t CpuSqlDispatcher::filterColConst()
 {

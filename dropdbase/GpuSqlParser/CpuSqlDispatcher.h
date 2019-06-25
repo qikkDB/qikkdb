@@ -208,6 +208,18 @@ public:
 	template<typename OP, typename T, typename U>
 	int32_t filterConstConst();
 
+	template<typename OP>
+	int32_t filterStringColConst();
+
+	template<typename OP>
+	int32_t filterStringConstCol();
+
+	template<typename OP>
+	int32_t filterStringColCol();
+
+	template<typename OP>
+	int32_t filterStringConstConst();
+
 	template<typename OP, typename T, typename U>
 	int32_t logicalColConst();
 
