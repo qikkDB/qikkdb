@@ -18,6 +18,7 @@ template<class T>
 class BlockBase
 {
 private:
+
 	T min_ = std::numeric_limits<T>::lowest();
 	T max_ = std::numeric_limits<T>::max();
 	float avg_ = 0.0;
@@ -31,8 +32,9 @@ private:
 	size_t compressedSize_;
 	size_t capacity_;
 	std::unique_ptr<T[]> data_;
-
+	std::unique_ptr<int8_t[]> bitMask_;
 	bool isCompressed_;
+	bool isNullable_;
 
 public:
 	/// <summary>
@@ -40,8 +42,8 @@ public:
 	/// </summary>
 	/// <param name="data">Data which will fill up the block.</param>
 	/// <param name="column">Column that will hold this new block.</param>
-	BlockBase(const std::vector<T>& data, ColumnBase<T>& column, bool isCompressed = false) :
-		column_(column), size_(0), isCompressed_(isCompressed)
+	BlockBase(const std::vector<T>& data, ColumnBase<T>& column, bool isCompressed = false, bool isNullable = false) :
+		column_(column), size_(0), isCompressed_(isCompressed), isNullable_(isNullable)
 	{
 		capacity_ = (isCompressed) ? data.size() : column.GetBlockSize();
 		data_ = std::unique_ptr<T[]>(new T[capacity_]);
@@ -51,6 +53,13 @@ public:
 			throw std::length_error("Attempted to insert data larger than remaining block size");
 		}
 		GPUMemory::hostPin(data_.get(), capacity_);
+		if(isNullable_)
+		{
+			int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+			bitMask_ = std::unique_ptr<T[]>(new T[bitMaskCapacity]);
+			std::memset(bitMask_.get(), 0, bitMaskCapacity);
+			GPUMemory::hostPin(data_.get(), bitMaskCapacity);
+		}
 		std::copy(data.begin(), data.end(), data_.get());
 		size_ = data.size();
 		setBlockStatistics();
@@ -61,10 +70,18 @@ public:
 	/// </summary>
 	/// <param name="column">Column that will hold this new empty block.</param>
 	explicit BlockBase(ColumnBase<T>& column) :
-		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_])
+		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_]), bitMask_(nullptr),
+		isNullable_(column_.Nullable())
 	{
 		GPUMemory::hostPin(data_.get(), capacity_);
 		isCompressed_ = false;
+		if(isNullable_)
+		{
+			int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+			bitMask_ = std::unique_ptr<T[]>(new T[bitMaskCapacity]);
+			std::memset(bitMask_.get(), 0, bitMaskCapacity);
+			GPUMemory::hostPin(data_.get(), bitMaskCapacity);
+		}	
 	}
 
 	void setBlockStatistics(T min, T max, float avg, T sum)
@@ -104,6 +121,11 @@ public:
     {
         return data_.get();
     }
+	
+	int8_t * GetNullBitmask()
+	{
+		return bitMask_.get();
+	}
 
     size_t GetSize() const
     {
@@ -237,6 +259,15 @@ public:
 		setBlockStatistics();
 	}
 
+	void SetNullMask(const std::vector<int8_t>& nullMask)
+	{
+		if(isNullable_)
+		{
+			std::copy(nullMask.begin(), nullMask.end(), bitMask_.get());
+			setBlockStatistics();
+		}
+	}
+
 	bool IsCompressed() const
 	{
 		return isCompressed_;
@@ -324,8 +355,13 @@ public:
     ~BlockBase()
     {
         GPUMemory::hostUnregister(data_.get());
+		if(isNullable_)
+		{
+			GPUMemory::hostUnregister(bitMask_.get());
+		}
     }
 
     BlockBase(const BlockBase&) = delete;
     BlockBase& operator=(const BlockBase&) = delete;
 };
+

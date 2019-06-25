@@ -104,13 +104,13 @@ private:
 	T sum_ = T{};
 	float initAvg_ = 0.0; //initial average is needed, because avg_ is constantly changing and we need unchable value for comparing in binary index
 	bool initAvgIsSet_ = false;
+	bool isNullable_;
 
 public:
-	ColumnBase(const std::string& name, int blockSize) :
-		name_(name), size_(0), blockSize_(blockSize), blocks_()
+	ColumnBase(const std::string& name, int blockSize, bool isNullable = false) :
+		name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable)
 	{
-		std::vector<std::unique_ptr<BlockBase<T>>> blocks;
-		blocks_[-1] = std::move(blocks);
+		blocks_.emplace({-1, std::vector<std::unique_ptr<BlockBase<T>>>()})
 	}
 
 	inline int GetBlockSize() const { return blockSize_; };
@@ -129,7 +129,10 @@ public:
 	{
 		return initAvgIsSet_;
 	}
-
+	constexpr bool Nullable() const
+	{
+		return isNullable_;
+	}
 	T GetMax()
 	{
 		return max_;
@@ -178,8 +181,7 @@ public:
 		if (blocks_.find(groupId) == blocks_.end())
 		{
 			// key not found
-			std::vector<std::unique_ptr<BlockBase<T>>> blocks;
-			blocks_[groupId] = std::move(blocks);
+			blocks_.emplace({groupId, std::vector<std::unique_ptr<BlockBase<T>>>()})
 		}
 
 		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
@@ -193,7 +195,7 @@ public:
 	/// <returns>Last block of column</returns>
 	BlockBase<T>& AddBlock(const std::vector<T>& data, int groupId = -1, bool compress = false, bool isCompressed = false)
 	{
-		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed));
+		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed, isNullable_));
 		auto & lastBlock = blocks_[groupId].back();
 		if (lastBlock->IsFull() && !isCompressed && compress)
 		{
@@ -369,6 +371,50 @@ public:
 		setColumnStatistics();
 	}
 
+	/// <summary>
+    /// Insert data into column considering empty space of last block and maximum size of blocks
+    /// </summary>
+    /// <param name="columnData">Data to be inserted</param>
+	void InsertData(const std::vector<T>& columnData, const std::vector<int8_t>& nullMask, int groupId = -1, bool compress = false)
+	{
+		size_ += columnData.size();
+		int startIdx = 0;
+		if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
+		{
+			auto & lastBlock = blocks_[groupId].back();
+			if (columnData.size() <= lastBlock->EmptyBlockSpace())
+			{
+				lastBlock->InsertData(columnData);
+				auto maskPtr = lastBlock->GetNullBitmask();
+				int startIdx = lastBlock->GetBlockSize() -
+				for(int i = )
+				if (compress && lastBlock->IsFull())
+				{
+					lastBlock->CompressData();
+				}
+				setColumnStatistics();
+				return;
+			}
+			int emptySpace = lastBlock->EmptyBlockSpace();
+			lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
+			if (compress && lastBlock->IsFull())
+			{
+				lastBlock->CompressData();
+			}
+			startIdx += emptySpace;
+		}
+
+		while (startIdx < columnData.size())
+		{
+			int toCopy = columnData.size() - startIdx < blockSize_
+				? columnData.size() - startIdx
+				: blockSize_;
+			auto& block = AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), groupId, compress, false);
+			startIdx += toCopy;
+		}
+		setColumnStatistics();
+	}
+
     /// <summary>
     /// Get all unique values for this column
     /// </summary>
@@ -393,7 +439,8 @@ public:
     /// <param name="length">Length of inserted data</param>
     void InsertNullData(int length) override
     {
-        InsertData(NullArray(length));
+		std::vector<int8_t> nullMask(length, 0xFF);
+        InsertData(NullArray(length), nullMask);
     }
 
     /// <summary>

@@ -4,35 +4,36 @@
 #include <numeric>
 #include <algorithm>
 #include <cmath>
+#include "QueryEngine/NullConstants.cuh"
 
 template<>
 std::vector<int32_t> ColumnBase<int32_t>::NullArray(int length)
 {
-	return std::vector<int32_t>(length, 0);
+	return std::vector<int32_t>(length, GetNullConstant<int32_t>());
 }
 
 template<>
 std::vector<float> ColumnBase<float>::NullArray(int length)
 {
-	return std::vector<float>(length, 0);
+	return std::vector<float>(length, GetNullConstant<float>());
 }
 
 template<>
 std::vector<int64_t> ColumnBase<int64_t>::NullArray(int length)
 {
-	return std::vector<int64_t>(length, 0);
+	return std::vector<int64_t>(length, GetNullConstant<int64_t>());
 }
 
 template<>
 std::vector<double> ColumnBase<double>::NullArray(int length)
 {
-	return std::vector<double>(length, 0);
+	return std::vector<double>(length, GetNullConstant<double>());
 }
 
 template<>
 std::vector<int8_t> ColumnBase<int8_t>::NullArray(int length)
 {
-	return std::vector<int8_t>(length, 0);
+	return std::vector<int8_t>(length, GetNullConstant<int8_t>());
 }
 
 template<>
