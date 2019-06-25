@@ -11,14 +11,27 @@
 
 const int32_t SEED = 42;					// Random generator seed
 
-const int32_t BLOCK_COUNT = 10;				// Number of blocks in the input
-const int32_t BLOCK_SIZE = 1 << 10;			// The CUDA block size from the parser - simulated value
+const int32_t BLOCK_COUNT = 2;				// Number of blocks in the input
+const int32_t BLOCK_SIZE = 1 << 11;			// The CUDA block size from the parser - simulated value
+
+int32_t genVal(int32_t k, int32_t integerColumnCount)
+{
+	if (k % 2)
+	{
+		return k % (1024 * integerColumnCount);
+	}
+	else
+	{
+		return (k % (1024 * integerColumnCount)) * -1;
+	}
+}
 
 TEST(GPUJoinTests, JoinTest)
 {
 	ColumnBase<int32_t> ColumnR_("ColumnR", BLOCK_SIZE);
 	ColumnBase<int32_t> ColumnS_("ColumnS", BLOCK_SIZE);
 
+	/*
 	// Fill the buffers with random data
 	srand(SEED);
 
@@ -31,6 +44,22 @@ TEST(GPUJoinTests, JoinTest)
 		{
 			blockR.InsertData(std::vector<int32_t>{rand()});
 			blockS.InsertData(std::vector<int32_t>{rand()});
+		}
+	}
+	*/
+
+	int32_t integerColumnCount_A = 1;
+	int32_t integerColumnCount_B = 3;
+
+	for (int32_t i = 0; i < BLOCK_COUNT; i++)
+	{
+		auto& blockR = ColumnR_.AddBlock();
+		auto& blockS = ColumnS_.AddBlock();
+
+		for (int32_t j = 0; j < BLOCK_SIZE; j++)
+		{
+			blockR.InsertData(std::vector<int32_t>{genVal(j, integerColumnCount_A)});
+			blockS.InsertData(std::vector<int32_t>{genVal(j, integerColumnCount_B)});
 		}
 	}
 
@@ -56,9 +85,15 @@ TEST(GPUJoinTests, JoinTest)
 			int32_t val1 = ColumnR_.GetBlocksList()[RColumnBlockId]->GetData()[RColumnRowId];
 			int32_t val2 = ColumnS_.GetBlocksList()[SColumnBlockId]->GetData()[SColumnRowId];
 
-			ASSERT_EQ(val1, val2);
+			std:: cout << resultColumnQAJoinIdx[i][j] << " " << val1 << std::endl;
+			std:: cout << resultColumnQBJoinIdx[i][j] << " " << val2 << std::endl;
+			std:: cout << std::endl;
+
+			//ASSERT_EQ(val1, val2);
 		}
 	}
+
+	FAIL();
 }
 
 TEST(GPUJoinTests, ReorderCPUTest)
