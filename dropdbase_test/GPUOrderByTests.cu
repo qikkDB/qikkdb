@@ -28,7 +28,7 @@ TEST(GPUOrderByTests, GPUOrderByTest)
     //////////////////////////////////////////////////////////////////////////////
     // Run the order by operation
 
-    GPUOrderBy orderBy;
+    GPUOrderBy<int32_t> orderBy(DATA_ELEMENT_COUNT);
     orderBy.OrderBy(outColIndices, d_inCols, DATA_ELEMENT_COUNT);
 
     //////////////////////////////////////////////////////////////////////////////
