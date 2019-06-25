@@ -279,7 +279,7 @@ public:
                                int32_t* elementCount)
     {
         Context& context = Context::getInstance();
-        cuda_ptr<int8_t> occupancyMask(maxHashCount_, 0);
+        cuda_ptr<int8_t> occupancyMask(maxHashCount_);
         kernel_is_bucket_occupied<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, maxHashCount_);
 
