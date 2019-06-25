@@ -10847,12 +10847,83 @@ TEST(DispatcherTests, JoinSimpleTest)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA JOIN TableB ON colInteger1 = colInteger3 WHERE colFloat1 < 3;");
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA JOIN TableB ON colInteger1 = colInteger3;");
 	auto resultPtr = parser.parse();
-	
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::cout << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size() << std::endl;
+
+	auto leftCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto rightCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableB").GetColumns().at("colInteger3").get());
+
+	std::vector<int32_t> expectedResults;
+
+	for (int32_t leftBlockIdx = 0; leftBlockIdx < leftCol->GetBlockCount(); leftBlockIdx++)
+	{
+		auto leftBlock = leftCol->GetBlocksList()[leftBlockIdx];
+		for (int32_t leftRowIdx = 0; leftRowIdx < leftBlock->GetSize(); leftRowIdx++)
+		{
+			for (int32_t rightBlockIdx = 0; rightBlockIdx < rightCol->GetBlockCount(); rightBlockIdx++)
+			{
+				auto rightBlock = rightCol->GetBlocksList()[rightBlockIdx];
+				for (int32_t rightRowIdx = 0; rightRowIdx < rightBlock->GetSize(); rightRowIdx++)
+				{
+					if (leftBlock->GetData()[leftRowIdx] == rightBlock->GetData()[rightRowIdx])
+					{
+						expectedResults.push_back(leftBlock->GetData()[leftRowIdx]);
+					}
+				}
+			}
+		}
+	}
+
+	auto payloads = result->payloads().at("TableA.colInteger1");
+
+	ASSERT_EQ(payloads.intpayload().intdata().size(), expectedResults.size());
+
+	FAIL();
+}
+
+TEST(DispatcherTests, JoinWhereTest)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA JOIN TableB ON colInteger1 = colInteger3 WHERE colFloat1 < 200;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::cout << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size() << std::endl;
+
+	auto leftCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto leftColFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	auto rightCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableB").GetColumns().at("colInteger3").get());
+
+	std::vector<int32_t> expectedResults;
+
+	for (int32_t leftBlockIdx = 0; leftBlockIdx < leftCol->GetBlockCount(); leftBlockIdx++)
+	{
+		auto leftBlock = leftCol->GetBlocksList()[leftBlockIdx];
+		auto leftBlockFloat = leftColFloat->GetBlocksList()[leftBlockIdx];
+		for (int32_t leftRowIdx = 0; leftRowIdx < leftBlock->GetSize(); leftRowIdx++)
+		{
+			for (int32_t rightBlockIdx = 0; rightBlockIdx < rightCol->GetBlockCount(); rightBlockIdx++)
+			{
+				auto rightBlock = rightCol->GetBlocksList()[rightBlockIdx];
+				for (int32_t rightRowIdx = 0; rightRowIdx < rightBlock->GetSize(); rightRowIdx++)
+				{
+					if (leftBlockFloat->GetData()[leftRowIdx] < 200 && leftBlock->GetData()[leftRowIdx] == rightBlock->GetData()[rightRowIdx])
+					{
+						expectedResults.push_back(leftBlock->GetData()[leftRowIdx]);
+					}
+				}
+			}
+		}
+	}
+
+	auto payloads = result->payloads().at("TableA.colInteger1");
+
+	ASSERT_EQ(payloads.intpayload().intdata().size(), expectedResults.size());
 
 	FAIL();
 }
