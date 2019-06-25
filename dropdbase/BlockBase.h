@@ -56,7 +56,7 @@ public:
 		if(isNullable_)
 		{
 			int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
-			bitMask_ = std::unique_ptr<T[]>(new T[bitMaskCapacity]);
+			bitMask_ = std::unique_ptr<int8_t[]>(new int8_t[bitMaskCapacity]);
 			std::memset(bitMask_.get(), 0, bitMaskCapacity);
 			GPUMemory::hostPin(data_.get(), bitMaskCapacity);
 		}
@@ -78,7 +78,7 @@ public:
 		if(isNullable_)
 		{
 			int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
-			bitMask_ = std::unique_ptr<T[]>(new T[bitMaskCapacity]);
+			bitMask_ = std::unique_ptr<int8_t[]>(new int8_t[bitMaskCapacity]);
 			std::memset(bitMask_.get(), 0, bitMaskCapacity);
 			GPUMemory::hostPin(data_.get(), bitMaskCapacity);
 		}	

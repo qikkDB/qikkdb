@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/mstano/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -21,21 +21,22 @@ public:
     DROPDB = 33, CREATETABLE = 34, DROPTABLE = 35, ALTERTABLE = 36, ADD = 37, 
     DROPCOLUMN = 38, ALTERCOLUMN = 39, CREATEINDEX = 40, INDEX = 41, PRIMARYKEY = 42, 
     VALUES = 43, SELECT = 44, FROM = 45, JOIN = 46, WHERE = 47, GROUPBY = 48, 
-    AS = 49, IN = 50, BETWEEN = 51, ON = 52, ORDERBY = 53, DIR = 54, LIMIT = 55, 
-    OFFSET = 56, SHOWDB = 57, SHOWTB = 58, SHOWCL = 59, AGG = 60, AVG = 61, 
-    SUM = 62, MIN = 63, MAX = 64, COUNT = 65, YEAR = 66, MONTH = 67, DAY = 68, 
-    HOUR = 69, MINUTE = 70, SECOND = 71, NOW = 72, PI = 73, ABS = 74, SIN = 75, 
-    COS = 76, TAN = 77, COT = 78, ASIN = 79, ACOS = 80, ATAN = 81, ATAN2 = 82, 
-    LOG10 = 83, LOG = 84, EXP = 85, POW = 86, SQRT = 87, SQUARE = 88, SIGN = 89, 
-    ROOT = 90, ROUND = 91, CEIL = 92, FLOOR = 93, LTRIM = 94, RTRIM = 95, 
-    LOWER = 96, UPPER = 97, REVERSE = 98, LEN = 99, LEFT = 100, RIGHT = 101, 
-    CONCAT = 102, GEO_CONTAINS = 103, GEO_INTERSECT = 104, GEO_UNION = 105, 
-    PLUS = 106, MINUS = 107, ASTERISK = 108, DIVISION = 109, MODULO = 110, 
-    XOR = 111, EQUALS = 112, NOTEQUALS = 113, NOTEQUALS_GT_LT = 114, LPAREN = 115, 
-    RPAREN = 116, GREATER = 117, LESS = 118, GREATEREQ = 119, LESSEQ = 120, 
-    NOT = 121, OR = 122, AND = 123, BIT_OR = 124, BIT_AND = 125, L_SHIFT = 126, 
-    R_SHIFT = 127, BOOLEANLIT = 128, TRUE = 129, FALSE = 130, FLOATLIT = 131, 
-    INTLIT = 132, ID = 133
+    AS = 49, IN = 50, ISNULL = 51, ISNOTNULL = 52, IS = 53, NULL = 54, NOT = 55, 
+    BETWEEN = 56, ON = 57, ORDERBY = 58, DIR = 59, LIMIT = 60, OFFSET = 61, 
+    SHOWDB = 62, SHOWTB = 63, SHOWCL = 64, AGG = 65, AVG = 66, SUM = 67, 
+    MIN = 68, MAX = 69, COUNT = 70, YEAR = 71, MONTH = 72, DAY = 73, HOUR = 74, 
+    MINUTE = 75, SECOND = 76, NOW = 77, PI = 78, ABS = 79, SIN = 80, COS = 81, 
+    TAN = 82, COT = 83, ASIN = 84, ACOS = 85, ATAN = 86, ATAN2 = 87, LOG10 = 88, 
+    LOG = 89, EXP = 90, POW = 91, SQRT = 92, SQUARE = 93, SIGN = 94, ROOT = 95, 
+    ROUND = 96, CEIL = 97, FLOOR = 98, LTRIM = 99, RTRIM = 100, LOWER = 101, 
+    UPPER = 102, REVERSE = 103, LEN = 104, LEFT = 105, RIGHT = 106, CONCAT = 107, 
+    GEO_CONTAINS = 108, GEO_INTERSECT = 109, GEO_UNION = 110, PLUS = 111, 
+    MINUS = 112, ASTERISK = 113, DIVISION = 114, MODULO = 115, XOR = 116, 
+    EQUALS = 117, NOTEQUALS = 118, NOTEQUALS_GT_LT = 119, LPAREN = 120, 
+    RPAREN = 121, GREATER = 122, LESS = 123, GREATEREQ = 124, LESSEQ = 125, 
+    LOGICAL_NOT = 126, OR = 127, AND = 128, BIT_OR = 129, BIT_AND = 130, 
+    L_SHIFT = 131, R_SHIFT = 132, BOOLEANLIT = 133, TRUE = 134, FALSE = 135, 
+    FLOATLIT = 136, INTLIT = 137, ID = 138
   };
 
   enum {
@@ -1027,7 +1028,7 @@ public:
 
     antlr4::Token *op = nullptr;
     ExpressionContext *expression();
-    antlr4::tree::TerminalNode *NOT();
+    antlr4::tree::TerminalNode *LOGICAL_NOT();
     antlr4::tree::TerminalNode *MINUS();
     antlr4::tree::TerminalNode *LPAREN();
     antlr4::tree::TerminalNode *RPAREN();
@@ -1060,6 +1061,8 @@ public:
     antlr4::tree::TerminalNode *UPPER();
     antlr4::tree::TerminalNode *REVERSE();
     antlr4::tree::TerminalNode *LEN();
+    antlr4::tree::TerminalNode *ISNULL();
+    antlr4::tree::TerminalNode *ISNOTNULL();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };

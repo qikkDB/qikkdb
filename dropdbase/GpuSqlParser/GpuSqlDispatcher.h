@@ -331,6 +331,10 @@ public:
 
     void addLogicalNotFunction(DataType type);
 
+	void addIsNullFunction(DataType type);
+
+	void addIsNotNullFunction(DataType type);
+
     void addMinusFunction(DataType type);
 
 	void addYearFunction(DataType type);

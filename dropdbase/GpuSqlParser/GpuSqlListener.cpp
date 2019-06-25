@@ -271,7 +271,17 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     {
         dispatcher.addLogicalNotFunction(operandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } 
+    }
+	else if (op == "IS NULL")
+	{
+		dispatcher.addIsNullFunction(operandType);
+		returnDataType = DataType::COLUMN_INT8_T;
+	}
+	else if (op == "IS NOT NULL")
+	{
+		dispatcher.addIsNotNullFunction(operandType);
+		returnDataType = DataType::COLUMN_INT8_T;
+	}
 	else if (op == "-")
     {
         dispatcher.addMinusFunction(operandType);

@@ -110,7 +110,7 @@ public:
 	ColumnBase(const std::string& name, int blockSize, bool isNullable = false) :
 		name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable)
 	{
-		blocks_.emplace({-1, std::vector<std::unique_ptr<BlockBase<T>>>()})
+		blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
 	}
 
 	inline int GetBlockSize() const { return blockSize_; };
@@ -181,7 +181,7 @@ public:
 		if (blocks_.find(groupId) == blocks_.end())
 		{
 			// key not found
-			blocks_.emplace({groupId, std::vector<std::unique_ptr<BlockBase<T>>>()})
+			blocks_.emplace(groupId, std::vector<std::unique_ptr<BlockBase<T>>>());
 		}
 
 		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
@@ -385,9 +385,9 @@ public:
 			if (columnData.size() <= lastBlock->EmptyBlockSpace())
 			{
 				lastBlock->InsertData(columnData);
-				auto maskPtr = lastBlock->GetNullBitmask();
-				int startIdx = lastBlock->GetBlockSize() -
-				for(int i = )
+				//auto maskPtr = lastBlock->GetNullBitmask();
+				//int startIdx = lastBlock->GetBlockSize() -
+				//for(int i = )
 				if (compress && lastBlock->IsFull())
 				{
 					lastBlock->CompressData();

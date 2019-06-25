@@ -386,6 +386,14 @@ void GpuSqlDispatcher::addLogicalNotFunction(DataType type)
     dispatcherFunctions.push_back(logicalNotFunctions[type]);
 }
 
+void GpuSqlDispatcher::addIsNullFunction(DataType type)
+{
+}
+
+void GpuSqlDispatcher::addIsNotNullFunction(DataType type)
+{
+}
+
 void GpuSqlDispatcher::addMinusFunction(DataType type)
 {
     dispatcherFunctions.push_back(minusFunctions[type]);
