@@ -1,6 +1,6 @@
 #pragma once
 
-enum CpuFilterInterval
+enum class CpuFilterInterval
 {
 	INNER = 0,
 	OUTER = 1,

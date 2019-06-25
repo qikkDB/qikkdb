@@ -1,10 +1,5 @@
 #include "CpuWhereListener.h"
 #include "../ColumnBase.h"
-#include "../QueryEngine/GPUCore/GPUFilter.cuh"
-#include "../QueryEngine/GPUCore/GPULogic.cuh"
-#include "../QueryEngine/GPUCore/GPUArithmetic.cuh"
-#include "../QueryEngine/GPUCore/GPUArithmeticUnary.cuh"
-
 
 constexpr float pi() { return 3.1415926f; }
 

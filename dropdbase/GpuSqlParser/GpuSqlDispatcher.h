@@ -19,7 +19,6 @@
 #include "../DataType.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
-#include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "ParserExceptions.h"
 #include "CpuSqlDispatcher.h"
 #include "../ComplexPolygonFactory.h"
@@ -852,5 +851,3 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 template<>
 int32_t GpuSqlDispatcher::loadCol<std::string>(std::string& colName);
 
-
-#endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H

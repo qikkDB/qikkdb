@@ -701,30 +701,6 @@ std::tuple<GPUMemory::GPUString, int32_t> GpuSqlDispatcher::findStringColumn(con
 	return std::make_tuple(gpuString, size);
 }
 
-NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& point)
-{
-	NativeGeoPoint nativePoint;
-	nativePoint.latitude = point.geopoint().latitude();
-	nativePoint.longitude = point.geopoint().longitude();
-
-	NativeGeoPoint *gpuPointer = allocateRegister<NativeGeoPoint>("constPoint" + std::to_string(constPointCounter), 1);
-	constPointCounter++;
-
-	GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<NativeGeoPoint*>(&nativePoint), 1);
-	return gpuPointer;
-}
-
-// TODO change to return GPUMemory::GPUPolygon struct
-/// Copy polygon column to GPU memory - create polygon gpu representation temporary buffers from protobuf polygon object
-/// <param name="polygon">Polygon object (protobuf type)</param>
-/// <returns>Struct with GPU pointers to start of polygon arrays</returns>
-GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
-{
-	std::string name = "constPolygon" + std::to_string(constPolygonCounter);
-	constPolygonCounter++;
-	return insertComplexPolygon(database->GetName(), name, { polygon }, 1);
-}
-
 GPUMemory::GPUString GpuSqlDispatcher::insertConstStringGpu(const std::string& str)
 {
 	std::string name = "constString" + std::to_string(constStringCounter);

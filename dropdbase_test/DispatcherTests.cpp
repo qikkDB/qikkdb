@@ -10525,23 +10525,23 @@ TEST(DispatcherTests, CreateAlterDropTable)
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
 }
 
-TEST(DispatcherTests, WhereEvaluation)
-{
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ((colInteger2 != 500) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
-	auto resultPtr = parser.parse();
-	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-
-	FAIL();
-}
-
-TEST(DispatcherTests, WhereEvaluationColColPropagation)
-{
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ((colInteger2 > colInteger1) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
-	auto resultPtr = parser.parse();
-	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-
-	FAIL();
-}
+//TEST(DispatcherTests, WhereEvaluation)
+//{
+//	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ((colInteger2 != 500) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
+//	auto resultPtr = parser.parse();
+//	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+//
+//	FAIL();
+//}
+//
+//TEST(DispatcherTests, WhereEvaluationColColPropagation)
+//{
+//	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ((colInteger2 > colInteger1) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
+//	auto resultPtr = parser.parse();
+//	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+//
+//	FAIL();
+//}
 
 std::string GetInsertIntoValuesString(const std::vector<std::vector<int32_t>>& data, int32_t index)
 {
@@ -10650,14 +10650,25 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
 		ASSERT_EQ(dataIntDSorted[i], dataColD[i]);
 	}
 
+	std::stringstream buffer;
+    std::string target = "Load skipped";
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+    std::string::size_type pos = 0;
+    int occurrences = 0;
+
 	GpuSqlCustomParser parser(Database::GetDatabaseByName("WhereEvalDatabase"), "SELECT ColA FROM TableA WHERE (ColA >= 10 AND ColA < 50) AND ((5 < (ColB + ColC)) AND SIN(ColD));");
 	resultPtr = parser.parse();
 
+	std::string text = buffer.str();
+
+	while ((pos = text.find(target, pos)) != std::string::npos)
+    {
+        ++occurrences;
+        pos += target.length();
+    }
+
+	ASSERT_EQ(occurrences, 2);
 
 	GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE WhereEvalDatabase;");
 	resultPtr = parserDropDatabase.parse();
-
-
-	FAIL();
-	
 }
