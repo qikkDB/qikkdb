@@ -89,11 +89,9 @@ TEST(GPUJoinTests, JoinTest)
 			std:: cout << resultColumnQBJoinIdx[i][j] << " " << val2 << std::endl;
 			std:: cout << std::endl;
 
-			//ASSERT_EQ(val1, val2);
+			ASSERT_EQ(val1, val2);
 		}
 	}
-
-	FAIL();
 }
 
 TEST(GPUJoinTests, ReorderCPUTest)
