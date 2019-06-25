@@ -284,7 +284,7 @@ public:
             occupancyMask.get(), sourceIndices_, maxHashCount_);
 
         GPUReconstruct::ReconstructStringColRaw(keysStringLengths, keysAllChars, elementCount,
-                                                keys_, occupancyMask.get(), maxHashCount_);
+                                                keysBuffer_, occupancyMask.get(), maxHashCount_);
         GPUReconstruct::reconstructCol(values, elementCount, values_, occupancyMask.get(), maxHashCount_);
     }
 
