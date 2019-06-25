@@ -379,15 +379,23 @@ public:
 	{
 		size_ += columnData.size();
 		int startIdx = 0;
+		int maskIdx = 0;
 		if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
 		{
 			auto & lastBlock = blocks_[groupId].back();
 			if (columnData.size() <= lastBlock->EmptyBlockSpace())
 			{
 				lastBlock->InsertData(columnData);
-				//auto maskPtr = lastBlock->GetNullBitmask();
-				//int startIdx = lastBlock->GetBlockSize() -
-				//for(int i = )
+				auto maskPtr = lastBlock->GetNullBitmask();
+				int bitMaskStartIdx = lastBlock->GetBlockSize() - lastBlock->EmptyBlockSpace();
+				for(int i = bitMaskStartIdx; i < lastBlock->GetBlockSize(); i++)
+				{
+					if(nullMask[maskIdx++])
+					{
+						int bitMaskIdx = (i / sizeof(char)*8);
+						maskPtr[bitMaskIdx] |= 1 << (i % sizeof(char)*8);
+					}
+				}
 				if (compress && lastBlock->IsFull())
 				{
 					lastBlock->CompressData();
@@ -396,7 +404,17 @@ public:
 				return;
 			}
 			int emptySpace = lastBlock->EmptyBlockSpace();
+			auto maskPtr = lastBlock->GetNullBitmask();
+			int bitMaskStartIdx = lastBlock->GetBlockSize() - lastBlock->EmptyBlockSpace();
 			lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
+			for(int i = bitMaskStartIdx; i < lastBlock->GetBlockSize(); i++)
+			{
+				if(nullMask[maskIdx++])
+				{
+					int bitMaskIdx = (i / sizeof(char)*8);
+					maskPtr[bitMaskIdx] |= 1 << (i % sizeof(char)*8);
+				}
+			}
 			if (compress && lastBlock->IsFull())
 			{
 				lastBlock->CompressData();
@@ -410,6 +428,15 @@ public:
 				? columnData.size() - startIdx
 				: blockSize_;
 			auto& block = AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), groupId, compress, false);
+			auto maskPtr = block.GetNullBitmask();
+			for(int i = 0; i < block.GetBlockSize(); i++)
+			{
+				if(nullMask[maskIdx++])
+				{
+					int bitMaskIdx = (i / sizeof(char)*8);
+					maskPtr[bitMaskIdx] |= 1 << (i % sizeof(char)*8);
+				}
+			}
 			startIdx += toCopy;
 		}
 		setColumnStatistics();

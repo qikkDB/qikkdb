@@ -6,6 +6,7 @@
 #include <memory>
 #include <stdexcept>
 #include <vector>
+#include <cstring>
 
 template <class T>
 class ColumnBase;
