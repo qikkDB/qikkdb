@@ -615,7 +615,7 @@ for operation in ['len']:
     print(declaration)
 print()
 
-for opIdx, operation in enumerate(['joinEqual', 'joinGreater', 'joinLess', 'joinGreaterEqual', 'joinLessEqual', 'joinNotEqual']):
+for opIdx, operation in enumerate(['joinGreater', 'joinLess', 'joinGreaterEqual', 'joinLessEqual', 'joinEqual', 'joinNotEqual']):
     declaration = "std::array<GpuSqlJoinDispatcher::DispatchJoinFunction," \
                   "DataType::DATA_TYPE_SIZE> GpuSqlJoinDispatcher::" + operation + "Functions = {"
 

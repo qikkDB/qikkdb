@@ -99,7 +99,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 
 		std::tie(table, column) = splitColumnName(colName);
 
-		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+		const int32_t blockCount = usingJoin ? joinIndices->at(table).size() : database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
 		GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
 		if (blockIndex >= blockCount)
 		{
@@ -115,58 +115,63 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 		}
 
 		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
 
-		if (block->IsCompressed() && !usingJoin)
+		if (!usingJoin)
 		{
-			size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
-			size_t compressedSize = block->GetSize();
-			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-				database->GetName(), colName, blockIndex, uncompressedSize);
-			if (!std::get<2>(cacheEntry))
-			{
-				T* deviceCompressed;
-				GPUMemory::alloc(&deviceCompressed, compressedSize);
-				GPUMemory::copyHostToDevice(deviceCompressed, block->GetData(), compressedSize);
-				bool isDecompressed;
-				Compression::Decompress(
-					col->GetColumnType(),
-					deviceCompressed,
-					Compression::GetCompressedDataElementsCount(block->GetData()),
-					std::get<0>(cacheEntry),
-					Compression::GetUncompressedDataElementsCount(block->GetData()),
-					Compression::GetCompressionBlocksCount(block->GetData()),
-					block->GetMin(),
-					block->GetMax(),
-					isDecompressed,
-					true
-				);
-				GPUMemory::free(deviceCompressed);
-			}
-			addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize);
+			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
 
+			if (block->IsCompressed())
+			{
+				size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
+				size_t compressedSize = block->GetSize();
+				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+					database->GetName(), colName, blockIndex, uncompressedSize);
+				if (!std::get<2>(cacheEntry))
+				{
+					T* deviceCompressed;
+					GPUMemory::alloc(&deviceCompressed, compressedSize);
+					GPUMemory::copyHostToDevice(deviceCompressed, block->GetData(), compressedSize);
+					bool isDecompressed;
+					Compression::Decompress(
+						col->GetColumnType(),
+						deviceCompressed,
+						Compression::GetCompressedDataElementsCount(block->GetData()),
+						std::get<0>(cacheEntry),
+						Compression::GetUncompressedDataElementsCount(block->GetData()),
+						Compression::GetCompressionBlocksCount(block->GetData()),
+						block->GetMin(),
+						block->GetMax(),
+						isDecompressed,
+						true
+					);
+					GPUMemory::free(deviceCompressed);
+				}
+				addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize);
+			}
+			else
+			{
+				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+					database->GetName(), colName, blockIndex, block->GetSize());
+				if (!std::get<2>(cacheEntry))
+				{
+					GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+				}
+				addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
+			}
 			noLoad = false;
 		}
 		else
 		{
-			int32_t loadSize = usingJoin ? joinIndices->at(table)[blockIndex].size() : block->GetSize();
+			int32_t loadSize = joinIndices->at(table)[blockIndex].size();
 			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
 				database->GetName(), colName, blockIndex, loadSize);
 			if (!std::get<2>(cacheEntry))
-			{
-				if (usingJoin)
-				{
-					std::cout << "Loading joined block." << std::endl;
-					int32_t outDataSize;
-					GPUJoin::reorderByJoinTableCPU<T>(std::get<0>(cacheEntry), outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
-				}
-				else
-				{
-					GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
-				}
+			{	
+				std::cout << "Loading joined block." << std::endl;
+				int32_t outDataSize;
+				GPUJoin::reorderByJoinTableCPU<T>(std::get<0>(cacheEntry), outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
 			}
-			addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
-
+			addCachedRegister(colName, std::get<0>(cacheEntry), loadSize);
 			noLoad = false;
 		}
 	}

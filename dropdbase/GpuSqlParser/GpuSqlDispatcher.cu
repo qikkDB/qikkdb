@@ -72,8 +72,11 @@ void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
 
 void GpuSqlDispatcher::setJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx)
 {
-	joinIndices = joinIdx;
-	usingJoin = true;
+	if (!joinIdx->empty())
+	{
+		joinIndices = joinIdx;
+		usingJoin = true;
+	}
 }
 
 /// Main execution loop of dispatcher
