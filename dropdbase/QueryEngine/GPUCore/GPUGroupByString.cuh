@@ -17,11 +17,11 @@ __device__ bool AreEqualStrings(char* textA, int32_t lenghtA, GPUMemory::GPUStri
 
 
 __device__ bool IsNewKey(char* checkedKeyChars,
-	int32_t checkedKeyLength,
-	GPUMemory::GPUString inKeys,
-	GPUMemory::GPUString keysBuffer,
-	int32_t* sourceIndices,
-	int32_t index);
+                         int32_t checkedKeyLength,
+                         GPUMemory::GPUString inKeys,
+                         GPUMemory::GPUString keysBuffer,
+                         int32_t* sourceIndices,
+                         int32_t index);
 
 
 /// GROUP BY Kernel processes input (inKeys and inValues). New keys from inKeys are added
@@ -117,12 +117,12 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
 
 
 __global__ void kernel_collect_string_keys(GPUMemory::GPUString sideBuffer,
-	int32_t* sourceIndices,
-	int32_t* stringLengths,
-	GPUMemory::GPUString keysBuffer,
-	int32_t maxHashCount,
-	GPUMemory::GPUString inKeys,
-	int32_t inKeysCount);
+                                           int32_t* sourceIndices,
+                                           int32_t* stringLengths,
+                                           GPUMemory::GPUString keysBuffer,
+                                           int32_t maxHashCount,
+                                           GPUMemory::GPUString inKeys,
+                                           int32_t inKeysCount);
 
 
 __global__ void kernel_is_bucket_occupied(int8_t* occupancyMask, int32_t* sourceIndices, int32_t maxHashCount);
