@@ -486,6 +486,8 @@ public:
 		}
 	}
 
+	// TODO freeColumnIfRegister<std::string> laso point and polygon
+
 	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
 	GPUMemory::GPUPolygon insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);

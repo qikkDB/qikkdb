@@ -440,7 +440,7 @@ for operation in operations_aggregation:
 
             if (col != "Col" or row != "Col") or \
                     (colVal in geo_types or colVal == STRING) or \
-                    (rowVal in geo_types or rowVal == STRING) or (
+                    (rowVal in geo_types) or (
                     rowVal == BOOL or colVal == BOOL):
                 op = "invalidOperandTypesErrorHandler"
             else:
