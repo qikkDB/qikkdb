@@ -15,21 +15,21 @@ TEST(GPUOrderByTests, GPUOrderByTest)
     const int32_t dataElementCount = 16;
 
     // Input data
-    std::vector<std::vector<uint32_t>>unsigned_integer_columns_in = {
+    std::vector<std::vector<int32_t>>unsigned_integer_columns_in = {
         {56, 65, 34, 87, 99, 87, 56, 99, 56, 87, 59, 36, 65, 99, 56, 34},
         {12, 14, 98, 31, 23, 47, 99, 32, 52, 74, 67, 13, 72, 60, 33, 89}
     };
 
     // Output data
-    std::vector<uint32_t> unsigned_integers_out_1(dataElementCount);
-    std::vector<uint32_t> unsigned_integers_out_2(dataElementCount);
+    std::vector<int32_t> unsigned_integers_out_1(dataElementCount);
+    std::vector<int32_t> unsigned_integers_out_2(dataElementCount);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Input buffers
-    std::vector<uint32_t*> d_unsigned_integer_columns_in(columnCount);
+    std::vector<int32_t*> d_unsigned_integer_columns_in(columnCount);
 
     // Output buffers
-    uint32_t* d_unsigned_integers_out;
+    int32_t* d_unsigned_integers_out;
 
     // Reordered output d_indices
     std::vector<int32_t*> d_indices(columnCount);
@@ -53,7 +53,7 @@ TEST(GPUOrderByTests, GPUOrderByTest)
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Run the order by operation
-    GPUOrderBy<uint32_t> ob(dataElementCount);
+    GPUOrderBy<int32_t> ob(dataElementCount);
 
     ob.OrderByAsc(d_indices, d_unsigned_integer_columns_in, dataElementCount);
 

@@ -64,7 +64,7 @@ private:
 
         // Iterate trough all the columns and sort them with radix sort
         // Handle the columns as if they were a big binary number from right to left
-        for(int32_t i = 0; i < inCols.size(); i++)
+        for(int32_t i = inCols.size() - 1; i >= 0; i--)
         {
             // Copy the keys to the first key buffer
             GPUMemory::copyDeviceToDevice(keys1, inCols[i], dataElementCount);
@@ -92,13 +92,13 @@ private:
                                                           dataElementCount);
             }
 
+            // Copy the resulting indices to the output
+            GPUMemory::copyDeviceToDevice(outIndices[i], indices2, dataElementCount);
+
             // Swap GPU pointers
             int32_t* indices_temp = indices1;
             indices1 = indices2;
             indices2 = indices_temp;
-
-            // Copy the resulting indices to the output
-            GPUMemory::copyDeviceToDevice(outIndices[i], indices1, dataElementCount);
         }
     }
     
@@ -117,7 +117,7 @@ public:
                                         keys1, 
                                         keys2, 
                                         indices1, 
-                                        indices2, 
+                                        indices2,
                                         dataElementCount);
 
         GPUMemory::alloc(&radix_temp_buf_, radix_temp_buf_size_);
