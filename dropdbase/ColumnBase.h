@@ -132,7 +132,7 @@ public:
 
 	virtual int8_t* GetNullBitMaskForBlock(size_t blockIndex) override
 	{
-		return blocks_[i]->GetNullBitmask();
+		return GetBlocksList()[blockIndex]->GetNullBitmask();
 	}
 
 	constexpr bool Nullable() const
