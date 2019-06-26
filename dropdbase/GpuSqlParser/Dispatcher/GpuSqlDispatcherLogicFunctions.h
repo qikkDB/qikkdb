@@ -399,25 +399,26 @@ int32_t GpuSqlDispatcher::nullMaskCol()
 	auto colName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	
+	std::cout << "NullMaskCol: " << colName << " " << reg << std::endl;
 
 	if (colName.front() == '$')
 	{
 		throw NullMaskOperationInvalidOperandException();
 	}
 
-	std::cout << "NotCol: " << colName << " " << reg << std::endl;
+	int32_t loadFlag = loadColNullMask(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
 
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
-	int32_t retSize = std::get<1>(column);
+	std::tuple<uintptr_t, int32_t, bool> columnMask = allocatedPointers.at(colName + "_nullMask");
+	size_t nullMaskSize = (std::get<1>(columnMask) + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
 
 	if (!isRegisterAllocated(reg))
 	{
-		int8_t * mask = allocateRegister<int8_t>(reg, retSize);
-		GPULogic::not_col<int8_t, T>(mask, reinterpret_cast<T*>(std::get<0>(column)), retSize);
+		int8_t * outFilterMask = allocateRegister<int8_t>(reg, std::get<1>(columnMask));
+		GPUNullMask::Col<OP>(outFilterMask, reinterpret_cast<int8_t*>(std::get<0>(columnMask)), nullMaskSize, std::get<1>(columnMask));
 	}
-
-	freeColumnIfRegister<T>(colName);
-	return 0;
 	return 0;
 }

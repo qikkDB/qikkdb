@@ -377,12 +377,14 @@ void GpuSqlDispatcher::addLogicalNotFunction(DataType type)
     dispatcherFunctions.push_back(logicalNotFunctions[type]);
 }
 
-void GpuSqlDispatcher::addIsNullFunction(DataType type)
+void GpuSqlDispatcher::addIsNullFunction()
 {
+	dispatcherFunctions.push_back(isNullFunction);
 }
 
-void GpuSqlDispatcher::addIsNotNullFunction(DataType type)
+void GpuSqlDispatcher::addIsNotNullFunction()
 {
+	dispatcherFunctions.push_back(isNotNullFunction);
 }
 
 void GpuSqlDispatcher::addMinusFunction(DataType type)
@@ -617,19 +619,18 @@ int32_t GpuSqlDispatcher::loadColNullMask(std::string & colName)
 			isOverallLastBlock = true;
 		}
 
-		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
+		auto blockNullMask = database->GetTables().at(table).GetColumns().at(column)->GetNullBitMaskForBlock(blockIndex);
+		size_t blockNullMaskSize = (std::get<1>(blockNullMask) + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
 
-		auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-			database->GetName(), colName + "_nullMask", blockIndex, block->GetSize());
+		auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
+			database->GetName(), colName + "_nullMask", blockIndex, blockNullMaskSize);
 		if (!std::get<2>(cacheEntry))
 		{
-			GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+			GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), std::get<0>(blockNullMask), blockNullMaskSize);
 		}
-		addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
+		addCachedRegister(colName + "_nullMask", std::get<0>(cacheEntry), std::get<1>(blockNullMask));
 
 		noLoad = false;
-		
 	}
 	return 0;
 }

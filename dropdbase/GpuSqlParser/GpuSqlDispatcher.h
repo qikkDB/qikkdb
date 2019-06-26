@@ -198,6 +198,8 @@ private:
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
+	static DispatchFunction isNullFunction;
+	static DispatchFunction isNotNullFunction;
     static DispatchFunction filFunction;
 	static DispatchFunction jmpFunction;
     static DispatchFunction doneFunction;
@@ -329,9 +331,9 @@ public:
 
     void addLogicalNotFunction(DataType type);
 
-	void addIsNullFunction(DataType type);
+	void addIsNullFunction();
 
-	void addIsNotNullFunction(DataType type);
+	void addIsNotNullFunction();
 
     void addMinusFunction(DataType type);
 

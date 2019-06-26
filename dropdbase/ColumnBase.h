@@ -130,9 +130,10 @@ public:
 		return initAvgIsSet_;
 	}
 
-	virtual int8_t* GetNullBitMaskForBlock(size_t blockIndex) override
+	virtual std::pair<int8_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) override
 	{
-		return GetBlocksList()[blockIndex]->GetNullBitmask();
+		auto& block = GetBlocksList()[blockIndex];
+		return std::make_pair(block->GetNullBitmask(), block->GetSize());
 	}
 
 	constexpr bool Nullable() const
