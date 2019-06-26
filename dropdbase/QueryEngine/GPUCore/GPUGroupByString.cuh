@@ -133,7 +133,7 @@ __global__ void kernel_mark_collected_strings(int32_t* sourceIndices, int32_t ma
 
 /// GROUP BY generic class (for MIN, MAX and SUM).
 template <typename AGG, typename O, typename V>
-class GPUGroupBy<AGG, O, GPUMemory::GPUString, V> : public IGroupBy
+class GPUGroupBy<AGG, O, std::string, V> : public IGroupBy
 {
     // TODO private:
 public:
@@ -342,8 +342,8 @@ public:
                     break;
                 }
                 // TODO change to cudaMemcpyPeerAsync
-                GPUGroupBy<AGG, O, GPUMemory::GPUString, V>* table =
-                    reinterpret_cast<GPUGroupBy<AGG, O, GPUMemory::GPUString, V>*>(tables[i].get());
+                GPUGroupBy<AGG, O, std::string,V>* table =
+                    reinterpret_cast<GPUGroupBy<AGG, O, std::string,V>*>(tables[i].get());
                 std::vector<int32_t> keysStringLengths;
                 std::vector<char> keysAllChars;
                 std::unique_ptr<V[]> values = std::make_unique<V[]>(table->getMaxHashCount());
@@ -382,7 +382,7 @@ public:
                                             keysAllHostAllChars.size());
 
                 // Merge results
-                GPUGroupBy<AGG, O, GPUMemory::GPUString, V> finalGroupBy(sumElementCount);
+                GPUGroupBy<AGG, O, std::string,V> finalGroupBy(sumElementCount);
                 finalGroupBy.groupBy(keysAllGPU, valuesAllGPU.get(), sumElementCount);
                 finalGroupBy.getResults(outKeys, outValues, outDataElementCount);
 

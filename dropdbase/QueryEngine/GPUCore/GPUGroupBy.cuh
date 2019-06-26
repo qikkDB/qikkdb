@@ -919,3 +919,6 @@ public:
 	}
 
 };
+
+template <typename AGG, typename O, typename V>
+class GPUGroupBy<AGG, O, std::string, V>;

@@ -16,7 +16,7 @@ void TestGroupByString(std::vector<std::vector<std::string>> keys,
                        std::unordered_map<std::string, int32_t> correctPairs)
 {
     constexpr int32_t hashTableSize = 8;
-    GPUGroupBy<AGG, int32_t, GPUMemory::GPUString, int32_t> groupBy(hashTableSize);
+    GPUGroupBy<AGG, int32_t, std::string, int32_t> groupBy(hashTableSize);
     for (int32_t b = 0; b < keys.size(); b++) // per "block"
     {
         // std::cout << "BLOCK " << b << ":" << std::endl;
