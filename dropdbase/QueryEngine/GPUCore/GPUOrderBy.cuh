@@ -1,7 +1,19 @@
 #pragma once
 
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
+
+#include <vector>
+#include <cstdint>
+
+#include "../Context.h"
+#include "GPUMemory.cuh"
+
+#include "../../../cub/cub.cuh"
+
 // Fill the index buffers with default indices
-__global__ kernel_fill_indices(int32_t* indices, int32_t dataElementCount)
+__global__ void kernel_fill_indices(int32_t* indices, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -13,13 +25,13 @@ __global__ kernel_fill_indices(int32_t* indices, int32_t dataElementCount)
 }
 
 // Reorder the keys and the values
-__host__ __device__ constexpr uint64_t RADIX_BUCKET_COUNT = 65536;
-__host__ __device__ constexpr uint64_t RADIX_MASK = 0xFFFF;
-__host__ __device__ constexpr uint64_t RADIX_MASK_BIT_WIDTH = 16;
+const uint64_t RADIX_BUCKET_COUNT = 65536;
+const uint64_t RADIX_MASK = 0xFFFF;
+const uint64_t RADIX_MASK_BIT_WIDTH = 16;
 
 // Calculate the histogram of occurrances of keys (like in counting sort)
 template<typename T>
-__global__ kernel_radix_histo(int32_t* radix_histo, 
+__global__ void kernel_radix_histo(int32_t* radix_histo, 
                               T* keys,
                               int32_t radix_pass,
                               bool is_signed_pass,
@@ -37,7 +49,7 @@ __global__ kernel_radix_histo(int32_t* radix_histo,
 
 // Reorder the indices and the keys based on the radix and data type
 template<typename T>
-__global__ kernel_radix_sort(int32_t* indicesOut, 
+__global__ void kernel_radix_sort(int32_t* indicesOut, 
                              T* keysOut,
                              int32_t* indicesIn,
                              T* keysIn,
@@ -58,7 +70,7 @@ __global__ kernel_radix_sort(int32_t* indicesOut,
         if(is_signed_pass)
         {
             // The prefix sum contains the plus and the minus partition of the signed pass
-            if(radixIdx < RADIX_BUCKET_COUNT / 2)
+            if(radixIdx < (RADIX_BUCKET_COUNT / 2))
             {
                 // The plus partition
                 // Calculate plus partition offset for plus swap
@@ -77,12 +89,13 @@ __global__ kernel_radix_sort(int32_t* indicesOut,
                 if(std::is_same<T, float>::value || std::is_same<T, double>::value)
                 {
                     // Calcualte the flipped minus index for signed float and double values
-                    int32_t minus_flip_idx = radix_pref_sum[RADIX_BUCKET_COUNT - 1] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1]) - minus_offset;
+                    int32_t minus_flip_idx = (radix_pref_sum[RADIX_BUCKET_COUNT - 1] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1]) - minus_idx;
 
                     indicesOut[minus_flip_idx] = indicesIn[i];
                     keysOut[minus_flip_idx] = keysIn[i];
                 }
-                else {
+                else 
+                {
                     indicesOut[minus_idx] = indicesIn[i];
                     keysOut[minus_idx] = keysIn[i];
                 }
@@ -137,7 +150,8 @@ private:
                    T* keysIn,
                    int32_t radix_pass,
                    bool is_signed_pass,
-                   int32_t dataElementCount) {
+                   int32_t dataElementCount) 
+        {
         // Zero the histogram
         GPUMemory::fillArray(radix_histo_, 0, RADIX_BUCKET_COUNT);
 
@@ -211,7 +225,7 @@ public:
 
         // Iterate trough all the columns and sort them with radix sort
         // Handle the columns as if they were a big binary number from right to left
-        for(int32_t i = 0; i < inCols.size()l i++)
+        for(int32_t i = 0; i < inCols.size(); i++)
         {
             // Copy the keys to the first key buffer
             GPUMemory::copyDeviceToDevice(keys1, inCols[i], dataElementCount);
@@ -235,7 +249,7 @@ public:
                 // Second pass - signed upper 16 bits
                 RadixPass(indices1, keys1, indices2, keys2, 1, false, dataElementCount);
             }
-            else if(std::is_same<T, int64_t>::value || std::is_same<T, double>::value )
+            else if(std::is_same<T, int64_t>::value || std::is_same<T, double>::value)
             {
                 // Signed 64 bit integers or 64 bit double values
                 // First pass - unsigned lower lower 16 bits
