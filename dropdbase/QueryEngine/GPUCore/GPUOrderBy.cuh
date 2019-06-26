@@ -179,7 +179,7 @@ private:
                             keysOut,
                             indicesIn,
                             keysIn,
-                            radix_pref_sum_temp_buf_, 
+                            radix_pref_sum_, 
                             radix_pass, 
                             is_signed_pass, 
                             dataElementCount);
@@ -188,13 +188,13 @@ private:
 public:
     GPUOrderBy(int32_t dataElementCount)
     {
-        GPUMemoryAlloc(&indices1, dataElementCount);
-        GPUMemoryAlloc(&indices2, dataElementCount);
-        GPUMemoryAlloc(&keys1, dataElementCount);
-        GPUMemoryAlloc(&keys2, dataElementCount);
+        GPUMemory::alloc(&indices1, dataElementCount);
+        GPUMemory::alloc(&indices2, dataElementCount);
+        GPUMemory::alloc(&keys1, dataElementCount);
+        GPUMemory::alloc(&keys2, dataElementCount);
 
-        GPUMemoryAlloc(&radix_histo_, RADIX_BUCKET_COUNT);
-        GPUMemoryAlloc(&radix_pref_sum_, RADIX_BUCKET_COUNT);
+        GPUMemory::alloc(&radix_histo_, RADIX_BUCKET_COUNT);
+        GPUMemory::alloc(&radix_pref_sum_, RADIX_BUCKET_COUNT);
 
         radix_pref_sum_temp_buf_size_ = 0;
         cub::DeviceScan::InclusiveSum(nullptr, 
@@ -202,19 +202,19 @@ public:
                                       radix_histo_, 
                                       radix_pref_sum_, 
                                       dataElementCount);
-        GPUMemoryAlloc(&radix_pref_sum_temp_buf_, radix_pref_sum_temp_buf_size_);
+        GPUMemory::alloc(&radix_pref_sum_temp_buf_, radix_pref_sum_temp_buf_size_);
     }
 
     ~GPUOrderBy()
     {
-        GPUMemoryFree(indices1);
-        GPUMemoryFree(indices2);
-        GPUMemoryFree(keys1);
-        GPUMemoryFree(keys2);
+        GPUMemory::free(indices1);
+        GPUMemory::free(indices2);
+        GPUMemory::free(keys1);
+        GPUMemory::free(keys2);
 
-        GPUMemoryFree(radix_histo_);
-        GPUMemoryFree(radix_pref_sum_);
-        GPUMemoryFree(radix_pref_sum_temp_buf_);
+        GPUMemory::free(radix_histo_);
+        GPUMemory::free(radix_pref_sum_);
+        GPUMemory::free(radix_pref_sum_temp_buf_);
     }
 
     void OrderBy(int32_t* outIndices, std::vector<T*> &inCols, int32_t dataElementCount)
