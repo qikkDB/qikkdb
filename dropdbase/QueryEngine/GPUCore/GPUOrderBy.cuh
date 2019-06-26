@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <iostream>
 
 #include "../Context.h"
 #include "GPUMemory.cuh"
@@ -165,12 +166,33 @@ private:
                             is_signed_pass, 
                             dataElementCount);
 
+        // DEBUG
+        std::printf("###########################################################\n");
+        std::printf("Histogram\n");
+        std::vector<int32_t> histo(RADIX_BUCKET_COUNT);
+        GPUMemory::copyDeviceToHost(&histo[0], radix_histo_, RADIX_BUCKET_COUNT);
+        for(int32_t i = 0; i < RADIX_BUCKET_COUNT && i < 20; i++)
+            std::printf("%3d ", histo[i]);
+        std::printf("\n");
+        std::printf("\n");
+        // DEBUG END
+
         // Calcualte the histogram inclusive prefix sum
         cub::DeviceScan::InclusiveSum(radix_pref_sum_temp_buf_, 
                                     radix_pref_sum_temp_buf_size_, 
                                     radix_histo_, 
                                     radix_pref_sum_, 
                                     dataElementCount);
+
+        // DEBUG
+        std::printf("Prefix sum before radix sort\n");
+        std::vector<int32_t> prefSum(RADIX_BUCKET_COUNT);
+        GPUMemory::copyDeviceToHost(&prefSum[0], radix_pref_sum_, RADIX_BUCKET_COUNT);
+        for(int32_t i = 0; i < RADIX_BUCKET_COUNT && i < 20; i++)
+            std::printf("%3d ", prefSum[i]);
+        std::printf("\n");
+        std::printf("\n");
+        // DEBUG END
 
         // Perform the radix sort on the keys, order the indices with the keys too
         kernel_radix_sort<<< Context::getInstance().calcGridDim(dataElementCount), 
@@ -183,6 +205,28 @@ private:
                             radix_pass, 
                             is_signed_pass, 
                             dataElementCount);
+
+        // DEBUG
+        std::printf("Prefix sum after radix sort\n");
+        GPUMemory::copyDeviceToHost(&prefSum[0], radix_pref_sum_, RADIX_BUCKET_COUNT);
+        for(int32_t i = 0; i < RADIX_BUCKET_COUNT && i < 20; i++)
+            std::printf("%3d ", prefSum[i]);
+        std::printf("\n");
+        std::printf("\n");
+
+        std::printf("Indices and keys after radix sort\n");
+        std::vector<int32_t> outIndices(dataElementCount);
+        std::vector<T> outData(dataElementCount);
+        GPUMemory::copyDeviceToHost(&outIndices[0], indicesOut, dataElementCount);
+        GPUMemory::copyDeviceToHost(&outData[0], keysOut, dataElementCount);
+        for(int32_t i = 0; i < dataElementCount; i++)
+            std::printf("%3d ", outIndices[i]);
+        std::printf("\n");
+        for(int32_t i = 0; i < dataElementCount; i++)
+            std::printf("%3d ", outData[i]);
+        std::printf("\n");
+        std::printf("\n");
+        // DEBUG END
     }
     
 public:
@@ -226,11 +270,11 @@ public:
 
         // Iterate trough all the columns and sort them with radix sort
         // Handle the columns as if they were a big binary number from right to left
-        for(int32_t i = 0; i < inCols.size(); i++)
+        for(int32_t i = inCols.size() - 1; i >= 0; i--)
         {
             // Copy the keys to the first key buffer
             GPUMemory::copyDeviceToDevice(keys1, inCols[i], dataElementCount);
-
+            
             // Passes for different data types
             if(std::is_same<T, int32_t>::value || std::is_same<T, float>::value)
             {

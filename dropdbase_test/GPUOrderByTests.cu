@@ -16,7 +16,7 @@ TEST(GPUOrderByTests, GPUOrderByTest)
 
     // Input data
     std::vector<std::vector<uint32_t>>unsigned_integer_columns_in = {
-        {23, 11, 67, 3, 87, 34, 764, 76, 3, 58, 92, 42, 19, 37, 76, 85}
+        {14, 1, 13, 5, 8, 9, 11, 2, 10, 4, 15, 3, 7, 16, 6, 12}
     };
 
     // Output data
@@ -36,7 +36,7 @@ TEST(GPUOrderByTests, GPUOrderByTest)
     // Alloc the input buffers
     for(int32_t i = 0; i < columnCount; i++)
     {
-        GPUMemory::alloc(&d_unsigned_integer_columns_in[i],  dataElementCount);
+        GPUMemory::alloc(&d_unsigned_integer_columns_in[i], dataElementCount);
         GPUMemory::copyHostToDevice(d_unsigned_integer_columns_in[i], &unsigned_integer_columns_in[i][0], dataElementCount);
     }
 
@@ -60,7 +60,7 @@ TEST(GPUOrderByTests, GPUOrderByTest)
 
     for(int32_t i = 0; i < dataElementCount; i++)
     {
-        std::printf("%d ", unsigned_integers_out[i]);
+        std::printf("%u ", unsigned_integers_out[i]);
     }
     std::printf("\n");
 
@@ -73,4 +73,6 @@ TEST(GPUOrderByTests, GPUOrderByTest)
 
     GPUMemory::free(d_unsigned_integers_out);
     GPUMemory::free(d_indices);
+
+    FAIL();
 }
