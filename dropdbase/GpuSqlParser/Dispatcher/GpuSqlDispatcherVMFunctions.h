@@ -44,7 +44,7 @@ int32_t GpuSqlDispatcher::retCol()
 		{
 			if (groupByColumns.find(col) != groupByColumns.end())
 			{
-				std::tuple<uintptr_t, int32_t, bool> keyCol = allocatedPointers.at(col + "_keys");
+				std::tuple<uintptr_t, int32_t, bool> keyCol = allocatedPointers.at(getAllocatedRegisterName(col) + "_keys");
 				outSize = std::get<1>(keyCol);
 				std::unique_ptr<T[]> outData(new T[outSize]);
 				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(keyCol)), outSize);
@@ -56,7 +56,7 @@ int32_t GpuSqlDispatcher::retCol()
 			}
 			else
 			{
-				std::tuple<uintptr_t, int32_t, bool> valueCol = allocatedPointers.at(col);
+				std::tuple<uintptr_t, int32_t, bool> valueCol = allocatedPointers.at(getAllocatedRegisterName(col));
 				outSize = std::get<1>(valueCol);
 				std::unique_ptr<T[]> outData(new T[outSize]);
 				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(valueCol)), outSize);
@@ -72,7 +72,7 @@ int32_t GpuSqlDispatcher::retCol()
 		std::unique_ptr<T[]> outData(new T[database->GetBlockSize()]);
 		//ToDo: Podmienene zapnut podla velkost buffera
 		//GPUMemory::hostPin(outData.get(), database->GetBlockSize());
-		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(col);
+		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(getAllocatedRegisterName(col));
 		GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(std::get<0>(ACol)), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
 		//GPUMemory::hostUnregister(outData.get());
 		std::cout << "dataSize: " << outSize << std::endl;
@@ -162,16 +162,22 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 		}
 		else
 		{
+			std::cout << "Loading joined block." << std::endl;
 			int32_t loadSize = joinIndices->at(table)[blockIndex].size();
+			std::string joinCacheId = colName + "_join";
+			for (auto& joinTable : *joinIndices)
+			{
+				joinCacheId += "_" + joinTable.first;
+			}
+
 			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-				database->GetName(), colName, blockIndex, loadSize);
+				database->GetName(), joinCacheId, blockIndex, loadSize);
 			if (!std::get<2>(cacheEntry))
-			{	
-				std::cout << "Loading joined block." << std::endl;
+			{
 				int32_t outDataSize;
 				GPUJoin::reorderByJoinTableCPU<T>(std::get<0>(cacheEntry), outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
 			}
-			addCachedRegister(colName, std::get<0>(cacheEntry), loadSize);
+			addCachedRegister(joinCacheId, std::get<0>(cacheEntry), loadSize);
 			noLoad = false;
 		}
 	}

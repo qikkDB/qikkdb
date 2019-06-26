@@ -10878,10 +10878,17 @@ TEST(DispatcherTests, JoinSimpleTest)
 	}
 
 	auto payloads = result->payloads().at("TableA.colInteger1");
+	std::vector payloadVector(payloads.intpayload().intdata().begin(), payloads.intpayload().intdata().end());
+
+	std::sort(expectedResults.begin(), expectedResults.end());
+	std::sort(payloadVector.begin(), payloadVector.end());
 
 	ASSERT_EQ(payloads.intpayload().intdata().size(), expectedResults.size());
 
-	FAIL();
+	for (int32_t i = 0; i < expectedResults.size(); i++)
+	{
+		ASSERT_EQ(expectedResults[i], payloadVector[i]);
+	}
 }
 
 TEST(DispatcherTests, JoinWhereTest)
@@ -10922,9 +10929,130 @@ TEST(DispatcherTests, JoinWhereTest)
 	}
 
 	auto payloads = result->payloads().at("TableA.colInteger1");
+	std::vector payloadVector(payloads.intpayload().intdata().begin(), payloads.intpayload().intdata().end());
+
+	std::sort(expectedResults.begin(), expectedResults.end());
+	std::sort(payloadVector.begin(), payloadVector.end());
 
 	ASSERT_EQ(payloads.intpayload().intdata().size(), expectedResults.size());
 
-	FAIL();
+	for (int32_t i = 0; i < expectedResults.size(); i++)
+	{
+		ASSERT_EQ(expectedResults[i], payloadVector[i]);
+	}
 }
 
+TEST(DispatcherTests, JoinGroupByTest)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1, COUNT(colInteger1) FROM TableA JOIN TableB ON colInteger1 = colInteger3 GROUP BY colInteger1;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::cout << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size() << std::endl;
+
+	auto leftCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto leftColFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	auto rightCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableB").GetColumns().at("colInteger3").get());
+
+	std::unordered_map<int32_t, int32_t> expectedResults;
+
+	for (int32_t leftBlockIdx = 0; leftBlockIdx < leftCol->GetBlockCount(); leftBlockIdx++)
+	{
+		auto leftBlock = leftCol->GetBlocksList()[leftBlockIdx];
+		for (int32_t leftRowIdx = 0; leftRowIdx < leftBlock->GetSize(); leftRowIdx++)
+		{
+			for (int32_t rightBlockIdx = 0; rightBlockIdx < rightCol->GetBlockCount(); rightBlockIdx++)
+			{
+				auto rightBlock = rightCol->GetBlocksList()[rightBlockIdx];
+				for (int32_t rightRowIdx = 0; rightRowIdx < rightBlock->GetSize(); rightRowIdx++)
+				{
+					if (leftBlock->GetData()[leftRowIdx] == rightBlock->GetData()[rightRowIdx])
+					{
+						if (expectedResults.find(leftBlock->GetData()[leftRowIdx]) == expectedResults.end())
+						{
+							expectedResults.insert({ leftBlock->GetData()[leftRowIdx], 1 });
+						}
+						else
+						{
+							expectedResults.at(leftBlock->GetData()[leftRowIdx])++;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	auto payloadsKeys = result->payloads().at("TableA.colInteger1");
+	auto payloadsValues = result->payloads().at("COUNT(colInteger1)");
+
+
+	ASSERT_EQ(payloadsKeys.intpayload().intdata().size(), expectedResults.size());
+	ASSERT_EQ(payloadsValues.int64payload().int64data().size(), expectedResults.size());
+
+	for (int32_t i = 0; i < payloadsKeys.intpayload().intdata().size(); i++)
+	{
+		ASSERT_TRUE(expectedResults.find(payloadsKeys.intpayload().intdata()[i]) != expectedResults.end());
+		ASSERT_EQ(expectedResults.at(payloadsKeys.intpayload().intdata()[i]), payloadsValues.int64payload().int64data()[i]);
+	}
+}
+
+TEST(DispatcherTests, JoinGroupByWhereTest)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1, COUNT(colInteger1) FROM TableA JOIN TableB ON colInteger1 = colInteger3 WHERE colFloat1 < 200 GROUP BY colInteger1;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::cout << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size() << std::endl;
+
+	auto leftCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto leftColFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	auto rightCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableB").GetColumns().at("colInteger3").get());
+
+	std::unordered_map<int32_t, int32_t> expectedResults;
+
+	for (int32_t leftBlockIdx = 0; leftBlockIdx < leftCol->GetBlockCount(); leftBlockIdx++)
+	{
+		auto leftBlock = leftCol->GetBlocksList()[leftBlockIdx];
+		auto leftBlockFloat = leftColFloat->GetBlocksList()[leftBlockIdx];
+		for (int32_t leftRowIdx = 0; leftRowIdx < leftBlock->GetSize(); leftRowIdx++)
+		{
+			for (int32_t rightBlockIdx = 0; rightBlockIdx < rightCol->GetBlockCount(); rightBlockIdx++)
+			{
+				auto rightBlock = rightCol->GetBlocksList()[rightBlockIdx];
+				for (int32_t rightRowIdx = 0; rightRowIdx < rightBlock->GetSize(); rightRowIdx++)
+				{
+					if (leftBlockFloat->GetData()[leftRowIdx] < 200 && leftBlock->GetData()[leftRowIdx] == rightBlock->GetData()[rightRowIdx])
+					{
+						if (expectedResults.find(leftBlock->GetData()[leftRowIdx]) == expectedResults.end())
+						{
+							expectedResults.insert({ leftBlock->GetData()[leftRowIdx], 1 });
+						}
+						else
+						{
+							expectedResults.at(leftBlock->GetData()[leftRowIdx])++;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	auto payloadsKeys = result->payloads().at("TableA.colInteger1");
+	auto payloadsValues = result->payloads().at("COUNT(colInteger1)");
+
+
+	ASSERT_EQ(payloadsKeys.intpayload().intdata().size(), expectedResults.size());
+	ASSERT_EQ(payloadsValues.int64payload().int64data().size(), expectedResults.size());
+
+	for (int32_t i = 0; i < payloadsKeys.intpayload().intdata().size(); i++)
+	{
+		ASSERT_TRUE(expectedResults.find(payloadsKeys.intpayload().intdata()[i]) != expectedResults.end());
+		ASSERT_EQ(expectedResults.at(payloadsKeys.intpayload().intdata()[i]), payloadsValues.int64payload().int64data()[i]);
+	}
+}

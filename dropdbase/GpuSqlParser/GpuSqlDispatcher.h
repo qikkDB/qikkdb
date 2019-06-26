@@ -466,6 +466,8 @@ public:
 		return mask;
 	}
 
+	std::string getAllocatedRegisterName(const std::string& reg);
+
 	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false);
 
 	void fillStringRegister(GPUMemory::GPUString& stringColumn, const std::string& reg, int32_t size, bool useCache = false);

@@ -25,7 +25,7 @@ int32_t GpuSqlDispatcher::aggregationCol()
 
 	std::cout << "AggCol: " << colName << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool>& column = allocatedPointers.at(colName);
+	std::tuple<uintptr_t, int32_t, bool>& column = allocatedPointers.at(getAllocatedRegisterName(colName));
 	int32_t reconstructOutSize;
 
 	IN* reconstructOutReg = nullptr;
@@ -105,7 +105,7 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 	std::cout << "AggGroupBy: " << colTableName << " " << reg << ", thread: " << dispatcherThreadId << std::endl;
 
 
-	std::tuple<uintptr_t, int32_t, bool>& column = allocatedPointers.at(colTableName);
+	std::tuple<uintptr_t, int32_t, bool>& column = allocatedPointers.at(getAllocatedRegisterName(colTableName));
 	int32_t reconstructOutSize;
 
 	if (!usingGroupBy || colTableName != *(groupByColumns.begin()))
@@ -135,7 +135,7 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 	}
 
 	std::string groupByColumnName = *(groupByColumns.begin());
-	std::tuple<uintptr_t, int32_t, bool> groupByColumn = allocatedPointers.at(groupByColumnName);
+	std::tuple<uintptr_t, int32_t, bool> groupByColumn = allocatedPointers.at(getAllocatedRegisterName(groupByColumnName));
 
 
 	int32_t dataSize = std::min(std::get<1>(groupByColumn), std::get<1>(column));
@@ -156,7 +156,7 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 			U* outKeys = nullptr;
 			R* outValues = nullptr;
 			reinterpret_cast<GPUGroupBy<OP, R, U, T>*>(groupByTables[dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, groupByTables);
-			allocatedPointers.insert({ groupByColumnName + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
+			allocatedPointers.insert({ getAllocatedRegisterName(groupByColumnName) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
 			allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
 		}
 		else
@@ -190,7 +190,7 @@ int32_t GpuSqlDispatcher::groupByCol()
 
 	std::cout << "GroupBy: " << columnName << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool>& column = allocatedPointers.at(columnName);
+	std::tuple<uintptr_t, int32_t, bool>& column = allocatedPointers.at(getAllocatedRegisterName(columnName));
 
 	int32_t reconstructOutSize;
 	T* reconstructOutReg;
