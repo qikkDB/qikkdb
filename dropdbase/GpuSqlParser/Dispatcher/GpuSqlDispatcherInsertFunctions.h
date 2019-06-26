@@ -13,9 +13,8 @@ int32_t GpuSqlDispatcher::insertInto()
 {
 	std::string table = arguments.read<std::string>();
 	std::string column = arguments.read<std::string>();
-	bool isReferencedColumn = arguments.read<bool>();
-
-	if (isReferencedColumn)
+	bool hasValue = arguments.read<bool>();
+	if (hasValue)
 	{
 		T args = arguments.read<T>();
 

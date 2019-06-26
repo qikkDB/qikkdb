@@ -62,7 +62,7 @@ public:
 	/// </summary>
 	/// <param name="columnName">Name of column.</param>
 	/// <param name="dataType">Data type of colum.n</param>
-	void CreateColumn(const char* columnName, DataType columnType);
+	void CreateColumn(const char* columnName, DataType columnType, bool isNullable = false);
 
 #ifndef __CUDACC__
 	/// <summary>

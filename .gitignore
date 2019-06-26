@@ -270,3 +270,4 @@ databases/
 
 CMakeSettings.json
 doc/
+dropdbase/GpuSqlParser/.antlr/

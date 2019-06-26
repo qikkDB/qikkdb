@@ -387,13 +387,13 @@ public:
 			{
 				lastBlock->InsertData(columnData);
 				auto maskPtr = lastBlock->GetNullBitmask();
-				int bitMaskStartIdx = lastBlock->GetBlockSize() - lastBlock->EmptyBlockSpace();
-				for(int i = bitMaskStartIdx; i < lastBlock->GetBlockSize(); i++)
+				int bitMaskStartIdx = lastBlock->BlockCapacity() - lastBlock->EmptyBlockSpace() - 1;
+				for(int i = bitMaskStartIdx; i < bitMaskStartIdx+columnData.size(); i++)
 				{
 					if(nullMask[maskIdx++])
 					{
-						int bitMaskIdx = (i / sizeof(char)*8);
-						maskPtr[bitMaskIdx] |= 1 << (i % sizeof(char)*8);
+						int bitMaskIdx = (i / (sizeof(char)*8));
+						maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char)*8));
 					}
 				}
 				if (compress && lastBlock->IsFull())
@@ -405,14 +405,14 @@ public:
 			}
 			int emptySpace = lastBlock->EmptyBlockSpace();
 			auto maskPtr = lastBlock->GetNullBitmask();
-			int bitMaskStartIdx = lastBlock->GetBlockSize() - lastBlock->EmptyBlockSpace();
+			int bitMaskStartIdx = lastBlock->BlockCapacity() - lastBlock->EmptyBlockSpace() - 1;
 			lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
-			for(int i = bitMaskStartIdx; i < lastBlock->GetBlockSize(); i++)
+			for(int i = bitMaskStartIdx; i < lastBlock->BlockCapacity(); i++)
 			{
 				if(nullMask[maskIdx++])
 				{
-					int bitMaskIdx = (i / sizeof(char)*8);
-					maskPtr[bitMaskIdx] |= 1 << (i % sizeof(char)*8);
+					int bitMaskIdx = (i / (sizeof(char)*8));
+					maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char)*8));
 				}
 			}
 			if (compress && lastBlock->IsFull())
@@ -429,12 +429,12 @@ public:
 				: blockSize_;
 			auto& block = AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), groupId, compress, false);
 			auto maskPtr = block.GetNullBitmask();
-			for(int i = 0; i < block.GetBlockSize(); i++)
+			for(int i = 0; i < toCopy; i++)
 			{
 				if(nullMask[maskIdx++])
 				{
-					int bitMaskIdx = (i / sizeof(char)*8);
-					maskPtr[bitMaskIdx] |= 1 << (i % sizeof(char)*8);
+					int bitMaskIdx = (i / (sizeof(char)*8));
+					maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char)*8));
 				}
 			}
 			startIdx += toCopy;
@@ -466,7 +466,7 @@ public:
     /// <param name="length">Length of inserted data</param>
     void InsertNullData(int length) override
     {
-		std::vector<int8_t> nullMask(length, 0xFF);
+		std::vector<int8_t> nullMask(length, -1);
         InsertData(NullArray(length), nullMask);
     }
 

@@ -54,7 +54,7 @@ indexName           : ID;
 limit               : INTLIT;
 offset              : INTLIT;
 blockSize           : INTLIT;
-columnValue         : (INTLIT|FLOATLIT|geometry|STRING);
+columnValue         : (INTLIT|FLOATLIT|geometry|NULLLIT|STRING);
 
 expression : op=LOGICAL_NOT expression                                                    # unaryOperation
            | op=MINUS expression                                                          # unaryOperation

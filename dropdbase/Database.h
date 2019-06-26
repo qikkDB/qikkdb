@@ -123,7 +123,7 @@ public:
 	/// <param name="tableName">Table name.</param>
 	/// <returns>Newly created table.</returns>
 	Table& CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName);
-
+	Table& CreateTable(const std::unordered_map<std::string, std::pair<DataType,bool>>& columns, const char* tableName);
 	/// <summary>
 	/// Add database to in memory list.
 	/// </summary>

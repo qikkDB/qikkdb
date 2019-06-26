@@ -218,41 +218,41 @@ Table::Table(const std::shared_ptr<Database> &database, const char* name) : data
 /// </summary>
 /// <param name="columnName">Name of column.</param>
 /// <param name="dataType">Data type of colum.n</param>
-void Table::CreateColumn(const char* columnName, DataType columnType)
+void Table::CreateColumn(const char* columnName, DataType columnType, bool isNullable)
 {
 	std::unique_ptr<IColumn> column;
 
 	if (columnType == COLUMN_INT)
 	{
-		column = std::make_unique<ColumnBase<int32_t>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<int32_t>>(columnName, blockSize, isNullable);
 	}
 	else if (columnType == COLUMN_LONG)
 	{
-		column = std::make_unique<ColumnBase<int64_t>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<int64_t>>(columnName, blockSize, isNullable);
 	}
 	else if (columnType == COLUMN_DOUBLE)
 	{
-		column = std::make_unique<ColumnBase<double>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<double>>(columnName, blockSize, isNullable);
 	}
 	else if (columnType == COLUMN_FLOAT)
 	{
-		column = std::make_unique<ColumnBase<float>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<float>>(columnName, blockSize, isNullable);
 	}
 	else if (columnType == COLUMN_STRING)
 	{
-		column = std::make_unique<ColumnBase<std::string>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<std::string>>(columnName, blockSize, isNullable);
 	}
 	else if (columnType == COLUMN_POLYGON)
 	{
-		column = std::make_unique<ColumnBase<ColmnarDB::Types::ComplexPolygon>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<ColmnarDB::Types::ComplexPolygon>>(columnName, blockSize, isNullable);
 	}
 	else if (columnType == COLUMN_POINT)
 	{
-		column = std::make_unique<ColumnBase<ColmnarDB::Types::Point>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<ColmnarDB::Types::Point>>(columnName, blockSize, isNullable);
 	}
 	else if (columnType == COLUMN_INT8_T)
 	{
-		column = std::make_unique<ColumnBase<int8_t>>(columnName, blockSize);
+		column = std::make_unique<ColumnBase<int8_t>>(columnName, blockSize, isNullable);
 	}
 	std::unique_lock<std::mutex> lock(*columnsMutex_);
 	columns.insert(std::make_pair(columnName, std::move(column)));

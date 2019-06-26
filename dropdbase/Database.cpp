@@ -1004,6 +1004,54 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 }
 
 /// <summary>
+/// Creates table with given name and columns and adds it to database. If the table already existed, create missing columns if there are any missing.
+/// </summary>
+/// <returns>Newly created table</returns>
+/// <param name="columns">Columns with types.</param>
+/// <param name="tableName">Table name.</param>
+Table& Database::CreateTable(const std::unordered_map<std::string, std::pair<DataType,bool>>& columns, const char* tableName)
+{
+    auto search = tables_.find(tableName);
+
+    if (search != tables_.end())
+    {
+        auto& table = search->second;
+
+        for (const auto& entry : columns)
+        {
+            if (table.ContainsColumn(entry.first.c_str()))
+            {
+                auto& tableColumns = table.GetColumns();
+
+                if (tableColumns.at(entry.first)->GetColumnType() != entry.second.first)
+                {
+                    throw std::domain_error(
+                        "Column type in CreateTable does not match with existing column.");
+                }
+            }
+            else
+            {
+                table.CreateColumn(entry.first.c_str(), entry.second.first, entry.second.second);
+            }
+        }
+
+        return table;
+    }
+    else
+    {
+        tables_.emplace(std::make_pair(tableName, Table(Database::GetDatabaseByName(name_), tableName)));
+        auto& table = tables_.at(tableName);
+
+        for (auto& entry : columns)
+        {
+            table.CreateColumn(entry.first.c_str(), entry.second.first, entry.second.second);
+        }
+
+        return table;
+    }
+}
+
+/// <summary>
 /// Add database to in memory list.
 /// </summary>
 /// <param name="database">Database to be added.</param>
