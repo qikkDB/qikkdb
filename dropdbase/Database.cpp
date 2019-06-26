@@ -31,10 +31,12 @@ Database::Database(const char* databaseName, int32_t blockSize)
 
 Database::~Database()
 {
+    Context& context = Context::getInstance();
+    int32_t oldDeviceID = context.getBoundDeviceID();
 	// Clear cache for all devices
 	for (int32_t deviceID = 0; deviceID < Context::getInstance().getDeviceCount(); deviceID++)
 	{
-		Context::getInstance().bindDeviceToContext(deviceID);
+		context.bindDeviceToContext(deviceID);
 		GPUMemoryCache& cacheForDevice = Context::getInstance().getCacheForDevice(deviceID);
 		for (auto const& table : tables_)
 		{
@@ -48,6 +50,7 @@ Database::~Database()
 			}
 		}
 	}
+    context.bindDeviceToContext(oldDeviceID);
 }
 
 std::vector<std::string> Database::GetDatabaseNames()
