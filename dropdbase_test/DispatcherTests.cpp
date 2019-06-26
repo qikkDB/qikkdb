@@ -10834,3 +10834,10 @@ TEST(DispatcherTests, CreateAlterDropTable)
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
 }
 
+TEST(DispatcherTests, IsNull)
+{
+	Context::getInstance();
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colInteger1 IS NULL;");
+	auto resultPtr = parser.parse();
+}
+
