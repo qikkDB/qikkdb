@@ -129,6 +129,12 @@ public:
 	{
 		return initAvgIsSet_;
 	}
+
+	virtual int8_t* GetNullBitMaskForBlock(size_t blockIndex) override
+	{
+		return blocks_[i]->GetNullBitmask();
+	}
+
 	constexpr bool Nullable() const
 	{
 		return isNullable_;

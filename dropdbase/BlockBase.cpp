@@ -29,6 +29,7 @@ void BlockBase<int32_t>::setBlockStatistics()
 		max_ = std::numeric_limits<int32_t>::lowest();
 		avg_ = 0;
 		sum_ = 0;
+		size_t count = 0;
 		for(int i = 0; i < size_; i++)
 		{
 			bool isNull = bitMask_[i / sizeof(int8_t)*8] & (1 << (i % sizeof(int8_t)*8));
@@ -38,8 +39,9 @@ void BlockBase<int32_t>::setBlockStatistics()
 				max_ = std::max(max_,data_[i]);
 				sum_ += data_[i];
 				avg_ += data_[i];
+				count++;
 			}
-			avg_ /= size_;
+			avg_ /= count;
 		}
 	}
 	

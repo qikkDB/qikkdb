@@ -273,8 +273,6 @@ public:
 
     GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);
 
-	~GpuSqlDispatcher();
-
 	GpuSqlDispatcher(const GpuSqlDispatcher& dispatcher2) = delete;
 
 	GpuSqlDispatcher& operator=(const GpuSqlDispatcher&) = delete;

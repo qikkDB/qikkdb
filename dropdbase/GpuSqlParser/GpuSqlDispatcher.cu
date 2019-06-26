@@ -23,9 +23,13 @@ std::unordered_map<std::string, int32_t> GpuSqlDispatcher::linkTable;
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId)
 {
-	int device;
+	int device = -1;
 	cudaGetDevice(&device);
-	assert(device == dispatcherThreadId);
+	std::cout << "Current device for tid " << dispatcherThreadId << " is " << device << "\n";
+	if(device != dispatcherThreadId)
+	{
+		abort();
+}
 }
 #endif
 
@@ -47,20 +51,6 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	noLoad(true)
 {
 }
-
-GpuSqlDispatcher::~GpuSqlDispatcher()
-{
-	if (dispatcherThreadId != -1)
-	{
-		Context& context = Context::getInstance();
-		context.bindDeviceToContext(dispatcherThreadId);
-#ifndef NDEBUG
-		AssertDeviceMatchesCurrentThread(dispatcherThreadId);
-#endif
-		cleanUpGpuPointers();
-	}
-}
-
 
 void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
 {
@@ -143,6 +133,7 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 	{
 		exception = std::current_exception();
 	}
+	cleanUpGpuPointers();
 }
 
 const ColmnarDB::NetworkClient::Message::QueryResponseMessage &GpuSqlDispatcher::getQueryResponseMessage()

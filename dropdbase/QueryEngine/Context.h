@@ -163,7 +163,7 @@ public:
     /// <returns>the bound device ID</returns>
      int32_t getBoundDeviceID() const
     {
-        int boundDeviceID;
+        int boundDeviceID = -1;
         cudaGetDevice(&boundDeviceID);
         return boundDeviceID;
     }
@@ -193,8 +193,10 @@ public:
         {
             throw std::out_of_range("ERROR: Device ID not present");
         }
-
-        cudaSetDevice(deviceID);
+        cudaDeviceSynchronize();
+        auto error = cudaSetDevice(deviceID);
+        cudaDeviceSynchronize();
+        CheckCudaError(error);
     }
 
     /// Obtain the memory allocator for a given device

@@ -81,7 +81,7 @@ public:
 			int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 			bitMask_ = std::unique_ptr<int8_t[]>(new int8_t[bitMaskCapacity]);
 			std::memset(bitMask_.get(), 0, bitMaskCapacity);
-			GPUMemory::hostPin(data_.get(), bitMaskCapacity);
+			GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
 		}	
 	}
 
