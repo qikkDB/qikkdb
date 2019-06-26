@@ -57,27 +57,41 @@ __global__ kernel_radix_sort(int32_t* indicesOut,
         // If a pass is signed, perform additional reordering
         if(is_signed_pass)
         {
-            // Calculate plus and minus partition offsets for plus/minus swap
-            int32_t plus_offset = radix_pref_sum[radixIdx] + (radix_pref_sum[RADIX_BUCKET_COUNT - 1] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1]);
-            int32_t minus_offset = radix_pref_sum[radixIdx] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1];
-
-            // Calcualte the flipped minus index for signed float and double values
-            int32_t minus_flip = radix_pref_sum[RADIX_BUCKET_COUNT - 1] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1]) - minus_offset;
-
             // The prefix sum contains the plus and the minus partition of the signed pass
-            if(radixIdx / 2  < RADIX_BUCKET_COUNT / 2)
+            if(radixIdx < RADIX_BUCKET_COUNT / 2)
             {
                 // The plus partition
+                // Calculate plus partition offset for plus swap
+                int32_t plus_idx = ((radixIdx == 0) ? 0 : radix_pref_sum[radixIdx - 1]) + (radix_pref_sum[RADIX_BUCKET_COUNT - 1] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1]);
+
+                indicesOut[plus_idx] = indicesIn[i];
+                keysOut[plus_idx] = keysIn[i];
             }
             else
             {
                 // The minus partition
+                // Calculate minus partition offset for minus swap
+                int32_t minus_idx = ((radixIdx == 0) ? 0 : radix_pref_sum[radixIdx - 1]) - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1];
+
+                // If the numbers are of float or double types, do an additional flip
+                if(std::is_same<T, float>::value || std::is_same<T, double>::value)
+                {
+                    // Calcualte the flipped minus index for signed float and double values
+                    int32_t minus_flip_idx = radix_pref_sum[RADIX_BUCKET_COUNT - 1] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1]) - minus_offset;
+
+                    indicesOut[minus_flip_idx] = indicesIn[i];
+                    keysOut[minus_flip_idx] = keysIn[i];
+                }
+                else {
+                    indicesOut[minus_idx] = indicesIn[i];
+                    keysOut[minus_idx] = keysIn[i];
+                }
             }       
         }
         else
         {
-
-            int32_t resultIdx = radix_pref_sum[i] == 0 ? 0 : radix_pref_sum[i - 1];
+            // No flipping for unsigned pass
+            int32_t resultIdx = ((radixIdx == 0) ? 0 : radix_pref_sum[radixIdx - 1]);
             indicesOut[resultIdx] = indicesIn[i];
             keysOut[resultIdx] = keysIn[i];     
         }
