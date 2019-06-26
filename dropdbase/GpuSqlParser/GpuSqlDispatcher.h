@@ -476,6 +476,8 @@ public:
 	template<typename T>
 	int32_t loadCol(std::string& colName);
 
+	int32_t loadColNullMask(std::string& colName);
+
 	template <typename T>
 	void freeColumnIfRegister(const std::string& col)
 	{
@@ -678,6 +680,9 @@ public:
 
     template<typename T>
     int32_t logicalNotConst();
+
+	template<typename OP>
+	int32_t nullMaskCol();
 
 	template<typename OP>
 	int32_t dateExtractCol();

@@ -160,6 +160,14 @@ struct AliasRedefinitionException : public std::exception
     }
 };
 
+struct NullMaskOperationInvalidOperandException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Null mask operation can only be called with a column operand.";
+	}
+};
+
 struct InvalidOperandsException : public std::exception
 {
 	InvalidOperandsException(const std::string& left, const std::string& right, const std::string &op) : 

@@ -591,6 +591,49 @@ void GpuSqlDispatcher::fillStringRegister(GPUMemory::GPUString & stringColumn, c
 	allocatedPointers.insert({ reg + "_allChars", std::make_tuple(reinterpret_cast<uintptr_t>(stringColumn.allChars), size, !useCache) });
 }
 
+int32_t GpuSqlDispatcher::loadColNullMask(std::string & colName)
+{
+	if (allocatedPointers.find(colName + "_nullMask") == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
+	{
+		std::cout << "LoadNullMask: " << colName << std::endl;
+
+		// split colName to table and column name
+		const size_t endOfPolyIdx = colName.find(".");
+		const std::string table = colName.substr(0, endOfPolyIdx);
+		const std::string column = colName.substr(endOfPolyIdx + 1);
+
+		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+		GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
+		if (blockIndex >= blockCount)
+		{
+			return 1;
+		}
+		if (blockIndex >= blockCount - Context::getInstance().getDeviceCount())
+		{
+			isLastBlockOfDevice = true;
+		}
+		if (blockIndex == blockCount - 1)
+		{
+			isOverallLastBlock = true;
+		}
+
+		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
+		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
+
+		auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+			database->GetName(), colName + "_nullMask", blockIndex, block->GetSize());
+		if (!std::get<2>(cacheEntry))
+		{
+			GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+		}
+		addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
+
+		noLoad = false;
+		
+	}
+	return 0;
+}
+
 GPUMemory::GPUPolygon GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache)
 {
 	if (useCache)

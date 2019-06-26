@@ -2,6 +2,7 @@
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPULogic.cuh"
 #include "../../QueryEngine/GPUCore/GPUFilter.cuh"
+#include "../../QueryEngine/GPUCore/GPUNullMask.cuh"
 #include "GpuSqlDispatcherVMFunctions.h"
 #include <tuple>
 
@@ -388,5 +389,35 @@ int32_t GpuSqlDispatcher::logicalNotCol()
 template<typename T>
 int32_t GpuSqlDispatcher::logicalNotConst()
 {
+	return 0;
+}
+
+
+template<typename OP>
+int32_t GpuSqlDispatcher::nullMaskCol()
+{
+	auto colName = arguments.read<std::string>();
+	auto reg = arguments.read<std::string>();
+
+	
+
+	if (colName.front() == '$')
+	{
+		throw NullMaskOperationInvalidOperandException();
+	}
+
+	std::cout << "NotCol: " << colName << " " << reg << std::endl;
+
+	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
+	int32_t retSize = std::get<1>(column);
+
+	if (!isRegisterAllocated(reg))
+	{
+		int8_t * mask = allocateRegister<int8_t>(reg, retSize);
+		GPULogic::not_col<int8_t, T>(mask, reinterpret_cast<T*>(std::get<0>(column)), retSize);
+	}
+
+	freeColumnIfRegister<T>(colName);
+	return 0;
 	return 0;
 }
