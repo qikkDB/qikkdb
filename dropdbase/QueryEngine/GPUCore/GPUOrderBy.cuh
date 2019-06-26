@@ -69,7 +69,8 @@ __global__ void kernel_radix_sort(int32_t* indicesOut,
         // If a pass is signed, perform additional reordering
         if(is_signed_pass)
         {
-            // The prefix sum contains the plus and the minus partition of the signed pass
+            // The half of the prefix sum contains the plus partition
+            // and the other half the minus partition of the signed pass
             if(radixIdx < (RADIX_BUCKET_COUNT / 2))
             {
                 // The plus partition
@@ -85,11 +86,11 @@ __global__ void kernel_radix_sort(int32_t* indicesOut,
                 // Calculate minus partition offset for minus swap
                 int32_t minus_idx = ((radixIdx == 0) ? 0 : radix_pref_sum[radixIdx - 1]) - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1];
 
-                // If the numbers are of float or double types, do an additional flip
+                // If the numbers are of float or double types, do an additional flip within the minus partition
                 if(std::is_same<T, float>::value || std::is_same<T, double>::value)
                 {
                     // Calcualte the flipped minus index for signed float and double values
-                    int32_t minus_flip_idx = (radix_pref_sum[RADIX_BUCKET_COUNT - 1] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1]) - minus_idx;
+                    int32_t minus_flip_idx = (radix_pref_sum[RADIX_BUCKET_COUNT - 1] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1]) - minus_idx - 1;
 
                     indicesOut[minus_flip_idx] = indicesIn[i];
                     keysOut[minus_flip_idx] = keysIn[i];
