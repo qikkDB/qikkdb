@@ -814,6 +814,13 @@ public:
         arguments.insert<T>(argument);
     }
 
+private:
+	template<typename OP, typename O, typename K, typename V>
+	class GroupByHelper;
+
+	template<typename OP, typename O, typename V>
+	class GroupByHelper<OP, O, std::string, V>;
+
 };
 
 template <>
