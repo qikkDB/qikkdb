@@ -124,7 +124,7 @@ public:
 	{
 		int32_t outSize;
 		GPUMemory::GPUString outKeys;
-		V* outValues = nullptr;
+		O* outValues = nullptr;
 		reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables);
 		dispatcher.fillStringRegister(outKeys, groupByColumnName + "_keys", outSize, true);
 		dispatcher.allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
