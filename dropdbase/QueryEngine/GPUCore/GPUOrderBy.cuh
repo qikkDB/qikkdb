@@ -30,9 +30,8 @@ __global__ kernel_radix_histo(int32_t* radix_histo,
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-        int32_t radixHistoIdx = (keys[i] & (RADIX_MASK << (RADIX_MASK_BIT_WIDTH * radix_pass))) >> 
-                                (RADIX_MASK_BIT_WIDTH * radix_pass);
-        atomicAdd(&radix_histo[radixHistoIdx], 1);
+        int32_t radixIdx = (keys[i] & (RADIX_MASK << (RADIX_MASK_BIT_WIDTH * radix_pass))) >> (RADIX_MASK_BIT_WIDTH * radix_pass);
+        atomicAdd(&radix_histo[radixIdx], 1);
 	}
 }
 
@@ -52,7 +51,36 @@ __global__ kernel_radix_sort(int32_t* indicesOut,
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-        
+        // Get the radix index
+        int32_t radixIdx = (keysIn[i] & (RADIX_MASK << (RADIX_MASK_BIT_WIDTH * radix_pass))) >> (RADIX_MASK_BIT_WIDTH * radix_pass);
+
+        // If a pass is signed, perform additional reordering
+        if(is_signed_pass)
+        {
+            // Calculate plus and minus partition offsets for plus/minus swap
+            int32_t plus_offset = radix_pref_sum[radixIdx] + (radix_pref_sum[RADIX_BUCKET_COUNT - 1] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1]);
+            int32_t minus_offset = radix_pref_sum[radixIdx] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1];
+
+            // Calcualte the flipped minus index for signed float and double values
+            int32_t minus_flip = radix_pref_sum[RADIX_BUCKET_COUNT - 1] - radix_pref_sum[RADIX_BUCKET_COUNT / 2 - 1]) - minus_offset;
+
+            // The prefix sum contains the plus and the minus partition of the signed pass
+            if(radixIdx / 2  < RADIX_BUCKET_COUNT / 2)
+            {
+                // The plus partition
+            }
+            else
+            {
+                // The minus partition
+            }       
+        }
+        else
+        {
+
+            int32_t resultIdx = radix_pref_sum[i] == 0 ? 0 : radix_pref_sum[i - 1];
+            indicesOut[resultIdx] = indicesIn[i];
+            keysOut[resultIdx] = keysIn[i];     
+        }
 	}
 }
 
@@ -147,7 +175,7 @@ public:
         GPUMemoryFree(radix_pref_sum_temp_buf_);
     }
 
-    void OrderBy(int32_t* outColIndices, std::vector<T*> &inCols, int32_t dataElementCount)
+    void OrderBy(int32_t* outIndices, std::vector<T*> &inCols, int32_t dataElementCount)
     {
         // FInitialize the index buffer
         kernel_fill_indices<<< Context::getInstance().calcGridDim(dataElementCount), 
@@ -159,10 +187,10 @@ public:
         for(int32_t i = 0; i < inCols.size()l i++)
         {
             // Copy the keys to the first key buffer
-            GPUMemory::copyDeviceToDevice(keys1, inCols[i], dataElementCount)
+            GPUMemory::copyDeviceToDevice(keys1, inCols[i], dataElementCount);
 
             // Passes for different data types
-            if(std::is_same<T, int32_t>::value || std::is_same<T, float>::value )
+            if(std::is_same<T, int32_t>::value || std::is_same<T, float>::value)
             {
                 // Signed 32 bit integers or 32 bit float values
                 // First pass - unsigned lower 16 bits
@@ -211,9 +239,12 @@ public:
                 RadixPass(indices1, keys1, indices2, keys2, 3, false, dataElementCount);
             }
         }
+
+        // Copy the resulting indices to the output
+        GPUMemory::copyDeviceToDevice(outIndices, indices1, dataElementCount);
     }
     
-    void ReOrderByIdx(T* outCol, int32_t* inColIndices, T* inCol, int32_t dataElementCount)
+    void ReOrderByIdx(T* outCol, int32_t* inIndices, T* inCol, int32_t dataElementCount)
     {
 
     }
