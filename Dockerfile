@@ -58,7 +58,11 @@ FROM nvidia/cuda:10.1-runtime
 
 WORKDIR /app
 
+# Copy .exe file from build into app
 COPY --from=builder /build/build_dropdbase/dropdbase/dropdbase_instarea .
+
+# Copy configuration files from build into app
+COPY --from=builder /configuration .
 
 RUN mkdir /databases
 
