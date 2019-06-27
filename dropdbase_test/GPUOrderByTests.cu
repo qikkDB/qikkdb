@@ -11,18 +11,24 @@ TEST(GPUOrderByTests, GPUOrderByTest)
 {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Input data sizes
-    const int32_t columnCount = 2;
+    const int32_t columnCount = 4;
     const int32_t dataElementCount = 16;
 
     // Input data
     std::vector<std::vector<int32_t>>unsigned_integer_columns_in = {
-        {56, 65, 34, 87, 99, 87, 56, 99, 56, 87, 59, 36, 65, 99, 56, 34},
-        {12, 14, 98, 31, 23, 47, 99, 32, 52, 74, 67, 13, 72, 60, 33, 89}
+        {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4},
+        {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4},
+        {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4},
+        {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4}
     };
 
     // Output data
     std::vector<int32_t> unsigned_integers_out_1(dataElementCount);
     std::vector<int32_t> unsigned_integers_out_2(dataElementCount);
+    std::vector<int32_t> unsigned_integers_out_3(dataElementCount);
+    std::vector<int32_t> unsigned_integers_out_4(dataElementCount);
+
+    std::vector<bool> order = {true, true, true, true};
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Input buffers
@@ -32,7 +38,7 @@ TEST(GPUOrderByTests, GPUOrderByTest)
     int32_t* d_unsigned_integers_out;
 
     // Reordered output d_indices
-    std::vector<int32_t*> d_indices(columnCount);
+    int32_t* d_indices;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Alloc the input buffers
@@ -46,29 +52,36 @@ TEST(GPUOrderByTests, GPUOrderByTest)
     GPUMemory::alloc(&d_unsigned_integers_out,  dataElementCount);
 
     // Alloc the d_indices buffer
-    for(int32_t i = 0; i < columnCount; i++)
-    {
-        GPUMemory::alloc(&d_indices[i],  dataElementCount);
-    }
+    GPUMemory::alloc(&d_indices,  dataElementCount);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Run the order by operation
     GPUOrderBy<int32_t> ob(dataElementCount);
 
-    ob.OrderByAsc(d_indices, d_unsigned_integer_columns_in, dataElementCount);
+    ob.OrderBy(d_indices, d_unsigned_integer_columns_in, dataElementCount, order);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Copy back the results and print them
 
-    ob.ReOrderByIdx(d_unsigned_integers_out, d_indices[0], d_unsigned_integer_columns_in[0], dataElementCount);
+    ob.ReOrderByIdx(d_unsigned_integers_out, d_indices, d_unsigned_integer_columns_in[0], dataElementCount);
     GPUMemory::copyDeviceToHost(&unsigned_integers_out_1[0], d_unsigned_integers_out, dataElementCount);
 
-    ob.ReOrderByIdx(d_unsigned_integers_out, d_indices[1], d_unsigned_integer_columns_in[1], dataElementCount);
+    ob.ReOrderByIdx(d_unsigned_integers_out, d_indices, d_unsigned_integer_columns_in[1], dataElementCount);
     GPUMemory::copyDeviceToHost(&unsigned_integers_out_2[0], d_unsigned_integers_out, dataElementCount);
+
+    ob.ReOrderByIdx(d_unsigned_integers_out, d_indices, d_unsigned_integer_columns_in[2], dataElementCount);
+    GPUMemory::copyDeviceToHost(&unsigned_integers_out_3[0], d_unsigned_integers_out, dataElementCount);
+
+    ob.ReOrderByIdx(d_unsigned_integers_out, d_indices, d_unsigned_integer_columns_in[3], dataElementCount);
+    GPUMemory::copyDeviceToHost(&unsigned_integers_out_4[0], d_unsigned_integers_out, dataElementCount);
 
     for(int32_t i = 0; i < dataElementCount; i++)
     {
-        std::printf("%2d %2d\n", unsigned_integers_out_1[i], unsigned_integers_out_2[i]);
+        std::printf("%2d %2d %2d %2d\n", 
+        unsigned_integers_out_1[i], 
+        unsigned_integers_out_2[i], 
+        unsigned_integers_out_3[i], 
+        unsigned_integers_out_4[i]);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,8 +89,8 @@ TEST(GPUOrderByTests, GPUOrderByTest)
     for(int32_t i = 0; i < columnCount; i++)
     {
         GPUMemory::free(d_unsigned_integer_columns_in[i]);
-        GPUMemory::free(d_indices[i]);
     }
 
+    GPUMemory::free(d_indices);
     GPUMemory::free(d_unsigned_integers_out);
 }

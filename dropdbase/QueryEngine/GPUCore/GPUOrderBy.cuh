@@ -86,7 +86,7 @@ public:
     }
 
     // The base order by method for numeric types
-    void OrderBy(std::vector<int32_t*> &outIndices, std::vector<T*> &inCols, int32_t dataElementCount, std::vector<bool> &ascending)
+    void OrderBy(int32_t* outIndices, std::vector<T*> &inCols, int32_t dataElementCount, std::vector<bool> &ascending)
     {
         // Initialize the index buffer
         kernel_fill_indices<<< Context::getInstance().calcGridDim(dataElementCount), 
@@ -127,14 +127,14 @@ public:
                                                           dataElementCount);
             }
 
-            // Copy the resulting indices to the output
-            GPUMemory::copyDeviceToDevice(outIndices[i], indices2, dataElementCount);
-
             // Swap GPU pointers
             int32_t* indices_temp = indices1;
             indices1 = indices2;
             indices2 = indices_temp;
         }
+
+        // Copy the resulting indices to the output
+        GPUMemory::copyDeviceToDevice(outIndices, indices1, dataElementCount);
     }
     
     void ReOrderByIdx(T* outCol, int32_t* inIndices, T* inCol, int32_t dataElementCount)
