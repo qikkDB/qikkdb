@@ -271,5 +271,6 @@ doc/
 # Databases
 databases/
 
-# Configuration
-configuration/
+# User specific configuration files
+configuration/main_config
+configuration/log_config
