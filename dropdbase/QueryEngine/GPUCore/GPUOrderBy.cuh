@@ -53,54 +53,6 @@ private:
     // Radix sort helper buffers
     size_t radix_temp_buf_size_;
     int8_t* radix_temp_buf_;
-
-    // The base order by method for numeric types
-    void OrderBy(std::vector<int32_t*> &outIndices, std::vector<T*> &inCols, int32_t dataElementCount, bool ascending = true)
-    {
-        // Initialize the index buffer
-        kernel_fill_indices<<< Context::getInstance().calcGridDim(dataElementCount), 
-                               Context::getInstance().getBlockDim() >>>
-                               (indices1, dataElementCount);
-
-        // Iterate trough all the columns and sort them with radix sort
-        // Handle the columns as if they were a big binary number from right to left
-        for(int32_t i = inCols.size() - 1; i >= 0; i--)
-        {
-            // Copy the keys to the first key buffer
-            GPUMemory::copyDeviceToDevice(keys1, inCols[i], dataElementCount);
-
-            // Perform radix sort
-            // Ascending
-            if(ascending)
-            {
-                cub::DeviceRadixSort::SortPairs(radix_temp_buf_, 
-                                                radix_temp_buf_size_,
-                                                keys1, 
-                                                keys2, 
-                                                indices1, 
-                                                indices2,
-                                                dataElementCount); 
-            }
-            else
-            {
-                cub::DeviceRadixSort::SortPairsDescending(radix_temp_buf_, 
-                                                          radix_temp_buf_size_,
-                                                          keys1, 
-                                                          keys2, 
-                                                          indices1, 
-                                                          indices2,
-                                                          dataElementCount);
-            }
-
-            // Copy the resulting indices to the output
-            GPUMemory::copyDeviceToDevice(outIndices[i], indices2, dataElementCount);
-
-            // Swap GPU pointers
-            int32_t* indices_temp = indices1;
-            indices1 = indices2;
-            indices2 = indices_temp;
-        }
-    }
     
 public:
     GPUOrderBy(int32_t dataElementCount)
@@ -133,14 +85,56 @@ public:
         GPUMemory::free(radix_temp_buf_);
     }
 
-    void OrderByAsc(std::vector<int32_t*> &outIndices, std::vector<T*> &inCols, int32_t dataElementCount)
+    // The base order by method for numeric types
+    void OrderBy(std::vector<int32_t*> &outIndices, std::vector<T*> &inCols, int32_t dataElementCount, std::vector<bool> &ascending)
     {
-        OrderBy(outIndices, inCols, dataElementCount, true);
-    }
+        // Initialize the index buffer
+        kernel_fill_indices<<< Context::getInstance().calcGridDim(dataElementCount), 
+                               Context::getInstance().getBlockDim() >>>
+                               (indices1, dataElementCount);
 
-    void OrderByDsc(std::vector<int32_t*> &outIndices, std::vector<T*> &inCols, int32_t dataElementCount)
-    {
-        OrderBy(outIndices, inCols, dataElementCount, false);
+        // Iterate trough all the columns and sort them with radix sort
+        // Handle the columns as if they were a big binary number from right to left
+        for(int32_t i = inCols.size() - 1; i >= 0; i--)
+        {
+            // Copy the keys to the first key buffer and
+            // rotate the keys based on the indices from all the lower radices
+            for(int32_t j = inCols.size() - 1; j >= i; j--)
+            {
+                ReOrderByIdx(keys1, indices1, inCols[i], dataElementCount);
+            }
+
+            // Perform radix sort
+            // Ascending
+            if(ascending[i])
+            {
+                cub::DeviceRadixSort::SortPairs(radix_temp_buf_, 
+                                                radix_temp_buf_size_,
+                                                keys1, 
+                                                keys2, 
+                                                indices1, 
+                                                indices2,
+                                                dataElementCount); 
+            }
+            else
+            {
+                cub::DeviceRadixSort::SortPairsDescending(radix_temp_buf_, 
+                                                          radix_temp_buf_size_,
+                                                          keys1, 
+                                                          keys2, 
+                                                          indices1, 
+                                                          indices2,
+                                                          dataElementCount);
+            }
+
+            // Copy the resulting indices to the output
+            GPUMemory::copyDeviceToDevice(outIndices[i], indices2, dataElementCount);
+
+            // Swap GPU pointers
+            int32_t* indices_temp = indices1;
+            indices1 = indices2;
+            indices2 = indices_temp;
+        }
     }
     
     void ReOrderByIdx(T* outCol, int32_t* inIndices, T* inCol, int32_t dataElementCount)
