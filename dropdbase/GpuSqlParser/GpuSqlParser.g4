@@ -46,11 +46,11 @@ joinClauses         : (joinClause)+;
 joinClause          : (JOIN joinTable ON expression);
 joinTable           : table (AS alias)?;
 fromTable           : table (AS alias)?;
-table               : ID;
-column              : ID;
-database            : ID;
-alias               : ID;
-indexName           : ID;
+table               : (ID|DELIMID);
+column              : (ID|DELIMID);
+database            : (ID|DELIMID);
+alias               : (ID|DELIMID);
+indexName           : (ID|DELIMID);
 limit               : INTLIT;
 offset              : INTLIT;
 blockSize           : INTLIT;
@@ -85,7 +85,7 @@ expression : op=NOT expression                                                  
            | op=RTRIM LPAREN expression RPAREN                                            # unaryOperation
            | op=LOWER LPAREN expression RPAREN                                            # unaryOperation
            | op=UPPER LPAREN expression RPAREN                                            # unaryOperation
-           | op=REVERSE LPAREN expression RPAREN                                            # unaryOperation
+           | op=REVERSE LPAREN expression RPAREN                                          # unaryOperation
            | op=LEN LPAREN expression RPAREN                                              # unaryOperation
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation
