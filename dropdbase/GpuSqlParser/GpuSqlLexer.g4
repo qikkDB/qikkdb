@@ -14,7 +14,7 @@ COLON       : ':';
 COMMA       : ',';
 DOT         : '.';
 STRING      : '"' ( ~[\\"\r\n] )* '"';
-DELIMID     : '[' ( ~[\\[\]$\r\n\u002e] )* ']';
+DELIMID     : '[' ( ~[\\[\]$\r\n\u002e] )+ ']';
 
 DATELIT                 : YEARLIT MINUS MONTHLIT MINUS DAYLIT;
 
