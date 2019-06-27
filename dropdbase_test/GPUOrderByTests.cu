@@ -45,13 +45,14 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
     }
 
     // Perform the column sorting
+    std::vector<std::pair<int32_t, uint32_t>> IKpairs(COL_DATA_ELEMENT_COUNT); 
     for(int32_t i = COL_COUNT - 1; i >= 0; i--)
     {
         // Fill a vector of index - value pair and sort it based on the indices
-        std::vector<std::pair<int32_t, uint32_t>> IKpairs; 
+        
         for(int32_t j = 0; j < COL_DATA_ELEMENT_COUNT; j++)
         {
-            IKpairs.push_back(std::make_pair(dataIn[i][indexBuffer[j]], indexBuffer[j]));
+            IKpairs[j] = std::make_pair(dataIn[i][indexBuffer[j]], indexBuffer[j]);
         }
 
         // Sort based on the sort order
