@@ -21,8 +21,11 @@ private:
 	// parsed YAML file
 	YAML::Node yamlParsed_;
 
-	// configuration values
-	std::string configurationFile = "../configuration/config.yml";
+	// Config and default config file
+	std::string configurationFile = "../../configuration/main_config";
+	std::string configurationFileDefault = configurationFile + ".default";
+	
+	// Configuration values (if even default config does not exists)
 	bool usingGPU_ = true;
 	bool usingCompression_ = true;
 	std::string dir_ = "./";
@@ -49,7 +52,7 @@ private:
 			try {
 				configurationValue = yamlParsed_[entryKey].as<T>();
 				//BOOST_LOG_TRIVIAL(info) << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
-				std::cerr << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
+				std::cout << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
 			}
 			catch (YAML::TypedBadConversion<T>&) {
 				//BOOST_LOG_TRIVIAL(warning) << "Configuration entry wrong conversion, using default value." << std::endl;
