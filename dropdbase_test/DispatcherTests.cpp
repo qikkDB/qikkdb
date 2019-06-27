@@ -8087,7 +8087,7 @@ TEST(DispatcherTests, RetPoints)
 		auto block = column->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k]));
+			expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k], true));
 		}
 	}
 
@@ -8122,14 +8122,14 @@ TEST(DispatcherTests, RetPointsWhere)
 			{
 				if ((k % 1024) < 20)
 				{
-					expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k]));
+					expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k], true));
 				}
 			}
 			else
 			{
 				if (((k % 1024) * -1) < 20)
 				{
-					expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k]));
+					expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k], true));
 				}
 			}
 		}
@@ -8240,7 +8240,9 @@ TEST(DispatcherTests, PointFromColCol)
 		for (int k = 0; k < (1 << 11); k++)
 		{
 			std::ostringstream wktStream;
-			wktStream << "POINT(" << blockInt->GetData()[k] << " " << blockFloat->GetData()[k] << ")";
+			wktStream << std::fixed;
+			wktStream << std::setprecision(4);
+			wktStream << "POINT(" << static_cast<float>(blockInt->GetData()[k]) << " " << blockFloat->GetData()[k] << ")";
 			expectedResultsPoints.push_back(wktStream.str());
 		}
 	}
@@ -8273,7 +8275,9 @@ TEST(DispatcherTests, PointFromColConst)
 		for (int k = 0; k < (1 << 11); k++)
 		{
 			std::ostringstream wktStream;
-			wktStream << "POINT(" << blockInt->GetData()[k] << " 4.5" << ")";
+			wktStream << std::fixed;
+			wktStream << std::setprecision(4);
+			wktStream << "POINT(" << static_cast<float>(blockInt->GetData()[k]) << " 4.5000" << ")";
 			expectedResultsPoints.push_back(wktStream.str());
 		}
 	}
@@ -8306,7 +8310,9 @@ TEST(DispatcherTests, PointFromConstCol)
 		for (int k = 0; k < (1 << 11); k++)
 		{
 			std::ostringstream wktStream;
-			wktStream << "POINT(" << "7 " << blockFloat->GetData()[k] << ")";
+			wktStream << std::fixed;
+			wktStream << std::setprecision(4);
+			wktStream << "POINT(" << "7.0000 " << blockFloat->GetData()[k] << ")";
 			expectedResultsPoints.push_back(wktStream.str());
 		}
 	}
