@@ -265,8 +265,11 @@ __pycache__/
 # Logs
 log/
 
+CMakeSettings.json
+doc/
+
 # Databases
 databases/
 
-CMakeSettings.json
-doc/
+# Configuration
+configuration/
