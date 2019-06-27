@@ -61,8 +61,8 @@ WORKDIR /app
 # Copy .exe file from build into app
 COPY --from=builder /build/build_dropdbase/dropdbase/dropdbase_instarea .
 
-# Copy configuration files from build into app
-COPY --from=builder /configuration .
+# Copy configuration files into app
+COPY configuration .
 
 RUN mkdir /databases
 
