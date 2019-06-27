@@ -448,7 +448,7 @@ public:
     AddColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *ADD();
-    ColumnIdContext *columnId();
+    ColumnContext *column();
     antlr4::tree::TerminalNode *DATATYPE();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -463,7 +463,7 @@ public:
     DropColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *DROPCOLUMN();
-    ColumnIdContext *columnId();
+    ColumnContext *column();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -477,7 +477,7 @@ public:
     AlterColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *ALTERCOLUMN();
-    ColumnIdContext *columnId();
+    ColumnContext *column();
     antlr4::tree::TerminalNode *DATATYPE();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -491,7 +491,7 @@ public:
   public:
     NewTableColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    ColumnIdContext *columnId();
+    ColumnContext *column();
     antlr4::tree::TerminalNode *DATATYPE();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;

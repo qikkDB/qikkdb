@@ -796,7 +796,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ct
 		{
 			auto newColumnContext = entry->newTableColumn();
 			DataType newColumnDataType = getDataTypeFromString(newColumnContext->DATATYPE()->getText());
-			std::string newColumnName = newColumnContext->columnId()->getText();
+			std::string newColumnName = newColumnContext->column()->getText();
 			trimDelimitedIdentifier(newColumnName);
 			
 			if (newColumns.find(newColumnName) != newColumns.end())
@@ -892,7 +892,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext * ctx)
 		{
 			auto addColumnContext = entry->addColumn();
 			DataType addColumnDataType = getDataTypeFromString(addColumnContext->DATATYPE()->getText());
-			std::string addColumnName = addColumnContext->columnId()->getText();
+			std::string addColumnName = addColumnContext->column()->getText();
 			trimDelimitedIdentifier(addColumnName);
 
 			if (database->GetTables().at(tableName).GetColumns().find(addColumnName) != database->GetTables().at(tableName).GetColumns().end() ||
@@ -906,7 +906,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext * ctx)
 		else if (entry->dropColumn())
 		{
 			auto dropColumnContext = entry->dropColumn();
-			std::string dropColumnName = dropColumnContext->columnId()->getText();
+			std::string dropColumnName = dropColumnContext->column()->getText();
 			trimDelimitedIdentifier(dropColumnName);
 
 			if (database->GetTables().at(tableName).GetColumns().find(dropColumnName) == database->GetTables().at(tableName).GetColumns().end() ||
