@@ -22,7 +22,7 @@ private:
 	YAML::Node yamlParsed_;
 
 	// Config and default config file
-	std::string configurationFile = "../../configuration/main_config";
+	std::string configurationFile = "../configuration/main_config";
 	std::string configurationFileDefault = configurationFile + ".default";
 	
 	// Configuration values (if even default config does not exists)
