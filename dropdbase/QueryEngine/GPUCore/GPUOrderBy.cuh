@@ -108,10 +108,7 @@ public:
             // Copy the keys to the first key buffer and
             // rotate the keys in the higher orders based on the 
             // indices from all the lower radices
-            for(int32_t j = i - 1; j >= 0; j--)
-            {
-                ReOrderByIdx(keys1, indices1, inCols[i], dataElementCount);
-            }
+            ReOrderByIdx(keys1, indices1, inCols[i], dataElementCount);
 
             // Perform radix sort
             // Ascending

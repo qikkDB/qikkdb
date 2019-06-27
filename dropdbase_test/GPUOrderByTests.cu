@@ -11,15 +11,14 @@ TEST(GPUOrderByTests, GPUOrderByTest)
 {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Input data sizes
-    const int32_t columnCount = 4;
+    const int32_t columnCount = 3;
     const int32_t dataElementCount = 16;
 
     // Input data
     std::vector<std::vector<int32_t>>unsigned_integer_columns_in = {
+        {1, 1, 1, 1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4},
         {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4},
-        {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4},
-        {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4},
-        {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4}
+        {4, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4}
     };
 
     // Output data
@@ -31,7 +30,6 @@ TEST(GPUOrderByTests, GPUOrderByTest)
     std::vector<OrderBy::Order> order = {
         OrderBy::Order::ASC,
         OrderBy::Order::DESC,
-        OrderBy::Order::ASC,
         OrderBy::Order::ASC
     };
 
@@ -77,16 +75,22 @@ TEST(GPUOrderByTests, GPUOrderByTest)
     ob.ReOrderByIdx(d_unsigned_integers_out, d_indices, d_unsigned_integer_columns_in[2], dataElementCount);
     GPUMemory::copyDeviceToHost(&unsigned_integers_out_3[0], d_unsigned_integers_out, dataElementCount);
 
-    ob.ReOrderByIdx(d_unsigned_integers_out, d_indices, d_unsigned_integer_columns_in[3], dataElementCount);
-    GPUMemory::copyDeviceToHost(&unsigned_integers_out_4[0], d_unsigned_integers_out, dataElementCount);
+    //ob.ReOrderByIdx(d_unsigned_integers_out, d_indices, d_unsigned_integer_columns_in[3], dataElementCount);
+    //GPUMemory::copyDeviceToHost(&unsigned_integers_out_4[0], d_unsigned_integers_out, dataElementCount);
+
+    for(int32_t i = 0; i < order.size(); i++)
+    {
+        std::printf("%2c ", order[i] == OrderBy::Order::ASC ? 'A' : 'D');
+    }
+    std::printf("\n");
 
     for(int32_t i = 0; i < dataElementCount; i++)
     {
-        std::printf("%2d %2d %2d %2d\n", 
+
+        std::printf("%2d %2d %2d\n", 
         unsigned_integers_out_1[i], 
         unsigned_integers_out_2[i], 
-        unsigned_integers_out_3[i], 
-        unsigned_integers_out_4[i]);
+        unsigned_integers_out_3[i]);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
