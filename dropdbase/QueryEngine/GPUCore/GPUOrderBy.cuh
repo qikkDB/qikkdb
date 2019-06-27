@@ -14,6 +14,14 @@
 
 #include "../../../cub/cub.cuh"
 
+// The desired order of a column
+namespace OrderBy {
+    enum class Order{
+        ASC,
+        DESC
+    };
+}
+
 // Fill the index buffers with default indices
 __global__ void kernel_fill_indices(int32_t* indices, int32_t dataElementCount)
 {
@@ -86,7 +94,7 @@ public:
     }
 
     // The base order by method for numeric types
-    void OrderBy(int32_t* outIndices, std::vector<T*> &inCols, int32_t dataElementCount, std::vector<bool> &ascending)
+    void OrderBy(int32_t* outIndices, std::vector<T*> &inCols, int32_t dataElementCount, std::vector<OrderBy::Order> &order)
     {
         // Initialize the index buffer
         kernel_fill_indices<<< Context::getInstance().calcGridDim(dataElementCount), 
@@ -98,16 +106,18 @@ public:
         for(int32_t i = inCols.size() - 1; i >= 0; i--)
         {
             // Copy the keys to the first key buffer and
-            // rotate the keys based on the indices from all the lower radices
-            for(int32_t j = inCols.size() - 1; j >= i; j--)
+            // rotate the keys in the higher orders based on the 
+            // indices from all the lower radices
+            for(int32_t j = i - 1; j >= 0; j--)
             {
                 ReOrderByIdx(keys1, indices1, inCols[i], dataElementCount);
             }
 
             // Perform radix sort
             // Ascending
-            if(ascending[i])
+            switch(order[i]) 
             {
+                case OrderBy::Order::ASC:
                 cub::DeviceRadixSort::SortPairs(radix_temp_buf_, 
                                                 radix_temp_buf_size_,
                                                 keys1, 
@@ -115,9 +125,8 @@ public:
                                                 indices1, 
                                                 indices2,
                                                 dataElementCount); 
-            }
-            else
-            {
+                break;
+                case OrderBy::Order::DESC:
                 cub::DeviceRadixSort::SortPairsDescending(radix_temp_buf_, 
                                                           radix_temp_buf_size_,
                                                           keys1, 
@@ -125,6 +134,7 @@ public:
                                                           indices1, 
                                                           indices2,
                                                           dataElementCount);
+                break;
             }
 
             // Swap GPU pointers

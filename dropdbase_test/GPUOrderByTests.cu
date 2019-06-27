@@ -28,7 +28,12 @@ TEST(GPUOrderByTests, GPUOrderByTest)
     std::vector<int32_t> unsigned_integers_out_3(dataElementCount);
     std::vector<int32_t> unsigned_integers_out_4(dataElementCount);
 
-    std::vector<bool> order = {true, true, true, true};
+    std::vector<OrderBy::Order> order = {
+        OrderBy::Order::ASC,
+        OrderBy::Order::DESC,
+        OrderBy::Order::ASC,
+        OrderBy::Order::ASC
+    };
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Input buffers
