@@ -62,7 +62,7 @@ WORKDIR /app
 COPY --from=builder /build/build_dropdbase/dropdbase/dropdbase_instarea .
 
 # Copy configuration files into app
-COPY configuration .
+COPY configuration /
 
 RUN mkdir /databases
 
