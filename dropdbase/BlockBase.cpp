@@ -32,7 +32,7 @@ void BlockBase<int32_t>::setBlockStatistics()
 		size_t count = 0;
 		for(int i = 0; i < size_; i++)
 		{
-			bool isNull = bitMask_[i / sizeof(int8_t)*8] & (1 << (i % sizeof(int8_t)*8));
+			bool isNull = bitMask_[i / (sizeof(int8_t)*8)] & (1 << (i % (sizeof(int8_t)*8)));
 			if(!isNull)
 			{
 				min_ = std::min(min_,data_[i]);
@@ -71,7 +71,7 @@ void BlockBase<int64_t>::setBlockStatistics()
 		size_t count = 0;
 		for(int i = 0; i < size_; i++)
 		{
-			bool isNull = bitMask_[i / sizeof(int8_t)*8] & (1 << (i % sizeof(int8_t)*8));
+			bool isNull = bitMask_[i / (sizeof(int8_t)*8)] & (1 << (i % (sizeof(int8_t)*8)));
 			if(!isNull)
 			{
 				min_ = std::min(min_,data_[i]);
@@ -109,7 +109,7 @@ void BlockBase<float>::setBlockStatistics()
 		size_t count = 0;
 		for(int i = 0; i < size_; i++)
 		{
-			bool isNull = bitMask_[i / sizeof(int8_t)*8] & (1 << (i % sizeof(int8_t)*8));
+			bool isNull = bitMask_[i / (sizeof(int8_t)*8)] & (1 << (i % (sizeof(int8_t)*8)));
 			if(!isNull)
 			{
 				min_ = std::min(min_,data_[i]);
@@ -147,7 +147,7 @@ void BlockBase<double>::setBlockStatistics()
 		size_t count = 0;
 		for(int i = 0; i < size_; i++)
 		{
-			bool isNull = bitMask_[i / sizeof(int8_t)*8] & (1 << (i % sizeof(int8_t)*8));
+			bool isNull = bitMask_[i / (sizeof(int8_t)*8)] & (1 << (i % (sizeof(int8_t)*8)));
 			if(!isNull)
 			{
 				min_ = std::min(min_,data_[i]);

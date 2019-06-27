@@ -750,7 +750,9 @@ TEST(ColumnTests, ColumnStatistics)
 	dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->InsertData(dataPoint);
 	dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->InsertData(dataPolygon);
 	dynamic_cast<ColumnBase<std::string>*>(columnString.get())->InsertData(dataString);
-
+	auto& blockList = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList();
+	ASSERT_EQ(blockList[0]->GetSum(), database->GetBlockSize());
+	ASSERT_EQ(blockList[1]->GetSum(), 5 * database->GetBlockSize());
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetMin(), 1);
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetMax(), 5);
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetSum(), database->GetBlockSize() + 5 * database->GetBlockSize());
