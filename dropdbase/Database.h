@@ -21,6 +21,7 @@ class Database
 
 private:
 	static std::mutex dbMutex_;
+	static constexpr char* SEPARATOR = "@";
 	std::string name_;
 	int32_t blockSize_;
 	std::unordered_map<std::string, Table> tables_;
