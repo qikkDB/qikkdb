@@ -11,3 +11,6 @@ UsingCompression: true
 ListenIP: 127.0.0.1
 ListenPort: 12345
 Timeout: 5000
+
+# To edit configuration values, copy this file to "main_config"
+# (delete suffix ".default") and edit there
