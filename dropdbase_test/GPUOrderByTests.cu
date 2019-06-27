@@ -6,100 +6,166 @@
 #include <vector>
 #include <cstdint>
 #include <iostream>
+#include <functional>
 
-TEST(GPUOrderByTests, GPUOrderByTest)
+TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
 {
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Input data sizes
-    const int32_t columnCount = 3;
-    const int32_t dataElementCount = 16;
+    // Random generator
+    int32_t SEED = 42;
+    srand(SEED);
+
+    // Input sizes
+    int32_t COL_COUNT = 6;
+    int32_t COL_DATA_ELEMENT_COUNT = 16;
+
+    uint32_t DATA_LIMIT = 10;
 
     // Input data
-    std::vector<std::vector<int32_t>>unsigned_integer_columns_in = {
-        {1, 1, 1, 1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4},
-        {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4},
-        {4, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4}
-    };
+    std::vector<OrderBy::Order> orderingIn;
+    std::vector<std::vector<uint32_t>> dataIn;
 
-    // Output data
-    std::vector<int32_t> unsigned_integers_out_1(dataElementCount);
-    std::vector<int32_t> unsigned_integers_out_2(dataElementCount);
-    std::vector<int32_t> unsigned_integers_out_3(dataElementCount);
-    std::vector<int32_t> unsigned_integers_out_4(dataElementCount);
-
-    std::vector<OrderBy::Order> order = {
-        OrderBy::Order::ASC,
-        OrderBy::Order::DESC,
-        OrderBy::Order::ASC
-    };
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Input buffers
-    std::vector<int32_t*> d_unsigned_integer_columns_in(columnCount);
-
-    // Output buffers
-    int32_t* d_unsigned_integers_out;
-
-    // Reordered output d_indices
-    int32_t* d_indices;
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Alloc the input buffers
-    for(int32_t i = 0; i < columnCount; i++)
+    // Fill the input data vectors
+    for(int32_t i = 0; i < COL_COUNT; i++)
     {
-        GPUMemory::alloc(&d_unsigned_integer_columns_in[i], dataElementCount);
-        GPUMemory::copyHostToDevice(d_unsigned_integer_columns_in[i], &unsigned_integer_columns_in[i][0], dataElementCount);
+        orderingIn.push_back(OrderBy::Order::ASC);
+        dataIn.push_back(std::vector<uint32_t>{});
+        for(int32_t j = 0; j < COL_DATA_ELEMENT_COUNT; j++)
+        {
+            dataIn[i].push_back(rand() % DATA_LIMIT);
+        }
     }
 
-    // Alloc the output buffers
-    GPUMemory::alloc(&d_unsigned_integers_out,  dataElementCount);
-
-    // Alloc the d_indices buffer
-    GPUMemory::alloc(&d_indices,  dataElementCount);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Run the order by operation
-    GPUOrderBy<int32_t> ob(dataElementCount);
-
-    ob.OrderBy(d_indices, d_unsigned_integer_columns_in, dataElementCount, order);
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Copy back the results and print them
-
-    ob.ReOrderByIdx(d_unsigned_integers_out, d_indices, d_unsigned_integer_columns_in[0], dataElementCount);
-    GPUMemory::copyDeviceToHost(&unsigned_integers_out_1[0], d_unsigned_integers_out, dataElementCount);
-
-    ob.ReOrderByIdx(d_unsigned_integers_out, d_indices, d_unsigned_integer_columns_in[1], dataElementCount);
-    GPUMemory::copyDeviceToHost(&unsigned_integers_out_2[0], d_unsigned_integers_out, dataElementCount);
-
-    ob.ReOrderByIdx(d_unsigned_integers_out, d_indices, d_unsigned_integer_columns_in[2], dataElementCount);
-    GPUMemory::copyDeviceToHost(&unsigned_integers_out_3[0], d_unsigned_integers_out, dataElementCount);
-
-    //ob.ReOrderByIdx(d_unsigned_integers_out, d_indices, d_unsigned_integer_columns_in[3], dataElementCount);
-    //GPUMemory::copyDeviceToHost(&unsigned_integers_out_4[0], d_unsigned_integers_out, dataElementCount);
-
-    for(int32_t i = 0; i < order.size(); i++)
+    /////////////////////////////////////////////////////////////////////////////
+    // Sort the input data on the CPU
+    // Fill in the index buffer
+    std::vector<int32_t> indexBuffer(COL_DATA_ELEMENT_COUNT);
+    for(int32_t i = 0; i < COL_DATA_ELEMENT_COUNT; i++)
     {
-        std::printf("%2c ", order[i] == OrderBy::Order::ASC ? 'A' : 'D');
+        indexBuffer[i] = i;
+    }
+
+    // Perform the column sorting
+    for(int32_t i = COL_COUNT - 1; i >= 0; i--)
+    {
+        // Fill a vector of index - value pair and sort it based on the indices
+        std::vector<std::pair<int32_t, uint32_t>> IKpairs; 
+        for(int32_t j = 0; j < COL_DATA_ELEMENT_COUNT; j++)
+        {
+            IKpairs.push_back(std::make_pair(dataIn[i][indexBuffer[j]], indexBuffer[j]));
+        }
+
+        // Sort based on the sort order
+        switch(orderingIn[i]){
+            case OrderBy::Order::ASC:
+                std::sort(IKpairs.begin(), IKpairs.end());
+                break;
+            case OrderBy::Order::DESC:
+                std::sort(IKpairs.begin(), IKpairs.end(), std::greater<>());
+                break;
+        }
+
+        // Reorder the output vector indices
+        for(int32_t j = 0; j < COL_DATA_ELEMENT_COUNT; j++)
+        {
+            indexBuffer[j] = IKpairs[j].second;
+        }
+    }
+
+    // Write the results
+    std::vector<std::vector<uint32_t>> dataOut;
+    for(int32_t i = 0; i < COL_COUNT; i++)
+    {
+        dataOut.push_back(std::vector<uint32_t>{});
+        for(int32_t j = 0; j < COL_DATA_ELEMENT_COUNT; j++)
+        {
+            dataOut[i].push_back(dataIn[i][indexBuffer[j]]);
+        }
+    }
+    
+    // DEBUG
+    std::printf("###############################################################\n");
+    std::printf("### CPU ORDER BY ###\n");
+    // Print the results as columns
+    for(int32_t i = 0; i < COL_COUNT; i++)
+    {
+        std::printf("%2c ", orderingIn[i] == OrderBy::Order::ASC ? 'A' : 'D');
     }
     std::printf("\n");
 
-    for(int32_t i = 0; i < dataElementCount; i++)
+    for(int32_t i = 0; i < COL_DATA_ELEMENT_COUNT; i++)
     {
+        for(int32_t j = 0; j < COL_COUNT; j++)
+        {
+            std::printf("%2u ", dataOut[j][i]);
+        }
+        std::printf("\n");
+    }
+    //DEBUG END
 
-        std::printf("%2d %2d %2d\n", 
-        unsigned_integers_out_1[i], 
-        unsigned_integers_out_2[i], 
-        unsigned_integers_out_3[i]);
+    /////////////////////////////////////////////////////////////////////////////
+    // Sort the input data on the GPU
+    std::vector<uint32_t*> d_dataIn;
+    int32_t* d_indexBuffer;
+    uint32_t* d_resultBuffer;
+
+    // Alloc the GPU buffers
+    for(int32_t i = 0; i < COL_COUNT; i++)
+    {
+        d_dataIn.push_back(nullptr);
+        GPUMemory::alloc(&d_dataIn[i], COL_DATA_ELEMENT_COUNT);
+        GPUMemory::copyHostToDevice(d_dataIn[i], &dataIn[i][0], COL_DATA_ELEMENT_COUNT);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Free the input buffers
-    for(int32_t i = 0; i < columnCount; i++)
+    GPUMemory::alloc(&d_indexBuffer, COL_DATA_ELEMENT_COUNT);
+    GPUMemory::alloc(&d_resultBuffer, COL_DATA_ELEMENT_COUNT);
+
+    // Perform the orderby operation
+    GPUOrderBy<uint32_t> ob(COL_DATA_ELEMENT_COUNT);
+
+    ob.OrderBy(d_indexBuffer, d_dataIn, COL_DATA_ELEMENT_COUNT, orderingIn);
+    
+    // Copy back the results
+    std::vector<std::vector<uint32_t>> dataOutGPU;
+    for(int32_t i = 0; i < COL_COUNT; i++)
     {
-        GPUMemory::free(d_unsigned_integer_columns_in[i]);
+        // Reconstruct the data
+        ob.ReOrderByIdx(d_resultBuffer, d_indexBuffer, d_dataIn[i], COL_DATA_ELEMENT_COUNT);
+
+        // Copy back the data
+        dataOutGPU.push_back(std::vector<uint32_t>(COL_DATA_ELEMENT_COUNT));
+        GPUMemory::copyDeviceToHost(&dataOutGPU[i][0], d_resultBuffer, COL_DATA_ELEMENT_COUNT);
     }
 
-    GPUMemory::free(d_indices);
-    GPUMemory::free(d_unsigned_integers_out);
+    // Free the GPU buffers
+    for(int32_t i = 0; i < COL_COUNT; i++)
+    {
+        GPUMemory::free(d_dataIn[i]);
+    }
+    GPUMemory::free(d_indexBuffer);
+    GPUMemory::free(d_resultBuffer);
+
+    // Print the results
+    // DEBUG
+    std::printf("###############################################################\n");
+    std::printf("### GPU ORDER BY ###\n");
+    // Print the results as columns
+    for(int32_t i = 0; i < COL_COUNT; i++)
+    {
+        std::printf("%2c ", orderingIn[i] == OrderBy::Order::ASC ? 'A' : 'D');
+    }
+    std::printf("\n");
+
+    for(int32_t i = 0; i < COL_DATA_ELEMENT_COUNT; i++)
+    {
+        for(int32_t j = 0; j < COL_COUNT; j++)
+        {
+            std::printf("%2u ", dataOutGPU[j][i]);
+        }
+        std::printf("\n");
+    }
+    //DEBUG END
+
+    /////////////////////////////////////////////////////////////////////////////
+    // Compare the data
+
 }
