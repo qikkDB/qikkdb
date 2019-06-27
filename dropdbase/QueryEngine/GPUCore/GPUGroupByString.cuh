@@ -51,24 +51,29 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
+        printf("%d A\n", i);
         const int64_t inKeyIndex = GetStringIndex(inKeys.stringIndices, i);
+        printf("%d B, idx: %d\n", i, static_cast<int32_t>(inKeyIndex));
         const int32_t inKeyLength = GetStringLength(inKeys.stringIndices, i);
-        char* inKeyChars = inKeys.allChars + inKeyIndex;
+        printf("%d C, len: %d\n", i, inKeyLength);
+        char* inKeyChars = inKeys.allChars + inKeyIndex;    // TODO (bad index or something)
+        printf("%d F, fch: %c\n", i, inKeyChars[0]);
         // Calculate hash
         const int32_t hash = GetHash(inKeyChars, inKeyLength);
+        printf("%d M, hash: %d\n", i, hash % maxHashCount);
 
         int32_t foundIndex = -1;
         for (int32_t j = 0; j < maxHashCount; j++)
         {
             // Calculate index to hash-table from hash
             const int32_t index = abs((hash + j) % maxHashCount);
-            // printf("%d (%c%c%c...): %d\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2], index);
+            printf("%d (%c%c%c...): %d\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2], index);
 
             // Check if key is not empty and key is not equal to the currently inserted key
             if (sourceIndices[index] != GBS_SOURCE_INDEX_EMPTY_KEY &&
                 IsNewKey(inKeyChars, inKeyLength, inKeys, keysBuffer, sourceIndices, index))
             {
-                // printf("%d (%c%c%c...): c1\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2]);
+                printf("%d (%c%c%c...): c1\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2]);
                 continue;
             }
 
@@ -83,14 +88,14 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                 if (old != GBS_SOURCE_INDEX_EMPTY_KEY && old != i &&
                     IsNewKey(inKeyChars, inKeyLength, inKeys, keysBuffer, sourceIndices, index))
                 {
-                    // printf("%d (%c%c%c...): cA\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2]);
+                    printf("%d (%c%c%c...): cA\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2]);
                     continue; // Try to find another index
                 }
             }
             else if (sourceIndices[index] != i &&
                      IsNewKey(inKeyChars, inKeyLength, inKeys, keysBuffer, sourceIndices, index))
             {
-                // printf("%d (%c%c%c...): ce\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2]);
+                printf("%d (%c%c%c...): ce\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2]);
                 continue; // try to find another index
             }
 

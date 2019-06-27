@@ -140,13 +140,13 @@ public:
 /// The dispatcher instance handling the overall last block waits for all other dispatcher instances to finish their last blocks
 /// and saves the result of group by
 /// <returns name="statusCode">Finish status code of the operation</returns>
-template<typename OP, typename R, typename T, typename U>
+template<typename OP, typename O, typename K, typename V>
 int32_t GpuSqlDispatcher::aggregationGroupBy()
 {
 	auto colTableName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	int32_t loadFlag = loadCol<U>(colTableName);
+	int32_t loadFlag = loadCol<V>(colTableName);
 	if (loadFlag)
 	{
 		return loadFlag;
@@ -160,8 +160,8 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 
 	if (!usingGroupBy || colTableName != *(groupByColumns.begin()))
 	{
-		T* reconstructOutReg;
-		GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+		V* reconstructOutReg;
+		GPUReconstruct::reconstructColKeep<V>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<V*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
 
 		if (std::get<2>(column))
 		{
@@ -181,12 +181,12 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 	//TODO void param
 	if (groupByTables[dispatcherThreadId] == nullptr)
 	{
-		groupByTables[dispatcherThreadId] = std::make_unique<GPUGroupBy<OP, R, U, T>>(Configuration::GetInstance().GetGroupByBuckets());
+		groupByTables[dispatcherThreadId] = std::make_unique<GPUGroupBy<OP, O, K, V>>(Configuration::GetInstance().GetGroupByBuckets());
 	}
 
 	std::string groupByColumnName = *(groupByColumns.begin());
 	
-	GpuSqlDispatcher::GroupByHelper<OP, R, U, T>::ProcessBlock(groupByColumnName, column, *this);
+	GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::ProcessBlock(groupByColumnName, column, *this);
 	
 	// If last block was processed, reconstruct group by table
 	if (isLastBlockOfDevice)
@@ -199,7 +199,7 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 
 			std::cout << "Reconstructing group by in thread: " << dispatcherThreadId << std::endl;
 			
-			GpuSqlDispatcher::GroupByHelper<OP, R, U, T>::GetResults(groupByColumnName, reg, *this);
+			GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::GetResults(groupByColumnName, reg, *this);
 		}
 		else
 		{
@@ -211,7 +211,7 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 		}
 	}
 	
-	freeColumnIfRegister<U>(colTableName);
+	freeColumnIfRegister<V>(colTableName);
 	return 0;
 }
 

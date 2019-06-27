@@ -179,7 +179,7 @@ for operation in operations_move:
         elif colIdx >= len(types):
             col = "Col"
 
-        if (operation == 'groupBy') and (colVal == STRING or colVal == BOOL or colVal in geo_types):
+        if (operation == 'groupBy') and (colVal == BOOL or colVal in geo_types):
             function = "GpuSqlDispatcher::" + "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         elif (operation == 'ret') and (colVal == BOOL):
             function = "GpuSqlDispatcher::" + "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
@@ -425,36 +425,36 @@ for operation in operations_aggregation:
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + \
                   operation + "GroupByFunctions = {"
 
-    for colIdx, colVal in enumerate(all_types):
-        for rowIdx, rowVal in enumerate(all_types):
+    for keyIdx, keyVal in enumerate(all_types):
+        for valueIdx, valueVal in enumerate(all_types):
 
-            if colIdx < len(types):
+            if keyIdx < len(types):
                 col = "Const"
-            elif colIdx >= len(types):
+            elif keyIdx >= len(types):
                 col = "Col"
 
-            if rowIdx < len(types):
+            if valueIdx < len(types):
                 row = "Const"
-            elif rowIdx >= len(types):
+            elif valueIdx >= len(types):
                 row = "Col"
 
             if (col != "Col" or row != "Col") or \
-                    (colVal in geo_types or colVal == STRING) or \
-                    (rowVal in geo_types) or (
-                    rowVal == BOOL or colVal == BOOL):
+                    (keyVal in geo_types) or \
+                    (valueVal in geo_types or valueVal == STRING) or (
+                    valueVal == BOOL or keyVal == BOOL):
                 op = "invalidOperandTypesErrorHandler"
             else:
                 op = "aggregationGroupBy"
-            retVal = colVal
+            retVal = valueVal
             if operation == "count":
                 retVal = LONG
             # TODO: for avg FLOAT/DOUBLE
             if op != "invalidOperandTypesErrorHandler":
-                function = "GpuSqlDispatcher::" + op + "<AggregationFunctions::" + operation + ", " + retVal + ", " + colVal + ", " + rowVal + ">"
+                function = "GpuSqlDispatcher::" + op + "<AggregationFunctions::" + operation + ", " + retVal + ", " + keyVal + ", " + valueVal + ">"
             else:
-                function = "GpuSqlDispatcher::" + op + col + row + "<AggregationFunctions::" + operation + ", " + colVal + ", " + rowVal + ">"
+                function = "GpuSqlDispatcher::" + op + col + row + "<AggregationFunctions::" + operation + ", " + keyVal + ", " + valueVal + ">"
 
-            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+            if keyIdx == len(all_types) - 1 and valueIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
             else:
                 declaration += ("&" + function + ", ")

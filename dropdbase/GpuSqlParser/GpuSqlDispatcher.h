@@ -833,6 +833,9 @@ template <>
 int32_t GpuSqlDispatcher::retCol<std::string>();
 
 template<>
+int32_t GpuSqlDispatcher::groupByCol<std::string>();
+
+template<>
 int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
 
 template<>
