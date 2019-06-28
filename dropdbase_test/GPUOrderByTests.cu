@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <iostream>
 #include <functional>
-
+#include <chrono>
 
 template<typename T>
 struct IdxKeyPair
@@ -35,20 +35,26 @@ struct Desc
 };
 
 template<typename T> 
-void OrderByTestTemplate()
+void OrderByTestTemplate(int32_t colCount, 
+                         int32_t dataElementCount, 
+                         int32_t numericDataLimit,
+                         bool performCPUTest = true,
+                         bool performGPUTest = true,
+                         std::chrono::duration<double> *elapsed = nullptr,
+                         bool suppress = true)
 {
     // Random generator
     int32_t SEED = 42;
     srand(SEED);
 
-    bool SKIP_CPU = true;
-    bool SKIP_GPU = !SKIP_CPU;
+    bool PERFORM_CPU_TEST = performCPUTest;
+    bool PERFORM_GPU_TEST = performGPUTest;
 
     // Input sizes
-    int32_t COL_COUNT = 1;
-    int32_t COL_DATA_ELEMENT_COUNT = 2 << 23;
+    int32_t COL_COUNT = colCount;
+    int32_t COL_DATA_ELEMENT_COUNT = dataElementCount;
 
-    uint32_t NUMERIC_DATA_LIMIT = 10;
+    uint32_t NUMERIC_DATA_LIMIT = numericDataLimit;
 
     // Input data
     std::vector<OrderBy::Order> orderingIn;
@@ -67,8 +73,9 @@ void OrderByTestTemplate()
         }
     }
 
+    auto start = std::chrono::high_resolution_clock::now();
     /////////////////////////////////////////////////////////////////////////////
-    if(!SKIP_CPU)
+    if(PERFORM_CPU_TEST)
     {
     // Sort the input data on the CPU
     // This is done by a new algorithm where we want to sort the input columns accross
@@ -128,7 +135,6 @@ void OrderByTestTemplate()
         {
             indices[j] = v[j].index; 
         }
-        std::cout << std:: endl;
     }
 
     // 6. Write the results
@@ -166,7 +172,7 @@ void OrderByTestTemplate()
 
     }
     /////////////////////////////////////////////////////////////////////////////
-    if(!SKIP_GPU)
+    if(PERFORM_GPU_TEST)
     {
     // Sort the input data on the GPU
     std::vector<T*> d_dataIn;
@@ -232,7 +238,9 @@ void OrderByTestTemplate()
     */
     }
     /////////////////////////////////////////////////////////////////////////////
-    if(!SKIP_CPU)
+    auto finish = std::chrono::high_resolution_clock::now();
+
+    if(PERFORM_CPU_TEST && PERFORM_GPU_TEST)
     {
     // Compare the data
     for(int32_t i = 0; i < COL_COUNT; i++)
@@ -250,34 +258,130 @@ void OrderByTestTemplate()
         }
     }
     }
+    else
+    {
+        if(!suppress)
+        {
+            std::cout << "[WARNING] Skipped GPU or CPU computation , result comparsions halted " << std::endl;
+        }
+    }
+
+    if(elapsed != nullptr)
+    {
+        *elapsed = finish - start;
+    }
 }
 
-TEST(GPUOrderByTests, GPUOrderByUnsigned32Test)
+class GPUOrderByTests : public ::testing::Test
 {
-    OrderByTestTemplate<uint32_t>();
+public:
+    // Input sizes
+    int32_t COL_COUNT;
+    int32_t COL_DATA_ELEMENT_COUNT;
+
+    uint32_t NUMERIC_DATA_LIMIT;
+
+    virtual void SetUp()
+    {
+        COL_COUNT = 10;
+        COL_DATA_ELEMENT_COUNT = 1 << 20;
+    
+        NUMERIC_DATA_LIMIT = 10000;
+    }
+
+	virtual void TearDown()
+	{
+	}
+};
+
+TEST_F(GPUOrderByTests, GPUOrderByUnsigned32Test)
+{
+    OrderByTestTemplate<uint32_t>(COL_COUNT, COL_DATA_ELEMENT_COUNT, NUMERIC_DATA_LIMIT);
 }
 
-TEST(GPUOrderByTests, GPUOrderBySigned32Test)
+TEST_F(GPUOrderByTests, GPUOrderBySigned32Test)
 {
-    OrderByTestTemplate<int32_t>();
+    OrderByTestTemplate<int32_t>(COL_COUNT, COL_DATA_ELEMENT_COUNT, NUMERIC_DATA_LIMIT);
 }
 
-TEST(GPUOrderByTests, GPUOrderByUnsigned64Test)
+TEST_F(GPUOrderByTests, GPUOrderByUnsigned64Test)
 {
-    OrderByTestTemplate<uint64_t>();
+    OrderByTestTemplate<uint64_t>(COL_COUNT, COL_DATA_ELEMENT_COUNT, NUMERIC_DATA_LIMIT);
 }
 
-TEST(GPUOrderByTests, GPUOrderBySigned64Test)
+TEST_F(GPUOrderByTests, GPUOrderBySigned64Test)
 {
-    OrderByTestTemplate<int64_t>();
+    OrderByTestTemplate<int64_t>(COL_COUNT, COL_DATA_ELEMENT_COUNT, NUMERIC_DATA_LIMIT);
 }
 
-TEST(GPUOrderByTests, GPUOrderByFloatTest)
+TEST_F(GPUOrderByTests, GPUOrderByFloatTest)
 {
-    OrderByTestTemplate<float>();
+    OrderByTestTemplate<float>(COL_COUNT, COL_DATA_ELEMENT_COUNT, NUMERIC_DATA_LIMIT);
 }
 
-TEST(GPUOrderByTests, GPUOrderByDoubleTest)
+TEST_F(GPUOrderByTests, GPUOrderByDoubleTest)
 {
-    OrderByTestTemplate<double>();
+    OrderByTestTemplate<double>(COL_COUNT, COL_DATA_ELEMENT_COUNT, NUMERIC_DATA_LIMIT);
+}
+
+TEST_F(GPUOrderByTests, GPUOrderByTimingTest)
+{
+    int32_t s_colCount = 1;
+    int32_t e_colCount = 10;
+    int32_t i_colCount = 1;
+
+    int32_t s_dataElementCountExp = 10;
+    int32_t e_dataElementCountExp = 27;
+    int32_t i_dataElementCountExp = 1;
+
+    int32_t NUMERIC_DATA_LIMIT = 10000;
+    // int32_t s_numericDataLimit;
+    // int32_t e_numericDataLimit;
+    // int32_t i_numericDataLimit;
+    
+    //Try the CPU calcualtion for different column sizes and column count
+    std::printf("CPU  ");
+    for(int32_t colCount = s_colCount; colCount <= e_colCount; colCount += i_colCount)
+    {
+        std::printf("%10d ", colCount);
+    }
+    std::printf("\n");
+
+    for(int32_t dataElementCountExp = s_dataElementCountExp; dataElementCountExp <= e_dataElementCountExp; dataElementCountExp += i_dataElementCountExp)
+    {
+        std::printf("2^%2d ", dataElementCountExp);
+        for(int32_t colCount = s_colCount; colCount <= e_colCount; colCount += i_colCount)
+        {
+            std::chrono::duration<double> elapsed;
+            OrderByTestTemplate<int32_t>(colCount, 1 << dataElementCountExp, NUMERIC_DATA_LIMIT, true, false, &elapsed);
+            std::printf("%10d ", (int32_t)(1000 * elapsed.count()));
+        }
+        std::printf("\n");
+    }
+    
+    std::printf("\n");
+    std::printf("\n");
+
+    /*
+
+    //Try the GPU calcualtion for different column sizes and column count
+    std::printf("GPU  ");
+    for(int32_t colCount = s_colCount; colCount <= e_colCount; colCount += i_colCount)
+    {
+        std::printf("%10d ", colCount);
+    }
+    std::printf("\n");
+
+    for(int32_t dataElementCountExp = s_dataElementCountExp; dataElementCountExp <= e_dataElementCountExp; dataElementCountExp += i_dataElementCountExp)
+    {
+        std::printf("2^%2d ", dataElementCountExp);
+        for(int32_t colCount = s_colCount; colCount <= e_colCount; colCount += i_colCount)
+        {
+            std::chrono::duration<double> elapsed;
+            OrderByTestTemplate<int32_t>(colCount, 1 << dataElementCountExp, NUMERIC_DATA_LIMIT, false, true, &elapsed);
+            std::printf("%10d ", (int32_t)(1000 * elapsed.count()));
+        }
+        std::printf("\n");
+    }
+    */
 }
