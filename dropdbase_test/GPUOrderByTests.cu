@@ -40,15 +40,18 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
     int32_t SEED = 42;
     srand(SEED);
 
+    bool SKIP_CPU = true;
+
     // Input sizes
-    int32_t COL_COUNT = 6;
-    int32_t COL_DATA_ELEMENT_COUNT = 16;
+    int32_t COL_COUNT = 1;
+    int32_t COL_DATA_ELEMENT_COUNT = 2 << 27;
 
     uint32_t NUMERIC_DATA_LIMIT = 10;
 
     // Input data
     std::vector<OrderBy::Order> orderingIn;
     std::vector<std::vector<uint32_t>> dataIn;
+    std::vector<std::vector<uint32_t>> dataOut;
 
     // Fill the input data vectors
     for(int32_t i = 0; i < COL_COUNT; i++)
@@ -62,6 +65,8 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
     }
 
     /////////////////////////////////////////////////////////////////////////////
+    if(!SKIP_CPU)
+    {
     // Sort the input data on the CPU
     // This is done by a new algorithm where we want to sort the input columns accross
     // multiple columns - ORDER BY
@@ -124,7 +129,6 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
     }
 
     // 6. Write the results
-    std::vector<std::vector<uint32_t>> dataOut;
     for(int32_t i = 0; i < COL_COUNT; i++)
     {
         dataOut.push_back(std::vector<uint32_t>{});
@@ -157,6 +161,7 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
     //DEBUG END
     */
 
+    }
     /////////////////////////////////////////////////////////////////////////////
     // Sort the input data on the GPU
     std::vector<uint32_t*> d_dataIn;
@@ -223,6 +228,8 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
     */
 
     /////////////////////////////////////////////////////////////////////////////
+    if(!SKIP_CPU)
+    {
     // Compare the data
     for(int32_t i = 0; i < COL_COUNT; i++)
     {
@@ -230,5 +237,6 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
         {
             ASSERT_EQ(dataOut[i][j], dataOutGPU[i][j]);
         }
+    }
     }
 }
