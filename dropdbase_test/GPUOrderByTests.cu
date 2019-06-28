@@ -34,30 +34,33 @@ struct Desc
     }
 };
 
-TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
+template<typename T> 
+void OrderByTestTemplate()
 {
     // Random generator
     int32_t SEED = 42;
     srand(SEED);
 
     bool SKIP_CPU = true;
+    bool SKIP_GPU = !SKIP_CPU;
 
     // Input sizes
     int32_t COL_COUNT = 1;
-    int32_t COL_DATA_ELEMENT_COUNT = 2 << 27;
+    int32_t COL_DATA_ELEMENT_COUNT = 2 << 23;
 
     uint32_t NUMERIC_DATA_LIMIT = 10;
 
     // Input data
     std::vector<OrderBy::Order> orderingIn;
-    std::vector<std::vector<uint32_t>> dataIn;
-    std::vector<std::vector<uint32_t>> dataOut;
+    std::vector<std::vector<T>> dataIn;
+    std::vector<std::vector<T>> dataOut;
+    std::vector<std::vector<T>> dataOutGPU;
 
     // Fill the input data vectors
     for(int32_t i = 0; i < COL_COUNT; i++)
     {
         orderingIn.push_back((rand() % 2) == 0 ? OrderBy::Order::ASC : OrderBy::Order::DESC);
-        dataIn.push_back(std::vector<uint32_t>{});
+        dataIn.push_back(std::vector<T>{});
         for(int32_t j = 0; j < COL_DATA_ELEMENT_COUNT; j++)
         {
             dataIn[i].push_back(rand() % NUMERIC_DATA_LIMIT);
@@ -87,7 +90,7 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
 
     // 0. Create the temporary sort buffers
     std::vector<int32_t> indices(COL_DATA_ELEMENT_COUNT);
-    std::vector<uint32_t> data(COL_DATA_ELEMENT_COUNT);
+    std::vector<T> data(COL_DATA_ELEMENT_COUNT);
 
     // 1. Fill in the indices with the default value
     for(int32_t i = 0; i < COL_DATA_ELEMENT_COUNT; i++)
@@ -105,7 +108,7 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
         }
 
         // 4. Sort the index-data pairs based on data - mind the ordering
-        std::vector<IdxKeyPair<uint32_t>> v(COL_DATA_ELEMENT_COUNT);
+        std::vector<IdxKeyPair<T>> v(COL_DATA_ELEMENT_COUNT);
         for(int32_t j = 0; j < COL_DATA_ELEMENT_COUNT; j++)
         {
             v[j] = {indices[j], data[j]};
@@ -113,11 +116,11 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
 
         if(orderingIn[i] == OrderBy::Order::ASC)
         {
-            stable_sort(v.begin(), v.end(), Asc<uint32_t>());
+            stable_sort(v.begin(), v.end(), Asc<T>());
         }
         else 
         {
-            stable_sort(v.begin(), v.end(), Desc<uint32_t>());
+            stable_sort(v.begin(), v.end(), Desc<T>());
         }
 
         // 5. Keep the new index combination
@@ -131,7 +134,7 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
     // 6. Write the results
     for(int32_t i = 0; i < COL_COUNT; i++)
     {
-        dataOut.push_back(std::vector<uint32_t>{});
+        dataOut.push_back(std::vector<T>{});
         for(int32_t j = 0; j < COL_DATA_ELEMENT_COUNT; j++)
         {
             // 7. Reaorer by the final indices list
@@ -163,10 +166,12 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
 
     }
     /////////////////////////////////////////////////////////////////////////////
+    if(!SKIP_GPU)
+    {
     // Sort the input data on the GPU
-    std::vector<uint32_t*> d_dataIn;
+    std::vector<T*> d_dataIn;
     int32_t* d_indexBuffer;
-    uint32_t* d_resultBuffer;
+    T* d_resultBuffer;
 
     // Alloc the GPU buffers
     for(int32_t i = 0; i < COL_COUNT; i++)
@@ -180,19 +185,18 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
     GPUMemory::alloc(&d_resultBuffer, COL_DATA_ELEMENT_COUNT);
 
     // Perform the orderby operation
-    GPUOrderBy<uint32_t> ob(COL_DATA_ELEMENT_COUNT);
+    GPUOrderBy<T> ob(COL_DATA_ELEMENT_COUNT);
 
     ob.OrderBy(d_indexBuffer, d_dataIn, COL_DATA_ELEMENT_COUNT, orderingIn);
     
     // Copy back the results
-    std::vector<std::vector<uint32_t>> dataOutGPU;
     for(int32_t i = 0; i < COL_COUNT; i++)
     {
         // Reconstruct the data
         ob.ReOrderByIdx(d_resultBuffer, d_indexBuffer, d_dataIn[i], COL_DATA_ELEMENT_COUNT);
 
         // Copy back the data
-        dataOutGPU.push_back(std::vector<uint32_t>(COL_DATA_ELEMENT_COUNT));
+        dataOutGPU.push_back(std::vector<T>(COL_DATA_ELEMENT_COUNT));
         GPUMemory::copyDeviceToHost(&dataOutGPU[i][0], d_resultBuffer, COL_DATA_ELEMENT_COUNT);
     }
 
@@ -226,7 +230,7 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
     }
     //DEBUG END
     */
-
+    }
     /////////////////////////////////////////////////////////////////////////////
     if(!SKIP_CPU)
     {
@@ -235,8 +239,45 @@ TEST(GPUOrderByTests, GPUOrderByUnsignedTest)
     {
         for(int32_t j = 0; j < COL_DATA_ELEMENT_COUNT; j++)
         {
-            ASSERT_EQ(dataOut[i][j], dataOutGPU[i][j]);
+            if (std::is_integral<T>::value)
+            {
+                ASSERT_EQ(dataOut[i][j], dataOutGPU[i][j]);
+            }
+            else
+            {
+                ASSERT_FLOAT_EQ(dataOut[i][j], dataOutGPU[i][j]);
+            }
         }
     }
     }
+}
+
+TEST(GPUOrderByTests, GPUOrderByUnsigned32Test)
+{
+    OrderByTestTemplate<uint32_t>();
+}
+
+TEST(GPUOrderByTests, GPUOrderBySigned32Test)
+{
+    OrderByTestTemplate<int32_t>();
+}
+
+TEST(GPUOrderByTests, GPUOrderByUnsigned64Test)
+{
+    OrderByTestTemplate<uint64_t>();
+}
+
+TEST(GPUOrderByTests, GPUOrderBySigned64Test)
+{
+    OrderByTestTemplate<int64_t>();
+}
+
+TEST(GPUOrderByTests, GPUOrderByFloatTest)
+{
+    OrderByTestTemplate<float>();
+}
+
+TEST(GPUOrderByTests, GPUOrderByDoubleTest)
+{
+    OrderByTestTemplate<double>();
 }
