@@ -271,6 +271,7 @@ public:
 
 	static void MergePayload(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage,
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
+	static void MergePayloadBitmask(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage, const std::string& nullMask);
 
 
     GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);

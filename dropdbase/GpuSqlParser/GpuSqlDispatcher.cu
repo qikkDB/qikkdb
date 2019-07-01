@@ -1050,6 +1050,19 @@ void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 	}
 }
 
+void GpuSqlDispatcher::MergePayloadBitmask(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage, const std::string& nullMask)
+{
+	if (responseMessage->nullbitmasks().find(key) == responseMessage->nullbitmasks().end())
+	{
+		responseMessage->mutable_nullbitmasks()->insert({ key, nullMask });
+	}
+	else    // If there is payload with existing key, merge or aggregate according to key
+	{
+		(*responseMessage->mutable_nullbitmasks().at(key)) += nullMask;
+	}
+
+}
+
 void GpuSqlDispatcher::MergePayload(const std::string &trimmedKey, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage,
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload)
 {

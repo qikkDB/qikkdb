@@ -40,7 +40,7 @@ public:
 	/// <param name="worker">Worker that requested handling</param>
 	/// <param name="bulkImportMessage">Message to handle</param>
 	/// <returns>InfoMessage representing success state of the operation</returns>
-	virtual std::unique_ptr<google::protobuf::Message> HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer) = 0;
+	virtual std::unique_ptr<google::protobuf::Message> HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer, const char* nullMask = nullptr) = 0;
 	/// <summary>
 	/// Set working database
 	/// </summary>

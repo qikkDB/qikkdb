@@ -256,6 +256,11 @@ GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::p
 			std::string key = partialPayload.first;
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
 			GpuSqlDispatcher::MergePayload(key, responseMessage.get(), payload);
+			if(partialMessage->nullbitmasks().find(key) != partialMessage->nullbitmasks().end())
+			{
+				const std::string& partialBitMask = partialMessage->nullbitmasks().at(key);
+				GpuSqlDispatcher::MergePayloadBitmask(key, responseMessage.get(), partialBitMask);
+			}
 		}
 	}
 

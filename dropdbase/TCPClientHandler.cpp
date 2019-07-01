@@ -258,13 +258,14 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleSetDatabase(I
 	return resultMessage;
 }
 
-std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer)
+std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer, const char* nullMask)
 {
 	auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
 	std::string tableName = bulkImportMessage.tablename();
 	std::string columnName = bulkImportMessage.columnname();
 	DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
 	int32_t elementCount = bulkImportMessage.elemcount();
+	bool isNullable = bulkImportMessage.isnullable();
 	auto sharedDb = worker.currentDatabase_.lock();
 	if(sharedDb == nullptr)
 	{
