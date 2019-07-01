@@ -298,7 +298,7 @@ void GPUReconstruct::ReconstructStringColRaw(std::vector<int32_t>& keysStringLen
 			kernel_reconstruct_col << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
 				(outLengths.get(), inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
 			// Copy lengths to host
-			keysStringLengths.reserve(*outDataElementCount);
+			keysStringLengths.resize(*outDataElementCount);
 			GPUMemory::copyDeviceToHost(keysStringLengths.data(), outLengths.get(), *outDataElementCount);
 
 			// Compute new indices as prefix sum of reconstructed lengths
@@ -314,7 +314,7 @@ void GPUReconstruct::ReconstructStringColRaw(std::vector<int32_t>& keysStringLen
 			kernel_reconstruct_string_chars << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
 				(outStringCol, inStringCol, inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
 			// Copy chars to host
-			keysAllChars.reserve(outTotalCharCount);
+			keysAllChars.resize(outTotalCharCount);
 			GPUMemory::copyDeviceToHost(keysAllChars.data(), outStringCol.allChars, outTotalCharCount);
 			GPUMemory::free(outStringCol);
 		}
@@ -329,9 +329,9 @@ void GPUReconstruct::ReconstructStringColRaw(std::vector<int32_t>& keysStringLen
 		cuda_ptr<int32_t> lengths(inDataElementCount);
 		kernel_lengths_from_indices << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
 			(lengths.get(), inStringCol.stringIndices, inDataElementCount);
-		keysStringLengths.reserve(inDataElementCount);
+		keysStringLengths.resize(inDataElementCount);
 		GPUMemory::copyDeviceToHost(keysStringLengths.data(), lengths.get(), inDataElementCount);
-		keysAllChars.reserve(outTotalCharCount);
+		keysAllChars.resize(outTotalCharCount);
 		GPUMemory::copyDeviceToHost(keysAllChars.data(), inStringCol.allChars, outTotalCharCount);
 	}
 
