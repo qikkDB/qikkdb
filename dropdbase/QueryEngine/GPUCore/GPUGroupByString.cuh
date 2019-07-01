@@ -51,29 +51,22 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        printf("%d A\n", i);
         const int64_t inKeyIndex = GetStringIndex(inKeys.stringIndices, i);
-        printf("%d B, idx: %d\n", i, static_cast<int32_t>(inKeyIndex));
         const int32_t inKeyLength = GetStringLength(inKeys.stringIndices, i);
-        printf("%d C, len: %d\n", i, inKeyLength);
-        char* inKeyChars = inKeys.allChars + inKeyIndex;    // TODO (bad index or something)
-        printf("%d F, fch: %c\n", i, inKeyChars[0]);
+        char* inKeyChars = inKeys.allChars + inKeyIndex;
         // Calculate hash
         const int32_t hash = GetHash(inKeyChars, inKeyLength);
-        printf("%d M, hash: %d\n", i, hash % maxHashCount);
 
         int32_t foundIndex = -1;
         for (int32_t j = 0; j < maxHashCount; j++)
         {
             // Calculate index to hash-table from hash
             const int32_t index = abs((hash + j) % maxHashCount);
-            printf("%d (%c%c%c...): %d\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2], index);
 
             // Check if key is not empty and key is not equal to the currently inserted key
             if (sourceIndices[index] != GBS_SOURCE_INDEX_EMPTY_KEY &&
                 IsNewKey(inKeyChars, inKeyLength, inKeys, keysBuffer, sourceIndices, index))
             {
-                printf("%d (%c%c%c...): c1\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2]);
                 continue;
             }
 
@@ -88,14 +81,12 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                 if (old != GBS_SOURCE_INDEX_EMPTY_KEY && old != i &&
                     IsNewKey(inKeyChars, inKeyLength, inKeys, keysBuffer, sourceIndices, index))
                 {
-                    printf("%d (%c%c%c...): cA\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2]);
                     continue; // Try to find another index
                 }
             }
             else if (sourceIndices[index] != i &&
                      IsNewKey(inKeyChars, inKeyLength, inKeys, keysBuffer, sourceIndices, index))
             {
-                printf("%d (%c%c%c...): ce\n", i, inKeyChars[0], inKeyChars[1], inKeyChars[2]);
                 continue; // try to find another index
             }
 
@@ -207,7 +198,15 @@ public:
             GPUMemory::alloc(&stringLengths_, maxHashCount_);
             GPUMemory::alloc(&(keysBuffer_.stringIndices), maxHashCount_);
             GPUMemory::copyDeviceToHost(&totalCharCount, keysBuffer.stringIndices + maxHashCount_ - 1, 1);
-            GPUMemory::alloc(&(keysBuffer_.allChars), totalCharCount);
+            if (totalCharCount > 0)
+            {
+                GPUMemory::alloc(&(keysBuffer_.allChars), totalCharCount);
+            }
+            else
+            {
+                keysBuffer_.allChars = nullptr;
+            }
+            
             // And for values and occurences
             GPUMemory::alloc(&values_, maxHashCount_);
             GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
@@ -236,7 +235,10 @@ public:
         GPUMemory::copyDeviceToDevice(sourceIndices_, sourceIndices, maxHashCount_);
         GPUMemory::copyDeviceToDevice(stringLengths_, stringLengths, maxHashCount_);
         GPUMemory::copyDeviceToDevice(keysBuffer_.stringIndices, keysBuffer.stringIndices, maxHashCount_);
-        GPUMemory::copyDeviceToDevice(keysBuffer_.allChars, keysBuffer.allChars, totalCharCount);
+        if (totalCharCount > 0)
+        {
+            GPUMemory::copyDeviceToDevice(keysBuffer_.allChars, keysBuffer.allChars, totalCharCount);
+        }
         GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), maxHashCount_);
     }
 
@@ -510,7 +512,14 @@ public:
             GPUMemory::alloc(&stringLengths_, maxHashCount_);
             GPUMemory::alloc(&(keysBuffer_.stringIndices), maxHashCount_);
             GPUMemory::copyDeviceToHost(&totalCharCount, keysBuffer.stringIndices + maxHashCount_ - 1, 1);
-            GPUMemory::alloc(&(keysBuffer_.allChars), totalCharCount);
+            if (totalCharCount > 0)
+            {
+                GPUMemory::alloc(&(keysBuffer_.allChars), totalCharCount);
+            }
+            else
+            {
+                keysBuffer_.allChars = nullptr;
+            }
             // And for values and occurences
             GPUMemory::alloc(&values_, maxHashCount_);
             GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
@@ -539,7 +548,10 @@ public:
         GPUMemory::copyDeviceToDevice(sourceIndices_, sourceIndices, maxHashCount_);
         GPUMemory::copyDeviceToDevice(stringLengths_, stringLengths, maxHashCount_);
         GPUMemory::copyDeviceToDevice(keysBuffer_.stringIndices, keysBuffer.stringIndices, maxHashCount_);
-        GPUMemory::copyDeviceToDevice(keysBuffer_.allChars, keysBuffer.allChars, totalCharCount);
+        if (totalCharCount > 0)
+        {
+            GPUMemory::copyDeviceToDevice(keysBuffer_.allChars, keysBuffer.allChars, totalCharCount);
+        }
         GPUMemory::fillArray(values_, AggregationFunctions::avg::template getInitValue<V>(), maxHashCount_);
     }
 
@@ -766,7 +778,7 @@ public:
 
                 // Calculate sum of occurences
 				// Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
-				GPUGroupBy<AggregationFunctions::sum, int64_t, std::string, int64_t> countGroupBy(*outDataElementCount, sumGroupBy.sourceIndices_, sumGroupBy.stringLengths_, sumGroupBy.keysBuffer_);
+				GPUGroupBy<AggregationFunctions::sum, int64_t, std::string, int64_t> countGroupBy(sumElementCount, sumGroupBy.sourceIndices_, sumGroupBy.stringLengths_, sumGroupBy.keysBuffer_);
 				countGroupBy.groupBy(keysAllGPU, occurencesAllGPU.get(), sumElementCount);
 				countGroupBy.getResults(outKeys, &occurencesMerged, outDataElementCount);
 
@@ -858,7 +870,14 @@ public:
             GPUMemory::alloc(&stringLengths_, maxHashCount_);
             GPUMemory::alloc(&(keysBuffer_.stringIndices), maxHashCount_);
             GPUMemory::copyDeviceToHost(&totalCharCount, keysBuffer.stringIndices + maxHashCount_ - 1, 1);
-            GPUMemory::alloc(&(keysBuffer_.allChars), totalCharCount);
+            if (totalCharCount > 0)
+            {
+                GPUMemory::alloc(&(keysBuffer_.allChars), totalCharCount);
+            }
+            else
+            {
+                keysBuffer_.allChars = nullptr;
+            }
             // And for values and occurences
             GPUMemory::alloc(&values_, maxHashCount_);
             GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
@@ -887,7 +906,10 @@ public:
         GPUMemory::copyDeviceToDevice(sourceIndices_, sourceIndices, maxHashCount_);
         GPUMemory::copyDeviceToDevice(stringLengths_, stringLengths, maxHashCount_);
         GPUMemory::copyDeviceToDevice(keysBuffer_.stringIndices, keysBuffer.stringIndices, maxHashCount_);
-        GPUMemory::copyDeviceToDevice(keysBuffer_.allChars, keysBuffer.allChars, totalCharCount);
+        if (totalCharCount > 0)
+        {
+            GPUMemory::copyDeviceToDevice(keysBuffer_.allChars, keysBuffer.allChars, totalCharCount);
+        }
         GPUMemory::fillArray(values_, AggregationFunctions::count::template getInitValue<V>(), maxHashCount_);
     }
 
