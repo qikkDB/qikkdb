@@ -1058,7 +1058,7 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string &key, ColmnarDB::Ne
 	}
 	else    // If there is payload with existing key, merge or aggregate according to key
 	{
-		(*responseMessage->mutable_nullbitmasks().at(key)) += nullMask;
+		responseMessage->mutable_nullbitmasks()->at(key) += nullMask;
 	}
 
 }

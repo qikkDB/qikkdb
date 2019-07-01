@@ -70,7 +70,7 @@ public:
 	/// </summary>
 	/// <param name="data">Name of column with inserting data.</param>
 	/// <param name="compress">Whether data will be compressed.</param>
-	void InsertData(const std::unordered_map<std::string, std::any> &data, bool compress = false);
+	void InsertData(const std::unordered_map<std::string, std::any> &data, bool compress = false, const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks = std::unordered_map<std::string, std::vector<int8_t>>());
 	int32_t AssignGroupId(std::vector<std::any>& rowData, std::vector<std::unique_ptr<IColumn>>& columns);
 #endif
 

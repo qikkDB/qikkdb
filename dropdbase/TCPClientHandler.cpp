@@ -139,6 +139,13 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 			break;
 		}
 		smallPayload->mutable_payloads()->insert({ payload.first,finalPayload });
+		if(completeResult->nullbitmasks().find(payload.first) != completeResult->nullbitmasks().end())
+		{
+			int start = (sentRecords_ + sizeof(char)*8 - 1)/(sizeof(char)*8);
+			int nullMaskBufferSize = (bufferSize + sizeof(char)*8 - 1)/(sizeof(char)*8);
+			auto nullBitMask = completeResult->nullbitmasks().at(payload.first).substr(start,nullMaskBufferSize);
+			smallPayload->mutable_nullbitmasks()->insert({payload.first, nullBitMask});
+		}
 	}
 	sentRecords_ += FRAGMENT_SIZE;
 	if (sentRecords_ >= lastResultLen_)
