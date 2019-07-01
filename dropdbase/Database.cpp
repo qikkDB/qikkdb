@@ -31,10 +31,12 @@ Database::Database(const char* databaseName, int32_t blockSize)
 
 Database::~Database()
 {
+    Context& context = Context::getInstance();
+    int32_t oldDeviceID = context.getBoundDeviceID();
 	// Clear cache for all devices
 	for (int32_t deviceID = 0; deviceID < Context::getInstance().getDeviceCount(); deviceID++)
 	{
-		Context::getInstance().bindDeviceToContext(deviceID);
+		context.bindDeviceToContext(deviceID);
 		GPUMemoryCache& cacheForDevice = Context::getInstance().getCacheForDevice(deviceID);
 		for (auto const& table : tables_)
 		{
@@ -48,6 +50,7 @@ Database::~Database()
 			}
 		}
 	}
+    context.bindDeviceToContext(oldDeviceID);
 }
 
 std::vector<std::string> Database::GetDatabaseNames()
@@ -228,7 +231,7 @@ void Database::DeleteDatabaseFromDisk()
 
 	if (boost::filesystem::exists(path))
 	{
-		std::string prefix(name_ + "_");
+		std::string prefix(name_ + SEPARATOR);
 
 		for (auto& p : boost::filesystem::directory_iterator(path))
 		{
@@ -264,7 +267,7 @@ void Database::DeleteTableFromDisk(const char* tableName)
 
 	if (boost::filesystem::exists(path))
 	{
-		std::string prefix(name_ + "_" + std::string(tableName) + "_");
+		std::string prefix(name_ + SEPARATOR + std::string(tableName) + SEPARATOR);
 
 		for (auto& p : boost::filesystem::directory_iterator(path))
 		{
@@ -305,7 +308,7 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 {
 	auto &path = Configuration::GetInstance().GetDatabaseDir();
 
-	std::string filePath = path + name_ + "_" + std::string(tableName) + "_" + std::string(columnName) + ".col";
+	std::string filePath = path + name_ + SEPARATOR + std::string(tableName) + SEPARATOR + std::string(columnName) + ".col";
 
 	if (boost::filesystem::exists(filePath))
 	{
@@ -412,10 +415,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
     // read files .col:
     std::string pathStr = std::string(path);
 
-    BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << pathStr + dbName << "_"
-                            << table.GetName() << "_" << columnName << ".col." << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << pathStr + dbName << SEPARATOR
+                            << table.GetName() << SEPARATOR << columnName << ".col." << std::endl;
 
-    std::ifstream colFile(pathStr + dbName + "_" + table.GetName() + "_" + columnName + ".col", std::ios::binary);
+    std::ifstream colFile(pathStr + dbName + SEPARATOR + table.GetName() + SEPARATOR + columnName + ".col", std::ios::binary);
 
     int32_t nullIndex = 0;
 
@@ -443,7 +446,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
@@ -512,7 +515,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
@@ -581,7 +584,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
@@ -646,7 +649,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
@@ -710,7 +713,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
@@ -774,7 +777,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
@@ -838,7 +841,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
@@ -902,7 +905,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
@@ -1055,10 +1058,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                            std::string name,
                            const std::pair<const std::string, Table>& table)
 {
-    BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << "_" << table.first
-                             << "_" << column.second->GetName() << " .col" << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << SEPARATOR << table.first
+                             << SEPARATOR << column.second->GetName() << " .col" << std::endl;
 
-    std::ofstream colFile(pathStr + name + "_" + table.first + "_" + column.second->GetName() + ".col",
+    std::ofstream colFile(pathStr + name + SEPARATOR + table.first + SEPARATOR + column.second->GetName() + ".col",
                           std::ios::binary);
 
     int32_t type = column.second->GetColumnType();

@@ -196,20 +196,11 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>()
 
 		std::cout << "RetPointCol: " << colName << ", thread: " << dispatcherThreadId << std::endl;
 
-		std::unique_ptr<NativeGeoPoint[]> outPoints(new NativeGeoPoint[database->GetBlockSize()]);
+		std::unique_ptr<std::string[]> outData(new std::string[database->GetBlockSize()]);
+		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(colName);
 		int32_t outSize;
-		//ToDo: Podmienene zapnut podla velkost buffera
-		//GPUMemory::hostPin(outData.get(), database->GetBlockSize());
-		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(getAllocatedRegisterName(colName));
-		GPUReconstruct::reconstructCol(outPoints.get(), &outSize, reinterpret_cast<NativeGeoPoint*>(std::get<0>(ACol)), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
-		//GPUMemory::hostUnregister(outData.get());
-
-		std::unique_ptr<std::string[]> outData(new std::string[outSize]);
-
-		for (int i = 0; i < outSize; i++)
-		{
-			outData[i] = PointFactory::WktFromPoint(outPoints[i]);
-		}
+		GPUReconstruct::ReconstructPointColToWKT(outData.get(), &outSize,
+			reinterpret_cast<NativeGeoPoint*>(std::get<0>(ACol)), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
 
 		std::cout << "dataSize: " << outSize << std::endl;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;

@@ -25,10 +25,10 @@ newTableEntries     : ((newTableEntry (COMMA newTableEntry)*));
 newTableEntry       : (newTableColumn|newTableIndex);
 alterTableEntries   : ((alterTableEntry (COMMA alterTableEntry)*));
 alterTableEntry     : (addColumn | dropColumn | alterColumn);
-addColumn           : (ADD columnId DATATYPE);
-dropColumn          : (DROPCOLUMN columnId);
-alterColumn         : (ALTERCOLUMN columnId DATATYPE);
-newTableColumn      : (columnId DATATYPE);
+addColumn           : (ADD column DATATYPE);
+dropColumn          : (DROPCOLUMN column);
+alterColumn         : (ALTERCOLUMN column DATATYPE);
+newTableColumn      : (column DATATYPE);
 newTableIndex       : (INDEX indexName LPAREN indexColumns RPAREN);
 selectColumns       : (((selectColumn) (COMMA selectColumn)*));
 selectColumn        : expression (AS alias)?;
@@ -50,11 +50,11 @@ joinOperator        : (GREATER | LESS | GREATEREQ | LESSEQ | EQUALS | NOTEQUALS 
 joinType            : (INNER | LEFT | RIGHT | FULLOUTER);
 fromTable           : table (AS alias)?;
 columnId            : (column)|(table DOT column);
-table               : ID;
-column              : ID;
-database            : ID;
-alias               : ID;
-indexName           : ID;
+table               : (ID|DELIMID);
+column              : (ID|DELIMID);
+database            : (ID|DELIMID);
+alias               : (ID|DELIMID);
+indexName           : (ID|DELIMID);
 limit               : INTLIT;
 offset              : INTLIT;
 blockSize           : INTLIT;
@@ -89,7 +89,7 @@ expression : op=NOT expression                                                  
            | op=RTRIM LPAREN expression RPAREN                                            # unaryOperation
            | op=LOWER LPAREN expression RPAREN                                            # unaryOperation
            | op=UPPER LPAREN expression RPAREN                                            # unaryOperation
-           | op=REVERSE LPAREN expression RPAREN                                            # unaryOperation
+           | op=REVERSE LPAREN expression RPAREN                                          # unaryOperation
            | op=LEN LPAREN expression RPAREN                                              # unaryOperation
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation

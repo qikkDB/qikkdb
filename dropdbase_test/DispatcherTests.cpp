@@ -8087,7 +8087,7 @@ TEST(DispatcherTests, RetPoints)
 		auto block = column->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k]));
+			expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k], true));
 		}
 	}
 
@@ -8122,14 +8122,14 @@ TEST(DispatcherTests, RetPointsWhere)
 			{
 				if ((k % 1024) < 20)
 				{
-					expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k]));
+					expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k], true));
 				}
 			}
 			else
 			{
 				if (((k % 1024) * -1) < 20)
 				{
-					expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k]));
+					expectedResultsPoints.push_back(PointFactory::WktFromPoint(block->GetData()[k], true));
 				}
 			}
 		}
@@ -8240,7 +8240,9 @@ TEST(DispatcherTests, PointFromColCol)
 		for (int k = 0; k < (1 << 11); k++)
 		{
 			std::ostringstream wktStream;
-			wktStream << "POINT(" << blockInt->GetData()[k] << " " << blockFloat->GetData()[k] << ")";
+			wktStream << std::fixed;
+			wktStream << std::setprecision(4);
+			wktStream << "POINT(" << static_cast<float>(blockInt->GetData()[k]) << " " << blockFloat->GetData()[k] << ")";
 			expectedResultsPoints.push_back(wktStream.str());
 		}
 	}
@@ -8273,7 +8275,9 @@ TEST(DispatcherTests, PointFromColConst)
 		for (int k = 0; k < (1 << 11); k++)
 		{
 			std::ostringstream wktStream;
-			wktStream << "POINT(" << blockInt->GetData()[k] << " 4.5" << ")";
+			wktStream << std::fixed;
+			wktStream << std::setprecision(4);
+			wktStream << "POINT(" << static_cast<float>(blockInt->GetData()[k]) << " 4.5000" << ")";
 			expectedResultsPoints.push_back(wktStream.str());
 		}
 	}
@@ -8306,7 +8310,9 @@ TEST(DispatcherTests, PointFromConstCol)
 		for (int k = 0; k < (1 << 11); k++)
 		{
 			std::ostringstream wktStream;
-			wktStream << "POINT(" << "7 " << blockFloat->GetData()[k] << ")";
+			wktStream << std::fixed;
+			wktStream << std::setprecision(4);
+			wktStream << "POINT(" << "7.0000 " << blockFloat->GetData()[k] << ")";
 			expectedResultsPoints.push_back(wktStream.str());
 		}
 	}
@@ -10743,6 +10749,21 @@ TEST(DispatcherTests, CreateDropDatabase)
 	ASSERT_TRUE(!Database::Exists("createdDb"));
 }
 
+TEST(DispatcherTests, CreateDropDatabaseWithDelimitedIdentifiers)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "CREATE DATABASE [createdDb%^&*()-+];");
+	auto resultPtr = parser.parse();
+
+	ASSERT_TRUE(Database::Exists("createdDb%^&*()-+"));
+
+	GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database, "DROP DATABASE [createdDb%^&*()-+];");
+	resultPtr = parser2.parse();
+
+	ASSERT_TRUE(!Database::Exists("createdDb%^&*()-+"));
+}
+
 TEST(DispatcherTests, CreateAlterDropTable)
 {
 	Context::getInstance();
@@ -11055,4 +11076,104 @@ TEST(DispatcherTests, JoinGroupByWhereTest)
 		ASSERT_TRUE(expectedResults.find(payloadsKeys.intpayload().intdata()[i]) != expectedResults.end());
 		ASSERT_EQ(expectedResults.at(payloadsKeys.intpayload().intdata()[i]), payloadsValues.int64payload().int64data()[i]);
 	}
+}
+
+TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
+{
+	Context::getInstance();
+
+	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA%^&*()-+") == DispatcherObjs::GetInstance().database->GetTables().end());
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "CREATE TABLE [tblA%^&*()-+] ([colA%^&*()-+] int, [colB%^&*()-+] float, INDEX [ind%^&*()-+] ([colA%^&*()-+], [colB%^&*()-+]));");
+	auto resultPtr = parser.parse();
+
+	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA%^&*()-+") != DispatcherObjs::GetInstance().database->GetTables().end());
+
+	std::vector<std::string> expectedSortingColumns = { "colA%^&*()-+", "colB%^&*()-+" };
+	std::vector<std::string> resultSortingColumns = DispatcherObjs::GetInstance().database->GetTables().at("tblA%^&*()-+").GetSortingColumns();
+
+	ASSERT_TRUE(expectedSortingColumns.size() == resultSortingColumns.size());
+
+	for (int i = 0; i < expectedSortingColumns.size(); i++)
+	{
+		ASSERT_TRUE(expectedSortingColumns[i] == resultSortingColumns[i]);
+	}
+
+	GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database, "INSERT INTO [tblA%^&*()-+] ([colA%^&*()-+], [colB%^&*()-+]) VALUES (1, 2.0);");
+
+	for (int32_t i = 0; i < 5; i++)
+	{
+		resultPtr = parser2.parse();
+	}
+
+	GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database, "SELECT [colA%^&*()-+], [colB%^&*()-+] from [tblA%^&*()-+];");
+	resultPtr = parser3.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResultsColA;
+	std::vector<float> expectedResultsColB;
+
+	for (int k = 0; k < 5; k++)
+	{
+		expectedResultsColA.push_back(1);
+		expectedResultsColB.push_back(2.0);
+	}
+
+	auto &payloadsColA = result->payloads().at("tblA%^&*()-+.colA%^&*()-+");
+	auto &payloadsColB = result->payloads().at("tblA%^&*()-+.colB%^&*()-+");
+
+	ASSERT_EQ(payloadsColA.intpayload().intdata_size(), expectedResultsColA.size());
+
+	for (int i = 0; i < payloadsColA.intpayload().intdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsColA[i], payloadsColA.intpayload().intdata()[i]);
+	}
+
+	ASSERT_EQ(payloadsColB.floatpayload().floatdata_size(), expectedResultsColB.size());
+
+	for (int i = 0; i < payloadsColB.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsColB[i], payloadsColB.floatpayload().floatdata()[i]);
+	}
+
+	GpuSqlCustomParser parser4(DispatcherObjs::GetInstance().database, "ALTER TABLE [tblA%^&*()-+] DROP COLUMN [colA%^&*()-+], ADD [colC%^&*()-+] float;");
+	resultPtr = parser4.parse();
+
+	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().at("tblA%^&*()-+").GetColumns().find("colA%^&*()-+")
+		== DispatcherObjs::GetInstance().database->GetTables().at("tblA%^&*()-+").GetColumns().end());
+
+
+	GpuSqlCustomParser parser5(DispatcherObjs::GetInstance().database, "SELECT [colB%^&*()-+], [colC%^&*()-+] from [tblA%^&*()-+];");
+	resultPtr = parser5.parse();
+	result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResultsColC;
+
+	for (int k = 0; k < 5; k++)
+	{
+		expectedResultsColC.push_back(0.0);
+	}
+
+	auto &payloadsColB2 = result->payloads().at("tblA%^&*()-+.colB%^&*()-+");
+	auto &payloadsColC = result->payloads().at("tblA%^&*()-+.colC%^&*()-+");
+
+
+	ASSERT_EQ(payloadsColB2.floatpayload().floatdata_size(), expectedResultsColB.size());
+
+	for (int i = 0; i < payloadsColB2.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsColB[i], payloadsColB2.floatpayload().floatdata()[i]);
+	}
+
+	ASSERT_EQ(payloadsColC.floatpayload().floatdata_size(), expectedResultsColC.size());
+
+	for (int i = 0; i < payloadsColC.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsColC[i], payloadsColC.floatpayload().floatdata()[i]);
+	}
+
+	GpuSqlCustomParser parser6(DispatcherObjs::GetInstance().database, "DROP TABLE [tblA%^&*()-+];");
+	resultPtr = parser6.parse();
+
+	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA%^&*()-+") == DispatcherObjs::GetInstance().database->GetTables().end());
 }
