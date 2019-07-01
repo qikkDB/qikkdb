@@ -240,7 +240,10 @@ int32_t GpuSqlDispatcher::groupByCol()
 
 	if (std::get<2>(column))
 	{
-		GPUMemory::free(reinterpret_cast<void*>(std::get<0>(column)));
+		if (filter_)
+		{
+			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(column)));
+		}
 	}
 	else
 	{

@@ -34,7 +34,10 @@ int32_t GpuSqlDispatcher::groupByCol<std::string>()
 	int32_t reconstructOutSize;
 	GPUMemory::GPUString reconstructOutReg;
 	GPUReconstruct::ReconstructStringColKeep(&reconstructOutReg, &reconstructOutSize, std::get<0>(column), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
-    GPUMemory::free(std::get<0>(column));
+	if (filter_)
+	{
+		GPUMemory::free(std::get<0>(column));
+	}
 
 	std::get<0>(column) = reconstructOutReg;
 	std::get<1>(column) = reconstructOutSize;
