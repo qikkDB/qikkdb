@@ -11078,6 +11078,61 @@ TEST(DispatcherTests, JoinGroupByWhereTest)
 	}
 }
 
+TEST(DispatcherTests, JoinWhereStringTest)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colString1 FROM TableA JOIN TableB ON colInteger1 = colInteger3 WHERE colFloat1 < 200;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::cout << "Result size: " << result->payloads().at("TableA.colString1").stringpayload().stringdata().size() << std::endl;
+
+	auto leftCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+	auto leftColFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+	auto leftColString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colString1").get());
+
+	auto rightCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableB").GetColumns().at("colInteger3").get());
+
+	std::vector<std::string> expectedResults;
+
+	for (int32_t leftBlockIdx = 0; leftBlockIdx < leftCol->GetBlockCount(); leftBlockIdx++)
+	{
+		auto leftBlock = leftCol->GetBlocksList()[leftBlockIdx];
+		auto leftBlockFloat = leftColFloat->GetBlocksList()[leftBlockIdx];
+		auto leftBlockString = leftColString->GetBlocksList()[leftBlockIdx];
+		for (int32_t leftRowIdx = 0; leftRowIdx < leftBlock->GetSize(); leftRowIdx++)
+		{
+			for (int32_t rightBlockIdx = 0; rightBlockIdx < rightCol->GetBlockCount(); rightBlockIdx++)
+			{
+				auto rightBlock = rightCol->GetBlocksList()[rightBlockIdx];
+				for (int32_t rightRowIdx = 0; rightRowIdx < rightBlock->GetSize(); rightRowIdx++)
+				{
+					if (leftBlockFloat->GetData()[leftRowIdx] < 200 && leftBlock->GetData()[leftRowIdx] == rightBlock->GetData()[rightRowIdx])
+					{
+						expectedResults.push_back(leftBlockString->GetData()[leftRowIdx]);
+					}
+				}
+			}
+		}
+	}
+
+	auto payloads = result->payloads().at("TableA.colString1");
+
+
+	std::vector payloadVector(payloads.stringpayload().stringdata().begin(), payloads.stringpayload().stringdata().end());
+
+	std::sort(expectedResults.begin(), expectedResults.end());
+	std::sort(payloadVector.begin(), payloadVector.end());
+
+	ASSERT_EQ(payloads.stringpayload().stringdata().size(), expectedResults.size());
+
+	for (int32_t i = 0; i < expectedResults.size(); i++)
+	{
+		ASSERT_EQ(expectedResults[i], payloadVector[i]);
+	}
+}
+
 TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
 {
 	Context::getInstance();

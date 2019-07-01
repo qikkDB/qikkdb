@@ -46,12 +46,34 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 		}
 
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex]);
-		insertComplexPolygon(database->GetName(), colName,
-			std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(),
-				block->GetData() + block->GetSize()),
-			block->GetSize());
-		noLoad = false;
+
+		if (!usingJoin)
+		{
+			auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex]);
+			insertComplexPolygon(database->GetName(), colName,
+				std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(),
+					block->GetData() + block->GetSize()),
+				block->GetSize());
+			noLoad = false;
+		}
+		else
+		{
+			std::cout << "Loading joined block." << std::endl;
+			int32_t loadSize = joinIndices->at(table)[blockIndex].size();
+			std::string joinCacheId = colName + "_join";
+			for (auto& joinTable : *joinIndices)
+			{
+				joinCacheId += "_" + joinTable.first;
+			}
+
+			std::vector<ColmnarDB::Types::ComplexPolygon> joinedPolygons;
+
+			int32_t outDataSize;
+			GPUJoin::reorderByJoinTableCPUKeep<ColmnarDB::Types::ComplexPolygon>(joinedPolygons, outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+			
+			insertComplexPolygon(database->GetName(), joinCacheId, joinedPolygons, loadSize);
+			noLoad = false;
+		}
 	}
 	return 0;
 }
@@ -84,22 +106,54 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 		}
 
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::Point>*>(col->GetBlocksList()[blockIndex]);
-
-		std::vector<NativeGeoPoint> nativePoints;
-		std::transform(block->GetData(), block->GetData() + block->GetSize(), std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint { return NativeGeoPoint{ point.geopoint().latitude(), point.geopoint().longitude() }; });
-
-		auto cacheEntry =
-			Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(database->GetName(), colName, blockIndex,
-				nativePoints.size());
-		if (!std::get<2>(cacheEntry))
+		
+		if (!usingJoin)
 		{
-			GPUMemory::copyHostToDevice(std::get<0>(cacheEntry),
-				reinterpret_cast<NativeGeoPoint*>(nativePoints.data()),
-				nativePoints.size());
+			auto block = dynamic_cast<BlockBase<ColmnarDB::Types::Point>*>(col->GetBlocksList()[blockIndex]);
+
+			std::vector<NativeGeoPoint> nativePoints;
+			std::transform(block->GetData(), block->GetData() + block->GetSize(), std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint { return NativeGeoPoint{ point.geopoint().latitude(), point.geopoint().longitude() }; });
+
+			auto cacheEntry =
+				Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(database->GetName(), colName, blockIndex,
+					nativePoints.size());
+			if (!std::get<2>(cacheEntry))
+			{
+				GPUMemory::copyHostToDevice(std::get<0>(cacheEntry),
+					reinterpret_cast<NativeGeoPoint*>(nativePoints.data()),
+					nativePoints.size());
+			}
+			addCachedRegister(colName, std::get<0>(cacheEntry), nativePoints.size());
+			noLoad = false;
 		}
-		addCachedRegister(colName, std::get<0>(cacheEntry), nativePoints.size());
-		noLoad = false;
+		else
+		{
+			std::cout << "Loading joined block." << std::endl;
+			int32_t loadSize = joinIndices->at(table)[blockIndex].size();
+			std::string joinCacheId = colName + "_join";
+			for (auto& joinTable : *joinIndices)
+			{
+				joinCacheId += "_" + joinTable.first;
+			}
+
+			std::vector<ColmnarDB::Types::Point> joinedPoints;
+			int32_t outDataSize;
+			GPUJoin::reorderByJoinTableCPUKeep<ColmnarDB::Types::Point>(joinedPoints, outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+
+			std::vector<NativeGeoPoint> nativePoints;
+			std::transform(joinedPoints.data(), joinedPoints.data() + loadSize, std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint { return NativeGeoPoint{ point.geopoint().latitude(), point.geopoint().longitude() }; });
+
+			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(
+				database->GetName(), joinCacheId, blockIndex, loadSize);
+			if (!std::get<2>(cacheEntry))
+			{
+				GPUMemory::copyHostToDevice(std::get<0>(cacheEntry),
+					reinterpret_cast<NativeGeoPoint*>(nativePoints.data()),
+					nativePoints.size());
+			}
+			addCachedRegister(joinCacheId, std::get<0>(cacheEntry), loadSize);
+			noLoad = false;
+		}
 	}
 	return 0;
 }
@@ -133,11 +187,33 @@ int32_t GpuSqlDispatcher::loadCol<std::string>(std::string& colName)
 		}
 
 		auto col = dynamic_cast<const ColumnBase<std::string>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<std::string>*>(col->GetBlocksList()[blockIndex]);
 
-		insertString(database->GetName(), colName, std::vector<std::string>(block->GetData(), 
-			block->GetData() + block->GetSize()),
-			block->GetSize());
+		if (!usingJoin)
+		{
+			auto block = dynamic_cast<BlockBase<std::string>*>(col->GetBlocksList()[blockIndex]);
+
+			insertString(database->GetName(), colName, std::vector<std::string>(block->GetData(),
+				block->GetData() + block->GetSize()),
+				block->GetSize());
+		}
+		else
+		{
+			std::cout << "Loading joined block." << std::endl;
+			int32_t loadSize = joinIndices->at(table)[blockIndex].size();
+			std::string joinCacheId = colName + "_join";
+			for (auto& joinTable : *joinIndices)
+			{
+				joinCacheId += "_" + joinTable.first;
+			}
+
+			std::vector<std::string> joinedStrings;
+
+			int32_t outDataSize;
+			GPUJoin::reorderByJoinTableCPUKeep<std::string>(joinedStrings, outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+
+			insertString(database->GetName(), joinCacheId, joinedStrings, loadSize);
+			noLoad = false;
+		}
 		noLoad = false;
 	}
 	return 0;
@@ -197,7 +273,7 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>()
 		std::cout << "RetPointCol: " << colName << ", thread: " << dispatcherThreadId << std::endl;
 
 		std::unique_ptr<std::string[]> outData(new std::string[database->GetBlockSize()]);
-		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(colName);
+		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t outSize;
 		GPUReconstruct::ReconstructPointColToWKT(outData.get(), &outSize,
 			reinterpret_cast<NativeGeoPoint*>(std::get<0>(ACol)), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
