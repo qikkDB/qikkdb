@@ -5,6 +5,7 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::freeOrderByTableFunction = 
 
 int32_t GpuSqlDispatcher::freeOrderByTable()
 {
+	std::cout << "Freeing order by table." << std::endl;
 	orderByTable.release();
 	return 0;
 }
