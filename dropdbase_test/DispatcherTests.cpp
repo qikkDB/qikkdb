@@ -10899,7 +10899,7 @@ TEST(DispatcherTests, JoinSimpleTest)
 	}
 
 	auto payloads = result->payloads().at("TableA.colInteger1");
-	std::vector payloadVector(payloads.intpayload().intdata().begin(), payloads.intpayload().intdata().end());
+	std::vector<int32_t> payloadVector(payloads.intpayload().intdata().begin(), payloads.intpayload().intdata().end());
 
 	std::sort(expectedResults.begin(), expectedResults.end());
 	std::sort(payloadVector.begin(), payloadVector.end());
@@ -10950,7 +10950,7 @@ TEST(DispatcherTests, JoinWhereTest)
 	}
 
 	auto payloads = result->payloads().at("TableA.colInteger1");
-	std::vector payloadVector(payloads.intpayload().intdata().begin(), payloads.intpayload().intdata().end());
+	std::vector<int32_t> payloadVector(payloads.intpayload().intdata().begin(), payloads.intpayload().intdata().end());
 
 	std::sort(expectedResults.begin(), expectedResults.end());
 	std::sort(payloadVector.begin(), payloadVector.end());
@@ -11120,7 +11120,7 @@ TEST(DispatcherTests, JoinWhereStringTest)
 	auto payloads = result->payloads().at("TableA.colString1");
 
 
-	std::vector payloadVector(payloads.stringpayload().stringdata().begin(), payloads.stringpayload().stringdata().end());
+	std::vector<std::string> payloadVector(payloads.stringpayload().stringdata().begin(), payloads.stringpayload().stringdata().end());
 
 	std::sort(expectedResults.begin(), expectedResults.end());
 	std::sort(payloadVector.begin(), payloadVector.end());
