@@ -486,6 +486,8 @@ public:
 		}
 	}
 
+	// TODO freeColumnIfRegister<std::string> laso point and polygon
+
 	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
 	GPUMemory::GPUPolygon insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
@@ -812,6 +814,13 @@ public:
         arguments.insert<T>(argument);
     }
 
+private:
+	template<typename OP, typename O, typename K, typename V>
+	class GroupByHelper;
+
+	template<typename OP, typename O, typename V>
+	class GroupByHelper<OP, O, std::string, V>;
+
 };
 
 template <>
@@ -822,6 +831,9 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
 
 template <>
 int32_t GpuSqlDispatcher::retCol<std::string>();
+
+template<>
+int32_t GpuSqlDispatcher::groupByCol<std::string>();
 
 template<>
 int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();
