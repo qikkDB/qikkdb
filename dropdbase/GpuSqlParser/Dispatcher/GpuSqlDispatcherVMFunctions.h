@@ -43,10 +43,10 @@ int32_t GpuSqlDispatcher::retCol()
 		{
 			if (groupByColumns.find(col) != groupByColumns.end())
 			{
-				std::tuple<uintptr_t, int32_t, bool> keyCol = allocatedPointers.at(col + "_keys");
-				outSize = std::get<1>(keyCol);
+				PointerAllocation keyCol = allocatedPointers.at(col + "_keys");
+				outSize = keyCol.elementCount;
 				std::unique_ptr<T[]> outData(new T[outSize]);
-				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(keyCol)), outSize);
+				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(keyCol.gpuPtr), outSize);
 
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload(payload, outData, outSize);
@@ -55,10 +55,10 @@ int32_t GpuSqlDispatcher::retCol()
 			}
 			else
 			{
-				std::tuple<uintptr_t, int32_t, bool> valueCol = allocatedPointers.at(col);
-				outSize = std::get<1>(valueCol);
+				PointerAllocation valueCol = allocatedPointers.at(col);
+				outSize = valueCol.elementCount;
 				std::unique_ptr<T[]> outData(new T[outSize]);
-				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(valueCol)), outSize);
+				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(valueCol.gpuPtr), outSize);
 
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload(payload, outData, outSize);
@@ -71,8 +71,8 @@ int32_t GpuSqlDispatcher::retCol()
 		std::unique_ptr<T[]> outData(new T[database->GetBlockSize()]);
 		//ToDo: Podmienene zapnut podla velkost buffera
 		//GPUMemory::hostPin(outData.get(), database->GetBlockSize());
-		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(col);
-		GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(std::get<0>(ACol)), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
+		PointerAllocation ACol = allocatedPointers.at(col);
+		GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(ACol.gpuPtr), reinterpret_cast<int8_t*>(filter_), ACol.elementCount);
 		//GPUMemory::hostUnregister(outData.get());
 		std::cout << "dataSize: " << outSize << std::endl;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
@@ -142,8 +142,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 				);
 				GPUMemory::free(deviceCompressed);
 			}
-			addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize);
-
+			addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize, block->GetNullBitmask());
 			noLoad = false;
 		}
 		else
@@ -154,8 +153,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 			{
 				GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
 			}
-			addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
-
+			addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize(), block->GetNullBitmask());
 			noLoad = false;
 		}
 	}

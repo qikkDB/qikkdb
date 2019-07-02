@@ -137,13 +137,13 @@ int32_t GpuSqlDispatcher::stringBinaryNumericColCol()
 	else if (isLastBlockOfDevice || !usingGroupBy)
 	{
 		auto columnLeft = findStringColumn(colNameLeft);
-		std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(colNameRight);
-		int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+		PointerAllocation columnRight = allocatedPointers.at(colNameRight);
+		int32_t retSize = std::min(std::get<1>(columnLeft), columnRight.elementCount);
 
 		if (!isRegisterAllocated(reg))
 		{
 			GPUMemory::GPUString result;
-			GPUStringBinary::ColCol<OP>(result, std::get<0>(columnLeft), reinterpret_cast<T*>(std::get<0>(columnRight)), retSize);
+			GPUStringBinary::ColCol<OP>(result, std::get<0>(columnLeft), reinterpret_cast<T*>(columnRight.gpuPtr), retSize);
 			fillStringRegister(result, reg, retSize, true);
 		}
 	}
@@ -206,13 +206,13 @@ int32_t GpuSqlDispatcher::stringBinaryNumericConstCol()
 	else if (isLastBlockOfDevice || !usingGroupBy)
 	{
 		GPUMemory::GPUString gpuString = insertConstStringGpu(cnst);
-		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
-		int32_t retSize = std::get<1>(column);
+		PointerAllocation column = allocatedPointers.at(colName);
+		int32_t retSize = column.elementCount;
 
 		if (!isRegisterAllocated(reg))
 		{
 			GPUMemory::GPUString result;
-			GPUStringBinary::ConstCol<OP>(result, gpuString, reinterpret_cast<T*>(std::get<0>(column)), retSize);
+			GPUStringBinary::ConstCol<OP>(result, gpuString, reinterpret_cast<T*>(column.gpuPtr), retSize);
 			fillStringRegister(result, reg, retSize, true);
 		}
 	}

@@ -50,7 +50,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 		insertComplexPolygon(database->GetName(), colName,
 			std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(),
 				block->GetData() + block->GetSize()),
-			block->GetSize());
+			block->GetSize(), block->GetNullBitmask());
 		noLoad = false;
 	}
 	return 0;
@@ -98,7 +98,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 				reinterpret_cast<NativeGeoPoint*>(nativePoints.data()),
 				nativePoints.size());
 		}
-		addCachedRegister(colName, std::get<0>(cacheEntry), nativePoints.size());
+		addCachedRegister(colName, std::get<0>(cacheEntry), nativePoints.size(), block->GetNullBitmask());
 		noLoad = false;
 	}
 	return 0;
@@ -137,7 +137,7 @@ int32_t GpuSqlDispatcher::loadCol<std::string>(std::string& colName)
 
 		insertString(database->GetName(), colName, std::vector<std::string>(block->GetData(), 
 			block->GetData() + block->GetSize()),
-			block->GetSize());
+			block->GetSize(), block->GetNullBitmask());
 		noLoad = false;
 	}
 	return 0;
@@ -200,8 +200,8 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>()
 		int32_t outSize;
 		//ToDo: Podmienene zapnut podla velkost buffera
 		//GPUMemory::hostPin(outData.get(), database->GetBlockSize());
-		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(colName);
-		GPUReconstruct::reconstructCol(outPoints.get(), &outSize, reinterpret_cast<NativeGeoPoint*>(std::get<0>(ACol)), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
+		PointerAllocation ACol = allocatedPointers.at(colName);
+		GPUReconstruct::reconstructCol(outPoints.get(), &outSize, reinterpret_cast<NativeGeoPoint*>(ACol.gpuPtr), reinterpret_cast<int8_t*>(filter_), ACol.elementCount);
 		//GPUMemory::hostUnregister(outData.get());
 
 		std::unique_ptr<std::string[]> outData(new std::string[outSize]);

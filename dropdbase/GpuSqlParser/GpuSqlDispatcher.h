@@ -31,6 +31,13 @@ class Database;
 class GpuSqlDispatcher
 {
 private:
+	struct PointerAllocation
+	{
+		std::uintptr_t gpuPtr;
+		int32_t elementCount; 
+		bool shouldBeFreed;
+		std::uintptr_t cpuNullMaskPtr;
+	};
 	typedef int32_t(GpuSqlDispatcher::*DispatchFunction)();
     std::vector<DispatchFunction> dispatcherFunctions;
     MemoryStream arguments;
@@ -43,7 +50,7 @@ private:
 	int32_t constPolygonCounter;
 	int32_t constStringCounter;
     const std::shared_ptr<Database> &database;
-	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
+	std::unordered_map<std::string, PointerAllocation> allocatedPointers;
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 	bool usingGroupBy;
@@ -461,19 +468,19 @@ public:
 	{
 		T * mask;
 		GPUMemory::alloc<T>(&mask, size);
-		allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(mask), size, true)});
+		allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(mask), size, true}});
 		usedRegisterMemory += size * sizeof(T);
 		return mask;
 	}
 
-	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false);
+	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
 
-	void fillStringRegister(GPUMemory::GPUString& stringColumn, const std::string& reg, int32_t size, bool useCache = false);
+	void fillStringRegister(GPUMemory::GPUString& stringColumn, const std::string& reg, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
 
 	template<typename T>
-	void addCachedRegister(const std::string& reg, T* ptr, int32_t size)
+	void addCachedRegister(const std::string& reg, T* ptr, int32_t size, int8_t* nullMaskPtr = nullptr)
 	{
-		allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(ptr), size, false) });
+		allocatedPointers.insert({ reg, {reinterpret_cast<std::uintptr_t>(ptr), size, false, reinterpret_cast<std::uintptr_t>(nullMaskPtr)} });
 	}
 
 	template<typename T>
@@ -486,8 +493,8 @@ public:
 	{
 		if (usedRegisterMemory > maxRegisterMemory && !col.empty() && col.front() == '$')
 		{
-			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(col))));
-			usedRegisterMemory -= std::get<1>(allocatedPointers.at(col)) * sizeof(T);
+			GPUMemory::free(reinterpret_cast<void*>(allocatedPointers.at(col).gpuPtr));
+			usedRegisterMemory -= allocatedPointers.at(col).elementCount * sizeof(T);
 			allocatedPointers.erase(col);
 			std::cout << "Free: " << col << std::endl;
 		}
@@ -495,8 +502,8 @@ public:
 
 	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
-	GPUMemory::GPUPolygon insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
-	GPUMemory::GPUString insertString(const std::string& databaseName, const std::string& colName, const std::vector<std::string>& strings, int32_t size, bool useCache = false);
+	GPUMemory::GPUPolygon insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
+	GPUMemory::GPUString insertString(const std::string& databaseName, const std::string& colName, const std::vector<std::string>& strings, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
 	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
 	std::tuple<GPUMemory::GPUString, int32_t> findStringColumn(const std::string &colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);

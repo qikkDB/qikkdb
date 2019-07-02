@@ -33,15 +33,15 @@ int32_t GpuSqlDispatcher::pointColCol()
 		return loadFlag;
 	}
 
-	std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(colNameRight);
-	std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(colNameLeft);
+	PointerAllocation columnRight = allocatedPointers.at(colNameRight);
+	PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
 
-	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+	int32_t retSize = std::min(columnLeft.elementCount, columnRight.elementCount);
 
 	if (!isRegisterAllocated(reg))
 	{
 		NativeGeoPoint * pointCol = allocateRegister<NativeGeoPoint>(reg, retSize);
-		GPUConversion::ConvertColCol(pointCol, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+		GPUConversion::ConvertColCol(pointCol, reinterpret_cast<T*>(columnLeft.gpuPtr), reinterpret_cast<U*>(columnRight.gpuPtr), retSize);
 	}
 
 	freeColumnIfRegister<U>(colNameRight);
@@ -68,14 +68,14 @@ int32_t GpuSqlDispatcher::pointColConst()
 		return loadFlag;
 	}
 
-	std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(colNameLeft);
+	PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
 
-	int32_t retSize = std::get<1>(columnLeft);
+	int32_t retSize = columnLeft.elementCount;
 
 	if (!isRegisterAllocated(reg))
 	{
 		NativeGeoPoint * pointCol = allocateRegister<NativeGeoPoint>(reg, retSize);
-		GPUConversion::ConvertColConst(pointCol, reinterpret_cast<T*>(std::get<0>(columnLeft)), cnst, retSize);
+		GPUConversion::ConvertColConst(pointCol, reinterpret_cast<T*>(columnLeft.gpuPtr), cnst, retSize);
 	}
 
 	freeColumnIfRegister<T>(colNameLeft);
@@ -101,14 +101,14 @@ int32_t GpuSqlDispatcher::pointConstCol()
 		return loadFlag;
 	}
 
-	std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(colNameRight);
+	PointerAllocation columnRight = allocatedPointers.at(colNameRight);
 
-	int32_t retSize = std::get<1>(columnRight);
+	int32_t retSize = columnRight.elementCount;
 
 	if (!isRegisterAllocated(reg))
 	{
 		NativeGeoPoint * pointCol = allocateRegister<NativeGeoPoint>(reg, retSize);
-		GPUConversion::ConvertConstCol(pointCol, cnst, reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+		GPUConversion::ConvertConstCol(pointCol, cnst, reinterpret_cast<U*>(columnRight.gpuPtr), retSize);
 	}
 
 	freeColumnIfRegister<U>(colNameRight);
@@ -168,17 +168,17 @@ int32_t GpuSqlDispatcher::containsConstCol()
 
 	std::cout << "ContainsConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool> columnPoint = allocatedPointers.at(colName);
+	PointerAllocation columnPoint = allocatedPointers.at(colName);
 	ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
 	GPUMemory::GPUPolygon gpuPolygon = insertConstPolygonGpu(polygonConst);
 
-	int32_t retSize = std::get<1>(columnPoint);
+	int32_t retSize = columnPoint.elementCount;
 
 	if (!isRegisterAllocated(reg))
 	{
 		int8_t* result = allocateRegister<int8_t>(reg, retSize);
 		GPUPolygonContains::contains(result, gpuPolygon, 1,
-			reinterpret_cast<NativeGeoPoint*>(std::get<0>(columnPoint)), retSize);
+			reinterpret_cast<NativeGeoPoint*>(columnPoint.gpuPtr), retSize);
 	}
 	return 0;
 }
@@ -207,17 +207,17 @@ int32_t GpuSqlDispatcher::containsColCol()
 
 	std::cout << "ContainsColCol: " + colNamePolygon << " " << colNamePoint << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool> pointCol = allocatedPointers.at(colNamePoint);
+	PointerAllocation pointCol = allocatedPointers.at(colNamePoint);
 	auto polygonCol = findComplexPolygon(colNamePolygon);
 
 
-	int32_t retSize = std::min(std::get<1>(pointCol), std::get<1>(polygonCol));
+	int32_t retSize = std::min(pointCol.elementCount, std::get<1>(polygonCol));
 
 	if (!isRegisterAllocated(reg))
 	{
 		int8_t * result = allocateRegister<int8_t>(reg, retSize);
 		GPUPolygonContains::contains(result, std::get<0>(polygonCol), std::get<1>(polygonCol),
-			reinterpret_cast<NativeGeoPoint*>(std::get<0>(pointCol)), std::get<1>(pointCol));
+			reinterpret_cast<NativeGeoPoint*>(pointCol.gpuPtr), pointCol.elementCount);
 	}
 	return 0;
 }

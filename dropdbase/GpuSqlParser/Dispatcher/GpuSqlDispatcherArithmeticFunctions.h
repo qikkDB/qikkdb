@@ -33,21 +33,21 @@ int32_t GpuSqlDispatcher::arithmeticColConst()
 	{
 		if (isLastBlockOfDevice)
 		{
-			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName + "_keys");
-			int32_t retSize = std::get<1>(column);
+			PointerAllocation column = allocatedPointers.at(colName + "_keys");
+			int32_t retSize = column.elementCount;
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
-			GPUArithmetic::colConst<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
+			GPUArithmetic::colConst<OP, ResultType, T, U>(result, reinterpret_cast<T*>(column.gpuPtr), cnst, retSize);
 			groupByColumns.insert(reg);
 		}
 	}
 	else if (isLastBlockOfDevice || !usingGroupBy)
 	{
-		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
-		int32_t retSize = std::get<1>(column);
+		PointerAllocation column = allocatedPointers.at(colName);
+		int32_t retSize = column.elementCount;
 		if (!isRegisterAllocated(reg))
 		{
 			ResultType * result = allocateRegister<ResultType>(reg, retSize);
-			GPUArithmetic::colConst<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
+			GPUArithmetic::colConst<OP, ResultType, T, U>(result, reinterpret_cast<T*>(column.gpuPtr), cnst, retSize);
 		}
 	}
 	freeColumnIfRegister<T>(colName);
@@ -86,22 +86,22 @@ int32_t GpuSqlDispatcher::arithmeticConstCol()
 	{
 		if (isLastBlockOfDevice)
 		{
-			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName + "_keys");
-			int32_t retSize = std::get<1>(column);
+			PointerAllocation column = allocatedPointers.at(colName + "_keys");
+			int32_t retSize = column.elementCount;
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
-			GPUArithmetic::constCol<OP, ResultType, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
+			GPUArithmetic::constCol<OP, ResultType, T, U>(result, cnst, reinterpret_cast<U*>(column.gpuPtr), retSize);
 			groupByColumns.insert(reg);
 		}
 	}
 	else if (isLastBlockOfDevice || !usingGroupBy)
 	{
-		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
-		int32_t retSize = std::get<1>(column);
+		PointerAllocation column = allocatedPointers.at(colName);
+		int32_t retSize = column.elementCount;
 
 		if (!isRegisterAllocated(reg))
 		{
 			ResultType * result = allocateRegister<ResultType>(reg, retSize);
-			GPUArithmetic::constCol<OP, ResultType, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
+			GPUArithmetic::constCol<OP, ResultType, T, U>(result, cnst, reinterpret_cast<U*>(column.gpuPtr), retSize);
 		}
 	}
 	freeColumnIfRegister<U>(colName);
@@ -144,12 +144,12 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 	{
 		if (isLastBlockOfDevice)
 		{
-			std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(colNameRight + "_keys");
-			std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(colNameLeft);
-			int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+			PointerAllocation columnRight = allocatedPointers.at(colNameRight + "_keys");
+			PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
+			int32_t retSize = std::min(columnLeft.elementCount, columnRight.elementCount);
 
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
-			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(columnLeft.gpuPtr), reinterpret_cast<U*>(columnRight.gpuPtr), retSize);
 			groupByColumns.insert(reg);
 		}
 	}
@@ -157,25 +157,25 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 	{
 		if (isLastBlockOfDevice)
 		{
-			std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(colNameRight);
-			std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(colNameLeft + "_keys");
-			int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+			PointerAllocation columnRight = allocatedPointers.at(colNameRight);
+			PointerAllocation columnLeft = allocatedPointers.at(colNameLeft + "_keys");
+			int32_t retSize = std::min(columnLeft.elementCount, columnRight.elementCount);
 
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
-			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(columnLeft.gpuPtr), reinterpret_cast<U*>(columnRight.gpuPtr), retSize);
 			groupByColumns.insert(reg);
 		}
 	}
 	else if (isLastBlockOfDevice || !usingGroupBy)
 	{
-		std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(colNameRight);
-		std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(colNameLeft);
-		int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
+		PointerAllocation columnRight = allocatedPointers.at(colNameRight);
+		PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
+		int32_t retSize = std::min(columnLeft.elementCount, columnRight.elementCount);
 
 		if (!isRegisterAllocated(reg))
 		{
 			ResultType * result = allocateRegister<ResultType>(reg, retSize);
-			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
+			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(columnLeft.gpuPtr), reinterpret_cast<U*>(columnRight.gpuPtr), retSize);
 		}
 	}
 	freeColumnIfRegister<T>(colNameLeft);

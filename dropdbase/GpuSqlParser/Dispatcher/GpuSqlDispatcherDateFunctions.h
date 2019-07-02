@@ -22,13 +22,13 @@ int32_t GpuSqlDispatcher::dateExtractCol()
 
 	std::cout << "ExtractDatePartCol: " << colName << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
-	int32_t retSize = std::get<1>(column);
+	PointerAllocation column = allocatedPointers.at(colName);
+	int32_t retSize = column.elementCount;
 
 	if (!isRegisterAllocated(reg))
 	{
 		int32_t * result = allocateRegister<int32_t>(reg, retSize);
-		GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(std::get<0>(column)), retSize);
+		GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.gpuPtr), retSize);
 	}
 
 	freeColumnIfRegister<int64_t>(colName);

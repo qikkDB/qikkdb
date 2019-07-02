@@ -160,6 +160,11 @@ public:
 			return EmptyBlockSpace() == 0;
 	}
 
+	constexpr bool IsNullable() const
+	{
+		return isNullable_;
+	}
+
     std::tuple<int, int, bool>
     FindIndexAndRange(int indexInBlock, int range, const T& data)
     {
