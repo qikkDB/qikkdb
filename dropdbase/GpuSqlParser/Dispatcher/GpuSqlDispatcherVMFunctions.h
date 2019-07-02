@@ -25,61 +25,49 @@ int32_t GpuSqlDispatcher::retConst()
 template<typename T>
 int32_t GpuSqlDispatcher::retCol()
 {
-	auto col = arguments.read<std::string>();
+	auto colName = arguments.read<std::string>();
 	auto alias = arguments.read<std::string>();
 
-	int32_t loadFlag = loadCol<T>(col);
+	int32_t loadFlag = loadCol<T>(colName);
 	if (loadFlag)
 	{
 		return loadFlag;
 	}
 
-	std::cout << "RetCol: " << col << ", thread: " << dispatcherThreadId << std::endl;
+	std::cout << "RetCol: " << colName << ", thread: " << dispatcherThreadId << std::endl;
 
 	int32_t outSize;
+	std::unique_ptr<T[]> outData;
 
 	if (usingGroupBy)
 	{
 		if (isOverallLastBlock)
 		{
-			if (groupByColumns.find(col) != groupByColumns.end())
-			{
-				std::tuple<uintptr_t, int32_t, bool> keyCol = allocatedPointers.at(getAllocatedRegisterName(col) + "_keys");
-				outSize = std::get<1>(keyCol);
-				std::unique_ptr<T[]> outData(new T[outSize]);
-				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(keyCol)), outSize);
-
-				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-				insertIntoPayload(payload, outData, outSize);
-				ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
-				MergePayloadToSelfResponse(alias, payload);
-			}
-			else
-			{
-				std::tuple<uintptr_t, int32_t, bool> valueCol = allocatedPointers.at(getAllocatedRegisterName(col));
-				outSize = std::get<1>(valueCol);
-				std::unique_ptr<T[]> outData(new T[outSize]);
-				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(valueCol)), outSize);
-
-				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-				insertIntoPayload(payload, outData, outSize);
-				MergePayloadToSelfResponse(alias, payload);
-			}
+			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end()? "_keys" : ""));
+			outSize = std::get<1>(col);
+			outData = std::make_unique<T[]>(outSize);
+			GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(col)), outSize);
+		}
+		else
+		{
+			return 0;
 		}
 	}
 	else
 	{
-		std::unique_ptr<T[]> outData(new T[database->GetBlockSize()]);
+		std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName));
+		int32_t inSize = std::get<1>(col);
+		outData = std::make_unique<T[]>(inSize);
 		//ToDo: Podmienene zapnut podla velkost buffera
-		//GPUMemory::hostPin(outData.get(), database->GetBlockSize());
-		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(getAllocatedRegisterName(col));
-		GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(std::get<0>(ACol)), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
+		//GPUMemory::hostPin(outData.get(), inSize);
+		GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
 		//GPUMemory::hostUnregister(outData.get());
 		std::cout << "dataSize: " << outSize << std::endl;
-		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-		insertIntoPayload(payload, outData, outSize);
-		MergePayloadToSelfResponse(alias, payload);
 	}
+
+	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+	insertIntoPayload(payload, outData, outSize);
+	MergePayloadToSelfResponse(alias, payload);
 	return 0;
 }
 

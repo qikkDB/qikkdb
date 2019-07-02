@@ -631,6 +631,8 @@ void TestFilterStringColCol(std::vector<std::string> inputStringACol, std::vecto
 	GPUFilter::colCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
 	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
 	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+	GPUMemory::free(gpuStringACol);
+	GPUMemory::free(gpuStringBCol);
 	
 	ASSERT_EQ(dataElementCount, expectedResults.size());
 	for (int32_t i = 0; i < dataElementCount; i++)
@@ -650,6 +652,8 @@ void TestFilterStringColConst(std::vector<std::string> inputStringACol, std::str
 	GPUFilter::colConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
 	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
 	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+	GPUMemory::free(gpuStringACol);
+	GPUMemory::free(gpuStringBCol);
 
 	ASSERT_EQ(dataElementCount, expectedResults.size());
 	for (int32_t i = 0; i < dataElementCount; i++)
@@ -669,6 +673,8 @@ void TestFilterStringConstCol(std::string inputStringAConst, std::vector<std::st
 	GPUFilter::constCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
 	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
 	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+	GPUMemory::free(gpuStringACol);
+	GPUMemory::free(gpuStringBCol);
 
 	ASSERT_EQ(dataElementCount, expectedResults.size());
 	for (int32_t i = 0; i < dataElementCount; i++)
@@ -688,6 +694,8 @@ void TestFilterStringConstConst(std::string inputStringAConst, std::string input
 	GPUFilter::constConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
 	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
 	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+	GPUMemory::free(gpuStringACol);
+	GPUMemory::free(gpuStringBCol);
 
 	for (int32_t i = 0; i < dataElementCount; i++)
 	{

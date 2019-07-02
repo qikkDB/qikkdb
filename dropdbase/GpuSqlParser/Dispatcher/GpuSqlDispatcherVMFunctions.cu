@@ -289,33 +289,47 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>()
 template <>
 int32_t GpuSqlDispatcher::retCol<std::string>()
 {
+	auto colName = arguments.read<std::string>();
+	auto alias = arguments.read<std::string>();
+
+	int32_t loadFlag = loadCol<std::string>(colName);
+	if (loadFlag)
+	{
+		return loadFlag;
+	}
+
+	std::cout << "RetStringCol: " << colName << ", thread: " << dispatcherThreadId << std::endl;
+	
+	int32_t outSize;
+	std::unique_ptr<std::string[]> outData;
+	
 	if (usingGroupBy)
 	{
-		throw RetStringGroupByException();
+		if (isOverallLastBlock)
+		{
+			// Return key or value col (key if groupByColumns contains colName)
+			auto col = findStringColumn(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end() ? "_keys" : ""));
+			outSize = std::get<1>(col);
+			outData = std::make_unique<std::string[]>(outSize);
+			GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col), nullptr, outSize);
+		}
+		else
+		{
+			return 0;
+		}
 	}
 	else
 	{
-		auto colName = arguments.read<std::string>();
-		auto alias = arguments.read<std::string>();
-
-		int32_t loadFlag = loadCol<std::string>(colName);
-		if (loadFlag)
-		{
-			return loadFlag;
-		}
-
-		std::cout << "RetStringCol: " << colName << ", thread: " << dispatcherThreadId << std::endl;
-
-		std::unique_ptr<std::string[]> outData(new std::string[database->GetBlockSize()]);
-		std::tuple<GPUMemory::GPUString, int32_t> ACol = findStringColumn(getAllocatedRegisterName(colName));
-		int32_t outSize;
+		std::tuple<GPUMemory::GPUString, int32_t> col = findStringColumn(getAllocatedRegisterName(colName));
+		outSize = std::get<1>(col);
+		outData = std::make_unique<std::string[]>(outSize);
 		GPUReconstruct::ReconstructStringCol(outData.get(), &outSize,
-			std::get<0>(ACol), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
-
+			std::get<0>(col), reinterpret_cast<int8_t*>(filter_), outSize);
 		std::cout << "dataSize: " << outSize << std::endl;
-		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-		insertIntoPayload(payload, outData, outSize);
-		MergePayloadToSelfResponse(alias, payload);
 	}
+
+	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+	insertIntoPayload(payload, outData, outSize);
+	MergePayloadToSelfResponse(alias, payload);
 	return 0;
 }

@@ -10,6 +10,7 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/CSVDataImportTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherGeoTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherGroupByTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTestsRegression.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
@@ -22,6 +23,7 @@ set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUAggregationTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUDateTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUJoinTests.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/GPUGroupByTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUPolygonClippingTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUReconstructTests.cu)
 
