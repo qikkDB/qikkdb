@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "../Context.h"
+#include "cuda_ptr.h"
 #include "GPUMemory.cuh"
 #include "GPUArithmetic.cuh"
 #include "../OrderByType.h"
@@ -16,16 +17,7 @@
 #include "../../../cub/cub.cuh"
 
 // Fill the index buffers with default indices
-__global__ void kernel_fill_indices(int32_t* indices, int32_t dataElementCount)
-{
-    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-	const int32_t stride = blockDim.x * gridDim.x;
-
-	for (int32_t i = idx; i < dataElementCount; i += stride)
-	{
-        indices[i] = i;
-	}
-}
+__global__ void kernel_fill_indices(int32_t* indices, int32_t dataElementCount);
 
 // Reorder a column by a given index column
 template<typename T>
@@ -47,22 +39,9 @@ private:
     int32_t* indices2;
     
 public:
-    GPUOrderBy(int32_t dataElementCount)
-    {
-        GPUMemory::alloc(&indices1, dataElementCount);
-        GPUMemory::alloc(&indices2, dataElementCount);
+	GPUOrderBy(int32_t dataElementCount);
 
-        // Initialize the index buffer
-        kernel_fill_indices<<< Context::getInstance().calcGridDim(dataElementCount), 
-        Context::getInstance().getBlockDim() >>>
-        (indices1, dataElementCount);
-    }
-
-    ~GPUOrderBy()
-    {
-        GPUMemory::free(indices1);
-        GPUMemory::free(indices2);
-    }
+	~GPUOrderBy();
 
     // The base order by method for numeric types
     // Iterate trough all the columns and sort them with radix sort
@@ -72,20 +51,16 @@ public:
     void OrderByColumn(int32_t* outIndices, T* inCol, int32_t dataElementCount, OrderBy::Order order)
     {
         // Keys front and back buffer
-        T* keys1;
-        T* keys2;
-
-        // Alloc the buffers
-        GPUMemory::alloc(&keys1, dataElementCount);
-        GPUMemory::alloc(&keys2, dataElementCount);
+        cuda_ptr<T> keys1(dataElementCount);
+        cuda_ptr<T> keys2(dataElementCount);
 
         // Radix sort helper buffers - alloc them
         size_t radix_temp_buf_size_ = 0;
         int8_t* radix_temp_buf_ = nullptr;
         cub::DeviceRadixSort::SortPairs(radix_temp_buf_, 
                                         radix_temp_buf_size_,
-                                        keys1, 
-                                        keys2, 
+                                        keys1.get(), 
+                                        keys2.get(), 
                                         indices1, 
                                         indices2,
                                         dataElementCount);
@@ -95,7 +70,7 @@ public:
         // Copy the keys to the first key buffer and
         // rotate the keys in the higher orders based on the 
         // indices from all the lower radices
-        ReOrderByIdx(keys1, indices1, inCol, dataElementCount);
+        ReOrderByIdx(keys1.get(), indices1, inCol, dataElementCount);
 
         // Perform radix sort
         // Ascending
@@ -104,8 +79,8 @@ public:
             case OrderBy::Order::ASC:
             cub::DeviceRadixSort::SortPairs(radix_temp_buf_, 
                                             radix_temp_buf_size_,
-                                            keys1, 
-                                            keys2, 
+                                            keys1.get(), 
+                                            keys2.get(), 
                                             indices1, 
                                             indices2,
                                             dataElementCount); 
@@ -113,8 +88,8 @@ public:
             case OrderBy::Order::DESC:
             cub::DeviceRadixSort::SortPairsDescending(radix_temp_buf_, 
                                                         radix_temp_buf_size_,
-                                                        keys1, 
-                                                        keys2, 
+                                                        keys1.get(), 
+                                                        keys2.get(), 
                                                         indices1, 
                                                         indices2,
                                                         dataElementCount);
@@ -128,10 +103,6 @@ public:
 
         // Copy the resulting indices to the output
         GPUMemory::copyDeviceToDevice(outIndices, indices1, dataElementCount);
-        
-        // Free the buffers
-        GPUMemory::free(keys1);
-        GPUMemory::free(keys2);
 
         GPUMemory::free(radix_temp_buf_);
     }

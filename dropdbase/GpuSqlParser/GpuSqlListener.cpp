@@ -7,6 +7,7 @@
 #include "../Database.h"
 #include "../PointFactory.h"
 #include "../ComplexPolygonFactory.h"
+#include "../QueryEngine/OrderByType.h"
 #include "ParserExceptions.h"
 #include "GpuSqlDispatcher.h"
 #include <ctime>
@@ -975,6 +976,7 @@ void GpuSqlListener::enterOrderByColumns(GpuSqlParser::OrderByColumnsContext * c
 void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext * ctx)
 {
 	insideOrderBy = false;
+	dispatcher.addFreeOrderByTableFunction();
 }
 
 
@@ -984,8 +986,20 @@ void GpuSqlListener::exitOrderByColumn(GpuSqlParser::OrderByColumnContext * ctx)
 	std::string orderByColName = std::get<0>(arg);
 	DataType dataType = std::get<1>(arg);
 
+	OrderBy::Order order = OrderBy::Order::ASC;
+
+	if (ctx->DIR())
+	{
+		std::string dir = ctx->DIR()->getText();
+		stringToUpper(dir);
+		if (dir == "DESC")
+		{
+			order = OrderBy::Order::DESC;
+		}
+	}
 
 	dispatcher.addArgument<const std::string&>(orderByColName);
+	dispatcher.addArgument<int32_t>(static_cast<int32_t>(order));
 	dispatcher.addOrderByFunction(dataType);
 	insideOrderBy = false;
 }

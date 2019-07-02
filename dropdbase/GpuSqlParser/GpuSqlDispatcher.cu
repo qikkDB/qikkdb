@@ -11,6 +11,7 @@
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../ComplexPolygonFactory.h"
 #include "../StringFactory.h"
+#include "../QueryEngine/GPUCore/GPUOrderBy.cuh"
 #include "../Database.h"
 #include "../Table.h"
 
@@ -42,9 +43,11 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
+	usingOrderBy(false),
 	isLastBlockOfDevice(false),
 	isOverallLastBlock(false),
-	noLoad(true)
+	noLoad(true),
+	orderByTable(nullptr)
 {
 }
 
@@ -158,6 +161,11 @@ void GpuSqlDispatcher::addRetFunction(DataType type)
 void GpuSqlDispatcher::addOrderByFunction(DataType type)
 {
 	dispatcherFunctions.push_back(orderByFunctions[type]);
+}
+
+void GpuSqlDispatcher::addFreeOrderByTableFunction()
+{
+	dispatcherFunctions.push_back(freeOrderByTableFunction);
 }
 
 void GpuSqlDispatcher::addFilFunction()

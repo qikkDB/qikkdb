@@ -26,7 +26,8 @@
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 #endif
 
-class Database;
+class Database; 
+class GPUOrderBy;
 
 class GpuSqlDispatcher
 {
@@ -47,12 +48,14 @@ private:
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 	bool usingGroupBy;
+	bool usingOrderBy;
 	bool isLastBlockOfDevice;
 	bool isOverallLastBlock;
 	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
 	bool isRegisterAllocated(std::string& reg);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
+	std::unique_ptr<GPUOrderBy> orderByTable;
 
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -200,6 +203,7 @@ private:
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
+	static DispatchFunction freeOrderByTableFunction;
     static DispatchFunction filFunction;
 	static DispatchFunction jmpFunction;
     static DispatchFunction doneFunction;
@@ -421,6 +425,8 @@ public:
 
 	void addOrderByFunction(DataType type);
 
+	void addFreeOrderByTableFunction();
+
     void addFilFunction();
 
 	void addJmpInstruction();
@@ -500,11 +506,19 @@ public:
 	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 	GPUMemory::GPUString insertConstStringGpu(const std::string& str);
 
+	template<typename T>
+	int32_t orderByConst();
+
+	template<typename T>
+	int32_t orderByCol();
+
   	template<typename T>
     int32_t retConst();
 
     template<typename T>
     int32_t retCol();
+
+	int32_t freeOrderByTable();
 
     int32_t fil();
 

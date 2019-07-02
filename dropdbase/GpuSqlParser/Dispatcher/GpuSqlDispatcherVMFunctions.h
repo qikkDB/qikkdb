@@ -2,6 +2,7 @@
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "../../QueryEngine/GPUCore/GPUOrderBy.cuh"
 #include "../../Database.h"
 #include "../../Table.h"
 #include "../../ColumnBase.h"
@@ -72,6 +73,12 @@ int32_t GpuSqlDispatcher::retCol()
 		//ToDo: Podmienene zapnut podla velkost buffera
 		//GPUMemory::hostPin(outData.get(), database->GetBlockSize());
 		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(col);
+
+		if (usingOrderBy)
+		{
+			std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
+		}
+
 		GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(std::get<0>(ACol)), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
 		//GPUMemory::hostUnregister(outData.get());
 		std::cout << "dataSize: " << outSize << std::endl;

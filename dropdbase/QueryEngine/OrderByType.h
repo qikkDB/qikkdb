@@ -2,7 +2,7 @@
 
 // The desired order of a column
 namespace OrderBy {
-    enum class Order{
+    enum Order{
         ASC,
         DESC
     };
