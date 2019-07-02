@@ -11,16 +11,9 @@
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "GPUArithmetic.cuh"
+#include "../OrderByType.h"
 
 #include "../../../cub/cub.cuh"
-
-// The desired order of a column
-namespace OrderBy {
-    enum class Order{
-        ASC,
-        DESC
-    };
-}
 
 // Fill the index buffers with default indices
 __global__ void kernel_fill_indices(int32_t* indices, int32_t dataElementCount)
