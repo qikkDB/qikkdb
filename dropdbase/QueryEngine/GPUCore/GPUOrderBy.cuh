@@ -137,7 +137,7 @@ public:
     }
     
     template<typename T>
-    void ReOrderByIdx(T* outCol, int32_t* inIndices, T* inCol, int32_t dataElementCount)
+    static void ReOrderByIdx(T* outCol, int32_t* inIndices, T* inCol, int32_t dataElementCount)
     {
         // Reorder a column based on indices
         kernel_reorder_by_idx<<< Context::getInstance().calcGridDim(dataElementCount), 
