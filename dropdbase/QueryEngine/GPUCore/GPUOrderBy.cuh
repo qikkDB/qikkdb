@@ -47,31 +47,48 @@ __global__ void kernel_reorder_by_idx(T* outCol, int32_t* inIndices, T* inCol, i
     }
 }
 
-template<typename T>
 class GPUOrderBy {
 private:
     // Radix indices front and back buffer
     int32_t* indices1;
     int32_t* indices2;
-
-    // Keys front and back buffer
-    T* keys1;
-    T* keys2;
-
-    // Radix sort helper buffers
-    size_t radix_temp_buf_size_;
-    int8_t* radix_temp_buf_;
     
 public:
     GPUOrderBy(int32_t dataElementCount)
     {
         GPUMemory::alloc(&indices1, dataElementCount);
         GPUMemory::alloc(&indices2, dataElementCount);
+
+        // Initialize the index buffer
+        kernel_fill_indices<<< Context::getInstance().calcGridDim(dataElementCount), 
+        Context::getInstance().getBlockDim() >>>
+        (indices1, dataElementCount);
+    }
+
+    ~GPUOrderBy()
+    {
+        GPUMemory::free(indices1);
+        GPUMemory::free(indices2);
+    }
+
+    // The base order by method for numeric types
+    // Iterate trough all the columns and sort them with radix sort
+    // Handle the columns as if they were a big binary number from right to left
+    // for(int32_t i = inCols.size() - 1; i >= 0; i--)
+    template<typename T>
+    void OrderByColumn(int32_t* outIndices, T* inCol, int32_t dataElementCount, OrderBy::Order order)
+    {
+        // Keys front and back buffer
+        T* keys1;
+        T* keys2;
+
+        // Alloc the buffers
         GPUMemory::alloc(&keys1, dataElementCount);
         GPUMemory::alloc(&keys2, dataElementCount);
 
-        radix_temp_buf_size_ = 0;
-        radix_temp_buf_ = nullptr;
+        // Radix sort helper buffers - alloc them
+        size_t radix_temp_buf_size_ = 0;
+        int8_t* radix_temp_buf_ = nullptr;
         cub::DeviceRadixSort::SortPairs(radix_temp_buf_, 
                                         radix_temp_buf_size_,
                                         keys1, 
@@ -81,69 +98,52 @@ public:
                                         dataElementCount);
 
         GPUMemory::alloc(&radix_temp_buf_, radix_temp_buf_size_);
-    }
 
-    ~GPUOrderBy()
-    {
-        GPUMemory::free(indices1);
-        GPUMemory::free(indices2);
+        // Copy the keys to the first key buffer and
+        // rotate the keys in the higher orders based on the 
+        // indices from all the lower radices
+        ReOrderByIdx(keys1, indices1, inCol, dataElementCount);
+
+        // Perform radix sort
+        // Ascending
+        switch(order) 
+        {
+            case OrderBy::Order::ASC:
+            cub::DeviceRadixSort::SortPairs(radix_temp_buf_, 
+                                            radix_temp_buf_size_,
+                                            keys1, 
+                                            keys2, 
+                                            indices1, 
+                                            indices2,
+                                            dataElementCount); 
+            break;
+            case OrderBy::Order::DESC:
+            cub::DeviceRadixSort::SortPairsDescending(radix_temp_buf_, 
+                                                        radix_temp_buf_size_,
+                                                        keys1, 
+                                                        keys2, 
+                                                        indices1, 
+                                                        indices2,
+                                                        dataElementCount);
+            break;
+        }
+
+        // Swap GPU pointers
+        int32_t* indices_temp = indices1;
+        indices1 = indices2;
+        indices2 = indices_temp;
+
+        // Copy the resulting indices to the output
+        GPUMemory::copyDeviceToDevice(outIndices, indices1, dataElementCount);
+        
+        // Free the buffers
         GPUMemory::free(keys1);
         GPUMemory::free(keys2);
 
         GPUMemory::free(radix_temp_buf_);
     }
-
-    // The base order by method for numeric types
-    void OrderBy(int32_t* outIndices, std::vector<T*> &inCols, int32_t dataElementCount, std::vector<OrderBy::Order> &order)
-    {
-        // Initialize the index buffer
-        kernel_fill_indices<<< Context::getInstance().calcGridDim(dataElementCount), 
-                               Context::getInstance().getBlockDim() >>>
-                               (indices1, dataElementCount);
-
-        // Iterate trough all the columns and sort them with radix sort
-        // Handle the columns as if they were a big binary number from right to left
-        for(int32_t i = inCols.size() - 1; i >= 0; i--)
-        {
-            // Copy the keys to the first key buffer and
-            // rotate the keys in the higher orders based on the 
-            // indices from all the lower radices
-            ReOrderByIdx(keys1, indices1, inCols[i], dataElementCount);
-
-            // Perform radix sort
-            // Ascending
-            switch(order[i]) 
-            {
-                case OrderBy::Order::ASC:
-                cub::DeviceRadixSort::SortPairs(radix_temp_buf_, 
-                                                radix_temp_buf_size_,
-                                                keys1, 
-                                                keys2, 
-                                                indices1, 
-                                                indices2,
-                                                dataElementCount); 
-                break;
-                case OrderBy::Order::DESC:
-                cub::DeviceRadixSort::SortPairsDescending(radix_temp_buf_, 
-                                                          radix_temp_buf_size_,
-                                                          keys1, 
-                                                          keys2, 
-                                                          indices1, 
-                                                          indices2,
-                                                          dataElementCount);
-                break;
-            }
-
-            // Swap GPU pointers
-            int32_t* indices_temp = indices1;
-            indices1 = indices2;
-            indices2 = indices_temp;
-        }
-
-        // Copy the resulting indices to the output
-        GPUMemory::copyDeviceToDevice(outIndices, indices1, dataElementCount);
-    }
     
+    template<typename T>
     void ReOrderByIdx(T* outCol, int32_t* inIndices, T* inCol, int32_t dataElementCount)
     {
         // Reorder a column based on indices
