@@ -13,6 +13,7 @@
 #include "GPUMemory.cuh"
 #include "GPUArithmetic.cuh"
 #include "../OrderByType.h"
+#include "cuda_ptr.h"
 
 #include "../../../cub/cub.cuh"
 
@@ -114,5 +115,17 @@ public:
         kernel_reorder_by_idx<<< Context::getInstance().calcGridDim(dataElementCount), 
                                  Context::getInstance().getBlockDim() >>>
                                  (outCol, inIndices, inCol, dataElementCount);
+    }
+
+    template<typename T>
+    static void ReOrderByIdxInplace(T* col, int32_t* indices, int32_t dataElementCount)
+    {
+        cuda_ptr<T> outTemp(dataElementCount);
+        GPUMemory::copyDeviceToDevice(outTemp.get(), col, dataElementCount);
+
+        // Reorder a column based on indices "inplace"
+        kernel_reorder_by_idx<<< Context::getInstance().calcGridDim(dataElementCount), 
+                                 Context::getInstance().getBlockDim() >>>
+                                 (col, indices, outTemp.get(), dataElementCount);
     }
 };
