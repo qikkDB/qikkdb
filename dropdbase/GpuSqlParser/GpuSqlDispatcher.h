@@ -185,15 +185,17 @@ private:
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgAggregationFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> orderByFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
@@ -416,6 +418,8 @@ public:
     void addAvgFunction(DataType key, DataType value, bool usingGroupBy);
 
     void addRetFunction(DataType type);
+
+	void addOrderByFunction(DataType type);
 
     void addFilFunction();
 

@@ -34,7 +34,7 @@ selectColumns       : (((selectColumn) (COMMA selectColumn)*));
 selectColumn        : expression (AS alias)?;
 whereClause         : expression;
 orderByColumns      : ((orderByColumn (COMMA orderByColumn)*));
-orderByColumn       : (columnId DIR?);
+orderByColumn       : (expression DIR?);
 insertIntoValues    : ((columnValue (COMMA columnValue)*));
 insertIntoColumns   : ((columnId (COMMA columnId)*));
 indexColumns        : ((column (COMMA column)*));
@@ -85,7 +85,7 @@ expression : op=NOT expression                                                  
            | op=RTRIM LPAREN expression RPAREN                                            # unaryOperation
            | op=LOWER LPAREN expression RPAREN                                            # unaryOperation
            | op=UPPER LPAREN expression RPAREN                                            # unaryOperation
-           | op=REVERSE LPAREN expression RPAREN                                            # unaryOperation
+           | op=REVERSE LPAREN expression RPAREN                                          # unaryOperation
            | op=LEN LPAREN expression RPAREN                                              # unaryOperation
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation

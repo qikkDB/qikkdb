@@ -37,6 +37,7 @@ private:
     bool usingGroupBy;
     bool insideAgg;
 	bool insideGroupBy;
+	bool insideOrderBy;
 
 	bool insideSelectColumn;
 	bool isAggSelectColumn;
@@ -133,6 +134,12 @@ public:
 	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
 
 	void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) override;
+
+	void enterOrderByColumns(GpuSqlParser::OrderByColumnsContext *ctx) override;
+
+	void exitOrderByColumns(GpuSqlParser::OrderByColumnsContext *ctx) override;
+
+	void exitOrderByColumn(GpuSqlParser::OrderByColumnContext *ctx) override;
 
 	void exitLimit(GpuSqlParser::LimitContext *ctx) override;
 

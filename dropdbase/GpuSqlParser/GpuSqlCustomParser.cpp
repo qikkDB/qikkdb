@@ -77,6 +77,26 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 			walker.walk(&gpuSqlListener, statement->sqlSelect()->groupByColumns());
 		}
 
+		if (statement->sqlSelect()->orderByColumns())
+		{
+			gpuSqlListener.enterOrderByColumns(statement->sqlSelect()->orderByColumns());
+
+			// flip the order of ORDER BY columns
+			std::vector<GpuSqlParser::OrderByColumnContext*> orderByColumns;
+
+			for (auto orderByCol : statement->sqlSelect()->orderByColumns()->orderByColumn())
+			{
+				orderByColumns.insert(orderByColumns.begin(), orderByCol);
+			}
+
+			for (auto orderByCol : orderByColumns)
+			{
+				walker.walk(&gpuSqlListener, orderByCol);
+			}
+
+			gpuSqlListener.exitOrderByColumns(statement->sqlSelect()->orderByColumns());
+		}
+
 		std::vector<GpuSqlParser::SelectColumnContext*> aggColumns;
 		std::vector<GpuSqlParser::SelectColumnContext*> nonAggColumns;
 
@@ -113,11 +133,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		if (statement->sqlSelect()->limit())
 		{
 			walker.walk(&gpuSqlListener, statement->sqlSelect()->limit());
-		}
-
-		if (statement->sqlSelect()->orderByColumns())
-		{
-			walker.walk(&gpuSqlListener, statement->sqlSelect()->orderByColumns());
 		}
 		
 		if (!gpuSqlListener.GetUsingLoad() && !gpuSqlListener.GetUsingWhere())

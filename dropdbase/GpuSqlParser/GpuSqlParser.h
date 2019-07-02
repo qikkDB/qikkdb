@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/mstano/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -582,7 +582,7 @@ public:
   public:
     OrderByColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    ColumnIdContext *columnId();
+    ExpressionContext *expression();
     antlr4::tree::TerminalNode *DIR();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;

@@ -35,7 +35,8 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	usingWhere(false),
 	usingGroupBy(false), 
 	insideAgg(false), 
-	insideGroupBy(false), 
+	insideGroupBy(false),
+	insideOrderBy(false),
 	insideSelectColumn(false), 
 	isAggSelectColumn(false),
 	resultLimit(std::numeric_limits<int64_t>::max()),
@@ -436,6 +437,10 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 /// <param name="ctx">Aggregation context</param>
 void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
 {
+	if (insideOrderBy)
+	{
+		throw AggregationOrderByException();
+	}
 	if (insideAgg)
 	{
 		throw NestedAggregationException();
@@ -960,6 +965,29 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * ct
 	{
 		dispatcher.addArgument<const std::string&>(indexColumn);
 	}
+}
+
+void GpuSqlListener::enterOrderByColumns(GpuSqlParser::OrderByColumnsContext * ctx)
+{
+	insideOrderBy = true;
+}
+
+void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext * ctx)
+{
+	insideOrderBy = false;
+}
+
+
+void GpuSqlListener::exitOrderByColumn(GpuSqlParser::OrderByColumnContext * ctx)
+{
+	std::pair<std::string, DataType> arg = stackTopAndPop();
+	std::string orderByColName = std::get<0>(arg);
+	DataType dataType = std::get<1>(arg);
+
+
+	dispatcher.addArgument<const std::string&>(orderByColName);
+	dispatcher.addOrderByFunction(dataType);
+	insideOrderBy = false;
 }
 
 /// Method that executes on exit of INSERT INTO command
