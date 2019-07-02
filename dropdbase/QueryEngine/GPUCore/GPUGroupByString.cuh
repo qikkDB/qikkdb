@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GPUFilter.cuh"
+#include "GPUFilterConditions.cuh"
 #include "GPUGroupBy.cuh"
 #include "GPUStringUnary.cuh"
 

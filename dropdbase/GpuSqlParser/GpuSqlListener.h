@@ -16,6 +16,7 @@
 #include <boost/functional/hash.hpp>
 
 class GpuSqlDispatcher;
+class GpuSqlJoinDispatcher;
 class Database;
 
 class GpuSqlListener : public GpuSqlParserBaseListener
@@ -23,6 +24,7 @@ class GpuSqlListener : public GpuSqlParserBaseListener
 private:
     const std::shared_ptr<Database> &database;
     GpuSqlDispatcher &dispatcher;
+	GpuSqlJoinDispatcher &joinDispatcher;
     std::stack<std::pair<std::string, DataType>> parserStack;
 	std::unordered_map<std::string, std::string> tableAliases;
 	std::unordered_set<std::string> columnAliases;
@@ -67,7 +69,7 @@ private:
 	DataType getDataTypeFromString(std::string dataType);
 
 public:
-	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
+	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher, GpuSqlJoinDispatcher& joinDispatcher);
 
 	int64_t resultLimit;
     int64_t resultOffset;
@@ -107,6 +109,10 @@ public:
     void exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx) override;
 
     void exitFromTables(GpuSqlParser::FromTablesContext *ctx) override;
+
+	void exitJoinClause(GpuSqlParser::JoinClauseContext *ctx) override;
+
+	void exitJoinClauses(GpuSqlParser::JoinClausesContext *ctx) override;
 
     void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 

@@ -2,6 +2,7 @@
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "../../QueryEngine/GPUCore/GPUJoin.cuh"
 #include "../../Database.h"
 #include "../../Table.h"
 #include "../../ColumnBase.h"
@@ -42,7 +43,7 @@ int32_t GpuSqlDispatcher::retCol()
 	{
 		if (isOverallLastBlock)
 		{
-			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(colName + (groupByColumns.find(colName) != groupByColumns.end()? "_keys" : ""));
+			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end()? "_keys" : ""));
 			outSize = std::get<1>(col);
 			outData = std::make_unique<T[]>(outSize);
 			GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(col)), outSize);
@@ -54,7 +55,7 @@ int32_t GpuSqlDispatcher::retCol()
 	}
 	else
 	{
-		std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(colName);
+		std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t inSize = std::get<1>(col);
 		outData = std::make_unique<T[]>(inSize);
 		//ToDo: Podmienene zapnut podla velkost buffera
@@ -81,12 +82,12 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 	{
 		std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
 
-		// split colName to table and column name
-		const size_t endOfPolyIdx = colName.find(".");
-		const std::string table = colName.substr(0, endOfPolyIdx);
-		const std::string column = colName.substr(endOfPolyIdx + 1);
+		std::string table;
+		std::string column;
 
-		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+		std::tie(table, column) = splitColumnName(colName);
+
+		const int32_t blockCount = usingJoin ? joinIndices->at(table).size() : database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
 		GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
 		if (blockIndex >= blockCount)
 		{
@@ -102,48 +103,69 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 		}
 
 		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
-		auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
 
-		if (block->IsCompressed())
+		if (!usingJoin)
 		{
-			size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
-			size_t compressedSize = block->GetSize();
-			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-				database->GetName(), colName, blockIndex, uncompressedSize);
-			if (!std::get<2>(cacheEntry))
-			{
-				T* deviceCompressed;
-				GPUMemory::alloc(&deviceCompressed, compressedSize);
-				GPUMemory::copyHostToDevice(deviceCompressed, block->GetData(), compressedSize);
-				bool isDecompressed;
-				Compression::Decompress(
-					col->GetColumnType(),
-					deviceCompressed,
-					Compression::GetCompressedDataElementsCount(block->GetData()),
-					std::get<0>(cacheEntry),
-					Compression::GetUncompressedDataElementsCount(block->GetData()),
-					Compression::GetCompressionBlocksCount(block->GetData()),
-					block->GetMin(),
-					block->GetMax(),
-					isDecompressed,
-					true
-				);
-				GPUMemory::free(deviceCompressed);
-			}
-			addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize);
+			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
 
+			if (block->IsCompressed())
+			{
+				size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
+				size_t compressedSize = block->GetSize();
+				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+					database->GetName(), colName, blockIndex, uncompressedSize);
+				if (!std::get<2>(cacheEntry))
+				{
+					T* deviceCompressed;
+					GPUMemory::alloc(&deviceCompressed, compressedSize);
+					GPUMemory::copyHostToDevice(deviceCompressed, block->GetData(), compressedSize);
+					bool isDecompressed;
+					Compression::Decompress(
+						col->GetColumnType(),
+						deviceCompressed,
+						Compression::GetCompressedDataElementsCount(block->GetData()),
+						std::get<0>(cacheEntry),
+						Compression::GetUncompressedDataElementsCount(block->GetData()),
+						Compression::GetCompressionBlocksCount(block->GetData()),
+						block->GetMin(),
+						block->GetMax(),
+						isDecompressed,
+						true
+					);
+					GPUMemory::free(deviceCompressed);
+				}
+				addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize);
+			}
+			else
+			{
+				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+					database->GetName(), colName, blockIndex, block->GetSize());
+				if (!std::get<2>(cacheEntry))
+				{
+					GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+				}
+				addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
+			}
 			noLoad = false;
 		}
 		else
 		{
+			std::cout << "Loading joined block." << std::endl;
+			int32_t loadSize = joinIndices->at(table)[blockIndex].size();
+			std::string joinCacheId = colName + "_join";
+			for (auto& joinTable : *joinIndices)
+			{
+				joinCacheId += "_" + joinTable.first;
+			}
+
 			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-				database->GetName(), colName, blockIndex, block->GetSize());
+				database->GetName(), joinCacheId, blockIndex, loadSize);
 			if (!std::get<2>(cacheEntry))
 			{
-				GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+				int32_t outDataSize;
+				GPUJoin::reorderByJoinTableCPU<T>(std::get<0>(cacheEntry), outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
 			}
-			addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize());
-
+			addCachedRegister(joinCacheId, std::get<0>(cacheEntry), loadSize);
 			noLoad = false;
 		}
 	}

@@ -26,7 +26,6 @@
 #include "ConsoleHandler.h"
 #include "QueryEngine/GPUMemoryCache.h"
 
-
 /// Startup function, called automatically.
 /// <param name="argc">not used parameter</param>
 /// <param name="argv">not used parameter</param>

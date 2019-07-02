@@ -615,6 +615,32 @@ for operation in ['len']:
     print(declaration)
 print()
 
+for opIdx, operation in enumerate(['joinGreater', 'joinLess', 'joinGreaterEqual', 'joinLessEqual', 'joinEqual', 'joinNotEqual']):
+    declaration = "std::array<GpuSqlJoinDispatcher::DispatchJoinFunction," \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlJoinDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal == STRING or colVal in geo_types:
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = "join"
+
+        function = "GpuSqlJoinDispatcher::" + op + col + "<FilterConditions::" + filter_operations[opIdx] + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
 
 for operation in operations_string_binary:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
