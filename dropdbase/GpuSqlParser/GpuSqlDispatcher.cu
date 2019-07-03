@@ -67,6 +67,7 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 	try
 	{
 		Context& context = Context::getInstance();
+		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
 		context.bindDeviceToContext(dispatcherThreadId);
 		int32_t err = 0;
 
@@ -699,7 +700,7 @@ GPUMemory::GPUString GpuSqlDispatcher::insertString(const std::string& databaseN
 	}
 }
 
-std::tuple<GPUMemory::GPUPolygon, int32_t> GpuSqlDispatcher::findComplexPolygon(std::string colName)
+std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> GpuSqlDispatcher::findComplexPolygon(std::string colName)
 {
 	GPUMemory::GPUPolygon polygon;
 	int32_t size = allocatedPointers.at(colName + "_polyPoints").elementCount;
@@ -710,16 +711,16 @@ std::tuple<GPUMemory::GPUPolygon, int32_t> GpuSqlDispatcher::findComplexPolygon(
 	polygon.polyIdx = reinterpret_cast<int32_t*>(allocatedPointers.at(colName + "_polyIdx").gpuPtr);
 	polygon.polyCount = reinterpret_cast<int32_t*>(allocatedPointers.at(colName + "_polyCount").gpuPtr);
 
-	return std::make_tuple(polygon, size);
+	return std::make_tuple(polygon, size, reinterpret_cast<int8_t*>(allocatedPointers.at(colName + "_polyPoints").gpuNullMaskPtr));
 }
 
-std::tuple<GPUMemory::GPUString, int32_t> GpuSqlDispatcher::findStringColumn(const std::string & colName)
+std::tuple<GPUMemory::GPUString, int32_t, int8_t*> GpuSqlDispatcher::findStringColumn(const std::string & colName)
 {
 	GPUMemory::GPUString gpuString;
 	int32_t size = allocatedPointers.at(colName + "_stringIndices").elementCount;
 	gpuString.stringIndices = reinterpret_cast<int64_t*>(allocatedPointers.at(colName + "_stringIndices").gpuPtr);
 	gpuString.allChars = reinterpret_cast<char*>(allocatedPointers.at(colName + "_allChars").gpuPtr);
-	return std::make_tuple(gpuString, size);
+	return std::make_tuple(gpuString, size, reinterpret_cast<int8_t*>(allocatedPointers.at(colName + "_stringIndices").gpuNullMaskPtr));
 }
 
 NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& point)
@@ -765,6 +766,10 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 		if (ptr.second.gpuPtr != 0 && ptr.second.shouldBeFreed)
 		{
 			GPUMemory::free(reinterpret_cast<void*>(ptr.second.gpuPtr));
+			if(ptr.second.gpuNullMaskPtr)
+			{
+				GPUMemory::free(reinterpret_cast<void*>(ptr.second.gpuNullMaskPtr));
+			}
 		}
 	}
 	usedRegisterMemory = 0;
@@ -800,6 +805,7 @@ int32_t GpuSqlDispatcher::jmp()
 	if (!isLastBlockOfDevice)
 	{
 		blockIndex += context.getDeviceCount();
+		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
 		instructionPointer = 0;
 		cleanUpGpuPointers();
 		return 0;

@@ -36,7 +36,7 @@ private:
 		std::uintptr_t gpuPtr;
 		int32_t elementCount; 
 		bool shouldBeFreed;
-		std::uintptr_t cpuNullMaskPtr;
+		std::uintptr_t gpuNullMaskPtr;
 	};
 	typedef int32_t(GpuSqlDispatcher::*DispatchFunction)();
     std::vector<DispatchFunction> dispatcherFunctions;
@@ -464,11 +464,21 @@ public:
 	static std::unordered_map<std::string, int32_t> linkTable;
 	
 	template<typename T>
-	T* allocateRegister(const std::string& reg, int32_t size)
+	T* allocateRegister(const std::string& reg, int32_t size, int8_t** nullPointerMask = nullptr)
 	{
 		T * mask;
 		GPUMemory::alloc<T>(&mask, size);
-		allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(mask), size, true}});
+		if(nullPointerMask)
+		{
+			int32_t bitMaskSize = ((size + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+			GPUMemory::alloc<int8_t>(nullPointerMask, bitMaskSize);
+			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(mask), size, true, reinterpret_cast<std::uintptr_t>(*nullPointerMask)}});
+		}
+		else
+		{
+			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(mask), size, true, 0}});
+		}
+		
 		usedRegisterMemory += size * sizeof(T);
 		return mask;
 	}
@@ -504,8 +514,8 @@ public:
 
 	GPUMemory::GPUPolygon insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
 	GPUMemory::GPUString insertString(const std::string& databaseName, const std::string& colName, const std::vector<std::string>& strings, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
-	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
-	std::tuple<GPUMemory::GPUString, int32_t> findStringColumn(const std::string &colName);
+	std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> findComplexPolygon(std::string colName);
+	std::tuple<GPUMemory::GPUString, int32_t, int8_t*> findStringColumn(const std::string &colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 	GPUMemory::GPUString insertConstStringGpu(const std::string& str);

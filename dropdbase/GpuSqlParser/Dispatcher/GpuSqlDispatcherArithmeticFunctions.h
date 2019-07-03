@@ -35,7 +35,18 @@ int32_t GpuSqlDispatcher::arithmeticColConst()
 		{
 			PointerAllocation column = allocatedPointers.at(colName + "_keys");
 			int32_t retSize = column.elementCount;
-			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
+			ResultType * result;
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<ResultType>(reg + "_keys", retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<ResultType>(reg + "_keys", retSize);
+			}
 			GPUArithmetic::colConst<OP, ResultType, T, U>(result, reinterpret_cast<T*>(column.gpuPtr), cnst, retSize);
 			groupByColumns.insert(reg);
 		}
@@ -46,7 +57,18 @@ int32_t GpuSqlDispatcher::arithmeticColConst()
 		int32_t retSize = column.elementCount;
 		if (!isRegisterAllocated(reg))
 		{
-			ResultType * result = allocateRegister<ResultType>(reg, retSize);
+			ResultType * result;
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<ResultType>(reg, retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<ResultType>(reg, retSize);
+			}
 			GPUArithmetic::colConst<OP, ResultType, T, U>(result, reinterpret_cast<T*>(column.gpuPtr), cnst, retSize);
 		}
 	}
@@ -88,7 +110,18 @@ int32_t GpuSqlDispatcher::arithmeticConstCol()
 		{
 			PointerAllocation column = allocatedPointers.at(colName + "_keys");
 			int32_t retSize = column.elementCount;
-			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
+						ResultType * result;
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<ResultType>(reg + "_keys", retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<ResultType>(reg + "_keys", retSize);
+			}
 			GPUArithmetic::constCol<OP, ResultType, T, U>(result, cnst, reinterpret_cast<U*>(column.gpuPtr), retSize);
 			groupByColumns.insert(reg);
 		}
@@ -100,7 +133,18 @@ int32_t GpuSqlDispatcher::arithmeticConstCol()
 
 		if (!isRegisterAllocated(reg))
 		{
-			ResultType * result = allocateRegister<ResultType>(reg, retSize);
+			ResultType * result;
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<ResultType>(reg, retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<ResultType>(reg, retSize);
+			}
 			GPUArithmetic::constCol<OP, ResultType, T, U>(result, cnst, reinterpret_cast<U*>(column.gpuPtr), retSize);
 		}
 	}
@@ -174,7 +218,33 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 
 		if (!isRegisterAllocated(reg))
 		{
-			ResultType * result = allocateRegister<ResultType>(reg, retSize);
+			ResultType * result;
+			if(columnLeft.gpuNullMaskPtr && columnRight.gpuNullMaskPtr)
+			{
+				int8_t * combinedMask;
+				result = allocateRegister<ResultType>(reg, retSize, &combinedMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(combinedMask, reinterpret_cast<int8_t*>(columnLeft.gpuNullMaskPtr), reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+				GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.gpuPtr), reinterpret_cast<U*>(columnRight.gpuPtr), combinedMask, retSize);
+			}
+			else if(columnLeft.gpuNullMaskPtr)
+			{
+				int8_t * combinedMask;
+				result = allocateRegister<ResultType>(reg, retSize, &combinedMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(columnLeft.gpuNullMaskPtr), bitMaskSize);
+			}
+			else if(columnRight.gpuNullMaskPtr)
+			{
+				int8_t * combinedMask;
+				int8_t * mask = allocateRegister<int8_t>(reg, retSize, &combinedMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				int8_t * mask = allocateRegister<int8_t>(reg, retSize);
+			}
 			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(columnLeft.gpuPtr), reinterpret_cast<U*>(columnRight.gpuPtr), retSize);
 		}
 	}

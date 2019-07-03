@@ -10,7 +10,7 @@ void GPUMemoryCache::SetLockList(const std::vector<std::string>& lockList)
 }
 
 GPUMemoryCache::GPUMemoryCache(int32_t deviceID, size_t maximumSize) :
-	 maxSize_(maximumSize), deviceID_(deviceID), usedSize(0)
+	 maxSize_(maximumSize), deviceID_(deviceID), usedSize(0), currentBlockIndex_(0)
 {
 	BOOST_LOG_TRIVIAL(debug) << "Cache initialized for device " << deviceID;
 }
@@ -30,13 +30,14 @@ bool GPUMemoryCache::evict()
 {
 	for(auto it = lruQueue.begin(); it != lruQueue.end(); it++)
 	{
-		auto& queueItem = *it;
+		auto& queueItem = *it; 
 		bool isLockedItem = false;
 		// Check if current eviction candidate is evictable
 		for (const auto& lockedColumn : GPUMemoryCache::lockList)
 		{
 			BOOST_LOG_TRIVIAL(debug) << "CacheLock cmp: " << lockedColumn << " " << it->ref.key;
-			if (it->ref.key.find(lockedColumn, 0) == 0)
+			std::string currentBlockIndexStr = std::to_string(currentBlockIndex_);
+			if (it->ref.key.find(lockedColumn, 0) == 0 && it->ref.key.find_last_of(currentBlockIndexStr) == it->ref.key.length() - currentBlockIndexStr.size())
 			{
 				isLockedItem = true;
 				break;

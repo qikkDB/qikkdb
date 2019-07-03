@@ -41,6 +41,9 @@ __global__ void kernel_reconstruct_col(T *outData, T *ACol, int32_t *prefixSum, 
 	}
 }
 
+/// Kernel for reconstructing null masks according to calculated prefixSum and inMask
+__global__ void kernel_reconstruct_null_mask(int8_t *outData, int8_t *ACol, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount);
+
 /// Kernel for generating array with sorted indexes which point to values where mask is 1.
 template<typename T>
 __global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
@@ -113,7 +116,7 @@ public:
 	/// <param name="inMask">input mask</param>
 	/// <param name="dataElementCount">data element count of the input block</param>
 	template<typename T>
-	static void reconstructCol(T *outData, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
+	static void reconstructCol(T *outData, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount, int8_t* outNullMask = nullptr, int8_t* nullMask = nullptr)
 	{
 		Context& context = Context::getInstance();
 
@@ -121,20 +124,45 @@ public:
 		{
 			// Malloc a new buffer for the output vector -GPU side
 			T *outDataGPUPointer = nullptr;
+			int8_t *outNullMaskGPUPointer = nullptr;
+			try
+			{
+				// Call reconstruct col keep
+				reconstructColKeep(&outDataGPUPointer, outDataElementCount, ACol, inMask, dataElementCount, &outNullMaskGPUPointer, nullMask);
 
-			// Call reconstruct col keep
-			reconstructColKeep(&outDataGPUPointer, outDataElementCount, ACol, inMask, dataElementCount);
-
-			// Copy the generated output back from the GPU
-			GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
-
-			// Free the memory
-			GPUMemory::free(outDataGPUPointer);
+				// Copy the generated output back from the GPU
+				GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
+				if(nullMask)
+				{
+					size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+					GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
+					GPUMemory::free(outNullMaskGPUPointer);
+				}
+				// Free the memory
+				GPUMemory::free(outDataGPUPointer);
+			}
+			catch(...)
+			{
+				if(outNullMaskGPUPointer)
+				{
+					GPUMemory::free(outNullMaskGPUPointer);
+				}
+				if(outDataGPUPointer)
+				{
+					GPUMemory::free(outDataGPUPointer);
+				}
+				throw;
+			}
 		}
 		else		// If inMask is nullptr, just copy whole ACol to outData
 		{
 			GPUMemory::copyDeviceToHost(outData, ACol, dataElementCount);
 			*outDataElementCount = dataElementCount;
+			if(nullMask)
+			{
+				size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+				GPUMemory::copyDeviceToHost(outNullMask, nullMask, outBitMaskSize);
+			}
 		}
 
 		// Get last error
@@ -148,7 +176,7 @@ public:
 	/// <param name="inMask">input mask</param>
 	/// <param name="dataElementCount">data element count of the input block</param>
 	template<typename T>
-	static void reconstructColKeep(T **outCol, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount)
+	static void reconstructColKeep(T **outCol, int32_t *outDataElementCount, T *ACol, int8_t *inMask, int32_t dataElementCount, int8_t** outNullMask = nullptr, int8_t* nullMask = nullptr)
 	{
 		Context& context = Context::getInstance();
 
@@ -167,6 +195,14 @@ public:
 					// Construct the output based on the prefix sum
 					kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 							(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
+					if(nullMask)
+					{
+						size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+						GPUMemory::alloc(outNullMask, outBitMaskSize);
+						kernel_reconstruct_null_mask << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+							(*outNullMask, nullMask, prefixSumPointer.get(), inMask, dataElementCount);
+							
+					}
 				}
 				else
 				{
@@ -177,6 +213,12 @@ public:
 			{
 				GPUMemory::alloc<T>(outCol, dataElementCount);
 				GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
+				size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+				if(nullMask)
+				{
+					GPUMemory::alloc(outNullMask, outBitMaskSize);
+					GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
+				}
 				*outDataElementCount = dataElementCount;
 			}
 		}
@@ -200,7 +242,7 @@ public:
 	/// <param name="inMask">input mask for the reconstruction</param>
 	/// <param name="inDataElementCount">input data element (string) count</param>
 	static void ReconstructStringColKeep(GPUMemory::GPUString *outStringCol, int32_t *outDataElementCount,
-		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
+		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount, int8_t** outNullMask = nullptr, int8_t* nullMask = nullptr);
 
 	/// Reconstruct GPUString column and copy to CPU memory
 	/// <param name="outStringData">output CPU string array</param>
@@ -209,7 +251,7 @@ public:
 	/// <param name="inMask">input mask for the reconstruction</param>
 	/// <param name="inDataElementCount">input data element (string) count</param>
 	static void ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
-		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
+		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount, int8_t* outNullMask = nullptr, int8_t* nullMask = nullptr);
 
 	/// Convert polygons to WKTs (GPUPolygon column to GPUString columns)
 	/// <param name="outStringCol">output GPUString column</param>
@@ -225,7 +267,7 @@ public:
 	/// <param name="inMask">input mask for the reconstruction</param>
 	/// <param name="inDataElementCount">input data element (complex polygon) count</param>
 	static void ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
-		GPUMemory::GPUPolygon inCol, int8_t *inMask, int32_t inDataElementCount);
+		GPUMemory::GPUPolygon inCol, int8_t *inMask, int32_t inDataElementCount, int8_t** outNullMask = nullptr, int8_t* nullMask = nullptr);
 
 	/// Reconstruct GPUPolygon column and convert to WKT string array on CPU
 	/// <param name="outStringData">output CPU string array</param>
@@ -234,7 +276,7 @@ public:
 	/// <param name="inMask">input mask for the reconstruction</param>
 	/// <param name="inDataElementCount">input data element (complex polygon) count</param>
 	static void ReconstructPolyColToWKT(std::string * outStringData, int32_t *outDataElementCount,
-		GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount);
+		GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount, int8_t* outNullMask = nullptr, int8_t* nullMask = nullptr);
 
 	/// Function for generating array with sorted indexes which point to values where mask is 1.
 	/// Result is copied to host.
@@ -360,20 +402,20 @@ public:
 /// Specialization for Point (not supported but need to be implemented)
 template<>
 void GPUReconstruct::reconstructCol<ColmnarDB::Types::Point>(ColmnarDB::Types::Point *outData,
-	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount);
+	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount, int8_t* outNullMask, int8_t* nullMask);
 
 /// Specialization for ComplexPolygon (not supported but need to be implemented)
 template<>
 void GPUReconstruct::reconstructCol<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon *outData,
-	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount);
+	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount, int8_t* outNullMask, int8_t* nullMask);
 
 
 /// Specialization for Point (not supported but need to be implemented)
 template<>
 void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::Point>(ColmnarDB::Types::Point **outCol,
-	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount);
+	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount, int8_t** outNullMask, int8_t* nullMask);
 
 /// Specialization for ComplexPolygon (not supported but need to be implemented)
 template<>
 void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon **outCol,
-	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount);
+	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount, int8_t** outNullMask, int8_t* nullMask);
