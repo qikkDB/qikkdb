@@ -966,9 +966,9 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 /// </summary>
 /// <param name="columns">Columns with types.</param>
 /// <param name="tableName">Table name.</param>
-/// <param name="isNullable">Nullablity of column. Default value is set to be true.</param>
+/// <param name="areNullable">Nullablity of columns. Default values are set to be true.</param>
 /// <returns>Newly created table.</returns>
-Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName, bool isNullable)
+Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName, const std::unordered_map<std::string, bool>& areNullable)
 {
 	auto search = tables_.find(tableName);
 
@@ -990,7 +990,14 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 			}
 			else
 			{
-				table.CreateColumn(entry.first.c_str(), entry.second, isNullable);
+				if (areNullable.empty())
+				{
+					table.CreateColumn(entry.first.c_str(), entry.second, true);
+				}
+				else
+				{
+					table.CreateColumn(entry.first.c_str(), entry.second, areNullable.at(entry.first));
+				}
 			}
 		}
 
@@ -1003,7 +1010,14 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 
 		for (auto& entry : columns)
 		{
-			table.CreateColumn(entry.first.c_str(), entry.second, isNullable);
+			if (areNullable.empty())
+			{
+				table.CreateColumn(entry.first.c_str(), entry.second, true);
+			}
+			else
+			{
+				table.CreateColumn(entry.first.c_str(), entry.second, areNullable.at(entry.first));
+			}
 		}
 
 		return table;
