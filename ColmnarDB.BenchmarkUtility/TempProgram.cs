@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ColmnarDB.NetworkClient;
+using ColmnarDB.ConsoleClient;
 using System.Linq;
 using System.IO;
 
