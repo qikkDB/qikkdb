@@ -22,7 +22,6 @@ namespace ColmnarDB.BenchmarkUtility
         {
             ColumnarDBClient client = new ColumnarDBClient(IpAddress, Port);
             client.Connect();
-            Console.Out.WriteLine("Client has successfully connected to server.");
 
             UseDatabase use = new UseDatabase();
             ImportCSV import = new ImportCSV();
