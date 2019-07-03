@@ -11,3 +11,20 @@ int32_t GpuSqlDispatcher::freeOrderByTable()
 	orderByTable.release();
 	return 0;
 }
+
+int32_t GpuSqlDispatcher::orderByReconstructInputColsGlobal()
+{
+	/*
+	// Tieto polia nie su uniformne velke !!!, treba to zistit z IVariantArray
+	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByColumnBlocks;
+	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged;
+	std::unordered_map<int32_t, std::pair<std::string, OrderBy::Order>> orderByColumns;
+	std::vector<std::vector<int32_t>> orderByIndices;
+	*/
+
+
+
+
+
+	return 0;
+}

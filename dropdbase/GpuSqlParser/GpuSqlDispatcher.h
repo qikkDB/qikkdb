@@ -60,9 +60,11 @@ private:
 	bool isRegisterAllocated(std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
+	
 	std::unique_ptr<GPUOrderBy> orderByTable;
-	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByColumns;
-	std::unordered_map<std::string, OrderBy::Order> orderByColumns;
+	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByColumnBlocks;
+	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged;
+	std::unordered_map<int32_t, std::pair<std::string, OrderBy::Order>> orderByColumns;
 	std::vector<std::vector<int32_t>> orderByIndices;
 
     static std::array<DispatchFunction,
@@ -535,6 +537,8 @@ public:
 
 	template<typename T>
 	int32_t orderByReconstructCol();
+
+	int32_t orderByReconstructInputColsGlobal();
 
   	template<typename T>
     int32_t retConst();

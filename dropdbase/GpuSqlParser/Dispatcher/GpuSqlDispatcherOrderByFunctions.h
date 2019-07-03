@@ -17,8 +17,6 @@ int32_t GpuSqlDispatcher::orderByCol()
 	{
 		return loadFlag;
 	}
-
-	orderByColumns.insert({ colName, order });
 	
 	if (usingGroupBy)
 	{
@@ -103,7 +101,7 @@ int32_t GpuSqlDispatcher::orderByReconstructCol()
 		GPUOrderBy::ReOrderByIdxInplace(reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)), std::get<1>(col));
 		int32_t outSize;
 		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), nullptr, inSize);
-		reconstructedOrderByColumns[colName].push_back(std::move(outData));
+		reconstructedOrderByColumnBlocks[colName].push_back(std::move(outData));
 	}
 	return 0;
 }
@@ -113,5 +111,4 @@ int32_t GpuSqlDispatcher::orderByReconstructConst()
 {
 	return 0;
 }
-
 
