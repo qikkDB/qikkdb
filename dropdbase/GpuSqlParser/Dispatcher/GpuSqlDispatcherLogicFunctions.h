@@ -2,6 +2,7 @@
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPULogic.cuh"
 #include "../../QueryEngine/GPUCore/GPUFilter.cuh"
+#include "../../QueryEngine/GPUCore/GPUFilterConditions.cuh"
 #include "GpuSqlDispatcherVMFunctions.h"
 #include <tuple>
 
@@ -24,7 +25,7 @@ int32_t GpuSqlDispatcher::filterColConst()
 
 	std::cout << "Filter: " << colName << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
+	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 	int32_t retSize = std::get<1>(column);
 
 	if (!isRegisterAllocated(reg))
@@ -56,7 +57,7 @@ int32_t GpuSqlDispatcher::filterConstCol()
 
 	std::cout << "Filter: " << colName << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
+	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 	int32_t retSize = std::get<1>(column);
 
 	if (!isRegisterAllocated(reg))
@@ -93,8 +94,8 @@ int32_t GpuSqlDispatcher::filterColCol()
 
 	std::cout << "Filter: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(colNameRight);
-	std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(colNameLeft);
+	std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
+	std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
 	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
 
 	if (!isRegisterAllocated(reg))
@@ -142,7 +143,7 @@ int32_t GpuSqlDispatcher::filterStringColConst()
 
 	std::cout << "FilterStringColConst: " << colName << " " << cnst << " " << reg << std::endl;
 
-	std::tuple<GPUMemory::GPUString, int32_t> column = findStringColumn(colName);
+	std::tuple<GPUMemory::GPUString, int32_t> column = findStringColumn(getAllocatedRegisterName(colName));
 	int32_t retSize = std::get<1>(column);
 
 	if (!isRegisterAllocated(reg))
@@ -169,7 +170,7 @@ int32_t GpuSqlDispatcher::filterStringConstCol()
 
 	std::cout << "FilterStringConstCol: " << cnst << " " << colName << " " << reg << std::endl;
 
-	std::tuple<GPUMemory::GPUString, int32_t> column = findStringColumn(colName);
+	std::tuple<GPUMemory::GPUString, int32_t> column = findStringColumn(getAllocatedRegisterName(colName));
 	int32_t retSize = std::get<1>(column);
 
 	if (!isRegisterAllocated(reg))
@@ -201,8 +202,8 @@ int32_t GpuSqlDispatcher::filterStringColCol()
 
 	std::cout << "FilterStringColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-	std::tuple<GPUMemory::GPUString, int32_t> columnLeft = findStringColumn(colNameLeft);
-	std::tuple<GPUMemory::GPUString, int32_t> columnRight = findStringColumn(colNameRight);
+	std::tuple<GPUMemory::GPUString, int32_t> columnLeft = findStringColumn(getAllocatedRegisterName(colNameLeft));
+	std::tuple<GPUMemory::GPUString, int32_t> columnRight = findStringColumn(getAllocatedRegisterName(colNameRight));
 	int32_t retSize = std::max(std::get<1>(columnLeft), std::get<1>(columnRight));
 
 	if (!isRegisterAllocated(reg))
@@ -251,7 +252,7 @@ int32_t GpuSqlDispatcher::logicalColConst()
 		return loadFlag;
 	}
 
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
+	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 	int32_t retSize = std::get<1>(column);
 
 	if (!isRegisterAllocated(reg))
@@ -281,7 +282,7 @@ int32_t GpuSqlDispatcher::logicalConstCol()
 		return loadFlag;
 	}
 
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
+	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 	int32_t retSize = std::get<1>(column);
 
 	if (!isRegisterAllocated(reg))
@@ -318,8 +319,8 @@ int32_t GpuSqlDispatcher::logicalColCol()
 
 	std::cout << "Logical: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(colNameRight);
-	std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(colNameLeft);
+	std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
+	std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
 
 	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
 
@@ -372,7 +373,7 @@ int32_t GpuSqlDispatcher::logicalNotCol()
 
 	std::cout << "NotCol: " << colName << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
+	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 	int32_t retSize = std::get<1>(column);
 
 	if (!isRegisterAllocated(reg))

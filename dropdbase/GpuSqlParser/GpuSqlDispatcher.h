@@ -44,16 +44,19 @@ private:
 	int32_t constPolygonCounter;
 	int32_t constStringCounter;
     const std::shared_ptr<Database> &database;
+	std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIndices;
 	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 	bool usingGroupBy;
 	bool usingOrderBy;
+	bool usingJoin;
 	bool isLastBlockOfDevice;
 	bool isOverallLastBlock;
 	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
 	bool isRegisterAllocated(std::string& reg);
+	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 	std::unique_ptr<GPUOrderBy> orderByTable;
 
@@ -287,6 +290,8 @@ public:
 
 	void copyExecutionDataTo(GpuSqlDispatcher& other);
 
+	void setJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx);
+
 	void execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception);
 
 	const ColmnarDB::NetworkClient::Message::QueryResponseMessage &getQueryResponseMessage();
@@ -471,6 +476,8 @@ public:
 		return mask;
 	}
 
+	std::string getAllocatedRegisterName(const std::string& reg);
+
 	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false);
 
 	void fillStringRegister(GPUMemory::GPUString& stringColumn, const std::string& reg, int32_t size, bool useCache = false);
@@ -495,6 +502,8 @@ public:
 			std::cout << "Free: " << col << std::endl;
 		}
 	}
+
+	// TODO freeColumnIfRegister<std::string> laso point and polygon
 
 	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
@@ -830,6 +839,13 @@ public:
         arguments.insert<T>(argument);
     }
 
+private:
+	template<typename OP, typename O, typename K, typename V>
+	class GroupByHelper;
+
+	template<typename OP, typename O, typename V>
+	class GroupByHelper<OP, O, std::string, V>;
+
 };
 
 template <>
@@ -840,6 +856,9 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
 
 template <>
 int32_t GpuSqlDispatcher::retCol<std::string>();
+
+template<>
+int32_t GpuSqlDispatcher::groupByCol<std::string>();
 
 template<>
 int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();

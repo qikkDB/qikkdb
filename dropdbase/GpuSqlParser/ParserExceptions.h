@@ -168,6 +168,14 @@ struct AliasRedefinitionException : public std::exception
     }
 };
 
+struct JoinColumnTypeException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Attempt to join columns of different data types.";
+	}
+};
+
 struct InvalidOperandsException : public std::exception
 {
 	InvalidOperandsException(const std::string& left, const std::string& right, const std::string &op) : 

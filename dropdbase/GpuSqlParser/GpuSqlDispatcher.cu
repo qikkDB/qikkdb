@@ -44,9 +44,11 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
 	usingOrderBy(false),
+	usingJoin(false),
 	isLastBlockOfDevice(false),
 	isOverallLastBlock(false),
 	noLoad(true),
+	joinIndices(nullptr),
 	orderByTable(nullptr)
 {
 }
@@ -69,6 +71,15 @@ void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
 {
 	other.dispatcherFunctions = dispatcherFunctions;
 	other.arguments = arguments;
+}
+
+void GpuSqlDispatcher::setJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx)
+{
+	if (!joinIdx->empty())
+	{
+		joinIndices = joinIdx;
+		usingJoin = true;
+	}
 }
 
 /// Main execution loop of dispatcher
@@ -579,7 +590,6 @@ void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value, bool usingGr
 		[DataType::DATA_TYPE_SIZE * key + value]);
 }
 
-
 void GpuSqlDispatcher::addGroupByFunction(DataType type)
 {
     dispatcherFunctions.push_back(groupByFunctions[type]);
@@ -588,6 +598,20 @@ void GpuSqlDispatcher::addGroupByFunction(DataType type)
 void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType op3)
 {
     //TODO: Between
+}
+
+std::string GpuSqlDispatcher::getAllocatedRegisterName(const std::string & reg)
+{
+	if (usingJoin && reg.front() != '$')
+	{
+		std::string joinReg = reg + "_join";
+		for (auto& joinTable : *joinIndices)
+		{
+			joinReg += "_" + joinTable.first;
+		}
+		return joinReg;
+	}
+	return reg;
 }
 
 void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string & reg, int32_t size, bool useCache)
@@ -1130,4 +1154,12 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, Colmna
 bool GpuSqlDispatcher::isRegisterAllocated(std::string & reg)
 {
 	return allocatedPointers.find(reg) != allocatedPointers.end();
+}
+
+std::pair<std::string, std::string> GpuSqlDispatcher::splitColumnName(const std::string& colName)
+{
+	const size_t splitIdx = colName.find(".");
+	const std::string table = colName.substr(0, splitIdx);
+	const std::string column = colName.substr(splitIdx + 1);
+	return {table, column};
 }

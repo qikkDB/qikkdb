@@ -16,7 +16,7 @@ int32_t GpuSqlDispatcher::orderByCol()
 		return loadFlag;
 	}
 
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
+	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 	int32_t retSize = std::get<1>(column);
 
 	if (orderByTable == nullptr)

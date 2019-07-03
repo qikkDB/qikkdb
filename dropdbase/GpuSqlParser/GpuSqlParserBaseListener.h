@@ -115,9 +115,6 @@ public:
   virtual void enterGroupByColumn(GpuSqlParser::GroupByColumnContext * /*ctx*/) override { }
   virtual void exitGroupByColumn(GpuSqlParser::GroupByColumnContext * /*ctx*/) override { }
 
-  virtual void enterColumnId(GpuSqlParser::ColumnIdContext * /*ctx*/) override { }
-  virtual void exitColumnId(GpuSqlParser::ColumnIdContext * /*ctx*/) override { }
-
   virtual void enterFromTables(GpuSqlParser::FromTablesContext * /*ctx*/) override { }
   virtual void exitFromTables(GpuSqlParser::FromTablesContext * /*ctx*/) override { }
 
@@ -130,8 +127,23 @@ public:
   virtual void enterJoinTable(GpuSqlParser::JoinTableContext * /*ctx*/) override { }
   virtual void exitJoinTable(GpuSqlParser::JoinTableContext * /*ctx*/) override { }
 
+  virtual void enterJoinColumnLeft(GpuSqlParser::JoinColumnLeftContext * /*ctx*/) override { }
+  virtual void exitJoinColumnLeft(GpuSqlParser::JoinColumnLeftContext * /*ctx*/) override { }
+
+  virtual void enterJoinColumnRight(GpuSqlParser::JoinColumnRightContext * /*ctx*/) override { }
+  virtual void exitJoinColumnRight(GpuSqlParser::JoinColumnRightContext * /*ctx*/) override { }
+
+  virtual void enterJoinOperator(GpuSqlParser::JoinOperatorContext * /*ctx*/) override { }
+  virtual void exitJoinOperator(GpuSqlParser::JoinOperatorContext * /*ctx*/) override { }
+
+  virtual void enterJoinType(GpuSqlParser::JoinTypeContext * /*ctx*/) override { }
+  virtual void exitJoinType(GpuSqlParser::JoinTypeContext * /*ctx*/) override { }
+
   virtual void enterFromTable(GpuSqlParser::FromTableContext * /*ctx*/) override { }
   virtual void exitFromTable(GpuSqlParser::FromTableContext * /*ctx*/) override { }
+
+  virtual void enterColumnId(GpuSqlParser::ColumnIdContext * /*ctx*/) override { }
+  virtual void exitColumnId(GpuSqlParser::ColumnIdContext * /*ctx*/) override { }
 
   virtual void enterTable(GpuSqlParser::TableContext * /*ctx*/) override { }
   virtual void exitTable(GpuSqlParser::TableContext * /*ctx*/) override { }

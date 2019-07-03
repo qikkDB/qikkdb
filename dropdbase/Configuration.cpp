@@ -1,5 +1,5 @@
 #include "Configuration.h"
-
+#include "boost/filesystem.hpp"
 
 /// <summary>
 /// Loads configuration YAML file, parses it and sets configuration values
@@ -8,14 +8,25 @@ void Configuration::LoadConfigurationFile()
 {
 	// loading and parsing file
 	try {
-		yamlParsed_ = YAML::LoadFile(this->configurationFile); 
+		if (boost::filesystem::exists(this->configurationFile))		// If user specific config exsits, load that
+		{
+			yamlParsed_ = YAML::LoadFile(this->configurationFile);
+			//BOOST_LOG_TRIVIAL(info) << "Loaded specific configuration." << std::endl;
+			std::cout << "Loaded specific configuration." << std::endl;
+		}
+		else														// Otherwise load default config file
+		{
+			yamlParsed_ = YAML::LoadFile(this->configurationFileDefault);
+			//BOOST_LOG_TRIVIAL(info) << "Loaded default configuration." << std::endl;
+			std::cout << "Loaded default configuration." << std::endl;
+		}
 	}
 	catch (YAML::ParserException&) {
-		//BOOST_LOG_TRIVIAL(info) << "Configuration file could not be parsed. Using default values." << std::endl;
+		//BOOST_LOG_TRIVIAL(warning) << "Configuration file could not be parsed. Using default values." << std::endl;
 		std::cerr << "Configuration file could not be parsed. Using default values." << std::endl;
 	}
 	catch (YAML::BadFile&) {
-		//BOOST_LOG_TRIVIAL(info) << "Configuration file could not found. Using default values." << std::endl;
+		//BOOST_LOG_TRIVIAL(warning) << "Configuration file could not found. Using default values." << std::endl;
 		std::cerr << "Configuration file could not found. Using default values." << std::endl;
 	}
 
