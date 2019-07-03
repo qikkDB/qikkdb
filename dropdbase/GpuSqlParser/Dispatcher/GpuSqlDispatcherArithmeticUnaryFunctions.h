@@ -34,7 +34,7 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 			if(column.gpuNullMaskPtr)
 			{
 				int8_t * nullMask;
-				result = allocateRegister<ResultType>(reg + "_keys", retSize);
+				result = allocateRegister<ResultType>(reg + "_keys", retSize, &nullMask);
 				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
 			}

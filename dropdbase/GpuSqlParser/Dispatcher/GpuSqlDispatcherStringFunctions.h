@@ -3,6 +3,8 @@
 #include "../ParserExceptions.h"
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "../../QueryEngine/GPUCore/GPUArithmetic.cuh"
+
 #include "../../QueryEngine/GPUCore/GPUStringUnary.cuh"
 #include "../../QueryEngine/GPUCore/GPUStringBinary.cuh"
 
@@ -37,7 +39,7 @@ int32_t GpuSqlDispatcher::stringUnaryCol()
 			{
 				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				int8_t * combinedMask = allocateRegister<int8_t>(reg + "_null",bitMaskSize);
-				fillStringRegister(result, reg, retSize, true, &combinedMask);
+				fillStringRegister(result, reg, retSize, true, combinedMask);
 				GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(column)), bitMaskSize);
 			}
 			else
@@ -172,7 +174,7 @@ int32_t GpuSqlDispatcher::stringBinaryNumericColCol()
 			{
 				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				int8_t * combinedMask = allocateRegister<int8_t>(reg + "_null",bitMaskSize);
-				fillStringRegister(result, reg, retSize, true, &combinedMask);
+				fillStringRegister(result, reg, retSize, true, combinedMask);
 				if(std::get<2>(columnLeft) && columnRight.gpuNullMaskPtr)
 				{
 					GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)), reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
@@ -227,7 +229,7 @@ int32_t GpuSqlDispatcher::stringBinaryNumericColConst()
 			{
 				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				int8_t * combinedMask = allocateRegister<int8_t>(reg + "_null",bitMaskSize);
-				fillStringRegister(result, reg, retSize, true, &combinedMask);
+				fillStringRegister(result, reg, retSize, true, combinedMask);
 				GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(column)), bitMaskSize);
 			}
 			else
@@ -273,7 +275,7 @@ int32_t GpuSqlDispatcher::stringBinaryNumericConstCol()
 			{
 				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				int8_t * combinedMask = allocateRegister<int8_t>(reg + "_null",bitMaskSize);
-				fillStringRegister(result, reg, retSize, true, &combinedMask);
+				fillStringRegister(result, reg, retSize, true, combinedMask);
 				GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
 			}
 			else
@@ -343,8 +345,8 @@ int32_t GpuSqlDispatcher::stringBinaryColCol()
 			if(std::get<2>(columnLeft) || std::get<2>(columnRight))
 			{
 				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
-				int8_t * combinedMask = allocateRegister<int8_t>(reg + "_null",bitMaskSize);
-				fillStringRegister(result, reg, retSize, true, &combinedMask);
+				int8_t * combinedMask = allocateRegister<int8_t>(reg + "_null", bitMaskSize);
+				fillStringRegister(result, reg, retSize, true, combinedMask);
 				if(std::get<2>(columnLeft) && std::get<2>(columnRight))
 				{
 					GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)), reinterpret_cast<int8_t*>(std::get<2>(columnRight)), bitMaskSize);
@@ -355,7 +357,7 @@ int32_t GpuSqlDispatcher::stringBinaryColCol()
 				}
 				else if(std::get<2>(columnRight))
 				{
-					GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+					GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnRight)), bitMaskSize);
 				}
 			}
 			else
@@ -400,7 +402,7 @@ int32_t GpuSqlDispatcher::stringBinaryColConst()
 			{
 				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				int8_t * combinedMask = allocateRegister<int8_t>(reg + "_null",bitMaskSize);
-				fillStringRegister(result, reg, retSize, true, &combinedMask);
+				fillStringRegister(result, reg, retSize, true, combinedMask);
 				GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(column)), bitMaskSize);
 			}
 			else
@@ -445,7 +447,7 @@ int32_t GpuSqlDispatcher::stringBinaryConstCol()
 			{
 				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				int8_t * combinedMask = allocateRegister<int8_t>(reg + "_null",bitMaskSize);
-				fillStringRegister(result, reg, retSize, true, &combinedMask);
+				fillStringRegister(result, reg, retSize, true, combinedMask);
 				GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(column)), bitMaskSize);
 			}
 			else

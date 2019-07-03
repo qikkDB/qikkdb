@@ -1174,10 +1174,9 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, Colmna
 		trimmedKey = key.substr(1, std::string::npos);
 	}
 	MergePayload(trimmedKey, &responseMessage, payload);
-	if(!nullBitMask.empty())
+	if(!nullBitMaskString.empty())
 	{
-		std::string nullMaskString(nullBitMask);
-		MergePayloadBitmask(trimmedKey,&responseMessage, nullMaskString);
+		MergePayloadBitmask(trimmedKey,&responseMessage, nullBitMaskString);
 	}
 }
 

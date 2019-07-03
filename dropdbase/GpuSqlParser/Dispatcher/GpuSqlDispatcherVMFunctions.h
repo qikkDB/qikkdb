@@ -53,7 +53,7 @@ int32_t GpuSqlDispatcher::retCol()
 					size_t bitMaskSize = (outSize + sizeof(char)*8 - 1) / (sizeof(char)*8);
 					std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
 					GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(keyCol.gpuNullMaskPtr), bitMaskSize);
-					nullMaskString = std::string(nullMask, bitMaskSize);
+					nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
 				}
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload(payload, outData, outSize);
@@ -71,8 +71,8 @@ int32_t GpuSqlDispatcher::retCol()
 				{
 					size_t bitMaskSize = (outSize + sizeof(char)*8 - 1) / (sizeof(char)*8);
 					std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
-					GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(keyCol.gpuNullMaskPtr), bitMaskSize);
-					nullMaskString = std::string(nullMask, bitMaskSize);
+					GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(valueCol.gpuNullMaskPtr), bitMaskSize);
+					nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
 				}
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload(payload, outData, outSize);
@@ -95,8 +95,8 @@ int32_t GpuSqlDispatcher::retCol()
 		{
 			size_t bitMaskSize = (outSize + sizeof(char)*8 - 1) / (sizeof(char)*8);
 			std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
-			GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(keyCol.gpuNullMaskPtr), bitMaskSize);
-			nullMaskString = std::string(nullMask, bitMaskSize);
+			GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(ACol.gpuNullMaskPtr), bitMaskSize);
+			nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
 		}
 		insertIntoPayload(payload, outData, outSize);
 		MergePayloadToSelfResponse(alias, payload, nullMaskString);

@@ -113,8 +113,8 @@ TEST(InsertIntoTests, InsertIntoTableNullValue)
 	int blockSize = 1 << 5;
 	std::shared_ptr<Database> database(std::make_shared<Database>("TestDb"));
 	Database::AddToInMemoryDatabaseList(database);
-	std::unordered_map<std::string, std::pair<DataType,bool>> columns;
-	columns.emplace("Col1",std::make_pair(COLUMN_INT, true));
+	std::unordered_map<std::string, DataType> columns;
+	columns.emplace("Col1",COLUMN_INT);
 	database->CreateTable(columns,"TestTable");
 	for(int i = 0; i < 16; i++)
 	{
