@@ -163,7 +163,7 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>()
 		std::cout << "RetPolygonCol: " << col << ", thread: " << dispatcherThreadId << std::endl;
 
 		std::unique_ptr<std::string[]> outData(new std::string[database->GetBlockSize()]);
-		std::tuple<GPUMemory::GPUPolygon, int32_t> ACol = findComplexPolygon(col);
+		std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> ACol = findComplexPolygon(col);
 		int32_t outSize;
 		GPUReconstruct::ReconstructPolyColToWKT(outData.get(), &outSize,
 			std::get<0>(ACol), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
@@ -240,7 +240,7 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 		std::cout << "RetStringCol: " << colName << ", thread: " << dispatcherThreadId << std::endl;
 
 		std::unique_ptr<std::string[]> outData(new std::string[database->GetBlockSize()]);
-		std::tuple<GPUMemory::GPUString, int32_t> ACol = findStringColumn(colName);
+		std::tuple<GPUMemory::GPUString, int32_t, int8_t*> ACol = findStringColumn(colName);
 		int32_t outSize;
 		GPUReconstruct::ReconstructStringCol(outData.get(), &outSize,
 			std::get<0>(ACol), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));

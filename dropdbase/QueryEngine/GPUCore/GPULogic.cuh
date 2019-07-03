@@ -41,19 +41,21 @@ namespace LogicOperations
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <returns>void</returns>
 template<typename OP, typename T, typename U, typename V>
-__global__ void kernel_logic(T *outCol, U ACol, V BCol, int32_t dataElementCount)
+__global__ void kernel_logic(T *outCol, U ACol, V BCol, int8_t* nullBitMask, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
+		int bitMaskIdx = (i / (sizeof(char)*8));
+		int shiftIdx = (i % (sizeof(char)*8));
 		outCol[i] = OP{}.template operator()
 			<
 			T,
 			typename std::remove_pointer<U>::type,
 			typename std::remove_pointer<V>::type >
-			(maybe_deref(ACol, i), maybe_deref(BCol, i));
+			(maybe_deref(ACol, i), maybe_deref(BCol, i)) && ((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
 	}
 }
 
@@ -63,14 +65,16 @@ __global__ void kernel_logic(T *outCol, U ACol, V BCol, int32_t dataElementCount
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <returns>void</returns>
 template<typename T, typename U>
-__global__ void kernel_operator_not(T *outCol, U ACol, int32_t dataElementCount)
+__global__ void kernel_operator_not(T *outCol, U ACol, int8_t* nullBitMask, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		outCol[i] = !maybe_deref<typename std::remove_pointer<U>::type>(ACol, i);
+		int bitMaskIdx = (i / (sizeof(char)*8));
+		int shiftIdx = (i % (sizeof(char)*8));
+		outCol[i] = !maybe_deref<typename std::remove_pointer<U>::type>(ACol, i) && ((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
 	}
 }
 
@@ -84,10 +88,10 @@ public:
     /// <param name="BCol">buffer with right side operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U>
-	static void colCol(int8_t *outMask, T *ACol, U *BCol, int32_t dataElementCount)
+	static void colCol(int8_t *outMask, T *ACol, U *BCol, int8_t* nullBitMask, int32_t dataElementCount)
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(outMask, ACol, BCol, dataElementCount);
+			(outMask, ACol, BCol, nullBitMask, dataElementCount);
 		CheckCudaError(cudaGetLastError());
 	}
 
@@ -98,10 +102,10 @@ public:
     /// <param name="BConst">right side constant operand</param>
     /// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U>
-	static void colConst(int8_t *outMask, T *ACol, U BConst, int32_t dataElementCount)
+	static void colConst(int8_t *outMask, T *ACol, U BConst, int8_t* nullBitMask,  int32_t dataElementCount)
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(outMask, ACol, BConst, dataElementCount);
+			(outMask, ACol, BConst, nullBitMask, dataElementCount);
 		CheckCudaError(cudaGetLastError());
 	}
 
@@ -113,10 +117,10 @@ public:
     /// <param name="BCol">buffer with right side operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
 	template<typename OP, typename T, typename U>
-	static void constCol(int8_t *outMask, T AConst, U *BCol, int32_t dataElementCount)
+	static void constCol(int8_t *outMask, T AConst, U *BCol, int8_t* nullBitMask, int32_t dataElementCount)
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(outMask, AConst, BCol, dataElementCount);
+			(outMask, AConst, BCol, nullBitMask, dataElementCount);
 		CheckCudaError(cudaGetLastError());
 	}
 
@@ -130,7 +134,7 @@ public:
 	static void constConst(int8_t *outMask, T AConst, U BConst, int32_t dataElementCount)
 	{
 		kernel_logic <OP> << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
-			(outMask, AConst, BConst, dataElementCount);
+			(outMask, AConst, BConst, nullptr, dataElementCount);
 		CheckCudaError(cudaGetLastError());
 	}
 	
@@ -140,11 +144,11 @@ public:
 	/// <param name="ACol">block of the input operands</param>
 	/// <param name="dataElementCount">the size of the input blocks in elements</param>
 	template<typename T, typename U>
-	static void not_col(T *outCol, U *ACol, int32_t dataElementCount)
+	static void not_col(T *outCol, U *ACol, int8_t* nullBitMask, int32_t dataElementCount)
 	{
 		Context& context = Context::getInstance();
 		kernel_operator_not << <  context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-			(outCol, ACol, dataElementCount);
+			(outCol, ACol, nullBitMask, dataElementCount);
 		
 		// Get last error
 		CheckCudaError(cudaGetLastError());
@@ -155,12 +159,12 @@ public:
 	/// <param name="AConst">constant to be negated</param>
 	/// <param name="dataElementCount">the size of the input blocks in elements</param>
 	template<typename T, typename U>
-	static void not_const(T *outCol, U AConst, int32_t dataElementCount)
+	static void not_const(T *outCol, U AConst, int8_t* nullBitMask, int32_t dataElementCount)
 	{
 		Context& context = Context::getInstance();
 
 		kernel_operator_not << <  context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-			(outCol, AConst, dataElementCount);
+			(outCol, AConst, nullBitMask, dataElementCount);
 
 		// Get last error
 		CheckCudaError(cudaGetLastError());

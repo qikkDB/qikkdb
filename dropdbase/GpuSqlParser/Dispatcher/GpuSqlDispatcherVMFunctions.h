@@ -142,7 +142,14 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 				);
 				GPUMemory::free(deviceCompressed);
 			}
-			addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize, block->GetNullBitmask());
+			auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
+				database->GetName(), colName + "_nullmask", blockIndex, block->GetSize());
+			if (!std::get<2>(cacheMaskEntry))
+			{
+				int32_t bitMaskCapacity = ((block->GetSize() + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry), block->GetNullBitmask(), bitMaskCapacity);
+			}
+			addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize, std::get<0>(cacheMaskEntry));
 			noLoad = false;
 		}
 		else
@@ -153,7 +160,15 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 			{
 				GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
 			}
-			addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize(), block->GetNullBitmask());
+			auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
+				database->GetName(), colName + "_nullmask", blockIndex, block->GetSize());
+			if (!std::get<2>(cacheMaskEntry))
+			{
+				int32_t bitMaskCapacity = ((block->GetSize() + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry), block->GetNullBitmask(), bitMaskCapacity);
+			}
+			
+			addCachedRegister(colName, std::get<0>(cacheEntry), block->GetSize(), std::get<0>(cacheMaskEntry));
 			noLoad = false;
 		}
 	}

@@ -70,7 +70,7 @@ private:
 
 	/// <summary>List of columns that must not be evicted</summary>
 	static std::vector<std::string> lockList;
-
+	size_t currentBlockIndex_;
 public:
 	/// <summary>
 	/// Set list of column names that cannot be evicted
@@ -150,6 +150,11 @@ public:
 	/// <returns>True if block is cached, otherwise false</returns>
 	bool containsColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex);
 
+
+	void setCurrentBlockIndex(size_t blockIndex)
+	{
+		currentBlockIndex_ = blockIndex;
+	}
 	GPUMemoryCache(const GPUMemoryCache&) = delete;
 	GPUMemoryCache& operator=(const GPUMemoryCache&) = delete;
 };
