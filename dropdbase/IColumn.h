@@ -13,7 +13,7 @@ public:
 	virtual float GetInitAvg() const = 0;
 	virtual bool GetInitAvgIsSet() const = 0;
 	virtual std::pair<int8_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) = 0;
-	virtual bool GetNullable() const = 0;
+	virtual bool GetIsNullable() const = 0;
 
 	virtual ~IColumn() {};
 };

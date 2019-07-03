@@ -72,7 +72,7 @@ public:
 	/// <param name="column">Column that will hold this new empty block.</param>
 	explicit BlockBase(ColumnBase<T>& column) :
 		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_]), bitMask_(nullptr),
-		isNullable_(column_.GetNullable())
+		isNullable_(column_.GetIsNullable())
 	{
 		GPUMemory::hostPin(data_.get(), capacity_);
 		isCompressed_ = false;
@@ -122,6 +122,11 @@ public:
     {
         return data_.get();
     }
+
+	bool GetIsNullable()
+	{
+		return isNullable_;
+	}
 	
 	int8_t * GetNullBitmask()
 	{

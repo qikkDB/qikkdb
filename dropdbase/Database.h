@@ -122,8 +122,9 @@ public:
 	/// </summary>
 	/// <param name="columns">Columns with types.</param>
 	/// <param name="tableName">Table name.</param>
+	/// <param name="isNullable">Nullablity of column. Default value is set to be true.</param>
 	/// <returns>Newly created table.</returns>
-	Table& CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName);
+	Table& CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName, bool isNullable = true);
 
 	/// <summary>
 	/// Add database to in memory list.

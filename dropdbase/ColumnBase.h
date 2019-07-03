@@ -136,7 +136,7 @@ public:
 		return std::make_pair(block->GetNullBitmask(), block->GetSize());
 	}
 
-	virtual bool GetNullable() const override
+	virtual bool GetIsNullable() const override
 	{
 		return isNullable_;
 	}
