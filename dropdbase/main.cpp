@@ -13,11 +13,9 @@
 #include <cstdio>
 #include <iostream>
 #include <chrono>
-#include <boost/log/core.hpp>
-#include <boost/log/sinks/text_file_backend.hpp>
-#include <boost/log/utility/setup/file.hpp>
-#include <boost/log/utility/setup/console.hpp>
 #include <boost/log/trivial.hpp>
+// TODO solve undefined references
+//#include <boost/log/utility/setup/from_stream.hpp>
 #include "QueryEngine/Context.h" 
 #include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "DatabaseGenerator.h"
@@ -28,15 +26,49 @@
 #include "ConsoleHandler.h"
 #include "QueryEngine/GPUMemoryCache.h"
 
-
 /// Startup function, called automatically.
 /// <param name="argc">not used parameter</param>
 /// <param name="argv">not used parameter</param>
 /// <returns>Exit code (0 - OK)</returns>
 int main(int argc, char **argv)
 {
-    boost::log::add_file_log("../log/ColmnarDB.log");
-    boost::log::add_console_log(std::cout);
+	/*
+	//TODO solve undefined references
+	std::ifstream logConfigFile("../configuration/log_config");
+	if (logConfigFile.fail())
+	{
+		logConfigFile = std::ifstream("../configuration/log_config.default");
+	}
+	boost::log::init_from_stream(logConfigFile);
+	*/
+	
+	//std::string dbName = "TestDatabase";
+	//std::vector<std::string> tableNames = { "TestTable1" };
+	//std::vector<DataType> columnTypes = { {COLUMN_INT},
+	//	 {COLUMN_INT},
+	//	 {COLUMN_LONG},
+	//	 {COLUMN_LONG},
+	//	 {COLUMN_LONG},
+	//	 {COLUMN_FLOAT},
+	//	 {COLUMN_FLOAT},
+	//	 {COLUMN_DOUBLE},
+	//	 {COLUMN_DOUBLE},
+	//	 {COLUMN_POLYGON},
+	//	 {COLUMN_POINT} };
+	//std::shared_ptr<Database> compressionDatabase = DatabaseGenerator::GenerateDatabase(dbName.c_str(), 2, 1<<18, false, tableNames, columnTypes);
+	//Database::AddToInMemoryDatabaseList(compressionDatabase);
+	//Database::SaveAllToDisk();
+	//return 0;
+
+	//Context::getInstance();
+	//CSVDataImporter csvDataImporter(R"(C:\Users\pkratky\Desktop\DataGenerator\output\TargetLoc10M.csv)");
+	//////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
+	//std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 1000000);
+	//Database::AddToInMemoryDatabaseList(database);
+	//std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
+	//csvDataImporter.ImportTables(database);
+	//Database::SaveAllToDisk();
+	//return 0;
 
 	Context::getInstance(); // Initialize CUDA context
 

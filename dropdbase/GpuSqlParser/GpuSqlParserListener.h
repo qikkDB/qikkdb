@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/dropdbase_instarea/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/mstano/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -113,9 +113,6 @@ public:
   virtual void enterGroupByColumn(GpuSqlParser::GroupByColumnContext *ctx) = 0;
   virtual void exitGroupByColumn(GpuSqlParser::GroupByColumnContext *ctx) = 0;
 
-  virtual void enterColumnId(GpuSqlParser::ColumnIdContext *ctx) = 0;
-  virtual void exitColumnId(GpuSqlParser::ColumnIdContext *ctx) = 0;
-
   virtual void enterFromTables(GpuSqlParser::FromTablesContext *ctx) = 0;
   virtual void exitFromTables(GpuSqlParser::FromTablesContext *ctx) = 0;
 
@@ -128,8 +125,23 @@ public:
   virtual void enterJoinTable(GpuSqlParser::JoinTableContext *ctx) = 0;
   virtual void exitJoinTable(GpuSqlParser::JoinTableContext *ctx) = 0;
 
+  virtual void enterJoinColumnLeft(GpuSqlParser::JoinColumnLeftContext *ctx) = 0;
+  virtual void exitJoinColumnLeft(GpuSqlParser::JoinColumnLeftContext *ctx) = 0;
+
+  virtual void enterJoinColumnRight(GpuSqlParser::JoinColumnRightContext *ctx) = 0;
+  virtual void exitJoinColumnRight(GpuSqlParser::JoinColumnRightContext *ctx) = 0;
+
+  virtual void enterJoinOperator(GpuSqlParser::JoinOperatorContext *ctx) = 0;
+  virtual void exitJoinOperator(GpuSqlParser::JoinOperatorContext *ctx) = 0;
+
+  virtual void enterJoinType(GpuSqlParser::JoinTypeContext *ctx) = 0;
+  virtual void exitJoinType(GpuSqlParser::JoinTypeContext *ctx) = 0;
+
   virtual void enterFromTable(GpuSqlParser::FromTableContext *ctx) = 0;
   virtual void exitFromTable(GpuSqlParser::FromTableContext *ctx) = 0;
+
+  virtual void enterColumnId(GpuSqlParser::ColumnIdContext *ctx) = 0;
+  virtual void exitColumnId(GpuSqlParser::ColumnIdContext *ctx) = 0;
 
   virtual void enterTable(GpuSqlParser::TableContext *ctx) = 0;
   virtual void exitTable(GpuSqlParser::TableContext *ctx) = 0;

@@ -92,11 +92,11 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 					{
 						if (k % 2)
 						{
-							integerData.push_back(sameDataInBlocks ? 1 : k % (1024 * integerColumnCount));
+							integerData.push_back(sameDataInBlocks ? 1 : ((k % (1024 * integerColumnCount)) + (integerColumnCount >= 3 ? 200 * integerColumnCount : 0)));
 						}
 						else
 						{
-							integerData.push_back(sameDataInBlocks ? -1 : (k % (1024 * integerColumnCount)) * -1);
+							integerData.push_back(sameDataInBlocks ? -1 : (((k % (1024 * integerColumnCount)) * -1) - (integerColumnCount >= 3 ? 200 * integerColumnCount : 0)));
 						}
 					}
 					column.AddBlock(integerData);
@@ -287,7 +287,10 @@ std::shared_ptr<Database> DatabaseGenerator::GenerateDatabase(const char * datab
 
 					for (int k = 0; k < blockSize; k++)
 					{
-						stringData.push_back(sameDataInBlocks ? "Word1enD1" : "Word" + std::to_string(k % (1024 * stringColumnCount)));
+						stringData.push_back(sameDataInBlocks ? "Word1enD1" : 
+							((k % 4 == 1? " " : "") +
+							(k % 4 != 2? ("Word" + std::to_string(k % (1024 * stringColumnCount))) : " ") +
+							(k % 4 == 3? " " : "")));
 					}
 					column.AddBlock(stringData);
 				}

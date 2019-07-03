@@ -30,7 +30,7 @@ __device__ __host__ constexpr K getEmptyValue()
 	{
 		return std::numeric_limits<K>::min();
 	}
-	else if (std::is_floating_point<K>::value)
+	else
 	{
 		return std::numeric_limits<K>::quiet_NaN();
 	}
@@ -919,3 +919,12 @@ public:
 	}
 
 };
+
+template <typename AGG, typename O, typename V>
+class GPUGroupBy<AGG, O, std::string, V>;
+
+template <typename O, typename V>
+class GPUGroupBy<AggregationFunctions::avg, O, std::string, V>;
+
+template <typename V>
+class GPUGroupBy<AggregationFunctions::count, int64_t, std::string, V>;

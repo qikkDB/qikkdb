@@ -1,6 +1,7 @@
 #include "PointFactory.h"
 #include "Types/Point.pb.h"
 #include <sstream>
+#include <iomanip>
 #include <stdexcept>
 
 ColmnarDB::Types::Point PointFactory::FromWkt(std::string wktPoint)
@@ -45,16 +46,26 @@ ColmnarDB::Types::Point PointFactory::FromGPUPoint(const NativeGeoPoint& point)
 	return ret;
 }
 
-std::string PointFactory::WktFromPoint(const ColmnarDB::Types::Point & point)
+std::string PointFactory::WktFromPoint(const ColmnarDB::Types::Point & point, bool fixedPrecision)
 {
 	std::ostringstream wktStream;
+	if (fixedPrecision)
+	{
+		wktStream << std::fixed;
+		wktStream << std::setprecision(4);
+	}
 	wktStream << "POINT(" << point.geopoint().latitude() << " " << point.geopoint().longitude() << ")";
 	return wktStream.str();
 }
 
-std::string PointFactory::WktFromPoint(const NativeGeoPoint & point)
+std::string PointFactory::WktFromPoint(const NativeGeoPoint & point, bool fixedPrecision)
 {
 	std::ostringstream wktStream;
+	if (fixedPrecision)
+	{
+		wktStream << std::fixed;
+		wktStream << std::setprecision(4);
+	}
 	wktStream << "POINT(" << point.latitude << " " << point.longitude << ")";
 	return wktStream.str();
 }

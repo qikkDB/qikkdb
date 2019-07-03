@@ -51,7 +51,6 @@ int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string
 {
     int size;
 
-    auto firstSortingColumn = (columns.find(sortingColumns[0])->second.get());
     const auto& dataOfFirstColumn = data.at(sortingColumns[0]);
 
     if (dataOfFirstColumn.type() == typeid(std::vector<int32_t>))
@@ -264,7 +263,8 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 /// Insert data into proper column of table considering empty space of last block and maximum size of blocks.
 /// </summary>
 /// <param name="data">Name of column with inserting data.</param>
-void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
+/// <param name="compress">Whether data will be compressed.</param>
+void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bool compress)
 {
 	if (!sortingColumns.empty())
 	{
@@ -337,31 +337,31 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data)
 				const auto &wrappedData = data.at(columnName);
 				if (wrappedData.type() == typeid(std::vector<int32_t>))
 				{
-					dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<int32_t>>(wrappedData));
+					dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<int32_t>>(wrappedData),-1,compress);
 				}
 				else if (wrappedData.type() == typeid(std::vector<int64_t>))
 				{
-					dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<int64_t>>(wrappedData));
+					dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<int64_t>>(wrappedData),-1,compress);
 				}
 				else if (wrappedData.type() == typeid(std::vector<double>))
 				{
-					dynamic_cast<ColumnBase<double>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<double>>(wrappedData));
+					dynamic_cast<ColumnBase<double>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<double>>(wrappedData),-1,compress);
 				}
 				else if (wrappedData.type() == typeid(std::vector<float>))
 				{
-					dynamic_cast<ColumnBase<float>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<float>>(wrappedData));
+					dynamic_cast<ColumnBase<float>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<float>>(wrappedData),-1,compress);
 				}
 				else if (wrappedData.type() == typeid(std::vector<std::string>))
 				{
-					dynamic_cast<ColumnBase<std::string>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<std::string>>(wrappedData));
+					dynamic_cast<ColumnBase<std::string>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<std::string>>(wrappedData),-1,compress);
 				}
 				else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
 				{
-					dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData));
+					dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData),-1,compress);
 				}
 				else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
 				{
-					dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData));
+					dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columns.find(columnName)->second.get())->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData),-1,compress);
 				}
 			}
 		}

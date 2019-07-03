@@ -5,8 +5,12 @@ DatabaseDir: ../databases
 BlockSize: 262144
 BlockCount: 1024
 GroupByBuckets: 65536
+UsingCompression: true
 
 #network settings
 ListenIP: 127.0.0.1
 ListenPort: 12345
 Timeout: 5000
+
+# To edit configuration values, copy this file to "main_config"
+# (delete suffix ".default") and edit there

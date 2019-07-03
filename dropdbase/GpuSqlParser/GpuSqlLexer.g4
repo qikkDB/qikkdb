@@ -13,6 +13,8 @@ UNDERSCORE  : '_';
 COLON       : ':';
 COMMA       : ',';
 DOT         : '.';
+STRING      : '"' ( ~[\\"\r\n] )* '"';
+DELIMID     : '[' ( ~[\\[\]$\r\n\u002e] )+ ']';
 
 DATELIT                 : YEARLIT MINUS MONTHLIT MINUS DAYLIT;
 
@@ -71,6 +73,9 @@ DIR         : (A S C) | (D E S C);
 LIMIT       : L I M I T;
 OFFSET      : O F F S E T;
 
+INNER       : I N N E R;
+FULLOUTER   : F U L L ' ' O U T E R;
+
 SHOWDB      : S H O W ' ' D A T A B A S E S;
 SHOWTB      : S H O W ' ' T A B L E S;
 SHOWCL      : S H O W ' ' C O L U M N S;
@@ -114,6 +119,16 @@ ROUND       : R O U N D;
 CEIL        : C E I L;
 FLOOR       : F L O O R;
 
+LTRIM       : L T R I M;
+RTRIM       : R T R I M;
+LOWER       : L O W E R;
+UPPER       : U P P E R;
+REVERSE     : R E V E R S E;
+LEN         : L E N;
+LEFT        : L E F T;
+RIGHT       : R I G H T;
+CONCAT      : C O N C A T;
+
 
 GEO_CONTAINS        : G E O UNDERSCORE C O N T A I N S;
 GEO_INTERSECT       : G E O UNDERSCORE I N T E R S E C T;
@@ -142,11 +157,12 @@ BIT_AND         : '&';
 L_SHIFT         : '<<';
 R_SHIFT         : '>>';
 
+BOOLEANLIT  : (TRUE|FALSE);
+TRUE        : T R U E;
+FALSE       : F A L S E;
 FLOATLIT    : ('-')?('0.'[0-9]+|[1-9][0-9]* '.'[0-9]+);
 INTLIT      : ('-')?('0'|[1-9][0-9]*);
 ID          : [_]*[A-Za-z0-9_][A-Za-z0-9_]* ;
-BOOLEANLIT  : ('True'|'False');
-STRINGLIT   : '"'ID'"';
 
 fragment A : [aA];
 fragment B : [bB];

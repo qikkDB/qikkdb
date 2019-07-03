@@ -31,10 +31,12 @@ Database::Database(const char* databaseName, int32_t blockSize)
 
 Database::~Database()
 {
+    Context& context = Context::getInstance();
+    int32_t oldDeviceID = context.getBoundDeviceID();
 	// Clear cache for all devices
 	for (int32_t deviceID = 0; deviceID < Context::getInstance().getDeviceCount(); deviceID++)
 	{
-		Context::getInstance().bindDeviceToContext(deviceID);
+		context.bindDeviceToContext(deviceID);
 		GPUMemoryCache& cacheForDevice = Context::getInstance().getCacheForDevice(deviceID);
 		for (auto const& table : tables_)
 		{
@@ -48,6 +50,7 @@ Database::~Database()
 			}
 		}
 	}
+    context.bindDeviceToContext(oldDeviceID);
 }
 
 std::vector<std::string> Database::GetDatabaseNames()
@@ -228,7 +231,7 @@ void Database::DeleteDatabaseFromDisk()
 
 	if (boost::filesystem::exists(path))
 	{
-		std::string prefix(name_ + "_");
+		std::string prefix(name_ + SEPARATOR);
 
 		for (auto& p : boost::filesystem::directory_iterator(path))
 		{
@@ -264,7 +267,7 @@ void Database::DeleteTableFromDisk(const char* tableName)
 
 	if (boost::filesystem::exists(path))
 	{
-		std::string prefix(name_ + "_" + std::string(tableName) + "_");
+		std::string prefix(name_ + SEPARATOR + std::string(tableName) + SEPARATOR);
 
 		for (auto& p : boost::filesystem::directory_iterator(path))
 		{
@@ -305,7 +308,7 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 {
 	auto &path = Configuration::GetInstance().GetDatabaseDir();
 
-	std::string filePath = path + name_ + "_" + std::string(tableName) + "_" + std::string(columnName) + ".col";
+	std::string filePath = path + name_ + SEPARATOR + std::string(tableName) + SEPARATOR + std::string(columnName) + ".col";
 
 	if (boost::filesystem::exists(filePath))
 	{
@@ -412,10 +415,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
     // read files .col:
     std::string pathStr = std::string(path);
 
-    BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << pathStr + dbName << "_"
-                            << table.GetName() << "_" << columnName << ".col." << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << pathStr + dbName << SEPARATOR
+                            << table.GetName() << SEPARATOR << columnName << ".col." << std::endl;
 
-    std::ifstream colFile(pathStr + dbName + "_" + table.GetName() + "_" + columnName + ".col", std::ios::binary);
+    std::ifstream colFile(pathStr + dbName + SEPARATOR + table.GetName() + SEPARATOR + columnName + ".col", std::ios::binary);
 
     int32_t nullIndex = 0;
 
@@ -443,7 +446,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
@@ -512,7 +515,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
@@ -581,7 +584,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
@@ -646,13 +649,23 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
 
             int32_t dataLength;
             colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+			int8_t isCompressed;
+			colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // read whether compressed
+			int8_t min;
+			colFile.read(reinterpret_cast<char*>(&min), sizeof(int8_t)); // read statistics min
+			int8_t max;
+			colFile.read(reinterpret_cast<char*>(&max), sizeof(int8_t)); // read statistics max
+			float avg;
+			colFile.read(reinterpret_cast<char*>(&avg), sizeof(float)); // read statistics avg
+			int8_t sum;
+			colFile.read(reinterpret_cast<char*>(&sum), sizeof(int8_t)); // read statistics sum
 
             if (index != nullIndex) // there is null block
             {
@@ -670,8 +683,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int8_t*>(data.get());
                 std::vector<int8_t> dataInt(dataTemp, dataTemp + dataLength);
 
-                columnInt.AddBlock(dataInt, groupId);
-                BOOST_LOG_TRIVIAL(debug)
+                auto& block = columnInt.AddBlock(dataInt, groupId, false, (bool)isCompressed);
+				block.setBlockStatistics(min, max, avg, sum);
+                
+				BOOST_LOG_TRIVIAL(debug)
                     << "Added Int8 block with data at index: " << index << "." << std::endl;
             }
 
@@ -698,13 +713,23 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
 
             int32_t dataLength;
             colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+			int8_t isCompressed;
+			colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // read whether compressed
+			int32_t min;
+			colFile.read(reinterpret_cast<char*>(&min), sizeof(int32_t)); // read statistics min
+			int32_t max;
+			colFile.read(reinterpret_cast<char*>(&max), sizeof(int32_t)); // read statistics max
+			float avg;
+			colFile.read(reinterpret_cast<char*>(&avg), sizeof(float)); // read statistics avg
+			int32_t sum;
+			colFile.read(reinterpret_cast<char*>(&sum), sizeof(int32_t)); // read statistics sum
 
             if (index != nullIndex) // there is null block
             {
@@ -722,8 +747,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int32_t*>(data.get());
                 std::vector<int32_t> dataInt(dataTemp, dataTemp + dataLength);
 
-                columnInt.AddBlock(dataInt, groupId);
-                BOOST_LOG_TRIVIAL(debug)
+                auto& block = columnInt.AddBlock(dataInt, groupId, false, (bool)isCompressed);
+				block.setBlockStatistics(min, max, avg, sum);
+
+				BOOST_LOG_TRIVIAL(debug)
                     << "Added Int32 block with data at index: " << index << "." << std::endl;
             }
 
@@ -750,13 +777,23 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
 
             int32_t dataLength;
             colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+			int8_t isCompressed;
+			colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // read whether compressed
+			int64_t min;
+			colFile.read(reinterpret_cast<char*>(&min), sizeof(int64_t)); // read statistics min
+			int64_t max;
+			colFile.read(reinterpret_cast<char*>(&max), sizeof(int64_t)); // read statistics max
+			float avg;
+			colFile.read(reinterpret_cast<char*>(&avg), sizeof(float)); // read statistics avg
+			int64_t sum;
+			colFile.read(reinterpret_cast<char*>(&sum), sizeof(int64_t)); // read statistics sum
 
             if (index != nullIndex) // there is null block
             {
@@ -774,8 +811,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int64_t*>(data.get());
                 std::vector<int64_t> dataLong(dataTemp, dataTemp + dataLength);
 
-                columnLong.AddBlock(dataLong, groupId);
-                BOOST_LOG_TRIVIAL(debug)
+                auto& block = columnLong.AddBlock(dataLong, groupId, false, (bool)isCompressed);
+				block.setBlockStatistics(min, max, avg, sum);
+
+				BOOST_LOG_TRIVIAL(debug)
                     << "Added Int64 block with data at index: " << index << "." << std::endl;
             }
 
@@ -802,13 +841,23 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
 
             int32_t dataLength;
             colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+			int8_t isCompressed;
+			colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // read whether compressed
+			float min;
+			colFile.read(reinterpret_cast<char*>(&min), sizeof(float)); // read statistics min
+			float max;
+			colFile.read(reinterpret_cast<char*>(&max), sizeof(float)); // read statistics max
+			float avg;
+			colFile.read(reinterpret_cast<char*>(&avg), sizeof(float)); // read statistics avg
+			float sum;
+			colFile.read(reinterpret_cast<char*>(&sum), sizeof(float)); // read statistics sum
 
             if (index != nullIndex) // there is null block
             {
@@ -826,8 +875,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<float*>(data.get());
                 std::vector<float> dataFloat(dataTemp, dataTemp + dataLength);
 
-                columnFloat.AddBlock(dataFloat, groupId);
-                BOOST_LOG_TRIVIAL(debug)
+                auto& block = columnFloat.AddBlock(dataFloat, groupId, false, (bool)isCompressed);
+				block.setBlockStatistics(min, max, avg, sum);
+
+				BOOST_LOG_TRIVIAL(debug)
                     << "Added Float block with data at index: " << index << "." << std::endl;
             }
 
@@ -854,13 +905,23 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             if (colFile.eof())
             {
                 BOOST_LOG_TRIVIAL(debug)
-                    << "Loading of the file: " << pathStr + dbName << "_" << table.GetName() << "_"
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
                     << columnName << ".col has finished successfully." << std::endl;
                 break;
             }
 
             int32_t dataLength;
             colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+			int8_t isCompressed;
+			colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // read whether compressed
+			double min;
+			colFile.read(reinterpret_cast<char*>(&min), sizeof(double)); // read statistics min
+			double max;
+			colFile.read(reinterpret_cast<char*>(&max), sizeof(double)); // read statistics max
+			float avg;
+			colFile.read(reinterpret_cast<char*>(&avg), sizeof(float)); // read statistics avg
+			double sum;
+			colFile.read(reinterpret_cast<char*>(&sum), sizeof(double)); // read statistics sum
 
             if (index != nullIndex) // there is null block
             {
@@ -878,8 +939,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<double*>(data.get());
                 std::vector<double> dataDouble(dataTemp, dataTemp + dataLength);
 
-                columnDouble.AddBlock(dataDouble, groupId);
-                BOOST_LOG_TRIVIAL(debug)
+                auto& block = columnDouble.AddBlock(dataDouble, groupId, false, (bool)isCompressed);
+				block.setBlockStatistics(min, max, avg, sum);
+
+				BOOST_LOG_TRIVIAL(debug)
                     << "Added Double block with data at index: " << index << "." << std::endl;
             }
 
@@ -995,10 +1058,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                            std::string name,
                            const std::pair<const std::string, Table>& table)
 {
-    BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << "_" << table.first
-                             << "_" << column.second->GetName() << " .col" << std::endl;
+    BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << SEPARATOR << table.first
+                             << SEPARATOR << column.second->GetName() << " .col" << std::endl;
 
-    std::ofstream colFile(pathStr + name + "_" + table.first + "_" + column.second->GetName() + ".col",
+    std::ofstream colFile(pathStr + name + SEPARATOR + table.first + SEPARATOR + column.second->GetName() + ".col",
                           std::ios::binary);
 
     int32_t type = column.second->GetColumnType();
@@ -1022,7 +1085,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             auto data = block->GetData();
 			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
-            int64_t dataByteSize = 0;
+			int64_t dataByteSize = 0;
 
             for (int32_t i = 0; i < dataLength; i++)
             {
@@ -1149,14 +1212,24 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             BOOST_LOG_TRIVIAL(debug) << "Saving block of Int8 data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int8_t isCompressed = (int8_t)block->IsCompressed();
 			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
+			int8_t min = block->GetMin();
+			int8_t max = block->GetMax();
+			float avg = block->GetAvg();
+			int8_t sum = block->GetSum();
 
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+				colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
+				colFile.write(reinterpret_cast<char*>(&min), sizeof(int8_t)); // write statistics min
+				colFile.write(reinterpret_cast<char*>(&max), sizeof(int8_t)); // write statistics max
+				colFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+				colFile.write(reinterpret_cast<char*>(&sum), sizeof(int8_t)); // write statistics sum
                 colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int8_t)); // write block of data
                 index += 1;
             }
@@ -1175,14 +1248,24 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int8_t isCompressed = (int8_t)block->IsCompressed();
 			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
+			int32_t min = block->GetMin();
+			int32_t max = block->GetMax();
+			float avg = block->GetAvg();
+			int32_t sum = block->GetSum();
 
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+				colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
+				colFile.write(reinterpret_cast<char*>(&min), sizeof(int32_t)); // write statistics min
+				colFile.write(reinterpret_cast<char*>(&max), sizeof(int32_t)); // write statistics max
+				colFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+				colFile.write(reinterpret_cast<char*>(&sum), sizeof(int32_t)); // write statistics sum
                 colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int32_t)); // write block of data
                 index += 1;
             }
@@ -1201,14 +1284,24 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int8_t isCompressed = (int8_t)block->IsCompressed();
 			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
+			int64_t min = block->GetMin();
+			int64_t max = block->GetMax();
+			float avg = block->GetAvg();
+			int64_t sum = block->GetSum();
 
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+				colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
+				colFile.write(reinterpret_cast<char*>(&min), sizeof(int64_t)); // write statistics min
+				colFile.write(reinterpret_cast<char*>(&max), sizeof(int64_t)); // write statistics max
+				colFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+				colFile.write(reinterpret_cast<char*>(&sum), sizeof(int64_t)); // write statistics sum
                 colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int64_t)); // write block of data
                 index += 1;
             }
@@ -1227,14 +1320,24 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int8_t isCompressed = (int8_t)block->IsCompressed();
 			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
+			float min = block->GetMin();
+			float max = block->GetMax();
+			float avg = block->GetAvg();
+			float sum = block->GetSum();
 
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+				colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
+				colFile.write(reinterpret_cast<char*>(&min), sizeof(float)); // write statistics min
+				colFile.write(reinterpret_cast<char*>(&max), sizeof(float)); // write statistics max
+				colFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+				colFile.write(reinterpret_cast<char*>(&sum), sizeof(float)); // write statistics sum
                 colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(float)); // write block of data
                 index += 1;
             }
@@ -1254,14 +1357,24 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                 << "Saving block of Double data with index = " << index << "." << std::endl;
 
             auto data = block->GetData();
+			int8_t isCompressed = (int8_t)block->IsCompressed();
 			int32_t groupId = block->GetGroupId();
             int32_t dataLength = block->GetSize();
+			double min = block->GetMin();
+			double max = block->GetMax();
+			float avg = block->GetAvg();
+			double sum = block->GetSum();
 
             if (dataLength > 0)
             {
                 colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                 colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+				colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
+				colFile.write(reinterpret_cast<char*>(&min), sizeof(double)); // write statistics min
+				colFile.write(reinterpret_cast<char*>(&max), sizeof(double)); // write statistics max
+				colFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+				colFile.write(reinterpret_cast<char*>(&sum), sizeof(double)); // write statistics sum
                 colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(double)); // write block of data
                 index += 1;
             }

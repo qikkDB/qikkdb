@@ -144,12 +144,28 @@ struct RetStringGroupByException : public std::exception
     }
 };
 
+struct StringGroupByException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "String is not allowed as a key while using group by.";
+	}
+};
+
 struct AliasRedefinitionException : public std::exception
 {
     const char* what() const noexcept override
     {
         return "Attempt to redefine an allias has occured.";
     }
+};
+
+struct JoinColumnTypeException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Attempt to join columns of different data types.";
+	}
 };
 
 struct InvalidOperandsException : public std::exception

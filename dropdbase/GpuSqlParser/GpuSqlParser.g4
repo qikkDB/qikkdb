@@ -25,10 +25,10 @@ newTableEntries     : ((newTableEntry (COMMA newTableEntry)*));
 newTableEntry       : (newTableColumn|newTableIndex);
 alterTableEntries   : ((alterTableEntry (COMMA alterTableEntry)*));
 alterTableEntry     : (addColumn | dropColumn | alterColumn);
-addColumn           : (ADD columnId DATATYPE);
-dropColumn          : (DROPCOLUMN columnId);
-alterColumn         : (ALTERCOLUMN columnId DATATYPE);
-newTableColumn      : (columnId DATATYPE);
+addColumn           : (ADD column DATATYPE);
+dropColumn          : (DROPCOLUMN column);
+alterColumn         : (ALTERCOLUMN column DATATYPE);
+newTableColumn      : (column DATATYPE);
 newTableIndex       : (INDEX indexName LPAREN indexColumns RPAREN);
 selectColumns       : (((selectColumn) (COMMA selectColumn)*));
 selectColumn        : expression (AS alias)?;
@@ -40,21 +40,25 @@ insertIntoColumns   : ((columnId (COMMA columnId)*));
 indexColumns        : ((column (COMMA column)*));
 groupByColumns      : ((groupByColumn (COMMA groupByColumn)*));
 groupByColumn       : expression;
-columnId            : (column)|(table DOT column);
 fromTables          : ((fromTable (COMMA fromTable)*));
 joinClauses         : (joinClause)+;
-joinClause          : (JOIN joinTable ON expression);
+joinClause          : ((joinType)? JOIN joinTable ON joinColumnLeft joinOperator joinColumnRight);
 joinTable           : table (AS alias)?;
+joinColumnLeft      : columnId;
+joinColumnRight     : columnId;
+joinOperator        : (GREATER | LESS | GREATEREQ | LESSEQ | EQUALS | NOTEQUALS | NOTEQUALS_GT_LT);
+joinType            : (INNER | LEFT | RIGHT | FULLOUTER);
 fromTable           : table (AS alias)?;
-table               : ID;
-column              : ID;
-database            : ID;
-alias               : ID;
-indexName           : ID;
+columnId            : (column)|(table DOT column);
+table               : (ID|DELIMID);
+column              : (ID|DELIMID);
+database            : (ID|DELIMID);
+alias               : (ID|DELIMID);
+indexName           : (ID|DELIMID);
 limit               : INTLIT;
 offset              : INTLIT;
 blockSize           : INTLIT;
-columnValue         : (INTLIT|FLOATLIT|geometry|STRINGLIT);
+columnValue         : (INTLIT|FLOATLIT|geometry|STRING);
 
 expression : op=NOT expression                                                            # unaryOperation
            | op=MINUS expression                                                          # unaryOperation
@@ -81,6 +85,12 @@ expression : op=NOT expression                                                  
            | op=HOUR LPAREN expression RPAREN                                             # unaryOperation
            | op=MINUTE LPAREN expression RPAREN                                           # unaryOperation
            | op=SECOND LPAREN expression RPAREN                                           # unaryOperation
+           | op=LTRIM LPAREN expression RPAREN                                            # unaryOperation
+           | op=RTRIM LPAREN expression RPAREN                                            # unaryOperation
+           | op=LOWER LPAREN expression RPAREN                                            # unaryOperation
+           | op=UPPER LPAREN expression RPAREN                                            # unaryOperation
+           | op=REVERSE LPAREN expression RPAREN                                          # unaryOperation
+           | op=LEN LPAREN expression RPAREN                                              # unaryOperation
            | left=expression op=(DIVISION|ASTERISK) right=expression                      # binaryOperation
            | left=expression op=(PLUS|MINUS) right=expression                             # binaryOperation
            | left=expression op=MODULO right=expression                                   # binaryOperation
@@ -99,6 +109,9 @@ expression : op=NOT expression                                                  
            | op=GEO_CONTAINS LPAREN left=expression COMMA right=expression RPAREN         # binaryOperation
            | op=GEO_INTERSECT LPAREN left=expression COMMA right=expression RPAREN        # binaryOperation
            | op=GEO_UNION LPAREN left=expression COMMA right=expression RPAREN            # binaryOperation
+           | op=CONCAT LPAREN left=expression COMMA right=expression RPAREN               # binaryOperation
+           | op=LEFT LPAREN left=expression COMMA right=expression RPAREN                 # binaryOperation
+           | op=RIGHT LPAREN left=expression COMMA right=expression RPAREN                # binaryOperation
            | expression op=BETWEEN expression op2=AND expression                          # ternaryOperation
            | left=expression op=AND right=expression                                      # binaryOperation
            | left=expression op=OR right=expression                                       # binaryOperation
@@ -110,7 +123,7 @@ expression : op=NOT expression                                                  
            | PI                                                                           # piLiteral
            | NOW                                                                          # nowLiteral
            | INTLIT                                                                       # intLiteral
-           | STRINGLIT                                                                    # stringLiteral
+           | STRING                                                                       # stringLiteral
            | BOOLEANLIT                                                                   # booleanLiteral
            | AGG LPAREN expression RPAREN                                                 # aggregation;
 

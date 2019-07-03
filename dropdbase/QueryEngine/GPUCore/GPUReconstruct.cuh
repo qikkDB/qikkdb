@@ -22,6 +22,9 @@ __device__ const int32_t WKT_DECIMAL_PLACES = 4;
 /// POLYGON word
 __device__ const char WKT_POLYGON[] = "POLYGON";
 
+/// POINT word
+__device__ const char WKT_POINT[] = "POINT";
+
 /// Kernel for reconstructing buffer according to calculated prefixSum and inMask
 template<typename T>
 __global__ void kernel_reconstruct_col(T *outData, T *ACol, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
@@ -59,6 +62,33 @@ __global__ void kernel_generate_indexes(T *outData, int32_t *prefixSum, int8_t *
 		}
 	}
 }
+
+/// Kernel for calculating lengths from indices (difference of indices)
+/// - reversed inclusive prefix sum.
+template<typename L, typename I>
+__global__ void kernel_lengths_from_indices(L * outLengths, I * inIndices, int32_t dataElementCount)
+{
+
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		if (i == 0)
+		{
+			outLengths[i] = inIndices[i];
+		}
+		else
+		{
+			outLengths[i] = inIndices[i] - inIndices[i - 1];
+		}
+	}
+}
+
+/// Kernel for reconstruction of chars in GPUString
+__global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCol,
+	GPUMemory::GPUString inStringCol, int32_t * inStringLengths,
+	int32_t *prefixSum, int8_t *inMask, int32_t stringCount);
 
 /// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays).
 /// Expanding is performed by propagating values from inMask based on counts.
@@ -166,14 +196,28 @@ public:
 		CheckCudaError(cudaGetLastError());
 	}
 
+	/// Reconstruct GPUString column (keep result on GPU)
+	/// <param name="outStringCol">output GPUString column</param>
+	/// <param name="outDataElementCount">reconstructed data element (string) count</param>
+	/// <param name="inStringCol">input GPUString column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (string) count</param>
+	static void ReconstructStringColKeep(GPUMemory::GPUString *outStringCol, int32_t *outDataElementCount,
+		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
+
 	/// Reconstruct GPUString column and copy to CPU memory
 	/// <param name="outStringData">output CPU string array</param>
-	/// <param name="outDataElementCount">reconstructed data elemen (string) count</param>
+	/// <param name="outDataElementCount">reconstructed data element (string) count</param>
 	/// <param name="inStringCol">input GPUString column</param>
 	/// <param name="inMask">input mask for the reconstruction</param>
 	/// <param name="inDataElementCount">input data element (string) count</param>
 	static void ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
 		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
+
+	/// Reconstruct GPUString column to two arrays: string lengths and all chars
+	/// and copy them to the CPU.
+	static void ReconstructStringColRaw(std::vector<int32_t>& keysStringLengths, std::vector<char>& keysAllChars,
+		int32_t *outDataElementCount, GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
 
 	/// Convert polygons to WKTs (GPUPolygon column to GPUString columns)
 	/// <param name="outStringCol">output GPUString column</param>
@@ -181,6 +225,9 @@ public:
 	/// <param name="dataElementCount">input data element (complex polygon) count</param>
 	static void ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
 		GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount);
+
+	static void ConvertPointColToWKTCol(GPUMemory::GPUString * outStringCol, 
+		NativeGeoPoint* inPointCol, int32_t dataElementCount);
 
 	/// Recontruct GPUPolygon column and keep on GPU in the same format
 	/// <param name="outCol">output GPUPolygon column</param>
@@ -199,6 +246,15 @@ public:
 	/// <param name="inDataElementCount">input data element (complex polygon) count</param>
 	static void ReconstructPolyColToWKT(std::string * outStringData, int32_t *outDataElementCount,
 		GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount);
+
+	/// Reconstruct NativeGeoPoint column and convert to WKT string array on CPU
+	/// <param name="outStringData">output CPU string array</param>
+	/// <param name="outDataElementCount">reconstructed data element (WKT string) count</param>
+	/// <param name="inPointCol">input NativeGeoPoint column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (point) count</param>
+	static void ReconstructPointColToWKT(std::string * outStringData, int32_t *outDataElementCount,
+		NativeGeoPoint* inPointCol, int8_t *inMask, int32_t inDataElementCount);
 
 	/// Function for generating array with sorted indexes which point to values where mask is 1.
 	/// Result is copied to host.

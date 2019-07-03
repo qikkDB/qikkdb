@@ -33,8 +33,8 @@ int32_t GpuSqlDispatcher::pointColCol()
 		return loadFlag;
 	}
 
-	std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(colNameRight);
-	std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(colNameLeft);
+	std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
+	std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
 
 	int32_t retSize = std::min(std::get<1>(columnLeft), std::get<1>(columnRight));
 
@@ -68,7 +68,7 @@ int32_t GpuSqlDispatcher::pointColConst()
 		return loadFlag;
 	}
 
-	std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(colNameLeft);
+	std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
 
 	int32_t retSize = std::get<1>(columnLeft);
 
@@ -101,7 +101,7 @@ int32_t GpuSqlDispatcher::pointConstCol()
 		return loadFlag;
 	}
 
-	std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(colNameRight);
+	std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
 
 	int32_t retSize = std::get<1>(columnRight);
 
@@ -134,7 +134,7 @@ int32_t GpuSqlDispatcher::containsColConst()
 
 	std::cout << "ContainsColConst: " + colName << " " << constWkt << " " << reg << std::endl;
 
-	auto polygonCol = findComplexPolygon(colName);
+	auto polygonCol = findComplexPolygon(getAllocatedRegisterName(colName));
 	ColmnarDB::Types::Point pointConst = PointFactory::FromWkt(constWkt);
 
 	GPUMemory::GPUPolygon polygons = std::get<0>(polygonCol);
@@ -168,7 +168,7 @@ int32_t GpuSqlDispatcher::containsConstCol()
 
 	std::cout << "ContainsConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool> columnPoint = allocatedPointers.at(colName);
+	std::tuple<uintptr_t, int32_t, bool> columnPoint = allocatedPointers.at(getAllocatedRegisterName(colName));
 	ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
 	GPUMemory::GPUPolygon gpuPolygon = insertConstPolygonGpu(polygonConst);
 
@@ -207,8 +207,8 @@ int32_t GpuSqlDispatcher::containsColCol()
 
 	std::cout << "ContainsColCol: " + colNamePolygon << " " << colNamePoint << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool> pointCol = allocatedPointers.at(colNamePoint);
-	auto polygonCol = findComplexPolygon(colNamePolygon);
+	std::tuple<uintptr_t, int32_t, bool> pointCol = allocatedPointers.at(getAllocatedRegisterName(colNamePoint));
+	auto polygonCol = findComplexPolygon(getAllocatedRegisterName(colNamePolygon));
 
 
 	int32_t retSize = std::min(std::get<1>(pointCol), std::get<1>(polygonCol));
@@ -272,7 +272,7 @@ int32_t GpuSqlDispatcher::polygonOperationColConst()
 
 	std::cout << "PolygonOPConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
 
-	auto polygonLeft = findComplexPolygon(colName);
+	auto polygonLeft = findComplexPolygon(getAllocatedRegisterName(colName));
 	ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
 	GPUMemory::GPUPolygon gpuPolygon = insertConstPolygonGpu(polygonConst);
 
@@ -321,8 +321,8 @@ int32_t GpuSqlDispatcher::polygonOperationColCol()
 		return loadFlag;
 	}
 
-	auto polygonLeft = findComplexPolygon(colNameLeft);
-	auto polygonRight = findComplexPolygon(colNameRight);
+	auto polygonLeft = findComplexPolygon(getAllocatedRegisterName(colNameLeft));
+	auto polygonRight = findComplexPolygon(getAllocatedRegisterName(colNameRight));
 
 	int32_t dataSize = std::min(std::get<1>(polygonLeft), std::get<1>(polygonRight));
 	if (!isRegisterAllocated(reg))
@@ -331,6 +331,7 @@ int32_t GpuSqlDispatcher::polygonOperationColCol()
 		GPUPolygonClipping::ColCol<OP>(outPolygon, std::get<0>(polygonLeft), std::get<0>(polygonRight), dataSize);
 		fillPolygonRegister(outPolygon, reg, dataSize);
 	}
+	return 0;
 }
 
 /// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does not meet this requrement) based on functor OP
