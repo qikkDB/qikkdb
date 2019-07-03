@@ -13,6 +13,7 @@ namespace ColmnarDB.BenchmarkUtility
         public static readonly short Port = 12345;
 
         public static readonly string taxiDbName = "TaxiRidesDb";
+		public static readonly string csvFileName = "trips.csv";
 
         /// <summary>
         /// Load benchmark queries from a file, execute them one by one and save results.
@@ -24,23 +25,15 @@ namespace ColmnarDB.BenchmarkUtility
             Console.Out.WriteLine("Client has successfully connected to server.");
 
             UseDatabase use = new UseDatabase();
+            ImportCSV import = new ImportCSV();
+            Query query = new Query();
+
+            import.Import("testing-data/" + csvFileName, taxiDbName, client);
 
             use.Use(taxiDbName, client);
-            
-            var file = new System.IO.StreamReader("./tempFile.txt");
-            Console.Out.WriteLine("Benchmark queries from file 'tempFile.txt' were loaded.");
-
-            string csvFileName;
-
-            while ((csvFileName = file.ReadLine()) != null)
-            {
-                client.ImportCSV(taxiDbName, "testing-data/taxi-rides/" + csvFileName);
-            }
-
-            client.UseDatabase(taxiDbName);
 
             //test query on db if it successfully imported
-            client.Query("SELECT cab_type, count(*) FROM trips GROUP BY cab_type;");
+            query.RunQuery("SELECT cab_type, count(*) FROM trips GROUP BY cab_type;", Console.WindowWidth, client);
 
             //then press ctrl+c to kill server and so to save database
         }    
