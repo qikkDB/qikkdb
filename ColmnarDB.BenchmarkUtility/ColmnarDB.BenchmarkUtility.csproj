@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ColmnarDB.NetworkClient\ColmnarDB.NetworkClient.csproj" />
-    <ProjectReference Include="..\ColmnarDB.ConsoleClient\ColmnarDB.NetworkClient.csproj" />
+    <ProjectReference Include="..\ColmnarDB.ConsoleClient\ColmnarDB.ConsoleClient.csproj" />
   </ItemGroup>
 
 </Project>
