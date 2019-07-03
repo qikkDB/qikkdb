@@ -510,7 +510,7 @@ public:
 		}
 	}
 
-	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
+	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, const std::string& nullBitMaskString = "");
 
 	GPUMemory::GPUPolygon insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
 	GPUMemory::GPUString insertString(const std::string& databaseName, const std::string& colName, const std::vector<std::string>& strings, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);

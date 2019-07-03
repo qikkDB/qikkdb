@@ -47,11 +47,18 @@ int32_t GpuSqlDispatcher::retCol()
 				outSize = keyCol.elementCount;
 				std::unique_ptr<T[]> outData(new T[outSize]);
 				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(keyCol.gpuPtr), outSize);
-
+				std::string nullMaskString = "";
+				if(keyCol.gpuNullMaskPtr)
+				{
+					size_t bitMaskSize = (outSize + sizeof(char)*8 - 1) / (sizeof(char)*8);
+					std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+					GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(keyCol.gpuNullMaskPtr), bitMaskSize);
+					nullMaskString = std::string(nullMask, bitMaskSize);
+				}
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload(payload, outData, outSize);
 				ColmnarDB::NetworkClient::Message::QueryResponseMessage partialMessage;
-				MergePayloadToSelfResponse(alias, payload);
+				MergePayloadToSelfResponse(alias, payload, nullMaskString);
 			}
 			else
 			{
@@ -59,10 +66,17 @@ int32_t GpuSqlDispatcher::retCol()
 				outSize = valueCol.elementCount;
 				std::unique_ptr<T[]> outData(new T[outSize]);
 				GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(valueCol.gpuPtr), outSize);
-
+				std::string nullMaskString = "";
+				if(valueCol.gpuNullMaskPtr)
+				{
+					size_t bitMaskSize = (outSize + sizeof(char)*8 - 1) / (sizeof(char)*8);
+					std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+					GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(keyCol.gpuNullMaskPtr), bitMaskSize);
+					nullMaskString = std::string(nullMask, bitMaskSize);
+				}
 				ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 				insertIntoPayload(payload, outData, outSize);
-				MergePayloadToSelfResponse(alias, payload);
+				MergePayloadToSelfResponse(alias, payload, nullMaskString);
 			}
 		}
 	}
@@ -76,8 +90,16 @@ int32_t GpuSqlDispatcher::retCol()
 		//GPUMemory::hostUnregister(outData.get());
 		std::cout << "dataSize: " << outSize << std::endl;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+		std::string nullMaskString = "";
+		if(ACol.gpuNullMaskPtr)
+		{
+			size_t bitMaskSize = (outSize + sizeof(char)*8 - 1) / (sizeof(char)*8);
+			std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+			GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(keyCol.gpuNullMaskPtr), bitMaskSize);
+			nullMaskString = std::string(nullMask, bitMaskSize);
+		}
 		insertIntoPayload(payload, outData, outSize);
-		MergePayloadToSelfResponse(alias, payload);
+		MergePayloadToSelfResponse(alias, payload, nullMaskString);
 	}
 	return 0;
 }

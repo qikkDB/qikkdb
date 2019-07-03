@@ -1166,7 +1166,7 @@ void GpuSqlDispatcher::MergePayload(const std::string &trimmedKey, ColmnarDB::Ne
 	}
 }
 
-void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
+void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload, const std::string& nullBitMaskString)
 {
 	std::string trimmedKey = key.substr(0, std::string::npos);
 	if (!key.empty() && key.front() == '$')
@@ -1174,6 +1174,11 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, Colmna
 		trimmedKey = key.substr(1, std::string::npos);
 	}
 	MergePayload(trimmedKey, &responseMessage, payload);
+	if(!nullBitMask.empty())
+	{
+		std::string nullMaskString(nullBitMask);
+		MergePayloadBitmask(trimmedKey,&responseMessage, nullMaskString);
+	}
 }
 
 bool GpuSqlDispatcher::isRegisterAllocated(std::string & reg)

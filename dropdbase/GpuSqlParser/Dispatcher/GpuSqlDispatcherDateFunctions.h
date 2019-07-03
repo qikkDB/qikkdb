@@ -27,7 +27,18 @@ int32_t GpuSqlDispatcher::dateExtractCol()
 
 	if (!isRegisterAllocated(reg))
 	{
-		int32_t * result = allocateRegister<int32_t>(reg, retSize);
+		int32_t * result;
+		if(column.gpuNullMaskPtr)
+		{
+			int8_t * nullMask;
+			result = allocateRegister<int32_t>(reg, retSize, &nullMask);
+			int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+			GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+		}
+		else
+		{
+			result = allocateRegister<int32_t>(reg, retSize);
+		}
 		GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.gpuPtr), retSize);
 	}
 

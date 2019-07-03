@@ -167,11 +167,18 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>()
 		int32_t outSize;
 		GPUReconstruct::ReconstructPolyColToWKT(outData.get(), &outSize,
 			std::get<0>(ACol), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
-
+		std::string nullMaskString = "";
+		if(std::get<2>(ACol))
+		{
+			size_t bitMaskSize = (outSize + sizeof(char)*8 - 1) / (sizeof(char)*8);
+			std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+			GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(std::get<2>(ACol)), bitMaskSize);
+			nullMaskString = std::string(nullMask, bitMaskSize);
+		}
 		std::cout << "dataSize: " << outSize << std::endl;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 		insertIntoPayload(payload, outData, outSize);
-		MergePayloadToSelfResponse(alias, payload);
+		MergePayloadToSelfResponse(alias, payload, nullMaskString);
 	}
 	return 0;
 }
@@ -210,11 +217,18 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>()
 		{
 			outData[i] = PointFactory::WktFromPoint(outPoints[i]);
 		}
-
+		std::string nullMaskString = "";
+		if(ACol.gpuNullMaskPtr)
+		{
+			size_t bitMaskSize = (outSize + sizeof(char)*8 - 1) / (sizeof(char)*8);
+			std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+			GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(ACol.gpuNullMaskPtr), bitMaskSize);
+			nullMaskString = std::string(nullMask, bitMaskSize);
+		}
 		std::cout << "dataSize: " << outSize << std::endl;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 		insertIntoPayload(payload, outData, outSize);
-		MergePayloadToSelfResponse(alias, payload);
+		MergePayloadToSelfResponse(alias, payload, nullMaskString);
 	}
 	return 0;
 }
@@ -244,11 +258,18 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 		int32_t outSize;
 		GPUReconstruct::ReconstructStringCol(outData.get(), &outSize,
 			std::get<0>(ACol), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
-
+		std::string nullMaskString = "";
+		if(std::get<2>(ACol))
+		{
+			size_t bitMaskSize = (outSize + sizeof(char)*8 - 1) / (sizeof(char)*8);
+			std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+			GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(std::get<2>(ACol)), bitMaskSize);
+			nullMaskString = std::string(nullMask, bitMaskSize);
+		}
 		std::cout << "dataSize: " << outSize << std::endl;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 		insertIntoPayload(payload, outData, outSize);
-		MergePayloadToSelfResponse(alias, payload);
+		MergePayloadToSelfResponse(alias, payload, nullMaskString);
 	}
 	return 0;
 }
