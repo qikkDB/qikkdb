@@ -17,6 +17,8 @@
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
 #include "../DataType.h"
+#include "../QueryEngine/OrderByType.h"
+#include "../IVariantArray.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
@@ -59,6 +61,9 @@ private:
 	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 	std::unique_ptr<GPUOrderBy> orderByTable;
+	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByColumns;
+	std::unordered_map<std::string, OrderBy::Order> orderByColumns;
+	std::vector<std::vector<int32_t>> orderByIndices;
 
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -202,6 +207,8 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE> orderByFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> orderByReconstructFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
@@ -430,6 +437,8 @@ public:
 
 	void addOrderByFunction(DataType type);
 
+	void addOrderByReconstructFunction(DataType type);
+
 	void addFreeOrderByTableFunction();
 
     void addFilFunction();
@@ -520,6 +529,12 @@ public:
 
 	template<typename T>
 	int32_t orderByCol();
+
+	template<typename T>
+	int32_t orderByReconstructConst();
+
+	template<typename T>
+	int32_t orderByReconstructCol();
 
   	template<typename T>
     int32_t retConst();

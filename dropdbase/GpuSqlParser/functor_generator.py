@@ -584,7 +584,7 @@ for operation in operations_string_unary:
     print(declaration)
 print()
 
-for operation in ['orderBy']:
+for operation in ['orderBy', 'orderByReconstruct']:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
@@ -598,7 +598,7 @@ for operation in ['orderBy']:
         if colVal == STRING or colVal in geo_types:
             op = "invalidOperandTypesErrorHandler"
         else:
-            op = "orderBy"
+            op = operation
 
         function = "GpuSqlDispatcher::" + op + col + "<" + colVal + ">"
 

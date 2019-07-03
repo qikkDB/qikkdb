@@ -69,14 +69,6 @@ int32_t GpuSqlDispatcher::retCol()
 		outData = std::make_unique<T[]>(inSize);
 		//ToDo: Podmienene zapnut podla velkost buffera
 		//GPUMemory::hostPin(outData.get(), database->GetBlockSize());
-
-		if (usingOrderBy)
-		{
-			std::cout << "Reordering result block." << std::endl;
-			std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
-			GPUOrderBy::ReOrderByIdxInplace(reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)), inSize);
-		}
-
 		GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
 		//GPUMemory::hostUnregister(outData.get());
 		std::cout << "dataSize: " << outSize << std::endl;

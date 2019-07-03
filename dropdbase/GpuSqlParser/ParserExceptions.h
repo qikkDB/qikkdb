@@ -128,6 +128,14 @@ struct AggregationOrderByException : public std::exception
 	}
 };
 
+struct OrderByColumnAlreadyReferencedException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "The same column was referenced multiple times in ORDER BY clause.";
+	}
+};
+
 struct RetPolygonGroupByException : public std::exception
 {
     const char* what() const noexcept override

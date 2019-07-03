@@ -7,7 +7,6 @@
 #include "../Database.h"
 #include "../PointFactory.h"
 #include "../ComplexPolygonFactory.h"
-#include "../QueryEngine/OrderByType.h"
 #include "ParserExceptions.h"
 #include "JoinType.h"
 #include "GpuSqlDispatcher.h"
@@ -441,10 +440,6 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 /// <param name="ctx">Aggregation context</param>
 void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
 {
-	if (insideOrderBy)
-	{
-		throw AggregationOrderByException();
-	}
 	if (insideAgg)
 	{
 		throw NestedAggregationException();
@@ -521,9 +516,9 @@ void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 {
 	for (auto& retCol : returnColumns)
 	{
-		std::string colName = std::get<0>(retCol);
-		DataType retType = std::get<1>(retCol);
-		std::string alias = std::get<2>(retCol);
+		std::string colName = retCol.first;
+		DataType retType = std::get<0>(retCol.second);
+		std::string alias = std::get<1>(retCol.second);
 		dispatcher.addRetFunction(retType);
 		dispatcher.addArgument<const std::string&>(colName);
 		dispatcher.addArgument<const std::string&>(alias);
@@ -578,7 +573,7 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 		alias = colName;
 	}
 
-	returnColumns.push_back({ colName, retType, alias });
+	returnColumns.insert({ colName, {retType, alias } });
 	insideSelectColumn = false;
 	isAggSelectColumn = false;
 }
@@ -1074,6 +1069,38 @@ void GpuSqlListener::enterOrderByColumns(GpuSqlParser::OrderByColumnsContext * c
 
 void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext * ctx)
 {
+	for (auto& orderByColumn : orderByColumns)
+	{
+		std::string orderByColName = orderByColumn.first;
+		DataType dataType = std::get<0>(orderByColumn.second);
+		OrderBy::Order order = std::get<1>(orderByColumn.second);
+
+		dispatcher.addArgument<const std::string&>(orderByColName);
+		dispatcher.addArgument<int32_t>(static_cast<int32_t>(order));
+		dispatcher.addOrderByFunction(dataType);
+	}
+
+	for (auto& orderByColumn : orderByColumns)
+	{
+		std::string orderByColName = orderByColumn.first;
+		DataType dataType = std::get<0>(orderByColumn.second);
+
+		dispatcher.addArgument<const std::string&>(orderByColName);
+		dispatcher.addOrderByReconstructFunction(dataType);
+	}
+
+	for (auto& orderByColumn : returnColumns)
+	{
+		if (orderByColumns.find(orderByColumn.first) == orderByColumns.end())
+		{
+			std::string orderByColName = orderByColumn.first;
+			DataType dataType = std::get<0>(orderByColumn.second);
+
+			dispatcher.addArgument<const std::string&>(orderByColName);
+			dispatcher.addOrderByReconstructFunction(dataType);
+		}
+	}
+
 	insideOrderBy = false;
 	dispatcher.addFreeOrderByTableFunction();
 }
@@ -1083,8 +1110,13 @@ void GpuSqlListener::exitOrderByColumn(GpuSqlParser::OrderByColumnContext * ctx)
 {
 	std::pair<std::string, DataType> arg = stackTopAndPop();
 	std::string orderByColName = std::get<0>(arg);
-	DataType dataType = std::get<1>(arg);
 
+	if (orderByColumns.find(orderByColName) != orderByColumns.end())
+	{
+		throw OrderByColumnAlreadyReferencedException();
+	}
+
+	DataType dataType = std::get<1>(arg);
 	OrderBy::Order order = OrderBy::Order::ASC;
 
 	if (ctx->DIR())
@@ -1097,10 +1129,7 @@ void GpuSqlListener::exitOrderByColumn(GpuSqlParser::OrderByColumnContext * ctx)
 		}
 	}
 
-	dispatcher.addArgument<const std::string&>(orderByColName);
-	dispatcher.addArgument<int32_t>(static_cast<int32_t>(order));
-	dispatcher.addOrderByFunction(dataType);
-	insideOrderBy = false;
+	orderByColumns.insert({ orderByColName, { dataType, order } });
 }
 
 /// Method that executes on exit of INSERT INTO command

@@ -8,6 +8,7 @@
 #include "GpuSqlParser.h"
 #include "GpuSqlParserBaseListener.h"
 #include "../DataType.h"
+#include "../QueryEngine/OrderByType.h"
 #include <unordered_set>
 #include <unordered_map>
 #include <string>
@@ -30,7 +31,8 @@ private:
 	std::unordered_set<std::string> columnAliases;
     std::unordered_set<std::string> loadedTables;
 	int32_t linkTableIndex;
-	std::vector<std::tuple<std::string, DataType, std::string>> returnColumns;
+	std::unordered_map<std::string, std::pair<DataType, std::string>> returnColumns;
+	std::unordered_map<std::string, std::pair<DataType, OrderBy::Order>> orderByColumns;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
 	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
 
