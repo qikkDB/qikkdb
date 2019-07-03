@@ -136,10 +136,11 @@ public:
 		return std::make_pair(block->GetNullBitmask(), block->GetSize());
 	}
 
-	constexpr bool Nullable() const
+	virtual bool GetNullable() const override
 	{
 		return isNullable_;
 	}
+
 	T GetMax()
 	{
 		return max_;

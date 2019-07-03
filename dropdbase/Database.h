@@ -21,6 +21,7 @@ class Database
 
 private:
 	static std::mutex dbMutex_;
+	static constexpr const char* SEPARATOR = "@";
 	std::string name_;
 	int32_t blockSize_;
 	std::unordered_map<std::string, Table> tables_;
@@ -41,9 +42,9 @@ private:
 	/// <param name="name">Names of particular column.</param>
 	/// <param name="table">Names of particular table.</param>
 	static void WriteColumn(const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
-                     std::string pathStr,
-                     std::string name,
-                     const std::pair<const std::string, Table>& table);
+		std::string pathStr,
+		std::string name,
+		const std::pair<const std::string, Table>& table);
 
 public:
 	/// <summary>
@@ -123,7 +124,7 @@ public:
 	/// <param name="tableName">Table name.</param>
 	/// <returns>Newly created table.</returns>
 	Table& CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName);
-	Table& CreateTable(const std::unordered_map<std::string, std::pair<DataType,bool>>& columns, const char* tableName);
+
 	/// <summary>
 	/// Add database to in memory list.
 	/// </summary>

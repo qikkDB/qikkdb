@@ -72,7 +72,7 @@ public:
 	/// <param name="column">Column that will hold this new empty block.</param>
 	explicit BlockBase(ColumnBase<T>& column) :
 		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_]), bitMask_(nullptr),
-		isNullable_(column_.Nullable())
+		isNullable_(column_.GetNullable())
 	{
 		GPUMemory::hostPin(data_.get(), capacity_);
 		isCompressed_ = false;
@@ -265,7 +265,7 @@ public:
 		setBlockStatistics();
 	}
 
-	void SetNullMask(const std::vector<int8_t>& nullMask)
+	void SetNullBitmask(const std::vector<int8_t>& nullMask)
 	{
 		if(isNullable_)
 		{
