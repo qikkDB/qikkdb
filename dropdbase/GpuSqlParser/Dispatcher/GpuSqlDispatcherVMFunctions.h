@@ -46,6 +46,14 @@ int32_t GpuSqlDispatcher::retCol()
 		{
 			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end()? "_keys" : ""));
 			outSize = std::get<1>(col);
+
+			if (usingOrderBy)
+			{
+				std::cout << "Reordering result block." << std::endl;
+				std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
+				GPUOrderBy::ReOrderByIdxInplace(reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)), outSize);
+			}
+
 			outData = std::make_unique<T[]>(outSize);
 			GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(col)), outSize);
 		}

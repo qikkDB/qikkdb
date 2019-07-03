@@ -16,22 +16,52 @@ int32_t GpuSqlDispatcher::orderByCol()
 		return loadFlag;
 	}
 
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
-	int32_t retSize = std::get<1>(column);
-
-	if (orderByTable == nullptr)
+	
+	if (usingGroupBy)
 	{
-		orderByTable = std::make_unique<GPUOrderBy>(retSize);
-		int32_t* orderByIndices = allocateRegister<int32_t>("$orderByIndices", retSize);
-		usingOrderBy = true;
-	}
+		if (isOverallLastBlock)
+		{
+			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end() ? "_keys" : ""));
+			int32_t retSize = std::get<1>(column);
 
-	std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
-	orderByTable->OrderByColumn(
-		reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)),
-		reinterpret_cast<T*>(std::get<0>(column)),
-		retSize,
-		order);
+			if (orderByTable == nullptr)
+			{
+				orderByTable = std::make_unique<GPUOrderBy>(retSize);
+				int32_t* orderByIndices = allocateRegister<int32_t>("$orderByIndices", retSize);
+				usingOrderBy = true;
+			}
+
+			std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
+			orderByTable->OrderByColumn(
+				reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)),
+				reinterpret_cast<T*>(std::get<0>(column)),
+				retSize,
+				order);
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
+		int32_t retSize = std::get<1>(column);
+
+		if (orderByTable == nullptr)
+		{
+			orderByTable = std::make_unique<GPUOrderBy>(retSize);
+			int32_t* orderByIndices = allocateRegister<int32_t>("$orderByIndices", retSize);
+			usingOrderBy = true;
+		}
+
+		std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
+		orderByTable->OrderByColumn(
+			reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)),
+			reinterpret_cast<T*>(std::get<0>(column)),
+			retSize,
+			order);
+	}	
 
 	return 0;
 }

@@ -519,6 +519,16 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 /// <param name="ctx">Select Columns context</param>
 void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 {
+	for (auto& retCol : returnColumns)
+	{
+		std::string colName = std::get<0>(retCol);
+		DataType retType = std::get<1>(retCol);
+		std::string alias = std::get<2>(retCol);
+		dispatcher.addRetFunction(retType);
+		dispatcher.addArgument<const std::string&>(colName);
+		dispatcher.addArgument<const std::string&>(alias);
+	}
+
 	dispatcher.addJmpInstruction();
 	dispatcher.addDoneFunction();
 }
@@ -542,7 +552,7 @@ void GpuSqlListener::enterSelectColumn(GpuSqlParser::SelectColumnContext * ctx)
 void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 {
 	std::pair<std::string, DataType> arg = stackTopAndPop();
-
+	
 	if (!isAggSelectColumn && groupByColumns.find(arg) == groupByColumns.end() && usingGroupBy)
 	{
 		throw ColumnGroupByException();
@@ -550,12 +560,11 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 
 	std::string colName = std::get<0>(arg);
 	DataType retType = std::get<1>(arg);
-	dispatcher.addRetFunction(retType);
-	dispatcher.addArgument<const std::string&>(colName);
+	std::string alias;
 	
 	if (ctx->alias())
 	{
-		std::string alias = ctx->alias()->getText();
+		alias = ctx->alias()->getText();
 		trimDelimitedIdentifier(alias);
 
 		if (columnAliases.find(alias) != columnAliases.end())
@@ -563,13 +572,13 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 			throw AliasRedefinitionException();
 		}
 		columnAliases.insert(alias);
-		dispatcher.addArgument<const std::string&>(alias);
 	}
 	else
 	{
-		dispatcher.addArgument<const std::string&>(colName);
+		alias = colName;
 	}
 
+	returnColumns.push_back({ colName, retType, alias });
 	insideSelectColumn = false;
 	isAggSelectColumn = false;
 }
