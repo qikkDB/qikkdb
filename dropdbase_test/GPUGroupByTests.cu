@@ -4,9 +4,11 @@
 
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/QueryEngine/GPUCore/GPUGroupByString.cuh"
+#include "../dropdbase/QueryEngine/GPUCore/GPUGroupByMultiKey.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/AggregationFunctions.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/cuda_ptr.h"
+#include "../dropdbase/DataType.h"
 #include "../dropdbase/StringFactory.h"
 #include "gtest/gtest.h"
 
@@ -65,6 +67,196 @@ void TestGroupByString(std::vector<std::vector<std::string>> keys,
 }
 
 
+template <typename AGG>
+void TestGroupByMultiKey(std::vector<DataType> keyTypes,
+                         std::vector<std::vector<void*>> keys,
+                         std::vector<std::vector<int32_t>> values,
+                         std::vector<void*> correctKeys,
+                         std::vector<int32_t> correctValues)
+{
+    constexpr int32_t hashTableSize = 8;
+    GPUGroupBy<AGG, int32_t, std::vector<void*>, int32_t> groupBy(hashTableSize, keyTypes);
+    int32_t keysColCount = keyTypes.size();
+    for (int32_t b = 0; b < keys.size(); b++) // per "block"
+    {
+        // std::cout << "BLOCK " << b << ":" << std::endl;
+        int32_t dataElementCount = values[b].size();
+        std::vector<void*> gpuInKeys;
+        for (int32_t t = 0; t < keysColCount; t++)
+        {
+            switch (keyTypes[t])
+            {
+            case DataType::COLUMN_INT:
+            {
+                int32_t* inKeysSingleCol;
+                GPUMemory::alloc(&inKeysSingleCol, dataElementCount);
+                GPUMemory::copyHostToDevice(inKeysSingleCol, reinterpret_cast<int32_t*>(keys[b][t]), dataElementCount);
+                gpuInKeys.emplace_back(inKeysSingleCol);
+                break;
+            }
+            case DataType::COLUMN_LONG:
+            {
+                int64_t* inKeysSingleCol;
+                GPUMemory::alloc(&inKeysSingleCol, dataElementCount);
+                GPUMemory::copyHostToDevice(inKeysSingleCol, reinterpret_cast<int64_t*>(keys[b][t]), dataElementCount);
+                gpuInKeys.emplace_back(inKeysSingleCol);
+                break;
+            }
+            case DataType::COLUMN_FLOAT:
+            {
+                float* inKeysSingleCol;
+                GPUMemory::alloc(&inKeysSingleCol, dataElementCount);
+                GPUMemory::copyHostToDevice(inKeysSingleCol, reinterpret_cast<float*>(keys[b][t]), dataElementCount);
+                gpuInKeys.emplace_back(inKeysSingleCol);
+                break;
+            }
+            case DataType::COLUMN_DOUBLE:
+            {
+                double* inKeysSingleCol;
+                GPUMemory::alloc(&inKeysSingleCol, dataElementCount);
+                GPUMemory::copyHostToDevice(inKeysSingleCol, reinterpret_cast<double*>(keys[b][t]), dataElementCount);
+                gpuInKeys.emplace_back(inKeysSingleCol);
+                break;
+            }
+            case DataType::COLUMN_STRING:
+            {
+                // TODO implement
+                break;
+            }
+            case DataType::COLUMN_INT8_T:
+            {
+                int8_t* inKeysSingleCol;
+                GPUMemory::alloc(&inKeysSingleCol, dataElementCount);
+                GPUMemory::copyHostToDevice(inKeysSingleCol, reinterpret_cast<int8_t*>(keys[b][t]), dataElementCount);
+                gpuInKeys.emplace_back(inKeysSingleCol);
+                break;
+            }
+            default:
+                break;
+            }
+        }
+        cuda_ptr<int32_t> gpuInValues(dataElementCount);
+        GPUMemory::copyHostToDevice(gpuInValues.get(), values[b].data(), dataElementCount);
+
+        groupBy.groupBy(gpuInKeys, gpuInValues.get(), dataElementCount);
+        for (int32_t t = 0; t < keysColCount; t++)
+        {
+            GPUMemory::free(gpuInKeys[t]);
+        }
+    }
+    std::vector<void*> gpuResultKeys;
+    int32_t* resultValuesGpu;
+    int32_t resultCount;
+    groupBy.getResults(&gpuResultKeys, &resultValuesGpu, &resultCount);
+    std::vector<void*> cpuResultKeys;
+    for (int32_t t = 0; t < keysColCount; t++)
+    {
+        switch (keyTypes[t])
+        {
+        case DataType::COLUMN_INT:
+        {
+            int32_t* outKeysSingleCol = new int32_t(resultCount);
+            GPUMemory::copyDeviceToHost(outKeysSingleCol, reinterpret_cast<int32_t*>(gpuResultKeys[t]), resultCount);
+            cpuResultKeys.emplace_back(outKeysSingleCol);
+            break;
+        }
+        case DataType::COLUMN_LONG:
+        {
+            int64_t* outKeysSingleCol = new int64_t(resultCount);
+            GPUMemory::copyDeviceToHost(outKeysSingleCol, reinterpret_cast<int64_t*>(gpuResultKeys[t]), resultCount);
+            cpuResultKeys.emplace_back(outKeysSingleCol);
+            break;
+        }
+        case DataType::COLUMN_FLOAT:
+        {
+            float* outKeysSingleCol = new float(resultCount);
+            GPUMemory::copyDeviceToHost(outKeysSingleCol, reinterpret_cast<float*>(gpuResultKeys[t]), resultCount);
+            cpuResultKeys.emplace_back(outKeysSingleCol);
+            break;
+        }
+        case DataType::COLUMN_DOUBLE:
+        {
+            double* outKeysSingleCol = new double(resultCount);
+            GPUMemory::copyDeviceToHost(outKeysSingleCol, reinterpret_cast<double*>(gpuResultKeys[t]), resultCount);
+            cpuResultKeys.emplace_back(outKeysSingleCol);
+            break;
+        }
+        case DataType::COLUMN_STRING:
+        {
+            // TODO implement
+            break;
+        }
+        case DataType::COLUMN_INT8_T:
+        {
+            int8_t* outKeysSingleCol = new int8_t(resultCount);
+            GPUMemory::copyDeviceToHost(outKeysSingleCol, reinterpret_cast<int8_t*>(gpuResultKeys[t]), resultCount);
+            cpuResultKeys.emplace_back(outKeysSingleCol);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    std::unique_ptr<int32_t[]> resultValues = std::make_unique<int32_t[]>(resultCount);
+    GPUMemory::copyDeviceToHost(resultValues.get(), resultValuesGpu, resultCount);
+
+    for (int32_t t = 0; t < keysColCount; t++)
+    {
+        GPUMemory::free(gpuResultKeys[t]);
+    }
+    GPUMemory::free(resultValuesGpu);
+
+    ASSERT_EQ(correctKeys.size(), resultCount) << " wrong number of keys";
+    for (int32_t i = 0; i < resultCount; i++)
+    {
+        int32_t rowId = -1;
+        for (int32_t j = 0; j < resultCount; j++)
+        {
+            bool equals = true;
+            for (int32_t t = 0; t < keysColCount; t++)
+            {
+                switch (keyTypes[t])
+                {
+                case DataType::COLUMN_INT:
+                    equals &= (reinterpret_cast<int32_t*>(correctKeys[t])[j] == reinterpret_cast<int32_t*>(cpuResultKeys[t])[i]);
+                    break;
+                case DataType::COLUMN_LONG:
+                    equals &= (reinterpret_cast<int64_t*>(correctKeys[t])[j] == reinterpret_cast<int64_t*>(cpuResultKeys[t])[i]);
+                    break;
+                case DataType::COLUMN_FLOAT:
+                    equals &= (reinterpret_cast<float*>(correctKeys[t])[j] == reinterpret_cast<float*>(cpuResultKeys[t])[i]);
+                    break;
+                case DataType::COLUMN_DOUBLE:
+                    equals &= (reinterpret_cast<double*>(correctKeys[t])[j] == reinterpret_cast<double*>(cpuResultKeys[t])[i]);
+                    break;
+                case DataType::COLUMN_STRING:
+                    // TODO implement
+                    break;
+                case DataType::COLUMN_INT8_T:
+                    equals &= (reinterpret_cast<int8_t*>(correctKeys[t])[j] == reinterpret_cast<int8_t*>(cpuResultKeys[t])[i]);
+                    break;
+                default:
+                    break;
+                }
+            }
+            if (equals)
+            {
+                rowId = j;
+                break;
+            }
+        }
+        ASSERT_NE(rowId, -1) << " incorrect key";
+        ASSERT_EQ(correctValues[rowId], resultValues[i]) << " at correct result row " << rowId;
+    }
+
+    for (int32_t t = 0; t < keysColCount; t++)
+    {
+        delete cpuResultKeys[t];
+    }
+}
+
+
 TEST(GPUGroupByTests, StringUnique)
 {
     TestGroupByString<AggregationFunctions::sum>({{"Apple", "Abcd", "XYZ"}}, {{1, 2, -1}},
@@ -107,4 +299,35 @@ TEST(GPUGroupByTests, StringMultiBlockMediumMax)
         {{"Apple", "Abcd", "Apple", "XYZ"}, {"Banana", "XYZ", "Abcd", "0"}, {"XYZ", "XYZ"}},
         {{1, 2, 3, 4}, {5, 6, 7, 10}, {13, 15}},
         {{"Apple", 3}, {"Abcd", 7}, {"Banana", 5}, {"XYZ", 15}, {"0", 10}});
+}
+
+
+TEST(GPUGroupByTests, MultiKeyUnique)
+{
+    int32_t colA[] = {1, 1, 1, 1, 2, 3, 4, 0};
+    int32_t colB[] = {1, 2, 3, 4, 1, 1, 1, 0};
+    int32_t correctKeysA[] = {1, 1, 1, 1, 2, 3, 4, 0};
+    int32_t correctKeysB[] = {1, 2, 3, 4, 1, 1, 1, 0};
+    TestGroupByMultiKey<AggregationFunctions::sum>(
+        { DataType::COLUMN_INT, DataType::COLUMN_INT },
+        { { colA, colB } },
+        { { 1, 1, 1, 1, 1, 1, 1, 1 } },
+        { correctKeysA, correctKeysB },
+        { 1, 1, 1, 1, 1, 1, 1, 1 }
+    );
+}
+
+TEST(GPUGroupByTests, MultiKeySimple)
+{
+    int32_t colA[] = {1, 1, 1, 2, 1, 1, 2, 2};
+    int32_t colB[] = {1, 2, 3, 4, 1, 1, -1, -1};
+    int32_t correctKeysA[] = {1, 1, 1, 2, 2};
+    int32_t correctKeysB[] = {1, 2, 3, 4, -1};
+    TestGroupByMultiKey<AggregationFunctions::sum>(
+        { DataType::COLUMN_INT, DataType::COLUMN_INT },
+        { { colA, colB } },
+        { { 1, 1, 1, 1, 1, 1, 1, 1 } },
+        { correctKeysA, correctKeysB },
+        { 3, 1, 1, 1, 2 }
+    );
 }

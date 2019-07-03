@@ -132,7 +132,7 @@ private:
 public:
     /// Create GPUGroupBy object and allocate a hash table (buffers for key, values and key occurence counts)
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
-    GPUGroupBy(int32_t maxHashCount, const std::vector<DataType> keyTypes)
+    GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes)
     : maxHashCount_(maxHashCount), keysColCount_(keyTypes.size())
     {
         try
@@ -146,7 +146,9 @@ public:
                 switch (keyTypes[i])
                 {
                 case DataType::COLUMN_INT:
-                    GPUMemory::alloc(reinterpret_cast<int32_t**>(keysBuffer_ + i), maxHashCount_);
+                    int32_t * gpuKeyCol;
+                    GPUMemory::alloc(&gpuKeyCol, maxHashCount_);
+                    GPUMemory::copyHostToDevice(reinterpret_cast<int32_t**>(keysBuffer_ + i), &gpuKeyCol, 1);
                     break;
                 case DataType::COLUMN_LONG:
                     GPUMemory::alloc(reinterpret_cast<int64_t**>(keysBuffer_ + i), maxHashCount_);
@@ -259,12 +261,12 @@ public:
             kernel_group_by_multi_key<AGG>
                 <<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
                     keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, values_, keyOccurenceCount_,
-                    maxHashCount_, inKeys, inValues, dataElementCount, errorFlagSwapper_.GetFlagPointer());
+                    maxHashCount_, inKeys.get(), inValues, dataElementCount, errorFlagSwapper_.GetFlagPointer());
             errorFlagSwapper_.Swap();
 
             // Collect multi-keys from inKeys according to sourceIndices
             kernel_collect_multi_keys<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
-                keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, maxHashCount_, inKeys);
+                keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, maxHashCount_, inKeys.get());
 
             CheckCudaError(cudaGetLastError());
         }
@@ -303,11 +305,14 @@ public:
             {
             case DataType::COLUMN_INT:
             {
+                int32_t* keyBufferSingleCol;
+                GPUMemory::copyDeviceToHost(&keyBufferSingleCol, reinterpret_cast<int32_t**>(keysBuffer_+t), 1);
                 int32_t* outKeysSingleCol;
+
                 GPUReconstruct::reconstructColKeep(&outKeysSingleCol, outDataElementCount,
-                                                   reinterpret_cast<int32_t*>(keysBuffer_[t]),
+                                                   keyBufferSingleCol,
                                                    occupancyMask.get(), maxHashCount_);
-                outKeysVector.emplace_back(outKeysSingleCol);
+                outKeysVector->emplace_back(outKeysSingleCol);
                 break;
             }
             case DataType::COLUMN_LONG:
@@ -316,7 +321,7 @@ public:
                 GPUReconstruct::reconstructColKeep(&outKeysSingleCol, outDataElementCount,
                                                    reinterpret_cast<int64_t*>(keysBuffer_[t]),
                                                    occupancyMask.get(), maxHashCount_);
-                outKeysVector.emplace_back(outKeysSingleCol);
+                outKeysVector->emplace_back(outKeysSingleCol);
                 break;
             }
             case DataType::COLUMN_FLOAT:
@@ -325,7 +330,7 @@ public:
                 GPUReconstruct::reconstructColKeep(&outKeysSingleCol, outDataElementCount,
                                                    reinterpret_cast<float*>(keysBuffer_[t]),
                                                    occupancyMask.get(), maxHashCount_);
-                outKeysVector.emplace_back(outKeysSingleCol);
+                outKeysVector->emplace_back(outKeysSingleCol);
                 break;
             }
             case DataType::COLUMN_DOUBLE:
@@ -334,7 +339,7 @@ public:
                 GPUReconstruct::reconstructColKeep(&outKeysSingleCol, outDataElementCount,
                                                    reinterpret_cast<double*>(keysBuffer_[t]),
                                                    occupancyMask.get(), maxHashCount_);
-                outKeysVector.emplace_back(outKeysSingleCol);
+                outKeysVector->emplace_back(outKeysSingleCol);
                 break;
             }
             case DataType::COLUMN_STRING:
@@ -348,7 +353,7 @@ public:
                 GPUReconstruct::reconstructColKeep(&outKeysSingleCol, outDataElementCount,
                                                    reinterpret_cast<int8_t*>(keysBuffer_[t]),
                                                    occupancyMask.get(), maxHashCount_);
-                outKeysVector.emplace_back(outKeysSingleCol);
+                outKeysVector->emplace_back(outKeysSingleCol);
                 break;
             }
             default:
