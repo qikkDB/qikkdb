@@ -155,28 +155,28 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
         {
         case DataType::COLUMN_INT:
         {
-            int32_t* outKeysSingleCol = new int32_t(resultCount);
+            int32_t* outKeysSingleCol = new int32_t[resultCount];
             GPUMemory::copyDeviceToHost(outKeysSingleCol, reinterpret_cast<int32_t*>(gpuResultKeys[t]), resultCount);
             cpuResultKeys.emplace_back(outKeysSingleCol);
             break;
         }
         case DataType::COLUMN_LONG:
         {
-            int64_t* outKeysSingleCol = new int64_t(resultCount);
+            int64_t* outKeysSingleCol = new int64_t[resultCount];
             GPUMemory::copyDeviceToHost(outKeysSingleCol, reinterpret_cast<int64_t*>(gpuResultKeys[t]), resultCount);
             cpuResultKeys.emplace_back(outKeysSingleCol);
             break;
         }
         case DataType::COLUMN_FLOAT:
         {
-            float* outKeysSingleCol = new float(resultCount);
+            float* outKeysSingleCol = new float[resultCount];
             GPUMemory::copyDeviceToHost(outKeysSingleCol, reinterpret_cast<float*>(gpuResultKeys[t]), resultCount);
             cpuResultKeys.emplace_back(outKeysSingleCol);
             break;
         }
         case DataType::COLUMN_DOUBLE:
         {
-            double* outKeysSingleCol = new double(resultCount);
+            double* outKeysSingleCol = new double[resultCount];
             GPUMemory::copyDeviceToHost(outKeysSingleCol, reinterpret_cast<double*>(gpuResultKeys[t]), resultCount);
             cpuResultKeys.emplace_back(outKeysSingleCol);
             break;
@@ -188,7 +188,7 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
         }
         case DataType::COLUMN_INT8_T:
         {
-            int8_t* outKeysSingleCol = new int8_t(resultCount);
+            int8_t* outKeysSingleCol = new int8_t[resultCount];
             GPUMemory::copyDeviceToHost(outKeysSingleCol, reinterpret_cast<int8_t*>(gpuResultKeys[t]), resultCount);
             cpuResultKeys.emplace_back(outKeysSingleCol);
             break;
@@ -207,7 +207,7 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
     }
     GPUMemory::free(resultValuesGpu);
 
-    ASSERT_EQ(correctKeys.size(), resultCount) << " wrong number of keys";
+    ASSERT_EQ(correctValues.size(), resultCount) << " wrong number of keys";
     for (int32_t i = 0; i < resultCount; i++)
     {
         int32_t rowId = -1;
@@ -252,7 +252,7 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
 
     for (int32_t t = 0; t < keysColCount; t++)
     {
-        delete cpuResultKeys[t];
+        delete[] cpuResultKeys[t];
     }
 }
 
