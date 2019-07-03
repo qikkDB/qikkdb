@@ -103,7 +103,7 @@ int32_t GpuSqlDispatcher::orderByReconstructOrderCol()
 		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_) , inSize);
 		outData->resize(outSize);
 
-		reconstructedOrderByColumns[colName].push_back(std::move(outData));
+		reconstructedOrderByColumnBlocks[colName].push_back(std::move(outData));
 	}
 	return 0;
 }
@@ -139,7 +139,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetCol()
 		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
 		outData->resize(outSize);
 
-		reconstructedOrderByColumns[colName].push_back(std::move(outData));
+		reconstructedOrderByColumnBlocks[colName].push_back(std::move(outData));
 	}
 	return 0;
 }
