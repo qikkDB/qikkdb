@@ -11,7 +11,7 @@ namespace ColmnarDB.BenchmarkUtility
     public class TempProgram
     {
         public static readonly string IpAddress = "127.0.0.1";
-        public static readonly short Port = 54321;
+        public static readonly short Port = 12346;
 
         public static readonly string taxiDbName = "TaxiRidesDb";
 		public static readonly string csvFileName = "trips.csv";
