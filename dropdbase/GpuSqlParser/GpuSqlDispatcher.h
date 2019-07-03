@@ -210,7 +210,9 @@ private:
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE> orderByFunctions;
 	static std::array<DispatchFunction,
-			DataType::DATA_TYPE_SIZE> orderByReconstructFunctions;
+			DataType::DATA_TYPE_SIZE> orderByReconstructOrderFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> orderByReconstructRetFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
@@ -439,7 +441,9 @@ public:
 
 	void addOrderByFunction(DataType type);
 
-	void addOrderByReconstructFunction(DataType type);
+	void addOrderByReconstructOrderFunction(DataType type);
+
+	void addOrderByReconstructRetFunction(DataType type);
 
 	void addFreeOrderByTableFunction();
 
@@ -533,10 +537,16 @@ public:
 	int32_t orderByCol();
 
 	template<typename T>
-	int32_t orderByReconstructConst();
+	int32_t orderByReconstructOrderConst();
 
 	template<typename T>
-	int32_t orderByReconstructCol();
+	int32_t orderByReconstructOrderCol();
+
+	template<typename T>
+	int32_t orderByReconstructRetConst();
+
+	template<typename T>
+	int32_t orderByReconstructRetCol();
 
 	int32_t orderByReconstructInputColsGlobal();
 

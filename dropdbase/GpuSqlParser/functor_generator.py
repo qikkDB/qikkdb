@@ -584,7 +584,7 @@ for operation in operations_string_unary:
     print(declaration)
 print()
 
-for operation in ['orderBy', 'orderByReconstruct']:
+for operation in ['orderBy', 'orderByReconstructOrder', 'orderByReconstructRet']:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 

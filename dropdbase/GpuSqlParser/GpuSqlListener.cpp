@@ -1086,18 +1086,18 @@ void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext * ct
 		DataType dataType = std::get<0>(orderByColumn.second);
 
 		dispatcher.addArgument<const std::string&>(orderByColName);
-		dispatcher.addOrderByReconstructFunction(dataType);
+		dispatcher.addOrderByReconstructOrderFunction(dataType);
 	}
 
-	for (auto& orderByColumn : returnColumns)
+	for (auto& returnColumn : returnColumns)
 	{
-		if (orderByColumns.find(orderByColumn.first) == orderByColumns.end())
+		if (orderByColumns.find(returnColumn.first) == orderByColumns.end())
 		{
-			std::string orderByColName = orderByColumn.first;
-			DataType dataType = std::get<0>(orderByColumn.second);
+			std::string returnColName = returnColumn.first;
+			DataType dataType = std::get<0>(returnColumn.second);
 
-			dispatcher.addArgument<const std::string&>(orderByColName);
-			dispatcher.addOrderByReconstructFunction(dataType);
+			dispatcher.addArgument<const std::string&>(returnColName);
+			dispatcher.addOrderByReconstructRetFunction(dataType);
 		}
 	}
 
