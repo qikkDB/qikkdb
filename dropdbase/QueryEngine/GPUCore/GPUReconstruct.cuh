@@ -297,12 +297,14 @@ public:
 
 			// Call keep version
 			GenerateIndexesKeep(&outDataGPUPointer, outDataElementCount, inMask, dataElementCount);
+			if (*outDataElementCount > 0)
+			{
+				// Copy the generated output from GPU (device) to host
+				GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
 
-			// Copy the generated output from GPU (device) to host
-			GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
-
-			// Free the memory
-			GPUMemory::free(outDataGPUPointer);
+				// Free the memory
+				GPUMemory::free(outDataGPUPointer);
+			}
 		}
 		else
 		{
