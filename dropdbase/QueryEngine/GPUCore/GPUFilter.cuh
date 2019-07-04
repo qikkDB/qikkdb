@@ -192,7 +192,7 @@ __global__ void kernel_filter_string(int8_t *outMask, GPUMemory::GPUString input
 		const int32_t bLength = static_cast<int32_t>(inputB.stringIndices[bI] - bIndex);
 		if(nullBitMask != nullptr)
 		{
-			outMask[i] = OP{}.compareStrings(inputA.allChars + aIndex, aLength, inputB.allChars + bIndex, bLength) && ((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
+			outMask[i] = OP{}.compareStrings(inputA.allChars + aIndex, aLength, inputB.allChars + bIndex, bLength) && !((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
 		}
 		else
 		{

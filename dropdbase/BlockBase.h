@@ -283,7 +283,16 @@ public:
 	{
 		if (isNullable_)
 		{
+			if (bitMask_)
+			{
+				GPUMemory::hostUnregister(bitMask_.get());
+			}
 			bitMask_ = std::move(nullMask);
+			if (bitMask_)
+			{
+				int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+				GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
+			}
 			setBlockStatistics();
 		}
 	}
