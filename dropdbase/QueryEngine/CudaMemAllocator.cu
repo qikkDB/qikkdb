@@ -99,7 +99,7 @@ void CudaMemAllocator::deallocate(int8_t * ptr, size_t numBytes)
 	auto allocListIt = allocatedBlocks_.find(ptr);
 	if (allocListIt == allocatedBlocks_.end())
 	{
-		return;
+		throw std::out_of_range("Attempted to free unallocated pointer");
 	}
 	auto listIt = (*allocListIt).second;
 	allocatedBlocks_.erase(allocListIt);
