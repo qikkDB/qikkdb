@@ -4,6 +4,7 @@
 #include "../../QueryEngine/GPUCore/GPUOrderBy.cuh"
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include "../../QueryEngine/OrderByType.h"
+#include "../../QueryEngine/GPUCore/cuda_ptr.h"
 #include "../../VariantArray.h"
 
 template<typename T>
@@ -96,14 +97,16 @@ int32_t GpuSqlDispatcher::orderByReconstructOrderCol()
 		std::unique_ptr<VariantArray<T>> outData = std::make_unique<VariantArray<T>>();
 		outData->resize(inSize);
 
+		cuda_ptr<T> reorderedColumn(inSize);
+
 		std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
-		GPUOrderBy::ReOrderByIdxInplace(reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)), std::get<1>(col));
+		GPUOrderBy::ReOrderByIdx(reorderedColumn.get(), reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)), reinterpret_cast<T*>(std::get<0>(col)), std::get<1>(col));
 		
 		int32_t outSize;
-		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_) , inSize);
+		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reorderedColumn.get(), reinterpret_cast<int8_t*>(filter_) , inSize);
 		outData->resize(outSize);
 
-		reconstructedOrderByColumnBlocks[colName].push_back(std::move(outData));
+		reconstructedOrderByOrderColumnBlocks[colName].push_back(std::move(outData));
 	}
 	return 0;
 }
@@ -139,7 +142,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetCol()
 		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
 		outData->resize(outSize);
 
-		reconstructedOrderByColumnBlocks[colName].push_back(std::move(outData));
+		reconstructedOrderByRetColumnBlocks[colName].push_back(std::move(outData));
 	}
 	return 0;
 }

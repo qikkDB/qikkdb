@@ -62,7 +62,8 @@ private:
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 	
 	std::unique_ptr<GPUOrderBy> orderByTable;
-	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByColumnBlocks;
+	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
+	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
 	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged;
 	std::unordered_map<int32_t, std::pair<std::string, OrderBy::Order>> orderByColumns;
 	std::vector<std::vector<int32_t>> orderByIndices;
