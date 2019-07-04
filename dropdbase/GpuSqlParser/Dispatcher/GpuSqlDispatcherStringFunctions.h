@@ -402,12 +402,12 @@ int32_t GpuSqlDispatcher::stringBinaryColConst()
 			{
 				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				int8_t * combinedMask = allocateRegister<int8_t>(reg + "_null",bitMaskSize);
-				fillStringRegister(result, reg, retSize, true, combinedMask);
+				fillStringRegister(result, reg, retSize, false, combinedMask);
 				GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(column)), bitMaskSize);
 			}
 			else
 			{
-				fillStringRegister(result, reg, retSize, true);
+				fillStringRegister(result, reg, retSize, false);
 			}
 		}
 	}
@@ -447,12 +447,12 @@ int32_t GpuSqlDispatcher::stringBinaryConstCol()
 			{
 				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				int8_t * combinedMask = allocateRegister<int8_t>(reg + "_null",bitMaskSize);
-				fillStringRegister(result, reg, retSize, true, combinedMask);
+				fillStringRegister(result, reg, retSize, false, combinedMask);
 				GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(column)), bitMaskSize);
 			}
 			else
 			{
-				fillStringRegister(result, reg, retSize, true);
+				fillStringRegister(result, reg, retSize, false);
 			}
 		}
 	}
@@ -475,7 +475,7 @@ int32_t GpuSqlDispatcher::stringBinaryConstConst()
 	{
 		GPUMemory::GPUString result;
 		GPUStringBinary::ConstConst<OP>(result, gpuStringLeft, gpuStringRight, 1);
-		fillStringRegister(result, reg, 1, true);
+		fillStringRegister(result, reg, 1, false);
 	}
 	return 0;
 }

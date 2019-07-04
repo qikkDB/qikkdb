@@ -766,10 +766,6 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 		if (ptr.second.gpuPtr != 0 && ptr.second.shouldBeFreed)
 		{
 			GPUMemory::free(reinterpret_cast<void*>(ptr.second.gpuPtr));
-			if(ptr.second.gpuNullMaskPtr)
-			{
-				GPUMemory::free(reinterpret_cast<void*>(ptr.second.gpuNullMaskPtr));
-			}
 		}
 	}
 	usedRegisterMemory = 0;
