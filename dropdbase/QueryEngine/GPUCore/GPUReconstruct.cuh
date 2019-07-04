@@ -132,14 +132,17 @@ public:
 
 				// Copy the generated output back from the GPU
 				GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
-				if(nullMask)
+				if(outNullMaskGPUPointer)
 				{
 					size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
 					GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
 					GPUMemory::free(outNullMaskGPUPointer);
 				}
 				// Free the memory
-				GPUMemory::free(outDataGPUPointer);
+				if(outDataGPUPointer)
+				{
+					GPUMemory::free(outDataGPUPointer);
+				}
 			}
 			catch(...)
 			{

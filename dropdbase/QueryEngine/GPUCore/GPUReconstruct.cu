@@ -277,7 +277,7 @@ void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *o
 	{
 		int8_t* outNullMaskGPUPointer = nullptr;
 		ReconstructStringColKeep(&outStringCol, outDataElementCount, inStringCol, inMask, inDataElementCount, &outNullMaskGPUPointer, nullMask);
-		if(nullMask)
+		if(outNullMaskGPUPointer)
 		{
 			size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
 			GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
@@ -459,7 +459,10 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string *outStringData, int32_t
 	}
 	GPUMemory::GPUString gpuWkt;
 	ConvertPolyColToWKTCol(&gpuWkt, reconstructedPolygonCol, *outDataElementCount);
-	GPUMemory::free(reconstructedPolygonCol);
+	if(inMask)
+	{
+		GPUMemory::free(reconstructedPolygonCol);
+	}
 	// Use reconstruct without mask - just to convert GPUString to CPU string array
 	ReconstructStringCol(outStringData, outDataElementCount, gpuWkt, nullptr, *outDataElementCount);
 	GPUMemory::free(gpuWkt);
