@@ -10855,7 +10855,6 @@ TEST(DispatcherTests, CreateAlterDropTable)
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
 }
 
-<<<<<<< HEAD
 TEST(DispatcherTests, IsNull)
 {
 	Context::getInstance();
@@ -10863,7 +10862,6 @@ TEST(DispatcherTests, IsNull)
 	auto resultPtr = parser.parse();
 }
 
-=======
 TEST(DispatcherTests, JoinSimpleTest)
 {
 	Context::getInstance();
@@ -11232,4 +11230,3 @@ TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
 
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA%^&*()-+") == DispatcherObjs::GetInstance().database->GetTables().end());
 }
->>>>>>> develop

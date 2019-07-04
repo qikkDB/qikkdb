@@ -127,11 +127,12 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 			int8_t* nullMaskPtr = nullptr;
 			auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
 			size_t realSize;
+			std::tuple<T*, size_t, bool> cacheEntry;
 			if (block->IsCompressed())
 			{
 				size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
 				size_t compressedSize = block->GetSize();
-				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+				cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
 					database->GetName(), colName, blockIndex, uncompressedSize);
 				if (!std::get<2>(cacheEntry))
 				{
@@ -155,11 +156,10 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 				}
 				
 				realSize = uncompressedSize;
-				addCachedRegister(colName, std::get<0>(cacheEntry), uncompressedSize, nullMaskPtr);
 			}
 			else
 			{
-				auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+				cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
 					database->GetName(), colName, blockIndex, block->GetSize());
 				if (!std::get<2>(cacheEntry))
 				{
@@ -169,7 +169,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 				realSize = block->GetSize();
 				
 			}
-			
+
 			if(block->GetNullBitmask())
 			{
 				int32_t bitMaskCapacity = ((realSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));

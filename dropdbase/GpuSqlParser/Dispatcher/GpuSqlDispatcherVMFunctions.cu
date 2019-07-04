@@ -391,7 +391,7 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 	}
 	else
 	{
-		std::tuple<GPUMemory::GPUString, int32_t> col = findStringColumn(getAllocatedRegisterName(colName));
+		auto col = findStringColumn(getAllocatedRegisterName(colName));
 		outSize = std::get<1>(col);
 		outData = std::make_unique<std::string[]>(outSize);
 		if(std::get<2>(col))
