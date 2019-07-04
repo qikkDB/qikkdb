@@ -132,7 +132,7 @@ public:
 
 	virtual std::pair<int8_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) override
 	{
-		auto& block = GetBlocksList()[blockIndex];
+		auto block = GetBlocksList()[blockIndex];
 		return std::make_pair(block->GetNullBitmask(), block->GetSize());
 	}
 

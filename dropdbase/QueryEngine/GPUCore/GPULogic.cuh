@@ -48,14 +48,27 @@ __global__ void kernel_logic(T *outCol, U ACol, V BCol, int8_t* nullBitMask, int
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		int bitMaskIdx = (i / (sizeof(char)*8));
-		int shiftIdx = (i % (sizeof(char)*8));
-		outCol[i] = OP{}.template operator()
-			<
-			T,
-			typename std::remove_pointer<U>::type,
-			typename std::remove_pointer<V>::type >
-			(maybe_deref(ACol, i), maybe_deref(BCol, i)) && ((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
+		if(nullBitMask)
+		{
+			int bitMaskIdx = (i / (sizeof(char)*8));
+			int shiftIdx = (i % (sizeof(char)*8));
+			outCol[i] = OP{}.template operator()
+				<
+				T,
+				typename std::remove_pointer<U>::type,
+				typename std::remove_pointer<V>::type >
+				(maybe_deref(ACol, i), maybe_deref(BCol, i)) && !((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
+		}
+		else
+		{
+			outCol[i] = OP{}.template operator()
+				<
+				T,
+				typename std::remove_pointer<U>::type,
+				typename std::remove_pointer<V>::type >
+				(maybe_deref(ACol, i), maybe_deref(BCol, i));
+		}
+		
 	}
 }
 
@@ -72,9 +85,17 @@ __global__ void kernel_operator_not(T *outCol, U ACol, int8_t* nullBitMask, int3
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		int bitMaskIdx = (i / (sizeof(char)*8));
-		int shiftIdx = (i % (sizeof(char)*8));
-		outCol[i] = !maybe_deref<typename std::remove_pointer<U>::type>(ACol, i) && ((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
+		if(nullBitMask)
+		{
+			int bitMaskIdx = (i / (sizeof(char)*8));
+			int shiftIdx = (i % (sizeof(char)*8));
+			outCol[i] = !maybe_deref<typename std::remove_pointer<U>::type>(ACol, i) && !((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
+		}
+		else
+		{
+			outCol[i] = !maybe_deref<typename std::remove_pointer<U>::type>(ACol, i);
+		}
+		
 	}
 }
 

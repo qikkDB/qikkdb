@@ -48,7 +48,7 @@ int32_t GpuSqlDispatcher::aggregationCol()
 	}
 	else
 	{
-		GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<IN*>(column.shouldBeFreed), reinterpret_cast<int8_t*>(filter_), column.elementCount);
+		GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<IN*>(column.gpuPtr), reinterpret_cast<int8_t*>(filter_), column.elementCount);
 	}
 
 	if (column.shouldBeFreed)

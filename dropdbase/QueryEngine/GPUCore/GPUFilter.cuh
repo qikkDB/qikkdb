@@ -149,11 +149,21 @@ __global__ void kernel_filter(int8_t *outMask, T ACol, U BCol, int8_t* nullBitMa
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		int bitMaskIdx = (i / (sizeof(char)*8));
-		int shiftIdx = (i % (sizeof(char)*8));
-		outMask[i] = OP{}.template operator()
-			< typename std::remove_pointer<T>::type, typename std::remove_pointer<U>::type >
-			(maybe_deref(ACol, i), maybe_deref(BCol, i)) && ((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
+		if(nullBitMask)
+		{
+			int bitMaskIdx = (i / (sizeof(char)*8));
+			int shiftIdx = (i % (sizeof(char)*8));
+			outMask[i] = OP{}.template operator()
+				< typename std::remove_pointer<T>::type, typename std::remove_pointer<U>::type >
+				(maybe_deref(ACol, i), maybe_deref(BCol, i)) && !((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
+		}
+		else
+		{
+			outMask[i] = OP{}.template operator()
+				< typename std::remove_pointer<T>::type, typename std::remove_pointer<U>::type >
+				(maybe_deref(ACol, i), maybe_deref(BCol, i));
+		}
+		
 	}
 }
 
