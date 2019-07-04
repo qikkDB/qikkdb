@@ -16,6 +16,7 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUCompressionTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/OrderByMergeTests.cpp
 				)
 
 set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu

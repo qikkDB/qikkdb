@@ -30,151 +30,163 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 	std::unordered_map<int32_t, std::pair<std::string, OrderBy::Order>> orderByColumns;
 	*/
 
-	// Count and allocate the result vectors for the output map
-	int32_t resultSetSize = 0;
-	int32_t resultSetCounter = 0;
-
-	// Allocate a vector of merge pointers to the input vectors - counters that hold the merge positions - initialize them to zero
-	// Allocate a vector that holds the sizes of the input blocks - the length of this vector equals to the number of input blocks
-	int32_t blockCount = reconstructedOrderByOrderColumnBlocks.begin()->second.size();
-	std::vector<int32_t> merge_counters(blockCount, 0);
-	std::vector<int32_t> merge_limits(blockCount);
-
-	for(int32_t i = 0; i < blockCount; i++)
+	if(isOverallLastBlock)
 	{
-		int32_t blockSize = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks.begin()->second[i].get())->GetSize();
-		resultSetSize += blockSize;
-		merge_limits.push_back(blockSize);
-	}
+		// Count and allocate the result vectors for the output map
+		int32_t resultSetSize = 0;
+		int32_t resultSetCounter = 0;
 
-	// Allocate the result map
-	for(int32_t i = orderByColumns.size() - 1; i >= 0; i--)
-	{
-		reconstructedOrderByColumnsMerged[orderByColumns[i].first] = std::make_unique<VariantArray<int32_t>>(resultSetSize);
-	}
+		// Allocate a vector of merge pointers to the input vectors - counters that hold the merge positions - initialize them to zero
+		// Allocate a vector that holds the sizes of the input blocks - the length of this vector equals to the number of input blocks
+		int32_t blockCount = reconstructedOrderByOrderColumnBlocks.begin()->second.size();
+		std::vector<int32_t> merge_counters(blockCount, 0);
+		std::vector<int32_t> merge_limits(blockCount);
 
-	//Write the results to the result map
-	bool dataMerged = false;
-	while(dataMerged != true)
-	{
-		// Merge the input arrays to the output arrays
-		// Check each entry from left to right (the numbers are in inverse because of the dispatcher)
+		for(int32_t i = 0; i < blockCount; i++)
+		{
+			int32_t blockSize = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks.begin()->second[i].get())->GetSize();
+			resultSetSize += blockSize;
+			merge_limits.push_back(blockSize);
+		}
+		std::printf("BLOCK COUNT %d\n", blockCount);
+
+		// Allocate the result map
 		for(int32_t i = orderByColumns.size() - 1; i >= 0; i--)
 		{
-			// Check if all values pointed to by the counters are equal, if yes - proceed to the next column
-			bool valuesAreEqual = true;
-			int32_t firstNonzeroMergeCounterIdx = -1;
-			int32_t lastValue = -1;
-			for(int32_t j = 0; j < merge_counters.size(); j++)
+			reconstructedOrderByColumnsMerged[orderByColumns[i].first] = std::make_unique<VariantArray<int32_t>>(resultSetSize);
+		}
+		std::printf("RESULT SET SIZE %d\n", resultSetSize);
+
+		//Write the results to the result map
+		bool dataMerged = false;
+		while(dataMerged != true)
+		{
+			// Merge the input arrays to the output arrays
+			// Check each entry from left to right (the numbers are in inverse because of the dispatcher)
+			for(int32_t i = orderByColumns.size() - 1; i >= 0; i--)
 			{
-				if(lastValue == -1 && merge_counters[j] < merge_limits[j]) {
-					lastValue = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
-					firstNonzeroMergeCounterIdx = j;
+				// Check if all values pointed to by the counters are equal, if yes - proceed to the next column
+				bool valuesAreEqual = true;
+				int32_t firstNonzeroMergeCounterIdx = -1;
+				int32_t lastValue = -1;
+				for(int32_t j = 0; j < merge_counters.size(); j++)
+				{
+					if(lastValue == -1 && merge_counters[j] < merge_limits[j]) {
+						lastValue = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+						firstNonzeroMergeCounterIdx = j;
+					}
+					else if (merge_counters[j] < merge_limits[j]) {
+						int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+						if(lastValue != value)
+						{
+							valuesAreEqual = false;
+							break;
+						}
+					}
 				}
-				else if (merge_counters[j] < merge_limits[j]) {
-					int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
-					if(lastValue != value)
+
+				// If no first nonzero index was found - there are no entries left - terminate the while loop
+				if(firstNonzeroMergeCounterIdx == -1)
+				{
+					dataMerged = true;
+					break;
+				}
+
+				// If all values in the valid merge pointers are equal - continue to the next column
+				// If this column is the last column - insert the next value and exit the loop
+				if(valuesAreEqual && i > 0)
+				{
+					continue;
+				}
+				else if(valuesAreEqual && i == 0)
+				{
+					// TODO instert a tuple at first nonzero place and break
+					if(resultSetCounter < resultSetSize)
 					{
-						valuesAreEqual = false;
+						for(int32_t k = orderByColumns.size() - 1; k >= 0; k--)
+						{  	
+							int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByRetColumnBlocks[orderByColumns[k].first][firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
+							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[k].first].get())->getData()[resultSetCounter] = value;
+						}
+						resultSetCounter++;
+					}
+					else {
+						//result set is full - need to break the while cycle - THIS MAY BE FAULTY !!!
+						dataMerged = true;
 						break;
 					}
-				}
-			}
 
-			// If no first nonzero index was found - there are no entries left - terminate the while loop
-			if(firstNonzeroMergeCounterIdx == -1)
-			{
-				dataMerged = true;
-				break;
-			}
-
-			// If all values in the valid merge pointers are equal - continue to the next column
-			// If this column is the last column - insert the next value and exit the loop
-			if(valuesAreEqual && i > 0)
-			{
-				continue;
-			}
-			else if(valuesAreEqual && i == 0)
-			{
-				// TODO instert a tuple at first nonzero place and break
-				if(resultSetCounter < resultSetSize)
-				{
-					for(int32_t k = orderByColumns.size() - 1; k >= 0; k--)
-					{  	
-						int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByRetColumnBlocks[orderByColumns[k].first][firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
-						dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[k].first].get())->getData()[resultSetCounter] = value;
-					}
-					resultSetCounter++;
-				}
-				else {
-					//result set is full - need to break the while cycle - THIS MAY BE FAULTY !!!
-					dataMerged = true;
+					merge_counters[firstNonzeroMergeCounterIdx]++;
 					break;
 				}
 
-				merge_counters[firstNonzeroMergeCounterIdx]++;
-				break;
-			}
+				// If values are not equal
+				// If given column is ASC - find a global minimum
+				// else if given column is DESC - find a global maximum
+				// Find global minimum or maximum depending on the column type - neeed to distinguish between different data types
+				
+				int32_t mergeCounterIdx = -1;
+				int32_t minimum = std::numeric_limits<int32_t>::max();
+				int32_t maximum = std::numeric_limits<int32_t>::lowest();
 
-			// If values are not equal
-			// If given column is ASC - find a global minimum
-			// else if given column is DESC - find a global maximum
-			// Find global minimum or maximum depending on the column type - neeed to distinguish between different data types
-			
-			int32_t mergeCounterIdx = -1;
-			int32_t minimum = std::numeric_limits<int32_t>::max();
-			int32_t maximum = std::numeric_limits<int32_t>::lowest();
-
-			for(int32_t j = 0; j < merge_counters.size(); j++)
-			{
-				// Check if we are within the merged block sizes
-				if(orderByColumns[i].second == OrderBy::Order::ASC && merge_counters[j] < merge_limits[j]) {
-					// Get the value from the block to which the merge counter points
-					int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
-					if(minimum > value)
-					{
-						minimum = value;
-						mergeCounterIdx = j;
-					}
-				}
-				else if(orderByColumns[i].second == OrderBy::Order::DESC && merge_counters[j] < merge_limits[j]) {
-					// Get the value from the block to which the merge counter points
-					int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
-					if(maximum < value)
-					{
-						maximum = value;
-						mergeCounterIdx = j;
-					}
-				}
-			}
-
-			// If an extrem was found (min or max)
-			if(mergeCounterIdx != -1)
-			{
-				// Insert and break
-				if(resultSetCounter < resultSetSize)
+				for(int32_t j = 0; j < merge_counters.size(); j++)
 				{
-					for(int32_t k = orderByColumns.size() - 1; k >= 0; k--)
-					{  	
-						int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByRetColumnBlocks[orderByColumns[k].first][mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
-						dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[k].first].get())->getData()[resultSetCounter] = value;
+					// Check if we are within the merged block sizes
+					if(orderByColumns[i].second == OrderBy::Order::ASC && merge_counters[j] < merge_limits[j]) {
+						// Get the value from the block to which the merge counter points
+						int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+						if(minimum > value)
+						{
+							minimum = value;
+							mergeCounterIdx = j;
+						}
 					}
-					resultSetCounter++;
+					else if(orderByColumns[i].second == OrderBy::Order::DESC && merge_counters[j] < merge_limits[j]) {
+						// Get the value from the block to which the merge counter points
+						int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+						if(maximum < value)
+						{
+							maximum = value;
+							mergeCounterIdx = j;
+						}
+					}
 				}
-				else {
-					//result set is full - need to break the while cycle - THIS MAY BE FAULTY !!!
-					dataMerged = true;
+
+				// If an extrem was found (min or max)
+				if(mergeCounterIdx != -1)
+				{
+					// Insert and break
+					if(resultSetCounter < resultSetSize)
+					{
+						for(int32_t k = orderByColumns.size() - 1; k >= 0; k--)
+						{  	
+							int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByRetColumnBlocks[orderByColumns[k].first][mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
+							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[k].first].get())->getData()[resultSetCounter] = value;
+						}
+						resultSetCounter++;
+					}
+					else {
+						//result set is full - need to break the while cycle - THIS MAY BE FAULTY !!!
+						dataMerged = true;
+						break;
+					}
+
+					merge_counters[mergeCounterIdx]++;
 					break;
 				}
-
-				merge_counters[mergeCounterIdx]++;
-				break;
-			}
-			else {
-				// ???
+				else {
+					// ???
+				}
 			}
 		}
-	}
 
+		//DEBUG
+		for (int i = 0; i < resultSetSize; i++)
+		{
+			int32_t vl1 = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[0].first].get())->getData()[i];
+			int32_t vl2 = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[1].first].get())->getData()[i];
+			std::printf("%5d: %5d %5d\n", i, vl1, vl2);
+		}
+	}
 	return 0;
 }
