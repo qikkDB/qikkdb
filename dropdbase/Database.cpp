@@ -533,6 +533,14 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
 			int32_t nullBitMaskLength;
+            // this is needed because of how EOF is checked:
+            if (colFile.eof())
+            {
+                BOOST_LOG_TRIVIAL(debug)
+                    << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
+                    << columnName << ".col has finished successfully." << std::endl;
+                break;
+            }
 
 			if (isNullable)
 			{

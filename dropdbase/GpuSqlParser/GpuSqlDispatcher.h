@@ -51,14 +51,18 @@ private:
 	int32_t constStringCounter;
     const std::shared_ptr<Database> &database;
 	std::unordered_map<std::string, PointerAllocation> allocatedPointers;
+	std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIndices;
+
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 	bool usingGroupBy;
+	bool usingJoin;
 	bool isLastBlockOfDevice;
 	bool isOverallLastBlock;
 	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
 	bool isRegisterAllocated(std::string& reg);
+	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 
     static std::array<DispatchFunction,
@@ -192,15 +196,15 @@ private:
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgAggregationFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> sumGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
 	static std::array<DispatchFunction,
-		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
+			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
@@ -288,6 +292,8 @@ public:
 	GpuSqlDispatcher& operator=(const GpuSqlDispatcher&) = delete;
 
 	void copyExecutionDataTo(GpuSqlDispatcher& other);
+
+	void setJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx);
 
 	void execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception);
 
@@ -484,6 +490,9 @@ public:
 	}
 
 	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
+	std::string getAllocatedRegisterName(const std::string& reg);
+	
+
 
 	void fillStringRegister(GPUMemory::GPUString& stringColumn, const std::string& reg, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
 
@@ -510,6 +519,7 @@ public:
 		}
 	}
 
+	// TODO freeColumnIfRegister<std::string> laso point and polygon
 	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, const std::string& nullBitMaskString = "");
 
 	GPUMemory::GPUPolygon insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
@@ -839,6 +849,13 @@ public:
         arguments.insert<T>(argument);
     }
 
+private:
+	template<typename OP, typename O, typename K, typename V>
+	class GroupByHelper;
+
+	template<typename OP, typename O, typename V>
+	class GroupByHelper<OP, O, std::string, V>;
+
 };
 
 template <>
@@ -849,6 +866,9 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>();
 
 template <>
 int32_t GpuSqlDispatcher::retCol<std::string>();
+
+template<>
+int32_t GpuSqlDispatcher::groupByCol<std::string>();
 
 template<>
 int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>();

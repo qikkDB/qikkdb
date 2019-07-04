@@ -9,7 +9,7 @@ class DispatcherObjs
 public:
 	DispatcherObjs()
 	{
-		tableNames = { "TableA" };
+		tableNames = { "TableA" , "TableB"};
 		columnTypes = { COLUMN_INT,   COLUMN_INT,     COLUMN_LONG,  COLUMN_LONG,
 					   COLUMN_LONG,  COLUMN_FLOAT,  COLUMN_FLOAT, COLUMN_DOUBLE, COLUMN_DOUBLE,
 					   COLUMN_POLYGON, COLUMN_POLYGON, COLUMN_POINT, COLUMN_STRING };

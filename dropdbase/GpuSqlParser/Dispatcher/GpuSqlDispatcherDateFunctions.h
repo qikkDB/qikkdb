@@ -22,7 +22,7 @@ int32_t GpuSqlDispatcher::dateExtractCol()
 
 	std::cout << "ExtractDatePartCol: " << colName << " " << reg << std::endl;
 
-	PointerAllocation column = allocatedPointers.at(colName);
+	PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName));
 	int32_t retSize = column.elementCount;
 
 	if (!isRegisterAllocated(reg))

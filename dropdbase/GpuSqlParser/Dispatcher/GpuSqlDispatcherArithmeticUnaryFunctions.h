@@ -28,7 +28,7 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 	{
 		if (isLastBlockOfDevice)
 		{
-			PointerAllocation column = allocatedPointers.at(colName + "_keys");
+			PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName) + "_keys");
 			int32_t retSize = column.elementCount;
 			ResultType * result;
 			if(column.gpuNullMaskPtr)
@@ -48,7 +48,7 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 	}
 	else if (isLastBlockOfDevice || !usingGroupBy)
 	{
-		PointerAllocation column = allocatedPointers.at(colName);
+		PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t retSize = column.elementCount;
 		if (!isRegisterAllocated(reg))
 		{

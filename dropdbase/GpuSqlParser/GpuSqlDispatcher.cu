@@ -46,9 +46,11 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
+	usingJoin(false),
 	isLastBlockOfDevice(false),
 	isOverallLastBlock(false),
-	noLoad(true)
+	noLoad(true),
+	joinIndices(nullptr) 
 {
 }
 
@@ -56,6 +58,15 @@ void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
 {
 	other.dispatcherFunctions = dispatcherFunctions;
 	other.arguments = arguments;
+}
+
+void GpuSqlDispatcher::setJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx)
+{
+	if (!joinIdx->empty())
+	{
+		joinIndices = joinIdx;
+		usingJoin = true;
+	}
 }
 
 /// Main execution loop of dispatcher
@@ -568,7 +579,6 @@ void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value, bool usingGr
 		[DataType::DATA_TYPE_SIZE * key + value]);
 }
 
-
 void GpuSqlDispatcher::addGroupByFunction(DataType type)
 {
     dispatcherFunctions.push_back(groupByFunctions[type]);
@@ -586,6 +596,21 @@ void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn,
 	allocatedPointers.insert({ reg + "_pointCount", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointCount), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
 	allocatedPointers.insert({ reg + "_polyIdx", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
 	allocatedPointers.insert({ reg + "_polyCount", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyCount), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
+}
+
+
+std::string GpuSqlDispatcher::getAllocatedRegisterName(const std::string & reg)
+{
+	if (usingJoin && reg.front() != '$')
+	{
+		std::string joinReg = reg + "_join";
+		for (auto& joinTable : *joinIndices)
+		{
+			joinReg += "_" + joinTable.first;
+		}
+		return joinReg;
+	}
+	return reg;
 }
 
 void GpuSqlDispatcher::fillStringRegister(GPUMemory::GPUString & stringColumn, const std::string & reg, int32_t size, bool useCache, int8_t* nullMaskPtr)
@@ -1179,4 +1204,12 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, Colmna
 bool GpuSqlDispatcher::isRegisterAllocated(std::string & reg)
 {
 	return allocatedPointers.find(reg) != allocatedPointers.end();
+}
+
+std::pair<std::string, std::string> GpuSqlDispatcher::splitColumnName(const std::string& colName)
+{
+	const size_t splitIdx = colName.find(".");
+	const std::string table = colName.substr(0, splitIdx);
+	const std::string column = colName.substr(splitIdx + 1);
+	return {table, column};
 }
