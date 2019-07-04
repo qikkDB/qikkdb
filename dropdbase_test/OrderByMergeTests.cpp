@@ -69,7 +69,7 @@ TEST(OrderByMergeTests, OrderByMergeTest)
     for (int i = 0; i < payload1.intpayload().intdata_size(); i++)
     {
 
-        //std::printf("%5d: %5d %5d\n", i, payload1.intpayload().intdata()[i], payload2.intpayload().intdata()[i]);
+        std::printf("%5d: %5d %5d\n", i, payload1.intpayload().intdata()[i], payload2.intpayload().intdata()[i]);
     }
     
     Database::RemoveFromInMemoryDatabaseList(databaseName.c_str());

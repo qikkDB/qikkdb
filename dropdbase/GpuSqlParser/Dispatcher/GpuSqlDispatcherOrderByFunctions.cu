@@ -22,14 +22,6 @@ int32_t GpuSqlDispatcher::freeOrderByTable()
 
 int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 {
-	/*
-	// Tieto polia nie su uniformne velke !!!, treba to zistit z IVariantArray
-	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
-	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
-	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged;
-	std::unordered_map<int32_t, std::pair<std::string, OrderBy::Order>> orderByColumns;
-	*/
-
 	if(isOverallLastBlock)
 	{
 		// Count and allocate the result vectors for the output map
@@ -46,16 +38,20 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 		{
 			int32_t blockSize = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks.begin()->second[i].get())->GetSize();
 			resultSetSize += blockSize;
-			merge_limits.push_back(blockSize);
+			merge_limits[i] = blockSize;
 		}
-		std::printf("BLOCK COUNT %d\n", blockCount);
 
 		// Allocate the result map
 		for(int32_t i = orderByColumns.size() - 1; i >= 0; i--)
 		{
 			reconstructedOrderByColumnsMerged[orderByColumns[i].first] = std::make_unique<VariantArray<int32_t>>(resultSetSize);
 		}
-		std::printf("RESULT SET SIZE %d\n", resultSetSize);
+
+		// Get the names of the columns of the result map
+		std::vector<std::string> resultMapColNames;
+		for (auto& retCol : reconstructedOrderByRetColumnBlocks) {
+			resultMapColNames.push_back(retCol.first);
+		}
 
 		//Write the results to the result map
 		bool dataMerged = false;
@@ -100,13 +96,14 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 				}
 				else if(valuesAreEqual && i == 0)
 				{
-					// TODO instert a tuple at first nonzero place and break
+					// Instert a tuple at first nonzero place and break
 					if(resultSetCounter < resultSetSize)
 					{
-						for(int32_t k = orderByColumns.size() - 1; k >= 0; k--)
-						{  	
-							int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByRetColumnBlocks[orderByColumns[k].first][firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
-							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[k].first].get())->getData()[resultSetCounter] = value;
+						// The program copies the result values - based on column name
+						for(auto &colName : resultMapColNames)
+						{
+							int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByRetColumnBlocks[colName][firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
+							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[colName].get())->getData()[resultSetCounter] = value;
 						}
 						resultSetCounter++;
 					}
@@ -158,17 +155,17 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 					// Insert and break
 					if(resultSetCounter < resultSetSize)
 					{
-						for(int32_t k = orderByColumns.size() - 1; k >= 0; k--)
-						{  	
-							int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByRetColumnBlocks[orderByColumns[k].first][mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
-							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[k].first].get())->getData()[resultSetCounter] = value;
+						// The program copies the result values - based on column name
+						for(auto &colName : resultMapColNames)
+						{
+							int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByRetColumnBlocks[colName][mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
+							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[colName].get())->getData()[resultSetCounter] = value;
 						}
 						resultSetCounter++;
 					}
 					else {
 						//result set is full - need to break the while cycle - THIS MAY BE FAULTY !!!
 						dataMerged = true;
-						break;
 					}
 
 					merge_counters[mergeCounterIdx]++;
@@ -181,12 +178,14 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 		}
 
 		//DEBUG
+		/*
 		for (int i = 0; i < resultSetSize; i++)
 		{
-			int32_t vl1 = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[0].first].get())->getData()[i];
-			int32_t vl2 = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[1].first].get())->getData()[i];
+			int32_t vl1 = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[1].first].get())->getData()[i];
+			int32_t vl2 = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[0].first].get())->getData()[i];
 			std::printf("%5d: %5d %5d\n", i, vl1, vl2);
 		}
+		*/
 	}
 	return 0;
 }
