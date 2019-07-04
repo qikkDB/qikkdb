@@ -196,10 +196,8 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
         case DataType::COLUMN_STRING:
         {
             std::string * outKeysSingleCol = new std::string[resultCount];
-            GPUMemory::GPUString cpuStruct;
-            GPUMemory::copyDeviceToHost(&cpuStruct, reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]), 1);
             GPUReconstruct::ReconstructStringCol(outKeysSingleCol, &resultCount,
-                cpuStruct, nullptr, resultCount);
+                *reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]), nullptr, resultCount);
             cpuResultKeys.emplace_back(outKeysSingleCol);
             break;
         }
@@ -222,11 +220,13 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
     {
         if (keyTypes[t] == DataType::COLUMN_STRING)
         {
-            GPUMemory::GPUString cpuStruct;
-            GPUMemory::copyDeviceToHost(&cpuStruct, reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]), 1);
-            GPUMemory::free(cpuStruct);
+            GPUMemory::free(*reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]));
+            delete [] reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]);
         }
-        GPUMemory::free(gpuResultKeys[t]);
+        else
+        {
+            GPUMemory::free(gpuResultKeys[t]);
+        }
     }
     GPUMemory::free(resultValuesGpu);
 
@@ -272,11 +272,12 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
         ASSERT_NE(rowId, -1) << " incorrect key";
         ASSERT_EQ(correctValues[rowId], resultValues[i]) << " at correct result row " << rowId;
     }
-
+/* // not needed free-ing (after test memory automatically frees everything)
     for (int32_t t = 0; t < keysColCount; t++)
     {
         delete[] cpuResultKeys[t];
     }
+*/
 }
 
 

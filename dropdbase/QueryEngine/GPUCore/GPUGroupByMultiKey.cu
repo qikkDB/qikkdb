@@ -21,7 +21,8 @@ __device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKe
             hash ^= static_cast<int32_t>(reinterpret_cast<double*>(inKeys[t])[i]);
             break;
         case DataType::COLUMN_STRING:
-            // TODO implement
+            GPUMemory::GPUString strCol = *reinterpret_cast<GPUMemory::GPUString*>(inKeys[t]);
+            hash ^= GetHash(strCol.allChars + GetStringIndex(strCol.stringIndices, i), GetStringLength(strCol.stringIndices, i));
             break;
         case DataType::COLUMN_INT8_T:
             hash ^= static_cast<int32_t>(reinterpret_cast<int8_t*>(inKeys[t])[i]);
@@ -59,7 +60,10 @@ __device__ bool AreEqualMultiKeys(DataType* keyTypes,
             equals &= (reinterpret_cast<double*>(keysA[t])[indexA] == reinterpret_cast<double*>(keysB[t])[indexB]);
             break;
         case DataType::COLUMN_STRING:
-            // TODO implement
+            GPUMemory::GPUString strColA = *reinterpret_cast<GPUMemory::GPUString*>(keysA[t]);
+            GPUMemory::GPUString strColB = *reinterpret_cast<GPUMemory::GPUString*>(keysB[t]);
+            equals &= AreEqualStrings(strColA.allChars + GetStringIndex(strColA.stringIndices, indexA), GetStringLength(strColA.stringIndices, indexA),
+                strColB, indexB);
             break;
         case DataType::COLUMN_INT8_T:
             equals &= (reinterpret_cast<int8_t*>(keysA[t])[indexA] == reinterpret_cast<int8_t*>(keysB[t])[indexB]);
@@ -115,6 +119,7 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
     int32_t keysColCount,
     int32_t* sourceIndices,
     void** keysBuffer,
+    GPUMemory::GPUString* stringSideBuffers,
     int32_t** stringLengthsBuffers,
     int32_t maxHashCount,
     void** inKeys)
@@ -143,7 +148,14 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                     reinterpret_cast<double*>(keysBuffer[t])[i] = reinterpret_cast<double*>(inKeys[t])[sourceIndices[i]];
                     break;
                 case DataType::COLUMN_STRING:
-                    // TODO implement
+                    // Copy strings from inKeys according to sourceIndices
+                    GPUMemory::GPUString& sideBufferStr = stringSideBuffers[t];
+                    GPUMemory::GPUString& inKeysStr = *reinterpret_cast<GPUMemory::GPUString*>(inKeys[t]);
+                    for(int32_t j = 0; j < stringLengthsBuffers[t][i]; j++)
+                    {
+                        sideBufferStr.allChars[GetStringIndex(sideBufferStr.stringIndices, i) + j] = 
+                            inKeysStr.allChars[GetStringIndex(inKeysStr.stringIndices, sourceIndices[i]) + j];
+                    }
                     break;
                 case DataType::COLUMN_INT8_T:
                     reinterpret_cast<int8_t*>(keysBuffer[t])[i] = reinterpret_cast<int8_t*>(inKeys[t])[sourceIndices[i]];
@@ -153,6 +165,23 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                 }
             }
             sourceIndices[i] = GBS_SOURCE_INDEX_KEY_IN_BUFFER; // Mark as stored in keyBuffer
+        }
+        else if (sourceIndices[i] == GBS_SOURCE_INDEX_KEY_IN_BUFFER)
+        {
+            for (int32_t t = 0; t < keysColCount; t++)
+            {
+                if (keyTypes[t] == DataType::COLUMN_STRING)
+                {
+                    // Copy strings from keysBuffer
+                    GPUMemory::GPUString& sideBufferStr = stringSideBuffers[t];
+                    GPUMemory::GPUString& keysBufferStr = *reinterpret_cast<GPUMemory::GPUString*>(keysBuffer[t]);
+                    for(int32_t j = 0; j < stringLengthsBuffers[t][i]; j++)
+                    {
+                        sideBufferStr.allChars[GetStringIndex(sideBufferStr.stringIndices, i) + j] =
+                            keysBufferStr.allChars[GetStringIndex(keysBufferStr.stringIndices, i) + j];
+                    }
+                }
+            }
         }
     }
 }

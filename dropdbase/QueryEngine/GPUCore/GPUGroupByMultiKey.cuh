@@ -104,6 +104,7 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                                           int32_t keysColCount,
                                           int32_t* sourceIndices,
                                           void** keysBuffer,
+                                          GPUMemory::GPUString* stringSideBuffers,
                                           int32_t** stringLengthsBuffers,
                                           int32_t maxHashCount,
                                           void** inKeys);
@@ -305,6 +306,8 @@ public:
             errorFlagSwapper_.Swap();
 
             cuda_ptr<int32_t*> stringLengthsBuffers(keysColCount_, 0);  // alloc pointers and set to nullptr
+            cuda_ptr<GPUMemory::GPUString> stringSideBuffers(keysColCount_, 0); // alloc clean structs on gpu
+
             for(int32_t t : stringKeyColIds_)
             {
                 int32_t * stringLengths;
@@ -314,12 +317,33 @@ public:
                     stringLengths, sourceIndices_,
                     reinterpret_cast<GPUMemory::GPUString **>(inKeys.get() + t),
                     reinterpret_cast<GPUMemory::GPUString **>(keysBuffer_ + t), maxHashCount_);
+                
+                GPUMemory::GPUString cpuStruct;
+                GPUMemory::alloc(&(cpuStruct.stringIndices), maxHashCount_);
+                GPUReconstruct::PrefixSum(cpuStruct.stringIndices, stringLengths, maxHashCount_);
+                int64_t totalCharCount;
+                GPUMemory::copyDeviceToHost(&totalCharCount, cpuStruct.stringIndices + maxHashCount_ - 1, 1);
+                GPUMemory::alloc(&(cpuStruct.allChars), totalCharCount);
+                GPUMemory::copyHostToDevice(reinterpret_cast<GPUMemory::GPUString *>(stringSideBuffers.get() + t), &cpuStruct, 1);
             }
 
             // Collect multi-keys from inKeys according to sourceIndices
             kernel_collect_multi_keys<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
-                keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, stringLengthsBuffers.get(), maxHashCount_,
-                inKeys.get());
+                keyTypes_, keysColCount_, sourceIndices_,
+                keysBuffer_, stringSideBuffers.get(), stringLengthsBuffers.get(),
+                maxHashCount_, inKeys.get());
+            for(int32_t t : stringKeyColIds_)
+            {
+                // Free old key buffer for single string col
+                GPUMemory::GPUString * structPointer;
+                GPUMemory::copyDeviceToHost(&structPointer, reinterpret_cast<GPUMemory::GPUString**>(keysBuffer_ + t), 1);
+                GPUMemory::GPUString cpuStruct;
+                GPUMemory::copyDeviceToHost(&cpuStruct, structPointer, 1);
+                GPUMemory::free(cpuStruct);
+                // And replace key buffer with side buffer
+                GPUMemory::copyDeviceToDevice(structPointer,
+                    reinterpret_cast<GPUMemory::GPUString *>(stringSideBuffers.get() + t), 1);
+            }
 
             CheckCudaError(cudaGetLastError());
         }
@@ -402,9 +426,12 @@ public:
             }
             case DataType::COLUMN_STRING:
             {
-                // Copy struct (not pointer to struct)
+                // Copy struct (we need to get pointer to struct at first)
+                GPUMemory::GPUString * structPointer;
+                GPUMemory::copyDeviceToHost(&structPointer, reinterpret_cast<GPUMemory::GPUString**>(keysBuffer_ + t), 1);
                 GPUMemory::GPUString keyBufferSingleCol;
-                GPUMemory::copyDeviceToHost(&keyBufferSingleCol, reinterpret_cast<GPUMemory::GPUString*>(keysBuffer_[t]), 1);
+                GPUMemory::copyDeviceToHost(&keyBufferSingleCol, structPointer, 1);
+                
                 // Reconstruct string keys
                 GPUMemory::GPUString * outKeysSingleCol = new GPUMemory::GPUString[1];
                 GPUReconstruct::ReconstructStringColKeep(outKeysSingleCol, outDataElementCount, keyBufferSingleCol,
