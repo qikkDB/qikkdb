@@ -50,7 +50,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 		insertComplexPolygon(database->GetName(), colName,
 			std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(),
 				block->GetData() + block->GetSize()),
-			block->GetSize(), block->GetNullBitmask());
+			block->GetSize(), false, block->GetNullBitmask());
 		noLoad = false;
 	}
 	return 0;
