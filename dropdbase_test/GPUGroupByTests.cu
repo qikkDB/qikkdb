@@ -120,7 +120,13 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
             }
             case DataType::COLUMN_STRING:
             {
-                // TODO implement
+                GPUMemory::GPUString * inKeysSingleCol;
+                GPUMemory::alloc(&inKeysSingleCol, 1);
+                std::string * cpuStrArray = reinterpret_cast<std::string*>(keys[b][t]);
+                std::vector<std::string> cpuString(cpuStrArray, cpuStrArray + dataElementCount);
+                GPUMemory::GPUString cpuStructInKeys = StringFactory::PrepareGPUString(cpuString);
+                GPUMemory::copyHostToDevice(inKeysSingleCol, &cpuStructInKeys, 1);
+                gpuInKeys.emplace_back(inKeysSingleCol);
                 break;
             }
             case DataType::COLUMN_INT8_T:
@@ -141,6 +147,12 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
         groupBy.groupBy(gpuInKeys, gpuInValues.get(), dataElementCount);
         for (int32_t t = 0; t < keysColCount; t++)
         {
+            if (keyTypes[t] == DataType::COLUMN_STRING)
+            {
+                GPUMemory::GPUString cpuStruct;
+                GPUMemory::copyDeviceToHost(&cpuStruct, reinterpret_cast<GPUMemory::GPUString*>(gpuInKeys[t]), 1);
+                GPUMemory::free(cpuStruct);
+            }
             GPUMemory::free(gpuInKeys[t]);
         }
     }
@@ -183,7 +195,12 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
         }
         case DataType::COLUMN_STRING:
         {
-            // TODO implement
+            std::string * outKeysSingleCol = new std::string[resultCount];
+            GPUMemory::GPUString cpuStruct;
+            GPUMemory::copyDeviceToHost(&cpuStruct, reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]), 1);
+            GPUReconstruct::ReconstructStringCol(outKeysSingleCol, &resultCount,
+                cpuStruct, nullptr, resultCount);
+            cpuResultKeys.emplace_back(outKeysSingleCol);
             break;
         }
         case DataType::COLUMN_INT8_T:
@@ -203,6 +220,12 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
 
     for (int32_t t = 0; t < keysColCount; t++)
     {
+        if (keyTypes[t] == DataType::COLUMN_STRING)
+        {
+            GPUMemory::GPUString cpuStruct;
+            GPUMemory::copyDeviceToHost(&cpuStruct, reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]), 1);
+            GPUMemory::free(cpuStruct);
+        }
         GPUMemory::free(gpuResultKeys[t]);
     }
     GPUMemory::free(resultValuesGpu);
@@ -231,7 +254,7 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
                     equals &= (reinterpret_cast<double*>(correctKeys[t])[j] == reinterpret_cast<double*>(cpuResultKeys[t])[i]);
                     break;
                 case DataType::COLUMN_STRING:
-                    // TODO implement
+                    equals &= (reinterpret_cast<std::string*>(correctKeys[t])[j] == reinterpret_cast<std::string*>(cpuResultKeys[t])[i]);
                     break;
                 case DataType::COLUMN_INT8_T:
                     equals &= (reinterpret_cast<int8_t*>(correctKeys[t])[j] == reinterpret_cast<int8_t*>(cpuResultKeys[t])[i]);
@@ -329,5 +352,22 @@ TEST(GPUGroupByTests, MultiKeySimple)
         { { 1, 1, 1, 1, 1, 1, 1, 1 } },
         { correctKeysA, correctKeysB },
         { 3, 1, 1, 1, 2 }
+    );
+}
+
+TEST(GPUGroupByTests, MultiKeyStringSimple)
+{
+    int32_t colA[] = { 5, 2, 2, 2, 2, 5, 1, 7 };
+    int32_t colB[] = { 1, 1, 1, 1, 1, 1, 2, 0 };
+    std::string colC[] = { "Apple", "Nut", "Nut", "Apple", "XYZ", "Apple", "Apple", "Nut" };
+    int32_t correctKeysA[] = { 2, 2, 1, 7, 5, 2 };
+    int32_t correctKeysB[] = { 1, 1, 2, 0, 1, 1 };
+    std::string correctKeysC[] = { "Apple", "XYZ", "Apple", "Nut", "Apple", "Nut" };
+    TestGroupByMultiKey<AggregationFunctions::sum>(
+        { DataType::COLUMN_INT, DataType::COLUMN_INT, DataType::COLUMN_STRING },
+        { { colA, colB, colC } },
+        { { 1, 1, 1, 1, 1, 1, 1, 1 } },
+        { correctKeysA, correctKeysB, correctKeysC },
+        { 1, 1, 1, 1, 2, 2 }
     );
 }

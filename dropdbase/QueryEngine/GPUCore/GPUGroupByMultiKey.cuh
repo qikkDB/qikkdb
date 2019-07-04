@@ -97,12 +97,17 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
     }
 }
 
+__global__ void kernel_collect_string_lengths(int32_t* stringLengths, int32_t* sourceIndices,
+    GPUMemory::GPUString ** inKeysSingleCol, GPUMemory::GPUString ** keysBufferSingleCol, int32_t maxHashCount);
+
 __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                                           int32_t keysColCount,
                                           int32_t* sourceIndices,
                                           void** keysBuffer,
+                                          int32_t** stringLengthsBuffers,
                                           int32_t maxHashCount,
                                           void** inKeys);
+
 
 /// GROUP BY class for multi-keys, for MIN, MAX and SUM.
 template <typename AGG, typename O, typename V>
@@ -117,6 +122,8 @@ public:
     const int32_t keysColCount_;
     /// Keys buffer - all found combination of keys are stored here
     void** keysBuffer_ = nullptr;
+
+    std::vector<int32_t> stringKeyColIds_;
 
 private:
     /// Value buffer of the hash table
@@ -175,9 +182,10 @@ public:
                 }
                 case DataType::COLUMN_STRING:
                 {
-                    // TODO implement
-                    CheckQueryEngineError(GPU_EXTENSION_ERROR,
-                                          "Multi-key GROUP BY with String keys not supported yet");
+                    stringKeyColIds_.emplace_back(i);
+                    GPUMemory::GPUString * gpuKeyCol;
+                    GPUMemory::alloc(&gpuKeyCol, 1);
+                    GPUMemory::copyHostToDevice(reinterpret_cast<GPUMemory::GPUString**>(keysBuffer_ + i), &gpuKeyCol, 1);
                     break;
                 }
                 case DataType::COLUMN_INT8_T:
@@ -296,9 +304,22 @@ public:
                     maxHashCount_, inKeys.get(), inValues, dataElementCount, errorFlagSwapper_.GetFlagPointer());
             errorFlagSwapper_.Swap();
 
+            cuda_ptr<int32_t*> stringLengthsBuffers(keysColCount_, 0);  // alloc pointers and set to nullptr
+            for(int32_t t : stringKeyColIds_)
+            {
+                int32_t * stringLengths;
+                GPUMemory::alloc(&stringLengths, maxHashCount_);
+                GPUMemory::copyHostToDevice(stringLengthsBuffers.get() + t, &stringLengths, 1); // copy pointer to stringLengths
+                kernel_collect_string_lengths<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
+                    stringLengths, sourceIndices_,
+                    reinterpret_cast<GPUMemory::GPUString **>(inKeys.get() + t),
+                    reinterpret_cast<GPUMemory::GPUString **>(keysBuffer_ + t), maxHashCount_);
+            }
+
             // Collect multi-keys from inKeys according to sourceIndices
             kernel_collect_multi_keys<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
-                keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, maxHashCount_, inKeys.get());
+                keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, stringLengthsBuffers.get(), maxHashCount_,
+                inKeys.get());
 
             CheckCudaError(cudaGetLastError());
         }
@@ -381,7 +402,14 @@ public:
             }
             case DataType::COLUMN_STRING:
             {
-                // TODO implement
+                // Copy struct (not pointer to struct)
+                GPUMemory::GPUString keyBufferSingleCol;
+                GPUMemory::copyDeviceToHost(&keyBufferSingleCol, reinterpret_cast<GPUMemory::GPUString*>(keysBuffer_[t]), 1);
+                // Reconstruct string keys
+                GPUMemory::GPUString * outKeysSingleCol = new GPUMemory::GPUString[1];
+                GPUReconstruct::ReconstructStringColKeep(outKeysSingleCol, outDataElementCount, keyBufferSingleCol,
+                    occupancyMask.get(), maxHashCount_);
+                outKeysVector->emplace_back(outKeysSingleCol);
                 break;
             }
             case DataType::COLUMN_INT8_T:

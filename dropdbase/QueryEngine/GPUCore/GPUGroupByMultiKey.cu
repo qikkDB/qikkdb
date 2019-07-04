@@ -87,10 +87,35 @@ __device__ bool IsNewMultiKey(DataType* keyTypes,
 }
 
 
+__global__ void kernel_collect_string_lengths(int32_t* stringLengths, int32_t* sourceIndices,
+    GPUMemory::GPUString ** inKeysSingleCol, GPUMemory::GPUString ** keysBufferSingleCol, int32_t maxHashCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < maxHashCount; i += stride)
+    {
+        if (sourceIndices[i] >= 0)  // string from input key array
+        {
+            stringLengths[i] = GetStringLength((*inKeysSingleCol)->stringIndices, sourceIndices[i]);
+        }
+        else if (sourceIndices[i] == GBS_SOURCE_INDEX_KEY_IN_BUFFER)    // string stored in key buffer
+        {
+            stringLengths[i] = GetStringLength((*keysBufferSingleCol)->stringIndices, i);
+        }
+        else // GBS_SOURCE_INDEX_EMPTY_KEY - no string
+        {
+            stringLengths[i] = 0;
+        }
+    }
+}
+
+
 __global__ void kernel_collect_multi_keys(DataType* keyTypes,
     int32_t keysColCount,
     int32_t* sourceIndices,
     void** keysBuffer,
+    int32_t** stringLengthsBuffers,
     int32_t maxHashCount,
     void** inKeys)
 {
