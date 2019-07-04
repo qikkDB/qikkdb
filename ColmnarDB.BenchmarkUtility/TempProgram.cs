@@ -28,7 +28,7 @@ namespace ColmnarDB.BenchmarkUtility
             ImportCSV import = new ImportCSV();
             Query query = new Query();
 
-            import.Import("testing-data/" + csvFileName, taxiDbName, client);
+            import.Import("data/" + csvFileName, taxiDbName, client);
 
             use.Use(taxiDbName, client);
 
