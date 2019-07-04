@@ -34,6 +34,7 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	dispatcher(dispatcher),
 	joinDispatcher(joinDispatcher),
 	linkTableIndex(0),
+	orderByColumnIndex(0),
 	usingLoad(false),
 	usingWhere(false),
 	usingGroupBy(false), 
@@ -1073,17 +1074,6 @@ void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext * ct
 	{
 		std::string orderByColName = orderByColumn.first;
 		DataType dataType = std::get<0>(orderByColumn.second);
-		OrderBy::Order order = std::get<1>(orderByColumn.second);
-
-		dispatcher.addArgument<const std::string&>(orderByColName);
-		dispatcher.addArgument<int32_t>(static_cast<int32_t>(order));
-		dispatcher.addOrderByFunction(dataType);
-	}
-
-	for (auto& orderByColumn : orderByColumns)
-	{
-		std::string orderByColName = orderByColumn.first;
-		DataType dataType = std::get<0>(orderByColumn.second);
 
 		dispatcher.addArgument<const std::string&>(orderByColName);
 		dispatcher.addOrderByReconstructOrderFunction(dataType);
@@ -1091,18 +1081,16 @@ void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext * ct
 
 	for (auto& returnColumn : returnColumns)
 	{
-		if (orderByColumns.find(returnColumn.first) == orderByColumns.end())
-		{
-			std::string returnColName = returnColumn.first;
-			DataType dataType = std::get<0>(returnColumn.second);
+		std::string returnColName = returnColumn.first;
+		DataType dataType = std::get<0>(returnColumn.second);
 
-			dispatcher.addArgument<const std::string&>(returnColName);
-			dispatcher.addOrderByReconstructRetFunction(dataType);
-		}
+		dispatcher.addArgument<const std::string&>(returnColName);
+		dispatcher.addOrderByReconstructRetFunction(dataType);
 	}
 
 	insideOrderBy = false;
 	dispatcher.addFreeOrderByTableFunction();
+	dispatcher.addOrderByReconstructRetAllBlocksFunction();
 }
 
 
@@ -1128,6 +1116,11 @@ void GpuSqlListener::exitOrderByColumn(GpuSqlParser::OrderByColumnContext * ctx)
 			order = OrderBy::Order::DESC;
 		}
 	}
+
+	dispatcher.addArgument<const std::string&>(orderByColName);
+	dispatcher.addArgument<int32_t>(static_cast<int32_t>(order));
+	dispatcher.addArgument<int32_t>(orderByColumnIndex++);
+	dispatcher.addOrderByFunction(dataType);
 
 	orderByColumns.insert({ orderByColName, { dataType, order } });
 }

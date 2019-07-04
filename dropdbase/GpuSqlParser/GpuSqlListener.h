@@ -31,6 +31,7 @@ private:
 	std::unordered_set<std::string> columnAliases;
     std::unordered_set<std::string> loadedTables;
 	int32_t linkTableIndex;
+	int32_t orderByColumnIndex;
 	std::unordered_map<std::string, std::pair<DataType, std::string>> returnColumns;
 	std::unordered_map<std::string, std::pair<DataType, OrderBy::Order>> orderByColumns;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;

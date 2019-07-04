@@ -219,6 +219,7 @@ private:
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
 	static DispatchFunction freeOrderByTableFunction;
+	static DispatchFunction orderByReconstructRetAllBlocksFunction;
     static DispatchFunction filFunction;
 	static DispatchFunction jmpFunction;
     static DispatchFunction doneFunction;
@@ -448,6 +449,8 @@ public:
 
 	void addFreeOrderByTableFunction();
 
+	void addOrderByReconstructRetAllBlocksFunction();
+
     void addFilFunction();
 
 	void addJmpInstruction();
@@ -549,7 +552,7 @@ public:
 	template<typename T>
 	int32_t orderByReconstructRetCol();
 
-	int32_t orderByReconstructInputColsGlobal();
+	int32_t orderByReconstructRetAllBlocks();
 
   	template<typename T>
     int32_t retConst();

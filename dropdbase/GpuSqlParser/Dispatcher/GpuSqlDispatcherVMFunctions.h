@@ -4,6 +4,8 @@
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../../QueryEngine/GPUCore/GPUOrderBy.cuh"
 #include "../../QueryEngine/GPUCore/GPUJoin.cuh"
+#include "../../IVariantArray.h"
+#include "../../VariantArray.h"
 #include "../../Database.h"
 #include "../../Table.h"
 #include "../../ColumnBase.h"
@@ -64,14 +66,27 @@ int32_t GpuSqlDispatcher::retCol()
 	}
 	else
 	{
-		std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName));
-		int32_t inSize = std::get<1>(col);
-		outData = std::make_unique<T[]>(inSize);
-		//ToDo: Podmienene zapnut podla velkost buffera
-		//GPUMemory::hostPin(outData.get(), database->GetBlockSize());
-		GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
-		//GPUMemory::hostUnregister(outData.get());
-		std::cout << "dataSize: " << outSize << std::endl;
+		if (usingOrderBy)
+		{
+			if (isOverallLastBlock)
+			{
+				VariantArray<T>* reconstructedColumn = dynamic_cast<VariantArray<T>*>(reconstructedOrderByColumnsMerged.at(colName).get());
+				outData = std::move(reconstructedColumn->getDataRef());
+				outSize = reconstructedColumn->GetSize();
+			}
+			else
+			{
+				return 0;
+			}
+		}
+		else
+		{
+			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName));
+			int32_t inSize = std::get<1>(col);
+			outData = std::make_unique<T[]>(inSize);
+			GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
+			std::cout << "dataSize: " << outSize << std::endl;
+		}
 	}
 
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;

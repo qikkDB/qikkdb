@@ -5,6 +5,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::orderByReconstructRetFunctions = { &GpuSqlDispatcher::orderByReconstructRetConst<int32_t>, &GpuSqlDispatcher::orderByReconstructRetConst<int64_t>, &GpuSqlDispatcher::orderByReconstructRetConst<float>, &GpuSqlDispatcher::orderByReconstructRetConst<double>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<std::string>, &GpuSqlDispatcher::orderByReconstructRetConst<int8_t>, &GpuSqlDispatcher::orderByReconstructRetCol<int32_t>, &GpuSqlDispatcher::orderByReconstructRetCol<int64_t>, &GpuSqlDispatcher::orderByReconstructRetCol<float>, &GpuSqlDispatcher::orderByReconstructRetCol<double>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<std::string>, &GpuSqlDispatcher::orderByReconstructRetCol<int8_t> };
 
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::freeOrderByTableFunction = &GpuSqlDispatcher::freeOrderByTable;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::orderByReconstructRetAllBlocksFunction = &GpuSqlDispatcher::orderByReconstructRetAllBlocks;
 
 int32_t GpuSqlDispatcher::freeOrderByTable()
 {
@@ -13,7 +14,7 @@ int32_t GpuSqlDispatcher::freeOrderByTable()
 	return 0;
 }
 
-int32_t GpuSqlDispatcher::orderByReconstructInputColsGlobal()
+int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 {
 	/*
 	// Tieto polia nie su uniformne velke !!!, treba to zistit z IVariantArray

@@ -1,15 +1,23 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include "IVariantArray.h"
 
 template<typename T>
 class VariantArray : public IVariantArray
 {
 public:
+	VariantArray(int32_t size) :
+		data(std::make_unique<T[]>(size)),
+		size(size)
+	{
+
+	}
+
 	virtual int64_t GetSize() const override
 	{
-		return data.size();
+		return size;
 	}
 
 	virtual DataType GetType() const override
@@ -33,16 +41,22 @@ public:
 		return retConst::value;
 	};
 
-	void resize(size_t size)
-	{
-		data.resize(size);
-	}
-
 	T* getData()
 	{
-		return data.data();
+		return data.get();
+	}
+
+	std::unique_ptr<T[]>& getDataRef()
+	{
+		return data;
+	}
+
+	void resize (int32_t newSize)
+	{
+		size = newSize;
 	}
 
 private:
-	std::vector<T> data;
+	std::unique_ptr<T[]> data;
+	int32_t size;
 };

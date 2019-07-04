@@ -189,6 +189,11 @@ void GpuSqlDispatcher::addFreeOrderByTableFunction()
 	dispatcherFunctions.push_back(freeOrderByTableFunction);
 }
 
+void GpuSqlDispatcher::addOrderByReconstructRetAllBlocksFunction()
+{
+	dispatcherFunctions.push_back(orderByReconstructRetAllBlocksFunction);
+}
+
 void GpuSqlDispatcher::addFilFunction()
 {
     dispatcherFunctions.push_back(filFunction);

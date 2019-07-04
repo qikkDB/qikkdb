@@ -12,6 +12,9 @@ int32_t GpuSqlDispatcher::orderByCol()
 {
 	auto colName = arguments.read<std::string>();
 	OrderBy::Order order = static_cast<OrderBy::Order>(arguments.read<int32_t>());
+	int32_t columnIndex = arguments.read<int32_t>();
+
+	orderByColumns.insert({ columnIndex, {colName, order} });
 
 	int32_t loadFlag = loadCol<T>(colName);
 	if (loadFlag)
@@ -94,8 +97,7 @@ int32_t GpuSqlDispatcher::orderByReconstructOrderCol()
 		std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t inSize = std::get<1>(col);
 
-		std::unique_ptr<VariantArray<T>> outData = std::make_unique<VariantArray<T>>();
-		outData->resize(inSize);
+		std::unique_ptr<VariantArray<T>> outData = std::make_unique<VariantArray<T>>(inSize);
 
 		cuda_ptr<T> reorderedColumn(inSize);
 
@@ -135,8 +137,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetCol()
 		std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t inSize = std::get<1>(col);
 
-		std::unique_ptr<VariantArray<T>> outData = std::make_unique<VariantArray<T>>();
-		outData->resize(inSize);
+		std::unique_ptr<VariantArray<T>> outData = std::make_unique<VariantArray<T>>(inSize);
 
 		int32_t outSize;
 		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
