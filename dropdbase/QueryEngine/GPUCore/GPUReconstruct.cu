@@ -435,7 +435,8 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 		if(nullMask)
 		{
 			size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
-			GPUMemory::copyDeviceToHost(*outNullMask, nullMask, outBitMaskSize);
+			GPUMemory::alloc(outNullMask, outBitMaskSize);
+			GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
 		}
 	}
 
@@ -448,7 +449,14 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string *outStringData, int32_t
 	GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount, int8_t* outNullMask, int8_t* nullMask)
 {
 	GPUMemory::GPUPolygon reconstructedPolygonCol;
-	ReconstructPolyColKeep(&reconstructedPolygonCol, outDataElementCount, inPolygonCol, inMask, inDataElementCount);
+	int8_t* outNullMaskGPUPointer = nullptr;
+	ReconstructPolyColKeep(&reconstructedPolygonCol, outDataElementCount, inPolygonCol, inMask, inDataElementCount, &outNullMaskGPUPointer, nullMask);
+	if(nullMask)
+	{
+		size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+		GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
+		GPUMemory::free(outNullMaskGPUPointer);
+	}
 	GPUMemory::GPUString gpuWkt;
 	ConvertPolyColToWKTCol(&gpuWkt, reconstructedPolygonCol, *outDataElementCount);
 	GPUMemory::free(reconstructedPolygonCol);

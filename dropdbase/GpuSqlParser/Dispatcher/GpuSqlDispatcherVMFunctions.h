@@ -86,18 +86,23 @@ int32_t GpuSqlDispatcher::retCol()
 		//ToDo: Podmienene zapnut podla velkost buffera
 		//GPUMemory::hostPin(outData.get(), database->GetBlockSize());
 		PointerAllocation ACol = allocatedPointers.at(col);
-		GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(ACol.gpuPtr), reinterpret_cast<int8_t*>(filter_), ACol.elementCount);
-		//GPUMemory::hostUnregister(outData.get());
-		std::cout << "dataSize: " << outSize << std::endl;
-		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 		std::string nullMaskString = "";
 		if(ACol.gpuNullMaskPtr)
 		{
-			size_t bitMaskSize = (outSize + sizeof(char)*8 - 1) / (sizeof(char)*8);
+			size_t bitMaskSize = (database->GetBlockSize() + sizeof(char)*8 - 1) / (sizeof(char)*8);
 			std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
-			GPUMemory::copyDeviceToHost(nullMask.get(), reinterpret_cast<int8_t*>(ACol.gpuNullMaskPtr), bitMaskSize);
+			GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(ACol.gpuPtr), reinterpret_cast<int8_t*>(filter_), ACol.elementCount, nullMask.get(), reinterpret_cast<int8_t*>(ACol.gpuNullMaskPtr));
+			bitMaskSize = (outSize + sizeof(char)*8 - 1) / (sizeof(char)*8);
 			nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
 		}
+		else
+		{
+			GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(ACol.gpuPtr), reinterpret_cast<int8_t*>(filter_), ACol.elementCount);
+		}
+		//GPUMemory::hostUnregister(outData.get());
+		std::cout << "dataSize: " << outSize << std::endl;
+		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+		
 		insertIntoPayload(payload, outData, outSize);
 		MergePayloadToSelfResponse(alias, payload, nullMaskString);
 	}

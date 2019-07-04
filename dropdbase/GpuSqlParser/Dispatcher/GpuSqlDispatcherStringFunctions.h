@@ -97,7 +97,7 @@ int32_t GpuSqlDispatcher::stringUnaryNumericCol()
 
 		if (!isRegisterAllocated(reg))
 		{
-			int32_t* result = allocateRegister<int32_t>(reg, retSize);
+			int32_t* result;
 			if(std::get<2>(column))
 			{
 				int8_t * nullMask;
