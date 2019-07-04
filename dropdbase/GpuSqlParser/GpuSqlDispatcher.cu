@@ -194,6 +194,11 @@ void GpuSqlDispatcher::addOrderByReconstructRetAllBlocksFunction()
 	dispatcherFunctions.push_back(orderByReconstructRetAllBlocksFunction);
 }
 
+void GpuSqlDispatcher::addLockRegisterFunction()
+{
+	dispatcherFunctions.push_back(lockRegisterFunction);
+}
+
 void GpuSqlDispatcher::addFilFunction()
 {
     dispatcherFunctions.push_back(filFunction);
@@ -777,6 +782,7 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 		}
 	}
 	usedRegisterMemory = 0;
+	aggregatedRegisters.clear();
 	allocatedPointers.clear();
 }
 

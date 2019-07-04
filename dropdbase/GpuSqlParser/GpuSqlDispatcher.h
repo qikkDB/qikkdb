@@ -57,6 +57,8 @@ private:
 	bool isOverallLastBlock;
 	bool noLoad;
 	std::unordered_set<std::string> groupByColumns;
+	std::unordered_set<std::string> aggregatedRegisters;
+	std::unordered_set<std::string> registerLockList;
 	bool isRegisterAllocated(std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
@@ -221,6 +223,7 @@ private:
 	static DispatchFunction freeOrderByTableFunction;
 	static DispatchFunction orderByReconstructRetAllBlocksFunction;
     static DispatchFunction filFunction;
+	static DispatchFunction lockRegisterFunction;
 	static DispatchFunction jmpFunction;
     static DispatchFunction doneFunction;
 	static DispatchFunction showDatabasesFunction;
@@ -451,6 +454,8 @@ public:
 
 	void addOrderByReconstructRetAllBlocksFunction();
 
+	void addLockRegisterFunction();
+
     void addFilFunction();
 
 	void addJmpInstruction();
@@ -513,7 +518,7 @@ public:
 	template <typename T>
 	void freeColumnIfRegister(const std::string& col)
 	{
-		if (usedRegisterMemory > maxRegisterMemory && !col.empty() && col.front() == '$')
+		if (usedRegisterMemory > maxRegisterMemory && !col.empty() && col.front() == '$' && registerLockList.find(col) == registerLockList.end())
 		{
 			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(col))));
 			usedRegisterMemory -= std::get<1>(allocatedPointers.at(col)) * sizeof(T);
@@ -561,6 +566,8 @@ public:
     int32_t retCol();
 
 	int32_t freeOrderByTable();
+
+	int32_t lockRegister();
 
     int32_t fil();
 

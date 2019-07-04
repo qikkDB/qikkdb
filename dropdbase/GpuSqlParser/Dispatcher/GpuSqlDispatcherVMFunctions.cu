@@ -4,6 +4,7 @@
 #include "../../PointFactory.h"
 
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::retFunctions = { &GpuSqlDispatcher::retConst<int32_t>, &GpuSqlDispatcher::retConst<int64_t>, &GpuSqlDispatcher::retConst<float>, &GpuSqlDispatcher::retConst<double>, &GpuSqlDispatcher::retConst<ColmnarDB::Types::Point>, &GpuSqlDispatcher::retConst<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::retConst<std::string>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<int8_t>, &GpuSqlDispatcher::retCol<int32_t>, &GpuSqlDispatcher::retCol<int64_t>, &GpuSqlDispatcher::retCol<float>, &GpuSqlDispatcher::retCol<double>, &GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>, &GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::retCol<std::string>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<int8_t> };
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::lockRegisterFunction = &GpuSqlDispatcher::lockRegister;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::filFunction = &GpuSqlDispatcher::fil;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::jmpFunction = &GpuSqlDispatcher::jmp;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::doneFunction = &GpuSqlDispatcher::done;
@@ -331,5 +332,14 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
 	insertIntoPayload(payload, outData, outSize);
 	MergePayloadToSelfResponse(alias, payload);
+	return 0;
+}
+
+
+int32_t GpuSqlDispatcher::lockRegister()
+{
+	std::string reg = arguments.read<std::string>();
+	std::cout << "Locked register: " << reg << std::endl;
+	registerLockList.insert(reg);
 	return 0;
 }

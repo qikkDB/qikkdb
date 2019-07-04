@@ -575,6 +575,10 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 	}
 
 	returnColumns.insert({ colName, {retType, alias } });
+
+	dispatcher.addArgument<const std::string&>(colName);
+	dispatcher.addLockRegisterFunction();
+
 	insideSelectColumn = false;
 	isAggSelectColumn = false;
 }

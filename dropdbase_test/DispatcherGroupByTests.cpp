@@ -157,7 +157,7 @@ protected:
 
 		// Execute the query
 		GpuSqlCustomParser parser(groupByDatabase,
-			"SELECT colInteger, " + aggregationFunction + "(colID) FROM " + tableName + " GROUP BY colInteger ORDER BY " + aggregationFunction  + "(colID);");
+			"SELECT colInteger, " + aggregationFunction + "(colID) FROM " + tableName + " GROUP BY colInteger ORDER BY " + aggregationFunction  + "(colID) - 2;");
 		auto resultPtr = parser.parse();
 		auto result =
 			dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
