@@ -279,6 +279,15 @@ public:
 		}
 	}
 
+	void SetNullBitmask(std::unique_ptr<int8_t[]>&& nullMask)
+	{
+		if (isNullable_)
+		{
+			bitMask_ = std::move(nullMask);
+			setBlockStatistics();
+		}
+	}
+
 	bool IsCompressed() const
 	{
 		return isCompressed_;

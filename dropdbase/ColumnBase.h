@@ -141,6 +141,11 @@ public:
 		return isNullable_;
 	}
 
+	virtual void SetIsNullable(bool isNullable) override
+	{
+		isNullable_ = isNullable;
+	}
+
 	T GetMax()
 	{
 		return max_;

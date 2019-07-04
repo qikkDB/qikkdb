@@ -426,7 +426,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 	bool isNullable;
 
 	colFile.read(reinterpret_cast<char*>(&type), sizeof(int32_t)); // read type of column
-	colFile.read(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // read type of column
+	colFile.read(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // read nullability of column
 
 	switch (type)
 	{
@@ -436,6 +436,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 		auto& columnPolygon =
 			dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*table.GetColumns().at(columnName));
+		columnPolygon.SetIsNullable(isNullable);
 
 		while (!colFile.eof())
 		{
@@ -444,6 +445,20 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			int32_t groupId;
 			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
+
+			int32_t nullBitMaskLength;
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+			}
+
+			std::unique_ptr<int8_t[]> nullBitMask(new int8_t[nullBitMaskLength]);
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
+			}
 
 			// this is needed because of how EOF is checked:
 			if (colFile.eof())
@@ -489,7 +504,8 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 					byteIndex += entryByteLength;
 				}
 
-				columnPolygon.AddBlock(dataPolygon, groupId);
+				auto& block = columnPolygon.AddBlock(dataPolygon, groupId);
+				block.SetNullBitmask(std::move(nullBitMask));
 				BOOST_LOG_TRIVIAL(debug)
 					<< "Added ComplexPolygon block with data at index: " << index << "." << std::endl;
 			}
@@ -505,6 +521,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 		auto& columnPoint =
 			dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*table.GetColumns().at(columnName));
+		columnPoint.SetIsNullable(isNullable);
 
 		while (!colFile.eof())
 		{
@@ -513,6 +530,20 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			int32_t groupId;
 			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
+
+			int32_t nullBitMaskLength;
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+			}
+
+			std::unique_ptr<int8_t[]> nullBitMask(new int8_t[nullBitMaskLength]);
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
+			}
 
 			// this is needed because of how EOF is checked:
 			if (colFile.eof())
@@ -558,7 +589,8 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 					byteIndex += entryByteLength;
 				}
 
-				columnPoint.AddBlock(dataPoint, groupId);
+				auto& block = columnPoint.AddBlock(dataPoint, groupId);
+				block.SetNullBitmask(std::move(nullBitMask));
 
 				BOOST_LOG_TRIVIAL(debug)
 					<< "Added Point block with data at index: " << index << "." << std::endl;
@@ -574,6 +606,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 		table.CreateColumn(columnName.c_str(), COLUMN_STRING, isNullable);
 
 		auto& columnString = dynamic_cast<ColumnBase<std::string>&>(*table.GetColumns().at(columnName));
+		columnString.SetIsNullable(isNullable);
 
 		while (!colFile.eof())
 		{
@@ -582,6 +615,20 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			int32_t groupId;
 			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
+
+			int32_t nullBitMaskLength;
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+			}
+
+			std::unique_ptr<int8_t[]> nullBitMask(new int8_t[nullBitMaskLength]);
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
+			}
 
 			// this is needed because of how EOF is checked:
 			if (colFile.eof())
@@ -624,7 +671,9 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 					byteIndex += entryByteLength;
 				}
 
-				columnString.AddBlock(dataString, groupId);
+				auto& block = columnString.AddBlock(dataString, groupId);
+				block.SetNullBitmask(std::move(nullBitMask));
+
 				BOOST_LOG_TRIVIAL(debug)
 					<< "Added String block with data at index: " << index << "." << std::endl;
 			}
@@ -639,6 +688,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 		table.CreateColumn(columnName.c_str(), COLUMN_INT8_T, isNullable);
 
 		auto& columnInt = dynamic_cast<ColumnBase<int8_t>&>(*table.GetColumns().at(columnName));
+		columnInt.SetIsNullable(isNullable);
 
 		while (!colFile.eof())
 		{
@@ -647,6 +697,20 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			int32_t groupId;
 			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
+
+			int32_t nullBitMaskLength;
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+			}
+
+			std::unique_ptr<int8_t[]> nullBitMask(new int8_t[nullBitMaskLength]);
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
+			}
 
 			// this is needed because of how EOF is checked:
 			if (colFile.eof())
@@ -687,6 +751,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				std::vector<int8_t> dataInt(dataTemp, dataTemp + dataLength);
 
 				auto& block = columnInt.AddBlock(dataInt, groupId, false, (bool)isCompressed);
+				block.SetNullBitmask(std::move(nullBitMask));
 				block.setBlockStatistics(min, max, avg, sum);
 
 				BOOST_LOG_TRIVIAL(debug)
@@ -703,6 +768,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 		table.CreateColumn(columnName.c_str(), COLUMN_INT, isNullable);
 
 		auto& columnInt = dynamic_cast<ColumnBase<int32_t>&>(*table.GetColumns().at(columnName));
+		columnInt.SetIsNullable(isNullable);
 
 		while (!colFile.eof())
 		{
@@ -711,6 +777,20 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			int32_t groupId;
 			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
+
+			int32_t nullBitMaskLength;
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+			}
+
+			std::unique_ptr<int8_t[]> nullBitMask(new int8_t[nullBitMaskLength]);
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
+			}
 
 			// this is needed because of how EOF is checked:
 			if (colFile.eof())
@@ -751,6 +831,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				std::vector<int32_t> dataInt(dataTemp, dataTemp + dataLength);
 
 				auto& block = columnInt.AddBlock(dataInt, groupId, false, (bool)isCompressed);
+				block.SetNullBitmask(std::move(nullBitMask));
 				block.setBlockStatistics(min, max, avg, sum);
 
 				BOOST_LOG_TRIVIAL(debug)
@@ -767,6 +848,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 		table.CreateColumn(columnName.c_str(), COLUMN_LONG, isNullable);
 
 		auto& columnLong = dynamic_cast<ColumnBase<int64_t>&>(*table.GetColumns().at(columnName));
+		columnLong.SetIsNullable(isNullable);
 
 		while (!colFile.eof())
 		{
@@ -775,6 +857,20 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			int32_t groupId;
 			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
+
+			int32_t nullBitMaskLength;
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+			}
+
+			std::unique_ptr<int8_t[]> nullBitMask(new int8_t[nullBitMaskLength]);
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
+			}
 
 			// this is needed because of how EOF is checked:
 			if (colFile.eof())
@@ -815,6 +911,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				std::vector<int64_t> dataLong(dataTemp, dataTemp + dataLength);
 
 				auto& block = columnLong.AddBlock(dataLong, groupId, false, (bool)isCompressed);
+				block.SetNullBitmask(std::move(nullBitMask));
 				block.setBlockStatistics(min, max, avg, sum);
 
 				BOOST_LOG_TRIVIAL(debug)
@@ -831,6 +928,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 		table.CreateColumn(columnName.c_str(), COLUMN_FLOAT, isNullable);
 
 		auto& columnFloat = dynamic_cast<ColumnBase<float>&>(*table.GetColumns().at(columnName));
+		columnFloat.SetIsNullable(isNullable);
 
 		while (!colFile.eof())
 		{
@@ -839,6 +937,20 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			int32_t groupId;
 			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
+
+			int32_t nullBitMaskLength;
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+			}
+
+			std::unique_ptr<int8_t[]> nullBitMask(new int8_t[nullBitMaskLength]);
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
+			}
 
 			// this is needed because of how EOF is checked:
 			if (colFile.eof())
@@ -879,6 +991,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				std::vector<float> dataFloat(dataTemp, dataTemp + dataLength);
 
 				auto& block = columnFloat.AddBlock(dataFloat, groupId, false, (bool)isCompressed);
+				block.SetNullBitmask(std::move(nullBitMask));
 				block.setBlockStatistics(min, max, avg, sum);
 
 				BOOST_LOG_TRIVIAL(debug)
@@ -895,6 +1008,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 		table.CreateColumn(columnName.c_str(), COLUMN_DOUBLE, isNullable);
 
 		auto& columnDouble = dynamic_cast<ColumnBase<double>&>(*table.GetColumns().at(columnName));
+		columnDouble.SetIsNullable(isNullable);
 
 		while (!colFile.eof())
 		{
@@ -903,6 +1017,20 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			int32_t groupId;
 			colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
+
+			int32_t nullBitMaskLength;
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+			}
+
+			std::unique_ptr<int8_t[]> nullBitMask(new int8_t[nullBitMaskLength]);
+
+			if (isNullable)
+			{
+				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
+			}
 
 			// this is needed because of how EOF is checked:
 			if (colFile.eof())
@@ -943,6 +1071,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				std::vector<double> dataDouble(dataTemp, dataTemp + dataLength);
 
 				auto& block = columnDouble.AddBlock(dataDouble, groupId, false, (bool)isCompressed);
+				block.SetNullBitmask(std::move(nullBitMask));
 				block.setBlockStatistics(min, max, avg, sum);
 
 				BOOST_LOG_TRIVIAL(debug)
@@ -1104,8 +1233,6 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
 			auto data = block->GetData();
 			int32_t groupId = block->GetGroupId();
-			bool isNullable = block->GetIsNullable();
-			int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 			int32_t dataLength = block->GetSize();
 			int64_t dataByteSize = 0;
 
@@ -1120,9 +1247,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			{
 				colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-				colFile.write(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // write isNullable
 				if(isNullable)
 				{
+					int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+					colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
 					colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
 				}
 				colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
@@ -1155,8 +1283,6 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
 			auto data = block->GetData();
 			int32_t groupId = block->GetGroupId();
-			bool isNullable = block->GetIsNullable();
-			int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 			int32_t dataLength = block->GetSize();
 			int64_t dataByteSize = 0;
 
@@ -1171,9 +1297,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			{
 				colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-				colFile.write(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // write isNullable
 				if(isNullable)
 				{
+					int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+					colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
 					colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
 				}
 				colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
@@ -1207,8 +1334,6 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
 			auto data = block->GetData();
 			int32_t groupId = block->GetGroupId();
-			bool isNullable = block->GetIsNullable();
-			int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 			int32_t dataLength = block->GetSize();
 			int64_t dataByteSize = 0;
 
@@ -1223,9 +1348,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			{
 				colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-				colFile.write(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // write isNullable
 				if(isNullable)
 				{
+					int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+					colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
 					colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
 				}
 				colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
@@ -1255,8 +1381,6 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			auto data = block->GetData();
 			int8_t isCompressed = (int8_t)block->IsCompressed();
 			int32_t groupId = block->GetGroupId();
-			bool isNullable = block->GetIsNullable();
-			int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 			int32_t dataLength = block->GetSize();
 			int8_t min = block->GetMin();
 			int8_t max = block->GetMax();
@@ -1267,9 +1391,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			{
 				colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-				colFile.write(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // write isNullable
 				if(isNullable)
 				{
+					int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+					colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
 					colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
 				}
 				colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
@@ -1298,8 +1423,6 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			auto data = block->GetData();
 			int8_t isCompressed = (int8_t)block->IsCompressed();
 			int32_t groupId = block->GetGroupId();
-			bool isNullable = block->GetIsNullable();
-			int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 			int32_t dataLength = block->GetSize();
 			int32_t min = block->GetMin();
 			int32_t max = block->GetMax();
@@ -1310,9 +1433,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			{
 				colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-				colFile.write(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // write isNullable
 				if(isNullable)
 				{
+					int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+					colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
 					colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
 				}
 				colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
@@ -1341,8 +1465,6 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			auto data = block->GetData();
 			int8_t isCompressed = (int8_t)block->IsCompressed();
 			int32_t groupId = block->GetGroupId();
-			bool isNullable = block->GetIsNullable();
-			int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 			int32_t dataLength = block->GetSize();
 			int64_t min = block->GetMin();
 			int64_t max = block->GetMax();
@@ -1353,9 +1475,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			{
 				colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-				colFile.write(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // write isNullable
 				if(isNullable)
 				{
+					int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+					colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
 					colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
 				}
 				colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
@@ -1384,8 +1507,6 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			auto data = block->GetData();
 			int8_t isCompressed = (int8_t)block->IsCompressed();
 			int32_t groupId = block->GetGroupId();
-			bool isNullable = block->GetIsNullable();
-			int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 			int32_t dataLength = block->GetSize();
 			float min = block->GetMin();
 			float max = block->GetMax();
@@ -1396,9 +1517,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			{
 				colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-				colFile.write(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // write isNullable
 				if(isNullable)
 				{
+					int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+					colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
 					colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
 				}
 				colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
@@ -1428,8 +1550,6 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			auto data = block->GetData();
 			int8_t isCompressed = (int8_t)block->IsCompressed();
 			int32_t groupId = block->GetGroupId();
-			bool isNullable = block->GetIsNullable();
-			int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 			int32_t dataLength = block->GetSize();
 			double min = block->GetMin();
 			double max = block->GetMax();
@@ -1440,9 +1560,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 			{
 				colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
 				colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-				colFile.write(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // write isNullable
 				if(isNullable)
 				{
+					int32_t nullBitMaskLength = (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+					colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
 					colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
 				}
 				colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
