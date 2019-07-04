@@ -47,10 +47,17 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(database->GetTables().at(table).GetColumns().at(column).get());
 		auto block = dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex]);
+		int8_t* nullMaskPtr = nullptr;
+		if(block->GetNullBitmask())
+		{
+			int32_t bitMaskCapacity = ((block->GetSize() + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+			nullMaskPtr = allocateRegister<int8_t>(colName + "_nullmask", bitMaskCapacity);
+			GPUMemory::copyHostToDevice(nullMaskPtr, block->GetNullBitmask(), bitMaskCapacity);
+		}
 		insertComplexPolygon(database->GetName(), colName,
 			std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(),
 				block->GetData() + block->GetSize()),
-			block->GetSize(), false, block->GetNullBitmask());
+			block->GetSize(), false, nullMaskPtr);
 		noLoad = false;
 	}
 	return 0;
@@ -88,17 +95,28 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 
 		std::vector<NativeGeoPoint> nativePoints;
 		std::transform(block->GetData(), block->GetData() + block->GetSize(), std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint { return NativeGeoPoint{ point.geopoint().latitude(), point.geopoint().longitude() }; });
-
 		auto cacheEntry =
-			Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(database->GetName(), colName, blockIndex,
-				nativePoints.size());
+		Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(database->GetName(), colName, blockIndex,
+			nativePoints.size());
 		if (!std::get<2>(cacheEntry))
 		{
 			GPUMemory::copyHostToDevice(std::get<0>(cacheEntry),
 				reinterpret_cast<NativeGeoPoint*>(nativePoints.data()),
 				nativePoints.size());
 		}
-		addCachedRegister(colName, std::get<0>(cacheEntry), nativePoints.size(), block->GetNullBitmask());
+		int8_t* nullMaskPtr = nullptr;
+		if(block->GetNullBitmask())
+		{
+			int32_t bitMaskCapacity = ((block->GetSize() + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+			auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
+				database->GetName(), colName + "_nullmask", blockIndex, bitMaskCapacity);
+			nullMaskPtr = std::get<0>(cacheMaskEntry);
+			if (!std::get<2>(cacheMaskEntry))
+			{
+				GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry), block->GetNullBitmask(), bitMaskCapacity);
+			}
+		}
+		addCachedRegister(colName, std::get<0>(cacheEntry), nativePoints.size(), nullMaskPtr);
 		noLoad = false;
 	}
 	return 0;
@@ -134,10 +152,16 @@ int32_t GpuSqlDispatcher::loadCol<std::string>(std::string& colName)
 
 		auto col = dynamic_cast<const ColumnBase<std::string>*>(database->GetTables().at(table).GetColumns().at(column).get());
 		auto block = dynamic_cast<BlockBase<std::string>*>(col->GetBlocksList()[blockIndex]);
-
+		int8_t* nullMaskPtr = nullptr;
+		if(block->GetNullBitmask())
+		{
+			int32_t bitMaskCapacity = ((block->GetSize() + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+			nullMaskPtr = allocateRegister<int8_t>(colName + "_nullmask", bitMaskCapacity);
+			GPUMemory::copyHostToDevice(nullMaskPtr, block->GetNullBitmask(), bitMaskCapacity);
+		}
 		insertString(database->GetName(), colName, std::vector<std::string>(block->GetData(), 
 			block->GetData() + block->GetSize()),
-			block->GetSize(), block->GetNullBitmask());
+			block->GetSize(), false, nullMaskPtr);
 		noLoad = false;
 	}
 	return 0;
