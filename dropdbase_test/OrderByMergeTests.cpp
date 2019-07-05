@@ -66,6 +66,7 @@ TEST(OrderByMergeTests, OrderByMergeTest)
     auto &payload1 = result->payloads().at("OrderByTable.colInteger1");
     auto &payload2 = result->payloads().at("OrderByTable.colInteger2");
 
+    std::printf("\n");
     for (int i = 0; i < payload1.intpayload().intdata_size(); i++)
     {
 

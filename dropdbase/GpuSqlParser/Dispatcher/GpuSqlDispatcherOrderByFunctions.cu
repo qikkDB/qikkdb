@@ -41,17 +41,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 			merge_limits[i] = blockSize;
 		}
 
-		// Allocate the result map
-		for(int32_t i = orderByColumns.size() - 1; i >= 0; i--)
+		// Allocate the result map by inserting a column name and iVariantArray pair
+		for(auto &orderColumn : orderByColumns)
 		{
-			reconstructedOrderByColumnsMerged[orderByColumns[i].first] = std::make_unique<VariantArray<int32_t>>(resultSetSize);
+			reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<int32_t>>(resultSetSize);
 		}
 
-		// Get the names of the columns of the result map
-		std::vector<std::string> resultMapColNames;
-		for (auto& retCol : reconstructedOrderByRetColumnBlocks) {
-			resultMapColNames.push_back(retCol.first);
-		}
+		std::printf("\n");
 
 		//Write the results to the result map
 		bool dataMerged = false;
@@ -100,10 +96,10 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 					if(resultSetCounter < resultSetSize)
 					{
 						// The program copies the result values - based on column name
-						for(auto &colName : resultMapColNames)
+						for(auto &retColumn : reconstructedOrderByRetColumnBlocks)
 						{
-							int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByRetColumnBlocks[colName][firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
-							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[colName].get())->getData()[resultSetCounter] = value;
+							int32_t value = dynamic_cast<VariantArray<int32_t>*>(retColumn.second[firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
+							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
 						}
 						resultSetCounter++;
 					}
@@ -156,10 +152,12 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 					if(resultSetCounter < resultSetSize)
 					{
 						// The program copies the result values - based on column name
-						for(auto &colName : resultMapColNames)
+						int sz = 0;
+						for(auto &retColumn : reconstructedOrderByRetColumnBlocks)
 						{
-							int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByRetColumnBlocks[colName][mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
-							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[colName].get())->getData()[resultSetCounter] = value;
+							int32_t value = dynamic_cast<VariantArray<int32_t>*>(retColumn.second[mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
+							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+
 						}
 						resultSetCounter++;
 					}
@@ -176,16 +174,6 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 				}
 			}
 		}
-
-		//DEBUG
-		/*
-		for (int i = 0; i < resultSetSize; i++)
-		{
-			int32_t vl1 = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[1].first].get())->getData()[i];
-			int32_t vl2 = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[orderByColumns[0].first].get())->getData()[i];
-			std::printf("%5d: %5d %5d\n", i, vl1, vl2);
-		}
-		*/
 	}
 	return 0;
 }
