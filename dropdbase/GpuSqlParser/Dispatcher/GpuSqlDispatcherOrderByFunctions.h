@@ -139,8 +139,14 @@ int32_t GpuSqlDispatcher::orderByReconstructRetCol()
 
 		std::unique_ptr<VariantArray<T>> outData = std::make_unique<VariantArray<T>>(inSize);
 
+		cuda_ptr<T> reorderedColumn(inSize);
+
+		std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
+		GPUOrderBy::ReOrderByIdx(reorderedColumn.get(), reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)), reinterpret_cast<T*>(std::get<0>(col)), std::get<1>(col));
+
 		int32_t outSize;
-		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
+		//GPUReconstruct::reconstructCol(outData->getData(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
+		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reorderedColumn.get(), reinterpret_cast<int8_t*>(filter_) , inSize);
 		outData->resize(outSize);
 
 		reconstructedOrderByRetColumnBlocks[colName].push_back(std::move(outData));
