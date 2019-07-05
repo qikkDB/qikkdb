@@ -47,8 +47,6 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 			reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<int32_t>>(resultSetSize);
 		}
 
-		std::printf("\n");
-
 		//Write the results to the result map
 		bool dataMerged = false;
 		while(dataMerged != true)
