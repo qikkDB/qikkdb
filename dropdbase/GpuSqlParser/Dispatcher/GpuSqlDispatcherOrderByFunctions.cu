@@ -52,7 +52,36 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 
 		for(int32_t i = 0; i < blockCount; i++)
 		{
-			int32_t blockSize = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks.begin()->second[i].get())->GetSize();
+			int32_t blockSize = 0;
+
+			// Retrieve the variant array type
+			switch(reconstructedOrderByOrderColumnBlocks.begin()->second[i].get()->GetType())
+			{
+				case COLUMN_INT:
+					blockSize = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks.begin()->second[i].get())->GetSize();
+					break;
+				case COLUMN_LONG:
+					blockSize = dynamic_cast<VariantArray<int64_t>*>(reconstructedOrderByOrderColumnBlocks.begin()->second[i].get())->GetSize();
+					break;
+				case COLUMN_FLOAT:
+					blockSize = dynamic_cast<VariantArray<float>*>(reconstructedOrderByOrderColumnBlocks.begin()->second[i].get())->GetSize();
+					break;
+				case COLUMN_DOUBLE:
+					blockSize = dynamic_cast<VariantArray<double>*>(reconstructedOrderByOrderColumnBlocks.begin()->second[i].get())->GetSize();
+					break;
+				case COLUMN_POINT:
+					throw std::runtime_error("ORDER BY operation not implemented for points");
+				case COLUMN_POLYGON:
+					throw std::runtime_error("ORDER BY operation not implemented for polygons");
+				case COLUMN_STRING:
+					throw std::runtime_error("ORDER BY operation not implemented for strings");
+				case COLUMN_INT8_T:
+					blockSize = dynamic_cast<VariantArray<int8_t>*>(reconstructedOrderByOrderColumnBlocks.begin()->second[i].get())->GetSize();
+					break;
+				default:
+					break;
+			}
+
 			resultSetSize += blockSize;
 			merge_limits[i] = blockSize;
 		}
@@ -60,7 +89,33 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 		// Allocate the result map by inserting a column name and iVariantArray pair
 		for(auto &orderColumn : orderByColumns)
 		{
-			reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<int32_t>>(resultSetSize);
+			// Retrieve the variant array type of the return columns - WARNING - this works only for non empty columns
+			switch(reconstructedOrderByRetColumnBlocks[orderColumn.second.first][0].get()->GetType())
+			{
+				case COLUMN_INT:
+					reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<int32_t>>(resultSetSize);
+					break;
+				case COLUMN_LONG:
+					reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<int64_t>>(resultSetSize);
+					break;
+				case COLUMN_FLOAT:
+					reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<float>>(resultSetSize);
+					break;
+				case COLUMN_DOUBLE:
+					reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<double>>(resultSetSize);
+					break;
+				case COLUMN_POINT:
+					throw std::runtime_error("ORDER BY operation not implemented for points");
+				case COLUMN_POLYGON:
+					throw std::runtime_error("ORDER BY operation not implemented for polygons");
+				case COLUMN_STRING:
+					throw std::runtime_error("ORDER BY operation not implemented for strings");
+				case COLUMN_INT8_T:
+					reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<int8_t>>(resultSetSize);
+					break;
+				default:
+					break;
+			}
 		}
 
 		//Write the results to the result map
@@ -73,22 +128,125 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 			{
 				// Check if all values pointed to by the counters are equal, if yes - proceed to the next column
 				bool valuesAreEqual = true;
+				bool lastValueFound = true;
 				int32_t firstNonzeroMergeCounterIdx = -1;
-				int32_t lastValue = -1;
-				for(int32_t j = 0; j < merge_counters.size(); j++)
+
+				// WARNING - this works only for non empty columns
+				switch(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][0].get()->GetType())
 				{
-					if(lastValue == -1 && merge_counters[j] < merge_limits[j]) {
-						lastValue = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
-						firstNonzeroMergeCounterIdx = j;
-					}
-					else if (merge_counters[j] < merge_limits[j]) {
-						int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
-						if(lastValue != value)
+					case COLUMN_INT: 
 						{
-							valuesAreEqual = false;
-							break;
+							int32_t lastValue = 0;
+							for(int32_t j = 0; j < merge_counters.size(); j++)
+							{
+								if(lastValueFound && merge_counters[j] < merge_limits[j]) {
+									lastValue = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									firstNonzeroMergeCounterIdx = j;
+									lastValueFound = false;
+								}
+								else if (merge_counters[j] < merge_limits[j]) {
+									int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(lastValue != value)
+									{
+										valuesAreEqual = false;
+										break;
+									}
+								}
+							}
 						}
-					}
+						break;
+					case COLUMN_LONG:
+						{
+							int64_t lastValue = 0;
+							for(int32_t j = 0; j < merge_counters.size(); j++)
+							{
+								if(lastValueFound && merge_counters[j] < merge_limits[j]) {
+									lastValue = dynamic_cast<VariantArray<int64_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									firstNonzeroMergeCounterIdx = j;
+									lastValueFound = false;
+								}
+								else if (merge_counters[j] < merge_limits[j]) {
+									int64_t value = dynamic_cast<VariantArray<int64_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(lastValue != value)
+									{
+										valuesAreEqual = false;
+										break;
+									}
+								}
+							}
+						}
+						break;
+					case COLUMN_FLOAT:
+						{
+							float lastValue = 0;
+							for(int32_t j = 0; j < merge_counters.size(); j++)
+							{
+								if(lastValueFound && merge_counters[j] < merge_limits[j]) {
+									lastValue = dynamic_cast<VariantArray<float>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									firstNonzeroMergeCounterIdx = j;
+									lastValueFound = false;
+								}
+								else if (merge_counters[j] < merge_limits[j]) {
+									float value = dynamic_cast<VariantArray<float>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(lastValue != value)
+									{
+										valuesAreEqual = false;
+										break;
+									}
+								}
+							}
+						}
+						break;
+					case COLUMN_DOUBLE:
+						{
+							double lastValue = 0;
+							for(int32_t j = 0; j < merge_counters.size(); j++)
+							{
+								if(lastValueFound && merge_counters[j] < merge_limits[j]) {
+									lastValue = dynamic_cast<VariantArray<double>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									firstNonzeroMergeCounterIdx = j;
+									lastValueFound = false;
+								}
+								else if (merge_counters[j] < merge_limits[j]) {
+									double value = dynamic_cast<VariantArray<double>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(lastValue != value)
+									{
+										valuesAreEqual = false;
+										break;
+									}
+								}
+							}
+						}
+						break;
+					case COLUMN_POINT:
+						throw std::runtime_error("ORDER BY operation not implemented for points");
+					case COLUMN_POLYGON:
+						throw std::runtime_error("ORDER BY operation not implemented for polygons");
+					case COLUMN_STRING:
+						throw std::runtime_error("ORDER BY operation not implemented for strings");
+					case COLUMN_INT8_T:
+						{
+							int8_t lastValue = 0;
+							for(int32_t j = 0; j < merge_counters.size(); j++)
+							{
+								if(lastValueFound && merge_counters[j] < merge_limits[j]) {
+									lastValue = dynamic_cast<VariantArray<int8_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									firstNonzeroMergeCounterIdx = j;
+									lastValueFound = false;
+								}
+								else if (merge_counters[j] < merge_limits[j]) {
+									int8_t value = dynamic_cast<VariantArray<int8_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(lastValue != value)
+									{
+										valuesAreEqual = false;
+										break;
+									}
+								}
+							}
+						}
+						break;
+					default:
+						break;
 				}
 
 				// If no first nonzero index was found - there are no entries left - terminate the while loop
@@ -112,8 +270,47 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 						// The program copies the result values - based on column name
 						for(auto &retColumn : reconstructedOrderByRetColumnBlocks)
 						{
-							int32_t value = dynamic_cast<VariantArray<int32_t>*>(retColumn.second[firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
-							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+							switch(retColumn.second[0].get()->GetType())
+							{
+								case COLUMN_INT:
+									{
+										int32_t value = dynamic_cast<VariantArray<int32_t>*>(retColumn.second[firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
+										dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+									}
+									break;
+								case COLUMN_LONG:
+									{
+										int64_t value = dynamic_cast<VariantArray<int64_t>*>(retColumn.second[firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
+										dynamic_cast<VariantArray<int64_t>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+									}
+									break;
+								case COLUMN_FLOAT:
+									{
+										float value = dynamic_cast<VariantArray<float>*>(retColumn.second[firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
+										dynamic_cast<VariantArray<float>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+									}
+									break;
+								case COLUMN_DOUBLE:
+									{
+										double value = dynamic_cast<VariantArray<double>*>(retColumn.second[firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
+										dynamic_cast<VariantArray<double>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+									}
+									break;
+								case COLUMN_POINT:
+									throw std::runtime_error("ORDER BY operation not implemented for points");
+								case COLUMN_POLYGON:
+									throw std::runtime_error("ORDER BY operation not implemented for polygons");								
+								case COLUMN_STRING:
+									throw std::runtime_error("ORDER BY operation not implemented for strings");									
+								case COLUMN_INT8_T:
+									{
+										int8_t value = dynamic_cast<VariantArray<int8_t>*>(retColumn.second[firstNonzeroMergeCounterIdx].get())->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
+										dynamic_cast<VariantArray<int8_t>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+									}
+									break;
+								default:
+									break;
+							}
 						}
 						resultSetCounter++;
 					}
@@ -133,30 +330,163 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 				// Find global minimum or maximum depending on the column type - neeed to distinguish between different data types
 				
 				int32_t mergeCounterIdx = -1;
-				int32_t minimum = std::numeric_limits<int32_t>::max();
-				int32_t maximum = std::numeric_limits<int32_t>::lowest();
 
-				for(int32_t j = 0; j < merge_counters.size(); j++)
+				// WARNING - this works only for non empty columns
+				switch(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][0].get()->GetType())
 				{
-					// Check if we are within the merged block sizes
-					if(orderByColumns[i].second == OrderBy::Order::ASC && merge_counters[j] < merge_limits[j]) {
-						// Get the value from the block to which the merge counter points
-						int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
-						if(minimum > value)
+					case COLUMN_INT:
 						{
-							minimum = value;
-							mergeCounterIdx = j;
+							int32_t minimum = std::numeric_limits<int32_t>::max();
+							int32_t maximum = std::numeric_limits<int32_t>::lowest();
+			
+							for(int32_t j = 0; j < merge_counters.size(); j++)
+							{
+								// Check if we are within the merged block sizes
+								if(orderByColumns[i].second == OrderBy::Order::ASC && merge_counters[j] < merge_limits[j]) {
+									// Get the value from the block to which the merge counter points
+									int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(minimum > value)
+									{
+										minimum = value;
+										mergeCounterIdx = j;
+									}
+								}
+								else if(orderByColumns[i].second == OrderBy::Order::DESC && merge_counters[j] < merge_limits[j]) {
+									// Get the value from the block to which the merge counter points
+									int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(maximum < value)
+									{
+										maximum = value;
+										mergeCounterIdx = j;
+									}
+								}
+							}
 						}
-					}
-					else if(orderByColumns[i].second == OrderBy::Order::DESC && merge_counters[j] < merge_limits[j]) {
-						// Get the value from the block to which the merge counter points
-						int32_t value = dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
-						if(maximum < value)
+						break;
+					case COLUMN_LONG:
 						{
-							maximum = value;
-							mergeCounterIdx = j;
+							int64_t minimum = std::numeric_limits<int64_t>::max();
+							int64_t maximum = std::numeric_limits<int64_t>::lowest();
+			
+							for(int32_t j = 0; j < merge_counters.size(); j++)
+							{
+								// Check if we are within the merged block sizes
+								if(orderByColumns[i].second == OrderBy::Order::ASC && merge_counters[j] < merge_limits[j]) {
+									// Get the value from the block to which the merge counter points
+									int64_t value = dynamic_cast<VariantArray<int64_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(minimum > value)
+									{
+										minimum = value;
+										mergeCounterIdx = j;
+									}
+								}
+								else if(orderByColumns[i].second == OrderBy::Order::DESC && merge_counters[j] < merge_limits[j]) {
+									// Get the value from the block to which the merge counter points
+									int64_t value = dynamic_cast<VariantArray<int64_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(maximum < value)
+									{
+										maximum = value;
+										mergeCounterIdx = j;
+									}
+								}
+							}
 						}
-					}
+						break;
+					case COLUMN_FLOAT:
+						{
+							float minimum = std::numeric_limits<float>::max();
+							float maximum = std::numeric_limits<float>::lowest();
+			
+							for(int32_t j = 0; j < merge_counters.size(); j++)
+							{
+								// Check if we are within the merged block sizes
+								if(orderByColumns[i].second == OrderBy::Order::ASC && merge_counters[j] < merge_limits[j]) {
+									// Get the value from the block to which the merge counter points
+									float value = dynamic_cast<VariantArray<float>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(minimum > value)
+									{
+										minimum = value;
+										mergeCounterIdx = j;
+									}
+								}
+								else if(orderByColumns[i].second == OrderBy::Order::DESC && merge_counters[j] < merge_limits[j]) {
+									// Get the value from the block to which the merge counter points
+									float value = dynamic_cast<VariantArray<float>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(maximum < value)
+									{
+										maximum = value;
+										mergeCounterIdx = j;
+									}
+								}
+							}
+						}
+						break;
+					case COLUMN_DOUBLE:
+						{
+							double minimum = std::numeric_limits<double>::max();
+							double maximum = std::numeric_limits<double>::lowest();
+			
+							for(int32_t j = 0; j < merge_counters.size(); j++)
+							{
+								// Check if we are within the merged block sizes
+								if(orderByColumns[i].second == OrderBy::Order::ASC && merge_counters[j] < merge_limits[j]) {
+									// Get the value from the block to which the merge counter points
+									double value = dynamic_cast<VariantArray<double>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(minimum > value)
+									{
+										minimum = value;
+										mergeCounterIdx = j;
+									}
+								}
+								else if(orderByColumns[i].second == OrderBy::Order::DESC && merge_counters[j] < merge_limits[j]) {
+									// Get the value from the block to which the merge counter points
+									double value = dynamic_cast<VariantArray<double>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(maximum < value)
+									{
+										maximum = value;
+										mergeCounterIdx = j;
+									}
+								}
+							}
+						}
+						break;
+					case COLUMN_POINT:
+						throw std::runtime_error("ORDER BY operation not implemented for points");
+					case COLUMN_POLYGON:
+						throw std::runtime_error("ORDER BY operation not implemented for polygons");								
+					case COLUMN_STRING:
+						throw std::runtime_error("ORDER BY operation not implemented for strings");									
+					case COLUMN_INT8_T:
+						{
+							int8_t minimum = std::numeric_limits<int8_t>::max();
+							int8_t maximum = std::numeric_limits<int8_t>::lowest();
+			
+							for(int32_t j = 0; j < merge_counters.size(); j++)
+							{
+								// Check if we are within the merged block sizes
+								if(orderByColumns[i].second == OrderBy::Order::ASC && merge_counters[j] < merge_limits[j]) {
+									// Get the value from the block to which the merge counter points
+									int8_t value = dynamic_cast<VariantArray<int8_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(minimum > value)
+									{
+										minimum = value;
+										mergeCounterIdx = j;
+									}
+								}
+								else if(orderByColumns[i].second == OrderBy::Order::DESC && merge_counters[j] < merge_limits[j]) {
+									// Get the value from the block to which the merge counter points
+									int8_t value = dynamic_cast<VariantArray<int8_t>*>(reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j].get())->getData()[merge_counters[j]];
+									if(maximum < value)
+									{
+										maximum = value;
+										mergeCounterIdx = j;
+									}
+								}
+							}
+						}
+						break;
+					default:
+						break;
 				}
 
 				// If an extrem was found (min or max)
@@ -166,12 +496,49 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 					if(resultSetCounter < resultSetSize)
 					{
 						// The program copies the result values - based on column name
-						int sz = 0;
 						for(auto &retColumn : reconstructedOrderByRetColumnBlocks)
 						{
-							int32_t value = dynamic_cast<VariantArray<int32_t>*>(retColumn.second[mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
-							dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
-
+							switch(retColumn.second[0].get()->GetType())
+							{
+								case COLUMN_INT:
+									{
+										int32_t value = dynamic_cast<VariantArray<int32_t>*>(retColumn.second[mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
+										dynamic_cast<VariantArray<int32_t>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+									}
+									break;
+								case COLUMN_LONG:
+									{
+										int64_t value = dynamic_cast<VariantArray<int64_t>*>(retColumn.second[mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
+										dynamic_cast<VariantArray<int64_t>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+									}
+									break;
+								case COLUMN_FLOAT:
+									{
+										float value = dynamic_cast<VariantArray<float>*>(retColumn.second[mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
+										dynamic_cast<VariantArray<float>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+									}
+									break;
+								case COLUMN_DOUBLE:
+									{
+										double value = dynamic_cast<VariantArray<double>*>(retColumn.second[mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
+										dynamic_cast<VariantArray<double>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+									}
+									break;
+								case COLUMN_POINT:
+									throw std::runtime_error("ORDER BY operation not implemented for points");
+								case COLUMN_POLYGON:
+									throw std::runtime_error("ORDER BY operation not implemented for polygons");								
+								case COLUMN_STRING:
+									throw std::runtime_error("ORDER BY operation not implemented for strings");									
+								case COLUMN_INT8_T:
+									{
+										int8_t value = dynamic_cast<VariantArray<int8_t>*>(retColumn.second[mergeCounterIdx].get())->getData()[merge_counters[mergeCounterIdx]];
+										dynamic_cast<VariantArray<int8_t>*>(reconstructedOrderByColumnsMerged[retColumn.first].get())->getData()[resultSetCounter] = value;
+									}
+									break;
+								default:
+									break;
+							}
 						}
 						resultSetCounter++;
 					}
