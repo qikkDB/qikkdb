@@ -4,6 +4,7 @@
 #include <device_launch_parameters.h>
 #ifdef DEBUG_ALLOC
 #include <cstdio>
+#include <execinfo.h>
 #endif
 #include <stdexcept>
 
@@ -25,7 +26,7 @@ CudaMemAllocator::CudaMemAllocator(int32_t deviceID) :
 	chainedBlocks_.push_back({ false, blocksBySize_.end(), free - RESERVED_MEMORY, cudaBufferStart_ });
 	(*chainedBlocks_.begin()).sizeOrderIt = blocksBySize_.emplace(std::make_pair(free - RESERVED_MEMORY, chainedBlocks_.begin()));
 #ifdef DEBUG_ALLOC
-	logOut = fopen("E:\\alloc.log", "a");
+	logOut = fopen("/home/jvesely/alloc.log", "a");
 	fprintf(logOut, "CudaMemAllocator %d\n", deviceID);
 	fprintf(logOut, "Available blocks: %zu\n", chainedBlocks_.size());
 	for (auto & ptrs : chainedBlocks_)
@@ -94,6 +95,15 @@ void CudaMemAllocator::deallocate(int8_t * ptr, size_t numBytes)
 {
 #ifdef DEBUG_ALLOC
 	fprintf(logOut, "%d CudaMemAllocator::deallocate ptr %p\n", deviceID_, ptr);
+	fprintf(logOut, "-- Backtrace start --\n");
+	void* backtraceArray[25];
+	int btSize = backtrace(backtraceArray, 25);
+	char** symbols = backtrace_symbols(backtraceArray,btSize);
+	for(int i = 0; i < btSize; i++)
+	{
+		fprintf(logOut, "%d: %s\n",i,symbols[i]);
+	}
+	fprintf(logOut, "-- Backtrace end --\n");
 	fflush(logOut);
 #endif
 	auto allocListIt = allocatedBlocks_.find(ptr);

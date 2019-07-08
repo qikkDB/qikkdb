@@ -219,7 +219,7 @@ public:
 			{
 				GPUMemory::alloc<T>(outCol, dataElementCount);
 				GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
-				size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+				size_t outBitMaskSize = (dataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
 				if(nullMask)
 				{
 					GPUMemory::alloc(outNullMask, outBitMaskSize);
@@ -230,9 +230,9 @@ public:
 		}
 		catch (...)
 		{
-			if (outCol)
+			if (*outCol)
 			{
-				GPUMemory::free(outCol);
+				GPUMemory::free(*outCol);
 			}
 			throw;
 		}

@@ -268,9 +268,18 @@ public:
 
 	~GPUGroupBy()
 	{
-		GPUMemory::free(keys_);
-		GPUMemory::free(values_);
-		GPUMemory::free(keyOccurenceCount_);
+		if(keys_)
+		{
+			GPUMemory::free(keys_);
+		}
+		if(values_)
+		{
+			GPUMemory::free(values_);
+		}
+		if(keyOccurenceCount_)
+		{
+			GPUMemory::free(keyOccurenceCount_);
+		}
 	}
 
 	GPUGroupBy(const GPUGroupBy &) = delete;
@@ -500,9 +509,18 @@ public:
 
 	~GPUGroupBy()
 	{
-		GPUMemory::free(keys_);
-		GPUMemory::free(values_);
-		GPUMemory::free(keyOccurenceCount_);
+		if(keys_)
+		{
+			GPUMemory::free(keys_);
+		}
+		if(values_)
+		{
+			GPUMemory::free(values_);
+		}
+		if(keyOccurenceCount_)
+		{
+			GPUMemory::free(keyOccurenceCount_);
+		}
 	}
 
 	GPUGroupBy(const GPUGroupBy &) = delete;
@@ -780,9 +798,18 @@ public:
 
 	~GPUGroupBy()
 	{
-		GPUMemory::free(keys_);
-		GPUMemory::free(values_);
-		GPUMemory::free(keyOccurenceCount_);
+		if(keys_)
+		{
+			GPUMemory::free(keys_);
+		}
+		if(values_)
+		{
+			GPUMemory::free(values_);
+		}
+		if(keyOccurenceCount_)
+		{
+			GPUMemory::free(keyOccurenceCount_);
+		}
 	}
 
 	GPUGroupBy(const GPUGroupBy &) = delete;

@@ -636,7 +636,7 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string * outStringData, int32
 	GPUMemory::free(reconstructedPointCol);
 	// Use reconstruct without mask - just to convert GPUString to CPU string array
 	ReconstructStringCol(outStringData, outDataElementCount, gpuWkt, nullptr, *outDataElementCount);
-	if (gpuWkt.allChars)
+	if (!gpuWkt.allChars)
 	{
 		GPUMemory::free(gpuWkt);
 	}

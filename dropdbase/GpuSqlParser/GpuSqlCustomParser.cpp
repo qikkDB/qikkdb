@@ -242,8 +242,15 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		}
 	}
 	
-		
-	return (mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
+	auto ret = (mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
+	int32_t currentDev = context.getBoundDeviceID();
+	for (int i = 0; i < threadCount; i++)
+	{
+		context.bindDeviceToContext(i);
+		groupByInstances[i] = nullptr;
+	}
+	context.bindDeviceToContext(currentDev);
+	return ret;
 }
 
 /// Merges partial dispatcher respnse messages to final response message

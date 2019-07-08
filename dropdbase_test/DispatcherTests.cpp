@@ -10860,6 +10860,17 @@ TEST(DispatcherTests, IsNull)
 	Context::getInstance();
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colInteger1 IS NULL;");
 	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	ASSERT_EQ(result->payloads().at("TableA.colFloat1").floatpayload().floatdata_size(),0);
+}
+
+TEST(DispatcherTests, IsNotNull)
+{
+	Context::getInstance();
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colInteger1 IS NOT NULL;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	ASSERT_EQ(result->payloads().at("TableA.colFloat1").floatpayload().floatdata_size(),0);
 }
 
 TEST(DispatcherTests, JoinSimpleTest)
@@ -11222,7 +11233,7 @@ TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
 
 	for (int i = 0; i < payloadsColC.floatpayload().floatdata_size(); i++)
 	{
-		ASSERT_FLOAT_EQ(expectedResultsColC[i], payloadsColC.floatpayload().floatdata()[i]);
+		ASSERT_TRUE(std::isnan(payloadsColC.floatpayload().floatdata()[i]));
 	}
 
 	GpuSqlCustomParser parser6(DispatcherObjs::GetInstance().database, "DROP TABLE [tblA%^&*()-+];");
