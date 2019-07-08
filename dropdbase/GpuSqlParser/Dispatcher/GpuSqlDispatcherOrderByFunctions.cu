@@ -23,21 +23,6 @@ int32_t GpuSqlDispatcher::freeOrderByTable()
 
 int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 {
-
-	/*
-	switch(.GetType())
-	{
-		case COLUMN_INT:
-		case COLUMN_LONG:
-		case COLUMN_FLOAT:
-		case COLUMN_DOUBLE:
-		case COLUMN_POINT:
-		case COLUMN_POLYGON:
-		case COLUMN_STRING:
-		case COLUMN_INT8_T:
-	}
-	*/
-
 	if(isOverallLastBlock)
 	{
 		// Count and allocate the result vectors for the output map
@@ -551,7 +536,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 					break;
 				}
 				else {
-					// ???
+					// ??? I dont know what happens the program gets here
 				}
 			}
 		}

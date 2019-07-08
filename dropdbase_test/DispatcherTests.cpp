@@ -12,6 +12,7 @@
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
+#include "../dropdbase/QueryEngine/OrderByType.h"
 #include "DispatcherObjs.h"
 
 /////////////////////
@@ -10865,7 +10866,7 @@ TEST(DispatcherTests, CreateAlterDropTable)
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
 }
 
-TEST(DispatcherTests, OrderByTest)
+TEST(DispatcherTests, OrderByTestSimple)
 {
 	Context::getInstance();
 
@@ -10896,6 +10897,135 @@ TEST(DispatcherTests, OrderByTest)
 	for (int i = 0; i < payloadsInt.intpayload().intdata_size(); i++)
 	{
 		ASSERT_EQ(expectedResultsInt[i], payloadsInt.intpayload().intdata()[i]);
+	}
+}
+
+template<typename T>
+struct IdxKeyPair
+{
+    int32_t index;
+    T key;
+};
+
+template<typename T>
+struct Asc
+{
+    inline bool operator() (const IdxKeyPair<T>& struct1, const IdxKeyPair<T>& struct2)
+    {
+        return (struct1.key < struct2.key);
+    }
+};
+
+template<typename T>
+struct Desc
+{
+    inline bool operator() (const IdxKeyPair<T>& struct1, const IdxKeyPair<T>& struct2)
+    {
+        return (struct1.key > struct2.key);
+    }
+};
+
+TEST(DispatcherTests, OrderByTestMulticolumnMultitype)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1, colDouble1 FROM TableA ORDER BY colInteger1 ASC, colLong1 DESC, colFloat1 ASC, colDouble1 DESC;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto dataIn1 = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get())->GetBlocksList();
+	auto dataIn2 = dynamic_cast<ColumnBase<int64_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colLong1").get())->GetBlocksList();
+	auto dataIn3 = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get())->GetBlocksList();
+	auto dataIn4 = dynamic_cast<ColumnBase<double>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colDouble1").get())->GetBlocksList();
+
+	// Get the expected results
+	std::vector<int32_t> expectedResultsInt;
+	std::vector<double> expectedResultsDouble;
+
+	for(int32_t i = 0; i < result->payloads().at("TableA.colInteger1").intpayload().intdata_size(); i++)	
+			expectedResultsInt.push_back(result->payloads().at("TableA.colInteger1").intpayload().intdata()[i]);
+
+	for(int32_t i = 0; i < result->payloads().at("TableA.colDouble1").doublepayload().doubledata_size(); i++)	
+			expectedResultsDouble.push_back(result->payloads().at("TableA.colDouble1").doublepayload().doubledata()[i]);
+	
+	// Temp buffers for sort on the CPU
+	std::vector<int32_t> data1(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+	std::vector<int64_t> data2(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+	std::vector<float> data3(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+	std::vector<double> data4(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+
+	std::vector<IdxKeyPair<int32_t>> v1(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+	std::vector<IdxKeyPair<int64_t>> v2(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+	std::vector<IdxKeyPair<float>> v3(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+	std::vector<IdxKeyPair<double>> v4(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+
+	std::vector<int32_t> indices(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+        indices[i] = i;
+
+	// Sort 4th col
+	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+		data4[i] = dataIn4[indices[i] / TEST_BLOCK_SIZE]->GetData()[indices[i] % TEST_BLOCK_SIZE];
+	
+	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+		v4[i] = {indices[i], data4[i]};
+
+	stable_sort(v4.begin(), v4.end(), Asc<double>());
+
+	for (int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+		indices[i] = v4[i].index; 
+
+	// Sort 3th col
+	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+		data3[i] = dataIn3[indices[i] / TEST_BLOCK_SIZE]->GetData()[indices[i] % TEST_BLOCK_SIZE];
+	
+	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+		v3[i] = {indices[i], data3[i]};
+
+	stable_sort(v3.begin(), v3.end(), Desc<float>());
+
+	for (int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+		indices[i] = v3[i].index; 
+
+	// Sort 2th col
+	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+		data2[i] = dataIn2[indices[i] / TEST_BLOCK_SIZE]->GetData()[indices[i] % TEST_BLOCK_SIZE];
+	
+	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+		v2[i] = {indices[i], data2[i]};
+
+	stable_sort(v2.begin(), v2.end(), Asc<int64_t>());
+
+	for (int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+		indices[i] = v2[i].index; 
+
+	// Sort 1th col
+	for(int32_t i = 0; i < TEST_BLOCK_COUNT; i++)
+			data1[i] = dataIn1[indices[i] / TEST_BLOCK_SIZE]->GetData()[indices[i] % TEST_BLOCK_SIZE];
+	
+	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+		v1[i] = {indices[i], data1[i]};
+
+	stable_sort(v1.begin(), v1.end(), Desc<int32_t>());
+
+	for (int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+		indices[i] = v1[i].index; 
+
+	
+	// Reorder the output data 
+	std::vector<int32_t> resultsInt(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+	std::vector<double> resultsDouble(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+	{
+		resultsInt[i] = dataIn1[indices[i] / TEST_BLOCK_SIZE]->GetData()[indices[i] % TEST_BLOCK_SIZE];
+		resultsDouble[i] = dataIn4[indices[i] / TEST_BLOCK_SIZE]->GetData()[indices[i] % TEST_BLOCK_SIZE];
+	}
+
+	// Compare the results with the parser results
+	for (int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+	{
+		ASSERT_EQ(resultsInt[i] , expectedResultsInt[i]);
+		ASSERT_FLOAT_EQ(resultsDouble[i] , expectedResultsDouble[i]);
 	}
 }
 
