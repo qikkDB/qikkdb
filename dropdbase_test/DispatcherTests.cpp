@@ -10870,7 +10870,23 @@ TEST(DispatcherTests, IsNotNull)
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colInteger1 IS NOT NULL;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	ASSERT_EQ(result->payloads().at("TableA.colFloat1").floatpayload().floatdata_size(),0);
+	std::vector<float> expectedResultsFloat;
+	auto column = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->
+		GetTables().at("TableA").GetColumns().at("colFloat1").get());
+	for (int i = 0; i < 2; i++)
+	{
+		auto block = column->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResultsFloat.push_back(block->GetData()[k]);
+		}
+	}
+	auto& payload = result->payloads().at("TableA.colFloat1");
+	ASSERT_EQ(payload.floatpayload().floatdata_size(), expectedResultsFloat.size());
+	for (int i = 0; i < payload.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsFloat[i], payload.floatpayload().floatdata()[i]);
+	}
 }
 
 TEST(DispatcherTests, JoinSimpleTest)

@@ -5,7 +5,7 @@
 // POLYGON((179.9999 89.9999, 0.0000 0.0000, 179.9999 89.9999), (-179.9999 -89.9999, 52.1300 -27.0380, -179.9999 -89.9999))
 
 /// Kernel for reconstructing null masks according to calculated prefixSum and inMask
-__global__ void kernel_reconstruct_null_mask(int8_t *outData, int8_t *ACol, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
+__global__ void kernel_reconstruct_null_mask(int32_t *outData, int8_t *ACol, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
@@ -19,11 +19,13 @@ __global__ void kernel_reconstruct_null_mask(int8_t *outData, int8_t *ACol, int3
 		{
 			int bitMaskIdx = i / (sizeof(char)*8);
 			int shiftIdx = i % (sizeof(char)*8);
-			int outBitMaskIdx = (prefixSum[i] - 1) / (sizeof(char)*8);
-			int outBitMaskShiftIdx = (prefixSum[i] - 1) % (sizeof(char)*8);
-			outData[outBitMaskIdx] |= ((ACol[bitMaskIdx] >> shiftIdx) & 1) << outBitMaskShiftIdx;
+			int outBitMaskIdx = (prefixSum[i] - 1) / (sizeof(int32_t)*8);
+			int outBitMaskShiftIdx = (prefixSum[i] - 1) % (sizeof(int32_t)*8);
+			atomicOr(outData + outBitMaskIdx,((ACol[bitMaskIdx] >> shiftIdx) & static_cast<int8_t>(1)) << outBitMaskShiftIdx);
+			
 		}
 	}
+	
 }
 
 __global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCol,
@@ -290,10 +292,10 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString *outStringCol
 				(*outStringCol, inStringCol, inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
 			if(nullMask)
 			{
-				size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
-				GPUMemory::alloc(outNullMask, outBitMaskSize);
+				size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int32_t)*8);
+				GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
 				kernel_reconstruct_null_mask << < context.calcGridDim(*outDataElementCount), context.getBlockDim() >> >
-					(*outNullMask, nullMask, inPrefixSumPointer.get(), inMask, *outDataElementCount);
+					(reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(), inMask, *outDataElementCount);
 			}
 		}
 		else	// Empty result set
@@ -562,10 +564,10 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			CheckCudaError(cudaGetLastError());
 			if(nullMask)
 			{
-				size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
-				GPUMemory::alloc(outNullMask, outBitMaskSize);
+				size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int32_t)*8);
+				GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
 				kernel_reconstruct_null_mask << < context.calcGridDim(*outDataElementCount), context.getBlockDim() >> >
-					(*outNullMask, nullMask, inPrefixSumPointer.get(), inMask, *outDataElementCount);
+					(reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(), inMask, *outDataElementCount);
 			}
 		}
 		else	// Empty result set

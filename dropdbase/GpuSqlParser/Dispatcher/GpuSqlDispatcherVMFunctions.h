@@ -174,7 +174,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 			{
 				int32_t bitMaskCapacity = ((realSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-					database->GetName(), colName + "_nullmask", blockIndex, bitMaskCapacity);
+					database->GetName(), colName + "_nullMask", blockIndex, bitMaskCapacity);
 				nullMaskPtr = std::get<0>(cacheMaskEntry);
 				if (!std::get<2>(cacheMaskEntry))
 				{
