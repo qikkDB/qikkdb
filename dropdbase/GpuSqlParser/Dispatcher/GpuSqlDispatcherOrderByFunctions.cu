@@ -72,22 +72,22 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 		}
 
 		// Allocate the result map by inserting a column name and iVariantArray pair
-		for(auto &orderColumn : orderByColumns)
+		for(auto &orderColumn : reconstructedOrderByRetColumnBlocks)
 		{
 			// Retrieve the variant array type of the return columns - WARNING - this works only for non empty columns
-			switch(reconstructedOrderByRetColumnBlocks[orderColumn.second.first][0].get()->GetType())
+			switch(orderColumn.second[0].get()->GetType())
 			{
 				case COLUMN_INT:
-					reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<int32_t>>(resultSetSize);
+					reconstructedOrderByColumnsMerged[orderColumn.first] = std::make_unique<VariantArray<int32_t>>(resultSetSize);
 					break;
 				case COLUMN_LONG:
-					reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<int64_t>>(resultSetSize);
+					reconstructedOrderByColumnsMerged[orderColumn.first] = std::make_unique<VariantArray<int64_t>>(resultSetSize);
 					break;
 				case COLUMN_FLOAT:
-					reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<float>>(resultSetSize);
+					reconstructedOrderByColumnsMerged[orderColumn.first] = std::make_unique<VariantArray<float>>(resultSetSize);
 					break;
 				case COLUMN_DOUBLE:
-					reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<double>>(resultSetSize);
+					reconstructedOrderByColumnsMerged[orderColumn.first] = std::make_unique<VariantArray<double>>(resultSetSize);
 					break;
 				case COLUMN_POINT:
 					throw std::runtime_error("ORDER BY operation not implemented for points");
@@ -96,7 +96,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 				case COLUMN_STRING:
 					throw std::runtime_error("ORDER BY operation not implemented for strings");
 				case COLUMN_INT8_T:
-					reconstructedOrderByColumnsMerged[orderColumn.second.first] = std::make_unique<VariantArray<int8_t>>(resultSetSize);
+					reconstructedOrderByColumnsMerged[orderColumn.first] = std::make_unique<VariantArray<int8_t>>(resultSetSize);
 					break;
 				default:
 					break;
