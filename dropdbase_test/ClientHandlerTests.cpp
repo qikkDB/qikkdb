@@ -89,7 +89,8 @@ TEST(ClientHandlerTests, TestHandlerQuery)
 	std::shared_ptr<Database> db = std::make_shared<Database>("test");
 	Database::AddToInMemoryDatabaseList(db);
 	db->CreateTable(std::unordered_map<std::string, DataType>{ {"test", COLUMN_INT} }, "test");
-	db->GetTables().at("test").InsertData(std::unordered_map <std::string, std::any>{ {"test", std::make_any<std::vector<int>>({ 1,2,3 })}});
+	std::unordered_map <std::string, std::vector<int8_t>> nullMask{{"test",{1}}}; 
+	db->GetTables().at("test").InsertData(std::unordered_map <std::string, std::any>{ {"test", std::make_any<std::vector<int>>({ 1,2,3 })}}, false, nullMask);
 	std::unique_ptr<IClientHandler> handler = std::make_unique<TCPClientHandler>();
 	boost::asio::io_context context;
 	IClientHandler* handlerPtr = handler.get();
@@ -106,10 +107,11 @@ TEST(ClientHandlerTests, TestHandlerQuery)
 	auto queryResponsePtr = handlerPtr->HandleInfoMessage(tempWorker, getNextResultMessage);
 	ASSERT_NE(dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(queryResponsePtr.get()), static_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(nullptr));
 	auto& payload = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(queryResponsePtr.get())->payloads().at("test.test").intpayload().intdata();
+	auto nullMaskPayload = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(queryResponsePtr.get())->nullbitmasks().at("test.test");
 	ASSERT_EQ(payload.size(), 3);
 	ASSERT_EQ(payload[0], 1);
 	ASSERT_EQ(payload[1], 2);
-	ASSERT_EQ(payload[2], 3);
+	ASSERT_EQ(nullMaskPayload[0], 1);
 	Database::RemoveFromInMemoryDatabaseList("test");
 }
 
