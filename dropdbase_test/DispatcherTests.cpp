@@ -10970,7 +10970,7 @@ TEST(DispatcherTests, OrderByTestMulticolumnMultitype)
 	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
 		v4[i] = {indices[i], data4[i]};
 
-	stable_sort(v4.begin(), v4.end(), Asc<double>());
+	stable_sort(v4.begin(), v4.end(), Desc<double>());
 
 	for (int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
 		indices[i] = v4[i].index; 
@@ -10982,7 +10982,7 @@ TEST(DispatcherTests, OrderByTestMulticolumnMultitype)
 	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
 		v3[i] = {indices[i], data3[i]};
 
-	stable_sort(v3.begin(), v3.end(), Desc<float>());
+	stable_sort(v3.begin(), v3.end(), Asc<float>());
 
 	for (int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
 		indices[i] = v3[i].index; 
@@ -10994,19 +10994,19 @@ TEST(DispatcherTests, OrderByTestMulticolumnMultitype)
 	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
 		v2[i] = {indices[i], data2[i]};
 
-	stable_sort(v2.begin(), v2.end(), Asc<int64_t>());
+	stable_sort(v2.begin(), v2.end(), Desc<int64_t>());
 
 	for (int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
 		indices[i] = v2[i].index; 
 
 	// Sort 1th col
-	for(int32_t i = 0; i < TEST_BLOCK_COUNT; i++)
+	for(int32_t i = 0; i < TEST_BLOCK_COUNT * TEST_BLOCK_SIZE; i++)
 			data1[i] = dataIn1[indices[i] / TEST_BLOCK_SIZE]->GetData()[indices[i] % TEST_BLOCK_SIZE];
 	
 	for(int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
 		v1[i] = {indices[i], data1[i]};
 
-	stable_sort(v1.begin(), v1.end(), Desc<int32_t>());
+	stable_sort(v1.begin(), v1.end(), Asc<int32_t>());
 
 	for (int32_t i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
 		indices[i] = v1[i].index; 
