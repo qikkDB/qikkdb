@@ -10866,40 +10866,6 @@ TEST(DispatcherTests, CreateAlterDropTable)
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
 }
 
-TEST(DispatcherTests, OrderByTestSimple)
-{
-	Context::getInstance();
-
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA ORDER BY colInteger1;");
-	auto resultPtr = parser.parse();
-	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-
-	std::vector<int32_t> expectedResultsInt;
-
-	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
-
-	for (int i = 0; i < 2; i++)
-	{
-		auto blockInt = columnInt->GetBlocksList()[i];
-		std::vector<int32_t> ordered_block(blockInt->GetData(), blockInt->GetData() + blockInt->GetSize());
-		std::stable_sort(ordered_block.begin(), ordered_block.end());
-		for (int k = 0; k < (1 << 11); k++)
-		{
-			
-			expectedResultsInt.push_back(ordered_block[k]);
-		}
-	}
-
-	auto &payloadsInt = result->payloads().at("TableA.colInteger1");
-
-	ASSERT_EQ(payloadsInt.intpayload().intdata_size(), expectedResultsInt.size());
-
-	for (int i = 0; i < payloadsInt.intpayload().intdata_size(); i++)
-	{
-		ASSERT_EQ(expectedResultsInt[i], payloadsInt.intpayload().intdata()[i]);
-	}
-}
-
 template<typename T>
 struct IdxKeyPair
 {
@@ -10924,6 +10890,35 @@ struct Desc
         return (struct1.key > struct2.key);
     }
 };
+
+TEST(DispatcherTests, OrderByTestSimple)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA ORDER BY colInteger1;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResultsInt;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+
+	for(int32_t i = 0; i < result->payloads().at("TableA.colInteger1").intpayload().intdata_size(); i++)	
+		expectedResultsInt.push_back(result->payloads().at("TableA.colInteger1").intpayload().intdata()[i]);
+
+	std::vector<IdxKeyPair<int32_t>> v(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+
+	for (int i = 0, k = 0; i < TEST_BLOCK_COUNT; i++)
+		for (int j = 0; j < TEST_BLOCK_SIZE; j++, k++)
+			v[k] = {0, columnInt->GetBlocksList()[i]->GetData()[j]};
+
+	stable_sort(v.begin(), v.end(), Asc<int32_t>());
+
+	for (int i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
+	{
+		ASSERT_EQ(expectedResultsInt[i], v[i].key);
+	}
+}
 
 TEST(DispatcherTests, OrderByTestMulticolumnMultitype)
 {
