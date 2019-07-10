@@ -30,7 +30,7 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
                                           int32_t* sourceIndices,
                                           void** keysBuffer,
                                           V* values,
-                                          int64_t* keyOccurenceCount,
+                                          int64_t* keyOccurrenceCount,
                                           int32_t maxHashCount,
                                           void** inKeys,
                                           V* inValues,
@@ -92,7 +92,10 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
         {
             // Use aggregation of values on the bucket and the corresponding counter
             AGG{}(&values[foundIndex], inValues[i]);
-            atomicAdd(reinterpret_cast<cuUInt64*>(&keyOccurenceCount[foundIndex]), 1);
+            if (keyOccurrenceCount)
+            {
+                atomicAdd(reinterpret_cast<cuUInt64*>(&keyOccurrenceCount[foundIndex]), 1);
+            }
         }
     }
 }
@@ -114,6 +117,23 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
 template <typename AGG, typename O, typename V>
 class GPUGroupBy<AGG, O, std::vector<void*>, V> : public IGroupBy
 {
+private:
+static constexpr bool USE_VALUES = 
+        std::is_same<AGG, AggregationFunctions::min>::value ||
+        std::is_same<AGG, AggregationFunctions::max>::value ||
+        std::is_same<AGG, AggregationFunctions::sum>::value ||
+        std::is_same<AGG, AggregationFunctions::avg>::value;
+
+static constexpr bool USE_KEY_OCCURRENCES = 
+        std::is_same<AGG, AggregationFunctions::avg>::value ||
+        std::is_same<AGG, AggregationFunctions::count>::value;
+
+static constexpr bool DIRECT_VALUES =
+        std::is_same<AGG, AggregationFunctions::min>::value ||
+        std::is_same<AGG, AggregationFunctions::max>::value ||
+        std::is_same<AGG, AggregationFunctions::sum>::value;
+
+
 public:
     /// Indices to input keys - because of atomicity
     int32_t* sourceIndices_ = nullptr;
@@ -130,7 +150,7 @@ private:
     /// Value buffer of the hash table
     V* values_ = nullptr;
     /// Count of values aggregated per key (helper buffer of the hash table)
-    int64_t* keyOccurenceCount_ = nullptr;
+    int64_t* keyOccurrenceCount_ = nullptr;
 
     /// Size of the hash table (max. count of unique keys)
     const int32_t maxHashCount_;
@@ -138,7 +158,7 @@ private:
     ErrorFlagSwapper errorFlagSwapper_;
 
 public:
-    /// Create GPUGroupBy object and allocate a hash table (buffers for key, values and key occurence counts)
+    /// Create GPUGroupBy object and allocate a hash table (buffers for key, values and key occurrence counts)
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
     GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes)
     : maxHashCount_(maxHashCount), keysColCount_(keyTypes.size())
@@ -204,9 +224,15 @@ public:
                 }
             }
 
-            // And for values and occurences
-            GPUMemory::alloc(&values_, maxHashCount_);
-            GPUMemory::allocAndSet(&keyOccurenceCount_, 0, maxHashCount_);
+            // And for values and occurrences
+            if (USE_VALUES)
+            {
+                GPUMemory::alloc(&values_, maxHashCount_);
+            }
+            if (USE_KEY_OCCURRENCES)
+            {
+                GPUMemory::allocAndSet(&keyOccurrenceCount_, 0, maxHashCount_);
+            }
         }
         catch (...)
         {
@@ -235,14 +261,17 @@ public:
             {
                 GPUMemory::free(values_);
             }
-            if (keyOccurenceCount_)
+            if (keyOccurrenceCount_)
             {
-                GPUMemory::free(keyOccurenceCount_);
+                GPUMemory::free(keyOccurrenceCount_);
             }
             throw;
         }
         GPUMemory::fillArray(sourceIndices_, GBS_SOURCE_INDEX_EMPTY_KEY, maxHashCount_);
-        GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), maxHashCount_);
+        if (USE_VALUES)
+        {
+            GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), maxHashCount_);
+        }
         GPUMemory::copyHostToDevice(keyTypes_, keyTypes.data(), keysColCount_);
     }
 
@@ -272,8 +301,14 @@ public:
                 }
         }
         GPUMemory::free(keysBuffer_);
-        GPUMemory::free(values_);
-        GPUMemory::free(keyOccurenceCount_);
+        if (USE_VALUES)
+        {
+            GPUMemory::free(values_);
+        }
+        if (USE_KEY_OCCURRENCES)
+        {
+            GPUMemory::free(keyOccurrenceCount_);
+        }
     }
 
     GPUGroupBy(const GPUGroupBy&) = delete;
@@ -301,7 +336,7 @@ public:
             // Run group by kernel (get sourceIndices and aggregate values)
             kernel_group_by_multi_key<AGG>
                 <<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
-                    keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, values_, keyOccurenceCount_,
+                    keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, values_, keyOccurrenceCount_,
                     maxHashCount_, inKeys.get(), inValues, dataElementCount, errorFlagSwapper_.GetFlagPointer());
             errorFlagSwapper_.Swap();
 
@@ -365,6 +400,8 @@ public:
     /// buffer (will be filled with count of reconstructed elements)</param>
     void getResults(std::vector<void*>* outKeysVector, O** outValues, int32_t* outDataElementCount)
     {
+        static_assert(!std::is_same<AGG, AggregationFunctions::count>::value || std::is_same<O, int64_t>::value,
+                "GroupBy COUNT ouput data type O must be int64_t");
         Context& context = Context::getInstance();
         // Compute key occupancy mask
         cuda_ptr<int8_t> occupancyMask(maxHashCount_);
@@ -455,7 +492,68 @@ public:
             }
         }
         // Reconstruct aggregated values
-        GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_,
-                                           occupancyMask.get(), maxHashCount_);
+        if (DIRECT_VALUES)  // for min, max and sum: values_ are direct results, just reconstruct them
+        {
+            GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_,
+                                               occupancyMask.get(), maxHashCount_);
+        }
+        else if (std::is_same<AGG, AggregationFunctions::avg>::value) // for avg: values_ need to be divided by keyOccurrences_ and reconstructed
+        {
+            cuda_ptr<O> outValuesGPU(maxHashCount_);
+            // Divide by counts to get averages for buckets
+            try
+            {
+                GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(), values_, keyOccurrenceCount_, maxHashCount_);
+            }
+            catch (query_engine_error& err)
+            {
+                // Rethrow just if error is not division by zero.
+                // Division by zero is OK here because it is more efficient to perform division
+                // on raw (not reconstructed) hash table - and some keyOccurrences here can be 0.
+                if (err.GetQueryEngineError() != QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR)
+                {
+                    throw err; 
+                }
+            }
+            // Reonstruct result with original occupancyMask
+            GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, outValuesGPU.get(), occupancyMask.get(), maxHashCount_);
+        }
+        else // for count: reconstruct and return keyOccurrences_
+        {
+            // reinterpret_cast is needed to solve compilation error
+            // not reinterpreting anything here actually, outValues is int64_t** always in this else-branch
+            GPUReconstruct::reconstructColKeep(reinterpret_cast<int64_t**>(outValues), outDataElementCount, keyOccurrenceCount_,
+                                               occupancyMask.get(), maxHashCount_);
+        }
+    }
+
+    
+    /// Get the final results of GROUP BY operation - for operations Min, Max and Sum - on single
+    /// GPU
+    /// <param name="outKeysVector">pointer to GPUString struct (will be allocated and filled with
+    /// final keys)</param>
+    /// <param name="outValues">double pointer of output GPU buffer (will be
+    /// allocated and filled with final values)</param>
+    /// <param name="outDataElementCount">output CPU
+    ///     buffer (will be filled with count of reconstructed elements)</param>
+    /// <param name="tables">vector of unique pointers to IGroupBy objects with hash tables
+    ///     on every device (GPU)</param>
+    void getResults(std::vector<void*>* outKeysVector, O** outValues, int32_t* outDataElementCount,
+                    std::vector<std::unique_ptr<IGroupBy>>& tables)
+    {
+        if (tables.size() <= 0) // invalid count of tables
+        {
+            CheckQueryEngineError(GPU_EXTENSION_ERROR, "Number of tables have to be at least 1.");
+        }
+        else if (tables.size() == 1 || tables[1].get() == nullptr) // just one table
+        {
+            getResults(outKeysVector, outValues, outDataElementCount);
+        }
+        else // more tables
+        {
+            int oldDeviceId = Context::getInstance().getBoundDeviceID();
+
+            // TODO
+        }   
     }
 };

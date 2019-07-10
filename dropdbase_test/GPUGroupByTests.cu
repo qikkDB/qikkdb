@@ -394,19 +394,66 @@ TEST(GPUGroupByTests, MultiKeySimple)
     );
 }
 
-TEST(GPUGroupByTests, MultiKeyStringSimple)
+
+TEST(GPUGroupByTests, MultiKeyStringSimpleSum)
 {
     int32_t colA[] = { 5, 2, 2, 2, 2, 5, 1, 7 };
     int32_t colB[] = { 1, 1, 1, 1, 1, 1, 2, 0 };
     std::string colC[] = { "Apple", "Nut", "Nut", "Apple", "XYZ", "Apple", "Apple", "Nut" };
+    std::vector<int32_t> values = { 1, 1, 1, 1, 1, 1, 1, 1 };
+
     int32_t correctKeysA[] = { 2, 2, 1, 7, 5, 2 };
     int32_t correctKeysB[] = { 1, 1, 2, 0, 1, 1 };
     std::string correctKeysC[] = { "Apple", "XYZ", "Apple", "Nut", "Apple", "Nut" };
+    std::vector<int32_t> correctValues = { 1, 1, 1, 1, 2, 2 };
+    
     TestGroupByMultiKey<AggregationFunctions::sum>(
         { DataType::COLUMN_INT, DataType::COLUMN_INT, DataType::COLUMN_STRING },
         { { colA, colB, colC } },
-        { { 1, 1, 1, 1, 1, 1, 1, 1 } },
+        { values },
         { correctKeysA, correctKeysB, correctKeysC },
-        { 1, 1, 1, 1, 2, 2 }
+        correctValues
+    );
+}
+
+TEST(GPUGroupByTests, MultiKeyStringSimpleMin)
+{
+    int32_t colA[] = { 8, 2, 2, 8, 2, 8, 1, 7 };
+    int32_t colB[] = { 1, 1, 1, 1, 1, 1, 2, 0 };
+    std::string colC[] = { "Apple", "Nut", "Nut", "Apple", "XYZ", "Apple", "Apple", "Nut" };
+    std::vector<int32_t> values = { -1, 3, 70, 1, 1, 9, 2, 1 };
+
+    int32_t correctKeysA[] = { 8, 2, 1, 7, 2 };
+    int32_t correctKeysB[] = { 1, 1, 2, 0, 1 };
+    std::string correctKeysC[] = { "Apple", "XYZ", "Apple", "Nut", "Nut" };
+    std::vector<int32_t> correctValues = { -1, 1, 2, 1, 3 };
+
+    TestGroupByMultiKey<AggregationFunctions::min>(
+        { DataType::COLUMN_INT, DataType::COLUMN_INT, DataType::COLUMN_STRING },
+        { { colA, colB, colC } },
+        { values },
+        { correctKeysA, correctKeysB, correctKeysC },
+        correctValues
+    );
+}
+
+TEST(GPUGroupByTests, MultiKeyStringSimpleMax)
+{
+    int32_t colA[] = { 8, 2, 2, 8, 2, 8, 1, 7 };
+    int32_t colB[] = { 1, 1, 1, 1, 1, 1, 2, 0 };
+    std::string colC[] = { "Apple", "Nut", "Nut", "Apple", "XYZ", "Apple", "Apple", "Nut" };
+    std::vector<int32_t> values = { -1, 3, 70, 1, 1, 9, 2, 1 };
+
+    int32_t correctKeysA[] = { 8, 2, 1, 7, 2 };
+    int32_t correctKeysB[] = { 1, 1, 2, 0, 1 };
+    std::string correctKeysC[] = { "Apple", "XYZ", "Apple", "Nut", "Nut" };
+    std::vector<int32_t> correctValues = { 9, 1, 2, 1, 70 };
+
+    TestGroupByMultiKey<AggregationFunctions::max>(
+        { DataType::COLUMN_INT, DataType::COLUMN_INT, DataType::COLUMN_STRING },
+        { { colA, colB, colC } },
+        { values },
+        { correctKeysA, correctKeysB, correctKeysC },
+        correctValues
     );
 }
