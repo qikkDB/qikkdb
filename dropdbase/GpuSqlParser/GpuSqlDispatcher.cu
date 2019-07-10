@@ -89,6 +89,7 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 	{
 		Context& context = Context::getInstance();
 		context.bindDeviceToContext(dispatcherThreadId);
+		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
 		int32_t err = 0;
 
 		while (err == 0)
@@ -781,6 +782,7 @@ int32_t GpuSqlDispatcher::jmp()
 	if (!isLastBlockOfDevice)
 	{
 		blockIndex += context.getDeviceCount();
+		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
 		instructionPointer = 0;
 		cleanUpGpuPointers();
 		return 0;
