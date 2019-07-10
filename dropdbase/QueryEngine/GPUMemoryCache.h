@@ -70,7 +70,7 @@ private:
 
 	/// <summary>List of columns that must not be evicted</summary>
 	static std::vector<std::string> lockList;
-
+	size_t currentBlockIndex_;
 public:
 	/// <summary>
 	/// Set list of column names that cannot be evicted
@@ -112,15 +112,15 @@ public:
 			throw std::length_error("Tried to cache block larger than maximum cache size");
 		}
 
-		while (!tryInsert(sizeToInsert)) 
+		while (!tryInsert(sizeToInsert))
 		{
-			if(!evict())
+			if (!evict())
 			{
 				throw std::length_error("Not enough space left in cache");
 			}
 		}
 
-		T* newPtr = reinterpret_cast<T*>(GetAllocator().allocate(size*sizeof(T)));
+		T* newPtr = reinterpret_cast<T*>(GetAllocator().allocate(size * sizeof(T)));
 		usedSize += sizeToInsert;
 		CacheEntry newCacheEntry{ columnBlock, reinterpret_cast<std::uintptr_t>(newPtr), sizeToInsert, lruQueue.end() };
 		auto cacheMapIt = cacheMap.insert(std::make_pair(columnBlock, std::move(newCacheEntry))).first;
@@ -140,7 +140,7 @@ public:
 	/// <param name="tableAndColumnName">table and column name of cached column</param>
 	/// <param name="blockIndex">Block index of cached column</param>
 	void clearCachedBlock(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex);
-	
+
 	/// <summary>
 	/// Check if block is in cache
 	/// </summary>
@@ -150,6 +150,11 @@ public:
 	/// <returns>True if block is cached, otherwise false</returns>
 	bool containsColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex);
 
+
+	void setCurrentBlockIndex(size_t blockIndex)
+	{
+		currentBlockIndex_ = blockIndex;
+	}
 	GPUMemoryCache(const GPUMemoryCache&) = delete;
 	GPUMemoryCache& operator=(const GPUMemoryCache&) = delete;
 };
