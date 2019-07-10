@@ -9,6 +9,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 if(WIN32)
 	add_definitions(-D_WIN32_WINNT=0x601 -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -D_CRT_SECURE_NO_WARNINGS)
 endif(WIN32)
+add_definitions(-DBOOST_ALL_DYN_LINK)
 
 # Find include dirs
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
@@ -141,7 +142,6 @@ add_dependencies(${GTEST_LIBRARY} googletest)
 ###### Google Test external project ########
 
 
-SET(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.66.0 COMPONENTS system filesystem log iostreams REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 

@@ -14,8 +14,7 @@
 #include <iostream>
 #include <chrono>
 #include <boost/log/trivial.hpp>
-// TODO solve undefined references
-//#include <boost/log/utility/setup/from_stream.hpp>
+#include <boost/log/utility/setup/from_stream.hpp>
 #include "QueryEngine/Context.h" 
 #include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "DatabaseGenerator.h"
@@ -33,7 +32,7 @@
 /// <returns>Exit code (0 - OK)</returns>
 int main(int argc, char **argv)
 {
-	/*
+	
 	//TODO solve undefined references
 	std::ifstream logConfigFile("../configuration/log_config");
 	if (logConfigFile.fail())
@@ -41,8 +40,7 @@ int main(int argc, char **argv)
 		logConfigFile = std::ifstream("../configuration/log_config.default");
 	}
 	boost::log::init_from_stream(logConfigFile);
-	*/
-
+	
 	//std::string dbName = "TestDatabase";
 	//std::vector<std::string> tableNames = { "TestTable1" };
 	//std::vector<DataType> columnTypes = { {COLUMN_INT},
