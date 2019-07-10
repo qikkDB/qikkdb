@@ -67,6 +67,41 @@ void TestGroupByString(std::vector<std::vector<std::string>> keys,
 }
 
 
+/// Print all single keys of multiple-key on specified index
+void DebugPrintMultiKey(std::vector<DataType> keyTypes, std::vector<void*> keys, int32_t keyIndex,
+    std::string lineEnd="\n")
+{
+    std::cout << "key: {";
+    for (int32_t t = 0; t < keyTypes.size(); t++)
+    {
+        std::string ending = (t == keyTypes.size() - 1)? ("}" + lineEnd) : ", ";
+        switch (keyTypes[t])
+        {
+        case DataType::COLUMN_INT:
+            std::cout << reinterpret_cast<int32_t*>(keys[t])[keyIndex] << ending;
+            break;
+        case DataType::COLUMN_LONG:
+            std::cout << reinterpret_cast<int64_t*>(keys[t])[keyIndex] << ending;
+            break;
+        case DataType::COLUMN_FLOAT:
+            std::cout << reinterpret_cast<float*>(keys[t])[keyIndex] << ending;
+            break;
+        case DataType::COLUMN_DOUBLE:
+            std::cout << reinterpret_cast<double*>(keys[t])[keyIndex] << ending;
+            break;
+        case DataType::COLUMN_STRING:
+            std::cout << "\"" << reinterpret_cast<std::string*>(keys[t])[keyIndex] << "\"" << ending;
+            break;
+        case DataType::COLUMN_INT8_T:
+            std::cout << reinterpret_cast<int8_t*>(keys[t])[keyIndex] << ending;
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+
 template <typename AGG>
 void TestGroupByMultiKey(std::vector<DataType> keyTypes,
                          std::vector<std::vector<void*>> keys,
@@ -269,10 +304,13 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
                 break;
             }
         }
+        DebugPrintMultiKey(keyTypes, cpuResultKeys, i, ", ");
+        std::cout << "value: " << resultValues[i] << std::endl;
+
         ASSERT_NE(rowId, -1) << " incorrect key";
         ASSERT_EQ(correctValues[rowId], resultValues[i]) << " at correct result row " << rowId;
     }
-/* // not needed free-ing (after test memory automatically frees everything)
+/* // not needed free-ing (memory automatically frees everything after the test)
     for (int32_t t = 0; t < keysColCount; t++)
     {
         delete[] cpuResultKeys[t];
