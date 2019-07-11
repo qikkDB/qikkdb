@@ -30,15 +30,15 @@ int32_t GpuSqlDispatcher::orderByCol()
 			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end() ? "_keys" : ""));
 			int32_t inSize = std::get<1>(column);
 
-			if (orderByTable == nullptr)
+			if (orderByTables[dispatcherThreadId] == nullptr)
 			{
-				orderByTable = std::make_unique<GPUOrderBy>(inSize);
+				orderByTables[dispatcherThreadId] = std::make_unique<GPUOrderBy>(inSize);
 				int32_t* orderByIndices = allocateRegister<int32_t>("$orderByIndices", inSize);
 				usingOrderBy = true;
 			}
 
 			std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
-			orderByTable->OrderByColumn(
+			reinterpret_cast<GPUOrderBy*>(orderByTables[dispatcherThreadId].get())->OrderByColumn(
 				reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)),
 				reinterpret_cast<T*>(std::get<0>(column)),
 				inSize,
@@ -55,15 +55,15 @@ int32_t GpuSqlDispatcher::orderByCol()
 		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t inSize = std::get<1>(column);
 
-		if (orderByTable == nullptr)
+		if (orderByTables[dispatcherThreadId] == nullptr)
 		{
-			orderByTable = std::make_unique<GPUOrderBy>(inSize);
+			orderByTables[dispatcherThreadId] = std::make_unique<GPUOrderBy>(inSize);
 			int32_t* orderByIndices = allocateRegister<int32_t>("$orderByIndices", inSize);
 			usingOrderBy = true;
 		}
 
 		std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
-		orderByTable->OrderByColumn(
+		reinterpret_cast<GPUOrderBy*>(orderByTables[dispatcherThreadId].get())->OrderByColumn(
 			reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)),
 			reinterpret_cast<T*>(std::get<0>(column)),
 			inSize,
