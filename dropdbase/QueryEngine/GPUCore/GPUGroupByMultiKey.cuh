@@ -6,6 +6,11 @@
 #include "../GPUError.h"
 #include "GPUGroupByString.cuh"
 
+struct CPUString
+{
+    std::vector<int32_t> stringLengths;
+    std::vector<char> allChars;
+};
 
 __device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKeys, int32_t i);
 
@@ -75,6 +80,7 @@ void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector, int
 
 void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t rowCount, std::vector<void*>* pointers=nullptr);
 
+void FreeKeysBuffer(void** keysBuffer, DataType* keyTypes, int32_t keysColCount);
 
 /// GROUP BY Kernel processes input (inKeys and inValues). New keys from inKeys are added
 /// to the hash table and values from inValues are aggregated.
@@ -297,17 +303,8 @@ public:
     ~GPUGroupBy()
     {
         GPUMemory::free(sourceIndices_);
+        FreeKeysBuffer(keysBuffer_, keyTypes_, keysColCount_);
         GPUMemory::free(keyTypes_);
-        for (int32_t i = 0; i < keysColCount_; i++)
-        {
-                void * ptr;
-                GPUMemory::copyDeviceToHost(&ptr, keysBuffer_+i, 1);
-                if (ptr)
-                {
-                    GPUMemory::free(ptr);
-                }
-        }
-        GPUMemory::free(keysBuffer_);
         if (USE_VALUES)
         {
             GPUMemory::free(values_);
@@ -643,7 +640,7 @@ public:
                 }
                 case DataType::COLUMN_STRING:
                 {
-                    multiKeysAllHost.emplace_back(new GPUMemory::GPUString[hashTablesSizesSum]);
+                    multiKeysAllHost.emplace_back(new CPUString());
                     break;
                 }
                 case DataType::COLUMN_INT8_T:
@@ -705,8 +702,16 @@ public:
                     }
                     case DataType::COLUMN_STRING:
                     {
-                        //TODO
-                        throw std::runtime_error("NOT IMPL YET");
+                        CPUString * oldBuffer = reinterpret_cast<CPUString*>(multiKeysAllHost[t]);
+                        CPUString * addBuffer = reinterpret_cast<CPUString*>(multiKeys[t]);
+                        CPUString * newBuffer = new CPUString();
+                        newBuffer->stringLengths.insert(newBuffer->stringLengths.end(), oldBuffer->stringLengths.begin(), oldBuffer->stringLengths.end());
+                        newBuffer->allChars.insert(newBuffer->allChars.end(), oldBuffer->allChars.begin(), oldBuffer->allChars.end());
+                        newBuffer->stringLengths.insert(newBuffer->stringLengths.end(), addBuffer->stringLengths.begin(), addBuffer->stringLengths.end());
+                        newBuffer->allChars.insert(newBuffer->allChars.end(), addBuffer->allChars.begin(), addBuffer->allChars.end());
+                        multiKeysAllHost[t] = newBuffer;
+                        delete oldBuffer;
+                        delete addBuffer;
                         break;
                     }
                     case DataType::COLUMN_INT8_T:
@@ -719,13 +724,11 @@ public:
                         break;
                     }
                 }
-
                 valuesAllHost.insert(valuesAllHost.end(), values.get(), values.get() + elementCount);
                 occurrencesAllHost.insert(occurrencesAllHost.end(), occurrences.get(), occurrences.get() + elementCount);
 				sumElementCount += elementCount;
             }
 
-            
             Context::getInstance().bindDeviceToContext(oldDeviceId);
             if (sumElementCount > 0)
             {
@@ -735,7 +738,7 @@ public:
                 cuda_ptr<V> valuesAllGPU(sumElementCount);
 				cuda_ptr<int64_t> occurrencesAllGPU(sumElementCount);
 
-                
+                // Copy collected data to one GPU
                 for (int32_t t = 0; t < keysColCount_; t++)
                 {
                     switch (keyTypesHost[t])
@@ -766,7 +769,22 @@ public:
                     }
                     case DataType::COLUMN_STRING:
                     {
-                        // TODO
+                        CPUString * strKeys = reinterpret_cast<CPUString*>(multiKeysAllHost[t]);
+                        cuda_ptr<int32_t> keysAllGPUStringLengths(sumElementCount);
+                        GPUMemory::copyHostToDevice(keysAllGPUStringLengths.get(),
+                                                    strKeys->stringLengths.data(), sumElementCount);
+                        
+                        // Construct new GPUString with all keys (might be duplicated yet)
+                        GPUMemory::GPUString keysAllGPU;
+                        GPUMemory::alloc(&(keysAllGPU.stringIndices), sumElementCount);
+                        GPUReconstruct::PrefixSum(keysAllGPU.stringIndices, keysAllGPUStringLengths.get(), sumElementCount);
+                        GPUMemory::alloc(&(keysAllGPU.allChars), strKeys->allChars.size());
+                        GPUMemory::copyHostToDevice(keysAllGPU.allChars, strKeys->allChars.data(),
+                                                    strKeys->allChars.size());
+                        
+                        // Copy struct itself
+                        GPUMemory::copyHostToDevice(reinterpret_cast<GPUMemory::GPUString*>(hostPointersToKeysAll[t]),
+                                &keysAllGPU, 1);
                         break;
                     }
                     case DataType::COLUMN_INT8_T:
@@ -783,7 +801,23 @@ public:
                 GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
                 GPUMemory::copyHostToDevice(occurrencesAllGPU.get(), occurrencesAllHost.data(), sumElementCount);
 
-                // TODO
+                // Merge results
+                if (DIRECT_VALUES) // for min, max and sum
+                {
+                    GPUGroupBy<AGG, O, std::vector<void*>, V> finalGroupBy(sumElementCount, keyTypesHost);
+                    finalGroupBy.GroupBy(hostPointersToKeysAll, valuesAllGPU.get(), sumElementCount);
+                    finalGroupBy.GetResults(outKeysVector, outValues, outDataElementCount);
+                }
+                else if (std::is_same<AGG, AggregationFunctions::avg>::value) // for avg
+                {
+                    // TODO
+                }
+                else // for count
+                {
+                    // TODO
+                }
+                // TODO free everything (check in code)
+                FreeKeysBuffer(multiKeysAllGPU, keyTypes_, keysColCount_);
             }
             else
             {

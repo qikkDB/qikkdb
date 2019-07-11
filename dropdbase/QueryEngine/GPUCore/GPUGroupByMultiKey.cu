@@ -114,8 +114,20 @@ template<>
 void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector, int32_t* outDataElementCount, int8_t* occupancyMaskPtr,
         void** keyCol, int32_t elementCount)
 {
-    // TODO
-    throw std::runtime_error("NOT IMPLEMENTED YET");
+    // Copy struct (we need to get pointer to struct at first)
+    GPUMemory::GPUString * structPointer;
+    GPUMemory::copyDeviceToHost(&structPointer, reinterpret_cast<GPUMemory::GPUString**>(keyCol), 1);
+    GPUMemory::GPUString keyBufferSingleCol;
+    GPUMemory::copyDeviceToHost(&keyBufferSingleCol, structPointer, 1);
+
+    // Reconstruct string as raw
+    std::vector<int32_t> stringLengths;
+    std::vector<char> allChars;
+    GPUReconstruct::ReconstructStringColRaw(stringLengths, allChars, outDataElementCount,
+        keyBufferSingleCol, occupancyMaskPtr, elementCount);
+    
+    CPUString* outKeysSingleCol = new CPUString{stringLengths, allChars};
+    outKeysVector->emplace_back(outKeysSingleCol);
 }
 
 
@@ -199,6 +211,26 @@ void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t
             break;
         }
     }
+}
+
+void FreeKeysBuffer(void** keysBuffer, DataType* keyTypes, int32_t keysColCount)
+{
+    // Copy data types back from GPU
+    std::vector<DataType> keyTypesHost;
+    keyTypesHost.resize(keysColCount);
+    GPUMemory::copyDeviceToHost(keyTypesHost.data(), keyTypes, keysColCount);
+
+    for (int32_t i = 0; i < keysColCount; i++)
+    {
+        // TODO string
+        void * ptr;
+        GPUMemory::copyDeviceToHost(&ptr, keysBuffer + i, 1);
+        if (ptr)
+        {
+            GPUMemory::free(ptr);
+        }
+    }
+    GPUMemory::free(keysBuffer);
 }
 
 
