@@ -19,11 +19,11 @@ template<class T>
 class BlockBase
 {
 private:
-
 	T min_ = std::numeric_limits<T>::lowest();
 	T max_ = std::numeric_limits<T>::max();
 	float avg_ = 0.0;
 	T sum_ = T{};
+	bool isFullOfNullValue_ = false;
 	int32_t groupId_ = -1; //index for group of blocks - binary index
 
 	void setBlockStatistics();	
@@ -177,7 +177,7 @@ public:
 	}
 
     std::tuple<int, int, bool>
-    FindIndexAndRange(int indexInBlock, int range, const T& data)
+    FindIndexAndRange(int indexInBlock, int range, const T& data, bool isNullValue)
     {
         int newRange = 0;
         int newIndexInBlock = indexInBlock;
@@ -187,76 +187,125 @@ public:
 		bool found = false;
 		// flag if for loop is broken because of some conditions
         bool inRange = false;
-
+		
 		if (size_ == 0)
-        {
-            newIndexInBlock = 0;
-            newRange = 0;
-            reachEnd = true;
-        }
+		{
+			newIndexInBlock = 0;
+			newRange = 0;
+			reachEnd = true;
+		}
 
 		else
-        {
-            for (int i = indexInBlock; i <= indexInBlock + range; i++)
-            {
-                // index out of block
-                if (i >= size_)
-                {
-                    reachEnd = true;
-                    if (found)
-                    {
-                        newRange = i - newIndexInBlock;
-                    }
-                    else
-                    {
-                        newIndexInBlock = size_;
-                    }
-                    inRange = true;
-                    break;
-                }
+		{
+			if (isNullValue) 
+			{
+				newIndexInBlock = indexInBlock;
 
-                if (data_[i] > data)
-                {
-                    // if first checked value is greater than data
-                    if (!found)
-                    {
-                        newIndexInBlock = i;
-                        inRange = true;
-                        found = true;
-                        break;
-                    }
+				if ((bitMask_[(indexInBlock + range - 1) / (sizeof(char) * 8)] >> ((indexInBlock + range - 1) % (sizeof(char) * 8))) & 1 == 1)
+				{
+					newRange = range;
 
-                    // last suitable value
-                    newRange = i - newIndexInBlock;
-                    inRange = true;
-                    break;
-                }
+					if (indexInBlock + range == size_) 
+					{
+						reachEnd = true;
+					}
+					else
+					{
+						reachEnd = false;
+					}
+					
+				}
+				else
+				{
+					int bitMaskIdx = (newRange / sizeof(char) * 8);
+					int shiftIdx = (newRange % sizeof(char) * 8);
 
-                if (data_[i] == data)
-                {
-                    if (!found)
-                    {
-                        newIndexInBlock = i;
-                        found = true;
-                    }
-                }
-            }
+					while ((bitMask_[bitMaskIdx] >> shiftIdx) & 1 == 1)
+					{
+						newRange++;
+						bitMaskIdx = (newRange / sizeof(char) * 8);
+						shiftIdx = (newRange % sizeof(char) * 8);
+					}
+					reachEnd = false;
+				}
+			}
 
-            // if whole for loop was executed
-            if (!inRange)
-            {
-                if (found)
-                {
-                    newRange = indexInBlock + range - newIndexInBlock;
-                }
-                else
-                {
-                    // if suitable value was not found, index at end is chosen as place to insert
-                    newIndexInBlock = indexInBlock + range;
-                }
-            }
-        }
+			else
+			{
+				int nullValueCount = 0;
+				int indexOfNullValue = indexInBlock;
 
+				int bitMaskIdx = (indexOfNullValue / sizeof(char) * 8);
+				int shiftIdx = (indexOfNullValue % sizeof(char) * 8);
+
+				while ((bitMask_[bitMaskIdx] >> shiftIdx) & 1 == 1)
+				{
+					indexOfNullValue++;
+					nullValueCount++;
+					bitMaskIdx = (indexOfNullValue / sizeof(char) * 8);
+					shiftIdx = (indexOfNullValue % sizeof(char) * 8);
+				}
+
+				for (int i = indexInBlock + nullValueCount; i <= indexInBlock + range; i++)
+				{
+					// index out of block
+					if (i >= size_)
+					{
+						reachEnd = true;
+						if (found)
+						{
+							newRange = i - newIndexInBlock;
+						}
+						else
+						{
+							newIndexInBlock = size_;
+						}
+						inRange = true;
+						break;
+					}
+
+					if (data_[i] > data)
+					{
+						// if first checked value is greater than data
+						if (!found)
+						{
+							newIndexInBlock = i;
+							inRange = true;
+							found = true;
+							break;
+						}
+
+						// last suitable value
+						newRange = i - newIndexInBlock;
+						inRange = true;
+						break;
+					}
+
+					if (data_[i] == data)
+					{
+						if (!found)
+						{
+							newIndexInBlock = i;
+							found = true;
+						}
+					}
+				}
+
+				// if whole for loop was executed
+				if (!inRange)
+				{
+					if (found)
+					{
+						newRange = indexInBlock + range - newIndexInBlock;
+					}
+					else
+					{
+						// if suitable value was not found, index at end is chosen as place to insert
+						newIndexInBlock = indexInBlock + range;
+					}
+				}
+			}
+		}
 		return std::make_tuple(newIndexInBlock, newRange, reachEnd);
     }
 
@@ -368,24 +417,57 @@ public:
 	}
    
 
-    void InsertDataOnSpecificPosition(int index, const T& data)
+    void InsertDataOnSpecificPosition(int index, const T& data, bool isNullValue)
     {
-        int filledBlockSpace = column_.GetBlockSize() - EmptyBlockSpace();
-
         if (EmptyBlockSpace() == 0)
         {
             throw std::length_error("Attempted to insert data larger than remaining block size");
         }
 
-        else if (index < filledBlockSpace)
+        else if (index < size_)
         {
-            for (int j = filledBlockSpace - 1; j >= index; j--)
+            for (int j = size_ - 1; j >= index; j--)
             {
                 data_[j + 1] = data_[j];
             }
+
+			int bitMaskIdx = (index / sizeof(char) * 8);
+			int shiftIdx = (index % sizeof(char) * 8);
+
+			int last = isNullValue ? 1 : 0;
+
+			for (size_t i = shiftIdx; i < 8; i++)
+			{
+				int tmp = (bitMask_[bitMaskIdx] >> shiftIdx) & 1;
+				
+				if (last != tmp)
+				{
+					if (last)
+					{
+						bitMask_[bitMaskIdx] |= (last << shiftIdx);
+					}
+					else
+					{
+						bitMask_[bitMaskIdx] &= ~(last << shiftIdx);
+					}
+
+					last = tmp;
+				}
+			}
+
+			bitMaskIdx++;
+			int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+			for (size_t i = bitMaskIdx; i < bitMaskCapacity; i++)
+			{
+				int tmp = bitMask_[bitMaskIdx] >> 7;
+				bitMask_[bitMaskIdx] <<= 1;
+				bitMask_[bitMaskIdx] |= last;
+				last = tmp;
+			}
         }
         data_[index] = data;
         size_++;
+
         setBlockStatistics();
     }
 

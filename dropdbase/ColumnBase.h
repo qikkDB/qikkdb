@@ -218,7 +218,7 @@ public:
 	}
 
     std::tuple<int, int, int>
-    FindIndexAndRange(int indexBlock, int indexInBlock, int range, const T& columnData, int groupId = -1)
+    FindIndexAndRange(int indexBlock, int indexInBlock, int range, const T& columnData, int groupId = -1, bool isNullValue = false)
     {
         int remainingRange = range;
         int blockRange;
@@ -231,59 +231,106 @@ public:
 		int nextBlockMin;
 		int currentBlockMin;
 		int currentMax;
+		int tempIndexInBlock;
 
 		if (blocks_[groupId].size() == 0)
         {
             BlockBase<T>& block = AddBlock();
             newIndexBlock = 0;
             std::tie(newIndexInBlock, newRange, reachEnd) =
-                block.FindIndexAndRange(indexInBlock, range, columnData);
+                block.FindIndexAndRange(indexInBlock, range, columnData, isNullValue);
 		}
 		else if (blocks_[groupId].size() == 1)
         {
             BlockBase<T>& block = *(blocks_[groupId][0].get());
             newIndexBlock = 0;
             std::tie(newIndexInBlock, newRange, reachEnd) =
-                block.FindIndexAndRange(indexInBlock, range, columnData);
+                block.FindIndexAndRange(indexInBlock, range, columnData, isNullValue);
         }
-
         else
         {
-			for (int i = indexBlock; i < blocks_[groupId].size() && reachEnd && remainingRange > 0; i++)
+			if (isNullValue)
 			{
-			    BlockBase<T>& block = *(blocks_[groupId][i].get());
+				BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
 
-				currentBlockMin = block.GetData()[startIndexInCurrentBlock];
+				while ((reachEnd && indexBlock++ < blocks_[groupId].size() - 1) && remainingRange > 0) 
+				{
+					std::tie(tempIndexInBlock, blockRange, reachEnd) =
+						block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData, isNullValue);
+					newRange += blockRange;
 
-				if ((i + 1) != blocks_[groupId].size()) {
-					BlockBase<T>& nextBlock = *(blocks_[groupId][i + 1].get());
-					nextBlockMin = nextBlock.GetData()[0];
+					startIndexInCurrentBlock = 0;
+					remainingRange -= block.GetSize() - startIndexInCurrentBlock;
+
+					indexBlock++;
+					block = *(blocks_[groupId][indexBlock].get());
 				}
-				
-				if (remainingRange >= block.GetSize() - startIndexInCurrentBlock) {
-					currentMax = block.GetData()[block.GetSize() - 1];
-				}
-				else {
-					currentMax = block.GetData()[startIndexInCurrentBlock + remainingRange];
+			}
+			else 
+			{
+				BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
+
+				while (block.isFullOfNullValue_)
+				{
+					remainingRange -= block.GetSize();
+					startIndexInCurrentBlock = 0;
+
+					indexBlock++;
+					block = *(blocks_[groupId][indexBlock].get());
 				}
 
-			    if (columnData >= currentBlockMin &&
-			        (remainingRange <= block.GetSize() - startIndexInCurrentBlock ||
-			         (columnData <= currentMax || (i == blocks_[groupId].size() - 1 || columnData <= nextBlockMin))))
-			    {
-			        int tempIndexInBlock;
-			        std::tie(tempIndexInBlock, blockRange, reachEnd) =
-			            block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData);
-			        if (!found)
-			        {
-			            newIndexInBlock = tempIndexInBlock;
-			            newIndexBlock = i;
-			            found = true;
-			        }
-			        newRange += blockRange;
-			    }
-			    remainingRange -= block.GetSize() - startIndexInCurrentBlock;
-			    startIndexInCurrentBlock = 0;
+				int bitMaskIdx = (startIndexInCurrentBlock / sizeof(char) * 8);
+				int shiftIdx = (startIndexInCurrentBlock % sizeof(char) * 8);
+				int nullValueCount = 0;
+
+				while ((block.GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1 == 1)
+				{
+					startIndexInCurrentBlock++;
+					nullValueCount++;
+					bitMaskIdx = (startIndexInCurrentBlock / sizeof(char) * 8);
+					shiftIdx = (startIndexInCurrentBlock % sizeof(char) * 8);
+				}
+
+				remainingRange -= nullValueCount;
+
+				for (int i = indexBlock; i < blocks_[groupId].size() && reachEnd && remainingRange > 0; i++)
+				{
+					BlockBase<T>& block = *(blocks_[groupId][i].get());
+
+					currentBlockMin = block.GetData()[startIndexInCurrentBlock];
+
+					if ((i + 1) != blocks_[groupId].size()) 
+					{
+						BlockBase<T>& nextBlock = *(blocks_[groupId][i + 1].get());
+						nextBlockMin = nextBlock.GetData()[0];
+					}
+
+					if (remainingRange >= block.GetSize() - startIndexInCurrentBlock)
+					{
+						currentMax = block.GetData()[block.GetSize() - 1];
+					}
+					else 
+					{
+						currentMax = block.GetData()[startIndexInCurrentBlock + remainingRange];
+					}
+
+					if (columnData >= currentBlockMin &&
+						(remainingRange <= block.GetSize() - startIndexInCurrentBlock ||
+						(columnData <= currentMax || (i == blocks_[groupId].size() - 1 || columnData <= nextBlockMin))))
+					{
+						std::tie(tempIndexInBlock, blockRange, reachEnd) =
+							block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData);
+						if (!found)
+						{
+							newIndexInBlock = tempIndexInBlock;
+							newIndexBlock = i;
+							found = true;
+						}
+						newRange += blockRange;
+					}
+					remainingRange -= block.GetSize() - startIndexInCurrentBlock;
+					startIndexInCurrentBlock = 0;
+				}
 			}
         }
         return std::make_tuple(newIndexBlock, newIndexInBlock, newRange);
@@ -333,7 +380,28 @@ public:
         }
 
         std::unique_ptr<BlockBase<T>> block1 = std::make_unique<BlockBase<T>>(data1, *this);
+		int bitMaskIdx = (((block.GetSize() - 1) / 2) / sizeof(char) * 8);
+		int shiftIdx = (((block.GetSize() - 1) / 2) % sizeof(char) * 8);
+
+		for (size_t i = 0; i < bitMaskIdx; i++)
+		{
+			block1->GetNullBitmask()[i] = block->GetNullBitmask()[i];
+		}
+		block1->GetNullBitmask()[bitMaskIdx] = ((1 << (shiftIdx + 1)) - 1) & block.GetNullBitmask()[bitMaskIdx];
+
         std::unique_ptr<BlockBase<T>> block2 = std::make_unique<BlockBase<T>>(data2, *this);
+		int32_t bitMaskCapacity = ((block.BlockCapacity() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+
+		for (size_t i = bitmaskIdx; i < bitMaskCapacity; i++)
+		{
+			int8_t tmp = block.GetNullBitmask()[i] >> shiftIdx + 1;
+
+			if (bitMaskIdx +1 < bitMaskCapacity)
+			{
+				tmp |= ((1 << (shiftIdx + 1)) - 1) & block.GetNullBitmask()[bitMaskIdx + 1];
+			}
+			block2->GetNullBitmask()[i - bitMaskIdx] = tmp;
+		}
 
         auto blockIndex = std::find(blocks_[groupId].begin(), blocks_[groupId].end(), blockPtr);
 		int32_t blockIdx = blockIndex - blocks_[groupId].begin();
