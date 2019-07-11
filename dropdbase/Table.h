@@ -27,9 +27,10 @@ private:
 
 #ifndef __CUDACC__
     void InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
-                                               int indexBlock,
-                                               int indexInBlock,
-                                               int iterator);
+                                                int indexBlock,
+                                                int indexInBlock,
+                                                int iterator,
+												const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks);
     int32_t getDataRangeInSortingColumn();
 	int32_t getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any> &data);
 #endif

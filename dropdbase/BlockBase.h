@@ -119,6 +119,11 @@ public:
 		return sum_;
 	}
 
+	bool GetIsFullOfNullValue()
+	{
+		return isFullOfNullValue_;
+	}
+
 	int32_t GetGroupId()
 	{
 		return groupId_;
@@ -177,7 +182,7 @@ public:
 	}
 
     std::tuple<int, int, bool>
-    FindIndexAndRange(int indexInBlock, int range, const T& data, bool isNullValue)
+    FindIndexAndRange(int indexInBlock, int range, const T& data, bool isNullValue = false)
     {
         int newRange = 0;
         int newIndexInBlock = indexInBlock;
@@ -201,7 +206,7 @@ public:
 			{
 				newIndexInBlock = indexInBlock;
 
-				if ((bitMask_[(indexInBlock + range - 1) / (sizeof(char) * 8)] >> ((indexInBlock + range - 1) % (sizeof(char) * 8))) & 1 == 1)
+				if (((bitMask_[(indexInBlock + range - 1) / (sizeof(char) * 8)] >> ((indexInBlock + range - 1) % (sizeof(char) * 8))) & 1) == 1)
 				{
 					newRange = range;
 
@@ -217,14 +222,14 @@ public:
 				}
 				else
 				{
-					int bitMaskIdx = (newRange / sizeof(char) * 8);
-					int shiftIdx = (newRange % sizeof(char) * 8);
+					int bitMaskIdx = (newRange / (sizeof(char) * 8));
+					int shiftIdx = (newRange % (sizeof(char) * 8));
 
-					while ((bitMask_[bitMaskIdx] >> shiftIdx) & 1 == 1)
+					while (((bitMask_[bitMaskIdx] >> shiftIdx) & 1) == 1)
 					{
 						newRange++;
-						bitMaskIdx = (newRange / sizeof(char) * 8);
-						shiftIdx = (newRange % sizeof(char) * 8);
+						bitMaskIdx = (newRange / (sizeof(char) * 8));
+						shiftIdx = (newRange % (sizeof(char) * 8));
 					}
 					reachEnd = false;
 				}
@@ -235,15 +240,18 @@ public:
 				int nullValueCount = 0;
 				int indexOfNullValue = indexInBlock;
 
-				int bitMaskIdx = (indexOfNullValue / sizeof(char) * 8);
-				int shiftIdx = (indexOfNullValue % sizeof(char) * 8);
-
-				while ((bitMask_[bitMaskIdx] >> shiftIdx) & 1 == 1)
+				if (isNullable_)
 				{
-					indexOfNullValue++;
-					nullValueCount++;
-					bitMaskIdx = (indexOfNullValue / sizeof(char) * 8);
-					shiftIdx = (indexOfNullValue % sizeof(char) * 8);
+					int bitMaskIdx = (indexOfNullValue / (sizeof(char) * 8));
+					int shiftIdx = (indexOfNullValue % (sizeof(char) * 8));
+
+					while (((bitMask_[bitMaskIdx] >> shiftIdx) & 1) == 1)
+					{
+						indexOfNullValue++;
+						nullValueCount++;
+						bitMaskIdx = (indexOfNullValue / (sizeof(char) * 8));
+						shiftIdx = (indexOfNullValue % (sizeof(char) * 8));
+					}
 				}
 
 				for (int i = indexInBlock + nullValueCount; i <= indexInBlock + range; i++)
@@ -417,7 +425,7 @@ public:
 	}
    
 
-    void InsertDataOnSpecificPosition(int index, const T& data, bool isNullValue)
+    void InsertDataOnSpecificPosition(int index, const T& data, bool isNullValue = false)
     {
         if (EmptyBlockSpace() == 0)
         {
@@ -431,40 +439,50 @@ public:
                 data_[j + 1] = data_[j];
             }
 
-			int bitMaskIdx = (index / sizeof(char) * 8);
-			int shiftIdx = (index % sizeof(char) * 8);
+			int bitMaskIdx = (index / (sizeof(char) * 8));
+			int shiftIdx = (index % (sizeof(char) * 8));
 
 			int last = isNullValue ? 1 : 0;
 
-			for (size_t i = shiftIdx; i < 8; i++)
+			if (isNullable_) 
 			{
-				int tmp = (bitMask_[bitMaskIdx] >> shiftIdx) & 1;
-				
-				if (last != tmp)
+				for (size_t i = shiftIdx; i < 8; i++)
 				{
-					if (last)
-					{
-						bitMask_[bitMaskIdx] |= (last << shiftIdx);
-					}
-					else
-					{
-						bitMask_[bitMaskIdx] &= ~(last << shiftIdx);
-					}
+					int tmp = (bitMask_[bitMaskIdx] >> shiftIdx) & 1;
 
+					if (last != tmp)
+					{
+						if (last)
+						{
+							bitMask_[bitMaskIdx] |= (last << shiftIdx);
+						}
+						else
+						{
+							bitMask_[bitMaskIdx] &= ~(last << shiftIdx);
+						}
+
+						last = tmp;
+					}
+				}
+
+				bitMaskIdx++;
+				int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+				for (size_t i = bitMaskIdx; i < bitMaskCapacity; i++)
+				{
+					int tmp = bitMask_[i] >> 7;
+					bitMask_[i] <<= 1;
+					bitMask_[i] |= last;
 					last = tmp;
 				}
 			}
-
-			bitMaskIdx++;
-			int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-			for (size_t i = bitMaskIdx; i < bitMaskCapacity; i++)
-			{
-				int tmp = bitMask_[bitMaskIdx] >> 7;
-				bitMask_[bitMaskIdx] <<= 1;
-				bitMask_[bitMaskIdx] |= last;
-				last = tmp;
-			}
         }
+		else if (isNullValue)
+		{
+			int bitMaskIdx = (index / sizeof(char) * 8);
+			int shiftIdx = (index % sizeof(char) * 8);
+			int last = isNullValue ? 1 : 0;
+			bitMask_[bitMaskIdx] |= (last << shiftIdx);
+		}
         data_[index] = data;
         size_++;
 

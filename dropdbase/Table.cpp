@@ -7,7 +7,7 @@
 
 
 #ifndef __CUDACC__
-void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data, int indexBlock, int indexInBlock, int iterator)
+void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data, int indexBlock, int indexInBlock, int iterator, const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks)
 {
     for (const auto& column : columns)
     {
@@ -15,6 +15,15 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
         auto search = data.find(columnName);
         if (search != data.end())
         {
+			int8_t isNullValue = false;
+			int bitMaskIdx = (iterator / sizeof(char) * 8);
+			int shiftIdx = (iterator % sizeof(char) * 8);
+			if (nullMasks.find(columnName) != nullMasks.end())
+			{
+				isNullValue = (nullMasks.at(columnName)[bitMaskIdx] >> shiftIdx) & 1;
+			}
+
+
             auto currentColumn = (columns.find(columnName)->second.get());
             const auto &wrappedData = data.at(columnName);
 
@@ -22,25 +31,25 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
             {
                 std::vector<int32_t> dataInt = std::any_cast<std::vector<int32_t>>(wrappedData);
                 auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataInt[iterator]);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataInt[iterator], -1, isNullValue);
             }
             else if (wrappedData.type() == typeid(std::vector<int64_t>))
             {
                 std::vector<int64_t> dataLong = std::any_cast<std::vector<int64_t>>(wrappedData);
                 auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataLong[iterator]);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataLong[iterator], -1, isNullValue);
             }
             else if (wrappedData.type() == typeid(std::vector<double>))
             {
                 std::vector<double> dataDouble = std::any_cast<std::vector<double>>(wrappedData);
                 auto castedColumn = dynamic_cast<ColumnBase<double>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataDouble[iterator]);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataDouble[iterator], -1, isNullValue);
             }
             else if (wrappedData.type() == typeid(std::vector<float>))
             {
                 std::vector<float> dataFloat = std::any_cast<std::vector<float>>(wrappedData);
                 auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataFloat[iterator]);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataFloat[iterator], -1, isNullValue);
             }
 			//TODO string, point, polygon
         }
@@ -273,12 +282,19 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bo
 		for (int i = 0; i < oneColumnDataSize; i++)
         {
 			int range = getDataRangeInSortingColumn();
-            //int range = INT_MAX;
             int blockIndex = 0;
             int indexInBlock = 0;
 
             for (auto sortingColumn : sortingColumns)
             {
+				int8_t isNullValue = false;
+				int bitMaskIdx = (i / sizeof(char) * 8);
+				int shiftIdx = (i % sizeof(char) * 8);
+				if (nullMasks.find(sortingColumn) != nullMasks.end()) 
+				{
+					isNullValue = (nullMasks.at(sortingColumn)[bitMaskIdx] >> shiftIdx) & 1;
+				}
+
                 auto currentSortingColumn = (columns.find(sortingColumn)->second.get());
                 const auto& wrappedCurrentSortingColumnData = data.at(sortingColumn);
 
@@ -288,7 +304,8 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bo
                     auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentSortingColumn);
 
 					
-					std::tie(blockIndex, indexInBlock, range) = castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i]);
+					std::tie(blockIndex, indexInBlock, range) = 
+						castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i], -1, isNullValue);
                 }
 
 				if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<int64_t>))
@@ -297,7 +314,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bo
                     auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentSortingColumn);
 
                     std::tie(blockIndex, indexInBlock, range) =
-                        castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i]);
+                        castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i], -1, isNullValue);
                 }
 
 				if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<float>))
@@ -306,7 +323,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bo
                     auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentSortingColumn);
 
                     std::tie(blockIndex, indexInBlock, range) =
-                        castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i]);
+                        castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i], -1, isNullValue);
                 }
 
 				if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<double>))
@@ -315,13 +332,13 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bo
                     auto castedColumn = dynamic_cast<ColumnBase<double>*>(currentSortingColumn);
 
                     std::tie(blockIndex, indexInBlock, range) =
-                        castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i]);
+                        castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i], -1, isNullValue);
                 }
 
 				//TODO string, polygon, point
             }
 
-			InsertValuesOnSpecificPosition(data,blockIndex,indexInBlock,i);
+			InsertValuesOnSpecificPosition(data, blockIndex, indexInBlock, i, nullMasks);
 			
 		}
 	}
