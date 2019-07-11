@@ -17,13 +17,13 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::orderByReconstructRetAllBlo
 int32_t GpuSqlDispatcher::freeOrderByTable()
 {
 	std::cout << "Freeing order by table." << std::endl;
-	orderByTables[dispatcherThreadId].release();
+	orderByTable.release();
 	return 0;
 }
 
 int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 {
-	if(isOverallLastBlock && !usingGroupBy)
+	if(isOverallLastBlock)
 	{
 		// Count and allocate the result vectors for the output map
 		int32_t resultSetSize = 0;

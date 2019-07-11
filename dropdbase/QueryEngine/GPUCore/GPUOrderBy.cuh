@@ -10,7 +10,6 @@
 
 #include "../Context.h"
 #include "cuda_ptr.h"
-#include "IOrderBy.h"
 #include "GPUMemory.cuh"
 #include "GPUArithmetic.cuh"
 #include "../OrderByType.h"
@@ -34,7 +33,7 @@ __global__ void kernel_reorder_by_idx(T* outCol, int32_t* inIndices, T* inCol, i
     }
 }
 
-class GPUOrderBy : public IOrderBy {
+class GPUOrderBy {
 private:
     // Radix indices front and back buffer
     int32_t* indices1;

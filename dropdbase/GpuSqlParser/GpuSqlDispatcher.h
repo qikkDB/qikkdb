@@ -20,7 +20,6 @@
 #include "../QueryEngine/OrderByType.h"
 #include "../IVariantArray.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
-#include "../QueryEngine/GPUCore/IOrderBy.h"
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "ParserExceptions.h"
@@ -63,8 +62,8 @@ private:
 	bool isRegisterAllocated(std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
-	std::vector<std::unique_ptr<IOrderBy>>& orderByTables;
 	
+	std::unique_ptr<GPUOrderBy> orderByTable;
 	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
 	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
 	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged;
@@ -297,7 +296,7 @@ public:
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
 
-    GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, std::vector<std::unique_ptr<IOrderBy>>& orderByTables, int dispatcherThreadId);
+    GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);
 
 	~GpuSqlDispatcher();
 
