@@ -91,6 +91,117 @@ __device__ bool IsNewMultiKey(DataType* keyTypes,
 }
 
 
+template<>
+void ReconstructSingleKeyColKeep<std::string>(std::vector<void*>* outKeysVector, int32_t* outDataElementCount, int8_t* occupancyMaskPtr,
+        void** keyCol, int32_t elementCount)
+{
+    // Copy struct (we need to get pointer to struct at first)
+    GPUMemory::GPUString * structPointer;
+    GPUMemory::copyDeviceToHost(&structPointer, reinterpret_cast<GPUMemory::GPUString**>(keyCol), 1);
+    GPUMemory::GPUString keyBufferSingleCol;
+    GPUMemory::copyDeviceToHost(&keyBufferSingleCol, structPointer, 1);
+    
+    // Reconstruct string keys
+    GPUMemory::GPUString * outKeysSingleCol = new GPUMemory::GPUString[1];
+    GPUReconstruct::ReconstructStringColKeep(outKeysSingleCol, outDataElementCount, keyBufferSingleCol,
+        occupancyMaskPtr, elementCount);
+    
+    outKeysVector->emplace_back(outKeysSingleCol);
+}
+
+
+template<>
+void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector, int32_t* outDataElementCount, int8_t* occupancyMaskPtr,
+        void** keyCol, int32_t elementCount)
+{
+    // TODO
+    throw std::runtime_error("NOT IMPLEMENTED YET");
+}
+
+
+void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t rowCount, std::vector<void*>* pointers)
+{
+    GPUMemory::alloc(keysBuffer, keyTypes.size());
+    for (int32_t i = 0; i < keyTypes.size(); i++)
+    {
+        switch (keyTypes[i])
+        {
+        case DataType::COLUMN_INT:
+        {
+            int32_t * gpuKeyCol;
+            GPUMemory::alloc(&gpuKeyCol, rowCount);
+            GPUMemory::copyHostToDevice(reinterpret_cast<int32_t**>(*keysBuffer + i), &gpuKeyCol, 1);
+            if (pointers)
+            {
+                pointers->emplace_back(gpuKeyCol);
+            }
+            break;
+        }
+        case DataType::COLUMN_LONG:
+        {
+            int64_t * gpuKeyCol;
+            GPUMemory::alloc(&gpuKeyCol, rowCount);
+            GPUMemory::copyHostToDevice(reinterpret_cast<int64_t**>(*keysBuffer + i), &gpuKeyCol, 1);
+            if (pointers)
+            {
+                pointers->emplace_back(gpuKeyCol);
+            }
+            break;
+        }
+        case DataType::COLUMN_FLOAT:
+        {
+            float * gpuKeyCol;
+            GPUMemory::alloc(&gpuKeyCol, rowCount);
+            GPUMemory::copyHostToDevice(reinterpret_cast<float**>(*keysBuffer + i), &gpuKeyCol, 1);
+            if (pointers)
+            {
+                pointers->emplace_back(gpuKeyCol);
+            }
+            break;
+        }
+        case DataType::COLUMN_DOUBLE:
+        {
+            double * gpuKeyCol;
+            GPUMemory::alloc(&gpuKeyCol, rowCount);
+            GPUMemory::copyHostToDevice(reinterpret_cast<double**>(*keysBuffer + i), &gpuKeyCol, 1);
+            if (pointers)
+            {
+                pointers->emplace_back(gpuKeyCol);
+            }
+            break;
+        }
+        case DataType::COLUMN_STRING:
+        {
+            GPUMemory::GPUString * gpuKeyCol;
+            GPUMemory::alloc(&gpuKeyCol, 1);
+            GPUMemory::copyHostToDevice(reinterpret_cast<GPUMemory::GPUString**>(*keysBuffer + i), &gpuKeyCol, 1);
+            if (pointers)
+            {
+                pointers->emplace_back(gpuKeyCol);
+            }
+            break;
+        }
+        case DataType::COLUMN_INT8_T:
+        {
+            int8_t * gpuKeyCol;
+            GPUMemory::alloc(&gpuKeyCol, rowCount);
+            GPUMemory::copyHostToDevice(reinterpret_cast<int8_t**>(*keysBuffer + i), &gpuKeyCol, 1);
+            if (pointers)
+            {
+                pointers->emplace_back(gpuKeyCol);
+            }
+            break;
+        }
+        default:
+            CheckQueryEngineError(GPU_EXTENSION_ERROR,
+                                "Multi-key GROUP BY with keys of type " +
+                                    std::to_string(keyTypes[i]) + " is not supported");
+            break;
+        }
+    }
+}
+
+
 __global__ void kernel_collect_string_lengths(int32_t* stringLengths, int32_t* sourceIndices,
     GPUMemory::GPUString ** inKeysSingleCol, GPUMemory::GPUString ** keysBufferSingleCol, int32_t maxHashCount)
 {

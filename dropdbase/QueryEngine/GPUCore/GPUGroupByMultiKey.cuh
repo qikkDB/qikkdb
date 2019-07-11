@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdio.h>
+
 #include "../../DataType.h"
 #include "../GPUError.h"
 #include "GPUGroupByString.cuh"
@@ -21,6 +23,58 @@ __device__ bool IsNewMultiKey(DataType* keyTypes,
                               void** keysBuffer,
                               int32_t* sourceIndices,
                               int32_t index);
+
+
+template<typename T>
+void ReconstructSingleKeyColKeep(std::vector<void*>* outKeysVector, int32_t* outDataElementCount, int8_t* occupancyMaskPtr,
+        void** keyCol, int32_t elementCount)
+{
+    // Copy key col pointer to CPU
+    T* keyBufferSingleCol;
+    GPUMemory::copyDeviceToHost(&keyBufferSingleCol, reinterpret_cast<T**>(keyCol), 1);
+
+    // Reconstruct key col
+    T* outKeysSingleCol;
+    GPUReconstruct::reconstructColKeep(&outKeysSingleCol, outDataElementCount,
+                                        keyBufferSingleCol,
+                                        occupancyMaskPtr, elementCount);
+
+    outKeysVector->emplace_back(outKeysSingleCol);
+}
+
+template<>
+void ReconstructSingleKeyColKeep<std::string>(std::vector<void*>* outKeysVector, int32_t* outDataElementCount, int8_t* occupancyMaskPtr,
+        void** keyCol, int32_t elementCount);
+
+template<typename T>
+void ReconstructSingleKeyCol(std::vector<void*>* outKeysVector, int32_t* outDataElementCount, int8_t* occupancyMaskPtr,
+        void** keyCol, int32_t elementCount)
+{
+    // Copy key col pointer to CPU
+    T* keyBufferSingleCol;
+    GPUMemory::copyDeviceToHost(&keyBufferSingleCol, reinterpret_cast<T**>(keyCol), 1);
+
+    // Get out count to allocate CPU memory
+    cuda_ptr<T> prefixSumPtr(elementCount);
+    GPUReconstruct::PrefixSum(prefixSumPtr, occupancyMaskPtr, elementCount);
+    int32_t outCount;
+    GPUMemory::copyDeviceToHost(&outCount, prefixSumPtr + elementCount - 1, 1);
+
+    // Allocate CPU memory, reconstruct key col and copy
+    T* outKeysSingleCol = new T[outCount];
+    GPUReconstruct::reconstructCol(outKeysSingleCol, outDataElementCount,
+                                   keyBufferSingleCol,
+                                   occupancyMaskPtr, elementCount);
+
+    outKeysVector->emplace_back(outKeysSingleCol);
+}
+
+template<>
+void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector, int32_t* outDataElementCount, int8_t* occupancyMaskPtr,
+        void** keyCol, int32_t elementCount);
+
+void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t rowCount, std::vector<void*>* pointers=nullptr);
+
 
 /// GROUP BY Kernel processes input (inKeys and inValues). New keys from inKeys are added
 /// to the hash table and values from inValues are aggregated.
@@ -168,59 +222,12 @@ public:
             // Allocate buffers needed for key storing
             GPUMemory::alloc(&sourceIndices_, maxHashCount_);
             GPUMemory::alloc(&keyTypes_, keysColCount_);
-            GPUMemory::alloc(&keysBuffer_, keysColCount_);
-            for (int32_t i = 0; i < keysColCount_; i++)
+            AllocKeysBuffer(&keysBuffer_, keyTypes, maxHashCount_);
+            for (int32_t i = 0; i < keyTypes.size(); i++)
             {
-                switch (keyTypes[i])
-                {
-                case DataType::COLUMN_INT:
-                {
-                    int32_t * gpuKeyCol;
-                    GPUMemory::alloc(&gpuKeyCol, maxHashCount_);
-                    GPUMemory::copyHostToDevice(reinterpret_cast<int32_t**>(keysBuffer_ + i), &gpuKeyCol, 1);
-                    break;
-                }
-                case DataType::COLUMN_LONG:
-                {
-                    int64_t * gpuKeyCol;
-                    GPUMemory::alloc(&gpuKeyCol, maxHashCount_);
-                    GPUMemory::copyHostToDevice(reinterpret_cast<int64_t**>(keysBuffer_ + i), &gpuKeyCol, 1);
-                    break;
-                }
-                case DataType::COLUMN_FLOAT:
-                {
-                    float * gpuKeyCol;
-                    GPUMemory::alloc(&gpuKeyCol, maxHashCount_);
-                    GPUMemory::copyHostToDevice(reinterpret_cast<float**>(keysBuffer_ + i), &gpuKeyCol, 1);
-                    break;
-                }
-                case DataType::COLUMN_DOUBLE:
-                {
-                    double * gpuKeyCol;
-                    GPUMemory::alloc(&gpuKeyCol, maxHashCount_);
-                    GPUMemory::copyHostToDevice(reinterpret_cast<double**>(keysBuffer_ + i), &gpuKeyCol, 1);
-                    break;
-                }
-                case DataType::COLUMN_STRING:
+                if (keyTypes[i] == COLUMN_STRING)
                 {
                     stringKeyColIds_.emplace_back(i);
-                    GPUMemory::GPUString * gpuKeyCol;
-                    GPUMemory::alloc(&gpuKeyCol, 1);
-                    GPUMemory::copyHostToDevice(reinterpret_cast<GPUMemory::GPUString**>(keysBuffer_ + i), &gpuKeyCol, 1);
-                    break;
-                }
-                case DataType::COLUMN_INT8_T:
-                {
-                    int8_t * gpuKeyCol;
-                    GPUMemory::alloc(&gpuKeyCol, maxHashCount_);
-                    GPUMemory::copyHostToDevice(reinterpret_cast<int8_t**>(keysBuffer_ + i), &gpuKeyCol, 1);
-                    break;
-                }
-                default:
-                    CheckQueryEngineError(GPU_EXTENSION_ERROR,
-                                          "Multi-key GROUP BY with keys of type " +
-                                              std::to_string(keyTypes[i]) + " is not supported");
-                    break;
                 }
             }
 
@@ -319,7 +326,7 @@ public:
     /// <param name="inKeys">input buffers with keys</param>
     /// <param name="inValues">input buffer with values</param>
     /// <param name="dataElementCount">row count to process</param>
-    void groupBy(std::vector<void*> inKeysVector, V* inValues, int32_t dataElementCount)
+    void GroupBy(std::vector<void*> inKeysVector, V* inValues, int32_t dataElementCount)
     {
         if (dataElementCount > 0)
         {
@@ -387,22 +394,101 @@ public:
 
     /// Get the size of the hash table (max. count of unique multi-keys)
     /// <returns>size of the hash table</returns>
-    int32_t getMaxHashCount()
+    int32_t GetMaxHashCount()
     {
         return maxHashCount_;
     }
 
+    /// Reconstruct needed raw fields (do not calculate final results yet)
+    /// Reconstruct keys, values and key occurence counts separately
+    /// <param name="multiKeys">output vector of buffers to fill with reconstructed keys</param>
+    /// <param name="values">output buffer to fill with reconstructed values</param>
+    /// <param name="occurrences">output buffer to fill with reconstructed occurrences</param>
+    /// <param name="outDataElementCount">ouptut buffer to fill with element count (one int32_t number)</param>
+    void ReconstructRawNumbers(std::vector<void*>& multiKeys,
+                               V* values,
+                               int64_t* occurrences,
+                               int32_t* outDataElementCount)
+    {
+        Context& context = Context::getInstance();
+        cuda_ptr<int8_t> occupancyMask(maxHashCount_);
+        kernel_source_indices_to_mask<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
+            occupancyMask.get(), sourceIndices_, maxHashCount_);
+        
+        // Copy data types back from GPU
+        std::unique_ptr<DataType[]> keyTypesHost = std::make_unique<DataType[]>(keysColCount_);
+        GPUMemory::copyDeviceToHost(keyTypesHost.get(), keyTypes_, keysColCount_);
 
-    /// Get the final results of GROUP BY operation - for operations Min, Max and Sum - on single
-    /// GPU <param name="outKeys">pointer to GPUString struct (will be allocated and filled with
-    /// final keys)</param> <param name="outValues">double pointer of output GPU buffer (will be
-    /// allocated and filled with final values)</param> <param name="outDataElementCount">output CPU
-    /// buffer (will be filled with count of reconstructed elements)</param>
-    void getResults(std::vector<void*>* outKeysVector, O** outValues, int32_t* outDataElementCount)
+        // Reconstruct keys from all collected cols
+        for (int32_t t = 0; t < keysColCount_; t++)
+        {
+            switch (keyTypesHost[t])
+            {
+            case DataType::COLUMN_INT:
+            {
+                ReconstructSingleKeyCol<int32_t>(&multiKeys, outDataElementCount, occupancyMask.get(),
+                                                     keysBuffer_ + t, maxHashCount_);
+                break;
+            }
+            case DataType::COLUMN_LONG:
+            {
+                ReconstructSingleKeyCol<int64_t>(&multiKeys, outDataElementCount, occupancyMask.get(),
+                                                     keysBuffer_ + t, maxHashCount_);
+                break;
+            }
+            case DataType::COLUMN_FLOAT:
+            {
+                ReconstructSingleKeyCol<float>(&multiKeys, outDataElementCount, occupancyMask.get(),
+                                                   keysBuffer_ + t, maxHashCount_);
+                break;
+            }
+            case DataType::COLUMN_DOUBLE:
+            {
+                ReconstructSingleKeyCol<double>(&multiKeys, outDataElementCount, occupancyMask.get(),
+                                                    keysBuffer_ + t, maxHashCount_);
+                break;
+            }
+            case DataType::COLUMN_STRING:
+            {
+                ReconstructSingleKeyCol<std::string>(&multiKeys, outDataElementCount, occupancyMask.get(),
+                                                     keysBuffer_ + t, maxHashCount_);
+                break;
+            }
+            case DataType::COLUMN_INT8_T:
+            {
+                ReconstructSingleKeyCol<int8_t>(&multiKeys, outDataElementCount, occupancyMask.get(),
+                                                     keysBuffer_ + t, maxHashCount_);
+                break;
+            }
+            default:
+                break;
+            }
+        }
+        
+        if (USE_VALUES)
+        {
+            GPUReconstruct::reconstructCol(values, outDataElementCount, values_, occupancyMask.get(), maxHashCount_);
+        }
+        if (USE_KEY_OCCURRENCES)
+        {
+            GPUReconstruct::reconstructCol(occurrences, outDataElementCount, keyOccurrenceCount_, occupancyMask.get(), maxHashCount_);
+        }
+    }
+
+    /// Get the final results of GROUP BY operation on single GPU (keeps result on GPU)
+    /// <param name="outKeysVector">pointer to empty CPU vector of GPU pointers (will be filled with
+    ///   final key cols)</param>
+    /// <param name="outValues">double pointer of output GPU buffer (will be allocated
+    ///   and filled with final values)</param>
+    /// <param name="outDataElementCount">output CPU buffer (will be filled with count
+    ///   of reconstructed elements)</param>
+    /// CLEANUP: free all GPU pointers from outKeysVector and if GPUStruct, it is CPU pointer
+    void GetResults(std::vector<void*>* outKeysVector, O** outValues, int32_t* outDataElementCount)
     {
         static_assert(!std::is_same<AGG, AggregationFunctions::count>::value || std::is_same<O, int64_t>::value,
                 "GroupBy COUNT ouput data type O must be int64_t");
         Context& context = Context::getInstance();
+
         // Compute key occupancy mask
         cuda_ptr<int8_t> occupancyMask(maxHashCount_);
         kernel_source_indices_to_mask<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
@@ -419,78 +505,45 @@ public:
             {
             case DataType::COLUMN_INT:
             {
-                int32_t* keyBufferSingleCol;
-                GPUMemory::copyDeviceToHost(&keyBufferSingleCol, reinterpret_cast<int32_t**>(keysBuffer_+t), 1);
-                int32_t* outKeysSingleCol;
-                GPUReconstruct::reconstructColKeep(&outKeysSingleCol, outDataElementCount,
-                                                   keyBufferSingleCol,
-                                                   occupancyMask.get(), maxHashCount_);
-                outKeysVector->emplace_back(outKeysSingleCol);
+                ReconstructSingleKeyColKeep<int32_t>(outKeysVector, outDataElementCount, occupancyMask.get(),
+                                                     keysBuffer_ + t, maxHashCount_);
                 break;
             }
             case DataType::COLUMN_LONG:
             {
-                int64_t* keyBufferSingleCol;
-                GPUMemory::copyDeviceToHost(&keyBufferSingleCol, reinterpret_cast<int64_t**>(keysBuffer_+t), 1);
-                int64_t* outKeysSingleCol;
-                GPUReconstruct::reconstructColKeep(&outKeysSingleCol, outDataElementCount,
-                                                   keyBufferSingleCol,
-                                                   occupancyMask.get(), maxHashCount_);
-                outKeysVector->emplace_back(outKeysSingleCol);
+                ReconstructSingleKeyColKeep<int64_t>(outKeysVector, outDataElementCount, occupancyMask.get(),
+                                                     keysBuffer_ + t, maxHashCount_);
                 break;
             }
             case DataType::COLUMN_FLOAT:
             {
-                float* keyBufferSingleCol;
-                GPUMemory::copyDeviceToHost(&keyBufferSingleCol, reinterpret_cast<float**>(keysBuffer_+t), 1);
-                float* outKeysSingleCol;
-                GPUReconstruct::reconstructColKeep(&outKeysSingleCol, outDataElementCount,
-                                                   keyBufferSingleCol,
-                                                   occupancyMask.get(), maxHashCount_);
-                outKeysVector->emplace_back(outKeysSingleCol);
+                ReconstructSingleKeyColKeep<float>(outKeysVector, outDataElementCount, occupancyMask.get(),
+                                                   keysBuffer_ + t, maxHashCount_);
                 break;
             }
             case DataType::COLUMN_DOUBLE:
             {
-                double* keyBufferSingleCol;
-                GPUMemory::copyDeviceToHost(&keyBufferSingleCol, reinterpret_cast<double**>(keysBuffer_+t), 1);
-                double* outKeysSingleCol;
-                GPUReconstruct::reconstructColKeep(&outKeysSingleCol, outDataElementCount,
-                                                   keyBufferSingleCol,
-                                                   occupancyMask.get(), maxHashCount_);
-                outKeysVector->emplace_back(outKeysSingleCol);
+                ReconstructSingleKeyColKeep<double>(outKeysVector, outDataElementCount, occupancyMask.get(),
+                                                    keysBuffer_ + t, maxHashCount_);
                 break;
             }
             case DataType::COLUMN_STRING:
             {
-                // Copy struct (we need to get pointer to struct at first)
-                GPUMemory::GPUString * structPointer;
-                GPUMemory::copyDeviceToHost(&structPointer, reinterpret_cast<GPUMemory::GPUString**>(keysBuffer_ + t), 1);
-                GPUMemory::GPUString keyBufferSingleCol;
-                GPUMemory::copyDeviceToHost(&keyBufferSingleCol, structPointer, 1);
-                
-                // Reconstruct string keys
-                GPUMemory::GPUString * outKeysSingleCol = new GPUMemory::GPUString[1];
-                GPUReconstruct::ReconstructStringColKeep(outKeysSingleCol, outDataElementCount, keyBufferSingleCol,
-                    occupancyMask.get(), maxHashCount_);
-                outKeysVector->emplace_back(outKeysSingleCol);
+                ReconstructSingleKeyColKeep<std::string>(outKeysVector, outDataElementCount, occupancyMask.get(),
+                                                     keysBuffer_ + t, maxHashCount_);
                 break;
             }
             case DataType::COLUMN_INT8_T:
             {
-                int8_t* keyBufferSingleCol;
-                GPUMemory::copyDeviceToHost(&keyBufferSingleCol, reinterpret_cast<int8_t**>(keysBuffer_+t), 1);
-                int8_t* outKeysSingleCol;
-                GPUReconstruct::reconstructColKeep(&outKeysSingleCol, outDataElementCount,
-                                                   keyBufferSingleCol,
-                                                   occupancyMask.get(), maxHashCount_);
-                outKeysVector->emplace_back(outKeysSingleCol);
+                ReconstructSingleKeyColKeep<int8_t>(outKeysVector, outDataElementCount, occupancyMask.get(),
+                                                     keysBuffer_ + t, maxHashCount_);
                 break;
             }
             default:
                 break;
             }
         }
+
         // Reconstruct aggregated values
         if (DIRECT_VALUES)  // for min, max and sum: values_ are direct results, just reconstruct them
         {
@@ -527,18 +580,17 @@ public:
         }
     }
 
-    
-    /// Get the final results of GROUP BY operation - for operations Min, Max and Sum - on single
-    /// GPU
-    /// <param name="outKeysVector">pointer to GPUString struct (will be allocated and filled with
-    /// final keys)</param>
-    /// <param name="outValues">double pointer of output GPU buffer (will be
-    /// allocated and filled with final values)</param>
-    /// <param name="outDataElementCount">output CPU
-    ///     buffer (will be filled with count of reconstructed elements)</param>
-    /// <param name="tables">vector of unique pointers to IGroupBy objects with hash tables
-    ///     on every device (GPU)</param>
-    void getResults(std::vector<void*>* outKeysVector, O** outValues, int32_t* outDataElementCount,
+
+    /// Merge results from all devices and store to buffers on default device (multi GPU function)
+    /// <param name="outKeysVector">pointer to empty CPU vector of GPU pointers
+    ///   (will be filled with final key cols)</param>
+    /// <param name="outValues">double pointer of output GPU buffer (will be allocated
+    ///   and filled with final values)</param>
+    /// <param name="outDataElementCount">output CPU buffer
+    ///   (will be filled with count of reconstructed elements)</param>
+    /// <param name="tables">vector of unique pointers
+    ///   to IGroupBy objects with hash tables on every device (GPU)</param>
+    void GetResults(std::vector<void*>* outKeysVector, O** outValues, int32_t* outDataElementCount,
                     std::vector<std::unique_ptr<IGroupBy>>& tables)
     {
         if (tables.size() <= 0) // invalid count of tables
@@ -547,13 +599,196 @@ public:
         }
         else if (tables.size() == 1 || tables[1].get() == nullptr) // just one table
         {
-            getResults(outKeysVector, outValues, outDataElementCount);
+            GetResults(outKeysVector, outValues, outDataElementCount);
         }
         else // more tables
         {
-            int oldDeviceId = Context::getInstance().getBoundDeviceID();
+            int32_t oldDeviceId = Context::getInstance().getBoundDeviceID();
 
-            // TODO
+            std::vector<void*> multiKeysAllHost;    // this vector is oriented orthogonally to others (vector of cols)
+            std::vector<V> valuesAllHost;
+			std::vector<int64_t> occurrencesAllHost;
+            int32_t sumElementCount = 0;
+
+            // Copy data types back from GPU
+            std::vector<DataType> keyTypesHost;
+            keyTypesHost.resize(keysColCount_);
+            GPUMemory::copyDeviceToHost(keyTypesHost.data(), keyTypes_, keysColCount_);
+
+            // Pre-allocate pointer in multiKeysAllHost for max possible size
+            size_t hashTablesSizesSum = maxHashCount_ * tables.size();
+            for (int32_t t = 0; t < keysColCount_; t++)
+            {
+                switch (keyTypesHost[t])
+                {
+                case DataType::COLUMN_INT:
+                {
+                    multiKeysAllHost.emplace_back(new int32_t[hashTablesSizesSum]);
+                    break;
+                }
+                case DataType::COLUMN_LONG:
+                {
+                    multiKeysAllHost.emplace_back(new int64_t[hashTablesSizesSum]);
+                    break;
+                }
+                case DataType::COLUMN_FLOAT:
+                {
+                    multiKeysAllHost.emplace_back(new float[hashTablesSizesSum]);
+                    break;
+                }
+                case DataType::COLUMN_DOUBLE:
+                {
+                    multiKeysAllHost.emplace_back(new double[hashTablesSizesSum]);
+                    break;
+                }
+                case DataType::COLUMN_STRING:
+                {
+                    multiKeysAllHost.emplace_back(new GPUMemory::GPUString[hashTablesSizesSum]);
+                    break;
+                }
+                case DataType::COLUMN_INT8_T:
+                {
+                    multiKeysAllHost.emplace_back(new int8_t[hashTablesSizesSum]);
+                    break;
+                }
+                default:
+                    break;
+                }
+            }
+
+            // Collect data from all devices (graphic cards) to host
+            for (int32_t i = 0; i < tables.size(); i++)
+            {
+                if (tables[i].get() == nullptr)
+                {
+                    break;
+                }
+                // TODO change to cudaMemcpyPeerAsync
+                GPUGroupBy<AGG, O, std::vector<void*>, V>* table = reinterpret_cast<GPUGroupBy<AGG, O, std::vector<void*>, V>*>(tables[i].get());
+                std::vector<void*> multiKeys;
+                std::unique_ptr<V[]> values = std::make_unique<V[]>(table->getMaxHashCount());
+                std::unique_ptr<int64_t[]> occurrences = std::make_unique<int64_t[]>(table->getMaxHashCount());
+                int32_t elementCount;
+                
+                Context::getInstance().bindDeviceToContext(i);
+                // Reconstruct multi-keys, values and occurrences
+                table->ReconstructRawNumbers(multiKeys, values.get(), occurrences.get(), &elementCount);
+
+                // Collect reconstructed raw numbers to *allHost buffers
+                for (int32_t t = 0; t < keysColCount_; t++)
+                {
+                    switch (keyTypesHost[t])
+                    {
+                    case DataType::COLUMN_INT:
+                    {
+                        memcpy(reinterpret_cast<int32_t*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
+                                elementCount * sizeof(int32_t));
+                        break;
+                    }
+                    case DataType::COLUMN_LONG:
+                    {
+                        memcpy(reinterpret_cast<int64_t*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
+                                elementCount * sizeof(int64_t));
+                        break;
+                    }
+                    case DataType::COLUMN_FLOAT:
+                    {
+                        memcpy(reinterpret_cast<float*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
+                                elementCount * sizeof(float));
+                        break;
+                    }
+                    case DataType::COLUMN_DOUBLE:
+                    {
+                        memcpy(reinterpret_cast<double*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
+                                elementCount * sizeof(double));
+                        break;
+                    }
+                    case DataType::COLUMN_STRING:
+                    {
+                        //TODO
+                        throw std::runtime_error("NOT IMPL YET");
+                        break;
+                    }
+                    case DataType::COLUMN_INT8_T:
+                    {
+                        memcpy(reinterpret_cast<int8_t*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
+                                elementCount * sizeof(int8_t));
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+                }
+
+                valuesAllHost.insert(valuesAllHost.end(), values.get(), values.get() + elementCount);
+                occurrencesAllHost.insert(occurrencesAllHost.end(), occurrences.get(), occurrences.get() + elementCount);
+				sumElementCount += elementCount;
+            }
+
+            
+            Context::getInstance().bindDeviceToContext(oldDeviceId);
+            if (sumElementCount > 0)
+            {
+                void** multiKeysAllGPU;
+                std::vector<void*> hostPointersToKeysAll;
+                AllocKeysBuffer(&multiKeysAllGPU, keyTypesHost, sumElementCount, &hostPointersToKeysAll);
+                cuda_ptr<V> valuesAllGPU(sumElementCount);
+				cuda_ptr<int64_t> occurrencesAllGPU(sumElementCount);
+
+                
+                for (int32_t t = 0; t < keysColCount_; t++)
+                {
+                    switch (keyTypesHost[t])
+                    {
+                    case DataType::COLUMN_INT:
+                    {
+                        GPUMemory::copyHostToDevice(reinterpret_cast<int32_t*>(hostPointersToKeysAll[t]),
+                                reinterpret_cast<int32_t*>(multiKeysAllHost[t]), sumElementCount);
+                        break;
+                    }
+                    case DataType::COLUMN_LONG:
+                    {
+                        GPUMemory::copyHostToDevice(reinterpret_cast<int64_t*>(hostPointersToKeysAll[t]),
+                                reinterpret_cast<int64_t*>(multiKeysAllHost[t]), sumElementCount);
+                        break;
+                    }
+                    case DataType::COLUMN_FLOAT:
+                    {
+                        GPUMemory::copyHostToDevice(reinterpret_cast<float*>(hostPointersToKeysAll[t]),
+                                reinterpret_cast<float*>(multiKeysAllHost[t]), sumElementCount);
+                        break;
+                    }
+                    case DataType::COLUMN_DOUBLE:
+                    {
+                        GPUMemory::copyHostToDevice(reinterpret_cast<double*>(hostPointersToKeysAll[t]),
+                                reinterpret_cast<double*>(multiKeysAllHost[t]), sumElementCount);
+                        break;
+                    }
+                    case DataType::COLUMN_STRING:
+                    {
+                        // TODO
+                        break;
+                    }
+                    case DataType::COLUMN_INT8_T:
+                    {
+                        GPUMemory::copyHostToDevice(reinterpret_cast<int8_t*>(hostPointersToKeysAll[t]),
+                                reinterpret_cast<int8_t*>(multiKeysAllHost[t]), sumElementCount);
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+                }
+
+                GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
+                GPUMemory::copyHostToDevice(occurrencesAllGPU.get(), occurrencesAllHost.data(), sumElementCount);
+
+                // TODO
+            }
+            else
+            {
+                *outDataElementCount = 0;
+            }
         }   
     }
 };

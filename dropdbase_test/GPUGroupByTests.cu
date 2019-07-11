@@ -179,7 +179,7 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
         cuda_ptr<int32_t> gpuInValues(dataElementCount);
         GPUMemory::copyHostToDevice(gpuInValues.get(), values[b].data(), dataElementCount);
 
-        groupBy.groupBy(gpuInKeys, gpuInValues.get(), dataElementCount);
+        groupBy.GroupBy(gpuInKeys, gpuInValues.get(), dataElementCount);
         for (int32_t t = 0; t < keysColCount; t++)
         {
             if (keyTypes[t] == DataType::COLUMN_STRING)
@@ -194,7 +194,7 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
     std::vector<void*> gpuResultKeys;
     int32_t* resultValuesGpu;
     int32_t resultCount;
-    groupBy.getResults(&gpuResultKeys, &resultValuesGpu, &resultCount);
+    groupBy.GetResults(&gpuResultKeys, &resultValuesGpu, &resultCount);
     std::vector<void*> cpuResultKeys;
     for (int32_t t = 0; t < keysColCount; t++)
     {
