@@ -20,7 +20,6 @@
 #include "../QueryEngine/OrderByType.h"
 #include "../IVariantArray.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
-#include "../QueryEngine/GPUCore/IOrderBy.h"
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "ParserExceptions.h"
@@ -28,6 +27,13 @@
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 #endif
+
+
+struct OrderByBlocks
+{
+	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
+	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
+};
 
 class Database; 
 class GPUOrderBy;
@@ -63,10 +69,9 @@ private:
 	bool isRegisterAllocated(std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
-	std::vector<std::unique_ptr<IOrderBy>>& orderByTables;
+	std::unique_ptr<GPUOrderBy> orderByTable;
+	std::vector<OrderByBlocks>& orderByBlocks;
 	
-	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
-	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
 	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged;
 	std::unordered_map<int32_t, std::pair<std::string, OrderBy::Order>> orderByColumns;
 	std::vector<std::vector<int32_t>> orderByIndices;
@@ -241,7 +246,8 @@ private:
 	static DispatchFunction insertIntoDoneFunction;
 
 	static int32_t groupByDoneCounter_;
-	static int32_t groupByDoneLimit_;
+	static int32_t orderByDoneCounter_;
+	static int32_t deviceCountLimit_;
 
 	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<int32_t[]> &data, int32_t dataSize);
 
@@ -254,22 +260,41 @@ private:
 	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<std::string[]> &data, int32_t dataSize);
 public:
 	static std::mutex groupByMutex_;
+	static std::mutex orderByMutex_;
+
 	static std::condition_variable groupByCV_;
+	static std::condition_variable orderByCV_;
 
 	static void IncGroupByDoneCounter()
 	{
 		groupByDoneCounter_++;
 	}
 
+	static void IncOrderByDoneCounter()
+	{
+		orderByDoneCounter_++;
+	}
+
 	static bool IsGroupByDone()
 	{
-		return (groupByDoneCounter_ == groupByDoneLimit_);
+		return (groupByDoneCounter_ == deviceCountLimit_);
+	}
+
+	static bool IsOrderByDone()
+	{
+		return (orderByDoneCounter_ == deviceCountLimit_);
 	}
 
 	static void ResetGroupByCounters()
 	{
 		groupByDoneCounter_ = 0;
-		groupByDoneLimit_ = 0;
+		deviceCountLimit_ = 0;
+	}
+
+	static void ResetOrderByCounters()
+	{
+		orderByDoneCounter_ = 0;
+		deviceCountLimit_ = 0;
 	}
 
 	template<typename T>
@@ -297,7 +322,7 @@ public:
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
 
-    GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, std::vector<std::unique_ptr<IOrderBy>>& orderByTables, int dispatcherThreadId);
+    GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, std::vector<OrderByBlocks>& orderByBlocks, int dispatcherThreadId);
 
 	~GpuSqlDispatcher();
 

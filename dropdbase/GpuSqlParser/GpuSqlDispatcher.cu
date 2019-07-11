@@ -16,9 +16,15 @@
 #include "../Table.h"
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
+int32_t GpuSqlDispatcher::orderByDoneCounter_ = 0;
+
 std::mutex GpuSqlDispatcher::groupByMutex_;
+std::mutex GpuSqlDispatcher::orderByMutex_;
+
 std::condition_variable GpuSqlDispatcher::groupByCV_;
-int32_t GpuSqlDispatcher::groupByDoneLimit_;
+std::condition_variable GpuSqlDispatcher::orderByCV_;
+
+int32_t GpuSqlDispatcher::deviceCountLimit_;
 std::unordered_map<std::string, int32_t> GpuSqlDispatcher::linkTable;
 
 #ifndef NDEBUG
@@ -30,7 +36,7 @@ void AssertDeviceMatchesCurrentThread(int dispatcherThreadId)
 }
 #endif
 
-GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, std::vector<std::unique_ptr<IOrderBy>>& orderByTables, int dispatcherThreadId) :
+GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, std::vector<OrderByBlocks>& orderByBlocks, int dispatcherThreadId) :
 	database(database),
 	blockIndex(dispatcherThreadId),
 	instructionPointer(0),
@@ -49,7 +55,8 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	isOverallLastBlock(false),
 	noLoad(true),
 	joinIndices(nullptr),
-	orderByTables(orderByTables)
+	orderByTable(nullptr),
+	orderByBlocks(orderByBlocks)
 {
 }
 

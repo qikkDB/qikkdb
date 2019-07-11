@@ -30,15 +30,15 @@ int32_t GpuSqlDispatcher::orderByCol()
 			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end() ? "_keys" : ""));
 			int32_t inSize = std::get<1>(column);
 
-			if (orderByTables[dispatcherThreadId] == nullptr)
+			if (orderByTable == nullptr)
 			{
-				orderByTables[dispatcherThreadId] = std::make_unique<GPUOrderBy>(inSize);
+				orderByTable = std::make_unique<GPUOrderBy>(inSize);
 				int32_t* orderByIndices = allocateRegister<int32_t>("$orderByIndices", inSize);
 				usingOrderBy = true;
 			}
 
 			std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
-			reinterpret_cast<GPUOrderBy*>(orderByTables[dispatcherThreadId].get())->OrderByColumn(
+			orderByTable->OrderByColumn(
 				reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)),
 				reinterpret_cast<T*>(std::get<0>(column)),
 				inSize,
@@ -55,15 +55,15 @@ int32_t GpuSqlDispatcher::orderByCol()
 		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t inSize = std::get<1>(column);
 
-		if (orderByTables[dispatcherThreadId] == nullptr)
+		if (orderByTable == nullptr)
 		{
-			orderByTables[dispatcherThreadId] = std::make_unique<GPUOrderBy>(inSize);
+			orderByTable = std::make_unique<GPUOrderBy>(inSize);
 			int32_t* orderByIndices = allocateRegister<int32_t>("$orderByIndices", inSize);
 			usingOrderBy = true;
 		}
 
 		std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
-		reinterpret_cast<GPUOrderBy*>(orderByTables[dispatcherThreadId].get())->OrderByColumn(
+		orderByTable->OrderByColumn(
 			reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)),
 			reinterpret_cast<T*>(std::get<0>(column)),
 			inSize,
@@ -108,7 +108,7 @@ int32_t GpuSqlDispatcher::orderByReconstructOrderCol()
 		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reorderedColumn.get(), reinterpret_cast<int8_t*>(filter_) , inSize);
 		outData->resize(outSize);
 
-		reconstructedOrderByOrderColumnBlocks[colName].push_back(std::move(outData));
+		orderByBlocks[dispatcherThreadId].reconstructedOrderByOrderColumnBlocks[colName].push_back(std::move(outData));
 	}
 	return 0;
 }
@@ -149,7 +149,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetCol()
 		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reorderedColumn.get(), reinterpret_cast<int8_t*>(filter_) , inSize);
 		outData->resize(outSize);
 
-		reconstructedOrderByRetColumnBlocks[colName].push_back(std::move(outData));
+		orderByBlocks[dispatcherThreadId].reconstructedOrderByRetColumnBlocks[colName].push_back(std::move(outData));
 	}
 	return 0;
 }

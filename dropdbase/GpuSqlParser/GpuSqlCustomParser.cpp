@@ -12,7 +12,6 @@
 #include "../QueryEngine/GPUMemoryCache.h"
 #include "QueryType.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
-#include "../QueryEngine/GPUCore/IOrderBy.h"
 #include "../QueryEngine/Context.h"
 #include <google/protobuf/message.h>
 #include "../messages/QueryResponseMessage.pb.h"
@@ -51,15 +50,14 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	antlr4::tree::ParseTreeWalker walker;
 
 	std::vector<std::unique_ptr<IGroupBy>> groupByInstances;
-	std::vector<std::unique_ptr<IOrderBy>> orderByInstances;
+	std::vector<OrderByBlocks> orderByBlocks(Context::getInstance().getDeviceCount());
 
 	for (int i = 0; i < context.getDeviceCount(); i++)
 	{
 		groupByInstances.emplace_back(nullptr);
-		orderByInstances.emplace_back(nullptr);
 	}
 
-	std::unique_ptr<GpuSqlDispatcher> dispatcher = std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByInstances, -1);
+	std::unique_ptr<GpuSqlDispatcher> dispatcher = std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, -1);
 	std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher = std::make_unique<GpuSqlJoinDispatcher>(database);
 
 	GpuSqlListener gpuSqlListener(database, *dispatcher, *joinDispatcher);
@@ -215,6 +213,8 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	int32_t threadCount = isSingleGpuStatement ? 1 : context.getDeviceCount();
 
 	GpuSqlDispatcher::ResetGroupByCounters();
+	GpuSqlDispatcher::ResetOrderByCounters();
+
 	std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers;
 	std::vector<std::thread> dispatcherFutures;
 	std::vector<std::exception_ptr> dispatcherExceptions;
@@ -239,7 +239,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
 	for (int i = 0; i < threadCount; i++)
 	{
-		dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByInstances, i));
+		dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, i));
 		dispatcher->copyExecutionDataTo(*dispatchers[i]);
 		dispatchers[i]->setJoinIndices(joinDispatcher->getJoinIndices());
 		dispatcherFutures.push_back(std::thread(std::bind(&GpuSqlDispatcher::execute, dispatchers[i].get(), std::ref(dispatcherResults[i]), std::ref(dispatcherExceptions[i]))));
