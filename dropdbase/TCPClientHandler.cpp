@@ -380,7 +380,22 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(IT
 		}
 		columnData.insert({columnName, dataVector});
 	}
-	table.InsertData(columnData);
+	if(isNullable)
+	{
+		std::vector<int8_t> nullMaskVector;
+		int32_t nullMaskSize = (elementCount + sizeof(char)*8 - 1)/(sizeof(char)*8);
+		std::unordered_map<std::string, std::vector<int8_t>> nullMap;
+		for(int i = 0; i < nullMaskSize; i++)
+		{
+			nullMaskVector.push_back(nullMask[i]);
+		}
+		nullMap.insert({columnName, nullMaskVector});
+		table.InsertData(columnData,Configuration::GetInstance().IsUsingCompression(),nullMap);
+	}
+	else
+	{
+		table.InsertData(columnData,Configuration::GetInstance().IsUsingCompression());
+	}
 	resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 	resultMessage->set_message("");
 	return resultMessage;
