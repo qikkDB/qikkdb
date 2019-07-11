@@ -30,7 +30,7 @@ void AssertDeviceMatchesCurrentThread(int dispatcherThreadId)
 }
 #endif
 
-GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
+GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, std::vector<std::unique_ptr<IOrderBy>>& orderByTables, int dispatcherThreadId) :
 	database(database),
 	blockIndex(dispatcherThreadId),
 	instructionPointer(0),
@@ -49,7 +49,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	isOverallLastBlock(false),
 	noLoad(true),
 	joinIndices(nullptr),
-	orderByTable(nullptr)
+	orderByTables(orderByTables)
 {
 }
 
