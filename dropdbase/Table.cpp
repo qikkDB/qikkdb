@@ -16,8 +16,8 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
         if (search != data.end())
         {
 			int8_t isNullValue = false;
-			int bitMaskIdx = (iterator / sizeof(char) * 8);
-			int shiftIdx = (iterator % sizeof(char) * 8);
+			int bitMaskIdx = (iterator / (sizeof(char) * 8));
+			int shiftIdx = (iterator % (sizeof(char) * 8));
 			if (nullMasks.find(columnName) != nullMasks.end())
 			{
 				isNullValue = (nullMasks.at(columnName)[bitMaskIdx] >> shiftIdx) & 1;
@@ -288,8 +288,8 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bo
             for (auto sortingColumn : sortingColumns)
             {
 				int8_t isNullValue = false;
-				int bitMaskIdx = (i / sizeof(char) * 8);
-				int shiftIdx = (i % sizeof(char) * 8);
+				int bitMaskIdx = (i / (sizeof(char) * 8));
+				int shiftIdx = (i % (sizeof(char) * 8));
 				if (nullMasks.find(sortingColumn) != nullMasks.end()) 
 				{
 					isNullValue = (nullMasks.at(sortingColumn)[bitMaskIdx] >> shiftIdx) & 1;
