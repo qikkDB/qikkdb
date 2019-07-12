@@ -45,7 +45,7 @@ GPUOrderBy::~GPUOrderBy()
 
 void GPUOrderBy::ReOrderNullValuesByIdxInplace(int8_t* nullBitMask, int32_t* indices, int32_t dataElementCount)
 {
-	cuda_ptr<int8_t> outTemp(dataElementCount);
+	cuda_ptr<int8_t> outTemp((dataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t * 8)));
     GPUMemory::copyDeviceToDevice(outTemp.get(), nullBitMask, dataElementCount);
 
     // Reorder a column based on indices "inplace"
