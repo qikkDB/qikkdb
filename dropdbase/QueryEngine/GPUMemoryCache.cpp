@@ -10,7 +10,7 @@ void GPUMemoryCache::SetLockList(const std::vector<std::string>& lockList)
 }
 
 GPUMemoryCache::GPUMemoryCache(int32_t deviceID, size_t maximumSize) :
-	 maxSize_(maximumSize), deviceID_(deviceID), usedSize(0), currentBlockIndex_(0)
+	maxSize_(maximumSize), deviceID_(deviceID), usedSize(0), currentBlockIndex_(0)
 {
 	BOOST_LOG_TRIVIAL(debug) << "Cache initialized for device " << deviceID;
 }
@@ -28,7 +28,7 @@ GPUMemoryCache::~GPUMemoryCache()
 
 bool GPUMemoryCache::evict()
 {
-	for(auto it = lruQueue.begin(); it != lruQueue.end(); it++)
+	for (auto it = lruQueue.begin(); it != lruQueue.end(); it++)
 	{
 		auto& queueItem = *it; 
 		bool isLockedItem = false;
@@ -60,7 +60,7 @@ bool GPUMemoryCache::evict()
 	return false;
 }
 
-CudaMemAllocator & GPUMemoryCache::GetAllocator()
+CudaMemAllocator& GPUMemoryCache::GetAllocator()
 {
 	return Context::getInstance().GetAllocatorForDevice(deviceID_);
 }
@@ -76,7 +76,7 @@ void GPUMemoryCache::clearCachedBlock(const std::string& databaseName, const std
 		usedSize -= toErase.size;
 		cacheMap.erase(cacheMap.find(columnBlock));
 	}
-	BOOST_LOG_TRIVIAL(debug) << "Cleared cached block "<< columnBlock << " on device" << deviceID_;
+	BOOST_LOG_TRIVIAL(debug) << "Cleared cached block " << columnBlock << " on device" << deviceID_;
 }
 
 bool GPUMemoryCache::containsColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex)

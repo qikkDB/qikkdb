@@ -50,6 +50,13 @@ private:
         {
             throw std::invalid_argument("INFO: Unable to get device count");
         }
+
+        // DANGER     DANGER     DANGER     DANGER      DANGER      DANGER 
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        /////////////////////// DEADLY DEADLY DEADLY /////////////////////// 
+        //deviceCount_ = 1;
+        /////////////////////// DEADLY DEADLY DEADLY /////////////////////// 
+
         printf("INFO: Found %d CUDA devices\n", deviceCount_);
         const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
         // Get devices information

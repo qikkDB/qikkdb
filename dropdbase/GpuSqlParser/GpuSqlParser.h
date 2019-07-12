@@ -588,7 +588,7 @@ public:
   public:
     OrderByColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    ColumnIdContext *columnId();
+    ExpressionContext *expression();
     antlr4::tree::TerminalNode *DIR();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;

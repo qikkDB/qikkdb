@@ -17,6 +17,7 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/TCPServerTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/InsertIntoTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUCompressionTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/OrderByMergeTests.cpp
 				)
 
 set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
@@ -26,7 +27,8 @@ set(CUDA_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/GPUFilterTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUJoinTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUGroupByTests.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GPUPolygonClippingTests.cu
-				${CMAKE_CURRENT_SOURCE_DIR}/GPUReconstructTests.cu)
+				${CMAKE_CURRENT_SOURCE_DIR}/GPUReconstructTests.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/GPUOrderByTests.cu)
 
 if(WIN32)
 	set_source_files_properties(${TEST_FILES} PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275 /wd4244 /wd4267 /wd4305")

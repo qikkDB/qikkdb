@@ -11,13 +11,20 @@
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../ComplexPolygonFactory.h"
 #include "../StringFactory.h"
+#include "../QueryEngine/GPUCore/GPUOrderBy.cuh"
 #include "../Database.h"
 #include "../Table.h"
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
+int32_t GpuSqlDispatcher::orderByDoneCounter_ = 0;
+
 std::mutex GpuSqlDispatcher::groupByMutex_;
+std::mutex GpuSqlDispatcher::orderByMutex_;
+
 std::condition_variable GpuSqlDispatcher::groupByCV_;
-int32_t GpuSqlDispatcher::groupByDoneLimit_;
+std::condition_variable GpuSqlDispatcher::orderByCV_;
+
+int32_t GpuSqlDispatcher::deviceCountLimit_;
 std::unordered_map<std::string, int32_t> GpuSqlDispatcher::linkTable;
 
 #ifndef NDEBUG
@@ -33,7 +40,7 @@ void AssertDeviceMatchesCurrentThread(int dispatcherThreadId)
 }
 #endif
 
-GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId) :
+GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, std::vector<OrderByBlocks>& orderByBlocks, int dispatcherThreadId) :
 	database(database),
 	blockIndex(dispatcherThreadId),
 	instructionPointer(0),
@@ -46,11 +53,18 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
 	usingGroupBy(false),
+	usingOrderBy(false),
 	usingJoin(false),
 	isLastBlockOfDevice(false),
 	isOverallLastBlock(false),
 	noLoad(true),
-	joinIndices(nullptr) 
+	joinIndices(nullptr),
+	orderByTable(nullptr),
+	orderByBlocks(orderByBlocks)
+{
+}
+
+GpuSqlDispatcher::~GpuSqlDispatcher()
 {
 }
 
@@ -80,6 +94,7 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 		Context& context = Context::getInstance();
 		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
 		context.bindDeviceToContext(dispatcherThreadId);
+		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
 		int32_t err = 0;
 
 		while (err == 0)
@@ -156,6 +171,36 @@ const ColmnarDB::NetworkClient::Message::QueryResponseMessage &GpuSqlDispatcher:
 void GpuSqlDispatcher::addRetFunction(DataType type)
 {
     dispatcherFunctions.push_back(retFunctions[type]);
+}
+
+void GpuSqlDispatcher::addOrderByFunction(DataType type)
+{
+	dispatcherFunctions.push_back(orderByFunctions[type]);
+}
+
+void GpuSqlDispatcher::addOrderByReconstructOrderFunction(DataType type)
+{
+	dispatcherFunctions.push_back(orderByReconstructOrderFunctions[type]);
+}
+
+void GpuSqlDispatcher::addOrderByReconstructRetFunction(DataType type)
+{
+	dispatcherFunctions.push_back(orderByReconstructRetFunctions[type]);
+}
+
+void GpuSqlDispatcher::addFreeOrderByTableFunction()
+{
+	dispatcherFunctions.push_back(freeOrderByTableFunction);
+}
+
+void GpuSqlDispatcher::addOrderByReconstructRetAllBlocksFunction()
+{
+	dispatcherFunctions.push_back(orderByReconstructRetAllBlocksFunction);
+}
+
+void GpuSqlDispatcher::addLockRegisterFunction()
+{
+	dispatcherFunctions.push_back(lockRegisterFunction);
 }
 
 void GpuSqlDispatcher::addFilFunction()
@@ -631,7 +676,7 @@ int32_t GpuSqlDispatcher::loadColNullMask(std::string & colName)
 		const std::string column = colName.substr(endOfPolyIdx + 1);
 
 		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
-		GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
+		GpuSqlDispatcher::deviceCountLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
 		if (blockIndex >= blockCount)
 		{
 			return 1;
@@ -794,6 +839,7 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 		}
 	}
 	usedRegisterMemory = 0;
+	aggregatedRegisters.clear();
 	allocatedPointers.clear();
 }
 

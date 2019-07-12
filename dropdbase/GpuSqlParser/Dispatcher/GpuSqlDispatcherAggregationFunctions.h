@@ -186,7 +186,12 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 
 	std::string groupByColumnName = *(groupByColumns.begin());
 
-	GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::ProcessBlock(groupByColumnName, column, *this);
+	if (aggregatedRegisters.find(reg) == aggregatedRegisters.end())
+	{
+		std::cout << "Processed block in AggGroupBy." << std::endl;
+		GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::ProcessBlock(groupByColumnName, column, *this);
+		aggregatedRegisters.insert(reg);
+	}
 
 	// If last block was processed, reconstruct group by table
 	if (isLastBlockOfDevice)
