@@ -184,8 +184,10 @@ void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t
         }
         case DataType::COLUMN_STRING:
         {
+            GPUMemory::GPUString emptyStringCol{nullptr, nullptr};
             GPUMemory::GPUString * gpuKeyCol;
             GPUMemory::alloc(&gpuKeyCol, 1);
+            GPUMemory::copyHostToDevice(gpuKeyCol, &emptyStringCol, 1);
             GPUMemory::copyHostToDevice(reinterpret_cast<GPUMemory::GPUString**>(*keysBuffer + i), &gpuKeyCol, 1);
             if (pointers)
             {
@@ -213,6 +215,15 @@ void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t
     }
 }
 
+void FreeSingeKeyCol(void* ptr, DataType type)
+{
+    // TODO string
+    if (ptr)
+    {
+        GPUMemory::free(ptr);
+    }
+}
+
 void FreeKeysBuffer(void** keysBuffer, DataType* keyTypes, int32_t keysColCount)
 {
     // Copy data types back from GPU
@@ -222,17 +233,20 @@ void FreeKeysBuffer(void** keysBuffer, DataType* keyTypes, int32_t keysColCount)
 
     for (int32_t i = 0; i < keysColCount; i++)
     {
-        // TODO string
         void * ptr;
         GPUMemory::copyDeviceToHost(&ptr, keysBuffer + i, 1);
-        if (ptr)
-        {
-            GPUMemory::free(ptr);
-        }
+        FreeSingeKeyCol(ptr, keyTypesHost[i]);
     }
     GPUMemory::free(keysBuffer);
 }
 
+void FreeKeysVector(std::vector<void*> keysVector, std::vector<DataType> keyTypes)
+{
+    for (int32_t i = 0; i < keyTypes.size(); i++)
+    {
+        FreeSingeKeyCol(keysVector[i], keyTypes[i]);
+    }
+}
 
 __global__ void kernel_collect_string_lengths(int32_t* stringLengths, int32_t* sourceIndices,
     GPUMemory::GPUString ** inKeysSingleCol, GPUMemory::GPUString ** keysBufferSingleCol, int32_t maxHashCount)

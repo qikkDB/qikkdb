@@ -82,6 +82,8 @@ void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t
 
 void FreeKeysBuffer(void** keysBuffer, DataType* keyTypes, int32_t keysColCount);
 
+void FreeKeysVector(std::vector<void*> keysVector, std::vector<DataType> keyTypes);
+
 /// GROUP BY Kernel processes input (inKeys and inValues). New keys from inKeys are added
 /// to the hash table and values from inValues are aggregated.
 template <typename AGG, typename V>
@@ -294,10 +296,74 @@ public:
     /// <param name="keyTypes">key column types (will be copied to a new buffer)</param>
     /// <param name="keysColCount">count of key columns</param>
     /// <param name="keysBuffer">GPU buffer with existing keys (will be copied to a new buffer)</param>
-    GPUGroupBy(int32_t maxHashCount, int32_t* sourceIndices, DataType* keyTypes, int32_t keysColCount, void** keysBuffer)
-    : maxHashCount_(maxHashCount)
+    GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes, int32_t* sourceIndices, void** keysBuffer)
+    : GPUGroupBy(maxHashCount, keyTypes)
     {
-        // TODO
+        // Copy source indices
+        GPUMemory::copyDeviceToDevice(sourceIndices_, sourceIndices, maxHashCount_);
+        
+        // Copy all keys (deep copy)
+        for (int32_t i = 0; i < keyTypes.size(); i++)
+        {
+            void * myCol;
+            GPUMemory::copyDeviceToHost(&myCol, keysBuffer_ + i, 1);
+            void * srcCol;
+            GPUMemory::copyDeviceToHost(&srcCol, keysBuffer + i, 1);
+            
+            switch (keyTypes[i])
+            {
+            case DataType::COLUMN_INT:
+            {
+                GPUMemory::copyDeviceToDevice<int32_t>(myCol, srcCol, maxHashCount_);
+                break;
+            }
+            case DataType::COLUMN_LONG:
+            {
+                GPUMemory::copyDeviceToDevice<int64_t>(myCol, srcCol, maxHashCount_);
+                break;
+            }
+            case DataType::COLUMN_FLOAT:
+            {
+                GPUMemory::copyDeviceToDevice<float>(myCol, srcCol, maxHashCount_);
+                break;
+            }
+            case DataType::COLUMN_DOUBLE:
+            {
+                GPUMemory::copyDeviceToDevice<double>(myCol, srcCol, maxHashCount_);
+                break;
+            }
+            case DataType::COLUMN_STRING:
+            {
+                // Get source struct
+                GPUMemory::GPUString srcString;
+                GPUMemory::copyDeviceToHost(&srcString, reinterpret_cast<GPUMemory::GPUString*>(srcCol), 1);
+
+                // Get total char count
+                int32_t totalCharCount;
+                GPUMemory::copyDeviceToHost(&totalCharCount, srcString.stringIndices + maxHashCount_ - 1, 1);
+
+                // Create my struct
+                GPUMemory::GPUString myString;
+                GPUMemory::alloc(&(myString.stringIndices), maxHashCount_);
+                GPUMemory::alloc(&(myString.allChars), totalCharCount);
+
+                // Copy indices and chars
+                GPUMemory::copyDeviceToDevice(myString.stringIndices, srcString.stringIndices, maxHashCount_);
+                GPUMemory::copyDeviceToDevice(myString.allChars, srcString.allChars, totalCharCount);
+
+                // Copy struct
+                GPUMemory::copyHostToDevice<GPUMemory::GPUString>(reinterpret_cast<GPUMemory::GPUString*>(myCol), &myString, 1);
+                break;
+            }
+            case DataType::COLUMN_INT8_T:
+            {
+                GPUMemory::copyDeviceToDevice<int8_t>(myCol, srcCol, maxHashCount_);
+                break;
+            }
+            default:
+                break;
+            }
+        }
     }
 
     ~GPUGroupBy()
@@ -373,12 +439,18 @@ public:
                 maxHashCount_, inKeys.get());
             for(int32_t t : stringKeyColIds_)
             {
+                // Free string lengths
+                int32_t * stringLengths;
+                GPUMemory::copyDeviceToHost(&stringLengths, stringLengthsBuffers.get() + t, 1);
+                GPUMemory::free(stringLengths);
+                
                 // Free old key buffer for single string col
                 GPUMemory::GPUString * structPointer;
                 GPUMemory::copyDeviceToHost(&structPointer, reinterpret_cast<GPUMemory::GPUString**>(keysBuffer_ + t), 1);
                 GPUMemory::GPUString cpuStruct;
                 GPUMemory::copyDeviceToHost(&cpuStruct, structPointer, 1);
                 GPUMemory::free(cpuStruct);
+                
                 // And replace key buffer with side buffer
                 GPUMemory::copyDeviceToDevice(structPointer,
                     reinterpret_cast<GPUMemory::GPUString *>(stringSideBuffers.get() + t), 1);
@@ -711,7 +783,7 @@ public:
                         newBuffer->allChars.insert(newBuffer->allChars.end(), addBuffer->allChars.begin(), addBuffer->allChars.end());
                         multiKeysAllHost[t] = newBuffer;
                         delete oldBuffer;
-                        delete addBuffer;
+                        delete addBuffer; // TODO check if not double delete
                         break;
                     }
                     case DataType::COLUMN_INT8_T:
@@ -724,6 +796,7 @@ public:
                         break;
                     }
                 }
+                // TODO for ... delete[] multikeys[i] - might be ^
                 valuesAllHost.insert(valuesAllHost.end(), values.get(), values.get() + elementCount);
                 occurrencesAllHost.insert(occurrencesAllHost.end(), occurrences.get(), occurrences.get() + elementCount);
 				sumElementCount += elementCount;
@@ -747,24 +820,28 @@ public:
                     {
                         GPUMemory::copyHostToDevice(reinterpret_cast<int32_t*>(hostPointersToKeysAll[t]),
                                 reinterpret_cast<int32_t*>(multiKeysAllHost[t]), sumElementCount);
+                        delete[] multiKeysAllHost[t];
                         break;
                     }
                     case DataType::COLUMN_LONG:
                     {
                         GPUMemory::copyHostToDevice(reinterpret_cast<int64_t*>(hostPointersToKeysAll[t]),
                                 reinterpret_cast<int64_t*>(multiKeysAllHost[t]), sumElementCount);
+                        delete[] multiKeysAllHost[t];
                         break;
                     }
                     case DataType::COLUMN_FLOAT:
                     {
                         GPUMemory::copyHostToDevice(reinterpret_cast<float*>(hostPointersToKeysAll[t]),
                                 reinterpret_cast<float*>(multiKeysAllHost[t]), sumElementCount);
+                        delete[] multiKeysAllHost[t];
                         break;
                     }
                     case DataType::COLUMN_DOUBLE:
                     {
                         GPUMemory::copyHostToDevice(reinterpret_cast<double*>(hostPointersToKeysAll[t]),
                                 reinterpret_cast<double*>(multiKeysAllHost[t]), sumElementCount);
+                        delete[] multiKeysAllHost[t];
                         break;
                     }
                     case DataType::COLUMN_STRING:
@@ -785,21 +862,28 @@ public:
                         // Copy struct itself
                         GPUMemory::copyHostToDevice(reinterpret_cast<GPUMemory::GPUString*>(hostPointersToKeysAll[t]),
                                 &keysAllGPU, 1);
+                        delete strKeys;
                         break;
                     }
                     case DataType::COLUMN_INT8_T:
                     {
                         GPUMemory::copyHostToDevice(reinterpret_cast<int8_t*>(hostPointersToKeysAll[t]),
                                 reinterpret_cast<int8_t*>(multiKeysAllHost[t]), sumElementCount);
+                        delete[] multiKeysAllHost[t];
                         break;
                     }
                     default:
                         break;
                     }
                 }
-
-                GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
-                GPUMemory::copyHostToDevice(occurrencesAllGPU.get(), occurrencesAllHost.data(), sumElementCount);
+                if (USE_VALUES)
+                {
+                    GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
+                }
+                if (USE_KEY_OCCURRENCES)
+                {
+                    GPUMemory::copyHostToDevice(occurrencesAllGPU.get(), occurrencesAllHost.data(), sumElementCount);
+                }
 
                 // Merge results
                 if (DIRECT_VALUES) // for min, max and sum
@@ -810,13 +894,41 @@ public:
                 }
                 else if (std::is_same<AGG, AggregationFunctions::avg>::value) // for avg
                 {
-                    // TODO
+                    V* valuesMerged = nullptr;
+                    int64_t* occurencesMerged = nullptr;
+                    
+                    // TODO after implementation of multi-value GroupBy use it here
+                    // Calculate sum of values
+                    // Initialize new empty sumGroupBy table
+                    std::vector<void*> keysToDiscard;
+                    GPUGroupBy<AggregationFunctions::sum, V, std::vector<void*>, V> sumGroupBy(sumElementCount, keyTypesHost);
+                    sumGroupBy.GroupBy(hostPointersToKeysAll, valuesAllGPU.get(), sumElementCount);
+                    sumGroupBy.GetResults(&keysToDiscard, &valuesMerged, outDataElementCount);
+                    FreeKeysVector(keysToDiscard, keyTypesHost);
+
+                    // Calculate sum of occurences
+                    // Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
+                    GPUGroupBy<AggregationFunctions::sum, int64_t, std::vector<void*>, int64_t> 
+                            countGroupBy(sumElementCount, keyTypesHost, sumGroupBy.sourceIndices_, sumGroupBy.keysBuffer_);
+                    countGroupBy.GroupBy(hostPointersToKeysAll, occurrencesAllGPU.get(), sumElementCount);
+                    countGroupBy.GetResults(outKeysVector, &occurencesMerged, outDataElementCount);
+
+                    // Divide merged values by merged occurences to get final averages
+                    GPUMemory::alloc(outValues, *outDataElementCount);
+                    GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurencesMerged, *outDataElementCount);
+                    
+                    GPUMemory::free(valuesMerged);
+                    GPUMemory::free(occurencesMerged);
                 }
                 else // for count
                 {
-                    // TODO
+                    GPUGroupBy<AGG, int64_t, std::vector<void*>, int64_t> finalGroupBy(sumElementCount, keyTypesHost);
+                    finalGroupBy.GroupBy(hostPointersToKeysAll, occurrencesAllGPU.get(), sumElementCount);
+                    finalGroupBy.GetResults(outKeysVector, outValues, outDataElementCount);
                 }
-                // TODO free everything (check in code)
+
+                // TODO free everything (check in code) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+                
                 FreeKeysBuffer(multiKeysAllGPU, keyTypes_, keysColCount_);
             }
             else
