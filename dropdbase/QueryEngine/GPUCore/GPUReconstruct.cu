@@ -21,8 +21,7 @@ __global__ void kernel_reconstruct_null_mask(int32_t *outData, int8_t *ACol, int
 			int shiftIdx = i % (sizeof(char)*8);
 			int outBitMaskIdx = (prefixSum[i] - 1) / (sizeof(int32_t)*8);
 			int outBitMaskShiftIdx = (prefixSum[i] - 1) % (sizeof(int32_t)*8);
-			atomicOr(outData + outBitMaskIdx,((ACol[bitMaskIdx] >> shiftIdx) & static_cast<int8_t>(1)) << outBitMaskShiftIdx);
-			
+			atomicOr(outData + outBitMaskIdx,((ACol[bitMaskIdx] >> shiftIdx) & 1) << outBitMaskShiftIdx);	
 		}
 	}
 	

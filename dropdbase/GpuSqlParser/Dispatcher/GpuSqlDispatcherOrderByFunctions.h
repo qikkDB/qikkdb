@@ -41,6 +41,7 @@ int32_t GpuSqlDispatcher::orderByCol()
 			orderByTable->OrderByColumn(
 				reinterpret_cast<int32_t*>(orderByIndices.gpuPtr),
 				reinterpret_cast<T*>(column.gpuPtr),
+				reinterpret_cast<int8_t*>(column.gpuNullMaskPtr),
 				inSize,
 				order);
 		}
@@ -66,6 +67,7 @@ int32_t GpuSqlDispatcher::orderByCol()
 		orderByTable->OrderByColumn(
 			reinterpret_cast<int32_t*>(orderByIndices.gpuPtr),
 			reinterpret_cast<T*>(column.gpuPtr),
+			reinterpret_cast<int8_t*>(column.gpuNullMaskPtr),
 			inSize,
 			order);
 	}	

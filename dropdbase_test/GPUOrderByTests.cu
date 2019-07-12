@@ -45,6 +45,7 @@ void OrderByTestTemplate(int32_t colCount,
                          std::chrono::duration<double> *elapsed = nullptr,
                          bool suppress = true)
 {
+    /*
     // Random generator
     int32_t SEED = 42;
     srand(SEED);
@@ -150,27 +151,26 @@ void OrderByTestTemplate(int32_t colCount,
         }
     }
     
-    /*
     // DEBUG
-    std::printf("###############################################################\n");
-    std::printf("### CPU ORDER BY ###\n");
-    // Print the results as columns
-    for(int32_t i = 0; i < COL_COUNT; i++)
-    {
-        std::printf("%2c ", orderingIn[i] == OrderBy::Order::ASC ? 'A' : 'D');
-    }
-    std::printf("\n");
+    // std::printf("###############################################################\n");
+    // std::printf("### CPU ORDER BY ###\n");
+    // // Print the results as columns
+    // for(int32_t i = 0; i < COL_COUNT; i++)
+    // {
+    //     std::printf("%2c ", orderingIn[i] == OrderBy::Order::ASC ? 'A' : 'D');
+    // }
+    // std::printf("\n");
 
-    for(int32_t i = 0; i < COL_DATA_ELEMENT_COUNT; i++)
-    {
-        for(int32_t j = 0; j < COL_COUNT; j++)
-        {
-            std::printf("%2u ", dataOut[j][i]);
-        }
-        std::printf("\n");
-    }
+    // for(int32_t i = 0; i < COL_DATA_ELEMENT_COUNT; i++)
+    // {
+    //     for(int32_t j = 0; j < COL_COUNT; j++)
+    //     {
+    //         std::printf("%2u ", dataOut[j][i]);
+    //     }
+    //     std::printf("\n");
+    // }
     //DEBUG END
-    */
+
 
     }
     /////////////////////////////////////////////////////////////////////////////
@@ -220,27 +220,27 @@ void OrderByTestTemplate(int32_t colCount,
     GPUMemory::free(d_resultBuffer);
 
     // Print the results
-    /*
-    // DEBUG
-    std::printf("###############################################################\n");
-    std::printf("### GPU ORDER BY ###\n");
-    // Print the results as columns
-    for(int32_t i = 0; i < COL_COUNT; i++)
-    {
-        std::printf("%2c ", orderingIn[i] == OrderBy::Order::ASC ? 'A' : 'D');
-    }
-    std::printf("\n");
+    
+    // // DEBUG
+    // std::printf("###############################################################\n");
+    // std::printf("### GPU ORDER BY ###\n");
+    // // Print the results as columns
+    // for(int32_t i = 0; i < COL_COUNT; i++)
+    // {
+    //     std::printf("%2c ", orderingIn[i] == OrderBy::Order::ASC ? 'A' : 'D');
+    // }
+    // std::printf("\n");
 
-    for(int32_t i = 0; i < COL_DATA_ELEMENT_COUNT; i++)
-    {
-        for(int32_t j = 0; j < COL_COUNT; j++)
-        {
-            std::printf("%2u ", dataOutGPU[j][i]);
-        }
-        std::printf("\n");
-    }
-    //DEBUG END
-    */
+    // for(int32_t i = 0; i < COL_DATA_ELEMENT_COUNT; i++)
+    // {
+    //     for(int32_t j = 0; j < COL_COUNT; j++)
+    //     {
+    //         std::printf("%2u ", dataOutGPU[j][i]);
+    //     }
+    //     std::printf("\n");
+    // }
+    // //DEBUG END
+    
     }
     /////////////////////////////////////////////////////////////////////////////
     auto finish = std::chrono::high_resolution_clock::now();
@@ -275,6 +275,7 @@ void OrderByTestTemplate(int32_t colCount,
     {
         *elapsed = finish - start;
     }
+    */
 }
 
 class GPUOrderByTests : public ::testing::Test

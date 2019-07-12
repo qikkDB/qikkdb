@@ -48,6 +48,7 @@ private:
 		bool shouldBeFreed;
 		std::uintptr_t gpuNullMaskPtr;
 	};
+	
 	typedef int32_t(GpuSqlDispatcher::*DispatchFunction)();
     std::vector<DispatchFunction> dispatcherFunctions;
     MemoryStream arguments;
