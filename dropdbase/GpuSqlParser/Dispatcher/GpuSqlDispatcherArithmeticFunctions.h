@@ -37,7 +37,7 @@ int32_t GpuSqlDispatcher::arithmeticColConst()
 			int32_t retSize = std::get<1>(column);
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
 			GPUArithmetic::colConst<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
-			groupByColumns.insert(reg);
+			groupByColumns.insert({ reg, GpuSqlDispatcher::GetColumnType<ResultType>() });
 		}
 	}
 	else if (isLastBlockOfDevice || !usingGroupBy)
@@ -90,7 +90,7 @@ int32_t GpuSqlDispatcher::arithmeticConstCol()
 			int32_t retSize = std::get<1>(column);
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
 			GPUArithmetic::constCol<OP, ResultType, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
-			groupByColumns.insert(reg);
+			groupByColumns.insert({ reg, GpuSqlDispatcher::GetColumnType<ResultType>() });
 		}
 	}
 	else if (isLastBlockOfDevice || !usingGroupBy)
@@ -150,7 +150,7 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
 			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
-			groupByColumns.insert(reg);
+			groupByColumns.insert({ reg, GpuSqlDispatcher::GetColumnType<ResultType>() });
 		}
 	}
 	else if (groupByColumns.find(colNameLeft) != groupByColumns.end())
@@ -163,7 +163,7 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
 			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
-			groupByColumns.insert(reg);
+			groupByColumns.insert({ reg, GpuSqlDispatcher::GetColumnType<ResultType>() });
 		}
 	}
 	else if (isLastBlockOfDevice || !usingGroupBy)

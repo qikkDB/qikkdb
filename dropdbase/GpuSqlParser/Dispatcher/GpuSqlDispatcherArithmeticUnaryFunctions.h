@@ -32,7 +32,7 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 			int32_t retSize = std::get<1>(column);
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
 			GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(std::get<0>(column)), retSize);
-			groupByColumns.insert(reg);
+			groupByColumns.insert({ reg, GpuSqlDispatcher::GetColumnType<ResultType>() });
 		}
 	}
 	else if (isLastBlockOfDevice || !usingGroupBy)
