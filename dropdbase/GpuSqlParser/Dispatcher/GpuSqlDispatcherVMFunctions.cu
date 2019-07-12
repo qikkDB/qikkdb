@@ -308,7 +308,7 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 		if (isOverallLastBlock)
 		{
 			// Return key or value col (key if groupByColumns contains colName)
-			auto col = findStringColumn(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end() ? "_keys" : ""));
+			auto col = findStringColumn(getAllocatedRegisterName(colName) + (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end() ? "_keys" : ""));
 			outSize = std::get<1>(col);
 			outData = std::make_unique<std::string[]>(outSize);
 			GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col), nullptr, outSize);

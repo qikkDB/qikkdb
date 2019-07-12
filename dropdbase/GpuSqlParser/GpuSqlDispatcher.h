@@ -6,6 +6,7 @@
 #define DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
 
 #include <functional>
+#include <algorithm>
 #include <vector>
 #include <iostream>
 #include <memory>
@@ -18,6 +19,7 @@
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
 #include "../DataType.h"
+#include "GroupByType.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
@@ -28,6 +30,16 @@ void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 #endif
 
 class Database;
+
+struct StringDataTypeComp
+{
+	explicit StringDataTypeComp(std::string s) :
+		str(s) 
+	{ }
+	inline bool operator()(const std::pair<std::string, DataType> & p) const { return p.first == str; }
+private:
+	std::string str;
+};
 
 class GpuSqlDispatcher
 {
@@ -53,7 +65,7 @@ private:
 	bool isLastBlockOfDevice;
 	bool isOverallLastBlock;
 	bool noLoad;
-	std::map<std::string, DataType> groupByColumns;
+	std::vector<std::pair<std::string, DataType>> groupByColumns;
 	bool isRegisterAllocated(std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
@@ -198,9 +210,9 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
-	//static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> minGroupByMultiKeyFunctions;
-	//static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> maxGroupByMultiKeyFunctions;
-	//static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> sumGroupByMultiKeyFunctions;
+	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> minGroupByMultiKeyFunctions;
+	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> maxGroupByMultiKeyFunctions;
+	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> sumGroupByMultiKeyFunctions;
 	//static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> countGroupByMultiKeyFunctions;
 	//static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> avgGroupByMultiKeyFunctions;
     static std::array<DispatchFunction,
@@ -416,15 +428,15 @@ public:
 
 	void addRootFunction(DataType base, DataType exponent);
 
-    void addMinFunction(DataType key, DataType value, bool usingGroupBy);
+    void addMinFunction(DataType key, DataType value, GroupByType groupByType);
 
-    void addMaxFunction(DataType key, DataType value, bool usingGroupBy);
+    void addMaxFunction(DataType key, DataType value, GroupByType groupByType);
 
-    void addSumFunction(DataType key, DataType value, bool usingGroupBy);
+    void addSumFunction(DataType key, DataType value, GroupByType groupByType);
 
-    void addCountFunction(DataType key, DataType value, bool usingGroupBy);
+    void addCountFunction(DataType key, DataType value, GroupByType groupByType);
 
-    void addAvgFunction(DataType key, DataType value, bool usingGroupBy);
+    void addAvgFunction(DataType key, DataType value, GroupByType groupByType);
 
     void addRetFunction(DataType type);
 

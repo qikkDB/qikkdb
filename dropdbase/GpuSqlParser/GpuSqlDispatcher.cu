@@ -547,34 +547,104 @@ void GpuSqlDispatcher::addLenFunction(DataType type)
 	dispatcherFunctions.push_back(lenFunctions[type]);
 }
 
-void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, bool usingGroupBy)
+void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, GroupByType groupByType)
 {
-    dispatcherFunctions.push_back((usingGroupBy ? minGroupByFunctions : minAggregationFunctions)
-		[DataType::DATA_TYPE_SIZE * key + value]);
+	GpuSqlDispatcher::DispatchFunction fun;
+	switch (groupByType)
+	{
+	case GroupByType::NO_GROUP_BY:
+		fun = minAggregationFunctions[DataType::DATA_TYPE_SIZE * key + value];
+		break;
+	case GroupByType::SINGLE_KEY_GROUP_BY:
+		fun = minGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
+		break;
+	case GroupByType::MULTI_KEY_GROUP_BY:
+		fun = minGroupByMultiKeyFunctions[value];
+		break;
+	default:
+		break;
+	}
+    dispatcherFunctions.push_back(fun);
 }
 
-void GpuSqlDispatcher::addMaxFunction(DataType key, DataType value, bool usingGroupBy)
+void GpuSqlDispatcher::addMaxFunction(DataType key, DataType value, GroupByType groupByType)
 {
-    dispatcherFunctions.push_back((usingGroupBy ? maxGroupByFunctions : maxAggregationFunctions)
-		[DataType::DATA_TYPE_SIZE * key + value]);
+	GpuSqlDispatcher::DispatchFunction fun;
+	switch (groupByType)
+	{
+	case GroupByType::NO_GROUP_BY:
+		fun = maxAggregationFunctions[DataType::DATA_TYPE_SIZE * key + value];
+		break;
+	case GroupByType::SINGLE_KEY_GROUP_BY:
+		fun = maxGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
+		break;
+	case GroupByType::MULTI_KEY_GROUP_BY:
+		fun = maxGroupByMultiKeyFunctions[value];
+		break;
+	default:
+		break;
+	}
+	dispatcherFunctions.push_back(fun);
 }
 
-void GpuSqlDispatcher::addSumFunction(DataType key, DataType value, bool usingGroupBy)
+void GpuSqlDispatcher::addSumFunction(DataType key, DataType value, GroupByType groupByType)
 {
-    dispatcherFunctions.push_back((usingGroupBy ? sumGroupByFunctions : sumAggregationFunctions)
-		[DataType::DATA_TYPE_SIZE * key + value]);
+	GpuSqlDispatcher::DispatchFunction fun;
+	switch (groupByType)
+	{
+	case GroupByType::NO_GROUP_BY:
+		fun = sumAggregationFunctions[DataType::DATA_TYPE_SIZE * key + value];
+		break;
+	case GroupByType::SINGLE_KEY_GROUP_BY:
+		fun = sumGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
+		break;
+	case GroupByType::MULTI_KEY_GROUP_BY:
+		fun = sumGroupByMultiKeyFunctions[value];
+		break;
+	default:
+		break;
+	}
+	dispatcherFunctions.push_back(fun);
 }
 
-void GpuSqlDispatcher::addCountFunction(DataType key, DataType value, bool usingGroupBy)
+void GpuSqlDispatcher::addCountFunction(DataType key, DataType value, GroupByType groupByType)
 {
-    dispatcherFunctions.push_back((usingGroupBy ? countGroupByFunctions : countAggregationFunctions)
-		[DataType::DATA_TYPE_SIZE * key + value]);
+	GpuSqlDispatcher::DispatchFunction fun;
+	switch (groupByType)
+	{
+	case GroupByType::NO_GROUP_BY:
+		fun = countAggregationFunctions[DataType::DATA_TYPE_SIZE * key + value];
+		break;
+	case GroupByType::SINGLE_KEY_GROUP_BY:
+		fun = countGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
+		break;
+	case GroupByType::MULTI_KEY_GROUP_BY:
+		//fun = countGroupByMultiKeyFunctions[value];
+		break;
+	default:
+		break;
+	}
+	dispatcherFunctions.push_back(fun);
 }
 
-void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value, bool usingGroupBy)
+void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value, GroupByType groupByType)
 {
-    dispatcherFunctions.push_back((usingGroupBy ? avgGroupByFunctions : avgAggregationFunctions)
-		[DataType::DATA_TYPE_SIZE * key + value]);
+	GpuSqlDispatcher::DispatchFunction fun;
+	switch (groupByType)
+	{
+	case GroupByType::NO_GROUP_BY:
+		fun = avgAggregationFunctions[DataType::DATA_TYPE_SIZE * key + value];
+		break;
+	case GroupByType::SINGLE_KEY_GROUP_BY:
+		fun = avgGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
+		break;
+	case GroupByType::MULTI_KEY_GROUP_BY:
+		//fun = avgGroupByMultiKeyFunctions[value];
+		break;
+	default:
+		break;
+	}
+	dispatcherFunctions.push_back(fun);
 }
 
 void GpuSqlDispatcher::addGroupByFunction(DataType type)

@@ -9,6 +9,7 @@
 #include "../ComplexPolygonFactory.h"
 #include "ParserExceptions.h"
 #include "JoinType.h"
+#include "GroupByType.h"
 #include "GpuSqlDispatcher.h"
 #include "GpuSqlJoinDispatcher.h"
 #include <ctime>
@@ -460,45 +461,48 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     std::string op = ctx->AGG()->getText();
     stringToUpper(op);
 
-    DataType operandType = std::get<1>(arg);
-    pushArgument(std::get<0>(arg).c_str(), operandType);
+    DataType valueType = std::get<1>(arg);
+    pushArgument(std::get<0>(arg).c_str(), valueType);
 	DataType returnDataType = DataType::CONST_ERROR;
 
-	DataType groupByType;
+	GroupByType groupByType = GroupByType::NO_GROUP_BY;
+	DataType keyType = static_cast<DataType>(0);
+
 	if (usingGroupBy)
 	{
-		groupByType = std::get<1>(*(groupByColumns.begin()));
-	}
-	else
-	{
-		// TODO
-		groupByType = static_cast<DataType>(0);
+		groupByType = GroupByType::SINGLE_KEY_GROUP_BY;
+		keyType = std::get<1>(*(groupByColumns.begin()));
+
+		if (groupByColumns.size() > 1)
+		{
+			groupByType = GroupByType::MULTI_KEY_GROUP_BY;
+		}
 	}
 
     if (op == "MIN")
     {
-        dispatcher.addMinFunction(groupByType, operandType, groupByType);
-		returnDataType = getReturnDataType(operandType);
+        dispatcher.addMinFunction(keyType, valueType, groupByType);
+		returnDataType = getReturnDataType(valueType);
     } 
 	else if (op == "MAX")
     {
-        dispatcher.addMaxFunction(groupByType, operandType, groupByType);
-		returnDataType = getReturnDataType(operandType);
+        dispatcher.addMaxFunction(keyType, valueType, groupByType);
+		returnDataType = getReturnDataType(valueType);
     } 
 	else if (op == "SUM")
     {
-        dispatcher.addSumFunction(groupByType, operandType, groupByType);
-		returnDataType = getReturnDataType(operandType);
+        dispatcher.addSumFunction(keyType, valueType, groupByType);
+		returnDataType = getReturnDataType(valueType);
     } 
 	else if (op == "COUNT")
     {
-        dispatcher.addCountFunction(groupByType, operandType, groupByType);
+        dispatcher.addCountFunction(keyType, valueType, groupByType);
 		returnDataType = DataType::COLUMN_LONG;
     } 
 	else if (op == "AVG")
     {
-        dispatcher.addAvgFunction(groupByType, operandType, groupByType);
-		returnDataType = getReturnDataType(operandType);
+        dispatcher.addAvgFunction(keyType, valueType, groupByType);
+		returnDataType = getReturnDataType(valueType);
     }
 
 	insideAgg = false;

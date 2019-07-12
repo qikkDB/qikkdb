@@ -20,7 +20,7 @@ int32_t GpuSqlDispatcher::stringUnaryCol()
 	
 	std::cout << "StringUnaryCol: " << colName << " " << reg << std::endl;
 
-	if (groupByColumns.find(colName) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
 		throw StringGroupByException();
 	}
@@ -72,7 +72,7 @@ int32_t GpuSqlDispatcher::stringUnaryNumericCol()
 
 	std::cout << "StringIntUnaryCol: " << colName << " " << reg << std::endl;
 
-	if (groupByColumns.find(colName) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
 		throw StringGroupByException();
 	}
@@ -130,7 +130,7 @@ int32_t GpuSqlDispatcher::stringBinaryNumericColCol()
 
 	std::cout << "StringBinaryColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-	if (groupByColumns.find(colNameLeft) != groupByColumns.end() || groupByColumns.find(colNameRight) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameLeft)) != groupByColumns.end() || std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameRight)) != groupByColumns.end())
 	{
 		throw StringGroupByException();
 	}
@@ -165,7 +165,7 @@ int32_t GpuSqlDispatcher::stringBinaryNumericColConst()
 
 	std::cout << "StringBinaryColConst: " << reg << std::endl;
 
-	if (groupByColumns.find(colName) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
 		throw StringGroupByException();
 	}
@@ -199,7 +199,7 @@ int32_t GpuSqlDispatcher::stringBinaryNumericConstCol()
 
 	std::cout << "StringBinaryConstCol: " << reg << std::endl;
 
-	if (groupByColumns.find(colName) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
 		throw StringGroupByException();
 	}
@@ -260,7 +260,7 @@ int32_t GpuSqlDispatcher::stringBinaryColCol()
 
 	std::cout << "StringBinaryColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-	if (groupByColumns.find(colNameLeft) != groupByColumns.end() || groupByColumns.find(colNameRight) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameLeft)) != groupByColumns.end() || std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameRight)) != groupByColumns.end())
 	{
 		throw StringGroupByException();
 	}
@@ -295,7 +295,7 @@ int32_t GpuSqlDispatcher::stringBinaryColConst()
 
 	std::cout << "StringBinaryColConst: " << reg << std::endl;
 
-	if (groupByColumns.find(colName) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
 		throw StringGroupByException();
 	}
@@ -330,7 +330,7 @@ int32_t GpuSqlDispatcher::stringBinaryConstCol()
 
 	std::cout << "StringBinaryConstCol: " << reg << std::endl;
 
-	if (groupByColumns.find(colName) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
 		throw StringGroupByException();
 	}
