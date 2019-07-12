@@ -8,6 +8,7 @@
 #include "GpuSqlParser.h"
 #include "GpuSqlParserBaseListener.h"
 #include "../DataType.h"
+#include "../QueryEngine/OrderByType.h"
 #include <unordered_set>
 #include <unordered_map>
 #include <string>
@@ -30,6 +31,9 @@ private:
 	std::unordered_set<std::string> columnAliases;
     std::unordered_set<std::string> loadedTables;
 	int32_t linkTableIndex;
+	int32_t orderByColumnIndex;
+	std::unordered_map<std::string, std::pair<DataType, std::string>> returnColumns;
+	std::unordered_map<std::string, std::pair<DataType, OrderBy::Order>> orderByColumns;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
 	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
 
@@ -39,6 +43,7 @@ private:
     bool usingGroupBy;
     bool insideAgg;
 	bool insideGroupBy;
+	bool insideOrderBy;
 
 	bool insideSelectColumn;
 	bool isAggSelectColumn;
@@ -141,6 +146,12 @@ public:
 	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
 
 	void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) override;
+
+	void enterOrderByColumns(GpuSqlParser::OrderByColumnsContext *ctx) override;
+
+	void exitOrderByColumns(GpuSqlParser::OrderByColumnsContext *ctx) override;
+
+	void exitOrderByColumn(GpuSqlParser::OrderByColumnContext *ctx) override;
 
 	void exitLimit(GpuSqlParser::LimitContext *ctx) override;
 
