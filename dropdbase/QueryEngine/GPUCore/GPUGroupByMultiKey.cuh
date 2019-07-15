@@ -616,7 +616,12 @@ public:
         // Reconstruct aggregated values
         if (DIRECT_VALUES)  // for min, max and sum: values_ are direct results, just reconstruct them
         {
-            GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, values_,
+            if (!std::is_same<O, V>::value)
+            {
+                CheckQueryEngineError(GPU_EXTENSION_ERROR, "Input and output value data type must be the same in GROUP BY");
+            }
+            // reinterpret_cast is needed to solve compilation error
+            GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, reinterpret_cast<O*>(values_),
                                                occupancyMask.get(), maxHashCount_);
         }
         else if (std::is_same<AGG, AggregationFunctions::avg>::value) // for avg: values_ need to be divided by keyOccurrences_ and reconstructed

@@ -619,7 +619,7 @@ void GpuSqlDispatcher::addCountFunction(DataType key, DataType value, GroupByTyp
 		fun = countGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
 		break;
 	case GroupByType::MULTI_KEY_GROUP_BY:
-		//fun = countGroupByMultiKeyFunctions[value];
+		fun = countGroupByMultiKeyFunctions[value];
 		break;
 	default:
 		break;
@@ -639,7 +639,7 @@ void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value, GroupByType 
 		fun = avgGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
 		break;
 	case GroupByType::MULTI_KEY_GROUP_BY:
-		//fun = avgGroupByMultiKeyFunctions[value];
+		fun = avgGroupByMultiKeyFunctions[value];
 		break;
 	default:
 		break;
