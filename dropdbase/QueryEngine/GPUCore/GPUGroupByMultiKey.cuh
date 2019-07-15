@@ -60,10 +60,10 @@ void ReconstructSingleKeyCol(std::vector<void*>* outKeysVector, int32_t* outData
     GPUMemory::copyDeviceToHost(&keyBufferSingleCol, reinterpret_cast<T**>(keyCol), 1);
 
     // Get out count to allocate CPU memory
-    cuda_ptr<T> prefixSumPtr(elementCount);
-    GPUReconstruct::PrefixSum(prefixSumPtr, occupancyMaskPtr, elementCount);
+    cuda_ptr<int32_t> prefixSumPtr(elementCount);
+    GPUReconstruct::PrefixSum(prefixSumPtr.get(), occupancyMaskPtr, elementCount);
     int32_t outCount;
-    GPUMemory::copyDeviceToHost(&outCount, prefixSumPtr + elementCount - 1, 1);
+    GPUMemory::copyDeviceToHost(&outCount, prefixSumPtr.get() + elementCount - 1, 1);
 
     // Allocate CPU memory, reconstruct key col and copy
     T* outKeysSingleCol = new T[outCount];
@@ -317,22 +317,22 @@ public:
             {
             case DataType::COLUMN_INT:
             {
-                GPUMemory::copyDeviceToDevice<int32_t>(myCol, srcCol, maxHashCount_);
+                GPUMemory::copyDeviceToDevice(reinterpret_cast<int32_t*>(myCol), reinterpret_cast<int32_t*>(srcCol), maxHashCount_);
                 break;
             }
             case DataType::COLUMN_LONG:
             {
-                GPUMemory::copyDeviceToDevice<int64_t>(myCol, srcCol, maxHashCount_);
+                GPUMemory::copyDeviceToDevice(reinterpret_cast<int64_t*>(myCol), reinterpret_cast<int64_t*>(srcCol), maxHashCount_);
                 break;
             }
             case DataType::COLUMN_FLOAT:
             {
-                GPUMemory::copyDeviceToDevice<float>(myCol, srcCol, maxHashCount_);
+                GPUMemory::copyDeviceToDevice(reinterpret_cast<float*>(myCol), reinterpret_cast<float*>(srcCol), maxHashCount_);
                 break;
             }
             case DataType::COLUMN_DOUBLE:
             {
-                GPUMemory::copyDeviceToDevice<double>(myCol, srcCol, maxHashCount_);
+                GPUMemory::copyDeviceToDevice(reinterpret_cast<double*>(myCol), reinterpret_cast<double*>(srcCol), maxHashCount_);
                 break;
             }
             case DataType::COLUMN_STRING:
@@ -342,7 +342,7 @@ public:
                 GPUMemory::copyDeviceToHost(&srcString, reinterpret_cast<GPUMemory::GPUString*>(srcCol), 1);
 
                 // Get total char count
-                int32_t totalCharCount;
+                int64_t totalCharCount;
                 GPUMemory::copyDeviceToHost(&totalCharCount, srcString.stringIndices + maxHashCount_ - 1, 1);
 
                 // Create my struct
@@ -360,7 +360,7 @@ public:
             }
             case DataType::COLUMN_INT8_T:
             {
-                GPUMemory::copyDeviceToDevice<int8_t>(myCol, srcCol, maxHashCount_);
+                GPUMemory::copyDeviceToDevice(reinterpret_cast<int8_t*>(myCol), reinterpret_cast<int8_t*>(srcCol), maxHashCount_);
                 break;
             }
             default:
@@ -743,8 +743,8 @@ public:
                 // TODO change to cudaMemcpyPeerAsync
                 GPUGroupBy<AGG, O, std::vector<void*>, V>* table = reinterpret_cast<GPUGroupBy<AGG, O, std::vector<void*>, V>*>(tables[i].get());
                 std::vector<void*> multiKeys;
-                std::unique_ptr<V[]> values = std::make_unique<V[]>(table->getMaxHashCount());
-                std::unique_ptr<int64_t[]> occurrences = std::make_unique<int64_t[]>(table->getMaxHashCount());
+                std::unique_ptr<V[]> values = std::make_unique<V[]>(table->GetMaxHashCount());
+                std::unique_ptr<int64_t[]> occurrences = std::make_unique<int64_t[]>(table->GetMaxHashCount());
                 int32_t elementCount;
                 
                 Context::getInstance().bindDeviceToContext(i);
@@ -760,24 +760,28 @@ public:
                     {
                         memcpy(reinterpret_cast<int32_t*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
                                 elementCount * sizeof(int32_t));
+                        delete reinterpret_cast<int32_t*>(multiKeys[t]);
                         break;
                     }
                     case DataType::COLUMN_LONG:
                     {
                         memcpy(reinterpret_cast<int64_t*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
                                 elementCount * sizeof(int64_t));
+                        delete reinterpret_cast<int64_t*>(multiKeys[t]);
                         break;
                     }
                     case DataType::COLUMN_FLOAT:
                     {
                         memcpy(reinterpret_cast<float*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
                                 elementCount * sizeof(float));
+                        delete reinterpret_cast<float*>(multiKeys[t]);
                         break;
                     }
                     case DataType::COLUMN_DOUBLE:
                     {
                         memcpy(reinterpret_cast<double*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
                                 elementCount * sizeof(double));
+                        delete reinterpret_cast<double*>(multiKeys[t]);
                         break;
                     }
                     case DataType::COLUMN_STRING:
@@ -791,20 +795,20 @@ public:
                         newBuffer->allChars.insert(newBuffer->allChars.end(), addBuffer->allChars.begin(), addBuffer->allChars.end());
                         multiKeysAllHost[t] = newBuffer;
                         delete oldBuffer;
-                        delete addBuffer; // TODO check if not double delete
+                        delete addBuffer;
                         break;
                     }
                     case DataType::COLUMN_INT8_T:
                     {
                         memcpy(reinterpret_cast<int8_t*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
                                 elementCount * sizeof(int8_t));
+                        delete[] reinterpret_cast<int8_t*>(multiKeys[t]);
                         break;
                     }
                     default:
                         break;
                     }
                 }
-                // TODO for ... delete[] multikeys[i] - might be ^
                 valuesAllHost.insert(valuesAllHost.end(), values.get(), values.get() + elementCount);
                 occurrencesAllHost.insert(occurrencesAllHost.end(), occurrences.get(), occurrences.get() + elementCount);
 				sumElementCount += elementCount;
@@ -828,28 +832,28 @@ public:
                     {
                         GPUMemory::copyHostToDevice(reinterpret_cast<int32_t*>(hostPointersToKeysAll[t]),
                                 reinterpret_cast<int32_t*>(multiKeysAllHost[t]), sumElementCount);
-                        delete[] multiKeysAllHost[t];
+                        delete[] reinterpret_cast<int32_t*>(multiKeysAllHost[t]);
                         break;
                     }
                     case DataType::COLUMN_LONG:
                     {
                         GPUMemory::copyHostToDevice(reinterpret_cast<int64_t*>(hostPointersToKeysAll[t]),
                                 reinterpret_cast<int64_t*>(multiKeysAllHost[t]), sumElementCount);
-                        delete[] multiKeysAllHost[t];
+                        delete[] reinterpret_cast<int64_t*>(multiKeysAllHost[t]);
                         break;
                     }
                     case DataType::COLUMN_FLOAT:
                     {
                         GPUMemory::copyHostToDevice(reinterpret_cast<float*>(hostPointersToKeysAll[t]),
                                 reinterpret_cast<float*>(multiKeysAllHost[t]), sumElementCount);
-                        delete[] multiKeysAllHost[t];
+                        delete[] reinterpret_cast<float*>(multiKeysAllHost[t]);
                         break;
                     }
                     case DataType::COLUMN_DOUBLE:
                     {
                         GPUMemory::copyHostToDevice(reinterpret_cast<double*>(hostPointersToKeysAll[t]),
                                 reinterpret_cast<double*>(multiKeysAllHost[t]), sumElementCount);
-                        delete[] multiKeysAllHost[t];
+                        delete[] reinterpret_cast<double*>(multiKeysAllHost[t]);
                         break;
                     }
                     case DataType::COLUMN_STRING:
@@ -877,7 +881,7 @@ public:
                     {
                         GPUMemory::copyHostToDevice(reinterpret_cast<int8_t*>(hostPointersToKeysAll[t]),
                                 reinterpret_cast<int8_t*>(multiKeysAllHost[t]), sumElementCount);
-                        delete[] multiKeysAllHost[t];
+                        delete[] reinterpret_cast<int8_t*>(multiKeysAllHost[t]);
                         break;
                     }
                     default:
@@ -930,9 +934,14 @@ public:
                 }
                 else // for count
                 {
+					if (!std::is_same<O, int64_t>::value)
+					{
+						CheckQueryEngineError(GPU_EXTENSION_ERROR, "Output value data type in GROUP BY with COUNT must be int64_t");
+					}
                     GPUGroupBy<AGG, int64_t, std::vector<void*>, int64_t> finalGroupBy(sumElementCount, keyTypesHost);
                     finalGroupBy.GroupBy(hostPointersToKeysAll, occurrencesAllGPU.get(), sumElementCount);
-                    finalGroupBy.GetResults(outKeysVector, outValues, outDataElementCount);
+												        // reinterpret_cast is needed to solve compilation error
+                    finalGroupBy.GetResults(outKeysVector, reinterpret_cast<int64_t**>(outValues), outDataElementCount);
                 }
 
                 // TODO free everything (check in code) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

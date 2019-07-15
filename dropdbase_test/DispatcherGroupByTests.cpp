@@ -1,3 +1,5 @@
+#include <boost/functional/hash.hpp>
+
 #include "../dropdbase/ColumnBase.h"
 #include "../dropdbase/Database.h"
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
@@ -6,8 +8,6 @@
 #include "../dropdbase/Table.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 #include "gtest/gtest.h"
-
-// This test is testing queries like "SELECT colID FROM SimpleTable WHERE POLYGON(...) CONTAINS colPoint;"
 
 class DispatcherGroupByTests : public ::testing::Test
 {
@@ -38,20 +38,10 @@ protected:
                         std::unordered_map<int32_t, int32_t> expectedResult)
     {
         auto columns = std::unordered_map<std::string, DataType>();
-        columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
         columns.insert(std::make_pair<std::string, DataType>("colIntegerK", DataType::COLUMN_INT));
         columns.insert(std::make_pair<std::string, DataType>("colIntegerV", DataType::COLUMN_INT));
         groupByDatabase->CreateTable(columns, tableName.c_str());
 
-        // Create column with IDs
-        std::vector<int32_t> colID;
-        for (int i = 0; i < keys.size(); i++)
-        {
-            colID.push_back(i);
-        }
-        reinterpret_cast<ColumnBase<int32_t>*>(
-            groupByDatabase->GetTables().at(tableName).GetColumns().at("colID").get())
-            ->InsertData(colID);
         reinterpret_cast<ColumnBase<int32_t>*>(
             groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerK").get())
             ->InsertData(keys);
@@ -84,20 +74,10 @@ protected:
                         std::unordered_map<int32_t, int64_t> expectedResult)
     {
         auto columns = std::unordered_map<std::string, DataType>();
-        columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
         columns.insert(std::make_pair<std::string, DataType>("colIntegerK", DataType::COLUMN_INT));
         columns.insert(std::make_pair<std::string, DataType>("colIntegerV", DataType::COLUMN_INT));
         groupByDatabase->CreateTable(columns, tableName.c_str());
 
-        // Create column with IDs
-        std::vector<int32_t> colID;
-        for (int i = 0; i < keys.size(); i++)
-        {
-            colID.push_back(i);
-        }
-        reinterpret_cast<ColumnBase<int32_t>*>(
-            groupByDatabase->GetTables().at(tableName).GetColumns().at("colID").get())
-            ->InsertData(colID);
         reinterpret_cast<ColumnBase<int32_t>*>(
             groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerK").get())
             ->InsertData(keys);
@@ -132,20 +112,10 @@ protected:
                         std::unordered_map<std::string, int32_t> expectedResult)
     {
         auto columns = std::unordered_map<std::string, DataType>();
-        columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
         columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
         columns.insert(std::make_pair<std::string, DataType>("colInteger", DataType::COLUMN_INT));
         groupByDatabase->CreateTable(columns, tableName.c_str());
 
-        // Create column with IDs
-        std::vector<int32_t> colID;
-        for (int i = 0; i < keys.size(); i++)
-        {
-            colID.push_back(i);
-        }
-        reinterpret_cast<ColumnBase<int32_t>*>(
-            groupByDatabase->GetTables().at(tableName).GetColumns().at("colID").get())
-            ->InsertData(colID);
         reinterpret_cast<ColumnBase<std::string>*>(
             groupByDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
             ->InsertData(keys);
@@ -178,20 +148,10 @@ protected:
                         std::unordered_map<std::string, int64_t> expectedResult)
     {
         auto columns = std::unordered_map<std::string, DataType>();
-        columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
         columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
         columns.insert(std::make_pair<std::string, DataType>("colInteger", DataType::COLUMN_INT));
         groupByDatabase->CreateTable(columns, tableName.c_str());
 
-        // Create column with IDs
-        std::vector<int32_t> colID;
-        for (int i = 0; i < keys.size(); i++)
-        {
-            colID.push_back(i);
-        }
-        reinterpret_cast<ColumnBase<int32_t>*>(
-            groupByDatabase->GetTables().at(tableName).GetColumns().at("colID").get())
-            ->InsertData(colID);
         reinterpret_cast<ColumnBase<std::string>*>(
             groupByDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
             ->InsertData(keys);
@@ -216,6 +176,132 @@ protected:
             ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
             ASSERT_EQ(expectedResult[key], payloadValues.int64payload().int64data()[i])
                 << " at key \"" << key << "\"";
+        }
+    }
+    
+    void GroupByMultiKeyGenericTest(std::string aggregationFunction,
+                        std::vector<std::vector<int32_t>> keys,
+                        std::vector<int32_t> values,
+                        std::unordered_map<std::vector<int32_t>, int32_t, boost::hash<std::vector<int32_t>>> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            columns.insert(std::make_pair<std::string, DataType>("colIntegerK" + std::to_string(i), DataType::COLUMN_INT));
+        }
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerV", DataType::COLUMN_INT));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            reinterpret_cast<ColumnBase<int32_t>*>(
+                groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerK" + std::to_string(i)).get())
+                ->InsertData(keys[i]);
+        }
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
+            ->InsertData(values);
+        
+        std::string multiCols;
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            multiCols += "colIntegerK" + std::to_string(i) + (i == keys.size() - 1 ? "" : ", ");
+        }
+        std::cout << "Running GroupBy multi-key: " << multiCols << std::endl;
+        // Execute the query
+        GpuSqlCustomParser parser(groupByDatabase, 
+            "SELECT " + multiCols + ", " + aggregationFunction + "(colIntegerV) FROM " + tableName + " GROUP BY " + multiCols + ";");
+        auto resultPtr = parser.parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        
+        std::vector<ColmnarDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
+        
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            payloadKeys.emplace_back(result->payloads().at(tableName + ".colIntegerK" + std::to_string(i)));
+        }
+        auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
+
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            ASSERT_EQ(expectedResult.size(), payloadKeys[i].intpayload().intdata_size())
+                << " wrong number of keys at col " << i;
+        }
+        
+        for (int32_t i = 0; i < payloadKeys[0].intpayload().intdata_size(); i++)
+        {
+            std::vector<int32_t> key;
+            for (int32_t c = 0; c < payloadKeys.size(); c++)
+            {
+                key.emplace_back(payloadKeys[c].intpayload().intdata()[i]);
+            }
+            
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " bad key at result row " << i;
+            ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i]) << " at result row " << i;
+        }
+    }
+    
+    void GroupByMultiKeyCountTest(
+                        std::vector<std::vector<int32_t>> keys,
+                        std::vector<int32_t> values,
+                        std::unordered_map<std::vector<int32_t>, int64_t, boost::hash<std::vector<int32_t>>> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            columns.insert(std::make_pair<std::string, DataType>("colIntegerK" + std::to_string(i), DataType::COLUMN_INT));
+        }
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerV", DataType::COLUMN_INT));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            reinterpret_cast<ColumnBase<int32_t>*>(
+                groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerK" + std::to_string(i)).get())
+                ->InsertData(keys[i]);
+        }
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
+            ->InsertData(values);
+        
+        std::string multiCols;
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            multiCols += "colIntegerK" + std::to_string(i) + (i == keys.size() - 1 ? "" : ", ");
+        }
+        std::cout << "Running GroupBy multi-key: " << multiCols << std::endl;
+        // Execute the query
+        GpuSqlCustomParser parser(groupByDatabase, 
+            "SELECT " + multiCols + ", COUNT(colIntegerV) FROM " + tableName + " GROUP BY " + multiCols + ";");
+        auto resultPtr = parser.parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        
+        std::vector<ColmnarDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
+        
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            payloadKeys.emplace_back(result->payloads().at(tableName + ".colIntegerK" + std::to_string(i)));
+        }
+        auto& payloadValues = result->payloads().at("COUNT(colIntegerV)");
+
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            ASSERT_EQ(expectedResult.size(), payloadKeys[i].intpayload().intdata_size())
+                << " wrong number of keys at col " << i;
+        }
+        
+        for (int32_t i = 0; i < payloadKeys[0].intpayload().intdata_size(); i++)
+        {
+            std::vector<int32_t> key;
+            for (int32_t c = 0; c < payloadKeys.size(); c++)
+            {
+                key.emplace_back(payloadKeys[c].intpayload().intdata()[i]);
+            }
+            
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " bad key at result row " << i;
+            ASSERT_EQ(expectedResult[key], payloadValues.int64payload().int64data()[i]) << " at result row " << i;
         }
     }
 };
@@ -299,3 +385,43 @@ TEST_F(DispatcherGroupByTests, StringSimpleCount)
                    {{"Apple", 2}, {"Abcd", 2}, {"Banana", 1}, {"XYZ", 4}, {"0", 1}});
 }
 
+
+TEST_F(DispatcherGroupByTests, MultiKeySimpleSum)
+{
+    GroupByMultiKeyGenericTest("SUM",
+        { {1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1} },
+        {5, 5, 24, 1, 7, 1, 1, 2},
+        { {{1, 2}, 10}, {{1, 5}, 24}, {{2, 1}, 1}, {{5, 1}, 9}, {{7, 7}, 1}, {{-1, -5}, 1} });
+}
+
+TEST_F(DispatcherGroupByTests, MultiKeySimpleMin)
+{
+    GroupByMultiKeyGenericTest("MIN",
+        { {1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1} },
+        {5, 5, 24, 1, 7, 1, 1, 2},
+        { {{1, 2}, 5}, {{1, 5}, 24}, {{2, 1}, 1}, {{5, 1}, 2}, {{7, 7}, 1}, {{-1, -5}, 1} });
+}
+
+TEST_F(DispatcherGroupByTests, MultiKeySimpleMax)
+{
+    GroupByMultiKeyGenericTest("MAX",
+        { {1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1} },
+        {5, 5, 24, 1, 7, 1, 1, 2},
+        { {{1, 2}, 5}, {{1, 5}, 24}, {{2, 1}, 1}, {{5, 1}, 7}, {{7, 7}, 1}, {{-1, -5}, 1} });
+}
+
+TEST_F(DispatcherGroupByTests, MultiKeySimpleAvg)
+{
+    GroupByMultiKeyGenericTest("AVG",
+        { {1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1} },
+        {5, 5, 24, 1, 7, 1, 1, 2},
+        { {{1, 2}, 5}, {{1, 5}, 24}, {{2, 1}, 1}, {{5, 1}, 4}, {{7, 7}, 1}, {{-1, -5}, 1} });
+}
+
+TEST_F(DispatcherGroupByTests, MultiKeySimpleCount)
+{
+    GroupByMultiKeyGenericTest("COUNT",
+        { {1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1} },
+        {5, 5, 24, 1, 7, 1, 1, 2},
+        { {{1, 2}, 2}, {{1, 5}, 1}, {{2, 1}, 1}, {{5, 1}, 2}, {{7, 7}, 1}, {{-1, -5}, 1} });
+}

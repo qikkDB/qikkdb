@@ -207,7 +207,7 @@ public:
 		int32_t outSize;
 		std::vector<void*> outKeys;
 		O* outValues = nullptr;
-		reinterpret_cast<GPUGroupBy<OP, O, std::vector<void*>, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->GetResults(&outKeys, &outValues, &outSize);
+		reinterpret_cast<GPUGroupBy<OP, O, std::vector<void*>, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables);
 
 		for (int32_t i = 0; i < groupByColumns.size(); i++)
 		{

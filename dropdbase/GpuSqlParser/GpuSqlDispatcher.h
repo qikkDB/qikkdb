@@ -33,12 +33,12 @@ class Database;
 
 struct StringDataTypeComp
 {
-	explicit StringDataTypeComp(std::string s) :
+	explicit StringDataTypeComp(const std::string& s) :
 		str(s) 
 	{ }
 	inline bool operator()(const std::pair<std::string, DataType> & p) const { return p.first == str; }
 private:
-	std::string str;
+	const std::string& str;
 };
 
 class GpuSqlDispatcher
