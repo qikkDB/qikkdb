@@ -205,12 +205,13 @@ public:
 			if (isNullValue) 
 			{
 				newIndexInBlock = indexInBlock;
+				int rangeInBlock = size_ - indexInBlock;
 
-				if (((bitMask_[(indexInBlock + range - 1) / (sizeof(char) * 8)] >> ((indexInBlock + range - 1) % (sizeof(char) * 8))) & 1) == 1)
+				if (((bitMask_[(indexInBlock + rangeInBlock - 1) / (sizeof(char) * 8)] >> ((indexInBlock + rangeInBlock - 1) % (sizeof(char) * 8))) & 1) == 1)
 				{
-					newRange = range;
+					newRange = rangeInBlock;
 
-					if (indexInBlock + range == size_) 
+					if (indexInBlock + rangeInBlock == size_)
 					{
 						reachEnd = true;
 					}
@@ -225,8 +226,9 @@ public:
 					int bitMaskIdx = (newRange / (sizeof(char) * 8));
 					int shiftIdx = (newRange % (sizeof(char) * 8));
 
-					while (((bitMask_[bitMaskIdx] >> shiftIdx) & 1) == 1)
+					while (((bitMask_[bitMaskIdx] >> shiftIdx) & 1) == 1 && range > 0)
 					{
+						range--;
 						newRange++;
 						bitMaskIdx = (newRange / (sizeof(char) * 8));
 						shiftIdx = (newRange % (sizeof(char) * 8));
@@ -448,17 +450,17 @@ public:
 			{
 				for (size_t i = shiftIdx; i < 8; i++)
 				{
-					int tmp = (bitMask_[bitMaskIdx] >> shiftIdx) & 1;
+					int tmp = (bitMask_[bitMaskIdx] >> i) & 1;
 
 					if (last != tmp)
 					{
 						if (last)
 						{
-							bitMask_[bitMaskIdx] |= (last << shiftIdx);
+							bitMask_[bitMaskIdx] |= (1 << i);
 						}
 						else
 						{
-							bitMask_[bitMaskIdx] &= ~(last << shiftIdx);
+							bitMask_[bitMaskIdx] &= ~(1 << i);
 						}
 
 						last = tmp;
@@ -478,8 +480,8 @@ public:
         }
 		else if (isNullValue)
 		{
-			int bitMaskIdx = (index / sizeof(char) * 8);
-			int shiftIdx = (index % sizeof(char) * 8);
+			int bitMaskIdx = (index / (sizeof(char) * 8));
+			int shiftIdx = (index % (sizeof(char) * 8));
 			int last = isNullValue ? 1 : 0;
 			bitMask_[bitMaskIdx] |= (last << shiftIdx);
 		}

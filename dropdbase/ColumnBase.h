@@ -252,7 +252,7 @@ public:
 			if (isNullValue)
 			{
 
-				while ((reachEnd && indexBlock < blocks_[groupId].size() - 1) && remainingRange > 0) 
+				while ((reachEnd && indexBlock < blocks_[groupId].size()) && remainingRange > 0) 
 				{
 					BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
 
@@ -295,44 +295,57 @@ public:
 
 					remainingRange -= nullValueCount;
 				}
-				
-				for (int i = indexBlock; i < blocks_[groupId].size() && reachEnd && remainingRange > 0; i++)
+
+				if (indexBlock == blocks_[groupId].size() - 1)
 				{
-					BlockBase<T>& block = *(blocks_[groupId][i].get());
+					BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
 
-					currentBlockMin = block.GetData()[startIndexInCurrentBlock];
+					std::tie(newIndexInBlock, newRange, reachEnd) =
+						block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData, isNullValue);
+					newIndexBlock = indexBlock;
+				}
+				
+				else
+				{
+					for (int i = indexBlock; i < blocks_[groupId].size() && reachEnd && remainingRange > 0; i++)
+					{
+						BlockBase<T>& block = *(blocks_[groupId][i].get());
 
-					if ((i + 1) != blocks_[groupId].size()) 
-					{
-						BlockBase<T>& nextBlock = *(blocks_[groupId][i + 1].get());
-						nextBlockMin = nextBlock.GetData()[0];
-					}
+						currentBlockMin = block.GetData()[startIndexInCurrentBlock];
 
-					if (remainingRange >= block.GetSize() - startIndexInCurrentBlock)
-					{
-						currentMax = block.GetData()[block.GetSize() - 1];
-					}
-					else 
-					{
-						currentMax = block.GetData()[startIndexInCurrentBlock + remainingRange];
-					}
-
-					if (columnData >= currentBlockMin &&
-						(remainingRange <= block.GetSize() - startIndexInCurrentBlock ||
-						(columnData <= currentMax || (i == blocks_[groupId].size() - 1 || columnData <= nextBlockMin))))
-					{
-						std::tie(tempIndexInBlock, blockRange, reachEnd) =
-							block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData, isNullValue);
-						if (!found)
+						if ((i + 1) != blocks_[groupId].size())
 						{
-							newIndexInBlock = tempIndexInBlock;
-							newIndexBlock = i;
-							found = true;
+							BlockBase<T>& nextBlock = *(blocks_[groupId][i + 1].get());
+							nextBlockMin = nextBlock.GetData()[0];
 						}
-						newRange += blockRange;
+
+						if (remainingRange >= block.GetSize() - startIndexInCurrentBlock)
+						{
+							currentMax = block.GetData()[block.GetSize() - 1];
+						}
+						else
+						{
+							currentMax = block.GetData()[startIndexInCurrentBlock + remainingRange];
+						}
+
+						if (columnData >= currentBlockMin &&
+							(remainingRange <= block.GetSize() - startIndexInCurrentBlock ||
+							(columnData <= currentMax || (i == blocks_[groupId].size() - 1 || columnData <= nextBlockMin))))
+						{
+							std::tie(tempIndexInBlock, blockRange, reachEnd) =
+								block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData, isNullValue);
+							if (!found)
+							{
+								newIndexInBlock = tempIndexInBlock;
+								newIndexBlock = i;
+								found = true;
+							}
+							newRange += blockRange;
+						}
+
+						remainingRange -= block.GetSize() - startIndexInCurrentBlock;
+						startIndexInCurrentBlock = 0;
 					}
-					remainingRange -= block.GetSize() - startIndexInCurrentBlock;
-					startIndexInCurrentBlock = 0;
 				}
 			}
         }

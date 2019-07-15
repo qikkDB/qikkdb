@@ -486,6 +486,96 @@ TEST(ColumnTests, InsertData_BlocksExistAndNewDataDoNotFitIntoThem)
 	}
 }
 
+TEST(ColumnTests, InsertDataOnSpecificPosition)
+{
+	auto database = std::make_shared<Database>("testDatabase", 8);
+	Table table(database, "testTable");
+
+	table.CreateColumn("ColumnInt", COLUMN_INT);
+	auto& columnInt = table.GetColumns().at("ColumnInt");
+
+	auto column = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get());
+
+	column->InsertDataOnSpecificPosition(0, 0, 0, -1, 1);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 1);
+
+	column->InsertDataOnSpecificPosition(0, 1, 2, -1, 1);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 3);
+
+	column->InsertDataOnSpecificPosition(0, 1, 1, -1, 0);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 5);
+
+	column->InsertDataOnSpecificPosition(0, 3, 5, -1, 1);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[3], 5);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 13);
+
+	column->InsertDataOnSpecificPosition(0, 3, 4, -1, 0);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[3], 4);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[4], 5);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 21);
+
+	column->InsertDataOnSpecificPosition(0, 3, 3, -1, 0);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[3], 3);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[4], 4);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[5], 5);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 37);
+
+	column->InsertDataOnSpecificPosition(0, 6, 6, -1, 0);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[3], 3);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[4], 4);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[5], 5);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[6], 6);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 37);
+
+	//after this insert block should be split
+	column->InsertDataOnSpecificPosition(0, 7, 7, -1, 0);
+	ASSERT_EQ(column->GetBlocksList().size(), 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[3], 3);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 5);
+
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[0], 4);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[1], 5);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[2], 6);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[3], 7);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetNullBitmask()[0], 2);
+
+	column->InsertDataOnSpecificPosition(1, 0, 1, -1, 1);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[0], 1);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[1], 4);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[2], 5);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[3], 6);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[4], 7);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetNullBitmask()[0], 5);
+}
+
 TEST(ColumnTests, GetUniqueBuckets)
 {
 	auto database = std::make_shared<Database>("testDatabase", 1024);
@@ -836,7 +926,7 @@ TEST(ColumnTests, ColumnStatistics)
     ASSERT_EQ(range, 1);
 }*/
 
-TEST(ColumnTests, FIndIndexAndRange)
+TEST(ColumnTests, FindIndexAndRange)
 {
 	int indexBlock = 0;
 	int indexInBlock = 0;
@@ -847,76 +937,133 @@ TEST(ColumnTests, FIndIndexAndRange)
 
 	table.CreateColumn("ColumnInt", COLUMN_INT);
 	auto& columnInt = table.GetColumns().at("ColumnInt");
+	auto column = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get());
 
-	std::tie(indexBlock, indexInBlock, range) =
-		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 0, 2);
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 0, 2);
 	ASSERT_EQ(indexBlock, 0);
 	ASSERT_EQ(indexInBlock, 0);
 	ASSERT_EQ(range, 0);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 2);
 
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 2);
-
-	std::tie(indexBlock, indexInBlock, range) =
-		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 1, 1);
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 1, 1);
 	ASSERT_EQ(indexBlock, 0);
 	ASSERT_EQ(indexInBlock, 0);
 	ASSERT_EQ(range, 0);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 1);
 
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 1);
-
-	std::tie(indexBlock, indexInBlock, range) =
-		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 2, 5);
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 2, 5);
 	ASSERT_EQ(indexBlock, 0);
 	ASSERT_EQ(indexInBlock, 2);
 	ASSERT_EQ(range, 0);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 5);
 
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 5);
-
-	std::tie(indexBlock, indexInBlock, range) =
-		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 3, 8);
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 3, 8);
 	ASSERT_EQ(indexBlock, 0);
 	ASSERT_EQ(indexInBlock, 3);
 	ASSERT_EQ(range, 0);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 8);
 
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 8);
-
-	std::tie(indexBlock, indexInBlock, range) =
-		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 4, 102);
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 4, 102);
 	ASSERT_EQ(indexBlock, 1);
 	ASSERT_EQ(indexInBlock, 2);
 	ASSERT_EQ(range, 0);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 102);
 	
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 102);
-	
-	std::tie(indexBlock, indexInBlock, range) =
-		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 5, 67);
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 5, 67);
 	ASSERT_EQ(indexBlock, 1);
 	ASSERT_EQ(indexInBlock, 2);
 	ASSERT_EQ(range, 0);
-
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 67);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 67);
 	
-	std::tie(indexBlock, indexInBlock, range) =
-		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 6, 5);
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 6, 5);
 	ASSERT_EQ(indexBlock, 0);
 	ASSERT_EQ(indexInBlock, 2);
 	ASSERT_EQ(range, 1);
-	
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 5);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 5);
 
-	std::tie(indexBlock, indexInBlock, range) =
-		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 7, 1);
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 7, -1);
 	ASSERT_EQ(indexBlock, 0);
 	ASSERT_EQ(indexInBlock, 0);
-	ASSERT_EQ(range, 1);
-
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 1);
+	ASSERT_EQ(range, 0);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, -1);
 	
-	std::tie(indexBlock, indexInBlock, range) =
-		dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->FindIndexAndRange(0, 0, 8, 12);
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 8, 12);
 	ASSERT_EQ(indexBlock, 2);
 	ASSERT_EQ(indexInBlock, 2);
 	ASSERT_EQ(range, 0);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 12);
+}
 
-	dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 12);
+TEST(ColumnTests, FindIndexAndRangeWithNullValues)
+{
+	int indexBlock = 0;
+	int indexInBlock = 0;
+	int range = INT_MAX;
+
+	auto database = std::make_shared<Database>("testDatabase", 6);
+	Table table(database, "testTable");
+
+	table.CreateColumn("ColumnInt", COLUMN_INT);
+	auto& columnInt = table.GetColumns().at("ColumnInt");
+	auto column = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get());
+
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 0, 2, -1 , 1);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 0);
+	ASSERT_EQ(range, 0);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 2, -1, 1);
+
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 1, 1, -1, 1);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 0);
+	ASSERT_EQ(range, 1);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 1, -1 , 1);
+
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 2, 5, -1, 1);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 0);
+	ASSERT_EQ(range, 2);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 5, -1, 1);
+
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 3, 8, -1, 1);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 0);
+	ASSERT_EQ(range, 3);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 8, -1, 1);
+
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 4, 102, -1, 0);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 4);
+	ASSERT_EQ(range, 0);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 102, -1, 0);
+
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 5, 67, -1, 0);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 4);
+	ASSERT_EQ(range, 0);
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 67, -1, 0);
+
+	//block automaticaly splitted
+	ASSERT_EQ(column->GetBlocksList().size(), 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 8);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 5);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 7);
+
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[0], 2);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[1], 67);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[2], 102);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetNullBitmask()[0], 1);
+
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 6, 5, -1, 1);
+	ASSERT_EQ(indexBlock, 0);
+	ASSERT_EQ(indexInBlock, 0);
+	ASSERT_EQ(range, 4);
+
+	column->InsertDataOnSpecificPosition(indexBlock, indexInBlock, 5, -1, 1);
+	
+	std::tie(indexBlock, indexInBlock, range) = column->FindIndexAndRange(0, 0, 7, 7, -1, 0);
+	ASSERT_EQ(indexBlock, 1);
+	ASSERT_EQ(indexInBlock, 1);
+	ASSERT_EQ(range, 0);
 }
