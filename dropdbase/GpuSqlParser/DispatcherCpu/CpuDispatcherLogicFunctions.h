@@ -27,19 +27,19 @@ int32_t CpuSqlDispatcher::filterStringColConst()
 	{
 	case CpuFilterInterval::OUTER:
 	case CpuFilterInterval::INNER:
-		maskMin[0] = cnst >= reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<std::string*>(std::get<0>(colValMax))[0];
-		maskMax[0] = cnst >= reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<std::string*>(std::get<0>(colValMax))[0];
+		maskMin[0] = 1;//cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) && cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
+		maskMax[0] = 1;//cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) && cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
 		break;
 
 	case CpuFilterInterval::NONE:
 	default:
-		maskMin[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValMin))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValMin))[0].size(), cnst.c_str(), cnst.size());
-		maskMax[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValMax))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValMax))[0].size(), cnst.c_str(), cnst.size());
+		maskMin[0] = 1; //OP{}.compareStrings(reinterpret_cast<char*>(std::get<0>(colValMin)), std::get<1>(colValMin) - 1, cnst.c_str(), cnst.size());
+		maskMax[0] = 1; //OP{}.compareStrings(reinterpret_cast<char*>(std::get<0>(colValMax)), std::get<1>(colValMax) - 1, cnst.c_str(), cnst.size());
 		break;
 	}
 
-	std::cout << "Where evaluation filterStringColConstMin: " << reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
-	std::cout << "Where evaluation filterStringColConstMax: " << reinterpret_cast<std::string*>(std::get<0>(colValMax))[0] << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
+	std::cout << "Where evaluation filterStringColConstMin: " << reinterpret_cast<char*>(std::get<0>(colValMin)) << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation filterStringColConstMax: " << reinterpret_cast<char*>(std::get<0>(colValMax)) << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
 
 	return 0;
 }
@@ -67,19 +67,19 @@ int32_t CpuSqlDispatcher::filterStringConstCol()
 	{
 	case CpuFilterInterval::OUTER:
 	case CpuFilterInterval::INNER:
-		maskMin[0] = cnst >= reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<std::string*>(std::get<0>(colValMax))[0];
-		maskMax[0] = cnst >= reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] && cnst <= reinterpret_cast<std::string*>(std::get<0>(colValMax))[0];
+		maskMin[0] = 1;//cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) && cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
+		maskMax[0] = 1;//cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) && cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
 		break;
 
 	case CpuFilterInterval::NONE:
 	default:
-		maskMin[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValMin))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValMin))[0].size(), cnst.c_str(), cnst.size());
-		maskMax[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValMax))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValMax))[0].size(), cnst.c_str(), cnst.size());
+		maskMin[0] = 1;//OP{}.compareStrings(reinterpret_cast<char*>(std::get<0>(colValMin)), std::get<1>(colValMin) - 1, cnst.c_str(), cnst.size());
+		maskMax[0] = 1;//OP{}.compareStrings(reinterpret_cast<char*>(std::get<0>(colValMax)), std::get<1>(colValMax) - 1, cnst.c_str(), cnst.size());
 		break;
 	}
 
-	std::cout << "Where evaluation filterStringConstColMin: " << reinterpret_cast<std::string*>(std::get<0>(colValMin))[0] << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
-	std::cout << "Where evaluation filterStringConstColMax: " << reinterpret_cast<std::string*>(std::get<0>(colValMax))[0] << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
+	std::cout << "Where evaluation filterStringConstColMin: " << reinterpret_cast<char*>(std::get<0>(colValMin)) << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
+	std::cout << "Where evaluation filterStringConstColMax: " << reinterpret_cast<char*>(std::get<0>(colValMax)) << ", " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;
 
 	return 0;
 }
@@ -123,10 +123,10 @@ int32_t CpuSqlDispatcher::filterStringColCol()
 		maskMin = allocateRegister<int8_t>(reg + "_min", 1, std::get<2>(colValLeftMin) || std::get<2>(colValRightMin));
 		maskMax = allocateRegister<int8_t>(reg + "_max", 1, std::get<2>(colValLeftMax) || std::get<2>(colValRightMax));
 
-		maskMin[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValLeftMin))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValLeftMin))[0].size(),
-			reinterpret_cast<std::string*>(std::get<0>(colValRightMin))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValRightMin))[0].size());
-		maskMax[0] = OP{}.compareStrings(reinterpret_cast<std::string*>(std::get<0>(colValLeftMax))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValLeftMax))[0].size(),
-			reinterpret_cast<std::string*>(std::get<0>(colValRightMax))[0].c_str(), reinterpret_cast<std::string*>(std::get<0>(colValRightMax))[0].size());
+		maskMin[0] = 1;//OP{}.compareStrings(reinterpret_cast<char*>(std::get<0>(colValLeftMin)), std::get<1>(colValLeftMin) - 1,
+			//reinterpret_cast<char*>(std::get<0>(colValRightMin)), std::get<1>(colValRightMin) - 1);
+		maskMax[0] = 1;//OP{}.compareStrings(reinterpret_cast<char*>(std::get<0>(colValLeftMax)), std::get<1>(colValLeftMax) - 1,
+			//reinterpret_cast<char*>(std::get<0>(colValRightMax)), std::get<1>(colValRightMax) - 1);
 	}
 
 	std::cout << "Where evaluation filterStringColCol_min: " << colNameLeft << ", " << colNameRight << ", " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
@@ -145,8 +145,8 @@ int32_t CpuSqlDispatcher::filterStringConstConst()
 	int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, false);
 	int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, false);
 
-	maskMin[0] = OP{}.compareStrings(cnstLeft.c_str(), cnstLeft.size(), cnstRight.c_str(), cnstRight.size());
-	maskMax[0] = OP{}.compareStrings(cnstLeft.c_str(), cnstLeft.size(), cnstRight.c_str(), cnstRight.size());
+	maskMin[0] = 1;// OP{}.compareStrings(cnstLeft.c_str(), cnstLeft.size(), cnstRight.c_str(), cnstRight.size());
+	maskMax[0] = 1;//OP{}.compareStrings(cnstLeft.c_str(), cnstLeft.size(), cnstRight.c_str(), cnstRight.size());
 
 	std::cout << "Where evaluation filterStringConstConst_min: " << reg + "_min" << ": " << static_cast<int32_t>(maskMin[0]) << std::endl;
 	std::cout << "Where evaluation filterStringConstConst_max: " << reg + "_max" << ": " << static_cast<int32_t>(maskMax[0]) << std::endl;

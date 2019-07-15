@@ -10264,10 +10264,7 @@ TEST(DispatcherTests, StringEqColConst)
 			}
 		}
 	}
-
 	AssertEqStringCol(payloads, expectedResultsStrings);
-
-	FAIL();
 }
 
 TEST(DispatcherTests, StringNotEqColConst)

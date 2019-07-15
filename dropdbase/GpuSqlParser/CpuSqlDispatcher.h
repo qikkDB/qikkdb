@@ -436,3 +436,6 @@ public:
 		arguments.insert<T>(argument);
 	}
 };
+
+template<>
+void CpuSqlDispatcher::loadCol<std::string>(std::string& colName);

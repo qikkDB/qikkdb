@@ -263,6 +263,31 @@ int64_t CpuSqlDispatcher::execute(int32_t index)
 	return whereResult;
 }
 
+template<>
+void CpuSqlDispatcher::loadCol<std::string>(std::string& colName)
+{
+	if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
+	{
+		std::string tableName;
+		std::string columnName;
+
+		std::tie(tableName, columnName) = splitColumnName(colName);
+		std::string reg_min = colName + "_min";
+		std::string reg_max = colName + "_max";
+
+		std::string blockMin = getBlockMin<std::string>(tableName, columnName);
+		std::string blockMax = getBlockMax<std::string>(tableName, columnName);
+
+		char* mask_min = allocateRegister<char>(reg_min, blockMin.size() + 1, false);
+		char* mask_max = allocateRegister<char>(reg_max, blockMax.size() + 1, false);
+
+		std::copy(blockMin.begin(), blockMin.end(), mask_min);
+		mask_min[blockMin.size()] = '\0';
+		std::copy(blockMax.begin(), blockMax.end(), mask_max);
+		mask_max[blockMax.size()] = '\0';
+	}
+}
+
 void CpuSqlDispatcher::copyExecutionDataTo(CpuSqlDispatcher& other)
 {
 	other.cpuDispatcherFunctions = cpuDispatcherFunctions;
