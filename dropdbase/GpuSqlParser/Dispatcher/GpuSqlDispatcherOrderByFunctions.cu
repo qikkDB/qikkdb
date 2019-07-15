@@ -31,8 +31,12 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 			GpuSqlDispatcher::orderByCV_.wait(lock, [] { return GpuSqlDispatcher::IsOrderByDone(); });
 
 			std::cout << "Merging partially ordered blocks." << std::endl;
+
 			std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
 			std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
+
+			std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByOrderColumnNullBlocks;
+			std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByRetColumnNullBlocks;
 
 			for (int32_t i = 0; i < Context::getInstance().getDeviceCount(); i++)
 			{
@@ -43,12 +47,23 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 						reconstructedOrderByOrderColumnBlocks[orderBlocks.first].push_back(std::move(orderBlockArray));
 					}
 				}
+
 				for (auto& retBlocks : orderByBlocks[i].reconstructedOrderByRetColumnBlocks)
 				{
 					for (auto& retBlockArray : retBlocks.second)
 					{
 						reconstructedOrderByRetColumnBlocks[retBlocks.first].push_back(std::move(retBlockArray));
 					}
+				}
+
+				for (auto& orderBlocksNull : orderByBlocks[i].reconstructedOrderByOrderColumnNullBlocks)
+				{
+					reconstructedOrderByOrderColumnNullBlocks[orderBlocksNull.first] = std::move(orderBlocksNull.second);
+				}
+
+				for (auto& retBlocksNull : orderByBlocks[i].reconstructedOrderByRetColumnNullBlocks)
+				{
+					reconstructedOrderByRetColumnNullBlocks[retBlocksNull.first] = std::move(retBlocksNull.second);
 				}
 			}
 
@@ -335,7 +350,10 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 								}
 
 								// Write the null columns 1
-								
+								// 1. retrieve the null value, 2. set the null value
+								int8_t nullBit = (reconstructedOrderByRetColumnNullBlocks[retColumn.first][firstNonzeroMergeCounterIdx].get()[merge_counters[firstNonzeroMergeCounterIdx] / (sizeof(int8_t) * 8)] >> (merge_counters[firstNonzeroMergeCounterIdx] % (sizeof(int8_t) * 8))) & 1;
+								nullBit <<= (resultSetCounter % (sizeof(int8_t) * 8)); 
+								reconstructedOrderByColumnsNullMerged[retColumn.first].get()[resultSetCounter / 8] |= nullBit;
 							}
 							// Add to the null collumn
 							//reconstructedOrderByOrderColumnNullBlocks[retColumn.first].get()[resultSetCounter];
@@ -568,8 +586,12 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 								default:
 									break;
 								}
+
+								// Write the null columns 2
+								int8_t nullBit = (reconstructedOrderByRetColumnNullBlocks[retColumn.first][mergeCounterIdx].get()[merge_counters[mergeCounterIdx] / (sizeof(int8_t) * 8)] >> (merge_counters[mergeCounterIdx] % (sizeof(int8_t) * 8))) & 1;
+								nullBit <<= (resultSetCounter % (sizeof(int8_t) * 8)); 
+								reconstructedOrderByColumnsNullMerged[retColumn.first].get()[resultSetCounter / 8] |= nullBit;
 							}
-							// Write the null columns 2
 
 							resultSetCounter++;
 						}

@@ -165,7 +165,7 @@ TEST(DispatcherNullTests, OrderByNullTest)
 	//ASSERT_EQ(payload.intpayload().intdata_size(), expectedResults.size());
 	for (int i = 0; i < payload.intpayload().intdata_size(); i++)
 	{
-		//nullBitMask[i] ? std::printf("null\n") : std::printf("%d\n", payload.intpayload().intdata()[i]);
+		nullBitMask[i] ? std::printf("null\n") : std::printf("%d\n", payload.intpayload().intdata()[i]);
 		//ASSERT_FLOAT_EQ(expectedResults[i], payload.intpayload().intdata()[i]);
 	}
 

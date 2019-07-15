@@ -81,6 +81,7 @@ private:
 	bool isRegisterAllocated(std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
+	
 	std::unique_ptr<GPUOrderBy> orderByTable;
 	std::vector<OrderByBlocks>& orderByBlocks;
 	

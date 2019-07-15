@@ -80,7 +80,8 @@ int32_t GpuSqlDispatcher::retCol()
 				outData = std::move(reconstructedColumn->getDataRef());
 				outSize = reconstructedColumn->GetSize();
 
-				// TODO Martin magic
+				size_t bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+				nullMaskString = std::string(reinterpret_cast<char*>(reconstructedOrderByColumnsNullMerged.at(colName).get()), bitMaskSize);
 			}
 			else
 			{
