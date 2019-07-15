@@ -79,6 +79,8 @@ int32_t GpuSqlDispatcher::retCol()
 				VariantArray<T>* reconstructedColumn = dynamic_cast<VariantArray<T>*>(reconstructedOrderByColumnsMerged.at(colName).get());
 				outData = std::move(reconstructedColumn->getDataRef());
 				outSize = reconstructedColumn->GetSize();
+
+				// TODO Martin magic
 			}
 			else
 			{

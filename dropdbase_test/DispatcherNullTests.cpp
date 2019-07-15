@@ -129,5 +129,45 @@ TEST(DispatcherNullTests, IsNotNullWithPattern)
 
 TEST(DispatcherNullTests, OrderByNullTest)
 {
+	srand(42);
+	Database::RemoveFromInMemoryDatabaseList("TestDb");
 
+	int32_t blockSize = 1 << 5;
+	
+	std::shared_ptr<Database> database(std::make_shared<Database>("TestDb"));
+	Database::AddToInMemoryDatabaseList(database);
+
+	std::unordered_map<std::string, DataType> columns;
+	columns.emplace("Col1", COLUMN_INT);
+	database->CreateTable(columns, "TestTable");
+
+	for(int32_t i = 0; i < blockSize; i++)
+	{
+		if(i % 2)
+		{
+			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (null);");
+			parser.parse();
+		}
+		else
+		{
+			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTable (Col1) VALUES (") + std::to_string(rand() % 1000) + std::string(");"));
+			parser.parse();
+		}
+	}
+
+	GpuSqlCustomParser parser(database, "SELECT Col1 FROM TestTable ORDER BY Col1;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto column = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTable").GetColumns().at("Col1").get());
+    auto& payload = result->payloads().at("TestTable.Col1");
+	auto& nullBitMask = result->nullbitmasks().at("TestTable.Col1");
+
+	//ASSERT_EQ(payload.intpayload().intdata_size(), expectedResults.size());
+	for (int i = 0; i < payload.intpayload().intdata_size(); i++)
+	{
+		//nullBitMask[i] ? std::printf("null\n") : std::printf("%d\n", payload.intpayload().intdata()[i]);
+		//ASSERT_FLOAT_EQ(expectedResults[i], payload.intpayload().intdata()[i]);
+	}
+
+	Database::RemoveFromInMemoryDatabaseList("TestDb");
 }

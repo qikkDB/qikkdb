@@ -120,6 +120,7 @@ int32_t GpuSqlDispatcher::orderByReconstructOrderCol()
 		outData->resize(outSize);
 
 		orderByBlocks[dispatcherThreadId].reconstructedOrderByOrderColumnBlocks[colName].push_back(std::move(outData));
+		orderByBlocks[dispatcherThreadId].reconstructedOrderByOrderColumnNullBlocks[colName].push_back(std::move(outNullData));
 	}
 	return 0;
 }
@@ -169,6 +170,8 @@ int32_t GpuSqlDispatcher::orderByReconstructRetCol()
 		outData->resize(outSize);
 
 		orderByBlocks[dispatcherThreadId].reconstructedOrderByRetColumnBlocks[colName].push_back(std::move(outData));
+		orderByBlocks[dispatcherThreadId].reconstructedOrderByRetColumnNullBlocks[colName].push_back(std::move(outNullData));
+
 	}
 	return 0;
 }

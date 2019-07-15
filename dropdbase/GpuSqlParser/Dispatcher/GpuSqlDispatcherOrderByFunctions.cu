@@ -54,6 +54,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 
 			// Count and allocate the result vectors for the output map
 			int32_t resultSetSize = 0;
+			int32_t resultSetNullSize = 0;
 			int32_t resultSetCounter = 0;
 
 			// Allocate a vector of merge pointers to the input vectors - counters that hold the merge positions - initialize them to zero
@@ -98,6 +99,8 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 				merge_limits[i] = blockSize;
 			}
 
+			resultSetNullSize = (resultSetSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+
 			// Allocate the result map by inserting a column name and iVariantArray pair
 			for (auto &orderColumn : reconstructedOrderByRetColumnBlocks)
 			{
@@ -127,6 +130,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 					break;
 				default:
 					break;
+				}
+
+				// Alloc the null collumn and zero it
+				reconstructedOrderByColumnsNullMerged[orderColumn.first] = std::make_unique<int8_t[]>(resultSetNullSize);
+				for(int32_t i = 0; i < resultSetNullSize; i++)
+				{
+					reconstructedOrderByColumnsNullMerged[orderColumn.first].get()[i] = 0;
 				}
 			}
 
@@ -323,7 +333,14 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 								default:
 									break;
 								}
+
+								// Write the null columns 1
+								
 							}
+							// Add to the null collumn
+							//reconstructedOrderByOrderColumnNullBlocks[retColumn.first].get()[resultSetCounter];
+
+
 							resultSetCounter++;
 						}
 						else {
@@ -552,6 +569,8 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 									break;
 								}
 							}
+							// Write the null columns 2
+
 							resultSetCounter++;
 						}
 						else {

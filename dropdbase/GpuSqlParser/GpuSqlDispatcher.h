@@ -32,7 +32,10 @@ void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 struct OrderByBlocks
 {
 	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
+	std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByOrderColumnNullBlocks;
+	
 	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
+	std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByRetColumnNullBlocks;
 };
 
 class Database; 
@@ -82,8 +85,11 @@ private:
 	std::vector<OrderByBlocks>& orderByBlocks;
 	
 	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged;
+	std::unordered_map<std::string, std::unique_ptr<int8_t[]>> reconstructedOrderByColumnsNullMerged;
+
 	std::unordered_map<int32_t, std::pair<std::string, OrderBy::Order>> orderByColumns;
 	std::vector<std::vector<int32_t>> orderByIndices;
+	
 
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
