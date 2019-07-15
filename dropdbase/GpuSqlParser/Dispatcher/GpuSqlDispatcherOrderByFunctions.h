@@ -98,16 +98,25 @@ int32_t GpuSqlDispatcher::orderByReconstructOrderCol()
 
 		PointerAllocation col = allocatedPointers.at(getAllocatedRegisterName(colName));
 		size_t inSize = col.elementCount;
+		size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 
 		std::unique_ptr<VariantArray<T>> outData = std::make_unique<VariantArray<T>>(inSize);
+		std::unique_ptr<int8_t[]> outNullData = std::make_unique<int8_t[]>(inNullColSize);
 
 		cuda_ptr<T> reorderedColumn(inSize);
+		cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
 
 		PointerAllocation orderByIndices = allocatedPointers.at("$orderByIndices");
 		GPUOrderBy::ReOrderByIdx(reorderedColumn.get(), reinterpret_cast<int32_t*>(orderByIndices.gpuPtr), reinterpret_cast<T*>(col.gpuPtr), col.elementCount);
+		GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(), 
+												reinterpret_cast<int32_t*>(orderByIndices.gpuPtr),
+												reinterpret_cast<int8_t*>(col.gpuNullMaskPtr), 
+												inSize);
+
+		GPUOrderBy::TransformNullValsToSmallestVal(reorderedColumn.get(), reorderedNullColumn.get(), inSize);
 
 		int32_t outSize;
-		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reorderedColumn.get(), reinterpret_cast<int8_t*>(filter_) , inSize);
+		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reorderedColumn.get(), reinterpret_cast<int8_t*>(filter_) , inSize, outNullData.get(), reorderedNullColumn.get());
 		outData->resize(outSize);
 
 		orderByBlocks[dispatcherThreadId].reconstructedOrderByOrderColumnBlocks[colName].push_back(std::move(outData));
@@ -136,8 +145,6 @@ int32_t GpuSqlDispatcher::orderByReconstructRetCol()
 			return loadFlag;
 		}
 
-		// !!! NULL reconstruction is needed here only - for returning the results
-
 		PointerAllocation col = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t inSize = col.elementCount;
 		size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
@@ -154,6 +161,8 @@ int32_t GpuSqlDispatcher::orderByReconstructRetCol()
 										   reinterpret_cast<int32_t*>(orderByIndices.gpuPtr),
 										   reinterpret_cast<int8_t*>(col.gpuNullMaskPtr), 
 										   inSize);
+
+		GPUOrderBy::TransformNullValsToSmallestVal(reorderedColumn.get(), reorderedNullColumn.get(), inSize);
 
 		int32_t outSize;
 		GPUReconstruct::reconstructCol(outData->getData(), &outSize, reorderedColumn.get(), reinterpret_cast<int8_t*>(filter_) , inSize, outNullData.get(), reorderedNullColumn.get());

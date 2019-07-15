@@ -68,7 +68,7 @@ public:
 
     // Set the null value rows to the smallest possible value for the given type for merge operations
     template<typename T>
-    static void transformNullValsToSmallestVal(T* inCol, int8_t* nullBitMask, int32_t dataElementCount)
+    static void TransformNullValsToSmallestVal(T* inCol, int8_t* nullBitMask, int32_t dataElementCount)
     {
         if(nullBitMask != nullptr)
         {
@@ -87,7 +87,7 @@ public:
     void OrderByColumn(int32_t* outIndices, T* inCol, int8_t* nullBitMask, int32_t dataElementCount, OrderBy::Order order)
     {
         // Preprocess the columns with the null values
-        transformNullValsToSmallestVal(inCol, nullBitMask, dataElementCount);
+        TransformNullValsToSmallestVal(inCol, nullBitMask, dataElementCount);
 
         // Keys front and back buffer
         cuda_ptr<T> keys1(dataElementCount);

@@ -101,7 +101,7 @@ TEST(DispatcherNullTests, IsNotNullWithPattern)
     std::vector<int> expectedResults;
 	for(int i = 0; i < 16; i++)
 	{
-		if(i % 2 == i/8)
+		if(i % 2 == i / 8)
 		{
 			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (null);");
 			parser.parse();
@@ -125,4 +125,9 @@ TEST(DispatcherNullTests, IsNotNullWithPattern)
 		ASSERT_FLOAT_EQ(expectedResults[i], payload.intpayload().intdata()[i]);
 	}
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
+}
+
+TEST(DispatcherNullTests, OrderByNullTest)
+{
+
 }
