@@ -84,11 +84,12 @@ __global__ void group_by_kernel(
 
 	for (int32_t i = idx; i < dataElementCount; i += stride)
 	{
-		int32_t hash = static_cast<int32_t>(inKeys[i]); // TODO maybe improve hashing for float
+		int32_t hash = abs(static_cast<int32_t>(inKeys[i])) % maxHashCount; // TODO maybe improve hashing for float
 		int32_t foundIndex = -1;
+
 		for (int32_t j = 0; j < maxHashCount; j++) {
 			// Calculate hash - use type conversion because of float
-			int32_t index = abs((hash + j) % maxHashCount);
+			int32_t index = (hash + j) % maxHashCount;
 
 			//Check if key is not empty and key is not equal to the currently inserted key
 			if (keys[index] != getEmptyValue<K>() && keys[index] != inKeys[i])
