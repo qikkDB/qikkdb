@@ -153,7 +153,10 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
         else // else - if we found a valid index
         {
             // Use aggregation of values on the bucket and the corresponding counter
-            AGG{}(&values[foundIndex], inValues[i]);
+            if (values)
+            {
+                AGG{}(&values[foundIndex], inValues[i]);
+            }
             if (keyOccurrenceCount)
             {
                 atomicAdd(reinterpret_cast<cuUInt64*>(&keyOccurrenceCount[foundIndex]), 1);
@@ -283,11 +286,11 @@ public:
             throw;
         }
         GPUMemory::fillArray(sourceIndices_, GBS_SOURCE_INDEX_EMPTY_KEY, maxHashCount_);
+        GPUMemory::copyHostToDevice(keyTypes_, keyTypes.data(), keysColCount_);
         if (USE_VALUES)
         {
             GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), maxHashCount_);
         }
-        GPUMemory::copyHostToDevice(keyTypes_, keyTypes.data(), keysColCount_);
     }
 
     /// Create GPUGroupBy object with existing keys (allocate whole new hash table)
