@@ -43,15 +43,18 @@ GPUOrderBy::~GPUOrderBy()
 	GPUMemory::free(indices2);
 }
 
-void GPUOrderBy::ReOrderNullValuesByIdxInplace(int8_t* nullBitMask, int32_t* indices, int32_t dataElementCount)
+void GPUOrderBy::ReOrderNullValuesByIdx(int8_t* outNullBitMask, int32_t* indices, int8_t* inNullBitMask, int32_t dataElementCount)
 {
-	cuda_ptr<int8_t> outTemp((dataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t * 8)));
-    GPUMemory::copyDeviceToDevice(outTemp.get(), nullBitMask, dataElementCount);
+	if(inNullBitMask != nullptr)
+	{
+		// Zero the out mask
+		GPUMemory::fillArray(outNullBitMask, static_cast<int8_t>(0), dataElementCount);
 
-    // Reorder a column based on indices "inplace"
-	kernel_reorder_null_values_by_idx<<< Context::getInstance().calcGridDim(dataElementCount), 
-										 Context::getInstance().getBlockDim() >>> (reinterpret_cast<int32_t*>(nullBitMask), 
-																				   indices, 
-																				   outTemp.get(), 
-																				   dataElementCount);
+		// Reorder the bits
+		kernel_reorder_null_values_by_idx<<< Context::getInstance().calcGridDim(dataElementCount), 
+											 Context::getInstance().getBlockDim() >>> (reinterpret_cast<int32_t*>(outNullBitMask), 
+																					indices, 
+																					inNullBitMask,
+																					dataElementCount);
+	}
 }

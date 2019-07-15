@@ -66,6 +66,18 @@ public:
 
 	~GPUOrderBy();
 
+    // Set the null value rows to the smallest possible value for the given type for merge operations
+    template<typename T>
+    static void transformNullValsToSmallestVal(T* inCol, int8_t* nullBitMask, int32_t dataElementCount)
+    {
+        if(nullBitMask != nullptr)
+        {
+            kernel_transform_null_values<<< Context::getInstance().calcGridDim(dataElementCount), 
+                                            Context::getInstance().getBlockDim() >>>
+                                            (inCol, nullBitMask, dataElementCount);
+        }
+    }
+
     // The base order by method for numeric types
     // Iterate trough all the columns and sort them with radix sort
     // Handle the columns as if they were a big binary number from right to left
@@ -75,12 +87,7 @@ public:
     void OrderByColumn(int32_t* outIndices, T* inCol, int8_t* nullBitMask, int32_t dataElementCount, OrderBy::Order order)
     {
         // Preprocess the columns with the null values
-        if(nullBitMask != nullptr)
-        {
-            kernel_transform_null_values<<< Context::getInstance().calcGridDim(dataElementCount), 
-                                            Context::getInstance().getBlockDim() >>>
-                                            (inCol, nullBitMask, dataElementCount);
-        }
+        transformNullValsToSmallestVal(inCol, nullBitMask, dataElementCount);
 
         // Keys front and back buffer
         cuda_ptr<T> keys1(dataElementCount);
@@ -160,5 +167,5 @@ public:
                                  (col, indices, outTemp.get(), dataElementCount);
     }
 
-    static void ReOrderNullValuesByIdxInplace(int8_t* nullBitMask, int32_t* indices, int32_t dataElementCount);
+    static void ReOrderNullValuesByIdx(int8_t* outNullBitMask, int32_t* indices, int8_t* inNullBitMask, int32_t dataElementCount);
 };
