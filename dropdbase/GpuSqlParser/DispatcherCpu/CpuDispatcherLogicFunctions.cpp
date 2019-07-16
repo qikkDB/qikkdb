@@ -1,7 +1,7 @@
 #include "CpuDispatcherLogicFunctions.h"
 #include <array>
 #include "../../QueryEngine/GPUCore/GPUFilterConditions.cuh"
-#include "../../QueryEngine/GPUCore/GPULogic.cuh"
+#include "../../QueryEngine/GPUCore/LogicOperations.h"
 #include "../../Types/ComplexPolygon.pb.h"
 #include "../../Types/Point.pb.h"
 

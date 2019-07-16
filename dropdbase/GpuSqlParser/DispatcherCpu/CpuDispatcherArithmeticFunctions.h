@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../CpuSqlDispatcher.h"
-#include "../../QueryEngine/GPUCore/GPUArithmetic.cuh"
 #include <tuple>
 
 template<typename OP, typename T, typename U>

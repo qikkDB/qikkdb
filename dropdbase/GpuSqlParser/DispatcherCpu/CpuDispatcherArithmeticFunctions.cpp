@@ -1,6 +1,6 @@
 #include "CpuDispatcherArithmeticFunctions.h"
 #include <array>
-#include "../../QueryEngine/GPUCore/GPUArithmetic.cuh"
+#include "../../QueryEngine/GPUCore/ArithmeticOperations.h"
 #include "../../Types/ComplexPolygon.pb.h"
 #include "../../Types/Point.pb.h"
 
