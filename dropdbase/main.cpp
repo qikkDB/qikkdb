@@ -60,15 +60,28 @@ int main(int argc, char **argv)
 	//Database::SaveAllToDisk();
 	//return 0;
 
-	//Context::getInstance();
-	//CSVDataImporter csvDataImporter(R"(C:\Users\pkratky\Desktop\DataGenerator\output\TargetLoc10M.csv)");
-	//////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
-	//std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 1000000);
-	//Database::AddToInMemoryDatabaseList(database);
-	//std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
-	//csvDataImporter.ImportTables(database);
-	//Database::SaveAllToDisk();
-	//return 0;
+	Context::getInstance();
+
+	CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
+	std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 100000000);
+	Database::AddToInMemoryDatabaseList(database1);
+	std::cout << "Loading GeoPoint.csv ..." << std::endl;
+	csvDataImporter1.ImportTables(database1);
+
+	CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
+	std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 100000000);
+	Database::AddToInMemoryDatabaseList(database2);
+	std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
+	csvDataImporter2.ImportTables(database2);
+
+	CSVDataImporter csvDataImporter3(R"(../../data/trips.csv)");
+	std::shared_ptr<Database> database3 = std::make_shared<Database>("TaxiRides", 100000000);
+	Database::AddToInMemoryDatabaseList(database3);
+	std::cout << "Loading trips.csv ..." << std::endl;
+	csvDataImporter3.ImportTables(database3);
+
+	Database::SaveAllToDisk();
+	return 0;
 
 	Context::getInstance(); // Initialize CUDA context
 
