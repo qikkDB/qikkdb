@@ -27,7 +27,7 @@ int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::Point>()
 		point = ColumnBase<ColmnarDB::Types::Point>::NullArray(1)[0];
 	}
 	std::vector<ColmnarDB::Types::Point> pointVector({ point });
-	insertIntoData->insertIntoData.insert({ column, point });
+	insertIntoData->insertIntoData.insert({ column, pointVector });
 	return 0;
 }
 
@@ -49,7 +49,7 @@ int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>()
 		polygon = ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0];
 	}
 	std::vector<ColmnarDB::Types::ComplexPolygon> polygonVector({ polygon });
-	insertIntoData->insertIntoData.insert({ column, polygon });
+	insertIntoData->insertIntoData.insert({ column, polygonVector });
 
 	return 0;
 }

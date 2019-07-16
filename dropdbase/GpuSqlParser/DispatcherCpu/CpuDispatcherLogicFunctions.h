@@ -138,8 +138,8 @@ int32_t CpuSqlDispatcher::filterStringColCol()
 template<typename OP>
 int32_t CpuSqlDispatcher::filterStringConstConst()
 {
-	std::string cnstRight = arguments.read<std::string>();
 	std::string cnstLeft = arguments.read<std::string>();
+	std::string cnstRight = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
 	int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, false);
