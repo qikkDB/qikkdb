@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../CpuSqlDispatcher.h"
-#include "../../QueryEngine/GPUCore/GPUArithmeticUnary.cuh"
 
 template<typename OP, typename T>
 int32_t CpuSqlDispatcher::arithmeticUnaryCol()
