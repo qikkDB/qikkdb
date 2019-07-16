@@ -297,30 +297,30 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 	{
 		std::cout << "Processed block in AggGroupBy." << std::endl;
 		GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::ProcessBlock(groupByColumns, column, *this);
+
+		// If last block was processed, reconstruct group by table
+		if (isLastBlockOfDevice)
+		{
+			if (isOverallLastBlock)
+			{
+				// Wait until all threads finished work
+				std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
+				GpuSqlDispatcher::groupByCV_.wait(lock, [] { return GpuSqlDispatcher::IsGroupByDone(); });
+
+				std::cout << "Reconstructing group by in thread: " << dispatcherThreadId << std::endl;
+				
+				GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::GetResults(groupByColumns, reg, *this);
+			}
+			else
+			{
+				std::cout << "Group by all blocks done in thread: " << dispatcherThreadId << std::endl;
+				// Increment counter and notify threads
+				std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
+				GpuSqlDispatcher::IncGroupByDoneCounter();
+				GpuSqlDispatcher::groupByCV_.notify_all();
+			}
+		}
 		aggregatedRegisters.insert(reg);
-	}
-
-	// If last block was processed, reconstruct group by table
-	if (isLastBlockOfDevice)
-	{
-		if (isOverallLastBlock)
-		{
-			// Wait until all threads finished work
-			std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
-			GpuSqlDispatcher::groupByCV_.wait(lock, [] { return GpuSqlDispatcher::IsGroupByDone(); });
-
-			std::cout << "Reconstructing group by in thread: " << dispatcherThreadId << std::endl;
-			
-			GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::GetResults(groupByColumns, reg, *this);
-		}
-		else
-		{
-			std::cout << "Group by all blocks done in thread: " << dispatcherThreadId << std::endl;
-			// Increment counter and notify threads
-			std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
-			GpuSqlDispatcher::IncGroupByDoneCounter();
-			GpuSqlDispatcher::groupByCV_.notify_all();
-		}
 	}
 	
 	freeColumnIfRegister<V>(colTableName);
