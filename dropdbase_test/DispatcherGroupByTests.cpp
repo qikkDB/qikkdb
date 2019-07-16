@@ -237,7 +237,7 @@ protected:
                 key.emplace_back(payloadKeys[c].intpayload().intdata()[i]);
                 std::cout << payloadKeys[c].intpayload().intdata()[i] << (c == payloadKeys.size() - 1? ": " : ", ");
             }
-            std::cout << payloadValues.int64payload().int64data()[i] << std::endl;
+            std::cout << payloadValues.intpayload().intdata()[i] << std::endl;
             
             ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " bad key at result row " << i;
             ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i]) << " at result row " << i;
@@ -303,9 +303,72 @@ protected:
                 std::cout << payloadKeys[c].intpayload().intdata()[i] << (c == payloadKeys.size() - 1? ": " : ", ");
             }
             std::cout << payloadValues.int64payload().int64data()[i] << std::endl;
-            
+
             ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " bad key at result row " << i;
             ASSERT_EQ(expectedResult[key], payloadValues.int64payload().int64data()[i]) << " at result row " << i;
+        }
+    }
+
+    void GroupByMultiKeyStringTest(std::string aggregationFunction,
+                        std::tuple<std::vector<int32_t>, std::vector<int32_t>, std::vector<std::string>> keys,
+                        std::vector<int32_t> values,
+                        std::unordered_map<std::tuple<int32_t, int32_t, std::string>, int32_t, boost::hash<std::tuple<int32_t, int32_t, std::string>>> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colKeyInt0", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colKeyInt1", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colKeyString0", DataType::COLUMN_STRING));
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerV", DataType::COLUMN_INT));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colKeyInt0").get())
+            ->InsertData(std::get<0>(keys));
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colKeyInt1").get())
+            ->InsertData(std::get<1>(keys));
+        reinterpret_cast<ColumnBase<std::string>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colKeyString0").get())
+            ->InsertData(std::get<2>(keys));
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
+            ->InsertData(values);
+        
+        std::string multiCols = "colKeyInt0, colKeyInt1, colKeyString0";
+        std::cout << "Running GroupBy multi-key: " << multiCols << std::endl;
+        // Execute the query
+        GpuSqlCustomParser parser(groupByDatabase, 
+            "SELECT " + multiCols + ", " + aggregationFunction + "(colIntegerV) FROM " + tableName + " GROUP BY " + multiCols + ";");
+        auto resultPtr = parser.parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        
+        std::vector<ColmnarDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
+        payloadKeys.emplace_back(result->payloads().at(tableName + ".colKeyInt0"));
+        payloadKeys.emplace_back(result->payloads().at(tableName + ".colKeyInt1"));
+        payloadKeys.emplace_back(result->payloads().at(tableName + ".colKeyString0"));
+        auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
+
+        for (int32_t i = 0; i < payloadKeys.size(); i++)
+        {
+            ASSERT_EQ(expectedResult.size(), i == 2? payloadKeys[i].stringpayload().stringdata_size() :
+                    payloadKeys[i].intpayload().intdata_size())
+                    << " wrong number of keys at col " << i;
+        }
+        
+        for (int32_t i = 0; i < payloadKeys[0].intpayload().intdata_size(); i++)
+        {
+            std::tuple<int32_t, int32_t, std::string> key{
+                payloadKeys[0].intpayload().intdata()[i],
+                payloadKeys[1].intpayload().intdata()[i],
+                payloadKeys[2].stringpayload().stringdata()[i]};
+            std::cout << std::get<0>(key) << ", ";
+            std::cout << std::get<1>(key) << ", ";
+            std::cout << std::get<2>(key) << ": ";
+            std::cout << payloadValues.intpayload().intdata()[i] << std::endl;
+            
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " bad key at result row " << i;
+            ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i]) << " at result row " << i;
         }
     }
 };
@@ -427,4 +490,13 @@ TEST_F(DispatcherGroupByTests, MultiKeySimpleCount)
     GroupByMultiKeyCountTest({ {1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1} },
         {5, 5, 24, 1, 7, 1, 1, 2},
         { {{1, 2}, 2}, {{1, 5}, 1}, {{2, 1}, 1}, {{5, 1}, 2}, {{7, 7}, 1}, {{-1, -5}, 1} });
+}
+
+
+TEST_F(DispatcherGroupByTests, MultiKeyIntIntStringSum)
+{
+    GroupByMultiKeyStringTest("SUM",
+        { {5, 2, 2, 2, 2, 5, 1, 7}, {1, 1, 1, 1, 1, 1, 2, 0}, {"Apple", "Nut", "Nut", "Apple", "XYZ", "Apple", "Apple", "Nut"} },
+        {5, -3, -3, 9, 7, 5, 4, 20},
+        { {{2, 1, "Apple"}, 9}, {{2, 1, "XYZ"}, 7}, {{1, 2, "Apple"}, 4}, {{7, 0, "Nut"}, 20}, {{5, 1, "Apple"}, 10}, {{2, 1, "Nut"}, -6} });
 }
