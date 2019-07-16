@@ -267,7 +267,8 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 	std::tuple<uintptr_t, int32_t, bool>& column = allocatedPointers.at(getAllocatedRegisterName(colTableName));
 	int32_t reconstructOutSize;
 
-	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colTableName)) != groupByColumns.end())
+	// Reconstruct column only if it is not group by column (if it is group by column it was already reconstructed in GroupByCol)
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colTableName)) == groupByColumns.end())
 	{
 		V* reconstructOutReg;
 		GPUReconstruct::reconstructColKeep<V>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<V*>(std::get<0>(column)), reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
