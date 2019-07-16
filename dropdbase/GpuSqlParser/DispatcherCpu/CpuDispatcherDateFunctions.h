@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../CpuSqlDispatcher.h"
-#include "../../QueryEngine/GPUCore/GPUDate.cuh"
 
 template<typename OP>
 int32_t CpuSqlDispatcher::dateExtractCol()
