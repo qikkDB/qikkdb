@@ -42,18 +42,27 @@ __global__ void kernel_calc_hash_histo(int32_t* HashTableHisto,
 
     for (int32_t i = idx; i < hashTableSize && i < dataElementCount; i += stride)
     {
-		// TODO if(nullBitMaskR == nullptr)
-
-
 		// Count the occurances of hashes and accumulate them to the local memory
         shared_memory[threadIdx.x] = 0;
         __syncthreads();
 
-		int32_t hash_idx = hash(ColumnRBlock[i]);
-        atomicAdd(&shared_memory[hash_idx], 1);
+		if(nullBitMaskR)
+		{
+			bool nullBitR = (nullBitMaskR[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+			if(nullBitR)
+			{
+				int32_t hash_idx = hash(ColumnRBlock[i]);
+				atomicAdd(&shared_memory[hash_idx], 1);
+			}
+		}
+		else
+		{
+			int32_t hash_idx = hash(ColumnRBlock[i]);
+			atomicAdd(&shared_memory[hash_idx], 1);
+		}
 
 		__syncthreads();
-        HashTableHisto[i] = shared_memory[threadIdx.x];
+		HashTableHisto[i] = shared_memory[threadIdx.x];
     }
 }
 
@@ -72,17 +81,26 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
 
     for (int32_t i = idx; i < hashTableSize && i < dataElementCount; i += stride)
     {
-		// TODO if(nullBitMaskR == nullptr)
-
-
-
-		// Zero the local memory
+		// Set the prefix sum indexing counters into shared memory
         shared_memory[threadIdx.x] = (i == 0) ? 0 : HashTablePrefixSum[i - 1];
         __syncthreads();
 
-        int32_t hash_idx = hash(ColumnRBlock[i]);
-		int32_t bucket_idx = atomicAdd(&shared_memory[hash_idx], 1);
-		HashTableHashBuckets[bucket_idx] = i;//ColumnRBlock[i];
+		if(nullBitMaskR)
+		{
+			bool nullBitR = (nullBitMaskR[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+			if(nullBitR)
+			{
+				int32_t hash_idx = hash(ColumnRBlock[i]);
+				int32_t bucket_idx = atomicAdd(&shared_memory[hash_idx], 1);
+				HashTableHashBuckets[bucket_idx] = i;//ColumnRBlock[i];
+			}
+		}
+		else
+		{
+			int32_t hash_idx = hash(ColumnRBlock[i]);
+			int32_t bucket_idx = atomicAdd(&shared_memory[hash_idx], 1);
+			HashTableHashBuckets[bucket_idx] = i;//ColumnRBlock[i];
+		}
     }
 }
 
@@ -105,13 +123,6 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 
     for (int32_t i = idx; i < joinTableSize && i < dataElementCountColumnSBlock; i += stride)
     {
-		// TODO if(nullBitMaskR == nullptr) AND if(nullBitMaskS == nullptr)
-
-
-
-
-
-
 		// Zero the histo array
 		JoinTableHisto[i] = 0;
 
@@ -123,12 +134,66 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
         for (int32_t j = hash_idx; j < hashTableSize; j += HASH_TABLE_SUB_SIZE)
 		{
 			// Check if a bucket is empty, if yes, try the next bucket with the same hash
-			// Otherwise probe and count the number of matching entries
+			// Otherwise probe and count the number of matching entries, mind the null values
             for (int32_t k = 0; k < HashTableHisto[j]; k++)
             {
-                if (OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]], ColumnSBlock[i]))
+				if(nullBitMaskR)
 				{
-                    hashMatchCounter++;
+					bool nullBitR = (nullBitMaskR[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+					if(nullBitR)
+					{
+						if(nullBitMaskS)
+						{
+							bool nullBitS = (nullBitMaskS[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+							if(nullBitS)
+							{
+								if (OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]], ColumnSBlock[i]))
+								{
+									hashMatchCounter++;
+								}
+							}
+							else
+							{
+								// Value in S col NULL - do nothing
+							}
+						}
+						else
+						{
+							if (OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]], ColumnSBlock[i]))
+							{
+								hashMatchCounter++;
+							}	
+						}
+					}
+					else
+					{
+						// Value in R col NULL - do nothing
+					}
+				}
+				else
+				{
+					if(nullBitMaskS)
+					{
+						bool nullBitS = (nullBitMaskS[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+						if(nullBitS)
+						{
+							if (OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]], ColumnSBlock[i]))
+							{
+								hashMatchCounter++;
+							}
+						}
+						else
+						{
+							// Value in S col NULL - do nothing
+						}
+					}
+					else
+					{
+						if (OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]], ColumnSBlock[i]))
+						{
+							hashMatchCounter++;
+						}
+					}
 				}
 			}
 		}
@@ -158,13 +223,6 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
 
     for (int32_t i = idx; i < joinTableSize && i < dataElementCountColumnSBlock; i += stride)
     {
-		// TODO if(nullBitMaskR == nullptr) AND if(nullBitMaskS == nullptr)
-
-
-
-
-
-
 		int32_t join_prefix_sum_offset_index = 0;
 		// Hash table buckets probing
 		int32_t hash_idx = hash(ColumnSBlock[i]);
@@ -176,12 +234,75 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
 			{
 				// Write the results if the value in a bucket matches the present value
 				// Write them to the calculated offset of the prefix sum buffer
-				if (join_prefix_sum_offset_index < JoinTableHisto[i] && 
-					OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] , ColumnSBlock[i]))
+				if(nullBitMaskR)
 				{
-					resultColumnQABlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
-					resultColumnQBBlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = i;//ColumnSBlock[i];
-					join_prefix_sum_offset_index++;
+					bool nullBitR = (nullBitMaskR[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+					if(nullBitR)
+					{
+						if(nullBitMaskS)
+						{
+							bool nullBitS = (nullBitMaskS[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+							if(nullBitS)
+							{
+								if (join_prefix_sum_offset_index < JoinTableHisto[i] && 
+									OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] , ColumnSBlock[i]))
+								{
+									resultColumnQABlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
+									resultColumnQBBlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = i;//ColumnSBlock[i];
+									join_prefix_sum_offset_index++;
+								}
+							}
+							else
+							{
+								// Value in S col NULL - do nothing
+							}
+						}
+						else
+						{
+							if (join_prefix_sum_offset_index < JoinTableHisto[i] && 
+								OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] , ColumnSBlock[i]))
+							{
+								resultColumnQABlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
+								resultColumnQBBlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = i;//ColumnSBlock[i];
+								join_prefix_sum_offset_index++;
+							}
+						}
+					}
+					else
+					{
+						// Value in R col NULL - do nothing
+					}
+				}
+				else
+				{
+					if(nullBitMaskS)
+					{
+						bool nullBitS = (nullBitMaskS[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+						if(nullBitS)
+						{
+							if (join_prefix_sum_offset_index < JoinTableHisto[i] && 
+								OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] , ColumnSBlock[i]))
+							{
+								resultColumnQABlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
+								resultColumnQBBlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = i;//ColumnSBlock[i];
+								join_prefix_sum_offset_index++;
+							}
+						}
+						else
+						{
+							// Value in S col NULL - do nothing
+						}
+					}
+					else
+					{
+						if (join_prefix_sum_offset_index < JoinTableHisto[i] && 
+							OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]] , ColumnSBlock[i]))
+						{
+							resultColumnQABlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
+							resultColumnQBBlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] = i;//ColumnSBlock[i];
+							join_prefix_sum_offset_index++;
+						}						
+					}
 				}
 			}
 		}
