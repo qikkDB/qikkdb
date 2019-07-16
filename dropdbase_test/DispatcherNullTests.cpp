@@ -141,17 +141,25 @@ TEST(DispatcherNullTests, OrderByNullTest)
 	columns.emplace("Col1", COLUMN_INT);
 	database->CreateTable(columns, "TestTable");
 
+	std::vector<int32_t> expectedResults;
+
 	for(int32_t i = 0; i < blockSize; i++)
 	{
 		if(i % 2)
 		{
 			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (null);");
 			parser.parse();
+
+			expectedResults.push_back(std::numeric_limits<int32_t>::lowest());
 		}
 		else
 		{
-			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTable (Col1) VALUES (") + std::to_string(rand() % 1000) + std::string(");"));
+			int32_t val = rand() % 1000;
+
+			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTable (Col1) VALUES (") + std::to_string(val) + std::string(");"));
 			parser.parse();
+
+			expectedResults.push_back(val);
 		}
 	}
 
@@ -162,12 +170,19 @@ TEST(DispatcherNullTests, OrderByNullTest)
     auto& payload = result->payloads().at("TestTable.Col1");
 	auto& nullBitMask = result->nullbitmasks().at("TestTable.Col1");
 
-	//ASSERT_EQ(payload.intpayload().intdata_size(), expectedResults.size());
-	for (int i = 0; i < payload.intpayload().intdata_size(); i++)
-	{
-		nullBitMask[i] ? std::printf("null\n") : std::printf("%d\n", payload.intpayload().intdata()[i]);
-		//ASSERT_FLOAT_EQ(expectedResults[i], payload.intpayload().intdata()[i]);
+	std::stable_sort(expectedResults.begin(), expectedResults.end());
+
+	// Print null column
+	int32_t nullColSize = (payload.intpayload().intdata_size() + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+
+	ASSERT_EQ(payload.intpayload().intdata_size(), expectedResults.size());
+	for(int32_t i = 0, k = 0; i < nullColSize; i++){
+		for(int32_t j = 7; j >= 0; j--, k++){
+			//((nullBitMask[i] >> j) & 1) ? std::printf("%3d : null\n", k) : std::printf("%3d : %d\n", k, payload.intpayload().intdata()[k]);
+			ASSERT_FLOAT_EQ(expectedResults[k], payload.intpayload().intdata()[k]);
+		}
 	}
+	//std::printf("\n");
 
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
 }
