@@ -180,16 +180,9 @@ __global__ void is_bucket_occupied_kernel(int8_t *occupancyMask, K *keys, int32_
 
 	for (int32_t i = idx; i < maxHashCount; i += stride)
 	{
-		if (keys[i] == getEmptyValue<K>())
-		{
-			occupancyMask[i] = 0;
+		occupancyMask[i] = (keys[i] != getEmptyValue<K>());
 		}
-		else
-		{
-			occupancyMask[i] = 1;
 		}
-	}
-}
 
 /// GROUP BY generic class (for MIN, MAX and SUM).
 template<typename AGG, typename O, typename K, typename V>
