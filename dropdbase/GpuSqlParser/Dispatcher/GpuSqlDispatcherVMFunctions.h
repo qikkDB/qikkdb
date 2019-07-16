@@ -2,7 +2,10 @@
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
+#include "../../QueryEngine/GPUCore/GPUOrderBy.cuh"
 #include "../../QueryEngine/GPUCore/GPUJoin.cuh"
+#include "../../IVariantArray.h"
+#include "../../VariantArray.h"
 #include "../../Database.h"
 #include "../../Table.h"
 #include "../../ColumnBase.h"
@@ -45,6 +48,14 @@ int32_t GpuSqlDispatcher::retCol()
 		{
 			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName) + (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end()? "_keys" : ""));
 			outSize = std::get<1>(col);
+
+			if (usingOrderBy)
+			{
+				std::cout << "Reordering result block." << std::endl;
+				std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
+				GPUOrderBy::ReOrderByIdxInplace(reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)), outSize);
+			}
+
 			outData = std::make_unique<T[]>(outSize);
 			GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(std::get<0>(col)), outSize);
 		}
@@ -55,14 +66,27 @@ int32_t GpuSqlDispatcher::retCol()
 	}
 	else
 	{
-		std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName));
-		int32_t inSize = std::get<1>(col);
-		outData = std::make_unique<T[]>(inSize);
-		//ToDo: Podmienene zapnut podla velkost buffera
-		//GPUMemory::hostPin(outData.get(), inSize);
-		GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
-		//GPUMemory::hostUnregister(outData.get());
-		std::cout << "dataSize: " << outSize << std::endl;
+		if (usingOrderBy)
+		{
+			if (isOverallLastBlock)
+			{
+				VariantArray<T>* reconstructedColumn = dynamic_cast<VariantArray<T>*>(reconstructedOrderByColumnsMerged.at(colName).get());
+				outData = std::move(reconstructedColumn->getDataRef());
+				outSize = reconstructedColumn->GetSize();
+			}
+			else
+			{
+				return 0;
+			}
+		}
+		else
+		{
+			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName));
+			int32_t inSize = std::get<1>(col);
+			outData = std::make_unique<T[]>(inSize);
+			GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
+			std::cout << "dataSize: " << outSize << std::endl;
+		}
 	}
 
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
@@ -88,7 +112,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 		std::tie(table, column) = splitColumnName(colName);
 
 		const int32_t blockCount = usingJoin ? joinIndices->at(table).size() : database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
-		GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
+		GpuSqlDispatcher::deviceCountLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
 		if (blockIndex >= blockCount)
 		{
 			return 1;

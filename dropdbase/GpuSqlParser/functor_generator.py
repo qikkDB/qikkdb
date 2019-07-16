@@ -623,6 +623,32 @@ for operation in operations_string_unary:
     print(declaration)
 print()
 
+for operation in ['orderBy', 'orderByReconstructOrder', 'orderByReconstructRet']:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal == STRING or colVal in geo_types:
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = operation
+
+        function = "GpuSqlDispatcher::" + op + col + "<" + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
 
 for operation in ['len']:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \

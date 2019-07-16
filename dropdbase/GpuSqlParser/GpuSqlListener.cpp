@@ -35,11 +35,13 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	dispatcher(dispatcher),
 	joinDispatcher(joinDispatcher),
 	linkTableIndex(0),
+	orderByColumnIndex(0),
 	usingLoad(false),
 	usingWhere(false),
 	usingGroupBy(false), 
 	insideAgg(false), 
-	insideGroupBy(false), 
+	insideGroupBy(false),
+	insideOrderBy(false),
 	insideSelectColumn(false), 
 	isAggSelectColumn(false),
 	resultLimit(std::numeric_limits<int64_t>::max()),
@@ -517,6 +519,16 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 /// <param name="ctx">Select Columns context</param>
 void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 {
+	for (auto& retCol : returnColumns)
+	{
+		std::string colName = retCol.first;
+		DataType retType = std::get<0>(retCol.second);
+		std::string alias = std::get<1>(retCol.second);
+		dispatcher.addRetFunction(retType);
+		dispatcher.addArgument<const std::string&>(colName);
+		dispatcher.addArgument<const std::string&>(alias);
+	}
+
 	dispatcher.addJmpInstruction();
 	dispatcher.addDoneFunction();
 }
@@ -540,15 +552,13 @@ void GpuSqlListener::enterSelectColumn(GpuSqlParser::SelectColumnContext * ctx)
 void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 {
 	std::pair<std::string, DataType> arg = stackTopAndPop();
-
 	std::string colName = std::get<0>(arg);
 	DataType retType = std::get<1>(arg);
-	dispatcher.addRetFunction(retType);
-	dispatcher.addArgument<const std::string&>(colName);
+	std::string alias;
 	
 	if (ctx->alias())
 	{
-		std::string alias = ctx->alias()->getText();
+		alias = ctx->alias()->getText();
 		trimDelimitedIdentifier(alias);
 
 		if (columnAliases.find(alias) != columnAliases.end())
@@ -556,12 +566,16 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 			throw AliasRedefinitionException();
 		}
 		columnAliases.insert(alias);
-		dispatcher.addArgument<const std::string&>(alias);
 	}
 	else
 	{
-		dispatcher.addArgument<const std::string&>(colName);
+		alias = colName;
 	}
+
+	returnColumns.insert({ colName, {retType, alias } });
+
+	dispatcher.addArgument<const std::string&>(colName);
+	dispatcher.addLockRegisterFunction();
 
 	insideSelectColumn = false;
 	isAggSelectColumn = false;
@@ -1049,6 +1063,68 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * ct
 	{
 		dispatcher.addArgument<const std::string&>(indexColumn);
 	}
+}
+
+void GpuSqlListener::enterOrderByColumns(GpuSqlParser::OrderByColumnsContext * ctx)
+{
+	insideOrderBy = true;
+}
+
+void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext * ctx)
+{
+	for (auto& orderByColumn : orderByColumns)
+	{
+		std::string orderByColName = orderByColumn.first;
+		DataType dataType = std::get<0>(orderByColumn.second);
+
+		dispatcher.addArgument<const std::string&>(orderByColName);
+		dispatcher.addOrderByReconstructOrderFunction(dataType);
+	}
+
+	for (auto& returnColumn : returnColumns)
+	{
+		std::string returnColName = returnColumn.first;
+		DataType dataType = std::get<0>(returnColumn.second);
+
+		dispatcher.addArgument<const std::string&>(returnColName);
+		dispatcher.addOrderByReconstructRetFunction(dataType);
+	}
+
+	insideOrderBy = false;
+	dispatcher.addFreeOrderByTableFunction();
+	dispatcher.addOrderByReconstructRetAllBlocksFunction();
+}
+
+
+void GpuSqlListener::exitOrderByColumn(GpuSqlParser::OrderByColumnContext * ctx)
+{
+	std::pair<std::string, DataType> arg = stackTopAndPop();
+	std::string orderByColName = std::get<0>(arg);
+
+	if (orderByColumns.find(orderByColName) != orderByColumns.end())
+	{
+		throw OrderByColumnAlreadyReferencedException();
+	}
+
+	DataType dataType = std::get<1>(arg);
+	OrderBy::Order order = OrderBy::Order::ASC;
+
+	if (ctx->DIR())
+	{
+		std::string dir = ctx->DIR()->getText();
+		stringToUpper(dir);
+		if (dir == "DESC")
+		{
+			order = OrderBy::Order::DESC;
+		}
+	}
+
+	dispatcher.addArgument<const std::string&>(orderByColName);
+	dispatcher.addArgument<int32_t>(static_cast<int32_t>(order));
+	dispatcher.addArgument<int32_t>(orderByColumnIndex++);
+	dispatcher.addOrderByFunction(dataType);
+
+	orderByColumns.insert({ orderByColName, { dataType, order } });
 }
 
 /// Method that executes on exit of INSERT INTO command

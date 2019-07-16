@@ -34,7 +34,7 @@ selectColumns       : (((selectColumn) (COMMA selectColumn)*));
 selectColumn        : expression (AS alias)?;
 whereClause         : expression;
 orderByColumns      : ((orderByColumn (COMMA orderByColumn)*));
-orderByColumn       : (columnId DIR?);
+orderByColumn       : (expression DIR?);
 insertIntoValues    : ((columnValue (COMMA columnValue)*));
 insertIntoColumns   : ((columnId (COMMA columnId)*));
 indexColumns        : ((column (COMMA column)*));

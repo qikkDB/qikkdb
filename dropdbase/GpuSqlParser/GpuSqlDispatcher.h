@@ -20,6 +20,8 @@
 #include "MemoryStream.h"
 #include "../DataType.h"
 #include "GroupByType.h"
+#include "../QueryEngine/OrderByType.h"
+#include "../IVariantArray.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
@@ -29,7 +31,15 @@
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 #endif
 
-class Database;
+
+struct OrderByBlocks
+{
+	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
+	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
+};
+
+class Database; 
+class GPUOrderBy;
 
 struct StringDataTypeComp
 {
@@ -61,14 +71,23 @@ private:
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
 	bool usingGroupBy;
+	bool usingOrderBy;
 	bool usingJoin;
 	bool isLastBlockOfDevice;
 	bool isOverallLastBlock;
 	bool noLoad;
 	std::vector<std::pair<std::string, DataType>> groupByColumns;
+	std::unordered_set<std::string> aggregatedRegisters;
+	std::unordered_set<std::string> registerLockList;
 	bool isRegisterAllocated(std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
+	std::unique_ptr<GPUOrderBy> orderByTable;
+	std::vector<OrderByBlocks>& orderByBlocks;
+	
+	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged;
+	std::unordered_map<int32_t, std::pair<std::string, OrderBy::Order>> orderByColumns;
+	std::vector<std::vector<int32_t>> orderByIndices;
 
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -210,16 +229,29 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
+
 	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> minGroupByMultiKeyFunctions;
 	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> maxGroupByMultiKeyFunctions;
 	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> sumGroupByMultiKeyFunctions;
 	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> countGroupByMultiKeyFunctions;
 	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> avgGroupByMultiKeyFunctions;
+
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> orderByFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> orderByReconstructOrderFunctions;
+	static std::array<DispatchFunction,
+			DataType::DATA_TYPE_SIZE> orderByReconstructRetFunctions;
+			
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
+
+	static DispatchFunction freeOrderByTableFunction;
+	static DispatchFunction orderByReconstructRetAllBlocksFunction;
     static DispatchFunction filFunction;
+	static DispatchFunction lockRegisterFunction;
 	static DispatchFunction jmpFunction;
     static DispatchFunction doneFunction;
 	static DispatchFunction showDatabasesFunction;
@@ -236,7 +268,8 @@ private:
 	static DispatchFunction insertIntoDoneFunction;
 
 	static int32_t groupByDoneCounter_;
-	static int32_t groupByDoneLimit_;
+	static int32_t orderByDoneCounter_;
+	static int32_t deviceCountLimit_;
 
 	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<int32_t[]> &data, int32_t dataSize);
 
@@ -249,22 +282,41 @@ private:
 	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<std::string[]> &data, int32_t dataSize);
 public:
 	static std::mutex groupByMutex_;
+	static std::mutex orderByMutex_;
+
 	static std::condition_variable groupByCV_;
+	static std::condition_variable orderByCV_;
 
 	static void IncGroupByDoneCounter()
 	{
 		groupByDoneCounter_++;
 	}
 
+	static void IncOrderByDoneCounter()
+	{
+		orderByDoneCounter_++;
+	}
+
 	static bool IsGroupByDone()
 	{
-		return (groupByDoneCounter_ == groupByDoneLimit_);
+		return (groupByDoneCounter_ == deviceCountLimit_);
+	}
+
+	static bool IsOrderByDone()
+	{
+		return (orderByDoneCounter_ == deviceCountLimit_);
 	}
 
 	static void ResetGroupByCounters()
 	{
 		groupByDoneCounter_ = 0;
-		groupByDoneLimit_ = 0;
+		deviceCountLimit_ = 0;
+	}
+
+	static void ResetOrderByCounters()
+	{
+		orderByDoneCounter_ = 0;
+		deviceCountLimit_ = 0;
 	}
 
 	template<typename T>
@@ -292,7 +344,7 @@ public:
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
 
 
-    GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, int dispatcherThreadId);
+    GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, std::vector<OrderByBlocks>& orderByBlocks, int dispatcherThreadId);
 
 	~GpuSqlDispatcher();
 
@@ -440,6 +492,18 @@ public:
 
     void addRetFunction(DataType type);
 
+	void addOrderByFunction(DataType type);
+
+	void addOrderByReconstructOrderFunction(DataType type);
+
+	void addOrderByReconstructRetFunction(DataType type);
+
+	void addFreeOrderByTableFunction();
+
+	void addOrderByReconstructRetAllBlocksFunction();
+
+	void addLockRegisterFunction();
+
     void addFilFunction();
 
 	void addJmpInstruction();
@@ -524,7 +588,7 @@ public:
 	template <typename T>
 	void freeColumnIfRegister(const std::string& col)
 	{
-		if (usedRegisterMemory > maxRegisterMemory && !col.empty() && col.front() == '$')
+		if (usedRegisterMemory > maxRegisterMemory && !col.empty() && col.front() == '$' && registerLockList.find(col) == registerLockList.end())
 		{
 			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(col))));
 			usedRegisterMemory -= std::get<1>(allocatedPointers.at(col)) * sizeof(T);
@@ -545,11 +609,35 @@ public:
 	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 	GPUMemory::GPUString insertConstStringGpu(const std::string& str);
 
+	template<typename T>
+	int32_t orderByConst();
+
+	template<typename T>
+	int32_t orderByCol();
+
+	template<typename T>
+	int32_t orderByReconstructOrderConst();
+
+	template<typename T>
+	int32_t orderByReconstructOrderCol();
+
+	template<typename T>
+	int32_t orderByReconstructRetConst();
+
+	template<typename T>
+	int32_t orderByReconstructRetCol();
+
+	int32_t orderByReconstructRetAllBlocks();
+
   	template<typename T>
     int32_t retConst();
 
     template<typename T>
     int32_t retCol();
+
+	int32_t freeOrderByTable();
+
+	int32_t lockRegister();
 
     int32_t fil();
 

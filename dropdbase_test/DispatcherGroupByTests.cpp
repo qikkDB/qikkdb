@@ -142,7 +142,7 @@ protected:
         }
     }
 
-    // This is for testing queries with GROUP BY String column
+//== These tests are for testing queries with GROUP BY String column
     void GBSGenericTest(std::string aggregationFunction,
                         std::vector<std::string> keys,
                         std::vector<int32_t> values,
@@ -179,45 +179,7 @@ protected:
                 << " at key \"" << key << "\"";
         }
     }
-
-	// This is for testing queries with GROUP BY String column
-	void GBSKeyOpGenericTest(std::string aggregationFunction,
-		std::vector<std::string> keys,
-		std::vector<int32_t> values,
-		std::unordered_map<std::string, int32_t> expectedResult)
-	{
-		auto columns = std::unordered_map<std::string, DataType>();
-		columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
-		columns.insert(std::make_pair<std::string, DataType>("colInteger", DataType::COLUMN_INT));
-		groupByDatabase->CreateTable(columns, tableName.c_str());
-
-		reinterpret_cast<ColumnBase<std::string>*>(
-			groupByDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
-			->InsertData(keys);
-		reinterpret_cast<ColumnBase<int32_t>*>(
-			groupByDatabase->GetTables().at(tableName).GetColumns().at("colInteger").get())
-			->InsertData(values);
-
-		// Execute the query
-		GpuSqlCustomParser parser(groupByDatabase,
-			"SELECT LEFT(colString, 3), " + aggregationFunction + "(colInteger) FROM " + tableName + " GROUP BY colString;");
-		auto resultPtr = parser.parse();
-		auto result =
-			dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-		auto& payloadKeys = result->payloads().at("LEFT(colString,3)");
-		auto& payloadValues = result->payloads().at(aggregationFunction + "(colInteger)");
-
-		ASSERT_EQ(expectedResult.size(), payloadKeys.stringpayload().stringdata_size())
-			<< " wrong number of keys";
-		for (int32_t i = 0; i < payloadKeys.stringpayload().stringdata_size(); i++)
-		{
-			std::string key = payloadKeys.stringpayload().stringdata()[i];
-			ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
-			ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i])
-				<< " at key \"" << key << "\"";
-		}
-	}
-
+    
     void GBSCountTest(std::vector<std::string> keys,
                         std::vector<int32_t> values,
                         std::unordered_map<std::string, int64_t> expectedResult)
@@ -254,6 +216,138 @@ protected:
         }
     }
     
+    void GBSKeyOpGenericTest(std::string aggregationFunction,
+		std::vector<std::string> keys,
+		std::vector<int32_t> values,
+		std::unordered_map<std::string, int32_t> expectedResult)
+	{
+		auto columns = std::unordered_map<std::string, DataType>();
+		columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
+		columns.insert(std::make_pair<std::string, DataType>("colInteger", DataType::COLUMN_INT));
+		groupByDatabase->CreateTable(columns, tableName.c_str());
+
+		reinterpret_cast<ColumnBase<std::string>*>(
+			groupByDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
+			->InsertData(keys);
+		reinterpret_cast<ColumnBase<int32_t>*>(
+			groupByDatabase->GetTables().at(tableName).GetColumns().at("colInteger").get())
+			->InsertData(values);
+
+		// Execute the query
+		GpuSqlCustomParser parser(groupByDatabase,
+			"SELECT LEFT(colString, 3), " + aggregationFunction + "(colInteger) FROM " + tableName + " GROUP BY colString;");
+		auto resultPtr = parser.parse();
+		auto result =
+			dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+		auto& payloadKeys = result->payloads().at("LEFT(colString,3)");
+		auto& payloadValues = result->payloads().at(aggregationFunction + "(colInteger)");
+
+		ASSERT_EQ(expectedResult.size(), payloadKeys.stringpayload().stringdata_size())
+			<< " wrong number of keys";
+		for (int32_t i = 0; i < payloadKeys.stringpayload().stringdata_size(); i++)
+		{
+			std::string key = payloadKeys.stringpayload().stringdata()[i];
+			ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+			ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i])
+				<< " at key \"" << key << "\"";
+		}
+	}
+
+	void GBOBKeysGenericTest(std::string aggregationFunction,
+		std::vector<std::string> keys,
+		std::vector<int32_t> values,
+		std::unordered_map<int32_t, int32_t> expectedResult)
+	{
+		auto columns = std::unordered_map<std::string, DataType>();
+		columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
+		columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
+		columns.insert(std::make_pair<std::string, DataType>("colInteger", DataType::COLUMN_INT));
+		groupByDatabase->CreateTable(columns, tableName.c_str());
+
+		// Create column with IDs
+		std::vector<int32_t> colID;
+		for (int i = 0; i < keys.size(); i++)
+		{
+			colID.push_back(i);
+		}
+		reinterpret_cast<ColumnBase<int32_t>*>(
+			groupByDatabase->GetTables().at(tableName).GetColumns().at("colID").get())
+			->InsertData(colID);
+		reinterpret_cast<ColumnBase<std::string>*>(
+			groupByDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
+			->InsertData(keys);
+		reinterpret_cast<ColumnBase<int32_t>*>(
+			groupByDatabase->GetTables().at(tableName).GetColumns().at("colInteger").get())
+			->InsertData(values);
+
+		// Execute the query
+		GpuSqlCustomParser parser(groupByDatabase,
+			"SELECT colInteger, " + aggregationFunction + "(colID) FROM " + tableName + " GROUP BY colInteger ORDER BY colInteger;");
+		auto resultPtr = parser.parse();
+		auto result =
+			dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+		auto& payloadKeys = result->payloads().at(tableName + ".colInteger");
+		auto& payloadValues = result->payloads().at(aggregationFunction + "(colID)");
+
+		ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+			<< " wrong number of keys";
+		for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+		{
+			int32_t key = payloadKeys.intpayload().intdata()[i];
+			ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+			ASSERT_EQ(expectedResult.at(key), payloadValues.intpayload().intdata()[i])
+				<< " at key \"" << key << "\"";
+		}
+	}
+    
+	void GBOBValuesGenericTest(std::string aggregationFunction,
+		std::vector<std::string> keys,
+		std::vector<int32_t> values,
+		std::unordered_map<int32_t, int32_t> expectedResult)
+	{
+		auto columns = std::unordered_map<std::string, DataType>();
+		columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
+		columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
+		columns.insert(std::make_pair<std::string, DataType>("colInteger", DataType::COLUMN_INT));
+		groupByDatabase->CreateTable(columns, tableName.c_str());
+
+		// Create column with IDs
+		std::vector<int32_t> colID;
+		for (int i = 0; i < keys.size(); i++)
+		{
+			colID.push_back(i);
+		}
+		reinterpret_cast<ColumnBase<int32_t>*>(
+			groupByDatabase->GetTables().at(tableName).GetColumns().at("colID").get())
+			->InsertData(colID);
+		reinterpret_cast<ColumnBase<std::string>*>(
+			groupByDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
+			->InsertData(keys);
+		reinterpret_cast<ColumnBase<int32_t>*>(
+			groupByDatabase->GetTables().at(tableName).GetColumns().at("colInteger").get())
+			->InsertData(values);
+
+		// Execute the query
+		GpuSqlCustomParser parser(groupByDatabase,
+			"SELECT colInteger, " + aggregationFunction + "(colID) FROM " + tableName + " GROUP BY colInteger ORDER BY " + aggregationFunction  + "(colID) - 2;");
+		auto resultPtr = parser.parse();
+		auto result =
+			dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+		auto& payloadKeys = result->payloads().at(tableName + ".colInteger");
+		auto& payloadValues = result->payloads().at(aggregationFunction + "(colID)");
+
+		ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+			<< " wrong number of keys";
+		for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+		{
+			int32_t key = payloadKeys.intpayload().intdata()[i];
+			ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+			ASSERT_EQ(expectedResult.at(key), payloadValues.intpayload().intdata()[i])
+				<< " at key \"" << key << "\"";
+		}
+	}
+
+//== These tests are for GroupBy multi-key
     void GroupByMultiKeyGenericTest(std::string aggregationFunction,
                         std::vector<std::vector<int32_t>> keys,
                         std::vector<int32_t> values,
@@ -448,6 +542,7 @@ protected:
     }
 };
 
+// Group By basic numeric keys
 TEST_F(DispatcherGroupByTests, IntSimpleSum)
 {
     GroupByIntGenericTest("SUM",
@@ -496,6 +591,7 @@ TEST_F(DispatcherGroupByTests, IntSimpleCount)
 }
 
 
+// Group By String keys
 TEST_F(DispatcherGroupByTests, StringSimpleSum)
 {
     GBSGenericTest("SUM",
@@ -544,6 +640,7 @@ TEST_F(DispatcherGroupByTests, StringKeyOpSimpleSum)
 }
 
 
+// Group By Multi-keys
 TEST_F(DispatcherGroupByTests, MultiKeySimpleSum)
 {
     GroupByMultiKeyGenericTest("SUM",
@@ -590,4 +687,22 @@ TEST_F(DispatcherGroupByTests, MultiKeyIntIntStringSum)
         { {5, 2, 2, 2, 2, 5, 1, 7}, {1, 1, 1, 1, 1, 1, 2, 0}, {"Apple", "Nut", "Nut", "Apple", "XYZ", "Apple", "Apple", "Nut"} },
         {5, -3, -3, 9, 7, 5, 4, 20},
         { {{2, 1, "Apple"}, 9}, {{2, 1, "XYZ"}, 7}, {{1, 2, "Apple"}, 4}, {{7, 0, "Nut"}, 20}, {{5, 1, "Apple"}, 10}, {{2, 1, "Nut"}, -6} });
+}
+
+
+// Group By + Order By
+TEST_F(DispatcherGroupByTests, IntegerSimpleSumOrderByKeys)
+{
+	GBOBKeysGenericTest("SUM",
+		{ "Apple", "Abcd", "Apple", "XYZ", "Banana", "XYZ", "Abcd", "0", "XYZ", "XYZ" },
+		{ 10,	10,	  2,	 2,		6,	   6,   4,   4,   8,     8, },
+		{ {2, 5}, {4, 13}, {6, 9}, {8, 17}, {10, 1} });
+}
+
+TEST_F(DispatcherGroupByTests, IntegerSimpleSumOrderByValues)
+{
+	GBOBValuesGenericTest("SUM",
+		{ "Apple", "Abcd", "Apple", "XYZ", "Banana", "XYZ", "Abcd", "0", "XYZ", "XYZ" },
+		{ 10,	10,	  2,	 2,		6,	   6,   4,   4,   8,     8, },
+		{ {10, 1}, {2, 5}, {6, 9}, {4, 13}, {8, 17} });
 }
