@@ -286,9 +286,6 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 		std::get<0>(column) = reinterpret_cast<uintptr_t>(reconstructOutReg);
 		std::get<1>(column) = reconstructOutSize;
 	}
-	const size_t endOfPolyIdx = colTableName.find(".");
-	const std::string table = colTableName.substr(0, endOfPolyIdx);
-	const std::string columnName = colTableName.substr(endOfPolyIdx + 1);
 
 	//TODO void param
 	if (groupByTables[dispatcherThreadId] == nullptr)
