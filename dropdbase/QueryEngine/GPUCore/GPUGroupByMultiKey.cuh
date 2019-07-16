@@ -938,7 +938,7 @@ public:
 					{
 						CheckQueryEngineError(GPU_EXTENSION_ERROR, "Output value data type in GROUP BY with COUNT must be int64_t");
 					}
-                    GPUGroupBy<AGG, int64_t, std::vector<void*>, int64_t> finalGroupBy(sumElementCount, keyTypesHost);
+                    GPUGroupBy<AggregationFunctions::sum, int64_t, std::vector<void*>, int64_t> finalGroupBy(sumElementCount, keyTypesHost);
                     finalGroupBy.GroupBy(hostPointersToKeysAll, occurrencesAllGPU.get(), sumElementCount);
 												        // reinterpret_cast is needed to solve compilation error
                     finalGroupBy.GetResults(outKeysVector, reinterpret_cast<int64_t**>(outValues), outDataElementCount);

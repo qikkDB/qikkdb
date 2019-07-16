@@ -235,7 +235,9 @@ protected:
             for (int32_t c = 0; c < payloadKeys.size(); c++)
             {
                 key.emplace_back(payloadKeys[c].intpayload().intdata()[i]);
+                std::cout << payloadKeys[c].intpayload().intdata()[i] << (c == payloadKeys.size() - 1? ": " : ", ");
             }
+            std::cout << payloadValues.int64payload().int64data()[i] << std::endl;
             
             ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " bad key at result row " << i;
             ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i]) << " at result row " << i;
@@ -298,7 +300,9 @@ protected:
             for (int32_t c = 0; c < payloadKeys.size(); c++)
             {
                 key.emplace_back(payloadKeys[c].intpayload().intdata()[i]);
+                std::cout << payloadKeys[c].intpayload().intdata()[i] << (c == payloadKeys.size() - 1? ": " : ", ");
             }
+            std::cout << payloadValues.int64payload().int64data()[i] << std::endl;
             
             ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " bad key at result row " << i;
             ASSERT_EQ(expectedResult[key], payloadValues.int64payload().int64data()[i]) << " at result row " << i;
@@ -420,8 +424,7 @@ TEST_F(DispatcherGroupByTests, MultiKeySimpleAvg)
 
 TEST_F(DispatcherGroupByTests, MultiKeySimpleCount)
 {
-    GroupByMultiKeyGenericTest("COUNT",
-        { {1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1} },
+    GroupByMultiKeyCountTest({ {1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1} },
         {5, 5, 24, 1, 7, 1, 1, 2},
         { {{1, 2}, 2}, {{1, 5}, 1}, {{2, 1}, 1}, {{5, 1}, 2}, {{7, 7}, 1}, {{-1, -5}, 1} });
 }
