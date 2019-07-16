@@ -87,7 +87,7 @@ public:
     void OrderByColumn(int32_t* outIndices, T* inCol, int8_t* nullBitMask, int32_t dataElementCount, OrderBy::Order order)
     {
         // Preprocess the columns with the null values
-        // TransformNullValsToSmallestVal(inCol, nullBitMask, dataElementCount);
+        TransformNullValsToSmallestVal(inCol, nullBitMask, dataElementCount);
 
         // Keys front and back buffer
         cuda_ptr<T> keys1(dataElementCount);

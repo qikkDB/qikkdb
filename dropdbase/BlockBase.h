@@ -149,6 +149,11 @@ public:
         return size_;
     }
 
+	size_t GetNullBitmaskSize() const
+    {
+        return (size_ + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+    }
+
 	/// <summary>
 	/// Find out the amount of empty space in current block.
 	/// </summary>

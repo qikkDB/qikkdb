@@ -31,7 +31,8 @@ __device__ constexpr int32_t hash(int32_t key)
 template<typename T>
 __global__ void kernel_calc_hash_histo(int32_t* HashTableHisto,
 									   int32_t hashTableSize,
-									   T* ColumnRBlock, 
+									   T* ColumnRBlock,
+									   int8_t* nullBitMaskR,
 									   int32_t dataElementCount)
 {
     __shared__ int32_t shared_memory[HASH_TABLE_SUB_SIZE];
@@ -41,6 +42,9 @@ __global__ void kernel_calc_hash_histo(int32_t* HashTableHisto,
 
     for (int32_t i = idx; i < hashTableSize && i < dataElementCount; i += stride)
     {
+		// TODO if(nullBitMaskR == nullptr)
+
+
 		// Count the occurances of hashes and accumulate them to the local memory
         shared_memory[threadIdx.x] = 0;
         __syncthreads();
@@ -58,6 +62,7 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
 										   int32_t* HashTablePrefixSum,
 										   int32_t hashTableSize,
                                            T* ColumnRBlock,
+										   int8_t* nullBitMaskR,
 										   int32_t dataElementCount)
 {
     __shared__ int32_t shared_memory[HASH_TABLE_SUB_SIZE];
@@ -67,6 +72,11 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
 
     for (int32_t i = idx; i < hashTableSize && i < dataElementCount; i += stride)
     {
+		// TODO if(nullBitMaskR == nullptr)
+
+
+
+		// Zero the local memory
         shared_memory[threadIdx.x] = (i == 0) ? 0 : HashTablePrefixSum[i - 1];
         __syncthreads();
 
@@ -83,9 +93,11 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 									   int32_t* HashTablePrefixSum,
                                        int32_t* HashTableHashBuckets,
 									   int32_t hashTableSize,
-									   T* ColumnRBlock, 
+									   T* ColumnRBlock,
+									   int8_t* nullBitMaskR,
 									   int32_t dataElementCountColumnRBlock,
 									   T* ColumnSBlock,
+									   int8_t* nullBitMaskS,
 									   int32_t dataElementCountColumnSBlock)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -93,6 +105,13 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
 
     for (int32_t i = idx; i < joinTableSize && i < dataElementCountColumnSBlock; i += stride)
     {
+		// TODO if(nullBitMaskR == nullptr) AND if(nullBitMaskS == nullptr)
+
+
+
+
+
+
 		// Zero the histo array
 		JoinTableHisto[i] = 0;
 
@@ -128,8 +147,10 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                                                     int32_t* HashTableHashBuckets,
 													int32_t hashTableSize,
 													T* ColumnRBlock,
+													int8_t* nullBitMaskR,
 													int32_t dataElementCountColumnRBlock,
                                                     T* ColumnSBlock,
+													int8_t* nullBitMaskS,
 													int32_t dataElementCountColumnSBlock)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -137,6 +158,13 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
 
     for (int32_t i = idx; i < joinTableSize && i < dataElementCountColumnSBlock; i += stride)
     {
+		// TODO if(nullBitMaskR == nullptr) AND if(nullBitMaskS == nullptr)
+
+
+
+
+
+
 		int32_t join_prefix_sum_offset_index = 0;
 		// Hash table buckets probing
 		int32_t hash_idx = hash(ColumnSBlock[i]);
@@ -180,7 +208,7 @@ private:
 	size_t join_prefix_sum_temp_buffer_size_;
 
 	template <typename T>
-	void HashBlock(T* ColumnRBlock, int32_t dataElementCount)
+	void HashBlock(T* ColumnRBlock, int8_t* nullBitMaskR, int32_t dataElementCount)
 	{
 		//////////////////////////////////////////////////////////////////////////////
 		// Check for hash table limits
@@ -196,6 +224,7 @@ private:
 			Context::getInstance().getBlockDim() >> > (HashTableHisto_,
 				hashTableSize_,
 				ColumnRBlock,
+				nullBitMaskR,
 				dataElementCount);
 
 		//////////////////////////////////////////////////////////////////////////////
@@ -212,11 +241,12 @@ private:
 				HashTablePrefixSum_,
 				hashTableSize_,
 				ColumnRBlock,
+				nullBitMaskR,
 				dataElementCount);
 	}
 
 	template<typename OP, typename T>
-	void JoinBlockCountMatches(int32_t* resultTableSize, T* ColumnRBlock, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int32_t dataElementCountColumnSBlock)
+	void JoinBlockCountMatches(int32_t* resultTableSize, T* ColumnRBlock, int8_t* nullBitMaskR, int32_t dataElementCountColumnRBlock, T* ColumnSBlock,int8_t* nullBitMaskS, int32_t dataElementCountColumnSBlock)
 	{
 		//////////////////////////////////////////////////////////////////////////////
 		// Check for join table limits
@@ -236,8 +266,10 @@ private:
 				HashTableHashBuckets_,
 				hashTableSize_,
 				ColumnRBlock,
+				nullBitMaskR,
 				dataElementCountColumnRBlock,
 				ColumnSBlock,
+				nullBitMaskS,
 				dataElementCountColumnSBlock);
 
 		//////////////////////////////////////////////////////////////////////////////
@@ -252,7 +284,7 @@ private:
 	}
 
 	template<typename OP, typename T>
-	void JoinBlockWriteResults(int32_t* resultColumnQABlockIdx, int32_t* resultColumnQBBlockIdx, T* ColumnRBlock, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int32_t dataElementCountColumnSBlock)
+	void JoinBlockWriteResults(int32_t* resultColumnQABlockIdx, int32_t* resultColumnQBBlockIdx, T* ColumnRBlock, int8_t* nullBitMaskR, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int8_t* nullBitMaskS, int32_t dataElementCountColumnSBlock)
 	{
 		//////////////////////////////////////////////////////////////////////////////
 		// Distribute the result data to the result buffer
@@ -267,8 +299,10 @@ private:
 				HashTableHashBuckets_,
 				hashTableSize_,
 				ColumnRBlock,
+				nullBitMaskR,
 				dataElementCountColumnRBlock,
 				ColumnSBlock,
+				nullBitMaskS,
 				dataElementCountColumnSBlock);
 	}
 
@@ -301,6 +335,12 @@ public:
 		cuda_ptr<T> d_ColumnRBlock(blockSize);
 		cuda_ptr<T> d_ColumnSBlock(blockSize);
 
+		size_t nullColSizeRBlock = (blockSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+		size_t nullColSizeSBlock = (blockSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+
+		cuda_ptr<int8_t> d_ColumnNullRBlock(nullColSizeRBlock);
+		cuda_ptr<int8_t> d_ColumnNullSBlock(nullColSizeSBlock);
+
 		// Perform the GPU join
 		auto& ColumnRBlockList = ColumnR.GetBlocksList();
 		auto& ColumnSBlockList = ColumnS.GetBlocksList();
@@ -308,10 +348,22 @@ public:
 		{
 			// For the last block process only the remaining elements
 			int32_t processedRBlockSize = ColumnRBlockList[r]->GetSize();
+			int32_t processedNullRBlockSize = ColumnRBlockList[r]->GetNullBitmaskSize();
 
 			// Copy the first table block to the GPU and perform the hashing
 			GPUMemory::copyHostToDevice(d_ColumnRBlock.get(), ColumnRBlockList[r]->GetData(), processedRBlockSize);
-			gpuJoin.HashBlock(d_ColumnRBlock.get(), processedRBlockSize);
+			
+			// Configure arguments based on null values
+			if(ColumnRBlockList[r]->GetNullBitmask())
+			{
+				GPUMemory::copyHostToDevice(d_ColumnNullRBlock.get(), ColumnRBlockList[r]->GetNullBitmask(), processedNullRBlockSize);
+				gpuJoin.HashBlock(d_ColumnRBlock.get(), d_ColumnNullRBlock.get(), processedRBlockSize);
+			}
+			else
+			{
+				gpuJoin.HashBlock(d_ColumnRBlock.get(), nullptr, processedRBlockSize);
+			}
+
 			
 			for (int32_t s = 0; s < ColumnS.GetBlockCount(); s++)
 			{
@@ -320,11 +372,37 @@ public:
 
 				// For the last block process only the remaining elements
 				int32_t processedSBlockSize = ColumnSBlockList[s]->GetSize();
+				int32_t processedNullSBlockSize = ColumnSBlockList[s]->GetNullBitmaskSize();
 
 				// Copy the second table block to the GPU and perform the join
 				// Calculate the required space
 				GPUMemory::copyHostToDevice(d_ColumnSBlock.get(), ColumnSBlockList[s]->GetData(), processedSBlockSize);
-				gpuJoin.JoinBlockCountMatches<OP>(&processedQBlockResultSize, d_ColumnRBlock.get(), processedRBlockSize, d_ColumnSBlock.get(), processedSBlockSize);
+
+				// Configure arguments based on null values
+				if(ColumnSBlockList[s]->GetNullBitmask())
+				{
+					GPUMemory::copyHostToDevice(d_ColumnNullSBlock.get(), ColumnSBlockList[s]->GetNullBitmask(), processedNullSBlockSize);
+
+					if(ColumnRBlockList[r]->GetNullBitmask())
+					{
+						gpuJoin.JoinBlockCountMatches<OP>(&processedQBlockResultSize, d_ColumnRBlock.get(), d_ColumnNullRBlock.get(), processedRBlockSize, d_ColumnSBlock.get(), d_ColumnNullSBlock.get(), processedSBlockSize);
+					}
+					else
+					{
+						gpuJoin.JoinBlockCountMatches<OP>(&processedQBlockResultSize, d_ColumnRBlock.get(), nullptr, processedRBlockSize, d_ColumnSBlock.get(), d_ColumnNullSBlock.get(), processedSBlockSize);
+					}
+				}
+				else
+				{
+					if(ColumnRBlockList[r]->GetNullBitmask())
+					{
+						gpuJoin.JoinBlockCountMatches<OP>(&processedQBlockResultSize, d_ColumnRBlock.get(), d_ColumnNullRBlock.get(), processedRBlockSize, d_ColumnSBlock.get(), nullptr, processedSBlockSize);
+					}
+					else
+					{
+						gpuJoin.JoinBlockCountMatches<OP>(&processedQBlockResultSize, d_ColumnRBlock.get(), nullptr, processedRBlockSize, d_ColumnSBlock.get(), nullptr, processedSBlockSize);
+					}
+				}
 
 				// Check if the result is not empty
 				if (processedQBlockResultSize == 0)
@@ -333,13 +411,33 @@ public:
 				}
 
 				// Alloc the result buffers
-
 				cuda_ptr<int32_t> d_QAResultBlock(processedQBlockResultSize);
 				cuda_ptr<int32_t> d_QBResultBlock(processedQBlockResultSize);
 
-				// Write the result data
-				gpuJoin.JoinBlockWriteResults<OP>(d_QAResultBlock.get(), d_QBResultBlock.get(), d_ColumnRBlock.get(), processedRBlockSize, d_ColumnSBlock.get(), processedSBlockSize);
-
+				// Write the result data - configure args according to null vals
+				if(ColumnSBlockList[s]->GetNullBitmask())
+				{
+					if(ColumnRBlockList[r]->GetNullBitmask())
+					{
+						gpuJoin.JoinBlockWriteResults<OP>(d_QAResultBlock.get(), d_QBResultBlock.get(), d_ColumnRBlock.get(), d_ColumnNullRBlock.get(), processedRBlockSize, d_ColumnSBlock.get(), d_ColumnNullSBlock.get(), processedSBlockSize);
+					}
+					else
+					{
+						gpuJoin.JoinBlockWriteResults<OP>(d_QAResultBlock.get(), d_QBResultBlock.get(), d_ColumnRBlock.get(), nullptr, processedRBlockSize, d_ColumnSBlock.get(), d_ColumnNullSBlock.get(), processedSBlockSize);
+					}
+				}
+				else
+				{
+					if(ColumnRBlockList[r]->GetNullBitmask())
+					{
+						gpuJoin.JoinBlockWriteResults<OP>(d_QAResultBlock.get(), d_QBResultBlock.get(), d_ColumnRBlock.get(), d_ColumnNullRBlock.get(), processedRBlockSize, d_ColumnSBlock.get(), nullptr, processedSBlockSize);
+					}
+					else
+					{
+						gpuJoin.JoinBlockWriteResults<OP>(d_QAResultBlock.get(), d_QBResultBlock.get(), d_ColumnRBlock.get(), nullptr, processedRBlockSize, d_ColumnSBlock.get(), nullptr, processedSBlockSize);
+					}
+				}
+				
 				// Copy the result blocks back and store them in the result set
 				// The results can be at most n*n big
 				std::vector<int32_t> QAresult(processedQBlockResultSize);
