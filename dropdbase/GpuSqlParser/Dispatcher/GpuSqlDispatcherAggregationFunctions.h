@@ -228,10 +228,12 @@ public:
 			case DataType::COLUMN_STRING:
 				dispatcher.fillStringRegister(*(reinterpret_cast<GPUMemory::GPUString*>(outKeys[i])), dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys", outSize, true);
 				break;
+			case DataType::COLUMN_INT8_T:
+				dispatcher.allocatedPointers.insert({ dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<int8_t*>(outKeys[i])), outSize, true) });
+				break;
 			case DataType::COLUMN_POINT:
 			case DataType::COLUMN_POLYGON:
-			case DataType::COLUMN_INT8_T:
-				throw std::runtime_error("GROUP BY operation does not support used data types.");
+				throw std::runtime_error("GROUP BY operation does not support GEO data types.");
 				break;
 
 			}
