@@ -1,3 +1,5 @@
+#include<cmath>
+
 /// Namespace for arithmetic operation generic functors
 namespace ArithmeticOperations
 {
