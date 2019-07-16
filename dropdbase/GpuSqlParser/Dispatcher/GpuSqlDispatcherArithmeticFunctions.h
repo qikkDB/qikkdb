@@ -31,7 +31,7 @@ int32_t GpuSqlDispatcher::arithmeticColConst()
 
 	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
-		if (isLastBlockOfDevice)
+		if (isOverallLastBlock)
 		{
 			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) + "_keys");
 			int32_t retSize = std::get<1>(column);
@@ -40,7 +40,7 @@ int32_t GpuSqlDispatcher::arithmeticColConst()
 			groupByColumns.push_back({ reg, GpuSqlDispatcher::GetColumnType<ResultType>() });
 		}
 	}
-	else if (isLastBlockOfDevice || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t retSize = std::get<1>(column);
@@ -84,7 +84,7 @@ int32_t GpuSqlDispatcher::arithmeticConstCol()
 
 	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
-		if (isLastBlockOfDevice)
+		if (isOverallLastBlock)
 		{
 			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) + "_keys");
 			int32_t retSize = std::get<1>(column);
@@ -93,7 +93,7 @@ int32_t GpuSqlDispatcher::arithmeticConstCol()
 			groupByColumns.push_back({ reg, GpuSqlDispatcher::GetColumnType<ResultType>() });
 		}
 	}
-	else if (isLastBlockOfDevice || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t retSize = std::get<1>(column);
@@ -142,7 +142,7 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 
 	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameRight)) != groupByColumns.end())
 	{
-		if (isLastBlockOfDevice)
+		if (isOverallLastBlock)
 		{
 			std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight) + "_keys");
 			std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
@@ -155,7 +155,7 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 	}
 	else if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameLeft)) != groupByColumns.end())
 	{
-		if (isLastBlockOfDevice)
+		if (isOverallLastBlock)
 		{
 			std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
 			std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft) + "_keys");
@@ -166,7 +166,7 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 			groupByColumns.push_back({ reg, GpuSqlDispatcher::GetColumnType<ResultType>() });
 		}
 	}
-	else if (isLastBlockOfDevice || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
 		std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
