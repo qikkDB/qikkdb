@@ -181,10 +181,10 @@ __global__ void is_bucket_occupied_kernel(int8_t *occupancyMask, K *keys, int32_
 	for (int32_t i = idx; i < maxHashCount; i += stride)
 	{
 		occupancyMask[i] = (keys[i] != getEmptyValue<K>());
-		}
-		}
+	}
+}
 
-/// GROUP BY generic class (for MIN, MAX and SUM).
+/// GROUP BY generic class for single numeric key.
 template<typename AGG, typename O, typename K, typename V>
 class GPUGroupBy : public IGroupBy
 {
@@ -515,16 +515,16 @@ public:
 };
 
 
-// Specializations for String keys
+// Specialization for String keys
 template <typename AGG, typename O, typename V>
 class GPUGroupBy<AGG, O, std::string, V>;
 
 template <typename O, typename V>
-class GPUGroupBy<AggregationFunctions::avg, O, std::string, V>;	// TODO delete specs.
+class GPUGroupBy<AggregationFunctions::avg, O, std::string, V>;	// TODO delete specialization
 
 template <typename V>
-class GPUGroupBy<AggregationFunctions::count, int64_t, std::string, V>;	// TODO delete specs.
+class GPUGroupBy<AggregationFunctions::count, int64_t, std::string, V>;	// TODO delete specialization
 
-// Specializations for multi-keys (GROUP BY multiple column)
+// Specialization for multi-keys (GROUP BY multiple column)
 template <typename AGG, typename O, typename V>
 class GPUGroupBy<AGG, O, std::vector<void*>, V>;

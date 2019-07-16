@@ -12,8 +12,10 @@ struct CPUString
     std::vector<char> allChars;
 };
 
+/// Compute hash of multi-key
 __device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKeys, int32_t i);
 
+/// Chceck for equality of two multi-keys
 __device__ bool
 AreEqualMultiKeys(DataType* keyTypes, int32_t keysColCount, void** keysA, int32_t indexA, void** keysB, int32_t indexB);
 
@@ -29,7 +31,7 @@ __device__ bool IsNewMultiKey(DataType* keyTypes,
                               int32_t* sourceIndices,
                               int32_t index);
 
-
+/// Reconstruct one key column (keep on GPU)
 template<typename T>
 void ReconstructSingleKeyColKeep(std::vector<void*>* outKeysVector, int32_t* outDataElementCount, int8_t* occupancyMaskPtr,
         void** keyCol, int32_t elementCount)
@@ -47,10 +49,12 @@ void ReconstructSingleKeyColKeep(std::vector<void*>* outKeysVector, int32_t* out
     outKeysVector->emplace_back(outKeysSingleCol);
 }
 
+/// Reconstruct one string key column (keep on GPU)
 template<>
 void ReconstructSingleKeyColKeep<std::string>(std::vector<void*>* outKeysVector, int32_t* outDataElementCount, int8_t* occupancyMaskPtr,
         void** keyCol, int32_t elementCount);
 
+/// Reconstruct one key column to CPU
 template<typename T>
 void ReconstructSingleKeyCol(std::vector<void*>* outKeysVector, int32_t* outDataElementCount, int8_t* occupancyMaskPtr,
         void** keyCol, int32_t elementCount)
@@ -74,14 +78,18 @@ void ReconstructSingleKeyCol(std::vector<void*>* outKeysVector, int32_t* outData
     outKeysVector->emplace_back(outKeysSingleCol);
 }
 
+/// Reconstruct one string key column to CPU
 template<>
 void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector, int32_t* outDataElementCount, int8_t* occupancyMaskPtr,
         void** keyCol, int32_t elementCount);
 
+/// Alloc 2-dimensional buffer for multi-keys storage
 void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t rowCount, std::vector<void*>* pointers=nullptr);
 
+/// Free 2-dimensional buffer for multi-keys storage
 void FreeKeysBuffer(void** keysBuffer, DataType* keyTypes, int32_t keysColCount);
 
+/// Free buffers from vector
 void FreeKeysVector(std::vector<void*> keysVector, std::vector<DataType> keyTypes);
 
 /// GROUP BY Kernel processes input (inKeys and inValues). New keys from inKeys are added
@@ -165,9 +173,11 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
     }
 }
 
+/// Collect string lengths according to sourceIndices
 __global__ void kernel_collect_string_lengths(int32_t* stringLengths, int32_t* sourceIndices,
     GPUMemory::GPUString ** inKeysSingleCol, GPUMemory::GPUString ** keysBufferSingleCol, int32_t maxHashCount);
 
+/// Collect multi keys to keysBuffer according to sourceIndices
 __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                                           int32_t keysColCount,
                                           int32_t* sourceIndices,
@@ -178,7 +188,7 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                                           void** inKeys);
 
 
-/// GROUP BY class for multi-keys, for MIN, MAX and SUM.
+/// GROUP BY class for multi-keys
 template <typename AGG, typename O, typename V>
 class GPUGroupBy<AGG, O, std::vector<void*>, V> : public IGroupBy
 {
@@ -202,16 +212,17 @@ static constexpr bool DIRECT_VALUES =
 public:
     /// Indices to input keys - because of atomicity
     int32_t* sourceIndices_ = nullptr;
+    /// Keys buffer - all found combination of keys are stored here
+    void** keysBuffer_ = nullptr;
+
+private:
     /// Types of keys
     DataType* keyTypes_ = nullptr;
     /// Count of key columns
     const int32_t keysColCount_;
-    /// Keys buffer - all found combination of keys are stored here
-    void** keysBuffer_ = nullptr;
-
+    /// Indices of string key columns
     std::vector<int32_t> stringKeyColIds_;
 
-private:
     /// Value buffer of the hash table
     V* values_ = nullptr;
     /// Count of values aggregated per key (helper buffer of the hash table)
@@ -225,6 +236,7 @@ private:
 public:
     /// Create GPUGroupBy object and allocate a hash table (buffers for key, values and key occurrence counts)
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
+    /// <param name="keyTypes">key column types (will be copied to a new buffer)</param>
     GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes)
     : maxHashCount_(maxHashCount), keysColCount_(keyTypes.size())
     {
@@ -295,9 +307,8 @@ public:
 
     /// Create GPUGroupBy object with existing keys (allocate whole new hash table)
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
-    /// <param name="sourceIndices">GPU buffer with existing sourceIndices (will be copied to a new buffer)</param>
     /// <param name="keyTypes">key column types (will be copied to a new buffer)</param>
-    /// <param name="keysColCount">count of key columns</param>
+    /// <param name="sourceIndices">GPU buffer with existing sourceIndices (will be copied to a new buffer)</param>
     /// <param name="keysBuffer">GPU buffer with existing keys (will be copied to a new buffer)</param>
     GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes, int32_t* sourceIndices, void** keysBuffer)
     : GPUGroupBy(maxHashCount, keyTypes)
@@ -389,7 +400,7 @@ public:
 
 
     /// Run GROUP BY on one input buffer - callable repeatedly on the blocks of the input columns
-    /// <param name="inKeys">input buffers with keys</param>
+    /// <param name="inKeysVector">input vector of buffers with keys</param>
     /// <param name="inValues">input buffer with values</param>
     /// <param name="dataElementCount">row count to process</param>
     void GroupBy(std::vector<void*> inKeysVector, V* inValues, int32_t dataElementCount)
@@ -554,7 +565,7 @@ public:
     ///   and filled with final values)</param>
     /// <param name="outDataElementCount">output CPU buffer (will be filled with count
     ///   of reconstructed elements)</param>
-    /// CLEANUP: free all GPU pointers from outKeysVector and if GPUStruct, it is CPU pointer
+    /// CLEANUP: free all GPU pointers from outKeysVector by calling function FreeKeysVector
     void GetResults(std::vector<void*>* outKeysVector, O** outValues, int32_t* outDataElementCount)
     {
         static_assert(!std::is_same<AGG, AggregationFunctions::count>::value || std::is_same<O, int64_t>::value,
