@@ -217,9 +217,14 @@ void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t
 
 void FreeSingeKeyCol(void* ptr, DataType type)
 {
-    // TODO string
     if (ptr)
     {
+        if (type == DataType::COLUMN_STRING)
+        {
+            GPUMemory::GPUString str;
+            GPUMemory::copyDeviceToHost(reinterpret_cast<GPUMemory::GPUString*>(ptr), &str, 1);
+            GPUMemory::free(str);
+        }
         GPUMemory::free(ptr);
     }
 }
