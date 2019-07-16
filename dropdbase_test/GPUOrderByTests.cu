@@ -45,7 +45,6 @@ void OrderByTestTemplate(int32_t colCount,
                          std::chrono::duration<double> *elapsed = nullptr,
                          bool suppress = true)
 {
-    /*
     // Random generator
     int32_t SEED = 42;
     srand(SEED);
@@ -197,7 +196,7 @@ void OrderByTestTemplate(int32_t colCount,
 
     for(int32_t i = d_dataIn.size() - 1; i >= 0; i--)
     {
-        ob.OrderByColumn(d_indexBuffer, d_dataIn[i], COL_DATA_ELEMENT_COUNT, orderingIn[i]);
+        ob.OrderByColumn(d_indexBuffer, d_dataIn[i], nullptr, COL_DATA_ELEMENT_COUNT, orderingIn[i]);
     }
     
     // Copy back the results
@@ -275,7 +274,7 @@ void OrderByTestTemplate(int32_t colCount,
     {
         *elapsed = finish - start;
     }
-    */
+    
 }
 
 class GPUOrderByTests : public ::testing::Test
