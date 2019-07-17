@@ -40,7 +40,7 @@ int32_t GpuSqlDispatcher::orderByCol()
 			}
 
 			std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
-			orderByTable->OrderByColumn(
+			dynamic_cast<GPUOrderBy*>(orderByTable.get())->OrderByColumn(
 				reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)),
 				reinterpret_cast<T*>(std::get<0>(column)),
 				inSize,
@@ -65,7 +65,7 @@ int32_t GpuSqlDispatcher::orderByCol()
 		}
 
 		std::tuple<uintptr_t, int32_t, bool> orderByIndices = allocatedPointers.at("$orderByIndices");
-		orderByTable->OrderByColumn(
+		dynamic_cast<GPUOrderBy*>(orderByTable.get())->OrderByColumn(
 			reinterpret_cast<int32_t*>(std::get<0>(orderByIndices)),
 			reinterpret_cast<T*>(std::get<0>(column)),
 			inSize,

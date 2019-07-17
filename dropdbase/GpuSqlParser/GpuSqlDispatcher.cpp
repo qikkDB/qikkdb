@@ -11,7 +11,6 @@
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../ComplexPolygonFactory.h"
 #include "../StringFactory.h"
-#include "../QueryEngine/GPUCore/GPUOrderBy.cuh"
 #include "../Database.h"
 #include "../Table.h"
 #include <any>

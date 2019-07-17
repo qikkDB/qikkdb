@@ -28,6 +28,7 @@
 #include "CpuSqlDispatcher.h"
 #include "../ComplexPolygonFactory.h"
 #include "../PointFactory.h"
+#include "../QueryEngine/GPUCore/IOrderBy.h"
 
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
@@ -90,7 +91,7 @@ private:
 	CpuSqlDispatcher cpuDispatcher;
 
 	std::unique_ptr<InsertIntoStruct> insertIntoData;
-	std::unique_ptr<GPUOrderBy> orderByTable;
+	std::unique_ptr<IOrderBy> orderByTable;
 	std::vector<OrderByBlocks>& orderByBlocks;
 	
 	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged;
