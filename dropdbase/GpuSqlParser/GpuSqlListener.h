@@ -8,6 +8,7 @@
 #include "GpuSqlParser.h"
 #include "GpuSqlParserBaseListener.h"
 #include "../DataType.h"
+#include "../QueryEngine/OrderByType.h"
 #include <unordered_set>
 #include <unordered_map>
 #include <string>
@@ -16,6 +17,7 @@
 #include <boost/functional/hash.hpp>
 
 class GpuSqlDispatcher;
+class GpuSqlJoinDispatcher;
 class Database;
 
 class GpuSqlListener : public GpuSqlParserBaseListener
@@ -23,11 +25,15 @@ class GpuSqlListener : public GpuSqlParserBaseListener
 private:
     const std::shared_ptr<Database> &database;
     GpuSqlDispatcher &dispatcher;
+	GpuSqlJoinDispatcher &joinDispatcher;
     std::stack<std::pair<std::string, DataType>> parserStack;
 	std::unordered_map<std::string, std::string> tableAliases;
 	std::unordered_set<std::string> columnAliases;
     std::unordered_set<std::string> loadedTables;
 	int32_t linkTableIndex;
+	int32_t orderByColumnIndex;
+	std::unordered_map<std::string, std::pair<DataType, std::string>> returnColumns;
+	std::unordered_map<std::string, std::pair<DataType, OrderBy::Order>> orderByColumns;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
 	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
 
@@ -37,6 +43,7 @@ private:
     bool usingGroupBy;
     bool insideAgg;
 	bool insideGroupBy;
+	bool insideOrderBy;
 
 	bool insideSelectColumn;
 	bool isAggSelectColumn;
@@ -55,6 +62,8 @@ private:
 
 	bool isPolygon(const std::string &value);
 
+	void trimDelimitedIdentifier(std::string &str);
+
 	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
@@ -64,7 +73,7 @@ private:
 
 
 public:
-	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher);
+	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher, GpuSqlJoinDispatcher& joinDispatcher);
 
 	int64_t resultLimit;
     int64_t resultOffset;
@@ -105,6 +114,10 @@ public:
 
     void exitFromTables(GpuSqlParser::FromTablesContext *ctx) override;
 
+	void exitJoinClause(GpuSqlParser::JoinClauseContext *ctx) override;
+
+	void exitJoinClauses(GpuSqlParser::JoinClausesContext *ctx) override;
+
     void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 
     void enterWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
@@ -134,6 +147,12 @@ public:
 	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
 
 	void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) override;
+
+	void enterOrderByColumns(GpuSqlParser::OrderByColumnsContext *ctx) override;
+
+	void exitOrderByColumns(GpuSqlParser::OrderByColumnsContext *ctx) override;
+
+	void exitOrderByColumn(GpuSqlParser::OrderByColumnContext *ctx) override;
 
 	void exitLimit(GpuSqlParser::LimitContext *ctx) override;
 

@@ -8,6 +8,7 @@
 #include "GpuSqlListener.h"
 #include "CpuWhereListener.h"
 #include "GpuSqlDispatcher.h"
+#include "GpuSqlJoinDispatcher.h"
 #include "ParserExceptions.h"
 #include "../QueryEngine/GPUMemoryCache.h"
 #include "QueryType.h"
@@ -50,6 +51,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	antlr4::tree::ParseTreeWalker walker;
 
 	std::vector<std::unique_ptr<IGroupBy>> groupByInstances;
+	std::vector<OrderByBlocks> orderByBlocks(Context::getInstance().getDeviceCount());
 
 	for (int i = 0; i < context.getDeviceCount(); i++)
 	{
@@ -57,10 +59,10 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	}
 
 	std::unique_ptr<CpuSqlDispatcher> cpuWhereDispatcher = std::make_unique<CpuSqlDispatcher>(database);
-	std::unique_ptr<GpuSqlDispatcher> dispatcher = std::make_unique<GpuSqlDispatcher>(database, groupByInstances, -1);
-	GpuSqlListener gpuSqlListener(database, *dispatcher);
+	std::unique_ptr<GpuSqlDispatcher> dispatcher = std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, -1);
+	std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher = std::make_unique<GpuSqlJoinDispatcher>(database);
 
-
+	GpuSqlListener gpuSqlListener(database, *dispatcher, *joinDispatcher);
 	
 	CpuWhereListener cpuWhereListener(database, *cpuWhereDispatcher);
 
@@ -73,6 +75,12 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
 		walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
 		walker.walk(&cpuWhereListener, statement->sqlSelect()->fromTables());
+
+		if (statement->sqlSelect()->joinClauses())
+		{
+			walker.walk(&gpuSqlListener, statement->sqlSelect()->joinClauses());
+			joinDispatcher->execute();
+		}
 
 		if (statement->sqlSelect()->whereClause())
 		{
@@ -87,7 +95,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
 		std::vector<GpuSqlParser::SelectColumnContext*> aggColumns;
 		std::vector<GpuSqlParser::SelectColumnContext*> nonAggColumns;
-
 
 		for (auto column : statement->sqlSelect()->selectColumns()->selectColumn())
 		{
@@ -111,6 +118,26 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 			walker.walk(&gpuSqlListener, column);
 		}
 
+		if (statement->sqlSelect()->orderByColumns())
+		{
+			gpuSqlListener.enterOrderByColumns(statement->sqlSelect()->orderByColumns());
+
+			// flip the order of ORDER BY columns
+			std::vector<GpuSqlParser::OrderByColumnContext*> orderByColumns;
+
+			for (auto orderByCol : statement->sqlSelect()->orderByColumns()->orderByColumn())
+			{
+				orderByColumns.insert(orderByColumns.begin(), orderByCol);
+			}
+
+			for (auto orderByCol : orderByColumns)
+			{
+				walker.walk(&gpuSqlListener, orderByCol);
+			}
+
+			gpuSqlListener.exitOrderByColumns(statement->sqlSelect()->orderByColumns());
+		}
+
 		gpuSqlListener.exitSelectColumns(statement->sqlSelect()->selectColumns());
 
 		if (statement->sqlSelect()->offset())
@@ -121,11 +148,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		if (statement->sqlSelect()->limit())
 		{
 			walker.walk(&gpuSqlListener, statement->sqlSelect()->limit());
-		}
-
-		if (statement->sqlSelect()->orderByColumns())
-		{
-			walker.walk(&gpuSqlListener, statement->sqlSelect()->orderByColumns());
 		}
 		
 		if (!gpuSqlListener.GetUsingLoad() && !gpuSqlListener.GetUsingWhere())
@@ -197,6 +219,8 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	int32_t threadCount = isSingleGpuStatement ? 1 : context.getDeviceCount();
 
 	GpuSqlDispatcher::ResetGroupByCounters();
+	GpuSqlDispatcher::ResetOrderByCounters();
+
 	std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers;
 	std::vector<std::thread> dispatcherFutures;
 	std::vector<std::exception_ptr> dispatcherExceptions;
@@ -221,8 +245,9 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
 	for (int i = 0; i < threadCount; i++)
 	{
-		dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database, groupByInstances, i));
-		dispatcher.get()->copyExecutionDataTo(*dispatchers[i], *cpuWhereDispatcher);
+		dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, i));
+		dispatcher->copyExecutionDataTo(*dispatchers[i], *cpuWhereDispatcher);
+		dispatchers[i]->setJoinIndices(joinDispatcher->getJoinIndices());
 		dispatcherFutures.push_back(std::thread(std::bind(&GpuSqlDispatcher::execute, dispatchers[i].get(), std::ref(dispatcherResults[i]), std::ref(dispatcherExceptions[i]))));
 	}
 

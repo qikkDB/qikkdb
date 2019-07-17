@@ -22,6 +22,9 @@ __device__ const int32_t WKT_DECIMAL_PLACES = 4;
 /// POLYGON word
 __device__ const char WKT_POLYGON[] = "POLYGON";
 
+/// POINT word
+__device__ const char WKT_POINT[] = "POINT";
+
 /// Kernel for reconstructing buffer according to calculated prefixSum and inMask
 template<typename T>
 __global__ void kernel_reconstruct_col(T *outData, T *ACol, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
@@ -117,28 +120,32 @@ public:
 	{
 		Context& context = Context::getInstance();
 
-		if (inMask)		// If inMask is not nullptr
+		if (dataElementCount > 0)
 		{
-			// Malloc a new buffer for the output vector -GPU side
-			T *outDataGPUPointer = nullptr;
+			if (inMask)		// If inMask is not nullptr
+			{
+				// Use reconstructColKeep (output will be still on GPU)
+				T *outDataGPUPointer = nullptr;
+				reconstructColKeep(&outDataGPUPointer, outDataElementCount, ACol, inMask, dataElementCount);
 
-			// Call reconstruct col keep
-			reconstructColKeep(&outDataGPUPointer, outDataElementCount, ACol, inMask, dataElementCount);
+				// And copy the generated output back from the GPU
+				GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
 
-			// Copy the generated output back from the GPU
-			GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
-
-			// Free the memory
-			GPUMemory::free(outDataGPUPointer);
+				// Free the memory
+				GPUMemory::free(outDataGPUPointer);
+			}
+			else		// If inMask is nullptr, just copy whole ACol to outData
+			{
+				GPUMemory::copyDeviceToHost(outData, ACol, dataElementCount);
+				*outDataElementCount = dataElementCount;
+			}
+			// Get last error
+			CheckCudaError(cudaGetLastError());
 		}
-		else		// If inMask is nullptr, just copy whole ACol to outData
+		else
 		{
-			GPUMemory::copyDeviceToHost(outData, ACol, dataElementCount);
-			*outDataElementCount = dataElementCount;
+			*outDataElementCount = 0;
 		}
-
-		// Get last error
-		CheckCudaError(cudaGetLastError());
 	}
 
 	/// Reconstruct block of column and keep reuslt on GPU
@@ -154,30 +161,37 @@ public:
 
 		try
 		{
-			if (inMask)		// If inMask is not nullptr
+			if (dataElementCount > 0)
 			{
-				// Malloc a new buffer for the prefix sum vector
-				cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
-
-				PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
-				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
-				if(*outDataElementCount > 0)
-				{ 
-					GPUMemory::alloc<T>(outCol, *outDataElementCount);
-					// Construct the output based on the prefix sum
-					kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-							(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
-				}
-				else
+				if (inMask)		// If inMask is not nullptr
 				{
-					*outCol = nullptr;
+					// Malloc a new buffer for the prefix sum vector
+					cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
+					PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
+					GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
+					if(*outDataElementCount > 0)
+					{ 
+						GPUMemory::alloc<T>(outCol, *outDataElementCount);
+						// Construct the output based on the prefix sum
+						kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+								(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
+					}
+					else
+					{
+						*outCol = nullptr;
+					}
+				}
+				else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+				{
+					GPUMemory::alloc<T>(outCol, dataElementCount);
+					GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
+					*outDataElementCount = dataElementCount;
 				}
 			}
-			else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+			else
 			{
-				GPUMemory::alloc<T>(outCol, dataElementCount);
-				GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
-				*outDataElementCount = dataElementCount;
+				*outCol = nullptr;
+				*outDataElementCount = 0;
 			}
 		}
 		catch (...)
@@ -211,12 +225,20 @@ public:
 	static void ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
 		GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
 
+	/// Reconstruct GPUString column to two arrays: string lengths and all chars
+	/// and copy them to the CPU.
+	static void ReconstructStringColRaw(std::vector<int32_t>& keysStringLengths, std::vector<char>& keysAllChars,
+		int32_t *outDataElementCount, GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount);
+
 	/// Convert polygons to WKTs (GPUPolygon column to GPUString columns)
 	/// <param name="outStringCol">output GPUString column</param>
 	/// <param name="inPolygonCol">input GPUPolygon column</param>
 	/// <param name="dataElementCount">input data element (complex polygon) count</param>
 	static void ConvertPolyColToWKTCol(GPUMemory::GPUString *outStringCol,
 		GPUMemory::GPUPolygon inPolygonCol, int32_t dataElementCount);
+
+	static void ConvertPointColToWKTCol(GPUMemory::GPUString * outStringCol, 
+		NativeGeoPoint* inPointCol, int32_t dataElementCount);
 
 	/// Recontruct GPUPolygon column and keep on GPU in the same format
 	/// <param name="outCol">output GPUPolygon column</param>
@@ -235,6 +257,15 @@ public:
 	/// <param name="inDataElementCount">input data element (complex polygon) count</param>
 	static void ReconstructPolyColToWKT(std::string * outStringData, int32_t *outDataElementCount,
 		GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount);
+
+	/// Reconstruct NativeGeoPoint column and convert to WKT string array on CPU
+	/// <param name="outStringData">output CPU string array</param>
+	/// <param name="outDataElementCount">reconstructed data element (WKT string) count</param>
+	/// <param name="inPointCol">input NativeGeoPoint column</param>
+	/// <param name="inMask">input mask for the reconstruction</param>
+	/// <param name="inDataElementCount">input data element (point) count</param>
+	static void ReconstructPointColToWKT(std::string * outStringData, int32_t *outDataElementCount,
+		NativeGeoPoint* inPointCol, int8_t *inMask, int32_t inDataElementCount);
 
 	/// Function for generating array with sorted indexes which point to values where mask is 1.
 	/// Result is copied to host.

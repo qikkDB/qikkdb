@@ -78,10 +78,15 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseGenerator.h)
 
 set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu 
+                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUJoin.cu
+                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUGroupByMultiKey.cu
+                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUGroupByString.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUPolygonClipping.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUReconstruct.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUStringBinary.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUStringUnary.cu
+                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUOrderBy.cu
+                ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlDispatcher.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/Compression/GPUCompression.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherLogicFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherArithmeticFunctions.cu
@@ -89,8 +94,12 @@ set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherArithmeticUnaryFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherAggregationFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherDateFunctions.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlJoinDispatcher.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlJoinFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherVMFunctions.cu
-				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherGeoFunctions.cu)
+				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherInsertFunctions.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherGeoFunctions.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherOrderByFunctions.cu)
 
 if(WIN32)
 	set_source_files_properties(${SOURCE_FILES} main.cpp PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275 /wd4244 /wd4267 /wd4305 /bigobj")
