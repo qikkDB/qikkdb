@@ -46,7 +46,7 @@ int32_t GpuSqlDispatcher::retCol()
 	{
 		if (isOverallLastBlock)
 		{
-			PointerAllocation col = allocatedPointers.at(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end()? "_keys" : ""));
+			PointerAllocation col = allocatedPointers.at(getAllocatedRegisterName(colName) + (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end()? KEYS_SUFFIX : ""));
 			outSize = col.elementCount;
 			if (usingOrderBy)
 			{

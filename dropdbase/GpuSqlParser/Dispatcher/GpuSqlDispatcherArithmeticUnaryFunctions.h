@@ -24,29 +24,29 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 
 	std::cout << "ArithmeticUnaryCol: " << colName << " " << reg << std::endl;
 
-	if (groupByColumns.find(colName) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
-		if (isLastBlockOfDevice)
+		if (isOverallLastBlock)
 		{
-			PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName) + "_keys");
+			PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName) + KEYS_SUFFIX);
 			int32_t retSize = column.elementCount;
 			ResultType * result;
 			if(column.gpuNullMaskPtr)
 			{
 				int8_t * nullMask;
-				result = allocateRegister<ResultType>(reg + "_keys", retSize, &nullMask);
+				result = allocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize, &nullMask);
 				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
 			}
 			else
 			{
-				result = allocateRegister<ResultType>(reg + "_keys", retSize);
+				result = allocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize);
 			}
 			GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(column.gpuPtr), retSize);
-			groupByColumns.insert(reg);
+			groupByColumns.push_back({ reg, ::GetColumnType<ResultType>() });
 		}
 	}
-	else if (isLastBlockOfDevice || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy)
 	{
 		PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t retSize = column.elementCount;

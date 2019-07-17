@@ -123,7 +123,7 @@ public:
 	{
 		Context& context = Context::getInstance();
 
-		if (inMask)		// If inMask is not nullptr
+		if (inMask)
 		{
 			// Malloc a new buffer for the output vector -GPU side
 			T *outDataGPUPointer = nullptr;
@@ -159,8 +159,9 @@ public:
 				}
 				throw;
 			}
+
 		}
-		else		// If inMask is nullptr, just copy whole ACol to outData
+		else
 		{
 			GPUMemory::copyDeviceToHost(outData, ACol, dataElementCount);
 			*outDataElementCount = dataElementCount;
@@ -170,7 +171,7 @@ public:
 				GPUMemory::copyDeviceToHost(outNullMask, nullMask, outBitMaskSize);
 			}
 		}
-
+		
 		// Get last error
 		CheckCudaError(cudaGetLastError());
 	}
@@ -188,43 +189,57 @@ public:
 
 		try
 		{
-			if (inMask)		// If inMask is not nullptr
+			if (dataElementCount > 0)
 			{
-				// Malloc a new buffer for the prefix sum vector
-				cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
+				if(inMask)
+				{
+					// Malloc a new buffer for the prefix sum vector
+					cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
 
-				PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
-				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
-				if(*outDataElementCount > 0)
-				{ 
-					GPUMemory::alloc<T>(outCol, *outDataElementCount);
-					// Construct the output based on the prefix sum
-					kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-							(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
+					PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
+					GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
+					if(*outDataElementCount > 0)
+					{ 
+						GPUMemory::alloc<T>(outCol, *outDataElementCount);
+						// Construct the output based on the prefix sum
+						kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+								(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
+						if(nullMask)
+						{
+							size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int32_t)*8);
+							GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
+							kernel_reconstruct_null_mask << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+								(reinterpret_cast<int32_t*>(*outNullMask), nullMask, prefixSumPointer.get(), inMask, dataElementCount);
+						}
+					}
+					else
+					{
+						*outCol = nullptr;
+						if (outNullMask)
+						{
+							*outNullMask = nullptr;
+						}
+					}
+					
+				}
+				else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+				{
+					GPUMemory::alloc<T>(outCol, dataElementCount);
+					GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
+					size_t outBitMaskSize = (dataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
 					if(nullMask)
 					{
-						size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int32_t)*8);
-						GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
-						kernel_reconstruct_null_mask << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-							(reinterpret_cast<int32_t*>(*outNullMask), nullMask, prefixSumPointer.get(), inMask, dataElementCount);
+						GPUMemory::alloc(outNullMask, outBitMaskSize);
+						GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
 					}
-				}
-				else
-				{
-					*outCol = nullptr;
+					*outDataElementCount = dataElementCount;
 				}
 			}
-			else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+			else
 			{
-				GPUMemory::alloc<T>(outCol, dataElementCount);
-				GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
-				size_t outBitMaskSize = (dataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
-				if(nullMask)
-				{
-					GPUMemory::alloc(outNullMask, outBitMaskSize);
-					GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
-				}
-				*outDataElementCount = dataElementCount;
+				*outCol = nullptr;
+				*outDataElementCount = 0;
+				*outNullMask = nullptr;
 			}
 		}
 		catch (...)
@@ -232,6 +247,10 @@ public:
 			if (*outCol)
 			{
 				GPUMemory::free(*outCol);
+			}
+			if (*outNullMask)
+			{
+				GPUMemory::free(*outNullMask);
 			}
 			throw;
 		}
