@@ -771,28 +771,28 @@ public:
                     {
                         memcpy(reinterpret_cast<int32_t*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
                                 elementCount * sizeof(int32_t));
-                        delete reinterpret_cast<int32_t*>(multiKeys[t]);
+                        delete[] reinterpret_cast<int32_t*>(multiKeys[t]);
                         break;
                     }
                     case DataType::COLUMN_LONG:
                     {
                         memcpy(reinterpret_cast<int64_t*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
                                 elementCount * sizeof(int64_t));
-                        delete reinterpret_cast<int64_t*>(multiKeys[t]);
+                        delete[] reinterpret_cast<int64_t*>(multiKeys[t]);
                         break;
                     }
                     case DataType::COLUMN_FLOAT:
                     {
                         memcpy(reinterpret_cast<float*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
                                 elementCount * sizeof(float));
-                        delete reinterpret_cast<float*>(multiKeys[t]);
+                        delete[] reinterpret_cast<float*>(multiKeys[t]);
                         break;
                     }
                     case DataType::COLUMN_DOUBLE:
                     {
                         memcpy(reinterpret_cast<double*>(multiKeysAllHost[t]) + sumElementCount, multiKeys[t],
                                 elementCount * sizeof(double));
-                        delete reinterpret_cast<double*>(multiKeys[t]);
+                        delete[] reinterpret_cast<double*>(multiKeys[t]);
                         break;
                     }
                     case DataType::COLUMN_STRING:
