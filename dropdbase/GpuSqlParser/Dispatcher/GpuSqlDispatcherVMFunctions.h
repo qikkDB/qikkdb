@@ -46,7 +46,7 @@ int32_t GpuSqlDispatcher::retCol()
 	{
 		if (isOverallLastBlock)
 		{
-			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end()? "_keys" : ""));
+			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName) + (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end()? "_keys" : ""));
 			outSize = std::get<1>(col);
 
 			if (usingOrderBy)

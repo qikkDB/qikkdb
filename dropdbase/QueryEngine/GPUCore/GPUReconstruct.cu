@@ -318,6 +318,8 @@ void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *o
 			outStringData[i] = std::string(hostAllChars.get() +
 				(i == 0 ? 0 : hostStringIndices[i - 1]), length);
 		}
+		// Free GPUString because it is not going out
+		GPUMemory::free(outStringCol);
 	}
 }
 

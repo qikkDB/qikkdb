@@ -120,28 +120,32 @@ public:
 	{
 		Context& context = Context::getInstance();
 
-		if (inMask)		// If inMask is not nullptr
+		if (dataElementCount > 0)
 		{
-			// Malloc a new buffer for the output vector -GPU side
-			T *outDataGPUPointer = nullptr;
+			if (inMask)		// If inMask is not nullptr
+			{
+				// Use reconstructColKeep (output will be still on GPU)
+				T *outDataGPUPointer = nullptr;
+				reconstructColKeep(&outDataGPUPointer, outDataElementCount, ACol, inMask, dataElementCount);
 
-			// Call reconstruct col keep
-			reconstructColKeep(&outDataGPUPointer, outDataElementCount, ACol, inMask, dataElementCount);
+				// And copy the generated output back from the GPU
+				GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
 
-			// Copy the generated output back from the GPU
-			GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
-
-			// Free the memory
-			GPUMemory::free(outDataGPUPointer);
+				// Free the memory
+				GPUMemory::free(outDataGPUPointer);
+			}
+			else		// If inMask is nullptr, just copy whole ACol to outData
+			{
+				GPUMemory::copyDeviceToHost(outData, ACol, dataElementCount);
+				*outDataElementCount = dataElementCount;
+			}
+			// Get last error
+			CheckCudaError(cudaGetLastError());
 		}
-		else		// If inMask is nullptr, just copy whole ACol to outData
+		else
 		{
-			GPUMemory::copyDeviceToHost(outData, ACol, dataElementCount);
-			*outDataElementCount = dataElementCount;
+			*outDataElementCount = 0;
 		}
-
-		// Get last error
-		CheckCudaError(cudaGetLastError());
 	}
 
 	/// Reconstruct block of column and keep reuslt on GPU
@@ -157,30 +161,37 @@ public:
 
 		try
 		{
-			if (inMask)		// If inMask is not nullptr
+			if (dataElementCount > 0)
 			{
-				// Malloc a new buffer for the prefix sum vector
-				cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
-
-				PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
-				GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
-				if(*outDataElementCount > 0)
-				{ 
-					GPUMemory::alloc<T>(outCol, *outDataElementCount);
-					// Construct the output based on the prefix sum
-					kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
-							(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
-				}
-				else
+				if (inMask)		// If inMask is not nullptr
 				{
-					*outCol = nullptr;
+					// Malloc a new buffer for the prefix sum vector
+					cuda_ptr<int32_t> prefixSumPointer(dataElementCount);
+					PrefixSum(prefixSumPointer.get(), inMask, dataElementCount);
+					GPUMemory::copyDeviceToHost(outDataElementCount, prefixSumPointer.get() + dataElementCount - 1, 1);
+					if(*outDataElementCount > 0)
+					{ 
+						GPUMemory::alloc<T>(outCol, *outDataElementCount);
+						// Construct the output based on the prefix sum
+						kernel_reconstruct_col << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
+								(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
+					}
+					else
+					{
+						*outCol = nullptr;
+					}
+				}
+				else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+				{
+					GPUMemory::alloc<T>(outCol, dataElementCount);
+					GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
+					*outDataElementCount = dataElementCount;
 				}
 			}
-			else if (*outCol != ACol)	// If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+			else
 			{
-				GPUMemory::alloc<T>(outCol, dataElementCount);
-				GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
-				*outDataElementCount = dataElementCount;
+				*outCol = nullptr;
+				*outDataElementCount = 0;
 			}
 		}
 		catch (...)

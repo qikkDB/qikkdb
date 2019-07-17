@@ -29,18 +29,18 @@ int32_t GpuSqlDispatcher::arithmeticColConst()
 
 	std::cout << "ArithmeticColConst: " << colName << " " << reg << std::endl;
 
-	if (groupByColumns.find(colName) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
-		if (isLastBlockOfDevice)
+		if (isOverallLastBlock)
 		{
 			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) + "_keys");
 			int32_t retSize = std::get<1>(column);
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
 			GPUArithmetic::colConst<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(column)), cnst, retSize);
-			groupByColumns.insert(reg);
+			groupByColumns.push_back({ reg, ::GetColumnType<ResultType>() });
 		}
 	}
-	else if (isLastBlockOfDevice || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t retSize = std::get<1>(column);
@@ -82,18 +82,18 @@ int32_t GpuSqlDispatcher::arithmeticConstCol()
 
 	std::cout << "ArithmeticConstCol: " << colName << " " << reg << std::endl;
 
-	if (groupByColumns.find(colName) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
-		if (isLastBlockOfDevice)
+		if (isOverallLastBlock)
 		{
 			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) + "_keys");
 			int32_t retSize = std::get<1>(column);
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
 			GPUArithmetic::constCol<OP, ResultType, T, U>(result, cnst, reinterpret_cast<U*>(std::get<0>(column)), retSize);
-			groupByColumns.insert(reg);
+			groupByColumns.push_back({ reg, ::GetColumnType<ResultType>() });
 		}
 	}
-	else if (isLastBlockOfDevice || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
 		int32_t retSize = std::get<1>(column);
@@ -140,9 +140,9 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 
 	std::cout << "ArithmeticColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-	if (groupByColumns.find(colNameRight) != groupByColumns.end())
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameRight)) != groupByColumns.end())
 	{
-		if (isLastBlockOfDevice)
+		if (isOverallLastBlock)
 		{
 			std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight) + "_keys");
 			std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
@@ -150,12 +150,12 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
 			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
-			groupByColumns.insert(reg);
+			groupByColumns.push_back({ reg, ::GetColumnType<ResultType>() });
 		}
 	}
-	else if (groupByColumns.find(colNameLeft) != groupByColumns.end())
+	else if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameLeft)) != groupByColumns.end())
 	{
-		if (isLastBlockOfDevice)
+		if (isOverallLastBlock)
 		{
 			std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
 			std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft) + "_keys");
@@ -163,10 +163,10 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
 			GPUArithmetic::colCol<OP, ResultType, T, U>(result, reinterpret_cast<T*>(std::get<0>(columnLeft)), reinterpret_cast<U*>(std::get<0>(columnRight)), retSize);
-			groupByColumns.insert(reg);
+			groupByColumns.push_back({ reg, ::GetColumnType<ResultType>() });
 		}
 	}
-	else if (isLastBlockOfDevice || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy)
 	{
 		std::tuple<uintptr_t, int32_t, bool> columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
 		std::tuple<uintptr_t, int32_t, bool> columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
