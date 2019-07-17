@@ -10670,5 +10670,5 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
 
 	GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE WhereEvalDatabase;");
 	resultPtr = parserDropDatabase.parse();
-	std::cout.set_rdbuf(old);
+	std::cout.rdbuf(old);
 }
