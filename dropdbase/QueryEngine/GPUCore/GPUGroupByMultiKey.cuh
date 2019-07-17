@@ -113,13 +113,13 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
         // Calculate hash
-        const int32_t hash = GetHash(keyTypes, keysColCount, inKeys, i);
+        const int32_t hash = abs(GetHash(keyTypes, keysColCount, inKeys, i)) % maxHashCount;
 
         int32_t foundIndex = -1;
         for (int32_t j = 0; j < maxHashCount; j++)
         {
             // Calculate index to hash-table from hash
-            const int32_t index = abs((hash + j) % maxHashCount);
+            const int32_t index = (hash + j) % maxHashCount;
 
             // Check if key is not empty and key is not equal to the currently inserted key
             if (sourceIndices[index] != GBS_SOURCE_INDEX_EMPTY_KEY &&
