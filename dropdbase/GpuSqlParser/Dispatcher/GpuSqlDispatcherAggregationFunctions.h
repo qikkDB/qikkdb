@@ -366,7 +366,7 @@ int32_t GpuSqlDispatcher::groupByCol()
 
 	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(columnName)) == groupByColumns.end())
 	{
-		groupByColumns.push_back({ columnName,  GpuSqlDispatcher::GetColumnType<T>() });
+		groupByColumns.push_back({ columnName,  ::GetColumnType<T>() });
 	}
 	usingGroupBy = true;
 	return 0;
