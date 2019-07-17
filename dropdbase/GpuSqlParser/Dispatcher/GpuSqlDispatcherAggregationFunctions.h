@@ -101,7 +101,9 @@ public:
 
 		int32_t dataSize = std::min(groupByColumn.elementCount, valueColumn.elementCount);
 
-		reinterpret_cast<GPUGroupBy<OP, O, K, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->groupBy(reinterpret_cast<K*>(groupByColumn.gpuPtr), reinterpret_cast<V*>(valueColumn.gpuPtr), dataSize);
+		reinterpret_cast<GPUGroupBy<OP, O, K, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->ProcessBlock(
+			reinterpret_cast<K*>(groupByColumn.gpuPtr), reinterpret_cast<V*>(valueColumn.gpuPtr), dataSize,
+			reinterpret_cast<int8_t*>(groupByColumn.gpuNullMaskPtr), reinterpret_cast<int8_t*>(valueColumn.gpuNullMaskPtr));
 	}
 
 	static void GetResults(const std::vector<std::pair<std::string, DataType>>& groupByColumns, const std::string& reg, GpuSqlDispatcher& dispatcher)
@@ -109,10 +111,12 @@ public:
 		std::string groupByColumnName = groupByColumns.begin()->first;
 		int32_t outSize;
 		K* outKeys = nullptr;
+		int8_t* outKeyNullMask = nullptr;
 		O* outValues = nullptr;
-		reinterpret_cast<GPUGroupBy<OP, O, K, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables);
-		dispatcher.allocatedPointers.insert({ dispatcher.getAllocatedRegisterName(groupByColumnName) + KEYS_SUFFIX, PointerAllocation{reinterpret_cast<uintptr_t>(outKeys), outSize, true, 0} });
-		dispatcher.allocatedPointers.insert( {reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true, 0} });
+		int8_t* outValueNullMask = nullptr;
+		reinterpret_cast<GPUGroupBy<OP, O, K, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables, &outKeyNullMask, &outValueNullMask);
+		dispatcher.allocatedPointers.insert({ dispatcher.getAllocatedRegisterName(groupByColumnName) + KEYS_SUFFIX, PointerAllocation{ reinterpret_cast<uintptr_t>(outKeys), outSize, true, reinterpret_cast<uintptr_t>(outKeyNullMask) } });
+		dispatcher.allocatedPointers.insert({ reg, PointerAllocation{ reinterpret_cast<uintptr_t>(outValues), outSize, true, reinterpret_cast<uintptr_t>(outValueNullMask) } });
 	}
 };
 
