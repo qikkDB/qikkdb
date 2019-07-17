@@ -27,6 +27,21 @@ __global__ void kernel_reconstruct_null_mask(int32_t *outData, int8_t *ACol, int
 	
 }
 
+
+__global__ void kernel_compress_null_mask(int32_t *outData, int8_t *ACol, int32_t dataElementCount)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		int outBitMaskIdx = i / (sizeof(int32_t)*8);
+		int outBitMaskShiftIdx = i % (sizeof(int32_t)*8);
+		atomicOr(outData + outBitMaskIdx, (ACol[i] & 1) << outBitMaskShiftIdx);	
+	}
+}
+
+
 __global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCol,
 	GPUMemory::GPUString inStringCol, int32_t * inStringLengths,
 	int32_t *prefixSum, int8_t *inMask, int32_t stringCount)
