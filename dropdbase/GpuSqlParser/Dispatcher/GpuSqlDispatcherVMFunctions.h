@@ -89,9 +89,12 @@ int32_t GpuSqlDispatcher::retCol()
 		}
 	}
 
-	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-	insertIntoPayload(payload, outData, outSize);
-	MergePayloadToSelfResponse(alias, payload);
+	if (outSize > 0)
+	{
+		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+		insertIntoPayload(payload, outData, outSize);
+		MergePayloadToSelfResponse(alias, payload);
+	}
 	return 0;
 }
 

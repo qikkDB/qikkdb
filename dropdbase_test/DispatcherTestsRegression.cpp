@@ -20,11 +20,8 @@ TEST(DispatcherTestsRegression, EmptyResultFromGtColConst)
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 4096;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	auto &payloads = result->payloads().at("TableA.colInteger1");
 
-	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);		// Check if the result size is also 0
-
-	FAIL();
+	ASSERT_EQ(result->payloads().size(), 0);	// Check if the result size is also 0
 }
 
 TEST(DispatcherTestsRegression, EmptyResultFromGroupByCount)
@@ -34,11 +31,8 @@ TEST(DispatcherTestsRegression, EmptyResultFromGroupByCount)
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COUNT(colInteger1) FROM TableA WHERE colInteger1 > 4096 GROUP BY colInteger1;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	auto &payloads = result->payloads().at("COUNT(colInteger1)");
 
-	ASSERT_EQ(payloads.int64payload().int64data_size(), 0);
-
-	FAIL();
+	ASSERT_EQ(result->payloads().size(), 0);
 }
 
 TEST(DispatcherTestsRegression, EmptyResultFromGroupByAvg)
@@ -48,11 +42,8 @@ TEST(DispatcherTestsRegression, EmptyResultFromGroupByAvg)
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT AVG(colInteger1) FROM TableA WHERE colInteger1 > 4096 GROUP BY colInteger1;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	auto &payloads = result->payloads().at("AVG(colInteger1)");
 
-	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);
-
-	FAIL();
+	ASSERT_EQ(result->payloads().size(), 0);
 }
 
 TEST(DispatcherTestsRegression, EmptyResultFromGroupBySum)
@@ -62,11 +53,8 @@ TEST(DispatcherTestsRegression, EmptyResultFromGroupBySum)
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT SUM(colInteger1) FROM TableA WHERE colInteger1 > 4096 GROUP BY colInteger1;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	auto &payloads = result->payloads().at("SUM(colInteger1)");
 
-	ASSERT_EQ(payloads.intpayload().intdata_size(), 0);
-
-	FAIL();
+	ASSERT_EQ(result->payloads().size(), 0);
 }
 
 
@@ -77,12 +65,7 @@ TEST(DispatcherTestsRegression, EmptySetAggregationCount)
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COUNT(colInteger1) FROM TableA WHERE colInteger1 > 4096;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	auto &payloads = result->payloads().at("COUNT(colInteger1)");
-	
-	ASSERT_EQ(payloads.int64payload().int64data_size(), 1);	// Check if the result size is 1
-	ASSERT_EQ(payloads.int64payload().int64data()[0], 0);	// and at row 0 is count = 0
-
-	FAIL();
+	ASSERT_EQ(result->payloads().size(), 0);
 }
 
 TEST(DispatcherTestsRegression, EmptySetAggregationSum)
@@ -92,11 +75,8 @@ TEST(DispatcherTestsRegression, EmptySetAggregationSum)
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT SUM(colInteger1) FROM TableA WHERE colInteger1 > 4096;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	auto &payloads = result->payloads().at("SUM(colInteger1)");
-	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);	// Check if the result size is 1
+	ASSERT_EQ(result->payloads().size(), 0);
 	// TODO: assert at row 0
-
-	FAIL();
 }
 
 TEST(DispatcherTestsRegression, EmptySetAggregationMin)
@@ -106,11 +86,7 @@ TEST(DispatcherTestsRegression, EmptySetAggregationMin)
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT MIN(colInteger1) FROM TableA WHERE colInteger1 > 4096;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	auto &payloads = result->payloads().at("MIN(colInteger1)");
-	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);	// Check if the result size is 1
-	// TODO: assert at row 0
-
-	FAIL();
+	ASSERT_EQ(result->payloads().size(), 0);
 }
 
 TEST(DispatcherTestsRegression, PointAggregationCount)

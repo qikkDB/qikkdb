@@ -147,7 +147,7 @@ namespace ArithmeticOperations
 		template<typename T, typename U, typename V>
 		__device__ __host__ T operator()(U a, V b) const
 		{
-			return powf(a, 1 / b);
+			return powf(a, 1.0f / b);
 		}
 	};
 }

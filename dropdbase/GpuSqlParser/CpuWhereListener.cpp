@@ -364,6 +364,7 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
 	for (auto fromTable : ctx->fromTable())
 	{
 		std::string table = fromTable->table()->getText();
+		trimDelimitedIdentifier(table);
 		if (database->GetTables().find(table) == database->GetTables().end())
 		{
 			throw TableNotFoundFromException();
@@ -373,6 +374,7 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
 		if (fromTable->alias())
 		{
 			std::string alias = fromTable->alias()->getText();
+			trimDelimitedIdentifier(alias);
 			if (tableAliases.find(alias) != tableAliases.end())
 			{
 				throw AliasRedefinitionException();
@@ -475,6 +477,15 @@ bool CpuWhereListener::isPolygon(const std::string & value)
 	return (value.find("POLYGON") == 0);
 }
 
+void CpuWhereListener::trimDelimitedIdentifier(std::string& str)
+{
+	if (str.front() == '[' && str.back() == ']' && str.size() > 2)
+	{
+		str.erase(0, 1);
+		str.erase(str.size() - 1);
+	}
+}
+
 std::string CpuWhereListener::getRegString(antlr4::ParserRuleContext * ctx)
 {
 	return std::string("$") + ctx->getText();
@@ -514,7 +525,9 @@ std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName
 	if (ctx->table())
 	{
 		table = ctx->table()->getText();
+		trimDelimitedIdentifier(table);
 		column = ctx->column()->getText();
+		trimDelimitedIdentifier(column);
 	
 		if (tableAliases.find(table) != tableAliases.end())
 		{

@@ -129,9 +129,7 @@ protected:
 		GpuSqlCustomParser parser(geoDatabase, "SELECT colID FROM " + tableName + " WHERE GEO_CONTAINS(" + polygon + " , " + point + ");");
 		auto resultPtr = parser.parse();
 		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-		auto &payloads = result->payloads().at("SimpleTable.colID");
-
-		ASSERT_EQ(0, payloads.intpayload().intdata_size()) << "size is not correct";
+		ASSERT_EQ(result->payloads().size(), 0);
 	}
 
 	void PolygonReconstruct(std::vector<std::string> inputWkt,

@@ -8394,7 +8394,7 @@ TEST(DispatcherTests, BitwiseOrColConstInt)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 | 20) > 100;");
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 | 20) > 20;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -8407,7 +8407,7 @@ TEST(DispatcherTests, BitwiseOrColConstInt)
 		auto blockInt = columnInt->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			if ((blockInt->GetData()[k] | 20) > 100)
+			if ((blockInt->GetData()[k] | 20) > 20)
 			{
 				expectedResultsInt.push_back(blockInt->GetData()[k]);
 			}
@@ -8428,7 +8428,7 @@ TEST(DispatcherTests, BitwiseAndColConstInt)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 & 20) > 100;");
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 & 20) > 10;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -8441,7 +8441,7 @@ TEST(DispatcherTests, BitwiseAndColConstInt)
 		auto blockInt = columnInt->GetBlocksList()[i];
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			if ((blockInt->GetData()[k] & 20) > 100)
+			if ((blockInt->GetData()[k] & 20) > 10)
 			{
 				expectedResultsInt.push_back(blockInt->GetData()[k]);
 			}
@@ -9446,7 +9446,7 @@ TEST(DispatcherTests, RootColConstInt)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ROOT(colInteger1, 3) > 20;");
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ROOT(colInteger1, 2) > 0;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -9460,12 +9460,14 @@ TEST(DispatcherTests, RootColConstInt)
 
 		for (int k = 0; k < (1 << 11); k++)
 		{
-			if (pow(blockInt->GetData()[k], 1/3) > 20)
+			if (powf(blockInt->GetData()[k], 0.5f) > 0)
 			{
 				expectedResultsInt.push_back(blockInt->GetData()[k]);
 			}
 		}
 	}
+
+	std::cout << "Expected result size: " << expectedResultsInt.size() << std::endl;
 
 	auto &payloadsInt = result->payloads().at("TableA.colInteger1");
 

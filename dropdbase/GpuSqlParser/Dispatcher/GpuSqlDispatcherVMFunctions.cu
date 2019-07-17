@@ -263,9 +263,13 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>()
 			std::get<0>(ACol), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
 
 		std::cout << "dataSize: " << outSize << std::endl;
-		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-		insertIntoPayload(payload, outData, outSize);
-		MergePayloadToSelfResponse(alias, payload);
+
+		if (outSize > 0)
+		{
+			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+			insertIntoPayload(payload, outData, outSize);
+			MergePayloadToSelfResponse(alias, payload);
+		}
 	}
 	return 0;
 }
@@ -297,9 +301,13 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>()
 			reinterpret_cast<NativeGeoPoint*>(std::get<0>(ACol)), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
 
 		std::cout << "dataSize: " << outSize << std::endl;
-		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-		insertIntoPayload(payload, outData, outSize);
-		MergePayloadToSelfResponse(alias, payload);
+
+		if (outSize > 0)
+		{
+			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+			insertIntoPayload(payload, outData, outSize);
+			MergePayloadToSelfResponse(alias, payload);
+		}
 	}
 	return 0;
 }
@@ -346,9 +354,12 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 		std::cout << "dataSize: " << outSize << std::endl;
 	}
 
-	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-	insertIntoPayload(payload, outData, outSize);
-	MergePayloadToSelfResponse(alias, payload);
+	if (outSize > 0)
+	{
+		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+		insertIntoPayload(payload, outData, outSize);
+		MergePayloadToSelfResponse(alias, payload);
+	}
 	return 0;
 }
 

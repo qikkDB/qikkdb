@@ -31,6 +31,8 @@ private:
 
 	bool isPolygon(const std::string &value);
 
+	void trimDelimitedIdentifier(std::string& str);
+
 	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);

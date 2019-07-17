@@ -874,7 +874,7 @@ int32_t GpuSqlDispatcher::fil()
 
 int32_t GpuSqlDispatcher::whereEvaluation()
 {
-	loadNecessary = cpuDispatcher.execute(blockIndex);
+	loadNecessary = usingJoin ? 1 : cpuDispatcher.execute(blockIndex);
 	std::cout << "Where load evaluation: " << loadNecessary << std::endl;
 	return 0;
 }
