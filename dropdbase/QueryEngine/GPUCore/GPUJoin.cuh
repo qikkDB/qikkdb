@@ -133,7 +133,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
     for (int32_t i = idx; i < joinTableSize && i < dataElementCountColumnSBlock; i += stride)
     {
 		// Zero the histo array
-		JoinTableHisto[i] = 0;
+		//JoinTableHisto[i] = 0;
 
 		// Count the number of result hash matches for this entry
 		int32_t hashMatchCounter = 0;
@@ -455,8 +455,6 @@ public:
 		// Alloc the first block
 		int32_t currentQAResultBlockIdx = 0;
 		int32_t currentQBResultBlockIdx = 0;
-		resultColumnQAJoinIdx.push_back(std::vector<int32_t>{});
-		resultColumnQBJoinIdx.push_back(std::vector<int32_t>{});
 
 		// Create a join instance
 		GPUJoin gpuJoin(blockSize);
@@ -578,10 +576,20 @@ public:
 
 				for (int32_t i = 0; i < processedQBlockResultSize; i++)
 				{
+					if(resultColumnQAJoinIdx.size() == 0)
+					{
+						resultColumnQAJoinIdx.push_back(std::vector<int32_t>{});
+					}
+
 					if (resultColumnQAJoinIdx[currentQAResultBlockIdx].size() == blockSize)
 					{
 						resultColumnQAJoinIdx.push_back(std::vector<int32_t>{});
 						currentQAResultBlockIdx++;
+					}
+
+					if(resultColumnQBJoinIdx.size() == 0)
+					{
+						resultColumnQBJoinIdx.push_back(std::vector<int32_t>{});
 					}
 
 					if (resultColumnQBJoinIdx[currentQBResultBlockIdx].size() == blockSize)
@@ -612,7 +620,8 @@ public:
 		}
 
 		// Allocan output CPU vector
-		std::vector<T> outBlockVector;
+		std::vector<T> outBlockVector(resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size());
+		std::vector<uint8_t> outNullBlockVector((resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size() + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8));
 
 		for (int32_t i = 0; i < resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size(); i++)
 		{
@@ -620,7 +629,13 @@ public:
 			int32_t columnRowId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] % blockSize;
 
 			T val = inColumn.GetBlocksList()[columnBlockId]->GetData()[columnRowId];
-			outBlockVector.push_back(val);
+			int8_t nullBit = (inColumn.GetBlocksList()[columnBlockId]->GetNullBitmask()[columnRowId / (sizeof(int8_t) * 8)] >> (columnRowId % (sizeof(int8_t) * 8))) & 1;
+
+			outBlockVector[i] = val;
+
+			nullBit <<= (i % (sizeof(int8_t) * 8));
+			outNullBlockVector[i / 8] |= nullBit;
+
 		}
 
 		outDataSize = outBlockVector.size();

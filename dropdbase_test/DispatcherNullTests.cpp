@@ -179,7 +179,7 @@ TEST(DispatcherNullTests, OrderByNullTest)
 	for(int32_t i = 0, k = 0; i < nullColSize; i++){
 		for(int32_t j = 7; j >= 0; j--, k++){
 			//((nullBitMask[i] >> j) & 1) ? std::printf("%3d : null\n", k) : std::printf("%3d : %d\n", k, payload.intpayload().intdata()[k]);
-			ASSERT_FLOAT_EQ(expectedResults[k], payload.intpayload().intdata()[k]);
+			ASSERT_EQ(expectedResults[k], payload.intpayload().intdata()[k]);
 		}
 	}
 	//std::printf("\n");
