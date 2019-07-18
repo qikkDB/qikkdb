@@ -163,7 +163,7 @@ __global__ void group_by_kernel(
 		else
 		{
 			foundIndex = 0;
-			keys[foundIndex] = 0;
+			keys[foundIndex] = K{0};
 		}
 		
 		// If no index was found - the hash table is full 
@@ -337,21 +337,21 @@ public:
 		return maxHashCount_;
 	}
 
+	// Compress memory-wasting null mask with size equal to maxHashCount_ (aligning to 32 bit)
+	cuda_ptr<int8_t> CompressNullMask(int8_t* inputNullMask)
+	{
+		cuda_ptr<int8_t> nullMaskCompressed((maxHashCount_ + sizeof(int32_t) * 8 - 1) / (sizeof(int32_t) * 8), 0);
+		kernel_compress_null_mask << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
+			(reinterpret_cast<int32_t*>(nullMaskCompressed.get()), inputNullMask, maxHashCount_);
+		return nullMaskCompressed;
+	}
+
 	/// Create memory-wasting null mask for keys - just at first index can be 1 if at keys_
 	cuda_ptr<int8_t> CreateKeyNullMask()
 	{
-		cuda_ptr<int8_t> keysNullMask(maxHashCount_, 0);
-		K firstKey;
-		GPUMemory::copyDeviceToHost(&firstKey, keys_, 1);
-		if(firstKey != getEmptyValue<K>())
-		{
-			GPUMemory::memset(keysNullMask.get(), 1, 1);
-		}
-		cuda_ptr<int8_t> keysNullMaskCompressed((maxHashCount_ + sizeof(int32_t) * 8 - 1) / (sizeof(int32_t) * 8), 0);
-		kernel_compress_null_mask << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
-			(reinterpret_cast<int32_t*>(keysNullMaskCompressed.get()), keysNullMask.get(), maxHashCount_);
-		
-		return keysNullMaskCompressed;
+		cuda_ptr<int8_t> keyNullMask(maxHashCount_, 0);
+		GPUMemory::memset(keyNullMask.get(), 1, 1);
+		return keyNullMask;
 	}
 
 	/// Reconstruct needed raw fields (do not calculate final results yet)
@@ -366,10 +366,10 @@ public:
 		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 		
-		cuda_ptr<int8_t> keysNullMaskCompressed = CreateKeyNullMask();
+		cuda_ptr<int8_t> keysNullMaskInput = CreateKeyNullMask();
 		
-		GPUReconstruct::reconstructCol(keys, elementCount, keys_,
-			occupancyMask.get(), maxHashCount_, keysNullMask, keysNullMaskCompressed.get());
+		GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), maxHashCount_);
+		GPUReconstruct::reconstructCol(keysNullMask, elementCount, keysNullMaskInput.get(), occupancyMask.get(), maxHashCount_);
 		
 		if (USE_VALUES)
 		{
@@ -400,7 +400,7 @@ public:
 		is_bucket_occupied_kernel << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 			(occupancyMask.get(), keys_, maxHashCount_);
 
-		cuda_ptr<int8_t> keysNullMaskCompressed = CreateKeyNullMask();
+		cuda_ptr<int8_t> keysNullMaskCompressed = CompressNullMask(CreateKeyNullMask().get());
 
 		// Reconstruct the keys
 		GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_,
@@ -505,10 +505,10 @@ public:
 
 				// Reconstruct raw keys with its null mask, values with its null mask (conditional) and occurrences (conditional)
 				table->ReconstructRawNumbers(keys.get(), keysNullMask.get(), values.get(), valuesNullMask.get(), occurrences.get(), &elementCount);
-				keysNullMaskAllHost.insert(keysNullMaskAllHost.end(), keysNullMask.get(), keysNullMask.get() + elementCount);
 
 				// Append data to host vectors
 				keysAllHost.insert(keysAllHost.end(), keys.get(), keys.get() + elementCount);
+				keysNullMaskAllHost.insert(keysNullMaskAllHost.end(), keysNullMask.get(), keysNullMask.get() + elementCount);
 				if (USE_VALUES)
 				{
 					valuesAllHost.insert(valuesAllHost.end(), values.get(), values.get() + elementCount);
@@ -520,7 +520,7 @@ public:
 				}
 				sumElementCount += elementCount;
 			}
-
+			
 			Context::getInstance().bindDeviceToContext(oldDeviceId);
 			if (sumElementCount > 0)
 			{
@@ -548,7 +548,8 @@ public:
 				if (DIRECT_VALUES)	// for min, max and sum
 				{
 					GPUGroupBy<AGG, O, K, V> finalGroupBy(sumElementCount);
-					finalGroupBy.ProcessBlock(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount, keysNullMaskAllGPU.get(), valuesNullMaskAllGPU.get());
+					finalGroupBy.ProcessBlock(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount,
+							CompressNullMask(keysNullMaskAllGPU.get()).get(), CompressNullMask(valuesNullMaskAllGPU.get()).get());
 					finalGroupBy.GetResults(outKeys, outValues, outDataElementCount, outKeysNullMask, outValuesNullMask);
 				}
 				else if (std::is_same<AGG, AggregationFunctions::avg>::value)	// for avg
@@ -560,7 +561,8 @@ public:
 					// Initialize new empty sumGroupBy table
 					K* tempKeys = nullptr;
 					GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
-					sumGroupBy.ProcessBlock(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount, keysNullMaskAllGPU.get(), valuesNullMaskAllGPU.get());
+					sumGroupBy.ProcessBlock(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount,
+							CompressNullMask(keysNullMaskAllGPU.get()).get(), CompressNullMask(valuesNullMaskAllGPU.get()).get());
 					sumGroupBy.GetResults(&tempKeys, &valuesMerged, outDataElementCount, outKeysNullMask, outValuesNullMask);
 					// Don't need these results, will be computed again in countGroupBy - TODO multi-value GroupBy
 					GPUMemory::free(*outKeysNullMask);
@@ -570,7 +572,8 @@ public:
 					// Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
 					GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, tempKeys);
 					GPUMemory::free(tempKeys);
-					countGroupBy.ProcessBlock(keysAllGPU.get(), occurrencesAllGPU.get(), sumElementCount, keysNullMaskAllGPU.get(), valuesNullMaskAllGPU.get());
+					countGroupBy.ProcessBlock(keysAllGPU.get(), occurrencesAllGPU.get(), sumElementCount,
+							CompressNullMask(keysNullMaskAllGPU.get()).get(), CompressNullMask(valuesNullMaskAllGPU.get()).get());
 					countGroupBy.GetResults(outKeys, &occurrencesMerged, outDataElementCount, outKeysNullMask, outValuesNullMask);
 					GPUMemory::alloc(outValues, *outDataElementCount);
 					GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurrencesMerged, *outDataElementCount);
@@ -584,7 +587,8 @@ public:
 						CheckQueryEngineError(GPU_EXTENSION_ERROR, "Output value data type in GROUP BY with COUNT must be int64_t");
 					}
 					GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> finalGroupBy(sumElementCount);
-					finalGroupBy.ProcessBlock(keysAllGPU.get(), occurrencesAllGPU.get(), sumElementCount, keysNullMaskAllGPU.get(), valuesNullMaskAllGPU.get());
+					finalGroupBy.ProcessBlock(keysAllGPU.get(), occurrencesAllGPU.get(), sumElementCount,
+							CompressNullMask(keysNullMaskAllGPU.get()).get(), CompressNullMask(valuesNullMaskAllGPU.get()).get());
 												  // reinterpret_cast is needed to solve compilation error
 					finalGroupBy.GetResults(outKeys, reinterpret_cast<int64_t**>(outValues), outDataElementCount, outKeysNullMask, outValuesNullMask);
 				}
