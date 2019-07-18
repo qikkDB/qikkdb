@@ -10,6 +10,7 @@
 #include "../dropdbase/GpuSqlParser/ParserExceptions.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 
+
 TEST(DispatcherNullTests, SelectNullWithWhere)
 {
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
@@ -89,6 +90,7 @@ TEST(DispatcherNullTests, IsNullWithPattern)
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
 }
 
+
 TEST(DispatcherNullTests, IsNotNullWithPattern)
 {
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
@@ -127,14 +129,15 @@ TEST(DispatcherNullTests, IsNotNullWithPattern)
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
 }
 
+
 TEST(DispatcherNullTests, OrderByNullTest)
 {
 	srand(42);
-	Database::RemoveFromInMemoryDatabaseList("TestDb");
+	Database::RemoveFromInMemoryDatabaseList("TestDbOrderByNULL");
 
 	int32_t blockSize = 1 << 5;
 	
-	std::shared_ptr<Database> database(std::make_shared<Database>("TestDb"));
+	std::shared_ptr<Database> database(std::make_shared<Database>("TestDbOrderByNULL"));
 	Database::AddToInMemoryDatabaseList(database);
 
 	std::unordered_map<std::string, DataType> columns;
@@ -142,6 +145,7 @@ TEST(DispatcherNullTests, OrderByNullTest)
 	database->CreateTable(columns, "TestTable");
 
 	std::vector<int32_t> expectedResults;
+	std::vector<int8_t> expectedNullResults;
 
 	for(int32_t i = 0; i < blockSize; i++)
 	{
@@ -161,6 +165,15 @@ TEST(DispatcherNullTests, OrderByNullTest)
 
 			expectedResults.push_back(val);
 		}
+
+		if(i < blockSize / 2)
+		{
+			expectedNullResults.push_back(1);
+		}
+		else
+		{
+			expectedNullResults.push_back(0);
+		}
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT Col1 FROM TestTable ORDER BY Col1;");
@@ -176,13 +189,13 @@ TEST(DispatcherNullTests, OrderByNullTest)
 	int32_t nullColSize = (payload.intpayload().intdata_size() + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 
 	ASSERT_EQ(payload.intpayload().intdata_size(), expectedResults.size());
-	for(int32_t i = 0, k = 0; i < nullColSize; i++){
-		for(int32_t j = 7; j >= 0; j--, k++){
-			//((nullBitMask[i] >> j) & 1) ? std::printf("%3d : null\n", k) : std::printf("%3d : %d\n", k, payload.intpayload().intdata()[k]);
-			ASSERT_EQ(expectedResults[k], payload.intpayload().intdata()[k]);
+	for(int32_t i = 0; i < expectedResults.size(); i++){
+		int8_t nullBit = (nullBitMask[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+		if(!nullBit)
+		{
+			ASSERT_EQ(expectedResults[i], payload.intpayload().intdata()[i]);
 		}
 	}
-	//std::printf("\n");
 
-	Database::RemoveFromInMemoryDatabaseList("TestDb");
+	Database::RemoveFromInMemoryDatabaseList("TestDbOrderByNULL");
 }
