@@ -149,7 +149,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 			isOverallLastBlock = true;
 		}
 
-		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
+		const ColumnBase<T>* col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
 
 		if (!usingJoin)
 		{
@@ -225,12 +225,27 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 
 			auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
 				database->GetName(), joinCacheId, blockIndex, loadSize);
+			int8_t* nullMaskPtr;
+
 			if (!std::get<2>(cacheEntry))
 			{
 				int32_t outDataSize;
 				GPUJoin::reorderByJoinTableCPU<T>(std::get<0>(cacheEntry), outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
 			}
-			addCachedRegister(joinCacheId, std::get<0>(cacheEntry), loadSize);
+
+			if (col->GetIsNullable())
+			{
+				int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+				auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
+					database->GetName(), joinCacheId + "_nullMask", blockIndex, bitMaskCapacity);
+				nullMaskPtr = std::get<0>(cacheMaskEntry);
+				if (!std::get<2>(cacheMaskEntry))
+				{
+					int32_t outMaskSize;
+					GPUJoin::reorderNullMaskByJoinTableCPU<T>(std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+				}
+			}
+			addCachedRegister(joinCacheId, std::get<0>(cacheEntry), loadSize, nullMaskPtr);
 			noLoad = false;
 		}
 	}

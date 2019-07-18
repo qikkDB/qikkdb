@@ -324,9 +324,9 @@ private:
 	int32_t hashTableSize_;
 	int32_t joinTableSize_;
 
-    int32_t* HashTableHisto_;
-    int32_t* HashTablePrefixSum_;
-    int32_t* HashTableHashBuckets_;
+	int32_t* HashTableHisto_;
+	int32_t* HashTablePrefixSum_;
+	int32_t* HashTableHashBuckets_;
 
 	int32_t* JoinTableHisto_;
 	int32_t* JoinTablePrefixSum_;
@@ -376,7 +376,7 @@ private:
 	}
 
 	template<typename OP, typename T>
-	void JoinBlockCountMatches(int32_t* resultTableSize, T* ColumnRBlock, int8_t* nullBitMaskR, int32_t dataElementCountColumnRBlock, T* ColumnSBlock,int8_t* nullBitMaskS, int32_t dataElementCountColumnSBlock)
+	void JoinBlockCountMatches(int32_t* resultTableSize, T* ColumnRBlock, int8_t* nullBitMaskR, int32_t dataElementCountColumnRBlock, T* ColumnSBlock, int8_t* nullBitMaskS, int32_t dataElementCountColumnSBlock)
 	{
 		//////////////////////////////////////////////////////////////////////////////
 		// Check for join table limits
@@ -443,10 +443,10 @@ public:
 
 	template <typename OP, typename T>
 	static void JoinTableRonS(std::vector <std::vector<int32_t>> &resultColumnQAJoinIdx,
-							  std::vector <std::vector<int32_t>> &resultColumnQBJoinIdx,
-							  ColumnBase<T> &ColumnR,
-							  ColumnBase<T> &ColumnS,
-							  int32_t blockSize)
+		std::vector <std::vector<int32_t>> &resultColumnQBJoinIdx,
+		ColumnBase<T> &ColumnR,
+		ColumnBase<T> &ColumnS,
+		int32_t blockSize)
 	{
 		// The result vector - reset
 		resultColumnQAJoinIdx.resize(0);
@@ -480,9 +480,9 @@ public:
 
 			// Copy the first table block to the GPU and perform the hashing
 			GPUMemory::copyHostToDevice(d_ColumnRBlock.get(), ColumnRBlockList[r]->GetData(), processedRBlockSize);
-			
+
 			// Configure arguments based on null values
-			if(ColumnRBlockList[r]->GetNullBitmask())
+			if (ColumnRBlockList[r]->GetNullBitmask())
 			{
 				GPUMemory::copyHostToDevice(d_ColumnNullRBlock.get(), ColumnRBlockList[r]->GetNullBitmask(), processedNullRBlockSize);
 				gpuJoin.HashBlock(d_ColumnRBlock.get(), d_ColumnNullRBlock.get(), processedRBlockSize);
@@ -492,7 +492,7 @@ public:
 				gpuJoin.HashBlock(d_ColumnRBlock.get(), nullptr, processedRBlockSize);
 			}
 
-			
+
 			for (int32_t s = 0; s < ColumnS.GetBlockCount(); s++)
 			{
 				// The result block size
@@ -507,11 +507,11 @@ public:
 				GPUMemory::copyHostToDevice(d_ColumnSBlock.get(), ColumnSBlockList[s]->GetData(), processedSBlockSize);
 
 				// Configure arguments based on null values
-				if(ColumnSBlockList[s]->GetNullBitmask())
+				if (ColumnSBlockList[s]->GetNullBitmask())
 				{
 					GPUMemory::copyHostToDevice(d_ColumnNullSBlock.get(), ColumnSBlockList[s]->GetNullBitmask(), processedNullSBlockSize);
 
-					if(ColumnRBlockList[r]->GetNullBitmask())
+					if (ColumnRBlockList[r]->GetNullBitmask())
 					{
 						gpuJoin.JoinBlockCountMatches<OP>(&processedQBlockResultSize, d_ColumnRBlock.get(), d_ColumnNullRBlock.get(), processedRBlockSize, d_ColumnSBlock.get(), d_ColumnNullSBlock.get(), processedSBlockSize);
 					}
@@ -522,7 +522,7 @@ public:
 				}
 				else
 				{
-					if(ColumnRBlockList[r]->GetNullBitmask())
+					if (ColumnRBlockList[r]->GetNullBitmask())
 					{
 						gpuJoin.JoinBlockCountMatches<OP>(&processedQBlockResultSize, d_ColumnRBlock.get(), d_ColumnNullRBlock.get(), processedRBlockSize, d_ColumnSBlock.get(), nullptr, processedSBlockSize);
 					}
@@ -543,9 +543,9 @@ public:
 				cuda_ptr<int32_t> d_QBResultBlock(processedQBlockResultSize);
 
 				// Write the result data - configure args according to null vals
-				if(ColumnSBlockList[s]->GetNullBitmask())
+				if (ColumnSBlockList[s]->GetNullBitmask())
 				{
-					if(ColumnRBlockList[r]->GetNullBitmask())
+					if (ColumnRBlockList[r]->GetNullBitmask())
 					{
 						gpuJoin.JoinBlockWriteResults<OP>(d_QAResultBlock.get(), d_QBResultBlock.get(), d_ColumnRBlock.get(), d_ColumnNullRBlock.get(), processedRBlockSize, d_ColumnSBlock.get(), d_ColumnNullSBlock.get(), processedSBlockSize);
 					}
@@ -556,7 +556,7 @@ public:
 				}
 				else
 				{
-					if(ColumnRBlockList[r]->GetNullBitmask())
+					if (ColumnRBlockList[r]->GetNullBitmask())
 					{
 						gpuJoin.JoinBlockWriteResults<OP>(d_QAResultBlock.get(), d_QBResultBlock.get(), d_ColumnRBlock.get(), d_ColumnNullRBlock.get(), processedRBlockSize, d_ColumnSBlock.get(), nullptr, processedSBlockSize);
 					}
@@ -565,7 +565,7 @@ public:
 						gpuJoin.JoinBlockWriteResults<OP>(d_QAResultBlock.get(), d_QBResultBlock.get(), d_ColumnRBlock.get(), nullptr, processedRBlockSize, d_ColumnSBlock.get(), nullptr, processedSBlockSize);
 					}
 				}
-				
+
 				// Copy the result blocks back and store them in the result set
 				// The results can be at most n*n big
 				std::vector<int32_t> QAresult(processedQBlockResultSize);
@@ -576,7 +576,7 @@ public:
 
 				for (int32_t i = 0; i < processedQBlockResultSize; i++)
 				{
-					if(resultColumnQAJoinIdx.size() == 0)
+					if (resultColumnQAJoinIdx.size() == 0)
 					{
 						resultColumnQAJoinIdx.push_back(std::vector<int32_t>{});
 					}
@@ -587,7 +587,7 @@ public:
 						currentQAResultBlockIdx++;
 					}
 
-					if(resultColumnQBJoinIdx.size() == 0)
+					if (resultColumnQBJoinIdx.size() == 0)
 					{
 						resultColumnQBJoinIdx.push_back(std::vector<int32_t>{});
 					}
@@ -608,11 +608,11 @@ public:
 	// Create a new outBlock based on a portion of join indexes and input column
 	template<typename T>
 	static void reorderByJoinTableCPU(T *outBlock,
-									  int32_t& outDataSize,
-									  const ColumnBase<T> &inColumn, 
-									  int32_t resultColumnQJoinIdxBlockIdx,
-									  const std::vector<std::vector<int32_t>> &resultColumnQJoinIdx,
-									  int32_t blockSize)
+		int32_t& outDataSize,
+		const ColumnBase<T> &inColumn,
+		int32_t resultColumnQJoinIdxBlockIdx,
+		const std::vector<std::vector<int32_t>> &resultColumnQJoinIdx,
+		int32_t blockSize)
 	{
 		if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
 		{
@@ -638,12 +638,12 @@ public:
 
 	// Create a new outBlock based on a portion of join indexes and input column
 	template<typename T>
-	static void reorderByJoinTableCPUKeep(std::vector<T>& outBlock,
-										  int32_t& outDataSize,
-										  const ColumnBase<T> &inColumn,
-										  int32_t resultColumnQJoinIdxBlockIdx,
-										  const std::vector<std::vector<int32_t>> &resultColumnQJoinIdx,
-										  int32_t blockSize)
+	static void reorderByJoinTableCPU(std::vector<T>& outBlock,
+		int32_t& outDataSize,
+		const ColumnBase<T> &inColumn,
+		int32_t resultColumnQJoinIdxBlockIdx,
+		const std::vector<std::vector<int32_t>> &resultColumnQJoinIdx,
+		int32_t blockSize)
 	{
 		if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
 		{
@@ -666,11 +666,11 @@ public:
 	// Reorder the null mask and put it in a GPU buffer
 	template<typename T>
 	static void reorderNullMaskByJoinTableCPU(int8_t *outNullBlock,
-											  int32_t& outNullBlockSize,
-											  const ColumnBase<T> &inColumn, 
-											  int32_t resultColumnQJoinIdxBlockIdx,
-											  const std::vector<std::vector<int32_t>> &resultColumnQJoinIdx,
-											  int32_t blockSize)
+		int32_t& outNullBlockSize,
+		const ColumnBase<T> &inColumn,
+		int32_t resultColumnQJoinIdxBlockIdx,
+		const std::vector<std::vector<int32_t>> &resultColumnQJoinIdx,
+		int32_t blockSize)
 	{
 		if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
 		{
@@ -694,36 +694,5 @@ public:
 		outNullBlockSize = outNullBlockVector.size();
 
 		GPUMemory::copyHostToDevice(outNullBlock, outNullBlockVector.data(), outNullBlockSize);
-	}
-
-	// Reorder the null mask
-	template<typename T>
-	static void reorderNullMaskByJoinTableCPU(std::vector<int8_t>& outNullBlock,
-											  int32_t& outNullBlockSize,
-											  const ColumnBase<T> &inColumn, 
-											  int32_t resultColumnQJoinIdxBlockIdx,
-											  const std::vector<std::vector<int32_t>> &resultColumnQJoinIdx,
-											  int32_t blockSize)
-	{
-		if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
-		{
-			std::cerr << "[ERROR]  Column block index out of bounds" << std::endl;
-		}
-
-		outNullBlock.clear();
-		outNullBlock.resize((resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size() + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8));
-
-		for (int32_t i = 0; i < resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size(); i++)
-		{
-			int32_t columnBlockId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] / blockSize;
-			int32_t columnRowId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] % blockSize;
-
-			int8_t nullBit = (inColumn.GetBlocksList()[columnBlockId]->GetNullBitmask()[columnRowId / (sizeof(int8_t) * 8)] >> (columnRowId % (sizeof(int8_t) * 8))) & 1;
-
-			nullBit <<= (i % (sizeof(int8_t) * 8));
-			outNullBlock[i / 8] |= nullBit;
-		}
-
-		outNullBlockSize = outNullBlock.size();
 	}
 };

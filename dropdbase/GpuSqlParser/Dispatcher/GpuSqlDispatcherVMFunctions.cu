@@ -76,11 +76,25 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 			}
 
 			std::vector<ColmnarDB::Types::ComplexPolygon> joinedPolygons;
+			int8_t* nullMaskPtr;
 
 			int32_t outDataSize;
-			GPUJoin::reorderByJoinTableCPUKeep<ColmnarDB::Types::ComplexPolygon>(joinedPolygons, outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+			GPUJoin::reorderByJoinTableCPU<ColmnarDB::Types::ComplexPolygon>(joinedPolygons, outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
 			
-			insertComplexPolygon(database->GetName(), joinCacheId, joinedPolygons, loadSize);
+			if (col->GetIsNullable())
+			{
+				int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+				auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
+					database->GetName(), joinCacheId + "_nullMask", blockIndex, bitMaskCapacity);
+				nullMaskPtr = std::get<0>(cacheMaskEntry);
+				if (!std::get<2>(cacheMaskEntry))
+				{
+					int32_t outMaskSize;
+					GPUJoin::reorderNullMaskByJoinTableCPU<ColmnarDB::Types::ComplexPolygon>(std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+				}
+			}
+
+			insertComplexPolygon(database->GetName(), joinCacheId, joinedPolygons, loadSize, nullMaskPtr);
 			noLoad = false;
 		}
 	}
@@ -159,8 +173,9 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 			}
 
 			std::vector<ColmnarDB::Types::Point> joinedPoints;
+			int8_t* nullMaskPtr;
 			int32_t outDataSize;
-			GPUJoin::reorderByJoinTableCPUKeep<ColmnarDB::Types::Point>(joinedPoints, outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+			GPUJoin::reorderByJoinTableCPU<ColmnarDB::Types::Point>(joinedPoints, outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
 
 			std::vector<NativeGeoPoint> nativePoints;
 			std::transform(joinedPoints.data(), joinedPoints.data() + loadSize, std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint { return NativeGeoPoint{ point.geopoint().latitude(), point.geopoint().longitude() }; });
@@ -173,7 +188,21 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 					reinterpret_cast<NativeGeoPoint*>(nativePoints.data()),
 					nativePoints.size());
 			}
-			addCachedRegister(joinCacheId, std::get<0>(cacheEntry), loadSize);
+
+			if (col->GetIsNullable())
+			{
+				int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+				auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
+					database->GetName(), joinCacheId + "_nullMask", blockIndex, bitMaskCapacity);
+				nullMaskPtr = std::get<0>(cacheMaskEntry);
+				if (!std::get<2>(cacheMaskEntry))
+				{
+					int32_t outMaskSize;
+					GPUJoin::reorderNullMaskByJoinTableCPU<ColmnarDB::Types::Point>(std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+				}
+			}
+
+			addCachedRegister(joinCacheId, std::get<0>(cacheEntry), loadSize, nullMaskPtr);
 			noLoad = false;
 		}
 	}
@@ -236,11 +265,25 @@ int32_t GpuSqlDispatcher::loadCol<std::string>(std::string& colName)
 			}
 
 			std::vector<std::string> joinedStrings;
+			int8_t* nullMaskPtr;
 
 			int32_t outDataSize;
-			GPUJoin::reorderByJoinTableCPUKeep<std::string>(joinedStrings, outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+			GPUJoin::reorderByJoinTableCPU<std::string>(joinedStrings, outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
 
-			insertString(database->GetName(), joinCacheId, joinedStrings, loadSize);
+			if (col->GetIsNullable())
+			{
+				int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+				auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
+					database->GetName(), joinCacheId + "_nullMask", blockIndex, bitMaskCapacity);
+				nullMaskPtr = std::get<0>(cacheMaskEntry);
+				if (!std::get<2>(cacheMaskEntry))
+				{
+					int32_t outMaskSize;
+					GPUJoin::reorderNullMaskByJoinTableCPU<std::string>(std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+				}
+			}
+
+			insertString(database->GetName(), joinCacheId, joinedStrings, loadSize, nullMaskPtr);
 			noLoad = false;
 		}
 
