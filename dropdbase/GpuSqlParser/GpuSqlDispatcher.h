@@ -573,7 +573,7 @@ public:
 		{
 			int32_t bitMaskSize = ((size + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 			GPUMemory::alloc<int8_t>(nullPointerMask, bitMaskSize);
-			allocatedPointers.insert({ reg + NULL_SUFFIX, PointerAllocation{reinterpret_cast<std::uintptr_t>(nullPointerMask), bitMaskSize, true, 0}});
+			allocatedPointers.insert({ reg + NULL_SUFFIX, PointerAllocation{reinterpret_cast<std::uintptr_t>(*nullPointerMask), bitMaskSize, true, 0}});
 			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true, reinterpret_cast<std::uintptr_t>(*nullPointerMask)}});
 		}
 		else
