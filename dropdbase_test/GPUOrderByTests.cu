@@ -288,8 +288,8 @@ public:
 
     virtual void SetUp()
     {
-        COL_COUNT = 10;
-        COL_DATA_ELEMENT_COUNT = 1 << 20;
+        COL_COUNT = 5;
+        COL_DATA_ELEMENT_COUNT = 1 << 10;
     
         NUMERIC_DATA_LIMIT = 10000;
     }
