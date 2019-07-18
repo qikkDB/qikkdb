@@ -349,7 +349,6 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bo
                         castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i]);
                 }
 
-				//TODO for string
 				if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<std::string>))
 				{
 					std::vector<std::string> dataIndexedColumn = std::any_cast<std::vector<std::string>>(wrappedCurrentSortingColumnData);

@@ -1,4 +1,4 @@
-#include<cmath>
+#include <cmath>
 
 /// Namespace for unary arithmetic operation generic functors
 namespace ArithmeticUnaryOperations
