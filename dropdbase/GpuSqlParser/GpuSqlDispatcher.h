@@ -567,21 +567,22 @@ public:
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size, int8_t** nullPointerMask = nullptr)
 	{
-		T * mask;
-		GPUMemory::alloc<T>(&mask, size);
+		T * gpuRegister;
+		GPUMemory::alloc<T>(&gpuRegister, size);
 		if(nullPointerMask)
 		{
 			int32_t bitMaskSize = ((size + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 			GPUMemory::alloc<int8_t>(nullPointerMask, bitMaskSize);
-			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(mask), size, true, reinterpret_cast<std::uintptr_t>(*nullPointerMask)}});
+			allocatedPointers.insert({ reg + NULL_SUFFIX, PointerAllocation{reinterpret_cast<std::uintptr_t>(nullPointerMask), bitMaskSize, true, 0}});
+			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true, reinterpret_cast<std::uintptr_t>(*nullPointerMask)}});
 		}
 		else
 		{
-			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(mask), size, true, 0}});
+			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true, 0}});
 		}
 		
 		usedRegisterMemory += size * sizeof(T);
-		return mask;
+		return gpuRegister;
 	}
 
 	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);

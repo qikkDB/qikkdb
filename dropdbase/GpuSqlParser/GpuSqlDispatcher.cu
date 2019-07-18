@@ -16,7 +16,7 @@
 #include "../Table.h"
 
 const std::string GpuSqlDispatcher::KEYS_SUFFIX = "_keys";
-const std::string GpuSqlDispatcher::NULL_SUFFIX = "_null";
+const std::string GpuSqlDispatcher::NULL_SUFFIX = "_nullMask";
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 int32_t GpuSqlDispatcher::orderByDoneCounter_ = 0;
@@ -739,7 +739,7 @@ void GpuSqlDispatcher::fillStringRegister(GPUMemory::GPUString & stringColumn, c
 
 int32_t GpuSqlDispatcher::loadColNullMask(std::string & colName)
 {
-	if (allocatedPointers.find(colName + "_nullMask") == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
+	if (allocatedPointers.find(colName + NULL_SUFFIX) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
 	{
 		std::cout << "LoadNullMask: " << colName << std::endl;
 
@@ -767,12 +767,12 @@ int32_t GpuSqlDispatcher::loadColNullMask(std::string & colName)
 		size_t blockNullMaskSize = (std::get<1>(blockNullMask) + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
 
 		auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-			database->GetName(), colName + "_nullMask", blockIndex, blockNullMaskSize);
+			database->GetName(), colName + NULL_SUFFIX, blockIndex, blockNullMaskSize);
 		if (!std::get<2>(cacheEntry))
 		{
 			GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), std::get<0>(blockNullMask), blockNullMaskSize);
 		}
-		addCachedRegister(colName + "_nullMask", std::get<0>(cacheEntry), std::get<1>(blockNullMask));
+		addCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheEntry), std::get<1>(blockNullMask));
 
 		noLoad = false;
 	}

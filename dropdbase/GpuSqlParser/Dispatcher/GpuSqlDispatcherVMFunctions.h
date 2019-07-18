@@ -203,12 +203,13 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 			{
 				int32_t bitMaskCapacity = ((realSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 				auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-					database->GetName(), colName + "_nullMask", blockIndex, bitMaskCapacity);
+					database->GetName(), colName + NULL_SUFFIX, blockIndex, bitMaskCapacity);
 				nullMaskPtr = std::get<0>(cacheMaskEntry);
 				if (!std::get<2>(cacheMaskEntry))
 				{
 					GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry), block->GetNullBitmask(), bitMaskCapacity);
 				}
+				addCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheMaskEntry), bitMaskCapacity);
 			}
 			addCachedRegister(colName, std::get<0>(cacheEntry), realSize, nullMaskPtr);
 			noLoad = false;
