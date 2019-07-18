@@ -12,46 +12,52 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
 template<>
 int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::Point>()
 {
-	std::string table = arguments.read<std::string>();
 	std::string column = arguments.read<std::string>();
 	bool isReferencedColumn = arguments.read<bool>();
+
+	ColmnarDB::Types::Point point;
 
 	if (isReferencedColumn)
 	{
 		std::string args = arguments.read<std::string>();
-		ColmnarDB::Types::Point point = PointFactory::FromWkt(args);
-
-		dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().at(table).GetColumns().at(column).get())->InsertData({ point });
+		point = PointFactory::FromWkt(args);
 	}
 	else
 	{
-		dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().at(table).GetColumns().at(column).get())->InsertNullData(1);
+		point = ColumnBase<ColmnarDB::Types::Point>::NullArray(1)[0];
 	}
+	std::vector<ColmnarDB::Types::Point> pointVector({ point });
+	insertIntoData->insertIntoData.insert({ column, pointVector });
 	return 0;
 }
 
 template<>
 int32_t GpuSqlDispatcher::insertInto<ColmnarDB::Types::ComplexPolygon>()
 {
-	std::string table = arguments.read<std::string>();
 	std::string column = arguments.read<std::string>();
 	bool isReferencedColumn = arguments.read<bool>();
+
+	ColmnarDB::Types::ComplexPolygon polygon;
 
 	if (isReferencedColumn)
 	{
 		std::string args = arguments.read<std::string>();
-		ColmnarDB::Types::ComplexPolygon polygon = ComplexPolygonFactory::FromWkt(args);
-
-		dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(database->GetTables().at(table).GetColumns().at(column).get())->InsertData({ polygon });
+		polygon = ComplexPolygonFactory::FromWkt(args);
 	}
 	else
 	{
-		dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(database->GetTables().at(table).GetColumns().at(column).get())->InsertNullData(1);
+		polygon = ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0];
 	}
+	std::vector<ColmnarDB::Types::ComplexPolygon> polygonVector({ polygon });
+	insertIntoData->insertIntoData.insert({ column, polygonVector });
+
 	return 0;
 }
 
 int32_t GpuSqlDispatcher::insertIntoDone()
 {
+	std::string table = arguments.read<std::string>();
+	database->GetTables().at(table).InsertData(insertIntoData->insertIntoData);
+	insertIntoData->insertIntoData.clear();
 	return 5;
 }

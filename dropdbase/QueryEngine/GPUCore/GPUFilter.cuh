@@ -8,6 +8,7 @@
 
 #include "../Context.h"
 #include "GPUMemory.cuh"
+#include "GPUFilterConditions.cuh"
 #include "MaybeDeref.cuh"
 #include "GPUStringUnary.cuh"
 

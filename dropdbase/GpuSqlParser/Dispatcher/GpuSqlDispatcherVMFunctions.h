@@ -89,9 +89,12 @@ int32_t GpuSqlDispatcher::retCol()
 		}
 	}
 
-	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-	insertIntoPayload(payload, outData, outSize);
-	MergePayloadToSelfResponse(alias, payload);
+	if (outSize > 0)
+	{
+		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+		insertIntoPayload(payload, outData, outSize);
+		MergePayloadToSelfResponse(alias, payload);
+	}
 	return 0;
 }
 
@@ -124,6 +127,14 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 		if (blockIndex == blockCount - 1)
 		{
 			isOverallLastBlock = true;
+		}
+
+		noLoad = false;
+
+		if (loadNecessary == 0)
+		{
+			instructionPointer = jmpInstuctionPosition;
+			return 12;
 		}
 
 		auto col = dynamic_cast<const ColumnBase<T>*>(database->GetTables().at(table).GetColumns().at(column).get());
@@ -172,6 +183,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 			}
 			noLoad = false;
 		}
+
 		else
 		{
 			std::cout << "Loading joined block." << std::endl;

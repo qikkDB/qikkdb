@@ -2,8 +2,7 @@
 // Created by Martin Staňo on 2019-01-15.
 //
 
-#ifndef DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
-#define DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
+#pragma once
 
 #include <functional>
 #include <algorithm>
@@ -14,6 +13,7 @@
 #include <regex>
 #include <string>
 #include <mutex>
+#include <unordered_map>
 #include <map>
 #include <condition_variable>
 #include "../messages/QueryResponseMessage.pb.h"
@@ -24,13 +24,18 @@
 #include "../IVariantArray.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
 #include "../NativeGeoPoint.h"
-#include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "ParserExceptions.h"
+#include "CpuSqlDispatcher.h"
+#include "../ComplexPolygonFactory.h"
+#include "../PointFactory.h"
+#include "../QueryEngine/GPUCore/IOrderBy.h"
 
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId);
 #endif
 
+class Database;
+struct InsertIntoStruct;
 
 struct OrderByBlocks
 {
@@ -38,7 +43,6 @@ struct OrderByBlocks
 	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
 };
 
-class Database; 
 class GPUOrderBy;
 
 struct StringDataTypeComp
@@ -64,6 +68,7 @@ private:
 	int32_t instructionPointer;
 	int32_t constPointCounter;
 	int32_t constPolygonCounter;
+	int32_t jmpInstuctionPosition;
 	int32_t constStringCounter;
     const std::shared_ptr<Database> &database;
 	std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIndices;
@@ -76,13 +81,17 @@ private:
 	bool isLastBlockOfDevice;
 	bool isOverallLastBlock;
 	bool noLoad;
+	int64_t loadNecessary;
 	std::vector<std::pair<std::string, DataType>> groupByColumns;
 	std::unordered_set<std::string> aggregatedRegisters;
 	std::unordered_set<std::string> registerLockList;
 	bool isRegisterAllocated(std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
-	std::unique_ptr<GPUOrderBy> orderByTable;
+	CpuSqlDispatcher cpuDispatcher;
+
+	std::unique_ptr<InsertIntoStruct> insertIntoData;
+	std::unique_ptr<IOrderBy> orderByTable;
 	std::vector<OrderByBlocks>& orderByBlocks;
 	
 	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged;
@@ -191,11 +200,11 @@ private:
 		DataType::DATA_TYPE_SIZE> squareFunctions;
 	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> signFunctions;
-	static std::array<GpuSqlDispatcher::DispatchFunction,
+	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> roundFunctions;
-	static std::array<GpuSqlDispatcher::DispatchFunction,
+	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> ceilFunctions;
-	static std::array<GpuSqlDispatcher::DispatchFunction,
+	static std::array<DispatchFunction,
 		DataType::DATA_TYPE_SIZE> floorFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 		DataType::DATA_TYPE_SIZE> ltrimFunctions;
@@ -251,6 +260,7 @@ private:
 	static DispatchFunction freeOrderByTableFunction;
 	static DispatchFunction orderByReconstructRetAllBlocksFunction;
     static DispatchFunction filFunction;
+	static DispatchFunction whereEvaluationFunction;
 	static DispatchFunction lockRegisterFunction;
 	static DispatchFunction jmpFunction;
     static DispatchFunction doneFunction;
@@ -352,7 +362,7 @@ public:
 
 	GpuSqlDispatcher& operator=(const GpuSqlDispatcher&) = delete;
 
-	void copyExecutionDataTo(GpuSqlDispatcher& other);
+	void copyExecutionDataTo(GpuSqlDispatcher& other, CpuSqlDispatcher& sourceCpuDispatcher);
 
 	void setJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx);
 
@@ -506,6 +516,8 @@ public:
 
     void addFilFunction();
 
+	void addWhereEvaluationFunction();
+
 	void addJmpInstruction();
 
     void addDoneFunction();
@@ -618,6 +630,8 @@ public:
 	int32_t lockRegister();
 
     int32_t fil();
+
+	int32_t whereEvaluation();
 
 	int32_t jmp();
 
@@ -963,5 +977,3 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 template<>
 int32_t GpuSqlDispatcher::loadCol<std::string>(std::string& colName);
 
-
-#endif //DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
