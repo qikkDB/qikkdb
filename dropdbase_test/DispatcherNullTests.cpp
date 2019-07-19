@@ -280,6 +280,102 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNotNullTables)
 	Database::RemoveFromInMemoryDatabaseList("TestDbJoinNULL");
 }
 
+/*
+TEST(DispatcherNullTests, JoinIsNotNullTest)
+{
+	srand(42);
+	Database::RemoveFromInMemoryDatabaseList("TestDbJoinNULL2");
+
+	int32_t blockSize = 1 << 5;
+
+	std::shared_ptr<Database> database(std::make_shared<Database>("TestDbJoinNULL2"));
+	Database::AddToInMemoryDatabaseList(database);
+
+	std::unordered_map<std::string, DataType> columnsR;
+	columnsR.emplace("ColA", COLUMN_INT);
+	columnsR.emplace("ColJoinA", COLUMN_INT);
+
+	std::unordered_map<std::string, DataType> columnsS;
+	columnsS.emplace("ColB", COLUMN_INT);
+	columnsS.emplace("ColJoinB", COLUMN_INT);
+
+	database->CreateTable(columnsR, "TestTableR");
+	database->CreateTable(columnsS, "TestTableS");
+
+	for (int32_t i = 0, j = blockSize - 1; i < blockSize; i++, j--)
+	{
+		if (i % 2)
+		{
+			{
+				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA, ColJoinA) VALUES (null,") + std::to_string(i) + std::string(");"));
+				parser.parse();
+			}
+			{
+				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableS (ColB, ColJoinB) VALUES (") + std::to_string(j) + std::string(",") + std::to_string(j) + std::string(");"));
+				parser.parse();
+			}
+		}
+		else
+		{
+			{
+				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA, ColJoinA) VALUES (") + std::to_string(i) + std::string(",") + std::to_string(i) + std::string(");"));
+				parser.parse();
+			}
+			{
+				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableS (ColB, ColJoinB) VALUES (null,") + std::to_string(j) + std::string(");"));
+				parser.parse();
+			}
+		}
+	}
+
+	GpuSqlCustomParser parser(database, "SELECT TestTableR.ColA FROM TestTableR JOIN TestTableS ON ColJoinA = ColJoinB WHERE TestTableR.ColA IS NOT NULL;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto ColA = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableR").GetColumns().at("ColA").get());
+	auto ColJoinA = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableR").GetColumns().at("ColJoinA").get());
+	auto ColJoinB = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableS").GetColumns().at("ColJoinB").get());
+
+	std::vector<int32_t> expectedResults;
+
+	for (int32_t leftBlockIdx = 0; leftBlockIdx < ColJoinA->GetBlockCount(); leftBlockIdx++)
+	{
+		auto leftRetBlock = ColA->GetBlocksList()[leftBlockIdx];
+		auto leftBlock = ColJoinA->GetBlocksList()[leftBlockIdx];
+		for (int32_t leftRowIdx = 0; leftRowIdx < leftBlock->GetSize(); leftRowIdx++)
+		{
+			for (int32_t rightBlockIdx = 0; rightBlockIdx < ColJoinB->GetBlockCount(); rightBlockIdx++)
+			{
+				auto rightBlock = ColJoinB->GetBlocksList()[rightBlockIdx];
+				for (int32_t rightRowIdx = 0; rightRowIdx < rightBlock->GetSize(); rightRowIdx++)
+				{
+					int8_t nullBit = (leftRetBlock->GetNullBitmask()[leftRowIdx / (sizeof(int8_t) * 8)] >> (leftRowIdx % (sizeof(int8_t) * 8))) & 1;
+					if (leftBlock->GetData()[leftRowIdx] == rightBlock->GetData()[rightRowIdx] && nullBit == 0)
+					{
+						expectedResults.push_back(leftRetBlock->GetData()[leftRowIdx]);
+					}
+				}
+			}
+		}
+	}
+
+	auto& payloadA = result->payloads().at("TestTableR.ColA");
+	auto& nullBitMaskA = result->nullbitmasks().at("TestTableR.ColA");
+
+	ASSERT_EQ(payloadA.intpayload().intdata().size(), expectedResults.size());
+
+	for (int32_t i = 0; i < payloadA.intpayload().intdata_size(); i++)
+	{
+		int8_t nullBitA = (nullBitMaskA[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+
+		ASSERT_EQ(payloadA.intpayload().intdata()[i], expectedResults[i]);
+		ASSERT_EQ(nullBitA, 0);
+	}
+
+
+	Database::RemoveFromInMemoryDatabaseList("TestDbJoinNULL2");
+}*/
+
 TEST(DispatcherNullTests, JoinNullTestJoinOnNullTables)
 {
 	srand(42);
@@ -299,10 +395,10 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNullTables)
 	database->CreateTable(columnsR, "TestTableR");
 	database->CreateTable(columnsS, "TestTableS");
 
-	for(int32_t i = 0; i < blockSize; i++)
+	for (int32_t i = 0; i < blockSize; i++)
 	{
-		if(i % 2)
-		{			
+		if (i % 2)
+		{
 			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA) VALUES (null);"));
 			parser.parse();
 		}
@@ -311,8 +407,8 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNullTables)
 			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA) VALUES (") + std::to_string(i) + std::string(");"));
 			parser.parse();
 		}
-		
-		if(i < blockSize / 2)
+
+		if (i < blockSize / 2)
 		{
 			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableS (ColB) VALUES (null);"));
 			parser.parse();
@@ -328,24 +424,24 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNullTables)
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    auto ColA = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableR").GetColumns().at("ColA").get());
+	auto ColA = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableR").GetColumns().at("ColA").get());
 	auto ColB = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableS").GetColumns().at("ColB").get());
 
-    auto& payloadA = result->payloads().at("TestTableR.ColA");
+	auto& payloadA = result->payloads().at("TestTableR.ColA");
 	auto& nullBitMaskA = result->nullbitmasks().at("TestTableR.ColA");
 
 	auto& payloadB = result->payloads().at("TestTableS.ColB");
 	auto& nullBitMaskB = result->nullbitmasks().at("TestTableS.ColB");
 
 	ASSERT_EQ(payloadA.intpayload().intdata_size(), payloadB.intpayload().intdata_size());
-	for(int32_t i = 0; i < payloadA.intpayload().intdata_size(); i++)
+	for (int32_t i = 0; i < payloadA.intpayload().intdata_size(); i++)
 	{
 		int8_t nullBitA = (nullBitMaskA[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
 		int8_t nullBitB = (nullBitMaskB[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
 
 		ASSERT_EQ(nullBitA, nullBitB);
 
-		if(!nullBitA)
+		if (!nullBitA)
 		{
 			ASSERT_EQ(payloadA.intpayload().intdata()[i], payloadB.intpayload().intdata()[i]);
 		}
