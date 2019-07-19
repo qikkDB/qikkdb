@@ -279,3 +279,78 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNotNullTables)
 
 	Database::RemoveFromInMemoryDatabaseList("TestDbJoinNULL");
 }
+
+TEST(DispatcherNullTests, JoinNullTestJoinOnNullTables)
+{
+	srand(42);
+	Database::RemoveFromInMemoryDatabaseList("TestDbJoinOnNULL");
+
+	int32_t blockSize = 1 << 5;
+
+	std::shared_ptr<Database> database(std::make_shared<Database>("TestDbJoinOnNULL"));
+	Database::AddToInMemoryDatabaseList(database);
+
+	std::unordered_map<std::string, DataType> columnsR;
+	columnsR.emplace("ColA", COLUMN_INT);
+
+	std::unordered_map<std::string, DataType> columnsS;
+	columnsS.emplace("ColB", COLUMN_INT);
+
+	database->CreateTable(columnsR, "TestTableR");
+	database->CreateTable(columnsS, "TestTableS");
+
+	for(int32_t i = 0; i < blockSize; i++)
+	{
+		if(i % 2)
+		{			
+			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA) VALUES (null);"));
+			parser.parse();
+		}
+		else
+		{
+			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA) VALUES (") + std::to_string(i) + std::string(");"));
+			parser.parse();
+		}
+		
+		if(i < blockSize / 2)
+		{
+			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableS (ColB) VALUES (null);"));
+			parser.parse();
+		}
+		else
+		{
+			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableS (ColB) VALUES (") + std::to_string(i) + std::string(");"));
+			parser.parse();
+		}
+	}
+
+	GpuSqlCustomParser parser(database, "SELECT TestTableR.ColA, TestTableS.ColB FROM TestTableR JOIN TestTableS ON ColA = ColB;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    auto ColA = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableR").GetColumns().at("ColA").get());
+	auto ColB = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableS").GetColumns().at("ColB").get());
+
+    auto& payloadA = result->payloads().at("TestTableR.ColA");
+	auto& nullBitMaskA = result->nullbitmasks().at("TestTableR.ColA");
+
+	auto& payloadB = result->payloads().at("TestTableS.ColB");
+	auto& nullBitMaskB = result->nullbitmasks().at("TestTableS.ColB");
+
+	ASSERT_EQ(payloadA.intpayload().intdata_size(), payloadB.intpayload().intdata_size());
+	for(int32_t i = 0; i < payloadA.intpayload().intdata_size(); i++)
+	{
+		int8_t nullBitA = (nullBitMaskA[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+		int8_t nullBitB = (nullBitMaskB[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+
+		ASSERT_EQ(nullBitA, nullBitB);
+
+		if(!nullBitA)
+		{
+			ASSERT_EQ(payloadA.intpayload().intdata()[i], payloadB.intpayload().intdata()[i]);
+		}
+	}
+
+
+	Database::RemoveFromInMemoryDatabaseList("TestDbJoinOnNULL");
+}
