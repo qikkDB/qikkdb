@@ -508,12 +508,15 @@ public:
 				table->ReconstructRawNumbers(keys.get(), keysNullMask.get(), values.get(), valuesNullMask.get(), occurrences.get(), &elementCount);
 
 				// Append data to host vectors
+				// - keys
 				keysAllHost.insert(keysAllHost.end(), keys.get(), keys.get() + elementCount);
+				// - null masks as input for finalGroupBy
 				keysNullMaskAllHost.insert(keysNullMaskAllHost.end(), keysNullMask.get(), keysNullMask.get() + elementCount);
+				valuesNullMaskAllHost.insert(valuesNullMaskAllHost.end(), valuesNullMask.get(), valuesNullMask.get() + elementCount);
+				
 				if (USE_VALUES)
 				{
 					valuesAllHost.insert(valuesAllHost.end(), values.get(), values.get() + elementCount);
-					valuesNullMaskAllHost.insert(valuesNullMaskAllHost.end(), valuesNullMask.get(), valuesNullMask.get() + elementCount);
 				}
 				if (USE_KEY_OCCURRENCES)
 				{
@@ -534,11 +537,11 @@ public:
 				// Copy the condens from host to default device
 				GPUMemory::copyHostToDevice(keysAllGPU.get(), keysAllHost.data(), sumElementCount);
 				GPUMemory::copyHostToDevice(keysNullMaskAllGPU.get(), keysNullMaskAllHost.data(), sumElementCount);
+				GPUMemory::copyHostToDevice(valuesNullMaskAllGPU.get(), valuesNullMaskAllHost.data(), sumElementCount);
 
 				if (USE_VALUES)
 				{
 					GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
-					GPUMemory::copyHostToDevice(valuesNullMaskAllGPU.get(), valuesNullMaskAllHost.data(), sumElementCount);
 				}
 				if (USE_KEY_OCCURRENCES)
 				{

@@ -347,7 +347,7 @@ TEST(DispatcherNullTests, GroupByNullValue)
 		{
 			// Check value
 			ASSERT_FALSE(expectedResults.find(keysResult.intpayload().intdata()[i]) == expectedResults.end()) << " bad key at result row " << i;
-			ASSERT_EQ(expectedResults[i], valuesResult.intpayload().intdata()[i]) << " at result row " << i;
+			ASSERT_EQ(expectedResults.at(keysResult.intpayload().intdata()[i]), valuesResult.intpayload().intdata()[i]) << " with key " << keysResult.intpayload().intdata()[i] << " at result row " << i;
 		}
 	}
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
@@ -423,7 +423,7 @@ TEST(DispatcherNullTests, GroupByNullValueCount)
 		ASSERT_FALSE(valIsNull) << " at result row " << i;
 		// Check value
 		ASSERT_FALSE(expectedResults.find(keysResult.intpayload().intdata()[i]) == expectedResults.end()) << " bad key at result row " << i;
-		ASSERT_EQ(expectedResults[i], valuesResult.int64payload().int64data()[i]) << " at result row " << i;
+		ASSERT_EQ(expectedResults.at(keysResult.intpayload().intdata()[i]), valuesResult.int64payload().int64data()[i]) << " with key " << keysResult.intpayload().intdata()[i] << " at result row " << i;
 	}
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
 }
