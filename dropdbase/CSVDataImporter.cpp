@@ -151,16 +151,44 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 					std::any value;
 					switch (dataTypes_[columnIndex]) {
 					case COLUMN_INT:
-						value = (int32_t)std::stoi(field);
+						if (field.empty())
+						{
+							value = 0;
+						}
+						else
+						{
+							value = (int32_t)std::stoi(field);
+						}
 						break;
 					case COLUMN_LONG:
-						value = (int64_t)std::stoll(field);
+						if (field.empty())
+						{
+							value = 0LL;
+						}
+						else
+						{
+							value = (int64_t)std::stoll(field);
+						}
 						break;
 					case COLUMN_FLOAT:
-						value = (float)std::stof(field);						
+						if (field.empty())
+						{
+							value = 0.0f;
+						}
+						else
+						{
+							value = (float)std::stof(field);
+						}
 						break;
 					case COLUMN_DOUBLE:
-						value = (double)std::stod(field);						
+						if (field.empty())
+						{
+							value = 0.0;
+						}
+						else
+						{
+							value = (double)std::stod(field);
+						}
 						break;
 					case COLUMN_POINT:
 						value = PointFactory::FromWkt(field);
