@@ -74,11 +74,42 @@ int main(int argc, char **argv)
 	std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
 	csvDataImporter2.ImportTables(database2);
 
-	CSVDataImporter csvDataImporter3(R"(../../data/trips.csv)");
+	CSVDataImporter csvDataImporter3(R"(../../data/trips-part1.csv)");
+	const std::vector<DataType> types{
+		COLUMN_STRING,
+		COLUMN_LONG,
+		COLUMN_LONG,
+		COLUMN_INT,
+		COLUMN_DOUBLE,
+		COLUMN_DOUBLE,
+		COLUMN_STRING,
+		COLUMN_STRING,
+		COLUMN_STRING,
+		COLUMN_DOUBLE,
+		COLUMN_DOUBLE,
+		COLUMN_STRING,
+		COLUMN_DOUBLE,
+		COLUMN_DOUBLE,
+		COLUMN_STRING,
+		COLUMN_STRING,
+		COLUMN_FLOAT,
+		COLUMN_FLOAT,
+		COLUMN_STRING };
+	const std::string tableName = "trips";
+	csvDataImporter3.SetTypes(types);
+	csvDataImporter3.SetTableName(tableName);
 	std::shared_ptr<Database> database3 = std::make_shared<Database>("TaxiRides", 100000000);
 	Database::AddToInMemoryDatabaseList(database3);
-	std::cout << "Loading trips.csv ..." << std::endl;
+	std::cout << "Loading trips-part1.csv ..." << std::endl;
 	csvDataImporter3.ImportTables(database3);
+
+	CSVDataImporter csvDataImporter4(R"(../../data/trips-part2.csv)");
+	csvDataImporter4.SetTypes(types);
+	csvDataImporter4.SetTableName(tableName);
+	std::shared_ptr<Database> database4 = std::make_shared<Database>("TaxiRides", 100000000);
+	Database::AddToInMemoryDatabaseList(database4);
+	std::cout << "Loading trips-part2.csv ..." << std::endl;
+	csvDataImporter4.ImportTables(database4);
 
 	Database::SaveAllToDisk();
 	return 0;

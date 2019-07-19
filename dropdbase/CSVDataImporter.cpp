@@ -457,3 +457,13 @@ void CSVDataImporter::SetTypes(const std::vector<DataType>& types)
 {
 	dataTypes_ = types;
 }
+
+/// <summary>
+/// Sets table name.
+/// Disables table name guessing according to filename.
+/// </summary>
+/// <param name="tableName">Table name.</param>
+void CSVDataImporter::SetTableName(const std::string tableName)
+{
+	tableName_ = tableName;
+}
