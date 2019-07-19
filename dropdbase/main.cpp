@@ -106,10 +106,8 @@ int main(int argc, char **argv)
 	CSVDataImporter csvDataImporter4(R"(../../data/trips-part2.csv)");
 	csvDataImporter4.SetTypes(types);
 	csvDataImporter4.SetTableName(tableName);
-	std::shared_ptr<Database> database4 = std::make_shared<Database>("TaxiRides", 100000000);
-	Database::AddToInMemoryDatabaseList(database4);
 	std::cout << "Loading trips-part2.csv ..." << std::endl;
-	csvDataImporter4.ImportTables(database4);
+	csvDataImporter4.ImportTables(database3);
 
 	Database::SaveAllToDisk();
 	return 0;
