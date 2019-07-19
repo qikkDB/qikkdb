@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 	std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 100000000);
 	Database::AddToInMemoryDatabaseList(database1);
 	std::cout << "Loading GeoPoint.csv ..." << std::endl;
-	csvDataImporter1.ImportTables(database1);
+	//csvDataImporter1.ImportTables(database1);
 
 	CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
 	std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 100000000);
