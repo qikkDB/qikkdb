@@ -247,7 +247,7 @@ public:
 	/// Create GPUGroupBy object and allocate a hash table (buffers for key, values and key occurrence counts)
 	/// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
 	GPUGroupBy(int32_t maxHashCount) :
-		maxHashCount_(maxHashCount)
+		maxHashCount_(maxHashCount + 1) // + 1 for NULL key
 	{
 		try
 		{
@@ -295,7 +295,8 @@ public:
 	GPUGroupBy(int32_t maxHashCount, K * keys) :
 		GPUGroupBy(maxHashCount)
 	{
-		GPUMemory::copyDeviceToDevice(keys_, keys, maxHashCount_);
+		// keys_ has value at index 0 reserved for NULL key
+		GPUMemory::copyDeviceToDevice(keys_ + 1, keys, maxHashCount);
 	}
 
 	~GPUGroupBy()
