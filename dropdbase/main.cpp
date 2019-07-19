@@ -66,15 +66,15 @@ int main(int argc, char **argv)
 	std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 100000000);
 	Database::AddToInMemoryDatabaseList(database1);
 	std::cout << "Loading GeoPoint.csv ..." << std::endl;
-	//csvDataImporter1.ImportTables(database1);
+	csvDataImporter1.ImportTables(database1);
 
 	CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
 	std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 100000000);
 	Database::AddToInMemoryDatabaseList(database2);
 	std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
-	//csvDataImporter2.ImportTables(database2);
+	csvDataImporter2.ImportTables(database2);
 
-	//CSVDataImporter csvDataImporter3(R"(../../data/trips-part1.csv)");
+	CSVDataImporter csvDataImporter3(R"(../../data/trips-part1.csv)");
 	const std::vector<DataType> types{
 		COLUMN_STRING,
 		COLUMN_LONG,
@@ -96,12 +96,12 @@ int main(int argc, char **argv)
 		COLUMN_FLOAT,
 		COLUMN_STRING };
 	const std::string tableName = "trips";
-	//csvDataImporter3.SetTypes(types);
-	//csvDataImporter3.SetTableName(tableName);
+	csvDataImporter3.SetTypes(types);
+	csvDataImporter3.SetTableName(tableName);
 	std::shared_ptr<Database> database3 = std::make_shared<Database>("TaxiRides", 100000000);
 	Database::AddToInMemoryDatabaseList(database3);
 	std::cout << "Loading trips-part1.csv ..." << std::endl;
-	//csvDataImporter3.ImportTables(database3);
+	csvDataImporter3.ImportTables(database3);
 
 	CSVDataImporter csvDataImporter4(R"(../../data/trips-part2.csv)");
 	csvDataImporter4.SetTypes(types);

@@ -30,7 +30,7 @@ CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimit
 	inputSize_ = inputMapped_.get()->size();
 	input_ = inputMapped_.get()->const_data();
 	if (std::thread::hardware_concurrency() > 1)
-		numThreads_ = std::thread::hardware_concurrency();
+		numThreads_ = 1; //std::thread::hardware_concurrency(); TODO multithreading needs to be fixed, it starts in middle of line
 	BOOST_LOG_TRIVIAL(info) << "Import threads: " << numThreads_;
 }
 
@@ -148,7 +148,6 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 			// if casting fails, the line is ommited
 			try {
 				for (auto& field : row) {
-					std::cout << "line: " << position << " column: " << columnIndex + 1 << " value: " << field << std::endl;
 					std::any value;
 					switch (dataTypes_[columnIndex]) {
 					case COLUMN_INT:
