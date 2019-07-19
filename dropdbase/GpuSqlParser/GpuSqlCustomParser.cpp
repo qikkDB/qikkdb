@@ -250,6 +250,14 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		std::cout << "TID: " << i << " Done \n";
 	}
 
+	int32_t currentDev = context.getBoundDeviceID();
+	for (int i = 0; i < threadCount; i++)
+	{
+		context.bindDeviceToContext(i);
+		groupByInstances[i] = nullptr;
+	}
+	context.bindDeviceToContext(currentDev);
+	
 	for (int i = 0; i < threadCount; i++)
 	{
 		if (dispatcherExceptions[i])
@@ -259,13 +267,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	}
 	
 	auto ret = (mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
-	int32_t currentDev = context.getBoundDeviceID();
-	for (int i = 0; i < threadCount; i++)
-	{
-		context.bindDeviceToContext(i);
-		groupByInstances[i] = nullptr;
-	}
-	context.bindDeviceToContext(currentDev);
+
 	return ret;
 }
 
