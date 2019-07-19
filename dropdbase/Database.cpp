@@ -46,6 +46,10 @@ Database::~Database()
 				for (int32_t i = 0; i < blockCount; i++)
 				{
 					cacheForDevice.clearCachedBlock(name_, table.second.GetName() + "." + column.second.get()->GetName(), i);
+					if(column.second.get()->GetIsNullable())
+					{
+						cacheForDevice.clearCachedBlock(name_, table.second.GetName() + "." + column.second.get()->GetName() + "_nullMask", i);
+					}
 				}
 			}
 		}

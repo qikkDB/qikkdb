@@ -27,7 +27,9 @@ int32_t GpuSqlDispatcher::orderByCol()
 		if (isOverallLastBlock)
 		{
 			std::cout << "Order by: " << colName << std::endl;
-			PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end() ? "_keys" : ""));
+			PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName) +
+					(std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end() ?
+					 KEYS_SUFFIX : ""));
 			int32_t inSize = column.elementCount;
 
 			if (orderByTable == nullptr)

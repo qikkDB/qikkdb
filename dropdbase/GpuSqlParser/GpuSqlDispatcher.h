@@ -6,6 +6,7 @@
 #define DROPDBASE_INSTAREA_GPUSQLDISPATCHER_H
 
 #include <functional>
+#include <algorithm>
 #include <vector>
 #include <iostream>
 #include <memory>
@@ -13,10 +14,12 @@
 #include <regex>
 #include <string>
 #include <mutex>
+#include <map>
 #include <condition_variable>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "MemoryStream.h"
 #include "../DataType.h"
+#include "GroupByType.h"
 #include "../QueryEngine/OrderByType.h"
 #include "../IVariantArray.h"
 #include "../QueryEngine/GPUCore/IGroupBy.h"
@@ -41,6 +44,16 @@ struct OrderByBlocks
 class Database; 
 class GPUOrderBy;
 
+struct StringDataTypeComp
+{
+	explicit StringDataTypeComp(const std::string& s) :
+		str(s) 
+	{ }
+	inline bool operator()(const std::pair<std::string, DataType> & p) const { return p.first == str; }
+private:
+	const std::string& str;
+};
+
 class GpuSqlDispatcher
 {
 private:
@@ -51,7 +64,9 @@ private:
 		bool shouldBeFreed;
 		std::uintptr_t gpuNullMaskPtr;
 	};
-	
+	static const std::string KEYS_SUFFIX;
+	static const std::string NULL_SUFFIX;
+
 	typedef int32_t(GpuSqlDispatcher::*DispatchFunction)();
     std::vector<DispatchFunction> dispatcherFunctions;
     MemoryStream arguments;
@@ -75,10 +90,10 @@ private:
 	bool isLastBlockOfDevice;
 	bool isOverallLastBlock;
 	bool noLoad;
-	std::unordered_set<std::string> groupByColumns;
+	std::vector<std::pair<std::string, DataType>> groupByColumns;
 	std::unordered_set<std::string> aggregatedRegisters;
 	std::unordered_set<std::string> registerLockList;
-	bool isRegisterAllocated(std::string& reg);
+	bool isRegisterAllocated(const std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 	
@@ -232,18 +247,28 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countGroupByFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> avgGroupByFunctions;
+
+	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> minGroupByMultiKeyFunctions;
+	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> maxGroupByMultiKeyFunctions;
+	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> sumGroupByMultiKeyFunctions;
+	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> countGroupByMultiKeyFunctions;
+	static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> avgGroupByMultiKeyFunctions;
+
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE> orderByFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE> orderByReconstructOrderFunctions;
 	static std::array<DispatchFunction,
 			DataType::DATA_TYPE_SIZE> orderByReconstructRetFunctions;
+			
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> retFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
+
 	static DispatchFunction isNullFunction;
 	static DispatchFunction isNotNullFunction;
+
 	static DispatchFunction freeOrderByTableFunction;
 	static DispatchFunction orderByReconstructRetAllBlocksFunction;
     static DispatchFunction filFunction;
@@ -276,6 +301,7 @@ private:
 	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<double[]> &data, int32_t dataSize);
 
 	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<std::string[]> &data, int32_t dataSize);
+
 public:
 	static std::mutex groupByMutex_;
 	static std::mutex orderByMutex_;
@@ -480,15 +506,15 @@ public:
 
 	void addRootFunction(DataType base, DataType exponent);
 
-    void addMinFunction(DataType key, DataType value, bool usingGroupBy);
+    void addMinFunction(DataType key, DataType value, GroupByType groupByType);
 
-    void addMaxFunction(DataType key, DataType value, bool usingGroupBy);
+    void addMaxFunction(DataType key, DataType value, GroupByType groupByType);
 
-    void addSumFunction(DataType key, DataType value, bool usingGroupBy);
+    void addSumFunction(DataType key, DataType value, GroupByType groupByType);
 
-    void addCountFunction(DataType key, DataType value, bool usingGroupBy);
+    void addCountFunction(DataType key, DataType value, GroupByType groupByType);
 
-    void addAvgFunction(DataType key, DataType value, bool usingGroupBy);
+    void addAvgFunction(DataType key, DataType value, GroupByType groupByType);
 
     void addRetFunction(DataType type);
 
@@ -541,21 +567,22 @@ public:
 	template<typename T>
 	T* allocateRegister(const std::string& reg, int32_t size, int8_t** nullPointerMask = nullptr)
 	{
-		T * mask;
-		GPUMemory::alloc<T>(&mask, size);
+		T * gpuRegister;
+		GPUMemory::alloc<T>(&gpuRegister, size);
 		if(nullPointerMask)
 		{
 			int32_t bitMaskSize = ((size + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 			GPUMemory::alloc<int8_t>(nullPointerMask, bitMaskSize);
-			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(mask), size, true, reinterpret_cast<std::uintptr_t>(*nullPointerMask)}});
+			allocatedPointers.insert({ reg + NULL_SUFFIX, PointerAllocation{reinterpret_cast<std::uintptr_t>(*nullPointerMask), bitMaskSize, true, 0}});
+			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true, reinterpret_cast<std::uintptr_t>(*nullPointerMask)}});
 		}
 		else
 		{
-			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(mask), size, true, 0}});
+			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true, 0}});
 		}
 		
 		usedRegisterMemory += size * sizeof(T);
-		return mask;
+		return gpuRegister;
 	}
 
 	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);

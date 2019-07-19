@@ -568,7 +568,7 @@ int32_t GpuSqlDispatcher::nullMaskCol()
 		return loadFlag;
 	}
 
-	PointerAllocation columnMask = allocatedPointers.at(colName + "_nullMask");
+	PointerAllocation columnMask = allocatedPointers.at(colName + NULL_SUFFIX);
 	size_t nullMaskSize = (columnMask.elementCount + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
 
 	if (!isRegisterAllocated(reg))

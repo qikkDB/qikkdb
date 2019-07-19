@@ -420,7 +420,7 @@ int32_t GpuSqlDispatcher::polygonOperationColCol()
 		if(std::get<2>(polygonLeft) || std::get<2>(polygonRight))
 		{
 			int32_t bitMaskSize = ((dataSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
-			int8_t * combinedMask = allocateRegister<int8_t>(reg + "_null",bitMaskSize);
+			int8_t * combinedMask = allocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
 			fillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
 			if(std::get<2>(polygonLeft) && std::get<2>(polygonRight))
 			{

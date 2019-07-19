@@ -98,7 +98,6 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
 			}
 			else
 			{
-				// Value in R col NULL - do nothing
 				int32_t hash_idx = hash(ColumnRBlock[i]);
 				int32_t bucket_idx = atomicAdd(&shared_memory[hash_idx], 1);
 				HashTableHashBuckets[bucket_idx] = i;//ColumnRBlock[i];
