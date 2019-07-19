@@ -2,6 +2,7 @@
 #include <boost/filesystem/path.hpp>
 #include <thread>
 #include <vector>
+#include <iostream>
 #include "CSVDataImporter.h"
 #include "../CSVParser.hpp"
 #include "Types/ComplexPolygon.pb.h"
@@ -147,7 +148,7 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 			// if casting fails, the line is ommited
 			try {
 				for (auto& field : row) {
-
+					std::cout << "line: " << position << " column: " << columnIndex + 1 << " value: " << field << std::endl;
 					std::any value;
 					switch (dataTypes_[columnIndex]) {
 					case COLUMN_INT:
@@ -208,11 +209,12 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 				}
 			}
 			catch (std::out_of_range&) {
-				BOOST_LOG_TRIVIAL(warning) << "Import of file " << tableName_ << " failed on line " << position << " (column " << columnIndex + 1 << ")";
+				BOOST_LOG_TRIVIAL(warning) << "OUT OF RANGE: Import of file " << tableName_ << " failed on line " << position << " (column " << columnIndex + 1 << ")";
+				abort();
 				rowData.clear();
 			}
 			catch (std::invalid_argument&) {
-				BOOST_LOG_TRIVIAL(warning) << "Import of file " << tableName_ << " failed on line " << position << " (column " << columnIndex + 1 << ")";
+				BOOST_LOG_TRIVIAL(warning) << "INVALID ARGUMENT: Import of file " << tableName_ << " failed on line " << position << " (column " << columnIndex + 1 << ")";
 				rowData.clear();
 			}
 		}
