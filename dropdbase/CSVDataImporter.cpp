@@ -30,7 +30,7 @@ CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimit
 	inputSize_ = inputMapped_.get()->size();
 	input_ = inputMapped_.get()->const_data();
 	if (std::thread::hardware_concurrency() > 1)
-		numThreads_ = std::thread::hardware_concurrency();
+		numThreads_ = 1; //std::thread::hardware_concurrency();
 	BOOST_LOG_TRIVIAL(info) << "Import threads: " << numThreads_;
 }
 
