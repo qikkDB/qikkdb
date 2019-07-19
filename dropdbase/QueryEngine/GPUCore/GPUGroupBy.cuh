@@ -432,7 +432,7 @@ public:
 				{
 					GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(), values_, keyOccurrenceCount_, maxHashCount_);
 				}
-				catch (query_engine_error& err)
+				catch (const query_engine_error& err)
 				{
 					// Rethrow just if error is not division by zero.
 					// Division by zero is OK here because it is more efficient to perform division
@@ -580,7 +580,22 @@ public:
 							CompressNullMask(keysNullMaskAllGPU.get()).get(), CompressNullMask(valuesNullMaskAllGPU.get()).get());
 					countGroupBy.GetResults(outKeys, &occurrencesMerged, outDataElementCount, outKeysNullMask, outValuesNullMask);
 					GPUMemory::alloc(outValues, *outDataElementCount);
-					GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurrencesMerged, *outDataElementCount);
+
+					try
+					{
+						GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurrencesMerged, *outDataElementCount);
+					}
+					catch(const query_engine_error& err)
+					{
+						// Rethrow just if error is not division by zero.
+						// Division by zero is OK here because some values could be NULL
+						// and therefore keyOccurrences could be 0.
+						if (err.GetQueryEngineError() != QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR)
+						{
+							throw err; 
+						}
+					}
+					
 					GPUMemory::free(valuesMerged);
 					GPUMemory::free(occurrencesMerged);
 				}
