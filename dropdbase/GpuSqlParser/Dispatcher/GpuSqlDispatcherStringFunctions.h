@@ -176,47 +176,78 @@ int32_t GpuSqlDispatcher::stringBinaryNumericColCol()
 		return loadFlag;
 	}
 
-	std::cout << "StringBinaryColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+	std::cout << "StringBinaryNumericColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-	bool leftIsKey = std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameLeft)) != groupByColumns.end();
-	bool rightIsKey = std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameRight)) != groupByColumns.end();
-	
-	auto columnLeft = findStringColumn(getAllocatedRegisterName(colNameLeft) + (leftIsKey ? KEYS_SUFFIX : ""));
-	PointerAllocation columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight) + (rightIsKey ? KEYS_SUFFIX : ""));
-	int32_t retSize = std::min(std::get<1>(columnLeft), columnRight.elementCount);
-	std::string suffix = (leftIsKey || rightIsKey ? KEYS_SUFFIX : "");
+	bool isLeftKey = std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameLeft)) != groupByColumns.end();
+	bool isRightKey = std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colNameRight)) != groupByColumns.end();
 
-	if (!isRegisterAllocated(reg + suffix))
+	if (isLeftKey || isRightKey)
 	{
-		GPUMemory::GPUString result;
-		GPUStringBinary::ColCol<OP>(result, std::get<0>(columnLeft), reinterpret_cast<T*>(columnRight.gpuPtr), retSize);
+		if (isOverallLastBlock)
+		{
+			auto columnLeft = findStringColumn(getAllocatedRegisterName(colNameLeft) + (isLeftKey ? KEYS_SUFFIX : ""));
+			auto columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight) + (isRightKey ? KEYS_SUFFIX : ""));
+			int32_t retSize = std::min(std::get<1>(columnLeft), columnRight.elementCount);
 
-		if(std::get<2>(columnLeft) || columnRight.gpuNullMaskPtr)
-		{
-			int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
-			int8_t * combinedMask = allocateRegister<int8_t>(reg + suffix + NULL_SUFFIX, bitMaskSize);
-			fillStringRegister(result, reg + suffix, retSize, true, combinedMask);
-			if(std::get<2>(columnLeft) && columnRight.gpuNullMaskPtr)
+			GPUMemory::GPUString result;
+			GPUStringBinary::ColCol<OP>(result, std::get<0>(columnLeft), reinterpret_cast<T*>(columnRight.gpuPtr), retSize);
+			if (std::get<2>(columnLeft) || columnRight.gpuNullMaskPtr)
 			{
-				GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)), reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+				int8_t * combinedMask = allocateRegister<int8_t>(reg + KEYS_SUFFIX + NULL_SUFFIX, bitMaskSize);
+				fillStringRegister(result, reg + KEYS_SUFFIX, retSize, true, combinedMask);
+				if (std::get<2>(columnLeft) && columnRight.gpuNullMaskPtr)
+				{
+					GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)), reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+				}
+				else if (std::get<2>(columnLeft))
+				{
+					GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)), bitMaskSize);
+				}
+				else if (columnRight.gpuNullMaskPtr)
+				{
+					GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+				}
 			}
-			else if(std::get<2>(columnLeft))
+			else
 			{
-				GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)), bitMaskSize);
+				fillStringRegister(result, reg + KEYS_SUFFIX, retSize, true);
 			}
-			else if(columnRight.gpuNullMaskPtr)
-			{
-				GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
-			}
-		}
-		else
-		{
-			fillStringRegister(result, reg + suffix, retSize, true);
-		}
-
-		if ((leftIsKey || rightIsKey) && isOverallLastBlock)
-		{
 			groupByColumns.push_back({ reg, DataType::COLUMN_STRING });
+		}
+	}
+	else if (isOverallLastBlock || !usingGroupBy)
+	{
+		auto columnLeft = findStringColumn(getAllocatedRegisterName(colNameLeft));
+		auto columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
+		int32_t retSize = std::min(std::get<1>(columnLeft), columnRight.elementCount);
+
+		if (!isRegisterAllocated(reg))
+		{
+			GPUMemory::GPUString result;
+			GPUStringBinary::ColCol<OP>(result, std::get<0>(columnLeft), reinterpret_cast<T*>(columnRight.gpuPtr), retSize);
+			if (std::get<2>(columnLeft) || columnRight.gpuNullMaskPtr)
+			{
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+				int8_t * combinedMask = allocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
+				fillStringRegister(result, reg, retSize, true, combinedMask);
+				if (std::get<2>(columnLeft) && columnRight.gpuNullMaskPtr)
+				{
+					GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)), reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+				}
+				else if (std::get<2>(columnLeft))
+				{
+					GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)), bitMaskSize);
+				}
+				else if (columnRight.gpuNullMaskPtr)
+				{
+					GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+				}
+			}
+			else
+			{
+				fillStringRegister(result, reg, retSize, true);
+			}
 		}
 	}
 	return 0;
