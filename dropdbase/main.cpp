@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	std::cout << "Loading trips-part1.csv ..." << std::endl;
 	csvDataImporter3.ImportTables(database3);
 
-	CSVDataImporter csvDataImporter4(R"(../../data/trips-part2.csv)");
+	CSVDataImporter csvDataImporter4(R"(../../data/trips-part1.csv)"); //TODO change this to part2 when data part2 will be correct
 	csvDataImporter4.SetTypes(types);
 	csvDataImporter4.SetTableName(tableName);
 	std::cout << "Loading trips-part2.csv ..." << std::endl;
