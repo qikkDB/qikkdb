@@ -243,8 +243,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 				if (!std::get<2>(cacheMaskEntry))
 				{
 					int32_t outMaskSize;
-					GPUMemory::memset(std::get<0>(cacheMaskEntry), 0, bitMaskCapacity);
-					//GPUJoin::reorderNullMaskByJoinTableCPU<T>(std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
+					GPUJoin::reorderNullMaskByJoinTableCPU<T>(std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
 				}
 				addCachedRegister(joinCacheId + NULL_SUFFIX, std::get<0>(cacheMaskEntry), bitMaskCapacity);
 			}
