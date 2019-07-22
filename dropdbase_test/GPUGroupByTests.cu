@@ -318,6 +318,99 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
 */
 }
 
+template <typename AGG>
+void TestGroupByMultiKeyIntString(int32_t totalElementCount)
+{
+	int32_t blocks = 2;
+	int32_t dataElementCount = totalElementCount / blocks;
+	const int32_t intKey = 5;
+	std::string strKey = "yellow";
+	const int32_t intVal = 1;
+
+	//std::vector<DataType> keyTypes, std::vector<std::vector<void*>> keys
+	//std::vector<std::vector<int32_t>> values,
+    //std::vector<void*> correctKeys, std::vector<int32_t> correctValues
+	std::vector<DataType> keyTypes = { DataType::COLUMN_INT, DataType::COLUMN_STRING };
+	constexpr int32_t hashTableSize = 65536;
+	GPUGroupBy<AGG, int32_t, std::vector<void*>, int32_t> groupBy(hashTableSize, keyTypes);
+	int32_t keysColCount = keyTypes.size();
+	for (int32_t b = 0; b < blocks; b++) // per "block"
+	{
+		std::vector<void*> gpuInKeys;
+
+		int32_t* inIntKeysSingleCol;
+		GPUMemory::alloc(&inIntKeysSingleCol, dataElementCount);
+		GPUMemory::fillArray(inIntKeysSingleCol, intKey, dataElementCount);
+		gpuInKeys.emplace_back(inIntKeysSingleCol);
+
+		GPUMemory::GPUString * inStrKeySingleCol;
+		GPUMemory::alloc(&inStrKeySingleCol, 1);
+		std::vector<std::string> cpuString(dataElementCount, strKey);
+		GPUMemory::GPUString cpuStructInKeys = StringFactory::PrepareGPUString(cpuString);
+		GPUMemory::copyHostToDevice(inStrKeySingleCol, &cpuStructInKeys, 1);
+		gpuInKeys.emplace_back(inStrKeySingleCol);
+
+		cuda_ptr<int32_t> gpuInValues(dataElementCount);
+		GPUMemory::fillArray(gpuInValues.get(), intVal, dataElementCount);
+
+		groupBy.GroupBy(gpuInKeys, gpuInValues.get(), dataElementCount);
+		for (int32_t t = 0; t < keysColCount; t++)
+		{
+			if (keyTypes[t] == DataType::COLUMN_STRING)
+			{
+				GPUMemory::GPUString cpuStruct;
+				GPUMemory::copyDeviceToHost(&cpuStruct, reinterpret_cast<GPUMemory::GPUString*>(gpuInKeys[t]), 1);
+				GPUMemory::free(cpuStruct);
+			}
+			GPUMemory::free(gpuInKeys[t]);
+		}
+	}
+	std::vector<void*> gpuResultKeys;
+	int32_t* resultValuesGpu;
+	int32_t resultCount;
+	groupBy.GetResults(&gpuResultKeys, &resultValuesGpu, &resultCount);
+
+	ASSERT_EQ(1, resultCount);
+
+	std::unique_ptr<int32_t[]> outIntKeySingleCol = std::make_unique<int32_t[]>(resultCount);
+	GPUMemory::copyDeviceToHost(outIntKeySingleCol.get(), reinterpret_cast<int32_t*>(gpuResultKeys[0]), resultCount);
+	ASSERT_EQ(intKey, outIntKeySingleCol[0]);
+
+	std::unique_ptr<std::string[]> outStringKeySingleCol = std::make_unique<std::string[]>(resultCount);
+	GPUReconstruct::ReconstructStringCol(outStringKeySingleCol.get(), &resultCount,
+		*reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[1]), nullptr, resultCount);
+	ASSERT_EQ(strKey, outStringKeySingleCol[0]);
+
+	std::unique_ptr<int32_t[]> resultValues = std::make_unique<int32_t[]>(resultCount);
+	GPUMemory::copyDeviceToHost(resultValues.get(), resultValuesGpu, resultCount);
+	if (std::is_same<AGG, AggregationFunctions::sum>::value)
+	{
+		ASSERT_EQ(intVal * dataElementCount, resultValues[0]);
+	}
+	else if(std::is_same<AGG, AggregationFunctions::avg>::value)
+	{
+		ASSERT_EQ(intVal, resultValues[0]);
+	}
+	else
+	{
+		FAIL();
+	}
+
+	for (int32_t t = 0; t < keysColCount; t++)
+	{
+		if (keyTypes[t] == DataType::COLUMN_STRING)
+		{
+			GPUMemory::free(*reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]));
+			delete[] reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]);
+		}
+		else
+		{
+			GPUMemory::free(gpuResultKeys[t]);
+		}
+	}
+	GPUMemory::free(resultValuesGpu);
+}
+
 
 TEST(GPUGroupByTests, StringUnique)
 {
@@ -416,6 +509,27 @@ TEST(GPUGroupByTests, MultiKeyStringSimpleSum)
     );
 }
 
+TEST(GPUGroupByTests, MultiKeyStringLargeDataSum)
+{
+	int32_t colA[] = { 5, 2, 2, 2, 2, 5, 1, 7 };
+	int32_t colB[] = { 1, 1, 1, 1, 1, 1, 2, 0 };
+	std::string colC[] = { "Apple", "Nut", "Nut", "Apple", "XYZ", "Apple", "Apple", "Nut" };
+	std::vector<int32_t> values = { 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	int32_t correctKeysA[] = { 2, 2, 1, 7, 5, 2 };
+	int32_t correctKeysB[] = { 1, 1, 2, 0, 1, 1 };
+	std::string correctKeysC[] = { "Apple", "XYZ", "Apple", "Nut", "Apple", "Nut" };
+	std::vector<int32_t> correctValues = { 1, 1, 1, 1, 2, 2 };
+
+	TestGroupByMultiKey<AggregationFunctions::sum>(
+		{ DataType::COLUMN_INT, DataType::COLUMN_INT, DataType::COLUMN_STRING },
+		{ { colA, colB, colC } },
+		{ values },
+		{ correctKeysA, correctKeysB, correctKeysC },
+		correctValues
+		);
+}
+
 TEST(GPUGroupByTests, MultiKeyStringSimpleMin)
 {
     int32_t colA[] = { 8, 2, 2, 8, 2, 8, 1, 7 };
@@ -456,4 +570,14 @@ TEST(GPUGroupByTests, MultiKeyStringSimpleMax)
         { correctKeysA, correctKeysB, correctKeysC },
         correctValues
     );
+}
+
+TEST(GPUGroupByTests, MultiKeyIntString1M)
+{
+	TestGroupByMultiKeyIntString<AggregationFunctions::avg>(1000000);
+}
+
+TEST(GPUGroupByTests, MultiKeyIntString42M)
+{
+	TestGroupByMultiKeyIntString<AggregationFunctions::avg>(42000000);
 }
