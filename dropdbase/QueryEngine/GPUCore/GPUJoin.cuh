@@ -492,7 +492,7 @@ public:
 				gpuJoin.HashBlock(d_ColumnRBlock.get(), nullptr, processedRBlockSize);
 			}
 
-
+			GPUMemory::memset(gpuJoin.JoinTableHisto_, 0, gpuJoin.joinTableSize_);
 			for (int32_t s = 0; s < ColumnS.GetBlockCount(); s++)
 			{
 				// The result block size
