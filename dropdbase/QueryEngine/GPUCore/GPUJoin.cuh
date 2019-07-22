@@ -349,6 +349,7 @@ private:
 
 		//////////////////////////////////////////////////////////////////////////////
 		// Calculate the hash table histograms
+		GPUMemory::memset(HashTableHisto_, 0, hashTableSize_);
 		kernel_calc_hash_histo << <Context::getInstance().calcGridDim(hashTableSize_),
 			Context::getInstance().getBlockDim() >> > (HashTableHisto_,
 				hashTableSize_,
