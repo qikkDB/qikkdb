@@ -227,6 +227,7 @@ public:
 				break;
 			case DataType::COLUMN_STRING:
 				dispatcher.fillStringRegister(*(reinterpret_cast<GPUMemory::GPUString*>(outKeys[i])), dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys", outSize, true);
+				delete reinterpret_cast<GPUMemory::GPUString*>(outKeys[i]); // delete just pointer to struct
 				break;
 			case DataType::COLUMN_INT8_T:
 				dispatcher.allocatedPointers.insert({ dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<int8_t*>(outKeys[i])), outSize, true) });
