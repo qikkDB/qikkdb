@@ -18,25 +18,21 @@ GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector
 {
 	// Points of polygons
 	std::vector<NativeGeoPoint> polyPoints;
+
 	// Start indexes of each polygon in point array
 	std::vector<int32_t> pointIdx;
-	// Number of points of each polygon
-	std::vector<int32_t> pointCount;
+
 	// Start indexes of each complex polygon in polygon array
 	std::vector<int32_t> polyIdx;
-	// Number of polygons of each complex polygon
-	std::vector<int32_t> polyCount;
+
 	for (const auto& complPoly : polygons)
 	{
 		const int subpolyCount = complPoly.polygons_size();
-		polyIdx.push_back(pointIdx.size());
-		polyCount.push_back(subpolyCount);
 		for (int i = 0; i < subpolyCount; i++)
 		{
-			const auto & subpoly = complPoly.polygons(i);
+			const auto& subpoly = complPoly.polygons(i);
 			const int subpPointCount = subpoly.geopoints_size();
-			pointIdx.push_back(polyPoints.size());
-			pointCount.push_back(subpPointCount + 2);
+		
 			// Necessary for the raycasting to work, separates components of complex polygons
 			polyPoints.push_back({ 0, 0 });
 			for (int j = 0; j < subpPointCount; j++)
@@ -45,19 +41,18 @@ GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector
 				polyPoints.push_back({ geopoint.latitude(), geopoint.longitude() });
 			}
 			polyPoints.push_back({ 0, 0 });
+
+			pointIdx.push_back(polyPoints.size());
 		}
+		polyIdx.push_back(pointIdx.size());
 	}
-	GPUMemory::GPUPolygon retPointers = {nullptr, nullptr, nullptr, nullptr, nullptr};
+
+	GPUMemory::GPUPolygon retPointers = {nullptr, nullptr, nullptr};
+
 	try
 	{
-		GPUMemory::alloc(&retPointers.pointCount, pointCount.size());
-		GPUMemory::copyHostToDevice(retPointers.pointCount, pointCount.data(), pointCount.size());
-
 		GPUMemory::alloc(&retPointers.pointIdx, pointIdx.size());
 		GPUMemory::copyHostToDevice(retPointers.pointIdx, pointIdx.data(), pointIdx.size());
-
-		GPUMemory::alloc(&retPointers.polyCount, polyCount.size());
-		GPUMemory::copyHostToDevice(retPointers.polyCount, polyCount.data(), polyCount.size());
 
 		GPUMemory::alloc(&retPointers.polyIdx, polyIdx.size());
 		GPUMemory::copyHostToDevice(retPointers.polyIdx, polyIdx.data(), polyIdx.size());
@@ -67,26 +62,21 @@ GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector
 	}
 	catch(...)
 	{
-		if(retPointers.pointCount)
-		{
-			GPUMemory::free(retPointers.pointCount);
-		}
 		if(retPointers.pointIdx)
 		{
 			GPUMemory::free(retPointers.pointIdx);
 		}
-		if(retPointers.polyCount)
-		{
-			GPUMemory::free(retPointers.polyCount);
-		}
+
 		if(retPointers.polyIdx)
 		{
 			GPUMemory::free(retPointers.polyIdx);
 		}
+
 		if(retPointers.polyPoints)
 		{
 			GPUMemory::free(retPointers.polyPoints);
 		}
+
 		throw;
 	}
 	return retPointers;
@@ -96,25 +86,22 @@ GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector
 {
 	// Points of polygons
 	std::vector<NativeGeoPoint> polyPoints;
+
 	// Start indexes of each polygon in point array
 	std::vector<int32_t> pointIdx;
-	// Number of points of each polygon
-	std::vector<int32_t> pointCount;
+
 	// Start indexes of each complex polygon in polygon array
 	std::vector<int32_t> polyIdx;
-	// Number of polygons of each complex polygon
-	std::vector<int32_t> polyCount;
+
 	for (const auto& complPoly : polygons)
 	{
 		const int subpolyCount = complPoly.polygons_size();
-		polyIdx.push_back(pointIdx.size());
-		polyCount.push_back(subpolyCount);
+
 		for (int i = 0; i < subpolyCount; i++)
 		{
 			const auto & subpoly = complPoly.polygons(i);
 			const int subpPointCount = subpoly.geopoints_size();
-			pointIdx.push_back(polyPoints.size());
-			pointCount.push_back(subpPointCount);
+
 			// Necessary for the raycasting to work, separates components of complex polygons
 			polyPoints.push_back({ 0, 0 });
 			for (int j = 0; j < subpPointCount; j++)
@@ -123,24 +110,22 @@ GPUMemory::GPUPolygon ComplexPolygonFactory::PrepareGPUPolygon(const std::vector
 				polyPoints.push_back({ geopoint.latitude(), geopoint.longitude() });
 			}
 			polyPoints.push_back({ 0, 0 });
+
+			pointIdx.push_back(polyPoints.size());
 		}
+		polyIdx.push_back(pointIdx.size());
 	}
 	GPUMemory::GPUPolygon retPointers;
-	
-	retPointers.pointCount = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(databaseName, columnName + "_pointCount", blockIndex, pointCount.size()));
-	GPUMemory::copyHostToDevice(retPointers.pointCount, pointCount.data(), pointCount.size());
 
 	retPointers.pointIdx = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(databaseName, columnName + "_pointIdx", blockIndex, pointIdx.size()));
 	GPUMemory::copyHostToDevice(retPointers.pointIdx, pointIdx.data(), pointIdx.size());
-
-	retPointers.polyCount = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(databaseName, columnName + "_polyCount", blockIndex, polyCount.size()));
-	GPUMemory::copyHostToDevice(retPointers.polyCount, polyCount.data(), polyCount.size());
 
 	retPointers.polyIdx = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(databaseName, columnName + "_polyIdx", blockIndex, polyIdx.size()));
 	GPUMemory::copyHostToDevice(retPointers.polyIdx, polyIdx.data(), polyIdx.size());
 
 	retPointers.polyPoints = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(databaseName, columnName + "_polyPoints", blockIndex, polyPoints.size()));
 	GPUMemory::copyHostToDevice(retPointers.polyPoints, polyPoints.data(), polyPoints.size());
+	
 	return retPointers;
 }
 

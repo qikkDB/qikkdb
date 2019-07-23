@@ -43,14 +43,20 @@ namespace GPUMemory
 	{
 		/// Points of polygons
 		NativeGeoPoint* polyPoints;
+
 		/// Start indices of each polygon in point array
 		int32_t* pointIdx;
-		/// Number of points of each polygon
-		int32_t* pointCount;
+
 		/// Start indices of each complex polygon in polygon array
 		int32_t* polyIdx;
-		/// Number of polygons of each complex polygon
-		int32_t* polyCount;
+
+		__device__ __host__ int32_t pointIdxAt(int32_t idx) { return (idx == 0) ? 0 : pointIdx[idx - 1]; }
+
+		__device__ __host__ int32_t polyIdxAt(int32_t idx) { return (idx == 0) ? 0 : polyIdx[idx - 1]; }
+
+		__device__ __host__ int32_t pointCountAt(int32_t idx) { return static_cast<int32_t>(pointIdx[idx] - pointIdxAt(idx)); }
+
+		__device__ __host__ int32_t polyCountAt(int32_t idx) { return static_cast<int32_t>(polyIdx[idx] - polyIdxAt(idx)); }
 	};
 
 	/// Struct for GPU representation of string column (with pointers to start of condensed buffers).
