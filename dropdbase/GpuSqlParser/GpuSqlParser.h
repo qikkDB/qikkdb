@@ -16,26 +16,27 @@ public:
     DQOUTE = 8, UNDERSCORE = 9, COLON = 10, COMMA = 11, DOT = 12, STRING = 13, 
     DELIMID = 14, DATELIT = 15, TIMELIT = 16, POINT = 17, MULTIPOINT = 18, 
     LINESTRING = 19, MULTILINESTRING = 20, POLYGON = 21, MULTIPOLYGON = 22, 
-    DATATYPE = 23, INTTYPE = 24, LONGTYPE = 25, FLOATTYPE = 26, DOUBLETYPE = 27, 
-    STRINGTYPE = 28, BOOLEANTYPE = 29, POINTTYPE = 30, POLYTYPE = 31, INSERTINTO = 32, 
-    CREATEDB = 33, DROPDB = 34, CREATETABLE = 35, DROPTABLE = 36, ALTERTABLE = 37, 
-    ADD = 38, DROPCOLUMN = 39, ALTERCOLUMN = 40, CREATEINDEX = 41, INDEX = 42, 
-    PRIMARYKEY = 43, VALUES = 44, SELECT = 45, FROM = 46, JOIN = 47, WHERE = 48, 
-    GROUPBY = 49, AS = 50, IN = 51, BETWEEN = 52, ON = 53, ORDERBY = 54, 
-    DIR = 55, LIMIT = 56, OFFSET = 57, INNER = 58, FULLOUTER = 59, SHOWDB = 60, 
-    SHOWTB = 61, SHOWCL = 62, AGG = 63, AVG = 64, SUM = 65, MIN = 66, MAX = 67, 
-    COUNT = 68, YEAR = 69, MONTH = 70, DAY = 71, HOUR = 72, MINUTE = 73, 
-    SECOND = 74, NOW = 75, PI = 76, ABS = 77, SIN = 78, COS = 79, TAN = 80, 
-    COT = 81, ASIN = 82, ACOS = 83, ATAN = 84, ATAN2 = 85, LOG10 = 86, LOG = 87, 
-    EXP = 88, POW = 89, SQRT = 90, SQUARE = 91, SIGN = 92, ROOT = 93, ROUND = 94, 
-    CEIL = 95, FLOOR = 96, LTRIM = 97, RTRIM = 98, LOWER = 99, UPPER = 100, 
-    REVERSE = 101, LEN = 102, LEFT = 103, RIGHT = 104, CONCAT = 105, GEO_CONTAINS = 106, 
-    GEO_INTERSECT = 107, GEO_UNION = 108, PLUS = 109, MINUS = 110, ASTERISK = 111, 
-    DIVISION = 112, MODULO = 113, XOR = 114, EQUALS = 115, NOTEQUALS = 116, 
-    NOTEQUALS_GT_LT = 117, LPAREN = 118, RPAREN = 119, GREATER = 120, LESS = 121, 
-    GREATEREQ = 122, LESSEQ = 123, NOT = 124, OR = 125, AND = 126, BIT_OR = 127, 
-    BIT_AND = 128, L_SHIFT = 129, R_SHIFT = 130, BOOLEANLIT = 131, TRUE = 132, 
-    FALSE = 133, FLOATLIT = 134, INTLIT = 135, ID = 136
+    DATATYPE = 23, INTTYPE = 24, LONGTYPE = 25, DATETYPE = 26, FLOATTYPE = 27, 
+    DOUBLETYPE = 28, STRINGTYPE = 29, BOOLEANTYPE = 30, POINTTYPE = 31, 
+    POLYTYPE = 32, INSERTINTO = 33, CREATEDB = 34, DROPDB = 35, CREATETABLE = 36, 
+    DROPTABLE = 37, ALTERTABLE = 38, ADD = 39, DROPCOLUMN = 40, ALTERCOLUMN = 41, 
+    CREATEINDEX = 42, INDEX = 43, PRIMARYKEY = 44, VALUES = 45, SELECT = 46, 
+    FROM = 47, JOIN = 48, WHERE = 49, GROUPBY = 50, AS = 51, IN = 52, BETWEEN = 53, 
+    ON = 54, ORDERBY = 55, DIR = 56, LIMIT = 57, OFFSET = 58, INNER = 59, 
+    FULLOUTER = 60, SHOWDB = 61, SHOWTB = 62, SHOWCL = 63, AGG = 64, AVG = 65, 
+    SUM = 66, MIN = 67, MAX = 68, COUNT = 69, YEAR = 70, MONTH = 71, DAY = 72, 
+    HOUR = 73, MINUTE = 74, SECOND = 75, NOW = 76, PI = 77, ABS = 78, SIN = 79, 
+    COS = 80, TAN = 81, COT = 82, ASIN = 83, ACOS = 84, ATAN = 85, ATAN2 = 86, 
+    LOG10 = 87, LOG = 88, EXP = 89, POW = 90, SQRT = 91, SQUARE = 92, SIGN = 93, 
+    ROOT = 94, ROUND = 95, CEIL = 96, FLOOR = 97, LTRIM = 98, RTRIM = 99, 
+    LOWER = 100, UPPER = 101, REVERSE = 102, LEN = 103, LEFT = 104, RIGHT = 105, 
+    CONCAT = 106, CAST = 107, GEO_CONTAINS = 108, GEO_INTERSECT = 109, GEO_UNION = 110, 
+    PLUS = 111, MINUS = 112, ASTERISK = 113, DIVISION = 114, MODULO = 115, 
+    XOR = 116, EQUALS = 117, NOTEQUALS = 118, NOTEQUALS_GT_LT = 119, LPAREN = 120, 
+    RPAREN = 121, GREATER = 122, LESS = 123, GREATEREQ = 124, LESSEQ = 125, 
+    NOT = 126, OR = 127, AND = 128, BIT_OR = 129, BIT_AND = 130, L_SHIFT = 131, 
+    R_SHIFT = 132, BOOLEANLIT = 133, TRUE = 134, FALSE = 135, FLOATLIT = 136, 
+    INTLIT = 137, ID = 138
   };
 
   enum {
@@ -972,6 +973,21 @@ public:
     DecimalLiteralContext(ExpressionContext *ctx);
 
     antlr4::tree::TerminalNode *FLOATLIT();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  CastOperationContext : public ExpressionContext {
+  public:
+    CastOperationContext(ExpressionContext *ctx);
+
+    antlr4::Token *op = nullptr;
+    antlr4::tree::TerminalNode *LPAREN();
+    ExpressionContext *expression();
+    antlr4::tree::TerminalNode *AS();
+    antlr4::tree::TerminalNode *DATATYPE();
+    antlr4::tree::TerminalNode *RPAREN();
+    antlr4::tree::TerminalNode *CAST();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };

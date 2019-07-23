@@ -173,6 +173,9 @@ public:
   virtual void enterDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx) = 0;
   virtual void exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx) = 0;
 
+  virtual void enterCastOperation(GpuSqlParser::CastOperationContext *ctx) = 0;
+  virtual void exitCastOperation(GpuSqlParser::CastOperationContext *ctx) = 0;
+
   virtual void enterGeoReference(GpuSqlParser::GeoReferenceContext *ctx) = 0;
   virtual void exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx) = 0;
 

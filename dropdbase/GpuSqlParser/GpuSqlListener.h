@@ -84,6 +84,8 @@ public:
 
     void exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) override;
 
+	void exitCastOperation(GpuSqlParser::CastOperationContext *ctx) override;
+
     void exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx) override;
 
     void exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx) override;

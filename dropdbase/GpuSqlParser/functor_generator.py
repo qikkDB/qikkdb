@@ -42,10 +42,12 @@ polygon_operations = ["intersect", "union"]
 filter_operations = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 logical_operations = ["logicalAnd", "logicalOr"]
 
-numeric_types = [INT, LONG, FLOAT, DOUBLE]
+integral_types = [INT, LONG, FLOAT, DOUBLE]
 floating_types = [FLOAT, DOUBLE]
 geo_types = [POINT, POLYGON]
 bool_types = [BOOL]
+
+numeric_types = [INT, LONG, FLOAT, DOUBLE, BOOL]
 
 operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual", "logicalAnd", "logicalOr",
                      "mul", "div", "add", "sub", "mod", "contains", "intersect", "union"]
@@ -775,6 +777,35 @@ for operation in ["concat"]:
                 declaration += ("&" + function + "};")
             else:
                 declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+for operation in ["castToInt"]:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE * DataType::COLUMN_INT> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal == STRING:
+            op = "castString"
+        else:
+            op = "invalidOperandTypesErrorHandler"
+
+        if op == "stringBinary":
+            function = "GpuSqlDispatcher::" + op + col + "<Operations::" + operation + ">"
+        else:
+            function = "GpuSqlDispatcher::" + op + col + "<StringBinaryOperations::" + operation + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
 
     print(declaration)
 print()
