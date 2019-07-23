@@ -158,6 +158,11 @@ TEST_F(DatabaseTests, IntegrationTest)
 	boost::filesystem::remove_all(storePath);
 
 	Database::SaveAllToDisk();
+	
+	for (auto& db : Database::GetDatabaseNames())
+	{
+		Database::RemoveFromInMemoryDatabaseList(db.c_str());
+	}
 
 	//load different database, but with the same data:
 	Database::LoadDatabasesFromDisk();
@@ -279,15 +284,10 @@ TEST_F(DatabaseTests, IntegrationTest)
 	Database::SaveAllToDisk();
 
 	//drop column colBool:
-	database->DeleteColumnFromDisk(std::string("TestTable2").c_str(), std::string("colBool").c_str());
 	std::string filePath = Configuration::GetInstance().GetDatabaseDir() + dbName + Database::SEPARATOR + "TestTable2" + Database::SEPARATOR + "colBool.col";
-	bool exists = false;
-
-	if (boost::filesystem::exists(filePath))
-	{
-		exists = true;
-	}
-	ASSERT_FALSE(exists);
+	ASSERT_TRUE(boost::filesystem::exists(filePath)); // should exist before deletion
+	database->DeleteColumnFromDisk(std::string("TestTable2").c_str(), std::string("colBool").c_str());
+	ASSERT_FALSE(boost::filesystem::exists(filePath)); // should not exist after deletion
 
 	//drop table TestTable2:
 	database->DeleteTableFromDisk(std::string("TestTable2").c_str());
