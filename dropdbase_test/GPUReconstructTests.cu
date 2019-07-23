@@ -79,8 +79,7 @@ void TestReconstructPolyCol(std::vector<int8_t> mask, std::vector<std::string> p
 	GPUMemory::GPUPolygon outCol;
 
 	// Do the reconstruction
-	GPUReconstruct::ReconstructPolyColKeep(&outCol, &outCount,
-		polygonColumn, maskDevice.get(), ELEMENT_COUNT);
+	GPUReconstruct::ReconstructPolyColKeep(&outCol, &outCount, polygonColumn, maskDevice.get(), ELEMENT_COUNT);
 
 	// Check results
 	ASSERT_EQ(outCount, correctPoints.size());
@@ -88,17 +87,13 @@ void TestReconstructPolyCol(std::vector<int8_t> mask, std::vector<std::string> p
 	{
 		// Copy results
 		std::unique_ptr<int32_t[]> hostPolyIdx = std::make_unique<int32_t[]>(outCount);
-		std::unique_ptr<int32_t[]> hostPolyCount = std::make_unique<int32_t[]>(outCount);
 		GPUMemory::copyDeviceToHost(hostPolyIdx.get(), outCol.polyIdx, outCount);
-		GPUMemory::copyDeviceToHost(hostPolyCount.get(), outCol.polyCount, outCount);
+		int32_t subpolyCounts = hostPolyIdx[outCount - 1];
 
-		int32_t subpolyCounts = hostPolyIdx[outCount - 1] + hostPolyCount[outCount - 1];
 		std::unique_ptr<int32_t[]> hostPointIdx = std::make_unique<int32_t[]>(subpolyCounts);
-		std::unique_ptr<int32_t[]> hostPointCount = std::make_unique<int32_t[]>(subpolyCounts);
 		GPUMemory::copyDeviceToHost(hostPointIdx.get(), outCol.pointIdx, subpolyCounts);
-		GPUMemory::copyDeviceToHost(hostPointCount.get(), outCol.pointCount, subpolyCounts);
+		int32_t pointCounts = hostPointIdx[subpolyCounts - 1];
 
-		int32_t pointCounts = hostPointIdx[subpolyCounts - 1] + hostPointCount[subpolyCounts - 1];
 		std::unique_ptr<NativeGeoPoint[]> hostPoints = std::make_unique<NativeGeoPoint[]>(pointCounts);
 		GPUMemory::copyDeviceToHost(hostPoints.get(), outCol.polyPoints, pointCounts);
 		
@@ -106,20 +101,22 @@ void TestReconstructPolyCol(std::vector<int8_t> mask, std::vector<std::string> p
 		int32_t correctPointIdx = 0;
 		for (int32_t i = 0; i < outCount; i++)	// for complex polygons
 		{
-			ASSERT_EQ(hostPolyIdx[i], correctPolyIdx) << "polyIdx at " << i;
-			ASSERT_EQ(hostPolyCount[i], correctPoints[i].size()) << "polyCount at " << i;
 			correctPolyIdx += correctPoints[i].size();
+			ASSERT_EQ(hostPolyIdx[i], correctPolyIdx) << "polyIdx at " << i;
 
-			for (int32_t j = 0; j < hostPolyCount[i]; j++)	// for subpolygons
+			int32_t i_prev = (i == 0) ? 0 : hostPolyIdx[i - 1]; 
+			int32_t hostPolyCount = hostPolyIdx[i] - hostPolyIdx[i_prev];
+			for (int32_t j = 0; j < hostPolyCount; j++)	// for subpolygons
 			{
-				ASSERT_EQ(hostPointIdx[hostPolyIdx[i] + j], correctPointIdx) << "pointIdx at " << i << "," << j;
-				ASSERT_EQ(hostPointCount[hostPolyIdx[i] + j], correctPoints[i][j].size()) << "pointCount at " << i << "," << j;
 				correctPointIdx += correctPoints[i][j].size();
+				ASSERT_EQ(hostPointIdx[hostPolyIdx[i_prev] + j], correctPointIdx) << "pointIdx at " << i << "," << j;
 
-				for (int32_t k = 0; k < hostPointCount[hostPolyIdx[i] + j]; k++)	// for points
+				int32_t j_prev = (j == 0) ? 0 : hostPointIdx[j - 1]; 
+				int32_t hostPointCount = hostPointIdx[hostPolyIdx[i_prev] + j] - hostPointIdx[hostPolyIdx[i_prev] + j_prev];
+				for (int32_t k = 0; k < hostPointCount; k++)	// for points
 				{
-					ASSERT_EQ(hostPoints[hostPointIdx[hostPolyIdx[i] + j] + k].latitude, correctPoints[i][j][k].latitude) << "polyPoint.latitude at " << i << "," << j << "," << k;
-					ASSERT_EQ(hostPoints[hostPointIdx[hostPolyIdx[i] + j] + k].longitude, correctPoints[i][j][k].longitude) << "polyPoint.longitude at " << i << "," << j << "," << k;
+					ASSERT_EQ(hostPoints[hostPointIdx[hostPolyIdx[i_prev] + j_prev] + k].latitude, correctPoints[i][j][k].latitude) << "polyPoint.latitude at " << i << "," << j << "," << k;
+					ASSERT_EQ(hostPoints[hostPointIdx[hostPolyIdx[i_prev] + j_prev] + k].longitude, correctPoints[i][j][k].longitude) << "polyPoint.longitude at " << i << "," << j << "," << k;
 				}
 			}
 		}
@@ -129,9 +126,7 @@ void TestReconstructPolyCol(std::vector<int8_t> mask, std::vector<std::string> p
 		// For empty result check if all pointers in the GPUPolygon struct are nullptr
 		ASSERT_EQ(outCol.polyPoints, nullptr);
 		ASSERT_EQ(outCol.pointIdx, nullptr);
-		ASSERT_EQ(outCol.pointCount, nullptr);
 		ASSERT_EQ(outCol.polyIdx, nullptr);
-		ASSERT_EQ(outCol.polyCount, nullptr);
 	}
 }
 

@@ -737,9 +737,7 @@ void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn,
 {
 	allocatedPointers.insert({ reg + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.polyPoints), size, !useCache) });
 	allocatedPointers.insert({ reg + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.pointIdx), size, !useCache) });
-	allocatedPointers.insert({ reg + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.pointCount), size, !useCache) });
 	allocatedPointers.insert({ reg + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size, !useCache) });
-	allocatedPointers.insert({ reg + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.polyCount), size, !useCache) });
 }
 
 void GpuSqlDispatcher::fillStringRegister(GPUMemory::GPUString & stringColumn, const std::string & reg, int32_t size, bool useCache)
@@ -754,17 +752,14 @@ GPUMemory::GPUPolygon GpuSqlDispatcher::insertComplexPolygon(const std::string& 
 	{
 		if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyPoints", blockIndex) &&
 			Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_pointIdx", blockIndex) &&
-			Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_pointCount", blockIndex) &&
-			Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx", blockIndex) &&
-			Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyCount", blockIndex))
+			Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx", blockIndex))
 		{
 			GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
 			GPUMemory::GPUPolygon polygon;
 			polygon.polyPoints = std::get<0>(cache.getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints", blockIndex, size));
-			polygon.pointIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex, size));
-			polygon.pointCount = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex, size));
+			polygon.pointIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointIdx", blockIndex, size));
 			polygon.polyIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex, size));
-			polygon.polyCount = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyCount", blockIndex, size));
+
 			fillPolygonRegister(polygon, colName, size, useCache);
 			return polygon;
 		}
@@ -819,9 +814,7 @@ std::tuple<GPUMemory::GPUPolygon, int32_t> GpuSqlDispatcher::findComplexPolygon(
 
 	polygon.polyPoints = reinterpret_cast<NativeGeoPoint*>(std::get<0>(allocatedPointers.at(colName + "_polyPoints")));
 	polygon.pointIdx = reinterpret_cast<int32_t*>(std::get<0>(allocatedPointers.at(colName + "_pointIdx")));
-	polygon.pointCount = reinterpret_cast<int32_t*>(std::get<0>(allocatedPointers.at(colName + "_pointCount")));
 	polygon.polyIdx = reinterpret_cast<int32_t*>(std::get<0>(allocatedPointers.at(colName + "_polyIdx")));
-	polygon.polyCount = reinterpret_cast<int32_t*>(std::get<0>(allocatedPointers.at(colName + "_polyCount")));
 
 	return std::make_tuple(polygon, size);
 }
