@@ -280,7 +280,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 
 	//drop column colBool:
 	database->DeleteColumnFromDisk(std::string("TestTable2").c_str(), std::string("colBool").c_str());
-	std::string filePath = Configuration::GetInstance().GetDatabaseDir() + dbName + "_TestTable2_colBool.col";
+	std::string filePath = Configuration::GetInstance().GetDatabaseDir() + dbName + Database::SEPARATOR + "TestTable2" + Database::SEPARATOR + "colBool.col";
 	bool exists = false;
 
 	if (boost::filesystem::exists(filePath))
@@ -293,7 +293,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	database->DeleteTableFromDisk(std::string("TestTable2").c_str());
 	bool deleted = true;
 
-	std::string prefix = dbName + "_TestTable2_";
+	std::string prefix = dbName + Database::SEPARATOR + "TestTable2" + Database::SEPARATOR;
 
 	for (auto& p : boost::filesystem::directory_iterator(Configuration::GetInstance().GetDatabaseDir()))
 	{
@@ -309,7 +309,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	database->DeleteDatabaseFromDisk();
 	deleted = true;
 
-	prefix = dbName + "_";
+	prefix = dbName + Database::SEPARATOR;
 
 	for (auto& p : boost::filesystem::directory_iterator(Configuration::GetInstance().GetDatabaseDir()))
 	{
