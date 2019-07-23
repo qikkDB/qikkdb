@@ -165,7 +165,7 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 							std::istringstream ss(field);
 							ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
 							std::time_t epochTime = std::mktime(&t);
-							value = (int64_t)epochTime;
+							value = static_cast<int64_t>(epochTime);
 						}
 						break;
 					case COLUMN_FLOAT:

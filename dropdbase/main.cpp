@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 	//Database::SaveAllToDisk();
 	//return 0;
 
-	Context::getInstance();
+	//Context::getInstance();
 
 	//CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
 	//std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 100000000);
