@@ -60,6 +60,7 @@ int main(int argc, char **argv)
 	//Database::SaveAllToDisk();
 	//return 0;
 
+	BOOST_LOG_TRIVIAL(info) << "Starting TellStoryDB...";
 	Context::getInstance(); // Initialize CUDA context
 
 	// Import CSV file if entered as program argument
@@ -79,9 +80,9 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
+	BOOST_LOG_TRIVIAL(info) << "Loading databases...";
 	Database::LoadDatabasesFromDisk();
-	BOOST_LOG_TRIVIAL(info) << "All databases loaded.\n";
+	BOOST_LOG_TRIVIAL(info) << "All databases loaded.";
 	
 	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
 	RegisterCtrlCHandler(&tcpServer);
@@ -93,7 +94,7 @@ int main(int argc, char **argv)
 	/*CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
 	std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 100000000);
 	Database::AddToInMemoryDatabaseList(database);
-	std::cout << "Loading TargetLoc.csv ..." << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "Loading TargetLoc.csv ...";
 	csvDataImporter.ImportTables(database);*/
 	/*
 	for (int i = 0; i < 2; i++)
@@ -106,7 +107,7 @@ int main(int argc, char **argv)
 		auto end = std::chrono::high_resolution_clock::now();
 
 		std::chrono::duration<double> elapsed(end - start);
-		std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "Elapsed time: " << elapsed.count() << " s.";
 	}
 	*/
 
