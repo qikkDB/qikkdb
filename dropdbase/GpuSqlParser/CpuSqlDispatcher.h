@@ -179,7 +179,7 @@ public:
 	}
 
 	template<typename T>
-	void loadCol(std::string& colName)
+	int32_t loadCol(std::string& colName)
 	{
 		if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
 		{
@@ -187,6 +187,11 @@ public:
 			std::string columnName;
 
 			std::tie(tableName, columnName) = splitColumnName(colName);
+			if (blockIndex >= database->GetTables().at(tableName).GetColumns().at(columnName).get()->GetBlockCount())
+			{
+				return 1;
+			}
+
 			std::string reg_min = colName + "_min";
 			std::string reg_max = colName + "_max";
 			T * mask_min = allocateRegister<T>(reg_min, 1, false);
@@ -194,6 +199,7 @@ public:
 			mask_min[0] = getBlockMin<T>(tableName, columnName);
 			mask_max[0] = getBlockMax<T>(tableName, columnName);
 		}
+		return 0;
 	}
 
 	template<typename OP, typename T, typename U>
@@ -438,4 +444,4 @@ public:
 };
 
 template<>
-void CpuSqlDispatcher::loadCol<std::string>(std::string& colName);
+int32_t CpuSqlDispatcher::loadCol<std::string>(std::string& colName);
