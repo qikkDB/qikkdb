@@ -21,7 +21,6 @@ class Database
 
 private:
 	static std::mutex dbMutex_;
-	static constexpr const char* SEPARATOR = "@";
 	std::string name_;
 	int32_t blockSize_;
 	std::unordered_map<std::string, Table> tables_;
@@ -47,6 +46,8 @@ private:
                      const std::pair<const std::string, Table>& table);
 
 public:
+	static constexpr const char* SEPARATOR = "@";
+
 	/// <summary>
 	/// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
 	/// </summary>
