@@ -74,6 +74,9 @@ int main(int argc, char **argv)
 	std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
 	csvDataImporter2.ImportTables(database2);
 
+	Database::SaveAllToDisk();
+	return 0;
+
 	CSVDataImporter csvDataImporter3(R"(../../data/trips-part1.csv)");
 	const std::vector<DataType> types{
 		COLUMN_STRING,
