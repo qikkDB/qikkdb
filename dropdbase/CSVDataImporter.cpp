@@ -2,6 +2,9 @@
 #include <boost/filesystem/path.hpp>
 #include <thread>
 #include <vector>
+#include <sstream>
+#include <ctime>
+#include <iomanip>
 #include "CSVDataImporter.h"
 #include "../CSVParser.hpp"
 #include "Types/ComplexPolygon.pb.h"
@@ -154,7 +157,16 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 						value = (int32_t)std::stoi(field);
 						break;
 					case COLUMN_LONG:
-						value = (int64_t)std::stoll(field);
+						try {
+							value = (int64_t)std::stoll(field);
+						}
+						catch (std::invalid_argument&) {
+							std::tm t;
+							std::istringstream ss(field);
+							ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
+							std::time_t epochTime = std::mktime(&t);
+							value = (int64_t)epochTime;
+						}
 						break;
 					case COLUMN_FLOAT:
 						value = (float)std::stof(field);
