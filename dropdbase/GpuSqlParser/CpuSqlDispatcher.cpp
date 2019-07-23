@@ -237,6 +237,46 @@ void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
 	}
 }
 
+void CpuSqlDispatcher::addCastOperation(DataType inputType, DataType outputType, const std::string& outTypeStr)
+{
+	switch (outputType)
+	{
+	case COLUMN_INT:
+		cpuDispatcherFunctions.push_back(castToIntFunctions[inputType]);
+		break;
+	case COLUMN_LONG:
+		if (outTypeStr == "DATE")
+		{
+			//dispatcher.addCastToDateFunction(operandType);
+		}
+		else
+		{
+			cpuDispatcherFunctions.push_back(castToLongFunctions[inputType]);
+		}
+		break;
+	case COLUMN_FLOAT:
+		cpuDispatcherFunctions.push_back(castToFloatFunctions[inputType]);
+		break;
+	case COLUMN_DOUBLE:
+		cpuDispatcherFunctions.push_back(castToDoubleFunctions[inputType]);
+		break;
+	case COLUMN_STRING:
+		cpuDispatcherFunctions.push_back(castToStringFunctions[inputType]);
+		break;
+	case COLUMN_POINT:
+		cpuDispatcherFunctions.push_back(castToPointFunctions[inputType]);
+		break;
+	case COLUMN_POLYGON:
+		cpuDispatcherFunctions.push_back(castToPolygonFunctions[inputType]);
+		break;
+	case COLUMN_INT8_T:
+		cpuDispatcherFunctions.push_back(castToInt8tFunctions[inputType]);
+		break;
+	default:
+		break;
+	}
+}
+
 void CpuSqlDispatcher::addWhereResultFunction(DataType dataType)
 {
 	cpuDispatcherFunctions.push_back(whereResultFunctions[dataType]);

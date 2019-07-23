@@ -67,7 +67,7 @@ private:
 	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
-	DataType getDataTypeFromString(std::string dataType);
+	DataType getDataTypeFromString(const std::string& dataType);
 
 	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 

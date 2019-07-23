@@ -131,6 +131,24 @@ private:
 		DataType::DATA_TYPE_SIZE> ceilFunctions;
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE> floorFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToIntFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToLongFunctions;
+	//static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+	//		DataType::DATA_TYPE_SIZE> castToDateFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToFloatFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToDoubleFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToStringFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToPointFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToPolygonFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToInt8tFunctions;
 
 	static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> whereResultFunctions;
 
@@ -138,6 +156,7 @@ public:
 	CpuSqlDispatcher(const std::shared_ptr<Database> &database);
 	void addBinaryOperation(DataType left, DataType right, const std::string& op);
 	void addUnaryOperation(DataType type, const std::string & op);
+	void addCastOperation(DataType inputType, DataType outputType, const std::string& outTypeStr);
 	void addWhereResultFunction(DataType dataType);
 	int64_t execute(int32_t index);
 	void copyExecutionDataTo(CpuSqlDispatcher& other);
@@ -294,6 +313,12 @@ public:
 
 	template <typename OP, typename T, typename U>
 	int32_t polygonOperationConstConst();
+
+	template<typename OUT, typename IN>
+	int32_t castNumericCol();
+
+	template<typename OUT, typename IN>
+	int32_t castNumericConst();
 
 	template<typename T>
 	int32_t whereResultCol() 

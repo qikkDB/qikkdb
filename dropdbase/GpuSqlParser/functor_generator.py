@@ -781,9 +781,11 @@ for operation in ["concat"]:
     print(declaration)
 print()
 
-for operation in ["castToInt"]:
+
+
+for opIdx, operation in enumerate(["castToInt", "castToLong", "castToFloat", "castToDouble", "castToPoint", "castToPolygon", "castToString", "castToInt8t"]):
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
-                  "DataType::DATA_TYPE_SIZE * DataType::COLUMN_INT> GpuSqlDispatcher::" + operation + "Functions = {"
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
 
@@ -792,15 +794,12 @@ for operation in ["castToInt"]:
         elif colIdx >= len(types):
             col = "Col"
 
-        if colVal == STRING:
-            op = "castString"
+        if colVal in numeric_types and types[opIdx] in numeric_types:
+            op = "castNumeric"
         else:
             op = "invalidOperandTypesErrorHandler"
 
-        if op == "stringBinary":
-            function = "GpuSqlDispatcher::" + op + col + "<Operations::" + operation + ">"
-        else:
-            function = "GpuSqlDispatcher::" + op + col + "<StringBinaryOperations::" + operation + ", " + colVal + ">"
+        function = "GpuSqlDispatcher::" + op + col + "<" + types[opIdx] + ", " + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")

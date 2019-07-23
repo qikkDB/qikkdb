@@ -160,8 +160,8 @@ private:
 			DataType::DATA_TYPE_SIZE> castToIntFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE> castToLongFunctions;
-	static std::array<GpuSqlDispatcher::DispatchFunction,
-			DataType::DATA_TYPE_SIZE> castToDateFunctions;
+	//static std::array<GpuSqlDispatcher::DispatchFunction,
+	//		DataType::DATA_TYPE_SIZE> castToDateFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE> castToFloatFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
@@ -833,6 +833,12 @@ public:
 
     template <typename OP, typename T, typename U>
     int32_t polygonOperationConstConst();
+
+	template<typename OUT, typename IN>
+	int32_t castNumericCol();
+
+	template<typename OUT, typename IN>
+	int32_t castNumericConst();
 
     int32_t between();
 

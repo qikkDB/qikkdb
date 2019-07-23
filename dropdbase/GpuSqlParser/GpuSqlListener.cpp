@@ -1677,45 +1677,7 @@ DataType GpuSqlListener::getReturnDataType(DataType operand)
 	return operand;
 }
 
-DataType GpuSqlListener::getDataTypeFromString(std::string dataType)
+DataType GpuSqlListener::getDataTypeFromString(const std::string& dataType)
 {
-	std::string type = dataType;
-	stringToUpper(type);
-
-	if (type == "INT")
-	{
-		return DataType::COLUMN_INT;
-	}
-	else if (type == "LONG" || type == "DATE")
-	{
-		return DataType::COLUMN_LONG;
-	}
-	else if (type == "FLOAT")
-	{
-		return DataType::COLUMN_FLOAT;
-	}
-	else if (type == "DOUBLE")
-	{
-		return DataType::COLUMN_DOUBLE;
-	}
-	else if (type == "POINT")
-	{
-		return DataType::COLUMN_POINT;
-	}
-	else if (type == "POLYGON")
-	{
-		return DataType::COLUMN_POLYGON;
-	}
-	else if (type == "STRING")
-	{
-		return DataType::COLUMN_STRING;
-	}
-	else if (type == "BOOLEAN")
-	{
-		return DataType::COLUMN_INT8_T;
-	}
-	else
-	{
-		return DataType::CONST_ERROR;
-	}
+	return ::GetColumnDataTypeFromString(dataType);
 }

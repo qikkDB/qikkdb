@@ -466,7 +466,7 @@ void GpuSqlDispatcher::addCastToLongFunction(DataType operand)
 
 void GpuSqlDispatcher::addCastToDateFunction(DataType operand)
 {
-	dispatcherFunctions.push_back(castToDateFunctions[operand]);
+	//dispatcherFunctions.push_back(castToDateFunctions[operand]);
 }
 
 void GpuSqlDispatcher::addCastToFloatFunction(DataType operand)
