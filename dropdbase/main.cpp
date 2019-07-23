@@ -62,20 +62,20 @@ int main(int argc, char **argv)
 
 	Context::getInstance();
 
-	CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
-	std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 100000000);
-	Database::AddToInMemoryDatabaseList(database1);
-	std::cout << "Loading GeoPoint.csv ..." << std::endl;
-	csvDataImporter1.ImportTables(database1);
+	//CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
+	//std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 100000000);
+	//Database::AddToInMemoryDatabaseList(database1);
+	//std::cout << "Loading GeoPoint.csv ..." << std::endl;
+	//csvDataImporter1.ImportTables(database1);
 
-	CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
-	std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 100000000);
-	Database::AddToInMemoryDatabaseList(database2);
-	std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
-	csvDataImporter2.ImportTables(database2);
+	//CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
+	//std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 100000000);
+	//Database::AddToInMemoryDatabaseList(database2);
+	//std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
+	//csvDataImporter2.ImportTables(database2);
 
-	Database::SaveAllToDisk();
-	return 0;
+	//Database::SaveAllToDisk();
+	//return 0;
 
 	CSVDataImporter csvDataImporter3(R"(../../data/trips-part1.csv)");
 	const std::vector<DataType> types{
@@ -106,11 +106,11 @@ int main(int argc, char **argv)
 	std::cout << "Loading trips-part1.csv ..." << std::endl;
 	csvDataImporter3.ImportTables(database3);
 
-	CSVDataImporter csvDataImporter4(R"(../../data/trips-part1.csv)"); //TODO change this to part2 when data part2 will be correct
-	csvDataImporter4.SetTypes(types);
-	csvDataImporter4.SetTableName(tableName);
-	std::cout << "Loading trips-part2.csv ..." << std::endl;
-	csvDataImporter4.ImportTables(database3);
+	//CSVDataImporter csvDataImporter4(R"(../../data/trips-part1.csv)"); //TODO change this to part2 when data part2 will be correct
+	//csvDataImporter4.SetTypes(types);
+	//csvDataImporter4.SetTableName(tableName);
+	//std::cout << "Loading trips-part2.csv ..." << std::endl;
+	//csvDataImporter4.ImportTables(database3);
 
 	Database::SaveAllToDisk();
 	return 0;
