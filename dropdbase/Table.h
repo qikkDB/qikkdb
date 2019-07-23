@@ -18,6 +18,8 @@ class Database;
 class Table
 {
 private:
+	enum CompareResult {greater, lower, equal};
+
 	const std::shared_ptr<Database>& database;
 	std::string name;
 	int32_t blockSize;
@@ -31,6 +33,11 @@ private:
                                                int indexInBlock,
                                                int iterator);
     int32_t getDataRangeInSortingColumn();
+	std::vector<std::any> GetRowOfInsertedData(const std::unordered_map<std::string, std::any>& data, int iterator);
+	std::tuple<int, int> GetIndicesFromTotalIndex(int index);
+	std::vector<std::any> GetRowOnIndex(int index);
+	CompareResult CompareRows(std::vector<std::any> rowToInsert, int index);
+	std::tuple<int, int> GetIndex(std::vector<std::any> rowToInsert);
 	int32_t getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any> &data);
 #endif
 public:
@@ -71,6 +78,7 @@ public:
 	/// <param name="data">Name of column with inserting data.</param>
 	/// <param name="compress">Whether data will be compressed.</param>
 	void InsertData(const std::unordered_map<std::string, std::any> &data, bool compress = false);
+	void InsertDataTemp(const std::unordered_map<std::string, std::any> &data, bool compress = false);
 	int32_t AssignGroupId(std::vector<std::any>& rowData, std::vector<std::unique_ptr<IColumn>>& columns);
 #endif
 

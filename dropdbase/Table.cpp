@@ -171,6 +171,290 @@ int32_t Table::getDataRangeInSortingColumn()
 	}
 	return size;
 }
+std::vector<std::any> Table::GetRowOfInsertedData(const std::unordered_map<std::string, std::any>& data, int iterator)
+{
+	std::vector<std::any> resultRow;
+
+	for (auto sortingColumn : sortingColumns)
+	{
+		const auto& wrappedCurrentSortingColumnData = data.at(sortingColumn);
+
+		if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<int32_t>))
+		{
+			std::vector<int32_t> dataIndexedColumn = std::any_cast<std::vector<int32_t>>(wrappedCurrentSortingColumnData);
+			resultRow.push_back(dataIndexedColumn[iterator]);
+		}
+
+		if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<int64_t>))
+		{
+			std::vector<int64_t> dataIndexedColumn = std::any_cast<std::vector<int64_t>>(wrappedCurrentSortingColumnData);
+			resultRow.push_back(dataIndexedColumn[iterator]);
+		}
+
+		if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<float>))
+		{
+			std::vector<float> dataIndexedColumn = std::any_cast<std::vector<float>>(wrappedCurrentSortingColumnData);
+			resultRow.push_back(dataIndexedColumn[iterator]);
+		}
+
+		if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<double>))
+		{
+			std::vector<double> dataIndexedColumn = std::any_cast<std::vector<double>>(wrappedCurrentSortingColumnData);
+			resultRow.push_back(dataIndexedColumn[iterator]);
+		}
+
+		if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<std::string>))
+		{
+			std::vector<std::string> dataIndexedColumn = std::any_cast<std::vector<std::string>>(wrappedCurrentSortingColumnData);
+			resultRow.push_back(dataIndexedColumn[iterator]);
+		}
+	}
+
+	return resultRow;
+}
+
+std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index)
+{
+	int blockIndex = 0;
+	int indexInBlock = index;
+
+	auto firstSortingColumn = (columns.find(sortingColumns[0])->second.get());
+	auto columnType = firstSortingColumn->GetColumnType();
+
+	if (columnType == COLUMN_INT)
+	{
+		auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(firstSortingColumn);
+		auto& blocks = castedColumn->GetBlocksList();
+
+		int i = 0;
+
+		while (indexInBlock - blocks[i]->GetSize() > 0)
+		{
+			indexInBlock -= blocks[i]->GetSize();
+			blockIndex++;
+
+			i++;
+		}
+	}
+
+	if (columnType == COLUMN_LONG)
+	{
+		auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(firstSortingColumn);
+		auto& blocks = castedColumn->GetBlocksList();
+
+		int i = 0;
+
+		while (indexInBlock - blocks[i]->GetSize() > 0)
+		{
+			indexInBlock -= blocks[i]->GetSize();
+			blockIndex++;
+
+			i++;
+		}
+	}
+
+
+	if (columnType == COLUMN_DOUBLE)
+	{
+		auto castedColumn = dynamic_cast<ColumnBase<double>*>(firstSortingColumn);
+		auto& blocks = castedColumn->GetBlocksList();
+
+		int i = 0;
+
+		while (indexInBlock - blocks[i]->GetSize() > 0)
+		{
+			indexInBlock -= blocks[i]->GetSize();
+			blockIndex++;
+
+			i++;
+		}
+	}
+
+
+	if (columnType == COLUMN_FLOAT)
+	{
+		auto castedColumn = dynamic_cast<ColumnBase<float>*>(firstSortingColumn);
+		auto& blocks = castedColumn->GetBlocksList();
+
+		int i = 0;
+
+		while (indexInBlock - blocks[i]->GetSize() > 0)
+		{
+			indexInBlock -= blocks[i]->GetSize();
+			blockIndex++;
+
+			i++;
+		}
+	}
+
+
+	if (columnType == COLUMN_STRING)
+	{
+		auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(firstSortingColumn);
+		auto& blocks = castedColumn->GetBlocksList();
+
+		int i = 0;
+
+		while (indexInBlock - blocks[i]->GetSize() > 0)
+		{
+			indexInBlock -= blocks[i]->GetSize();
+			blockIndex++;
+
+			i++;
+		}
+	}
+	return std::make_tuple(blockIndex, indexInBlock);
+}
+
+std::vector<std::any> Table::GetRowOnIndex(int index)
+{
+	int blockIndex;
+	int indexInBlock;
+
+	std::tie(blockIndex, indexInBlock) = GetIndicesFromTotalIndex(index);
+	std::vector<std::any> resultRow;
+
+	for (auto sortingColumn : sortingColumns)
+	{
+		auto currentSortingColumn = (columns.find(sortingColumn)->second.get()); 
+		auto columnType = currentSortingColumn->GetColumnType();
+
+		if (columnType == COLUMN_INT)
+		{
+			auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentSortingColumn);
+			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+		}
+
+		if (columnType == COLUMN_LONG)
+		{
+			auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(currentSortingColumn);
+			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+		}
+
+		if (columnType == COLUMN_FLOAT)
+		{
+			auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentSortingColumn);
+			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+		}
+
+		if (columnType == COLUMN_DOUBLE)
+		{
+			auto castedColumn = dynamic_cast<ColumnBase<double>*>(currentSortingColumn);
+			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+		}
+
+		if (columnType == COLUMN_STRING)
+		{
+			auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentSortingColumn);
+			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+		}
+	}
+	return resultRow;
+}
+
+Table::CompareResult Table::CompareRows(std::vector<std::any> rowToInsert, int index)
+{
+	std::vector<std::any> rowToCompare = GetRowOnIndex(index);
+
+	for (int i = 0; i < sortingColumns.size(); i++)
+	{
+		if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_INT)
+		{
+			if (std::any_cast<int32_t>(rowToInsert[i]) < std::any_cast<int32_t>(rowToCompare[i]))
+			{
+				return lower;
+			}
+
+			else if (std::any_cast<int32_t>(rowToInsert[i]) > std::any_cast<int32_t>(rowToCompare[i]))
+			{
+				return greater;
+			}
+		}
+
+		if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_LONG)
+		{
+			if (std::any_cast<int64_t>(rowToInsert[i]) < std::any_cast<int64_t>(rowToCompare[i]))
+			{
+				return lower;
+			}
+
+			else if (std::any_cast<int64_t>(rowToInsert[i]) > std::any_cast<int64_t>(rowToCompare[i]))
+			{
+				return greater;
+			}
+		}
+
+		if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_DOUBLE)
+		{
+			if (std::any_cast<double>(rowToInsert[i]) < std::any_cast<double>(rowToCompare[i]))
+			{
+				return lower;
+			}
+
+			else if (std::any_cast<double>(rowToInsert[i]) > std::any_cast<double>(rowToCompare[i]))
+			{
+				return greater;
+			}
+		}
+
+		if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_FLOAT)
+		{
+			if (std::any_cast<float>(rowToInsert[i]) < std::any_cast<float>(rowToCompare[i]))
+			{
+				return lower;
+			}
+
+			else if (std::any_cast<float>(rowToInsert[i]) > std::any_cast<float>(rowToCompare[i]))
+			{
+				return greater;
+			}
+		}
+
+		if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_STRING)
+		{
+			if (std::any_cast<std::string>(rowToInsert[i]) < std::any_cast<std::string>(rowToCompare[i]))
+			{
+				return lower;
+			}
+
+			else if (std::any_cast<std::string>(rowToInsert[i]) > std::any_cast<std::string>(rowToCompare[i]))
+			{
+				return greater;
+			}
+		}
+	}
+	return equal;
+}
+
+std::tuple<int, int> Table::GetIndex(std::vector<std::any> rowToInsert)
+{
+	for (int i = 0; i < sortingColumns.size(); i++)
+	{
+		int left = 0;
+		int right = getDataRangeInSortingColumn();
+		
+		while (left <= right)
+		{
+			int index = (left + right) / 2;
+
+			CompareResult compareResult = CompareRows(rowToInsert, index);
+
+			if (compareResult == greater)
+			{
+				left = index + 1;
+			}
+
+			else if (compareResult == lower)
+			{
+				right = index - 1;
+			}
+
+			else return GetIndicesFromTotalIndex(index);
+		}
+	}
+
+	return std::make_tuple(0, 0);
+}
 #endif
 
 const std::shared_ptr<Database>& Table::GetDatabase()
@@ -290,7 +574,28 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 	columns.insert(std::make_pair(columnName, std::move(column)));
 }
 
+
 #ifndef __CUDACC__
+
+void Table::InsertDataTemp(const std::unordered_map<std::string, std::any>& data, bool compress)
+{
+	if (!sortingColumns.empty())
+	{
+		int oneColumnDataSize = getDataSizeOfInsertedColumns(data);
+		int blockIndex;
+		int indexInBlock;
+
+		for (int i = 0; i < oneColumnDataSize; i++)
+		{
+			auto rowToInsert = GetRowOfInsertedData(data, i);
+
+			std::tie(blockIndex, indexInBlock) = GetIndex(rowToInsert);
+
+			InsertValuesOnSpecificPosition(data, blockIndex, indexInBlock, i);
+		}
+	}
+}
+
 /// <summary>
 /// Insert data into proper column of table considering empty space of last block and maximum size of blocks.
 /// </summary>
