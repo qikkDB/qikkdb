@@ -16,13 +16,13 @@ namespace ColmnarDB.BenchmarkUtility
         public static readonly int numberOfQueryExec = 5;
 
         public static readonly string telcoDbName = "TargetLocator";
-        public static readonly string telcoQueriesPath = "ColmnarDB.BenchmarkUtility/telco_queries.sql";
+        public static readonly string telcoQueriesPath = "../../../ColmnarDB.BenchmarkUtility/telco_queries.sql";
 
         public static readonly string geoDbName = "GeoTest";
-        public static readonly string geoQueriesPath = "ColmnarDB.BenchmarkUtility/geo_queries.sql";
+        public static readonly string geoQueriesPath = "../../../ColmnarDB.BenchmarkUtility/geo_queries.sql";
 
         public static readonly string taxiDbName = "TaxiRides";
-        public static readonly string taxiQueriesPath = "ColmnarDB.BenchmarkUtility/taxi_queries.sql";
+        public static readonly string taxiQueriesPath = "../../../ColmnarDB.BenchmarkUtility/taxi_queries.sql";
 
         /// <summary>
         /// Load benchmark queries from a file, execute them one by one and save results.
