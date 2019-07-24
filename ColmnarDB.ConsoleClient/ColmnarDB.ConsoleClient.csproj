@@ -23,4 +23,8 @@
     <ProjectReference Include="..\ColmnarDB.NetworkClient\ColmnarDB.NetworkClient.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="ReadLine" Version="2.0.1" />
+  </ItemGroup>
+
 </Project>
