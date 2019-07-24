@@ -68,11 +68,11 @@ int main(int argc, char **argv)
 	std::cout << "Loading GeoPoint.csv ..." << std::endl;
 	csvDataImporter1.ImportTables(database1);
 
-	//CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
-	//std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 268435456);
-	//Database::AddToInMemoryDatabaseList(database2);
-	//std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
-	//csvDataImporter2.ImportTables(database2);
+	CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
+	std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 268435456);
+	Database::AddToInMemoryDatabaseList(database2);
+	std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
+	csvDataImporter2.ImportTables(database2);
 
 	Database::SaveAllToDisk();
 	return 0;
