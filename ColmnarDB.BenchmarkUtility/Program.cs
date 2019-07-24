@@ -33,6 +33,9 @@ namespace ColmnarDB.BenchmarkUtility
             client.Connect();
             Console.Out.WriteLine("Client has successfully connected to server.");
             client.Query("show databases;");
+            (Dictionary<string, List<object>> tempQueryResult, Dictionary<string, float> executionTimes) tempResult = (null, null);
+            tempResult = client.GetNextQueryResult();
+            Console.Out.WriteLine(tempResult);
 
             UseDatabase use = new UseDatabase();
 
