@@ -62,11 +62,11 @@ int main(int argc, char **argv)
 
 	Context::getInstance();
 
-	CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
-	std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 250000000);
-	Database::AddToInMemoryDatabaseList(database1);
-	std::cout << "Loading GeoPoint.csv ..." << std::endl;
-	csvDataImporter1.ImportTables(database1);
+	//CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
+	//std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 250000000);
+	//Database::AddToInMemoryDatabaseList(database1);
+	//std::cout << "Loading GeoPoint.csv ..." << std::endl;
+	//csvDataImporter1.ImportTables(database1);
 
 	//CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
 	//std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 250000000);
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 		COLUMN_DOUBLE,
 		COLUMN_INT,
 		COLUMN_STRING,
-		COLUMN_DOUBLE,
+		COLUMN_STRING,
 		COLUMN_DOUBLE,
 		COLUMN_STRING,
 		COLUMN_DOUBLE,
