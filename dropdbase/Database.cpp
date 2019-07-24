@@ -341,7 +341,7 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 /// <returns>Shared pointer of database.</returns>
 std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const char* path)
 {
-    BOOST_LOG_TRIVIAL(info) << "Loading database from: " << path << fileDbName << ".db." << std::endl;
+    BOOST_LOG_TRIVIAL(info) << "Loading database from: " << path << "/" << fileDbName << ".db." << std::endl;
 
     // read file .db
     std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
