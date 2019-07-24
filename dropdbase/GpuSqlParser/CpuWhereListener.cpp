@@ -155,6 +155,22 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext * 
 	{
 		returnDataType = DataType::COLUMN_INT8_T;
 	}
+	else if (op == "IS NULL")
+	{
+		if (operandType < DataType::COLUMN_INT)
+		{
+			throw NullMaskOperationInvalidOperandException();
+		}
+		returnDataType = DataType::COLUMN_INT8_T;
+	}
+	else if (op == "IS NOT NULL")
+	{
+		if (operandType < DataType::COLUMN_INT)
+		{
+			throw NullMaskOperationInvalidOperandException();
+		}
+		returnDataType = DataType::COLUMN_INT8_T;
+	}
 	else if (op == "-")
 	{
 		returnDataType = getReturnDataType(operandType);
