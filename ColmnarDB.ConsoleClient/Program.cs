@@ -1,7 +1,5 @@
 ﻿using System;
 using ColmnarDB.NetworkClient;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ColmnarDB.ConsoleClient
 {
@@ -32,7 +30,7 @@ namespace ColmnarDB.ConsoleClient
 
             while (!exit)
             {
-                string wholeCommand = ConsoleExtension.ReadConsole(">");
+                string wholeCommand = ReadLine.Read("> ");
                 string[] splitCommand = wholeCommand.Split(" ");
 
                 string command = splitCommand[0];
@@ -109,119 +107,6 @@ namespace ColmnarDB.ConsoleClient
 
                 }
             }
-        }
-    }
-
-    public class ConsoleExtension
-    {
-        private static Queue<string> InputQueue = new Queue<string>();
-
-        public static string ReadConsole(string Prompt)
-        {
-            string CommandStringBuilder = "";
-            int CounterOfQueue = 0;
- 
-            while (true)
-            {
-                // loop until Enter key is pressed
-                ConsoleKeyInfo KeyInfoPressed = Console.ReadKey();
-                switch (KeyInfoPressed.Key)
-                {
-                    case ConsoleKey.UpArrow:
-                        // present the member (from end) in the queue not further then the queue size
-                        if (CounterOfQueue == 0)
-                        {
-                            CounterOfQueue = InputQueue.Count;
-                            CommandStringBuilder = InputQueue.ElementAt(CounterOfQueue - 1);
-                            ClearConsole(Prompt, CommandStringBuilder);
-                            CounterOfQueue--;
-                        }
-                        else
-                        {
-                            if (CounterOfQueue == 0)
-                            {
-                                CounterOfQueue = 0;
-                                ClearConsole(Prompt, "");
-                                CommandStringBuilder = "";
-                            }
-                            else
-                            {
-                                CommandStringBuilder = InputQueue.ElementAt(CounterOfQueue - 1);
-                                ClearConsole(Prompt, CommandStringBuilder);
-                                CounterOfQueue--;
-                            }
-                        }
-                        break;
- 
-                    case ConsoleKey.DownArrow:
-                        // present the member (from begin) in the queue not further then the queue size
-                        if (InputQueue.Count > CounterOfQueue)
-                        {
-                            CommandStringBuilder = InputQueue.ElementAt(CounterOfQueue);
-                            ClearConsole(Prompt, CommandStringBuilder);
-                            CounterOfQueue++;
-                        }
-                        else
-                        {
-                            CounterOfQueue = 0;
-                            ClearConsole(Prompt, "");
-                            CommandStringBuilder = "";
-                        }
-                        break;
- 
-                    case ConsoleKey.LeftArrow:
-                        // move the cursor to the correct position, not further then the end of the question
-                        if (Console.CursorLeft > Prompt.Length)
-                        {
-                            Console.SetCursorPosition(Console.CursorLeft - 2, Console.CursorTop);
-                        }
-                        break;
- 
-                    case ConsoleKey.RightArrow:
-                        // move the cursor to the correct position, not further then the end of the buffer
-                        if (Console.CursorLeft < Console.BufferWidth)
-                        {
-                            Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
-                        }
-                        break;
- 
-                    case ConsoleKey.Backspace:
-                        // Backspace, remove the char until we reach the question, we can't delete the question
-                        if (Console.CursorLeft > Prompt.Length - 1)
-                        {
-                            Console.Write(new string(' ', 1));
-                            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
-                            CommandStringBuilder = CommandStringBuilder.Remove(CommandStringBuilder.Length - 1, 1);
-                        }
-                        else
-                        {
-                            Console.SetCursorPosition(Prompt.Length, Console.CursorTop);
-                        }
-                        break;
- 
-                    case ConsoleKey.Delete:
-                        break;
- 
-                    default:
-                        // just add the char to the answer building string
-                        CommandStringBuilder = CommandStringBuilder + KeyInfoPressed.KeyChar.ToString();
-                        ClearConsole(Prompt, CommandStringBuilder);
-                        break;
- 
-                    case ConsoleKey.Enter:
-                        // exit this routine and return the Answer to process further
-			InputQueue.Enqueue(CommandStringBuilder);
-                        return CommandStringBuilder;
-                }
-            }
-        }
-
-        private static void ClearConsole(string Question, string Answer)
-        {
-            Console.SetCursorPosition(0, Console.CursorTop);
-            Console.Write(new String(' ', Console.BufferWidth - Question.Length));
-            Console.SetCursorPosition(0, Console.CursorTop);
-            Console.Write(Question + Answer);
         }
     }
 }
