@@ -63,6 +63,72 @@ __global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory
 	}
 }
 
+__global__ void kernel_generate_poly_submask(int8_t *outMask, int8_t *inMask, GPUMemory::GPUPolygon polygon, int32_t size)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < size; i += stride)
+	{
+		for (int32_t j = 0; j < GPUMemory::PolyCountAt(polygon, i); j++)
+		{
+			outMask[GPUMemory::PolyIdxAt(polygon, i) + j] = inMask[i];
+		}
+	}
+}
+
+__global__ void kernel_generate_point_submask(int8_t *outMask, int8_t *inMask, GPUMemory::GPUPolygon polygon, int32_t size)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < size; i += stride)
+	{
+		for (int32_t j = 0; j < GPUMemory::PointCountAt(polygon, i); j++)
+		{
+			outMask[GPUMemory::PointIdxAt(polygon, i) + j] = inMask[i];
+		}
+	}
+}
+
+/// Kernel for reconstructing polygon subPolygons
+__global__ void kernel_reconstruct_polyCount_col(int32_t * outPolyCount, 
+											GPUMemory::GPUPolygon polygon, 
+											int32_t *prefixSum, 
+											int8_t *inMask, 
+											int32_t dataElementCount)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		if (inMask[i] && (prefixSum[i] - 1) >= 0)
+		{
+			outPolyCount[prefixSum[i] - 1] = GPUMemory::PolyCountAt(polygon, i);
+		}
+	}
+}
+
+/// Kernel for reconstructing polygon points
+__global__ void kernel_reconstruct_pointCount_col(int32_t *outPointCount, 
+												  GPUMemory::GPUPolygon polygon, 
+												  int32_t *prefixSum, 
+												  int8_t *inMask, 
+												  int32_t dataElementCount)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		if (inMask[i] && (prefixSum[i] - 1) >= 0)
+		{
+			outPointCount[prefixSum[i] - 1] = GPUMemory::PointCountAt(polygon, i);
+		}
+	}
+}
+
 __global__ void kernel_predict_point_wkt_lengths(int32_t * outStringLengths, NativeGeoPoint* inPointCol, int32_t dataElementCount)
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -442,11 +508,67 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol,
 
 	if (inMask)		// If mask is used (if inMask is not nullptr)
 	{
+		// A buffer for the prefix sum vector
+		cuda_ptr<int32_t> inPrefixSumPointer(inDataElementCount);
+		PrefixSum(inPrefixSumPointer.get(), inMask, inDataElementCount);
+		GPUMemory::copyDeviceToHost(outDataElementCount, inPrefixSumPointer.get() + inDataElementCount - 1, 1);
 
-		// Not empty result set
-		if (*outDataElementCount > 0)
+		if (*outDataElementCount > 0)	// Not empty result set
 		{
-			// TODO
+			// Reconstruct each array independently
+			int32_t inSubpolySize;
+			int32_t inPointSize;
+
+			GPUMemory::copyDeviceToHost(&inSubpolySize, inCol.polyIdx + inDataElementCount - 1, 1);
+			GPUMemory::copyDeviceToHost(&inPointSize, inCol.pointIdx + inSubpolySize - 1 , 1);
+
+			// Complex polygons (reconstruct polyCount and sum it to polyIdx)
+			// Alloc a temp count buffer and the result index buffer
+			cuda_ptr<int32_t> polyCount(*outDataElementCount);
+			GPUMemory::alloc(&(outCol->polyIdx), *outDataElementCount);
+
+			kernel_reconstruct_polyCount_col << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
+				(polyCount.get(), inCol, inPrefixSumPointer.get(), inMask, inDataElementCount);
+			CheckCudaError(cudaGetLastError());
+
+			PrefixSum(outCol->polyIdx, polyCount.get(), *outDataElementCount);
+
+			// Subpolygons (reconstruct pointCount and sum it to pointIdx)
+			int32_t outSubpolySize;
+			GPUMemory::copyDeviceToHost(&outSubpolySize, outCol->polyIdx + *outDataElementCount - 1, 1);
+
+			cuda_ptr<int8_t> subpolyMask(inSubpolySize);
+			kernel_generate_poly_submask << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
+				(subpolyMask.get(), inMask, inCol, inDataElementCount);
+			CheckCudaError(cudaGetLastError());
+
+			cuda_ptr<int32_t> subpolyPrefixSumPointer(inSubpolySize);
+			PrefixSum(subpolyPrefixSumPointer.get(), subpolyMask.get(), inSubpolySize);
+
+			cuda_ptr<int32_t> pointCount(outSubpolySize);
+			GPUMemory::alloc(&(outCol->pointIdx), outSubpolySize);
+
+			kernel_reconstruct_pointCount_col << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
+				(pointCount.get(), inCol, subpolyPrefixSumPointer.get(), subpolyMask.get(), inSubpolySize);
+			CheckCudaError(cudaGetLastError());
+			PrefixSum(outCol->pointIdx, pointCount.get(), outSubpolySize);
+
+			// Points (reconstruct polyPoints)
+			int32_t outPointSize;
+			GPUMemory::copyDeviceToHost(&outPointSize, outCol->pointIdx + outSubpolySize - 1, 1);
+
+			cuda_ptr<int8_t> pointMask(inPointSize);
+			kernel_generate_point_submask << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
+				(pointMask.get(), subpolyMask.get(), inCol, inSubpolySize);
+			CheckCudaError(cudaGetLastError());
+
+			cuda_ptr<int32_t> pointPrefixSumPointer(inPointSize);
+			PrefixSum(pointPrefixSumPointer.get(), pointMask.get(), inPointSize);
+
+			GPUMemory::alloc(&(outCol->polyPoints), outPointSize);
+			kernel_reconstruct_col << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
+				(outCol->polyPoints, inCol.polyPoints, pointPrefixSumPointer.get(), pointMask.get(), inPointSize);
+			CheckCudaError(cudaGetLastError());
 		}
 		else	// Empty result set
 		{

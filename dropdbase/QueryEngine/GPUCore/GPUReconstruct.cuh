@@ -92,10 +92,18 @@ __global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCo
 
 /// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays).
 /// Expanding is performed by propagating values from inMask based on counts.
-__global__ void kernel_generate_submask(int8_t *outMask, int8_t *inMask, int32_t *polyIdx, int32_t *polyCount, int32_t polyIdxSize);
+__global__ void kernel_generate_poly_submask(int8_t *outMask, int8_t *inMask, GPUMemory::GPUPolygon polygon, int32_t size);
+
+__global__ void kernel_generate_point_submask(int8_t *outMask, int8_t *inMask, GPUMemory::GPUPolygon polygon, int32_t size);
 
 /// Kernel for predicitng lenghts of WKT strings based on GPUPolygon struct
 __global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount);
+
+/// Kernel for reconstructing polygon subPolygons
+__global__ void kernel_reconstruct_polyCount_col(int32_t * outPolyCount, GPUMemory::GPUPolygon inPolygon, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount);
+
+/// Kernel for reconstructing polygon points
+__global__ void kernel_reconstruct_pointCount_col(int32_t *outPointCount, GPUMemory::GPUPolygon inPolygon, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount);
 
 /// Kernel for convertion of GPUPolygon representation to WKT representation (GPUString)
 __global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount);
