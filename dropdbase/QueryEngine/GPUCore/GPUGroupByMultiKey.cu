@@ -102,7 +102,7 @@ void ReconstructSingleKeyColKeep<std::string>(std::vector<void*>* outKeysVector,
     GPUMemory::copyDeviceToHost(&keyBufferSingleCol, structPointer, 1);
     
     // Reconstruct string keys
-    GPUMemory::GPUString * outKeysSingleCol = new GPUMemory::GPUString[1];
+    GPUMemory::GPUString * outKeysSingleCol = new GPUMemory::GPUString();
     GPUReconstruct::ReconstructStringColKeep(outKeysSingleCol, outDataElementCount, keyBufferSingleCol,
         occupancyMaskPtr, elementCount);
     
@@ -215,20 +215,6 @@ void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t
     }
 }
 
-void FreeSingeKeyCol(void* ptr, DataType type)
-{
-    if (ptr)
-    {
-        if (type == DataType::COLUMN_STRING)
-        {
-            GPUMemory::GPUString str;
-            GPUMemory::copyDeviceToHost(&str, reinterpret_cast<GPUMemory::GPUString*>(ptr), 1);
-            GPUMemory::free(str);
-        }
-        GPUMemory::free(ptr);
-    }
-}
-
 void FreeKeysBuffer(void** keysBuffer, DataType* keyTypes, int32_t keysColCount)
 {
     // Copy data types back from GPU
@@ -239,8 +225,17 @@ void FreeKeysBuffer(void** keysBuffer, DataType* keyTypes, int32_t keysColCount)
     for (int32_t i = 0; i < keysColCount; i++)
     {
         void * ptr;
-        GPUMemory::copyDeviceToHost(&ptr, keysBuffer + i, 1);
-        FreeSingeKeyCol(ptr, keyTypesHost[i]);
+        GPUMemory::copyDeviceToHost(&ptr, keysBuffer + i, 1); // copy single pointer
+        if (ptr)
+        {
+            if (keyTypesHost[i] == DataType::COLUMN_STRING)
+            {
+                GPUMemory::GPUString str;
+                GPUMemory::copyDeviceToHost(&str, reinterpret_cast<GPUMemory::GPUString*>(ptr), 1);
+                GPUMemory::free(str);
+            }
+            GPUMemory::free(ptr);
+        }
     }
     GPUMemory::free(keysBuffer);
 }
@@ -249,9 +244,19 @@ void FreeKeysVector(std::vector<void*> keysVector, std::vector<DataType> keyType
 {
     for (int32_t i = 0; i < keyTypes.size(); i++)
     {
-        FreeSingeKeyCol(keysVector[i], keyTypes[i]);
+        if (keysVector[i])
+        {
+            if (keyTypes[i] == DataType::COLUMN_STRING)
+            {
+                GPUMemory::GPUString * str = reinterpret_cast<GPUMemory::GPUString*>(keysVector[i]);
+                GPUMemory::free(*str);
+                delete str;
+            }
+            GPUMemory::free(keysVector[i]);
+        }
     }
 }
+
 
 __global__ void kernel_collect_string_lengths(int32_t* stringLengths, int32_t* sourceIndices,
     GPUMemory::GPUString ** inKeysSingleCol, GPUMemory::GPUString ** keysBufferSingleCol, int32_t maxHashCount)

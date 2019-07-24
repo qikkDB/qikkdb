@@ -5,6 +5,7 @@
 #include "GpuSqlLexer.h"
 #include "GpuSqlCustomParser.h"
 #include "GpuSqlListener.h"
+#include "CpuWhereListener.h"
 #include "GpuSqlDispatcher.h"
 #include "GpuSqlJoinDispatcher.h"
 #include "ParserExceptions.h"
@@ -56,10 +57,13 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		groupByInstances.emplace_back(nullptr);
 	}
 
+	std::unique_ptr<CpuSqlDispatcher> cpuWhereDispatcher = std::make_unique<CpuSqlDispatcher>(database);
 	std::unique_ptr<GpuSqlDispatcher> dispatcher = std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, -1);
 	std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher = std::make_unique<GpuSqlJoinDispatcher>(database);
 
 	GpuSqlListener gpuSqlListener(database, *dispatcher, *joinDispatcher);
+	
+	CpuWhereListener cpuWhereListener(database, *cpuWhereDispatcher);
 
 	if (statement->sqlSelect())
 	{
@@ -69,6 +73,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		}
 
 		walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
+		walker.walk(&cpuWhereListener, statement->sqlSelect()->fromTables());
 
 		if (statement->sqlSelect()->joinClauses())
 		{
@@ -79,6 +84,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		if (statement->sqlSelect()->whereClause())
 		{
 			walker.walk(&gpuSqlListener, statement->sqlSelect()->whereClause());
+			walker.walk(&cpuWhereListener, statement->sqlSelect()->whereClause());
 		}
 
 		if (statement->sqlSelect()->groupByColumns())
@@ -239,7 +245,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 	for (int i = 0; i < threadCount; i++)
 	{
 		dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, i));
-		dispatcher->copyExecutionDataTo(*dispatchers[i]);
+		dispatcher->copyExecutionDataTo(*dispatchers[i], *cpuWhereDispatcher);
 		dispatchers[i]->setJoinIndices(joinDispatcher->getJoinIndices());
 		dispatcherFutures.push_back(std::thread(std::bind(&GpuSqlDispatcher::execute, dispatchers[i].get(), std::ref(dispatcherResults[i]), std::ref(dispatcherExceptions[i]))));
 	}

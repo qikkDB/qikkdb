@@ -60,6 +60,17 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlParserListener.h
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlParser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlParser.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlDispatcher.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/CpuWhereListener.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/CpuWhereListener.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/CpuSqlDispatcher.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/CpuSqlDispatcher.h
+		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherInsertFunctions.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherLogicFunctions.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherArithmeticFunctions.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherArithmeticUnaryFunctions.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherDateFunctions.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherGeoFunctions.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/IColumn.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.h
@@ -75,7 +86,6 @@ set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUStringBinary.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUStringUnary.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUOrderBy.cu
-                ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlDispatcher.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/Compression/GPUCompression.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherLogicFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherArithmeticFunctions.cu
@@ -86,7 +96,6 @@ set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlJoinDispatcher.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlJoinFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherVMFunctions.cu
-				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherInsertFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherGeoFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherOrderByFunctions.cu)
 

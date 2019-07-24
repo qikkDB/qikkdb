@@ -191,8 +191,8 @@ void BlockBase<ColmnarDB::Types::ComplexPolygon>::setBlockStatistics()
 template<>
 void BlockBase<std::string>::setBlockStatistics()
 {
-	min_ = "";
-	max_ = "";
+	min_ = *std::min_element(data_.get(), data_.get() + size_);
+	max_ = *std::max_element(data_.get(), data_.get() + size_);
 	avg_ = (float) 0.0;
 	sum_ = "";
 }

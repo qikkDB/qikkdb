@@ -11,9 +11,12 @@
 #include "../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../ComplexPolygonFactory.h"
 #include "../StringFactory.h"
-#include "../QueryEngine/GPUCore/GPUOrderBy.cuh"
 #include "../Database.h"
 #include "../Table.h"
+#include <any>
+#include <string>
+#include <unordered_map>
+#include "InsertIntoStruct.h"
 
 const std::string GpuSqlDispatcher::KEYS_SUFFIX = "_keys";
 const std::string GpuSqlDispatcher::NULL_SUFFIX = "_nullMask";
@@ -61,6 +64,10 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	isLastBlockOfDevice(false),
 	isOverallLastBlock(false),
 	noLoad(true),
+	loadNecessary(1),
+	cpuDispatcher(database),
+	jmpInstuctionPosition(0),
+	insertIntoData(std::make_unique<InsertIntoStruct>()),
 	joinIndices(nullptr),
 	orderByTable(nullptr),
 	orderByBlocks(orderByBlocks)
@@ -71,10 +78,13 @@ GpuSqlDispatcher::~GpuSqlDispatcher()
 {
 }
 
-void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other)
+
+void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher & other, CpuSqlDispatcher & sourceCpuDispatcher)
 {
 	other.dispatcherFunctions = dispatcherFunctions;
 	other.arguments = arguments;
+	other.jmpInstuctionPosition = jmpInstuctionPosition;
+	sourceCpuDispatcher.copyExecutionDataTo(other.cpuDispatcher);
 }
 
 void GpuSqlDispatcher::setJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx)
@@ -154,6 +164,12 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 				{
 					std::cout << "Create index completed sucessfully" << std::endl;
 				}
+				if (err == 12)
+				{
+					std::cout << "Load skipped" << std::endl;
+					err = 0;
+					continue;
+				}
 				break;
 			}
 		}
@@ -211,9 +227,15 @@ void GpuSqlDispatcher::addFilFunction()
     dispatcherFunctions.push_back(filFunction);
 }
 
+void GpuSqlDispatcher::addWhereEvaluationFunction()
+{
+	dispatcherFunctions.push_back(whereEvaluationFunction);
+}
+
 void GpuSqlDispatcher::addJmpInstruction()
 {
 	dispatcherFunctions.push_back(jmpFunction);
+	jmpInstuctionPosition = dispatcherFunctions.size() - 1;
 }
 
 void GpuSqlDispatcher::addDoneFunction()
@@ -866,37 +888,12 @@ std::tuple<GPUMemory::GPUString, int32_t, int8_t*> GpuSqlDispatcher::findStringC
 	return std::make_tuple(gpuString, size, reinterpret_cast<int8_t*>(allocatedPointers.at(colName + "_stringIndices").gpuNullMaskPtr));
 }
 
-NativeGeoPoint* GpuSqlDispatcher::insertConstPointGpu(ColmnarDB::Types::Point& point)
-{
-	NativeGeoPoint nativePoint;
-	nativePoint.latitude = point.geopoint().latitude();
-	nativePoint.longitude = point.geopoint().longitude();
-
-	NativeGeoPoint *gpuPointer = allocateRegister<NativeGeoPoint>("constPoint" + std::to_string(constPointCounter), 1);
-	constPointCounter++;
-
-	GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<NativeGeoPoint*>(&nativePoint), 1);
-	return gpuPointer;
-}
-
-// TODO change to return GPUMemory::GPUPolygon struct
-/// Copy polygon column to GPU memory - create polygon gpu representation temporary buffers from protobuf polygon object
-/// <param name="polygon">Polygon object (protobuf type)</param>
-/// <returns>Struct with GPU pointers to start of polygon arrays</returns>
-GPUMemory::GPUPolygon GpuSqlDispatcher::insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
-{
-	std::string name = "constPolygon" + std::to_string(constPolygonCounter);
-	constPolygonCounter++;
-	return insertComplexPolygon(database->GetName(), name, { polygon }, 1);
-}
-
 GPUMemory::GPUString GpuSqlDispatcher::insertConstStringGpu(const std::string& str)
 {
 	std::string name = "constString" + std::to_string(constStringCounter);
 	constStringCounter++;
 	return insertString(database->GetName(), name, { str }, 1);
 }
-
 
 /// Clears all allocated buffers
 /// Resets memory stream reading index to prepare for execution on the next block of data
@@ -928,6 +925,13 @@ int32_t GpuSqlDispatcher::fil()
 	return 0;
 }
 
+int32_t GpuSqlDispatcher::whereEvaluation()
+{
+	loadNecessary = usingJoin ? 1 : cpuDispatcher.execute(blockIndex);
+	std::cout << "Where load evaluation: " << loadNecessary << std::endl;
+	return 0;
+}
+
 
 /// Implementation of JMP operation
 /// Determines next block index to process by this instance of dispatcher based on CUDA device count
@@ -936,7 +940,7 @@ int32_t GpuSqlDispatcher::jmp()
 {
 	Context& context = Context::getInstance();
 
-	if (noLoad)
+	if (noLoad && loadNecessary != 0)
 	{
 		cleanUpGpuPointers();
 		return 0;
@@ -1054,8 +1058,8 @@ int32_t GpuSqlDispatcher::createDatabase()
 int32_t GpuSqlDispatcher::dropDatabase()
 {
 	std::string dbName = arguments.read<std::string>();
+	Database::GetDatabaseByName(dbName)->DeleteDatabaseFromDisk();
 	Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
-	database->DeleteDatabaseFromDisk();
 	return 7;
 }
 

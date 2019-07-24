@@ -95,7 +95,6 @@ private:
 	int blockSize_;
 	std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
 
-    std::vector<T> NullArray(int length);
     void setColumnStatistics();
 
 	T min_ = std::numeric_limits<T>::lowest();
@@ -145,6 +144,8 @@ public:
 	{
 		isNullable_ = isNullable;
 	}
+
+	static std::vector<T> NullArray(int length);
 
 	T GetMax()
 	{
@@ -221,17 +222,16 @@ public:
     FindIndexAndRange(int indexBlock, int indexInBlock, int range, const T& columnData, int groupId = -1, bool isNullValue = false)
     {
         int remainingRange = range;
-        int blockRange;
+        int blockRange = 0;
         int newRange = 0;
         int newIndexInBlock = indexInBlock;
         int newIndexBlock = indexBlock;
         int startIndexInCurrentBlock = indexInBlock;
         bool reachEnd = true;
         bool found = false;
-		int nextBlockMin;
-		int currentBlockMin;
-		int currentMax;
-		int tempIndexInBlock;
+		T nextBlockMin;
+		T currentBlockMin;
+		T currentMax;
 
 		if (blocks_[groupId].size() == 0)
         {
@@ -256,6 +256,7 @@ public:
 				{
 					BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
 
+					int tempIndexInBlock;
 					std::tie(tempIndexInBlock, blockRange, reachEnd) =
 						block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData, isNullValue);
 					newRange += blockRange;
@@ -332,6 +333,7 @@ public:
 							(remainingRange <= block.GetSize() - startIndexInCurrentBlock ||
 							(columnData <= currentMax || (i == blocks_[groupId].size() - 1 || columnData <= nextBlockMin))))
 						{
+							int tempIndexInBlock;
 							std::tie(tempIndexInBlock, blockRange, reachEnd) =
 								block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData, isNullValue);
 							if (!found)
@@ -576,7 +578,7 @@ public:
     /// <param name="length">Length of inserted data</param>
     void InsertNullData(int length) override
     {
-		std::vector<int8_t> nullMask(length, -1);
+		std::vector<int8_t> nullMask(length, -1);	// fill mask with bits 1
         InsertData(NullArray(length), nullMask);
     }
 

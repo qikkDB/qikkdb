@@ -48,23 +48,19 @@ private:
 	bool insideSelectColumn;
 	bool isAggSelectColumn;
 
-    std::pair<std::string, DataType> stackTopAndPop();
+	void pushArgument(const char *token, DataType dataType);
+	std::pair<std::string, DataType> stackTopAndPop();
+	void stringToUpper(std::string &str);
 
-    std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+	void pushTempResult(std::string reg, DataType type);
 
-    void pushTempResult(std::string reg, DataType type);
+	bool isLong(const std::string &value);
 
-    void pushArgument(const char *token, DataType dataType);
+	bool isDouble(const std::string &value);
 
-    bool isLong(const std::string &value);
+	bool isPoint(const std::string &value);
 
-    bool isDouble(const std::string &value);
-
-    bool isPoint(const std::string &value);
-
-    bool isPolygon(const std::string &value);
-
-    void stringToUpper(std::string &str);
+	bool isPolygon(const std::string &value);
 
 	void trimDelimitedIdentifier(std::string &str);
 
@@ -72,6 +68,9 @@ private:
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
 	DataType getDataTypeFromString(std::string dataType);
+
+	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+
 
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher, GpuSqlJoinDispatcher& joinDispatcher);
@@ -120,6 +119,8 @@ public:
 	void exitJoinClauses(GpuSqlParser::JoinClausesContext *ctx) override;
 
     void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
+
+    void enterWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 
 	void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
 

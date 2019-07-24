@@ -40,7 +40,7 @@ int32_t GpuSqlDispatcher::orderByCol()
 			}
 
 			PointerAllocation orderByIndices = allocatedPointers.at("$orderByIndices");
-			orderByTable->OrderByColumn(
+			dynamic_cast<GPUOrderBy*>(orderByTable.get())->OrderByColumn(
 				reinterpret_cast<int32_t*>(orderByIndices.gpuPtr),
 				reinterpret_cast<T*>(column.gpuPtr),
 				reinterpret_cast<int8_t*>(column.gpuNullMaskPtr),
@@ -66,13 +66,13 @@ int32_t GpuSqlDispatcher::orderByCol()
 		}
 
 		PointerAllocation orderByIndices = allocatedPointers.at("$orderByIndices");
-		orderByTable->OrderByColumn(
+		dynamic_cast<GPUOrderBy*>(orderByTable.get())->OrderByColumn(
 			reinterpret_cast<int32_t*>(orderByIndices.gpuPtr),
 			reinterpret_cast<T*>(column.gpuPtr),
 			reinterpret_cast<int8_t*>(column.gpuNullMaskPtr),
 			inSize,
 			order);
-	}	
+	}
 
 	return 0;
 }

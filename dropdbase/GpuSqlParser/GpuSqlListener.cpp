@@ -704,6 +704,11 @@ void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext *ctx)
     dispatcher.addFilFunction();
 }
 
+void GpuSqlListener::enterWhereClause(GpuSqlParser::WhereClauseContext * ctx)
+{
+	dispatcher.addWhereEvaluationFunction();
+}
+
 
 /// Method that executes on enter of GROUP BY clause
 /// Sets insideGroupBy parser flag.
@@ -1221,7 +1226,6 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 			int valueIndex = std::find(columns.begin(), columns.end(), columnPair) - columns.begin();
 			hasValue &= !isValueNull[valueIndex];
 		}
-		dispatcher.addArgument<const std::string&>(table);
 		dispatcher.addArgument<const std::string&>(columnName);
 		dispatcher.addArgument<bool>(hasValue);
 		
@@ -1233,6 +1237,7 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 		}
 
 	}
+	dispatcher.addArgument<const std::string&>(table);
 	dispatcher.addInsertIntoDoneFunction();
 }
 

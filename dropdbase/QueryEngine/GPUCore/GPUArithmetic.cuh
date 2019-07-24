@@ -13,8 +13,8 @@
 #include "../GPUError.h"
 #include "MaybeDeref.cuh"
 #include "../NullConstants.cuh"
+#include "ArithmeticOperations.h"
 
-/// Namespace for arithmetic operation generic functors
 namespace ArithmeticOperations
 {
 	/// Arithmetic operation add
@@ -155,7 +155,7 @@ namespace ArithmeticOperations
 	struct bitwiseAnd
 	{
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
 		{
 			return a & b;
 		}
@@ -165,7 +165,7 @@ namespace ArithmeticOperations
 	struct bitwiseOr
 	{
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
 		{
 			return a | b;
 		}
@@ -175,17 +175,18 @@ namespace ArithmeticOperations
 	struct bitwiseXor
 	{
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
 		{
 			return a ^ b;
 		}
 	};
 
+
 	/// Bitwise operation left shift
 	struct bitwiseLeftShift
 	{
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
 		{
 			return a << b;
 		}
@@ -195,7 +196,7 @@ namespace ArithmeticOperations
 	struct bitwiseRightShift
 	{
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
 		{
 			return a >> b;
 		}
@@ -206,7 +207,7 @@ namespace ArithmeticOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			return logf(a) / logf(b);
 		}
@@ -217,7 +218,7 @@ namespace ArithmeticOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			return atan2f(a, b);
 		}
@@ -228,7 +229,7 @@ namespace ArithmeticOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
 			return powf(a, b);
 		}
@@ -239,13 +240,13 @@ namespace ArithmeticOperations
 	{
 		static constexpr bool isFloatRetType = true;
 		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+		__device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
 		{
-			return powf(a, 1/b);
+			return powf(a, 1.0f / b);
 		}
 	};
-}
 
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Kernel for arithmetic operation with column and column
