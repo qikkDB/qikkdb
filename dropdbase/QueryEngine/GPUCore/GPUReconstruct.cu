@@ -46,8 +46,8 @@ __global__ void kernel_predict_wkt_lengths(int32_t * outStringLengths, GPUMemory
 		const int32_t subpolyEndIdx = subpolyStartIdx + GPUMemory::PolyCountAt(inPolygonCol, i);
 		for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++)
 		{
-			const int32_t pointCount = GPUMemory::PolyCountAt(inPolygonCol, j) - 2;
-			const int32_t pointStartIdx = GPUMemory::PolyIdxAt(inPolygonCol, j) + 1;
+			const int32_t pointCount = GPUMemory::PointCountAt(inPolygonCol, j) - 2;
+			const int32_t pointStartIdx = GPUMemory::PointIdxAt(inPolygonCol, j) + 1;
 			const int32_t pointEndIdx = pointStartIdx + pointCount;
 
 			// Count the decimal part and colons between points (".0000 .0000, .0000 .0000")
@@ -203,8 +203,8 @@ __global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemor
 		for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++)	// via sub-polygons
 		{
 			outWkt.allChars[charId++] = '(';
-			const int32_t pointCount = GPUMemory::PolyCountAt(inPolygonCol, j) - 2;
-			const int32_t pointStartIdx = GPUMemory::PolyIdxAt(inPolygonCol, j) + 1;
+			const int32_t pointCount = GPUMemory::PointCountAt(inPolygonCol, j) - 2;
+			const int32_t pointStartIdx = GPUMemory::PointIdxAt(inPolygonCol, j) + 1;
 			const int32_t pointEndIdx = pointStartIdx + pointCount;
 
 			for (int32_t k = pointStartIdx; k < pointEndIdx; k++)	// via points
@@ -228,13 +228,16 @@ __global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemor
 			}
 		}
 		outWkt.allChars[charId++] = ')';
-		/*
+		
 		// Lengths mis-match check
 		if (charId != outWkt.stringIndices[i])
 		{
 			printf("Not match fin id! %d\n", outWkt.stringIndices[i] - charId);
 		}
-		*/
+		else{
+			printf("Match OK\n");
+		}
+		
 	}
 }
 
