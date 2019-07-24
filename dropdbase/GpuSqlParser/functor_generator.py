@@ -462,6 +462,45 @@ for operation in operations_aggregation:
     print(declaration)
 print()
 
+# Aggregations with group by multi-key
+for operation in operations_aggregation:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction, " \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + \
+                  operation + "GroupByMultiKeyFunctions = {"
+
+    for keyIdx, keyVal in enumerate(['std::vector<void*>']):
+        for valueIdx, valueVal in enumerate(all_types):
+            if valueIdx < len(types):
+                row = "Const"
+            elif valueIdx >= len(types):
+                row = "Col"
+
+            if (row != "Col") or \
+                    (keyVal in geo_types) or \
+                    (valueVal in geo_types or valueVal == STRING) or (
+                    valueVal == BOOL or keyVal == BOOL):
+                op = "invalidOperandTypesErrorHandler"
+            else:
+                op = "aggregationGroupBy"
+            retVal = valueVal
+            if operation == "count":
+                retVal = LONG
+            # TODO: for avg FLOAT/DOUBLE
+            if op != "invalidOperandTypesErrorHandler":
+                function = "GpuSqlDispatcher::" + op + "<AggregationFunctions::" + operation + ", " + retVal + ", " + keyVal + ", " + valueVal + ">"
+            else:
+                function = "GpuSqlDispatcher::" + op + 'Col' + row + "<AggregationFunctions::" + operation + ", " + keyVal + ", " + valueVal + ">"
+
+            if valueIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+
+
 for operation in operations_date:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction, " \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
@@ -575,6 +614,32 @@ for operation in operations_string_unary:
 
         else:
             function = "GpuSqlDispatcher::" + op + col + "<StringUnaryOperations::" + operation + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+for operation in ['orderBy', 'orderByReconstructOrder', 'orderByReconstructRet']:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal == STRING or colVal in geo_types:
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = operation
+
+        function = "GpuSqlDispatcher::" + op + col + "<" + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")

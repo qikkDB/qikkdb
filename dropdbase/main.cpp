@@ -27,8 +27,8 @@
 #include "QueryEngine/GPUMemoryCache.h"
 
 /// Startup function, called automatically.
-/// <param name="argc">not used parameter</param>
-/// <param name="argv">not used parameter</param>
+/// <param name="argc">program argument count</param>
+/// <param name="argv">program arguments (for CSV importing): [csv-path [new-db-name]]</param>
 /// <returns>Exit code (0 - OK)</returns>
 int main(int argc, char **argv)
 {
@@ -60,65 +60,29 @@ int main(int argc, char **argv)
 	//Database::SaveAllToDisk();
 	//return 0;
 
-	Context::getInstance();
-
-	//CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
-	//std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 268435456);
-	//Database::AddToInMemoryDatabaseList(database1);
-	//std::cout << "Loading GeoPoint.csv ..." << std::endl;
-	//csvDataImporter1.ImportTables(database1);
-
-	//CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
-	//std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 268435456);
-	//Database::AddToInMemoryDatabaseList(database2);
-	//std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
-	//csvDataImporter2.ImportTables(database2);
-
-	//Database::SaveAllToDisk();
-	//return 0;
-
-	CSVDataImporter csvDataImporter3(R"(../../data/trips-part1.csv)");
-	const std::vector<DataType> types{
-		COLUMN_STRING,
-		COLUMN_LONG,
-		COLUMN_LONG,
-		COLUMN_INT,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_INT,
-		COLUMN_STRING,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_STRING,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_STRING };
-	const std::string tableName = "trips";
-	csvDataImporter3.SetTypes(types);
-	csvDataImporter3.SetTableName(tableName);
-	std::shared_ptr<Database> database3 = std::make_shared<Database>("TaxiRides", 268435456);
-	Database::AddToInMemoryDatabaseList(database3);
-	std::cout << "Loading trips-part1.csv ..." << std::endl;
-	csvDataImporter3.ImportTables(database3);
-
-	CSVDataImporter csvDataImporter4(R"(../../data/trips-part2.csv)");
-	csvDataImporter4.SetTypes(types);
-	csvDataImporter4.SetTableName(tableName);
-	std::cout << "Loading trips-part2.csv ..." << std::endl;
-	csvDataImporter4.ImportTables(database3);
-
-	Database::SaveAllToDisk();
-	return 0;
-
+	BOOST_LOG_TRIVIAL(info) << "Starting TellStoryDB...";
 	Context::getInstance(); // Initialize CUDA context
 
-	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
+	// Import CSV file if entered as program argument
+	if (argc > 1)
+	{
+		CSVDataImporter csvDataImporter(argv[1]);
+		////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
+		std::shared_ptr<Database> database = std::make_shared<Database>(argc > 2? argv[2] : "TestDb", 1048576);
+		Database::AddToInMemoryDatabaseList(database);
+		BOOST_LOG_TRIVIAL(info) << "Loading CSV from \"" << argv[1] << "\"";
+		csvDataImporter.ImportTables(database);
+		Database::SaveAllToDisk();
+		for (auto& db : Database::GetDatabaseNames())
+		{
+			Database::RemoveFromInMemoryDatabaseList(db.c_str());
+		}
+		return 0;
+	}
+
+	BOOST_LOG_TRIVIAL(info) << "Loading databases...";
 	Database::LoadDatabasesFromDisk();
+	BOOST_LOG_TRIVIAL(info) << "All databases loaded.";
 	
 	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
 	RegisterCtrlCHandler(&tcpServer);
@@ -130,7 +94,7 @@ int main(int argc, char **argv)
 	/*CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
 	std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 100000000);
 	Database::AddToInMemoryDatabaseList(database);
-	std::cout << "Loading TargetLoc.csv ..." << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "Loading TargetLoc.csv ...";
 	csvDataImporter.ImportTables(database);*/
 	/*
 	for (int i = 0; i < 2; i++)
@@ -143,7 +107,7 @@ int main(int argc, char **argv)
 		auto end = std::chrono::high_resolution_clock::now();
 
 		std::chrono::duration<double> elapsed(end - start);
-		std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
+		BOOST_LOG_TRIVIAL(info) << "Elapsed time: " << elapsed.count() << " s.";
 	}
 	*/
 

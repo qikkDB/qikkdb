@@ -172,10 +172,21 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::setColumnStatistics()
 template<>
 void ColumnBase<std::string>::setColumnStatistics()
 {
-	min_ = "";
-	max_ = "";
 	avg_ = (float) 0.0;
 	sum_ = "";
+
+	std::vector<std::string> mins;
+	std::vector<std::string> maxs;
+
+
+	for (auto& block : this->GetBlocksList())
+	{
+		mins.push_back(block->GetMin());
+		maxs.push_back(block->GetMax());
+	}
+
+	min_ = *std::min_element(mins.begin(), mins.end());
+	max_ = *std::max_element(maxs.begin(), maxs.end());
 }
 
 template<>

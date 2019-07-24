@@ -56,13 +56,13 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
         const int32_t inKeyLength = GetStringLength(inKeys.stringIndices, i);
         char* inKeyChars = inKeys.allChars + inKeyIndex;
         // Calculate hash
-        const int32_t hash = GetHash(inKeyChars, inKeyLength);
+        const int32_t hash = abs(GetHash(inKeyChars, inKeyLength)) % maxHashCount;
 
         int32_t foundIndex = -1;
         for (int32_t j = 0; j < maxHashCount; j++)
         {
             // Calculate index to hash-table from hash
-            const int32_t index = abs((hash + j) % maxHashCount);
+            const int32_t index = (hash + j) % maxHashCount;
 
             // Check if key is not empty and key is not equal to the currently inserted key
             if (sourceIndices[index] != GBS_SOURCE_INDEX_EMPTY_KEY &&
@@ -122,7 +122,7 @@ __global__ void kernel_collect_string_keys(GPUMemory::GPUString sideBuffer,
                                            int32_t inKeysCount);
 
 
-__global__ void kernel_is_bucket_occupied(int8_t* occupancyMask, int32_t* sourceIndices, int32_t maxHashCount);
+__global__ void kernel_source_indices_to_mask(int8_t* occupancyMask, int32_t* sourceIndices, int32_t maxHashCount);
 
 
 __global__ void kernel_mark_collected_strings(int32_t* sourceIndices, int32_t maxHashCount);
@@ -323,7 +323,7 @@ public:
     {
         Context& context = Context::getInstance();
         cuda_ptr<int8_t> occupancyMask(maxHashCount_);
-        kernel_is_bucket_occupied<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
+        kernel_source_indices_to_mask<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, maxHashCount_);
 
         GPUReconstruct::ReconstructStringColRaw(keysStringLengths, keysAllChars, elementCount,
@@ -340,7 +340,7 @@ public:
     {
         Context& context = Context::getInstance();
         cuda_ptr<int8_t> occupancyMask(maxHashCount_);
-        kernel_is_bucket_occupied<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
+        kernel_source_indices_to_mask<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, maxHashCount_);
         GPUReconstruct::ReconstructStringColKeep(outKeys, outDataElementCount, keysBuffer_,
                                                  occupancyMask.get(), maxHashCount_);
@@ -637,7 +637,7 @@ public:
     {
         Context& context = Context::getInstance();
         cuda_ptr<int8_t> occupancyMask(maxHashCount_);
-        kernel_is_bucket_occupied<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
+        kernel_source_indices_to_mask<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, maxHashCount_);
 
         GPUReconstruct::ReconstructStringColRaw(keysStringLengths, keysAllChars, elementCount,
@@ -658,7 +658,7 @@ public:
 
         Context& context = Context::getInstance();
         cuda_ptr<int8_t> occupancyMask(maxHashCount_);
-        kernel_is_bucket_occupied<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
+        kernel_source_indices_to_mask<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, maxHashCount_);
 
         cuda_ptr<O> outValuesGPU(maxHashCount_);
@@ -994,7 +994,7 @@ public:
     {
         Context& context = Context::getInstance();
         cuda_ptr<int8_t> occupancyMask(maxHashCount_);
-        kernel_is_bucket_occupied<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
+        kernel_source_indices_to_mask<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, maxHashCount_);
 
         GPUReconstruct::ReconstructStringColRaw(keysStringLengths, keysAllChars, elementCount,
@@ -1011,7 +1011,7 @@ public:
     {
         Context& context = Context::getInstance();
         cuda_ptr<int8_t> occupancyMask(maxHashCount_);
-        kernel_is_bucket_occupied<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
+        kernel_source_indices_to_mask<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, maxHashCount_);
         GPUReconstruct::ReconstructStringColKeep(outKeys, outDataElementCount, keysBuffer_,
                                                  occupancyMask.get(), maxHashCount_);

@@ -8,6 +8,7 @@
 #include "GpuSqlParser.h"
 #include "GpuSqlParserBaseListener.h"
 #include "../DataType.h"
+#include "../QueryEngine/OrderByType.h"
 #include <unordered_set>
 #include <unordered_map>
 #include <string>
@@ -30,6 +31,9 @@ private:
 	std::unordered_set<std::string> columnAliases;
     std::unordered_set<std::string> loadedTables;
 	int32_t linkTableIndex;
+	int32_t orderByColumnIndex;
+	std::unordered_map<std::string, std::pair<DataType, std::string>> returnColumns;
+	std::unordered_map<std::string, std::pair<DataType, OrderBy::Order>> orderByColumns;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
 	std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
 
@@ -39,27 +43,24 @@ private:
     bool usingGroupBy;
     bool insideAgg;
 	bool insideGroupBy;
+	bool insideOrderBy;
 
 	bool insideSelectColumn;
 	bool isAggSelectColumn;
 
-    std::pair<std::string, DataType> stackTopAndPop();
+	void pushArgument(const char *token, DataType dataType);
+	std::pair<std::string, DataType> stackTopAndPop();
+	void stringToUpper(std::string &str);
 
-    std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+	void pushTempResult(std::string reg, DataType type);
 
-    void pushTempResult(std::string reg, DataType type);
+	bool isLong(const std::string &value);
 
-    void pushArgument(const char *token, DataType dataType);
+	bool isDouble(const std::string &value);
 
-    bool isLong(const std::string &value);
+	bool isPoint(const std::string &value);
 
-    bool isDouble(const std::string &value);
-
-    bool isPoint(const std::string &value);
-
-    bool isPolygon(const std::string &value);
-
-    void stringToUpper(std::string &str);
+	bool isPolygon(const std::string &value);
 
 	void trimDelimitedIdentifier(std::string &str);
 
@@ -67,6 +68,9 @@ private:
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
 	DataType getDataTypeFromString(std::string dataType);
+
+	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+
 
 public:
 	GpuSqlListener(const std::shared_ptr<Database> &database, GpuSqlDispatcher &dispatcher, GpuSqlJoinDispatcher& joinDispatcher);
@@ -116,6 +120,8 @@ public:
 
     void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 
+    void enterWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
+
 	void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
 
     void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx) override;
@@ -141,6 +147,12 @@ public:
 	void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext *ctx) override;
 
 	void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) override;
+
+	void enterOrderByColumns(GpuSqlParser::OrderByColumnsContext *ctx) override;
+
+	void exitOrderByColumns(GpuSqlParser::OrderByColumnsContext *ctx) override;
+
+	void exitOrderByColumn(GpuSqlParser::OrderByColumnContext *ctx) override;
 
 	void exitLimit(GpuSqlParser::LimitContext *ctx) override;
 

@@ -95,7 +95,6 @@ private:
 	int blockSize_;
 	std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
 
-    std::vector<T> NullArray(int length);
     void setColumnStatistics();
 
 	T min_ = std::numeric_limits<T>::lowest();
@@ -129,6 +128,8 @@ public:
 	{
 		return initAvgIsSet_;
 	}
+
+	static std::vector<T> NullArray(int length);
 
 	T GetMax()
 	{
@@ -213,9 +214,9 @@ public:
         int startIndexInCurrentBlock = indexInBlock;
         bool reachEnd = true;
         bool found = false;
-		int nextBlockMin;
-		int currentBlockMin;
-		int currentMax;
+		T nextBlockMin;
+		T currentBlockMin;
+		T currentMax;
 
 		if (blocks_[groupId].size() == 0)
         {
@@ -393,7 +394,7 @@ public:
     /// <param name="length">Length of inserted data</param>
     void InsertNullData(int length) override
     {
-        InsertData(NullArray(length));
+        InsertData(ColumnBase<T>::NullArray(length));
     }
 
     /// <summary>
@@ -402,23 +403,7 @@ public:
     /// <returns>Type of current column</returns>
     virtual DataType GetColumnType() const override
     {
-        typedef typename std::conditional<
-            std::is_same<T, int>::value, std::integral_constant<DataType, COLUMN_INT>,
-            typename std::conditional<
-                std::is_same<T, int64_t>::value, std::integral_constant<DataType, COLUMN_LONG>,
-                typename std::conditional<
-                    std::is_same<T, float>::value, std::integral_constant<DataType, COLUMN_FLOAT>,
-                    typename std::conditional<
-                        std::is_same<T, double>::value, std::integral_constant<DataType, COLUMN_DOUBLE>,
-                        typename std::conditional<
-                            std::is_same<T, ColmnarDB::Types::Point>::value, std::integral_constant<DataType, COLUMN_POINT>,
-                            typename std::conditional<
-                                std::is_same<T, ColmnarDB::Types::ComplexPolygon>::value, std::integral_constant<DataType, COLUMN_POLYGON>,
-                                typename std::conditional<std::is_same<T, std::string>::value, std::integral_constant<DataType, COLUMN_STRING>,
-                                                          typename std::conditional<std::is_same<T, bool>::value, std::integral_constant<DataType, COLUMN_INT8_T>,
-                                                                                    typename std::conditional<std::is_same<T, int8_t>::value, std::integral_constant<DataType, COLUMN_INT8_T>, std::integral_constant<DataType, CONST_ERROR>>::type>::
-                                                              type>::type>::type>::type>::type>::type>::type>::type retConst;
-        return retConst::value;
+		return ::GetColumnType<T>();
     };
 
     virtual int32_t GetBlockCount() const override

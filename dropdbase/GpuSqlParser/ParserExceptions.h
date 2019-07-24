@@ -120,6 +120,22 @@ struct NestedAggregationException : public std::exception
     }
 };
 
+struct AggregationOrderByException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Use of aggregation functions in ORDER BY clause is not allowed.";
+	}
+};
+
+struct OrderByColumnAlreadyReferencedException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "The same column was referenced multiple times in ORDER BY clause.";
+	}
+};
+
 struct RetPolygonGroupByException : public std::exception
 {
     const char* what() const noexcept override

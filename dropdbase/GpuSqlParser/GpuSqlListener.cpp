@@ -9,6 +9,7 @@
 #include "../ComplexPolygonFactory.h"
 #include "ParserExceptions.h"
 #include "JoinType.h"
+#include "GroupByType.h"
 #include "GpuSqlDispatcher.h"
 #include "GpuSqlJoinDispatcher.h"
 #include <ctime>
@@ -34,11 +35,13 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	dispatcher(dispatcher),
 	joinDispatcher(joinDispatcher),
 	linkTableIndex(0),
+	orderByColumnIndex(0),
 	usingLoad(false),
 	usingWhere(false),
 	usingGroupBy(false), 
 	insideAgg(false), 
-	insideGroupBy(false), 
+	insideGroupBy(false),
+	insideOrderBy(false),
 	insideSelectColumn(false), 
 	isAggSelectColumn(false),
 	resultLimit(std::numeric_limits<int64_t>::max()),
@@ -460,45 +463,48 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
     std::string op = ctx->AGG()->getText();
     stringToUpper(op);
 
-    DataType operandType = std::get<1>(arg);
-    pushArgument(std::get<0>(arg).c_str(), operandType);
+    DataType valueType = std::get<1>(arg);
+    pushArgument(std::get<0>(arg).c_str(), valueType);
 	DataType returnDataType = DataType::CONST_ERROR;
 
-	DataType groupByType;
+	GroupByType groupByType = GroupByType::NO_GROUP_BY;
+	DataType keyType = static_cast<DataType>(0);
+
 	if (usingGroupBy)
 	{
-		groupByType = std::get<1>(*(groupByColumns.begin()));
-	}
-	else
-	{
-		// TODO
-		groupByType = static_cast<DataType>(0);
+		groupByType = GroupByType::SINGLE_KEY_GROUP_BY;
+		keyType = std::get<1>(*(groupByColumns.begin()));
+
+		if (groupByColumns.size() > 1)
+		{
+			groupByType = GroupByType::MULTI_KEY_GROUP_BY;
+		}
 	}
 
     if (op == "MIN")
     {
-        dispatcher.addMinFunction(groupByType, operandType, groupByType);
-		returnDataType = getReturnDataType(operandType);
+        dispatcher.addMinFunction(keyType, valueType, groupByType);
+		returnDataType = getReturnDataType(valueType);
     } 
 	else if (op == "MAX")
     {
-        dispatcher.addMaxFunction(groupByType, operandType, groupByType);
-		returnDataType = getReturnDataType(operandType);
+        dispatcher.addMaxFunction(keyType, valueType, groupByType);
+		returnDataType = getReturnDataType(valueType);
     } 
 	else if (op == "SUM")
     {
-        dispatcher.addSumFunction(groupByType, operandType, groupByType);
-		returnDataType = getReturnDataType(operandType);
+        dispatcher.addSumFunction(keyType, valueType, groupByType);
+		returnDataType = getReturnDataType(valueType);
     } 
 	else if (op == "COUNT")
     {
-        dispatcher.addCountFunction(groupByType, operandType, groupByType);
+        dispatcher.addCountFunction(keyType, valueType, groupByType);
 		returnDataType = DataType::COLUMN_LONG;
     } 
 	else if (op == "AVG")
     {
-        dispatcher.addAvgFunction(groupByType, operandType, groupByType);
-		returnDataType = getReturnDataType(operandType);
+        dispatcher.addAvgFunction(keyType, valueType, groupByType);
+		returnDataType = getReturnDataType(valueType);
     }
 
 	insideAgg = false;
@@ -513,6 +519,16 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 /// <param name="ctx">Select Columns context</param>
 void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 {
+	for (auto& retCol : returnColumns)
+	{
+		std::string colName = retCol.first;
+		DataType retType = std::get<0>(retCol.second);
+		std::string alias = std::get<1>(retCol.second);
+		dispatcher.addRetFunction(retType);
+		dispatcher.addArgument<const std::string&>(colName);
+		dispatcher.addArgument<const std::string&>(alias);
+	}
+
 	dispatcher.addJmpInstruction();
 	dispatcher.addDoneFunction();
 }
@@ -536,20 +552,13 @@ void GpuSqlListener::enterSelectColumn(GpuSqlParser::SelectColumnContext * ctx)
 void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 {
 	std::pair<std::string, DataType> arg = stackTopAndPop();
-
-	if (!isAggSelectColumn && groupByColumns.find(arg) == groupByColumns.end() && usingGroupBy)
-	{
-		throw ColumnGroupByException();
-	}
-
 	std::string colName = std::get<0>(arg);
 	DataType retType = std::get<1>(arg);
-	dispatcher.addRetFunction(retType);
-	dispatcher.addArgument<const std::string&>(colName);
+	std::string alias;
 	
 	if (ctx->alias())
 	{
-		std::string alias = ctx->alias()->getText();
+		alias = ctx->alias()->getText();
 		trimDelimitedIdentifier(alias);
 
 		if (columnAliases.find(alias) != columnAliases.end())
@@ -557,12 +566,16 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 			throw AliasRedefinitionException();
 		}
 		columnAliases.insert(alias);
-		dispatcher.addArgument<const std::string&>(alias);
 	}
 	else
 	{
-		dispatcher.addArgument<const std::string&>(colName);
+		alias = colName;
 	}
+
+	returnColumns.insert({ colName, {retType, alias } });
+
+	dispatcher.addArgument<const std::string&>(colName);
+	dispatcher.addLockRegisterFunction();
 
 	insideSelectColumn = false;
 	isAggSelectColumn = false;
@@ -671,6 +684,11 @@ void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext *ctx)
     std::pair<std::string, DataType> arg = stackTopAndPop();
     dispatcher.addArgument<const std::string&>(std::get<0>(arg));
     dispatcher.addFilFunction();
+}
+
+void GpuSqlListener::enterWhereClause(GpuSqlParser::WhereClauseContext * ctx)
+{
+	dispatcher.addWhereEvaluationFunction();
 }
 
 
@@ -1052,6 +1070,68 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * ct
 	}
 }
 
+void GpuSqlListener::enterOrderByColumns(GpuSqlParser::OrderByColumnsContext * ctx)
+{
+	insideOrderBy = true;
+}
+
+void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext * ctx)
+{
+	for (auto& orderByColumn : orderByColumns)
+	{
+		std::string orderByColName = orderByColumn.first;
+		DataType dataType = std::get<0>(orderByColumn.second);
+
+		dispatcher.addArgument<const std::string&>(orderByColName);
+		dispatcher.addOrderByReconstructOrderFunction(dataType);
+	}
+
+	for (auto& returnColumn : returnColumns)
+	{
+		std::string returnColName = returnColumn.first;
+		DataType dataType = std::get<0>(returnColumn.second);
+
+		dispatcher.addArgument<const std::string&>(returnColName);
+		dispatcher.addOrderByReconstructRetFunction(dataType);
+	}
+
+	insideOrderBy = false;
+	dispatcher.addFreeOrderByTableFunction();
+	dispatcher.addOrderByReconstructRetAllBlocksFunction();
+}
+
+
+void GpuSqlListener::exitOrderByColumn(GpuSqlParser::OrderByColumnContext * ctx)
+{
+	std::pair<std::string, DataType> arg = stackTopAndPop();
+	std::string orderByColName = std::get<0>(arg);
+
+	if (orderByColumns.find(orderByColName) != orderByColumns.end())
+	{
+		throw OrderByColumnAlreadyReferencedException();
+	}
+
+	DataType dataType = std::get<1>(arg);
+	OrderBy::Order order = OrderBy::Order::ASC;
+
+	if (ctx->DIR())
+	{
+		std::string dir = ctx->DIR()->getText();
+		stringToUpper(dir);
+		if (dir == "DESC")
+		{
+			order = OrderBy::Order::DESC;
+		}
+	}
+
+	dispatcher.addArgument<const std::string&>(orderByColName);
+	dispatcher.addArgument<int32_t>(static_cast<int32_t>(order));
+	dispatcher.addArgument<int32_t>(orderByColumnIndex++);
+	dispatcher.addOrderByFunction(dataType);
+
+	orderByColumns.insert({ orderByColName, { dataType, order } });
+}
+
 /// Method that executes on exit of INSERT INTO command
 /// Generates insert into operation
 /// Checks if table with given name exists
@@ -1122,7 +1202,6 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 
 		bool isReferencedColumn = std::find(columns.begin(), columns.end(), columnPair) != columns.end();
 
-		dispatcher.addArgument<const std::string&>(table);
 		dispatcher.addArgument<const std::string&>(columnName);
 		dispatcher.addArgument<bool>(isReferencedColumn);
 
@@ -1133,6 +1212,7 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 			pushArgument(values[valueIndex].c_str(), static_cast<DataType>(static_cast<int>(columnDataType) - DataType::COLUMN_INT));
 		}
 	}
+	dispatcher.addArgument<const std::string&>(table);
 	dispatcher.addInsertIntoDoneFunction();
 }
 

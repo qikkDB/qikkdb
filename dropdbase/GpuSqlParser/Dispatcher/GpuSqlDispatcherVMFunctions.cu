@@ -4,7 +4,9 @@
 #include "../../PointFactory.h"
 
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::retFunctions = { &GpuSqlDispatcher::retConst<int32_t>, &GpuSqlDispatcher::retConst<int64_t>, &GpuSqlDispatcher::retConst<float>, &GpuSqlDispatcher::retConst<double>, &GpuSqlDispatcher::retConst<ColmnarDB::Types::Point>, &GpuSqlDispatcher::retConst<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::retConst<std::string>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<int8_t>, &GpuSqlDispatcher::retCol<int32_t>, &GpuSqlDispatcher::retCol<int64_t>, &GpuSqlDispatcher::retCol<float>, &GpuSqlDispatcher::retCol<double>, &GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>, &GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::retCol<std::string>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<int8_t> };
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::lockRegisterFunction = &GpuSqlDispatcher::lockRegister;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::filFunction = &GpuSqlDispatcher::fil;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::whereEvaluationFunction = &GpuSqlDispatcher::whereEvaluation;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::jmpFunction = &GpuSqlDispatcher::jmp;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::doneFunction = &GpuSqlDispatcher::done;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showDatabasesFunction = &GpuSqlDispatcher::showDatabases;
@@ -31,7 +33,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 		std::tie(table, column) = splitColumnName(colName);
 
 		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
-		GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
+		GpuSqlDispatcher::deviceCountLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
 		if (blockIndex >= blockCount)
 		{
 			return 1;
@@ -43,6 +45,14 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 		if (blockIndex == blockCount - 1)
 		{
 			isOverallLastBlock = true;
+		}
+
+		noLoad = false;
+
+		if (loadNecessary == 0)
+		{
+			instructionPointer = jmpInstuctionPosition;
+			return 12;
 		}
 
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(database->GetTables().at(table).GetColumns().at(column).get());
@@ -91,7 +101,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 		std::tie(table, column) = splitColumnName(colName);
 
 		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
-		GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
+		GpuSqlDispatcher::deviceCountLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
 		if (blockIndex >= blockCount)
 		{
 			return 1;
@@ -103,6 +113,14 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 		if (blockIndex == blockCount - 1)
 		{
 			isOverallLastBlock = true;
+		}
+
+		noLoad = false;
+
+		if (loadNecessary == 0)
+		{
+			instructionPointer = jmpInstuctionPosition;
+			return 12;
 		}
 
 		auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().at(table).GetColumns().at(column).get());
@@ -172,7 +190,7 @@ int32_t GpuSqlDispatcher::loadCol<std::string>(std::string& colName)
 		std::tie(table, column) = splitColumnName(colName);
 
 		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
-		GpuSqlDispatcher::groupByDoneLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
+		GpuSqlDispatcher::deviceCountLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
 		if (blockIndex >= blockCount)
 		{
 			return 1;
@@ -245,9 +263,13 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>()
 			std::get<0>(ACol), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
 
 		std::cout << "dataSize: " << outSize << std::endl;
-		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-		insertIntoPayload(payload, outData, outSize);
-		MergePayloadToSelfResponse(alias, payload);
+
+		if (outSize > 0)
+		{
+			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+			insertIntoPayload(payload, outData, outSize);
+			MergePayloadToSelfResponse(alias, payload);
+		}
 	}
 	return 0;
 }
@@ -279,9 +301,13 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>()
 			reinterpret_cast<NativeGeoPoint*>(std::get<0>(ACol)), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
 
 		std::cout << "dataSize: " << outSize << std::endl;
-		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-		insertIntoPayload(payload, outData, outSize);
-		MergePayloadToSelfResponse(alias, payload);
+
+		if (outSize > 0)
+		{
+			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+			insertIntoPayload(payload, outData, outSize);
+			MergePayloadToSelfResponse(alias, payload);
+		}
 	}
 	return 0;
 }
@@ -308,7 +334,7 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 		if (isOverallLastBlock)
 		{
 			// Return key or value col (key if groupByColumns contains colName)
-			auto col = findStringColumn(getAllocatedRegisterName(colName) + (groupByColumns.find(colName) != groupByColumns.end() ? "_keys" : ""));
+			auto col = findStringColumn(getAllocatedRegisterName(colName) + (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end() ? "_keys" : ""));
 			outSize = std::get<1>(col);
 			outData = std::make_unique<std::string[]>(outSize);
 			GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col), nullptr, outSize);
@@ -328,8 +354,20 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 		std::cout << "dataSize: " << outSize << std::endl;
 	}
 
-	ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-	insertIntoPayload(payload, outData, outSize);
-	MergePayloadToSelfResponse(alias, payload);
+	if (outSize > 0)
+	{
+		ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+		insertIntoPayload(payload, outData, outSize);
+		MergePayloadToSelfResponse(alias, payload);
+	}
+	return 0;
+}
+
+
+int32_t GpuSqlDispatcher::lockRegister()
+{
+	std::string reg = arguments.read<std::string>();
+	std::cout << "Locked register: " << reg << std::endl;
+	registerLockList.insert(reg);
 	return 0;
 }

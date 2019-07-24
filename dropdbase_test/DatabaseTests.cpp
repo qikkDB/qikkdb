@@ -158,6 +158,11 @@ TEST_F(DatabaseTests, IntegrationTest)
 	boost::filesystem::remove_all(storePath);
 
 	Database::SaveAllToDisk();
+	
+	for (auto& db : Database::GetDatabaseNames())
+	{
+		Database::RemoveFromInMemoryDatabaseList(db.c_str());
+	}
 
 	//load different database, but with the same data:
 	Database::LoadDatabasesFromDisk();
@@ -279,21 +284,16 @@ TEST_F(DatabaseTests, IntegrationTest)
 	Database::SaveAllToDisk();
 
 	//drop column colBool:
+	std::string filePath = Configuration::GetInstance().GetDatabaseDir() + dbName + Database::SEPARATOR + "TestTable2" + Database::SEPARATOR + "colBool.col";
+	ASSERT_TRUE(boost::filesystem::exists(filePath)); // should exist before deletion
 	database->DeleteColumnFromDisk(std::string("TestTable2").c_str(), std::string("colBool").c_str());
-	std::string filePath = Configuration::GetInstance().GetDatabaseDir() + dbName + "_TestTable2_colBool.col";
-	bool exists = false;
-
-	if (boost::filesystem::exists(filePath))
-	{
-		exists = true;
-	}
-	ASSERT_FALSE(exists);
+	ASSERT_FALSE(boost::filesystem::exists(filePath)); // should not exist after deletion
 
 	//drop table TestTable2:
 	database->DeleteTableFromDisk(std::string("TestTable2").c_str());
 	bool deleted = true;
 
-	std::string prefix = dbName + "_TestTable2_";
+	std::string prefix = dbName + Database::SEPARATOR + "TestTable2" + Database::SEPARATOR;
 
 	for (auto& p : boost::filesystem::directory_iterator(Configuration::GetInstance().GetDatabaseDir()))
 	{
@@ -309,7 +309,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	database->DeleteDatabaseFromDisk();
 	deleted = true;
 
-	prefix = dbName + "_";
+	prefix = dbName + Database::SEPARATOR;
 
 	for (auto& p : boost::filesystem::directory_iterator(Configuration::GetInstance().GetDatabaseDir()))
 	{

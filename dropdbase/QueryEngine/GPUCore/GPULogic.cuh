@@ -7,31 +7,7 @@
 #include <device_launch_parameters.h>
 
 #include "MaybeDeref.cuh"
-
-/// Logic relation operation functors
-namespace LogicOperations
-{
-	/// A logical binary AND operation
-	struct logicalAnd
-	{
-		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b)
-		{
-			return a && b;
-		}
-
-	};
-
-	/// A logical binary OR operation
-	struct logicalOr
-	{
-		template<typename T, typename U, typename V>
-		__device__ T operator()(U a, V b)
-		{
-			return a || b;
-		}
-	};
-}
+#include "LogicOperations.h"
 
 /// A bitwise relation logic operation kernel
 /// <param name="OP">Template parameter for the choice of the logic relation operation</param>
