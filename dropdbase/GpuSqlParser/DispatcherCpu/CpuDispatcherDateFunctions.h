@@ -8,7 +8,10 @@ int32_t CpuSqlDispatcher::dateExtractCol()
 	auto colName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	loadCol<int64_t>(colName);
+	if (loadCol<int64_t>(colName))
+	{
+		return 1;
+	}
 
 	//TODO ResultType
 	std::string colPointerNameMin;

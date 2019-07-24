@@ -19,7 +19,10 @@ int32_t CpuSqlDispatcher::arithmeticColConst()
 		typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type
 	>::type ResultType;
 
-	loadCol<T>(colName);
+	if (loadCol<T>(colName))
+	{
+		return 1;
+	}
 
 	std::string colPointerNameMin;
 	std::string colPointerNameMax;
@@ -57,7 +60,10 @@ int32_t CpuSqlDispatcher::arithmeticConstCol()
 		typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type
 	>::type ResultType;
 
-	loadCol<U>(colName);
+	if (loadCol<U>(colName))
+	{
+		return 1;
+	}
 
 	std::string colPointerNameMin;
 	std::string colPointerNameMax;
@@ -105,8 +111,10 @@ int32_t CpuSqlDispatcher::arithmeticColCol()
 	}
 	else
 	{
-		loadCol<T>(colNameLeft);
-		loadCol<U>(colNameRight);
+		if (loadCol<T>(colNameLeft) || loadCol<U>(colNameRight))
+		{
+			return 1;
+		}
 
 		std::string colPointerNameLeftMin;
 		std::string colPointerNameLeftMax;
