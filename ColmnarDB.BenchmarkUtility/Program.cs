@@ -32,10 +32,6 @@ namespace ColmnarDB.BenchmarkUtility
             ColumnarDBClient client = new ColumnarDBClient(IpAddress, Port);
             client.Connect();
             Console.Out.WriteLine("Client has successfully connected to server.");
-            client.Query("show databases;");
-            (Dictionary<string, List<object>> tempQueryResult, Dictionary<string, float> executionTimes) tempResult = (null, null);
-            tempResult = client.GetNextQueryResult();
-            Console.Out.WriteLine(tempResult.tempQueryResult);
 
             UseDatabase use = new UseDatabase();
 
