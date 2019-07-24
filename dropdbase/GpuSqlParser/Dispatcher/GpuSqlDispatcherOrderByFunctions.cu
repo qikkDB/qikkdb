@@ -58,12 +58,18 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 
 				for (auto& orderBlocksNull : orderByBlocks[i].reconstructedOrderByOrderColumnNullBlocks)
 				{
-					reconstructedOrderByOrderColumnNullBlocks[orderBlocksNull.first] = std::move(orderBlocksNull.second);
+					for (auto& orderBlockArray : orderBlocksNull.second)
+					{
+						reconstructedOrderByOrderColumnNullBlocks[orderBlocksNull.first].push_back(std::move(orderBlockArray));
+					}
 				}
 
 				for (auto& retBlocksNull : orderByBlocks[i].reconstructedOrderByRetColumnNullBlocks)
 				{
-					reconstructedOrderByRetColumnNullBlocks[retBlocksNull.first] = std::move(retBlocksNull.second);
+					for (auto& retBlockArray : retBlocksNull.second)
+					{
+						reconstructedOrderByRetColumnNullBlocks[retBlocksNull.first].push_back(std::move(retBlockArray));
+					}
 				}
 			}
 
@@ -586,7 +592,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 								default:
 									break;
 								}
-
+								
 								// Write the null columns 2
 								int8_t nullBit = (reconstructedOrderByRetColumnNullBlocks[retColumn.first][mergeCounterIdx].get()[merge_counters[mergeCounterIdx] / (sizeof(int8_t) * 8)] >> (merge_counters[mergeCounterIdx] % (sizeof(int8_t) * 8))) & 1;
 								nullBit <<= (resultSetCounter % (sizeof(int8_t) * 8)); 
