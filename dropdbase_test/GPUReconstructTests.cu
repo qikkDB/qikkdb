@@ -101,17 +101,19 @@ void TestReconstructPolyCol(std::vector<int8_t> mask, std::vector<std::string> p
 		int32_t correctPointIdx = 0;
 		for (int32_t i = 0; i < outCount; i++)	// for complex polygons
 		{
+			int32_t i_prev = (i == 0) ? 0 : hostPolyIdx[i - 1]; 
+
 			correctPolyIdx += correctPoints[i].size();
 			ASSERT_EQ(hostPolyIdx[i], correctPolyIdx) << "polyIdx at " << i;
 
-			int32_t i_prev = (i == 0) ? 0 : hostPolyIdx[i - 1]; 
 			int32_t hostPolyCount = hostPolyIdx[i] - hostPolyIdx[i_prev];
 			for (int32_t j = 0; j < hostPolyCount; j++)	// for subpolygons
 			{
-				correctPointIdx += correctPoints[i][j].size();
-				ASSERT_EQ(hostPointIdx[hostPolyIdx[i_prev] + j], correctPointIdx) << "pointIdx at " << i << "," << j;
-
 				int32_t j_prev = (j == 0) ? 0 : hostPointIdx[j - 1]; 
+
+				correctPointIdx += correctPoints[i][j].size();
+				ASSERT_EQ(hostPointIdx[hostPolyIdx[i] + j], correctPointIdx) << "pointIdx at " << i << "," << j;
+
 				int32_t hostPointCount = hostPointIdx[hostPolyIdx[i_prev] + j] - hostPointIdx[hostPolyIdx[i_prev] + j_prev];
 				for (int32_t k = 0; k < hostPointCount; k++)	// for points
 				{
