@@ -1,5 +1,7 @@
 ﻿using System;
 using ColmnarDB.NetworkClient;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ColmnarDB.ConsoleClient
 {
@@ -208,6 +210,7 @@ namespace ColmnarDB.ConsoleClient
  
                     case ConsoleKey.Enter:
                         // exit this routine and return the Answer to process further
+			InputQueue.Enqueue(CommandStringBuilder);
                         return CommandStringBuilder;
                 }
             }
