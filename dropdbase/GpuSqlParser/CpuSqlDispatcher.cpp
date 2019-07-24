@@ -131,14 +131,6 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const s
 	{
 		cpuDispatcherFunctions.push_back(arctangent2Functions[left * DataType::DATA_TYPE_SIZE + right]);
 	}
-	else if (op == "IS NULL")
-	{
-		cpuDispatcherFunctions.push_back(nullFunction);
-	}
-	else if (op == "IS NOT NULL")
-	{
-		cpuDispatcherFunctions.push_back(nullFunction);
-	}
 }
 
 void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
@@ -146,6 +138,14 @@ void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
 	if (op == "!")
 	{
 		cpuDispatcherFunctions.push_back(logicalNotFunctions[type]);
+	}
+	else if (op == "IS NULL")
+	{
+		cpuDispatcherFunctions.push_back(nullFunction);
+	}
+	else if (op == "IS NOT NULL")
+	{
+		cpuDispatcherFunctions.push_back(nullFunction);
 	}
 	else if (op == "-")
 	{
