@@ -213,22 +213,24 @@ std::vector<std::any> Table::GetRowOfInsertedData(const std::unordered_map<std::
 	return resultRow;
 }
 
-std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index)
+std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index, bool positionToCompare)
 {
-	int blockIndex = 0;
-	int indexInBlock = index;
+	int32_t blockIndex = 0;
+	int32_t indexInBlock = index;
 
 	auto firstSortingColumn = (columns.find(sortingColumns[0])->second.get());
 	auto columnType = firstSortingColumn->GetColumnType();
 
+	int32_t positionDiff = positionToCompare ? 1 : 0;
+
 	if (columnType == COLUMN_INT)
 	{
-		auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(firstSortingColumn);
+		auto castedColumn = dynamic_cast<const ColumnBase<int32_t>*>(firstSortingColumn);
 		auto& blocks = castedColumn->GetBlocksList();
 
 		int i = 0;
 
-		while (indexInBlock - blocks[i]->GetSize() > 0)
+		while (static_cast<int64_t>(indexInBlock - blocks[i]->GetSize() + positionDiff) > 0)
 		{
 			indexInBlock -= blocks[i]->GetSize();
 			blockIndex++;
@@ -244,7 +246,7 @@ std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index)
 
 		int i = 0;
 
-		while (indexInBlock - blocks[i]->GetSize() > 0)
+		while (static_cast<int64_t>(indexInBlock - blocks[i]->GetSize() + positionDiff) > 0)
 		{
 			indexInBlock -= blocks[i]->GetSize();
 			blockIndex++;
@@ -261,7 +263,7 @@ std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index)
 
 		int i = 0;
 
-		while (indexInBlock - blocks[i]->GetSize() > 0)
+		while (static_cast<int64_t>(indexInBlock - blocks[i]->GetSize() + positionDiff) > 0)
 		{
 			indexInBlock -= blocks[i]->GetSize();
 			blockIndex++;
@@ -278,7 +280,7 @@ std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index)
 
 		int i = 0;
 
-		while (indexInBlock - blocks[i]->GetSize() > 0)
+		while (static_cast<int64_t>(indexInBlock - blocks[i]->GetSize() + positionDiff) > 0)
 		{
 			indexInBlock -= blocks[i]->GetSize();
 			blockIndex++;
@@ -295,7 +297,7 @@ std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index)
 
 		int i = 0;
 
-		while (indexInBlock - blocks[i]->GetSize() > 0)
+		while (static_cast<int64_t>(indexInBlock - blocks[i]->GetSize() + positionDiff) > 0)
 		{
 			indexInBlock -= blocks[i]->GetSize();
 			blockIndex++;
@@ -311,7 +313,7 @@ std::vector<std::any> Table::GetRowOnIndex(int index)
 	int blockIndex;
 	int indexInBlock;
 
-	std::tie(blockIndex, indexInBlock) = GetIndicesFromTotalIndex(index);
+	std::tie(blockIndex, indexInBlock) = GetIndicesFromTotalIndex(index, true);
 	std::vector<std::any> resultRow;
 
 	for (auto sortingColumn : sortingColumns)
@@ -362,12 +364,12 @@ Table::CompareResult Table::CompareRows(std::vector<std::any> rowToInsert, int i
 		{
 			if (std::any_cast<int32_t>(rowToInsert[i]) < std::any_cast<int32_t>(rowToCompare[i]))
 			{
-				return lower;
+				return CompareResult::Lower;
 			}
 
 			else if (std::any_cast<int32_t>(rowToInsert[i]) > std::any_cast<int32_t>(rowToCompare[i]))
 			{
-				return greater;
+				return CompareResult::Greater;
 			}
 		}
 
@@ -375,12 +377,12 @@ Table::CompareResult Table::CompareRows(std::vector<std::any> rowToInsert, int i
 		{
 			if (std::any_cast<int64_t>(rowToInsert[i]) < std::any_cast<int64_t>(rowToCompare[i]))
 			{
-				return lower;
+				return CompareResult::Lower;
 			}
 
 			else if (std::any_cast<int64_t>(rowToInsert[i]) > std::any_cast<int64_t>(rowToCompare[i]))
 			{
-				return greater;
+				return CompareResult::Greater;
 			}
 		}
 
@@ -388,12 +390,12 @@ Table::CompareResult Table::CompareRows(std::vector<std::any> rowToInsert, int i
 		{
 			if (std::any_cast<double>(rowToInsert[i]) < std::any_cast<double>(rowToCompare[i]))
 			{
-				return lower;
+				return CompareResult::Lower;
 			}
 
 			else if (std::any_cast<double>(rowToInsert[i]) > std::any_cast<double>(rowToCompare[i]))
 			{
-				return greater;
+				return CompareResult::Greater;
 			}
 		}
 
@@ -401,12 +403,12 @@ Table::CompareResult Table::CompareRows(std::vector<std::any> rowToInsert, int i
 		{
 			if (std::any_cast<float>(rowToInsert[i]) < std::any_cast<float>(rowToCompare[i]))
 			{
-				return lower;
+				return CompareResult::Lower;
 			}
 
 			else if (std::any_cast<float>(rowToInsert[i]) > std::any_cast<float>(rowToCompare[i]))
 			{
-				return greater;
+				return CompareResult::Greater;
 			}
 		}
 
@@ -414,46 +416,52 @@ Table::CompareResult Table::CompareRows(std::vector<std::any> rowToInsert, int i
 		{
 			if (std::any_cast<std::string>(rowToInsert[i]) < std::any_cast<std::string>(rowToCompare[i]))
 			{
-				return lower;
+				return CompareResult::Lower;
 			}
 
 			else if (std::any_cast<std::string>(rowToInsert[i]) > std::any_cast<std::string>(rowToCompare[i]))
 			{
-				return greater;
+				return CompareResult::Greater;
 			}
 		}
 	}
-	return equal;
+	return CompareResult::Equal;
 }
 
 std::tuple<int, int> Table::GetIndex(std::vector<std::any> rowToInsert)
 {
-	for (int i = 0; i < sortingColumns.size(); i++)
+	int index;
+	CompareResult compareResult;
+
+	int left = 0;
+	int right = getDataRangeInSortingColumn();
+
+	if (right == 0)
 	{
-		int left = 0;
-		int right = getDataRangeInSortingColumn();
-		
-		while (left <= right)
+		return std::make_tuple(0, 0);
+	}
+	
+	right -= 1;
+	while (left <= right)
+	{
+		index = (left + right) / 2;
+
+		compareResult = CompareRows(rowToInsert, index);
+
+		if (compareResult == CompareResult::Greater)
 		{
-			int index = (left + right) / 2;
-
-			CompareResult compareResult = CompareRows(rowToInsert, index);
-
-			if (compareResult == greater)
-			{
-				left = index + 1;
-			}
-
-			else if (compareResult == lower)
-			{
-				right = index - 1;
-			}
-
-			else return GetIndicesFromTotalIndex(index);
+			left = index + 1;
 		}
+
+		else if (compareResult == CompareResult::Lower)
+		{
+			right = index - 1;
+		}
+
+		else return GetIndicesFromTotalIndex(index, false);
 	}
 
-	return std::make_tuple(0, 0);
+	return (compareResult == CompareResult::Greater ? GetIndicesFromTotalIndex(index + 1, false) : GetIndicesFromTotalIndex(index, false));
 }
 #endif
 
@@ -576,26 +584,6 @@ void Table::CreateColumn(const char* columnName, DataType columnType)
 
 
 #ifndef __CUDACC__
-
-void Table::InsertDataTemp(const std::unordered_map<std::string, std::any>& data, bool compress)
-{
-	if (!sortingColumns.empty())
-	{
-		int oneColumnDataSize = getDataSizeOfInsertedColumns(data);
-		int blockIndex;
-		int indexInBlock;
-
-		for (int i = 0; i < oneColumnDataSize; i++)
-		{
-			auto rowToInsert = GetRowOfInsertedData(data, i);
-
-			std::tie(blockIndex, indexInBlock) = GetIndex(rowToInsert);
-
-			InsertValuesOnSpecificPosition(data, blockIndex, indexInBlock, i);
-		}
-	}
-}
-
 /// <summary>
 /// Insert data into proper column of table considering empty space of last block and maximum size of blocks.
 /// </summary>
