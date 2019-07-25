@@ -85,19 +85,8 @@ int main(int argc, char **argv)
 		COLUMN_INT,
 		COLUMN_DOUBLE,
 		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_INT,
-		COLUMN_STRING,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_STRING,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_DOUBLE,
-		COLUMN_STRING };
+		COLUMN_STRING
+	};
 	const std::string tableName = "trips";
 	csvDataImporter3.SetTypes(types);
 	csvDataImporter3.SetTableName(tableName);
