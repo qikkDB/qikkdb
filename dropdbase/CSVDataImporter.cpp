@@ -37,7 +37,7 @@ CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimit
 /// Parses CSV file, guess types, create table (if not exists) and fills the table with parsed data.
 /// </summary>
 /// <param name="database">Database where data will be imported.</param>
-void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
+void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database, std::vector<std::string> sortingColumns)
 {
 	this->ExtractHeaders();
 	if (dataTypes_.empty())
@@ -54,6 +54,8 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 	// creates table
 	Table& table = database->CreateTable(columns, tableName_.c_str());
 	
+	table.SetSortingColumns(sortingColumns);
+
 	std::vector<std::thread> threads;
 	for (int i = 0; i < numThreads_; i++) {
 		threads.emplace_back(&CSVDataImporter::ParseAndImport, this, i, database->GetBlockSize(), columns, std::ref(table));
