@@ -64,7 +64,9 @@ operations_ternary = ["between"]
 operation_binary_monotonous = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operation_arithmetic_monotonous = ["mul", "div", "add", "sub", "mod", "logarithm", "arctangent2"]
 operation_arithmetic_non_monotonous = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift",
-                                       "power", "root"]
+                                       "power"]
+
+operations_string_unary = ['ltrim', 'rtrim', 'lower', 'upper', 'reverse']
 
 for operation in ["whereResult"]:
     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
@@ -416,6 +418,36 @@ for operation in unary_arithmetic_operations:
             op = "arithmeticUnary"
 
         function = "CpuSqlDispatcher::" + op + col + "<ArithmeticUnaryOperations::" + operation + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+for operation in operations_string_unary:
+    declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal != STRING:
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = "stringUnary"
+
+        if op == "stringUnary":
+            function = "CpuSqlDispatcher::" + op + col + "<StringUnaryOperationsCpu::" + operation + ">"
+
+        else:
+            function = "CpuSqlDispatcher::" + op + col + "<StringUnaryOperationsCpu::" + operation + ", " + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")

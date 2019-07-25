@@ -58,7 +58,7 @@ public:
 
     /// Return stored value from cudaGetLastError()
     /// <return>value from cudaGetLastError()</return>
-    cudaError_t GetCudaError()
+    cudaError_t GetCudaError() const
     {
         return cudaError_;
     }
@@ -84,7 +84,7 @@ public:
 
     /// Return stored value of error type
     /// <return>stored error type - value from enum QueryEngineErrorType</return>
-    QueryEngineErrorType GetQueryEngineError()
+    QueryEngineErrorType GetQueryEngineError() const
     {
         return queryEngineErrorType_;
     }

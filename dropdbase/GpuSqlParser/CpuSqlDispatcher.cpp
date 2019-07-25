@@ -139,6 +139,14 @@ void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
 	{
 		cpuDispatcherFunctions.push_back(logicalNotFunctions[type]);
 	}
+	else if (op == "IS NULL")
+	{
+		cpuDispatcherFunctions.push_back(nullFunction);
+	}
+	else if (op == "IS NOT NULL")
+	{
+		cpuDispatcherFunctions.push_back(nullFunction);
+	}
 	else if (op == "-")
 	{
 		cpuDispatcherFunctions.push_back(minusFunctions[type]);
@@ -235,6 +243,10 @@ void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
 	{
 		cpuDispatcherFunctions.push_back(ceilFunctions[type]);
 	}
+	else if (op == "LTRIM")
+	{
+		cpuDispatcherFunctions.push_back(ltrimFunctions[type]);
+	}
 }
 
 void CpuSqlDispatcher::addWhereResultFunction(DataType dataType)
@@ -299,6 +311,7 @@ void CpuSqlDispatcher::copyExecutionDataTo(CpuSqlDispatcher& other)
 	other.cpuDispatcherFunctions = cpuDispatcherFunctions;
 	other.arguments = arguments;
 }
+
 
 std::pair<std::string, std::string> CpuSqlDispatcher::getPointerNames(const std::string & colName)
 {

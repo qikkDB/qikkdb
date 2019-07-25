@@ -58,10 +58,12 @@ indexName           : (ID|DELIMID);
 limit               : INTLIT;
 offset              : INTLIT;
 blockSize           : INTLIT;
-columnValue         : (INTLIT|FLOATLIT|geometry|STRING);
+columnValue         : (INTLIT|FLOATLIT|geometry|NULLLIT|STRING);
 
-expression : op=NOT expression                                                            # unaryOperation
+expression : op=LOGICAL_NOT expression                                                    # unaryOperation
            | op=MINUS expression                                                          # unaryOperation
+           | expression op=ISNULL                                                         # unaryOperation
+           | expression op=ISNOTNULL                                                         # unaryOperation
            | op=ABS LPAREN expression RPAREN                                              # unaryOperation
            | op=SIN LPAREN expression RPAREN                                              # unaryOperation
            | op=COS LPAREN expression RPAREN                                              # unaryOperation

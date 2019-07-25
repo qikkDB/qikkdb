@@ -8,6 +8,7 @@
 #include "../dropdbase/PointFactory.h"
 #include "../dropdbase/ComplexPolygonFactory.h"
 #include "../dropdbase/GpuSqlParser/ParserExceptions.h"
+
 TEST(InsertIntoTests, InsertIntoCorrect)
 {
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
@@ -103,5 +104,36 @@ TEST(InsertIntoTests, InsertIntoTableNotFound)
 			throw;
         }
     },TableNotFoundFromException);
+	Database::RemoveFromInMemoryDatabaseList("TestDb");
+}
+
+TEST(InsertIntoTests, InsertIntoTableNullValue)
+{
+	Database::RemoveFromInMemoryDatabaseList("TestDb");
+	int blockSize = 1 << 5;
+	std::shared_ptr<Database> database(std::make_shared<Database>("TestDb"));
+	Database::AddToInMemoryDatabaseList(database);
+	std::unordered_map<std::string, DataType> columns;
+	columns.emplace("Col1",COLUMN_INT);
+	database->CreateTable(columns,"TestTable");
+	for(int i = 0; i < 16; i++)
+	{
+		if(i % 2 == i/8)
+		{
+			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (null);");
+			parser.parse();
+		}
+		else
+		{
+			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (1);");
+			parser.parse();
+		}
+	}
+	auto& blockList = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTable").GetColumns().at("Col1").get())->GetBlocksList();
+	auto maskPtr = blockList[0]->GetNullBitmask();
+	auto val = maskPtr[0]; 
+	ASSERT_EQ(val, static_cast<char>(0x55));
+	val = maskPtr[1];
+	ASSERT_EQ(val, static_cast<char>(0xAA));
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
 }

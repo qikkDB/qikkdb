@@ -176,6 +176,14 @@ struct AliasRedefinitionException : public std::exception
     }
 };
 
+struct NullMaskOperationInvalidOperandException : public std::exception
+{
+	const char* what() const noexcept override
+	{
+		return "Null mask operation can only be called with a column operand.";
+    }
+};
+
 struct JoinColumnTypeException : public std::exception
 {
 	const char* what() const noexcept override

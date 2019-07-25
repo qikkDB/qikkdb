@@ -12,7 +12,7 @@ GPUJoin::GPUJoin(int32_t hashTableSize) :
 	GPUMemory::alloc(&HashTablePrefixSum_, hashTableSize_);
 	GPUMemory::alloc(&HashTableHashBuckets_, hashTableSize_);
 
-	GPUMemory::alloc(&JoinTableHisto_, joinTableSize_);
+	GPUMemory::allocAndSet(&JoinTableHisto_, 0, joinTableSize_);
 	GPUMemory::alloc(&JoinTablePrefixSum_, joinTableSize_);
 
 	cub::DeviceScan::InclusiveSum(hash_prefix_sum_temp_buffer_, hash_prefix_sum_temp_buffer_size_, HashTableHisto_, HashTablePrefixSum_, hashTableSize_);

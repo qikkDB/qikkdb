@@ -131,6 +131,9 @@ private:
 		DataType::DATA_TYPE_SIZE> ceilFunctions;
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE> floorFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> ltrimFunctions;
+	static CpuDispatchFunction nullFunction;
 
 	static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> whereResultFunctions;
 
@@ -244,6 +247,8 @@ public:
 	template<typename T>
 	int32_t logicalNotConst();
 
+	int32_t nullCol();
+
 	template<typename OP, typename T, typename U>
 	int32_t arithmeticColConst();
 
@@ -300,6 +305,12 @@ public:
 
 	template <typename OP, typename T, typename U>
 	int32_t polygonOperationConstConst();
+
+	template<typename OP>
+	int32_t stringUnaryCol();
+
+	template<typename OP>
+	int32_t stringUnaryConst();
 
 	template<typename T>
 	int32_t whereResultCol() 

@@ -41,9 +41,9 @@ private:
 	/// <param name="name">Names of particular column.</param>
 	/// <param name="table">Names of particular table.</param>
 	static void WriteColumn(const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
-                     std::string pathStr,
-                     std::string name,
-                     const std::pair<const std::string, Table>& table);
+		std::string pathStr,
+		std::string name,
+		const std::pair<const std::string, Table>& table);
 
 public:
 	static constexpr const char* SEPARATOR = "@";
@@ -123,8 +123,9 @@ public:
 	/// </summary>
 	/// <param name="columns">Columns with types.</param>
 	/// <param name="tableName">Table name.</param>
+	/// <param name="areNullable">Nullablity of columns. Default values are set to be true.</param>
 	/// <returns>Newly created table.</returns>
-	Table& CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName);
+	Table& CreateTable(const std::unordered_map<std::string, DataType>& columns, const char* tableName, const std::unordered_map<std::string, bool>& areNullable = std::unordered_map<std::string, bool>());
 
 	/// <summary>
 	/// Add database to in memory list.

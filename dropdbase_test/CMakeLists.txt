@@ -9,6 +9,7 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ClientHandlerTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/CSVDataImportTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherNullTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherGeoTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherGroupByTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTestsRegression.cpp
@@ -39,7 +40,9 @@ endif(NOT WIN32)
 add_executable(${PROJECT_NAME}_test ${TEST_FILES} ${CUDA_TEST_FILES})
 set_target_properties(${PROJECT_NAME}_test PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(${PROJECT_NAME}_test PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-
+if(NOT WIN32)
+	set_target_properties(${PROJECT_NAME}_test PROPERTIES LINK_FLAGS_DEBUG "-rdynamic")
+endif(NOT WIN32)
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIR}) 
 
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )

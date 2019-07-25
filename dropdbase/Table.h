@@ -27,9 +27,10 @@ private:
 
 #ifndef __CUDACC__
     void InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
-                                               int indexBlock,
-                                               int indexInBlock,
-                                               int iterator);
+                                                int indexBlock,
+                                                int indexInBlock,
+                                                int iterator,
+												const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks);
     int32_t getDataRangeInSortingColumn();
 	int32_t getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any> &data);
 #endif
@@ -62,7 +63,7 @@ public:
 	/// </summary>
 	/// <param name="columnName">Name of column.</param>
 	/// <param name="dataType">Data type of colum.n</param>
-	void CreateColumn(const char* columnName, DataType columnType);
+	void CreateColumn(const char* columnName, DataType columnType, bool isNullable = true);
 
 #ifndef __CUDACC__
 	/// <summary>
@@ -70,7 +71,7 @@ public:
 	/// </summary>
 	/// <param name="data">Name of column with inserting data.</param>
 	/// <param name="compress">Whether data will be compressed.</param>
-	void InsertData(const std::unordered_map<std::string, std::any> &data, bool compress = false);
+	void InsertData(const std::unordered_map<std::string, std::any> &data, bool compress = false, const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks = std::unordered_map<std::string, std::vector<int8_t>>());
 	int32_t AssignGroupId(std::vector<std::any>& rowData, std::vector<std::unique_ptr<IColumn>>& columns);
 #endif
 
