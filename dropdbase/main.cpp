@@ -62,20 +62,20 @@ int main(int argc, char **argv)
 
 	Context::getInstance();
 
-	CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
-	std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 131072);
-	Database::AddToInMemoryDatabaseList(database1);
-	std::cout << "Loading GeoPoint.csv ..." << std::endl;
-	csvDataImporter1.ImportTables(database1);
+	//CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
+	//std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 131072);
+	//Database::AddToInMemoryDatabaseList(database1);
+	//std::cout << "Loading GeoPoint.csv ..." << std::endl;
+	//csvDataImporter1.ImportTables(database1);
 
-	CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
-	std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 134217728); //67108864‬
-	Database::AddToInMemoryDatabaseList(database2);
-	std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
-	csvDataImporter2.ImportTables(database2);
+	//CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
+	//std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 134217728); //67108864‬
+	//Database::AddToInMemoryDatabaseList(database2);
+	//std::cout << "Loading TargetLoc1B.csv ..." << std::endl;
+	//csvDataImporter2.ImportTables(database2);
 
-	Database::SaveAllToDisk();
-	return 0;
+	//Database::SaveAllToDisk();
+	//return 0;
 
 	CSVDataImporter csvDataImporter3(R"(../../data/trips-part1.csv)");
 	const std::vector<DataType> types{
