@@ -243,6 +243,10 @@ void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
 	{
 		cpuDispatcherFunctions.push_back(ceilFunctions[type]);
 	}
+	else if (op == "LTRIM")
+	{
+		cpuDispatcherFunctions.push_back(ltrimFunctions[type]);
+	}
 }
 
 void CpuSqlDispatcher::addWhereResultFunction(DataType dataType)

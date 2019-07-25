@@ -267,6 +267,10 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext * 
 	{
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
+	else if (op == "LTRIM")
+	{
+		returnDataType = DataType::COLUMN_STRING;
+	}
 	dispatcher.addUnaryOperation(operandType, op);
 
 	std::string reg = getRegString(ctx);

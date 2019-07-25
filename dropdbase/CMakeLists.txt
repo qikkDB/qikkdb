@@ -71,6 +71,7 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
 		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherArithmeticUnaryFunctions.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherDateFunctions.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherGeoFunctions.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherStringFunctions.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/IColumn.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.h
