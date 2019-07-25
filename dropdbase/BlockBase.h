@@ -215,11 +215,6 @@ public:
 
 	}
 
-	void moveDataToBlock(BlockBase<T>& block, int32_t index)
-	{
-		std::move(data_.get() + index, data_.get() + size_, );
-	}
-
     void InsertDataOnSpecificPosition(int index, const T& data)
     {
         int filledBlockSpace = column_.GetBlockSize() - EmptyBlockSpace();
