@@ -96,29 +96,33 @@ void TestReconstructPolyCol(std::vector<int8_t> mask, std::vector<std::string> p
 
 		std::unique_ptr<NativeGeoPoint[]> hostPoints = std::make_unique<NativeGeoPoint[]>(pointCounts);
 		GPUMemory::copyDeviceToHost(hostPoints.get(), outCol.polyPoints, pointCounts);
-		
+
 		int32_t correctPolyIdx = 0;
 		int32_t correctPointIdx = 0;
 		for (int32_t i = 0; i < outCount; i++)	// for complex polygons
 		{
-			int32_t i_prev = (i == 0) ? 0 : hostPolyIdx[i - 1]; 
+			int32_t polyIdx_prev = (i == 0) ? 0 : hostPolyIdx[i - 1];
 
+			ASSERT_EQ(polyIdx_prev, correctPolyIdx) << "polyIdx at " << i;
 			correctPolyIdx += correctPoints[i].size();
-			ASSERT_EQ(hostPolyIdx[i], correctPolyIdx) << "polyIdx at " << i;
 
-			int32_t hostPolyCount = hostPolyIdx[i] - hostPolyIdx[i_prev];
-			for (int32_t j = 0; j < hostPolyCount; j++)	// for subpolygons
+			int32_t hostPolyCount = hostPolyIdx[i] - polyIdx_prev;
+			ASSERT_EQ(correctPoints[i].size(), hostPolyCount);
+
+			for (int32_t j = 0; j < correctPoints[i].size(); j++)	// for subpolygons
 			{
-				int32_t j_prev = (j == 0) ? 0 : hostPointIdx[j - 1]; 
-
+				int32_t pointIdx_prev = (j == 0) ? ((i == 0) ? 0 : hostPointIdx[polyIdx_prev - 1]) : hostPointIdx[polyIdx_prev + j - 1];
+				
+				ASSERT_EQ(pointIdx_prev, correctPointIdx) << "pointIdx at " << i << "," << j;
 				correctPointIdx += correctPoints[i][j].size();
-				ASSERT_EQ(hostPointIdx[hostPolyIdx[i] + j], correctPointIdx) << "pointIdx at " << i << "," << j;
 
-				int32_t hostPointCount = hostPointIdx[hostPolyIdx[i_prev] + j] - hostPointIdx[hostPolyIdx[i_prev] + j_prev];
-				for (int32_t k = 0; k < hostPointCount; k++)	// for points
+				int32_t hostPointCount = hostPointIdx[polyIdx_prev + j] - pointIdx_prev;
+				ASSERT_EQ(correctPoints[i][j].size(), hostPointCount);
+
+				for (int32_t k = 0; k < correctPoints[i][j].size(); k++)	// for points
 				{
-					ASSERT_EQ(hostPoints[hostPointIdx[hostPolyIdx[i_prev] + j_prev] + k].latitude, correctPoints[i][j][k].latitude) << "polyPoint.latitude at " << i << "," << j << "," << k;
-					ASSERT_EQ(hostPoints[hostPointIdx[hostPolyIdx[i_prev] + j_prev] + k].longitude, correctPoints[i][j][k].longitude) << "polyPoint.longitude at " << i << "," << j << "," << k;
+					ASSERT_EQ(hostPoints[pointIdx_prev + k].latitude, correctPoints[i][j][k].latitude) << "polyPoint.latitude at " << i << "," << j << "," << k;
+					ASSERT_EQ(hostPoints[pointIdx_prev + k].longitude, correctPoints[i][j][k].longitude) << "polyPoint.longitude at " << i << "," << j << "," << k;
 				}
 			}
 		}

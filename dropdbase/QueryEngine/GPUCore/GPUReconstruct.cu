@@ -230,6 +230,7 @@ __global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemor
 		outWkt.allChars[charId++] = ')';
 		
 		// Lengths mis-match check
+		/*
 		if (charId != outWkt.stringIndices[i])
 		{
 			printf("Not match fin id! %d\n", outWkt.stringIndices[i] - charId);
@@ -237,7 +238,7 @@ __global__ void kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemor
 		else{
 			printf("Match OK\n");
 		}
-		
+		*/
 	}
 }
 
