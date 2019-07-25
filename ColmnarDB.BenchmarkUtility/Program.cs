@@ -115,10 +115,6 @@ namespace ColmnarDB.BenchmarkUtility
                     client.Query(queryString);
                     result = client.GetNextQueryResult();
                     resultSum += result.executionTimes.Values.Sum();
-
-                    foreach(float vymazat in result.executionTimes.Values) {
-                         Console.Out.WriteLine("Jedna value: " + vymazat); //TODO toto ptm vymazat
-                    }
                 }
 
                 //save query result to a file:

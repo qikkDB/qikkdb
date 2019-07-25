@@ -104,7 +104,6 @@ namespace ColmnarDB.NetworkClient
                 foreach (var record in response.Timing)
                 {
                     executionTimes.Add(record.Key, record.Value);
-                    Console.Out.WriteLine("Jedna value v ColumnarDBClient: " + record.Value); //TODO toto ptm vymazat
                 }
             }
 
