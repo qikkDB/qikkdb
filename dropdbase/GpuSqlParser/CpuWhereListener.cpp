@@ -129,6 +129,14 @@ void CpuWhereListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext 
 	{
 		returnDataType = getReturnDataType(DataType::COLUMN_FLOAT);
 	}
+	else if (op == "LEFT")
+	{
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "RIGHT")
+	{
+		returnDataType = DataType::COLUMN_STRING;
+	}
 	dispatcher.addBinaryOperation(leftOperandType, rightOperandType, op);
 
 	std::string reg = getRegString(ctx);
@@ -270,6 +278,22 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext * 
 	else if (op == "LTRIM")
 	{
 		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "RTRIM")
+	{
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "LOWER")
+	{
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "UPPER")
+	{
+		returnDataType = DataType::COLUMN_STRING;
+	}
+	else if (op == "LEN")
+	{
+		returnDataType = DataType::COLUMN_INT;
 	}
 	dispatcher.addUnaryOperation(operandType, op);
 

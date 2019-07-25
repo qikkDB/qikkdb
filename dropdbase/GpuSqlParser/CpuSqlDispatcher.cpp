@@ -131,6 +131,14 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const s
 	{
 		cpuDispatcherFunctions.push_back(arctangent2Functions[left * DataType::DATA_TYPE_SIZE + right]);
 	}
+	else if (op == "LEFT")
+	{
+		cpuDispatcherFunctions.push_back(leftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "RIGHT")
+	{
+		cpuDispatcherFunctions.push_back(rightFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
 }
 
 void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
@@ -247,6 +255,23 @@ void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
 	{
 		cpuDispatcherFunctions.push_back(ltrimFunctions[type]);
 	}
+	else if (op == "RTRIM")
+	{
+		cpuDispatcherFunctions.push_back(rtrimFunctions[type]);
+	}
+	else if (op == "LOWER")
+	{
+		cpuDispatcherFunctions.push_back(lowerFunctions[type]);
+	}
+	else if (op == "UPPER")
+	{
+		cpuDispatcherFunctions.push_back(upperFunctions[type]);
+	}
+	else if (op == "LEN")
+	{
+		cpuDispatcherFunctions.push_back(lenFunctions[type]);
+	}
+
 }
 
 void CpuSqlDispatcher::addWhereResultFunction(DataType dataType)

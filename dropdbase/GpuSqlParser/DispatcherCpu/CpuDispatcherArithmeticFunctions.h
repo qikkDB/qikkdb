@@ -130,8 +130,8 @@ int32_t CpuSqlDispatcher::arithmeticColCol()
 		auto colValRightMin = allocatedPointers.at(colPointerNameRightMin);
 		auto colValRightMax = allocatedPointers.at(colPointerNameRightMax);
 
-		resultMin = allocateRegister<ResultType>(reg + "_min", 1, std::get<2>(colValLeftMin) || std::get<2>(colValRightMin));
-		resultMax = allocateRegister<ResultType>(reg + "_max", 1, std::get<2>(colValLeftMax) || std::get<2>(colValRightMax));
+		resultMin = allocateRegister<ResultType>(reg + "_min", 1, std::get<2>(colValLeftMin) || std::get<2>(colValRightMin) || !OP::isMonotonous);
+		resultMax = allocateRegister<ResultType>(reg + "_max", 1, std::get<2>(colValLeftMax) || std::get<2>(colValRightMax) || !OP::isMonotonous);
 		
 		resultMin[0] = OP{}.template operator() < ResultType, T, U > (reinterpret_cast<T*>(std::get<0>(colValLeftMin))[0], reinterpret_cast<U*>(std::get<0>(colValRightMin))[0]);
 		resultMax[0] = OP{}.template operator() < ResultType, T, U > (reinterpret_cast<T*>(std::get<0>(colValLeftMax))[0], reinterpret_cast<U*>(std::get<0>(colValRightMax))[0]);
