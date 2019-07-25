@@ -11,7 +11,10 @@ int32_t CpuSqlDispatcher::filterStringColConst()
 	std::string cnst = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	loadCol<std::string>(colName);
+	if (loadCol<std::string>(colName))
+	{
+		return 1;
+	}
 
 	std::string colPointerNameMin;
 	std::string colPointerNameMax;
@@ -51,7 +54,10 @@ int32_t CpuSqlDispatcher::filterStringConstCol()
 	auto colName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 	
-	loadCol<std::string>(colName);
+	if (loadCol<std::string>(colName))
+	{
+		return 1;
+	}
 
 	std::string colPointerNameMin;
 	std::string colPointerNameMax;
@@ -103,8 +109,10 @@ int32_t CpuSqlDispatcher::filterStringColCol()
 	}
 	else
 	{
-		loadCol<std::string>(colNameLeft);
-		loadCol<std::string>(colNameRight);
+		if (loadCol<std::string>(colNameLeft) || loadCol<std::string>(colNameRight))
+		{
+			return 1;
+		}
 
 		std::string colPointerNameLeftMin;
 		std::string colPointerNameLeftMax;
@@ -161,7 +169,10 @@ int32_t CpuSqlDispatcher::filterColConst()
 	U cnst = arguments.read<U>();
 	auto reg = arguments.read<std::string>();
 
-	loadCol<T>(colName);
+	if (loadCol<T>(colName))
+	{
+		return 1;
+	}
 
 	std::string colPointerNameMin;
 	std::string colPointerNameMax;
@@ -201,7 +212,10 @@ int32_t CpuSqlDispatcher::filterConstCol()
 	auto colName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	loadCol<U>(colName);
+	if (loadCol<U>(colName))
+	{
+		return 1;
+	}
 
 	std::string colPointerNameMin;
 	std::string colPointerNameMax;
@@ -252,8 +266,10 @@ int32_t CpuSqlDispatcher::filterColCol()
 	}
 	else
 	{
-		loadCol<T>(colNameLeft);
-		loadCol<U>(colNameRight);
+		if (loadCol<T>(colNameLeft) || loadCol<U>(colNameRight))
+		{
+			return 1;
+		}
 
 		std::string colPointerNameLeftMin;
 		std::string colPointerNameLeftMax;
@@ -312,7 +328,10 @@ int32_t CpuSqlDispatcher::logicalColConst()
 	int8_t* maskMin = nullptr;
 	int8_t* maskMax = nullptr;
 
-	loadCol<T>(colName);
+	if (loadCol<T>(colName))
+	{
+		return 1;
+	}
 
 	std::string colPointerNameMin;
 	std::string colPointerNameMax;
@@ -351,7 +370,10 @@ int32_t CpuSqlDispatcher::logicalConstCol()
 	int8_t* maskMin = nullptr;
 	int8_t* maskMax = nullptr;
 
-	loadCol<U>(colName);
+	if (loadCol<U>(colName))
+	{
+		return 1;
+	}
 
 	std::string colPointerNameMin;
 	std::string colPointerNameMax;
@@ -399,8 +421,10 @@ int32_t CpuSqlDispatcher::logicalColCol()
 	}
 	else
 	{
-		loadCol<T>(colNameLeft);
-		loadCol<U>(colNameRight);
+		if (loadCol<T>(colNameLeft) || loadCol<U>(colNameRight))
+		{
+			return 1;
+		}
 
 		std::string colPointerNameLeftMin;
 		std::string colPointerNameLeftMax;
@@ -462,7 +486,10 @@ int32_t CpuSqlDispatcher::logicalNotCol()
 	auto colName = arguments.read<std::string>();
 	auto reg = arguments.read<std::string>();
 
-	loadCol<T>(colName);
+	if (loadCol<T>(colName))
+	{
+		return 1;
+	}
 
 	std::string colPointerNameMin;
 	std::string colPointerNameMax;

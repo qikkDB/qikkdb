@@ -870,7 +870,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ct
 	}
 
 	std::unordered_map<std::string, DataType> newColumns;
-	std::unordered_map<std::string, std::unordered_set<std::string>> newIndices;
+	std::unordered_map<std::string, std::vector<std::string>> newIndices;
 
 	for (auto& entry : ctx->newTableEntries()->newTableEntry())
 	{
@@ -899,7 +899,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ct
 				throw IndexAlreadyExistsException();
 			}
 
-			std::unordered_set<std::string> indexColumns;
+			std::vector<std::string> indexColumns;
 			for (auto& column : newColumnContext->indexColumns()->column())
 			{
 				std::string indexColumnName = column->getText();
@@ -909,11 +909,11 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ct
 				{
 					throw ColumnNotFoundException();
 				}
-				if (indexColumns.find(indexColumnName) != indexColumns.end())
+				if (std::find(indexColumns.begin(), indexColumns.end(), indexColumnName) != indexColumns.end())
 				{
 					throw ColumnAlreadyExistsInIndexException();
 				}
-				indexColumns.insert(indexColumnName);
+				indexColumns.push_back(indexColumnName);
 			}
 			newIndices.insert({indexName, indexColumns});
 		}
@@ -1039,7 +1039,7 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * ct
 
 	//check if index already exists
 
-	std::unordered_set<std::string> indexColumns;
+	std::vector<std::string> indexColumns;
 
 	for (auto& column : ctx->indexColumns()->column())
 	{
@@ -1051,11 +1051,11 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * ct
 		{
 			throw ColumnNotFoundException();
 		}
-		if (indexColumns.find(indexColumnName) != indexColumns.end())
+		if (std::find(indexColumns.begin(), indexColumns.end(), indexColumnName) != indexColumns.end())
 		{
 			throw ColumnAlreadyExistsInIndexException();
 		}
-		indexColumns.insert(indexColumnName);
+		indexColumns.push_back(indexColumnName);
 	}
 
 	dispatcher.addCreateIndexFunction();
