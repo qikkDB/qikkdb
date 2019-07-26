@@ -44,6 +44,7 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	insideOrderBy(false),
 	insideSelectColumn(false), 
 	isAggSelectColumn(false),
+	isSelectColumnValid(false),
 	resultLimit(std::numeric_limits<int64_t>::max()),
 	resultOffset(0)
 {
@@ -219,6 +220,12 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 	}
 
 	std::string reg = getRegString(ctx);
+
+	if (groupByColumns.find({ reg, returnDataType }) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
+
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
 }
@@ -430,6 +437,12 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	}
 
 	std::string reg = getRegString(ctx);
+
+	if (groupByColumns.find({ reg, returnDataType }) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
+
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
 }
@@ -482,6 +495,12 @@ void GpuSqlListener::exitCastOperation(GpuSqlParser::CastOperationContext * ctx)
 	}
 
 	std::string reg = getRegString(ctx);
+
+	if (groupByColumns.find({ reg, castType }) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
+
 	pushArgument(reg.c_str(), castType);
 	pushTempResult(reg, castType);
 }
@@ -558,12 +577,16 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
         dispatcher.addAvgFunction(keyType, valueType, groupByType);
 		returnDataType = getReturnDataType(valueType);
     }
-
-	insideAgg = false;
 	std::string reg = getRegString(ctx);
+
+	if (insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
 
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
+	insideAgg = false;
 }
 
 /// Method that executes on exit of SELECT clause (return columns)
@@ -592,6 +615,7 @@ void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 void GpuSqlListener::enterSelectColumn(GpuSqlParser::SelectColumnContext * ctx)
 {
 	insideSelectColumn = true;
+	isSelectColumnValid = !usingGroupBy;
 }
 
 
@@ -606,6 +630,12 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 	std::pair<std::string, DataType> arg = stackTopAndPop();
 	std::string colName = std::get<0>(arg);
 	DataType retType = std::get<1>(arg);
+
+	if (!isSelectColumnValid)
+	{
+		throw ColumnGroupByException();
+	}
+
 	std::string alias;
 	
 	if (ctx->alias())
@@ -1361,6 +1391,11 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 	if (GpuSqlDispatcher::linkTable.find(tableColumn) == GpuSqlDispatcher::linkTable.end())
 	{
 		GpuSqlDispatcher::linkTable.insert({ tableColumn, linkTableIndex++ });
+	}
+
+	if (groupByColumns.find(tableColumnData) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
 	}
 }
 

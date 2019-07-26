@@ -47,6 +47,7 @@ private:
 
 	bool insideSelectColumn;
 	bool isAggSelectColumn;
+	bool isSelectColumnValid;
 
 	void pushArgument(const char *token, DataType dataType);
 	std::pair<std::string, DataType> stackTopAndPop();
