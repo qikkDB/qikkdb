@@ -6,6 +6,7 @@ BlockSize: 262144
 BlockCount: 1024
 GroupByBuckets: 65536
 UsingCompression: true
+GPUCachePercent: 75
 
 #network settings
 ListenIP: 127.0.0.1
