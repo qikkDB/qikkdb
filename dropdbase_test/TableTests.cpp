@@ -299,7 +299,7 @@ TEST(TableTests, ClusteredIndexInsertAdvanced)
 	}
 }
 
-TEST(TableTests, ClusteredIndexInsertWithNullValues)
+TEST(TableTests, ClusteredIndexInsertWithNullValues_basic)
 {
 	auto database = std::make_shared<Database>("testDatabase", 4);
 	Table table(database, "testTable");
@@ -349,4 +349,95 @@ TEST(TableTests, ClusteredIndexInsertWithNullValues)
 	ASSERT_EQ(blockInt2[1]->GetData()[2], 80);
 	ASSERT_EQ(blockInt2[2]->GetData()[0], 670);
 	ASSERT_EQ(blockInt2[2]->GetData()[1], 1020);
+}
+
+TEST(TableTests, ClusteredIndexInsertWithNullValues_advanced)
+{
+	auto database = std::make_shared<Database>("testDatabase", 4);
+	Table table(database, "testTable");
+	table.SetSortingColumns({ "ColumnInt1","ColumnInt2","ColumnInt3" });
+
+	table.CreateColumn("ColumnInt1", COLUMN_INT);
+	table.CreateColumn("ColumnInt2", COLUMN_INT);
+	table.CreateColumn("ColumnInt3", COLUMN_INT);
+
+	std::unordered_map<std::string, std::any> data;
+	std::unordered_map<std::string, std::vector<int8_t>> nullMask;
+
+	std::vector<int32_t> dataInt1({ 9,5,5,7,12,4,8,5});
+	std::vector<int32_t> dataInt2({ 7,5,7,5,12,89,56,7});
+	std::vector<int32_t> dataInt3({ 98,12,13,3,123,6,9,45});
+
+	std::vector<int32_t> sortedDataInt1({7,12,5,4,8,5,5,9});
+	std::vector<int32_t> sortedDataInt2({5,12,7,89,56,5,7,7});
+	std::vector<int32_t> sortedDataInt3({3,123,13,6,9,12,45,98});
+
+	data.insert({ "ColumnInt1", dataInt1 });
+	data.insert({ "ColumnInt2", dataInt2 });
+	data.insert({ "ColumnInt3", dataInt3 });
+
+	std::vector<int8_t> vectorMask1;
+	std::vector<int8_t> vectorMask2;
+	std::vector<int8_t> vectorMask3;
+	vectorMask1.push_back(60);
+	vectorMask2.push_back(90);
+	vectorMask3.push_back(204);
+
+	nullMask.insert({ "ColumnInt1", vectorMask1 });
+	nullMask.insert({ "ColumnInt2", vectorMask2 });
+	nullMask.insert({ "ColumnInt3", vectorMask3 });
+
+	table.InsertData(data, false, nullMask);
+
+	//First column
+	auto& blocksColumnInt1 = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt1").get())->GetBlocksList();
+	std::vector<int32_t> dataColumn1;
+	for (int i = 0; i < blocksColumnInt1.size(); i++)
+	{
+		for (int j = 0; j < blocksColumnInt1[i]->GetSize(); j++)
+		{
+			dataColumn1.push_back(blocksColumnInt1[i]->GetData()[j]);
+		}
+	}
+
+	ASSERT_EQ(sortedDataInt1.size(), dataColumn1.size());
+	for (int i = 0; i < dataColumn1.size(); i++)
+	{
+		ASSERT_EQ(sortedDataInt1[i], dataColumn1[i]);
+	}
+	/*
+	//Second column
+	auto& blocksColumnInt2 = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt2").get())->GetBlocksList();
+	std::vector<int32_t> dataColumn2;
+	for (int i = 0; i < blocksColumnInt2.size(); i++)
+	{
+		for (int j = 0; j < blocksColumnInt2[i]->GetSize(); j++)
+		{
+			dataColumn2.push_back(blocksColumnInt2[i]->GetData()[j]);
+		}
+	}
+
+	ASSERT_EQ(sortedDataInt2.size(), dataColumn2.size());
+	for (int i = 0; i < dataColumn2.size(); i++)
+	{
+		ASSERT_EQ(sortedDataInt2[i], dataColumn2[i]);
+	}
+
+	//Third column
+	auto& blocksColumnInt3 = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt3").get())->GetBlocksList();
+	std::vector<int32_t> dataColumn3;
+	for (int i = 0; i < blocksColumnInt3.size(); i++)
+	{
+		for (int j = 0; j < blocksColumnInt3[i]->GetSize(); j++)
+		{
+			dataColumn3.push_back(blocksColumnInt3[i]->GetData()[j]);
+		}
+	}
+
+	ASSERT_EQ(sortedDataInt3.size(), dataColumn3.size());
+	for (int i = 0; i < dataColumn3.size(); i++)
+	{
+		ASSERT_EQ(sortedDataInt3[i], dataColumn3[i]);
+	}
+	*/
 }

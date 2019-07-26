@@ -342,17 +342,16 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowOnIndex(int 
 		auto currentSortingColumn = (columns.find(sortingColumn)->second.get()); 
 		auto columnType = currentSortingColumn->GetColumnType();
 
+		int8_t isNullValue = 0;
+		int bitMaskIdx = (indexInBlock / (sizeof(char) * 8));
+		int shiftIdx = (indexInBlock % (sizeof(char) * 8));
+
 		if (columnType == COLUMN_INT)
 		{
 			auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentSortingColumn);
 			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
 
-			//TODO for other types
-			int8_t isNullValue = 0;
-			int bitMaskIdx = (indexInBlock / (sizeof(char) * 8));
-			int shiftIdx = (indexInBlock % (sizeof(char) * 8));
 			isNullValue = (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
-
 			maskOfRow.push_back(isNullValue);
 		}
 
@@ -360,24 +359,35 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowOnIndex(int 
 		{
 			auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(currentSortingColumn);
 			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+
+			isNullValue = (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+			maskOfRow.push_back(isNullValue);
 		}
 
 		else if (columnType == COLUMN_FLOAT)
 		{
 			auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentSortingColumn);
 			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+
+			isNullValue = (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+			maskOfRow.push_back(isNullValue);
 		}
 
 		else if (columnType == COLUMN_DOUBLE)
 		{
 			auto castedColumn = dynamic_cast<ColumnBase<double>*>(currentSortingColumn);
 			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+
+			isNullValue = (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+			maskOfRow.push_back(isNullValue);
 		}
 
 		else if (columnType == COLUMN_STRING)
 		{
 			auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentSortingColumn);
 			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+
+
 		}
 	}
 	return std::make_tuple(resultRow, maskOfRow);
@@ -395,11 +405,8 @@ Table::CompareResult Table::CompareRows(std::vector<std::any> rowToInsert, std::
 		int8_t insertBit;
 		int8_t compareBit;
 
-		int8_t isNullValue = 0;
-		int bitMaskIdx = (i / (sizeof(char) * 8));
-		int shiftIdx = (i % (sizeof(char) * 8));
-		insertBit = (maskOfInsertRow[bitMaskIdx] >> shiftIdx) & 1;
-		compareBit = (maskOfCompareRow[bitMaskIdx] >> shiftIdx) & 1;
+		insertBit = maskOfInsertRow[i];
+		compareBit = maskOfCompareRow[i];
 
 		if (insertBit == 1 && compareBit == 0)
 		{
