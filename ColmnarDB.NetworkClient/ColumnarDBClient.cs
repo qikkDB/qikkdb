@@ -50,7 +50,7 @@ namespace ColmnarDB.NetworkClient
         /// <param name="serverPort">Port of the database server</param>
         /// <param name="readTimeout">Network read timeout in ms</param>
         /// <param name="writeTimeout">Network read timeout in ms</param>
-        public ColumnarDBClient(string serverHostnameOrIP, short serverPort, int readTimeout = 60000, int writeTimeout = 60000)
+        public ColumnarDBClient(string serverHostnameOrIP, short serverPort, int readTimeout = 600000, int writeTimeout = 600000)
         {
             var hostIPs = Dns.GetHostAddresses(serverHostnameOrIP);
             if (hostIPs.Length < 1)
