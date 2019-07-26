@@ -33,7 +33,7 @@ namespace ColmnarDB.ConsoleClient
                 string wholeCommand = ReadLine.Read("> ");
                 string[] splitCommand = wholeCommand.Split(" ");
 
-                string command = splitCommand[0];
+                string command = std::tolower(splitCommand[0]);
                 string parameters = "";
                 string database = "";
                 string filePath = "";
