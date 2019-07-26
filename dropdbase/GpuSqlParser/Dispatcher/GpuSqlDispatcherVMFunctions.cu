@@ -23,7 +23,7 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createIndexFunction = &GpuS
 template <>
 int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName)
 {
-	if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
+	if (allocatedPointers.find(colName + "_polyPoints") == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
 	{
 		std::cout << "Load: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name() << std::endl;
 
@@ -180,7 +180,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 template <>
 int32_t GpuSqlDispatcher::loadCol<std::string>(std::string& colName)
 {
-	if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
+	if (allocatedPointers.find(colName + "_allChars") == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
 	{
 		std::cout << "Load: " << colName << " " << typeid(std::string).name() << std::endl;
 
