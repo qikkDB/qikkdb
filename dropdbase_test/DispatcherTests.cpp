@@ -11224,3 +11224,65 @@ TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
 
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA%^&*()-+") == DispatcherObjs::GetInstance().database->GetTables().end());
 }
+
+TEST(DispatcherTests, CastFloatColToInt)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT CAST(colFloat1 AS INT) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResultsInt;
+
+	auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockFloat = columnFloat->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResultsInt.push_back(static_cast<int32_t>(blockFloat->GetData()[k]));
+		}
+	}
+
+	auto &payloadsInt = result->payloads().at("CAST(colFloat1ASINT)");
+
+	ASSERT_EQ(payloadsInt.intpayload().intdata_size(), expectedResultsInt.size());
+
+	for (int i = 0; i < payloadsInt.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsInt[i], payloadsInt.intpayload().intdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, CastIntColToFloat)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT CAST(colInteger1 AS FLOAT) FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResultsFloat;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			expectedResultsFloat.push_back(static_cast<float>(blockInt->GetData()[k]));
+		}
+	}
+
+	auto &payloadsFloat = result->payloads().at("CAST(colInteger1ASFLOAT)");
+
+	ASSERT_EQ(payloadsFloat.floatpayload().floatdata_size(), expectedResultsFloat.size());
+
+	for (int i = 0; i < payloadsFloat.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(payloadsFloat.floatpayload().floatdata()[i], expectedResultsFloat[i]);
+	}
+}

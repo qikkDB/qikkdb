@@ -66,3 +66,5 @@ constexpr DataType GetColumnType()
 															  type>::type>::type>::type>::type>::type>::type>::type retConst;
 		return retConst::value;
 }
+
+DataType GetColumnDataTypeFromString(const std::string& dataType);

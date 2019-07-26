@@ -156,6 +156,24 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> leftFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rightFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToIntFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToLongFunctions;
+	//static std::array<GpuSqlDispatcher::DispatchFunction,
+	//		DataType::DATA_TYPE_SIZE> castToDateFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToFloatFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToDoubleFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToStringFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToPointFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToPolygonFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToInt8tFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
 	static std::array<DispatchFunction, 
@@ -413,6 +431,24 @@ public:
 	void addIntersectFunction(DataType left, DataType right);
 
 	void addUnionFunction(DataType left, DataType right);
+
+	void addCastToIntFunction(DataType operand);
+
+	void addCastToLongFunction(DataType operand);
+
+	void addCastToDateFunction(DataType operand);
+
+	void addCastToFloatFunction(DataType operand);
+
+	void addCastToDoubleFunction(DataType operand);
+
+	void addCastToStringFunction(DataType operand);
+
+	void addCastToPointFunction(DataType operand);
+
+	void addCastToPolygonFunction(DataType operand);
+
+	void addCastToInt8tFunction(DataType operand);
 
     void addLogicalNotFunction(DataType type);
 
@@ -797,6 +833,12 @@ public:
 
     template <typename OP, typename T, typename U>
     int32_t polygonOperationConstConst();
+
+	template<typename OUT, typename IN>
+	int32_t castNumericCol();
+
+	template<typename OUT, typename IN>
+	int32_t castNumericConst();
 
     int32_t between();
 

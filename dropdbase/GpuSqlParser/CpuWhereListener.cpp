@@ -258,6 +258,23 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext * 
 	pushTempResult(reg, returnDataType);
 }
 
+void CpuWhereListener::exitCastOperation(GpuSqlParser::CastOperationContext * ctx)
+{
+	std::pair<std::string, DataType> arg = stackTopAndPop();
+
+	DataType operandType = std::get<1>(arg);
+	pushArgument(std::get<0>(arg).c_str(), operandType);
+	std::string castTypeStr = ctx->DATATYPE()->getText();
+	stringToUpper(castTypeStr);
+	DataType castType = getDataTypeFromString(castTypeStr);
+
+	dispatcher.addCastOperation(operandType, castType, castTypeStr);
+
+	std::string reg = getRegString(ctx);
+	pushArgument(reg.c_str(), castType);
+	pushTempResult(reg, castType);
+}
+
 void CpuWhereListener::exitIntLiteral(GpuSqlParser::IntLiteralContext * ctx)
 {
 	std::string token = ctx->getText();
@@ -513,6 +530,11 @@ DataType CpuWhereListener::getReturnDataType(DataType operand)
 		return static_cast<DataType>(operand + DataType::COLUMN_INT);
 	}
 	return operand;
+}
+
+DataType CpuWhereListener::getDataTypeFromString(const std::string & dataType)
+{
+	return ::GetColumnDataTypeFromString(dataType);
 }
 
 std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName(GpuSqlParser::ColumnIdContext * ctx)

@@ -454,6 +454,51 @@ void GpuSqlDispatcher::addUnionFunction(DataType left, DataType right)
     dispatcherFunctions.push_back(unionFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
+void GpuSqlDispatcher::addCastToIntFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToIntFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToLongFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToLongFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToDateFunction(DataType operand)
+{
+	//dispatcherFunctions.push_back(castToDateFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToFloatFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToFloatFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToDoubleFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToDoubleFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToStringFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToStringFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToPointFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToPointFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToPolygonFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToPolygonFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToInt8tFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToInt8tFunctions[operand]);
+}
+
 void GpuSqlDispatcher::addLogicalNotFunction(DataType type)
 {
     dispatcherFunctions.push_back(logicalNotFunctions[type]);
