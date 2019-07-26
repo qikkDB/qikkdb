@@ -235,7 +235,7 @@ public:
         }
         data_[index] = data;
         size_++;
-        setBlockStatistics();
+        //setBlockStatistics();
     }
 
     ~BlockBase()

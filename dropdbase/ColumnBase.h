@@ -224,7 +224,7 @@ public:
             BlockSplit(blocks_[groupId][indexBlock]);
         }
 
-        setColumnStatistics();
+        //setColumnStatistics();
     }
 
     void BlockSplit(std::unique_ptr<BlockBase<T>>& blockPtr, int groupId = -1)

@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	{
 		CSVDataImporter csvDataImporter(argv[1]);
 		////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
-		std::shared_ptr<Database> database = std::make_shared<Database>(argc > 2? argv[2] : "TestDb", 1048576);
+		std::shared_ptr<Database> database = std::make_shared<Database>(argc > 2? argv[2] : "TestDb", 20000);
 		Database::AddToInMemoryDatabaseList(database);
 		BOOST_LOG_TRIVIAL(info) << "Loading CSV from \"" << argv[1] << "\"";
 		std::vector<std::string> sortingColumns;
