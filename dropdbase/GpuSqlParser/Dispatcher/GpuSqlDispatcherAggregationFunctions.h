@@ -111,8 +111,8 @@ public:
 		K* outKeys = nullptr;
 		O* outValues = nullptr;
 		reinterpret_cast<GPUGroupBy<OP, O, K, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables);
-		dispatcher.allocatedPointers.insert({ dispatcher.getAllocatedRegisterName(groupByColumnName) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true) });
-		dispatcher.allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
+		dispatcher.InsertRegister(dispatcher.getAllocatedRegisterName(groupByColumnName) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(outKeys), outSize, true));
+		dispatcher.InsertRegister(reg, std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true));
 	}
 };
 
@@ -143,7 +143,7 @@ public:
 		O* outValues = nullptr;
 		reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables);
 		dispatcher.fillStringRegister(outKeys, dispatcher.getAllocatedRegisterName(groupByColumnName) + "_keys", outSize, true);
-		dispatcher.allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
+		dispatcher.InsertRegister(reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true));
 	}
 };
 
@@ -214,23 +214,23 @@ public:
 			switch (groupByColumns[i].second)
 			{
 			case DataType::COLUMN_INT:
-				dispatcher.allocatedPointers.insert({ dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<int32_t*>(outKeys[i])), outSize, true) });
+				dispatcher.InsertRegister(dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<int32_t*>(outKeys[i])), outSize, true));
 				break;
 			case DataType::COLUMN_LONG:
-				dispatcher.allocatedPointers.insert({ dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<int64_t*>(outKeys[i])), outSize, true) });
+				dispatcher.InsertRegister(dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<int64_t*>(outKeys[i])), outSize, true));
 				break;
 			case DataType::COLUMN_FLOAT:
-				dispatcher.allocatedPointers.insert({ dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<float*>(outKeys[i])), outSize, true) });
+				dispatcher.InsertRegister(dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<float*>(outKeys[i])), outSize, true));
 				break;
 			case DataType::COLUMN_DOUBLE:
-				dispatcher.allocatedPointers.insert({ dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<double*>(outKeys[i])), outSize, true) });
+				dispatcher.InsertRegister(dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<double*>(outKeys[i])), outSize, true));
 				break;
 			case DataType::COLUMN_STRING:
 				dispatcher.fillStringRegister(*(reinterpret_cast<GPUMemory::GPUString*>(outKeys[i])), dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys", outSize, true);
 				delete reinterpret_cast<GPUMemory::GPUString*>(outKeys[i]); // delete just pointer to struct
 				break;
 			case DataType::COLUMN_INT8_T:
-				dispatcher.allocatedPointers.insert({ dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<int8_t*>(outKeys[i])), outSize, true) });
+				dispatcher.InsertRegister(dispatcher.getAllocatedRegisterName(groupByColumns[i].first) + "_keys",std::make_tuple(reinterpret_cast<uintptr_t>(reinterpret_cast<int8_t*>(outKeys[i])), outSize, true));
 				break;
 			case DataType::COLUMN_POINT:
 			case DataType::COLUMN_POLYGON:
@@ -239,7 +239,7 @@ public:
 
 			}
 		}
-		dispatcher.allocatedPointers.insert({ reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true) });
+		dispatcher.InsertRegister(reg,std::make_tuple(reinterpret_cast<uintptr_t>(outValues), outSize, true));
 	}
 };
 
