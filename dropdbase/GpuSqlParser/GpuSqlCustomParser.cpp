@@ -76,6 +76,9 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
 		walker.walk(&cpuWhereListener, statement->sqlSelect()->fromTables());
 
+		gpuSqlListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
+		cpuWhereListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
+
 		if (statement->sqlSelect()->joinClauses())
 		{
 			walker.walk(&gpuSqlListener, statement->sqlSelect()->joinClauses());

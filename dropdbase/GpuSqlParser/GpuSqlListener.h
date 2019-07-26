@@ -29,6 +29,7 @@ private:
     std::stack<std::pair<std::string, DataType>> parserStack;
 	std::unordered_map<std::string, std::string> tableAliases;
 	std::unordered_set<std::string> columnAliases;
+	std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts;
     std::unordered_set<std::string> loadedTables;
 	int32_t linkTableIndex;
 	int32_t orderByColumnIndex;
@@ -71,6 +72,8 @@ private:
 	DataType getDataTypeFromString(const std::string& dataType);
 
 	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+
+	void walkAliasExpression(const std::string& alias);
 
 
 public:
@@ -164,6 +167,8 @@ public:
 	bool GetUsingLoad();
 
 	bool GetUsingWhere();
+
+	void ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext *ctx);
 };
 
 

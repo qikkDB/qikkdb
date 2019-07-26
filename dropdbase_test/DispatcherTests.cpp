@@ -11286,3 +11286,38 @@ TEST(DispatcherTests, CastIntColToFloat)
 		ASSERT_FLOAT_EQ(payloadsFloat.floatpayload().floatdata()[i], expectedResultsFloat[i]);
 	}
 }
+
+
+TEST(DispatcherTests, AliasWhereSimpleTest)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 - 100 AS result FROM TableA WHERE result > 300;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<int32_t> expectedResultsInt;
+
+	auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockInt = columnInt->GetBlocksList()[i];
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if (blockInt->GetData()[k] - 100 > 300)
+			{
+				expectedResultsInt.push_back(blockInt->GetData()[k] - 100);
+			}
+		}
+	}
+
+	auto &payloadsInt = result->payloads().at("result");
+
+	ASSERT_EQ(payloadsInt.intpayload().intdata_size(), expectedResultsInt.size());
+
+	for (int i = 0; i < payloadsInt.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(payloadsInt.intpayload().intdata()[i], expectedResultsInt[i]);
+	}
+}

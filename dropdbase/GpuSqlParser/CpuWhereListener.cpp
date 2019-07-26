@@ -330,6 +330,14 @@ void CpuWhereListener::exitGeoReference(GpuSqlParser::GeoReferenceContext * ctx)
 
 void CpuWhereListener::exitVarReference(GpuSqlParser::VarReferenceContext * ctx)
 {
+	std::string colName = ctx->columnId()->getText();
+
+	if (columnAliasContexts.find(colName) != columnAliasContexts.end())
+	{
+		walkAliasExpression(colName);
+		return;
+	}
+
 	std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
 	const DataType columnType = std::get<1>(tableColumnData);
 	const std::string tableColumn = std::get<0>(tableColumnData);
@@ -397,6 +405,22 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
 				throw AliasRedefinitionException();
 			}
 			tableAliases.insert({ alias, table });
+		}
+	}
+}
+
+void CpuWhereListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext * ctx)
+{
+	for (auto& selectColumn : ctx->selectColumn())
+	{
+		if (selectColumn->alias())
+		{
+			std::string alias = selectColumn->alias()->getText();
+			if (columnAliasContexts.find(alias) != columnAliasContexts.end())
+			{
+				throw AliasRedefinitionException();
+			}
+			columnAliasContexts.insert({ alias, selectColumn->expression() });
 		}
 	}
 }
@@ -593,4 +617,10 @@ std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName
 	std::pair<std::string, DataType> tableColumnPair = std::make_pair(tableColumn, columnType);
 	
 	return tableColumnPair;
+}
+
+void CpuWhereListener::walkAliasExpression(const std::string & alias)
+{
+	antlr4::tree::ParseTreeWalker walker;
+	walker.walk(this, columnAliasContexts.at(alias));
 }
