@@ -42,10 +42,12 @@ polygon_operations = ["intersect", "union"]
 filter_operations = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 logical_operations = ["logicalAnd", "logicalOr"]
 
-numeric_types = [INT, LONG, FLOAT, DOUBLE]
+integral_types = [INT, LONG, FLOAT, DOUBLE]
 floating_types = [FLOAT, DOUBLE]
 geo_types = [POINT, POLYGON]
 bool_types = [BOOL]
+
+numeric_types = [INT, LONG, FLOAT, DOUBLE, BOOL]
 
 operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual", "logicalAnd", "logicalOr",
                      "mul", "div", "add", "sub", "mod", "contains", "intersect", "union"]
@@ -775,6 +777,34 @@ for operation in ["concat"]:
                 declaration += ("&" + function + "};")
             else:
                 declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+
+
+for opIdx, operation in enumerate(["castToInt", "castToLong", "castToFloat", "castToDouble", "castToPoint", "castToPolygon", "castToString", "castToInt8t"]):
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal in numeric_types and types[opIdx] in numeric_types:
+            op = "castNumeric"
+        else:
+            op = "invalidOperandTypesErrorHandler"
+
+        function = "GpuSqlDispatcher::" + op + col + "<" + types[opIdx] + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
 
     print(declaration)
 print()

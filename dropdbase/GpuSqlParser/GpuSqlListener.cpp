@@ -434,6 +434,58 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     pushTempResult(reg, returnDataType);
 }
 
+void GpuSqlListener::exitCastOperation(GpuSqlParser::CastOperationContext * ctx)
+{
+	std::pair<std::string, DataType> arg = stackTopAndPop();
+
+	DataType operandType = std::get<1>(arg);
+	pushArgument(std::get<0>(arg).c_str(), operandType);
+	std::string castTypeStr = ctx->DATATYPE()->getText();
+	stringToUpper(castTypeStr);
+	DataType castType = getDataTypeFromString(castTypeStr);
+
+	switch (castType)
+	{
+	case COLUMN_INT:
+		dispatcher.addCastToIntFunction(operandType);
+		break;
+	case COLUMN_LONG:
+		if(castTypeStr == "DATE")
+		{
+			dispatcher.addCastToDateFunction(operandType);
+		}
+		else
+		{
+			dispatcher.addCastToLongFunction(operandType);
+		}
+		break;
+	case COLUMN_FLOAT:
+		dispatcher.addCastToFloatFunction(operandType);
+		break;
+	case COLUMN_DOUBLE:
+		dispatcher.addCastToDoubleFunction(operandType);
+		break;
+	case COLUMN_STRING:
+		dispatcher.addCastToStringFunction(operandType);
+		break;
+	case COLUMN_POINT:
+		dispatcher.addCastToPointFunction(operandType);
+		break;
+	case COLUMN_POLYGON:
+		dispatcher.addCastToPolygonFunction(operandType);
+		break;
+	case COLUMN_INT8_T:
+		dispatcher.addCastToInt8tFunction(operandType);
+		break;
+	default:
+		break;
+	}
+
+	std::string reg = getRegString(ctx);
+	pushArgument(reg.c_str(), castType);
+	pushTempResult(reg, castType);
+}
+
 /// <summary>
 /// Method that executes on enter of aggregation operation node in the AST
 /// Sets insideAgg, isAggSelectColumn parser flag
@@ -1625,45 +1677,7 @@ DataType GpuSqlListener::getReturnDataType(DataType operand)
 	return operand;
 }
 
-DataType GpuSqlListener::getDataTypeFromString(std::string dataType)
+DataType GpuSqlListener::getDataTypeFromString(const std::string& dataType)
 {
-	std::string type = dataType;
-	stringToUpper(type);
-
-	if (type == "INT")
-	{
-		return DataType::COLUMN_INT;
-	}
-	else if (type == "LONG")
-	{
-		return DataType::COLUMN_LONG;
-	}
-	else if (type == "FLOAT")
-	{
-		return DataType::COLUMN_FLOAT;
-	}
-	else if (type == "DOUBLE")
-	{
-		return DataType::COLUMN_DOUBLE;
-	}
-	else if (type == "POINT")
-	{
-		return DataType::COLUMN_POINT;
-	}
-	else if (type == "POLYGON")
-	{
-		return DataType::COLUMN_POLYGON;
-	}
-	else if (type == "STRING")
-	{
-		return DataType::COLUMN_STRING;
-	}
-	else if (type == "BOOLEAN")
-	{
-		return DataType::COLUMN_INT8_T;
-	}
-	else
-	{
-		return DataType::CONST_ERROR;
-	}
+	return ::GetColumnDataTypeFromString(dataType);
 }
