@@ -75,7 +75,7 @@ namespace StringBinaryOperationsCpu
 {
 	struct left
 	{
-		static constexpr bool isMonotonous = false;
+		static constexpr bool isMonotonous = true;
 		template<typename T>
 		__host__ std::string operator()(const char* str, int32_t len, T arg) const
 		{
@@ -92,6 +92,17 @@ namespace StringBinaryOperationsCpu
 		{
 			std::string strObj(str, len);
 			return strObj.substr(len - arg);
+		}
+	};
+
+	struct concat
+	{
+		static constexpr bool isMonotonous = false;
+		__host__ std::string operator()(const char* strLeft, int32_t lenLeft, const char* strRight, int32_t lenRight) const
+		{
+			std::string strObjLeft(strLeft, lenLeft);
+			std::string strObjRight(strRight, lenRight);
+			return strObjLeft + strObjRight;
 		}
 	};
 

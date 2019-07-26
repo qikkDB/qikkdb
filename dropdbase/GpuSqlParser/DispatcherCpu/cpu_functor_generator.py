@@ -525,6 +525,42 @@ for operation in operations_string_binary:
     print(declaration)
 print()
 
+for operation in ["concat"]:
+    declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
+
+            if colVal != STRING or rowVal != STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            else:
+                op = "stringBinary"
+
+            if op == "stringBinary":
+                function = "CpuSqlDispatcher::" + op + col + row + "<StringBinaryOperationsCpu::" + operation + ">"
+            else:
+                function = "CpuSqlDispatcher::" + op + col + row + "<StringBinaryOperationsCpu::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
 #
 # operation = "insertInto"
 #

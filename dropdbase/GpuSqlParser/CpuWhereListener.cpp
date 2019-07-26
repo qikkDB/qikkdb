@@ -137,6 +137,10 @@ void CpuWhereListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext 
 	{
 		returnDataType = DataType::COLUMN_STRING;
 	}
+	else if (op == "CONCAT")
+	{
+		returnDataType = DataType::COLUMN_STRING;
+	}
 	dispatcher.addBinaryOperation(leftOperandType, rightOperandType, op);
 
 	std::string reg = getRegString(ctx);

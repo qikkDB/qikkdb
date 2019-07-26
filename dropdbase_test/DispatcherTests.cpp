@@ -10547,7 +10547,7 @@ TEST(DispatcherTests, IsNull)
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colInteger1 IS NULL;");
 	auto resultPtr = parser.parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-	ASSERT_EQ(result->payloads().at("TableA.colFloat1").floatpayload().floatdata_size(),0);
+	ASSERT_EQ(result->payloads().size(),0);
 }
 
 TEST(DispatcherTests, IsNotNull)
@@ -11249,4 +11249,79 @@ TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
 	resultPtr = parser6.parse();
 
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA%^&*()-+") == DispatcherObjs::GetInstance().database->GetTables().end());
+}
+
+
+TEST(DispatcherTests, StringLeftWhereColConst)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE LEFT(colString1, 4) = \"Word\";");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResultsFloat;
+
+	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colString1").get());
+	auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockString = columnString->GetBlocksList()[i];
+		auto blockFloat = columnFloat->GetBlocksList()[i];
+
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if (blockString->GetData()[k].substr(0,4) == "Word")
+			{
+				expectedResultsFloat.push_back(blockFloat->GetData()[k]);
+			}
+		}
+	}
+
+	auto &payloadsFloat = result->payloads().at("TableA.colFloat1");
+
+	ASSERT_EQ(payloadsFloat.floatpayload().floatdata_size(), expectedResultsFloat.size());
+
+	for (int i = 0; i < payloadsFloat.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
+	}
+}
+
+TEST(DispatcherTests, StringConcatLeftWhereColConst)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE CONCAT(\"Concat\", LEFT(colString1, 4)) = \"ConcatWord\";");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	std::vector<float> expectedResultsFloat;
+
+	auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colString1").get());
+	auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colFloat1").get());
+
+	for (int i = 0; i < 2; i++)
+	{
+		auto blockString = columnString->GetBlocksList()[i];
+		auto blockFloat = columnFloat->GetBlocksList()[i];
+
+		for (int k = 0; k < (1 << 11); k++)
+		{
+			if ("Concat" + blockString->GetData()[k].substr(0, 4) == "ConcatWord")
+			{
+				expectedResultsFloat.push_back(blockFloat->GetData()[k]);
+			}
+		}
+	}
+
+	auto &payloadsFloat = result->payloads().at("TableA.colFloat1");
+
+	ASSERT_EQ(payloadsFloat.floatpayload().floatdata_size(), expectedResultsFloat.size());
+
+	for (int i = 0; i < payloadsFloat.floatpayload().floatdata_size(); i++)
+	{
+		ASSERT_FLOAT_EQ(expectedResultsFloat[i], payloadsFloat.floatpayload().floatdata()[i]);
+	}
 }

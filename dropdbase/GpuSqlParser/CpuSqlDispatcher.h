@@ -84,6 +84,8 @@ private:
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> leftFunctions;
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rightFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> concatFunctions;
 
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE> yearFunctions;
@@ -343,6 +345,18 @@ public:
 
 	template<typename OP, typename T>
 	int32_t stringBinaryNumericConstConst();
+
+	template<typename OP>
+	int32_t stringBinaryColCol();
+
+	template<typename OP>
+	int32_t stringBinaryColConst();
+
+	template<typename OP>
+	int32_t stringBinaryConstCol();
+
+	template<typename OP>
+	int32_t stringBinaryConstConst();
 
 	template<typename T>
 	int32_t whereResultCol() 

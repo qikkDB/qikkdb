@@ -139,6 +139,10 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const s
 	{
 		cpuDispatcherFunctions.push_back(rightFunctions[left * DataType::DATA_TYPE_SIZE + right]);
 	}
+	else if (op == "CONCAT")
+	{
+		cpuDispatcherFunctions.push_back(concatFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
 }
 
 void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
