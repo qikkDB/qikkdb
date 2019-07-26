@@ -11283,8 +11283,6 @@ TEST(DispatcherTests, CastIntColToFloat)
 
 	for (int i = 0; i < payloadsFloat.floatpayload().floatdata_size(); i++)
 	{
-		std::cout << payloadsFloat.floatpayload().floatdata()[i] << std::endl;
+		ASSERT_FLOAT_EQ(payloadsFloat.floatpayload().floatdata()[i], expectedResultsFloat[i]);
 	}
-
-	FAIL();
 }

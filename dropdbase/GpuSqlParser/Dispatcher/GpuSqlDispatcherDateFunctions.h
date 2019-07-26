@@ -22,14 +22,28 @@ int32_t GpuSqlDispatcher::dateExtractCol()
 
 	std::cout << "ExtractDatePartCol: " << colName << " " << reg << std::endl;
 
-	std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
-	int32_t retSize = std::get<1>(column);
-
-	if (!isRegisterAllocated(reg))
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
-		int32_t * result = allocateRegister<int32_t>(reg, retSize);
-		GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(std::get<0>(column)), retSize);
+		if (isOverallLastBlock)
+		{
+			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) + "_keys");
+			int32_t retSize = std::get<1>(column);
+			int32_t * result = allocateRegister<int32_t>(reg + "_keys", retSize);
+			GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(std::get<0>(column)), retSize);
+			groupByColumns.push_back({ reg, COLUMN_INT });
+		}
 	}
+	else
+	{
+		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
+		int32_t retSize = std::get<1>(column);
+
+		if (!isRegisterAllocated(reg))
+		{
+			int32_t * result = allocateRegister<int32_t>(reg, retSize);
+			GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(std::get<0>(column)), retSize);
+		}
+	}	
 
 	freeColumnIfRegister<int64_t>(colName);
 	return 0;

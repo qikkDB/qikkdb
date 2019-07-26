@@ -460,7 +460,7 @@ void GpuSqlListener::exitCastOperation(GpuSqlParser::CastOperationContext * ctx)
 		}
 		break;
 	case COLUMN_FLOAT:
-		dispatcher.addCastToLongFunction(operandType);
+		dispatcher.addCastToFloatFunction(operandType);
 		break;
 	case COLUMN_DOUBLE:
 		dispatcher.addCastToDoubleFunction(operandType);
