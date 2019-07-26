@@ -1324,6 +1324,22 @@ bool GpuSqlListener::GetUsingWhere()
 	return usingWhere;
 }
 
+void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext * ctx)
+{
+	for (auto& selectColumn : ctx->selectColumn())
+	{
+		if (selectColumn->alias())
+		{
+			std::string alias = selectColumn->alias()->getText();
+			if (columnAliasContexts.find(alias) != columnAliasContexts.end())
+			{
+				throw AliasRedefinitionException();
+			}
+			columnAliasContexts.insert({ alias, selectColumn->expression() });
+		}
+	}
+}
+
 /// Method that executes on exit of integer literal (10, 20, 5, ...)
 /// Infers token data type (int or long)
 /// Pushes the literal token to parser stack along with its inferred data type (int or long)
@@ -1381,6 +1397,14 @@ void GpuSqlListener::exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx
 /// <param name="ctx">Var Reference context</param>
 void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 {
+	std::string colName = ctx->columnId()->getText();
+
+	if (columnAliasContexts.find(colName) != columnAliasContexts.end())
+	{
+		walkAliasExpression(colName);
+		return;
+	}
+
     std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
     const DataType columnType = std::get<1>(tableColumnData);
 	const std::string tableColumn = std::get<0>(tableColumnData);
@@ -1533,6 +1557,12 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
     }
 
     return tableColumnPair;
+}
+
+void GpuSqlListener::walkAliasExpression(const std::string & alias)
+{
+	antlr4::tree::ParseTreeWalker walker;
+	walker.walk(this, columnAliasContexts.at(alias));
 }
 
 /// Method used to pop contnt from parser stack
