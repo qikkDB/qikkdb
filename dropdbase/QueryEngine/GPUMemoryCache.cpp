@@ -30,7 +30,7 @@ bool GPUMemoryCache::evict()
 {
 	for (auto it = lruQueue.begin(); it != lruQueue.end(); it++)
 	{
-		auto& queueItem = *it;
+		auto& queueItem = *it; 
 		bool isLockedItem = false;
 		// Check if current eviction candidate is evictable
 		for (const auto& lockedColumn : GPUMemoryCache::lockList)

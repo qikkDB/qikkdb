@@ -181,6 +181,98 @@ TEST(BlockTests, InsertDataVector)
         std::length_error);
 }
 
+TEST(BlockTests, InsertDataOnSpecificPosition)
+{
+    auto database = std::make_shared<Database>("testDatabase", 20);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnInt", COLUMN_INT);
+    auto& columnInt = table.GetColumns().at("ColumnInt");
+    auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+
+    blockInt.InsertDataOnSpecificPosition(0, 2);
+    ASSERT_EQ(blockInt.GetData()[0], 2);
+
+    blockInt.InsertDataOnSpecificPosition(1, 30);
+    ASSERT_EQ(blockInt.GetData()[0], 2);
+    ASSERT_EQ(blockInt.GetData()[1], 30);
+
+    blockInt.InsertDataOnSpecificPosition(1, 5);
+    ASSERT_EQ(blockInt.GetData()[0], 2);
+    ASSERT_EQ(blockInt.GetData()[1], 5);
+    ASSERT_EQ(blockInt.GetData()[2], 30);
+
+    blockInt.InsertDataOnSpecificPosition(0, 1);
+    ASSERT_EQ(blockInt.GetData()[0], 1);
+    ASSERT_EQ(blockInt.GetData()[1], 2);
+    ASSERT_EQ(blockInt.GetData()[2], 5);
+    ASSERT_EQ(blockInt.GetData()[3], 30);
+
+    blockInt.InsertDataOnSpecificPosition(1, 50);
+    ASSERT_EQ(blockInt.GetData()[0], 1);
+    ASSERT_EQ(blockInt.GetData()[1], 50);
+    ASSERT_EQ(blockInt.GetData()[2], 2);
+    ASSERT_EQ(blockInt.GetData()[3], 5);
+    ASSERT_EQ(blockInt.GetData()[4], 30);
+
+    blockInt.InsertDataOnSpecificPosition(7, 50);
+    ASSERT_EQ(blockInt.GetData()[0], 1);
+    ASSERT_EQ(blockInt.GetData()[1], 50);
+    ASSERT_EQ(blockInt.GetData()[2], 2);
+    ASSERT_EQ(blockInt.GetData()[3], 5);
+    ASSERT_EQ(blockInt.GetData()[4], 30);
+    ASSERT_EQ(blockInt.GetData()[7], 50);
+}
+
+TEST(BlockTests, InsertDataOnSpecificPositionWithNullValues)
+{
+	auto database = std::make_shared<Database>("testDatabase", 20);
+	Table table(database, "testTable");
+
+	table.CreateColumn("ColumnInt", COLUMN_INT);
+	auto& columnInt = table.GetColumns().at("ColumnInt");
+	auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+
+	blockInt.InsertDataOnSpecificPosition(0, 2, false);
+	ASSERT_EQ(blockInt.GetData()[0], 2);
+	ASSERT_EQ(blockInt.GetNullBitmask()[0], 0);
+
+	blockInt.InsertDataOnSpecificPosition(1, 30, false);
+	ASSERT_EQ(blockInt.GetData()[0], 2);
+	ASSERT_EQ(blockInt.GetData()[1], 30);
+	ASSERT_EQ(blockInt.GetNullBitmask()[0], 0);
+
+	blockInt.InsertDataOnSpecificPosition(1, 5, true);
+	ASSERT_EQ(blockInt.GetData()[0], 2);
+	ASSERT_EQ(blockInt.GetData()[1], 5);
+	ASSERT_EQ(blockInt.GetData()[2], 30);
+	ASSERT_EQ(blockInt.GetNullBitmask()[0], 2);
+
+	blockInt.InsertDataOnSpecificPosition(0, 1, true);
+	ASSERT_EQ(blockInt.GetData()[0], 1);
+	ASSERT_EQ(blockInt.GetData()[1], 2);
+	ASSERT_EQ(blockInt.GetData()[2], 5);
+	ASSERT_EQ(blockInt.GetData()[3], 30);
+	ASSERT_EQ(blockInt.GetNullBitmask()[0], 5);
+
+	blockInt.InsertDataOnSpecificPosition(1, 50, false);
+	ASSERT_EQ(blockInt.GetData()[0], 1);
+	ASSERT_EQ(blockInt.GetData()[1], 50);
+	ASSERT_EQ(blockInt.GetData()[2], 2);
+	ASSERT_EQ(blockInt.GetData()[3], 5);
+	ASSERT_EQ(blockInt.GetData()[4], 30);
+	ASSERT_EQ(blockInt.GetNullBitmask()[0], 9);
+
+	blockInt.InsertDataOnSpecificPosition(5, 50, true);
+	ASSERT_EQ(blockInt.GetData()[0], 1);
+	ASSERT_EQ(blockInt.GetData()[1], 50);
+	ASSERT_EQ(blockInt.GetData()[2], 2);
+	ASSERT_EQ(blockInt.GetData()[3], 5);
+	ASSERT_EQ(blockInt.GetData()[4], 30);
+	ASSERT_EQ(blockInt.GetData()[5], 50);
+	ASSERT_EQ(blockInt.GetNullBitmask()[0], 41);
+}
+
 TEST(BlockTests, IsFull)
 {
     auto database = std::make_shared<Database>("testDatabase", 1024);

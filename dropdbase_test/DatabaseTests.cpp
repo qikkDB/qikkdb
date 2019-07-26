@@ -56,6 +56,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 
 	//create second table with initialized columns:
 	std::unordered_map<std::string, DataType> columnsTable2;
+	std::unordered_map<std::string, bool> columnsTable2Nullabilities;
 	columnsTable2.insert( {"colInteger", COLUMN_INT} );
 	columnsTable2.insert( {"colDouble", COLUMN_DOUBLE} );
 	columnsTable2.insert( {"colString", COLUMN_STRING} );
@@ -64,7 +65,15 @@ TEST_F(DatabaseTests, IntegrationTest)
 	columnsTable2.insert( {"colPolygon", COLUMN_POLYGON} );
 	columnsTable2.insert( {"colPoint", COLUMN_POINT} );
 	columnsTable2.insert( {"colBool", COLUMN_INT8_T });
-	database->CreateTable(columnsTable2, "TestTable2");
+	columnsTable2Nullabilities.insert({ "colInteger", true });
+	columnsTable2Nullabilities.insert({ "colDouble", false });
+	columnsTable2Nullabilities.insert({ "colString", false });
+	columnsTable2Nullabilities.insert({ "colFloat", false });
+	columnsTable2Nullabilities.insert({ "colLong", false });
+	columnsTable2Nullabilities.insert({ "colPolygon", false });
+	columnsTable2Nullabilities.insert({ "colPoint", false });
+	columnsTable2Nullabilities.insert({ "colBool", false });
+	database->CreateTable(columnsTable2, "TestTable2", columnsTable2Nullabilities);
 
 	auto& tables = database->GetTables();
 
@@ -181,10 +190,16 @@ TEST_F(DatabaseTests, IntegrationTest)
 	ASSERT_EQ((firstTableColumns.at("colDouble").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((firstTableColumns.at("colString").get())->GetBlockCount(), blockNum);
 
+	//first table nulability of columns:
+	ASSERT_TRUE((firstTableColumns.at("colInteger").get())->GetIsNullable());
+	ASSERT_TRUE((firstTableColumns.at("colDouble").get())->GetIsNullable());
+	ASSERT_TRUE((firstTableColumns.at("colString").get())->GetIsNullable());
+
 	//first table colInteger:
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns.at("colInteger").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_TRUE(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns.at("colInteger").get())->GetBlocksList().at(i)->GetIsNullable());
 		ASSERT_EQ(data[0], 13);
 		ASSERT_EQ(data[1], -2);
 		ASSERT_EQ(data[2], 1399);
@@ -194,6 +209,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_TRUE(dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())->GetBlocksList().at(i)->GetIsNullable());
 		ASSERT_DOUBLE_EQ(data[0], 45.98924);
 		ASSERT_DOUBLE_EQ(data[1], 999.6665);
 		ASSERT_DOUBLE_EQ(data[2], 1.787985);
@@ -203,6 +219,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<std::string>*>(firstTableColumns.at("colString").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_TRUE(dynamic_cast<ColumnBase<std::string>*>(firstTableColumns.at("colString").get())->GetBlocksList().at(i)->GetIsNullable());
 		ASSERT_EQ(data[0], "DropDBase");
 		ASSERT_EQ(data[1], "FastestDBinTheWorld");
 		ASSERT_EQ(data[2], "Speed is my second name");
@@ -213,15 +230,26 @@ TEST_F(DatabaseTests, IntegrationTest)
 	ASSERT_EQ((secondTableColumns.at("colDouble").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((secondTableColumns.at("colString").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((secondTableColumns.at("colFloat").get())->GetBlockCount(), blockNum);
-	ASSERT_EQ((secondTableColumns.at("colDouble").get())->GetBlockCount(), blockNum);
+	ASSERT_EQ((secondTableColumns.at("colLong").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((secondTableColumns.at("colPolygon").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((secondTableColumns.at("colPoint").get())->GetBlockCount(), blockNum);
 	ASSERT_EQ((secondTableColumns.at("colBool").get())->GetBlockCount(), blockNum);
+
+	//second table nulability of columns:
+	ASSERT_TRUE((secondTableColumns.at("colInteger").get())->GetIsNullable());
+	ASSERT_FALSE((secondTableColumns.at("colDouble").get())->GetIsNullable());
+	ASSERT_FALSE((secondTableColumns.at("colString").get())->GetIsNullable());
+	ASSERT_FALSE((secondTableColumns.at("colFloat").get())->GetIsNullable());
+	ASSERT_FALSE((secondTableColumns.at("colLong").get())->GetIsNullable());
+	ASSERT_FALSE((secondTableColumns.at("colPolygon").get())->GetIsNullable());
+	ASSERT_FALSE((secondTableColumns.at("colPoint").get())->GetIsNullable());
+	ASSERT_FALSE((secondTableColumns.at("colBool").get())->GetIsNullable());
 
 	//second table colInteger:
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<int32_t>*>(secondTableColumns.at("colInteger").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_TRUE(dynamic_cast<ColumnBase<int32_t>*>(secondTableColumns.at("colInteger").get())->GetBlocksList().at(i)->GetIsNullable());
 		ASSERT_EQ(data[0], 1893);
 		ASSERT_EQ(data[1], -654);
 		ASSERT_EQ(data[2], 196);
@@ -231,6 +259,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<double>*>(secondTableColumns.at("colDouble").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_FALSE(dynamic_cast<ColumnBase<double>*>(secondTableColumns.at("colDouble").get())->GetBlocksList().at(i)->GetIsNullable());
 		ASSERT_DOUBLE_EQ(data[0], 65.77924);
 		ASSERT_DOUBLE_EQ(data[1], 9789.685);
 		ASSERT_DOUBLE_EQ(data[2], 9.797965);
@@ -240,6 +269,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<std::string>*>(secondTableColumns.at("colString").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_FALSE(dynamic_cast<ColumnBase<std::string>*>(secondTableColumns.at("colString").get())->GetBlocksList().at(i)->GetIsNullable());
 		ASSERT_EQ(data[0], "Drop database");
 		ASSERT_EQ(data[1], "Is this the fastest DB?");
 		ASSERT_EQ(data[2], "Speed of electron");
@@ -249,6 +279,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<float>*>(secondTableColumns.at("colFloat").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_FALSE(dynamic_cast<ColumnBase<float>*>(secondTableColumns.at("colFloat").get())->GetBlocksList().at(i)->GetIsNullable());
 		ASSERT_FLOAT_EQ(data[0], 456.2);
 		ASSERT_FLOAT_EQ(data[1], 12.45);
 		ASSERT_FLOAT_EQ(data[2], 8.965);
@@ -258,6 +289,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(secondTableColumns.at("colPolygon").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_FALSE(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(secondTableColumns.at("colPolygon").get())->GetBlocksList().at(i)->GetIsNullable());
 		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[0]), "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11, 90 89.15, 112.12 110, 61 80.11))");
 		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[1]), "POLYGON((15 11, 11.11 12.13, 15 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 87.11, 90 89.15, 112.12 110, 61 87.11))");
 		ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data[2]), "POLYGON((15 18, 11.11 12.13, 15 18), (21 38, 35.55 36, 30.11 20.26, 21 38), (64 80.11, 90 89.15, 112.12 110, 64 80.11))");
@@ -267,6 +299,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(secondTableColumns.at("colPoint").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_FALSE(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(secondTableColumns.at("colPoint").get())->GetBlocksList().at(i)->GetIsNullable());
 		ASSERT_EQ(PointFactory::WktFromPoint(data[0]), "POINT(10.11 11.1)");
 		ASSERT_EQ(PointFactory::WktFromPoint(data[1]), "POINT(12 11.15)");
 		ASSERT_EQ(PointFactory::WktFromPoint(data[2]), "POINT(9 8)");
@@ -276,6 +309,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	for (int i = 0; i < blockNum; i++)
 	{
 		auto data = dynamic_cast<ColumnBase<int8_t>*>(secondTableColumns.at("colBool").get())->GetBlocksList().at(i)->GetData();
+		ASSERT_FALSE(dynamic_cast<ColumnBase<int8_t>*>(secondTableColumns.at("colBool").get())->GetBlocksList().at(i)->GetIsNullable());
 		ASSERT_EQ(data[0], -1);
 		ASSERT_EQ(data[1], 0);
 		ASSERT_EQ(data[2], 1);

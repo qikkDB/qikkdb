@@ -139,6 +139,13 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 			break;
 		}
 		smallPayload->mutable_payloads()->insert({ payload.first,finalPayload });
+		if(completeResult->nullbitmasks().find(payload.first) != completeResult->nullbitmasks().end())
+		{
+			int start = (sentRecords_ + sizeof(char)*8 - 1)/(sizeof(char)*8);
+			int nullMaskBufferSize = (bufferSize + sizeof(char)*8 - 1)/(sizeof(char)*8);
+			auto nullBitMask = completeResult->nullbitmasks().at(payload.first).substr(start,nullMaskBufferSize);
+			smallPayload->mutable_nullbitmasks()->insert({payload.first, nullBitMask});
+		}
 	}
 	sentRecords_ += FRAGMENT_SIZE;
 	if (sentRecords_ >= lastResultLen_)
@@ -258,13 +265,14 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleSetDatabase(I
 	return resultMessage;
 }
 
-std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer)
+std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer, const char* nullMask)
 {
 	auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
 	std::string tableName = bulkImportMessage.tablename();
 	std::string columnName = bulkImportMessage.columnname();
 	DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
 	int32_t elementCount = bulkImportMessage.elemcount();
+	bool isNullable = bulkImportMessage.isnullable();
 	auto sharedDb = worker.currentDatabase_.lock();
 	if(sharedDb == nullptr)
 	{
@@ -372,7 +380,22 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::HandleBulkImport(IT
 		}
 		columnData.insert({columnName, dataVector});
 	}
-	table.InsertData(columnData);
+	if(isNullable)
+	{
+		std::vector<int8_t> nullMaskVector;
+		int32_t nullMaskSize = (elementCount + sizeof(char)*8 - 1)/(sizeof(char)*8);
+		std::unordered_map<std::string, std::vector<int8_t>> nullMap;
+		for(int i = 0; i < nullMaskSize; i++)
+		{
+			nullMaskVector.push_back(nullMask[i]);
+		}
+		nullMap.insert({columnName, nullMaskVector});
+		table.InsertData(columnData,Configuration::GetInstance().IsUsingCompression(),nullMap);
+	}
+	else
+	{
+		table.InsertData(columnData,Configuration::GetInstance().IsUsingCompression());
+	}
 	resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 	resultMessage->set_message("");
 	return resultMessage;

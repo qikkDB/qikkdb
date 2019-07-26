@@ -103,13 +103,13 @@ private:
 	T sum_ = T{};
 	float initAvg_ = 0.0; //initial average is needed, because avg_ is constantly changing and we need unchable value for comparing in binary index
 	bool initAvgIsSet_ = false;
+	bool isNullable_;
 
 public:
-	ColumnBase(const std::string& name, int blockSize) :
-		name_(name), size_(0), blockSize_(blockSize), blocks_()
+	ColumnBase(const std::string& name, int blockSize, bool isNullable = false) :
+		name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable)
 	{
-		std::vector<std::unique_ptr<BlockBase<T>>> blocks;
-		blocks_[-1] = std::move(blocks);
+		blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
 	}
 
 	inline int GetBlockSize() const { return blockSize_; };
@@ -127,6 +127,22 @@ public:
 	virtual bool GetInitAvgIsSet() const override
 	{
 		return initAvgIsSet_;
+	}
+
+	virtual std::pair<int8_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) override
+	{
+		auto block = GetBlocksList()[blockIndex];
+		return std::make_pair(block->GetNullBitmask(), block->GetSize());
+	}
+
+	virtual bool GetIsNullable() const override
+	{
+		return isNullable_;
+	}
+
+	virtual void SetIsNullable(bool isNullable) override
+	{
+		isNullable_ = isNullable;
 	}
 
 	static std::vector<T> NullArray(int length);
@@ -179,8 +195,7 @@ public:
 		if (blocks_.find(groupId) == blocks_.end())
 		{
 			// key not found
-			std::vector<std::unique_ptr<BlockBase<T>>> blocks;
-			blocks_[groupId] = std::move(blocks);
+			blocks_.emplace(groupId, std::vector<std::unique_ptr<BlockBase<T>>>());
 		}
 
 		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
@@ -194,7 +209,7 @@ public:
 	/// <returns>Last block of column</returns>
 	BlockBase<T>& AddBlock(const std::vector<T>& data, int groupId = -1, bool compress = false, bool isCompressed = false)
 	{
-		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed));
+		blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed, isNullable_));
 		auto & lastBlock = blocks_[groupId].back();
 		if (lastBlock->IsFull() && !isCompressed && compress)
 		{
@@ -208,7 +223,7 @@ public:
 		return size_;
 	}
 
-    void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData, int groupId = -1)
+    void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData, int groupId = -1, bool isNullValue = false)
     {
 		size_ += 1;
 
@@ -217,7 +232,7 @@ public:
             AddBlock();
         }
         BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
-        block.InsertDataOnSpecificPosition(indexInBlock, columnData);
+        block.InsertDataOnSpecificPosition(indexInBlock, columnData, isNullValue);
 
         if (block.IsFull())
         {
@@ -246,9 +261,34 @@ public:
             }
         }
 
-        std::unique_ptr<BlockBase<T>> block1 = std::make_unique<BlockBase<T>>(data1, *this);
-        std::unique_ptr<BlockBase<T>> block2 = std::make_unique<BlockBase<T>>(data2, *this);
+        std::unique_ptr<BlockBase<T>> block1 = std::make_unique<BlockBase<T>>(data1, *this, block.IsCompressed(), block.IsNullable());
+        std::unique_ptr<BlockBase<T>> block2 = std::make_unique<BlockBase<T>>(data2, *this, block.IsCompressed(), block.IsNullable());
 
+		if (isNullable_)
+		{
+			int bitMaskIdx = (((block.GetSize() - 1) / 2) / (sizeof(char) * 8));
+			int shiftIdx = (((block.GetSize() - 1) / 2) % (sizeof(char) * 8));
+
+			for (size_t i = 0; i < bitMaskIdx; i++)
+			{
+				block1->GetNullBitmask()[i] = block.GetNullBitmask()[i];
+			}
+			block1->GetNullBitmask()[bitMaskIdx] = ((1 << (shiftIdx + 1)) - 1) & block.GetNullBitmask()[bitMaskIdx];
+
+
+			int32_t bitMaskCapacity = ((block.BlockCapacity() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+
+			for (size_t i = bitMaskIdx; i < bitMaskCapacity; i++)
+			{
+				int8_t tmp = block.GetNullBitmask()[i] >> (shiftIdx + 1);
+
+				if (bitMaskIdx + 1 < bitMaskCapacity)
+				{
+					tmp |= ((1 << (shiftIdx + 1)) - 1) & block.GetNullBitmask()[bitMaskIdx + 1];
+				}
+				block2->GetNullBitmask()[i - bitMaskIdx] = tmp;
+			}
+		}
         auto blockIndex = std::find(blocks_[groupId].begin(), blocks_[groupId].end(), blockPtr);
 		int32_t blockIdx = blockIndex - blocks_[groupId].begin();
         blocks_[groupId].erase(blockIndex);
@@ -298,6 +338,86 @@ public:
 		//setColumnStatistics();
 	}
 
+	/// <summary>
+    /// Insert data into column considering empty space of last block and maximum size of blocks
+    /// </summary>
+    /// <param name="columnData">Data to be inserted</param>
+	void InsertData(const std::vector<T>& columnData, const std::vector<int8_t>& nullMask, int groupId = -1, bool compress = false)
+	{
+		size_ += columnData.size();
+		int startIdx = 0;
+		int maskIdx = 0;
+		if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
+		{
+			auto & lastBlock = blocks_[groupId].back();
+			if (columnData.size() <= lastBlock->EmptyBlockSpace())
+			{
+				lastBlock->InsertData(columnData);
+				auto maskPtr = lastBlock->GetNullBitmask();
+				int bitMaskStartIdx = lastBlock->BlockCapacity() - lastBlock->EmptyBlockSpace() - 1;
+				for(int i = bitMaskStartIdx; i < bitMaskStartIdx+columnData.size(); i++)
+				{
+					int nullMaskOffset = maskIdx / (sizeof(char) * 8);
+					int nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
+					maskIdx++;
+					if((nullMask[nullMaskOffset] >> nullMaskShiftOffset) & 1)
+					{
+						int bitMaskIdx = (i / (sizeof(char)*8));
+						maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char)*8));
+					}
+				}
+				if (compress && lastBlock->IsFull())
+				{
+					lastBlock->CompressData();
+				}
+				setColumnStatistics();
+				return;
+			}
+			int emptySpace = lastBlock->EmptyBlockSpace();
+			auto maskPtr = lastBlock->GetNullBitmask();
+			int bitMaskStartIdx = lastBlock->BlockCapacity() - lastBlock->EmptyBlockSpace() - 1;
+			lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
+			for(int i = bitMaskStartIdx; i < lastBlock->BlockCapacity(); i++)
+			{
+				int nullMaskOffset = maskIdx / (sizeof(char) * 8);
+				int nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
+				maskIdx++;
+				if ((nullMask[nullMaskOffset] >> nullMaskShiftOffset) & 1)
+				{
+					int bitMaskIdx = (i / (sizeof(char)*8));
+					maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char)*8));
+				}
+			}
+			if (compress && lastBlock->IsFull())
+			{
+				lastBlock->CompressData();
+			}
+			startIdx += emptySpace;
+		}
+
+		while (startIdx < columnData.size())
+		{
+			int toCopy = columnData.size() - startIdx < blockSize_
+				? columnData.size() - startIdx
+				: blockSize_;
+			auto& block = AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), groupId, compress, false);
+			auto maskPtr = block.GetNullBitmask();
+			for(int i = 0; i < toCopy; i++)
+			{
+				int nullMaskOffset = maskIdx / (sizeof(char) * 8);
+				int nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
+				maskIdx++;
+				if ((nullMask[nullMaskOffset] >> nullMaskShiftOffset) & 1)
+				{
+					int bitMaskIdx = (i / (sizeof(char)*8));
+					maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char)*8));
+				}
+			}
+			startIdx += toCopy;
+		}
+		setColumnStatistics();
+	}
+
     /// <summary>
     /// Get all unique values for this column
     /// </summary>
@@ -322,7 +442,8 @@ public:
     /// <param name="length">Length of inserted data</param>
     void InsertNullData(int length) override
     {
-        InsertData(ColumnBase<T>::NullArray(length));
+		std::vector<int8_t> nullMask(length, -1);	// fill mask with bits 1
+        InsertData(NullArray(length), nullMask);
     }
 
     /// <summary>

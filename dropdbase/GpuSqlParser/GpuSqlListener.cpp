@@ -277,7 +277,25 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
     {
         dispatcher.addLogicalNotFunction(operandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    } 
+    }
+	else if (op == "IS NULL")
+	{
+		if (operandType < DataType::COLUMN_INT)
+		{
+			throw NullMaskOperationInvalidOperandException();
+		}
+		dispatcher.addIsNullFunction();
+		returnDataType = DataType::COLUMN_INT8_T;
+	}
+	else if (op == "IS NOT NULL")
+	{
+		if (operandType < DataType::COLUMN_INT)
+		{
+			throw NullMaskOperationInvalidOperandException();
+		}
+		dispatcher.addIsNotNullFunction();
+		returnDataType = DataType::COLUMN_INT8_T;
+	}
 	else if (op == "-")
     {
         dispatcher.addMinusFunction(operandType);
@@ -1153,7 +1171,7 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 	
 	std::vector<std::pair<std::string, DataType>> columns;
 	std::vector<std::string> values;
-
+	std::vector<bool> isValueNull;
 	for (auto& insertIntoColumn : ctx->insertIntoColumns()->columnId())
 	{
 		if (insertIntoColumn->table())
@@ -1185,6 +1203,7 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 		antlr4::misc::Interval interval(start, stop);
 		std::string valueText = value->start->getInputStream()->getText(interval);
 		values.push_back(valueText);
+		isValueNull.push_back(value->NULLLIT() != nullptr);
 	}
 
 	if (columns.size() != values.size())
@@ -1200,17 +1219,23 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext * ctx)
 
 		dispatcher.addInsertIntoFunction(columnDataType);
 
-		bool isReferencedColumn = std::find(columns.begin(), columns.end(), columnPair) != columns.end();
 
+		bool hasValue = std::find(columns.begin(), columns.end(), columnPair) != columns.end();
+		if(hasValue)
+		{
+			int valueIndex = std::find(columns.begin(), columns.end(), columnPair) - columns.begin();
+			hasValue &= !isValueNull[valueIndex];
+		}
 		dispatcher.addArgument<const std::string&>(columnName);
-		dispatcher.addArgument<bool>(isReferencedColumn);
-
-		if (isReferencedColumn)
+		dispatcher.addArgument<bool>(hasValue);
+		
+		if (hasValue)
 		{
 			int valueIndex = std::find(columns.begin(), columns.end(), columnPair) - columns.begin();
 			std::cout << values[valueIndex].c_str() << " " <<  columnName << std::endl;
 			pushArgument(values[valueIndex].c_str(), static_cast<DataType>(static_cast<int>(columnDataType) - DataType::COLUMN_INT));
 		}
+
 	}
 	dispatcher.addArgument<const std::string&>(table);
 	dispatcher.addInsertIntoDoneFunction();

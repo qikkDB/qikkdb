@@ -100,8 +100,12 @@ void ClientPoolWorker::HandleClient()
 				recvMsg.UnpackTo(&bulkImportMessage);
 				BOOST_LOG_TRIVIAL(debug) << "BulkImport message from " << socket_.remote_endpoint().address().to_string() << "\n";
 				std::unique_ptr<char[]> dataBuffer(new char[MAXIMUM_BULK_FRAGMENT_SIZE]);
+				constexpr size_t nullBufferSize = (MAXIMUM_BULK_FRAGMENT_SIZE + sizeof(char)*8 - 1)/(sizeof(char)*8);
+				std::unique_ptr<char[]> nullBuffer(new char[nullBufferSize]);
+				std::memset(nullBuffer.get(), 0, nullBufferSize);
 				DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
 				int32_t elementCount = bulkImportMessage.elemcount();
+				bool isNullable = bulkImportMessage.isnullable();
 				if(elementCount*GetDataTypeSize(columnType) > MAXIMUM_BULK_FRAGMENT_SIZE)
 				{
 					outInfo.set_message("Data fragment larger than allowed");
@@ -110,7 +114,12 @@ void ClientPoolWorker::HandleClient()
 					continue;
 				}
 				NetworkMessage::ReadRaw(socket_, dataBuffer.get(), elementCount, columnType);
-				std::unique_ptr<google::protobuf::Message> importResultMessage = clientHandler_->HandleBulkImport(*this, bulkImportMessage, dataBuffer.get());
+				if(isNullable)
+				{
+					size_t nullBufferSize =  (elementCount + sizeof(char)*8 - 1)/(sizeof(char)*8);
+					NetworkMessage::ReadRaw(socket_, nullBuffer.get(), nullBufferSize, DataType::COLUMN_INT8_T);
+				}
+				std::unique_ptr<google::protobuf::Message> importResultMessage = clientHandler_->HandleBulkImport(*this, bulkImportMessage, dataBuffer.get(), nullBuffer.get());
 				if (importResultMessage != nullptr)
 				{
 					NetworkMessage::WriteToNetwork(*importResultMessage, socket_);

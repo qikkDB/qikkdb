@@ -4,7 +4,8 @@
 #include "../dropdbase/ColumnBase.h"
 #include "../dropdbase/ComplexPolygonFactory.h"
 #include "../dropdbase/PointFactory.h"
-
+#include "../dropdbase/QueryEngine/NullConstants.cuh"
+#include <cmath>
 TEST(ColumnTests, AddBlockWithData)
 {
 	auto database = std::make_shared<Database>("testDatabase", 1024);
@@ -485,6 +486,96 @@ TEST(ColumnTests, InsertData_BlocksExistAndNewDataDoNotFitIntoThem)
 	}
 }
 
+TEST(ColumnTests, InsertDataOnSpecificPosition)
+{
+	auto database = std::make_shared<Database>("testDatabase", 8);
+	Table table(database, "testTable");
+
+	table.CreateColumn("ColumnInt", COLUMN_INT);
+	auto& columnInt = table.GetColumns().at("ColumnInt");
+
+	auto column = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get());
+
+	column->InsertDataOnSpecificPosition(0, 0, 0, -1, 1);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 1);
+
+	column->InsertDataOnSpecificPosition(0, 1, 2, -1, 1);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 3);
+
+	column->InsertDataOnSpecificPosition(0, 1, 1, -1, 0);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 5);
+
+	column->InsertDataOnSpecificPosition(0, 3, 5, -1, 1);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[3], 5);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 13);
+
+	column->InsertDataOnSpecificPosition(0, 3, 4, -1, 0);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[3], 4);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[4], 5);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 21);
+
+	column->InsertDataOnSpecificPosition(0, 3, 3, -1, 0);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[3], 3);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[4], 4);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[5], 5);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 37);
+
+	column->InsertDataOnSpecificPosition(0, 6, 6, -1, 0);
+	ASSERT_EQ(column->GetBlocksList().size(), 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[3], 3);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[4], 4);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[5], 5);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[6], 6);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 37);
+
+	//after this insert block should be split
+	column->InsertDataOnSpecificPosition(0, 7, 7, -1, 0);
+	ASSERT_EQ(column->GetBlocksList().size(), 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[0], 0);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[1], 1);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[2], 2);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetData()[3], 3);
+	ASSERT_EQ(column->GetBlocksList()[0]->GetNullBitmask()[0], 5);
+
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[0], 4);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[1], 5);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[2], 6);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[3], 7);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetNullBitmask()[0], 2);
+
+	column->InsertDataOnSpecificPosition(1, 0, 1, -1, 1);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[0], 1);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[1], 4);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[2], 5);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[3], 6);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetData()[4], 7);
+	ASSERT_EQ(column->GetBlocksList()[1]->GetNullBitmask()[0], 5);
+}
+
 TEST(ColumnTests, GetUniqueBuckets)
 {
 	auto database = std::make_shared<Database>("testDatabase", 1024);
@@ -544,13 +635,13 @@ TEST(ColumnTests, InsertNull)
 	auto database = std::make_shared<Database>("testDatabase", 1024);
 	Table table(database, "testTable");
 
-	table.CreateColumn("ColumnInt", COLUMN_INT);
-	table.CreateColumn("ColumnLong", COLUMN_LONG);
-	table.CreateColumn("ColumnFloat", COLUMN_FLOAT);
-	table.CreateColumn("ColumnDouble", COLUMN_DOUBLE);
-	table.CreateColumn("ColumnPoint", COLUMN_POINT);
-	table.CreateColumn("ColumnPolygon", COLUMN_POLYGON);
-	table.CreateColumn("ColumnString", COLUMN_STRING);
+	table.CreateColumn("ColumnInt", COLUMN_INT, true);
+	table.CreateColumn("ColumnLong", COLUMN_LONG, true);
+	table.CreateColumn("ColumnFloat", COLUMN_FLOAT, true);
+	table.CreateColumn("ColumnDouble", COLUMN_DOUBLE, true);
+	table.CreateColumn("ColumnPoint", COLUMN_POINT, true);
+	table.CreateColumn("ColumnPolygon", COLUMN_POLYGON, true);
+	table.CreateColumn("ColumnString", COLUMN_STRING, true);
 
 	auto& columnInt = table.GetColumns().at("ColumnInt");
 	auto& columnLong = table.GetColumns().at("ColumnLong");
@@ -643,10 +734,10 @@ TEST(ColumnTests, InsertNull)
 
 	for (int i = 0; i < 512; i++)
 	{
-		ASSERT_EQ(0, dataInIntBlock[i]);
-		ASSERT_EQ(0, dataInLongBlock[i]);
-		ASSERT_EQ(0, dataInFloatBlock[i]);
-		ASSERT_EQ(0, dataInDoubleBlock[i]);
+		ASSERT_EQ(GetNullConstant<int32_t>(), dataInIntBlock[i]);
+		ASSERT_EQ(GetNullConstant<int64_t>(), dataInLongBlock[i]);
+		ASSERT_TRUE(std::isnan(dataInFloatBlock[i]));
+		ASSERT_TRUE(std::isnan(dataInDoubleBlock[i]));
 		ASSERT_EQ("POINT(0 0)" , PointFactory::WktFromPoint(dataInPointBlock[i]));
 		ASSERT_EQ("POLYGON()", ComplexPolygonFactory::WktFromPolygon(dataInPolygonBlock[i]));
 		ASSERT_EQ("", dataInStringBlock[i]);
@@ -749,7 +840,9 @@ TEST(ColumnTests, ColumnStatistics)
 	dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->InsertData(dataPoint);
 	dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->InsertData(dataPolygon);
 	dynamic_cast<ColumnBase<std::string>*>(columnString.get())->InsertData(dataString);
-
+	auto& blockList = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList();
+	ASSERT_EQ(blockList[0]->GetSum(), database->GetBlockSize());
+	ASSERT_EQ(blockList[1]->GetSum(), 5 * database->GetBlockSize());
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetMin(), 1);
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetMax(), 5);
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetSum(), database->GetBlockSize() + 5 * database->GetBlockSize());

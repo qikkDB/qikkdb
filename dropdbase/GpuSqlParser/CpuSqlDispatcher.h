@@ -80,6 +80,12 @@ private:
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> intersectFunctions;
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> unionFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> leftFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rightFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> concatFunctions;
 
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE> yearFunctions;
@@ -131,6 +137,19 @@ private:
 		DataType::DATA_TYPE_SIZE> ceilFunctions;
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE> floorFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> ltrimFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> rtrimFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> lowerFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> upperFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> reverseFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> lenFunctions;
+	static CpuDispatchFunction nullFunction;
 
 	static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> whereResultFunctions;
 
@@ -244,6 +263,8 @@ public:
 	template<typename T>
 	int32_t logicalNotConst();
 
+	int32_t nullCol();
+
 	template<typename OP, typename T, typename U>
 	int32_t arithmeticColConst();
 
@@ -300,6 +321,42 @@ public:
 
 	template <typename OP, typename T, typename U>
 	int32_t polygonOperationConstConst();
+
+	template<typename OP>
+	int32_t stringUnaryCol();
+
+	template<typename OP>
+	int32_t stringUnaryConst();
+
+	template<typename OP>
+	int32_t stringUnaryNumericCol();
+
+	template<typename OP>
+	int32_t stringUnaryNumericConst();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericColCol();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericColConst();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericConstCol();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericConstConst();
+
+	template<typename OP>
+	int32_t stringBinaryColCol();
+
+	template<typename OP>
+	int32_t stringBinaryColConst();
+
+	template<typename OP>
+	int32_t stringBinaryConstCol();
+
+	template<typename OP>
+	int32_t stringBinaryConstConst();
 
 	template<typename T>
 	int32_t whereResultCol() 

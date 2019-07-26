@@ -28,21 +28,43 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 	{
 		if (isOverallLastBlock)
 		{
-			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) + "_keys");
-			int32_t retSize = std::get<1>(column);
-			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
-			GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(std::get<0>(column)), retSize);
+			PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName) + KEYS_SUFFIX);
+			int32_t retSize = column.elementCount;
+			ResultType * result;
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize);
+			}
+			GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(column.gpuPtr), retSize);
 			groupByColumns.push_back({ reg, ::GetColumnType<ResultType>() });
 		}
 	}
 	else if (isOverallLastBlock || !usingGroupBy)
 	{
-		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
-		int32_t retSize = std::get<1>(column);
+		PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName));
+		int32_t retSize = column.elementCount;
 		if (!isRegisterAllocated(reg))
 		{
-			ResultType * result = allocateRegister<ResultType>(reg, retSize);
-			GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(std::get<0>(column)), retSize);
+			ResultType * result;
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<ResultType>(reg, retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<ResultType>(reg, retSize);
+			}
+			GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(column.gpuPtr), retSize);
 		}
 	}
 	freeColumnIfRegister<T>(colName);

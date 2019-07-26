@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from /home/jvesely/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.1
 
 #pragma once
 
@@ -21,21 +21,22 @@ public:
     CREATEDB = 33, DROPDB = 34, CREATETABLE = 35, DROPTABLE = 36, ALTERTABLE = 37, 
     ADD = 38, DROPCOLUMN = 39, ALTERCOLUMN = 40, CREATEINDEX = 41, INDEX = 42, 
     PRIMARYKEY = 43, VALUES = 44, SELECT = 45, FROM = 46, JOIN = 47, WHERE = 48, 
-    GROUPBY = 49, AS = 50, IN = 51, BETWEEN = 52, ON = 53, ORDERBY = 54, 
-    DIR = 55, LIMIT = 56, OFFSET = 57, INNER = 58, FULLOUTER = 59, SHOWDB = 60, 
-    SHOWTB = 61, SHOWCL = 62, AGG = 63, AVG = 64, SUM = 65, MIN = 66, MAX = 67, 
-    COUNT = 68, YEAR = 69, MONTH = 70, DAY = 71, HOUR = 72, MINUTE = 73, 
-    SECOND = 74, NOW = 75, PI = 76, ABS = 77, SIN = 78, COS = 79, TAN = 80, 
-    COT = 81, ASIN = 82, ACOS = 83, ATAN = 84, ATAN2 = 85, LOG10 = 86, LOG = 87, 
-    EXP = 88, POW = 89, SQRT = 90, SQUARE = 91, SIGN = 92, ROOT = 93, ROUND = 94, 
-    CEIL = 95, FLOOR = 96, LTRIM = 97, RTRIM = 98, LOWER = 99, UPPER = 100, 
-    REVERSE = 101, LEN = 102, LEFT = 103, RIGHT = 104, CONCAT = 105, GEO_CONTAINS = 106, 
-    GEO_INTERSECT = 107, GEO_UNION = 108, PLUS = 109, MINUS = 110, ASTERISK = 111, 
-    DIVISION = 112, MODULO = 113, XOR = 114, EQUALS = 115, NOTEQUALS = 116, 
-    NOTEQUALS_GT_LT = 117, LPAREN = 118, RPAREN = 119, GREATER = 120, LESS = 121, 
-    GREATEREQ = 122, LESSEQ = 123, NOT = 124, OR = 125, AND = 126, BIT_OR = 127, 
-    BIT_AND = 128, L_SHIFT = 129, R_SHIFT = 130, BOOLEANLIT = 131, TRUE = 132, 
-    FALSE = 133, FLOATLIT = 134, INTLIT = 135, ID = 136
+    GROUPBY = 49, AS = 50, IN = 51, ISNULL = 52, ISNOTNULL = 53, BETWEEN = 54, 
+    ON = 55, ORDERBY = 56, DIR = 57, LIMIT = 58, OFFSET = 59, INNER = 60, 
+    FULLOUTER = 61, SHOWDB = 62, SHOWTB = 63, SHOWCL = 64, AGG = 65, AVG = 66, 
+    SUM = 67, MIN = 68, MAX = 69, COUNT = 70, YEAR = 71, MONTH = 72, DAY = 73, 
+    HOUR = 74, MINUTE = 75, SECOND = 76, NOW = 77, PI = 78, ABS = 79, SIN = 80, 
+    COS = 81, TAN = 82, COT = 83, ASIN = 84, ACOS = 85, ATAN = 86, ATAN2 = 87, 
+    LOG10 = 88, LOG = 89, EXP = 90, POW = 91, SQRT = 92, SQUARE = 93, SIGN = 94, 
+    ROOT = 95, ROUND = 96, CEIL = 97, FLOOR = 98, LTRIM = 99, RTRIM = 100, 
+    LOWER = 101, UPPER = 102, REVERSE = 103, LEN = 104, LEFT = 105, RIGHT = 106, 
+    CONCAT = 107, GEO_CONTAINS = 108, GEO_INTERSECT = 109, GEO_UNION = 110, 
+    PLUS = 111, MINUS = 112, ASTERISK = 113, DIVISION = 114, MODULO = 115, 
+    XOR = 116, EQUALS = 117, NOTEQUALS = 118, NOTEQUALS_GT_LT = 119, LPAREN = 120, 
+    RPAREN = 121, GREATER = 122, LESS = 123, GREATEREQ = 124, LESSEQ = 125, 
+    LOGICAL_NOT = 126, OR = 127, AND = 128, BIT_OR = 129, BIT_AND = 130, 
+    L_SHIFT = 131, R_SHIFT = 132, BOOLEANLIT = 133, TRUE = 134, FALSE = 135, 
+    FLOATLIT = 136, INTLIT = 137, NULLLIT = 138, ID = 139
   };
 
   enum {
@@ -945,6 +946,7 @@ public:
     antlr4::tree::TerminalNode *INTLIT();
     antlr4::tree::TerminalNode *FLOATLIT();
     GeometryContext *geometry();
+    antlr4::tree::TerminalNode *NULLLIT();
     antlr4::tree::TerminalNode *STRING();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -958,7 +960,7 @@ public:
   public:
     ExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
    
-    ExpressionContext() = default;
+    ExpressionContext() : antlr4::ParserRuleContext() { }
     void copyFrom(ExpressionContext *context);
     using antlr4::ParserRuleContext::copyFrom;
 
@@ -1101,7 +1103,7 @@ public:
 
     antlr4::Token *op = nullptr;
     ExpressionContext *expression();
-    antlr4::tree::TerminalNode *NOT();
+    antlr4::tree::TerminalNode *LOGICAL_NOT();
     antlr4::tree::TerminalNode *MINUS();
     antlr4::tree::TerminalNode *LPAREN();
     antlr4::tree::TerminalNode *RPAREN();
@@ -1134,6 +1136,8 @@ public:
     antlr4::tree::TerminalNode *UPPER();
     antlr4::tree::TerminalNode *REVERSE();
     antlr4::tree::TerminalNode *LEN();
+    antlr4::tree::TerminalNode *ISNULL();
+    antlr4::tree::TerminalNode *ISNOTNULL();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };

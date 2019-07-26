@@ -22,6 +22,24 @@
 // Fill the index buffers with default indices
 __global__ void kernel_fill_indices(int32_t* indices, int32_t dataElementCount);
 
+// Transform the input data null rows to the smallest possible value
+template<typename T>
+__global__ void kernel_transform_null_values(T* inCol, int8_t* nullBitMask, int32_t dataElementCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+        //Retrieve the null flag
+        bool isNullFlag = (nullBitMask[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        if(isNullFlag)
+        {
+            inCol[i] = std::numeric_limits<T>::lowest();
+        }
+    }
+}
+
 // Reorder a column by a given index column
 template<typename T>
 __global__ void kernel_reorder_by_idx(T* outCol, int32_t* inIndices, T* inCol, int32_t dataElementCount)
@@ -35,6 +53,9 @@ __global__ void kernel_reorder_by_idx(T* outCol, int32_t* inIndices, T* inCol, i
     }
 }
 
+// Reorder a null column by a given index column
+__global__ void kernel_reorder_null_values_by_idx(int8_t* outNullBitMask, int32_t* inIndices, int8_t* inNullBitMask, int32_t dataElementCount);
+
 class GPUOrderBy : public IOrderBy{
 private:
     // Radix indices front and back buffer
@@ -46,13 +67,29 @@ public:
 
 	~GPUOrderBy();
 
+    // Set the null value rows to the smallest possible value for the given type for merge operations
+    template<typename T>
+    static void TransformNullValsToSmallestVal(T* inCol, int8_t* nullBitMask, int32_t dataElementCount)
+    {
+        if(nullBitMask != nullptr)
+        {
+            kernel_transform_null_values<<< Context::getInstance().calcGridDim(dataElementCount), 
+                                            Context::getInstance().getBlockDim() >>>
+                                            (inCol, nullBitMask, dataElementCount);
+        }
+    }
+
     // The base order by method for numeric types
     // Iterate trough all the columns and sort them with radix sort
     // Handle the columns as if they were a big binary number from right to left
+    // If nullBitMask is nullptr - dont use null values
     // for(int32_t i = inCols.size() - 1; i >= 0; i--)
     template<typename T>
-    void OrderByColumn(int32_t* outIndices, T* inCol, int32_t dataElementCount, OrderBy::Order order)
+    void OrderByColumn(int32_t* outIndices, T* inCol, int8_t* nullBitMask, int32_t dataElementCount, OrderBy::Order order)
     {
+        // Preprocess the columns with the null values
+        TransformNullValsToSmallestVal(inCol, nullBitMask, dataElementCount);
+
         // Keys front and back buffer
         cuda_ptr<T> keys1(dataElementCount);
         cuda_ptr<T> keys2(dataElementCount);
@@ -130,4 +167,6 @@ public:
                                  Context::getInstance().getBlockDim() >>>
                                  (col, indices, outTemp.get(), dataElementCount);
     }
+
+    static void ReOrderNullValuesByIdx(int8_t* outNullBitMask, int32_t* indices, int8_t* inNullBitMask, int32_t dataElementCount);
 };

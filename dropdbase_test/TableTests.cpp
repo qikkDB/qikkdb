@@ -123,7 +123,7 @@ TEST(TableTests, ClusteredIndexInsert)
     ASSERT_EQ(blockInt[3]->GetData()[1], 102);
 
 	auto& blockInt2 = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt2").get())->GetBlocksList();
-    ASSERT_EQ(blockInt.size(), 4);
+    ASSERT_EQ(blockInt2.size(), 4);
     ASSERT_EQ(blockInt2[0]->GetData()[0], 12);
     ASSERT_EQ(blockInt2[0]->GetData()[1], 13);
     ASSERT_EQ(blockInt2[0]->GetData()[2], 21);
@@ -297,5 +297,56 @@ TEST(TableTests, ClusteredIndexInsertAdvanced)
 	{
 		ASSERT_EQ(sortedDataInt7[i], dataColumn7[i]);
 	}
-	
+}
+
+TEST(TableTests, ClusteredIndexInsertWithNullValues)
+{
+	auto database = std::make_shared<Database>("testDatabase", 4);
+	Table table(database, "testTable");
+	table.SetSortingColumns({ "ColumnInt1","ColumnInt2" });
+
+	table.CreateColumn("ColumnInt1", COLUMN_INT);
+	table.CreateColumn("ColumnInt2", COLUMN_INT);
+
+	std::unordered_map<std::string, std::any> data;
+	std::unordered_map<std::string, std::vector<int8_t>> nullMask;
+
+	std::vector<int32_t> dataInt1({ 2, 1, 5, 8, 102, 67, 5, 1});
+	std::vector<int32_t> dataInt2({ 21, 12, 50, 80, 1020, 670, 60, 13});
+
+	data.insert({ "ColumnInt1", dataInt1 });
+	data.insert({ "ColumnInt2", dataInt2 });
+
+	std::vector<int8_t> vectorMask1;
+	std::vector<int8_t> vectorMask2;
+	vectorMask1.push_back(3);
+	vectorMask2.push_back(11);
+
+	nullMask.insert({ "ColumnInt1", vectorMask1});
+	nullMask.insert({ "ColumnInt2", vectorMask2});
+
+
+	table.InsertData(data, false, nullMask);
+
+	auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt1").get())->GetBlocksList();
+	ASSERT_EQ(blockInt.size(), 3);
+	ASSERT_EQ(blockInt[0]->GetData()[0], 1);
+	ASSERT_EQ(blockInt[0]->GetData()[1], 2);
+	ASSERT_EQ(blockInt[0]->GetData()[2], 1);
+	ASSERT_EQ(blockInt[1]->GetData()[0], 5);
+	ASSERT_EQ(blockInt[1]->GetData()[1], 5);
+	ASSERT_EQ(blockInt[1]->GetData()[2], 8);
+	ASSERT_EQ(blockInt[2]->GetData()[0], 67);
+	ASSERT_EQ(blockInt[2]->GetData()[1], 102);
+
+	auto& blockInt2 = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt2").get())->GetBlocksList();
+	ASSERT_EQ(blockInt2.size(), 3);
+	ASSERT_EQ(blockInt2[0]->GetData()[0], 12);
+	ASSERT_EQ(blockInt2[0]->GetData()[1], 21);
+	ASSERT_EQ(blockInt2[0]->GetData()[2], 13);
+	ASSERT_EQ(blockInt2[1]->GetData()[0], 50);
+	ASSERT_EQ(blockInt2[1]->GetData()[1], 60);
+	ASSERT_EQ(blockInt2[1]->GetData()[2], 80);
+	ASSERT_EQ(blockInt2[2]->GetData()[0], 670);
+	ASSERT_EQ(blockInt2[2]->GetData()[1], 1020);
 }

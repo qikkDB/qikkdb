@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
+
 template<>
 void BlockBase<int32_t>::setBlockStatistics(const std::vector<int32_t>& data)
 {
@@ -14,10 +15,38 @@ void BlockBase<int32_t>::setBlockStatistics(const std::vector<int32_t>& data)
 	{
 		return;
 	}
-
-	for (int32_t i = 0; i < data.size(); i++)
+	
+	if(!isNullable_)
+	{	
+		for (int32_t i = 0; i < data.size(); i++)
+		{
+			updateBlockStatistics(data[i]);
+		}
+	}
+	else
 	{
-		updateBlockStatistics(data[i]);
+		size_ += data.size();
+
+		min_ = std::numeric_limits<int32_t>::max();
+		max_ = std::numeric_limits<int32_t>::lowest();
+		avg_ = 0;
+		sum_ = 0;
+		size_t count = 0;
+		isFullOfNullValue_ = true;
+		for (int i = 0; i < size_; i++)
+		{
+			bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
+			if (!isNull)
+			{
+				isFullOfNullValue_ = false;
+				min_ = std::min(min_, data_[i]);
+				max_ = std::max(max_, data_[i]);
+				sum_ += data_[i];
+				avg_ += data_[i];
+				count++;
+			}
+		}
+		avg_ /= count;
 	}
 }
 
@@ -28,10 +57,39 @@ void BlockBase<int64_t>::setBlockStatistics(const std::vector<int64_t>& data)
 	{
 		return;
 	}
-
-	for (int32_t i = 0; i < data.size(); i++)
+	
+	if(!isNullable_)
 	{
-		updateBlockStatistics(data[i]);
+		
+		for (int32_t i = 0; i < data.size(); i++)
+		{
+			updateBlockStatistics(data[i]);
+		}
+	}
+	else
+	{
+		size_ += data.size();
+
+		min_ = std::numeric_limits<int64_t>::max();
+		max_ = std::numeric_limits<int64_t>::lowest();
+		avg_ = 0;
+		sum_ = 0;
+		size_t count = 0;
+		isFullOfNullValue_ = true;
+		for (int i = 0; i < size_; i++)
+		{
+			bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
+			if (!isNull)
+			{
+				isFullOfNullValue_ = false;
+				min_ = std::min(min_, data_[i]);
+				max_ = std::max(max_, data_[i]);
+				sum_ += data_[i];
+				avg_ += data_[i];
+				count++;
+			}
+		}
+		avg_ /= count;
 	}
 }
 
@@ -42,10 +100,38 @@ void BlockBase<float>::setBlockStatistics(const std::vector<float>& data)
 	{
 		return;
 	}
-
-	for (int32_t i = 0; i < data.size(); i++)
+	
+	if(!isNullable_)
 	{
-		updateBlockStatistics(data[i]);
+		for (int32_t i = 0; i < data.size(); i++)
+		{
+			updateBlockStatistics(data[i]);
+		}
+	}
+	else
+	{
+		size_ += data.size();
+
+		min_ = std::numeric_limits<float>::max();
+		max_ = std::numeric_limits<float>::lowest();
+		avg_ = 0;
+		sum_ = 0;
+		size_t count = 0;
+		isFullOfNullValue_ = true;
+		for (int i = 0; i < size_; i++)
+		{
+			bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
+			if (!isNull)
+			{
+				isFullOfNullValue_ = false;
+				min_ = std::min(min_, data_[i]);
+				max_ = std::max(max_, data_[i]);
+				sum_ += data_[i];
+				avg_ += data_[i];
+				count++;
+			}
+		}
+		avg_ /= count;
 	}
 }
 
@@ -56,10 +142,37 @@ void BlockBase<double>::setBlockStatistics(const std::vector<double>& data)
 	{
 		return;
 	}
-
-	for (int32_t i = 0; i < data.size(); i++)
+	if(!isNullable_)
 	{
-		updateBlockStatistics(data[i]);
+		for (int32_t i = 0; i < data.size(); i++)
+		{
+			updateBlockStatistics(data[i]);
+		}
+	}
+	else
+	{
+		size_ += data.size();
+
+		min_ = std::numeric_limits<double>::max();
+		max_ = std::numeric_limits<double>::lowest();
+		avg_ = 0;
+		sum_ = 0;
+		size_t count = 0;
+		isFullOfNullValue_ = true;
+		for (int i = 0; i < size_; i++)
+		{
+			bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
+			if (!isNull)
+			{
+				isFullOfNullValue_ = false;
+				min_ = std::min(min_, data_[i]);
+				max_ = std::max(max_, data_[i]);
+				sum_ += data_[i];
+				avg_ += data_[i];
+				count++;
+			}
+		}
+		avg_ /= count;
 	}
 }
 

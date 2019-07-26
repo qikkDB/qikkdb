@@ -4,6 +4,43 @@
 // Polygon WKT format:
 // POLYGON((179.9999 89.9999, 0.0000 0.0000, 179.9999 89.9999), (-179.9999 -89.9999, 52.1300 -27.0380, -179.9999 -89.9999))
 
+/// Kernel for reconstructing null masks according to calculated prefixSum and inMask
+__global__ void kernel_reconstruct_null_mask(int32_t *outData, int8_t *ACol, int32_t *prefixSum, int8_t *inMask, int32_t dataElementCount)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		// Select the elemnts that are "visible" in the mask
+		// If the mask is 1 for the output, use the prefix sum for array compaction
+		// The prefix sum includes values from the input array on the same element so the index has to be modified
+		if (inMask[i] && (prefixSum[i] - 1) >= 0)
+		{
+			int bitMaskIdx = i / (sizeof(char)*8);
+			int shiftIdx = i % (sizeof(char)*8);
+			int outBitMaskIdx = (prefixSum[i] - 1) / (sizeof(int32_t)*8);
+			int outBitMaskShiftIdx = (prefixSum[i] - 1) % (sizeof(int32_t)*8);
+			atomicOr(outData + outBitMaskIdx,((ACol[bitMaskIdx] >> shiftIdx) & 1) << outBitMaskShiftIdx);	
+		}
+	}
+	
+}
+
+
+__global__ void kernel_compress_null_mask(int32_t *outData, int8_t *ACol, int32_t dataElementCount)
+{
+	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const int32_t stride = blockDim.x * gridDim.x;
+
+	for (int32_t i = idx; i < dataElementCount; i += stride)
+	{
+		int outBitMaskIdx = i / (sizeof(int32_t)*8);
+		int outBitMaskShiftIdx = i % (sizeof(int32_t)*8);
+		atomicOr(outData + outBitMaskIdx, (ACol[i] & 1) << outBitMaskShiftIdx);	
+	}
+}
+
 
 __global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCol,
 	GPUMemory::GPUString inStringCol, int32_t * inStringLengths,
@@ -230,7 +267,7 @@ int32_t GPUReconstruct::CalculateCount(int32_t * indices, int32_t * counts, int3
 
 
 void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString *outStringCol, int32_t *outDataElementCount,
-	GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount)
+	GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount, int8_t** outNullMask, int8_t* nullMask)
 {
 	Context& context = Context::getInstance();
 
@@ -267,6 +304,13 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString *outStringCol
 			// Reconstruct chars
 			kernel_reconstruct_string_chars << < context.calcGridDim(inDataElementCount), context.getBlockDim() >> >
 				(*outStringCol, inStringCol, inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
+			if(nullMask)
+			{
+				size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int32_t)*8);
+				GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
+				kernel_reconstruct_null_mask << < context.calcGridDim(*outDataElementCount), context.getBlockDim() >> >
+					(reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(), inMask, *outDataElementCount);
+			}
 		}
 		else	// Empty result set
 		{
@@ -278,6 +322,12 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString *outStringCol
 	{
 		*outStringCol = inStringCol;
 		*outDataElementCount = inDataElementCount;
+		if(nullMask)
+		{
+			size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+			GPUMemory::alloc(outNullMask, outBitMaskSize);
+			GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
+		}
 	}
 
 	// Get last error
@@ -286,17 +336,29 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString *outStringCol
 
 
 void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *outDataElementCount,
-	GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount)
+	GPUMemory::GPUString inStringCol, int8_t *inMask, int32_t inDataElementCount, int8_t* outNullMask, int8_t* nullMask)
 {
 	GPUMemory::GPUString outStringCol;
 	if (inMask)		// If mask is used (if inMask is not nullptr)
 	{
-		ReconstructStringColKeep(&outStringCol, outDataElementCount, inStringCol, inMask, inDataElementCount);
+		int8_t* outNullMaskGPUPointer = nullptr;
+		ReconstructStringColKeep(&outStringCol, outDataElementCount, inStringCol, inMask, inDataElementCount, &outNullMaskGPUPointer, nullMask);
+		if(outNullMaskGPUPointer)
+		{
+			size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+			GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
+			GPUMemory::free(outNullMaskGPUPointer);
+		}
 	}
 	else	// If mask is not used
 	{
 		*outDataElementCount = inDataElementCount;
 		outStringCol = inStringCol;
+		if(nullMask)
+		{
+			size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+			GPUMemory::copyDeviceToHost(outNullMask, nullMask, outBitMaskSize);
+		}
 	}
 
 	if (*outDataElementCount > 0)
@@ -318,8 +380,11 @@ void GPUReconstruct::ReconstructStringCol(std::string *outStringData, int32_t *o
 			outStringData[i] = std::string(hostAllChars.get() +
 				(i == 0 ? 0 : hostStringIndices[i - 1]), length);
 		}
-		// Free GPUString because it is not going out
-		GPUMemory::free(outStringCol);
+		if (inMask)
+		{
+			// Free GPUString because it is not going out
+			GPUMemory::free(outStringCol);
+		}
 	}
 }
 
@@ -458,7 +523,7 @@ void GPUReconstruct::ConvertPointColToWKTCol(GPUMemory::GPUString *outStringCol,
 
 
 void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32_t *outDataElementCount,
-	GPUMemory::GPUPolygon inCol, int8_t *inMask, int32_t inDataElementCount)
+	GPUMemory::GPUPolygon inCol, int8_t *inMask, int32_t inDataElementCount, int8_t** outNullMask, int8_t* nullMask)
 {
 	Context& context = Context::getInstance();
 
@@ -516,6 +581,13 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			kernel_reconstruct_col << < context.calcGridDim(inSubpolySize), context.getBlockDim() >> >
 				(outCol->polyPoints, inCol.polyPoints, pointPrefixSumPointer.get(), pointMask.get(), inPointSize);
 			CheckCudaError(cudaGetLastError());
+			if(nullMask)
+			{
+				size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int32_t)*8);
+				GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
+				kernel_reconstruct_null_mask << < context.calcGridDim(*outDataElementCount), context.getBlockDim() >> >
+					(reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(), inMask, *outDataElementCount);
+			}
 		}
 		else	// Empty result set
 		{
@@ -530,6 +602,12 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 	{
 		*outCol = inCol;
 		*outDataElementCount = inDataElementCount;
+		if(nullMask)
+		{
+			size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+			GPUMemory::alloc(outNullMask, outBitMaskSize);
+			GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
+		}
 	}
 
 	// Get last error
@@ -538,34 +616,57 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 
 
 void GPUReconstruct::ReconstructPolyColToWKT(std::string *outStringData, int32_t *outDataElementCount,
-	GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount)
+	GPUMemory::GPUPolygon inPolygonCol, int8_t *inMask, int32_t inDataElementCount, int8_t* outNullMask, int8_t* nullMask)
 {
 	GPUMemory::GPUPolygon reconstructedPolygonCol;
-	ReconstructPolyColKeep(&reconstructedPolygonCol, outDataElementCount, inPolygonCol, inMask, inDataElementCount);
+	int8_t* outNullMaskGPUPointer = nullptr;
+	ReconstructPolyColKeep(&reconstructedPolygonCol, outDataElementCount, inPolygonCol, inMask, inDataElementCount, &outNullMaskGPUPointer, nullMask);
+	if(outNullMaskGPUPointer)
+	{
+		size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+		GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
+		GPUMemory::free(outNullMaskGPUPointer);
+	}
 	GPUMemory::GPUString gpuWkt;
 	ConvertPolyColToWKTCol(&gpuWkt, reconstructedPolygonCol, *outDataElementCount);
-	GPUMemory::free(reconstructedPolygonCol);
+	if(inMask && reconstructedPolygonCol.polyCount)
+	{
+		GPUMemory::free(reconstructedPolygonCol);
+	}
 	// Use reconstruct without mask - just to convert GPUString to CPU string array
 	ReconstructStringCol(outStringData, outDataElementCount, gpuWkt, nullptr, *outDataElementCount);
-	GPUMemory::free(gpuWkt);
+	if (gpuWkt.allChars)
+	{
+		GPUMemory::free(gpuWkt);
+	}
 }
 
-void GPUReconstruct::ReconstructPointColToWKT(std::string * outStringData, int32_t * outDataElementCount, NativeGeoPoint* inPointCol, int8_t * inMask, int32_t inDataElementCount)
+void GPUReconstruct::ReconstructPointColToWKT(std::string * outStringData, int32_t * outDataElementCount, NativeGeoPoint* inPointCol, int8_t * inMask, int32_t inDataElementCount, int8_t* outNullMask, int8_t* nullMask)
 {
 	NativeGeoPoint* reconstructedPointCol;
-	reconstructColKeep<NativeGeoPoint>(&reconstructedPointCol, outDataElementCount, inPointCol, inMask, inDataElementCount);
+	int8_t* outNullMaskGPUPointer = nullptr;
+	reconstructColKeep<NativeGeoPoint>(&reconstructedPointCol, outDataElementCount, inPointCol, inMask, inDataElementCount, &outNullMaskGPUPointer, nullMask);
 	GPUMemory::GPUString gpuWkt;
+	if(outNullMaskGPUPointer)
+	{
+		size_t outBitMaskSize = (*outDataElementCount + sizeof(char)*8 - 1) / (sizeof(char)*8);
+		GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
+		GPUMemory::free(outNullMaskGPUPointer);
+	}
 	ConvertPointColToWKTCol(&gpuWkt, reconstructedPointCol, *outDataElementCount);
 	GPUMemory::free(reconstructedPointCol);
 	// Use reconstruct without mask - just to convert GPUString to CPU string array
 	ReconstructStringCol(outStringData, outDataElementCount, gpuWkt, nullptr, *outDataElementCount);
-	GPUMemory::free(gpuWkt);
+	if (!gpuWkt.allChars)
+	{
+		GPUMemory::free(gpuWkt);
+	}
 }
 
 
 template<>
 void GPUReconstruct::reconstructCol<ColmnarDB::Types::Point>(ColmnarDB::Types::Point *outData,
-	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount)
+	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount, int8_t* outNullMask, int8_t* nullMask)
 {
 	// Not supported, just throw an error
 	CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR,
@@ -574,7 +675,7 @@ void GPUReconstruct::reconstructCol<ColmnarDB::Types::Point>(ColmnarDB::Types::P
 
 template<>
 void GPUReconstruct::reconstructCol<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon *outData,
-	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount)
+	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount, int8_t* outNullMask, int8_t* nullMask)
 {
 	// Not supported, just throw an error
 	CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR,
@@ -583,7 +684,7 @@ void GPUReconstruct::reconstructCol<ColmnarDB::Types::ComplexPolygon>(ColmnarDB:
 
 template<>
 void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::Point>(ColmnarDB::Types::Point **outCol,
-	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount)
+	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount, int8_t** outNullMask, int8_t* nullMask)
 {
 	// Not supported, just throw an error
 	CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR,
@@ -592,7 +693,7 @@ void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::Point>(ColmnarDB::Type
 
 template<>
 void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon **outCol,
-	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount)
+	int32_t *outDataElementCount, ColmnarDB::Types::ComplexPolygon *ACol, int8_t *inMask, int32_t dataElementCount, int8_t** outNullMask, int8_t* nullMask)
 {
 	// Not supported, just throw an error
 	CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR,

@@ -1,10 +1,9 @@
 //
 // Created by Martin Staňo on 2019-01-14.
 //
-
-#include "GpuSqlCustomParser.h"
 #include "GpuSqlParser.h"
 #include "GpuSqlLexer.h"
+#include "GpuSqlCustomParser.h"
 #include "GpuSqlListener.h"
 #include "CpuWhereListener.h"
 #include "GpuSqlDispatcher.h"
@@ -257,6 +256,14 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		std::cout << "TID: " << i << " Done \n";
 	}
 
+	int32_t currentDev = context.getBoundDeviceID();
+	for (int i = 0; i < threadCount; i++)
+	{
+		context.bindDeviceToContext(i);
+		groupByInstances[i] = nullptr;
+	}
+	context.bindDeviceToContext(currentDev);
+	
 	for (int i = 0; i < threadCount; i++)
 	{
 		if (dispatcherExceptions[i])
@@ -265,8 +272,9 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		}
 	}
 	
-		
-	return (mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
+	auto ret = (mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
+
+	return ret;
 }
 
 /// Merges partial dispatcher respnse messages to final response message
@@ -289,6 +297,11 @@ GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::p
 			std::string key = partialPayload.first;
 			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
 			GpuSqlDispatcher::MergePayload(key, responseMessage.get(), payload);
+			if(partialMessage->nullbitmasks().find(key) != partialMessage->nullbitmasks().end())
+			{
+				const std::string& partialBitMask = partialMessage->nullbitmasks().at(key);
+				GpuSqlDispatcher::MergePayloadBitmask(key, responseMessage.get(), partialBitMask);
+			}
 		}
 	}
 

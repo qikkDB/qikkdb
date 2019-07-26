@@ -218,6 +218,12 @@ class BulkImportMessage :
   ::PROTOBUF_NAMESPACE_ID::int32 elemcount() const;
   void set_elemcount(::PROTOBUF_NAMESPACE_ID::int32 value);
 
+  // bool isNullable = 5;
+  void clear_isnullable();
+  static const int kIsNullableFieldNumber = 5;
+  bool isnullable() const;
+  void set_isnullable(bool value);
+
   // @@protoc_insertion_point(class_scope:ColmnarDB.NetworkClient.Message.BulkImportMessage)
  private:
   class HasBitSetters;
@@ -227,6 +233,7 @@ class BulkImportMessage :
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr columnname_;
   int columntype_;
   ::PROTOBUF_NAMESPACE_ID::int32 elemcount_;
+  bool isnullable_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_messages_2fBulkImportMessage_2eproto;
 };
@@ -369,6 +376,20 @@ inline void BulkImportMessage::set_elemcount(::PROTOBUF_NAMESPACE_ID::int32 valu
   
   elemcount_ = value;
   // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.ElemCount)
+}
+
+// bool isNullable = 5;
+inline void BulkImportMessage::clear_isnullable() {
+  isnullable_ = false;
+}
+inline bool BulkImportMessage::isnullable() const {
+  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.BulkImportMessage.isNullable)
+  return isnullable_;
+}
+inline void BulkImportMessage::set_isnullable(bool value) {
+  
+  isnullable_ = value;
+  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.isNullable)
 }
 
 #ifdef __GNUC__

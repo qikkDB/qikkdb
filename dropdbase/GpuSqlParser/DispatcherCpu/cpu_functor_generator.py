@@ -64,7 +64,11 @@ operations_ternary = ["between"]
 operation_binary_monotonous = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operation_arithmetic_monotonous = ["mul", "div", "add", "sub", "mod", "logarithm", "arctangent2"]
 operation_arithmetic_non_monotonous = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift",
-                                       "power", "root"]
+                                       "power"]
+
+operations_string_unary = ['ltrim', 'rtrim', 'lower', 'upper', 'reverse']
+
+operations_string_binary = ['left', 'right']
 
 for operation in ["whereResult"]:
     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
@@ -421,6 +425,138 @@ for operation in unary_arithmetic_operations:
             declaration += ("&" + function + "};")
         else:
             declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+for operation in operations_string_unary:
+    declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal != STRING:
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = "stringUnary"
+
+        if op == "stringUnary":
+            function = "CpuSqlDispatcher::" + op + col + "<StringUnaryOperationsCpu::" + operation + ">"
+
+        else:
+            function = "CpuSqlDispatcher::" + op + col + "<StringUnaryOperationsCpu::" + operation + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+for operation in ['len']:
+    declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal != STRING:
+            op = "invalidOperandTypesErrorHandler"
+        else:
+            op = "stringUnaryNumeric"
+
+        if op == "stringUnaryNumeric":
+            function = "CpuSqlDispatcher::" + op + col + "<StringUnaryOperationsCpu::" + operation + ">"
+
+        else:
+            function = "CpuSqlDispatcher::" + op + col + "<StringUnaryOperationsCpu::" + operation + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+for operation in operations_string_binary:
+    declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
+
+            if (operation == 'left' or operation == 'right') and (colVal != STRING or rowVal not in [INT, LONG]):
+                op = "invalidOperandTypesErrorHandler"
+
+            else:
+                op = "stringBinaryNumeric"
+
+            if op == "stringBinaryNumeric":
+                function = "CpuSqlDispatcher::" + op + col + row + "<StringBinaryOperationsCpu::" + operation + ", " + rowVal + ">"
+            else:
+                function = "CpuSqlDispatcher::" + op + col + row + "<StringBinaryOperationsCpu::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+for operation in ["concat"]:
+    declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+        for rowIdx, rowVal in enumerate(all_types):
+
+            if colIdx < len(types):
+                col = "Const"
+            elif colIdx >= len(types):
+                col = "Col"
+
+            if rowIdx < len(types):
+                row = "Const"
+            elif rowIdx >= len(types):
+                row = "Col"
+
+            if colVal != STRING or rowVal != STRING:
+                op = "invalidOperandTypesErrorHandler"
+
+            else:
+                op = "stringBinary"
+
+            if op == "stringBinary":
+                function = "CpuSqlDispatcher::" + op + col + row + "<StringBinaryOperationsCpu::" + operation + ">"
+            else:
+                function = "CpuSqlDispatcher::" + op + col + row + "<StringBinaryOperationsCpu::" + operation + ", " + colVal + ", " + rowVal + ">"
+
+            if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
+                declaration += ("&" + function + "};")
+            else:
+                declaration += ("&" + function + ", ")
 
     print(declaration)
 print()
