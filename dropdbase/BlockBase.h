@@ -24,10 +24,12 @@ private:
 	T sum_ = T{};
 	int32_t groupId_ = -1; //index for group of blocks - binary index
 
-	void setBlockStatistics();	
+	// these methods handle size_ of block
+	void setBlockStatistics(const std::vector<T>& data);
+	void updateBlockStatistics(const T& data);
 
 	ColumnBase<T>& column_;
-	size_t size_;
+	size_t size_;	//size_ is updated in BlockBase.cpp in updateBlockStatistics methods
 	size_t compressedSize_;
 	size_t capacity_;
 	std::unique_ptr<T[]> data_;
@@ -52,8 +54,7 @@ public:
 		}
 		GPUMemory::hostPin(data_.get(), capacity_);
 		std::copy(data.begin(), data.end(), data_.get());
-		size_ = data.size();
-		setBlockStatistics();
+		setBlockStatistics(data);
 	}
 
 	/// <summary>
@@ -149,8 +150,7 @@ public:
 			throw std::length_error("Attempted to insert data larger than remaining block size");
 		}
 		std::copy(data.begin(), data.end(), data_.get() + size_);
-		size_ += data.size();
-		setBlockStatistics();
+		setBlockStatistics(data);
 	}
 
 	bool IsCompressed() const
@@ -234,8 +234,7 @@ public:
 			std::move(data_.get() + index, data_.get() + size_, data_.get() + index + 1);
         }
         data_[index] = data;
-        size_++;
-        //setBlockStatistics();
+		updateBlockStatistics(data);
     }
 
     ~BlockBase()

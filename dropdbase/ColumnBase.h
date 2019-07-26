@@ -275,7 +275,7 @@ public:
 				{
 					lastBlock->CompressData();
 				}
-				setColumnStatistics();
+				//setColumnStatistics();
 				return;
 			}
 			int emptySpace = lastBlock->EmptyBlockSpace();
@@ -295,7 +295,7 @@ public:
 			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), groupId, compress, false);
 			startIdx += toCopy;
 		}
-		setColumnStatistics();
+		//setColumnStatistics();
 	}
 
     /// <summary>

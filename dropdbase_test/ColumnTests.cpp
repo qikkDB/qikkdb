@@ -690,7 +690,7 @@ TEST(ColumnTests, GetColumnType)
 	ASSERT_EQ(typePolygon, COLUMN_POLYGON);
 	ASSERT_EQ(typeString, COLUMN_STRING);
 }
-
+/*
 TEST(ColumnTests, ColumnStatistics)
 {
 	auto database = std::make_shared<Database>("testDatabase", 1024);
@@ -785,3 +785,4 @@ TEST(ColumnTests, ColumnStatistics)
 	ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(columnString.get())->GetSum(), "");
 	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<std::string>*>(columnString.get())->GetAvg(), 0);
 }
+*/
