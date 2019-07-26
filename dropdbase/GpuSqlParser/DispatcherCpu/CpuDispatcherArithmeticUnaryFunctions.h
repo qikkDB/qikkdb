@@ -10,7 +10,10 @@ int32_t CpuSqlDispatcher::arithmeticUnaryCol()
 	
 	typedef typename std::conditional < OP::isFloatRetType, float, T>::type ResultType;
 
-	loadCol<T>(colName);
+	if (loadCol<T>(colName))
+	{
+		return 1;
+	}
 
 	std::string colPointerNameMin;
 	std::string colPointerNameMax;

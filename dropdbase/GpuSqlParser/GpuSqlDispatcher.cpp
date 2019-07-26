@@ -1058,7 +1058,7 @@ int32_t GpuSqlDispatcher::dropDatabase()
 int32_t GpuSqlDispatcher::createTable()
 {
 	std::unordered_map<std::string, DataType> newColumns;
-	std::unordered_map<std::string, std::unordered_set<std::string>> newIndices;
+	std::unordered_map<std::string, std::vector<std::string>> newIndices;
 
 	std::string newTableName = arguments.read<std::string>();
 
@@ -1070,26 +1070,28 @@ int32_t GpuSqlDispatcher::createTable()
 		newColumns.insert({ newColumnName, static_cast<DataType>(newColumnDataType) });
 	}
 
-	std::unordered_set<std::string> allIndexColumns;
+	std::vector<std::string> allIndexColumns;
 
 	int32_t newIndexCount = arguments.read<int32_t>();
 	for (int32_t i = 0; i < newIndexCount; i++)
 	{
 		std::string newIndexName = arguments.read<std::string>();
 		int32_t newIndexColumnCount = arguments.read<int32_t>();
-		std::unordered_set<std::string> newIndexColumns;
+		std::vector<std::string> newIndexColumns;
 
 		for (int32_t j = 0; j < newIndexColumnCount; j++)
 		{
 			std::string newIndexColumn = arguments.read<std::string>();
-			newIndexColumns.insert(newIndexColumn);
-			allIndexColumns.insert(newIndexColumn);
+			newIndexColumns.push_back(newIndexColumn);
+			if (std::find(allIndexColumns.begin(), allIndexColumns.end(), newIndexColumn) == allIndexColumns.end())
+			{
+				allIndexColumns.push_back(newIndexColumn);
+			}
 		}
 		newIndices.insert({ newIndexName, newIndexColumns });
 	}
 
-	std::vector<std::string> allIndexColumnsVector(allIndexColumns.begin(), allIndexColumns.end());
-	database->CreateTable(newColumns, newTableName.c_str()).SetSortingColumns(allIndexColumnsVector);
+	database->CreateTable(newColumns, newTableName.c_str()).SetSortingColumns(allIndexColumns);
 	return 8;
 }
 
@@ -1129,24 +1131,24 @@ int32_t GpuSqlDispatcher::createIndex()
 {
 	std::string	indexName = arguments.read<std::string>();
 	std::string tableName = arguments.read<std::string>();
-	std::unordered_set<std::string> indexColumns;
-	std::unordered_set<std::string> sortingColumns;
+	std::vector<std::string> sortingColumns;
+
+	for (auto& column : database->GetTables().at(tableName).GetSortingColumns())
+	{
+		sortingColumns.push_back(column);
+	}
 
 	int32_t indexColumnCount = arguments.read<int32_t>();
 	for (int i = 0; i < indexColumnCount; i++)
 	{
 		std::string indexColumn = arguments.read<std::string>();
-		indexColumns.insert(indexColumn);
-		sortingColumns.insert(indexColumn);
+		if (std::find(sortingColumns.begin(), sortingColumns.end(), indexColumn) == sortingColumns.end())
+		{
+			sortingColumns.push_back(indexColumn);
+		}
 	}
 
-	for (auto& column : database->GetTables().at(tableName).GetSortingColumns())
-	{
-		sortingColumns.insert(column);
-	}
-
-	std::vector<std::string> sortingColumnsVector(sortingColumns.begin(), sortingColumns.end());
-	database->GetTables().at(tableName).SetSortingColumns(sortingColumnsVector);
+	database->GetTables().at(tableName).SetSortingColumns(sortingColumns);
 
 	return 11;
 }
