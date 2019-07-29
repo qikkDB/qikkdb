@@ -46,7 +46,7 @@ int32_t GpuSqlDispatcher::retCol()
 	{
 		if (isOverallLastBlock)
 		{
-			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName) + (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end()? "_keys" : ""));
+			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(colName + (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end()? "_keys" : ""));
 			outSize = std::get<1>(col);
 
 			if (usingOrderBy)
@@ -81,7 +81,7 @@ int32_t GpuSqlDispatcher::retCol()
 		}
 		else
 		{
-			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName));
+			std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(colName);
 			int32_t inSize = std::get<1>(col);
 			outData = std::make_unique<T[]>(inSize);
 			GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(std::get<0>(col)), reinterpret_cast<int8_t*>(filter_), inSize);
@@ -201,7 +201,7 @@ int32_t GpuSqlDispatcher::loadCol(std::string& colName)
 				int32_t outDataSize;
 				GPUJoin::reorderByJoinTableCPU<T>(std::get<0>(cacheEntry), outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
 			}
-			addCachedRegister(joinCacheId, std::get<0>(cacheEntry), loadSize);
+			addCachedRegister(colName, std::get<0>(cacheEntry), loadSize);
 			noLoad = false;
 		}
 	}

@@ -28,7 +28,7 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 	{
 		if (isOverallLastBlock)
 		{
-			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) + "_keys");
+			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName + "_keys");
 			int32_t retSize = std::get<1>(column);
 			ResultType * result = allocateRegister<ResultType>(reg + "_keys", retSize);
 			GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(std::get<0>(column)), retSize);
@@ -37,7 +37,7 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 	}
 	else if (isOverallLastBlock || !usingGroupBy)
 	{
-		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
+		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
 		int32_t retSize = std::get<1>(column);
 		if (!isRegisterAllocated(reg))
 		{

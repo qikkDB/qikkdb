@@ -27,7 +27,7 @@ int32_t GpuSqlDispatcher::orderByCol()
 		if (isOverallLastBlock)
 		{
 			std::cout << "Order by: " << colName << std::endl;
-			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) +
+			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName +
 					(std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end() ?
 					 "_keys" : ""));
 			int32_t inSize = std::get<1>(column);
@@ -54,7 +54,7 @@ int32_t GpuSqlDispatcher::orderByCol()
 	else
 	{
 		std::cout << "Order by: " << colName << std::endl;
-		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
+		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
 		int32_t inSize = std::get<1>(column);
 
 		if (orderByTable == nullptr)
@@ -96,7 +96,7 @@ int32_t GpuSqlDispatcher::orderByReconstructOrderCol()
 			return loadFlag;
 		}
 
-		std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName));
+		std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(colName);
 		int32_t inSize = std::get<1>(col);
 
 		std::unique_ptr<VariantArray<T>> outData = std::make_unique<VariantArray<T>>(inSize);
@@ -136,7 +136,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetCol()
 			return loadFlag;
 		}
 
-		std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(getAllocatedRegisterName(colName));
+		std::tuple<uintptr_t, int32_t, bool> col = allocatedPointers.at(colName);
 		int32_t inSize = std::get<1>(col);
 
 		std::unique_ptr<VariantArray<T>> outData = std::make_unique<VariantArray<T>>(inSize);
