@@ -65,7 +65,7 @@ class GPUPolygonClipping
 {
 public:
     template <typename OP>
-    static void ColCol(GPUMemory::GPUPolygon& polygonOut,
+    static void ColCol(GPUMemory::GPUPolygon polygonOut,
                        GPUMemory::GPUPolygon polygonAin,
                        GPUMemory::GPUPolygon polygonBin,
                        int32_t dataElementCount)
@@ -74,10 +74,10 @@ public:
         cuda_ptr<int32_t> intersectionCounts(dataElementCount);
         cuda_ptr<int32_t> intersectionPrefixSum(dataElementCount);
         kernel_calc_intersection_counts<<< Context::getInstance().calcGridDim(dataElementCount), 
-                                          Context::getInstance().getBlockDim()>>>(intersectionCounts.get(), 
-                                                                                  polygonAin,
-                                                                                  polygonBin,
-                                                                                  dataElementCount);
+                                           Context::getInstance().getBlockDimPoly()>>>(intersectionCounts.get(), 
+                                                                                       polygonAin,
+                                                                                       polygonBin,
+                                                                                       dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         // Calculate the prefix sum for the intersection counters for adressing purpose
@@ -87,6 +87,7 @@ public:
         int32_t intersectionsTotalCount;
         GPUMemory::copyDeviceToHost(&intersectionsTotalCount,intersectionPrefixSum.get() + dataElementCount - 1, 1);
         
+        std::printf("INtersection count: %d\n", intersectionsTotalCount);
         
     }
 };
