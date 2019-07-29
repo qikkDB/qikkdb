@@ -591,12 +591,14 @@ public:
 	{
 		T * mask;
 		GPUMemory::alloc<T>(&mask, size);
-		allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(mask), size, true)});
+		InsertRegister(reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(mask), size, true));
 		usedRegisterMemory += size * sizeof(T);
 		return mask;
 	}
 
-	std::string getAllocatedRegisterName(const std::string& reg);
+	
+	/// Check if registerName is contained in allocatedPointers and if so, throw; if not, insert register
+	void InsertRegister(std::string registerName, std::tuple<std::uintptr_t, int32_t, bool> registerValues);
 
 	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false);
 
@@ -605,7 +607,7 @@ public:
 	template<typename T>
 	void addCachedRegister(const std::string& reg, T* ptr, int32_t size)
 	{
-		allocatedPointers.insert({ reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(ptr), size, false) });
+		InsertRegister(reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(ptr), size, false));
 	}
 
 	template<typename T>
