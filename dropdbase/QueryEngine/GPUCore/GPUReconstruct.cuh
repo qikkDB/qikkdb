@@ -443,6 +443,8 @@ public:
 		cub::DeviceScan::ExclusiveSum(tempBuffer.get(), tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 	}
 
+	// Compress memory-wasting null mask with size equal to dataElementCount (aligning to 32 bit)
+	static cuda_ptr<int8_t> CompressNullMask(int8_t* inputNullMask, int32_t dataElementCount);
 };
 
 /// Specialization for Point (not supported but need to be implemented)

@@ -664,6 +664,15 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string * outStringData, int32
 }
 
 
+cuda_ptr<int8_t> GPUReconstruct::CompressNullMask(int8_t* inputNullMask, int32_t dataElementCount)
+{
+	cuda_ptr<int8_t> nullMaskCompressed((dataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int32_t) * 8), 0);
+	kernel_compress_null_mask << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		(reinterpret_cast<int32_t*>(nullMaskCompressed.get()), inputNullMask, dataElementCount);
+	return nullMaskCompressed;
+}
+
+
 template<>
 void GPUReconstruct::reconstructCol<ColmnarDB::Types::Point>(ColmnarDB::Types::Point *outData,
 	int32_t *outDataElementCount, ColmnarDB::Types::Point *ACol, int8_t *inMask, int32_t dataElementCount, int8_t* outNullMask, int8_t* nullMask)
