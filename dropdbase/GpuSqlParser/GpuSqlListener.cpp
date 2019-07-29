@@ -1304,8 +1304,7 @@ void GpuSqlListener::exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx
 /// <param name="ctx">String Literal context</param>
 void GpuSqlListener::exitStringLiteral(GpuSqlParser::StringLiteralContext *ctx)
 {
-	std::string strLit = ctx->getText().substr(1, ctx->getText().length() - 2);
-    parserStack.push(std::make_pair(strLit, DataType::CONST_STRING));
+    parserStack.push(std::make_pair(ctx->getText(), DataType::CONST_STRING));
 }
 
 /// Method that executes on exit of boolean literal (True, False)
@@ -1511,9 +1510,15 @@ void GpuSqlListener::pushArgument(const char *token, DataType dataType)
         case DataType::CONST_DOUBLE:
             dispatcher.addArgument<double>(std::stod(token));
             break;
-        case DataType::CONST_POINT:
-        case DataType::CONST_POLYGON:
         case DataType::CONST_STRING:
+		{
+			std::string str(token);
+			std::string strTrimmed = str.substr(1, str.length() - 2);
+			dispatcher.addArgument<const std::string&>(strTrimmed);
+		}
+			break;
+		case DataType::CONST_POINT:
+		case DataType::CONST_POLYGON:
         case DataType::COLUMN_INT:
         case DataType::COLUMN_LONG:
         case DataType::COLUMN_FLOAT:
