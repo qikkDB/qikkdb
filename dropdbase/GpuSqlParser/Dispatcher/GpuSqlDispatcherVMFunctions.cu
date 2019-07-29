@@ -81,7 +81,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 			int32_t outDataSize;
 			GPUJoin::reorderByJoinTableCPUKeep<ColmnarDB::Types::ComplexPolygon>(joinedPolygons, outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
 			
-			insertComplexPolygon(database->GetName(), joinCacheId, joinedPolygons, loadSize);
+			insertComplexPolygon(database->GetName(), colName, joinedPolygons, loadSize);
 			noLoad = false;
 		}
 	}
@@ -169,7 +169,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::Point>(std::string& colName)
 					reinterpret_cast<NativeGeoPoint*>(nativePoints.data()),
 					nativePoints.size());
 			}
-			addCachedRegister(joinCacheId, std::get<0>(cacheEntry), loadSize);
+			addCachedRegister(colName, std::get<0>(cacheEntry), loadSize);
 			noLoad = false;
 		}
 	}
@@ -229,7 +229,7 @@ int32_t GpuSqlDispatcher::loadCol<std::string>(std::string& colName)
 			int32_t outDataSize;
 			GPUJoin::reorderByJoinTableCPUKeep<std::string>(joinedStrings, outDataSize, *col, blockIndex, joinIndices->at(table), database->GetBlockSize());
 
-			insertString(database->GetName(), joinCacheId, joinedStrings, loadSize);
+			insertString(database->GetName(), colName, joinedStrings, loadSize);
 			noLoad = false;
 		}
 		noLoad = false;
@@ -257,7 +257,7 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::ComplexPolygon>()
 		std::cout << "RetPolygonCol: " << col << ", thread: " << dispatcherThreadId << std::endl;
 
 		std::unique_ptr<std::string[]> outData(new std::string[database->GetBlockSize()]);
-		std::tuple<GPUMemory::GPUPolygon, int32_t> ACol = findComplexPolygon(getAllocatedRegisterName(col));
+		std::tuple<GPUMemory::GPUPolygon, int32_t> ACol = findComplexPolygon(col);
 		int32_t outSize;
 		GPUReconstruct::ReconstructPolyColToWKT(outData.get(), &outSize,
 			std::get<0>(ACol), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
@@ -295,7 +295,7 @@ int32_t GpuSqlDispatcher::retCol<ColmnarDB::Types::Point>()
 		std::cout << "RetPointCol: " << colName << ", thread: " << dispatcherThreadId << std::endl;
 
 		std::unique_ptr<std::string[]> outData(new std::string[database->GetBlockSize()]);
-		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(getAllocatedRegisterName(colName));
+		std::tuple<uintptr_t, int32_t, bool> ACol = allocatedPointers.at(colName);
 		int32_t outSize;
 		GPUReconstruct::ReconstructPointColToWKT(outData.get(), &outSize,
 			reinterpret_cast<NativeGeoPoint*>(std::get<0>(ACol)), reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
@@ -334,7 +334,7 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 		if (isOverallLastBlock)
 		{
 			// Return key or value col (key if groupByColumns contains colName)
-			auto col = findStringColumn(getAllocatedRegisterName(colName) + (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end() ? "_keys" : ""));
+			auto col = findStringColumn(colName + (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end() ? "_keys" : ""));
 			outSize = std::get<1>(col);
 			outData = std::make_unique<std::string[]>(outSize);
 			GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col), nullptr, outSize);
@@ -346,7 +346,7 @@ int32_t GpuSqlDispatcher::retCol<std::string>()
 	}
 	else
 	{
-		std::tuple<GPUMemory::GPUString, int32_t> col = findStringColumn(getAllocatedRegisterName(colName));
+		std::tuple<GPUMemory::GPUString, int32_t> col = findStringColumn(colName);
 		outSize = std::get<1>(col);
 		outData = std::make_unique<std::string[]>(outSize);
 		GPUReconstruct::ReconstructStringCol(outData.get(), &outSize,

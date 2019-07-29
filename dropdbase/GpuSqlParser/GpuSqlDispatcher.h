@@ -596,7 +596,6 @@ public:
 		return mask;
 	}
 
-	std::string getAllocatedRegisterName(const std::string& reg);
 	
 	/// Check if registerName is contained in allocatedPointers and if so, throw; if not, insert register
 	void InsertRegister(std::string registerName, std::tuple<std::uintptr_t, int32_t, bool> registerValues);

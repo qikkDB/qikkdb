@@ -764,20 +764,6 @@ void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType o
     //TODO: Between
 }
 
-std::string GpuSqlDispatcher::getAllocatedRegisterName(const std::string & reg)
-{
-	if (usingJoin && reg.front() != '$')
-	{
-		std::string joinReg = reg + "_join";
-		for (auto& joinTable : *joinIndices)
-		{
-			joinReg += "_" + joinTable.first;
-		}
-		return joinReg;
-	}
-	return reg;
-}
-
 void GpuSqlDispatcher::InsertRegister(std::string registerName, std::tuple<std::uintptr_t, int32_t, bool> registerValues)
 {
 	if(allocatedPointers.find(registerName) == allocatedPointers.end())

@@ -84,7 +84,9 @@ int8_t * CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 	auto it = blocksBySize_.lower_bound(alignedSize);
 	if (it == blocksBySize_.end())
 	{
+#ifdef DEBUG_ALLOC  
 		fprintf(logOut, "Out of GPU memory\n");
+#endif
 		throw std::out_of_range("Out of GPU memory");
 	}
 	auto blockInfoIt = (*it).second;

@@ -26,7 +26,7 @@ int32_t GpuSqlDispatcher::dateExtractCol()
 	{
 		if (isOverallLastBlock)
 		{
-			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName) + "_keys");
+			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName + "_keys");
 			int32_t retSize = std::get<1>(column);
 			int32_t * result = allocateRegister<int32_t>(reg + "_keys", retSize);
 			GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(std::get<0>(column)), retSize);
@@ -35,7 +35,7 @@ int32_t GpuSqlDispatcher::dateExtractCol()
 	}
 	else
 	{
-		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(getAllocatedRegisterName(colName));
+		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
 		int32_t retSize = std::get<1>(column);
 
 		if (!isRegisterAllocated(reg))
