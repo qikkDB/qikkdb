@@ -625,12 +625,6 @@ public:
 template <typename AGG, typename O, typename V>
 class GPUGroupBy<AGG, O, std::string, V>;
 
-template <typename O, typename V>
-class GPUGroupBy<AggregationFunctions::avg, O, std::string, V>;	// TODO delete specialization
-
-template <typename V>
-class GPUGroupBy<AggregationFunctions::count, int64_t, std::string, V>;	// TODO delete specialization
-
 // Specialization for multi-keys (GROUP BY multiple column)
 template <typename AGG, typename O, typename V>
 class GPUGroupBy<AGG, O, std::vector<void*>, V>;

@@ -136,7 +136,7 @@ public:
 
 		int32_t dataSize = std::min(std::get<1>(groupByColumn), valueColumn.elementCount);
 
-		reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->groupBy(std::get<0>(groupByColumn), reinterpret_cast<V*>(valueColumn.gpuPtr), dataSize);
+		reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->ProcessBlock(std::get<0>(groupByColumn), reinterpret_cast<V*>(valueColumn.gpuPtr), dataSize);
 	}
 	
 	static void GetResults(const std::vector<std::pair<std::string, DataType>>& groupByColumns, const std::string& reg, GpuSqlDispatcher& dispatcher)
@@ -145,7 +145,7 @@ public:
 		int32_t outSize;
 		GPUMemory::GPUString outKeys;
 		O* outValues = nullptr;
-		reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->getResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables);
+		reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(dispatcher.groupByTables[dispatcher.dispatcherThreadId].get())->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables);
 		dispatcher.fillStringRegister(outKeys, dispatcher.getAllocatedRegisterName(groupByColumnName) + KEYS_SUFFIX, outSize, true);
 		dispatcher.allocatedPointers.insert( {reg,PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true, 0 }});
 	}

@@ -820,8 +820,14 @@ public:
                         break;
                     }
                 }
-                valuesAllHost.insert(valuesAllHost.end(), values.get(), values.get() + elementCount);
-                occurrencesAllHost.insert(occurrencesAllHost.end(), occurrences.get(), occurrences.get() + elementCount);
+                if (USE_VALUES)
+                {
+                    valuesAllHost.insert(valuesAllHost.end(), values.get(), values.get() + elementCount);
+                }
+                if (USE_KEY_OCCURRENCES)
+                {
+                    occurrencesAllHost.insert(occurrencesAllHost.end(), occurrences.get(), occurrences.get() + elementCount);
+                }
 				sumElementCount += elementCount;
             }
 
