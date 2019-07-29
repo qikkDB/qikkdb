@@ -608,3 +608,41 @@ TEST(BlockTests, BlockStatistics)
 	ASSERT_EQ(blockString.GetSum(), "");
 	ASSERT_FLOAT_EQ(blockString.GetAvg(), 0);
 }
+
+TEST(BlockTests, BlockStatisticsNullValues)
+{
+	auto database = std::make_shared<Database>("testDatabase", 1024);
+	Table table(database, "testTable");
+
+	table.CreateColumn("ColumnInt", COLUMN_INT); 
+	auto& columnInt = table.GetColumns().at("ColumnInt");
+	auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+
+	std::vector<int32_t> dataInt = {1, 42, 53, 102, 56, 23, 56, 190};
+	std::vector<int8_t> vectorMask;
+	vectorMask.push_back(3);
+
+	blockInt.InsertData(dataInt);
+	ASSERT_EQ(blockInt.GetMin(), 1);
+	ASSERT_EQ(blockInt.GetMax(), 190);
+	ASSERT_EQ(blockInt.GetSum(), 523);
+	ASSERT_FLOAT_EQ(blockInt.GetAvg(), 65.375);
+
+	blockInt.SetNullBitmask(vectorMask);
+	ASSERT_EQ(blockInt.GetMin(), 23);
+	ASSERT_EQ(blockInt.GetMax(), 190);
+	ASSERT_EQ(blockInt.GetSum(), 480);
+	ASSERT_FLOAT_EQ(blockInt.GetAvg(), 80);
+
+	blockInt.InsertDataOnSpecificPosition(8, 200, true);
+	ASSERT_EQ(blockInt.GetMin(), 23);
+	ASSERT_EQ(blockInt.GetMax(), 190);
+	ASSERT_EQ(blockInt.GetSum(), 480);
+	ASSERT_FLOAT_EQ(blockInt.GetAvg(), 80);
+
+	blockInt.InsertDataOnSpecificPosition(8, 304, false);
+	ASSERT_EQ(blockInt.GetMin(), 23);
+	ASSERT_EQ(blockInt.GetMax(), 304);
+	ASSERT_EQ(blockInt.GetSum(), 784);
+	ASSERT_FLOAT_EQ(blockInt.GetAvg(), 112);
+}

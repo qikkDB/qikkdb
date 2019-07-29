@@ -223,6 +223,14 @@ public:
 		return size_;
 	}
 
+	/// <summary>
+	/// Inserts data on proper position in column
+	/// </summary>
+	/// <param name="indexBlock">index of block where data will be inserted</param>
+	/// <param name="indexInBlock">index in block where data will be inserted</param>
+	/// <param name="columnData">data to insert<param>
+	/// <param name="groupId">id of binary index group<param>
+	/// <param name="isNullValue">whether data is null value flag<param>
     void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData, int groupId = -1, bool isNullValue = false)
     {
 		size_ += 1;
@@ -242,6 +250,11 @@ public:
         //setColumnStatistics();
     }
 
+	/// <summary>
+	/// Splits block
+	/// </summary>
+	/// <param name="blockPtr">block that should be splitted</param>
+	/// <param name="groupId">id of binary index group<param>
     void BlockSplit(std::unique_ptr<BlockBase<T>>& blockPtr, int groupId = -1)
     {
         BlockBase<T>& block = *(blockPtr.get());

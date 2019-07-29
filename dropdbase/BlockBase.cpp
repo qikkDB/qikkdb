@@ -20,7 +20,7 @@ void BlockBase<int32_t>::setBlockStatistics(const std::vector<int32_t>& data)
 	{	
 		for (int32_t i = 0; i < data.size(); i++)
 		{
-			updateBlockStatistics(data[i]);
+			updateBlockStatistics(data[i], false);
 		}
 	}
 	else
@@ -32,12 +32,15 @@ void BlockBase<int32_t>::setBlockStatistics(const std::vector<int32_t>& data)
 		avg_ = 0;
 		sum_ = 0;
 		size_t count = 0;
+		countOfNotNullValues_ = 0;
 		isFullOfNullValue_ = true;
 		for (int i = 0; i < size_; i++)
 		{
 			bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
 			if (!isNull)
 			{
+				countOfNotNullValues_++;
+
 				isFullOfNullValue_ = false;
 				min_ = std::min(min_, data_[i]);
 				max_ = std::max(max_, data_[i]);
@@ -63,7 +66,7 @@ void BlockBase<int64_t>::setBlockStatistics(const std::vector<int64_t>& data)
 		
 		for (int32_t i = 0; i < data.size(); i++)
 		{
-			updateBlockStatistics(data[i]);
+			updateBlockStatistics(data[i], false);
 		}
 	}
 	else
@@ -75,12 +78,15 @@ void BlockBase<int64_t>::setBlockStatistics(const std::vector<int64_t>& data)
 		avg_ = 0;
 		sum_ = 0;
 		size_t count = 0;
+		countOfNotNullValues_ = 0;
 		isFullOfNullValue_ = true;
 		for (int i = 0; i < size_; i++)
 		{
 			bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
 			if (!isNull)
 			{
+				countOfNotNullValues_++;
+
 				isFullOfNullValue_ = false;
 				min_ = std::min(min_, data_[i]);
 				max_ = std::max(max_, data_[i]);
@@ -105,7 +111,7 @@ void BlockBase<float>::setBlockStatistics(const std::vector<float>& data)
 	{
 		for (int32_t i = 0; i < data.size(); i++)
 		{
-			updateBlockStatistics(data[i]);
+			updateBlockStatistics(data[i], false);
 		}
 	}
 	else
@@ -117,12 +123,15 @@ void BlockBase<float>::setBlockStatistics(const std::vector<float>& data)
 		avg_ = 0;
 		sum_ = 0;
 		size_t count = 0;
+		countOfNotNullValues_ = 0;
 		isFullOfNullValue_ = true;
 		for (int i = 0; i < size_; i++)
 		{
 			bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
 			if (!isNull)
 			{
+				countOfNotNullValues_++;
+
 				isFullOfNullValue_ = false;
 				min_ = std::min(min_, data_[i]);
 				max_ = std::max(max_, data_[i]);
@@ -146,7 +155,7 @@ void BlockBase<double>::setBlockStatistics(const std::vector<double>& data)
 	{
 		for (int32_t i = 0; i < data.size(); i++)
 		{
-			updateBlockStatistics(data[i]);
+			updateBlockStatistics(data[i], false);
 		}
 	}
 	else
@@ -158,12 +167,15 @@ void BlockBase<double>::setBlockStatistics(const std::vector<double>& data)
 		avg_ = 0;
 		sum_ = 0;
 		size_t count = 0;
+		countOfNotNullValues_ = 0;
 		isFullOfNullValue_ = true;
 		for (int i = 0; i < size_; i++)
 		{
 			bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
 			if (!isNull)
 			{
+				countOfNotNullValues_++;
+
 				isFullOfNullValue_ = false;
 				min_ = std::min(min_, data_[i]);
 				max_ = std::max(max_, data_[i]);
@@ -181,7 +193,7 @@ void BlockBase<ColmnarDB::Types::Point>::setBlockStatistics(const std::vector<Co
 {
 	for (int32_t i = 0; i < data.size(); i++)
 	{
-		updateBlockStatistics(data[i]);
+		updateBlockStatistics(data[i], false);
 	}
 }
 
@@ -190,7 +202,7 @@ void BlockBase<ColmnarDB::Types::ComplexPolygon>::setBlockStatistics(const std::
 {
 	for (int32_t i = 0; i < data.size(); i++)
 	{
-		updateBlockStatistics(data[i]);
+		updateBlockStatistics(data[i], false);
 	}
 }
 
@@ -199,7 +211,7 @@ void BlockBase<std::string>::setBlockStatistics(const std::vector<std::string>& 
 {
 	for (int32_t i = 0; i < data.size(); i++)
 	{
-		updateBlockStatistics(data[i]);
+		updateBlockStatistics(data[i], false);
 	}
 }
 
@@ -213,21 +225,28 @@ void BlockBase<int8_t>::setBlockStatistics(const std::vector<int8_t>& data)
 
 	for (int32_t i = 0; i < data.size(); i++)
 	{
-		updateBlockStatistics(data[i]);
+		updateBlockStatistics(data[i], false);
 	}
 }
 
 template<>
-void BlockBase<int32_t>::updateBlockStatistics(const int32_t& data)
+void BlockBase<int32_t>::updateBlockStatistics(const int32_t& data, bool isNullValue)
 {
 	if (isCompressed_)
 	{
 		return;
 	}
 
+	if (isNullValue)
+	{
+		size_++;
+		return;
+	}
+
 	if (size_ == 0)
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = data;
 		max_ = data;
@@ -237,25 +256,33 @@ void BlockBase<int32_t>::updateBlockStatistics(const int32_t& data)
 	else
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = (data < min_) ? data : min_;
 		max_ = (data > max_) ? data : max_;
 		sum_ += data;
-		avg_ = sum_ / size_;
+		avg_ = sum_ / countOfNotNullValues_;
 	}
 }
 
 template<>
-void BlockBase<int64_t>::updateBlockStatistics(const int64_t& data)
+void BlockBase<int64_t>::updateBlockStatistics(const int64_t& data, bool isNullValue)
 {
 	if (isCompressed_)
 	{
 		return;
 	}
 
+	if (isNullValue)
+	{
+		size_++;
+		return;
+	}
+
 	if (size_ == 0)
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = data;
 		max_ = data;
@@ -265,25 +292,33 @@ void BlockBase<int64_t>::updateBlockStatistics(const int64_t& data)
 	else
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = (data < min_) ? data : min_;
 		max_ = (data > max_) ? data : max_;
 		sum_ += data;
-		avg_ = sum_ / size_;
+		avg_ = sum_ / countOfNotNullValues_;
 	}
 }
 
 template<>
-void BlockBase<float>::updateBlockStatistics(const float& data)
+void BlockBase<float>::updateBlockStatistics(const float& data, bool isNullValue)
 {
 	if (isCompressed_)
 	{
 		return;
 	}
 
+	if (isNullValue)
+	{
+		size_++;
+		return;
+	}
+
 	if (size_ == 0)
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = data;
 		max_ = data;
@@ -293,25 +328,33 @@ void BlockBase<float>::updateBlockStatistics(const float& data)
 	else
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = (data < min_) ? data : min_;
 		max_ = (data > max_) ? data : max_;
 		sum_ += data;
-		avg_ = sum_ / size_;
+		avg_ = sum_ / countOfNotNullValues_;
 	}
 }
 
 template<>
-void BlockBase<double>::updateBlockStatistics(const double& data)
+void BlockBase<double>::updateBlockStatistics(const double& data, bool isNullValue)
 {
 	if (isCompressed_)
 	{
 		return;
 	}
 
+	if (isNullValue)
+	{
+		size_++;
+		return;
+	}
+
 	if (size_ == 0)
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = data;
 		max_ = data;
@@ -321,16 +364,17 @@ void BlockBase<double>::updateBlockStatistics(const double& data)
 	else
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = (data < min_) ? data : min_;
 		max_ = (data > max_) ? data : max_;
 		sum_ += data;
-		avg_ = sum_ / size_;
+		avg_ = sum_ / countOfNotNullValues_;
 	}
 }
 
 template<>
-void BlockBase<ColmnarDB::Types::Point>::updateBlockStatistics(const ColmnarDB::Types::Point& data)
+void BlockBase<ColmnarDB::Types::Point>::updateBlockStatistics(const ColmnarDB::Types::Point& data, bool isNullValue)
 {
 	if (size_ == 0)
 	{
@@ -344,7 +388,7 @@ void BlockBase<ColmnarDB::Types::Point>::updateBlockStatistics(const ColmnarDB::
 }
 
 template<>
-void BlockBase<ColmnarDB::Types::ComplexPolygon>::updateBlockStatistics(const ColmnarDB::Types::ComplexPolygon& data)
+void BlockBase<ColmnarDB::Types::ComplexPolygon>::updateBlockStatistics(const ColmnarDB::Types::ComplexPolygon& data, bool isNullValue)
 {
 	if (size_ == 0)
 	{
@@ -358,16 +402,23 @@ void BlockBase<ColmnarDB::Types::ComplexPolygon>::updateBlockStatistics(const Co
 }
 
 template<>
-void BlockBase<std::string>::updateBlockStatistics(const std::string& data)
+void BlockBase<std::string>::updateBlockStatistics(const std::string& data, bool isNullValue)
 {
 	if (isCompressed_)
 	{
 		return;
 	}
 
+	if (isNullValue)
+	{
+		size_++;
+		return;
+	}
+
 	if (size_ == 0)
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = data;
 		max_ = data;
@@ -377,6 +428,7 @@ void BlockBase<std::string>::updateBlockStatistics(const std::string& data)
 	else
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = (data < min_) ? data : min_;
 		max_ = (data > max_) ? data : max_;
@@ -384,16 +436,23 @@ void BlockBase<std::string>::updateBlockStatistics(const std::string& data)
 }
 
 template<>
-void BlockBase<int8_t>::updateBlockStatistics(const int8_t& data)
+void BlockBase<int8_t>::updateBlockStatistics(const int8_t& data, bool isNullValue)
 {
 	if (isCompressed_)
 	{
 		return;
 	}
 
+	if (isNullValue)
+	{
+		size_++;
+		return;
+	}
+
 	if (size_ == 0)
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = data;
 		max_ = data;
@@ -403,10 +462,11 @@ void BlockBase<int8_t>::updateBlockStatistics(const int8_t& data)
 	else
 	{
 		size_++;
+		countOfNotNullValues_++;
 
 		min_ = (data < min_) ? data : min_;
 		max_ = (data > max_) ? data : max_;
 		sum_ += data;
-		avg_ = sum_ / size_;
+		avg_ = sum_ / countOfNotNullValues_;
 	}
 }

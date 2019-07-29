@@ -7,6 +7,14 @@
 
 
 #ifndef __CUDACC__
+/// <summary>
+/// Insert row of data to database on specific position
+/// </summary>
+/// <param name="data">column name with inserting data</param>
+/// <param name="indexBlock">index of block where data will be inserted</param>
+/// <param name="indexInBlock">index in block where data will be inserted</param>
+/// <param name="iterator">index of row of data</param>
+/// <param name="nullMask">column name with bitmask</param>
 void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data, int indexBlock, int indexInBlock, int iterator, const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks)
 {
     for (const auto& column : columns)
@@ -73,6 +81,11 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
     }
 }
 
+/// <summary>
+/// Gets count ofrows of inserted  data
+/// </summary>
+/// <param name="data">unordered map of columnName and data that should be inserted in this column</param>
+/// <returns>Count of rows of inserted data</returns>
 int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data)
 {
     int size = 0;
@@ -112,6 +125,10 @@ int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string
 	return size;
 }
 
+/// <summary>
+/// Gets count of rows that are already inserted in database - information is getting as count of data in first sorting column
+/// </summary>
+/// <returns>count of rows of data in database</returns>
 int32_t Table::getDataRangeInSortingColumn()
 {
 	int size = 0;
@@ -180,7 +197,15 @@ int32_t Table::getDataRangeInSortingColumn()
 	}
 	return size;
 }
-std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowOfInsertedData(const std::unordered_map<std::string, std::any>& data, int iterator, const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks)
+
+/// <summary>
+/// Gets one row and bitmask of this row from specific position from inserted data
+/// </summary>
+/// <param name="data">name of column with inserted data</param>
+/// <param name="iterator">position of row to get</param>
+/// <param name="nullMask">name of column with bitmasks of these data</param>
+/// <returns>tuple of row and bitmask of this row from speciific position</returns>
+std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std::any>& data, int iterator, const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks)
 {
 	std::vector<std::any> resultRow;
 	std::vector<int8_t> maskOfRow;
@@ -233,6 +258,12 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowOfInsertedDa
 	return std::make_tuple(resultRow, maskOfRow);
 }
 
+/// <summary>
+/// Gets block index and index in block from total index to database
+/// </summary>
+/// <param name="index">index to database</param>
+/// <param name="positionToCompare">whether method is used to get indices to compare row from these indices or we're looking for indices to insert row</param>
+/// <returns>block index, index in block</returns>
 std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index, bool positionToCompare)
 {
 	int32_t blockIndex = 0;
@@ -328,7 +359,12 @@ std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index, bool positionToC
 	return std::make_tuple(blockIndex, indexInBlock);
 }
 
-std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowOnIndex(int index)
+/// <summary>
+/// Gets row and its bitmask from database from specific position
+/// </summary>
+/// <param name="index">index to database where row should be extracted from</param>
+/// <returns>values of row and its bitmask</returns>
+std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOnIndex(int index)
 {
 	int blockIndex;
 	int indexInBlock;
@@ -393,12 +429,19 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowOnIndex(int 
 	return std::make_tuple(resultRow, maskOfRow);
 }
 
+/// <summary>
+/// Compare two rows (one that should be inserted and one from database) of data according their values and bitmasks
+/// </summary>
+/// <param name="rowToInsert">values of inserted row of data</param>
+/// <param name="maskOfInsertedRow">bitmask of inserted row</param>
+/// <param name="index">index of row in database that should be compare with inserted row</param>
+/// <returns>one of enum value - Greater, Lower, Equal - according of relationship of inserted row and row from database</returns>
 Table::CompareResult Table::CompareRows(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfInsertRow, int index)
 {
 	std::vector<std::any> rowToCompare;
 	std::vector<int8_t> maskOfCompareRow;
 
-	std::tie(rowToCompare, maskOfCompareRow) = GetRowOnIndex(index);
+	std::tie(rowToCompare, maskOfCompareRow) = GetRowAndBitmaskOnIndex(index);
 
 	for (int i = 0; i < sortingColumns.size(); i++)
 	{
@@ -486,6 +529,12 @@ Table::CompareResult Table::CompareRows(std::vector<std::any> rowToInsert, std::
 	return CompareResult::Equal;
 }
 
+/// <summary>
+/// Gets indices of block and position in block where should be row of data inserted according to its values and bitmask
+/// </summary>
+/// <param name="rowToInsert">values of inserted row of data</param>
+/// <param name="maskOfRow">bitmask of inserted row</param>
+/// <returns>block index and index in block where row should be inserted</returns>
 std::tuple<int, int> Table::GetIndex(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow)
 {
 	int index;
@@ -655,12 +704,13 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bo
 		int blockIndex;
 		int indexInBlock;
 
+		std::vector<std::any> rowToInsert;
+		std::vector<int8_t> maskOfRow;
+
+
 		for (int i = 0; i < oneColumnDataSize; i++)
 		{
-			std::vector<std::any> rowToInsert;
-			std::vector<int8_t> maskOfRow;
-
-			std::tie(rowToInsert, maskOfRow) = GetRowOfInsertedData(data, i, nullMasks);
+			std::tie(rowToInsert, maskOfRow) = GetRowAndBitmaskOfInsertedData(data, i, nullMasks);
 			std::tie(blockIndex, indexInBlock) = GetIndex(rowToInsert, maskOfRow);
 
 			InsertValuesOnSpecificPosition(data, blockIndex, indexInBlock, i, nullMasks);

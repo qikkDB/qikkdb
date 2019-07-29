@@ -28,10 +28,11 @@ private:
 
 	// these methods handle size_ of block
 	void setBlockStatistics(const std::vector<T>& data);
-	void updateBlockStatistics(const T& data);
+	void updateBlockStatistics(const T& data, bool isNullValue);
 
 	ColumnBase<T>& column_;
 	size_t size_;	//size_ is updated in BlockBase.cpp in updateBlockStatistics methods
+	size_t countOfNotNullValues_;
 	size_t compressedSize_;
 	size_t capacity_;
 	std::unique_ptr<T[]> data_;
@@ -48,7 +49,7 @@ public:
 	/// <param name="data">Data which will fill up the block.</param>
 	/// <param name="column">Column that will hold this new block.</param>
 	BlockBase(const std::vector<T>& data, ColumnBase<T>& column, bool isCompressed = false, bool isNullable = false) :
-		column_(column), size_(0), isCompressed_(isCompressed), isNullable_(isNullable), wasRegistered_(false), isNullMaskRegistered_(false)
+		column_(column), size_(0), countOfNotNullValues_(0), isCompressed_(isCompressed), isNullable_(isNullable), wasRegistered_(false), isNullMaskRegistered_(false)
 	{
 		capacity_ = (isCompressed) ? data.size() : column.GetBlockSize();
 		data_ = std::unique_ptr<T[]>(new T[capacity_]);
@@ -76,7 +77,7 @@ public:
 	/// </summary>
 	/// <param name="column">Column that will hold this new empty block.</param>
 	explicit BlockBase(ColumnBase<T>& column) :
-		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_]), bitMask_(nullptr),
+		column_(column), size_(0),countOfNotNullValues_(0) , capacity_(column_.GetBlockSize()), data_(new T[capacity_]), bitMask_(nullptr),
 		isNullable_(column_.GetIsNullable()), wasRegistered_(false), isNullMaskRegistered_(false)
 	{
 		GPUMemory::hostPin(data_.get(), capacity_);
@@ -207,7 +208,7 @@ public:
 		if(isNullable_)
 		{
 			std::copy(nullMask.begin(), nullMask.end(), bitMask_.get());
-			setBlockStatistics();
+			setBlockStatistics({});
 		}
 	}
 
@@ -293,6 +294,12 @@ public:
 
 	}
 
+	/// <summary>
+	/// Inserts data on proper position in block
+	/// </summary>
+	/// <param name="index">index in block where data will be inserted</param>
+	/// <param name="data">value to insert<param>
+	/// <param name="isNullValue">whether data is null value flag<param>
     void InsertDataOnSpecificPosition(int index, const T& data, bool isNullValue = false)
     {
         if (EmptyBlockSpace() == 0)
@@ -354,7 +361,7 @@ public:
 			bitMask_[bitMaskIdx] |= (last << shiftIdx);
 		}
         data_[index] = data;
-		updateBlockStatistics(data);
+		updateBlockStatistics(data, isNullValue);
     }
 
     ~BlockBase()
