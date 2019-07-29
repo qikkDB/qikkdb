@@ -337,14 +337,14 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowOnIndex(int 
 	std::vector<std::any> resultRow;
 	std::vector<int8_t> maskOfRow;
 
+	int8_t isNullValue = 0;
+	int bitMaskIdx = (indexInBlock / (sizeof(char) * 8));
+	int shiftIdx = (indexInBlock % (sizeof(char) * 8));
+
 	for (auto sortingColumn : sortingColumns)
 	{
 		auto currentSortingColumn = (columns.find(sortingColumn)->second.get()); 
 		auto columnType = currentSortingColumn->GetColumnType();
-
-		int8_t isNullValue = 0;
-		int bitMaskIdx = (indexInBlock / (sizeof(char) * 8));
-		int shiftIdx = (indexInBlock % (sizeof(char) * 8));
 
 		if (columnType == COLUMN_INT)
 		{
@@ -402,11 +402,8 @@ Table::CompareResult Table::CompareRows(std::vector<std::any> rowToInsert, std::
 
 	for (int i = 0; i < sortingColumns.size(); i++)
 	{
-		int8_t insertBit;
-		int8_t compareBit;
-
-		insertBit = maskOfInsertRow[i];
-		compareBit = maskOfCompareRow[i];
+		int8_t insertBit = maskOfInsertRow[i];
+		int8_t compareBit = maskOfCompareRow[i];
 
 		if (insertBit == 1 && compareBit == 0)
 		{

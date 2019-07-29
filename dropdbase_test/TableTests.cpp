@@ -368,9 +368,9 @@ TEST(TableTests, ClusteredIndexInsertWithNullValues_advanced)
 	std::vector<int32_t> dataInt2({ 7,5,7,5,12,89,56,7});
 	std::vector<int32_t> dataInt3({ 98,12,13,3,123,6,9,45});
 
-	std::vector<int32_t> sortedDataInt1({7,12,5,4,8,5,5,9});
-	std::vector<int32_t> sortedDataInt2({5,12,7,89,56,5,7,7});
-	std::vector<int32_t> sortedDataInt3({3,123,13,6,9,12,45,98});
+	std::vector<int32_t> sortedDataInt1({7,12,5,4,5,5,8,9});
+	std::vector<int32_t> sortedDataInt2({5,12,7,89,5,7,56,7});
+	std::vector<int32_t> sortedDataInt3({3,123,13,6,12,45,9,98});
 
 	data.insert({ "ColumnInt1", dataInt1 });
 	data.insert({ "ColumnInt2", dataInt2 });
@@ -405,7 +405,7 @@ TEST(TableTests, ClusteredIndexInsertWithNullValues_advanced)
 	{
 		ASSERT_EQ(sortedDataInt1[i], dataColumn1[i]);
 	}
-	/*
+	
 	//Second column
 	auto& blocksColumnInt2 = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt2").get())->GetBlocksList();
 	std::vector<int32_t> dataColumn2;
@@ -439,5 +439,4 @@ TEST(TableTests, ClusteredIndexInsertWithNullValues_advanced)
 	{
 		ASSERT_EQ(sortedDataInt3[i], dataColumn3[i]);
 	}
-	*/
 }
