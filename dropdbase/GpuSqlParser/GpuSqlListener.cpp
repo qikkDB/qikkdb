@@ -44,6 +44,7 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	insideOrderBy(false),
 	insideSelectColumn(false), 
 	isAggSelectColumn(false),
+	isSelectColumnValid(false),
 	resultLimit(std::numeric_limits<int64_t>::max()),
 	resultOffset(0)
 {
@@ -219,6 +220,12 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 	}
 
 	std::string reg = getRegString(ctx);
+
+	if (groupByColumns.find({ reg, returnDataType }) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
+
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
 }
@@ -430,6 +437,12 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	}
 
 	std::string reg = getRegString(ctx);
+
+	if (groupByColumns.find({ reg, returnDataType }) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
+
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
 }
@@ -482,6 +495,12 @@ void GpuSqlListener::exitCastOperation(GpuSqlParser::CastOperationContext * ctx)
 	}
 
 	std::string reg = getRegString(ctx);
+
+	if (groupByColumns.find({ reg, castType }) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
+
 	pushArgument(reg.c_str(), castType);
 	pushTempResult(reg, castType);
 }
@@ -558,12 +577,16 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
         dispatcher.addAvgFunction(keyType, valueType, groupByType);
 		returnDataType = getReturnDataType(valueType);
     }
-
-	insideAgg = false;
 	std::string reg = getRegString(ctx);
+
+	if (insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
 
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
+	insideAgg = false;
 }
 
 /// Method that executes on exit of SELECT clause (return columns)
@@ -592,6 +615,7 @@ void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 void GpuSqlListener::enterSelectColumn(GpuSqlParser::SelectColumnContext * ctx)
 {
 	insideSelectColumn = true;
+	isSelectColumnValid = !usingGroupBy;
 }
 
 
@@ -606,6 +630,12 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 	std::pair<std::string, DataType> arg = stackTopAndPop();
 	std::string colName = std::get<0>(arg);
 	DataType retType = std::get<1>(arg);
+
+	if (!isSelectColumnValid)
+	{
+		throw ColumnGroupByException();
+	}
+
 	std::string alias;
 	
 	if (ctx->alias())
@@ -1294,6 +1324,22 @@ bool GpuSqlListener::GetUsingWhere()
 	return usingWhere;
 }
 
+void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext * ctx)
+{
+	for (auto& selectColumn : ctx->selectColumn())
+	{
+		if (selectColumn->alias())
+		{
+			std::string alias = selectColumn->alias()->getText();
+			if (columnAliasContexts.find(alias) != columnAliasContexts.end())
+			{
+				throw AliasRedefinitionException();
+			}
+			columnAliasContexts.insert({ alias, selectColumn->expression() });
+		}
+	}
+}
+
 /// Method that executes on exit of integer literal (10, 20, 5, ...)
 /// Infers token data type (int or long)
 /// Pushes the literal token to parser stack along with its inferred data type (int or long)
@@ -1351,6 +1397,14 @@ void GpuSqlListener::exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx
 /// <param name="ctx">Var Reference context</param>
 void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 {
+	std::string colName = ctx->columnId()->getText();
+
+	if (columnAliasContexts.find(colName) != columnAliasContexts.end())
+	{
+		walkAliasExpression(colName);
+		return;
+	}
+
     std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
     const DataType columnType = std::get<1>(tableColumnData);
 	const std::string tableColumn = std::get<0>(tableColumnData);
@@ -1361,6 +1415,11 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 	if (GpuSqlDispatcher::linkTable.find(tableColumn) == GpuSqlDispatcher::linkTable.end())
 	{
 		GpuSqlDispatcher::linkTable.insert({ tableColumn, linkTableIndex++ });
+	}
+
+	if (groupByColumns.find(tableColumnData) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
 	}
 }
 
@@ -1498,6 +1557,12 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
     }
 
     return tableColumnPair;
+}
+
+void GpuSqlListener::walkAliasExpression(const std::string & alias)
+{
+	antlr4::tree::ParseTreeWalker walker;
+	walker.walk(this, columnAliasContexts.at(alias));
 }
 
 /// Method used to pop contnt from parser stack
