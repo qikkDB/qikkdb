@@ -91,6 +91,9 @@ public:
   virtual void enterSelectColumn(GpuSqlParser::SelectColumnContext * /*ctx*/) override { }
   virtual void exitSelectColumn(GpuSqlParser::SelectColumnContext * /*ctx*/) override { }
 
+  virtual void enterSelectAllColumns(GpuSqlParser::SelectAllColumnsContext * /*ctx*/) override { }
+  virtual void exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext * /*ctx*/) override { }
+
   virtual void enterWhereClause(GpuSqlParser::WhereClauseContext * /*ctx*/) override { }
   virtual void exitWhereClause(GpuSqlParser::WhereClauseContext * /*ctx*/) override { }
 

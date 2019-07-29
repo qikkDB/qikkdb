@@ -11321,3 +11321,183 @@ TEST(DispatcherTests, AliasWhereSimpleTest)
 		ASSERT_EQ(payloadsInt.intpayload().intdata()[i], expectedResultsInt[i]);
 	}
 }
+
+TEST(DispatcherTests, AllColumnsWithDuplicatesTest)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT *, colInteger1, colFloat1, * FROM TableA;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	ASSERT_EQ(result->payloads().size(), DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().size());
+
+	for (auto& column : DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns())
+	{
+		std::string columnName = column.first;
+
+		switch (column.second->GetColumnType())
+		{
+		case COLUMN_INT:
+		{
+			auto col = dynamic_cast<ColumnBase<int32_t>*>(column.second.get());
+			std::vector<int32_t> expectedResults;
+
+			for (int i = 0; i < col->GetBlockCount(); i++)
+			{
+				auto block = col->GetBlocksList()[i];
+				for (int k = 0; k < block->GetSize(); k++)
+				{
+					expectedResults.push_back(block->GetData()[k]);
+				}
+			}
+			auto &payloads = result->payloads().at("TableA." + columnName);
+
+			ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResults.size());
+
+			for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+			{
+				ASSERT_EQ(payloads.intpayload().intdata()[i], expectedResults[i]);
+			}
+		}
+			break;
+		case COLUMN_LONG:
+		{
+			auto col = dynamic_cast<ColumnBase<int64_t>*>(column.second.get());
+			std::vector<int64_t> expectedResults;
+
+			for (int i = 0; i < col->GetBlockCount(); i++)
+			{
+				auto block = col->GetBlocksList()[i];
+				for (int k = 0; k < block->GetSize(); k++)
+				{
+					expectedResults.push_back(block->GetData()[k]);
+				}
+			}
+			auto &payloads = result->payloads().at("TableA." + columnName);
+
+			ASSERT_EQ(payloads.int64payload().int64data_size(), expectedResults.size());
+
+			for (int i = 0; i < payloads.int64payload().int64data_size(); i++)
+			{
+				ASSERT_EQ(payloads.int64payload().int64data()[i], expectedResults[i]);
+			}
+		}
+			break;
+		case COLUMN_FLOAT:
+		{
+			auto col = dynamic_cast<ColumnBase<float>*>(column.second.get());
+			std::vector<float> expectedResults;
+
+			for (int i = 0; i < col->GetBlockCount(); i++)
+			{
+				auto block = col->GetBlocksList()[i];
+				for (int k = 0; k < block->GetSize(); k++)
+				{
+					expectedResults.push_back(block->GetData()[k]);
+				}
+			}
+			auto &payloads = result->payloads().at("TableA." + columnName);
+
+			ASSERT_EQ(payloads.floatpayload().floatdata_size(), expectedResults.size());
+
+			for (int i = 0; i < payloads.floatpayload().floatdata_size(); i++)
+			{
+				ASSERT_EQ(payloads.floatpayload().floatdata()[i], expectedResults[i]);
+			}
+		}
+			break;
+		case COLUMN_DOUBLE:
+		{
+			auto col = dynamic_cast<ColumnBase<double>*>(column.second.get());
+			std::vector<double> expectedResults;
+
+			for (int i = 0; i < col->GetBlockCount(); i++)
+			{
+				auto block = col->GetBlocksList()[i];
+				for (int k = 0; k < block->GetSize(); k++)
+				{
+					expectedResults.push_back(block->GetData()[k]);
+				}
+			}
+			auto &payloads = result->payloads().at("TableA." + columnName);
+
+			ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResults.size());
+
+			for (int i = 0; i < payloads.doublepayload().doubledata_size(); i++)
+			{
+				ASSERT_EQ(payloads.doublepayload().doubledata()[i], expectedResults[i]);
+			}
+		}
+			break;
+		case COLUMN_POINT:
+		{
+			auto col = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.second.get());
+			std::vector<std::string> expectedResults;
+
+			for (int i = 0; i < col->GetBlockCount(); i++)
+			{
+				auto block = col->GetBlocksList()[i];
+				for (int k = 0; k < block->GetSize(); k++)
+				{
+					expectedResults.push_back(PointFactory::WktFromPoint(block->GetData()[k], true));
+				}
+			}
+			auto &payloads = result->payloads().at("TableA." + columnName);
+			ASSERT_EQ(payloads.stringpayload().stringdata_size(), expectedResults.size());
+
+			for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+			{
+				ASSERT_EQ(payloads.stringpayload().stringdata()[i], expectedResults[i]);
+			}
+		}
+			break;
+		case COLUMN_POLYGON:
+		{
+			auto col = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(column.second.get());
+			std::vector<std::string> expectedResults;
+
+			for (int i = 0; i < col->GetBlockCount(); i++)
+			{
+				auto block = col->GetBlocksList()[i];
+				for (int k = 0; k < block->GetSize(); k++)
+				{
+					expectedResults.push_back(ComplexPolygonFactory::WktFromPolygon(block->GetData()[k], true));
+				}
+			}
+			auto &payloads = result->payloads().at("TableA." + columnName);
+			ASSERT_EQ(payloads.stringpayload().stringdata_size(), expectedResults.size());
+
+			for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+			{
+				ASSERT_EQ(payloads.stringpayload().stringdata()[i], expectedResults[i]);
+			}
+		}
+			break;
+		case COLUMN_STRING:
+		{
+			auto col = dynamic_cast<ColumnBase<std::string>*>(column.second.get());
+			std::vector<std::string> expectedResults;
+
+			for (int i = 0; i < col->GetBlockCount(); i++)
+			{
+				auto block = col->GetBlocksList()[i];
+				for (int k = 0; k < block->GetSize(); k++)
+				{
+					expectedResults.push_back(block->GetData()[k]);
+				}
+			}
+			auto &payloads = result->payloads().at("TableA." + columnName);
+			ASSERT_EQ(payloads.stringpayload().stringdata_size(), expectedResults.size());
+
+			for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+			{
+				ASSERT_EQ(payloads.stringpayload().stringdata()[i], expectedResults[i]);
+			}
+		}
+			break;
+		default:
+			break;
+		}
+	}
+}

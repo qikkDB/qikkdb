@@ -118,6 +118,8 @@ public:
 
     void exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx) override;
 
+	void exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext *ctx) override;
+
     void exitFromTables(GpuSqlParser::FromTablesContext *ctx) override;
 
 	void exitJoinClause(GpuSqlParser::JoinClauseContext *ctx) override;

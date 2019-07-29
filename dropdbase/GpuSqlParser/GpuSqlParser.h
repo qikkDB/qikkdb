@@ -47,18 +47,18 @@ public:
     RuleNewTableEntry = 15, RuleAlterTableEntries = 16, RuleAlterTableEntry = 17, 
     RuleAddColumn = 18, RuleDropColumn = 19, RuleAlterColumn = 20, RuleNewTableColumn = 21, 
     RuleNewTableIndex = 22, RuleSelectColumns = 23, RuleSelectColumn = 24, 
-    RuleWhereClause = 25, RuleOrderByColumns = 26, RuleOrderByColumn = 27, 
-    RuleInsertIntoValues = 28, RuleInsertIntoColumns = 29, RuleIndexColumns = 30, 
-    RuleGroupByColumns = 31, RuleGroupByColumn = 32, RuleFromTables = 33, 
-    RuleJoinClauses = 34, RuleJoinClause = 35, RuleJoinTable = 36, RuleJoinColumnLeft = 37, 
-    RuleJoinColumnRight = 38, RuleJoinOperator = 39, RuleJoinType = 40, 
-    RuleFromTable = 41, RuleColumnId = 42, RuleTable = 43, RuleColumn = 44, 
-    RuleDatabase = 45, RuleAlias = 46, RuleIndexName = 47, RuleLimit = 48, 
-    RuleOffset = 49, RuleBlockSize = 50, RuleColumnValue = 51, RuleExpression = 52, 
-    RuleGeometry = 53, RulePointGeometry = 54, RuleLineStringGeometry = 55, 
-    RulePolygonGeometry = 56, RuleMultiPointGeometry = 57, RuleMultiLineStringGeometry = 58, 
-    RuleMultiPolygonGeometry = 59, RulePointOrClosedPoint = 60, RulePolygon = 61, 
-    RuleLineString = 62, RulePoint = 63
+    RuleSelectAllColumns = 25, RuleWhereClause = 26, RuleOrderByColumns = 27, 
+    RuleOrderByColumn = 28, RuleInsertIntoValues = 29, RuleInsertIntoColumns = 30, 
+    RuleIndexColumns = 31, RuleGroupByColumns = 32, RuleGroupByColumn = 33, 
+    RuleFromTables = 34, RuleJoinClauses = 35, RuleJoinClause = 36, RuleJoinTable = 37, 
+    RuleJoinColumnLeft = 38, RuleJoinColumnRight = 39, RuleJoinOperator = 40, 
+    RuleJoinType = 41, RuleFromTable = 42, RuleColumnId = 43, RuleTable = 44, 
+    RuleColumn = 45, RuleDatabase = 46, RuleAlias = 47, RuleIndexName = 48, 
+    RuleLimit = 49, RuleOffset = 50, RuleBlockSize = 51, RuleColumnValue = 52, 
+    RuleExpression = 53, RuleGeometry = 54, RulePointGeometry = 55, RuleLineStringGeometry = 56, 
+    RulePolygonGeometry = 57, RuleMultiPointGeometry = 58, RuleMultiLineStringGeometry = 59, 
+    RuleMultiPolygonGeometry = 60, RulePointOrClosedPoint = 61, RulePolygon = 62, 
+    RuleLineString = 63, RulePoint = 64
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -96,6 +96,7 @@ public:
   class NewTableIndexContext;
   class SelectColumnsContext;
   class SelectColumnContext;
+  class SelectAllColumnsContext;
   class WhereClauseContext;
   class OrderByColumnsContext;
   class OrderByColumnContext;
@@ -530,6 +531,8 @@ public:
     virtual size_t getRuleIndex() const override;
     std::vector<SelectColumnContext *> selectColumn();
     SelectColumnContext* selectColumn(size_t i);
+    std::vector<SelectAllColumnsContext *> selectAllColumns();
+    SelectAllColumnsContext* selectAllColumns(size_t i);
     std::vector<antlr4::tree::TerminalNode *> COMMA();
     antlr4::tree::TerminalNode* COMMA(size_t i);
 
@@ -554,6 +557,19 @@ public:
   };
 
   SelectColumnContext* selectColumn();
+
+  class  SelectAllColumnsContext : public antlr4::ParserRuleContext {
+  public:
+    SelectAllColumnsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ASTERISK();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  SelectAllColumnsContext* selectAllColumns();
 
   class  WhereClauseContext : public antlr4::ParserRuleContext {
   public:
