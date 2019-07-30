@@ -75,6 +75,10 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
 		walker.walk(&cpuWhereListener, statement->sqlSelect()->fromTables());
 
+		gpuSqlListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
+		gpuSqlListener.LockAliasRegisters();
+		cpuWhereListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
+
 		if (statement->sqlSelect()->joinClauses())
 		{
 			walker.walk(&gpuSqlListener, statement->sqlSelect()->joinClauses());
@@ -105,6 +109,12 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 			{
 				nonAggColumns.push_back(column);
 			}
+		}
+
+		for (auto column : statement->sqlSelect()->selectColumns()->selectAllColumns())
+		{
+			gpuSqlListener.exitSelectAllColumns(column);
+			break;
 		}
 
 		for (auto column : aggColumns)

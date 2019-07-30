@@ -429,6 +429,32 @@ for operation in unary_arithmetic_operations:
     print(declaration)
 print()
 
+for opIdx, operation in enumerate(["castToInt", "castToLong", "castToFloat", "castToDouble", "castToPoint", "castToPolygon", "castToString", "castToInt8t"]):
+    declaration = "std::array<CpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal in numeric_types and types[opIdx] in numeric_types:
+            op = "castNumeric"
+        else:
+            op = "invalidOperandTypesErrorHandler"
+
+        function = "CpuSqlDispatcher::" + op + col + "<" + types[opIdx] + ", " + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
 for operation in operations_string_unary:
     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
                   "DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"

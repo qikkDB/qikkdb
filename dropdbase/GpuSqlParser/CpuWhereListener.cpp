@@ -1,4 +1,5 @@
 #include "CpuWhereListener.h"
+#include <boost/algorithm/string.hpp>
 #include "../ColumnBase.h"
 
 constexpr float pi() { return 3.1415926f; }
@@ -306,6 +307,23 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext * 
 	pushTempResult(reg, returnDataType);
 }
 
+void CpuWhereListener::exitCastOperation(GpuSqlParser::CastOperationContext * ctx)
+{
+	std::pair<std::string, DataType> arg = stackTopAndPop();
+
+	DataType operandType = std::get<1>(arg);
+	pushArgument(std::get<0>(arg).c_str(), operandType);
+	std::string castTypeStr = ctx->DATATYPE()->getText();
+	stringToUpper(castTypeStr);
+	DataType castType = getDataTypeFromString(castTypeStr);
+
+	dispatcher.addCastOperation(operandType, castType, castTypeStr);
+
+	std::string reg = getRegString(ctx);
+	pushArgument(reg.c_str(), castType);
+	pushTempResult(reg, castType);
+}
+
 void CpuWhereListener::exitIntLiteral(GpuSqlParser::IntLiteralContext * ctx)
 {
 	std::string token = ctx->getText();
@@ -361,6 +379,14 @@ void CpuWhereListener::exitGeoReference(GpuSqlParser::GeoReferenceContext * ctx)
 
 void CpuWhereListener::exitVarReference(GpuSqlParser::VarReferenceContext * ctx)
 {
+	std::string colName = ctx->columnId()->getText();
+
+	if (columnAliasContexts.find(colName) != columnAliasContexts.end())
+	{
+		walkAliasExpression(colName);
+		return;
+	}
+
 	std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
 	const DataType columnType = std::get<1>(tableColumnData);
 	const std::string tableColumn = std::get<0>(tableColumnData);
@@ -428,6 +454,22 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext *ctx)
 				throw AliasRedefinitionException();
 			}
 			tableAliases.insert({ alias, table });
+		}
+	}
+}
+
+void CpuWhereListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext * ctx)
+{
+	for (auto& selectColumn : ctx->selectColumn())
+	{
+		if (selectColumn->alias())
+		{
+			std::string alias = selectColumn->alias()->getText();
+			if (columnAliasContexts.find(alias) != columnAliasContexts.end())
+			{
+				throw AliasRedefinitionException();
+			}
+			columnAliasContexts.insert({ alias, selectColumn->expression() });
 		}
 	}
 }
@@ -536,7 +578,12 @@ void CpuWhereListener::trimDelimitedIdentifier(std::string& str)
 
 std::string CpuWhereListener::getRegString(antlr4::ParserRuleContext * ctx)
 {
-	return std::string("$") + ctx->getText();
+	std::string reg = std::string("$") + ctx->getText();
+	for (auto& aliasColumn : columnAliasContexts)
+	{
+		boost::replace_all(reg, aliasColumn.first, aliasColumn.second->getText());
+	}
+	return reg;
 }
 
 DataType CpuWhereListener::getReturnDataType(DataType left, DataType right)
@@ -561,6 +608,11 @@ DataType CpuWhereListener::getReturnDataType(DataType operand)
 		return static_cast<DataType>(operand + DataType::COLUMN_INT);
 	}
 	return operand;
+}
+
+DataType CpuWhereListener::getDataTypeFromString(const std::string & dataType)
+{
+	return ::GetColumnDataTypeFromString(dataType);
 }
 
 std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName(GpuSqlParser::ColumnIdContext * ctx)
@@ -619,4 +671,10 @@ std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName
 	std::pair<std::string, DataType> tableColumnPair = std::make_pair(tableColumn, columnType);
 	
 	return tableColumnPair;
+}
+
+void CpuWhereListener::walkAliasExpression(const std::string & alias)
+{
+	antlr4::tree::ParseTreeWalker walker;
+	walker.walk(this, columnAliasContexts.at(alias));
 }

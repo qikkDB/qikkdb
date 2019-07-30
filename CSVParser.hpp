@@ -81,14 +81,14 @@ namespace aria {
 
 				// find nearest start of the line to start of the input (backward)
 				if (m_cursor > 0) {
-					while (m_inputbuf[m_cursor] != m_terminator && m_cursor > 0) {
+					while (m_inputbuf[m_cursor] != m_terminator && m_cursor >= 0) {
 						m_cursor--;
 					}
 					m_cursor++;
 				}
 				// find nearest end of the line to end of the input (backward)
 				if (m_inputbuf_size < m_file_size) {
-					while (m_inputbuf[m_inputbuf_size] != m_terminator && m_inputbuf_size > 0) {
+					while (m_inputbuf[m_inputbuf_size] != m_terminator && m_inputbuf_size >= 0) {
 						m_inputbuf_size--;
 					}
 					m_inputbuf_size++;

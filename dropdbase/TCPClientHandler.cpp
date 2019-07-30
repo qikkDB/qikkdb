@@ -14,19 +14,16 @@ std::mutex TCPClientHandler::queryMutex_;
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult()
 {
 	BOOST_LOG_TRIVIAL(debug) << "GetNextQueryResult()\n";
+	if (lastQueryResult_.valid())
+	{
+		lastResultMessage_ = lastQueryResult_.get();
+	}
 	if (lastResultMessage_ == nullptr)
 	{
-		if (lastQueryResult_.valid())
-		{
-			lastResultMessage_ = lastQueryResult_.get();
-		}
-		else
-		{
 			auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
 			infoMessage->set_message("");
 			infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 			return infoMessage;
-		}
 	}
 	auto* resultMessage = lastResultMessage_.get();
 	if (dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultMessage) == nullptr)

@@ -1228,8 +1228,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 	BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << SEPARATOR << table.first
 		<< SEPARATOR << column.second->GetName() << " .col" << std::endl;
 
-	std::ofstream colFile(pathStr + name + SEPARATOR + table.first + SEPARATOR + column.second->GetName() + ".col",
-		std::ios::binary);
+    std::ofstream colFile(pathStr + "/" + name + SEPARATOR + table.first + SEPARATOR + column.second->GetName() + ".col",
+                          std::ios::binary);
 
 	int32_t type = column.second->GetColumnType();
 	bool isNullable = column.second->GetIsNullable();

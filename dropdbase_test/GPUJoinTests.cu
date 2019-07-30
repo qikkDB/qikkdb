@@ -85,9 +85,9 @@ TEST(GPUJoinTests, JoinTest)
 			int32_t val1 = ColumnR_.GetBlocksList()[RColumnBlockId]->GetData()[RColumnRowId];
 			int32_t val2 = ColumnS_.GetBlocksList()[SColumnBlockId]->GetData()[SColumnRowId];
 
-			std:: cout << resultColumnQAJoinIdx[i][j] << " " << val1 << std::endl;
-			std:: cout << resultColumnQBJoinIdx[i][j] << " " << val2 << std::endl;
-			std:: cout << std::endl;
+			// std:: cout << resultColumnQAJoinIdx[i][j] << " " << val1 << std::endl;
+			// std:: cout << resultColumnQBJoinIdx[i][j] << " " << val2 << std::endl;
+			// std:: cout << std::endl;
 
 			ASSERT_EQ(val1, val2);
 		}
@@ -136,9 +136,9 @@ TEST(GPUJoinTests, JoinTestEmpty)
 			int32_t val1 = ColumnR_.GetBlocksList()[RColumnBlockId]->GetData()[RColumnRowId];
 			int32_t val2 = ColumnS_.GetBlocksList()[SColumnBlockId]->GetData()[SColumnRowId];
 
-			std:: cout << resultColumnQAJoinIdx[i][j] << " " << val1 << std::endl;
-			std:: cout << resultColumnQBJoinIdx[i][j] << " " << val2 << std::endl;
-			std:: cout << std::endl;
+			// std:: cout << resultColumnQAJoinIdx[i][j] << " " << val1 << std::endl;
+			// std:: cout << resultColumnQBJoinIdx[i][j] << " " << val2 << std::endl;
+			// std:: cout << std::endl;
 
 			ASSERT_EQ(val1, val2);
 		}

@@ -1,4 +1,4 @@
-/// \mainpage Project summary
+﻿/// \mainpage Project summary
 /// SQL-like database application with query executing on GPU.
 /// <br />
 /// <b>Used programming language:</b>
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	}
 	boost::log::init_from_stream(logConfigFile);
 	*/
-	
+
 	//std::string dbName = "TestDatabase";
 	//std::vector<std::string> tableNames = { "TestTable1" };
 	//std::vector<DataType> columnTypes = { {COLUMN_INT},
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	{
 		CSVDataImporter csvDataImporter(argv[1]);
 		////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
-		std::shared_ptr<Database> database = std::make_shared<Database>(argc > 2? argv[2] : "TestDb", 1048576);
+		std::shared_ptr<Database> database = std::make_shared<Database>(argc > 2 ? argv[2] : "TestDb", 1048576);
 		Database::AddToInMemoryDatabaseList(database);
 		BOOST_LOG_TRIVIAL(info) << "Loading CSV from \"" << argv[1] << "\"";
 		csvDataImporter.ImportTables(database);
@@ -83,14 +83,14 @@ int main(int argc, char **argv)
 	BOOST_LOG_TRIVIAL(info) << "Loading databases...";
 	Database::LoadDatabasesFromDisk();
 	BOOST_LOG_TRIVIAL(info) << "All databases loaded.";
-	
+
 	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
 	RegisterCtrlCHandler(&tcpServer);
 	tcpServer.Run();
 
 	Database::SaveAllToDisk();
 	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
-	
+
 	/*CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
 	std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 100000000);
 	Database::AddToInMemoryDatabaseList(database);

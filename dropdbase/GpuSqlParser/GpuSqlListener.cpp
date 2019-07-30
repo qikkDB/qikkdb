@@ -17,6 +17,7 @@
 #include <sstream>
 #include <locale>
 #include <iomanip>
+#include <boost/algorithm/string.hpp>
 
 /// <summary>
 /// Definition of PI constant
@@ -44,6 +45,7 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	insideOrderBy(false),
 	insideSelectColumn(false), 
 	isAggSelectColumn(false),
+	isSelectColumnValid(false),
 	resultLimit(std::numeric_limits<int64_t>::max()),
 	resultOffset(0)
 {
@@ -219,6 +221,12 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 	}
 
 	std::string reg = getRegString(ctx);
+
+	if (groupByColumns.find({ reg, returnDataType }) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
+
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
 }
@@ -448,8 +456,72 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	}
 
 	std::string reg = getRegString(ctx);
+
+	if (groupByColumns.find({ reg, returnDataType }) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
+
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
+}
+
+void GpuSqlListener::exitCastOperation(GpuSqlParser::CastOperationContext * ctx)
+{
+	std::pair<std::string, DataType> arg = stackTopAndPop();
+
+	DataType operandType = std::get<1>(arg);
+	pushArgument(std::get<0>(arg).c_str(), operandType);
+	std::string castTypeStr = ctx->DATATYPE()->getText();
+	stringToUpper(castTypeStr);
+	DataType castType = getDataTypeFromString(castTypeStr);
+
+	switch (castType)
+	{
+	case COLUMN_INT:
+		dispatcher.addCastToIntFunction(operandType);
+		break;
+	case COLUMN_LONG:
+		if(castTypeStr == "DATE")
+		{
+			dispatcher.addCastToDateFunction(operandType);
+		}
+		else
+		{
+			dispatcher.addCastToLongFunction(operandType);
+		}
+		break;
+	case COLUMN_FLOAT:
+		dispatcher.addCastToFloatFunction(operandType);
+		break;
+	case COLUMN_DOUBLE:
+		dispatcher.addCastToDoubleFunction(operandType);
+		break;
+	case COLUMN_STRING:
+		dispatcher.addCastToStringFunction(operandType);
+		break;
+	case COLUMN_POINT:
+		dispatcher.addCastToPointFunction(operandType);
+		break;
+	case COLUMN_POLYGON:
+		dispatcher.addCastToPolygonFunction(operandType);
+		break;
+	case COLUMN_INT8_T:
+		dispatcher.addCastToInt8tFunction(operandType);
+		break;
+	default:
+		break;
+	}
+
+	std::string reg = getRegString(ctx);
+
+	if (groupByColumns.find({ reg, castType }) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
+
+	pushArgument(reg.c_str(), castType);
+	pushTempResult(reg, castType);
 }
 
 /// <summary>
@@ -524,12 +596,16 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
         dispatcher.addAvgFunction(keyType, valueType, groupByType);
 		returnDataType = getReturnDataType(valueType);
     }
-
-	insideAgg = false;
 	std::string reg = getRegString(ctx);
+
+	if (insideSelectColumn)
+	{
+		isSelectColumnValid = true;
+	}
 
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
+	insideAgg = false;
 }
 
 /// Method that executes on exit of SELECT clause (return columns)
@@ -558,6 +634,7 @@ void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext *ctx)
 void GpuSqlListener::enterSelectColumn(GpuSqlParser::SelectColumnContext * ctx)
 {
 	insideSelectColumn = true;
+	isSelectColumnValid = !usingGroupBy;
 }
 
 
@@ -572,6 +649,12 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 	std::pair<std::string, DataType> arg = stackTopAndPop();
 	std::string colName = std::get<0>(arg);
 	DataType retType = std::get<1>(arg);
+
+	if (!isSelectColumnValid)
+	{
+		throw ColumnGroupByException();
+	}
+
 	std::string alias;
 	
 	if (ctx->alias())
@@ -590,13 +673,37 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 		alias = colName;
 	}
 
-	returnColumns.insert({ colName, {retType, alias } });
+	if (returnColumns.find(colName) == returnColumns.end())
+	{
+		returnColumns.insert({ colName, {retType, alias } });
 
-	dispatcher.addArgument<const std::string&>(colName);
-	dispatcher.addLockRegisterFunction();
+		dispatcher.addArgument<const std::string&>(colName);
+		dispatcher.addLockRegisterFunction();
+	}
 
 	insideSelectColumn = false;
 	isAggSelectColumn = false;
+}
+
+void GpuSqlListener::exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext * ctx)
+{
+	for (auto& tableName : loadedTables)
+	{
+		const Table& table = database->GetTables().at(tableName);
+		for (auto& columnPair : table.GetColumns())
+		{
+			std::string colName = tableName + "." + columnPair.first;
+			DataType retType = columnPair.second->GetColumnType();
+
+			if (returnColumns.find(colName) == returnColumns.end())
+			{
+				returnColumns.insert({ colName, {retType, colName } });
+
+				dispatcher.addArgument<const std::string&>(colName);
+				dispatcher.addLockRegisterFunction();
+			}
+		}
+	}
 }
 
 
@@ -888,7 +995,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ct
 	}
 
 	std::unordered_map<std::string, DataType> newColumns;
-	std::unordered_map<std::string, std::unordered_set<std::string>> newIndices;
+	std::unordered_map<std::string, std::vector<std::string>> newIndices;
 
 	for (auto& entry : ctx->newTableEntries()->newTableEntry())
 	{
@@ -917,7 +1024,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ct
 				throw IndexAlreadyExistsException();
 			}
 
-			std::unordered_set<std::string> indexColumns;
+			std::vector<std::string> indexColumns;
 			for (auto& column : newColumnContext->indexColumns()->column())
 			{
 				std::string indexColumnName = column->getText();
@@ -927,11 +1034,11 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext * ct
 				{
 					throw ColumnNotFoundException();
 				}
-				if (indexColumns.find(indexColumnName) != indexColumns.end())
+				if (std::find(indexColumns.begin(), indexColumns.end(), indexColumnName) != indexColumns.end())
 				{
 					throw ColumnAlreadyExistsInIndexException();
 				}
-				indexColumns.insert(indexColumnName);
+				indexColumns.push_back(indexColumnName);
 			}
 			newIndices.insert({indexName, indexColumns});
 		}
@@ -1057,7 +1164,7 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * ct
 
 	//check if index already exists
 
-	std::unordered_set<std::string> indexColumns;
+	std::vector<std::string> indexColumns;
 
 	for (auto& column : ctx->indexColumns()->column())
 	{
@@ -1069,11 +1176,11 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * ct
 		{
 			throw ColumnNotFoundException();
 		}
-		if (indexColumns.find(indexColumnName) != indexColumns.end())
+		if (std::find(indexColumns.begin(), indexColumns.end(), indexColumnName) != indexColumns.end())
 		{
 			throw ColumnAlreadyExistsInIndexException();
 		}
-		indexColumns.insert(indexColumnName);
+		indexColumns.push_back(indexColumnName);
 	}
 
 	dispatcher.addCreateIndexFunction();
@@ -1267,6 +1374,22 @@ bool GpuSqlListener::GetUsingWhere()
 	return usingWhere;
 }
 
+void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext * ctx)
+{
+	for (auto& selectColumn : ctx->selectColumn())
+	{
+		if (selectColumn->alias())
+		{
+			std::string alias = selectColumn->alias()->getText();
+			if (columnAliasContexts.find(alias) != columnAliasContexts.end())
+			{
+				throw AliasRedefinitionException();
+			}
+			columnAliasContexts.insert({ alias, selectColumn->expression() });
+		}
+	}
+}
+
 /// Method that executes on exit of integer literal (10, 20, 5, ...)
 /// Infers token data type (int or long)
 /// Pushes the literal token to parser stack along with its inferred data type (int or long)
@@ -1323,6 +1446,14 @@ void GpuSqlListener::exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx
 /// <param name="ctx">Var Reference context</param>
 void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 {
+	std::string colName = ctx->columnId()->getText();
+
+	if (columnAliasContexts.find(colName) != columnAliasContexts.end())
+	{
+		walkAliasExpression(colName);
+		return;
+	}
+
     std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
     const DataType columnType = std::get<1>(tableColumnData);
 	const std::string tableColumn = std::get<0>(tableColumnData);
@@ -1333,6 +1464,11 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 	if (GpuSqlDispatcher::linkTable.find(tableColumn) == GpuSqlDispatcher::linkTable.end())
 	{
 		GpuSqlDispatcher::linkTable.insert({ tableColumn, linkTableIndex++ });
+	}
+
+	if (groupByColumns.find(tableColumnData) != groupByColumns.end() && insideSelectColumn)
+	{
+		isSelectColumnValid = true;
 	}
 }
 
@@ -1470,6 +1606,23 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
     }
 
     return tableColumnPair;
+}
+
+void GpuSqlListener::walkAliasExpression(const std::string & alias)
+{
+	antlr4::tree::ParseTreeWalker walker;
+	walker.walk(this, columnAliasContexts.at(alias));
+}
+
+void GpuSqlListener::LockAliasRegisters()
+{
+	for (auto& aliasContext : columnAliasContexts)
+	{
+		std::string reg = getRegString(aliasContext.second);
+		dispatcher.addArgument<const std::string&>(reg);
+		dispatcher.addLockRegisterFunction();
+
+	}
 }
 
 /// Method used to pop contnt from parser stack
@@ -1618,7 +1771,12 @@ void GpuSqlListener::trimDelimitedIdentifier(std::string & str)
 /// <returns="reg">Prefixed register name</returns>
 std::string GpuSqlListener::getRegString(antlr4::ParserRuleContext* ctx)
 {
-	return std::string("$") + ctx->getText();
+	std::string reg = std::string("$") + ctx->getText();
+	for (auto& aliasColumn : columnAliasContexts)
+	{
+		boost::replace_all(reg, aliasColumn.first, aliasColumn.second->getText());
+	}
+	return reg;
 }
 
 /// Defines return data type for binary operation
@@ -1655,45 +1813,7 @@ DataType GpuSqlListener::getReturnDataType(DataType operand)
 	return operand;
 }
 
-DataType GpuSqlListener::getDataTypeFromString(std::string dataType)
+DataType GpuSqlListener::getDataTypeFromString(const std::string& dataType)
 {
-	std::string type = dataType;
-	stringToUpper(type);
-
-	if (type == "INT")
-	{
-		return DataType::COLUMN_INT;
-	}
-	else if (type == "LONG")
-	{
-		return DataType::COLUMN_LONG;
-	}
-	else if (type == "FLOAT")
-	{
-		return DataType::COLUMN_FLOAT;
-	}
-	else if (type == "DOUBLE")
-	{
-		return DataType::COLUMN_DOUBLE;
-	}
-	else if (type == "POINT")
-	{
-		return DataType::COLUMN_POINT;
-	}
-	else if (type == "POLYGON")
-	{
-		return DataType::COLUMN_POLYGON;
-	}
-	else if (type == "STRING")
-	{
-		return DataType::COLUMN_STRING;
-	}
-	else if (type == "BOOLEAN")
-	{
-		return DataType::COLUMN_INT8_T;
-	}
-	else
-	{
-		return DataType::CONST_ERROR;
-	}
+	return ::GetColumnDataTypeFromString(dataType);
 }

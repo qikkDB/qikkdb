@@ -12,7 +12,7 @@ namespace ColmnarDB.ConsoleClient
         /// Reads input from console
         /// commands:
         /// use [database]
-        /// query [query]
+        /// [query]
         /// import [file path]
         /// help
         /// exit
@@ -30,18 +30,20 @@ namespace ColmnarDB.ConsoleClient
 
             while (!exit)
             {
-                // wholeCommand = command + parameters
-                Console.Out.Write("> ");
-                string wholeCommand = Console.ReadLine();
+                string wholeCommand = ReadLine.Read("> ");
                 string[] splitCommand = wholeCommand.Split(" ");
 
-                string command = splitCommand[0];
+                string command = splitCommand[0].ToLower();
                 string parameters = "";
                 string database = "";
                 string filePath = "";
 
-                // get parameters
-                if (splitCommand.Length > 1) 
+                if (command != "exit" && command != "use" && command != "import" && command != "help")
+                {
+                    parameters = wholeCommand;
+                    command = "query";
+                } 
+                else if (splitCommand.Length > 1) 
                 {
                     parameters = wholeCommand.Substring(command.Length + 1);
                 }
@@ -93,7 +95,7 @@ namespace ColmnarDB.ConsoleClient
 
                         Console.WriteLine();
                         Console.WriteLine(String.Format(format, "use [database]", "Set current working database"));
-                        Console.WriteLine(String.Format(format, "query [query]", "Run given query"));
+                        Console.WriteLine(String.Format(format, "[query]", "Run given query"));
                         Console.WriteLine(String.Format(format, "import [database] [file path]", "Import given .csv file into database"));
                         Console.WriteLine(String.Format(format, "help", "Show information about commands"));
                         Console.WriteLine(String.Format(format, "exit", "Exit the console"));
@@ -105,8 +107,6 @@ namespace ColmnarDB.ConsoleClient
 
                 }
             }
-
         }
-        
     }
 }

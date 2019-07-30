@@ -26,7 +26,7 @@ CudaMemAllocator::CudaMemAllocator(int32_t deviceID) :
 	chainedBlocks_.push_back({ false, blocksBySize_.end(), free - RESERVED_MEMORY, cudaBufferStart_ });
 	(*chainedBlocks_.begin()).sizeOrderIt = blocksBySize_.emplace(std::make_pair(free - RESERVED_MEMORY, chainedBlocks_.begin()));
 #ifdef DEBUG_ALLOC
-	logOut = fopen("/home/jvesely/alloc.log", "a");
+	logOut = fopen("/home/ubuntu/dbg-alloc.log", "a");
 	fprintf(logOut, "CudaMemAllocator %d\n", deviceID);
 	fprintf(logOut, "Available blocks: %zu\n", chainedBlocks_.size());
 	for (auto & ptrs : chainedBlocks_)
@@ -66,11 +66,27 @@ int8_t * CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 	{
 		throw std::out_of_range("Invalid allocation size");
 	}
+#ifdef DEBUG_ALLOC          
+	fprintf(logOut, "%d CudaMemAllocator::allocate %zu bytes\n", deviceID_, numBytes);
+	fprintf(logOut, "-- Backtrace start --\n");
+	void* backtraceArray[25];
+	int btSize = backtrace(backtraceArray, 25);
+	char** symbols = backtrace_symbols(backtraceArray,btSize);
+	for(int i = 0; i < btSize; i++)
+	{
+		fprintf(logOut, "%d: %s\n",i,symbols[i]);
+	}
+	fprintf(logOut, "-- Backtrace end --\n");
+	fflush(logOut);
+#endif
 	//Minimal allocation unit is 512bytes, same as cudaMalloc. Thurst relies on this internally.
 	std::size_t alignedSize = numBytes % 512 == 0 ? numBytes : numBytes + (512 - numBytes % 512);
 	auto it = blocksBySize_.lower_bound(alignedSize);
 	if (it == blocksBySize_.end())
 	{
+#ifdef DEBUG_ALLOC  
+		fprintf(logOut, "Out of GPU memory\n");
+#endif
 		throw std::out_of_range("Out of GPU memory");
 	}
 	auto blockInfoIt = (*it).second;
@@ -82,7 +98,7 @@ int8_t * CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 	blocksBySize_.erase(it);
 	allocatedBlocks_.emplace(std::make_pair((*blockInfoIt).ptr, blockInfoIt));
 #ifdef DEBUG_ALLOC
-	fprintf(logOut,"%d CudaMemAllocator::allocate %p %zu\n", deviceID_, (*blockInfoIt).ptr, alignedSize);
+	fprintf(logOut,"%d                -allocated %p %zu\n", deviceID_, (*blockInfoIt).ptr, alignedSize);
 	fflush(logOut);
 #endif
 	return static_cast<int8_t*>((*blockInfoIt).ptr);

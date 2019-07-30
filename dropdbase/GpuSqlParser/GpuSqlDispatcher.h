@@ -174,6 +174,24 @@ private:
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> leftFunctions;
 	static std::array<GpuSqlDispatcher::DispatchFunction,
 			DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rightFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToIntFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToLongFunctions;
+	//static std::array<GpuSqlDispatcher::DispatchFunction,
+	//		DataType::DATA_TYPE_SIZE> castToDateFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToFloatFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToDoubleFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToStringFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToPointFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToPolygonFunctions;
+	static std::array<GpuSqlDispatcher::DispatchFunction,
+			DataType::DATA_TYPE_SIZE> castToInt8tFunctions;
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> logicalNotFunctions;
 	static std::array<DispatchFunction, 
@@ -436,6 +454,24 @@ public:
 
 	void addUnionFunction(DataType left, DataType right);
 
+	void addCastToIntFunction(DataType operand);
+
+	void addCastToLongFunction(DataType operand);
+
+	void addCastToDateFunction(DataType operand);
+
+	void addCastToFloatFunction(DataType operand);
+
+	void addCastToDoubleFunction(DataType operand);
+
+	void addCastToStringFunction(DataType operand);
+
+	void addCastToPointFunction(DataType operand);
+
+	void addCastToPolygonFunction(DataType operand);
+
+	void addCastToInt8tFunction(DataType operand);
+
     void addLogicalNotFunction(DataType type);
 
 	void addIsNullFunction();
@@ -585,12 +621,12 @@ public:
 		{
 			int32_t bitMaskSize = ((size + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
 			GPUMemory::alloc<int8_t>(nullPointerMask, bitMaskSize);
-			allocatedPointers.insert({ reg + NULL_SUFFIX, PointerAllocation{reinterpret_cast<std::uintptr_t>(*nullPointerMask), bitMaskSize, true, 0}});
-			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true, reinterpret_cast<std::uintptr_t>(*nullPointerMask)}});
+			InsertRegister(reg + NULL_SUFFIX, PointerAllocation{reinterpret_cast<std::uintptr_t>(*nullPointerMask), bitMaskSize, true, 0});
+			InsertRegister(reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true, reinterpret_cast<std::uintptr_t>(*nullPointerMask)});
 		}
 		else
 		{
-			allocatedPointers.insert({ reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true, 0}});
+			InsertRegister(reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true, 0});
 		}
 		
 		usedRegisterMemory += size * sizeof(T);
@@ -598,16 +634,16 @@ public:
 	}
 
 	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
-	std::string getAllocatedRegisterName(const std::string& reg);
 	
-
+	/// Check if registerName is contained in allocatedPointers and if so, throw; if not, insert register
+	void InsertRegister(const std::string& registerName, PointerAllocation registerValues);
 
 	void fillStringRegister(GPUMemory::GPUString& stringColumn, const std::string& reg, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
 
 	template<typename T>
 	void addCachedRegister(const std::string& reg, T* ptr, int32_t size, int8_t* nullMaskPtr = nullptr)
 	{
-		allocatedPointers.insert({ reg, {reinterpret_cast<std::uintptr_t>(ptr), size, false, reinterpret_cast<std::uintptr_t>(nullMaskPtr)} });
+		InsertRegister(reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(ptr), size, false, reinterpret_cast<std::uintptr_t>(nullMaskPtr)});
 	}
 
 	template<typename T>
@@ -620,10 +656,18 @@ public:
 	{
 		if (usedRegisterMemory > maxRegisterMemory && !col.empty() && col.front() == '$' && registerLockList.find(col) == registerLockList.end())
 		{
+			std::cout << "Free: " << col << std::endl;
+			
 			GPUMemory::free(reinterpret_cast<void*>(allocatedPointers.at(col).gpuPtr));
 			usedRegisterMemory -= allocatedPointers.at(col).elementCount * sizeof(T);
 			allocatedPointers.erase(col);
-			std::cout << "Free: " << col << std::endl;
+
+			if(allocatedPointers.find(col + NULL_SUFFIX) != allocatedPointers.end())
+			{
+				GPUMemory::free(reinterpret_cast<void*>(allocatedPointers.at(col + NULL_SUFFIX).gpuPtr));
+				usedRegisterMemory -= allocatedPointers.at(col + NULL_SUFFIX).elementCount * sizeof(int8_t);
+				allocatedPointers.erase(col + NULL_SUFFIX);
+			}
 		}
 	}
 
@@ -836,6 +880,12 @@ public:
 
     template <typename OP, typename T, typename U>
     int32_t polygonOperationConstConst();
+
+	template<typename OUT, typename IN>
+	int32_t castNumericCol();
+
+	template<typename OUT, typename IN>
+	int32_t castNumericConst();
 
     int32_t between();
 

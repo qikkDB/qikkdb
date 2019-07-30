@@ -27,7 +27,7 @@ int32_t GpuSqlDispatcher::orderByCol()
 		if (isOverallLastBlock)
 		{
 			std::cout << "Order by: " << colName << std::endl;
-			PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName) +
+			PointerAllocation column = allocatedPointers.at(colName +
 					(std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end() ?
 					 KEYS_SUFFIX : ""));
 			int32_t inSize = column.elementCount;
@@ -55,7 +55,7 @@ int32_t GpuSqlDispatcher::orderByCol()
 	else
 	{
 		std::cout << "Order by: " << colName << std::endl;
-		PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName));
+		PointerAllocation column = allocatedPointers.at(colName);
 		int32_t inSize = column.elementCount;
 
 		if (orderByTable == nullptr)
@@ -98,7 +98,7 @@ int32_t GpuSqlDispatcher::orderByReconstructOrderCol()
 			return loadFlag;
 		}
 
-		PointerAllocation col = allocatedPointers.at(getAllocatedRegisterName(colName));
+		PointerAllocation col = allocatedPointers.at(colName);
 		size_t inSize = col.elementCount;
 		size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 
@@ -148,7 +148,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetCol()
 			return loadFlag;
 		}
 
-		PointerAllocation col = allocatedPointers.at(getAllocatedRegisterName(colName));
+		PointerAllocation col = allocatedPointers.at(colName);
 		int32_t inSize = col.elementCount;
 		size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 

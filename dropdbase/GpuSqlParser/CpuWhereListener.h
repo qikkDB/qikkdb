@@ -13,6 +13,7 @@ private:
 	const std::shared_ptr<Database> &database;
 	int32_t blockIndex;
 	CpuSqlDispatcher &dispatcher;
+	std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts;
 	std::unordered_map<std::string, std::string> tableAliases;
 	std::unordered_set<std::string> loadedTables;
 	std::stack<std::pair<std::string, DataType>> parserStack;
@@ -36,8 +37,10 @@ private:
 	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
+	DataType getDataTypeFromString(const std::string& dataType);
 
 	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+	void walkAliasExpression(const std::string & alias);
 
 public:
 	CpuWhereListener(const std::shared_ptr<Database> &database, CpuSqlDispatcher &dispatcher);
@@ -47,6 +50,8 @@ public:
 	void exitTernaryOperation(GpuSqlParser::TernaryOperationContext *ctx) override;
 
 	void exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) override;
+
+	void exitCastOperation(GpuSqlParser::CastOperationContext *ctx) override;
 
 	void exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx) override;
 
@@ -69,4 +74,7 @@ public:
 	void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) override;
 
 	void exitFromTables(GpuSqlParser::FromTablesContext *ctx) override;
+
+	void ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext * ctx);
+	
 };

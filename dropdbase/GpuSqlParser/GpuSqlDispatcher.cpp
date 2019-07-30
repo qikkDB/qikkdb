@@ -454,6 +454,51 @@ void GpuSqlDispatcher::addUnionFunction(DataType left, DataType right)
     dispatcherFunctions.push_back(unionFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
+void GpuSqlDispatcher::addCastToIntFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToIntFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToLongFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToLongFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToDateFunction(DataType operand)
+{
+	//dispatcherFunctions.push_back(castToDateFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToFloatFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToFloatFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToDoubleFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToDoubleFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToStringFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToStringFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToPointFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToPointFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToPolygonFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToPolygonFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToInt8tFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToInt8tFunctions[operand]);
+}
+
 void GpuSqlDispatcher::addLogicalNotFunction(DataType type)
 {
     dispatcherFunctions.push_back(logicalNotFunctions[type]);
@@ -731,32 +776,29 @@ void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType o
 
 void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string & reg, int32_t size, bool useCache, int8_t* nullMaskPtr)
 {
-	allocatedPointers.insert({ reg + "_polyPoints", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyPoints), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
-	allocatedPointers.insert({ reg + "_pointIdx", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointIdx), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
-	allocatedPointers.insert({ reg + "_pointCount", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointCount), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
-	allocatedPointers.insert({ reg + "_polyIdx", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
-	allocatedPointers.insert({ reg + "_polyCount", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyCount), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
+	InsertRegister(reg + "_polyPoints", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyPoints), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_pointIdx", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointIdx), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_pointCount", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointCount), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_polyIdx", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_polyCount", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyCount), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
 }
 
-
-std::string GpuSqlDispatcher::getAllocatedRegisterName(const std::string & reg)
+void GpuSqlDispatcher::InsertRegister(const std::string& registerName, PointerAllocation registerValues)
 {
-	if (usingJoin && reg.front() != '$')
+	if(allocatedPointers.find(registerName) == allocatedPointers.end())
 	{
-		std::string joinReg = reg + "_join";
-		for (auto& joinTable : *joinIndices)
-		{
-			joinReg += "_" + joinTable.first;
-		}
-		return joinReg;
+		allocatedPointers.insert({registerName, registerValues});
 	}
-	return reg;
+	else
+	{
+		throw std::runtime_error("Attempt to overwrite existing register \"" + registerName + "\"");
+	}
 }
 
 void GpuSqlDispatcher::fillStringRegister(GPUMemory::GPUString & stringColumn, const std::string & reg, int32_t size, bool useCache, int8_t* nullMaskPtr)
 {
-	allocatedPointers.insert({ reg + "_stringIndices", PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.stringIndices), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
-	allocatedPointers.insert({ reg + "_allChars", PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.allChars), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
+	InsertRegister(reg + "_stringIndices", PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.stringIndices), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_allChars", PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.allChars), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
 }
 
 int32_t GpuSqlDispatcher::loadColNullMask(std::string & colName)
@@ -1066,7 +1108,7 @@ int32_t GpuSqlDispatcher::dropDatabase()
 int32_t GpuSqlDispatcher::createTable()
 {
 	std::unordered_map<std::string, DataType> newColumns;
-	std::unordered_map<std::string, std::unordered_set<std::string>> newIndices;
+	std::unordered_map<std::string, std::vector<std::string>> newIndices;
 
 	std::string newTableName = arguments.read<std::string>();
 
@@ -1078,26 +1120,28 @@ int32_t GpuSqlDispatcher::createTable()
 		newColumns.insert({ newColumnName, static_cast<DataType>(newColumnDataType) });
 	}
 
-	std::unordered_set<std::string> allIndexColumns;
+	std::vector<std::string> allIndexColumns;
 
 	int32_t newIndexCount = arguments.read<int32_t>();
 	for (int32_t i = 0; i < newIndexCount; i++)
 	{
 		std::string newIndexName = arguments.read<std::string>();
 		int32_t newIndexColumnCount = arguments.read<int32_t>();
-		std::unordered_set<std::string> newIndexColumns;
+		std::vector<std::string> newIndexColumns;
 
 		for (int32_t j = 0; j < newIndexColumnCount; j++)
 		{
 			std::string newIndexColumn = arguments.read<std::string>();
-			newIndexColumns.insert(newIndexColumn);
-			allIndexColumns.insert(newIndexColumn);
+			newIndexColumns.push_back(newIndexColumn);
+			if (std::find(allIndexColumns.begin(), allIndexColumns.end(), newIndexColumn) == allIndexColumns.end())
+			{
+				allIndexColumns.push_back(newIndexColumn);
+			}
 		}
 		newIndices.insert({ newIndexName, newIndexColumns });
 	}
 
-	std::vector<std::string> allIndexColumnsVector(allIndexColumns.begin(), allIndexColumns.end());
-	database->CreateTable(newColumns, newTableName.c_str()).SetSortingColumns(allIndexColumnsVector);
+	database->CreateTable(newColumns, newTableName.c_str()).SetSortingColumns(allIndexColumns);
 	return 8;
 }
 
@@ -1137,24 +1181,24 @@ int32_t GpuSqlDispatcher::createIndex()
 {
 	std::string	indexName = arguments.read<std::string>();
 	std::string tableName = arguments.read<std::string>();
-	std::unordered_set<std::string> indexColumns;
-	std::unordered_set<std::string> sortingColumns;
+	std::vector<std::string> sortingColumns;
+
+	for (auto& column : database->GetTables().at(tableName).GetSortingColumns())
+	{
+		sortingColumns.push_back(column);
+	}
 
 	int32_t indexColumnCount = arguments.read<int32_t>();
 	for (int i = 0; i < indexColumnCount; i++)
 	{
 		std::string indexColumn = arguments.read<std::string>();
-		indexColumns.insert(indexColumn);
-		sortingColumns.insert(indexColumn);
+		if (std::find(sortingColumns.begin(), sortingColumns.end(), indexColumn) == sortingColumns.end())
+		{
+			sortingColumns.push_back(indexColumn);
+		}
 	}
 
-	for (auto& column : database->GetTables().at(tableName).GetSortingColumns())
-	{
-		sortingColumns.insert(column);
-	}
-
-	std::vector<std::string> sortingColumnsVector(sortingColumns.begin(), sortingColumns.end());
-	database->GetTables().at(tableName).SetSortingColumns(sortingColumnsVector);
+	database->GetTables().at(tableName).SetSortingColumns(sortingColumns);
 
 	return 11;
 }

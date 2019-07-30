@@ -254,13 +254,11 @@ protected:
 	}
 
 	void GBOBKeysGenericTest(std::string aggregationFunction,
-		std::vector<std::string> keys,
-		std::vector<int32_t> values,
+		std::vector<int32_t> keys,
 		std::unordered_map<int32_t, int32_t> expectedResult)
 	{
 		auto columns = std::unordered_map<std::string, DataType>();
 		columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
-		columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
 		columns.insert(std::make_pair<std::string, DataType>("colInteger", DataType::COLUMN_INT));
 		groupByDatabase->CreateTable(columns, tableName.c_str());
 
@@ -273,12 +271,9 @@ protected:
 		reinterpret_cast<ColumnBase<int32_t>*>(
 			groupByDatabase->GetTables().at(tableName).GetColumns().at("colID").get())
 			->InsertData(colID);
-		reinterpret_cast<ColumnBase<std::string>*>(
-			groupByDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
-			->InsertData(keys);
 		reinterpret_cast<ColumnBase<int32_t>*>(
 			groupByDatabase->GetTables().at(tableName).GetColumns().at("colInteger").get())
-			->InsertData(values);
+			->InsertData(keys);
 
 		// Execute the query
 		GpuSqlCustomParser parser(groupByDatabase,
@@ -694,7 +689,6 @@ TEST_F(DispatcherGroupByTests, MultiKeyIntIntStringSum)
 TEST_F(DispatcherGroupByTests, IntegerSimpleSumOrderByKeys)
 {
 	GBOBKeysGenericTest("SUM",
-		{ "Apple", "Abcd", "Apple", "XYZ", "Banana", "XYZ", "Abcd", "0", "XYZ", "XYZ" },
 		{ 10,	10,	  2,	 2,		6,	   6,   4,   4,   8,     8, },
 		{ {2, 5}, {4, 13}, {6, 9}, {8, 17}, {10, 1} });
 }

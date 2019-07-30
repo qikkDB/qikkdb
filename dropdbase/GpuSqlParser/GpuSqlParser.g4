@@ -30,8 +30,9 @@ dropColumn          : (DROPCOLUMN column);
 alterColumn         : (ALTERCOLUMN column DATATYPE);
 newTableColumn      : (column DATATYPE);
 newTableIndex       : (INDEX indexName LPAREN indexColumns RPAREN);
-selectColumns       : (((selectColumn) (COMMA selectColumn)*));
+selectColumns       : (((selectColumn | selectAllColumns) (COMMA (selectColumn | selectAllColumns))*));
 selectColumn        : expression (AS alias)?;
+selectAllColumns    : ASTERISK;
 whereClause         : expression;
 orderByColumns      : ((orderByColumn (COMMA orderByColumn)*));
 orderByColumn       : (expression DIR?);
@@ -117,6 +118,7 @@ expression : op=LOGICAL_NOT expression                                          
            | expression op=BETWEEN expression op2=AND expression                          # ternaryOperation
            | left=expression op=AND right=expression                                      # binaryOperation
            | left=expression op=OR right=expression                                       # binaryOperation
+           | op=CAST LPAREN expression AS DATATYPE RPAREN                                 # castOperation
            | LPAREN expression RPAREN                                                     # parenExpression
            | columnId                                                                     # varReference
            | geometry                                                                     # geoReference

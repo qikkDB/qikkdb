@@ -56,12 +56,12 @@ private:
 			}
 			catch (YAML::TypedBadConversion<T>&) {
 				//BOOST_LOG_TRIVIAL(warning) << "Configuration entry wrong conversion, using default value." << std::endl;
-				std::cerr << "Configuration entry wrong conversion, using default value." << std::endl;
+				std::cerr << "Configuration entry (" << entryKey << ") has a wrong conversion, using default value." << std::endl;
 			}			
 		}
 		else {
             //BOOST_LOG_TRIVIAL(warning) << "Configuration entry not found, using default value." << std::endl;
-			std::cerr << "Configuration entry not found, using default value." << std::endl;
+			std::cerr << "Configuration entry (" << entryKey << ") not found, using default value." << std::endl;
 		}
 	}
 
