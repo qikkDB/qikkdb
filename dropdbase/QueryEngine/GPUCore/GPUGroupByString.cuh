@@ -478,7 +478,10 @@ public:
             // not reinterpreting anything here actually, outValues is int64_t** always in this else-branch
             GPUReconstruct::reconstructColKeep(reinterpret_cast<int64_t**>(outValues), outDataElementCount, keyOccurrenceCount_,
                                                occupancyMask.get(), maxHashCount_);
-			// TODO deal with outValuesNullMask - set to nullptr or allocate and set to zeros
+            if (outValuesNullMask)
+            {
+                GPUMemory::allocAndSet(outValuesNullMask, 0, (*outDataElementCount + sizeof(int8_t) * 8 - 1)/(sizeof(int8_t) * 8));
+            }
         }
     }
 
