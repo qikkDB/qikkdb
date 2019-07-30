@@ -13,6 +13,7 @@
 #include "../StringFactory.h"
 #include "../Database.h"
 #include "../Table.h"
+#include "LoadColHelper.h"
 #include <any>
 #include <string>
 #include <unordered_map>
@@ -108,6 +109,9 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
 		context.bindDeviceToContext(dispatcherThreadId);
 		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
+
+		LoadColHelper& loadColHelper = LoadColHelper::getInstance();
+
 		int32_t err = 0;
 
 		while (err == 0)
@@ -167,6 +171,7 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 				if (err == 12)
 				{
 					std::cout << "Load skipped" << std::endl;
+					loadColHelper.countSkippedBlocks++;
 					err = 0;
 					continue;
 				}

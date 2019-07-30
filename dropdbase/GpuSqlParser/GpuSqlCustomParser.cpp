@@ -16,6 +16,7 @@
 #include <google/protobuf/message.h>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "../Database.h"
+#include "LoadColHelper.h"
 #include <iostream>
 #include <future>
 #include <thread>
@@ -24,7 +25,10 @@ GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database> &database
 	database(database),
 	isSingleGpuStatement(false),
 	query(query)
-{}
+{
+	LoadColHelper& loadColHelper = LoadColHelper::getInstance();
+	loadColHelper.countSkippedBlocks = 0;
+}
 
 /// Parses SQL statement
 /// SELECT statment is parsed in order: FROM, WHERE, GROUP BY, SELECT, LIMIT, OFFSET, ORDER BY
