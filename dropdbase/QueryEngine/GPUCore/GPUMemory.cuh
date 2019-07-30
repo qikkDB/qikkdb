@@ -59,6 +59,8 @@ namespace GPUMemory
 
 	__device__ __host__ int32_t PolyCountAt(GPUPolygon &polygon, int32_t idx);
 
+	__device__ __host__ int32_t TotalPointCountAt(GPUPolygon &polygon, int32_t idx);
+
 	/// Struct for GPU representation of string column (with pointers to start of condensed buffers).
 	struct GPUString
 	{

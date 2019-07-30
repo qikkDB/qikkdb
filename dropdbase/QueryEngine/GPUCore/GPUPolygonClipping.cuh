@@ -69,6 +69,15 @@ __global__ void kernel_build_LL(LLPolyVertex *LLPolygonBuffers,
                                 GPUMemory::GPUPolygon polygon,
                                 int32_t dataElementCount);
 
+// Insert the intersections into the linked lists and cross link the intersections between complex polygons
+__global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex *LLPolygonABuffers,
+                                                             LLPolyVertex *LLPolygonBBuffers,
+                                                             GPUMemory::GPUPolygon polygonA,
+                                                             GPUMemory::GPUPolygon polygonB,
+                                                             int32_t dataElementCount);
+
+
+
 class GPUPolygonClipping
 {
 public:
@@ -108,6 +117,7 @@ public:
         // DEBUG
         // std::printf("Sizes A total: %d\n", LLPolygonABufferSizesTotal);
         // std::printf("Sizes B total: %d\n", LLPolygonBBufferSizesTotal);
+        // std::printf("\n");
 
         // Alloc the linked list buffers for the polygon clipping
         cuda_ptr<LLPolyVertex> LLPolygonABuffers(LLPolygonABufferSizesTotal);
@@ -125,21 +135,30 @@ public:
         CheckCudaError(cudaGetLastError());
 
         // DEBUG
-        std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
-        std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
+        // std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
+        // std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
 
-        GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
-        GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
+        // GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
+        // GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
 
-        for(auto &a : LLa)
-        {
-            printf("%d %d\n", a.prevIdx, a.nextIdx);
-        }
-        printf("\n");
-        for(auto &b : LLb)
-        {
-            printf("%d %d\n", b.prevIdx, b.nextIdx);
-        }
-        printf("\n");
+        // for(auto &a : LLa)
+        // {
+        //     printf("%d %d\n", a.prevIdx, a.nextIdx);
+        // }
+        // printf("\n");
+        // for(auto &b : LLb)
+        // {
+        //     printf("%d %d\n", b.prevIdx, b.nextIdx);
+        // }
+        // printf("\n");
+
+        // Insert the intersections into the linked lists and cross link the intersections for intersect/union traversal
+        kernel_add_and_crosslink_intersections_to_LL<<< Context::getInstance().calcGridDim(dataElementCount), 
+                                                        Context::getInstance().getBlockDim()>>>(LLPolygonABuffers.get(),
+                                                                                                LLPolygonBBuffers.get(),
+                                                                                                polygonAin,
+                                                                                                polygonBin,
+                                                                                                dataElementCount);
+        CheckCudaError(cudaGetLastError());
     }
 };
