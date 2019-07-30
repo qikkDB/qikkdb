@@ -55,11 +55,13 @@ __device__ struct LLPolyVertex
 __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, 
                                        NativeGeoPoint sB, NativeGeoPoint eB);
 
-// Calculate the number of intersections between complex polygons for linked list size estimation
-__global__ void kernel_calc_intersection_counts(int32_t *intesection_counts, 
-                                                GPUMemory::GPUPolygon polygonA,
-                                                GPUMemory::GPUPolygon polygonB,
-                                                int32_t dataElementCount);
+// Calculate the required sizes of the linked lists
+// This is clacluated as n + k + intersection_count where n and k 
+// are the counts of vertices of the complex polygons A and B
+__global__ void kernel_calc_LL_buffers_size(int32_t *intesection_counts, 
+                                            GPUMemory::GPUPolygon polygonA,
+                                            GPUMemory::GPUPolygon polygonB,
+                                            int32_t dataElementCount);
 
 class GPUPolygonClipping
 {
@@ -70,24 +72,24 @@ public:
                        GPUMemory::GPUPolygon polygonBin,
                        int32_t dataElementCount)
     {
-        // Create a buffer with the intersection counts and calcualte the intersection counts
-        cuda_ptr<int32_t> intersectionCounts(dataElementCount);
-        cuda_ptr<int32_t> intersectionPrefixSum(dataElementCount);
-        kernel_calc_intersection_counts<<< Context::getInstance().calcGridDim(dataElementCount), 
-                                           Context::getInstance().getBlockDimPoly()>>>(intersectionCounts.get(), 
-                                                                                       polygonAin,
-                                                                                       polygonBin,
-                                                                                       dataElementCount);
+        // Create a buffer with the sizes of the LL buffers and calcualte the required sizes
+        cuda_ptr<int32_t> LLBufferSizes(dataElementCount);
+        cuda_ptr<int32_t> LLBufferSizesPrefixSum(dataElementCount);
+        kernel_calc_LL_buffers_size<<< Context::getInstance().calcGridDim(dataElementCount), 
+                                       Context::getInstance().getBlockDimPoly()>>>(LLBufferSizes.get(), 
+                                                                                   polygonAin,
+                                                                                   polygonBin,
+                                                                                   dataElementCount);
         CheckCudaError(cudaGetLastError());
 
-        // Calculate the prefix sum for the intersection counters for adressing purpose
-        GPUReconstruct::PrefixSum(intersectionPrefixSum.get(), intersectionCounts.get(), dataElementCount);
+        // Calculate the inclusive prefix sum for the LL buffer sizes counters for adressing purpose
+        GPUReconstruct::PrefixSum(LLBufferSizesPrefixSum.get(), LLBufferSizes.get(), dataElementCount);
 
         // Copy back the result total size
-        int32_t intersectionsTotalCount;
-        GPUMemory::copyDeviceToHost(&intersectionsTotalCount,intersectionPrefixSum.get() + dataElementCount - 1, 1);
+        int32_t totalLLBuffersSize;
+        GPUMemory::copyDeviceToHost(&totalLLBuffersSize, LLBufferSizesPrefixSum.get() + dataElementCount - 1, 1);
         
-        std::printf("INtersection count: %d\n", intersectionsTotalCount);
+        std::printf("LL buffer sizes total count: %d\n", totalLLBuffersSize);
         
     }
 };
