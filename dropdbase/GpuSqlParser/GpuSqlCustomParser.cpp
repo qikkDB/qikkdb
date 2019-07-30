@@ -111,6 +111,12 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 			}
 		}
 
+		for (auto column : statement->sqlSelect()->selectColumns()->selectAllColumns())
+		{
+			gpuSqlListener.exitSelectAllColumns(column);
+			break;
+		}
+
 		for (auto column : aggColumns)
 		{
 			walker.walk(&gpuSqlListener, column);

@@ -89,6 +89,9 @@ public:
   virtual void enterSelectColumn(GpuSqlParser::SelectColumnContext *ctx) = 0;
   virtual void exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx) = 0;
 
+  virtual void enterSelectAllColumns(GpuSqlParser::SelectAllColumnsContext *ctx) = 0;
+  virtual void exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext *ctx) = 0;
+
   virtual void enterWhereClause(GpuSqlParser::WhereClauseContext *ctx) = 0;
   virtual void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) = 0;
 

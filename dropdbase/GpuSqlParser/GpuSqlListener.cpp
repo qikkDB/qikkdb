@@ -654,13 +654,37 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 		alias = colName;
 	}
 
-	returnColumns.insert({ colName, {retType, alias } });
+	if (returnColumns.find(colName) == returnColumns.end())
+	{
+		returnColumns.insert({ colName, {retType, alias } });
 
-	dispatcher.addArgument<const std::string&>(colName);
-	dispatcher.addLockRegisterFunction();
+		dispatcher.addArgument<const std::string&>(colName);
+		dispatcher.addLockRegisterFunction();
+	}
 
 	insideSelectColumn = false;
 	isAggSelectColumn = false;
+}
+
+void GpuSqlListener::exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext * ctx)
+{
+	for (auto& tableName : loadedTables)
+	{
+		const Table& table = database->GetTables().at(tableName);
+		for (auto& columnPair : table.GetColumns())
+		{
+			std::string colName = tableName + "." + columnPair.first;
+			DataType retType = columnPair.second->GetColumnType();
+
+			if (returnColumns.find(colName) == returnColumns.end())
+			{
+				returnColumns.insert({ colName, {retType, colName } });
+
+				dispatcher.addArgument<const std::string&>(colName);
+				dispatcher.addLockRegisterFunction();
+			}
+		}
+	}
 }
 
 
