@@ -1,5 +1,7 @@
  #include <cmath>
  #include <functional>
+ #include <iostream>
+ #include <fstream>
 
 #include "gtest/gtest.h"
 #include "../dropdbase/DatabaseGenerator.h"
@@ -13,6 +15,7 @@
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
 #include "../dropdbase/QueryEngine/OrderByType.h"
+#include "../dropdbase/GpuSqlParser/LoadColHelper.h"
 #include "DispatcherObjs.h"
 
 /////////////////////
@@ -10635,6 +10638,7 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
 	std::vector<int32_t> dataColA;
 	for (int i = 0; i < blocksColA.size(); i++)
 	{
+
 		for (int j = 0; j < blocksColA[i]->GetSize(); j++)
 		{
 			dataColA.push_back(blocksColA[i]->GetData()[j]);
@@ -10653,6 +10657,7 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
 	ASSERT_EQ(blocksColB.size(), 4);
 	for (int i = 0; i < blocksColB.size(); i++)
 	{
+		
 		ASSERT_EQ(blocksColB[i]->GetSize(), 5);
 		for (int j = 0; j < blocksColB[i]->GetSize(); j++)
 		{
@@ -10671,6 +10676,7 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
 	std::vector<int32_t> dataColC;
 	for (int i = 0; i < blocksColC.size(); i++)
 	{
+		
 		for (int j = 0; j < blocksColC[i]->GetSize(); j++)
 		{
 			dataColC.push_back(blocksColC[i]->GetData()[j]);
@@ -10688,6 +10694,7 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
 	std::vector<int32_t> dataColD;
 	for (int i = 0; i < blocksColD.size(); i++)
 	{
+		
 		for (int j = 0; j < blocksColD[i]->GetSize(); j++)
 		{
 			dataColD.push_back(blocksColD[i]->GetData()[j]);
@@ -10700,28 +10707,14 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
 		ASSERT_EQ(dataIntDSorted[i], dataColD[i]);
 	}
 
-	std::stringstream buffer;
-    std::string target = "Load skipped";
-    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
-    std::string::size_type pos = 0;
-    int occurrences = 0;
-
 	GpuSqlCustomParser parser(Database::GetDatabaseByName("WhereEvalDatabase"), "SELECT ColA FROM TableA WHERE (ColA >= 10 AND ColA < 50) AND ((5 < (ColB + ColC)) AND SIN(ColD));");
 	resultPtr = parser.parse();
+	LoadColHelper& loadColHelper = LoadColHelper::getInstance();
 
-	std::string text = buffer.str();
-
-	while ((pos = text.find(target, pos)) != std::string::npos)
-    {
-        ++occurrences;
-        pos += target.length();
-    }
-
-	ASSERT_EQ(occurrences, 2);
+	ASSERT_EQ(loadColHelper.countSkippedBlocks, 2);
 
 	GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE WhereEvalDatabase;");
 	resultPtr = parserDropDatabase.parse();
-	std::cout.rdbuf(old);
 }
 
 template<typename T>

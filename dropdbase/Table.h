@@ -18,6 +18,8 @@ class Database;
 class Table
 {
 private:
+	enum CompareResult {Greater, Lower, Equal};
+
 	const std::shared_ptr<Database>& database;
 	std::string name;
 	int32_t blockSize;
@@ -32,6 +34,11 @@ private:
                                                 int iterator,
 												const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks);
     int32_t getDataRangeInSortingColumn();
+	std::tuple<std::vector<std::any>, std::vector<int8_t>> GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std::any>& data, int iterator, const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks);
+	std::tuple<int, int> GetIndicesFromTotalIndex(int index, bool positionToCompare);
+	std::tuple<std::vector<std::any>, std::vector<int8_t>> GetRowAndBitmaskOnIndex(int index);
+	CompareResult CompareRows(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow, int index);
+	std::tuple<int, int> GetIndex(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow);
 	int32_t getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any> &data);
 #endif
 public:

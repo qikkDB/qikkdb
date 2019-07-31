@@ -41,8 +41,7 @@ public:
 	/// <param name="quotes">Character used for quoting. Default value is '.</param>
 	/// <param name="decimal">Character used as decimal point. Default value is '.'.</param>
 	CSVDataImporter(const char* fileName, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.');
-
-	void ImportTables(std::shared_ptr<Database>& database);
+	void ImportTables(std::shared_ptr<Database>& database, std::vector<std::string> sortingColumns = {});
 	void ExtractHeaders();
 	void ExtractTypes();
 	void SetTypes(const std::vector<DataType>& types);

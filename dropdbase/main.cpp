@@ -71,7 +71,15 @@ int main(int argc, char **argv)
 		std::shared_ptr<Database> database = std::make_shared<Database>(argc > 2 ? argv[2] : "TestDb", 1048576);
 		Database::AddToInMemoryDatabaseList(database);
 		BOOST_LOG_TRIVIAL(info) << "Loading CSV from \"" << argv[1] << "\"";
-		csvDataImporter.ImportTables(database);
+		std::vector<std::string> sortingColumns;
+		if(argc > 3)
+		{
+			for(int32_t i = 3; i < argc; i++)
+			{
+				sortingColumns.push_back(argv[i]);
+			}
+		}
+		csvDataImporter.ImportTables(database, sortingColumns);
 		Database::SaveAllToDisk();
 		for (auto& db : Database::GetDatabaseNames())
 		{
