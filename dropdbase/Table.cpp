@@ -545,7 +545,7 @@ int32_t Table::AssignGroupId(std::vector<std::any>& rowData, std::vector<std::un
 			}
 			break;
 		default:
-			throw std::domain_error("Unsupported data type (when importing database from CSV file).");
+			throw std::domain_error("Unsupported data type (when importing database from CSV file): " + std::to_string(columns[i]->GetColumnType()));
 		}
 		
 		index += 2 * i + b;

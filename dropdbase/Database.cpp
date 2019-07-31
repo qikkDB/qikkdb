@@ -1106,7 +1106,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 	break;
 
 	default:
-		throw std::domain_error("Unsupported data type (when loading database).");
+		throw std::domain_error("Unsupported data type (when loading database): " + std::to_string(type));
 	}
 
 	colFile.close();
@@ -1602,7 +1602,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 	break;
 
 	default:
-		throw std::domain_error("Unsupported data type (when persisting database).");
+		throw std::domain_error("Unsupported data type (when persisting database): " + std::to_string(type));
 		break;
 	}
 
