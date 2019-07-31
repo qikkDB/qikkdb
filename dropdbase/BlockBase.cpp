@@ -39,7 +39,7 @@ void BlockBase<int32_t>::updateBlockStatistics(const int32_t& data, bool isNullV
 		min_ = (data < min_) ? data : min_;
 		max_ = (data > max_) ? data : max_;
 		sum_ += data;
-		avg_ = sum_ / countOfNotNullValues_;
+		avg_ = sum_ / static_cast<float>(countOfNotNullValues_);
 	}
 }
 
@@ -75,7 +75,7 @@ void BlockBase<int64_t>::updateBlockStatistics(const int64_t& data, bool isNullV
 		min_ = (data < min_) ? data : min_;
 		max_ = (data > max_) ? data : max_;
 		sum_ += data;
-		avg_ = sum_ / countOfNotNullValues_;
+		avg_ = sum_ / static_cast<float>(countOfNotNullValues_);
 	}
 }
 
@@ -111,7 +111,7 @@ void BlockBase<float>::updateBlockStatistics(const float& data, bool isNullValue
 		min_ = (data < min_) ? data : min_;
 		max_ = (data > max_) ? data : max_;
 		sum_ += data;
-		avg_ = sum_ / countOfNotNullValues_;
+		avg_ = sum_ / static_cast<float>(countOfNotNullValues_);
 	}
 }
 
@@ -147,7 +147,7 @@ void BlockBase<double>::updateBlockStatistics(const double& data, bool isNullVal
 		min_ = (data < min_) ? data : min_;
 		max_ = (data > max_) ? data : max_;
 		sum_ += data;
-		avg_ = sum_ / countOfNotNullValues_;
+		avg_ = sum_ / static_cast<float>(countOfNotNullValues_);
 	}
 }
 
@@ -245,7 +245,7 @@ void BlockBase<int8_t>::updateBlockStatistics(const int8_t& data, bool isNullVal
 		min_ = (data < min_) ? data : min_;
 		max_ = (data > max_) ? data : max_;
 		sum_ += data;
-		avg_ = sum_ / countOfNotNullValues_;
+		avg_ = sum_ / static_cast<float>(countOfNotNullValues_);
 	}
 }
 
