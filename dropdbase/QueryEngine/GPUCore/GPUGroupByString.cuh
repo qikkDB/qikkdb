@@ -430,7 +430,7 @@ public:
         
 		if (USE_VALUES)
 		{
-			cuda_ptr<int8_t> valuesNullMaskCompressed((maxHashCount_ + sizeof(int32_t) * 8 - 1) / (sizeof(int32_t) * 8), 0);
+			cuda_ptr<int8_t> valuesNullMaskCompressed((maxHashCount_ + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8), 0);
             int8_t * valuesNullMaskCompressedPtr = (outValuesNullMask? valuesNullMaskCompressed.get() : nullptr);
             if (valuesNullMaskCompressedPtr)
             {

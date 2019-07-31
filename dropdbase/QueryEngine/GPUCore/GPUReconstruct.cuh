@@ -209,7 +209,7 @@ public:
 								(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
 						if(nullMask)
 						{
-							size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int32_t)*8);
+							size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int8_t)*8);
 							GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
 							kernel_reconstruct_null_mask << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 								(reinterpret_cast<int32_t*>(*outNullMask), nullMask, prefixSumPointer.get(), inMask, dataElementCount);
