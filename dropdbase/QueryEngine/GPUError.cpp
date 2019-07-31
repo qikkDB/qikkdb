@@ -1,6 +1,7 @@
 #include "GPUError.h"
 #include <iostream>
 #include <cuda_runtime_api.h>
+#include <execinfo.h>
 
 cuda_error::cuda_error(cudaError_t cudaError)
     : gpu_error("CUDA Error " + std::to_string(static_cast<int32_t>(cudaError)) + ": " +
@@ -23,7 +24,15 @@ void CheckCudaError(cudaError_t cudaError)
 
 	if (cudaError != cudaSuccess)
 	{
-		std::cout << "CUDA Error " << cudaError << ": " << cudaGetErrorName(cudaError) << std::endl;
+		std::cout << "CUDA Error " << cudaError << ": " << cudaGetErrorName(cudaError) << ", backtrace:" << std::endl;
+        void* backtraceArray[25];
+        int btSize = backtrace(backtraceArray, 25);
+        char** symbols = backtrace_symbols(backtraceArray,btSize);
+        for(int i = 0; i < btSize; i++)
+        {
+            std::cout << i << ": " << symbols[i] << std::endl;
+        }
+        std::cout << "---- backtrace end --------" << std::endl;
 #ifdef DEBUG
 		abort();
 #endif
@@ -35,7 +44,15 @@ void CheckQueryEngineError(const QueryEngineErrorType errorType, const std::stri
 {
     if (errorType != QueryEngineErrorType::GPU_EXTENSION_SUCCESS)
     {
-        std::cout << "QueryEngineError " << errorType << ": " << message << std::endl;
+        std::cout << "QueryEngineError " << errorType << ": " << message << ", backtrace:" << std::endl;
+        void* backtraceArray[25];
+        int btSize = backtrace(backtraceArray, 25);
+        char** symbols = backtrace_symbols(backtraceArray,btSize);
+        for(int i = 0; i < btSize; i++)
+        {
+            std::cout << i << ": " << symbols[i] << std::endl;
+        }
+        std::cout << "---- backtrace end --------" << std::endl;
         throw query_engine_error(errorType, message);
     }
 }
