@@ -43,7 +43,7 @@ private:
 				{
 					try
 					{
-						BOOST_LOG_TRIVIAL(info) << "Accepting client " << sock.remote_endpoint().address().to_string() << "\n";
+						BOOST_LOG_TRIVIAL(info) << "Accepting client " << sock.remote_endpoint().address().to_string();
 						Worker worker(std::make_unique<ClientHandler>(), std::move(sock), Configuration::GetInstance().GetTimeout());
 						{
 							std::lock_guard<std::mutex> lock(clientCountMutex_);

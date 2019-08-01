@@ -78,7 +78,7 @@ void Database::PersistOnlyDbFile(const char* path)
 	auto pathStr = std::string(path);
 
 	BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size()
-		<< " tables." << std::endl;
+		<< " tables.";
 
 	boost::filesystem::create_directories(path);
 
@@ -86,7 +86,7 @@ void Database::PersistOnlyDbFile(const char* path)
 	int32_t tableSize = tables.size();
 
 	// write file .db
-	BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << " .db" << std::endl;
+	BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << " .db";
 	std::ofstream dbFile(pathStr + "/" + name + ".db", std::ios::binary);
 
 	int32_t dbNameLength = name.length() + 1; // +1 because '\0'
@@ -126,7 +126,7 @@ void Database::Persist(const char* path)
 	auto pathStr = std::string(path);
 
 	BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size()
-		<< " tables." << std::endl;
+		<< " tables.";
 
 	boost::filesystem::create_directories(path);
 
@@ -134,7 +134,7 @@ void Database::Persist(const char* path)
 	int32_t tableSize = tables.size();
 
 	// write file .db
-	BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << " .db" << std::endl;
+	BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << " .db";
 	std::ofstream dbFile(pathStr + "/" + name + ".db", std::ios::binary);
 
 	int32_t dbNameLength = name.length() + 1; // +1 because '\0'
@@ -180,7 +180,7 @@ void Database::Persist(const char* path)
 		}
 	}
 
-	BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk." << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk.";
 }
 
 /// <summary>
@@ -221,7 +221,7 @@ void Database::LoadDatabasesFromDisk()
 	}
 	else
 	{
-		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists." << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists.";
 	}
 }
 
@@ -244,18 +244,18 @@ void Database::DeleteDatabaseFromDisk()
 			{
 				if (boost::filesystem::remove(p.path().string().c_str()) != 0)
 				{
-					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was NOT removed from disk. No such file or write access." << std::endl;
+					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was NOT removed from disk. No such file or write access.";
 				}
 				else
 				{
-					BOOST_LOG_TRIVIAL(info) << "Database " << name_ << " was successfully removed from disk." << std::endl;
+					BOOST_LOG_TRIVIAL(info) << "Database " << name_ << " was successfully removed from disk.";
 				}
 			}
 		}
 	}
 	else
 	{
-		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists." << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists.";
 	}
 }
 
@@ -280,18 +280,18 @@ void Database::DeleteTableFromDisk(const char* tableName)
 			{
 				if (boost::filesystem::remove(p.path().string().c_str()) != 0)
 				{
-					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was NOT removed from disk. No such file or write access." << std::endl;
+					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was NOT removed from disk. No such file or write access.";
 				}
 				else
 				{
-					BOOST_LOG_TRIVIAL(info) << "Table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
+					BOOST_LOG_TRIVIAL(info) << "Table " << tableName << " from database " << name_ << " was successfully removed from disk.";
 				}
 			}
 		}
 	}
 	else
 	{
-		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists." << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists.";
 	}
 
 	//persist only db file, so that changes are saved, BUT PERSIST ONLY if there already is a .db file, so it is not only in memory
@@ -318,16 +318,16 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 	{
 		if (boost::filesystem::remove(filePath.c_str()) != 0)
 		{
-			BOOST_LOG_TRIVIAL(info) << "File " << filePath << " was NOT removed from disk. No such file or write access." << std::endl;
+			BOOST_LOG_TRIVIAL(info) << "File " << filePath << " was NOT removed from disk. No such file or write access.";
 		}
 		else
 		{
-			BOOST_LOG_TRIVIAL(info) << "Column " << columnName << " from table " << tableName << " from database " << name_ << " was successfully removed from disk." << std::endl;
+			BOOST_LOG_TRIVIAL(info) << "Column " << columnName << " from table " << tableName << " from database " << name_ << " was successfully removed from disk.";
 		}
 	}
 	else
 	{
-		BOOST_LOG_TRIVIAL(error) << "File " << path << " does not exists." << std::endl;
+		BOOST_LOG_TRIVIAL(error) << "File " << path << " does not exists.";
 	}
 
 	//persist only db file, so that changes are saved, BUT PERSIST ONLY if there already is a .db file, so it is not only in memory
@@ -345,7 +345,7 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 /// <returns>Shared pointer of database.</returns>
 std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const char* path)
 {
-	BOOST_LOG_TRIVIAL(info) << "Loading database from: " << path << fileDbName << ".db." << std::endl;
+	BOOST_LOG_TRIVIAL(info) << "Loading database from: " << path << fileDbName << ".db.";
 
 	// read file .db
 	std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
@@ -420,7 +420,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 	std::string pathStr = std::string(path);
 
 	BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << pathStr + dbName << SEPARATOR
-		<< table.GetName() << SEPARATOR << columnName << ".col." << std::endl;
+		<< table.GetName() << SEPARATOR << columnName << ".col.";
 
 	std::ifstream colFile(pathStr + dbName + SEPARATOR + table.GetName() + SEPARATOR + columnName + ".col", std::ios::binary);
 
@@ -472,7 +472,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				BOOST_LOG_TRIVIAL(debug)
 					<< "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
-					<< columnName << ".col has finished successfully." << std::endl;
+					<< columnName << ".col has finished successfully.";
 				break;
 			}
 
@@ -483,7 +483,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				columnPolygon.AddBlock(); // add empty block
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added empty ComplexPolygon block at index: " << nullIndex << "." << std::endl;
+					<< "Added empty ComplexPolygon block at index: " << nullIndex;
 			}
 			else // read data from block
 			{
@@ -514,7 +514,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				auto& block = columnPolygon.AddBlock(dataPolygon, groupId);
 				block.SetNullBitmask(std::move(nullBitMask));
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added ComplexPolygon block with data at index: " << index << "." << std::endl;
+					<< "Added ComplexPolygon block with data at index: " << index;
 			}
 
 			nullIndex += 1;
@@ -544,7 +544,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             {
                 BOOST_LOG_TRIVIAL(debug)
                     << "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
-                    << columnName << ".col has finished successfully." << std::endl;
+                    << columnName << ".col has finished successfully.";
                 break;
             }
 
@@ -566,7 +566,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				BOOST_LOG_TRIVIAL(debug)
 					<< "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
-					<< columnName << ".col has finished successfully." << std::endl;
+					<< columnName << ".col has finished successfully.";
 				break;
 			}
 
@@ -577,7 +577,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				columnPoint.AddBlock(); // add empty block
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added empty Point block at index: " << nullIndex << "." << std::endl;
+					<< "Added empty Point block at index: " << nullIndex;
 			}
 			else // read data from block
 			{
@@ -609,7 +609,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				block.SetNullBitmask(std::move(nullBitMask));
 
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added Point block with data at index: " << index << "." << std::endl;
+					<< "Added Point block with data at index: " << index;
 			}
 
 			nullIndex += 1;
@@ -652,7 +652,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				BOOST_LOG_TRIVIAL(debug)
 					<< "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
-					<< columnName << ".col has finished successfully." << std::endl;
+					<< columnName << ".col has finished successfully.";
 				break;
 			}
 
@@ -663,7 +663,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				columnString.AddBlock(); // add empty block
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added empty String block at index: " << nullIndex << "." << std::endl;
+					<< "Added empty String block at index: " << nullIndex;
 			}
 			else // read data from block
 			{
@@ -692,7 +692,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				block.SetNullBitmask(std::move(nullBitMask));
 
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added String block with data at index: " << index << "." << std::endl;
+					<< "Added String block with data at index: " << index;
 			}
 
 			nullIndex += 1;
@@ -735,7 +735,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				BOOST_LOG_TRIVIAL(debug)
 					<< "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
-					<< columnName << ".col has finished successfully." << std::endl;
+					<< columnName << ".col has finished successfully.";
 				break;
 			}
 
@@ -756,7 +756,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				columnInt.AddBlock(); // add empty block
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added empty Int8 block at index: " << nullIndex << "." << std::endl;
+					<< "Added empty Int8 block at index: " << nullIndex;
 			}
 			else // read data from block
 			{
@@ -773,7 +773,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				block.setBlockStatistics(min, max, avg, sum);
 
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added Int8 block with data at index: " << index << "." << std::endl;
+					<< "Added Int8 block with data at index: " << index;
 			}
 
 			nullIndex += 1;
@@ -816,7 +816,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				BOOST_LOG_TRIVIAL(debug)
 					<< "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
-					<< columnName << ".col has finished successfully." << std::endl;
+					<< columnName << ".col has finished successfully.";
 				break;
 			}
 
@@ -837,7 +837,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				columnInt.AddBlock(); // add empty block
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added empty Int32 block at index: " << nullIndex << "." << std::endl;
+					<< "Added empty Int32 block at index: " << nullIndex;
 			}
 			else // read data from block
 			{
@@ -854,7 +854,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				block.setBlockStatistics(min, max, avg, sum);
 
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added Int32 block with data at index: " << index << "." << std::endl;
+					<< "Added Int32 block with data at index: " << index;
 			}
 
 			nullIndex += 1;
@@ -897,7 +897,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				BOOST_LOG_TRIVIAL(debug)
 					<< "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
-					<< columnName << ".col has finished successfully." << std::endl;
+					<< columnName << ".col has finished successfully.";
 				break;
 			}
 
@@ -918,7 +918,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				columnLong.AddBlock(); // add empty block
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added empty Int64 block at index: " << nullIndex << "." << std::endl;
+					<< "Added empty Int64 block at index: " << nullIndex;
 			}
 			else // read data from block
 			{
@@ -935,7 +935,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				block.setBlockStatistics(min, max, avg, sum);
 
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added Int64 block with data at index: " << index << "." << std::endl;
+					<< "Added Int64 block with data at index: " << index;
 			}
 
 			nullIndex += 1;
@@ -978,7 +978,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				BOOST_LOG_TRIVIAL(debug)
 					<< "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
-					<< columnName << ".col has finished successfully." << std::endl;
+					<< columnName << ".col has finished successfully.";
 				break;
 			}
 
@@ -999,7 +999,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				columnFloat.AddBlock(); // add empty block
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added empty Float block at index: " << nullIndex << "." << std::endl;
+					<< "Added empty Float block at index: " << nullIndex;
 			}
 			else // read data from block
 			{
@@ -1016,7 +1016,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				block.setBlockStatistics(min, max, avg, sum);
 
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added Float block with data at index: " << index << "." << std::endl;
+					<< "Added Float block with data at index: " << index;
 			}
 
 			nullIndex += 1;
@@ -1059,7 +1059,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				BOOST_LOG_TRIVIAL(debug)
 					<< "Loading of the file: " << pathStr + dbName << SEPARATOR << table.GetName() << SEPARATOR
-					<< columnName << ".col has finished successfully." << std::endl;
+					<< columnName << ".col has finished successfully.";
 				break;
 			}
 
@@ -1080,7 +1080,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 			{
 				columnDouble.AddBlock(); // add empty block
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added empty Double block at index: " << nullIndex << "." << std::endl;
+					<< "Added empty Double block at index: " << nullIndex;
 			}
 			else // read data from block
 			{
@@ -1097,7 +1097,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 				block.setBlockStatistics(min, max, avg, sum);
 
 				BOOST_LOG_TRIVIAL(debug)
-					<< "Added Double block with data at index: " << index << "." << std::endl;
+					<< "Added Double block with data at index: " << index;
 			}
 
 			nullIndex += 1;
@@ -1228,7 +1228,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 	const std::pair<const std::string, Table>& table)
 {
 	BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << SEPARATOR << table.first
-		<< SEPARATOR << column.second->GetName() << " .col" << std::endl;
+		<< SEPARATOR << column.second->GetName() << " .col";
 
     std::ofstream colFile(pathStr + "/" + name + SEPARATOR + table.first + SEPARATOR + column.second->GetName() + ".col",
                           std::ios::binary);
@@ -1251,7 +1251,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 		for (const auto& block : colPolygon.GetBlocksList())
 		{
 			BOOST_LOG_TRIVIAL(debug)
-				<< "Saving block of ComplexPolygon data with index = " << index << "." << std::endl;
+				<< "Saving block of ComplexPolygon data with index = " << index;
 
 			auto data = block->GetData();
 			int32_t groupId = block->GetGroupId();
@@ -1301,7 +1301,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
 		for (const auto& block : colPoint.GetBlocksList())
 		{
-			BOOST_LOG_TRIVIAL(debug) << "Saving block of Point data with index = " << index << "." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Saving block of Point data with index = " << index;
 
 			auto data = block->GetData();
 			int32_t groupId = block->GetGroupId();
@@ -1352,7 +1352,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 		for (const auto& block : colStr.GetBlocksList())
 		{
 			BOOST_LOG_TRIVIAL(debug)
-				<< "Saving block of String data with index = " << index << "." << std::endl;
+				<< "Saving block of String data with index = " << index;
 
 			auto data = block->GetData();
 			int32_t groupId = block->GetGroupId();
@@ -1398,7 +1398,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
 		for (const auto& block : colInt.GetBlocksList())
 		{
-			BOOST_LOG_TRIVIAL(debug) << "Saving block of Int8 data with index = " << index << "." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Saving block of Int8 data with index = " << index;
 
 			auto data = block->GetData();
 			int8_t isCompressed = (int8_t)block->IsCompressed();
@@ -1440,7 +1440,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
 		for (const auto& block : colInt.GetBlocksList())
 		{
-			BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index << "." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index;
 
 			auto data = block->GetData();
 			int8_t isCompressed = (int8_t)block->IsCompressed();
@@ -1482,7 +1482,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
 		for (const auto& block : colLong.GetBlocksList())
 		{
-			BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index << "." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index;
 
 			auto data = block->GetData();
 			int8_t isCompressed = (int8_t)block->IsCompressed();
@@ -1524,7 +1524,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
 		for (const auto& block : colFloat.GetBlocksList())
 		{
-			BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index << "." << std::endl;
+			BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index;
 
 			auto data = block->GetData();
 			int8_t isCompressed = (int8_t)block->IsCompressed();
@@ -1567,7 +1567,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 		for (const auto& block : colDouble.GetBlocksList())
 		{
 			BOOST_LOG_TRIVIAL(debug)
-				<< "Saving block of Double data with index = " << index << "." << std::endl;
+				<< "Saving block of Double data with index = " << index;
 
 			auto data = block->GetData();
 			int8_t isCompressed = (int8_t)block->IsCompressed();
