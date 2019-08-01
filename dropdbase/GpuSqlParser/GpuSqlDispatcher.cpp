@@ -769,6 +769,11 @@ void GpuSqlDispatcher::addGroupByFunction(DataType type)
     dispatcherFunctions.push_back(groupByFunctions[type]);
 }
 
+void GpuSqlDispatcher::addGroupByDoneFunction()
+{
+    dispatcherFunctions.push_back(groupByDoneFunction);
+}
+
 void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType op3)
 {
     //TODO: Between
@@ -951,6 +956,7 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 		}
 	}
 	usedRegisterMemory = 0;
+	usingGroupBy = false;
 	aggregatedRegisters.clear();
 	allocatedPointers.clear();
 }

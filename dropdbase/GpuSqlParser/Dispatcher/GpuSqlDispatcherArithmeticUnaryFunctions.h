@@ -46,7 +46,7 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 			groupByColumns.push_back({ reg, ::GetColumnType<ResultType>() });
 		}
 	}
-	else
+	else if (isOverallLastBlock || !usingGroupBy)
 	{
 		PointerAllocation column = allocatedPointers.at(colName);
 		int32_t retSize = column.elementCount;

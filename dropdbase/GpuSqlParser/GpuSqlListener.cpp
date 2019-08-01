@@ -923,6 +923,7 @@ void GpuSqlListener::enterGroupByColumns(GpuSqlParser::GroupByColumnsContext * c
 /// <param name="ctx">Group By Columns context</param>
 void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext *ctx)
 {
+	dispatcher.addGroupByDoneFunction();
     usingGroupBy = true;
 	insideGroupBy = false;
 }
