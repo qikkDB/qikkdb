@@ -13,10 +13,14 @@
 #include "../StringFactory.h"
 #include "../Database.h"
 #include "../Table.h"
+#include "LoadColHelper.h"
 #include <any>
 #include <string>
 #include <unordered_map>
 #include "InsertIntoStruct.h"
+
+const std::string GpuSqlDispatcher::KEYS_SUFFIX = "_keys";
+const std::string GpuSqlDispatcher::NULL_SUFFIX = "_nullMask";
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 int32_t GpuSqlDispatcher::orderByDoneCounter_ = 0;
@@ -33,9 +37,13 @@ std::unordered_map<std::string, int32_t> GpuSqlDispatcher::linkTable;
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId)
 {
-	int device;
+	int device = -1;
 	cudaGetDevice(&device);
-	assert(device == dispatcherThreadId);
+	std::cout << "Current device for tid " << dispatcherThreadId << " is " << device << "\n";
+	if(device != dispatcherThreadId)
+	{
+		abort();
+}
 }
 #endif
 
@@ -51,6 +59,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	maxRegisterMemory(0), // TODO value from config e.g.
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
+	insideGroupBy(false),
 	usingGroupBy(false),
 	usingOrderBy(false),
 	usingJoin(false),
@@ -69,15 +78,6 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 
 GpuSqlDispatcher::~GpuSqlDispatcher()
 {
-	if (dispatcherThreadId != -1)
-	{
-		Context& context = Context::getInstance();
-		context.bindDeviceToContext(dispatcherThreadId);
-#ifndef NDEBUG
-		AssertDeviceMatchesCurrentThread(dispatcherThreadId);
-#endif
-		cleanUpGpuPointers();
-	}
 }
 
 
@@ -107,8 +107,12 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 	try
 	{
 		Context& context = Context::getInstance();
+		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
 		context.bindDeviceToContext(dispatcherThreadId);
 		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
+
+		LoadColHelper& loadColHelper = LoadColHelper::getInstance();
+
 		int32_t err = 0;
 
 		while (err == 0)
@@ -168,6 +172,7 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 				if (err == 12)
 				{
 					std::cout << "Load skipped" << std::endl;
+					loadColHelper.countSkippedBlocks++;
 					err = 0;
 					continue;
 				}
@@ -180,6 +185,7 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 	{
 		exception = std::current_exception();
 	}
+	cleanUpGpuPointers();
 }
 
 const ColmnarDB::NetworkClient::Message::QueryResponseMessage &GpuSqlDispatcher::getQueryResponseMessage()
@@ -504,6 +510,16 @@ void GpuSqlDispatcher::addLogicalNotFunction(DataType type)
     dispatcherFunctions.push_back(logicalNotFunctions[type]);
 }
 
+void GpuSqlDispatcher::addIsNullFunction()
+{
+	dispatcherFunctions.push_back(isNullFunction);
+}
+
+void GpuSqlDispatcher::addIsNotNullFunction()
+{
+	dispatcherFunctions.push_back(isNotNullFunction);
+}
+
 void GpuSqlDispatcher::addMinusFunction(DataType type)
 {
     dispatcherFunctions.push_back(minusFunctions[type]);
@@ -759,12 +775,31 @@ void GpuSqlDispatcher::addGroupByFunction(DataType type)
     dispatcherFunctions.push_back(groupByFunctions[type]);
 }
 
+void GpuSqlDispatcher::addGroupByBeginFunction()
+{
+	dispatcherFunctions.push_back(groupByBeginFunction);
+}
+
+void GpuSqlDispatcher::addGroupByDoneFunction()
+{
+    dispatcherFunctions.push_back(groupByDoneFunction);
+}
+
 void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType op3)
 {
     //TODO: Between
 }
 
-void GpuSqlDispatcher::InsertRegister(std::string registerName, std::tuple<std::uintptr_t, int32_t, bool> registerValues)
+void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string & reg, int32_t size, bool useCache, int8_t* nullMaskPtr)
+{
+	InsertRegister(reg + "_polyPoints", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyPoints), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_pointIdx", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointIdx), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_pointCount", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointCount), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_polyIdx", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_polyCount", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyCount), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+}
+
+void GpuSqlDispatcher::InsertRegister(const std::string& registerName, PointerAllocation registerValues)
 {
 	if(allocatedPointers.find(registerName) == allocatedPointers.end())
 	{
@@ -776,22 +811,55 @@ void GpuSqlDispatcher::InsertRegister(std::string registerName, std::tuple<std::
 	}
 }
 
-void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string & reg, int32_t size, bool useCache)
+void GpuSqlDispatcher::fillStringRegister(GPUMemory::GPUString & stringColumn, const std::string & reg, int32_t size, bool useCache, int8_t* nullMaskPtr)
 {
-	InsertRegister(reg + "_polyPoints", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.polyPoints), size, !useCache));
-	InsertRegister(reg + "_pointIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.pointIdx), size, !useCache));
-	InsertRegister(reg + "_pointCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.pointCount), size, !useCache));
-	InsertRegister(reg + "_polyIdx", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size, !useCache));
-	InsertRegister(reg + "_polyCount", std::make_tuple(reinterpret_cast<uintptr_t>(polygonColumn.polyCount), size, !useCache));
+	InsertRegister(reg + "_stringIndices", PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.stringIndices), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_allChars", PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.allChars), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
 }
 
-void GpuSqlDispatcher::fillStringRegister(GPUMemory::GPUString & stringColumn, const std::string & reg, int32_t size, bool useCache)
+int32_t GpuSqlDispatcher::loadColNullMask(std::string & colName)
 {
-	InsertRegister(reg + "_stringIndices", std::make_tuple(reinterpret_cast<uintptr_t>(stringColumn.stringIndices), size, !useCache));
-	InsertRegister(reg + "_allChars", std::make_tuple(reinterpret_cast<uintptr_t>(stringColumn.allChars), size, !useCache));
+	if (allocatedPointers.find(colName + NULL_SUFFIX) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
+	{
+		std::cout << "LoadNullMask: " << colName << std::endl;
+
+		// split colName to table and column name
+		const size_t endOfPolyIdx = colName.find(".");
+		const std::string table = colName.substr(0, endOfPolyIdx);
+		const std::string column = colName.substr(endOfPolyIdx + 1);
+
+		const int32_t blockCount = database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+		GpuSqlDispatcher::deviceCountLimit_ = std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
+		if (blockIndex >= blockCount)
+		{
+			return 1;
+		}
+		if (blockIndex >= blockCount - Context::getInstance().getDeviceCount())
+		{
+			isLastBlockOfDevice = true;
+		}
+		if (blockIndex == blockCount - 1)
+		{
+			isOverallLastBlock = true;
+		}
+
+		auto blockNullMask = database->GetTables().at(table).GetColumns().at(column)->GetNullBitMaskForBlock(blockIndex);
+		size_t blockNullMaskSize = (std::get<1>(blockNullMask) + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
+
+		auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
+			database->GetName(), colName + NULL_SUFFIX, blockIndex, blockNullMaskSize);
+		if (!std::get<2>(cacheEntry))
+		{
+			GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), std::get<0>(blockNullMask), blockNullMaskSize);
+		}
+		addCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheEntry), std::get<1>(blockNullMask));
+
+		noLoad = false;
+	}
+	return 0;
 }
 
-GPUMemory::GPUPolygon GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache)
+GPUMemory::GPUPolygon GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache, int8_t* nullMaskPtr)
 {
 	if (useCache)
 	{
@@ -808,25 +876,25 @@ GPUMemory::GPUPolygon GpuSqlDispatcher::insertComplexPolygon(const std::string& 
 			polygon.pointCount = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex, size));
 			polygon.polyIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex, size));
 			polygon.polyCount = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyCount", blockIndex, size));
-			fillPolygonRegister(polygon, colName, size, useCache);
+			fillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
 			return polygon;
 		}
 		else
 		{
 			GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons, databaseName, colName, blockIndex);
-			fillPolygonRegister(polygon, colName, size, useCache);
+			fillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
 			return polygon;
 		}
 	}
 	else
 	{
 		GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons);
-		fillPolygonRegister(polygon, colName, size, useCache);
+		fillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
 		return polygon;
 	}
 }
 
-GPUMemory::GPUString GpuSqlDispatcher::insertString(const std::string& databaseName, const std::string& colName, const std::vector<std::string>& strings, int32_t size, bool useCache)
+GPUMemory::GPUString GpuSqlDispatcher::insertString(const std::string& databaseName, const std::string& colName, const std::vector<std::string>& strings, int32_t size, bool useCache, int8_t* nullMaskPtr)
 {
 	if (useCache)
 	{
@@ -837,45 +905,45 @@ GPUMemory::GPUString GpuSqlDispatcher::insertString(const std::string& databaseN
 			GPUMemory::GPUString gpuString;
 			gpuString.stringIndices = std::get<0>(cache.getColumn<int64_t>(databaseName, colName + "_stringIndices", blockIndex, size));
 			gpuString.allChars = std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex, size));
-			fillStringRegister(gpuString, colName, size, useCache);
+			fillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
 			return gpuString;
 		}
 		else
 		{
 			GPUMemory::GPUString gpuString = StringFactory::PrepareGPUString(strings, databaseName, colName, blockIndex);
-			fillStringRegister(gpuString, colName, size, useCache);
+			fillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
 			return gpuString;
 		}
 	}
 	else
 	{
 		GPUMemory::GPUString gpuString = StringFactory::PrepareGPUString(strings);
-		fillStringRegister(gpuString, colName, size, useCache);
+		fillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
 		return gpuString;
 	}
 }
 
-std::tuple<GPUMemory::GPUPolygon, int32_t> GpuSqlDispatcher::findComplexPolygon(std::string colName)
+std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> GpuSqlDispatcher::findComplexPolygon(std::string colName)
 {
 	GPUMemory::GPUPolygon polygon;
-	int32_t size = std::get<1>(allocatedPointers.at(colName + "_polyPoints"));
+	int32_t size = allocatedPointers.at(colName + "_polyPoints").elementCount;
 
-	polygon.polyPoints = reinterpret_cast<NativeGeoPoint*>(std::get<0>(allocatedPointers.at(colName + "_polyPoints")));
-	polygon.pointIdx = reinterpret_cast<int32_t*>(std::get<0>(allocatedPointers.at(colName + "_pointIdx")));
-	polygon.pointCount = reinterpret_cast<int32_t*>(std::get<0>(allocatedPointers.at(colName + "_pointCount")));
-	polygon.polyIdx = reinterpret_cast<int32_t*>(std::get<0>(allocatedPointers.at(colName + "_polyIdx")));
-	polygon.polyCount = reinterpret_cast<int32_t*>(std::get<0>(allocatedPointers.at(colName + "_polyCount")));
+	polygon.polyPoints = reinterpret_cast<NativeGeoPoint*>(allocatedPointers.at(colName + "_polyPoints").gpuPtr);
+	polygon.pointIdx = reinterpret_cast<int32_t*>(allocatedPointers.at(colName + "_pointIdx").gpuPtr);
+	polygon.pointCount = reinterpret_cast<int32_t*>(allocatedPointers.at(colName + "_pointCount").gpuPtr);
+	polygon.polyIdx = reinterpret_cast<int32_t*>(allocatedPointers.at(colName + "_polyIdx").gpuPtr);
+	polygon.polyCount = reinterpret_cast<int32_t*>(allocatedPointers.at(colName + "_polyCount").gpuPtr);
 
-	return std::make_tuple(polygon, size);
+	return std::make_tuple(polygon, size, reinterpret_cast<int8_t*>(allocatedPointers.at(colName + "_polyPoints").gpuNullMaskPtr));
 }
 
-std::tuple<GPUMemory::GPUString, int32_t> GpuSqlDispatcher::findStringColumn(const std::string & colName)
+std::tuple<GPUMemory::GPUString, int32_t, int8_t*> GpuSqlDispatcher::findStringColumn(const std::string & colName)
 {
 	GPUMemory::GPUString gpuString;
-	int32_t size = std::get<1>(allocatedPointers.at(colName + "_stringIndices"));
-	gpuString.stringIndices = reinterpret_cast<int64_t*>(std::get<0>(allocatedPointers.at(colName + "_stringIndices")));
-	gpuString.allChars = reinterpret_cast<char*>(std::get<0>(allocatedPointers.at(colName + "_allChars")));
-	return std::make_tuple(gpuString, size);
+	int32_t size = allocatedPointers.at(colName + "_stringIndices").elementCount;
+	gpuString.stringIndices = reinterpret_cast<int64_t*>(allocatedPointers.at(colName + "_stringIndices").gpuPtr);
+	gpuString.allChars = reinterpret_cast<char*>(allocatedPointers.at(colName + "_allChars").gpuPtr);
+	return std::make_tuple(gpuString, size, reinterpret_cast<int8_t*>(allocatedPointers.at(colName + "_stringIndices").gpuNullMaskPtr));
 }
 
 GPUMemory::GPUString GpuSqlDispatcher::insertConstStringGpu(const std::string& str)
@@ -893,12 +961,13 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 	arguments.reset();
 	for (auto& ptr : allocatedPointers)
 	{
-		if (std::get<0>(ptr.second) != 0 && std::get<2>(ptr.second))
+		if (ptr.second.gpuPtr != 0 && ptr.second.shouldBeFreed)
 		{
-			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(ptr.second)));
+			GPUMemory::free(reinterpret_cast<void*>(ptr.second.gpuPtr));
 		}
 	}
 	usedRegisterMemory = 0;
+	usingGroupBy = false;
 	aggregatedRegisters.clear();
 	allocatedPointers.clear();
 }
@@ -911,7 +980,7 @@ int32_t GpuSqlDispatcher::fil()
 {
     auto reg = arguments.read<std::string>();
     std::cout << "Filter: " << reg << std::endl;
-	filter_ = std::get<0>(allocatedPointers.at(reg));
+	filter_ = allocatedPointers.at(reg).gpuPtr;
 	return 0;
 }
 
@@ -1192,6 +1261,19 @@ void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 	}
 }
 
+void GpuSqlDispatcher::MergePayloadBitmask(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage, const std::string& nullMask)
+{
+	if (responseMessage->nullbitmasks().find(key) == responseMessage->nullbitmasks().end())
+	{
+		responseMessage->mutable_nullbitmasks()->insert({ key, nullMask });
+	}
+	else    // If there is payload with existing key, merge or aggregate according to key
+	{
+		responseMessage->mutable_nullbitmasks()->at(key) += nullMask;
+	}
+
+}
+
 void GpuSqlDispatcher::MergePayload(const std::string &trimmedKey, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage,
 	ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload)
 {
@@ -1289,7 +1371,7 @@ void GpuSqlDispatcher::MergePayload(const std::string &trimmedKey, ColmnarDB::Ne
 	}
 }
 
-void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
+void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload, const std::string& nullBitMaskString)
 {
 	std::string trimmedKey = key.substr(0, std::string::npos);
 	if (!key.empty() && key.front() == '$')
@@ -1297,9 +1379,13 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key, Colmna
 		trimmedKey = key.substr(1, std::string::npos);
 	}
 	MergePayload(trimmedKey, &responseMessage, payload);
+	if(!nullBitMaskString.empty())
+	{
+		MergePayloadBitmask(trimmedKey,&responseMessage, nullBitMaskString);
+	}
 }
 
-bool GpuSqlDispatcher::isRegisterAllocated(std::string & reg)
+bool GpuSqlDispatcher::isRegisterAllocated(const std::string& reg)
 {
 	return allocatedPointers.find(reg) != allocatedPointers.end();
 }

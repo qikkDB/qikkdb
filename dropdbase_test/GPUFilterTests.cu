@@ -66,7 +66,7 @@ void testColColFilter()
 	// Run kernels, copy back values and compare them
 
 	// Greater than
-	GPUFilter::colCol<FilterConditions::greater>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+	GPUFilter::colCol<FilterConditions::greater>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -81,7 +81,7 @@ void testColColFilter()
 	}
 
 	// Greater than equal
-	GPUFilter::colCol<FilterConditions::greaterEqual>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+	GPUFilter::colCol<FilterConditions::greaterEqual>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -96,7 +96,7 @@ void testColColFilter()
 	}
 
 	// Less than
-	GPUFilter::colCol<FilterConditions::less>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+	GPUFilter::colCol<FilterConditions::less>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -111,7 +111,7 @@ void testColColFilter()
 	}
 
 	// Less than equal
-	GPUFilter::colCol<FilterConditions::lessEqual>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+	GPUFilter::colCol<FilterConditions::lessEqual>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -126,7 +126,7 @@ void testColColFilter()
 	}
 
 	// Equal
-	GPUFilter::colCol<FilterConditions::equal>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+	GPUFilter::colCol<FilterConditions::equal>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -141,7 +141,7 @@ void testColColFilter()
 	}
 
 	// Non equal
-	GPUFilter::colCol<FilterConditions::notEqual>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+	GPUFilter::colCol<FilterConditions::notEqual>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -221,7 +221,7 @@ void testColConstFilter()
 	// Run kernels, copy back values and compare them
 
 	// Greater than
-	GPUFilter::colConst<FilterConditions::greater>(outputBuffer, inputBufferA, inputDataBConstant, DATA_ELEMENT_COUNT);
+	GPUFilter::colConst<FilterConditions::greater>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -236,7 +236,7 @@ void testColConstFilter()
 	}
 
 	// Greater than equal
-	GPUFilter::colConst<FilterConditions::greaterEqual>(outputBuffer, inputBufferA, inputDataBConstant, DATA_ELEMENT_COUNT);
+	GPUFilter::colConst<FilterConditions::greaterEqual>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -251,7 +251,7 @@ void testColConstFilter()
 	}
 
 	// Less than
-	GPUFilter::colConst<FilterConditions::less>(outputBuffer, inputBufferA, inputDataBConstant, DATA_ELEMENT_COUNT);
+	GPUFilter::colConst<FilterConditions::less>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -266,7 +266,7 @@ void testColConstFilter()
 	}
 
 	// Less than equal
-	GPUFilter::colConst<FilterConditions::lessEqual>(outputBuffer, inputBufferA, inputDataBConstant, DATA_ELEMENT_COUNT);
+	GPUFilter::colConst<FilterConditions::lessEqual>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -281,7 +281,7 @@ void testColConstFilter()
 	}
 
 	// Equal
-	GPUFilter::colConst<FilterConditions::equal>(outputBuffer, inputBufferA, inputDataBConstant, DATA_ELEMENT_COUNT);
+	GPUFilter::colConst<FilterConditions::equal>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -296,7 +296,7 @@ void testColConstFilter()
 	}
 
 	// Non equal
-	GPUFilter::colConst<FilterConditions::notEqual>(outputBuffer, inputBufferA, inputDataBConstant, DATA_ELEMENT_COUNT);
+	GPUFilter::colConst<FilterConditions::notEqual>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -374,7 +374,7 @@ void testConstColFilter()
 	// Run kernels, copy back values and compare them
 
 	// Greater than
-	GPUFilter::constCol<FilterConditions::greater>(outputBuffer, inputDataBConstant, inputBufferA, DATA_ELEMENT_COUNT);
+	GPUFilter::constCol<FilterConditions::greater>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -389,7 +389,7 @@ void testConstColFilter()
 	}
 
 	// Greater than equal
-	GPUFilter::constCol<FilterConditions::greaterEqual>(outputBuffer, inputDataBConstant, inputBufferA, DATA_ELEMENT_COUNT);
+	GPUFilter::constCol<FilterConditions::greaterEqual>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -404,7 +404,7 @@ void testConstColFilter()
 	}
 
 	// Less than
-	GPUFilter::constCol<FilterConditions::less>(outputBuffer, inputDataBConstant, inputBufferA, DATA_ELEMENT_COUNT);
+	GPUFilter::constCol<FilterConditions::less>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -419,7 +419,7 @@ void testConstColFilter()
 	}
 
 	// Less than equal
-	GPUFilter::constCol<FilterConditions::lessEqual>(outputBuffer, inputDataBConstant, inputBufferA, DATA_ELEMENT_COUNT);
+	GPUFilter::constCol<FilterConditions::lessEqual>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -434,7 +434,7 @@ void testConstColFilter()
 	}
 
 	// Equal
-	GPUFilter::constCol<FilterConditions::equal>(outputBuffer, inputDataBConstant, inputBufferA, DATA_ELEMENT_COUNT);
+	GPUFilter::constCol<FilterConditions::equal>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -449,7 +449,7 @@ void testConstColFilter()
 	}
 
 	// Non equal
-	GPUFilter::constCol<FilterConditions::notEqual>(outputBuffer, inputDataBConstant, inputBufferA, DATA_ELEMENT_COUNT);
+	GPUFilter::constCol<FilterConditions::notEqual>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
 	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
 	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
 	{
@@ -628,7 +628,7 @@ void TestFilterStringColCol(std::vector<std::string> inputStringACol, std::vecto
 	GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(inputStringBCol);
 	int32_t dataElementCount = std::min(inputStringACol.size(), inputStringBCol.size());
 	cuda_ptr<int8_t> gpuMask(dataElementCount);
-	GPUFilter::colCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
+	GPUFilter::colCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
 	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
 	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
 	GPUMemory::free(gpuStringACol);
@@ -649,7 +649,7 @@ void TestFilterStringColConst(std::vector<std::string> inputStringACol, std::str
 	GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString({ inputStringBConst });
 	int32_t dataElementCount = inputStringACol.size();
 	cuda_ptr<int8_t> gpuMask(dataElementCount);
-	GPUFilter::colConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
+	GPUFilter::colConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
 	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
 	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
 	GPUMemory::free(gpuStringACol);
@@ -670,7 +670,7 @@ void TestFilterStringConstCol(std::string inputStringAConst, std::vector<std::st
 	GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(inputStringBCol);
 	int32_t dataElementCount = inputStringBCol.size();
 	cuda_ptr<int8_t> gpuMask(dataElementCount);
-	GPUFilter::constCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
+	GPUFilter::constCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
 	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
 	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
 	GPUMemory::free(gpuStringACol);

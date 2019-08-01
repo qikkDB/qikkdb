@@ -21,22 +21,46 @@ int32_t GpuSqlDispatcher::castNumericCol()
 	{
 		if (isOverallLastBlock)
 		{
-			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName + "_keys");
-			int32_t retSize = std::get<1>(column);
-			OUT *result = allocateRegister<OUT>(reg + "_keys", retSize);
-			GPUCast::CastNumericCol(result, reinterpret_cast<IN*>(std::get<0>(column)), retSize);
+			PointerAllocation column = allocatedPointers.at(colName + KEYS_SUFFIX);
+			int32_t retSize = column.elementCount;
+			OUT *result;
+
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<OUT>(reg + KEYS_SUFFIX, retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<OUT>(reg + KEYS_SUFFIX, retSize);
+			}
+
+			GPUCast::CastNumericCol(result, reinterpret_cast<IN*>(column.gpuPtr), retSize);
 			groupByColumns.push_back({ reg, ::GetColumnType<OUT>() });
 		}
 	}
-	else if (isOverallLastBlock || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy || insideGroupBy)
 	{
-		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
-		int32_t retSize = std::get<1>(column);
+		PointerAllocation column = allocatedPointers.at(colName);
+		int32_t retSize = column.elementCount;
 
 		if (!isRegisterAllocated(reg))
 		{
-			OUT *result = allocateRegister<OUT>(reg, retSize);
-			GPUCast::CastNumericCol(result, reinterpret_cast<IN*>(std::get<0>(column)), retSize);
+			OUT * result;
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<OUT>(reg, retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<OUT>(reg, retSize);
+			}
+			GPUCast::CastNumericCol(result, reinterpret_cast<IN*>(column.gpuPtr), retSize);
 		}
 	}
 

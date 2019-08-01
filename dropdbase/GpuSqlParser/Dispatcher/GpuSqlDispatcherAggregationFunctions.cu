@@ -21,6 +21,8 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
 
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::groupByFunctions = { &GpuSqlDispatcher::groupByConst<int32_t>, &GpuSqlDispatcher::groupByConst<int64_t>, &GpuSqlDispatcher::groupByConst<float>, &GpuSqlDispatcher::groupByConst<double>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::groupByConst<std::string>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<int8_t>, &GpuSqlDispatcher::groupByCol<int32_t>, &GpuSqlDispatcher::groupByCol<int64_t>, &GpuSqlDispatcher::groupByCol<float>, &GpuSqlDispatcher::groupByCol<double>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>, &GpuSqlDispatcher::groupByCol<std::string>, &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<int8_t> };
 
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::groupByBeginFunction = &GpuSqlDispatcher::groupByBegin;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::groupByDoneFunction = &GpuSqlDispatcher::groupByDone;
 
 template<>
 int32_t GpuSqlDispatcher::groupByCol<std::string>()
@@ -52,6 +54,19 @@ int32_t GpuSqlDispatcher::groupByCol<std::string>()
 	{
 		groupByColumns.push_back({ columnName, DataType::COLUMN_STRING });
 	}
+	
+	return 0;
+}
+
+int32_t GpuSqlDispatcher::groupByDone()
+{
+	insideGroupBy = false;
+	return 0;
+}
+
+int32_t GpuSqlDispatcher::groupByBegin()
+{
 	usingGroupBy = true;
+	insideGroupBy = true;
 	return 0;
 }

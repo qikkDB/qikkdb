@@ -31,8 +31,12 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 			GpuSqlDispatcher::orderByCV_.wait(lock, [] { return GpuSqlDispatcher::IsOrderByDone(); });
 
 			std::cout << "Merging partially ordered blocks." << std::endl;
+
 			std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
 			std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
+
+			std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByOrderColumnNullBlocks;
+			std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByRetColumnNullBlocks;
 
 			for (int32_t i = 0; i < Context::getInstance().getDeviceCount(); i++)
 			{
@@ -43,6 +47,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 						reconstructedOrderByOrderColumnBlocks[orderBlocks.first].push_back(std::move(orderBlockArray));
 					}
 				}
+
 				for (auto& retBlocks : orderByBlocks[i].reconstructedOrderByRetColumnBlocks)
 				{
 					for (auto& retBlockArray : retBlocks.second)
@@ -50,10 +55,27 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 						reconstructedOrderByRetColumnBlocks[retBlocks.first].push_back(std::move(retBlockArray));
 					}
 				}
+
+				for (auto& orderBlocksNull : orderByBlocks[i].reconstructedOrderByOrderColumnNullBlocks)
+				{
+					for (auto& orderBlockArray : orderBlocksNull.second)
+					{
+						reconstructedOrderByOrderColumnNullBlocks[orderBlocksNull.first].push_back(std::move(orderBlockArray));
+					}
+				}
+
+				for (auto& retBlocksNull : orderByBlocks[i].reconstructedOrderByRetColumnNullBlocks)
+				{
+					for (auto& retBlockArray : retBlocksNull.second)
+					{
+						reconstructedOrderByRetColumnNullBlocks[retBlocksNull.first].push_back(std::move(retBlockArray));
+					}
+				}
 			}
 
 			// Count and allocate the result vectors for the output map
 			int32_t resultSetSize = 0;
+			int32_t resultSetNullSize = 0;
 			int32_t resultSetCounter = 0;
 
 			// Allocate a vector of merge pointers to the input vectors - counters that hold the merge positions - initialize them to zero
@@ -98,6 +120,8 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 				merge_limits[i] = blockSize;
 			}
 
+			resultSetNullSize = (resultSetSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+
 			// Allocate the result map by inserting a column name and iVariantArray pair
 			for (auto &orderColumn : reconstructedOrderByRetColumnBlocks)
 			{
@@ -127,6 +151,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 					break;
 				default:
 					break;
+				}
+
+				// Alloc the null collumn and zero it
+				reconstructedOrderByColumnsNullMerged[orderColumn.first] = std::make_unique<int8_t[]>(resultSetNullSize);
+				for(int32_t i = 0; i < resultSetNullSize; i++)
+				{
+					reconstructedOrderByColumnsNullMerged[orderColumn.first].get()[i] = 0;
 				}
 			}
 
@@ -323,7 +354,17 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 								default:
 									break;
 								}
+
+								// Write the null columns 1
+								// 1. retrieve the null value, 2. set the null value
+								int8_t nullBit = (reconstructedOrderByRetColumnNullBlocks[retColumn.first][firstNonzeroMergeCounterIdx].get()[merge_counters[firstNonzeroMergeCounterIdx] / (sizeof(int8_t) * 8)] >> (merge_counters[firstNonzeroMergeCounterIdx] % (sizeof(int8_t) * 8))) & 1;
+								nullBit <<= (resultSetCounter % (sizeof(int8_t) * 8)); 
+								reconstructedOrderByColumnsNullMerged[retColumn.first].get()[resultSetCounter / 8] |= nullBit;
 							}
+							// Add to the null collumn
+							//reconstructedOrderByOrderColumnNullBlocks[retColumn.first].get()[resultSetCounter];
+
+
 							resultSetCounter++;
 						}
 						else {
@@ -551,7 +592,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 								default:
 									break;
 								}
+								
+								// Write the null columns 2
+								int8_t nullBit = (reconstructedOrderByRetColumnNullBlocks[retColumn.first][mergeCounterIdx].get()[merge_counters[mergeCounterIdx] / (sizeof(int8_t) * 8)] >> (merge_counters[mergeCounterIdx] % (sizeof(int8_t) * 8))) & 1;
+								nullBit <<= (resultSetCounter % (sizeof(int8_t) * 8)); 
+								reconstructedOrderByColumnsNullMerged[retColumn.first].get()[resultSetCounter / 8] |= nullBit;
 							}
+
 							resultSetCounter++;
 						}
 						else {

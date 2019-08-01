@@ -72,6 +72,7 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
 		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherArithmeticUnaryFunctions.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherDateFunctions.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherGeoFunctions.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherStringFunctions.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/DispatcherCpu/CpuDispatcherCastFunctions.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/IColumn.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.cpp
@@ -112,9 +113,13 @@ endif(NOT WIN32)
 add_library(${PROJECT_NAME}_obj STATIC ${SOURCE_FILES} ${CUDA_FILES})
 set_target_properties(${PROJECT_NAME}_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(${PROJECT_NAME}_obj PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-
+set_target_properties(${PROJECT_NAME}_obj PROPERTIES LINK_FLAGS "-rdynamic")
 
 add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+if(NOT WIN32)
+    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-rdynamic")
+endif(NOT WIN32)
+
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}_obj)

@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/Andy/Desktop/parser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -21,22 +21,23 @@ public:
     POLYTYPE = 32, INSERTINTO = 33, CREATEDB = 34, DROPDB = 35, CREATETABLE = 36, 
     DROPTABLE = 37, ALTERTABLE = 38, ADD = 39, DROPCOLUMN = 40, ALTERCOLUMN = 41, 
     CREATEINDEX = 42, INDEX = 43, PRIMARYKEY = 44, VALUES = 45, SELECT = 46, 
-    FROM = 47, JOIN = 48, WHERE = 49, GROUPBY = 50, AS = 51, IN = 52, BETWEEN = 53, 
-    ON = 54, ORDERBY = 55, DIR = 56, LIMIT = 57, OFFSET = 58, INNER = 59, 
-    FULLOUTER = 60, SHOWDB = 61, SHOWTB = 62, SHOWCL = 63, AGG = 64, AVG = 65, 
-    SUM = 66, MIN = 67, MAX = 68, COUNT = 69, YEAR = 70, MONTH = 71, DAY = 72, 
-    HOUR = 73, MINUTE = 74, SECOND = 75, NOW = 76, PI = 77, ABS = 78, SIN = 79, 
-    COS = 80, TAN = 81, COT = 82, ASIN = 83, ACOS = 84, ATAN = 85, ATAN2 = 86, 
-    LOG10 = 87, LOG = 88, EXP = 89, POW = 90, SQRT = 91, SQUARE = 92, SIGN = 93, 
-    ROOT = 94, ROUND = 95, CEIL = 96, FLOOR = 97, LTRIM = 98, RTRIM = 99, 
-    LOWER = 100, UPPER = 101, REVERSE = 102, LEN = 103, LEFT = 104, RIGHT = 105, 
-    CONCAT = 106, CAST = 107, GEO_CONTAINS = 108, GEO_INTERSECT = 109, GEO_UNION = 110, 
-    PLUS = 111, MINUS = 112, ASTERISK = 113, DIVISION = 114, MODULO = 115, 
-    XOR = 116, EQUALS = 117, NOTEQUALS = 118, NOTEQUALS_GT_LT = 119, LPAREN = 120, 
-    RPAREN = 121, GREATER = 122, LESS = 123, GREATEREQ = 124, LESSEQ = 125, 
-    NOT = 126, OR = 127, AND = 128, BIT_OR = 129, BIT_AND = 130, L_SHIFT = 131, 
-    R_SHIFT = 132, BOOLEANLIT = 133, TRUE = 134, FALSE = 135, FLOATLIT = 136, 
-    INTLIT = 137, ID = 138
+    FROM = 47, JOIN = 48, WHERE = 49, GROUPBY = 50, AS = 51, IN = 52, ISNULL = 53, 
+    ISNOTNULL = 54, BETWEEN = 55, ON = 56, ORDERBY = 57, DIR = 58, LIMIT = 59, 
+    OFFSET = 60, INNER = 61, FULLOUTER = 62, SHOWDB = 63, SHOWTB = 64, SHOWCL = 65, 
+    AGG = 66, AVG = 67, SUM = 68, MIN = 69, MAX = 70, COUNT = 71, YEAR = 72, 
+    MONTH = 73, DAY = 74, HOUR = 75, MINUTE = 76, SECOND = 77, NOW = 78, 
+    PI = 79, ABS = 80, SIN = 81, COS = 82, TAN = 83, COT = 84, ASIN = 85, 
+    ACOS = 86, ATAN = 87, ATAN2 = 88, LOG10 = 89, LOG = 90, EXP = 91, POW = 92, 
+    SQRT = 93, SQUARE = 94, SIGN = 95, ROOT = 96, ROUND = 97, CEIL = 98, 
+    FLOOR = 99, LTRIM = 100, RTRIM = 101, LOWER = 102, UPPER = 103, REVERSE = 104, 
+    LEN = 105, LEFT = 106, RIGHT = 107, CONCAT = 108, CAST = 109, GEO_CONTAINS = 110, 
+    GEO_INTERSECT = 111, GEO_UNION = 112, PLUS = 113, MINUS = 114, ASTERISK = 115, 
+    DIVISION = 116, MODULO = 117, XOR = 118, EQUALS = 119, NOTEQUALS = 120, 
+    NOTEQUALS_GT_LT = 121, LPAREN = 122, RPAREN = 123, GREATER = 124, LESS = 125, 
+    GREATEREQ = 126, LESSEQ = 127, LOGICAL_NOT = 128, OR = 129, AND = 130, 
+    BIT_OR = 131, BIT_AND = 132, L_SHIFT = 133, R_SHIFT = 134, BOOLEANLIT = 135, 
+    TRUE = 136, FALSE = 137, FLOATLIT = 138, INTLIT = 139, NULLLIT = 140, 
+    ID = 141
   };
 
   enum {
@@ -962,6 +963,7 @@ public:
     antlr4::tree::TerminalNode *INTLIT();
     antlr4::tree::TerminalNode *FLOATLIT();
     GeometryContext *geometry();
+    antlr4::tree::TerminalNode *NULLLIT();
     antlr4::tree::TerminalNode *STRING();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -1133,7 +1135,7 @@ public:
 
     antlr4::Token *op = nullptr;
     ExpressionContext *expression();
-    antlr4::tree::TerminalNode *NOT();
+    antlr4::tree::TerminalNode *LOGICAL_NOT();
     antlr4::tree::TerminalNode *MINUS();
     antlr4::tree::TerminalNode *LPAREN();
     antlr4::tree::TerminalNode *RPAREN();
@@ -1166,6 +1168,8 @@ public:
     antlr4::tree::TerminalNode *UPPER();
     antlr4::tree::TerminalNode *REVERSE();
     antlr4::tree::TerminalNode *LEN();
+    antlr4::tree::TerminalNode *ISNULL();
+    antlr4::tree::TerminalNode *ISNOTNULL();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };

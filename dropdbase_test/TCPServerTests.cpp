@@ -51,7 +51,7 @@ class DummyClientHandler : public IClientHandler
 		ret->set_message("");
 		return ret;
 	}
-	virtual std::unique_ptr<google::protobuf::Message> HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer) override 
+	virtual std::unique_ptr<google::protobuf::Message> HandleBulkImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage, const char* dataBuffer, const char* nullMask) override 
 	{
 		std::unique_ptr<ColmnarDB::NetworkClient::Message::InfoMessage> ret = std::make_unique< ColmnarDB::NetworkClient::Message::InfoMessage>();
 		if(std::string(bulkImportMessage.columnname()) != "test" || std::string(bulkImportMessage.tablename()) != "test" 

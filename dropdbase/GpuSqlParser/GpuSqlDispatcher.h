@@ -40,7 +40,10 @@ struct InsertIntoStruct;
 struct OrderByBlocks
 {
 	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
+	std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByOrderColumnNullBlocks;
+	
 	std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
+	std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByRetColumnNullBlocks;
 };
 
 class GPUOrderBy;
@@ -58,6 +61,16 @@ private:
 class GpuSqlDispatcher
 {
 private:
+	struct PointerAllocation
+	{
+		std::uintptr_t gpuPtr;
+		int32_t elementCount; 
+		bool shouldBeFreed;
+		std::uintptr_t gpuNullMaskPtr;
+	};
+	static const std::string KEYS_SUFFIX;
+	static const std::string NULL_SUFFIX;
+
 	typedef int32_t(GpuSqlDispatcher::*DispatchFunction)();
     std::vector<DispatchFunction> dispatcherFunctions;
     MemoryStream arguments;
@@ -71,10 +84,12 @@ private:
 	int32_t jmpInstuctionPosition;
 	int32_t constStringCounter;
     const std::shared_ptr<Database> &database;
+	std::unordered_map<std::string, PointerAllocation> allocatedPointers;
 	std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIndices;
-	std::unordered_map<std::string, std::tuple<std::uintptr_t, int32_t, bool>> allocatedPointers;
+
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
+	bool insideGroupBy;
 	bool usingGroupBy;
 	bool usingOrderBy;
 	bool usingJoin;
@@ -85,18 +100,22 @@ private:
 	std::vector<std::pair<std::string, DataType>> groupByColumns;
 	std::unordered_set<std::string> aggregatedRegisters;
 	std::unordered_set<std::string> registerLockList;
-	bool isRegisterAllocated(std::string& reg);
+	bool isRegisterAllocated(const std::string& reg);
 	std::pair<std::string, std::string> splitColumnName(const std::string& colName);
 	std::vector<std::unique_ptr<IGroupBy>>& groupByTables;
 	CpuSqlDispatcher cpuDispatcher;
 
 	std::unique_ptr<InsertIntoStruct> insertIntoData;
+	std::unordered_map<std::string, std::vector<int8_t>> insertIntoNullMasks;
 	std::unique_ptr<IOrderBy> orderByTable;
 	std::vector<OrderByBlocks>& orderByBlocks;
 	
 	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged;
+	std::unordered_map<std::string, std::unique_ptr<int8_t[]>> reconstructedOrderByColumnsNullMerged;
+
 	std::unordered_map<int32_t, std::pair<std::string, OrderBy::Order>> orderByColumns;
 	std::vector<std::vector<int32_t>> orderByIndices;
+	
 
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> greaterFunctions;
@@ -275,6 +294,11 @@ private:
     static std::array<DispatchFunction,
             DataType::DATA_TYPE_SIZE> groupByFunctions;
 
+	static DispatchFunction isNullFunction;
+	static DispatchFunction isNotNullFunction;
+
+	static DispatchFunction groupByBeginFunction;
+	static DispatchFunction groupByDoneFunction;
 	static DispatchFunction freeOrderByTableFunction;
 	static DispatchFunction orderByReconstructRetAllBlocksFunction;
     static DispatchFunction filFunction;
@@ -308,6 +332,7 @@ private:
 	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<double[]> &data, int32_t dataSize);
 
 	void insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, std::unique_ptr<std::string[]> &data, int32_t dataSize);
+
 public:
 	static std::mutex groupByMutex_;
 	static std::mutex orderByMutex_;
@@ -370,10 +395,10 @@ public:
 
 	static void MergePayload(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage,
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
+	static void MergePayloadBitmask(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponseMessage * responseMessage, const std::string& nullMask);
 
 
     GpuSqlDispatcher(const std::shared_ptr<Database> &database, std::vector<std::unique_ptr<IGroupBy>>& groupByTables, std::vector<OrderByBlocks>& orderByBlocks, int dispatcherThreadId);
-
 	~GpuSqlDispatcher();
 
 	GpuSqlDispatcher(const GpuSqlDispatcher& dispatcher2) = delete;
@@ -451,6 +476,10 @@ public:
 	void addCastToInt8tFunction(DataType operand);
 
     void addLogicalNotFunction(DataType type);
+
+	void addIsNullFunction();
+
+	void addIsNotNullFunction();
 
     void addMinusFunction(DataType type);
 
@@ -581,58 +610,81 @@ public:
 	void addInsertIntoDoneFunction();
 
     void addGroupByFunction(DataType type);
+	
+	void addGroupByBeginFunction();
+
+	void addGroupByDoneFunction();
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
 
 	static std::unordered_map<std::string, int32_t> linkTable;
 	
 	template<typename T>
-	T* allocateRegister(const std::string& reg, int32_t size)
+	T* allocateRegister(const std::string& reg, int32_t size, int8_t** nullPointerMask = nullptr)
 	{
-		T * mask;
-		GPUMemory::alloc<T>(&mask, size);
-		InsertRegister(reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(mask), size, true));
+		T * gpuRegister;
+		GPUMemory::alloc<T>(&gpuRegister, size);
+		if(nullPointerMask)
+		{
+			int32_t bitMaskSize = ((size + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+			GPUMemory::alloc<int8_t>(nullPointerMask, bitMaskSize);
+			InsertRegister(reg + NULL_SUFFIX, PointerAllocation{reinterpret_cast<std::uintptr_t>(*nullPointerMask), bitMaskSize, true, 0});
+			InsertRegister(reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true, reinterpret_cast<std::uintptr_t>(*nullPointerMask)});
+		}
+		else
+		{
+			InsertRegister(reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true, 0});
+		}
+		
 		usedRegisterMemory += size * sizeof(T);
-		return mask;
+		return gpuRegister;
 	}
 
+	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
 	
 	/// Check if registerName is contained in allocatedPointers and if so, throw; if not, insert register
-	void InsertRegister(std::string registerName, std::tuple<std::uintptr_t, int32_t, bool> registerValues);
+	void InsertRegister(const std::string& registerName, PointerAllocation registerValues);
 
-	void fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string& reg, int32_t size, bool useCache = false);
-
-	void fillStringRegister(GPUMemory::GPUString& stringColumn, const std::string& reg, int32_t size, bool useCache = false);
+	void fillStringRegister(GPUMemory::GPUString& stringColumn, const std::string& reg, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
 
 	template<typename T>
-	void addCachedRegister(const std::string& reg, T* ptr, int32_t size)
+	void addCachedRegister(const std::string& reg, T* ptr, int32_t size, int8_t* nullMaskPtr = nullptr)
 	{
-		InsertRegister(reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(ptr), size, false));
+		InsertRegister(reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(ptr), size, false, reinterpret_cast<std::uintptr_t>(nullMaskPtr)});
 	}
 
 	template<typename T>
 	int32_t loadCol(std::string& colName);
+
+	int32_t loadColNullMask(std::string& colName);
 
 	template <typename T>
 	void freeColumnIfRegister(const std::string& col)
 	{
 		if (usedRegisterMemory > maxRegisterMemory && !col.empty() && col.front() == '$' && registerLockList.find(col) == registerLockList.end())
 		{
-			GPUMemory::free(reinterpret_cast<void*>(std::get<0>(allocatedPointers.at(col))));
-			usedRegisterMemory -= std::get<1>(allocatedPointers.at(col)) * sizeof(T);
-			allocatedPointers.erase(col);
 			std::cout << "Free: " << col << std::endl;
+			
+			GPUMemory::free(reinterpret_cast<void*>(allocatedPointers.at(col).gpuPtr));
+			usedRegisterMemory -= allocatedPointers.at(col).elementCount * sizeof(T);
+			allocatedPointers.erase(col);
+
+			if(allocatedPointers.find(col + NULL_SUFFIX) != allocatedPointers.end())
+			{
+				GPUMemory::free(reinterpret_cast<void*>(allocatedPointers.at(col + NULL_SUFFIX).gpuPtr));
+				usedRegisterMemory -= allocatedPointers.at(col + NULL_SUFFIX).elementCount * sizeof(int8_t);
+				allocatedPointers.erase(col + NULL_SUFFIX);
+			}
 		}
 	}
 
 	// TODO freeColumnIfRegister<std::string> laso point and polygon
+	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload, const std::string& nullBitMaskString = "");
 
-	void MergePayloadToSelfResponse(const std::string &key, ColmnarDB::NetworkClient::Message::QueryResponsePayload &payload);
-
-	GPUMemory::GPUPolygon insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false);
-	GPUMemory::GPUString insertString(const std::string& databaseName, const std::string& colName, const std::vector<std::string>& strings, int32_t size, bool useCache = false);
-	std::tuple<GPUMemory::GPUPolygon, int32_t> findComplexPolygon(std::string colName);
-	std::tuple<GPUMemory::GPUString, int32_t> findStringColumn(const std::string &colName);
+	GPUMemory::GPUPolygon insertComplexPolygon(const std::string& databaseName, const std::string& colName, const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
+	GPUMemory::GPUString insertString(const std::string& databaseName, const std::string& colName, const std::vector<std::string>& strings, int32_t size, bool useCache = false, int8_t* nullMaskPtr = nullptr);
+	std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> findComplexPolygon(std::string colName);
+	std::tuple<GPUMemory::GPUString, int32_t, int8_t*> findStringColumn(const std::string &colName);
 	NativeGeoPoint* insertConstPointGpu(ColmnarDB::Types::Point& point);
 	GPUMemory::GPUPolygon insertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
 	GPUMemory::GPUString insertConstStringGpu(const std::string& str);
@@ -662,6 +714,10 @@ public:
 
     template<typename T>
     int32_t retCol();
+
+	int32_t groupByBegin();
+
+	int32_t groupByDone();
 
 	int32_t freeOrderByTable();
 
@@ -849,6 +905,9 @@ public:
 
     template<typename T>
     int32_t logicalNotConst();
+
+	template<typename OP>
+	int32_t nullMaskCol();
 
 	template<typename OP>
 	int32_t dateExtractCol();

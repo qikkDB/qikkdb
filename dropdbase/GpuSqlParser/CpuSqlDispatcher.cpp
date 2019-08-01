@@ -131,6 +131,18 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const s
 	{
 		cpuDispatcherFunctions.push_back(arctangent2Functions[left * DataType::DATA_TYPE_SIZE + right]);
 	}
+	else if (op == "LEFT")
+	{
+		cpuDispatcherFunctions.push_back(leftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "RIGHT")
+	{
+		cpuDispatcherFunctions.push_back(rightFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
+	else if (op == "CONCAT")
+	{
+		cpuDispatcherFunctions.push_back(concatFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+	}
 }
 
 void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
@@ -138,6 +150,14 @@ void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
 	if (op == "!")
 	{
 		cpuDispatcherFunctions.push_back(logicalNotFunctions[type]);
+	}
+	else if (op == "IS NULL")
+	{
+		cpuDispatcherFunctions.push_back(nullFunction);
+	}
+	else if (op == "IS NOT NULL")
+	{
+		cpuDispatcherFunctions.push_back(nullFunction);
 	}
 	else if (op == "-")
 	{
@@ -235,6 +255,27 @@ void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
 	{
 		cpuDispatcherFunctions.push_back(ceilFunctions[type]);
 	}
+	else if (op == "LTRIM")
+	{
+		cpuDispatcherFunctions.push_back(ltrimFunctions[type]);
+	}
+	else if (op == "RTRIM")
+	{
+		cpuDispatcherFunctions.push_back(rtrimFunctions[type]);
+	}
+	else if (op == "LOWER")
+	{
+		cpuDispatcherFunctions.push_back(lowerFunctions[type]);
+	}
+	else if (op == "UPPER")
+	{
+		cpuDispatcherFunctions.push_back(upperFunctions[type]);
+	}
+	else if (op == "LEN")
+	{
+		cpuDispatcherFunctions.push_back(lenFunctions[type]);
+	}
+
 }
 
 void CpuSqlDispatcher::addCastOperation(DataType inputType, DataType outputType, const std::string& outTypeStr)
@@ -339,6 +380,7 @@ void CpuSqlDispatcher::copyExecutionDataTo(CpuSqlDispatcher& other)
 	other.cpuDispatcherFunctions = cpuDispatcherFunctions;
 	other.arguments = arguments;
 }
+
 
 std::pair<std::string, std::string> CpuSqlDispatcher::getPointerNames(const std::string & colName)
 {

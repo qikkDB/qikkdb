@@ -30,7 +30,7 @@ bool GPUMemoryCache::evict()
 {
 	for (auto it = lruQueue.begin(); it != lruQueue.end(); it++)
 	{
-		auto& queueItem = *it;
+		auto& queueItem = *it; 
 		bool isLockedItem = false;
 		// Check if current eviction candidate is evictable
 		for (const auto& lockedColumn : GPUMemoryCache::lockList)
@@ -76,7 +76,7 @@ void GPUMemoryCache::clearCachedBlock(const std::string& databaseName, const std
 		usedSize -= toErase.size;
 		cacheMap.erase(cacheMap.find(columnBlock));
 	}
-	BOOST_LOG_TRIVIAL(debug) << "Cleared cached block " << columnBlock << " on device" << deviceID_;
+	//BOOST_LOG_TRIVIAL(debug) << "Cleared cached block " << columnBlock << " on device" << deviceID_;
 }
 
 bool GPUMemoryCache::containsColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex)

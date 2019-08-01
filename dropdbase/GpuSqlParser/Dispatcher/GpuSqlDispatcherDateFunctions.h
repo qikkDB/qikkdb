@@ -26,22 +26,44 @@ int32_t GpuSqlDispatcher::dateExtractCol()
 	{
 		if (isOverallLastBlock)
 		{
-			std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName + "_keys");
-			int32_t retSize = std::get<1>(column);
-			int32_t * result = allocateRegister<int32_t>(reg + "_keys", retSize);
-			GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(std::get<0>(column)), retSize);
+			PointerAllocation column = allocatedPointers.at(colName + KEYS_SUFFIX);
+			int32_t retSize = column.elementCount;
+			int32_t * result;
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<int32_t>(reg + KEYS_SUFFIX, retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<int32_t>(reg + KEYS_SUFFIX, retSize);
+			}
+			GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.gpuPtr), retSize);
 			groupByColumns.push_back({ reg, COLUMN_INT });
 		}
 	}
-	else
+	else if (isOverallLastBlock || !usingGroupBy || insideGroupBy)
 	{
-		std::tuple<uintptr_t, int32_t, bool> column = allocatedPointers.at(colName);
-		int32_t retSize = std::get<1>(column);
+		PointerAllocation column = allocatedPointers.at(colName);
+		int32_t retSize = column.elementCount;
 
 		if (!isRegisterAllocated(reg))
 		{
-			int32_t * result = allocateRegister<int32_t>(reg, retSize);
-			GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(std::get<0>(column)), retSize);
+			int32_t * result;
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<int32_t>(reg, retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<int32_t>(reg, retSize);
+			}
+			GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.gpuPtr), retSize);
 		}
 	}	
 

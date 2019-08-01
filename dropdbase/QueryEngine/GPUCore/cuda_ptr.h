@@ -15,6 +15,15 @@ private:
 public:
 	cuda_ptr(const cuda_ptr&) = delete;
 	cuda_ptr& operator=(const cuda_ptr&) = delete;
+	
+	cuda_ptr(cuda_ptr&& other) : pointer_(std::move(other.pointer_))
+	{
+	}
+
+	cuda_ptr& operator=(cuda_ptr&& other)
+	{
+		pointer_ = std::move(other.pointer_);
+	}
 
 	/// Constructor
     /// <param name="dataElementCount"> Chunk of memory of size sizeof(T) * dataElementCount </param>
