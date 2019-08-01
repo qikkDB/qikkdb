@@ -613,27 +613,27 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 	trimReg(value);
 	switch (ctx->op->getType())
 	{
-	case GpuSqlLexer::MIN:
+	case GpuSqlLexer::MIN_AGG:
 		reg = "$" + op + "(" + value + ")";
 		dispatcher.addMinFunction(keyType, valueType, groupByType);
 		returnDataType = getReturnDataType(valueType);
 		break;
-	case GpuSqlLexer::MAX:
+	case GpuSqlLexer::MAX_AGG:
 		reg = "$" + op + "(" + value + ")";
 		dispatcher.addMaxFunction(keyType, valueType, groupByType);
 		returnDataType = getReturnDataType(valueType);
 		break;
-	case GpuSqlLexer::SUM:
+	case GpuSqlLexer::SUM_AGG:
 		reg = "$" + op + "(" + value + ")";
 		dispatcher.addSumFunction(keyType, valueType, groupByType);
 		returnDataType = getReturnDataType(valueType);
 		break;
-	case GpuSqlLexer::COUNT:
+	case GpuSqlLexer::COUNT_AGG:
 		reg = "$" + op + "(" + value + ")";
 		dispatcher.addCountFunction(keyType, valueType, groupByType);
 		returnDataType = DataType::COLUMN_LONG;
 		break;
-	case GpuSqlLexer::AVG:
+	case GpuSqlLexer::AVG_AGG:
 		reg = "$" + op + "(" + value + ")";
 		dispatcher.addAvgFunction(keyType, valueType, groupByType);
 		returnDataType = getReturnDataType(valueType);
