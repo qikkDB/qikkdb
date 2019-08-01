@@ -1,4 +1,5 @@
 #include "CpuSqlDispatcher.h"
+#include "GpuSqlLexer.h"
 
 std::array<CpuSqlDispatcher::CpuDispatchFunction, DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::whereResultFunctions = { &CpuSqlDispatcher::whereResultConst<int32_t>, &CpuSqlDispatcher::whereResultConst<int64_t>, &CpuSqlDispatcher::whereResultConst<float>, &CpuSqlDispatcher::whereResultConst<double>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<std::string>, &CpuSqlDispatcher::whereResultConst<int8_t>, &CpuSqlDispatcher::whereResultCol<int32_t>, &CpuSqlDispatcher::whereResultCol<int64_t>, &CpuSqlDispatcher::whereResultCol<float>, &CpuSqlDispatcher::whereResultCol<double>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<std::string>, &CpuSqlDispatcher::whereResultCol<int8_t> };
 
@@ -25,8 +26,13 @@ std::pair<std::string, std::string> CpuSqlDispatcher::splitColumnName(const std:
 	return std::make_pair(table, column);
 }
 
-void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const std::string & op)
+void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, size_t opType)
 {
+	switch (opType)
+	{
+	default:
+		break;
+	}
 	if (op == ">")
 	{
 		cpuDispatcherFunctions.push_back(greaterFunctions[left * DataType::DATA_TYPE_SIZE + right]);
@@ -145,8 +151,13 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const s
 	}
 }
 
-void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
+void CpuSqlDispatcher::addUnaryOperation(DataType type, size_t opType)
 {
+	switch (opType)
+	{
+	default:
+		break;
+	}
 	if (op == "!")
 	{
 		cpuDispatcherFunctions.push_back(logicalNotFunctions[type]);

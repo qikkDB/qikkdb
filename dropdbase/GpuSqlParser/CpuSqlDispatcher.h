@@ -173,8 +173,8 @@ private:
 
 public:
 	CpuSqlDispatcher(const std::shared_ptr<Database> &database);
-	void addBinaryOperation(DataType left, DataType right, const std::string& op);
-	void addUnaryOperation(DataType type, const std::string & op);
+	void addBinaryOperation(DataType left, DataType right, size_t opType);
+	void addUnaryOperation(DataType type, size_t opType);
 	void addCastOperation(DataType inputType, DataType outputType, const std::string& outTypeStr);
 	void addWhereResultFunction(DataType dataType);
 	int64_t execute(int32_t index);
