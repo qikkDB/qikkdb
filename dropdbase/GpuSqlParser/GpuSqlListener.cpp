@@ -1661,6 +1661,7 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
         {
             throw ColumnNotFoundException();
         }
+		shortColumnNames.insert({ table + "." + column, table + "." + column });
     } 
 	else
     {
@@ -1682,6 +1683,8 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
         {
             throw ColumnNotFoundException();
         }
+
+		shortColumnNames.insert({ table + "." + column, column });
     }
 
     std::string tableColumn = table + "." + column;
@@ -1903,5 +1906,9 @@ void GpuSqlListener::trimReg(std::string& reg)
 	if (reg.front() == '$')
 	{
 		reg.erase(reg.begin());
+	}
+	else if (shortColumnNames.find(reg) != shortColumnNames.end())
+	{
+		reg = shortColumnNames.at(reg);
 	}
 }
