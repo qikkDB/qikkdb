@@ -58,6 +58,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	maxRegisterMemory(0), // TODO value from config e.g.
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
+	insideGroupBy(false),
 	usingGroupBy(false),
 	usingOrderBy(false),
 	usingJoin(false),
@@ -767,6 +768,11 @@ void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value, GroupByType 
 void GpuSqlDispatcher::addGroupByFunction(DataType type)
 {
     dispatcherFunctions.push_back(groupByFunctions[type]);
+}
+
+void GpuSqlDispatcher::addGroupByBeginFunction()
+{
+	dispatcherFunctions.push_back(groupByBeginFunction);
 }
 
 void GpuSqlDispatcher::addGroupByDoneFunction()

@@ -89,6 +89,7 @@ private:
 
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
+	bool insideGroupBy;
 	bool usingGroupBy;
 	bool usingOrderBy;
 	bool usingJoin;
@@ -296,6 +297,7 @@ private:
 	static DispatchFunction isNullFunction;
 	static DispatchFunction isNotNullFunction;
 
+	static DispatchFunction groupByBeginFunction;
 	static DispatchFunction groupByDoneFunction;
 	static DispatchFunction freeOrderByTableFunction;
 	static DispatchFunction orderByReconstructRetAllBlocksFunction;
@@ -609,6 +611,8 @@ public:
 
     void addGroupByFunction(DataType type);
 	
+	void addGroupByBeginFunction();
+
 	void addGroupByDoneFunction();
 
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
@@ -710,6 +714,8 @@ public:
 
     template<typename T>
     int32_t retCol();
+
+	int32_t groupByBegin();
 
 	int32_t groupByDone();
 

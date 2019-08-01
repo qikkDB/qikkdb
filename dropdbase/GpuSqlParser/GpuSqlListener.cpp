@@ -914,6 +914,7 @@ void GpuSqlListener::enterWhereClause(GpuSqlParser::WhereClauseContext * ctx)
 /// <param name="ctx">Group By Columns context</param>
 void GpuSqlListener::enterGroupByColumns(GpuSqlParser::GroupByColumnsContext * ctx)
 {
+	dispatcher.addGroupByBeginFunction();
 	insideGroupBy = true;
 }
 
