@@ -83,8 +83,6 @@ SHOWDB      : S H O W ' ' D A T A B A S E S;
 SHOWTB      : S H O W ' ' T A B L E S;
 SHOWCL      : S H O W ' ' C O L U M N S;
 
-AGG         : (MIN|MAX|AVG|SUM|COUNT);
-
 AVG         : A V G;
 SUM         : S U M;
 MIN         : M I N;
