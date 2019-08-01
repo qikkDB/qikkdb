@@ -13,7 +13,7 @@ std::mutex TCPClientHandler::queryMutex_;
 
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult()
 {
-	BOOST_LOG_TRIVIAL(debug) << "GetNextQueryResult()\n";
+	BOOST_LOG_TRIVIAL(debug) << "GetNextQueryResult()";
 	if (lastQueryResult_.valid())
 	{
 		lastResultMessage_ = lastQueryResult_.get();
@@ -31,7 +31,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 		return std::move(lastResultMessage_);
 	}
 	auto* completeResult = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultMessage);
-	BOOST_LOG_TRIVIAL(debug) << "LastResultLen: " << lastResultLen_ << "\n";
+	BOOST_LOG_TRIVIAL(debug) << "LastResultLen: " << lastResultLen_;
 	if (lastResultLen_ == 0)
 	{
 		for (const auto& payload : completeResult->payloads())
@@ -64,7 +64,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 				break;
 			}
 		}
-		BOOST_LOG_TRIVIAL(debug) << "New LastResultLen: " << lastResultLen_ << "\n";
+		BOOST_LOG_TRIVIAL(debug) << "New LastResultLen: " << lastResultLen_;
 		if (lastResultLen_ < FRAGMENT_SIZE)
 		{
 			lastResultLen_ = 0;
@@ -79,19 +79,19 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 			smallPayload->mutable_timing()->insert(timing);
 		}
 	}
-	BOOST_LOG_TRIVIAL(debug) << "Sent Records: " << sentRecords_ << "\n";
+	BOOST_LOG_TRIVIAL(debug) << "Sent Records: " << sentRecords_;
 	BOOST_LOG_TRIVIAL(debug) << "Inserting payloads...\n";
 	for(const auto& payload : completeResult->payloads())
 	{
 		int bufferSize = FRAGMENT_SIZE > (lastResultLen_ - sentRecords_) ? (lastResultLen_ - sentRecords_) : FRAGMENT_SIZE;
-		BOOST_LOG_TRIVIAL(debug) << "bufferSize: " << bufferSize << "\n";
+		BOOST_LOG_TRIVIAL(debug) << "bufferSize: " << bufferSize;
 		ColmnarDB::NetworkClient::Message::QueryResponsePayload finalPayload;
 		switch (payload.second.payload_case())
 		{
 		case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
 			for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
 			{
-				BOOST_LOG_TRIVIAL(debug) << "Inserting into int buffer payload index: " << i << "\n";
+				BOOST_LOG_TRIVIAL(debug) << "Inserting into int buffer payload index: " << i;
 				finalPayload.mutable_intpayload()->add_intdata(payload.second.intpayload().intdata()[i]);
 			}
 			break;
@@ -147,12 +147,12 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 	sentRecords_ += FRAGMENT_SIZE;
 	if (sentRecords_ >= lastResultLen_)
 	{
-		BOOST_LOG_TRIVIAL(debug) << "Last Block, cleaning up" << "\n";
+		BOOST_LOG_TRIVIAL(debug) << "Last Block, cleaning up";
 		sentRecords_ = 0;
 		lastResultLen_ = 0;
 		lastResultMessage_.reset();
 	}
-	BOOST_LOG_TRIVIAL(debug) << "Returning small payload \n";
+	BOOST_LOG_TRIVIAL(debug) << "Returning small payload";
 	return std::move(smallPayload);
 	
 }

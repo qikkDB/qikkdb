@@ -28,32 +28,32 @@ ClientPoolWorker::ClientPoolWorker(std::unique_ptr<IClientHandler>&& clientHandl
 /// </summary>
 void ClientPoolWorker::HandleClient()
 {
-	BOOST_LOG_TRIVIAL(debug) << "Waiting for hello from " << socket_.remote_endpoint().address().to_string() << "\n";
+	BOOST_LOG_TRIVIAL(debug) << "Waiting for hello from " << socket_.remote_endpoint().address().to_string();
 	auto recvMsg = NetworkMessage::ReadFromNetwork(socket_);
 	ColmnarDB::NetworkClient::Message::InfoMessage outInfo;
 	if (!recvMsg.UnpackTo(&outInfo))
 	{
-		BOOST_LOG_TRIVIAL(error) << "Invalid message received from client " << socket_.remote_endpoint().address().to_string() << "\n";
+		BOOST_LOG_TRIVIAL(error) << "Invalid message received from client " << socket_.remote_endpoint().address().to_string();
 		Abort();
 		return;
 	}
-	BOOST_LOG_TRIVIAL(debug) << "Hello from " << socket_.remote_endpoint().address().to_string() << "\n";
+	BOOST_LOG_TRIVIAL(debug) << "Hello from " << socket_.remote_endpoint().address().to_string();
 	outInfo.set_message("");
 	outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 	NetworkMessage::WriteToNetwork(outInfo, socket_);
-	BOOST_LOG_TRIVIAL(debug) << "Hello to " << socket_.remote_endpoint().address().to_string() << "\n";
+	BOOST_LOG_TRIVIAL(debug) << "Hello to " << socket_.remote_endpoint().address().to_string();
 	try
 	{
 		while (!quit_ && !globalQuit_)
 		{
-			BOOST_LOG_TRIVIAL(debug) << "Waiting for message from " << socket_.remote_endpoint().address().to_string() << "\n";
+			BOOST_LOG_TRIVIAL(debug) << "Waiting for message from " << socket_.remote_endpoint().address().to_string();
 			recvMsg = NetworkMessage::ReadFromNetwork(socket_);
-			BOOST_LOG_TRIVIAL(debug) << "Got message from " << socket_.remote_endpoint().address().to_string() << "\n";			
+			BOOST_LOG_TRIVIAL(debug) << "Got message from " << socket_.remote_endpoint().address().to_string();			
 			if (recvMsg.Is<ColmnarDB::NetworkClient::Message::InfoMessage>())
 			{
 				ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
 				recvMsg.UnpackTo(&infoMessage);
-				BOOST_LOG_TRIVIAL(debug) << "Info message from " << socket_.remote_endpoint().address().to_string() << "\n";
+				BOOST_LOG_TRIVIAL(debug) << "Info message from " << socket_.remote_endpoint().address().to_string();
 				std::unique_ptr<google::protobuf::Message> resultMessage = clientHandler_->HandleInfoMessage(*this, infoMessage);
 				
 				if (resultMessage != nullptr)
@@ -65,7 +65,7 @@ void ClientPoolWorker::HandleClient()
 			{
 				ColmnarDB::NetworkClient::Message::QueryMessage queryMessage;
 				recvMsg.UnpackTo(&queryMessage);
-				BOOST_LOG_TRIVIAL(debug) << "Query message from " << socket_.remote_endpoint().address().to_string() << "\n";
+				BOOST_LOG_TRIVIAL(debug) << "Query message from " << socket_.remote_endpoint().address().to_string();
 				std::unique_ptr<google::protobuf::Message> waitMessage = clientHandler_->HandleQuery(*this, queryMessage);
 				if (waitMessage != nullptr)
 				{
@@ -76,7 +76,7 @@ void ClientPoolWorker::HandleClient()
 			{
 				ColmnarDB::NetworkClient::Message::CSVImportMessage csvImportMessage;
 				recvMsg.UnpackTo(&csvImportMessage);
-				BOOST_LOG_TRIVIAL(debug) << "CSV message from " << socket_.remote_endpoint().address().to_string() << "\n";
+				BOOST_LOG_TRIVIAL(debug) << "CSV message from " << socket_.remote_endpoint().address().to_string();
 				std::unique_ptr<google::protobuf::Message> importResultMessage = clientHandler_->HandleCSVImport(*this, csvImportMessage);
 				if (importResultMessage != nullptr)
 				{
@@ -87,7 +87,7 @@ void ClientPoolWorker::HandleClient()
 			{
 				ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDatabaseMessage;
 				recvMsg.UnpackTo(&setDatabaseMessage);
-				BOOST_LOG_TRIVIAL(debug) << "Set database message from " << socket_.remote_endpoint().address().to_string() << "\n";
+				BOOST_LOG_TRIVIAL(debug) << "Set database message from " << socket_.remote_endpoint().address().to_string();
 				std::unique_ptr<google::protobuf::Message> setDatabaseResult = clientHandler_->HandleSetDatabase(*this, setDatabaseMessage);
 				if (setDatabaseResult != nullptr)
 				{
@@ -98,7 +98,7 @@ void ClientPoolWorker::HandleClient()
 			{
 				ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
 				recvMsg.UnpackTo(&bulkImportMessage);
-				BOOST_LOG_TRIVIAL(debug) << "BulkImport message from " << socket_.remote_endpoint().address().to_string() << "\n";
+				BOOST_LOG_TRIVIAL(debug) << "BulkImport message from " << socket_.remote_endpoint().address().to_string();
 				std::unique_ptr<char[]> dataBuffer(new char[MAXIMUM_BULK_FRAGMENT_SIZE]);
 				constexpr size_t nullBufferSize = (MAXIMUM_BULK_FRAGMENT_SIZE + sizeof(char)*8 - 1)/(sizeof(char)*8);
 				std::unique_ptr<char[]> nullBuffer(new char[nullBufferSize]);
@@ -127,13 +127,13 @@ void ClientPoolWorker::HandleClient()
 			}
 			else
 			{
-				BOOST_LOG_TRIVIAL(error) << "Invalid message from " << socket_.remote_endpoint().address().to_string() << "\n";
+				BOOST_LOG_TRIVIAL(error) << "Invalid message from " << socket_.remote_endpoint().address().to_string();
 			}
 		}
 	}
 	catch (std::exception& e)
 	{
-		BOOST_LOG_TRIVIAL(error) << e.what() << std::endl;
+		BOOST_LOG_TRIVIAL(error) << e.what();
 	}
 	if (!quit_)
 	{
