@@ -129,11 +129,11 @@ expression : op=LOGICAL_NOT expression                                          
            | INTLIT                                                                       # intLiteral
            | STRING                                                                       # stringLiteral
            | BOOLEANLIT                                                                   # booleanLiteral
-           | op=MIN LPAREN (expression|ASTERISK) RPAREN                                   # aggregation
-           | op=MAX LPAREN (expression|ASTERISK) RPAREN                                   # aggregation
-           | op=SUM LPAREN (expression|ASTERISK) RPAREN                                   # aggregation
-           | op=COUNT LPAREN (expression|ASTERISK) RPAREN                                 # aggregation
-           | op=AVG LPAREN (expression|ASTERISK) RPAREN                                   # aggregation;
+           | op=MIN LPAREN (expression) RPAREN                                            # aggregation
+           | op=MAX LPAREN (expression) RPAREN                                            # aggregation
+           | op=SUM LPAREN (expression) RPAREN                                            # aggregation
+           | op=COUNT LPAREN (expression) RPAREN                                          # aggregation
+           | op=AVG LPAREN (expression) RPAREN                                            # aggregation;
 
 geometry : (pointGeometry | polygonGeometry | lineStringGeometry | multiPointGeometry | multiLineStringGeometry | multiPolygonGeometry);
 pointGeometry           : POINT LPAREN point RPAREN;

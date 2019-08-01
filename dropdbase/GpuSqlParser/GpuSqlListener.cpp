@@ -598,11 +598,6 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 	GroupByType groupByType = GroupByType::NO_GROUP_BY;
 	DataType keyType = static_cast<DataType>(0);
 
-	if (ctx->ASTERISK() && op != "COUNT")
-	{
-
-	}
-
 	if (usingGroupBy)
 	{
 		groupByType = GroupByType::SINGLE_KEY_GROUP_BY;

@@ -1068,7 +1068,6 @@ public:
     antlr4::tree::TerminalNode *RPAREN();
     antlr4::tree::TerminalNode *MIN();
     ExpressionContext *expression();
-    antlr4::tree::TerminalNode *ASTERISK();
     antlr4::tree::TerminalNode *MAX();
     antlr4::tree::TerminalNode *SUM();
     antlr4::tree::TerminalNode *COUNT();
