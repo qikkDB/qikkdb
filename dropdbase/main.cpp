@@ -14,8 +14,9 @@
 #include <iostream>
 #include <chrono>
 #include <boost/log/trivial.hpp>
-// TODO solve undefined references
-//#include <boost/log/utility/setup/from_stream.hpp>
+#include <boost/log/utility/setup/from_stream.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/utility/setup/formatter_parser.hpp>
 #include "QueryEngine/Context.h" 
 #include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "DatabaseGenerator.h"
@@ -33,16 +34,16 @@
 /// <returns>Exit code (0 - OK)</returns>
 int main(int argc, char **argv)
 {
-	/*
-	//TODO solve undefined references
+	// Logger setup
+	boost::log::add_common_attributes();
+	boost::log::register_simple_formatter_factory< boost::log::trivial::severity_level, char >("Severity");
 	std::ifstream logConfigFile("../configuration/log_config");
 	if (logConfigFile.fail())
 	{
 		logConfigFile = std::ifstream("../configuration/log_config.default");
 	}
 	boost::log::init_from_stream(logConfigFile);
-	*/
-
+	
 	//std::string dbName = "TestDatabase";
 	//std::vector<std::string> tableNames = { "TestTable1" };
 	//std::vector<DataType> columnTypes = { {COLUMN_INT},
