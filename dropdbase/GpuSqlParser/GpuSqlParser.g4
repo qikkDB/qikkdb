@@ -64,7 +64,7 @@ columnValue         : (INTLIT|FLOATLIT|geometry|NULLLIT|STRING);
 expression : op=LOGICAL_NOT expression                                                    # unaryOperation
            | op=MINUS expression                                                          # unaryOperation
            | expression op=ISNULL                                                         # unaryOperation
-           | expression op=ISNOTNULL                                                         # unaryOperation
+           | expression op=ISNOTNULL                                                      # unaryOperation
            | op=ABS LPAREN expression RPAREN                                              # unaryOperation
            | op=SIN LPAREN expression RPAREN                                              # unaryOperation
            | op=COS LPAREN expression RPAREN                                              # unaryOperation
@@ -129,7 +129,11 @@ expression : op=LOGICAL_NOT expression                                          
            | INTLIT                                                                       # intLiteral
            | STRING                                                                       # stringLiteral
            | BOOLEANLIT                                                                   # booleanLiteral
-           | AGG LPAREN expression RPAREN                                                 # aggregation;
+           | op=MIN LPAREN (expression|ASTERISK) RPAREN                                   # aggregation
+           | op=MAX LPAREN (expression|ASTERISK) RPAREN                                   # aggregation
+           | op=SUM LPAREN (expression|ASTERISK) RPAREN                                   # aggregation
+           | op=COUNT LPAREN (expression|ASTERISK) RPAREN                                 # aggregation
+           | op=AVG LPAREN (expression|ASTERISK) RPAREN                                   # aggregation;
 
 geometry : (pointGeometry | polygonGeometry | lineStringGeometry | multiPointGeometry | multiLineStringGeometry | multiPolygonGeometry);
 pointGeometry           : POINT LPAREN point RPAREN;

@@ -81,180 +81,156 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext *c
 	std::string reg;
 	trimReg(rightOperand);
 	trimReg(leftOperand);
-
-    if (op == ">")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addGreaterFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::COLUMN_INT8_T;
-    } 
-	else if (op == "<")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addLessFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::COLUMN_INT8_T;
-    } 
-	else if (op == ">=")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addGreaterEqualFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::COLUMN_INT8_T;
-    } 
-	else if (op == "<=")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addLessEqualFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::COLUMN_INT8_T;
-    } 
-	else if (op == "=")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addEqualFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::COLUMN_INT8_T;
-    } 
-	else if (op == "!=" || op == "<>")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addNotEqualFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::COLUMN_INT8_T;
-    } 
-	else if (op == "AND")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addLogicalAndFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::COLUMN_INT8_T;
-    } 
-	else if (op == "OR")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addLogicalOrFunction(leftOperandType, rightOperandType);
-		returnDataType = DataType::COLUMN_INT8_T;
-    } 
-	else if (op == "*")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addMulFunction(leftOperandType, rightOperandType);
-		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } 
-	else if (op == "/")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addDivFunction(leftOperandType, rightOperandType);
-		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } 
-	else if (op == "+")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addAddFunction(leftOperandType, rightOperandType);
-		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } 
-	else if (op == "-")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addSubFunction(leftOperandType, rightOperandType);
-		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    } 
-	else if (op == "%")
-    {
-		reg = "$" + leftOperand + op + rightOperand;
-        dispatcher.addModFunction(leftOperandType, rightOperandType);
-		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-    }
-	else if (op == "|")
+	switch (ctx->op->getType())
 	{
+	case GpuSqlLexer::GREATER:
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addGreaterFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_INT8_T;
+		break;
+	case GpuSqlLexer::LESS:
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addLessFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_INT8_T;
+		break;
+	case GpuSqlLexer::GREATEREQ:
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addGreaterEqualFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_INT8_T;
+		break;
+	case GpuSqlLexer::LESSEQ:
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addLessEqualFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_INT8_T;
+		break;
+	case GpuSqlLexer::EQUALS:
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addEqualFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_INT8_T;
+		break;
+	case GpuSqlLexer::NOTEQUALS:
+	case GpuSqlLexer::NOTEQUALS_GT_LT:
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addNotEqualFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_INT8_T;
+		break;
+	case GpuSqlLexer::AND:		
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addLogicalAndFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_INT8_T;
+		break;
+	case GpuSqlLexer::OR:		
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addLogicalOrFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_INT8_T;
+		break;
+	case GpuSqlLexer::ASTERISK:
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addMulFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+		break;
+	case GpuSqlLexer::DIVISION:
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addDivFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+		break;
+	case GpuSqlLexer::PLUS:		
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addAddFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+		break;
+	case GpuSqlLexer::MINUS:		
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addSubFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+		break;
+	case GpuSqlLexer::MODULO:		
+		reg = "$" + leftOperand + op + rightOperand;
+		dispatcher.addModFunction(leftOperandType, rightOperandType);
+		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+		break;
+	case GpuSqlLexer::BIT_OR:		
 		reg = "$" + leftOperand + op + rightOperand;
 		dispatcher.addBitwiseOrFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-	}
-	else if (op == "&")
-	{
+		break;
+	case GpuSqlLexer::BIT_AND:		
 		reg = "$" + leftOperand + op + rightOperand;
 		dispatcher.addBitwiseAndFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-	}
-	else if (op == "^")
-	{
+		break;
+	case GpuSqlLexer::XOR:		
 		reg = "$" + leftOperand + op + rightOperand;
 		dispatcher.addBitwiseXorFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-	}
-	else if (op == "<<")
-	{
+		break;
+	case GpuSqlLexer::L_SHIFT:		
 		reg = "$" + leftOperand + op + rightOperand;
 		dispatcher.addBitwiseLeftShiftFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-	}
-	else if (op == ">>")
-	{
+		break;
+	case GpuSqlLexer::R_SHIFT:		
 		reg = "$" + leftOperand + op + rightOperand;
 		dispatcher.addBitwiseRightShiftFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-	}
-	else if (op == "POINT")
-	{
+		break;
+	case GpuSqlLexer::POINT:		
 		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		dispatcher.addPointFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_POINT;
-	}
-	else if (op == "GEO_CONTAINS")
-    {
+		break;
+	case GpuSqlLexer::GEO_CONTAINS:		
 		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
-        dispatcher.addContainsFunction(leftOperandType, rightOperandType);
+		dispatcher.addContainsFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    }
-    else if (op == "GEO_INTERSECT")
-    {
+		break;
+	case GpuSqlLexer::GEO_INTERSECT:		
 		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
-        dispatcher.addIntersectFunction(leftOperandType, rightOperandType);
-        returnDataType = DataType::COLUMN_POLYGON;
-    }
-    else if (op == "GEO_UNION")
-    {
+		dispatcher.addIntersectFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_POLYGON;
+		break;
+	case GpuSqlLexer::GEO_UNION:		
 		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
-        dispatcher.addUnionFunction(leftOperandType, rightOperandType);
-        returnDataType = DataType::COLUMN_POLYGON;
-    }
-	else if (op == "LOG")
-	{
+		dispatcher.addUnionFunction(leftOperandType, rightOperandType);
+		returnDataType = DataType::COLUMN_POLYGON;
+		break;
+	case GpuSqlLexer::LOG:		
 		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		dispatcher.addLogarithmFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "POW")
-	{
+		break;
+	case GpuSqlLexer::POW:		
 		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		dispatcher.addPowerFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-	}
-	else if (op == "ROOT")
-	{
+		break;
+	case GpuSqlLexer::ROOT:		
 		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		dispatcher.addRootFunction(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
-	}
-	else if (op == "ATAN2")
-	{
+		break;
+	case GpuSqlLexer::ATAN2:		
 		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		dispatcher.addArctangent2Function(leftOperandType, rightOperandType);
 		returnDataType = getReturnDataType(DataType::COLUMN_FLOAT);
-	}
-	else if (op == "CONCAT")
-	{
+		break;
+	case GpuSqlLexer::CONCAT:		
 		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		dispatcher.addConcatFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_STRING;
-	}
-	else if (op == "LEFT")
-	{
+		break;
+	case GpuSqlLexer::LEFT:		
 		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		dispatcher.addLeftFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_STRING;
-	}
-	else if (op == "RIGHT")
-	{
+		break;
+	case GpuSqlLexer::RIGHT:		
 		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		dispatcher.addRightFunction(leftOperandType, rightOperandType);
 		returnDataType = DataType::COLUMN_STRING;
+		break;
+	default:
+		break;
 	}
 
 	if (groupByColumns.find({ reg, returnDataType }) != groupByColumns.end() && insideSelectColumn)
@@ -298,12 +274,16 @@ void GpuSqlListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext 
 	trimReg(op2Str);
 	trimReg(op1Str);
 
-    if (op == "BETWEEN")
-    {
+	switch (ctx->op->getType())
+	{
+	case GpuSqlLexer::BETWEEN:
 		reg = "$" + op + "(" + op3Str + "," + op2Str + "," + op1Str + ")";
-        dispatcher.addBetweenFunction(op1Type, op2Type, op3Type);
-    }
-
+		dispatcher.addBetweenFunction(op1Type, op2Type, op3Type);
+		break;
+	default:
+		break;
+	}
+	
 	pushArgument(reg.c_str(), ::COLUMN_INT8_T);
     pushTempResult(reg, DataType::COLUMN_INT8_T);
 }
@@ -331,14 +311,14 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 	std::string reg;
 	trimReg(operand);
 
-    if (op == "!")
-    {
+	switch (ctx->op->getType())
+	{
+	case GpuSqlLexer::LOGICAL_NOT:
 		reg = "$" + op + operand;
         dispatcher.addLogicalNotFunction(operandType);
 		returnDataType = DataType::COLUMN_INT8_T;
-    }
-	else if (op == "IS NULL")
-	{
+		break;
+	case GpuSqlLexer::ISNULL:
 		reg = "$" + op + operand;
 		if (operandType < DataType::COLUMN_INT)
 		{
@@ -346,9 +326,8 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 		}
 		dispatcher.addIsNullFunction();
 		returnDataType = DataType::COLUMN_INT8_T;
-	}
-	else if (op == "IS NOT NULL")
-	{
+		break;
+	case GpuSqlLexer::ISNOTNULL:
 		reg = "$" + op + operand;
 		if (operandType < DataType::COLUMN_INT)
 		{
@@ -356,186 +335,159 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx
 		}
 		dispatcher.addIsNotNullFunction();
 		returnDataType = DataType::COLUMN_INT8_T;
-	}
-	else if (op == "-")
-    {
+		break;
+	case GpuSqlLexer::MINUS:
 		reg = "$" + op + operand;
         dispatcher.addMinusFunction(operandType);
 		returnDataType = getReturnDataType(operandType);
-    }
-	else if (op == "YEAR")
-	{
+		break;
+	case GpuSqlLexer::YEAR:
 		reg = "$" + op + "(" +  operand + ")";
 		dispatcher.addYearFunction(operandType);
 		returnDataType = COLUMN_INT;
-	}
-	else if (op == "MONTH")
-	{
+		break;
+	case GpuSqlLexer::MONTH:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addMonthFunction(operandType);
 		returnDataType = COLUMN_INT;
-	}
-	else if (op == "DAY")
-	{
+		break;
+	case GpuSqlLexer::DAY:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addDayFunction(operandType);
 		returnDataType = COLUMN_INT;
-	}
-	else if (op == "HOUR")
-	{
+		break;
+	case GpuSqlLexer::HOUR:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addHourFunction(operandType);
 		returnDataType = COLUMN_INT;
-	}
-	else if (op == "MINUTE")
-	{
+		break;
+	case GpuSqlLexer::MINUTE:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addMinuteFunction(operandType);
 		returnDataType = COLUMN_INT;
-	}
-	else if (op == "SECOND")
-	{
+		break;
+	case GpuSqlLexer::SECOND:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addSecondFunction(operandType);
 		returnDataType = COLUMN_INT;
-	}
-	else if (op == "ABS")
-	{
+		break;
+	case GpuSqlLexer::ABS:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addAbsoluteFunction(operandType);
 		returnDataType = getReturnDataType(operandType);
-	}
-	else if (op == "SIN")
-	{
+		break;
+	case GpuSqlLexer::SIN:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addSineFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "COS")
-	{
+		break;
+	case GpuSqlLexer::COS:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addCosineFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "TAN")
-	{
+		break;
+	case GpuSqlLexer::TAN:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addTangentFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "COT")
-	{
+		break;
+	case GpuSqlLexer::COT:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addCotangentFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "ASIN")
-	{
+		break;
+	case GpuSqlLexer::ASIN:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addArcsineFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "ACOS")
-	{
+		break;
+	case GpuSqlLexer::ACOS:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addArccosineFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "ATAN")
-	{
+		break;
+	case GpuSqlLexer::ATAN:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addArctangentFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-    else if (op == "LOG10")
-    {
+		break;
+    case GpuSqlLexer::LOG10:
 		reg = "$" + op + "(" + operand + ")";
         dispatcher.addLogarithm10Function(operandType);
         returnDataType = DataType::COLUMN_FLOAT;
-    }
-	else if (op == "LOG")
-	{
+		break;
+	case GpuSqlLexer::LOG:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addLogarithmNaturalFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "EXP")
-	{
+		break;
+	case GpuSqlLexer::EXP:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addExponentialFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "SQRT")
-	{
+		break;
+	case GpuSqlLexer::SQRT:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addSquareRootFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "SQUARE")
-	{
+		break;
+	case GpuSqlLexer::SQUARE:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addSquareFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "SIGN")
-	{
+		break;
+	case GpuSqlLexer::SIGN:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addSignFunction(operandType);
 		returnDataType = DataType::COLUMN_INT;
-	}
-	else if (op == "ROUND")
-	{
+		break;
+	case GpuSqlLexer::ROUND:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addRoundFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "FLOOR")
-	{
+		break;
+	case GpuSqlLexer::FLOOR:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addFloorFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "CEIL")
-	{
+		break;
+	case GpuSqlLexer::CEIL:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addCeilFunction(operandType);
 		returnDataType = DataType::COLUMN_FLOAT;
-	}
-	else if (op == "LTRIM")
-	{
+		break;
+	case GpuSqlLexer::LTRIM:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addLtrimFunction(operandType);
 		returnDataType = DataType::COLUMN_STRING;
-	}
-	else if (op == "RTRIM")
-	{
+		break;
+	case GpuSqlLexer::RTRIM:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addRtrimFunction(operandType);
 		returnDataType = DataType::COLUMN_STRING;
-	}
-	else if (op == "LOWER")
-	{
+		break;
+	case GpuSqlLexer::LOWER:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addLowerFunction(operandType);
 		returnDataType = DataType::COLUMN_STRING;
-	}
-	else if (op == "UPPER")
-	{
+		break;
+	case GpuSqlLexer::UPPER:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addUpperFunction(operandType);
 		returnDataType = DataType::COLUMN_STRING;
-	}
-	else if (op == "REVERSE")
-	{
+		break;
+	case GpuSqlLexer::REVERSE:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addReverseFunction(operandType);
 		returnDataType = DataType::COLUMN_STRING;
-	}
-	else if (op == "LEN")
-	{
+		break;
+	case GpuSqlLexer::LEN:
 		reg = "$" + op + "(" + operand + ")";
 		dispatcher.addLenFunction(operandType);
 		returnDataType = DataType::COLUMN_INT;
+		break;
+	default:
+		break;
 	}
 
 	if (groupByColumns.find({ reg, returnDataType }) != groupByColumns.end() && insideSelectColumn)
@@ -632,19 +584,24 @@ void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
 /// <param name="ctx">Aggregation context</param>
 void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 {
-    std::pair<std::string, DataType> arg = stackTopAndPop();
+	std::pair<std::string, DataType> arg = stackTopAndPop();
 
-    std::string op = ctx->AGG()->getText();
-    stringToUpper(op);
+	std::string op = ctx->op->getText();
+	stringToUpper(op);
 
 	std::string value = std::get<0>(arg);
-    DataType valueType = std::get<1>(arg);
+	DataType valueType = std::get<1>(arg);
 
 	pushArgument(value.c_str(), valueType);
 	DataType returnDataType = DataType::CONST_ERROR;
 
 	GroupByType groupByType = GroupByType::NO_GROUP_BY;
 	DataType keyType = static_cast<DataType>(0);
+
+	if (ctx->ASTERISK() && op != "COUNT")
+	{
+
+	}
 
 	if (usingGroupBy)
 	{
@@ -659,36 +616,35 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 
 	std::string reg;
 	trimReg(value);
-
-    if (op == "MIN")
-    {
-		reg = "$" + op + "(" + value + ")";
-        dispatcher.addMinFunction(keyType, valueType, groupByType);
-		returnDataType = getReturnDataType(valueType);
-    } 
-	else if (op == "MAX")
-    {
-		reg = "$" + op + "(" + value + ")";
-        dispatcher.addMaxFunction(keyType, valueType, groupByType);
-		returnDataType = getReturnDataType(valueType);
-    } 
-	else if (op == "SUM")
-    {
-		reg = "$" + op + "(" + value + ")";
-        dispatcher.addSumFunction(keyType, valueType, groupByType);
-		returnDataType = getReturnDataType(valueType);
-    } 
-	else if (op == "COUNT")
-    {
-		reg = "$" + op + "(" + value + ")";
-        dispatcher.addCountFunction(keyType, valueType, groupByType);
-		returnDataType = DataType::COLUMN_LONG;
-    } 
-	else if (op == "AVG")
+	switch (ctx->op->getType())
 	{
+	case GpuSqlLexer::MIN:
+		reg = "$" + op + "(" + value + ")";
+		dispatcher.addMinFunction(keyType, valueType, groupByType);
+		returnDataType = getReturnDataType(valueType);
+		break;
+	case GpuSqlLexer::MAX:
+		reg = "$" + op + "(" + value + ")";
+		dispatcher.addMaxFunction(keyType, valueType, groupByType);
+		returnDataType = getReturnDataType(valueType);
+		break;
+	case GpuSqlLexer::SUM:
+		reg = "$" + op + "(" + value + ")";
+		dispatcher.addSumFunction(keyType, valueType, groupByType);
+		returnDataType = getReturnDataType(valueType);
+		break;
+	case GpuSqlLexer::COUNT:
+		reg = "$" + op + "(" + value + ")";
+		dispatcher.addCountFunction(keyType, valueType, groupByType);
+		returnDataType = DataType::COLUMN_LONG;
+		break;
+	case GpuSqlLexer::AVG:
 		reg = "$" + op + "(" + value + ")";
 		dispatcher.addAvgFunction(keyType, valueType, groupByType);
 		returnDataType = getReturnDataType(valueType);
+		break;
+	default:
+		break;
 	}
 
 	if (insideSelectColumn)

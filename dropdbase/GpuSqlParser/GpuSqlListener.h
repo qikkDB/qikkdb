@@ -6,6 +6,7 @@
 #define DROPDBASE_INSTAREA_GPUSQLLISTENER_H
 
 #include "GpuSqlParser.h"
+#include "GpuSqlLexer.h"
 #include "GpuSqlParserBaseListener.h"
 #include "../DataType.h"
 #include "../QueryEngine/OrderByType.h"
