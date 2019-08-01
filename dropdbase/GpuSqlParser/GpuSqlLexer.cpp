@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/GPU-DB/dropdbase/GpuSqlParser\GpuSqlLexer.g4 by ANTLR 4.7.2
+// Generated from C:/Users/Andy/Desktop/parser\GpuSqlLexer.g4 by ANTLR 4.7.2
 
 
 #include "GpuSqlLexer.h"
@@ -72,15 +72,15 @@ std::vector<std::string> GpuSqlLexer::_ruleNames = {
   u8"PRIMARYKEY", u8"VALUES", u8"SELECT", u8"FROM", u8"JOIN", u8"WHERE", 
   u8"GROUPBY", u8"AS", u8"IN", u8"ISNULL", u8"ISNOTNULL", u8"BETWEEN", u8"ON", 
   u8"ORDERBY", u8"DIR", u8"LIMIT", u8"OFFSET", u8"INNER", u8"FULLOUTER", 
-  u8"SHOWDB", u8"SHOWTB", u8"SHOWCL", u8"AVG", u8"SUM", u8"MIN", u8"MAX", 
-  u8"COUNT", u8"YEAR", u8"MONTH", u8"DAY", u8"HOUR", u8"MINUTE", u8"SECOND", 
-  u8"NOW", u8"PI", u8"ABS", u8"SIN", u8"COS", u8"TAN", u8"COT", u8"ASIN", 
-  u8"ACOS", u8"ATAN", u8"ATAN2", u8"LOG10", u8"LOG", u8"EXP", u8"POW", u8"SQRT", 
-  u8"SQUARE", u8"SIGN", u8"ROOT", u8"ROUND", u8"CEIL", u8"FLOOR", u8"LTRIM", 
-  u8"RTRIM", u8"LOWER", u8"UPPER", u8"REVERSE", u8"LEN", u8"LEFT", u8"RIGHT", 
-  u8"CONCAT", u8"CAST", u8"GEO_CONTAINS", u8"GEO_INTERSECT", u8"GEO_UNION", 
-  u8"PLUS", u8"MINUS", u8"ASTERISK", u8"DIVISION", u8"MODULO", u8"XOR", 
-  u8"EQUALS", u8"NOTEQUALS", u8"NOTEQUALS_GT_LT", u8"LPAREN", u8"RPAREN", 
+  u8"SHOWDB", u8"SHOWTB", u8"SHOWCL", u8"AVG_AGG", u8"SUM_AGG", u8"MIN_AGG", 
+  u8"MAX_AGG", u8"COUNT_AGG", u8"YEAR", u8"MONTH", u8"DAY", u8"HOUR", u8"MINUTE", 
+  u8"SECOND", u8"NOW", u8"PI", u8"ABS", u8"SIN", u8"COS", u8"TAN", u8"COT", 
+  u8"ASIN", u8"ACOS", u8"ATAN", u8"ATAN2", u8"LOG10", u8"LOG", u8"EXP", 
+  u8"POW", u8"SQRT", u8"SQUARE", u8"SIGN", u8"ROOT", u8"ROUND", u8"CEIL", 
+  u8"FLOOR", u8"LTRIM", u8"RTRIM", u8"LOWER", u8"UPPER", u8"REVERSE", u8"LEN", 
+  u8"LEFT", u8"RIGHT", u8"CONCAT", u8"CAST", u8"GEO_CONTAINS", u8"GEO_INTERSECT", 
+  u8"GEO_UNION", u8"PLUS", u8"MINUS", u8"ASTERISK", u8"DIVISION", u8"MODULO", 
+  u8"XOR", u8"EQUALS", u8"NOTEQUALS", u8"NOTEQUALS_GT_LT", u8"LPAREN", u8"RPAREN", 
   u8"GREATER", u8"LESS", u8"GREATEREQ", u8"LESSEQ", u8"LOGICAL_NOT", u8"OR", 
   u8"AND", u8"BIT_OR", u8"BIT_AND", u8"L_SHIFT", u8"R_SHIFT", u8"BOOLEANLIT", 
   u8"TRUE", u8"FALSE", u8"FLOATLIT", u8"INTLIT", u8"NULLLIT", u8"ID", u8"A", 
@@ -123,17 +123,18 @@ std::vector<std::string> GpuSqlLexer::_symbolicNames = {
   u8"SELECT", u8"FROM", u8"JOIN", u8"WHERE", u8"GROUPBY", u8"AS", u8"IN", 
   u8"ISNULL", u8"ISNOTNULL", u8"BETWEEN", u8"ON", u8"ORDERBY", u8"DIR", 
   u8"LIMIT", u8"OFFSET", u8"INNER", u8"FULLOUTER", u8"SHOWDB", u8"SHOWTB", 
-  u8"SHOWCL", u8"AVG", u8"SUM", u8"MIN", u8"MAX", u8"COUNT", u8"YEAR", u8"MONTH", 
-  u8"DAY", u8"HOUR", u8"MINUTE", u8"SECOND", u8"NOW", u8"PI", u8"ABS", u8"SIN", 
-  u8"COS", u8"TAN", u8"COT", u8"ASIN", u8"ACOS", u8"ATAN", u8"ATAN2", u8"LOG10", 
-  u8"LOG", u8"EXP", u8"POW", u8"SQRT", u8"SQUARE", u8"SIGN", u8"ROOT", u8"ROUND", 
-  u8"CEIL", u8"FLOOR", u8"LTRIM", u8"RTRIM", u8"LOWER", u8"UPPER", u8"REVERSE", 
-  u8"LEN", u8"LEFT", u8"RIGHT", u8"CONCAT", u8"CAST", u8"GEO_CONTAINS", 
-  u8"GEO_INTERSECT", u8"GEO_UNION", u8"PLUS", u8"MINUS", u8"ASTERISK", u8"DIVISION", 
-  u8"MODULO", u8"XOR", u8"EQUALS", u8"NOTEQUALS", u8"NOTEQUALS_GT_LT", u8"LPAREN", 
-  u8"RPAREN", u8"GREATER", u8"LESS", u8"GREATEREQ", u8"LESSEQ", u8"LOGICAL_NOT", 
-  u8"OR", u8"AND", u8"BIT_OR", u8"BIT_AND", u8"L_SHIFT", u8"R_SHIFT", u8"BOOLEANLIT", 
-  u8"TRUE", u8"FALSE", u8"FLOATLIT", u8"INTLIT", u8"NULLLIT", u8"ID"
+  u8"SHOWCL", u8"AVG_AGG", u8"SUM_AGG", u8"MIN_AGG", u8"MAX_AGG", u8"COUNT_AGG", 
+  u8"YEAR", u8"MONTH", u8"DAY", u8"HOUR", u8"MINUTE", u8"SECOND", u8"NOW", 
+  u8"PI", u8"ABS", u8"SIN", u8"COS", u8"TAN", u8"COT", u8"ASIN", u8"ACOS", 
+  u8"ATAN", u8"ATAN2", u8"LOG10", u8"LOG", u8"EXP", u8"POW", u8"SQRT", u8"SQUARE", 
+  u8"SIGN", u8"ROOT", u8"ROUND", u8"CEIL", u8"FLOOR", u8"LTRIM", u8"RTRIM", 
+  u8"LOWER", u8"UPPER", u8"REVERSE", u8"LEN", u8"LEFT", u8"RIGHT", u8"CONCAT", 
+  u8"CAST", u8"GEO_CONTAINS", u8"GEO_INTERSECT", u8"GEO_UNION", u8"PLUS", 
+  u8"MINUS", u8"ASTERISK", u8"DIVISION", u8"MODULO", u8"XOR", u8"EQUALS", 
+  u8"NOTEQUALS", u8"NOTEQUALS_GT_LT", u8"LPAREN", u8"RPAREN", u8"GREATER", 
+  u8"LESS", u8"GREATEREQ", u8"LESSEQ", u8"LOGICAL_NOT", u8"OR", u8"AND", 
+  u8"BIT_OR", u8"BIT_AND", u8"L_SHIFT", u8"R_SHIFT", u8"BOOLEANLIT", u8"TRUE", 
+  u8"FALSE", u8"FLOATLIT", u8"INTLIT", u8"NULLLIT", u8"ID"
 };
 
 dfa::Vocabulary GpuSqlLexer::_vocabulary(_literalNames, _symbolicNames);

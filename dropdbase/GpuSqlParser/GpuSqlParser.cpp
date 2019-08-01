@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/mstano/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/Andy/Desktop/parser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 
 #include "GpuSqlParserListener.h"
@@ -1984,11 +1984,11 @@ GpuSqlParser::SelectColumnsContext* GpuSqlParser::selectColumns() {
       case GpuSqlParser::MULTILINESTRING:
       case GpuSqlParser::POLYGON:
       case GpuSqlParser::MULTIPOLYGON:
-      case GpuSqlParser::AVG:
-      case GpuSqlParser::SUM:
-      case GpuSqlParser::MIN:
-      case GpuSqlParser::MAX:
-      case GpuSqlParser::COUNT:
+      case GpuSqlParser::AVG_AGG:
+      case GpuSqlParser::SUM_AGG:
+      case GpuSqlParser::MIN_AGG:
+      case GpuSqlParser::MAX_AGG:
+      case GpuSqlParser::COUNT_AGG:
       case GpuSqlParser::YEAR:
       case GpuSqlParser::MONTH:
       case GpuSqlParser::DAY:
@@ -2069,11 +2069,11 @@ GpuSqlParser::SelectColumnsContext* GpuSqlParser::selectColumns() {
         case GpuSqlParser::MULTILINESTRING:
         case GpuSqlParser::POLYGON:
         case GpuSqlParser::MULTIPOLYGON:
-        case GpuSqlParser::AVG:
-        case GpuSqlParser::SUM:
-        case GpuSqlParser::MIN:
-        case GpuSqlParser::MAX:
-        case GpuSqlParser::COUNT:
+        case GpuSqlParser::AVG_AGG:
+        case GpuSqlParser::SUM_AGG:
+        case GpuSqlParser::MIN_AGG:
+        case GpuSqlParser::MAX_AGG:
+        case GpuSqlParser::COUNT_AGG:
         case GpuSqlParser::YEAR:
         case GpuSqlParser::MONTH:
         case GpuSqlParser::DAY:
@@ -4245,28 +4245,28 @@ tree::TerminalNode* GpuSqlParser::AggregationContext::RPAREN() {
   return getToken(GpuSqlParser::RPAREN, 0);
 }
 
-tree::TerminalNode* GpuSqlParser::AggregationContext::MIN() {
-  return getToken(GpuSqlParser::MIN, 0);
+tree::TerminalNode* GpuSqlParser::AggregationContext::MIN_AGG() {
+  return getToken(GpuSqlParser::MIN_AGG, 0);
 }
 
 GpuSqlParser::ExpressionContext* GpuSqlParser::AggregationContext::expression() {
   return getRuleContext<GpuSqlParser::ExpressionContext>(0);
 }
 
-tree::TerminalNode* GpuSqlParser::AggregationContext::MAX() {
-  return getToken(GpuSqlParser::MAX, 0);
+tree::TerminalNode* GpuSqlParser::AggregationContext::MAX_AGG() {
+  return getToken(GpuSqlParser::MAX_AGG, 0);
 }
 
-tree::TerminalNode* GpuSqlParser::AggregationContext::SUM() {
-  return getToken(GpuSqlParser::SUM, 0);
+tree::TerminalNode* GpuSqlParser::AggregationContext::SUM_AGG() {
+  return getToken(GpuSqlParser::SUM_AGG, 0);
 }
 
-tree::TerminalNode* GpuSqlParser::AggregationContext::COUNT() {
-  return getToken(GpuSqlParser::COUNT, 0);
+tree::TerminalNode* GpuSqlParser::AggregationContext::COUNT_AGG() {
+  return getToken(GpuSqlParser::COUNT_AGG, 0);
 }
 
-tree::TerminalNode* GpuSqlParser::AggregationContext::AVG() {
-  return getToken(GpuSqlParser::AVG, 0);
+tree::TerminalNode* GpuSqlParser::AggregationContext::AVG_AGG() {
+  return getToken(GpuSqlParser::AVG_AGG, 0);
 }
 
 GpuSqlParser::AggregationContext::AggregationContext(ExpressionContext *ctx) { copyFrom(ctx); }
@@ -5501,7 +5501,7 @@ GpuSqlParser::ExpressionContext* GpuSqlParser::expression(int precedence) {
       _ctx = _localctx;
       previousContext = _localctx;
       setState(681);
-      dynamic_cast<AggregationContext *>(_localctx)->op = match(GpuSqlParser::MIN);
+      dynamic_cast<AggregationContext *>(_localctx)->op = match(GpuSqlParser::MIN_AGG);
       setState(682);
       match(GpuSqlParser::LPAREN);
 
@@ -5517,7 +5517,7 @@ GpuSqlParser::ExpressionContext* GpuSqlParser::expression(int precedence) {
       _ctx = _localctx;
       previousContext = _localctx;
       setState(686);
-      dynamic_cast<AggregationContext *>(_localctx)->op = match(GpuSqlParser::MAX);
+      dynamic_cast<AggregationContext *>(_localctx)->op = match(GpuSqlParser::MAX_AGG);
       setState(687);
       match(GpuSqlParser::LPAREN);
 
@@ -5533,7 +5533,7 @@ GpuSqlParser::ExpressionContext* GpuSqlParser::expression(int precedence) {
       _ctx = _localctx;
       previousContext = _localctx;
       setState(691);
-      dynamic_cast<AggregationContext *>(_localctx)->op = match(GpuSqlParser::SUM);
+      dynamic_cast<AggregationContext *>(_localctx)->op = match(GpuSqlParser::SUM_AGG);
       setState(692);
       match(GpuSqlParser::LPAREN);
 
@@ -5549,7 +5549,7 @@ GpuSqlParser::ExpressionContext* GpuSqlParser::expression(int precedence) {
       _ctx = _localctx;
       previousContext = _localctx;
       setState(696);
-      dynamic_cast<AggregationContext *>(_localctx)->op = match(GpuSqlParser::COUNT);
+      dynamic_cast<AggregationContext *>(_localctx)->op = match(GpuSqlParser::COUNT_AGG);
       setState(697);
       match(GpuSqlParser::LPAREN);
 
@@ -5565,7 +5565,7 @@ GpuSqlParser::ExpressionContext* GpuSqlParser::expression(int precedence) {
       _ctx = _localctx;
       previousContext = _localctx;
       setState(701);
-      dynamic_cast<AggregationContext *>(_localctx)->op = match(GpuSqlParser::AVG);
+      dynamic_cast<AggregationContext *>(_localctx)->op = match(GpuSqlParser::AVG_AGG);
       setState(702);
       match(GpuSqlParser::LPAREN);
 
@@ -6873,13 +6873,13 @@ std::vector<std::string> GpuSqlParser::_symbolicNames = {
   "DROPCOLUMN", "ALTERCOLUMN", "CREATEINDEX", "INDEX", "PRIMARYKEY", "VALUES", 
   "SELECT", "FROM", "JOIN", "WHERE", "GROUPBY", "AS", "IN", "ISNULL", "ISNOTNULL", 
   "BETWEEN", "ON", "ORDERBY", "DIR", "LIMIT", "OFFSET", "INNER", "FULLOUTER", 
-  "SHOWDB", "SHOWTB", "SHOWCL", "AVG", "SUM", "MIN", "MAX", "COUNT", "YEAR", 
-  "MONTH", "DAY", "HOUR", "MINUTE", "SECOND", "NOW", "PI", "ABS", "SIN", 
-  "COS", "TAN", "COT", "ASIN", "ACOS", "ATAN", "ATAN2", "LOG10", "LOG", 
-  "EXP", "POW", "SQRT", "SQUARE", "SIGN", "ROOT", "ROUND", "CEIL", "FLOOR", 
-  "LTRIM", "RTRIM", "LOWER", "UPPER", "REVERSE", "LEN", "LEFT", "RIGHT", 
-  "CONCAT", "CAST", "GEO_CONTAINS", "GEO_INTERSECT", "GEO_UNION", "PLUS", 
-  "MINUS", "ASTERISK", "DIVISION", "MODULO", "XOR", "EQUALS", "NOTEQUALS", 
+  "SHOWDB", "SHOWTB", "SHOWCL", "AVG_AGG", "SUM_AGG", "MIN_AGG", "MAX_AGG", 
+  "COUNT_AGG", "YEAR", "MONTH", "DAY", "HOUR", "MINUTE", "SECOND", "NOW", 
+  "PI", "ABS", "SIN", "COS", "TAN", "COT", "ASIN", "ACOS", "ATAN", "ATAN2", 
+  "LOG10", "LOG", "EXP", "POW", "SQRT", "SQUARE", "SIGN", "ROOT", "ROUND", 
+  "CEIL", "FLOOR", "LTRIM", "RTRIM", "LOWER", "UPPER", "REVERSE", "LEN", 
+  "LEFT", "RIGHT", "CONCAT", "CAST", "GEO_CONTAINS", "GEO_INTERSECT", "GEO_UNION", 
+  "PLUS", "MINUS", "ASTERISK", "DIVISION", "MODULO", "XOR", "EQUALS", "NOTEQUALS", 
   "NOTEQUALS_GT_LT", "LPAREN", "RPAREN", "GREATER", "LESS", "GREATEREQ", 
   "LESSEQ", "LOGICAL_NOT", "OR", "AND", "BIT_OR", "BIT_AND", "L_SHIFT", 
   "R_SHIFT", "BOOLEANLIT", "TRUE", "FALSE", "FLOATLIT", "INTLIT", "NULLLIT", 
