@@ -1,4 +1,4 @@
-#include <cmath>
+ #include <cmath>
 
 #include "gtest/gtest.h"
 #include "../dropdbase/DatabaseGenerator.h"
@@ -176,4 +176,14 @@ TEST(DispatcherTestsRegression, ConstOpOnMultiGPU)
 	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
 	ASSERT_EQ(payloads.intpayload().intdata()[0], 4);
 
+}
+
+TEST(DispatcherTestsRegression, SameAliasAsColumn)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 as colInteger1 FROM TableA WHERE colInteger1 > 20;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	
 }

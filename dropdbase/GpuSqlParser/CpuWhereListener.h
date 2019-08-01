@@ -43,6 +43,7 @@ private:
 
 	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 	void walkAliasExpression(const std::string & alias);
+	bool insideAlias;
 
 public:
 	CpuWhereListener(const std::shared_ptr<Database> &database, CpuSqlDispatcher &dispatcher);

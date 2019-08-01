@@ -6,7 +6,8 @@ constexpr float pi() { return 3.1415926f; }
 
 CpuWhereListener::CpuWhereListener(const std::shared_ptr<Database>& database, CpuSqlDispatcher& dispatcher) :
 	database(database),
-	dispatcher(dispatcher)
+	dispatcher(dispatcher),
+	insideAlias(false)
 {
 }
 
@@ -457,7 +458,7 @@ void CpuWhereListener::exitVarReference(GpuSqlParser::VarReferenceContext * ctx)
 {
 	std::string colName = ctx->columnId()->getText();
 
-	if (columnAliasContexts.find(colName) != columnAliasContexts.end())
+	if (columnAliasContexts.find(colName) != columnAliasContexts.end() && !insideAlias)
 	{
 		walkAliasExpression(colName);
 		return;
@@ -748,7 +749,9 @@ std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName
 void CpuWhereListener::walkAliasExpression(const std::string & alias)
 {
 	antlr4::tree::ParseTreeWalker walker;
+	insideAlias = true;
 	walker.walk(this, columnAliasContexts.at(alias));
+	insideAlias = false;
 }
 
 void CpuWhereListener::trimReg(std::string& reg)

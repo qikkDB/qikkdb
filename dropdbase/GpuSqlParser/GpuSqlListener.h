@@ -46,6 +46,7 @@ private:
     bool insideAgg;
 	bool insideGroupBy;
 	bool insideOrderBy;
+	bool insideAlias;
 
 	bool insideSelectColumn;
 	bool isAggSelectColumn;

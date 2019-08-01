@@ -43,6 +43,7 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	insideAgg(false), 
 	insideGroupBy(false),
 	insideOrderBy(false),
+	insideAlias(false),
 	insideSelectColumn(false), 
 	isAggSelectColumn(false),
 	isSelectColumnValid(false),
@@ -1542,7 +1543,7 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext *ctx)
 {
 	std::string colName = ctx->columnId()->getText();
 
-	if (columnAliasContexts.find(colName) != columnAliasContexts.end())
+	if (columnAliasContexts.find(colName) != columnAliasContexts.end() && !insideAlias)
 	{
 		walkAliasExpression(colName);
 		return;
@@ -1711,7 +1712,9 @@ std::pair<std::string, DataType> GpuSqlListener::generateAndValidateColumnName(G
 void GpuSqlListener::walkAliasExpression(const std::string & alias)
 {
 	antlr4::tree::ParseTreeWalker walker;
+	insideAlias = true;
 	walker.walk(this, columnAliasContexts.at(alias));
+	insideAlias = false;
 }
 
 void GpuSqlListener::LockAliasRegisters()
