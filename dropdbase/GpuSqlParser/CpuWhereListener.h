@@ -34,10 +34,11 @@ private:
 
 	void trimDelimitedIdentifier(std::string& str);
 
-	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
 	DataType getDataTypeFromString(const std::string& dataType);
+
+	void trimReg(std::string& reg);
 
 	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 	void walkAliasExpression(const std::string & alias);

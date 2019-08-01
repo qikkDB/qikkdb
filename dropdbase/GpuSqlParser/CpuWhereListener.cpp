@@ -21,130 +21,165 @@ void CpuWhereListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext 
 	DataType rightOperandType = std::get<1>(right);
 	DataType leftOperandType = std::get<1>(left);
 
-	pushArgument(std::get<0>(left).c_str(), leftOperandType);
-	pushArgument(std::get<0>(right).c_str(), rightOperandType);
+	std::string rightOperand = std::get<0>(right);
+	std::string leftOperand = std::get<0>(left);
+
+	pushArgument(leftOperand.c_str(), leftOperandType);
+	pushArgument(rightOperand.c_str(), rightOperandType);
+
+	std::string reg;
+	trimReg(rightOperand);
+	trimReg(leftOperand);
 
 	DataType returnDataType;
 
 	if (op == ">")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "<")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == ">=")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "<=")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "=")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "!=" || op == "<>")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "AND")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "OR")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "*")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "/")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "+")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "-")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "%")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "|")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "&")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "^")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "<<")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == ">>")
 	{
+		reg = "$" + leftOperand + op + rightOperand;
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "POINT")
 	{
+		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		returnDataType = DataType::COLUMN_POINT;
 	}
 	else if (op == "GEO_CONTAINS")
 	{
+		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "GEO_INTERSECT")
 	{
+		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		returnDataType = DataType::COLUMN_POLYGON;
 	}
 	else if (op == "GEO_UNION")
 	{
+		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		returnDataType = DataType::COLUMN_POLYGON;
 	}
 	else if (op == "LOG")
 	{
+		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "POW")
 	{
+		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "ROOT")
 	{
+		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		returnDataType = getReturnDataType(leftOperandType, rightOperandType);
 	}
 	else if (op == "ATAN2")
 	{
+		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		returnDataType = getReturnDataType(DataType::COLUMN_FLOAT);
 	}
 	else if (op == "LEFT")
 	{
+		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		returnDataType = DataType::COLUMN_STRING;
 	}
 	else if (op == "RIGHT")
 	{
+		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		returnDataType = DataType::COLUMN_STRING;
 	}
 	else if (op == "CONCAT")
 	{
+		reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
 		returnDataType = DataType::COLUMN_STRING;
 	}
 	dispatcher.addBinaryOperation(leftOperandType, rightOperandType, op);
 
-	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
 	pushTempResult(reg, returnDataType);
 }
@@ -159,17 +194,25 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext * 
 
 	std::string op = ctx->op->getText();
 	stringToUpper(op);
+
+	std::string operand = std::get<0>(arg);
 	DataType operandType = std::get<1>(arg);
-	pushArgument(std::get<0>(arg).c_str(), operandType);
+
+	pushArgument(operand.c_str(), operandType);
 
 	DataType returnDataType;
 
+	std::string reg;
+	trimReg(operand);
+
 	if (op == "!")
 	{
+		reg = "$" + op + operand;
 		returnDataType = DataType::COLUMN_INT8_T;
 	}
 	else if (op == "IS NULL")
 	{
+		reg = "$" + op + operand;
 		if (operandType < DataType::COLUMN_INT)
 		{
 			throw NullMaskOperationInvalidOperandException();
@@ -178,6 +221,7 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext * 
 	}
 	else if (op == "IS NOT NULL")
 	{
+		reg = "$" + op + operand;
 		if (operandType < DataType::COLUMN_INT)
 		{
 			throw NullMaskOperationInvalidOperandException();
@@ -186,123 +230,151 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext * 
 	}
 	else if (op == "-")
 	{
+		reg = "$" + op + operand;
 		returnDataType = getReturnDataType(operandType);
 	}
 	else if (op == "YEAR")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "MONTH")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "DAY")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "HOUR")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "MINUTE")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "SECOND")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = COLUMN_INT;
 	}
 	else if (op == "ABS")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = getReturnDataType(operandType);
 	}
 	else if (op == "SIN")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "COS")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "TAN")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "COT")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "ASIN")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "ACOS")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "ATAN")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "LOG10")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "LOG")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "EXP")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "SQRT")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "SQUARE")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "SIGN")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_INT;
 	}
 	else if (op == "ROUND")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "FLOOR")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "CEIL")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_FLOAT;
 	}
 	else if (op == "LTRIM")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_STRING;
 	}
 	else if (op == "RTRIM")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_STRING;
 	}
 	else if (op == "LOWER")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_STRING;
 	}
 	else if (op == "UPPER")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_STRING;
 	}
 	else if (op == "LEN")
 	{
+		reg = "$" + op + "(" + operand + ")";
 		returnDataType = DataType::COLUMN_INT;
 	}
 	dispatcher.addUnaryOperation(operandType, op);
 
-	std::string reg = getRegString(ctx);
 	pushArgument(reg.c_str(), returnDataType);
 	pushTempResult(reg, returnDataType);
 }
@@ -311,15 +383,19 @@ void CpuWhereListener::exitCastOperation(GpuSqlParser::CastOperationContext * ct
 {
 	std::pair<std::string, DataType> arg = stackTopAndPop();
 
+	std::string operand = std::get<0>(arg);
 	DataType operandType = std::get<1>(arg);
-	pushArgument(std::get<0>(arg).c_str(), operandType);
+
+	pushArgument(operand.c_str(), operandType);
 	std::string castTypeStr = ctx->DATATYPE()->getText();
 	stringToUpper(castTypeStr);
 	DataType castType = getDataTypeFromString(castTypeStr);
 
 	dispatcher.addCastOperation(operandType, castType, castTypeStr);
 
-	std::string reg = getRegString(ctx);
+	trimReg(operand);
+	std::string reg = "$CAST(" + operand + "AS" + castTypeStr + ")";
+
 	pushArgument(reg.c_str(), castType);
 	pushTempResult(reg, castType);
 }
@@ -576,16 +652,6 @@ void CpuWhereListener::trimDelimitedIdentifier(std::string& str)
 	}
 }
 
-std::string CpuWhereListener::getRegString(antlr4::ParserRuleContext * ctx)
-{
-	std::string reg = std::string("$") + ctx->getText();
-	for (auto& aliasColumn : columnAliasContexts)
-	{
-		boost::replace_all(reg, aliasColumn.first, aliasColumn.second->getText());
-	}
-	return reg;
-}
-
 DataType CpuWhereListener::getReturnDataType(DataType left, DataType right)
 {
 	if (right < DataType::COLUMN_INT)
@@ -677,4 +743,12 @@ void CpuWhereListener::walkAliasExpression(const std::string & alias)
 {
 	antlr4::tree::ParseTreeWalker walker;
 	walker.walk(this, columnAliasContexts.at(alias));
+}
+
+void CpuWhereListener::trimReg(std::string& reg)
+{
+	if (reg.front() == '$')
+	{
+		reg.erase(reg.begin());
+	}
 }
