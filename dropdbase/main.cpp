@@ -27,8 +27,8 @@
 #include "QueryEngine/GPUMemoryCache.h"
 
 /// Startup function, called automatically.
-/// <param name="argc">program argument count</param>
-/// <param name="argv">program arguments (for CSV importing): [csv-path [new-db-name]]</param>
+/// <param name="argc">not used parameter</param>
+/// <param name="argv">not used parameter</param>
 /// <returns>Exit code (0 - OK)</returns>
 int main(int argc, char **argv)
 {
@@ -60,8 +60,7 @@ int main(int argc, char **argv)
 	//Database::SaveAllToDisk();
 	//return 0;
 
-	BOOST_LOG_TRIVIAL(info) << "Starting TellStoryDB...";
-	Context::getInstance(); // Initialize CUDA context
+	Context::getInstance();
 
 	// Import CSV file if entered as program argument
 	if (argc > 1)
@@ -88,9 +87,8 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	BOOST_LOG_TRIVIAL(info) << "Loading databases...";
+	BOOST_LOG_TRIVIAL(info) << "Starting ColmnarDB...\n";
 	Database::LoadDatabasesFromDisk();
-	BOOST_LOG_TRIVIAL(info) << "All databases loaded.";
 
 	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
 	RegisterCtrlCHandler(&tcpServer);
@@ -102,7 +100,7 @@ int main(int argc, char **argv)
 	/*CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
 	std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 100000000);
 	Database::AddToInMemoryDatabaseList(database);
-	BOOST_LOG_TRIVIAL(info) << "Loading TargetLoc.csv ...";
+	std::cout << "Loading TargetLoc.csv ..." << std::endl;
 	csvDataImporter.ImportTables(database);*/
 	/*
 	for (int i = 0; i < 2; i++)
@@ -115,7 +113,7 @@ int main(int argc, char **argv)
 		auto end = std::chrono::high_resolution_clock::now();
 
 		std::chrono::duration<double> elapsed(end - start);
-		BOOST_LOG_TRIVIAL(info) << "Elapsed time: " << elapsed.count() << " s.";
+		std::cout << "Elapsed time: " << elapsed.count() << " s." << std::endl;
 	}
 	*/
 

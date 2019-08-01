@@ -398,7 +398,7 @@ public:
 
 		if (USE_VALUES)
 		{
-			cuda_ptr<int8_t> valuesNullMaskCompressed((maxHashCount_ + sizeof(int32_t) * 8 - 1) / (sizeof(int32_t) * 8), 0);
+			cuda_ptr<int8_t> valuesNullMaskCompressed((maxHashCount_ + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8), 0);
 			kernel_compress_null_mask << < Context::getInstance().calcGridDim(maxHashCount_), Context::getInstance().getBlockDim() >> >
 				(reinterpret_cast<int32_t*>(valuesNullMaskCompressed.get()), valuesNullMask_, maxHashCount_);
 
@@ -546,8 +546,8 @@ public:
 				{
 					GPUGroupBy<AGG, O, K, V> finalGroupBy(sumElementCount);
 					finalGroupBy.ProcessBlock(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount,
-							GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), maxHashCount_).get(),
-							GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), maxHashCount_).get());
+							GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
+							GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount).get());
 					finalGroupBy.GetResults(outKeys, outValues, outDataElementCount, outKeysNullMask, outValuesNullMask);
 				}
 				else if (std::is_same<AGG, AggregationFunctions::avg>::value)	// for avg
@@ -560,8 +560,8 @@ public:
 					K* tempKeys = nullptr;
 					GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
 					sumGroupBy.ProcessBlock(keysAllGPU.get(), valuesAllGPU.get(), sumElementCount,
-							GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), maxHashCount_).get(),
-							GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), maxHashCount_).get());
+							GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
+							GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount).get());
 					sumGroupBy.GetResults(&tempKeys, &valuesMerged, outDataElementCount, outKeysNullMask, outValuesNullMask);
 					// Don't need these results, will be computed again in countGroupBy - TODO multi-value GroupBy
 					if (outKeysNullMask)	// if used (if double pointer is not nullptr)
@@ -578,8 +578,8 @@ public:
 					GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount, tempKeys);
 					GPUMemory::free(tempKeys);
 					countGroupBy.ProcessBlock(keysAllGPU.get(), occurrencesAllGPU.get(), sumElementCount,
-							GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), maxHashCount_).get(),
-							GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), maxHashCount_).get());
+							GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
+							GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount).get());
 					countGroupBy.GetResults(outKeys, &occurrencesMerged, outDataElementCount, outKeysNullMask, outValuesNullMask);
 					
                     // Divide merged values by merged occurrences to get final averages
@@ -610,7 +610,7 @@ public:
 					}
 					GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> finalGroupBy(sumElementCount);
 					finalGroupBy.ProcessBlock(keysAllGPU.get(), occurrencesAllGPU.get(), sumElementCount,
-							GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), maxHashCount_).get(), nullptr);
+							GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(), nullptr);
 												  // reinterpret_cast is needed to solve compilation error
 					finalGroupBy.GetResults(outKeys, reinterpret_cast<int64_t**>(outValues), outDataElementCount, outKeysNullMask, outValuesNullMask);
 				}

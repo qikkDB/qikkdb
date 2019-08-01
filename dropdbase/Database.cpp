@@ -432,6 +432,8 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 	colFile.read(reinterpret_cast<char*>(&type), sizeof(int32_t)); // read type of column
 	colFile.read(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // read nullability of column
 
+	int32_t nullBitMaskAllocationSize = ((table.GetBlockSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+
 	switch (type)
 	{
 	case COLUMN_POLYGON:
@@ -461,7 +463,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			if (isNullable)
 			{
-				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskLength]);
+				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
 				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
 			}
 
@@ -555,7 +557,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			if (isNullable)
 			{
-				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskLength]);
+				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
 				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
 			}
 
@@ -641,7 +643,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			if (isNullable)
 			{
-				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskLength]);
+				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
 				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
 			}
 
@@ -724,7 +726,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			if (isNullable)
 			{
-				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskLength]);
+				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
 				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
 			}
 
@@ -805,7 +807,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			if (isNullable)
 			{
-				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskLength]);
+				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
 				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
 			}
 
@@ -886,7 +888,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			if (isNullable)
 			{
-				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskLength]);
+				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
 				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
 			}
 
@@ -967,7 +969,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			if (isNullable)
 			{
-				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskLength]);
+				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
 				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
 			}
 
@@ -1048,7 +1050,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
 			if (isNullable)
 			{
-				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskLength]);
+				nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
 				colFile.read(reinterpret_cast<char*>(nullBitMask.get()), nullBitMaskLength); // read nullBitMask
 			}
 
@@ -1104,7 +1106,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 	break;
 
 	default:
-		throw std::domain_error("Unsupported data type (when loading database).");
+		throw std::domain_error("Unsupported data type (when loading database): " + std::to_string(type));
 	}
 
 	colFile.close();
@@ -1600,7 +1602,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 	break;
 
 	default:
-		throw std::domain_error("Unsupported data type (when persisting database).");
+		throw std::domain_error("Unsupported data type (when persisting database): " + std::to_string(type));
 		break;
 	}
 

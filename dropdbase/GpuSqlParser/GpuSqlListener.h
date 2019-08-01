@@ -31,6 +31,7 @@ private:
 	std::unordered_set<std::string> columnAliases;
 	std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts;
     std::unordered_set<std::string> loadedTables;
+	std::unordered_map<std::string, std::string> shortColumnNames;
 	int32_t linkTableIndex;
 	int32_t orderByColumnIndex;
 	std::unordered_map<std::string, std::pair<DataType, std::string>> returnColumns;
@@ -66,10 +67,11 @@ private:
 
 	void trimDelimitedIdentifier(std::string &str);
 
-	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
 	DataType getDataTypeFromString(const std::string& dataType);
+
+	void trimReg(std::string& reg);
 
 	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
 
