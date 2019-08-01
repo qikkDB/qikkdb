@@ -1,4 +1,4 @@
 SELECT cab_type, COUNT(passenger_count) FROM trips GROUP BY cab_type;
-SELECT passenger_count, AVG(total_amount) FROM trips GROUP BY passenger_count;
-SELECT passenger_count, YEAR(pickup_datetime), COUNT(passenger_count) FROM trips GROUP BY passenger_count, YEAR(pickup_datetime);	 
-SELECT passenger_count, YEAR(pickup_datetime), cast(trip_distance as int), COUNT(passenger_count) FROM trips GROUP BY passenger_count, YEAR(pickup_datetime), cast(trip_distance as int) ORDER BY YEAR(pickup_datetime), COUNT(passenger_count) DESC;
+SELECT passenger_count, SUM(total_amount) FROM trips GROUP BY passenger_count;
+SELECT passenger_count, YEAR(pickup_datetime) AS pickup_year, COUNT(passenger_count) FROM trips GROUP BY passenger_count, pickup_year;
+SELECT passenger_count, YEAR(pickup_datetime) AS pickup_year, CAST(trip_distance AS INT) AS distance, COUNT(passenger_count) AS the_count FROM trips GROUP BY passenger_count, pickup_year, distance ORDER BY pickup_year, the_count DESC;
