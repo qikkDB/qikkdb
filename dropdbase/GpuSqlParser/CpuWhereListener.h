@@ -16,6 +16,7 @@ private:
 	std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts;
 	std::unordered_map<std::string, std::string> tableAliases;
 	std::unordered_set<std::string> loadedTables;
+	std::unordered_map<std::string, std::string> shortColumnNames;
 	std::stack<std::pair<std::string, DataType>> parserStack;
 
 	void pushArgument(const char *token, DataType dataType);

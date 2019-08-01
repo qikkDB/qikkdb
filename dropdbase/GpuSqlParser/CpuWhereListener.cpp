@@ -708,6 +708,8 @@ std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName
 		{
 			throw ColumnNotFoundException();
 		}
+
+		shortColumnNames.insert({ table + "." + column, table + "." + column });
 	}
 	else
 	{
@@ -729,6 +731,8 @@ std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName
 		{
 			throw ColumnNotFoundException();
 		}
+
+		shortColumnNames.insert({ table + "." + column, column });
 	}
 	
 	std::string tableColumn = table + "." + column;
@@ -750,5 +754,9 @@ void CpuWhereListener::trimReg(std::string& reg)
 	if (reg.front() == '$')
 	{
 		reg.erase(reg.begin());
+	}
+	else if (shortColumnNames.find(reg) != shortColumnNames.end())
+	{
+		reg = shortColumnNames.at(reg);
 	}
 }
