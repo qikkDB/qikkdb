@@ -86,7 +86,7 @@ void Database::PersistOnlyDbFile(const char* path)
 	int32_t tableSize = tables.size();
 
 	// write file .db
-	BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << " .db";
+	BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << ".db";
 	std::ofstream dbFile(pathStr + "/" + name + ".db", std::ios::binary);
 
 	int32_t dbNameLength = name.length() + 1; // +1 because '\0'
@@ -134,7 +134,7 @@ void Database::Persist(const char* path)
 	int32_t tableSize = tables.size();
 
 	// write file .db
-	BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << " .db";
+	BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << ".db";
 	std::ofstream dbFile(pathStr + "/" + name + ".db", std::ios::binary);
 
 	int32_t dbNameLength = name.length() + 1; // +1 because '\0'
@@ -233,22 +233,35 @@ void Database::DeleteDatabaseFromDisk()
 {
 	auto &path = Configuration::GetInstance().GetDatabaseDir();
 
+	//std::cout << "DeleteDatabaseFromDisk path: " << path << std::endl;
 	if (boost::filesystem::exists(path))
 	{
-		std::string prefix(name_ + SEPARATOR);
-
+		//std::cout << "DeleteDatabaseFromDisk prefix: " << prefix << std::endl;
+		// Delete main .db file
+		if (boost::filesystem::remove(path + name_ + ".db"))
+		{
+			BOOST_LOG_TRIVIAL(info) << "Main (.db) file of db " << name_ << " was successfully removed from disk.";
+		}
+		else
+		{
+			BOOST_LOG_TRIVIAL(info) << "Main (.db) file of db " << name_ << " was NOT removed from disk. No such file or write access.";
+		}
+		
+		// Delete tables and columns
+		std::string prefix(path + name_ + SEPARATOR);
 		for (auto& p : boost::filesystem::directory_iterator(path))
 		{
+			//std::cout << "DeleteDatabaseFromDisk p.path().string(): " << p.path().string() << std::endl;
 			//delete files which starts with prefix of db name:
 			if (!p.path().string().compare(0, prefix.size(), prefix))
 			{
-				if (boost::filesystem::remove(p.path().string().c_str()) != 0)
+				if (boost::filesystem::remove(p.path().string().c_str()))
 				{
-					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was NOT removed from disk. No such file or write access.";
+					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was successfully removed from disk.";
 				}
 				else
 				{
-					BOOST_LOG_TRIVIAL(info) << "Database " << name_ << " was successfully removed from disk.";
+					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was NOT removed from disk. No such file or write access.";
 				}
 			}
 		}
@@ -271,20 +284,20 @@ void Database::DeleteTableFromDisk(const char* tableName)
 
 	if (boost::filesystem::exists(path))
 	{
-		std::string prefix(name_ + SEPARATOR + std::string(tableName) + SEPARATOR);
+		std::string prefix(path + name_ + SEPARATOR + std::string(tableName) + SEPARATOR);
 
 		for (auto& p : boost::filesystem::directory_iterator(path))
 		{
 			//delete files which starts with prefix of db name and table name:
 			if (!p.path().string().compare(0, prefix.size(), prefix))
 			{
-				if (boost::filesystem::remove(p.path().string().c_str()) != 0)
+				if (boost::filesystem::remove(p.path().string().c_str()))
 				{
-					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was NOT removed from disk. No such file or write access.";
+					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " from database " << name_ << " was successfully removed from disk.";
 				}
 				else
 				{
-					BOOST_LOG_TRIVIAL(info) << "Table " << tableName << " from database " << name_ << " was successfully removed from disk.";
+					BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was NOT removed from disk. No such file or write access.";
 				}
 			}
 		}
@@ -316,13 +329,13 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 
 	if (boost::filesystem::exists(filePath))
 	{
-		if (boost::filesystem::remove(filePath.c_str()) != 0)
+		if (boost::filesystem::remove(filePath.c_str()))
 		{
-			BOOST_LOG_TRIVIAL(info) << "File " << filePath << " was NOT removed from disk. No such file or write access.";
+			BOOST_LOG_TRIVIAL(info) << "Column " << columnName << " from table " << tableName << " from database " << name_ << " was successfully removed from disk.";
 		}
 		else
 		{
-			BOOST_LOG_TRIVIAL(info) << "Column " << columnName << " from table " << tableName << " from database " << name_ << " was successfully removed from disk.";
+			BOOST_LOG_TRIVIAL(info) << "File " << filePath << " was NOT removed from disk. No such file or write access.";
 		}
 	}
 	else
