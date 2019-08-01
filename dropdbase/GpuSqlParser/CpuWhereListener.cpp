@@ -494,12 +494,14 @@ void CpuWhereListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext 
 void CpuWhereListener::exitPiLiteral(GpuSqlParser::PiLiteralContext * ctx)
 {
 	parserStack.push(std::make_pair(std::to_string(pi()), DataType::CONST_FLOAT));
+	shortColumnNames.insert({ std::to_string(pi()) , ctx->PI()->getText() });
 }
 
 void CpuWhereListener::exitNowLiteral(GpuSqlParser::NowLiteralContext * ctx)
 {
 	std::time_t epochTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
+	shortColumnNames.insert({ std::to_string(epochTime) , ctx->NOW()->getText() });
 }
 
 void CpuWhereListener::exitWhereClause(GpuSqlParser::WhereClauseContext * ctx)

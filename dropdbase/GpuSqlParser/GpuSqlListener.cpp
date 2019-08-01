@@ -1596,6 +1596,7 @@ void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext * 
 void GpuSqlListener::exitPiLiteral(GpuSqlParser::PiLiteralContext * ctx)
 {
 	parserStack.push(std::make_pair(std::to_string(pi()), DataType::CONST_FLOAT));
+	shortColumnNames.insert({ std::to_string(pi()) , ctx->PI()->getText() });
 }
 
 /// Method that executes on exit of NOW() literal (current date time)
@@ -1605,6 +1606,8 @@ void GpuSqlListener::exitNowLiteral(GpuSqlParser::NowLiteralContext * ctx)
 {
 	std::time_t epochTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
+	//Bug case if column exists with the same name as long reprsentation of NOW()
+	shortColumnNames.insert({ std::to_string(epochTime) , ctx->NOW()->getText()});
 }
 
 /// Method that executes on exit of polygon and point literals
