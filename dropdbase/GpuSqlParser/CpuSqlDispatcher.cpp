@@ -30,124 +30,124 @@ void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, size_t 
 {
 	switch (opType)
 	{
+	case GpuSqlLexer::GREATER:
+		cpuDispatcherFunctions.push_back(greaterFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::LESS:
+		cpuDispatcherFunctions.push_back(lessFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::GREATEREQ:
+		cpuDispatcherFunctions.push_back(greaterEqualFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::LESSEQ:
+		cpuDispatcherFunctions.push_back(lessEqualFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::EQUALS:
+		cpuDispatcherFunctions.push_back(equalFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::NOTEQUALS:
+	case GpuSqlLexer::NOTEQUALS_GT_LT:
+		cpuDispatcherFunctions.push_back(notEqualFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::AND:
+		cpuDispatcherFunctions.push_back(logicalAndFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::OR:
+		cpuDispatcherFunctions.push_back(logicalOrFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::ASTERISK:
+		cpuDispatcherFunctions.push_back(mulFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::DIVISION:
+		cpuDispatcherFunctions.push_back(divFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::PLUS:
+		cpuDispatcherFunctions.push_back(addFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::MINUS:
+		cpuDispatcherFunctions.push_back(subFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::MODULO:
+		cpuDispatcherFunctions.push_back(modFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::BIT_OR:
+		cpuDispatcherFunctions.push_back(bitwiseOrFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::BIT_AND:
+		cpuDispatcherFunctions.push_back(bitwiseAndFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+		
+	case GpuSqlLexer::XOR:
+		cpuDispatcherFunctions.push_back(bitwiseXorFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::L_SHIFT:
+		cpuDispatcherFunctions.push_back(bitwiseLeftShiftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::R_SHIFT:
+		cpuDispatcherFunctions.push_back(bitwiseRightShiftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::POINT:
+		cpuDispatcherFunctions.push_back(pointFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::GEO_CONTAINS:
+		cpuDispatcherFunctions.push_back(containsFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::GEO_INTERSECT:
+		cpuDispatcherFunctions.push_back(intersectFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::GEO_UNION:
+		cpuDispatcherFunctions.push_back(unionFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::LOG:
+		cpuDispatcherFunctions.push_back(logarithmFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::POW:
+		cpuDispatcherFunctions.push_back(powerFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::ROOT:
+		cpuDispatcherFunctions.push_back(rootFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::ATAN2:
+		cpuDispatcherFunctions.push_back(arctangent2Functions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::LEFT:
+		cpuDispatcherFunctions.push_back(leftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::RIGHT:
+		cpuDispatcherFunctions.push_back(rightFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::CONCAT:
+		cpuDispatcherFunctions.push_back(concatFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
 	default:
 		break;
-	}
-	if (op == ">")
-	{
-		cpuDispatcherFunctions.push_back(greaterFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "<")
-	{
-		cpuDispatcherFunctions.push_back(lessFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == ">=")
-	{
-		cpuDispatcherFunctions.push_back(greaterEqualFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "<=")
-	{
-		cpuDispatcherFunctions.push_back(lessEqualFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "=")
-	{
-		cpuDispatcherFunctions.push_back(equalFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "!=" || op == "<>")
-	{
-		cpuDispatcherFunctions.push_back(notEqualFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "AND")
-	{
-		cpuDispatcherFunctions.push_back(logicalAndFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "OR")
-	{
-		cpuDispatcherFunctions.push_back(logicalOrFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "*")
-	{
-		cpuDispatcherFunctions.push_back(mulFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "/")
-	{
-		cpuDispatcherFunctions.push_back(divFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "+")
-	{
-		cpuDispatcherFunctions.push_back(addFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "-")
-	{
-		cpuDispatcherFunctions.push_back(subFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "%")
-	{
-		cpuDispatcherFunctions.push_back(modFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "|")
-	{
-		cpuDispatcherFunctions.push_back(bitwiseOrFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "&")
-	{
-		cpuDispatcherFunctions.push_back(bitwiseAndFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "^")
-	{
-		cpuDispatcherFunctions.push_back(bitwiseXorFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "<<")
-	{
-		cpuDispatcherFunctions.push_back(bitwiseLeftShiftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == ">>")
-	{
-		cpuDispatcherFunctions.push_back(bitwiseRightShiftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "POINT")
-	{
-		cpuDispatcherFunctions.push_back(pointFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "GEO_CONTAINS")
-	{
-		cpuDispatcherFunctions.push_back(containsFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "GEO_INTERSECT")
-	{
-		cpuDispatcherFunctions.push_back(intersectFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "GEO_UNION")
-	{
-		cpuDispatcherFunctions.push_back(unionFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "LOG")
-	{
-		cpuDispatcherFunctions.push_back(logarithmFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "POW")
-	{
-		cpuDispatcherFunctions.push_back(powerFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "ROOT")
-	{
-		cpuDispatcherFunctions.push_back(rootFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "ATAN2")
-	{
-		cpuDispatcherFunctions.push_back(arctangent2Functions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "LEFT")
-	{
-		cpuDispatcherFunctions.push_back(leftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "RIGHT")
-	{
-		cpuDispatcherFunctions.push_back(rightFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "CONCAT")
-	{
-		cpuDispatcherFunctions.push_back(concatFunctions[left * DataType::DATA_TYPE_SIZE + right]);
 	}
 }
 
@@ -155,136 +155,105 @@ void CpuSqlDispatcher::addUnaryOperation(DataType type, size_t opType)
 {
 	switch (opType)
 	{
+	case GpuSqlLexer::LOGICAL_NOT:
+		cpuDispatcherFunctions.push_back(logicalNotFunctions[type]);
+		break;
+	case GpuSqlLexer::ISNULL:
+		cpuDispatcherFunctions.push_back(nullFunction);
+		break;
+	case GpuSqlLexer::ISNOTNULL:
+		cpuDispatcherFunctions.push_back(nullFunction);
+		break;
+	case GpuSqlLexer::MINUS:
+		cpuDispatcherFunctions.push_back(minusFunctions[type]);
+		break;
+	case GpuSqlLexer::YEAR:
+		cpuDispatcherFunctions.push_back(yearFunctions[type]);
+		break;
+	case GpuSqlLexer::MONTH:
+		cpuDispatcherFunctions.push_back(monthFunctions[type]);
+		break;
+	case GpuSqlLexer::DAY:
+		cpuDispatcherFunctions.push_back(dayFunctions[type]);
+		break;
+	case GpuSqlLexer::HOUR:
+		cpuDispatcherFunctions.push_back(hourFunctions[type]);
+		break;
+	case GpuSqlLexer::MINUTE:
+		cpuDispatcherFunctions.push_back(minuteFunctions[type]);
+		break;
+	case GpuSqlLexer::SECOND:
+		cpuDispatcherFunctions.push_back(secondFunctions[type]);
+		break;
+	case GpuSqlLexer::ABS:
+		cpuDispatcherFunctions.push_back(absoluteFunctions[type]);
+		break;
+	case GpuSqlLexer::SIN:
+		cpuDispatcherFunctions.push_back(sineFunctions[type]);
+		break;
+	case GpuSqlLexer::COS:
+		cpuDispatcherFunctions.push_back(cosineFunctions[type]);
+		break;
+	case GpuSqlLexer::TAN:
+		cpuDispatcherFunctions.push_back(tangentFunctions[type]);
+		break;
+	case GpuSqlLexer::COT:
+		cpuDispatcherFunctions.push_back(cotangentFunctions[type]);
+		break;
+	case GpuSqlLexer::ASIN:
+		cpuDispatcherFunctions.push_back(arcsineFunctions[type]);
+		break;
+	case GpuSqlLexer::ACOS:
+		cpuDispatcherFunctions.push_back(arccosineFunctions[type]);
+		break;
+	case GpuSqlLexer::ATAN:
+		cpuDispatcherFunctions.push_back(arctangentFunctions[type]);
+		break;
+	case GpuSqlLexer::LOG10:
+		cpuDispatcherFunctions.push_back(logarithm10Functions[type]);
+		break;
+	case GpuSqlLexer::LOG:
+		cpuDispatcherFunctions.push_back(logarithmNaturalFunctions[type]);
+		break;
+	case GpuSqlLexer::EXP:
+		cpuDispatcherFunctions.push_back(exponentialFunctions[type]);
+		break;
+	case GpuSqlLexer::SQRT:
+		cpuDispatcherFunctions.push_back(squareRootFunctions[type]);
+		break;
+	case GpuSqlLexer::SQUARE:
+		cpuDispatcherFunctions.push_back(squareFunctions[type]);
+		break;
+	case GpuSqlLexer::SIGN:
+		cpuDispatcherFunctions.push_back(signFunctions[type]);
+		break;
+	case GpuSqlLexer::ROUND:
+		cpuDispatcherFunctions.push_back(roundFunctions[type]);
+		break;
+	case GpuSqlLexer::FLOOR:
+		cpuDispatcherFunctions.push_back(floorFunctions[type]);
+		break;
+	case GpuSqlLexer::CEIL:
+		cpuDispatcherFunctions.push_back(ceilFunctions[type]);
+		break;
+	case GpuSqlLexer::LTRIM:
+		cpuDispatcherFunctions.push_back(ltrimFunctions[type]);
+		break;
+	case GpuSqlLexer::RTRIM:
+		cpuDispatcherFunctions.push_back(rtrimFunctions[type]);
+		break;
+	case GpuSqlLexer::LOWER:
+		cpuDispatcherFunctions.push_back(lowerFunctions[type]);
+		break;
+	case GpuSqlLexer::UPPER:
+		cpuDispatcherFunctions.push_back(upperFunctions[type]);
+		break;
+	case GpuSqlLexer::LEN:
+		cpuDispatcherFunctions.push_back(lenFunctions[type]);
+	break;
+
 	default:
 		break;
-	}
-	if (op == "!")
-	{
-		cpuDispatcherFunctions.push_back(logicalNotFunctions[type]);
-	}
-	else if (op == "IS NULL")
-	{
-		cpuDispatcherFunctions.push_back(nullFunction);
-	}
-	else if (op == "IS NOT NULL")
-	{
-		cpuDispatcherFunctions.push_back(nullFunction);
-	}
-	else if (op == "-")
-	{
-		cpuDispatcherFunctions.push_back(minusFunctions[type]);
-	}
-	else if (op == "YEAR")
-	{
-		cpuDispatcherFunctions.push_back(yearFunctions[type]);
-	}
-	else if (op == "MONTH")
-	{
-		cpuDispatcherFunctions.push_back(monthFunctions[type]);
-	}
-	else if (op == "DAY")
-	{
-		cpuDispatcherFunctions.push_back(dayFunctions[type]);
-	}
-	else if (op == "HOUR")
-	{
-		cpuDispatcherFunctions.push_back(hourFunctions[type]);
-	}
-	else if (op == "MINUTE")
-	{
-		cpuDispatcherFunctions.push_back(minuteFunctions[type]);
-	}
-	else if (op == "SECOND")
-	{
-		cpuDispatcherFunctions.push_back(secondFunctions[type]);
-	}
-	else if (op == "ABS")
-	{
-		cpuDispatcherFunctions.push_back(absoluteFunctions[type]);
-	}
-	else if (op == "SIN")
-	{
-		cpuDispatcherFunctions.push_back(sineFunctions[type]);
-	}
-	else if (op == "COS")
-	{
-		cpuDispatcherFunctions.push_back(cosineFunctions[type]);
-	}
-	else if (op == "TAN")
-	{
-		cpuDispatcherFunctions.push_back(tangentFunctions[type]);
-	}
-	else if (op == "COT")
-	{
-		cpuDispatcherFunctions.push_back(cotangentFunctions[type]);
-	}
-	else if (op == "ASIN")
-	{
-		cpuDispatcherFunctions.push_back(arcsineFunctions[type]);
-	}
-	else if (op == "ACOS")
-	{
-		cpuDispatcherFunctions.push_back(arccosineFunctions[type]);
-	}
-	else if (op == "ATAN")
-	{
-		cpuDispatcherFunctions.push_back(arctangentFunctions[type]);
-	}
-	else if (op == "LOG10")
-	{
-		cpuDispatcherFunctions.push_back(logarithm10Functions[type]);
-	}
-	else if (op == "LOG")
-	{
-		cpuDispatcherFunctions.push_back(logarithmNaturalFunctions[type]);
-	}
-	else if (op == "EXP")
-	{
-		cpuDispatcherFunctions.push_back(exponentialFunctions[type]);
-	}
-	else if (op == "SQRT")
-	{
-		cpuDispatcherFunctions.push_back(squareRootFunctions[type]);
-	}
-	else if (op == "SQUARE")
-	{
-		cpuDispatcherFunctions.push_back(squareFunctions[type]);
-	}
-	else if (op == "SIGN")
-	{
-		cpuDispatcherFunctions.push_back(signFunctions[type]);
-	}
-	else if (op == "ROUND")
-	{
-		cpuDispatcherFunctions.push_back(roundFunctions[type]);
-	}
-	else if (op == "FLOOR")
-	{
-		cpuDispatcherFunctions.push_back(floorFunctions[type]);
-	}
-	else if (op == "CEIL")
-	{
-		cpuDispatcherFunctions.push_back(ceilFunctions[type]);
-	}
-	else if (op == "LTRIM")
-	{
-		cpuDispatcherFunctions.push_back(ltrimFunctions[type]);
-	}
-	else if (op == "RTRIM")
-	{
-		cpuDispatcherFunctions.push_back(rtrimFunctions[type]);
-	}
-	else if (op == "LOWER")
-	{
-		cpuDispatcherFunctions.push_back(lowerFunctions[type]);
-	}
-	else if (op == "UPPER")
-	{
-		cpuDispatcherFunctions.push_back(upperFunctions[type]);
-	}
-	else if (op == "LEN")
-	{
-		cpuDispatcherFunctions.push_back(lenFunctions[type]);
 	}
 
 }
