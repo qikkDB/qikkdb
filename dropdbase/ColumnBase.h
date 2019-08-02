@@ -218,147 +218,19 @@ public:
 		return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
 	}
 
-    std::tuple<int, int, int>
-    FindIndexAndRange(int indexBlock, int indexInBlock, int range, const T& columnData, int groupId = -1, bool isNullValue = false)
-    {
-        int remainingRange = range;
-        int blockRange = 0;
-        int newRange = 0;
-        int newIndexInBlock = indexInBlock;
-        int newIndexBlock = indexBlock;
-        int startIndexInCurrentBlock = indexInBlock;
-        bool reachEnd = true;
-        bool found = false;
-		T nextBlockMin;
-		T currentBlockMin;
-		T currentMax;
-
-		if (blocks_[groupId].size() == 0)
-        {
-            BlockBase<T>& block = AddBlock();
-            newIndexBlock = 0;
-            std::tie(newIndexInBlock, newRange, reachEnd) =
-                block.FindIndexAndRange(indexInBlock, range, columnData, isNullValue);
-		}
-		else if (blocks_[groupId].size() == 1)
-        {
-            BlockBase<T>& block = *(blocks_[groupId][0].get());
-            newIndexBlock = 0;
-            std::tie(newIndexInBlock, newRange, reachEnd) =
-                block.FindIndexAndRange(indexInBlock, range, columnData, isNullValue);
-        }
-        else
-        {
-			if (isNullValue)
-			{
-
-				while ((reachEnd && indexBlock < blocks_[groupId].size()) && remainingRange > 0) 
-				{
-					BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
-
-					int tempIndexInBlock;
-					std::tie(tempIndexInBlock, blockRange, reachEnd) =
-						block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData, isNullValue);
-					newRange += blockRange;
-
-					startIndexInCurrentBlock = 0;
-					remainingRange -= block.GetSize() - startIndexInCurrentBlock;
-
-					indexBlock++;
-				}
-			}
-			else 
-			{
-				BlockBase<T> *block = (blocks_[groupId][indexBlock].get());
-
-				if (isNullable_)
-				{
-					while (block->GetIsFullOfNullValue())
-					{
-						remainingRange -= block->GetSize();
-						startIndexInCurrentBlock = 0;
-
-						indexBlock++;
-						block = (blocks_[groupId][indexBlock].get());
-					}
-
-					int bitMaskIdx = (startIndexInCurrentBlock / (sizeof(char) * 8));
-					int shiftIdx = (startIndexInCurrentBlock % (sizeof(char) * 8));
-					int nullValueCount = 0;
-
-					while (((block->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1) == 1)
-					{
-						startIndexInCurrentBlock++;
-						nullValueCount++;
-						bitMaskIdx = (startIndexInCurrentBlock / (sizeof(char) * 8));
-						shiftIdx = (startIndexInCurrentBlock % (sizeof(char) * 8));
-					}
-
-					remainingRange -= nullValueCount;
-				}
-
-				if (indexBlock == blocks_[groupId].size() - 1)
-				{
-					BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
-
-					std::tie(newIndexInBlock, newRange, reachEnd) =
-						block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData, isNullValue);
-					newIndexBlock = indexBlock;
-				}
-				
-				else
-				{
-					for (int i = indexBlock; i < blocks_[groupId].size() && reachEnd && remainingRange > 0; i++)
-					{
-						BlockBase<T>& block = *(blocks_[groupId][i].get());
-
-						currentBlockMin = block.GetData()[startIndexInCurrentBlock];
-
-						if ((i + 1) != blocks_[groupId].size())
-						{
-							BlockBase<T>& nextBlock = *(blocks_[groupId][i + 1].get());
-							nextBlockMin = nextBlock.GetData()[0];
-						}
-
-						if (remainingRange >= block.GetSize() - startIndexInCurrentBlock)
-						{
-							currentMax = block.GetData()[block.GetSize() - 1];
-						}
-						else
-						{
-							currentMax = block.GetData()[startIndexInCurrentBlock + remainingRange];
-						}
-
-						if (columnData >= currentBlockMin &&
-							(remainingRange <= block.GetSize() - startIndexInCurrentBlock ||
-							(columnData <= currentMax || (i == blocks_[groupId].size() - 1 || columnData <= nextBlockMin))))
-						{
-							int tempIndexInBlock;
-							std::tie(tempIndexInBlock, blockRange, reachEnd) =
-								block.FindIndexAndRange(startIndexInCurrentBlock, remainingRange, columnData, isNullValue);
-							if (!found)
-							{
-								newIndexInBlock = tempIndexInBlock;
-								newIndexBlock = i;
-								found = true;
-							}
-							newRange += blockRange;
-						}
-
-						remainingRange -= block.GetSize() - startIndexInCurrentBlock;
-						startIndexInCurrentBlock = 0;
-					}
-				}
-			}
-        }
-        return std::make_tuple(newIndexBlock, newIndexInBlock, newRange);
-    }
-
 	virtual int64_t GetSize() const override
 	{
 		return size_;
 	}
 
+	/// <summary>
+	/// Inserts data on proper position in column
+	/// </summary>
+	/// <param name="indexBlock">index of block where data will be inserted</param>
+	/// <param name="indexInBlock">index in block where data will be inserted</param>
+	/// <param name="columnData">data to insert<param>
+	/// <param name="groupId">id of binary index group<param>
+	/// <param name="isNullValue">whether data is null value flag<param>
     void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData, int groupId = -1, bool isNullValue = false)
     {
 		size_ += 1;
@@ -375,9 +247,14 @@ public:
             BlockSplit(blocks_[groupId][indexBlock]);
         }
 
-        setColumnStatistics();
+        //setColumnStatistics();
     }
 
+	/// <summary>
+	/// Splits block
+	/// </summary>
+	/// <param name="blockPtr">block that should be splitted</param>
+	/// <param name="groupId">id of binary index group<param>
     void BlockSplit(std::unique_ptr<BlockBase<T>>& blockPtr, int groupId = -1)
     {
         BlockBase<T>& block = *(blockPtr.get());
@@ -451,7 +328,7 @@ public:
 				{
 					lastBlock->CompressData();
 				}
-				setColumnStatistics();
+				//setColumnStatistics();
 				return;
 			}
 			int emptySpace = lastBlock->EmptyBlockSpace();
@@ -471,7 +348,7 @@ public:
 			AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy), groupId, compress, false);
 			startIdx += toCopy;
 		}
-		setColumnStatistics();
+		//setColumnStatistics();
 	}
 
 	/// <summary>

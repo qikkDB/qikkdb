@@ -217,7 +217,7 @@ public:
 								(*outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
 						if(nullMask)
 						{
-							size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int32_t)*8);
+							size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int8_t)*8);
 							GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
 							kernel_reconstruct_null_mask << < context.calcGridDim(dataElementCount), context.getBlockDim() >> >
 								(reinterpret_cast<int32_t*>(*outNullMask), nullMask, prefixSumPointer.get(), inMask, dataElementCount);
@@ -451,6 +451,8 @@ public:
 		cub::DeviceScan::ExclusiveSum(tempBuffer.get(), tempBufferSize, inMask, prefixSumPointer, dataElementCount);
 	}
 
+	// Compress memory-wasting null mask with size equal to dataElementCount (aligning to 32 bit)
+	static cuda_ptr<int8_t> CompressNullMask(int8_t* inputNullMask, int32_t dataElementCount);
 };
 
 /// Specialization for Point (not supported but need to be implemented)

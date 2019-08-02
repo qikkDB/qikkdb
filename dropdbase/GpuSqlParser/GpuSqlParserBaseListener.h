@@ -1,5 +1,5 @@
 
-// Generated from /home/jvesely/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.1
+// Generated from C:/Users/Andy/Desktop/parser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -91,6 +91,9 @@ public:
   virtual void enterSelectColumn(GpuSqlParser::SelectColumnContext * /*ctx*/) override { }
   virtual void exitSelectColumn(GpuSqlParser::SelectColumnContext * /*ctx*/) override { }
 
+  virtual void enterSelectAllColumns(GpuSqlParser::SelectAllColumnsContext * /*ctx*/) override { }
+  virtual void exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext * /*ctx*/) override { }
+
   virtual void enterWhereClause(GpuSqlParser::WhereClauseContext * /*ctx*/) override { }
   virtual void exitWhereClause(GpuSqlParser::WhereClauseContext * /*ctx*/) override { }
 
@@ -174,6 +177,9 @@ public:
 
   virtual void enterDecimalLiteral(GpuSqlParser::DecimalLiteralContext * /*ctx*/) override { }
   virtual void exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext * /*ctx*/) override { }
+
+  virtual void enterCastOperation(GpuSqlParser::CastOperationContext * /*ctx*/) override { }
+  virtual void exitCastOperation(GpuSqlParser::CastOperationContext * /*ctx*/) override { }
 
   virtual void enterGeoReference(GpuSqlParser::GeoReferenceContext * /*ctx*/) override { }
   virtual void exitGeoReference(GpuSqlParser::GeoReferenceContext * /*ctx*/) override { }

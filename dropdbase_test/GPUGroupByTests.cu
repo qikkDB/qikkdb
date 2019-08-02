@@ -27,7 +27,7 @@ void TestGroupByString(std::vector<std::vector<std::string>> keys,
         cuda_ptr<int32_t> gpuInValues(dataElementCount);
         GPUMemory::copyHostToDevice(gpuInValues.get(), values[b].data(), dataElementCount);
 
-        groupBy.groupBy(gpuInKeys, gpuInValues.get(), dataElementCount);
+        groupBy.ProcessBlock(gpuInKeys, gpuInValues.get(), dataElementCount);
         GPUMemory::free(gpuInKeys);
         /*
         // DEBUG prints
@@ -49,7 +49,7 @@ void TestGroupByString(std::vector<std::vector<std::string>> keys,
     GPUMemory::GPUString resultKeysGpu;
     int32_t* resultValuesGpu;
     int32_t resultCount;
-    groupBy.getResults(&resultKeysGpu, &resultValuesGpu, &resultCount);
+    groupBy.GetResults(&resultKeysGpu, &resultValuesGpu, &resultCount);
     std::unique_ptr<std::string[]> resultKeys = std::make_unique<std::string[]>(hashTableSize);
     std::unique_ptr<int32_t[]> resultValues = std::make_unique<int32_t[]>(hashTableSize);
     GPUReconstruct::ReconstructStringCol(resultKeys.get(), &resultCount, resultKeysGpu, nullptr, resultCount);

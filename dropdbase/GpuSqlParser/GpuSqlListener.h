@@ -6,6 +6,7 @@
 #define DROPDBASE_INSTAREA_GPUSQLLISTENER_H
 
 #include "GpuSqlParser.h"
+#include "GpuSqlLexer.h"
 #include "GpuSqlParserBaseListener.h"
 #include "../DataType.h"
 #include "../QueryEngine/OrderByType.h"
@@ -29,7 +30,9 @@ private:
     std::stack<std::pair<std::string, DataType>> parserStack;
 	std::unordered_map<std::string, std::string> tableAliases;
 	std::unordered_set<std::string> columnAliases;
+	std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts;
     std::unordered_set<std::string> loadedTables;
+	std::unordered_map<std::string, std::string> shortColumnNames;
 	int32_t linkTableIndex;
 	int32_t orderByColumnIndex;
 	std::unordered_map<std::string, std::pair<DataType, std::string>> returnColumns;
@@ -44,9 +47,11 @@ private:
     bool insideAgg;
 	bool insideGroupBy;
 	bool insideOrderBy;
+	bool insideAlias;
 
 	bool insideSelectColumn;
 	bool isAggSelectColumn;
+	bool isSelectColumnValid;
 
 	void pushArgument(const char *token, DataType dataType);
 	std::pair<std::string, DataType> stackTopAndPop();
@@ -64,12 +69,15 @@ private:
 
 	void trimDelimitedIdentifier(std::string &str);
 
-	std::string getRegString(antlr4::ParserRuleContext* ctx);
 	DataType getReturnDataType(DataType left, DataType right);
 	DataType getReturnDataType(DataType operand);
-	DataType getDataTypeFromString(std::string dataType);
+	DataType getDataTypeFromString(const std::string& dataType);
+
+	void trimReg(std::string& reg);
 
 	std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext *ctx);
+
+	void walkAliasExpression(const std::string& alias);
 
 
 public:
@@ -83,6 +91,8 @@ public:
     void exitTernaryOperation(GpuSqlParser::TernaryOperationContext *ctx) override;
 
     void exitUnaryOperation(GpuSqlParser::UnaryOperationContext *ctx) override;
+
+	void exitCastOperation(GpuSqlParser::CastOperationContext *ctx) override;
 
     void exitIntLiteral(GpuSqlParser::IntLiteralContext *ctx) override;
 
@@ -111,6 +121,8 @@ public:
 	void enterSelectColumn(GpuSqlParser::SelectColumnContext *ctx) override;
 
     void exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx) override;
+
+	void exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext *ctx) override;
 
     void exitFromTables(GpuSqlParser::FromTablesContext *ctx) override;
 
@@ -161,6 +173,10 @@ public:
 	bool GetUsingLoad();
 
 	bool GetUsingWhere();
+
+	void ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext *ctx);
+
+	void LockAliasRegisters();
 };
 
 

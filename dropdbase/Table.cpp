@@ -7,6 +7,14 @@
 
 
 #ifndef __CUDACC__
+/// <summary>
+/// Insert row of data to database on specific position
+/// </summary>
+/// <param name="data">column name with inserting data</param>
+/// <param name="indexBlock">index of block where data will be inserted</param>
+/// <param name="indexInBlock">index in block where data will be inserted</param>
+/// <param name="iterator">index of row of data</param>
+/// <param name="nullMask">column name with bitmask</param>
 void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data, int indexBlock, int indexInBlock, int iterator, const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks)
 {
     for (const auto& column : columns)
@@ -73,6 +81,11 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
     }
 }
 
+/// <summary>
+/// Gets count ofrows of inserted  data
+/// </summary>
+/// <param name="data">unordered map of columnName and data that should be inserted in this column</param>
+/// <returns>Count of rows of inserted data</returns>
 int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data)
 {
     int size = 0;
@@ -112,6 +125,10 @@ int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string
 	return size;
 }
 
+/// <summary>
+/// Gets count of rows that are already inserted in database - information is getting as count of data in first sorting column
+/// </summary>
+/// <returns>count of rows of data in database</returns>
 int32_t Table::getDataRangeInSortingColumn()
 {
 	int size = 0;
@@ -179,6 +196,379 @@ int32_t Table::getDataRangeInSortingColumn()
 		}
 	}
 	return size;
+}
+
+/// <summary>
+/// Gets one row and bitmask of this row from specific position from inserted data
+/// </summary>
+/// <param name="data">name of column with inserted data</param>
+/// <param name="iterator">position of row to get</param>
+/// <param name="nullMask">name of column with bitmasks of these data</param>
+/// <returns>tuple of row and bitmask of this row from speciific position</returns>
+std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std::any>& data, int iterator, const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks)
+{
+	std::vector<std::any> resultRow;
+	std::vector<int8_t> maskOfRow;
+
+	for (auto sortingColumn : sortingColumns)
+	{
+		int8_t isNullValue = 0;
+		int bitMaskIdx = (iterator / (sizeof(char) * 8));
+		int shiftIdx = (iterator % (sizeof(char) * 8));
+		if (nullMasks.find(sortingColumn) != nullMasks.end())
+		{
+			isNullValue = (nullMasks.at(sortingColumn)[bitMaskIdx] >> shiftIdx) & 1;
+		}
+
+		maskOfRow.push_back(isNullValue);
+
+		const auto& wrappedCurrentSortingColumnData = data.at(sortingColumn);
+
+		if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<int32_t>))
+		{
+			std::vector<int32_t> dataIndexedColumn = std::any_cast<std::vector<int32_t>>(wrappedCurrentSortingColumnData);
+			resultRow.push_back(dataIndexedColumn[iterator]);
+		}
+
+		else if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<int64_t>))
+		{
+			std::vector<int64_t> dataIndexedColumn = std::any_cast<std::vector<int64_t>>(wrappedCurrentSortingColumnData);
+			resultRow.push_back(dataIndexedColumn[iterator]);
+		}
+
+		else if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<float>))
+		{
+			std::vector<float> dataIndexedColumn = std::any_cast<std::vector<float>>(wrappedCurrentSortingColumnData);
+			resultRow.push_back(dataIndexedColumn[iterator]);
+		}
+
+		else if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<double>))
+		{
+			std::vector<double> dataIndexedColumn = std::any_cast<std::vector<double>>(wrappedCurrentSortingColumnData);
+			resultRow.push_back(dataIndexedColumn[iterator]);
+		}
+
+		else if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<std::string>))
+		{
+			std::vector<std::string> dataIndexedColumn = std::any_cast<std::vector<std::string>>(wrappedCurrentSortingColumnData);
+			resultRow.push_back(dataIndexedColumn[iterator]);
+		}
+	}
+
+	return std::make_tuple(resultRow, maskOfRow);
+}
+
+/// <summary>
+/// Gets block index and index in block from total index to database
+/// </summary>
+/// <param name="index">index to database</param>
+/// <param name="positionToCompare">whether method is used to get indices to compare row from these indices or we're looking for indices to insert row</param>
+/// <returns>block index, index in block</returns>
+std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index, bool positionToCompare)
+{
+	int32_t blockIndex = 0;
+	int32_t indexInBlock = index;
+
+	auto firstSortingColumn = (columns.find(sortingColumns[0])->second.get());
+	auto columnType = firstSortingColumn->GetColumnType();
+
+	int32_t positionDiff = positionToCompare ? 1 : 0;
+
+	if (columnType == COLUMN_INT)
+	{
+		auto castedColumn = dynamic_cast<const ColumnBase<int32_t>*>(firstSortingColumn);
+		auto& blocks = castedColumn->GetBlocksList();
+
+		int i = 0;
+
+		while (static_cast<int64_t>(indexInBlock - blocks[i]->GetSize() + positionDiff) > 0)
+		{
+			indexInBlock -= blocks[i]->GetSize();
+			blockIndex++;
+
+			i++;
+		}
+	}
+
+	else if (columnType == COLUMN_LONG)
+	{
+		auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(firstSortingColumn);
+		auto& blocks = castedColumn->GetBlocksList();
+
+		int i = 0;
+
+		while (static_cast<int64_t>(indexInBlock - blocks[i]->GetSize() + positionDiff) > 0)
+		{
+			indexInBlock -= blocks[i]->GetSize();
+			blockIndex++;
+
+			i++;
+		}
+	}
+
+
+	else if (columnType == COLUMN_DOUBLE)
+	{
+		auto castedColumn = dynamic_cast<ColumnBase<double>*>(firstSortingColumn);
+		auto& blocks = castedColumn->GetBlocksList();
+
+		int i = 0;
+
+		while (static_cast<int64_t>(indexInBlock - blocks[i]->GetSize() + positionDiff) > 0)
+		{
+			indexInBlock -= blocks[i]->GetSize();
+			blockIndex++;
+
+			i++;
+		}
+	}
+
+
+	else if (columnType == COLUMN_FLOAT)
+	{
+		auto castedColumn = dynamic_cast<ColumnBase<float>*>(firstSortingColumn);
+		auto& blocks = castedColumn->GetBlocksList();
+
+		int i = 0;
+
+		while (static_cast<int64_t>(indexInBlock - blocks[i]->GetSize() + positionDiff) > 0)
+		{
+			indexInBlock -= blocks[i]->GetSize();
+			blockIndex++;
+
+			i++;
+		}
+	}
+
+
+	else if (columnType == COLUMN_STRING)
+	{
+		auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(firstSortingColumn);
+		auto& blocks = castedColumn->GetBlocksList();
+
+		int i = 0;
+
+		while (static_cast<int64_t>(indexInBlock - blocks[i]->GetSize() + positionDiff) > 0)
+		{
+			indexInBlock -= blocks[i]->GetSize();
+			blockIndex++;
+
+			i++;
+		}
+	}
+	return std::make_tuple(blockIndex, indexInBlock);
+}
+
+/// <summary>
+/// Gets row and its bitmask from database from specific position
+/// </summary>
+/// <param name="index">index to database where row should be extracted from</param>
+/// <returns>values of row and its bitmask</returns>
+std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOnIndex(int index)
+{
+	int blockIndex;
+	int indexInBlock;
+
+	std::tie(blockIndex, indexInBlock) = GetIndicesFromTotalIndex(index, true);
+	std::vector<std::any> resultRow;
+	std::vector<int8_t> maskOfRow;
+
+	int8_t isNullValue = 0;
+	int bitMaskIdx = (indexInBlock / (sizeof(char) * 8));
+	int shiftIdx = (indexInBlock % (sizeof(char) * 8));
+
+	for (auto sortingColumn : sortingColumns)
+	{
+		auto currentSortingColumn = (columns.find(sortingColumn)->second.get()); 
+		auto columnType = currentSortingColumn->GetColumnType();
+
+		if (columnType == COLUMN_INT)
+		{
+			auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentSortingColumn);
+			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+
+			isNullValue = (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+			maskOfRow.push_back(isNullValue);
+		}
+
+		else if (columnType == COLUMN_LONG)
+		{
+			auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(currentSortingColumn);
+			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+
+			isNullValue = (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+			maskOfRow.push_back(isNullValue);
+		}
+
+		else if (columnType == COLUMN_FLOAT)
+		{
+			auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentSortingColumn);
+			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+
+			isNullValue = (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+			maskOfRow.push_back(isNullValue);
+		}
+
+		else if (columnType == COLUMN_DOUBLE)
+		{
+			auto castedColumn = dynamic_cast<ColumnBase<double>*>(currentSortingColumn);
+			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+
+			isNullValue = (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+			maskOfRow.push_back(isNullValue);
+		}
+
+		else if (columnType == COLUMN_STRING)
+		{
+			auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentSortingColumn);
+			resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
+
+
+		}
+	}
+	return std::make_tuple(resultRow, maskOfRow);
+}
+
+/// <summary>
+/// Compare two rows (one that should be inserted and one from database) of data according their values and bitmasks
+/// </summary>
+/// <param name="rowToInsert">values of inserted row of data</param>
+/// <param name="maskOfInsertedRow">bitmask of inserted row</param>
+/// <param name="index">index of row in database that should be compare with inserted row</param>
+/// <returns>one of enum value - Greater, Lower, Equal - according of relationship of inserted row and row from database</returns>
+Table::CompareResult Table::CompareRows(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfInsertRow, int index)
+{
+	std::vector<std::any> rowToCompare;
+	std::vector<int8_t> maskOfCompareRow;
+
+	std::tie(rowToCompare, maskOfCompareRow) = GetRowAndBitmaskOnIndex(index);
+
+	for (int i = 0; i < sortingColumns.size(); i++)
+	{
+		int8_t insertBit = maskOfInsertRow[i];
+		int8_t compareBit = maskOfCompareRow[i];
+
+		if (insertBit == 1 && compareBit == 0)
+		{
+			return CompareResult::Lower;
+		}
+
+		else if (insertBit == 0 && compareBit == 1)
+		{
+			return CompareResult::Greater;
+		}
+
+		else if (insertBit == 0 && compareBit == 0)
+		{
+			if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_INT)
+			{
+				if (std::any_cast<int32_t>(rowToInsert[i]) < std::any_cast<int32_t>(rowToCompare[i]))
+				{
+					return CompareResult::Lower;
+				}
+
+				else if (std::any_cast<int32_t>(rowToInsert[i]) > std::any_cast<int32_t>(rowToCompare[i]))
+				{
+					return CompareResult::Greater;
+				}
+			}
+
+			else if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_LONG)
+			{
+				if (std::any_cast<int64_t>(rowToInsert[i]) < std::any_cast<int64_t>(rowToCompare[i]))
+				{
+					return CompareResult::Lower;
+				}
+
+				else if (std::any_cast<int64_t>(rowToInsert[i]) > std::any_cast<int64_t>(rowToCompare[i]))
+				{
+					return CompareResult::Greater;
+				}
+			}
+
+			else if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_DOUBLE)
+			{
+				if (std::any_cast<double>(rowToInsert[i]) < std::any_cast<double>(rowToCompare[i]))
+				{
+					return CompareResult::Lower;
+				}
+
+				else if (std::any_cast<double>(rowToInsert[i]) > std::any_cast<double>(rowToCompare[i]))
+				{
+					return CompareResult::Greater;
+				}
+			}
+
+			else if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_FLOAT)
+			{
+				if (std::any_cast<float>(rowToInsert[i]) < std::any_cast<float>(rowToCompare[i]))
+				{
+					return CompareResult::Lower;
+				}
+
+				else if (std::any_cast<float>(rowToInsert[i]) > std::any_cast<float>(rowToCompare[i]))
+				{
+					return CompareResult::Greater;
+				}
+			}
+
+			else if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_STRING)
+			{
+				if (std::any_cast<std::string>(rowToInsert[i]) < std::any_cast<std::string>(rowToCompare[i]))
+				{
+					return CompareResult::Lower;
+				}
+
+				else if (std::any_cast<std::string>(rowToInsert[i]) > std::any_cast<std::string>(rowToCompare[i]))
+				{
+					return CompareResult::Greater;
+				}
+			}
+		}
+	}
+	return CompareResult::Equal;
+}
+
+/// <summary>
+/// Gets indices of block and position in block where should be row of data inserted according to its values and bitmask
+/// </summary>
+/// <param name="rowToInsert">values of inserted row of data</param>
+/// <param name="maskOfRow">bitmask of inserted row</param>
+/// <returns>block index and index in block where row should be inserted</returns>
+std::tuple<int, int> Table::GetIndex(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow)
+{
+	int index;
+	CompareResult compareResult;
+
+	int left = 0;
+	int right = getDataRangeInSortingColumn();
+
+	if (right == 0)
+	{
+		return std::make_tuple(0, 0);
+	}
+	
+	right -= 1;
+	while (left <= right)
+	{
+		index = (left + right) / 2;
+
+		compareResult = CompareRows(rowToInsert, maskOfRow, index);
+
+		if (compareResult == CompareResult::Greater)
+		{
+			left = index + 1;
+		}
+
+		else if (compareResult == CompareResult::Lower)
+		{
+			right = index - 1;
+		}
+
+		else return GetIndicesFromTotalIndex(index, false);
+	}
+
+	return (compareResult == CompareResult::Greater ? GetIndicesFromTotalIndex(index + 1, false) : GetIndicesFromTotalIndex(index, false));
 }
 #endif
 
@@ -299,6 +689,7 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
 	columns.insert(std::make_pair(columnName, std::move(column)));
 }
 
+
 #ifndef __CUDACC__
 /// <summary>
 /// Insert data into proper column of table considering empty space of last block and maximum size of blocks.
@@ -309,76 +700,20 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data, bo
 {
 	if (!sortingColumns.empty())
 	{
-        int oneColumnDataSize = getDataSizeOfInsertedColumns(data);
-		
+		int oneColumnDataSize = getDataSizeOfInsertedColumns(data);
+		int blockIndex;
+		int indexInBlock;
+
+		std::vector<std::any> rowToInsert;
+		std::vector<int8_t> maskOfRow;
+
+
 		for (int i = 0; i < oneColumnDataSize; i++)
-        {
-			int range = getDataRangeInSortingColumn();
-            int blockIndex = 0;
-            int indexInBlock = 0;
-
-            for (auto sortingColumn : sortingColumns)
-            {
-				int8_t isNullValue = false;
-				int bitMaskIdx = (i / (sizeof(char) * 8));
-				int shiftIdx = (i % (sizeof(char) * 8));
-				if (nullMasks.find(sortingColumn) != nullMasks.end()) 
-				{
-					isNullValue = (nullMasks.at(sortingColumn)[bitMaskIdx] >> shiftIdx) & 1;
-				}
-
-                auto currentSortingColumn = (columns.find(sortingColumn)->second.get());
-                const auto& wrappedCurrentSortingColumnData = data.at(sortingColumn);
-
-                if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<int32_t>))
-                {
-                    std::vector<int32_t> dataIndexedColumn = std::any_cast<std::vector<int32_t>>(wrappedCurrentSortingColumnData);
-                    auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentSortingColumn);
-
-					
-					std::tie(blockIndex, indexInBlock, range) = 
-						castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i], -1, isNullValue);
-                }
-
-				if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<int64_t>))
-                {
-                    std::vector<int64_t> dataIndexedColumn = std::any_cast<std::vector<int64_t>>(wrappedCurrentSortingColumnData);
-                    auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentSortingColumn);
-
-                    std::tie(blockIndex, indexInBlock, range) =
-                        castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i], -1, isNullValue);
-                }
-
-				if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<float>))
-                {
-                    std::vector<float> dataIndexedColumn = std::any_cast<std::vector<float>>(wrappedCurrentSortingColumnData);
-                    auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentSortingColumn);
-
-                    std::tie(blockIndex, indexInBlock, range) =
-                        castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i], -1, isNullValue);
-                }
-
-				if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<double>))
-                {
-                    std::vector<double> dataIndexedColumn = std::any_cast<std::vector<double>>(wrappedCurrentSortingColumnData);
-                    auto castedColumn = dynamic_cast<ColumnBase<double>*>(currentSortingColumn);
-
-                    std::tie(blockIndex, indexInBlock, range) =
-                        castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i], -1, isNullValue);
-                }
-
-				if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<std::string>))
-				{
-					std::vector<std::string> dataIndexedColumn = std::any_cast<std::vector<std::string>>(wrappedCurrentSortingColumnData);
-					auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentSortingColumn);
-				
-					std::tie(blockIndex, indexInBlock, range) =
-						castedColumn->FindIndexAndRange(blockIndex, indexInBlock, range, dataIndexedColumn[i]);
-				}
-            }
+		{
+			std::tie(rowToInsert, maskOfRow) = GetRowAndBitmaskOfInsertedData(data, i, nullMasks);
+			std::tie(blockIndex, indexInBlock) = GetIndex(rowToInsert, maskOfRow);
 
 			InsertValuesOnSpecificPosition(data, blockIndex, indexInBlock, i, nullMasks);
-			
 		}
 	}
 
@@ -545,7 +880,7 @@ int32_t Table::AssignGroupId(std::vector<std::any>& rowData, std::vector<std::un
 			}
 			break;
 		default:
-			throw std::domain_error("Unsupported data type (when importing database from CSV file).");
+			throw std::domain_error("Unsupported data type (when importing database from CSV file): " + std::to_string(columns[i]->GetColumnType()));
 		}
 		
 		index += 2 * i + b;

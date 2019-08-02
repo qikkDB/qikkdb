@@ -13,6 +13,7 @@
 #include "../StringFactory.h"
 #include "../Database.h"
 #include "../Table.h"
+#include "LoadColHelper.h"
 #include <any>
 #include <string>
 #include <unordered_map>
@@ -58,6 +59,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	maxRegisterMemory(0), // TODO value from config e.g.
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
+	insideGroupBy(false),
 	usingGroupBy(false),
 	usingOrderBy(false),
 	usingJoin(false),
@@ -108,6 +110,9 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
 		context.bindDeviceToContext(dispatcherThreadId);
 		context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
+
+		LoadColHelper& loadColHelper = LoadColHelper::getInstance();
+
 		int32_t err = 0;
 
 		while (err == 0)
@@ -167,6 +172,7 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
 				if (err == 12)
 				{
 					std::cout << "Load skipped" << std::endl;
+					loadColHelper.countSkippedBlocks++;
 					err = 0;
 					continue;
 				}
@@ -454,6 +460,51 @@ void GpuSqlDispatcher::addUnionFunction(DataType left, DataType right)
     dispatcherFunctions.push_back(unionFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
+void GpuSqlDispatcher::addCastToIntFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToIntFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToLongFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToLongFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToDateFunction(DataType operand)
+{
+	//dispatcherFunctions.push_back(castToDateFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToFloatFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToFloatFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToDoubleFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToDoubleFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToStringFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToStringFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToPointFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToPointFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToPolygonFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToPolygonFunctions[operand]);
+}
+
+void GpuSqlDispatcher::addCastToInt8tFunction(DataType operand)
+{
+	dispatcherFunctions.push_back(castToInt8tFunctions[operand]);
+}
+
 void GpuSqlDispatcher::addLogicalNotFunction(DataType type)
 {
     dispatcherFunctions.push_back(logicalNotFunctions[type]);
@@ -724,6 +775,16 @@ void GpuSqlDispatcher::addGroupByFunction(DataType type)
     dispatcherFunctions.push_back(groupByFunctions[type]);
 }
 
+void GpuSqlDispatcher::addGroupByBeginFunction()
+{
+	dispatcherFunctions.push_back(groupByBeginFunction);
+}
+
+void GpuSqlDispatcher::addGroupByDoneFunction()
+{
+    dispatcherFunctions.push_back(groupByDoneFunction);
+}
+
 void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType op3)
 {
     //TODO: Between
@@ -731,31 +792,27 @@ void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType o
 
 void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn, const std::string & reg, int32_t size, bool useCache, int8_t* nullMaskPtr)
 {
-	allocatedPointers.insert({ reg + "_polyPoints", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyPoints), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
-	allocatedPointers.insert({ reg + "_pointIdx", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointIdx), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
-	allocatedPointers.insert({ reg + "_polyIdx", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
+	InsertRegister(reg + "_polyPoints", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyPoints), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_pointIdx", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointIdx), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_polyIdx", PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
 }
 
-
-std::string GpuSqlDispatcher::getAllocatedRegisterName(const std::string & reg)
+void GpuSqlDispatcher::InsertRegister(const std::string& registerName, PointerAllocation registerValues)
 {
-	if (usingJoin && reg.front() != '$')
+	if(allocatedPointers.find(registerName) == allocatedPointers.end())
 	{
-		std::string joinReg = reg + "_join";
-		for (auto& joinTable : *joinIndices)
-		{
-			joinReg += "_" + joinTable.first;
-		}
-		return joinReg;
+		allocatedPointers.insert({registerName, registerValues});
 	}
-	return reg;
+	else
+	{
+		throw std::runtime_error("Attempt to overwrite existing register \"" + registerName + "\"");
+	}
 }
 
 void GpuSqlDispatcher::fillStringRegister(GPUMemory::GPUString & stringColumn, const std::string & reg, int32_t size, bool useCache, int8_t* nullMaskPtr)
 {
-	allocatedPointers.insert({ reg + "_stringIndices", PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.stringIndices), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
-	allocatedPointers.insert({ reg + "_allChars", PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.allChars), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)} });
-
+	InsertRegister(reg + "_stringIndices", PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.stringIndices), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+	InsertRegister(reg + "_allChars", PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.allChars), size, !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
 }
 
 int32_t GpuSqlDispatcher::loadColNullMask(std::string & colName)
@@ -904,6 +961,7 @@ void GpuSqlDispatcher::cleanUpGpuPointers()
 		}
 	}
 	usedRegisterMemory = 0;
+	usingGroupBy = false;
 	aggregatedRegisters.clear();
 	allocatedPointers.clear();
 }

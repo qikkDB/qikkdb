@@ -26,10 +26,13 @@ private:
 	bool isFullOfNullValue_ = false;
 	int32_t groupId_ = -1; //index for group of blocks - binary index
 
-	void setBlockStatistics();	
+	// these methods handle size_ of block
+	void setBlockStatistics(const std::vector<T>& data);
+	void updateBlockStatistics(const T& data, bool isNullValue);
 
 	ColumnBase<T>& column_;
-	size_t size_;
+	size_t size_;	//size_ is updated in BlockBase.cpp in updateBlockStatistics methods
+	size_t countOfNotNullValues_;
 	size_t compressedSize_;
 	size_t capacity_;
 	std::unique_ptr<T[]> data_;
@@ -46,7 +49,7 @@ public:
 	/// <param name="data">Data which will fill up the block.</param>
 	/// <param name="column">Column that will hold this new block.</param>
 	BlockBase(const std::vector<T>& data, ColumnBase<T>& column, bool isCompressed = false, bool isNullable = false) :
-		column_(column), size_(0), isCompressed_(isCompressed), isNullable_(isNullable), wasRegistered_(false), isNullMaskRegistered_(false)
+		column_(column), size_(0), countOfNotNullValues_(0), isCompressed_(isCompressed), isNullable_(isNullable), wasRegistered_(false), isNullMaskRegistered_(false)
 	{
 		capacity_ = (isCompressed) ? data.size() : column.GetBlockSize();
 		data_ = std::unique_ptr<T[]>(new T[capacity_]);
@@ -66,8 +69,7 @@ public:
 			isNullMaskRegistered_ = true;
 		}
 		std::copy(data.begin(), data.end(), data_.get());
-		size_ = data.size();
-		setBlockStatistics();
+		setBlockStatistics(data);
 	}
 
 	/// <summary>
@@ -75,7 +77,7 @@ public:
 	/// </summary>
 	/// <param name="column">Column that will hold this new empty block.</param>
 	explicit BlockBase(ColumnBase<T>& column) :
-		column_(column), size_(0), capacity_(column_.GetBlockSize()), data_(new T[capacity_]), bitMask_(nullptr),
+		column_(column), size_(0),countOfNotNullValues_(0) , capacity_(column_.GetBlockSize()), data_(new T[capacity_]), bitMask_(nullptr),
 		isNullable_(column_.GetIsNullable()), wasRegistered_(false), isNullMaskRegistered_(false)
 	{
 		GPUMemory::hostPin(data_.get(), capacity_);
@@ -186,144 +188,6 @@ public:
 		return isNullable_;
 	}
 
-    std::tuple<int, int, bool>
-    FindIndexAndRange(int indexInBlock, int range, const T& data, bool isNullValue = false)
-    {
-        int newRange = 0;
-        int newIndexInBlock = indexInBlock;
-        bool reachEnd = false;
-
-		// flag if some data in block equals to input data is found
-		bool found = false;
-		// flag if for loop is broken because of some conditions
-        bool inRange = false;
-		
-		if (size_ == 0)
-		{
-			newIndexInBlock = 0;
-			newRange = 0;
-			reachEnd = true;
-		}
-
-		else
-		{
-			if (isNullValue) 
-			{
-				newIndexInBlock = indexInBlock;
-				int rangeInBlock = size_ - indexInBlock;
-
-				if (((bitMask_[(indexInBlock + rangeInBlock - 1) / (sizeof(char) * 8)] >> ((indexInBlock + rangeInBlock - 1) % (sizeof(char) * 8))) & 1) == 1)
-				{
-					newRange = rangeInBlock;
-
-					if (indexInBlock + rangeInBlock == size_)
-					{
-						reachEnd = true;
-					}
-					else
-					{
-						reachEnd = false;
-					}
-					
-				}
-				else
-				{
-					int bitMaskIdx = (newRange / (sizeof(char) * 8));
-					int shiftIdx = (newRange % (sizeof(char) * 8));
-
-					while (((bitMask_[bitMaskIdx] >> shiftIdx) & 1) == 1 && range > 0)
-					{
-						range--;
-						newRange++;
-						bitMaskIdx = (newRange / (sizeof(char) * 8));
-						shiftIdx = (newRange % (sizeof(char) * 8));
-					}
-					reachEnd = false;
-				}
-			}
-
-			else
-			{
-				int nullValueCount = 0;
-				int indexOfNullValue = indexInBlock;
-
-				if (isNullable_)
-				{
-					int bitMaskIdx = (indexOfNullValue / (sizeof(char) * 8));
-					int shiftIdx = (indexOfNullValue % (sizeof(char) * 8));
-
-					while (((bitMask_[bitMaskIdx] >> shiftIdx) & 1) == 1)
-					{
-						indexOfNullValue++;
-						nullValueCount++;
-						bitMaskIdx = (indexOfNullValue / (sizeof(char) * 8));
-						shiftIdx = (indexOfNullValue % (sizeof(char) * 8));
-					}
-				}
-
-				for (int i = indexInBlock + nullValueCount; i <= indexInBlock + range; i++)
-				{
-					// index out of block
-					if (i >= size_)
-					{
-						reachEnd = true;
-						if (found)
-						{
-							newRange = i - newIndexInBlock;
-						}
-						else
-						{
-							newIndexInBlock = size_;
-						}
-						inRange = true;
-						break;
-					}
-
-					if (data_[i] > data)
-					{
-						// if first checked value is greater than data
-						if (!found)
-						{
-							newIndexInBlock = i;
-							inRange = true;
-							found = true;
-							break;
-						}
-
-						// last suitable value
-						newRange = i - newIndexInBlock;
-						inRange = true;
-						break;
-					}
-
-					if (data_[i] == data)
-					{
-						if (!found)
-						{
-							newIndexInBlock = i;
-							found = true;
-						}
-					}
-				}
-
-				// if whole for loop was executed
-				if (!inRange)
-				{
-					if (found)
-					{
-						newRange = indexInBlock + range - newIndexInBlock;
-					}
-					else
-					{
-						// if suitable value was not found, index at end is chosen as place to insert
-						newIndexInBlock = indexInBlock + range;
-					}
-				}
-			}
-		}
-		return std::make_tuple(newIndexInBlock, newRange, reachEnd);
-    }
-
     /// <summary>
 	/// Insert data into the current block.
 	/// </summary>
@@ -336,8 +200,7 @@ public:
 			throw std::length_error("Attempted to insert data larger than remaining block size");
 		}
 		std::copy(data.begin(), data.end(), data_.get() + size_);
-		size_ += data.size();
-		setBlockStatistics();
+		setBlockStatistics(data);
 	}
 
 	void SetNullBitmask(const std::vector<int8_t>& nullMask)
@@ -345,7 +208,7 @@ public:
 		if(isNullable_)
 		{
 			std::copy(nullMask.begin(), nullMask.end(), bitMask_.get());
-			setBlockStatistics();
+			setBlockStatistics({});
 		}
 	}
 
@@ -365,7 +228,7 @@ public:
 				GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
 				isNullMaskRegistered_ = true;
 			}
-			setBlockStatistics();
+			setBlockStatistics({});
 		}
 	}
 
@@ -430,8 +293,13 @@ public:
 		}
 
 	}
-   
 
+	/// <summary>
+	/// Inserts data on proper position in block
+	/// </summary>
+	/// <param name="index">index in block where data will be inserted</param>
+	/// <param name="data">value to insert<param>
+	/// <param name="isNullValue">whether data is null value flag<param>
     void InsertDataOnSpecificPosition(int index, const T& data, bool isNullValue = false)
     {
         if (EmptyBlockSpace() == 0)
@@ -441,10 +309,12 @@ public:
 
         else if (index < size_)
         {
-            for (int j = size_ - 1; j >= index; j--)
+           /* for (int j = filledBlockSpace - 1; j >= index; j--)
             {
                 data_[j + 1] = data_[j];
-            }
+            }*/
+
+			std::move(data_.get() + index, data_.get() + size_, data_.get() + index + 1);
 
 			int bitMaskIdx = (index / (sizeof(char) * 8));
 			int shiftIdx = (index % (sizeof(char) * 8));
@@ -491,9 +361,7 @@ public:
 			bitMask_[bitMaskIdx] |= (last << shiftIdx);
 		}
         data_[index] = data;
-        size_++;
-
-        setBlockStatistics();
+		updateBlockStatistics(data, isNullValue);
     }
 
     ~BlockBase()

@@ -76,7 +76,7 @@ void GPUMemoryCache::clearCachedBlock(const std::string& databaseName, const std
 		usedSize -= toErase.size;
 		cacheMap.erase(cacheMap.find(columnBlock));
 	}
-	BOOST_LOG_TRIVIAL(debug) << "Cleared cached block " << columnBlock << " on device" << deviceID_;
+	//BOOST_LOG_TRIVIAL(debug) << "Cleared cached block " << columnBlock << " on device" << deviceID_;
 }
 
 bool GPUMemoryCache::containsColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex)

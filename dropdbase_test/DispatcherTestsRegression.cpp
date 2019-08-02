@@ -1,4 +1,4 @@
-#include <cmath>
+ #include <cmath>
 
 #include "gtest/gtest.h"
 #include "../dropdbase/DatabaseGenerator.h"
@@ -11,6 +11,7 @@
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
 #include "../dropdbase/messages/QueryResponseMessage.pb.h"
+#include "../dropdbase/GpuSqlParser/ParserExceptions.h"
 #include "DispatcherObjs.h"
 
 TEST(DispatcherTestsRegression, EmptyResultFromGtColConst)
@@ -143,6 +144,27 @@ TEST(DispatcherTestsRegression, Int32AggregationCount)
 	ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
 }
 
+TEST(DispatcherTestsRegression, GroupByKeyOpCorrectSemantic)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT (colInteger1 + 2) * 10, COUNT(colFloat1) FROM TableA GROUP BY colInteger1 + 2;");
+	ASSERT_NO_THROW(parser.parse());
+}
+
+
+TEST(DispatcherTestsRegression, GroupByKeyOpWrongSemantic)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT (10 * colInteger1) + 2, COUNT(colFloat1) FROM TableA GROUP BY colInteger1 + 2;");
+	ASSERT_THROW(parser.parse(), ColumnGroupByException);
+
+	GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database, "SELECT colInteger1 + 3, COUNT(colFloat1) FROM TableA GROUP BY colInteger1 + 2;");
+	ASSERT_THROW(parser2.parse(), ColumnGroupByException);
+}
+
+
 TEST(DispatcherTestsRegression, ConstOpOnMultiGPU)
 {
 	Context::getInstance();
@@ -154,4 +176,14 @@ TEST(DispatcherTestsRegression, ConstOpOnMultiGPU)
 	ASSERT_EQ(payloads.intpayload().intdata_size(), 1);
 	ASSERT_EQ(payloads.intpayload().intdata()[0], 4);
 
+}
+
+TEST(DispatcherTestsRegression, SameAliasAsColumn)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 as colInteger1 FROM TableA WHERE colInteger1 > 20;");
+	auto resultPtr = parser.parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	
 }

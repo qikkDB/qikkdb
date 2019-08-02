@@ -1,4 +1,4 @@
-/// \mainpage Project summary
+﻿/// \mainpage Project summary
 /// SQL-like database application with query executing on GPU.
 /// <br />
 /// <b>Used programming language:</b>
@@ -14,8 +14,9 @@
 #include <iostream>
 #include <chrono>
 #include <boost/log/trivial.hpp>
-// TODO solve undefined references
-//#include <boost/log/utility/setup/from_stream.hpp>
+#include <boost/log/utility/setup/from_stream.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/log/utility/setup/formatter_parser.hpp>
 #include "QueryEngine/Context.h" 
 #include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "DatabaseGenerator.h"
@@ -28,19 +29,20 @@
 
 /// Startup function, called automatically.
 /// <param name="argc">program argument count</param>
-/// <param name="argv">program arguments (for CSV importing): [csv-path [new-db-name]]</param>
+/// <param name="argv">program arguments (for CSV importing): [csv-path [new-db-name]],
+/// 		for taxi rides import use switch -t</param>
 /// <returns>Exit code (0 - OK)</returns>
 int main(int argc, char **argv)
 {
-	/*
-	//TODO solve undefined references
+	// Logger setup
+	boost::log::add_common_attributes();
+	boost::log::register_simple_formatter_factory< boost::log::trivial::severity_level, char >("Severity");
 	std::ifstream logConfigFile("../configuration/log_config");
 	if (logConfigFile.fail())
 	{
 		logConfigFile = std::ifstream("../configuration/log_config.default");
 	}
 	boost::log::init_from_stream(logConfigFile);
-	*/
 	
 	//std::string dbName = "TestDatabase";
 	//std::vector<std::string> tableNames = { "TestTable1" };
@@ -63,39 +65,77 @@ int main(int argc, char **argv)
 	BOOST_LOG_TRIVIAL(info) << "Starting TellStoryDB...";
 	Context::getInstance(); // Initialize CUDA context
 
-	// Import CSV file if entered as program argument
-	if (argc > 1)
+	if (argc > 1)	// Importing CSV
 	{
-		CSVDataImporter csvDataImporter(argv[1]);
-		////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
-		std::shared_ptr<Database> database = std::make_shared<Database>(argc > 2? argv[2] : "TestDb", 1048576);
-		Database::AddToInMemoryDatabaseList(database);
-		BOOST_LOG_TRIVIAL(info) << "Loading CSV from \"" << argv[1] << "\"";
-		csvDataImporter.ImportTables(database);
-		Database::SaveAllToDisk();
-		for (auto& db : Database::GetDatabaseNames())
+		if (strcmp(argv[1], "-t") == 0)
 		{
-			Database::RemoveFromInMemoryDatabaseList(db.c_str());
-		}
-		return 0;
-	}
+			BOOST_LOG_TRIVIAL(info) << "Importing data has started...";
 
-	BOOST_LOG_TRIVIAL(info) << "Loading databases...";
-	Database::LoadDatabasesFromDisk();
-	BOOST_LOG_TRIVIAL(info) << "All databases loaded.";
-	
-	TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
-	RegisterCtrlCHandler(&tcpServer);
-	tcpServer.Run();
+			CSVDataImporter csvDataImporter3(R"(../../data/latest-trips-part1.csv)");
+			const std::vector<DataType> types{
+				COLUMN_STRING,
+				COLUMN_LONG,
+				COLUMN_LONG,
+				COLUMN_INT,
+				COLUMN_DOUBLE,
+				COLUMN_DOUBLE,
+				COLUMN_INT
+			};
+			const std::string tableName = "trips";
+			csvDataImporter3.SetTypes(types);
+			csvDataImporter3.SetTableName(tableName);
+			std::shared_ptr<Database> database3 = std::make_shared<Database>("TaxiRides", 134217728);
+			Database::AddToInMemoryDatabaseList(database3);
+			BOOST_LOG_TRIVIAL(info) << "Loading latest-trips-part1.csv ...";
+			csvDataImporter3.ImportTables(database3);
+
+			CSVDataImporter csvDataImporter4(R"(../../data/latest-trips-part2.csv)");
+			csvDataImporter4.SetTypes(types);
+			csvDataImporter4.SetTableName(tableName);
+			BOOST_LOG_TRIVIAL(info) << "Loading latest-trips-part2.csv ...";
+			csvDataImporter4.ImportTables(database3);
+		}
+		else
+		{
+			// Import CSV file if entered as program argument
+			CSVDataImporter csvDataImporter(argv[1]);
+			////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
+			std::shared_ptr<Database> database = std::make_shared<Database>(argc > 2 ? argv[2] : "TestDb", 1048576);
+			Database::AddToInMemoryDatabaseList(database);
+			BOOST_LOG_TRIVIAL(info) << "Loading CSV from \"" << argv[1] << "\"";
+			std::vector<std::string> sortingColumns;
+			if(argc > 3)
+			{
+				for(int32_t i = 3; i < argc; i++)
+				{
+					sortingColumns.push_back(argv[i]);
+				}
+			}
+			csvDataImporter.ImportTables(database, sortingColumns);
+		}
+	}
+	else	// TCP server
+	{
+		BOOST_LOG_TRIVIAL(info) << "Loading databases...";
+		Database::LoadDatabasesFromDisk();
+		BOOST_LOG_TRIVIAL(info) << "All databases loaded.";
+
+		TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
+		RegisterCtrlCHandler(&tcpServer);
+		tcpServer.Run();
+	}
 
 	Database::SaveAllToDisk();
 	BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
-	
-	/*CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
+
+	/*
+	CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
 	std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 100000000);
 	Database::AddToInMemoryDatabaseList(database);
 	BOOST_LOG_TRIVIAL(info) << "Loading TargetLoc.csv ...";
-	csvDataImporter.ImportTables(database);*/
+	csvDataImporter.ImportTables(database);
+	*/
+
 	/*
 	for (int i = 0; i < 2; i++)
 	{
@@ -115,5 +155,6 @@ int main(int argc, char **argv)
 	{
 		Database::RemoveFromInMemoryDatabaseList(db.c_str());
 	}
+	BOOST_LOG_TRIVIAL(info) << "TellStoryDB exited.";
 	return 0;
 }

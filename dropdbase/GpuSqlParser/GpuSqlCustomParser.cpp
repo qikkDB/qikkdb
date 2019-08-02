@@ -16,6 +16,7 @@
 #include <google/protobuf/message.h>
 #include "../messages/QueryResponseMessage.pb.h"
 #include "../Database.h"
+#include "LoadColHelper.h"
 #include <iostream>
 #include <future>
 #include <thread>
@@ -24,7 +25,10 @@ GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database> &database
 	database(database),
 	isSingleGpuStatement(false),
 	query(query)
-{}
+{
+	LoadColHelper& loadColHelper = LoadColHelper::getInstance();
+	loadColHelper.countSkippedBlocks = 0;
+}
 
 /// Parses SQL statement
 /// SELECT statment is parsed in order: FROM, WHERE, GROUP BY, SELECT, LIMIT, OFFSET, ORDER BY
@@ -75,6 +79,10 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 		walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
 		walker.walk(&cpuWhereListener, statement->sqlSelect()->fromTables());
 
+		gpuSqlListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
+		gpuSqlListener.LockAliasRegisters();
+		cpuWhereListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
+
 		if (statement->sqlSelect()->joinClauses())
 		{
 			walker.walk(&gpuSqlListener, statement->sqlSelect()->joinClauses());
@@ -105,6 +113,12 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 			{
 				nonAggColumns.push_back(column);
 			}
+		}
+
+		for (auto column : statement->sqlSelect()->selectColumns()->selectAllColumns())
+		{
+			gpuSqlListener.exitSelectAllColumns(column);
+			break;
 		}
 
 		for (auto column : aggColumns)

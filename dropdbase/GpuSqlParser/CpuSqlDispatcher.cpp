@@ -1,4 +1,5 @@
 #include "CpuSqlDispatcher.h"
+#include "GpuSqlLexer.h"
 
 std::array<CpuSqlDispatcher::CpuDispatchFunction, DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::whereResultFunctions = { &CpuSqlDispatcher::whereResultConst<int32_t>, &CpuSqlDispatcher::whereResultConst<int64_t>, &CpuSqlDispatcher::whereResultConst<float>, &CpuSqlDispatcher::whereResultConst<double>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<std::string>, &CpuSqlDispatcher::whereResultConst<int8_t>, &CpuSqlDispatcher::whereResultCol<int32_t>, &CpuSqlDispatcher::whereResultCol<int64_t>, &CpuSqlDispatcher::whereResultCol<float>, &CpuSqlDispatcher::whereResultCol<double>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>, &CpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<std::string>, &CpuSqlDispatcher::whereResultCol<int8_t> };
 
@@ -25,227 +26,275 @@ std::pair<std::string, std::string> CpuSqlDispatcher::splitColumnName(const std:
 	return std::make_pair(table, column);
 }
 
-void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, const std::string & op)
+void CpuSqlDispatcher::addBinaryOperation(DataType left, DataType right, size_t opType)
 {
-	if (op == ">")
+	switch (opType)
 	{
+	case GpuSqlLexer::GREATER:
 		cpuDispatcherFunctions.push_back(greaterFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "<")
-	{
+		break;
+
+	case GpuSqlLexer::LESS:
 		cpuDispatcherFunctions.push_back(lessFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == ">=")
-	{
+		break;
+
+	case GpuSqlLexer::GREATEREQ:
 		cpuDispatcherFunctions.push_back(greaterEqualFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "<=")
-	{
+		break;
+
+	case GpuSqlLexer::LESSEQ:
 		cpuDispatcherFunctions.push_back(lessEqualFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "=")
-	{
+		break;
+
+	case GpuSqlLexer::EQUALS:
 		cpuDispatcherFunctions.push_back(equalFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "!=" || op == "<>")
-	{
+		break;
+
+	case GpuSqlLexer::NOTEQUALS:
+	case GpuSqlLexer::NOTEQUALS_GT_LT:
 		cpuDispatcherFunctions.push_back(notEqualFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "AND")
-	{
+		break;
+
+	case GpuSqlLexer::AND:
 		cpuDispatcherFunctions.push_back(logicalAndFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "OR")
-	{
+		break;
+
+	case GpuSqlLexer::OR:
 		cpuDispatcherFunctions.push_back(logicalOrFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "*")
-	{
+		break;
+
+	case GpuSqlLexer::ASTERISK:
 		cpuDispatcherFunctions.push_back(mulFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "/")
-	{
+		break;
+
+	case GpuSqlLexer::DIVISION:
 		cpuDispatcherFunctions.push_back(divFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "+")
-	{
+		break;
+
+	case GpuSqlLexer::PLUS:
 		cpuDispatcherFunctions.push_back(addFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "-")
-	{
+		break;
+
+	case GpuSqlLexer::MINUS:
 		cpuDispatcherFunctions.push_back(subFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "%")
-	{
+		break;
+
+	case GpuSqlLexer::MODULO:
 		cpuDispatcherFunctions.push_back(modFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "|")
-	{
+		break;
+
+	case GpuSqlLexer::BIT_OR:
 		cpuDispatcherFunctions.push_back(bitwiseOrFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "&")
-	{
+		break;
+
+	case GpuSqlLexer::BIT_AND:
 		cpuDispatcherFunctions.push_back(bitwiseAndFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "^")
-	{
+		break;
+		
+	case GpuSqlLexer::XOR:
 		cpuDispatcherFunctions.push_back(bitwiseXorFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "<<")
-	{
+		break;
+
+	case GpuSqlLexer::L_SHIFT:
 		cpuDispatcherFunctions.push_back(bitwiseLeftShiftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == ">>")
-	{
+		break;
+
+	case GpuSqlLexer::R_SHIFT:
 		cpuDispatcherFunctions.push_back(bitwiseRightShiftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "POINT")
-	{
+		break;
+
+	case GpuSqlLexer::POINT:
 		cpuDispatcherFunctions.push_back(pointFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "GEO_CONTAINS")
-	{
+		break;
+
+	case GpuSqlLexer::GEO_CONTAINS:
 		cpuDispatcherFunctions.push_back(containsFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "GEO_INTERSECT")
-	{
+		break;
+
+	case GpuSqlLexer::GEO_INTERSECT:
 		cpuDispatcherFunctions.push_back(intersectFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "GEO_UNION")
-	{
+		break;
+
+	case GpuSqlLexer::GEO_UNION:
 		cpuDispatcherFunctions.push_back(unionFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "LOG")
-	{
+		break;
+
+	case GpuSqlLexer::LOG:
 		cpuDispatcherFunctions.push_back(logarithmFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "POW")
-	{
+		break;
+
+	case GpuSqlLexer::POW:
 		cpuDispatcherFunctions.push_back(powerFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "ROOT")
-	{
+		break;
+
+	case GpuSqlLexer::ROOT:
 		cpuDispatcherFunctions.push_back(rootFunctions[left * DataType::DATA_TYPE_SIZE + right]);
-	}
-	else if (op == "ATAN2")
-	{
+		break;
+
+	case GpuSqlLexer::ATAN2:
 		cpuDispatcherFunctions.push_back(arctangent2Functions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::LEFT:
+		cpuDispatcherFunctions.push_back(leftFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::RIGHT:
+		cpuDispatcherFunctions.push_back(rightFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+
+	case GpuSqlLexer::CONCAT:
+		cpuDispatcherFunctions.push_back(concatFunctions[left * DataType::DATA_TYPE_SIZE + right]);
+		break;
+	default:
+		break;
 	}
 }
 
-void CpuSqlDispatcher::addUnaryOperation(DataType type, const std::string & op)
+void CpuSqlDispatcher::addUnaryOperation(DataType type, size_t opType)
 {
-	if (op == "!")
+	switch (opType)
 	{
+	case GpuSqlLexer::LOGICAL_NOT:
 		cpuDispatcherFunctions.push_back(logicalNotFunctions[type]);
-	}
-	else if (op == "IS NULL")
-	{
+		break;
+	case GpuSqlLexer::ISNULL:
 		cpuDispatcherFunctions.push_back(nullFunction);
-	}
-	else if (op == "IS NOT NULL")
-	{
+		break;
+	case GpuSqlLexer::ISNOTNULL:
 		cpuDispatcherFunctions.push_back(nullFunction);
-	}
-	else if (op == "-")
-	{
+		break;
+	case GpuSqlLexer::MINUS:
 		cpuDispatcherFunctions.push_back(minusFunctions[type]);
-	}
-	else if (op == "YEAR")
-	{
+		break;
+	case GpuSqlLexer::YEAR:
 		cpuDispatcherFunctions.push_back(yearFunctions[type]);
-	}
-	else if (op == "MONTH")
-	{
+		break;
+	case GpuSqlLexer::MONTH:
 		cpuDispatcherFunctions.push_back(monthFunctions[type]);
-	}
-	else if (op == "DAY")
-	{
+		break;
+	case GpuSqlLexer::DAY:
 		cpuDispatcherFunctions.push_back(dayFunctions[type]);
-	}
-	else if (op == "HOUR")
-	{
+		break;
+	case GpuSqlLexer::HOUR:
 		cpuDispatcherFunctions.push_back(hourFunctions[type]);
-	}
-	else if (op == "MINUTE")
-	{
+		break;
+	case GpuSqlLexer::MINUTE:
 		cpuDispatcherFunctions.push_back(minuteFunctions[type]);
-	}
-	else if (op == "SECOND")
-	{
+		break;
+	case GpuSqlLexer::SECOND:
 		cpuDispatcherFunctions.push_back(secondFunctions[type]);
-	}
-	else if (op == "ABS")
-	{
+		break;
+	case GpuSqlLexer::ABS:
 		cpuDispatcherFunctions.push_back(absoluteFunctions[type]);
-	}
-	else if (op == "SIN")
-	{
+		break;
+	case GpuSqlLexer::SIN:
 		cpuDispatcherFunctions.push_back(sineFunctions[type]);
-	}
-	else if (op == "COS")
-	{
+		break;
+	case GpuSqlLexer::COS:
 		cpuDispatcherFunctions.push_back(cosineFunctions[type]);
-	}
-	else if (op == "TAN")
-	{
+		break;
+	case GpuSqlLexer::TAN:
 		cpuDispatcherFunctions.push_back(tangentFunctions[type]);
-	}
-	else if (op == "COT")
-	{
+		break;
+	case GpuSqlLexer::COT:
 		cpuDispatcherFunctions.push_back(cotangentFunctions[type]);
-	}
-	else if (op == "ASIN")
-	{
+		break;
+	case GpuSqlLexer::ASIN:
 		cpuDispatcherFunctions.push_back(arcsineFunctions[type]);
-	}
-	else if (op == "ACOS")
-	{
+		break;
+	case GpuSqlLexer::ACOS:
 		cpuDispatcherFunctions.push_back(arccosineFunctions[type]);
-	}
-	else if (op == "ATAN")
-	{
+		break;
+	case GpuSqlLexer::ATAN:
 		cpuDispatcherFunctions.push_back(arctangentFunctions[type]);
-	}
-	else if (op == "LOG10")
-	{
+		break;
+	case GpuSqlLexer::LOG10:
 		cpuDispatcherFunctions.push_back(logarithm10Functions[type]);
-	}
-	else if (op == "LOG")
-	{
+		break;
+	case GpuSqlLexer::LOG:
 		cpuDispatcherFunctions.push_back(logarithmNaturalFunctions[type]);
-	}
-	else if (op == "EXP")
-	{
+		break;
+	case GpuSqlLexer::EXP:
 		cpuDispatcherFunctions.push_back(exponentialFunctions[type]);
-	}
-	else if (op == "SQRT")
-	{
+		break;
+	case GpuSqlLexer::SQRT:
 		cpuDispatcherFunctions.push_back(squareRootFunctions[type]);
-	}
-	else if (op == "SQUARE")
-	{
+		break;
+	case GpuSqlLexer::SQUARE:
 		cpuDispatcherFunctions.push_back(squareFunctions[type]);
-	}
-	else if (op == "SIGN")
-	{
+		break;
+	case GpuSqlLexer::SIGN:
 		cpuDispatcherFunctions.push_back(signFunctions[type]);
-	}
-	else if (op == "ROUND")
-	{
+		break;
+	case GpuSqlLexer::ROUND:
 		cpuDispatcherFunctions.push_back(roundFunctions[type]);
-	}
-	else if (op == "FLOOR")
-	{
+		break;
+	case GpuSqlLexer::FLOOR:
 		cpuDispatcherFunctions.push_back(floorFunctions[type]);
-	}
-	else if (op == "CEIL")
-	{
+		break;
+	case GpuSqlLexer::CEIL:
 		cpuDispatcherFunctions.push_back(ceilFunctions[type]);
-	}
-	else if (op == "LTRIM")
-	{
+		break;
+	case GpuSqlLexer::LTRIM:
 		cpuDispatcherFunctions.push_back(ltrimFunctions[type]);
+		break;
+	case GpuSqlLexer::RTRIM:
+		cpuDispatcherFunctions.push_back(rtrimFunctions[type]);
+		break;
+	case GpuSqlLexer::LOWER:
+		cpuDispatcherFunctions.push_back(lowerFunctions[type]);
+		break;
+	case GpuSqlLexer::UPPER:
+		cpuDispatcherFunctions.push_back(upperFunctions[type]);
+		break;
+	case GpuSqlLexer::LEN:
+		cpuDispatcherFunctions.push_back(lenFunctions[type]);
+	break;
+
+	default:
+		break;
+	}
+
+}
+
+void CpuSqlDispatcher::addCastOperation(DataType inputType, DataType outputType, const std::string& outTypeStr)
+{
+	switch (outputType)
+	{
+	case COLUMN_INT:
+		cpuDispatcherFunctions.push_back(castToIntFunctions[inputType]);
+		break;
+	case COLUMN_LONG:
+		if (outTypeStr == "DATE")
+		{
+			//dispatcher.addCastToDateFunction(operandType);
+		}
+		else
+		{
+			cpuDispatcherFunctions.push_back(castToLongFunctions[inputType]);
+		}
+		break;
+	case COLUMN_FLOAT:
+		cpuDispatcherFunctions.push_back(castToFloatFunctions[inputType]);
+		break;
+	case COLUMN_DOUBLE:
+		cpuDispatcherFunctions.push_back(castToDoubleFunctions[inputType]);
+		break;
+	case COLUMN_STRING:
+		cpuDispatcherFunctions.push_back(castToStringFunctions[inputType]);
+		break;
+	case COLUMN_POINT:
+		cpuDispatcherFunctions.push_back(castToPointFunctions[inputType]);
+		break;
+	case COLUMN_POLYGON:
+		cpuDispatcherFunctions.push_back(castToPolygonFunctions[inputType]);
+		break;
+	case COLUMN_INT8_T:
+		cpuDispatcherFunctions.push_back(castToInt8tFunctions[inputType]);
+		break;
+	default:
+		break;
 	}
 }
 

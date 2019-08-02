@@ -277,3 +277,5 @@ dropdbase/GpuSqlParser/.antlr/
 # User specific configuration files
 configuration/main_config
 configuration/log_config
+
+.antlr

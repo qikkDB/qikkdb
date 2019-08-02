@@ -30,8 +30,9 @@ dropColumn          : (DROPCOLUMN column);
 alterColumn         : (ALTERCOLUMN column DATATYPE);
 newTableColumn      : (column DATATYPE);
 newTableIndex       : (INDEX indexName LPAREN indexColumns RPAREN);
-selectColumns       : (((selectColumn) (COMMA selectColumn)*));
+selectColumns       : (((selectColumn | selectAllColumns) (COMMA (selectColumn | selectAllColumns))*));
 selectColumn        : expression (AS alias)?;
+selectAllColumns    : ASTERISK;
 whereClause         : expression;
 orderByColumns      : ((orderByColumn (COMMA orderByColumn)*));
 orderByColumn       : (expression DIR?);
@@ -63,7 +64,7 @@ columnValue         : (INTLIT|FLOATLIT|geometry|NULLLIT|STRING);
 expression : op=LOGICAL_NOT expression                                                    # unaryOperation
            | op=MINUS expression                                                          # unaryOperation
            | expression op=ISNULL                                                         # unaryOperation
-           | expression op=ISNOTNULL                                                         # unaryOperation
+           | expression op=ISNOTNULL                                                      # unaryOperation
            | op=ABS LPAREN expression RPAREN                                              # unaryOperation
            | op=SIN LPAREN expression RPAREN                                              # unaryOperation
            | op=COS LPAREN expression RPAREN                                              # unaryOperation
@@ -117,6 +118,7 @@ expression : op=LOGICAL_NOT expression                                          
            | expression op=BETWEEN expression op2=AND expression                          # ternaryOperation
            | left=expression op=AND right=expression                                      # binaryOperation
            | left=expression op=OR right=expression                                       # binaryOperation
+           | op=CAST LPAREN expression AS DATATYPE RPAREN                                 # castOperation
            | LPAREN expression RPAREN                                                     # parenExpression
            | columnId                                                                     # varReference
            | geometry                                                                     # geoReference
@@ -127,7 +129,11 @@ expression : op=LOGICAL_NOT expression                                          
            | INTLIT                                                                       # intLiteral
            | STRING                                                                       # stringLiteral
            | BOOLEANLIT                                                                   # booleanLiteral
-           | AGG LPAREN expression RPAREN                                                 # aggregation;
+           | op=MIN_AGG LPAREN (expression) RPAREN                                        # aggregation
+           | op=MAX_AGG LPAREN (expression) RPAREN                                        # aggregation
+           | op=SUM_AGG LPAREN (expression) RPAREN                                        # aggregation
+           | op=COUNT_AGG LPAREN (expression) RPAREN                                      # aggregation
+           | op=AVG_AGG LPAREN (expression) RPAREN                                        # aggregation;
 
 geometry : (pointGeometry | polygonGeometry | lineStringGeometry | multiPointGeometry | multiLineStringGeometry | multiPolygonGeometry);
 pointGeometry           : POINT LPAREN point RPAREN;

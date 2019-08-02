@@ -2,6 +2,9 @@
 #include <boost/filesystem/path.hpp>
 #include <thread>
 #include <vector>
+#include <sstream>
+#include <ctime>
+#include <iomanip>
 #include "CSVDataImporter.h"
 #include "../CSVParser.hpp"
 #include "Types/ComplexPolygon.pb.h"
@@ -25,7 +28,7 @@ CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimit
 	delimiter_(delimiter),
 	quotes_(quotes),
 	decimal_(decimal)
-{	
+{
 	inputSize_ = inputMapped_.get()->size();
 	input_ = inputMapped_.get()->const_data();
 	if (std::thread::hardware_concurrency() > 1)
@@ -37,7 +40,7 @@ CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimit
 /// Parses CSV file, guess types, create table (if not exists) and fills the table with parsed data.
 /// </summary>
 /// <param name="database">Database where data will be imported.</param>
-void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
+void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database, std::vector<std::string> sortingColumns)
 {
 	this->ExtractHeaders();
 	if (dataTypes_.empty())
@@ -50,15 +53,17 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 	for (int i = 0; i < headers_.size(); i++) {
 		columns[headers_[i]] = dataTypes_[i];
 	}
-	
+
 	// creates table
 	Table& table = database->CreateTable(columns, tableName_.c_str());
 	
+	table.SetSortingColumns(sortingColumns);
+
 	std::vector<std::thread> threads;
 	for (int i = 0; i < numThreads_; i++) {
 		threads.emplace_back(&CSVDataImporter::ParseAndImport, this, i, database->GetBlockSize(), columns, std::ref(table));
 	}
-	
+
 	for (int i = 0; i < numThreads_; ++i) {
 		threads[i].join();
 	}
@@ -73,12 +78,12 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database)
 /// <param name="table">Table of the database where data will be imported.</param>
 void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std::unordered_map<std::string, DataType>& columns, Table& table)
 {
-		
+
 	size_t start = (inputSize_ / numThreads_) * threadId;
 	size_t end = start + (inputSize_ / numThreads_);
 	if (threadId >= numThreads_ - 1)
 		end = inputSize_;
-	
+
 	// initializes map columnName -> vector of column data
 	std::unordered_map<std::string, std::any> data;
 	for (int i = 0; i < headers_.size(); i++) {
@@ -154,17 +159,26 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 						value = (int32_t)std::stoi(field);
 						break;
 					case COLUMN_LONG:
-						value = (int64_t)std::stoll(field);
+						try {
+							value = (int64_t)std::stoll(field);
+						}
+						catch (std::invalid_argument&) {
+							std::tm t;
+							std::istringstream ss(field);
+							ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
+							std::time_t epochTime = std::mktime(&t);
+							value = static_cast<int64_t>(epochTime);
+						}
 						break;
 					case COLUMN_FLOAT:
-						value = (float)std::stof(field);						
+						value = (float)std::stof(field);
 						break;
 					case COLUMN_DOUBLE:
-						value = (double)std::stod(field);						
+						value = (double)std::stod(field);
 						break;
 					case COLUMN_POINT:
 						value = PointFactory::FromWkt(field);
-						break;					
+						break;
 					case COLUMN_POLYGON:
 						value = ComplexPolygonFactory::FromWkt(field);
 						break;
@@ -221,13 +235,13 @@ void CSVDataImporter::ParseAndImport(int threadId, int32_t blockSize, const std:
 				break;
 			}
 
-			columnIndex++;			
+			columnIndex++;
 		}
 
 		rowData.clear();
-		
+
 		position++;
-		
+
 		// inserts parsed data into database when blockSize reached
 		if (position % blockSize == 0) {
 
@@ -296,9 +310,9 @@ void CSVDataImporter::ExtractHeaders()
 			else
 				this->headers_.push_back("C" + std::to_string(columnIndex));
 		}
-			
+
 		columnIndex++;
-	}	
+	}
 }
 
 /// <summary>
@@ -412,7 +426,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 		try {
 			PointFactory::FromWkt(s);
 			dataTypes.push_back(COLUMN_POINT);
-			continue;			
+			continue;
 		}
 		catch (std::invalid_argument&) {
 		}
@@ -456,4 +470,14 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 void CSVDataImporter::SetTypes(const std::vector<DataType>& types)
 {
 	dataTypes_ = types;
+}
+
+/// <summary>
+/// Sets table name.
+/// Disables table name guessing according to filename.
+/// </summary>
+/// <param name="tableName">Table name.</param>
+void CSVDataImporter::SetTableName(const std::string tableName)
+{
+	tableName_ = tableName;
 }

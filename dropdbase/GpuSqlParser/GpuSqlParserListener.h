@@ -1,5 +1,5 @@
 
-// Generated from /home/jvesely/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.1
+// Generated from C:/Users/Andy/Desktop/parser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -89,6 +89,9 @@ public:
   virtual void enterSelectColumn(GpuSqlParser::SelectColumnContext *ctx) = 0;
   virtual void exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx) = 0;
 
+  virtual void enterSelectAllColumns(GpuSqlParser::SelectAllColumnsContext *ctx) = 0;
+  virtual void exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext *ctx) = 0;
+
   virtual void enterWhereClause(GpuSqlParser::WhereClauseContext *ctx) = 0;
   virtual void exitWhereClause(GpuSqlParser::WhereClauseContext *ctx) = 0;
 
@@ -172,6 +175,9 @@ public:
 
   virtual void enterDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx) = 0;
   virtual void exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext *ctx) = 0;
+
+  virtual void enterCastOperation(GpuSqlParser::CastOperationContext *ctx) = 0;
+  virtual void exitCastOperation(GpuSqlParser::CastOperationContext *ctx) = 0;
 
   virtual void enterGeoReference(GpuSqlParser::GeoReferenceContext *ctx) = 0;
   virtual void exitGeoReference(GpuSqlParser::GeoReferenceContext *ctx) = 0;

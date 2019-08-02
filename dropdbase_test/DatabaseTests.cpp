@@ -327,7 +327,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	database->DeleteTableFromDisk(std::string("TestTable2").c_str());
 	bool deleted = true;
 
-	std::string prefix = dbName + Database::SEPARATOR + "TestTable2" + Database::SEPARATOR;
+	std::string prefix = Configuration::GetInstance().GetDatabaseDir() + dbName + Database::SEPARATOR + "TestTable2" + Database::SEPARATOR;
 
 	for (auto& p : boost::filesystem::directory_iterator(Configuration::GetInstance().GetDatabaseDir()))
 	{
@@ -337,13 +337,13 @@ TEST_F(DatabaseTests, IntegrationTest)
 			deleted = false;
 		}
 	}
-	ASSERT_TRUE(deleted);
+	ASSERT_TRUE(deleted) << "DeleteTableFromDisk";
 
 	//drop database TestDatabase:
 	database->DeleteDatabaseFromDisk();
 	deleted = true;
 
-	prefix = dbName + Database::SEPARATOR;
+	prefix = Configuration::GetInstance().GetDatabaseDir() + dbName + Database::SEPARATOR;
 
 	for (auto& p : boost::filesystem::directory_iterator(Configuration::GetInstance().GetDatabaseDir()))
 	{
@@ -352,5 +352,5 @@ TEST_F(DatabaseTests, IntegrationTest)
 			deleted = false;
 		}
 	}
-	ASSERT_TRUE(deleted);
+	ASSERT_TRUE(deleted) << "DeleteDatabaseFromDisk";
 }

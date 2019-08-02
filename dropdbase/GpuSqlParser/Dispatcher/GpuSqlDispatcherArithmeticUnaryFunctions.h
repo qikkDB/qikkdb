@@ -28,7 +28,7 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 	{
 		if (isOverallLastBlock)
 		{
-			PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName) + KEYS_SUFFIX);
+			PointerAllocation column = allocatedPointers.at(colName + KEYS_SUFFIX);
 			int32_t retSize = column.elementCount;
 			ResultType * result;
 			if(column.gpuNullMaskPtr)
@@ -46,9 +46,9 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 			groupByColumns.push_back({ reg, ::GetColumnType<ResultType>() });
 		}
 	}
-	else if (isOverallLastBlock || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy || insideGroupBy)
 	{
-		PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName));
+		PointerAllocation column = allocatedPointers.at(colName);
 		int32_t retSize = column.elementCount;
 		if (!isRegisterAllocated(reg))
 		{

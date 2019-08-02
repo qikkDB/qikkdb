@@ -80,6 +80,12 @@ private:
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> intersectFunctions;
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> unionFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> leftFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rightFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> concatFunctions;
 
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE> yearFunctions;
@@ -133,14 +139,43 @@ private:
 		DataType::DATA_TYPE_SIZE> floorFunctions;
 	static std::array<CpuDispatchFunction,
 		DataType::DATA_TYPE_SIZE> ltrimFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> rtrimFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> lowerFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> upperFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> reverseFunctions;
+	static std::array<CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> lenFunctions;
 	static CpuDispatchFunction nullFunction;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToIntFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToLongFunctions;
+	//static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+	//		DataType::DATA_TYPE_SIZE> castToDateFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToFloatFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToDoubleFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToStringFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToPointFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToPolygonFunctions;
+	static std::array<CpuSqlDispatcher::CpuDispatchFunction,
+		DataType::DATA_TYPE_SIZE> castToInt8tFunctions;
 
 	static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> whereResultFunctions;
 
 public:
 	CpuSqlDispatcher(const std::shared_ptr<Database> &database);
-	void addBinaryOperation(DataType left, DataType right, const std::string& op);
-	void addUnaryOperation(DataType type, const std::string & op);
+	void addBinaryOperation(DataType left, DataType right, size_t opType);
+	void addUnaryOperation(DataType type, size_t opType);
+	void addCastOperation(DataType inputType, DataType outputType, const std::string& outTypeStr);
 	void addWhereResultFunction(DataType dataType);
 	int64_t execute(int32_t index);
 	void copyExecutionDataTo(CpuSqlDispatcher& other);
@@ -311,6 +346,41 @@ public:
 
 	template<typename OP>
 	int32_t stringUnaryConst();
+
+	template<typename OP>
+	int32_t stringUnaryNumericCol();
+
+	template<typename OP>
+	int32_t stringUnaryNumericConst();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericColCol();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericColConst();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericConstCol();
+
+	template<typename OP, typename T>
+	int32_t stringBinaryNumericConstConst();
+
+	template<typename OP>
+	int32_t stringBinaryColCol();
+
+	template<typename OP>
+	int32_t stringBinaryColConst();
+
+	template<typename OP>
+	int32_t stringBinaryConstCol();
+
+	template<typename OP>
+	int32_t stringBinaryConstConst();
+	template<typename OUT, typename IN>
+	int32_t castNumericCol();
+
+	template<typename OUT, typename IN>
+	int32_t castNumericConst();
 
 	template<typename T>
 	int32_t whereResultCol() 

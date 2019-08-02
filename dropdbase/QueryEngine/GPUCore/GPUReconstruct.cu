@@ -350,7 +350,7 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString *outStringCol
 				(*outStringCol, inStringCol, inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
 			if(nullMask)
 			{
-				size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int32_t)*8);
+				size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int8_t)*8);
 				GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
 				kernel_reconstruct_null_mask << < context.calcGridDim(*outDataElementCount), context.getBlockDim() >> >
 					(reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(), inMask, *outDataElementCount);
@@ -638,7 +638,7 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon *outCol, int32
 			CheckCudaError(cudaGetLastError());
 			if(nullMask)
 			{
-				size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int32_t)*8);
+				size_t outBitMaskSize = (*outDataElementCount + sizeof(int32_t)*8 - 1) / (sizeof(int8_t)*8);
 				GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
 				kernel_reconstruct_null_mask << < context.calcGridDim(*outDataElementCount), context.getBlockDim() >> >
 					(reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(), inMask, *outDataElementCount);
@@ -714,6 +714,15 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string * outStringData, int32
 	{
 		GPUMemory::free(gpuWkt);
 	}
+}
+
+
+cuda_ptr<int8_t> GPUReconstruct::CompressNullMask(int8_t* inputNullMask, int32_t dataElementCount)
+{
+	cuda_ptr<int8_t> nullMaskCompressed((dataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8), 0);
+	kernel_compress_null_mask << < Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim() >> >
+		(reinterpret_cast<int32_t*>(nullMaskCompressed.get()), inputNullMask, dataElementCount);
+	return nullMaskCompressed;
 }
 
 

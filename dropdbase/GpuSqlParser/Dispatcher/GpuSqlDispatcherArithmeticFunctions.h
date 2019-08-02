@@ -33,7 +33,7 @@ int32_t GpuSqlDispatcher::arithmeticColConst()
 	{
 		if (isOverallLastBlock)
 		{
-			PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName) + KEYS_SUFFIX);
+			PointerAllocation column = allocatedPointers.at(colName + KEYS_SUFFIX);
 			int32_t retSize = column.elementCount;
 			ResultType * result;
 			if(column.gpuNullMaskPtr)
@@ -51,9 +51,9 @@ int32_t GpuSqlDispatcher::arithmeticColConst()
 			groupByColumns.push_back({ reg, ::GetColumnType<ResultType>() });
 		}
 	}
-	else if (isOverallLastBlock || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy || insideGroupBy)
 	{
-		PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName));
+		PointerAllocation column = allocatedPointers.at(colName);
 		int32_t retSize = column.elementCount;
 		if (!isRegisterAllocated(reg))
 		{
@@ -108,7 +108,7 @@ int32_t GpuSqlDispatcher::arithmeticConstCol()
 	{
 		if (isOverallLastBlock)
 		{
-			PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName) + KEYS_SUFFIX);
+			PointerAllocation column = allocatedPointers.at(colName + KEYS_SUFFIX);
 			int32_t retSize = column.elementCount;
 			ResultType * result;
 			if(column.gpuNullMaskPtr)
@@ -126,9 +126,9 @@ int32_t GpuSqlDispatcher::arithmeticConstCol()
 			groupByColumns.push_back({ reg, ::GetColumnType<ResultType>() });
 		}
 	}
-	else if (isOverallLastBlock || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy || insideGroupBy)
 	{
-		PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName));
+		PointerAllocation column = allocatedPointers.at(colName);
 		int32_t retSize = column.elementCount;
 
 		if (!isRegisterAllocated(reg))
@@ -188,8 +188,8 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 	{
 		if (isOverallLastBlock)
 		{
-			PointerAllocation columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight) + KEYS_SUFFIX);
-			PointerAllocation columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
+			PointerAllocation columnRight = allocatedPointers.at(colNameRight + KEYS_SUFFIX);
+			PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
 			int32_t retSize = std::min(columnLeft.elementCount, columnRight.elementCount);
 
 			ResultType * result;
@@ -226,8 +226,8 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 	{
 		if (isOverallLastBlock)
 		{
-			PointerAllocation columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
-			PointerAllocation columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft) + KEYS_SUFFIX);
+			PointerAllocation columnRight = allocatedPointers.at(colNameRight);
+			PointerAllocation columnLeft = allocatedPointers.at(colNameLeft + KEYS_SUFFIX);
 			int32_t retSize = std::min(columnLeft.elementCount, columnRight.elementCount);
 
 			ResultType * result;
@@ -257,10 +257,10 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 			groupByColumns.push_back({ reg, ::GetColumnType<ResultType>() });
 		}
 	}
-	else if (isOverallLastBlock || !usingGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy || insideGroupBy)
 	{
-		PointerAllocation columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
-		PointerAllocation columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
+		PointerAllocation columnRight = allocatedPointers.at(colNameRight);
+		PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
 		int32_t retSize = std::min(columnLeft.elementCount, columnRight.elementCount);
 
 		if (!isRegisterAllocated(reg))

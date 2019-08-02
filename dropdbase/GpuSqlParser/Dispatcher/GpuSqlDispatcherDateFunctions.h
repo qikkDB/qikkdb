@@ -22,25 +22,50 @@ int32_t GpuSqlDispatcher::dateExtractCol()
 
 	std::cout << "ExtractDatePartCol: " << colName << " " << reg << std::endl;
 
-	PointerAllocation column = allocatedPointers.at(getAllocatedRegisterName(colName));
-	int32_t retSize = column.elementCount;
-
-	if (!isRegisterAllocated(reg))
+	if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) != groupByColumns.end())
 	{
-		int32_t * result;
-		if(column.gpuNullMaskPtr)
+		if (isOverallLastBlock)
 		{
-			int8_t * nullMask;
-			result = allocateRegister<int32_t>(reg, retSize, &nullMask);
-			int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
-			GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			PointerAllocation column = allocatedPointers.at(colName + KEYS_SUFFIX);
+			int32_t retSize = column.elementCount;
+			int32_t * result;
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<int32_t>(reg + KEYS_SUFFIX, retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<int32_t>(reg + KEYS_SUFFIX, retSize);
+			}
+			GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.gpuPtr), retSize);
+			groupByColumns.push_back({ reg, COLUMN_INT });
 		}
-		else
-		{
-			result = allocateRegister<int32_t>(reg, retSize);
-		}
-		GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.gpuPtr), retSize);
 	}
+	else if (isOverallLastBlock || !usingGroupBy || insideGroupBy)
+	{
+		PointerAllocation column = allocatedPointers.at(colName);
+		int32_t retSize = column.elementCount;
+
+		if (!isRegisterAllocated(reg))
+		{
+			int32_t * result;
+			if(column.gpuNullMaskPtr)
+			{
+				int8_t * nullMask;
+				result = allocateRegister<int32_t>(reg, retSize, &nullMask);
+				int32_t bitMaskSize = ((retSize + sizeof(int8_t)*8 - 1) / (8*sizeof(int8_t)));
+				GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+			}
+			else
+			{
+				result = allocateRegister<int32_t>(reg, retSize);
+			}
+			GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.gpuPtr), retSize);
+		}
+	}	
 
 	freeColumnIfRegister<int64_t>(colName);
 	return 0;

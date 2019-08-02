@@ -33,8 +33,8 @@ int32_t GpuSqlDispatcher::pointColCol()
 		return loadFlag;
 	}
 
-	PointerAllocation columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
-	PointerAllocation columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
+	PointerAllocation columnRight = allocatedPointers.at(colNameRight);
+	PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
 
 	int32_t retSize = std::min(columnLeft.elementCount, columnRight.elementCount);
 
@@ -90,7 +90,7 @@ int32_t GpuSqlDispatcher::pointColConst()
 		return loadFlag;
 	}
 
-	PointerAllocation columnLeft = allocatedPointers.at(getAllocatedRegisterName(colNameLeft));
+	PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
 
 	int32_t retSize = columnLeft.elementCount;
 
@@ -134,7 +134,7 @@ int32_t GpuSqlDispatcher::pointConstCol()
 		return loadFlag;
 	}
 
-	PointerAllocation columnRight = allocatedPointers.at(getAllocatedRegisterName(colNameRight));
+	PointerAllocation columnRight = allocatedPointers.at(colNameRight);
 
 	int32_t retSize = columnRight.elementCount;
 
@@ -178,7 +178,7 @@ int32_t GpuSqlDispatcher::containsColConst()
 
 	std::cout << "ContainsColConst: " + colName << " " << constWkt << " " << reg << std::endl;
 
-	auto polygonCol = findComplexPolygon(getAllocatedRegisterName(colName));
+	auto polygonCol = findComplexPolygon(colName);
 	ColmnarDB::Types::Point pointConst = PointFactory::FromWkt(constWkt);
 
 	GPUMemory::GPUPolygon polygons = std::get<0>(polygonCol);
@@ -223,7 +223,7 @@ int32_t GpuSqlDispatcher::containsConstCol()
 
 	std::cout << "ContainsConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
 
-	PointerAllocation columnPoint = allocatedPointers.at(getAllocatedRegisterName(colName));
+	PointerAllocation columnPoint = allocatedPointers.at(colName);
 	ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
 	GPUMemory::GPUPolygon gpuPolygon = insertConstPolygonGpu(polygonConst);
 
@@ -273,8 +273,8 @@ int32_t GpuSqlDispatcher::containsColCol()
 
 	std::cout << "ContainsColCol: " + colNamePolygon << " " << colNamePoint << " " << reg << std::endl;
 
-	PointerAllocation pointCol = allocatedPointers.at(getAllocatedRegisterName(colNamePoint));
-	auto polygonCol = findComplexPolygon(getAllocatedRegisterName(colNamePolygon));
+	PointerAllocation pointCol = allocatedPointers.at(colNamePoint);
+	auto polygonCol = findComplexPolygon(colNamePolygon);
 
 
 	int32_t retSize = std::min(pointCol.elementCount, std::get<1>(polygonCol));
@@ -360,7 +360,7 @@ int32_t GpuSqlDispatcher::polygonOperationColConst()
 
 	std::cout << "PolygonOPConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
 
-	auto polygonLeft = findComplexPolygon(getAllocatedRegisterName(colName));
+	auto polygonLeft = findComplexPolygon(colName);
 	ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
 	GPUMemory::GPUPolygon gpuPolygon = insertConstPolygonGpu(polygonConst);
 
@@ -409,8 +409,8 @@ int32_t GpuSqlDispatcher::polygonOperationColCol()
 		return loadFlag;
 	}
 
-	auto polygonLeft = findComplexPolygon(getAllocatedRegisterName(colNameLeft));
-	auto polygonRight = findComplexPolygon(getAllocatedRegisterName(colNameRight));
+	auto polygonLeft = findComplexPolygon(colNameLeft);
+	auto polygonRight = findComplexPolygon(colNameRight);
 
 	int32_t dataSize = std::min(std::get<1>(polygonLeft), std::get<1>(polygonRight));
 	if (!isRegisterAllocated(reg))
