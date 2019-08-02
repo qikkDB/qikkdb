@@ -59,8 +59,8 @@ int main(int argc, char** argv)
     //	 {COLUMN_POLYGON},
     //	 {COLUMN_POINT} };
     // std::shared_ptr<Database> compressionDatabase =
-    // DatabaseGenerator::GenerateDatabase(dbName.c_str(), 2, 1<<18, false, tableNames, columnTypes);
-    // Database::AddToInMemoryDatabaseList(compressionDatabase);
+    // DatabaseGenerator::GenerateDatabase(dbName.c_str(), 2, 1<<18, false, tableNames,
+    // columnTypes); Database::AddToInMemoryDatabaseList(compressionDatabase);
     // Database::SaveAllToDisk();
     // return 0;
 

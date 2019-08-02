@@ -1,7 +1,6 @@
 #include "GPUPolygonClipping.cuh"
 
-__device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA,
-                                       NativeGeoPoint sB, NativeGeoPoint eB)
+__device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, NativeGeoPoint sB, NativeGeoPoint eB)
 {
     float adx = eA.latitude - sA.latitude;
     float ady = eA.longitude - sA.longitude;
@@ -24,22 +23,20 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA,
 
     bool intersectionValidity = (alongA > 0 && alongA < 1 && alongB > 0 && alongB < 1);
 
-    LLPolyVertex ret = {
-        {sA.latitude + alongA * adx, sA.longitude + alongA * ady},
-        true,
-        intersectionValidity,
-        alongA,
-        alongB,
-        -1,
-        -1,
-        -1
-    };
+    LLPolyVertex ret = {{sA.latitude + alongA * adx, sA.longitude + alongA * ady},
+                        true,
+                        intersectionValidity,
+                        alongA,
+                        alongB,
+                        -1,
+                        -1,
+                        -1};
 
     return ret;
 }
 
-__global__ void kernel_calc_LL_buffers_size(int32_t *LLPolygonABufferSizes, 
-                                            int32_t *LLPolygonBBufferSizes,
+__global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
+                                            int32_t* LLPolygonBBufferSizes,
                                             GPUMemory::GPUPolygon polygonA,
                                             GPUMemory::GPUPolygon polygonB,
                                             int32_t dataElementCount)
@@ -56,67 +53,76 @@ __global__ void kernel_calc_LL_buffers_size(int32_t *LLPolygonABufferSizes,
         int32_t polyCountB = GPUMemory::PolyCountAt(polygonB, i);
 
         int32_t intersectCount = 0;
-        for(int32_t a = polyIdxA; a < (polyIdxA + polyCountA); a++)
+        for (int32_t a = polyIdxA; a < (polyIdxA + polyCountA); a++)
         {
             int32_t pointIdxA = GPUMemory::PointIdxAt(polygonA, a);
             int32_t pointCountA = GPUMemory::PointCountAt(polygonA, a);
 
-            for(int32_t b = polyIdxB; b < (polyIdxB + polyCountB); b++)
+            for (int32_t b = polyIdxB; b < (polyIdxB + polyCountB); b++)
             {
                 int32_t pointIdxB = GPUMemory::PointIdxAt(polygonB, b);
                 int32_t pointCountB = GPUMemory::PointCountAt(polygonB, b);
 
                 // Calculate intersections count
-                for(int32_t pointA = pointIdxA; pointA < (pointIdxA + pointCountA); pointA++)
+                for (int32_t pointA = pointIdxA; pointA < (pointIdxA + pointCountA); pointA++)
                 {
-                    for(int32_t pointB = pointIdxB; pointB < (pointIdxB + pointCountB); pointB++)
+                    for (int32_t pointB = pointIdxB; pointB < (pointIdxB + pointCountB); pointB++)
                     {
                         // printf("PointB: %d Point idxB: %d PointCountB: %d\n", pointB, pointIdxB, pointCountB );
 
-                        // printf("A line idx : %d %d\n", pointA, pointIdxA + (pointA - pointIdxA + 1) % pointCountA);
-                        // printf("B line idx : %d %d\n", pointB, pointIdxB + (pointB - pointIdxB + 1) % pointCountB);
-                        // printf("\n");
-                    
+                        // printf("A line idx : %d %d\n", pointA, pointIdxA + (pointA - pointIdxA +
+                        // 1) % pointCountA); printf("B line idx : %d %d\n", pointB, pointIdxB +
+                        // (pointB - pointIdxB + 1) % pointCountB); printf("\n");
 
-                        LLPolyVertex intersection = calc_intersect(polygonA.polyPoints[pointA], 
-                                                                   polygonA.polyPoints[pointIdxA + (pointA - pointIdxA + 1) % pointCountA],
-                                                                   polygonB.polyPoints[pointB],
-                                                                   polygonB.polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]);
-                        if(intersection.isValidIntersection)
+
+                        LLPolyVertex intersection =
+                            calc_intersect(polygonA.polyPoints[pointA],
+                                           polygonA.polyPoints[pointIdxA + (pointA - pointIdxA + 1) % pointCountA],
+                                           polygonB.polyPoints[pointB],
+                                           polygonB.polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]);
+                        if (intersection.isValidIntersection)
                         {
                             printf("{%.2f %.2f}\n{%.2f %.2f}\n{%.2f %.2f}\n{%.2f %.2f}\n",
-                            
-                            polygonA.polyPoints[pointA].latitude, 
-                            polygonA.polyPoints[pointA].longitude, 
-                            polygonA.polyPoints[pointIdxA + (pointA - pointIdxA + 1) % pointCountA].latitude,
-                            polygonA.polyPoints[pointIdxA + (pointA - pointIdxA + 1) % pointCountA].longitude,
-                            polygonB.polyPoints[pointB].latitude,
-                            polygonB.polyPoints[pointB].longitude,
-                            polygonB.polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB].latitude,
-                            polygonB.polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB].longitude);
+
+                                   polygonA.polyPoints[pointA].latitude, polygonA.polyPoints[pointA].longitude,
+                                   polygonA
+                                       .polyPoints[pointIdxA + (pointA - pointIdxA + 1) % pointCountA]
+                                       .latitude,
+                                   polygonA
+                                       .polyPoints[pointIdxA + (pointA - pointIdxA + 1) % pointCountA]
+                                       .longitude,
+                                   polygonB.polyPoints[pointB].latitude, polygonB.polyPoints[pointB].longitude,
+                                   polygonB
+                                       .polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]
+                                       .latitude,
+                                   polygonB
+                                       .polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]
+                                       .longitude);
                             intersectCount++;
-                            printf("A line idx : %d %d\n", pointA, pointIdxA + (pointA - pointIdxA + 1) % pointCountA);
-                            printf("B line idx : %d %d\n", pointB, pointIdxB + (pointB - pointIdxB + 1) % pointCountB);
+                            printf("A line idx : %d %d\n", pointA,
+                                   pointIdxA + (pointA - pointIdxA + 1) % pointCountA);
+                            printf("B line idx : %d %d\n", pointB,
+                                   pointIdxB + (pointB - pointIdxB + 1) % pointCountB);
                             printf("\n");
                         }
-                    }       
+                    }
                 }
-            }   
+            }
         }
 
         // Get the complex polygon vertex counts n and k
         int32_t n = GPUMemory::TotalPointCountAt(polygonA, i);
         int32_t k = GPUMemory::TotalPointCountAt(polygonB, i);
-    
+
         // Assign the calculated buffers size
         LLPolygonABufferSizes[i] = intersectCount; // n +
         LLPolygonBBufferSizes[i] = intersectCount; // k +
     }
 }
 
-__global__ void kernel_build_LL(LLPolyVertex *LLPolygonBuffers,
+__global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                                 GPUMemory::GPUPolygon polygon,
-                                int32_t *LLPolygonBufferSizesPrefixSum,
+                                int32_t* LLPolygonBufferSizesPrefixSum,
                                 int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -130,38 +136,37 @@ __global__ void kernel_build_LL(LLPolyVertex *LLPolygonBuffers,
         int32_t polyCount = GPUMemory::PolyCountAt(polygon, i);
 
         // Transform polygon
-        for(int32_t p = polyIdx; p < (polyIdx + polyCount); p++)
+        for (int32_t p = polyIdx; p < (polyIdx + polyCount); p++)
         {
             int32_t pointIdx = GPUMemory::PointIdxAt(polygon, p);
             int32_t pointCount = GPUMemory::PointCountAt(polygon, p);
 
-            for(int32_t point = pointIdx; point < (pointIdx + pointCount); point++)
+            for (int32_t point = pointIdx; point < (pointIdx + pointCount); point++)
             {
                 // Set the linked list entry
                 LLPolygonBuffers[((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + LLPolygonEndIdx] = {
-                    polygon.polyPoints[point], 
-                    false, 
-                    false, 
-                    -1.0, 
-                    -1.0, 
+                    polygon.polyPoints[point],
+                    false,
+                    false,
+                    -1.0,
+                    -1.0,
                     ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point - 1 + pointCount) % pointCount,
-                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point + 1) % pointCount, 
-                    -1
-                };
+                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point + 1) % pointCount,
+                    -1};
 
                 // Increment the local pointer to the end of the LL
                 LLPolygonEndIdx++;
-            }  
+            }
         }
     }
 }
 
-__global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex *LLPolygonABuffers,
-                                                             LLPolyVertex *LLPolygonBBuffers,
+__global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex* LLPolygonABuffers,
+                                                             LLPolyVertex* LLPolygonBBuffers,
                                                              GPUMemory::GPUPolygon polygonA,
                                                              GPUMemory::GPUPolygon polygonB,
-                                                             int32_t *LLPolygonABufferSizesPrefixSum,
-                                                             int32_t *LLPolygonBBufferSizesPrefixSum,
+                                                             int32_t* LLPolygonABufferSizesPrefixSum,
+                                                             int32_t* LLPolygonBBufferSizesPrefixSum,
                                                              int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -180,28 +185,29 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex *LLPol
         int32_t polyIdxB = GPUMemory::PolyIdxAt(polygonB, i);
         int32_t polyCountB = GPUMemory::PolyCountAt(polygonB, i);
 
-        for(int32_t a = polyIdxA; a < (polyIdxA + polyCountA); a++)
+        for (int32_t a = polyIdxA; a < (polyIdxA + polyCountA); a++)
         {
             int32_t pointIdxA = GPUMemory::PointIdxAt(polygonA, a);
             int32_t pointCountA = GPUMemory::PointCountAt(polygonA, a);
 
-            for(int32_t b = polyIdxB; b < (polyIdxB + polyCountB); b++)
+            for (int32_t b = polyIdxB; b < (polyIdxB + polyCountB); b++)
             {
                 int32_t pointIdxB = GPUMemory::PointIdxAt(polygonB, b);
                 int32_t pointCountB = GPUMemory::PointCountAt(polygonB, b);
 
                 // Calculate intersections and insert them into the LL
-                for(int32_t pointA = pointIdxA; pointA < (pointIdxA + pointCountA); pointA++)
+                for (int32_t pointA = pointIdxA; pointA < (pointIdxA + pointCountA); pointA++)
                 {
-                    for(int32_t pointB = pointIdxB; pointB < (pointIdxB + pointCountB); pointB++)
+                    for (int32_t pointB = pointIdxB; pointB < (pointIdxB + pointCountB); pointB++)
                     {
-                        LLPolyVertex intersection = calc_intersect(polygonA.polyPoints[pointA], 
-                                                                   polygonA.polyPoints[pointIdxA + (pointA + 1) % pointCountA],
-                                                                   polygonB.polyPoints[pointB],
-                                                                   polygonB.polyPoints[pointIdxB + (pointB + 1) % pointCountB]);
-                        
+                        LLPolyVertex intersection =
+                            calc_intersect(polygonA.polyPoints[pointA],
+                                           polygonA.polyPoints[pointIdxA + (pointA + 1) % pointCountA],
+                                           polygonB.polyPoints[pointB],
+                                           polygonB.polyPoints[pointIdxB + (pointB + 1) % pointCountB]);
+
                         // If an intersection is valid, insert it into the linked lists and create a cross reference
-                        if(intersection.isValidIntersection)
+                        if (intersection.isValidIntersection)
                         {
                             // Save the intersection data
                             LLPolygonABuffers[LLPolygonAEndIdx] = intersection;
@@ -220,9 +226,9 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex *LLPol
                             LLPolygonAEndIdx++;
                             LLPolygonBEndIdx++;
                         }
-                    }       
+                    }
                 }
-            }   
+            }
         }
     }
 }
