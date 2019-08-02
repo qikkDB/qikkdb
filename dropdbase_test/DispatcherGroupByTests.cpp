@@ -69,6 +69,43 @@ protected:
         }
     }
 
+	void GroupByValueOpIntGenericTest(std::string aggregationFunction,
+		std::vector<int32_t> keys,
+		std::vector<int32_t> values,
+		std::unordered_map<int32_t, int32_t> expectedResult)
+	{
+		auto columns = std::unordered_map<std::string, DataType>();
+		columns.insert(std::make_pair<std::string, DataType>("colIntegerK", DataType::COLUMN_INT));
+		columns.insert(std::make_pair<std::string, DataType>("colIntegerV", DataType::COLUMN_INT));
+		groupByDatabase->CreateTable(columns, tableName.c_str());
+
+		reinterpret_cast<ColumnBase<int32_t>*>(
+			groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerK").get())
+			->InsertData(keys);
+		reinterpret_cast<ColumnBase<int32_t>*>(
+			groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
+			->InsertData(values);
+
+		// Execute the query
+		GpuSqlCustomParser parser(groupByDatabase,
+			"SELECT colIntegerK, " + aggregationFunction + "(colIntegerV - 2) FROM " + tableName + " GROUP BY colIntegerK;");
+		auto resultPtr = parser.parse();
+		auto result =
+			dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+		auto& payloadKeys = result->payloads().at("SimpleTable.colIntegerK");
+		auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV-2)");
+
+		ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+			<< " wrong number of keys";
+		for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+		{
+			int32_t key = payloadKeys.intpayload().intdata()[i];
+			ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+			ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i])
+				<< " at key \"" << key << "\"";
+		}
+	}
+
 	void GroupByKeyOpIntGenericTest(std::string aggregationFunction,
 		std::vector<int32_t> keys,
 		std::vector<int32_t> values,
@@ -699,4 +736,14 @@ TEST_F(DispatcherGroupByTests, IntegerSimpleSumOrderByValues)
 		{ "Apple", "Abcd", "Apple", "XYZ", "Banana", "XYZ", "Abcd", "0", "XYZ", "XYZ" },
 		{ 10,	10,	  2,	 2,		6,	   6,   4,   4,   8,     8, },
 		{ {10, 1}, {2, 5}, {6, 9}, {4, 13}, {8, 17} });
+}
+
+
+// Group By basic numeric keys
+TEST_F(DispatcherGroupByTests, IntSimpleSumValuesOp)
+{
+	GroupByValueOpIntGenericTest("SUM",
+		{ 0, 1, -1, -1, 0, 1,  2, 1,  1 },
+		{ 1, 2,  2,  2, 1, 3, 15, 5, -4 },
+		{ {0, -2}, {1, -2}, {2, 13}, {-1, 0} });
 }

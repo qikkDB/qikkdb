@@ -89,6 +89,7 @@ private:
 
 	ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage;
 	std::uintptr_t filter_;
+	bool insideAggregation;
 	bool insideGroupBy;
 	bool usingGroupBy;
 	bool usingOrderBy;
@@ -297,6 +298,8 @@ private:
 	static DispatchFunction isNullFunction;
 	static DispatchFunction isNotNullFunction;
 
+	static DispatchFunction aggregationBeginFunction;
+	static DispatchFunction aggregationDoneFunction;
 	static DispatchFunction groupByBeginFunction;
 	static DispatchFunction groupByDoneFunction;
 	static DispatchFunction freeOrderByTableFunction;
@@ -615,6 +618,10 @@ public:
 
 	void addGroupByDoneFunction();
 
+	void addAggregationBeginFunction();
+
+	void addAggregationDoneFunction();
+
     void addBetweenFunction(DataType op1, DataType op2, DataType op3);
 
 	static std::unordered_map<std::string, int32_t> linkTable;
@@ -714,6 +721,10 @@ public:
 
     template<typename T>
     int32_t retCol();
+
+	int32_t aggregationBegin();
+
+	int32_t aggregationDone();
 
 	int32_t groupByBegin();
 
