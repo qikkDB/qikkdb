@@ -44,6 +44,7 @@ private:
 	bool usingWhere;
 
     bool usingGroupBy;
+	bool usingAgg;
     bool insideAgg;
 	bool insideGroupBy;
 	bool insideOrderBy;

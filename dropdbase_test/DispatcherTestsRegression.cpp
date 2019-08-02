@@ -164,6 +164,22 @@ TEST(DispatcherTestsRegression, GroupByKeyOpWrongSemantic)
 	ASSERT_THROW(parser2.parse(), ColumnGroupByException);
 }
 
+TEST(DispatcherTestsRegression, NonGroupByAggWrongSemantic)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1, SUM(colInteger2) FROM TableA;");
+	ASSERT_THROW(parser.parse(), ColumnGroupByException);
+}
+
+TEST(DispatcherTestsRegression, NonGroupByAggCorrectSemantic)
+{
+	Context::getInstance();
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT MIN(colInteger1), SUM(colInteger2) FROM TableA;");
+	parser.parse();
+}
+
 
 TEST(DispatcherTestsRegression, ConstOpOnMultiGPU)
 {

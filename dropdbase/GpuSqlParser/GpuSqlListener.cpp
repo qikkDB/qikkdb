@@ -39,7 +39,8 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database, GpuSql
 	orderByColumnIndex(0),
 	usingLoad(false),
 	usingWhere(false),
-	usingGroupBy(false), 
+	usingGroupBy(false),
+	usingAgg(false),
 	insideAgg(false), 
 	insideGroupBy(false),
 	insideOrderBy(false),
@@ -573,6 +574,7 @@ void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
 		throw NestedAggregationException();
 	}
 	insideAgg = true;
+	usingAgg = true;
 	isAggSelectColumn = insideSelectColumn;
 	dispatcher.addAggregationBeginFunction();
 }
@@ -696,6 +698,8 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext *ctx)
 	std::pair<std::string, DataType> arg = stackTopAndPop();
 	std::string colName = std::get<0>(arg);
 	DataType retType = std::get<1>(arg);
+
+	isSelectColumnValid = isSelectColumnValid && !(!usingGroupBy && !isAggSelectColumn && usingAgg);
 
 	if (!isSelectColumnValid)
 	{
