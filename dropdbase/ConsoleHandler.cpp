@@ -17,13 +17,13 @@ static TCPServer<TCPClientHandler, ClientPoolWorker>* currentServer = nullptr;
 /// the next handler function in the list of handlers for this process is used.</returns>
 BOOL WinSigHandler(DWORD dwCtrlId)
 {
-	if (currentServer != nullptr && dwCtrlId == CTRL_C_EVENT)
-	{
-		currentServer->Abort();
-		currentServer = nullptr;
-		return TRUE;
-	}
-	return FALSE;
+    if (currentServer != nullptr && dwCtrlId == CTRL_C_EVENT)
+    {
+        currentServer->Abort();
+        currentServer = nullptr;
+        return TRUE;
+    }
+    return FALSE;
 }
 
 #else
@@ -35,15 +35,15 @@ BOOL WinSigHandler(DWORD dwCtrlId)
 /// </summary>
 void UnixSigHandler(int signal)
 {
-	if (currentServer != nullptr)
-	{
-		currentServer->Abort();
-		currentServer = nullptr;
-	}
-	else
-	{
-		abort();
-	}
+    if (currentServer != nullptr)
+    {
+        currentServer->Abort();
+        currentServer = nullptr;
+    }
+    else
+    {
+        abort();
+    }
 }
 #endif
 
@@ -52,16 +52,16 @@ void UnixSigHandler(int signal)
 /// </summary>
 void RegisterCtrlCHandler(TCPServer<TCPClientHandler, ClientPoolWorker>* server)
 {
-	currentServer = server;
+    currentServer = server;
 #ifdef WIN32
-	SetConsoleCtrlHandler(WinSigHandler, TRUE);
+    SetConsoleCtrlHandler(WinSigHandler, TRUE);
 #else
-	struct sigaction sigIntHandler;
+    struct sigaction sigIntHandler;
 
-	sigIntHandler.sa_handler = UnixSigHandler;
-	sigemptyset(&sigIntHandler.sa_mask);
-	sigIntHandler.sa_flags = 0;
+    sigIntHandler.sa_handler = UnixSigHandler;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
 
-	sigaction(SIGINT, &sigIntHandler, NULL);
+    sigaction(SIGINT, &sigIntHandler, NULL);
 #endif
 }

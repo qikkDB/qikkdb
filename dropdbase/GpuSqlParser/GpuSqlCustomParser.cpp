@@ -21,13 +21,11 @@
 #include <future>
 #include <thread>
 
-GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database> &database, const std::string &query) : 
-	database(database),
-	isSingleGpuStatement(false),
-	query(query)
+GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database>& database, const std::string& query)
+: database(database), isSingleGpuStatement(false), query(query)
 {
-	LoadColHelper& loadColHelper = LoadColHelper::getInstance();
-	loadColHelper.countSkippedBlocks = 0;
+    LoadColHelper& loadColHelper = LoadColHelper::getInstance();
+    loadColHelper.countSkippedBlocks = 0;
 }
 
 /// Parses SQL statement
@@ -41,254 +39,257 @@ GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database> &database
 /// <returns="responseMessage">Final protobuf response message of executed statement (query result set)</returns>
 std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 {
-	Context& context = Context::getInstance();
+    Context& context = Context::getInstance();
 
-	antlr4::ANTLRInputStream sqlInputStream(query);
-	GpuSqlLexer sqlLexer(&sqlInputStream);
-	antlr4::CommonTokenStream commonTokenStream(&sqlLexer);
-	GpuSqlParser parser(&commonTokenStream);
-	parser.setErrorHandler(std::make_shared<antlr4::BailErrorStrategy>());
-	parser.getInterpreter<antlr4::atn::ParserATNSimulator>()->setPredictionMode(antlr4::atn::PredictionMode::SLL);
-	GpuSqlParser::StatementContext *statement = parser.statement();
+    antlr4::ANTLRInputStream sqlInputStream(query);
+    GpuSqlLexer sqlLexer(&sqlInputStream);
+    antlr4::CommonTokenStream commonTokenStream(&sqlLexer);
+    GpuSqlParser parser(&commonTokenStream);
+    parser.setErrorHandler(std::make_shared<antlr4::BailErrorStrategy>());
+    parser.getInterpreter<antlr4::atn::ParserATNSimulator>()->setPredictionMode(antlr4::atn::PredictionMode::SLL);
+    GpuSqlParser::StatementContext* statement = parser.statement();
 
-	antlr4::tree::ParseTreeWalker walker;
+    antlr4::tree::ParseTreeWalker walker;
 
-	std::vector<std::unique_ptr<IGroupBy>> groupByInstances;
-	std::vector<OrderByBlocks> orderByBlocks(Context::getInstance().getDeviceCount());
+    std::vector<std::unique_ptr<IGroupBy>> groupByInstances;
+    std::vector<OrderByBlocks> orderByBlocks(Context::getInstance().getDeviceCount());
 
-	for (int i = 0; i < context.getDeviceCount(); i++)
-	{
-		groupByInstances.emplace_back(nullptr);
-	}
+    for (int i = 0; i < context.getDeviceCount(); i++)
+    {
+        groupByInstances.emplace_back(nullptr);
+    }
 
-	std::unique_ptr<CpuSqlDispatcher> cpuWhereDispatcher = std::make_unique<CpuSqlDispatcher>(database);
-	std::unique_ptr<GpuSqlDispatcher> dispatcher = std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, -1);
-	std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher = std::make_unique<GpuSqlJoinDispatcher>(database);
+    std::unique_ptr<CpuSqlDispatcher> cpuWhereDispatcher = std::make_unique<CpuSqlDispatcher>(database);
+    std::unique_ptr<GpuSqlDispatcher> dispatcher =
+        std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, -1);
+    std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher = std::make_unique<GpuSqlJoinDispatcher>(database);
 
-	GpuSqlListener gpuSqlListener(database, *dispatcher, *joinDispatcher);
-	
-	CpuWhereListener cpuWhereListener(database, *cpuWhereDispatcher);
+    GpuSqlListener gpuSqlListener(database, *dispatcher, *joinDispatcher);
 
-	if (statement->sqlSelect())
-	{
-		if (database == nullptr)
-		{
-			throw DatabaseNotFoundException();
-		}
+    CpuWhereListener cpuWhereListener(database, *cpuWhereDispatcher);
 
-		walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
-		walker.walk(&cpuWhereListener, statement->sqlSelect()->fromTables());
+    if (statement->sqlSelect())
+    {
+        if (database == nullptr)
+        {
+            throw DatabaseNotFoundException();
+        }
 
-		gpuSqlListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
-		gpuSqlListener.LockAliasRegisters();
-		cpuWhereListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
+        walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
+        walker.walk(&cpuWhereListener, statement->sqlSelect()->fromTables());
 
-		if (statement->sqlSelect()->joinClauses())
-		{
-			walker.walk(&gpuSqlListener, statement->sqlSelect()->joinClauses());
-			joinDispatcher->execute();
-		}
+        gpuSqlListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
+        gpuSqlListener.LockAliasRegisters();
+        cpuWhereListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
 
-		if (statement->sqlSelect()->whereClause())
-		{
-			walker.walk(&gpuSqlListener, statement->sqlSelect()->whereClause());
-			walker.walk(&cpuWhereListener, statement->sqlSelect()->whereClause());
-		}
+        if (statement->sqlSelect()->joinClauses())
+        {
+            walker.walk(&gpuSqlListener, statement->sqlSelect()->joinClauses());
+            joinDispatcher->execute();
+        }
 
-		if (statement->sqlSelect()->groupByColumns())
-		{
-			walker.walk(&gpuSqlListener, statement->sqlSelect()->groupByColumns());
-		}
+        if (statement->sqlSelect()->whereClause())
+        {
+            walker.walk(&gpuSqlListener, statement->sqlSelect()->whereClause());
+            walker.walk(&cpuWhereListener, statement->sqlSelect()->whereClause());
+        }
 
-		std::vector<GpuSqlParser::SelectColumnContext*> aggColumns;
-		std::vector<GpuSqlParser::SelectColumnContext*> nonAggColumns;
+        if (statement->sqlSelect()->groupByColumns())
+        {
+            walker.walk(&gpuSqlListener, statement->sqlSelect()->groupByColumns());
+        }
 
-		for (auto column : statement->sqlSelect()->selectColumns()->selectColumn())
-		{
-			if (containsAggregation(column))
-			{
-				aggColumns.push_back(column);
-			}
-			else
-			{
-				nonAggColumns.push_back(column);
-			}
-		}
+        std::vector<GpuSqlParser::SelectColumnContext*> aggColumns;
+        std::vector<GpuSqlParser::SelectColumnContext*> nonAggColumns;
 
-		for (auto column : statement->sqlSelect()->selectColumns()->selectAllColumns())
-		{
-			gpuSqlListener.exitSelectAllColumns(column);
-			break;
-		}
+        for (auto column : statement->sqlSelect()->selectColumns()->selectColumn())
+        {
+            if (containsAggregation(column))
+            {
+                aggColumns.push_back(column);
+            }
+            else
+            {
+                nonAggColumns.push_back(column);
+            }
+        }
 
-		for (auto column : aggColumns)
-		{
-			walker.walk(&gpuSqlListener, column);
-		}
+        for (auto column : statement->sqlSelect()->selectColumns()->selectAllColumns())
+        {
+            gpuSqlListener.exitSelectAllColumns(column);
+            break;
+        }
 
-		for (auto column : nonAggColumns)
-		{
-			walker.walk(&gpuSqlListener, column);
-		}
+        for (auto column : aggColumns)
+        {
+            walker.walk(&gpuSqlListener, column);
+        }
 
-		if (statement->sqlSelect()->orderByColumns())
-		{
-			gpuSqlListener.enterOrderByColumns(statement->sqlSelect()->orderByColumns());
+        for (auto column : nonAggColumns)
+        {
+            walker.walk(&gpuSqlListener, column);
+        }
 
-			// flip the order of ORDER BY columns
-			std::vector<GpuSqlParser::OrderByColumnContext*> orderByColumns;
+        if (statement->sqlSelect()->orderByColumns())
+        {
+            gpuSqlListener.enterOrderByColumns(statement->sqlSelect()->orderByColumns());
 
-			for (auto orderByCol : statement->sqlSelect()->orderByColumns()->orderByColumn())
-			{
-				orderByColumns.insert(orderByColumns.begin(), orderByCol);
-			}
+            // flip the order of ORDER BY columns
+            std::vector<GpuSqlParser::OrderByColumnContext*> orderByColumns;
 
-			for (auto orderByCol : orderByColumns)
-			{
-				walker.walk(&gpuSqlListener, orderByCol);
-			}
+            for (auto orderByCol : statement->sqlSelect()->orderByColumns()->orderByColumn())
+            {
+                orderByColumns.insert(orderByColumns.begin(), orderByCol);
+            }
 
-			gpuSqlListener.exitOrderByColumns(statement->sqlSelect()->orderByColumns());
-		}
+            for (auto orderByCol : orderByColumns)
+            {
+                walker.walk(&gpuSqlListener, orderByCol);
+            }
 
-		gpuSqlListener.exitSelectColumns(statement->sqlSelect()->selectColumns());
+            gpuSqlListener.exitOrderByColumns(statement->sqlSelect()->orderByColumns());
+        }
 
-		if (statement->sqlSelect()->offset())
-		{
-			walker.walk(&gpuSqlListener, statement->sqlSelect()->offset());
-		}
+        gpuSqlListener.exitSelectColumns(statement->sqlSelect()->selectColumns());
 
-		if (statement->sqlSelect()->limit())
-		{
-			walker.walk(&gpuSqlListener, statement->sqlSelect()->limit());
-		}
-		
-		if (!gpuSqlListener.GetUsingLoad() && !gpuSqlListener.GetUsingWhere())
-		{
-			isSingleGpuStatement = true;
-		}
-	}
-	else if (statement->showStatement())
-	{
-		isSingleGpuStatement = true;
-		walker.walk(&gpuSqlListener, statement->showStatement());
-	}
-	else if (statement->sqlInsertInto())
-	{
-		if (database == nullptr)
-		{
-			throw DatabaseNotFoundException();
-		}
+        if (statement->sqlSelect()->offset())
+        {
+            walker.walk(&gpuSqlListener, statement->sqlSelect()->offset());
+        }
 
-		isSingleGpuStatement = true;
-		walker.walk(&gpuSqlListener, statement->sqlInsertInto());
-	}
-	else if (statement->sqlCreateDb())
-	{
-		isSingleGpuStatement = true;
-		walker.walk(&gpuSqlListener, statement->sqlCreateDb());
-	}
-	else if (statement->sqlDropDb())
-	{
-		isSingleGpuStatement = true;
-		walker.walk(&gpuSqlListener, statement->sqlDropDb());
-	}
-	else if (statement->sqlCreateTable())
-	{
-		if (database == nullptr)
-		{
-			throw DatabaseNotFoundException();
-		}
+        if (statement->sqlSelect()->limit())
+        {
+            walker.walk(&gpuSqlListener, statement->sqlSelect()->limit());
+        }
 
-		isSingleGpuStatement = true;
-		walker.walk(&gpuSqlListener, statement->sqlCreateTable());
-	}
-	else if (statement->sqlDropTable())
-	{
-		if (database == nullptr)
-		{
-			throw DatabaseNotFoundException();
-		}
+        if (!gpuSqlListener.GetUsingLoad() && !gpuSqlListener.GetUsingWhere())
+        {
+            isSingleGpuStatement = true;
+        }
+    }
+    else if (statement->showStatement())
+    {
+        isSingleGpuStatement = true;
+        walker.walk(&gpuSqlListener, statement->showStatement());
+    }
+    else if (statement->sqlInsertInto())
+    {
+        if (database == nullptr)
+        {
+            throw DatabaseNotFoundException();
+        }
 
-		isSingleGpuStatement = true;
-		walker.walk(&gpuSqlListener, statement->sqlDropTable());
-	}
-	else if (statement->sqlAlterTable())
-	{
-		if (database == nullptr)
-		{
-			throw DatabaseNotFoundException();
-		}
+        isSingleGpuStatement = true;
+        walker.walk(&gpuSqlListener, statement->sqlInsertInto());
+    }
+    else if (statement->sqlCreateDb())
+    {
+        isSingleGpuStatement = true;
+        walker.walk(&gpuSqlListener, statement->sqlCreateDb());
+    }
+    else if (statement->sqlDropDb())
+    {
+        isSingleGpuStatement = true;
+        walker.walk(&gpuSqlListener, statement->sqlDropDb());
+    }
+    else if (statement->sqlCreateTable())
+    {
+        if (database == nullptr)
+        {
+            throw DatabaseNotFoundException();
+        }
 
-		isSingleGpuStatement = true;
-		walker.walk(&gpuSqlListener, statement->sqlAlterTable());
-	}
-	else if (statement->sqlCreateIndex())
-	{
-		isSingleGpuStatement = true;
-		walker.walk(&gpuSqlListener, statement->sqlCreateIndex());
-	}
+        isSingleGpuStatement = true;
+        walker.walk(&gpuSqlListener, statement->sqlCreateTable());
+    }
+    else if (statement->sqlDropTable())
+    {
+        if (database == nullptr)
+        {
+            throw DatabaseNotFoundException();
+        }
 
-	int32_t threadCount = isSingleGpuStatement ? 1 : context.getDeviceCount();
+        isSingleGpuStatement = true;
+        walker.walk(&gpuSqlListener, statement->sqlDropTable());
+    }
+    else if (statement->sqlAlterTable())
+    {
+        if (database == nullptr)
+        {
+            throw DatabaseNotFoundException();
+        }
 
-	GpuSqlDispatcher::ResetGroupByCounters();
-	GpuSqlDispatcher::ResetOrderByCounters();
+        isSingleGpuStatement = true;
+        walker.walk(&gpuSqlListener, statement->sqlAlterTable());
+    }
+    else if (statement->sqlCreateIndex())
+    {
+        isSingleGpuStatement = true;
+        walker.walk(&gpuSqlListener, statement->sqlCreateIndex());
+    }
 
-	std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers;
-	std::vector<std::thread> dispatcherFutures;
-	std::vector<std::exception_ptr> dispatcherExceptions;
-	std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults; 
-	std::vector<std::string> lockList;
-	if (database) 
-	{
-		const std::string dbName = database->GetName();
-		for (auto& tableName : GpuSqlDispatcher::linkTable)
-		{
-			lockList.push_back(dbName + "." + tableName.first);
-		}
-		GPUMemoryCache::SetLockList(lockList);
-	}
-	
-	
-	for (int i = 0; i < threadCount; i++)
-	{
-		dispatcherResults.emplace_back(nullptr);
-		dispatcherExceptions.emplace_back(nullptr);
-	}
+    int32_t threadCount = isSingleGpuStatement ? 1 : context.getDeviceCount();
 
-	for (int i = 0; i < threadCount; i++)
-	{
-		dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, i));
-		dispatcher->copyExecutionDataTo(*dispatchers[i], *cpuWhereDispatcher);
-		dispatchers[i]->setJoinIndices(joinDispatcher->getJoinIndices());
-		dispatcherFutures.push_back(std::thread(std::bind(&GpuSqlDispatcher::execute, dispatchers[i].get(), std::ref(dispatcherResults[i]), std::ref(dispatcherExceptions[i]))));
-	}
+    GpuSqlDispatcher::ResetGroupByCounters();
+    GpuSqlDispatcher::ResetOrderByCounters();
 
-	for (int i = 0; i < threadCount; i++)
-	{
-		dispatcherFutures[i].join();
-		std::cout << "TID: " << i << " Done \n";
-	}
+    std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers;
+    std::vector<std::thread> dispatcherFutures;
+    std::vector<std::exception_ptr> dispatcherExceptions;
+    std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults;
+    std::vector<std::string> lockList;
+    if (database)
+    {
+        const std::string dbName = database->GetName();
+        for (auto& tableName : GpuSqlDispatcher::linkTable)
+        {
+            lockList.push_back(dbName + "." + tableName.first);
+        }
+        GPUMemoryCache::SetLockList(lockList);
+    }
 
-	int32_t currentDev = context.getBoundDeviceID();
-	for (int i = 0; i < threadCount; i++)
-	{
-		context.bindDeviceToContext(i);
-		groupByInstances[i] = nullptr;
-	}
-	context.bindDeviceToContext(currentDev);
-	
-	for (int i = 0; i < threadCount; i++)
-	{
-		if (dispatcherExceptions[i])
-		{
-			std::rethrow_exception(dispatcherExceptions[i]);
-		}
-	}
-	
-	auto ret = (mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
 
-	return ret;
+    for (int i = 0; i < threadCount; i++)
+    {
+        dispatcherResults.emplace_back(nullptr);
+        dispatcherExceptions.emplace_back(nullptr);
+    }
+
+    for (int i = 0; i < threadCount; i++)
+    {
+        dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, i));
+        dispatcher->copyExecutionDataTo(*dispatchers[i], *cpuWhereDispatcher);
+        dispatchers[i]->setJoinIndices(joinDispatcher->getJoinIndices());
+        dispatcherFutures.push_back(
+            std::thread(std::bind(&GpuSqlDispatcher::execute, dispatchers[i].get(),
+                                  std::ref(dispatcherResults[i]), std::ref(dispatcherExceptions[i]))));
+    }
+
+    for (int i = 0; i < threadCount; i++)
+    {
+        dispatcherFutures[i].join();
+        std::cout << "TID: " << i << " Done \n";
+    }
+
+    int32_t currentDev = context.getBoundDeviceID();
+    for (int i = 0; i < threadCount; i++)
+    {
+        context.bindDeviceToContext(i);
+        groupByInstances[i] = nullptr;
+    }
+    context.bindDeviceToContext(currentDev);
+
+    for (int i = 0; i < threadCount; i++)
+    {
+        if (dispatcherExceptions[i])
+        {
+            std::rethrow_exception(dispatcherExceptions[i]);
+        }
+    }
+
+    auto ret = (mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
+
+    return ret;
 }
 
 /// Merges partial dispatcher respnse messages to final response message
@@ -297,175 +298,184 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 /// <param="resultOffset">Row offset</param>
 /// <returns="reponseMessage">Merged response message</returns>
 std::unique_ptr<google::protobuf::Message>
-GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults, int64_t resultLimit, int64_t resultOffset)
+GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,
+                                           int64_t resultLimit,
+                                           int64_t resultOffset)
 {
     std::cout << "Limit: " << resultLimit << std::endl;
     std::cout << "Offset: " << resultOffset << std::endl;
 
-	std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> responseMessage = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
-	for (auto& partialResult : dispatcherResults)
-	{
-		ColmnarDB::NetworkClient::Message::QueryResponseMessage* partialMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(partialResult.get());
-		for (auto& partialPayload : partialMessage->payloads())
-		{
-			std::string key = partialPayload.first;
-			ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
-			GpuSqlDispatcher::MergePayload(key, responseMessage.get(), payload);
-			if(partialMessage->nullbitmasks().find(key) != partialMessage->nullbitmasks().end())
-			{
-				const std::string& partialBitMask = partialMessage->nullbitmasks().at(key);
-				GpuSqlDispatcher::MergePayloadBitmask(key, responseMessage.get(), partialBitMask);
-			}
-		}
-	}
+    std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> responseMessage =
+        std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
+    for (auto& partialResult : dispatcherResults)
+    {
+        ColmnarDB::NetworkClient::Message::QueryResponseMessage* partialMessage =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(partialResult.get());
+        for (auto& partialPayload : partialMessage->payloads())
+        {
+            std::string key = partialPayload.first;
+            ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
+            GpuSqlDispatcher::MergePayload(key, responseMessage.get(), payload);
+            if (partialMessage->nullbitmasks().find(key) != partialMessage->nullbitmasks().end())
+            {
+                const std::string& partialBitMask = partialMessage->nullbitmasks().at(key);
+                GpuSqlDispatcher::MergePayloadBitmask(key, responseMessage.get(), partialBitMask);
+            }
+        }
+    }
 
-	trimResponseMessage(responseMessage.get(), resultLimit, resultOffset);
-	return std::move(responseMessage);
+    trimResponseMessage(responseMessage.get(), resultLimit, resultOffset);
+    return std::move(responseMessage);
 }
 
 /// Trims all payloads of result message according to limit and offset
 /// <param="responseMessage">Response message to be trimmed</param>
 /// <param="limit">Row limit</param>
 /// <param="offset">Row offset</param>
-void GpuSqlCustomParser::trimResponseMessage(google::protobuf::Message *responseMessage, int64_t limit, int64_t offset)
-{	
-	auto queryResponseMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(responseMessage);
-	for (auto& queryPayload : *queryResponseMessage->mutable_payloads())
-	{
-		std::string key = queryPayload.first;
-		ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload = queryPayload.second;
-		trimPayload(payload, limit, offset);
-	}
+void GpuSqlCustomParser::trimResponseMessage(google::protobuf::Message* responseMessage, int64_t limit, int64_t offset)
+{
+    auto queryResponseMessage =
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(responseMessage);
+    for (auto& queryPayload : *queryResponseMessage->mutable_payloads())
+    {
+        std::string key = queryPayload.first;
+        ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload = queryPayload.second;
+        trimPayload(payload, limit, offset);
+    }
 }
 
 /// Trims single payload of result message according to limit and offset
 /// <param="payload">Payload to be trimmed</param>
 /// <param="limit">Row limit</param>
 /// <param="offset">Row offset</param>
-void GpuSqlCustomParser::trimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload & payload, int64_t limit, int64_t offset)
+void GpuSqlCustomParser::trimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+                                     int64_t limit,
+                                     int64_t offset)
 {
-	switch (payload.payload_case())
-	{
-	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
-	{
-		int64_t payloadSize = payload.intpayload().intdata().size();
-		int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-		int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+    switch (payload.payload_case())
+    {
+    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+    {
+        int64_t payloadSize = payload.intpayload().intdata().size();
+        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
-		auto begin = payload.mutable_intpayload()->mutable_intdata()->begin();
-		payload.mutable_intpayload()->mutable_intdata()->erase(begin, begin + clampedOffset);
+        auto begin = payload.mutable_intpayload()->mutable_intdata()->begin();
+        payload.mutable_intpayload()->mutable_intdata()->erase(begin, begin + clampedOffset);
 
-		begin = payload.mutable_intpayload()->mutable_intdata()->begin();
-		auto end = payload.mutable_intpayload()->mutable_intdata()->end();
-		payload.mutable_intpayload()->mutable_intdata()->erase(begin + clampedLimit, end);
-	}
-		break;
-		
-	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
-	{
-		int64_t payloadSize = payload.floatpayload().floatdata().size();
-		int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-		int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+        begin = payload.mutable_intpayload()->mutable_intdata()->begin();
+        auto end = payload.mutable_intpayload()->mutable_intdata()->end();
+        payload.mutable_intpayload()->mutable_intdata()->erase(begin + clampedLimit, end);
+    }
+    break;
 
-		auto begin = payload.mutable_floatpayload()->mutable_floatdata()->begin();
-		payload.mutable_floatpayload()->mutable_floatdata()->erase(begin, begin + clampedOffset);
+    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+    {
+        int64_t payloadSize = payload.floatpayload().floatdata().size();
+        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
-		begin = payload.mutable_floatpayload()->mutable_floatdata()->begin();
-		auto end = payload.mutable_floatpayload()->mutable_floatdata()->end();
-		payload.mutable_floatpayload()->mutable_floatdata()->erase(begin + clampedLimit, end);
-	}
-		break;
-	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
-	{
-		int64_t payloadSize = payload.int64payload().int64data().size();
-		int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-		int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+        auto begin = payload.mutable_floatpayload()->mutable_floatdata()->begin();
+        payload.mutable_floatpayload()->mutable_floatdata()->erase(begin, begin + clampedOffset);
 
-		auto begin = payload.mutable_int64payload()->mutable_int64data()->begin();
-		payload.mutable_int64payload()->mutable_int64data()->erase(begin, begin + clampedOffset);
+        begin = payload.mutable_floatpayload()->mutable_floatdata()->begin();
+        auto end = payload.mutable_floatpayload()->mutable_floatdata()->end();
+        payload.mutable_floatpayload()->mutable_floatdata()->erase(begin + clampedLimit, end);
+    }
+    break;
+    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+    {
+        int64_t payloadSize = payload.int64payload().int64data().size();
+        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
-		begin = payload.mutable_int64payload()->mutable_int64data()->begin();
-		auto end = payload.mutable_int64payload()->mutable_int64data()->end();
-		payload.mutable_int64payload()->mutable_int64data()->erase(begin + clampedLimit, end);
-	}
-		break;
-	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
-	{
-		int64_t payloadSize = payload.doublepayload().doubledata().size();
-		int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-		int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+        auto begin = payload.mutable_int64payload()->mutable_int64data()->begin();
+        payload.mutable_int64payload()->mutable_int64data()->erase(begin, begin + clampedOffset);
 
-		auto begin = payload.mutable_doublepayload()->mutable_doubledata()->begin();
-		payload.mutable_doublepayload()->mutable_doubledata()->erase(begin, begin + clampedOffset);
+        begin = payload.mutable_int64payload()->mutable_int64data()->begin();
+        auto end = payload.mutable_int64payload()->mutable_int64data()->end();
+        payload.mutable_int64payload()->mutable_int64data()->erase(begin + clampedLimit, end);
+    }
+    break;
+    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+    {
+        int64_t payloadSize = payload.doublepayload().doubledata().size();
+        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
-		begin = payload.mutable_doublepayload()->mutable_doubledata()->begin();
-		auto end = payload.mutable_doublepayload()->mutable_doubledata()->end();
-		payload.mutable_doublepayload()->mutable_doubledata()->erase(begin + clampedLimit, end);
-	}
-		break;
-	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
-	{
-		int64_t payloadSize = payload.pointpayload().pointdata().size();
-		int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-		int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+        auto begin = payload.mutable_doublepayload()->mutable_doubledata()->begin();
+        payload.mutable_doublepayload()->mutable_doubledata()->erase(begin, begin + clampedOffset);
 
-		auto begin = payload.mutable_pointpayload()->mutable_pointdata()->begin();
-		payload.mutable_pointpayload()->mutable_pointdata()->erase(begin, begin + clampedOffset);
+        begin = payload.mutable_doublepayload()->mutable_doubledata()->begin();
+        auto end = payload.mutable_doublepayload()->mutable_doubledata()->end();
+        payload.mutable_doublepayload()->mutable_doubledata()->erase(begin + clampedLimit, end);
+    }
+    break;
+    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+    {
+        int64_t payloadSize = payload.pointpayload().pointdata().size();
+        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
-		begin = payload.mutable_pointpayload()->mutable_pointdata()->begin();
-		auto end = payload.mutable_pointpayload()->mutable_pointdata()->end();
-		payload.mutable_pointpayload()->mutable_pointdata()->erase(begin + clampedLimit, end);
-	}
-		break;
-	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
-	{
-		int64_t payloadSize = payload.polygonpayload().polygondata().size();
-		int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-		int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+        auto begin = payload.mutable_pointpayload()->mutable_pointdata()->begin();
+        payload.mutable_pointpayload()->mutable_pointdata()->erase(begin, begin + clampedOffset);
 
-		auto begin = payload.mutable_polygonpayload()->mutable_polygondata()->begin();
-		payload.mutable_polygonpayload()->mutable_polygondata()->erase(begin, begin + clampedOffset);
+        begin = payload.mutable_pointpayload()->mutable_pointdata()->begin();
+        auto end = payload.mutable_pointpayload()->mutable_pointdata()->end();
+        payload.mutable_pointpayload()->mutable_pointdata()->erase(begin + clampedLimit, end);
+    }
+    break;
+    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+    {
+        int64_t payloadSize = payload.polygonpayload().polygondata().size();
+        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
-		begin = payload.mutable_polygonpayload()->mutable_polygondata()->begin();
-		auto end = payload.mutable_polygonpayload()->mutable_polygondata()->end();
-		payload.mutable_polygonpayload()->mutable_polygondata()->erase(begin + clampedLimit, end);
-	}
-		break;
-	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
-	{
-		int64_t payloadSize = payload.stringpayload().stringdata().size();
-		int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-		int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
-		
-		auto begin = payload.mutable_stringpayload()->mutable_stringdata()->begin();
-		payload.mutable_stringpayload()->mutable_stringdata()->erase(begin, begin + clampedOffset);
+        auto begin = payload.mutable_polygonpayload()->mutable_polygondata()->begin();
+        payload.mutable_polygonpayload()->mutable_polygondata()->erase(begin, begin + clampedOffset);
 
-		begin = payload.mutable_stringpayload()->mutable_stringdata()->begin();
-		auto end = payload.mutable_stringpayload()->mutable_stringdata()->end();
-		payload.mutable_stringpayload()->mutable_stringdata()->erase(begin + clampedLimit, end);
-	}
-		break;	
-	case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::PAYLOAD_NOT_SET:
-		break;
-	}
+        begin = payload.mutable_polygonpayload()->mutable_polygondata()->begin();
+        auto end = payload.mutable_polygonpayload()->mutable_polygondata()->end();
+        payload.mutable_polygonpayload()->mutable_polygondata()->erase(begin + clampedLimit, end);
+    }
+    break;
+    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+    {
+        int64_t payloadSize = payload.stringpayload().stringdata().size();
+        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+
+        auto begin = payload.mutable_stringpayload()->mutable_stringdata()->begin();
+        payload.mutable_stringpayload()->mutable_stringdata()->erase(begin, begin + clampedOffset);
+
+        begin = payload.mutable_stringpayload()->mutable_stringdata()->begin();
+        auto end = payload.mutable_stringpayload()->mutable_stringdata()->end();
+        payload.mutable_stringpayload()->mutable_stringdata()->erase(begin + clampedLimit, end);
+    }
+    break;
+    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::PAYLOAD_NOT_SET:
+        break;
+    }
 }
 
-bool GpuSqlCustomParser::containsAggregation(GpuSqlParser::SelectColumnContext * ctx)
+bool GpuSqlCustomParser::containsAggregation(GpuSqlParser::SelectColumnContext* ctx)
 {
-	antlr4::tree::ParseTreeWalker walker;
+    antlr4::tree::ParseTreeWalker walker;
 
-	class : public GpuSqlParserBaseListener {
-	public:
-		bool containsAggregation = false;
-	private:
-		void exitAggregation(GpuSqlParser::AggregationContext *ctx) override 
-		{
-			containsAggregation = true;
-		}
+    class : public GpuSqlParserBaseListener
+    {
+    public:
+        bool containsAggregation = false;
 
-	} findAggListener;
+    private:
+        void exitAggregation(GpuSqlParser::AggregationContext* ctx) override
+        {
+            containsAggregation = true;
+        }
 
-	walker.walk(&findAggListener, ctx);
+    } findAggListener;
 
-	return findAggListener.containsAggregation;
+    walker.walk(&findAggListener, ctx);
+
+    return findAggListener.containsAggregation;
 }

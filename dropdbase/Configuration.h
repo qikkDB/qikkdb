@@ -7,111 +7,129 @@
 class Configuration
 {
 public:
-	static Configuration& GetInstance()
-	{
-		static Configuration instance;
-		return instance;
-	}
+    static Configuration& GetInstance()
+    {
+        static Configuration instance;
+        return instance;
+    }
 
 private:
-	Configuration() {
-		this->LoadConfigurationFile();
-	}
-	
-	// parsed YAML file
-	YAML::Node yamlParsed_;
+    Configuration()
+    {
+        this->LoadConfigurationFile();
+    }
 
-	// Config and default config file
-	std::string configurationFile = "../configuration/main_config";
-	std::string configurationFileDefault = configurationFile + ".default";
-	
-	// Configuration values (if even default config does not exists)
-	bool usingGPU_ = true;
-	bool usingCompression_ = true;
-	std::string dir_ = "./";
-	std::string databaseDir_ = "../databases/";
-	int blockSize_ = 1024;
-	int blockCount_ = 1024;
-	int groupByBuckets_ = 65536;
-	std::string listenIP_ = "127.0.0.1";
-	short listenPort_ = 12345;
-	int timeout_ = 5000;
-	int GPUCachePercent_ = 73;
+    // parsed YAML file
+    YAML::Node yamlParsed_;
 
-	void LoadConfigurationFile();
+    // Config and default config file
+    std::string configurationFile = "../configuration/main_config";
+    std::string configurationFileDefault = configurationFile + ".default";
 
-	/// <summary>
-	/// Sets the configuration value of type T by entry key in YAML file
-	/// </summary>
-	/// <param name="entryKey">Entry key in YAML file</param>
-	/// <param name="value">Configuration value which is set</param>
-	template <class T>
-	void SetupConfigurationValue(const char* entryKey, T& configurationValue)
-	{
-		if (yamlParsed_[entryKey]) {
-			try {
-				configurationValue = yamlParsed_[entryKey].as<T>();
-				//BOOST_LOG_TRIVIAL(info) << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
-				std::cout << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
-			}
-			catch (YAML::TypedBadConversion<T>&) {
-				//BOOST_LOG_TRIVIAL(warning) << "Configuration entry wrong conversion, using default value." << std::endl;
-				std::cerr << "Configuration entry (" << entryKey << ") has a wrong conversion, using default value." << std::endl;
-			}			
-		}
-		else {
-            //BOOST_LOG_TRIVIAL(warning) << "Configuration entry not found, using default value." << std::endl;
-			std::cerr << "Configuration entry (" << entryKey << ") not found, using default value." << std::endl;
-		}
-	}
+    // Configuration values (if even default config does not exists)
+    bool usingGPU_ = true;
+    bool usingCompression_ = true;
+    std::string dir_ = "./";
+    std::string databaseDir_ = "../databases/";
+    int blockSize_ = 1024;
+    int blockCount_ = 1024;
+    int groupByBuckets_ = 65536;
+    std::string listenIP_ = "127.0.0.1";
+    short listenPort_ = 12345;
+    int timeout_ = 5000;
+    int GPUCachePercent_ = 73;
+
+    void LoadConfigurationFile();
+
+    /// <summary>
+    /// Sets the configuration value of type T by entry key in YAML file
+    /// </summary>
+    /// <param name="entryKey">Entry key in YAML file</param>
+    /// <param name="value">Configuration value which is set</param>
+    template <class T>
+    void SetupConfigurationValue(const char* entryKey, T& configurationValue)
+    {
+        if (yamlParsed_[entryKey])
+        {
+            try
+            {
+                configurationValue = yamlParsed_[entryKey].as<T>();
+                // BOOST_LOG_TRIVIAL(info) << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
+                std::cout << "Configuration entry loaded. " << entryKey << ": "
+                          << configurationValue << std::endl;
+            }
+            catch (YAML::TypedBadConversion<T>&)
+            {
+                // BOOST_LOG_TRIVIAL(warning) << "Configuration entry wrong conversion, using default value." << std::endl;
+                std::cerr << "Configuration entry (" << entryKey
+                          << ") has a wrong conversion, using default value." << std::endl;
+            }
+        }
+        else
+        {
+            // BOOST_LOG_TRIVIAL(warning) << "Configuration entry not found, using default value." << std::endl;
+            std::cerr << "Configuration entry (" << entryKey << ") not found, using default value."
+                      << std::endl;
+        }
+    }
 
 public:
-	Configuration(Configuration const&) = delete;
-	void operator=(Configuration const&) = delete;
-	
-	bool IsUsingGPU() const {
-		return usingGPU_;
-	}
+    Configuration(Configuration const&) = delete;
+    void operator=(Configuration const&) = delete;
 
-	bool IsUsingCompression() const {
-		return usingCompression_;
-	}
-	
-	const std::string & GetDir() const {
+    bool IsUsingGPU() const
+    {
+        return usingGPU_;
+    }
 
-		return dir_;
-	}
+    bool IsUsingCompression() const
+    {
+        return usingCompression_;
+    }
 
-	const std::string & GetDatabaseDir() const {
-		return databaseDir_;
-	}
+    const std::string& GetDir() const
+    {
 
-	int GetBlockSize() const {
-		return blockSize_;
-	}
+        return dir_;
+    }
 
-	int GetBlockCount() const {
-		return blockCount_;
-	}
+    const std::string& GetDatabaseDir() const
+    {
+        return databaseDir_;
+    }
 
-	int GetGroupByBuckets() const {
-		return groupByBuckets_;
-	}
+    int GetBlockSize() const
+    {
+        return blockSize_;
+    }
 
-	const std::string & GetListenIP() {
-		return listenIP_;
-	}
+    int GetBlockCount() const
+    {
+        return blockCount_;
+    }
 
-	short GetListenPort() const {
-		return listenPort_;
-	}
+    int GetGroupByBuckets() const
+    {
+        return groupByBuckets_;
+    }
 
-	int GetTimeout() const {
-		return timeout_;
-	}
+    const std::string& GetListenIP()
+    {
+        return listenIP_;
+    }
 
-	int GetGPUCachePercentage() const
-	{
-		return GPUCachePercent_;
-	}
+    short GetListenPort() const
+    {
+        return listenPort_;
+    }
+
+    int GetTimeout() const
+    {
+        return timeout_;
+    }
+
+    int GetGPUCachePercentage() const
+    {
+        return GPUCachePercent_;
+    }
 };

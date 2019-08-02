@@ -51,11 +51,11 @@ private:
             throw std::invalid_argument("INFO: Unable to get device count");
         }
 
-        // DANGER     DANGER     DANGER     DANGER      DANGER      DANGER 
+        // DANGER     DANGER     DANGER     DANGER      DANGER      DANGER
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        /////////////////////// DEADLY DEADLY DEADLY /////////////////////// 
-        //deviceCount_ = 1;
-        /////////////////////// DEADLY DEADLY DEADLY /////////////////////// 
+        /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
+        // deviceCount_ = 1;
+        /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
 
         printf("INFO: Found %d CUDA devices\n", deviceCount_);
         const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
@@ -168,7 +168,7 @@ public:
 
     /// Get the currently bound device to the context
     /// <returns>the bound device ID</returns>
-     int32_t getBoundDeviceID() const
+    int32_t getBoundDeviceID() const
     {
         int boundDeviceID = -1;
         cudaGetDevice(&boundDeviceID);
@@ -183,15 +183,15 @@ public:
     }
 
     /// Query info about devices and rebinding devices to the context
-    /// <returns>Returns a vector of structures of type cudaDeviceProp, the device properties obtainable from
-	/// this structre are documented in the CUDA documentation</returns>
+    /// <returns>Returns a vector of structures of type cudaDeviceProp, the device properties
+    /// obtainable from this structre are documented in the CUDA documentation</returns>
     const std::vector<cudaDeviceProp>& getDevicesMetaInfoList() const
     {
         return devicesMetaInfoList_;
     }
 
     /// Bind device to the context if neccessary, if the given id is out of range,
-	/// the default device is bound
+    /// the default device is bound
     /// <param name="deviceID">the ID of the device to be bound</param>
     void bindDeviceToContext(int32_t deviceID)
     {
@@ -220,7 +220,7 @@ public:
         return *gpuAllocators_.at(deviceID);
     }
 
-	/// Obtain the memory allocator for the currently bound device
+    /// Obtain the memory allocator for the currently bound device
     /// <returns>the memory allocator for memory operations on the current device</returns>
     CudaMemAllocator& GetAllocatorForCurrentDevice()
     {
@@ -241,7 +241,7 @@ public:
         return *gpuCaches_.at(deviceID);
     }
 
-	/// Obtain the cache for the currently bound device
+    /// Obtain the cache for the currently bound device
     /// <returns>the cache on the current device</returns>
     GPUMemoryCache& getCacheForCurrentDevice()
     {

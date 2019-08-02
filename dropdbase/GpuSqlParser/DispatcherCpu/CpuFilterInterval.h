@@ -2,7 +2,7 @@
 
 enum class CpuFilterInterval
 {
-	INNER = 0,
-	OUTER = 1,
-	NONE = 2
+    INNER = 0,
+    OUTER = 1,
+    NONE = 2
 };

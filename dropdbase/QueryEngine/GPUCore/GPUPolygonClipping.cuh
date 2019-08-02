@@ -56,8 +56,8 @@ struct PolygonNodeDLL
 
 /// A kernel for counting the number of vertices that a complex polygon has
 __global__ void kernel_calculate_point_count_in_complex_polygon(int32_t* pointCounts,
-	GPUMemory::GPUPolygon complexPolygon,
-	int32_t dataElementCount);
+                                                                GPUMemory::GPUPolygon complexPolygon,
+                                                                int32_t dataElementCount);
 
 /// The kernel for operations on polygons
 /// <param name="complexPolygonOut"> The resulting complex polygon list uncompressed</param>
@@ -930,7 +930,7 @@ public:
         GPUMemory::copyDeviceToHost(complexPolygonCntRes, polygonOut.polyCount, dataElementCount);
         GPUMemory::copyDeviceToHost(polygonIdxRes, polygonOut.pointIdx, complexPolygonOutCount);
         GPUMemory::copyDeviceToHost(polygonCntRes, polygonOut.pointCount, complexPolygonOutCount);
-        
+
 
         printf("\n\nVertices\n");
         for (int s = 0; s < pointOutCount; s++)

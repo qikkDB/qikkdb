@@ -23,15 +23,16 @@
 /// If polygon count is equal to 1, the polygon is checked against every point.
 /// If point count is equal to polygon count, points are checked one to one against polygons on the same array index.
 /// </remarks>
-__global__ void
-kernel_point_in_polygon(int8_t* outMask, GPUMemory::GPUPolygon polygonCol, int32_t polygonCount,
-	NativeGeoPoint* geoPointCol, int32_t pointCount)
+__global__ void kernel_point_in_polygon(int8_t* outMask,
+                                        GPUMemory::GPUPolygon polygonCol,
+                                        int32_t polygonCount,
+                                        NativeGeoPoint* geoPointCol,
+                                        int32_t pointCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
-    for (int32_t i = idx;
-         i < (pointCount > polygonCount ? pointCount : polygonCount); i += stride)
+    for (int32_t i = idx; i < (pointCount > polygonCount ? pointCount : polygonCount); i += stride)
     {
         NativeGeoPoint point;
 
@@ -86,27 +87,29 @@ public:
     /// <param name="outMask">pointer to output mask</param>
     /// <param name="polygonCol">A structure to represent a complex polygon column</param>
     /// <param name="geoPointCol">points to check for inclusion</param>
-	/// <param name="pointCount">Length of geoPointCol</param>
+    /// <param name="pointCount">Length of geoPointCol</param>
     /// <returns>return code tells if operation was successful (GPU_EXTENSION_SUCCESS) or some error
     /// occured (GPU_EXTENSION_ERROR)</returns> <remarks>If point count is equal to 1, the point is
     /// checked against every polygon. If polygon count is equal to 1, the polygon is checked
     /// against every point. If point count is equal to polygon count, points are checked one to one
     /// against polygons on the same array index.
     /// </remarks>
-    static void contains(int8_t* outMask, GPUMemory::GPUPolygon polygonCol, int32_t polygonCount,
-		NativeGeoPoint* geoPointCol, int32_t pointCount)
+    static void
+    contains(int8_t* outMask, GPUMemory::GPUPolygon polygonCol, int32_t polygonCount, NativeGeoPoint* geoPointCol, int32_t pointCount)
     {
         Context& context = Context::getInstance();
 
         if (pointCount != polygonCount && pointCount != 1 && polygonCount != 1)
         {
-            CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR, "PointCount=" + std::to_string(pointCount) +
-				", PolygonCount=" + std::to_string(polygonCount) + ": not allowed combination");
+            CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR,
+                                  "PointCount=" + std::to_string(pointCount) + ", PolygonCount=" +
+                                      std::to_string(polygonCount) + ": not allowed combination");
             return;
         }
 
         kernel_point_in_polygon<<<context.calcGridDim((pointCount > polygonCount ? pointCount : polygonCount)),
-                                  context.getBlockDim()>>>(outMask, polygonCol, polygonCount, geoPointCol, pointCount);
+                                  context.getBlockDim()>>>(outMask, polygonCol, polygonCount,
+                                                           geoPointCol, pointCount);
 
         CheckCudaError(cudaGetLastError());
     }
@@ -126,12 +129,12 @@ public:
     {
         Context& context = Context::getInstance();
 
-        kernel_point_in_polygon << <context.calcGridDim(1), context.getBlockDim()>>>
-            (outMask, polygonCol, 1, geoPointCol, 1);
-		int8_t result;
-		GPUMemory::copyDeviceToHost(&result, outMask, 1);
-		GPUMemory::memset(outMask, result, retSize);
+        kernel_point_in_polygon<<<context.calcGridDim(1), context.getBlockDim()>>>(outMask, polygonCol,
+                                                                                   1, geoPointCol, 1);
+        int8_t result;
+        GPUMemory::copyDeviceToHost(&result, outMask, 1);
+        GPUMemory::memset(outMask, result, retSize);
 
-		CheckCudaError(cudaGetLastError());
+        CheckCudaError(cudaGetLastError());
     }
 };
