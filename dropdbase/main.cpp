@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 			BOOST_LOG_TRIVIAL(info) << "Importing databases for testing has started (3 databases will be loaded)...";
 
 			CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
-			const std::string tableName = "GeoPoint";
+			std::string tableName = "GeoPoint";
 			csvDataImporter1.SetTableName(tableName);
 			std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 131072);
 			Database::AddToInMemoryDatabaseList(database1);
