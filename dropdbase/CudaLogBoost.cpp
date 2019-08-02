@@ -20,6 +20,9 @@ CudaLogBoost & CudaLogBoost::operator<<(const std::string & text)
 	case error:
 		BOOST_LOG_TRIVIAL(error) << text;
 		break;
+	case fatal:
+		BOOST_LOG_TRIVIAL(fatal) << text;
+		break;
 	default:
 		BOOST_LOG_TRIVIAL(info) << text;
 		break;

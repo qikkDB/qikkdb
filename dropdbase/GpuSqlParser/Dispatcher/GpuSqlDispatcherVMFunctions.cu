@@ -26,7 +26,7 @@ int32_t GpuSqlDispatcher::loadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 {
 	if (allocatedPointers.find(colName + "_polyPoints") == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
 	{
-		CudaLogBoost::getInstance(CudaLogBoost::Severity::info) << "Loaded Column: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name();
+		CudaLogBoost::getInstance(CudaLogBoost::info) << "Loaded Column: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name();
 		std::cout << "Load: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name() << std::endl;
 
 		std::string table;

@@ -11,6 +11,7 @@ public:
 		info,
 		warning,
 		error,
+		fatal,
 	};
 
 	static CudaLogBoost& getInstance(Severity severity)
@@ -20,6 +21,7 @@ public:
 		static CudaLogBoost instanceInfo(Severity::info);
 		static CudaLogBoost instanceWarning(Severity::warning);
 		static CudaLogBoost instanceError(Severity::error);
+		static CudaLogBoost instanceFatal(Severity::fatal);
 
 		switch (severity)
 		{
@@ -37,6 +39,9 @@ public:
 			break;
 		case error:
 			return instanceError;
+			break;
+		case fatal:
+			return instanceFatal;
 			break;
 		default:
 			return instanceInfo;
