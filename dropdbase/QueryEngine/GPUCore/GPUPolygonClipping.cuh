@@ -67,6 +67,7 @@ __global__ void kernel_calc_LL_buffers_size(int32_t *LLPolygonABufferSizes,
 // Build the linked lists from the polygons
 __global__ void kernel_build_LL(LLPolyVertex *LLPolygonBuffers,
                                 GPUMemory::GPUPolygon polygon,
+                                int32_t *LLPolygonBufferSizesPrefixSum,
                                 int32_t dataElementCount);
 
 // Insert the intersections into the linked lists and cross link the intersections between complex polygons
@@ -74,6 +75,8 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex *LLPol
                                                              LLPolyVertex *LLPolygonBBuffers,
                                                              GPUMemory::GPUPolygon polygonA,
                                                              GPUMemory::GPUPolygon polygonB,
+                                                             int32_t *LLPolygonABufferSizesPrefixSum,
+                                                             int32_t *LLPolygonBBufferSizesPrefixSum,
                                                              int32_t dataElementCount);
 
 
@@ -100,6 +103,25 @@ public:
                                                                                    dataElementCount);
         CheckCudaError(cudaGetLastError());
 
+        // DEBUG
+        std::vector<int32_t> LLPolygonABufferSizesDebug(dataElementCount);
+        std::vector<int32_t> LLPolygonBBufferSizesDebug(dataElementCount);
+
+        GPUMemory::copyDeviceToHost(&LLPolygonABufferSizesDebug[0], LLPolygonABufferSizes.get(), dataElementCount);
+        GPUMemory::copyDeviceToHost(&LLPolygonBBufferSizesDebug[0], LLPolygonBBufferSizes.get(), dataElementCount);
+
+        for(auto &a : LLPolygonABufferSizesDebug)
+        {
+            printf("%d ", a);
+        }
+        printf("\n");
+        for(auto &b : LLPolygonBBufferSizesDebug)
+        {
+            printf("%d ", b);
+        }
+        printf("\n");
+
+
         // Calculate the inclusive prefix sum for the LL buffer sizes counters for adressing purpose
         cuda_ptr<int32_t> LLPolygonABufferSizesPrefixSum(dataElementCount);
         cuda_ptr<int32_t> LLPolygonBBufferSizesPrefixSum(dataElementCount);
@@ -115,9 +137,9 @@ public:
         GPUMemory::copyDeviceToHost(&LLPolygonBBufferSizesTotal, LLPolygonBBufferSizesPrefixSum.get() + dataElementCount - 1, 1);
         
         // DEBUG
-        // std::printf("Sizes A total: %d\n", LLPolygonABufferSizesTotal);
-        // std::printf("Sizes B total: %d\n", LLPolygonBBufferSizesTotal);
-        // std::printf("\n");
+        std::printf("Sizes A total: %d\n", LLPolygonABufferSizesTotal);
+        std::printf("Sizes B total: %d\n", LLPolygonBBufferSizesTotal);
+        std::printf("\n");
 
         // Alloc the linked list buffers for the polygon clipping
         cuda_ptr<LLPolyVertex> LLPolygonABuffers(LLPolygonABufferSizesTotal);
@@ -126,12 +148,18 @@ public:
         // Transform the complex polygons into linked lists
         // A polygon
         kernel_build_LL<<< Context::getInstance().calcGridDim(dataElementCount), 
-                           Context::getInstance().getBlockDim()>>>(LLPolygonABuffers.get(), polygonAin, dataElementCount);
+                           Context::getInstance().getBlockDim()>>>(LLPolygonABuffers.get(), 
+                                                                   polygonAin,
+                                                                   LLPolygonABufferSizesPrefixSum.get(), 
+                                                                   dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         // B polygon
         kernel_build_LL<<< Context::getInstance().calcGridDim(dataElementCount), 
-                           Context::getInstance().getBlockDim()>>>(LLPolygonBBuffers.get(), polygonBin, dataElementCount);
+                           Context::getInstance().getBlockDim()>>>(LLPolygonBBuffers.get(), 
+                                                                   polygonBin, 
+                                                                   LLPolygonBBufferSizesPrefixSum.get(), 
+                                                                   dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         // DEBUG
@@ -158,6 +186,8 @@ public:
                                                                                                 LLPolygonBBuffers.get(),
                                                                                                 polygonAin,
                                                                                                 polygonBin,
+                                                                                                LLPolygonABufferSizesPrefixSum.get(),
+                                                                                                LLPolygonBBufferSizesPrefixSum.get(),
                                                                                                 dataElementCount);
         CheckCudaError(cudaGetLastError());
     }

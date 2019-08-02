@@ -12,12 +12,12 @@
 
 TEST(GPUPolygonClippingTests, PoygonTest)
 {
-	int32_t dataElementCount = 1;
+	int32_t dataElementCount = 2;
 
-	std::vector<int32_t> polyApolyIdx = {3};
-	std::vector<int32_t> polyApointsIdx = {4, 8, 12};
+	std::vector<int32_t> polyApolyIdx = {3, 4};
+	std::vector<int32_t> polyApointsIdx = {4, 8, 12, 15};
 	std::vector<NativeGeoPoint> polyApolyPoints = {
-		{4.5, 4.5},
+		{4.5, 5.5},
 		{6.0, 5.5},
 		{6.0, 4.5},
 		{4.5, 4.5},
@@ -28,11 +28,15 @@ TEST(GPUPolygonClippingTests, PoygonTest)
 		{7.0, 7.0},
 		{3.0, 7.0},
 		{3.0, 3.0},
-		{7.0, 3.0}
+		{7.0, 3.0},
+
+		{0.0, 0.0},
+		{1.0, 0.0},
+		{0.5, 1.0}
 	};
 
 	std::vector<int32_t> polyBpolyIdx = {2, 3};
-	std::vector<int32_t> polyBpointsIdx = {3, 7, 8};
+	std::vector<int32_t> polyBpointsIdx = {3, 7, 11};
 	std::vector<NativeGeoPoint> polyBpolyPoints = {
 		{13.0, 5.5},
 		{13.0, 4.5},
@@ -40,7 +44,12 @@ TEST(GPUPolygonClippingTests, PoygonTest)
 		{4.0, 4.0},
 		{15.0, 4.0},
 		{15.0, 6.0},
-		{4.0, 6.0}
+		{4.0, 6.0},
+
+		{0.0, 0.4},
+		{1.0, 0.4},
+		{1.0, 0.6},
+		{0.0, 0.6}
 	};
 
 	// Alloc the GPU structures
