@@ -8,14 +8,14 @@
 
 
 cuda_error::cuda_error(cudaError_t cudaError)
-    : gpu_error("CUDA Error " + std::to_string(static_cast<int32_t>(cudaError)) + ": " +
-                std::string(cudaGetErrorName(cudaError)))
+: gpu_error("CUDA Error " + std::to_string(static_cast<int32_t>(cudaError)) + ": " +
+            std::string(cudaGetErrorName(cudaError)))
 {
     cudaError_ = cudaError;
 }
 
 query_engine_error::query_engine_error(QueryEngineErrorType queryEngineErrorType, const std::string& message)
-    : gpu_error("GPU Error " + std::to_string(queryEngineErrorType) + (message.size() > 0 ? (": " + message) : ""))
+: gpu_error("GPU Error " + std::to_string(queryEngineErrorType) + (message.size() > 0 ? (": " + message) : ""))
 {
     queryEngineErrorType_ = queryEngineErrorType;
 }
@@ -23,24 +23,25 @@ query_engine_error::query_engine_error(QueryEngineErrorType queryEngineErrorType
 void CheckCudaError(cudaError_t cudaError)
 {
 #ifdef DEBUG
-	cudaDeviceSynchronize();
+    cudaDeviceSynchronize();
 #endif // DEBUG
 
-	if (cudaError != cudaSuccess)
-	{
-		std::cout << "CUDA Error " << cudaError << ": " << cudaGetErrorName(cudaError) << ", backtrace:" << std::endl;
+    if (cudaError != cudaSuccess)
+    {
+        std::cout << "CUDA Error " << cudaError << ": " << cudaGetErrorName(cudaError)
+                  << ", backtrace:" << std::endl;
 #ifndef WIN32
-		void* backtraceArray[25];
+        void* backtraceArray[25];
         int btSize = backtrace(backtraceArray, 25);
-        char** symbols = backtrace_symbols(backtraceArray,btSize);
-        for(int i = 0; i < btSize; i++)
+        char** symbols = backtrace_symbols(backtraceArray, btSize);
+        for (int i = 0; i < btSize; i++)
         {
             std::cout << i << ": " << symbols[i] << std::endl;
         }
         std::cout << "---- backtrace end --------" << std::endl;
 #endif
 #ifdef DEBUG
-		abort();
+        abort();
 #endif
         throw cuda_error(cudaError);
     }
@@ -54,8 +55,8 @@ void CheckQueryEngineError(const QueryEngineErrorType errorType, const std::stri
 #ifndef WIN32
         void* backtraceArray[25];
         int btSize = backtrace(backtraceArray, 25);
-        char** symbols = backtrace_symbols(backtraceArray,btSize);
-        for(int i = 0; i < btSize; i++)
+        char** symbols = backtrace_symbols(backtraceArray, btSize);
+        for (int i = 0; i < btSize; i++)
         {
             std::cout << i << ": " << symbols[i] << std::endl;
         }

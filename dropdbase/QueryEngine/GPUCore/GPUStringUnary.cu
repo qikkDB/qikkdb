@@ -2,12 +2,12 @@
 
 __device__ int64_t GetStringIndex(int64_t* indices, const int64_t i)
 {
-	return (i == 0) ? 0 : indices[i - 1];
+    return (i == 0) ? 0 : indices[i - 1];
 }
 
 __device__ int32_t GetStringLength(int64_t* indices, const int64_t i)
 {
-	return static_cast<int32_t>(indices[i] - GetStringIndex(indices, i));
+    return static_cast<int32_t>(indices[i] - GetStringIndex(indices, i));
 }
 
 __global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GPUString inCol, int32_t stringCount)

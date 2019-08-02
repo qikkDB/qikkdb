@@ -14,7 +14,8 @@
 /// < param name="GPU_NOT_FOUND_ERROR"> Return code for no detected GPU</param>
 /// < param name="GPU_MEMORY_MAPPING_NOT_SUPPORTED_ERROR"> Return code for no memory mapping</param>
 /// < param name="GPU_DRIVER_NOT_FOUND_EXCEPTION"> Return code for not found nvidia driver</param>
-enum QueryEngineErrorType {
+enum QueryEngineErrorType
+{
     GPU_EXTENSION_SUCCESS = 0,
     GPU_EXTENSION_ERROR,
     GPU_DIVISION_BY_ZERO_ERROR,

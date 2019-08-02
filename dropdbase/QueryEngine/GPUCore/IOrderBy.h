@@ -3,8 +3,12 @@
 class IOrderBy
 {
 protected:
-	IOrderBy() {}
+    IOrderBy()
+    {
+    }
 
 public:
-	virtual ~IOrderBy() {}
+    virtual ~IOrderBy()
+    {
+    }
 };

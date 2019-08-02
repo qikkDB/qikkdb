@@ -4,6 +4,5 @@
 /// </summary>
 struct NativeGeoPoint
 {
-	float latitude, longitude;
+    float latitude, longitude;
 };
-

@@ -80,198 +80,198 @@ __global__ void kernel_reverse_string(GPUMemory::GPUString outCol, GPUMemory::GP
 /// Hierarchy: Length Variabilities -> Operations
 namespace StringUnaryOpHierarchy
 {
-    /// Namespace for variable length unary operations
-    namespace VariableLength
+/// Namespace for variable length unary operations
+namespace VariableLength
+{
+struct ltrim
+{
+    __device__ static int32_t GetStringIndex(int32_t j, int32_t length)
     {
-        struct ltrim
-        {
-            __device__ static int32_t GetStringIndex(int32_t j, int32_t length)
-            {
-                return j; // normal order of finding spaces
-            }
-        
-            __device__ static int32_t GetOffset(int32_t inLength, int32_t outLength)
-            {
-                return inLength - outLength; // offset on string start
-            }
-        };
-        
-        struct rtrim
-        {
-            __device__ static int32_t GetStringIndex(int32_t j, int32_t length)
-            {
-                return length - 1 - j; // reverse order of finding spaces
-            }
-        
-            __device__ static int32_t GetOffset(int32_t inLength, int32_t outLength)
-            {
-                return 0; // no offset on string start
-            }
-        };
-    } // namespace VariableLength
-    
-    /// Namespace for fixed length unary operations (per-char unary operations)
-    namespace FixedLength
+        return j; // normal order of finding spaces
+    }
+
+    __device__ static int32_t GetOffset(int32_t inLength, int32_t outLength)
     {
-        struct lower
-        {
-            __device__ char operator()(char c) const
-            {
-                return (c >= 'A' && c <= 'Z') ? (c | 0x20) : c;
-            }
-        };
-        
-        struct upper
-        {
-            __device__ char operator()(char c) const
-            {
-                return (c >= 'a' && c <= 'z') ? (c & 0xDF) : c;
-            }
-        };
-        
-        struct reverse
-        {
-            // no function needed
-        };
-        
-    } // namespace FixedLength
-    
-    /// String unary operations with variable length (could change string length)
-    struct variable
+        return inLength - outLength; // offset on string start
+    }
+};
+
+struct rtrim
+{
+    __device__ static int32_t GetStringIndex(int32_t j, int32_t length)
     {
-        template <typename OP>
-        GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
-        {
-            GPUMemory::GPUString outCol;
-            if (stringCount > 0)
-            {
-                Context& context = Context::getInstance();
-                // Predict new lengths
-                cuda_ptr<int32_t> newLengths(stringCount);
-                kernel_predict_length_xtrim<OP>
-                    <<<context.calcGridDim(stringCount), context.getBlockDim()>>>(newLengths.get(), input, stringCount);
-    
-                // Calculate new indices
-                GPUMemory::alloc(&(outCol.stringIndices), stringCount);
-                GPUReconstruct::PrefixSum(outCol.stringIndices, newLengths.get(), stringCount);
-    
-                // Do the xtrim ('x' will be l or r) by copying chars
-                int64_t newTotalCharCount;
-                GPUMemory::copyDeviceToHost(&newTotalCharCount, outCol.stringIndices + stringCount - 1, 1);
-                GPUMemory::alloc(&(outCol.allChars), newTotalCharCount);
-                kernel_string_xtrim<OP>
-                    <<<context.calcGridDim(stringCount), context.getBlockDim()>>>(outCol, input, stringCount);
-                CheckCudaError(cudaGetLastError());
-            }
-            else
-            {
-                outCol.stringIndices = nullptr;
-                outCol.allChars = nullptr;
-            }
-            return outCol;
-        }
-    };
-    
-    /// String unary operations with fixed length (not changes string length)
-    struct fixed
+        return length - 1 - j; // reverse order of finding spaces
+    }
+
+    __device__ static int32_t GetOffset(int32_t inLength, int32_t outLength)
     {
-        template <typename OP>
-        static void
-        CallKernel(GPUMemory::GPUString outCol, GPUMemory::GPUString input, int32_t stringCount, int64_t totalCharCount)
+        return 0; // no offset on string start
+    }
+};
+} // namespace VariableLength
+
+/// Namespace for fixed length unary operations (per-char unary operations)
+namespace FixedLength
+{
+struct lower
+{
+    __device__ char operator()(char c) const
+    {
+        return (c >= 'A' && c <= 'Z') ? (c | 0x20) : c;
+    }
+};
+
+struct upper
+{
+    __device__ char operator()(char c) const
+    {
+        return (c >= 'a' && c <= 'z') ? (c & 0xDF) : c;
+    }
+};
+
+struct reverse
+{
+    // no function needed
+};
+
+} // namespace FixedLength
+
+/// String unary operations with variable length (could change string length)
+struct variable
+{
+    template <typename OP>
+    GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
+    {
+        GPUMemory::GPUString outCol;
+        if (stringCount > 0)
         {
             Context& context = Context::getInstance();
-            kernel_per_char_unary<OP>
-                <<<context.calcGridDim(totalCharCount), context.getBlockDim()>>>(outCol.allChars, input.allChars,
-                                                                                 totalCharCount);
+            // Predict new lengths
+            cuda_ptr<int32_t> newLengths(stringCount);
+            kernel_predict_length_xtrim<OP>
+                <<<context.calcGridDim(stringCount), context.getBlockDim()>>>(newLengths.get(), input, stringCount);
+
+            // Calculate new indices
+            GPUMemory::alloc(&(outCol.stringIndices), stringCount);
+            GPUReconstruct::PrefixSum(outCol.stringIndices, newLengths.get(), stringCount);
+
+            // Do the xtrim ('x' will be l or r) by copying chars
+            int64_t newTotalCharCount;
+            GPUMemory::copyDeviceToHost(&newTotalCharCount, outCol.stringIndices + stringCount - 1, 1);
+            GPUMemory::alloc(&(outCol.allChars), newTotalCharCount);
+            kernel_string_xtrim<OP>
+                <<<context.calcGridDim(stringCount), context.getBlockDim()>>>(outCol, input, stringCount);
+            CheckCudaError(cudaGetLastError());
         }
-    
-        template <typename OP>
-        GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
+        else
         {
-            GPUMemory::GPUString outCol;
-            if (stringCount > 0)
-            {
-                GPUMemory::alloc(&(outCol.stringIndices), stringCount);
-                GPUMemory::copyDeviceToDevice(outCol.stringIndices, input.stringIndices, stringCount);
-                int64_t totalCharCount;
-                GPUMemory::copyDeviceToHost(&totalCharCount, input.stringIndices + stringCount - 1, 1);
-                GPUMemory::alloc(&(outCol.allChars), totalCharCount);
-                CallKernel<OP>(outCol, input, stringCount, totalCharCount);
-                CheckCudaError(cudaGetLastError());
-            }
-            else
-            {
-                outCol.stringIndices = nullptr;
-                outCol.allChars = nullptr;
-            }
-            return outCol;
+            outCol.stringIndices = nullptr;
+            outCol.allChars = nullptr;
         }
-    };
-    
-    template <>
-    void fixed::CallKernel<StringUnaryOpHierarchy::FixedLength::reverse>(GPUMemory::GPUString outCol,
-                                                                         GPUMemory::GPUString input,
-                                                                         int32_t stringCount,
-                                                                         int64_t totalCharCount);
-    
+        return outCol;
+    }
+};
+
+/// String unary operations with fixed length (not changes string length)
+struct fixed
+{
+    template <typename OP>
+    static void
+    CallKernel(GPUMemory::GPUString outCol, GPUMemory::GPUString input, int32_t stringCount, int64_t totalCharCount)
+    {
+        Context& context = Context::getInstance();
+        kernel_per_char_unary<OP>
+            <<<context.calcGridDim(totalCharCount), context.getBlockDim()>>>(outCol.allChars, input.allChars,
+                                                                             totalCharCount);
+    }
+
+    template <typename OP>
+    GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
+    {
+        GPUMemory::GPUString outCol;
+        if (stringCount > 0)
+        {
+            GPUMemory::alloc(&(outCol.stringIndices), stringCount);
+            GPUMemory::copyDeviceToDevice(outCol.stringIndices, input.stringIndices, stringCount);
+            int64_t totalCharCount;
+            GPUMemory::copyDeviceToHost(&totalCharCount, input.stringIndices + stringCount - 1, 1);
+            GPUMemory::alloc(&(outCol.allChars), totalCharCount);
+            CallKernel<OP>(outCol, input, stringCount, totalCharCount);
+            CheckCudaError(cudaGetLastError());
+        }
+        else
+        {
+            outCol.stringIndices = nullptr;
+            outCol.allChars = nullptr;
+        }
+        return outCol;
+    }
+};
+
+template <>
+void fixed::CallKernel<StringUnaryOpHierarchy::FixedLength::reverse>(GPUMemory::GPUString outCol,
+                                                                     GPUMemory::GPUString input,
+                                                                     int32_t stringCount,
+                                                                     int64_t totalCharCount);
+
 } // namespace StringUnaryOpHierarchy
 
 
 /// Namespace for unary string to string operation generic functors
 namespace StringUnaryOperations
 {
-    struct ltrim
+struct ltrim
+{
+    GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
     {
-        GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
-        {
-            return StringUnaryOpHierarchy::variable{}
-                .template operator()<StringUnaryOpHierarchy::VariableLength::ltrim>(input, stringCount);
-        }
-    };
-    
-    struct rtrim
+        return StringUnaryOpHierarchy::variable{}
+            .template operator()<StringUnaryOpHierarchy::VariableLength::ltrim>(input, stringCount);
+    }
+};
+
+struct rtrim
+{
+    GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
     {
-        GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
-        {
-            return StringUnaryOpHierarchy::variable{}
-                .template operator()<StringUnaryOpHierarchy::VariableLength::rtrim>(input, stringCount);
-        }
-    };
-    
-    struct lower
+        return StringUnaryOpHierarchy::variable{}
+            .template operator()<StringUnaryOpHierarchy::VariableLength::rtrim>(input, stringCount);
+    }
+};
+
+struct lower
+{
+    GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
     {
-        GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
-        {
-            return StringUnaryOpHierarchy::fixed{}.template operator()<StringUnaryOpHierarchy::FixedLength::lower>(input, stringCount);
-        }
-    };
-    
-    struct upper
+        return StringUnaryOpHierarchy::fixed{}.template operator()<StringUnaryOpHierarchy::FixedLength::lower>(input, stringCount);
+    }
+};
+
+struct upper
+{
+    GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
     {
-        GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
-        {
-            return StringUnaryOpHierarchy::fixed{}.template operator()<StringUnaryOpHierarchy::FixedLength::upper>(input, stringCount);
-        }
-    };
-    
-    struct reverse
+        return StringUnaryOpHierarchy::fixed{}.template operator()<StringUnaryOpHierarchy::FixedLength::upper>(input, stringCount);
+    }
+};
+
+struct reverse
+{
+    GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
     {
-        GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
-        {
-            return StringUnaryOpHierarchy::fixed{}.template operator()<StringUnaryOpHierarchy::FixedLength::reverse>(input, stringCount);
-        }
-    };
+        return StringUnaryOpHierarchy::fixed{}.template operator()<StringUnaryOpHierarchy::FixedLength::reverse>(input, stringCount);
+    }
+};
 } // namespace StringUnaryOperations
 
 /// Namespace for unary string to int operation generic functors
 namespace StringUnaryNumericOperations
 {
-    /// Length of string
-    struct len
-    {
-        // no function needed
-    };
-} // namespace StringIntUnaryOperations
+/// Length of string
+struct len
+{
+    // no function needed
+};
+} // namespace StringUnaryNumericOperations
 
 
 /// Class for all string unary operations

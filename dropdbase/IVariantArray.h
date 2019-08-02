@@ -2,10 +2,11 @@
 
 #include "DataType.h"
 
-class IVariantArray {
+class IVariantArray
+{
 public:
-	virtual DataType GetType() const = 0;
-	virtual int64_t GetSize() const = 0;
+    virtual DataType GetType() const = 0;
+    virtual int64_t GetSize() const = 0;
 
-	virtual ~IVariantArray() {};
+    virtual ~IVariantArray(){};
 };

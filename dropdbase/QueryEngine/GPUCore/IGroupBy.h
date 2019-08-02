@@ -4,8 +4,12 @@
 class IGroupBy
 {
 protected:
-	IGroupBy() {}
+    IGroupBy()
+    {
+    }
 
 public:
-	virtual ~IGroupBy() {}
+    virtual ~IGroupBy()
+    {
+    }
 };

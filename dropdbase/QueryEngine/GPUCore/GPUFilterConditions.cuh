@@ -15,7 +15,7 @@ struct greater
         return a > b;
     }
 
-    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const  char* b, int32_t bLength)
+    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const char* b, int32_t bLength)
     {
         return false; // TODO
     }
@@ -31,7 +31,7 @@ struct greaterEqual
         return a >= b;
     }
 
-    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const  char* b, int32_t bLength)
+    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const char* b, int32_t bLength)
     {
         return false; // TODO
     }
@@ -47,7 +47,7 @@ struct less
         return a < b;
     }
 
-    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const  char* b, int32_t bLength)
+    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const char* b, int32_t bLength)
     {
         return false; // TODO
     }
@@ -63,7 +63,7 @@ struct lessEqual
         return a <= b;
     }
 
-    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const  char* b, int32_t bLength)
+    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const char* b, int32_t bLength)
     {
         return false; // TODO
     }
@@ -79,7 +79,7 @@ struct equal
         return a == b;
     }
 
-    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const  char* b, int32_t bLength)
+    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const char* b, int32_t bLength)
     {
         if (aLength != bLength)
         {
@@ -109,7 +109,7 @@ struct notEqual
         return a != b;
     }
 
-    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const  char* b, int32_t bLength)
+    __device__ __host__ bool compareStrings(const char* a, int32_t aLength, const char* b, int32_t bLength)
     {
         if (aLength != bLength)
         {

@@ -9,7 +9,7 @@ template <typename T>
 __device__ __host__ constexpr T GetNullConstant()
 {
     static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
-                    "Unsupported data type (in function GetNullConstant)");
+                  "Unsupported data type (in function GetNullConstant)");
 
     if (std::is_integral<T>::value)
     {

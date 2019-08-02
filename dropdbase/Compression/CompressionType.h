@@ -1,4 +1,5 @@
-enum CompressionType {
-	NONE = 1,
-	AAFL = 2
+enum CompressionType
+{
+    NONE = 1,
+    AAFL = 2
 };

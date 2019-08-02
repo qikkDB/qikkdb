@@ -2,8 +2,8 @@
 class TCPClientHandler;
 class ClientPoolWorker;
 
-template<class ClientHandler, class Worker>
-class TCPServer; 
+template <class ClientHandler, class Worker>
+class TCPServer;
 
 /// <summary>
 /// Register Handler to Ctrl+C sequence in system.

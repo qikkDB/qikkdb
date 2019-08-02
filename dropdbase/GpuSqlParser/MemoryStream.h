@@ -15,40 +15,39 @@ class MemoryStream
 
 private:
     std::vector<char> buffer;
-	int32_t readOffset;
+    int32_t readOffset;
 
 public:
     MemoryStream()
-	{
-		readOffset = 0;
+    {
+        readOffset = 0;
         buffer.reserve(8192);
     }
 
-	void reset() 
-	{
-		readOffset = 0;
-	}
+    void reset()
+    {
+        readOffset = 0;
+    }
 
-    template<typename T>
+    template <typename T>
     void insert(T value)
     {
-        char *valuePtr = reinterpret_cast<char *>(&value);
+        char* valuePtr = reinterpret_cast<char*>(&value);
         std::copy(valuePtr, valuePtr + sizeof(T), std::back_inserter(buffer));
     }
 
-    template<typename T>
+    template <typename T>
     T read()
     {
-        T value = *reinterpret_cast<T *>(buffer.data() + readOffset);
-		readOffset += sizeof(T);
+        T value = *reinterpret_cast<T*>(buffer.data() + readOffset);
+        readOffset += sizeof(T);
         return value;
     }
-
 };
 
-template<>
-void MemoryStream::insert(const std::string &value);
+template <>
+void MemoryStream::insert(const std::string& value);
 
-template<>
+template <>
 std::string MemoryStream::read();
-#endif //DROPDBASE_INSTAREA_MEMORYSTREAM_H
+#endif // DROPDBASE_INSTAREA_MEMORYSTREAM_H
