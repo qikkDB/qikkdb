@@ -69,7 +69,19 @@ int main(int argc, char **argv)
 	{
 		if (strcmp(argv[1], "-t") == 0)
 		{
-			BOOST_LOG_TRIVIAL(info) << "Importing data has started...";
+			BOOST_LOG_TRIVIAL(info) << "Importing databases for testing has started (3 databases will be loaded)...";
+
+			CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
+			std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 131072);
+			Database::AddToInMemoryDatabaseList(database1);
+			BOOST_LOG_TRIVIAL(info) << "Loading GeoPoint.csv ...";
+			csvDataImporter1.ImportTables(database1);
+
+			CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
+			std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 134217728);
+			Database::AddToInMemoryDatabaseList(database2);
+			BOOST_LOG_TRIVIAL(info) << "Loading TargetLoc1B.csv ...";
+			csvDataImporter2.ImportTables(database2);
 
 			CSVDataImporter csvDataImporter3(R"(../../data/latest-trips-part1.csv)");
 			const std::vector<DataType> types{
@@ -97,21 +109,74 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			// Import CSV file if entered as program argument
-			CSVDataImporter csvDataImporter(argv[1]);
-			////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
-			std::shared_ptr<Database> database = std::make_shared<Database>(argc > 2 ? argv[2] : "TestDb", 1048576);
-			Database::AddToInMemoryDatabaseList(database);
-			BOOST_LOG_TRIVIAL(info) << "Loading CSV from \"" << argv[1] << "\"";
-			std::vector<std::string> sortingColumns;
-			if(argc > 3)
+			if (strcmp(argv[1], "-a") == 0)
 			{
-				for(int32_t i = 3; i < argc; i++)
-				{
-					sortingColumns.push_back(argv[i]);
-				}
+				BOOST_LOG_TRIVIAL(info) << "Importing all databases has started (6 databases will be loaded)...";
+
+				CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
+				std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 131072);
+				Database::AddToInMemoryDatabaseList(database1);
+				BOOST_LOG_TRIVIAL(info) << "Loading GeoPoint.csv ...";
+				csvDataImporter1.ImportTables(database1);
+
+				CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
+				std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 134217728);
+				Database::AddToInMemoryDatabaseList(database2);
+				BOOST_LOG_TRIVIAL(info) << "Loading TargetLoc1B.csv ...";
+				csvDataImporter2.ImportTables(database2);
+
+				CSVDataImporter csvDataImporter3(R"(../../data/latest-trips-part1.csv)");
+				const std::vector<DataType> types{
+					COLUMN_STRING,
+					COLUMN_LONG,
+					COLUMN_LONG,
+					COLUMN_INT,
+					COLUMN_DOUBLE,
+					COLUMN_DOUBLE,
+					COLUMN_INT
+				};
+				const std::string tableName2 = "trips";
+				csvDataImporter3.SetTypes(types);
+				csvDataImporter3.SetTableName(tableName2);
+				std::shared_ptr<Database> database3 = std::make_shared<Database>("TaxiRides", 134217728);
+				Database::AddToInMemoryDatabaseList(database3);
+				BOOST_LOG_TRIVIAL(info) << "Loading latest-trips-part1.csv ...";
+				csvDataImporter3.ImportTables(database3);
+
+				CSVDataImporter csvDataImporter4(R"(../../data/latest-trips-part2.csv)");
+				csvDataImporter4.SetTypes(types);
+				csvDataImporter4.SetTableName(tableName2);
+				BOOST_LOG_TRIVIAL(info) << "Loading latest-trips-part2.csv ...";
+				csvDataImporter4.ImportTables(database3);
+
+				CSVDataImporter csvDataImporter5(R"(../../data/Target.csv)");
+				std::shared_ptr<Database> database5 = std::make_shared<Database>("Target", 2097152);
+				Database::AddToInMemoryDatabaseList(database5);
+				BOOST_LOG_TRIVIAL(info) << "Loading Target.csv ...";
+				csvDataImporter5.ImportTables(database5);
+
+				CSVDataImporter csvDataImporter6(R"(../../data/TargetTraffic.csv)");
+				std::shared_ptr<Database> database6 = std::make_shared<Database>("TargetTraffic", 16777216);
+				Database::AddToInMemoryDatabaseList(database6);
+				BOOST_LOG_TRIVIAL(info) << "Loading TargetTraffic.csv ...";
+				csvDataImporter6.ImportTables(database6);
+
+				CSVDataImporter csvDataImporter7(R"(../../data/D_Cell.csv)");
+				std::shared_ptr<Database> database7 = std::make_shared<Database>("D_Cell", 8192);
+				Database::AddToInMemoryDatabaseList(database7);
+				BOOST_LOG_TRIVIAL(info) << "Loading D_Cell.csv ...";
+				csvDataImporter7.ImportTables(database7);
 			}
-			csvDataImporter.ImportTables(database, sortingColumns);
+			else
+			{
+				// Import CSV file if entered as program argument
+				CSVDataImporter csvDataImporter(argv[1]);
+				////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
+				std::shared_ptr<Database> database = std::make_shared<Database>(argc > 2 ? argv[2] : "TestDb", argc > 3 ? std::stoll(argv[3]) : 1048576);
+				Database::AddToInMemoryDatabaseList(database);
+				BOOST_LOG_TRIVIAL(info) << "Loading CSV from \"" << argv[1] << "\"";
+				csvDataImporter.ImportTables(database);
+			}
 		}
 	}
 	else	// TCP server
