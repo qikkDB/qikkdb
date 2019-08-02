@@ -59,6 +59,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database> &database, st
 	maxRegisterMemory(0), // TODO value from config e.g.
 	groupByTables(groupByTables),
 	dispatcherThreadId(dispatcherThreadId),
+	insideAggregation(false),
 	insideGroupBy(false),
 	usingGroupBy(false),
 	usingOrderBy(false),
@@ -783,6 +784,16 @@ void GpuSqlDispatcher::addGroupByBeginFunction()
 void GpuSqlDispatcher::addGroupByDoneFunction()
 {
     dispatcherFunctions.push_back(groupByDoneFunction);
+}
+
+void GpuSqlDispatcher::addAggregationBeginFunction()
+{
+	dispatcherFunctions.push_back(aggregationBeginFunction);
+}
+
+void GpuSqlDispatcher::addAggregationDoneFunction()
+{
+	dispatcherFunctions.push_back(aggregationDoneFunction);
 }
 
 void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType op3)

@@ -44,7 +44,7 @@ int32_t GpuSqlDispatcher::dateExtractCol()
 			groupByColumns.push_back({ reg, COLUMN_INT });
 		}
 	}
-	else if (isOverallLastBlock || !usingGroupBy || insideGroupBy)
+	else if (isOverallLastBlock || !usingGroupBy || insideGroupBy || insideAggregation)
 	{
 		PointerAllocation column = allocatedPointers.at(colName);
 		int32_t retSize = column.elementCount;

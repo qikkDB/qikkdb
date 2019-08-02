@@ -574,6 +574,7 @@ void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext * ctx)
 	}
 	insideAgg = true;
 	isAggSelectColumn = insideSelectColumn;
+	dispatcher.addAggregationBeginFunction();
 }
 
 /// <summary>
@@ -649,6 +650,8 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext *ctx)
 
 	pushArgument(reg.c_str(), returnDataType);
     pushTempResult(reg, returnDataType);
+
+	dispatcher.addAggregationDoneFunction();
 	insideAgg = false;
 }
 

@@ -24,6 +24,9 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::groupByBeginFunction = &GpuSqlDispatcher::groupByBegin;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::groupByDoneFunction = &GpuSqlDispatcher::groupByDone;
 
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::aggregationBeginFunction = &GpuSqlDispatcher::aggregationBegin;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::aggregationDoneFunction = &GpuSqlDispatcher::aggregationDone;
+
 template<>
 int32_t GpuSqlDispatcher::groupByCol<std::string>()
 {
@@ -68,5 +71,17 @@ int32_t GpuSqlDispatcher::groupByBegin()
 {
 	usingGroupBy = true;
 	insideGroupBy = true;
+	return 0;
+}
+
+int32_t GpuSqlDispatcher::aggregationDone()
+{
+	insideAggregation = false;
+	return 0;
+}
+
+int32_t GpuSqlDispatcher::aggregationBegin()
+{
+	insideAggregation = true;
 	return 0;
 }
