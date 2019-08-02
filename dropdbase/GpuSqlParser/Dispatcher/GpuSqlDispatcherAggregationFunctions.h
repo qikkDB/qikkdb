@@ -359,10 +359,7 @@ int32_t GpuSqlDispatcher::groupByCol()
 
 	if (column.shouldBeFreed)
 	{
-		if (filter_)
-		{
-			GPUMemory::free(reinterpret_cast<void*>(column.gpuPtr));
-		}
+		GPUMemory::free(reinterpret_cast<void*>(column.gpuPtr));
 	}
 	else
 	{
