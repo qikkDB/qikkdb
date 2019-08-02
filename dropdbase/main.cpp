@@ -72,16 +72,12 @@ int main(int argc, char **argv)
 			BOOST_LOG_TRIVIAL(info) << "Importing databases for testing has started (3 databases will be loaded)...";
 
 			CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
-			std::string tableName = "GeoPoint";
-			csvDataImporter1.SetTableName(tableName);
 			std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 131072);
 			Database::AddToInMemoryDatabaseList(database1);
 			BOOST_LOG_TRIVIAL(info) << "Loading GeoPoint.csv ...";
 			csvDataImporter1.ImportTables(database1);
 
 			CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
-			const std::string tableName = "TargetLoc1B";
-			csvDataImporter2.SetTableName(tableName);
 			std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 134217728);
 			Database::AddToInMemoryDatabaseList(database2);
 			BOOST_LOG_TRIVIAL(info) << "Loading TargetLoc1B.csv ...";
@@ -118,8 +114,6 @@ int main(int argc, char **argv)
 				BOOST_LOG_TRIVIAL(info) << "Importing all databases has started (6 databases will be loaded)...";
 
 				CSVDataImporter csvDataImporter1(R"(../../data/GeoPoint.csv)");
-				const std::string tableName = "GeoPoint";
-				csvDataImporter1.SetTableName(tableName);
 				std::shared_ptr<Database> database1 = std::make_shared<Database>("GeoTest", 131072);
 				Database::AddToInMemoryDatabaseList(database1);
 				BOOST_LOG_TRIVIAL(info) << "Loading GeoPoint.csv ...";
@@ -158,24 +152,18 @@ int main(int argc, char **argv)
 				csvDataImporter4.ImportTables(database3);
 
 				CSVDataImporter csvDataImporter5(R"(../../data/Target.csv)");
-				const std::string tableName = "Target";
-				csvDataImporter5.SetTableName(tableName);
 				std::shared_ptr<Database> database5 = std::make_shared<Database>("Target", 2097152);
 				Database::AddToInMemoryDatabaseList(database5);
 				BOOST_LOG_TRIVIAL(info) << "Loading Target.csv ...";
 				csvDataImporter5.ImportTables(database5);
 
 				CSVDataImporter csvDataImporter6(R"(../../data/TargetTraffic.csv)");
-				const std::string tableName = "TargetTraffic";
-				csvDataImporter6.SetTableName(tableName);
 				std::shared_ptr<Database> database6 = std::make_shared<Database>("TargetTraffic", 16777216);
 				Database::AddToInMemoryDatabaseList(database6);
 				BOOST_LOG_TRIVIAL(info) << "Loading TargetTraffic.csv ...";
 				csvDataImporter6.ImportTables(database6);
 
 				CSVDataImporter csvDataImporter7(R"(../../data/D_Cell.csv)");
-				const std::string tableName = "D_Cell";
-				csvDataImporter7.SetTableName(tableName);
 				std::shared_ptr<Database> database7 = std::make_shared<Database>("D_Cell", 8192);
 				Database::AddToInMemoryDatabaseList(database7);
 				BOOST_LOG_TRIVIAL(info) << "Loading D_Cell.csv ...";
