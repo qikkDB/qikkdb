@@ -60,11 +60,13 @@ __device__ bool AreEqualMultiKeys(DataType* keyTypes,
             equals &= (reinterpret_cast<double*>(keysA[t])[indexA] == reinterpret_cast<double*>(keysB[t])[indexB]);
             break;
         case DataType::COLUMN_STRING:
+        {
             GPUMemory::GPUString strColA = *reinterpret_cast<GPUMemory::GPUString*>(keysA[t]);
             GPUMemory::GPUString strColB = *reinterpret_cast<GPUMemory::GPUString*>(keysB[t]);
             equals &= AreEqualStrings(strColA.allChars + GetStringIndex(strColA.stringIndices, indexA), GetStringLength(strColA.stringIndices, indexA),
                 strColB, indexB);
             break;
+        }
         case DataType::COLUMN_INT8_T:
             equals &= (reinterpret_cast<int8_t*>(keysA[t])[indexA] == reinterpret_cast<int8_t*>(keysB[t])[indexB]);
             break;
