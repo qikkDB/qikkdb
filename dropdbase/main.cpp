@@ -120,8 +120,6 @@ int main(int argc, char **argv)
 				csvDataImporter1.ImportTables(database1);
 
 				CSVDataImporter csvDataImporter2(R"(../../data/TargetLoc1B.csv)");
-				const std::string tableName = "TargetLoc1B";
-				csvDataImporter2.SetTableName(tableName);
 				std::shared_ptr<Database> database2 = std::make_shared<Database>("TargetLocator", 134217728);
 				Database::AddToInMemoryDatabaseList(database2);
 				BOOST_LOG_TRIVIAL(info) << "Loading TargetLoc1B.csv ...";
@@ -137,9 +135,9 @@ int main(int argc, char **argv)
 					COLUMN_DOUBLE,
 					COLUMN_INT
 				};
-				const std::string tableName = "trips";
+				const std::string tableName2 = "trips";
 				csvDataImporter3.SetTypes(types);
-				csvDataImporter3.SetTableName(tableName);
+				csvDataImporter3.SetTableName(tableName2);
 				std::shared_ptr<Database> database3 = std::make_shared<Database>("TaxiRides", 134217728);
 				Database::AddToInMemoryDatabaseList(database3);
 				BOOST_LOG_TRIVIAL(info) << "Loading latest-trips-part1.csv ...";
@@ -147,7 +145,7 @@ int main(int argc, char **argv)
 
 				CSVDataImporter csvDataImporter4(R"(../../data/latest-trips-part2.csv)");
 				csvDataImporter4.SetTypes(types);
-				csvDataImporter4.SetTableName(tableName);
+				csvDataImporter4.SetTableName(tableName2);
 				BOOST_LOG_TRIVIAL(info) << "Loading latest-trips-part2.csv ...";
 				csvDataImporter4.ImportTables(database3);
 
