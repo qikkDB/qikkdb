@@ -356,18 +356,18 @@ int32_t GpuSqlDispatcher::groupByCol()
 	int32_t reconstructOutSize;
 	T* reconstructOutReg;
 	GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize, reinterpret_cast<T*>(column.gpuPtr), reinterpret_cast<int8_t*>(filter_), column.elementCount);
+	// TODO add null values to reconstruct
 
-	if (column.shouldBeFreed)
+	if (column.shouldBeFreed)	// should be freed if it is not cached - if it is temp register like "YEAR(col)"
 	{
-		if (filter_)
-		{
-			GPUMemory::free(reinterpret_cast<void*>(column.gpuPtr));
-		}
+		GPUMemory::free(reinterpret_cast<void*>(column.gpuPtr));
 	}
 	else
 	{
-		column.shouldBeFreed = true;
+		column.shouldBeFreed = true;	// enable future free in cleanupGpuPointers
 	}
+
+	// Now rewrite the pointer in the register (correct because the pointer is freed or stored in chache)
 	column.gpuPtr = reinterpret_cast<uintptr_t>(reconstructOutReg);
 	column.elementCount = reconstructOutSize;
 

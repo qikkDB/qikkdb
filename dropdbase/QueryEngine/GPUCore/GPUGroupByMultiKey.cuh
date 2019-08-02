@@ -661,6 +661,10 @@ public:
         }
         else // for count: reconstruct and return keyOccurrences_
         {
+            if (!std::is_same<O, int64_t>::value)
+            {
+                CheckQueryEngineError(GPU_EXTENSION_ERROR, "Output value data type in GROUP BY with COUNT must be int64_t");
+            }
             // reinterpret_cast is needed to solve compilation error
             // not reinterpreting anything here actually, outValues is int64_t** always in this else-branch
             GPUReconstruct::reconstructColKeep(reinterpret_cast<int64_t**>(outValues), outDataElementCount, keyOccurrenceCount_,
