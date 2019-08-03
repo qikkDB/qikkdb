@@ -21,9 +21,11 @@ __device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKe
             hash ^= static_cast<int32_t>(reinterpret_cast<double*>(inKeys[t])[i]);
             break;
         case DataType::COLUMN_STRING:
+            {
             GPUMemory::GPUString strCol = *reinterpret_cast<GPUMemory::GPUString*>(inKeys[t]);
             hash ^= GetHash(strCol.allChars + GetStringIndex(strCol.stringIndices, i),
                             GetStringLength(strCol.stringIndices, i));
+            }
             break;
         case DataType::COLUMN_INT8_T:
             hash ^= static_cast<int32_t>(reinterpret_cast<int8_t*>(inKeys[t])[i]);
