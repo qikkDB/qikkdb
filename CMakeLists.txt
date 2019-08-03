@@ -10,7 +10,7 @@ if(WIN32)
 	add_definitions(-D_WIN32_WINNT=0x601 -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -D_CRT_SECURE_NO_WARNINGS)
 endif(WIN32)
 add_definitions(-DBOOST_ALL_DYN_LINK)
-
+string(APPEND CMAKE_CUDA_FLAGS "-arch sm_60")
 # Find include dirs
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
