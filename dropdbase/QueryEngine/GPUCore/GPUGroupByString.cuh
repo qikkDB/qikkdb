@@ -128,8 +128,10 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                 if (values)
                 {
                     AGG{}(&values[foundIndex], inValues[i]);
-                    // if (inValuesNullMask) - probably not necessary, if sure, delete
-                    valuesNullMaskUncompressed[foundIndex] = 0;
+                    if (valuesNullMaskUncompressed[foundIndex])
+                    {
+                        valuesNullMaskUncompressed[foundIndex] = 0;
+                    }
                 }
                 // Increment occurrence counter
                 if (keyOccurrenceCount)

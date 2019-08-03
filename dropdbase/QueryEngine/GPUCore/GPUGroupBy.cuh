@@ -185,7 +185,10 @@ __global__ void group_by_kernel(K* keys,
                 if (values)
                 {
                     AGG{}(&values[foundIndex], inValues[i]);
+                    if (valuesNullMask[foundIndex])
+                    {
                     valuesNullMask[foundIndex] = 0;
+                }
                 }
                 if (keyOccurrenceCount)
                 {
