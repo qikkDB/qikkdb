@@ -209,25 +209,18 @@ struct sum
         atomicAdd(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&b));
     }
 
-    // Specialized atomicAdd for double
+    // atomicAdd double, for CUDA Arch < 600
     __device__ void operator()(double* a, double b) const
     {
-        double old = *a;
-        double expected;
-        double newValue;
-        if (old >= b)
-        {
-            return;
-        }
-
+        cuUInt64* ptrAsULL = reinterpret_cast<cuUInt64*>(a);
+        cuUInt64 old = *ptrAsULL;
+        cuUInt64 expected;
         do
         {
             expected = old;
-            newValue = *a + b;
-            uint64_t ret = atomicCAS(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&expected),
-                                     *reinterpret_cast<cuUInt64*>(&newValue));
-            old = *(double*)&ret;
-        } while (old != expected && old < b);
+            old = atomicCAS(ptrAsULL, expected, __double_as_longlong(b + __longlong_as_double(expected)));
+            // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+        } while (expected != old);
     }
 
     template <typename OUT, typename IN>
@@ -269,20 +262,18 @@ struct avg
         atomicAdd(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&b));
     }
 
-    // Specialized atomicAdd for double
+    // atomicAdd double, for CUDA Arch < 600
     __device__ void operator()(double* a, double b) const
     {
-        double old = *a;
-        double expected;
-        double newValue;
+        cuUInt64* ptrAsULL = reinterpret_cast<cuUInt64*>(a);
+        cuUInt64 old = *ptrAsULL;
+        cuUInt64 expected;
         do
         {
             expected = old;
-            newValue = expected + b;
-            uint64_t ret = atomicCAS(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&expected),
-                                     *reinterpret_cast<cuUInt64*>(&newValue));
-            old = *(double*)&ret;
-        } while (old != expected);
+            old = atomicCAS(ptrAsULL, expected, __double_as_longlong(b + __longlong_as_double(expected)));
+            // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+        } while (expected != old);
     }
 
     template <typename OUT, typename IN>
