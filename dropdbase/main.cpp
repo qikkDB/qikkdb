@@ -145,7 +145,8 @@ int main(int argc, char** argv)
             {
                 if (strcmp(argv[1], "-s") == 0)
                 {
-                    BOOST_LOG_TRIVIAL(info) << "Importing small subset (300M rows, 7 columns, 1 table) from Taxi Rides database...";
+                    BOOST_LOG_TRIVIAL(info) << "Importing small subset (338M rows, 7 columns, 1 "
+                                               "table) from Taxi Rides database...";
 
                     CSVDataImporter csvDataImporter(R"(../../data/latest-trips-part2.csv)");
                     const std::vector<DataType> types{COLUMN_STRING, COLUMN_LONG,   COLUMN_LONG,
@@ -154,7 +155,7 @@ int main(int argc, char** argv)
                     const std::string tableName = "trips";
                     csvDataImporter.SetTypes(types);
                     csvDataImporter.SetTableName(tableName);
-                    std::shared_ptr<Database> database = std::make_shared<Database>("TaxiRides", 268435456);
+                    std::shared_ptr<Database> database = std::make_shared<Database>("TaxiRides", 169147072);
                     Database::AddToInMemoryDatabaseList(database);
                     BOOST_LOG_TRIVIAL(info) << "Loading latest-trips-part2.csv ...";
                     csvDataImporter.ImportTables(database);
