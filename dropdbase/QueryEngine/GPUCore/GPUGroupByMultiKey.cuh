@@ -13,7 +13,7 @@ struct CPUString
 };
 
 /// Compute hash of multi-key
-__device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKeys, int32_t i);
+__device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKeys, int32_t i, int32_t detlaHash);
 
 /// Chceck for equality of two multi-keys
 __device__ bool
@@ -118,6 +118,7 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
                                           void** inKeys,
                                           V* inValues,
                                           int32_t dataElementCount,
+                                          const int32_t hashCoef,
                                           int32_t* errorFlag)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -126,7 +127,7 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
         // Calculate hash
-        const int32_t hash = abs(GetHash(keyTypes, keysColCount, inKeys, i)) % maxHashCount;
+        const int32_t hash = abs(GetHash(keyTypes, keysColCount, inKeys, i, hashCoef)) % maxHashCount;
 
         int32_t foundIndex = -1;
         for (int32_t j = 0; j < maxHashCount; j++)
@@ -436,10 +437,13 @@ public:
             cuda_ptr<void*> inKeys(keysColCount_);
             GPUMemory::copyHostToDevice(inKeys.get(), inKeysVector.data(), keysColCount_);
 
-            // Run group by kernel (get sourceIndices and aggregate values)
+            // Run group by kernel (get sourceIndices and aggregate values).
+            // Parameter hashCoef is comptued as n-th root of maxHashCount, where n is a number of key columns
             kernel_group_by_multi_key<AGG><<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
-                keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, values_, keyOccurrenceCount_, maxHashCount_,
-                inKeys.get(), inValues, dataElementCount, errorFlagSwapper_.GetFlagPointer());
+                keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, values_, keyOccurrenceCount_,
+                maxHashCount_, inKeys.get(), inValues, dataElementCount,
+                static_cast<int32_t>(powf(maxHashCount_, 1.0f / keysColCount_)),
+                errorFlagSwapper_.GetFlagPointer());
             errorFlagSwapper_.Swap();
 
             cuda_ptr<int32_t*> stringLengthsBuffers(keysColCount_, 0); // alloc pointers and set to nullptr

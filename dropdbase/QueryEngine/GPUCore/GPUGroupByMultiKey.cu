@@ -1,11 +1,11 @@
 #include "GPUGroupByMultiKey.cuh"
 
-
-__device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKeys, int32_t i)
+__device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKeys, int32_t i, const int32_t hashCoef)
 {
     int32_t hash = 0;
     for (int32_t t = 0; t < keysColCount; t++)
     {
+        hash += hashCoef * hash;
         switch (keyTypes[t])
         {
         case DataType::COLUMN_INT:
@@ -41,7 +41,7 @@ __device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKe
 __device__ bool
 AreEqualMultiKeys(DataType* keyTypes, int32_t keysColCount, void** keysA, int32_t indexA, void** keysB, int32_t indexB)
 {
-    bool equals = true;
+    bool equals = true; // todo delete and return instead
     for (int32_t t = 0; t < keysColCount; t++)
     {
         switch (keyTypes[t])
