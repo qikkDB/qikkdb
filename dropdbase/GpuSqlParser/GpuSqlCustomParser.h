@@ -51,5 +51,16 @@ public:
     bool containsAggregation(GpuSqlParser::SelectColumnContext* ctx);
 };
 
+class ThrowErrorListener : public antlr4::BaseErrorListener
+{
+public:
+    void syntaxError(antlr4::Recognizer* recognizer,
+                     antlr4::Token* offendingSymbol,
+                     size_t line,
+                     size_t charPositionInLine,
+                     const std::string& msg,
+                     std::exception_ptr e) override;
+};
+
 
 #endif // DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
