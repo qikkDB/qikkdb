@@ -185,18 +185,61 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex* LLPol
                         // If an intersection is valid, insert it into the linked lists and create a cross reference
                         if (intersection.isValidIntersection)
                         {
+                            int32_t LLPolygonAEndIdxLocal = ((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + LLPolygonAEndIdx;
+                            int32_t LLPolygonBEndIdxLocal = ((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + LLPolygonBEndIdx;
+
                             // Save the intersection data
-                            LLPolygonABuffers[((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + LLPolygonAEndIdx] = intersection;
-                            LLPolygonBBuffers[((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + LLPolygonBEndIdx] = intersection;
+                            LLPolygonABuffers[LLPolygonAEndIdxLocal] = intersection;
+                            LLPolygonBBuffers[LLPolygonBEndIdxLocal] = intersection;
 
                             // Write the cross reference indices
-                            LLPolygonABuffers[((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + LLPolygonAEndIdx].crossIdx = LLPolygonBEndIdx;
-                            LLPolygonBBuffers[((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + LLPolygonBEndIdx].crossIdx = LLPolygonAEndIdx;
+                            LLPolygonABuffers[LLPolygonAEndIdxLocal].crossIdx = LLPolygonBEndIdxLocal;
+                            LLPolygonBBuffers[LLPolygonBEndIdxLocal].crossIdx = LLPolygonAEndIdxLocal;
 
-                            // "Rewire" the prev and next pointers s othat the point is in it's correct place
+                            // "Rewire" the prev and next pointers in both linked lists
+                            // so that the point is in it's correct place
                             // according to the parametric distance from the beginning of the line segment
+                            //////////////////////////////////////////////////////////////////////////////
+                            // First polygon - A
+                            int32_t localIdxA = pointIdxA - GPUMemory::PointIdxAt(polygonA, polyIdxA);
 
-                            // TODO
+                            int32_t begIdxA = ((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + localIdxA + (pointA - pointIdxA) % pointCountA;
+                            int32_t endIdxA = ((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + localIdxA + (pointA - pointIdxA + 1) % pointCountA;
+
+                            int32_t nextIdxA = LLPolygonABuffers[begIdxA].nextIdx;
+                            while(nextIdxA != endIdxA && 
+                                LLPolygonABuffers[LLPolygonAEndIdxLocal].distanceAlongA > LLPolygonABuffers[nextIdxA].distanceAlongA)
+                            {
+                                nextIdxA = LLPolygonABuffers[nextIdxA].nextIdx;
+                            }
+
+                            // Rewire the pointers for the first polygon - A
+                            LLPolygonABuffers[LLPolygonAEndIdxLocal].prevIdx = LLPolygonABuffers[nextIdxA].prevIdx;
+                            LLPolygonABuffers[LLPolygonAEndIdxLocal].nextIdx = nextIdxA;
+
+                            LLPolygonABuffers[LLPolygonABuffers[nextIdxA].prevIdx].nextIdx = LLPolygonAEndIdxLocal;
+                            LLPolygonABuffers[nextIdxA].prevIdx = LLPolygonAEndIdxLocal;
+                            //////////////////////////////////////////////////////////////////////////////
+                            // Second polygon - B
+                            int32_t localIdxB = pointIdxB - GPUMemory::PointIdxAt(polygonB, polyIdxB);
+
+                            int32_t begIdxB = ((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + localIdxB + (pointB - pointIdxB) % pointCountB;
+                            int32_t endIdxB = ((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + localIdxB + (pointB - pointIdxB + 1) % pointCountB;
+
+                            int32_t nextIdxB = LLPolygonBBuffers[begIdxB].nextIdx;
+                            while(nextIdxB != endIdxB && 
+                                LLPolygonBBuffers[LLPolygonBEndIdxLocal].distanceAlongB > LLPolygonBBuffers[nextIdxB].distanceAlongB)
+                            {
+                                nextIdxB = LLPolygonBBuffers[nextIdxB].nextIdx;
+                            }
+
+                            // Rewire the pointers for the second polygon - B
+                            LLPolygonBBuffers[LLPolygonBEndIdxLocal].prevIdx = LLPolygonBBuffers[nextIdxB].prevIdx;
+                            LLPolygonBBuffers[LLPolygonBEndIdxLocal].nextIdx = nextIdxB;
+
+                            LLPolygonBBuffers[LLPolygonBBuffers[nextIdxB].prevIdx].nextIdx = LLPolygonBEndIdxLocal;
+                            LLPolygonBBuffers[nextIdxB].prevIdx = LLPolygonBEndIdxLocal;
+                            //////////////////////////////////////////////////////////////////////////////
 
                             // Increment the LL end pointers
                             LLPolygonAEndIdx++;

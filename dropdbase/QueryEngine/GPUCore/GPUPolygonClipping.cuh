@@ -156,22 +156,22 @@ public:
         CheckCudaError(cudaGetLastError());
 
         // DEBUG
-        std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
-        std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
+        // std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
+        // std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
 
-        GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
-        GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
+        // GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
+        // GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
 
-        for (int32_t i = 0; i < LLa.size(); i++)
-        {
-            printf("%2d: %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx);
-        }
-        printf("\n");
-        for (int32_t i = 0; i < LLb.size(); i++)
-        {
-            printf("%2d: %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx);
-        }
-        printf("\n");
+        // for (int32_t i = 0; i < LLa.size(); i++)
+        // {
+        //     printf("%2d: %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx);
+        // }
+        // printf("\n");
+        // for (int32_t i = 0; i < LLb.size(); i++)
+        // {
+        //     printf("%2d: %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx);
+        // }
+        // printf("\n");
 
         // Insert the intersections into the linked lists and cross link the intersections for intersect/union traversal
         kernel_add_and_crosslink_intersections_to_LL<<<Context::getInstance().calcGridDim(dataElementCount),
@@ -181,21 +181,21 @@ public:
         CheckCudaError(cudaGetLastError());
 
         // DEBUG
-        // std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
-        // std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
+        std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
+        std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
 
-        // GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
-        // GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
+        GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
+        GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
 
-        // for (int32_t i = 0; i < LLa.size(); i++)
-        // {
-        //     printf("%2d: %2d %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx, LLa[i].crossIdx);
-        // }
-        // printf("\n");
-        // for (int32_t i = 0; i < LLb.size(); i++)
-        // {
-        //     printf("%2d: %2d %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx, LLb[i].crossIdx);
-        // }
-        // printf("\n");
+        for (int32_t i = 0; i < LLa.size(); i++)
+        {
+            printf("%2d: %2d %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx, LLa[i].crossIdx);
+        }
+        printf("\n");
+        for (int32_t i = 0; i < LLb.size(); i++)
+        {
+            printf("%2d: %2d %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx, LLb[i].crossIdx);
+        }
+        printf("\n");
     }
 };
