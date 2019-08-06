@@ -1,3 +1,4 @@
+#pragma once
 #include <cmath>
 
 /// Namespace for unary arithmetic operation generic functors

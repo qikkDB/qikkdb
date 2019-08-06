@@ -2,6 +2,7 @@
 
 #include "../CpuSqlDispatcher.h"
 #include "CpuFilterInterval.h"
+#include "QueryEngine/GPUCore/LogicOperations.h"
 #include <tuple>
 
 template <typename OP>
@@ -506,17 +507,28 @@ int32_t CpuSqlDispatcher::LogicalColCol()
                                                std::get<2>(colValLeftMin) || std::get<2>(colValRightMin));
             maskMax = AllocateRegister<int8_t>(reg + "_max", 1,
                                                std::get<2>(colValLeftMax) || std::get<2>(colValRightMax));
+
+            maskMin[0] = OP{}.template operator()<T, U>(reinterpret_cast<T*>(std::get<0>(colValLeftMin))[0],
+                                                    reinterpret_cast<U*>(std::get<0>(colValRightMin))[0]);
+            maskMax[0] = OP{}.template operator()<T, U>(reinterpret_cast<T*>(std::get<0>(colValLeftMax))[0],
+                                                    reinterpret_cast<U*>(std::get<0>(colValRightMax))[0]);
         }
         else
         {
             maskMin = AllocateRegister<int8_t>(reg + "_min", 1, false);
             maskMax = AllocateRegister<int8_t>(reg + "_max", 1, false);
-        }
 
-        maskMin[0] = OP{}.template operator()<T, U>(reinterpret_cast<T*>(std::get<0>(colValLeftMin))[0],
-                                                    reinterpret_cast<U*>(std::get<0>(colValRightMin))[0]);
-        maskMax[0] = OP{}.template operator()<T, U>(reinterpret_cast<T*>(std::get<0>(colValLeftMax))[0],
-                                                    reinterpret_cast<U*>(std::get<0>(colValRightMax))[0]);
+            maskMin[0] = OP{}.template operator()<T, U>(LogicOperations::logicalOr{}.template operator()<T, U>(reinterpret_cast<T*>(std::get<0>(colValLeftMin))[0],
+                                                    reinterpret_cast<U*>(std::get<0>(colValLeftMax))[0]), 
+                                                    LogicOperations::logicalOr{}.template operator()<T, U>
+                                                    (reinterpret_cast<T*>(std::get<0>(colValRightMin))[0],
+                                                    reinterpret_cast<U*>(std::get<0>(colValRightMax))[0]));
+            maskMax[0] = OP{}.template operator()<T, U>(LogicOperations::logicalOr{}.template operator()<T, U>(reinterpret_cast<T*>(std::get<0>(colValLeftMin))[0],
+                                                    reinterpret_cast<U*>(std::get<0>(colValLeftMax))[0]), 
+                                                    LogicOperations::logicalOr{}.template operator()<T, U>
+                                                    (reinterpret_cast<T*>(std::get<0>(colValRightMin))[0],
+                                                    reinterpret_cast<U*>(std::get<0>(colValRightMax))[0]));
+        }
     }
 
     std::cout << "Where evaluation logicalColCol_min: " << colNameLeft << ", " << colNameRight

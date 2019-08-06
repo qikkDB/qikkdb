@@ -1,3 +1,5 @@
+#pragma once
+
 /// Logic relation operation functors
 namespace LogicOperations
 {
