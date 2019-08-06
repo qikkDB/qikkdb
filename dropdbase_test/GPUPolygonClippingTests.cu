@@ -14,8 +14,8 @@ TEST(GPUPolygonClippingTests, PoygonTest)
 {
 	int32_t dataElementCount = 2;
 
-	std::vector<int32_t> polyApolyIdx = {3, 4};
-	std::vector<int32_t> polyApointsIdx = {4, 8, 12, 15};
+	std::vector<int32_t> polyApolyIdx = {3, 5};
+	std::vector<int32_t> polyApointsIdx = {4, 8, 12, 15, 18};
 	std::vector<NativeGeoPoint> polyApolyPoints = {
 		{4.5, 5.5},
 		{6.0, 5.5},
@@ -32,7 +32,11 @@ TEST(GPUPolygonClippingTests, PoygonTest)
 
 		{0.0, 0.0},
 		{1.0, 0.0},
-		{0.5, 1.0}
+		{0.5, 1.0},
+
+		{20.0, 20.0},
+		{30.0, 20.0},
+		{30.5, 30.0}
 	};
 
 	std::vector<int32_t> polyBpolyIdx = {2, 3};

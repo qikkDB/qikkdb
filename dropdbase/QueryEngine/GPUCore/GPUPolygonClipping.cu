@@ -123,7 +123,7 @@ __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                     false,
                     -1.0,
                     -1.0,
-                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point - pointIdx + -1 + pointCount) % pointCount,
+                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point - pointIdx - 1 + pointCount) % pointCount,
                     ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point - pointIdx + 1) % pointCount,
                     -1};
 
