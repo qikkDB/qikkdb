@@ -7,7 +7,7 @@
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::arithmeticUnaryCol()
+int32_t GpuSqlDispatcher::ArithmeticUnaryCol()
 {
     auto colName = arguments.read<std::string>();
     auto reg = arguments.read<std::string>();
@@ -77,7 +77,7 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::arithmeticUnaryConst()
+int32_t GpuSqlDispatcher::ArithmeticUnaryConst()
 {
     T cnst = arguments.read<T>();
     auto reg = arguments.read<std::string>();

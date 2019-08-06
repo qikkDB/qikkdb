@@ -5,7 +5,7 @@
 #include "../QueryEngine/GPUCore/GPUFilterConditions.cuh"
 
 template <typename OP, typename T>
-int32_t GpuSqlJoinDispatcher::joinCol()
+int32_t GpuSqlJoinDispatcher::JoinCol()
 {
     std::string colNameLeft = arguments.read<std::string>();
     std::string colNameRight = arguments.read<std::string>();
@@ -50,7 +50,7 @@ int32_t GpuSqlJoinDispatcher::joinCol()
 }
 
 template <typename OP, typename T>
-int32_t GpuSqlJoinDispatcher::joinConst()
+int32_t GpuSqlJoinDispatcher::JoinConst()
 {
     return 0;
 }

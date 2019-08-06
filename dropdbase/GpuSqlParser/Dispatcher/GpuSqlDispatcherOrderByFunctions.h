@@ -8,7 +8,7 @@
 #include "../../VariantArray.h"
 
 template <typename T>
-int32_t GpuSqlDispatcher::orderByCol()
+int32_t GpuSqlDispatcher::OrderByCol()
 {
     auto colName = arguments.read<std::string>();
     OrderBy::Order order = static_cast<OrderBy::Order>(arguments.read<int32_t>());
@@ -76,13 +76,13 @@ int32_t GpuSqlDispatcher::orderByCol()
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::orderByConst()
+int32_t GpuSqlDispatcher::OrderByConst()
 {
     return 0;
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::orderByReconstructOrderCol()
+int32_t GpuSqlDispatcher::OrderByReconstructOrderCol()
 {
     auto colName = arguments.read<std::string>();
 
@@ -130,13 +130,13 @@ int32_t GpuSqlDispatcher::orderByReconstructOrderCol()
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::orderByReconstructOrderConst()
+int32_t GpuSqlDispatcher::OrderByReconstructOrderConst()
 {
     return 0;
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::orderByReconstructRetCol()
+int32_t GpuSqlDispatcher::OrderByReconstructRetCol()
 {
     auto colName = arguments.read<std::string>();
 
@@ -184,7 +184,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetCol()
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::orderByReconstructRetConst()
+int32_t GpuSqlDispatcher::OrderByReconstructRetConst()
 {
     return 0;
 }

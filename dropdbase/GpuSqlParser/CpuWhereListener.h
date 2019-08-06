@@ -10,40 +10,40 @@
 class CpuWhereListener : public GpuSqlParserBaseListener
 {
 private:
-    const std::shared_ptr<Database>& database;
-    int32_t blockIndex;
-    CpuSqlDispatcher& dispatcher;
-    std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts;
-    std::unordered_map<std::string, std::string> tableAliases;
-    std::unordered_set<std::string> loadedTables;
-    std::unordered_map<std::string, std::string> shortColumnNames;
-    std::stack<std::pair<std::string, DataType>> parserStack;
+    const std::shared_ptr<Database>& database_;
+    int32_t blockIndex_;
+    CpuSqlDispatcher& dispatcher_;
+    std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts_;
+    std::unordered_map<std::string, std::string> tableAliases_;
+    std::unordered_set<std::string> loadedTables_;
+    std::unordered_map<std::string, std::string> shortColumnNames_;
+    std::stack<std::pair<std::string, DataType>> parserStack_;
 
-    void pushArgument(const char* token, DataType dataType);
-    std::pair<std::string, DataType> stackTopAndPop();
-    void stringToUpper(std::string& str);
+    void PushArgument(const char* token, DataType dataType);
+    std::pair<std::string, DataType> StackTopAndPop();
+    void StringToUpper(std::string& str);
 
-    void pushTempResult(std::string reg, DataType type);
+    void PushTempResult(std::string reg, DataType type);
 
-    bool isLong(const std::string& value);
+    bool IsLong(const std::string& value);
 
-    bool isDouble(const std::string& value);
+    bool IsDouble(const std::string& value);
 
-    bool isPoint(const std::string& value);
+    bool IsPoint(const std::string& value);
 
-    bool isPolygon(const std::string& value);
+    bool IsPolygon(const std::string& value);
 
-    void trimDelimitedIdentifier(std::string& str);
+    void TrimDelimitedIdentifier(std::string& str);
 
-    DataType getReturnDataType(DataType left, DataType right);
-    DataType getReturnDataType(DataType operand);
-    DataType getDataTypeFromString(const std::string& dataType);
+    DataType GetReturnDataType(DataType left, DataType right);
+    DataType GetReturnDataType(DataType operand);
+    DataType GetDataTypeFromString(const std::string& dataType);
 
-    void trimReg(std::string& reg);
+    void TrimReg(std::string& reg);
 
-    std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext* ctx);
-    void walkAliasExpression(const std::string& alias);
-    bool insideAlias;
+    std::pair<std::string, DataType> GenerateAndValidateColumnName(GpuSqlParser::ColumnIdContext* ctx);
+    void WalkAliasExpression(const std::string& alias);
+    bool insideAlias_;
 
 public:
     CpuWhereListener(const std::shared_ptr<Database>& database, CpuSqlDispatcher& dispatcher);

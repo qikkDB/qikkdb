@@ -9,7 +9,7 @@
 #include "../../QueryEngine/GPUCore/GPUStringBinary.cuh"
 
 template <typename OP>
-int32_t GpuSqlDispatcher::stringUnaryCol()
+int32_t GpuSqlDispatcher::StringUnaryCol()
 {
     auto colName = arguments.read<std::string>();
     auto reg = arguments.read<std::string>();
@@ -73,7 +73,7 @@ int32_t GpuSqlDispatcher::stringUnaryCol()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::stringUnaryConst()
+int32_t GpuSqlDispatcher::StringUnaryConst()
 {
     std::string cnst = arguments.read<std::string>();
     auto reg = arguments.read<std::string>();
@@ -92,7 +92,7 @@ int32_t GpuSqlDispatcher::stringUnaryConst()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::stringUnaryNumericCol()
+int32_t GpuSqlDispatcher::StringUnaryNumericCol()
 {
     auto colName = arguments.read<std::string>();
     auto reg = arguments.read<std::string>();
@@ -143,7 +143,7 @@ int32_t GpuSqlDispatcher::stringUnaryNumericCol()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::stringUnaryNumericConst()
+int32_t GpuSqlDispatcher::StringUnaryNumericConst()
 {
     std::string cnst = arguments.read<std::string>();
     auto reg = arguments.read<std::string>();
@@ -162,7 +162,7 @@ int32_t GpuSqlDispatcher::stringUnaryNumericConst()
 
 
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::stringBinaryNumericColCol()
+int32_t GpuSqlDispatcher::StringBinaryNumericColCol()
 {
     auto colNameRight = arguments.read<std::string>();
     auto colNameLeft = arguments.read<std::string>();
@@ -274,7 +274,7 @@ int32_t GpuSqlDispatcher::stringBinaryNumericColCol()
 }
 
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::stringBinaryNumericColConst()
+int32_t GpuSqlDispatcher::StringBinaryNumericColConst()
 {
     T cnst = arguments.read<T>();
     auto colName = arguments.read<std::string>();
@@ -339,7 +339,7 @@ int32_t GpuSqlDispatcher::stringBinaryNumericColConst()
 }
 
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::stringBinaryNumericConstCol()
+int32_t GpuSqlDispatcher::StringBinaryNumericConstCol()
 {
     auto colName = arguments.read<std::string>();
     std::string cnst = arguments.read<std::string>();
@@ -406,7 +406,7 @@ int32_t GpuSqlDispatcher::stringBinaryNumericConstCol()
 }
 
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::stringBinaryNumericConstConst()
+int32_t GpuSqlDispatcher::StringBinaryNumericConstConst()
 {
     T cnstRight = arguments.read<T>();
     std::string cnstLeft = arguments.read<std::string>();
@@ -426,7 +426,7 @@ int32_t GpuSqlDispatcher::stringBinaryNumericConstConst()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::stringBinaryColCol()
+int32_t GpuSqlDispatcher::StringBinaryColCol()
 {
     auto colNameRight = arguments.read<std::string>();
     auto colNameLeft = arguments.read<std::string>();
@@ -536,7 +536,7 @@ int32_t GpuSqlDispatcher::stringBinaryColCol()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::stringBinaryColConst()
+int32_t GpuSqlDispatcher::StringBinaryColConst()
 {
     std::string cnst = arguments.read<std::string>();
     auto colName = arguments.read<std::string>();
@@ -603,7 +603,7 @@ int32_t GpuSqlDispatcher::stringBinaryColConst()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::stringBinaryConstCol()
+int32_t GpuSqlDispatcher::StringBinaryConstCol()
 {
     auto colName = arguments.read<std::string>();
     std::string cnst = arguments.read<std::string>();
@@ -670,7 +670,7 @@ int32_t GpuSqlDispatcher::stringBinaryConstCol()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::stringBinaryConstConst()
+int32_t GpuSqlDispatcher::StringBinaryConstConst()
 {
     std::string cnstRight = arguments.read<std::string>();
     std::string cnstLeft = arguments.read<std::string>();

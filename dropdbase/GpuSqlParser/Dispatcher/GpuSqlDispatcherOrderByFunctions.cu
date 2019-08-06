@@ -7,74 +7,74 @@
 #include "../../DataType.h"
 #include "../../VariantArray.h"
 
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::orderByFunctions = {
-    &GpuSqlDispatcher::orderByConst<int32_t>,
-    &GpuSqlDispatcher::orderByConst<int64_t>,
-    &GpuSqlDispatcher::orderByConst<float>,
-    &GpuSqlDispatcher::orderByConst<double>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<std::string>,
-    &GpuSqlDispatcher::orderByConst<int8_t>,
-    &GpuSqlDispatcher::orderByCol<int32_t>,
-    &GpuSqlDispatcher::orderByCol<int64_t>,
-    &GpuSqlDispatcher::orderByCol<float>,
-    &GpuSqlDispatcher::orderByCol<double>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<std::string>,
-    &GpuSqlDispatcher::orderByCol<int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::orderByReconstructOrderFunctions = {
-    &GpuSqlDispatcher::orderByReconstructOrderConst<int32_t>,
-    &GpuSqlDispatcher::orderByReconstructOrderConst<int64_t>,
-    &GpuSqlDispatcher::orderByReconstructOrderConst<float>,
-    &GpuSqlDispatcher::orderByReconstructOrderConst<double>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<std::string>,
-    &GpuSqlDispatcher::orderByReconstructOrderConst<int8_t>,
-    &GpuSqlDispatcher::orderByReconstructOrderCol<int32_t>,
-    &GpuSqlDispatcher::orderByReconstructOrderCol<int64_t>,
-    &GpuSqlDispatcher::orderByReconstructOrderCol<float>,
-    &GpuSqlDispatcher::orderByReconstructOrderCol<double>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<std::string>,
-    &GpuSqlDispatcher::orderByReconstructOrderCol<int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::orderByReconstructRetFunctions = {
-    &GpuSqlDispatcher::orderByReconstructRetConst<int32_t>,
-    &GpuSqlDispatcher::orderByReconstructRetConst<int64_t>,
-    &GpuSqlDispatcher::orderByReconstructRetConst<float>,
-    &GpuSqlDispatcher::orderByReconstructRetConst<double>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerConst<std::string>,
-    &GpuSqlDispatcher::orderByReconstructRetConst<int8_t>,
-    &GpuSqlDispatcher::orderByReconstructRetCol<int32_t>,
-    &GpuSqlDispatcher::orderByReconstructRetCol<int64_t>,
-    &GpuSqlDispatcher::orderByReconstructRetCol<float>,
-    &GpuSqlDispatcher::orderByReconstructRetCol<double>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::invalidOperandTypesErrorHandlerCol<std::string>,
-    &GpuSqlDispatcher::orderByReconstructRetCol<int8_t>};
+std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::orderByFunctions_ = {
+    &GpuSqlDispatcher::OrderByConst<int32_t>,
+    &GpuSqlDispatcher::OrderByConst<int64_t>,
+    &GpuSqlDispatcher::OrderByConst<float>,
+    &GpuSqlDispatcher::OrderByConst<double>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string>,
+    &GpuSqlDispatcher::OrderByConst<int8_t>,
+    &GpuSqlDispatcher::OrderByCol<int32_t>,
+    &GpuSqlDispatcher::OrderByCol<int64_t>,
+    &GpuSqlDispatcher::OrderByCol<float>,
+    &GpuSqlDispatcher::OrderByCol<double>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string>,
+    &GpuSqlDispatcher::OrderByCol<int8_t>};
+std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::orderByReconstructOrderFunctions_ = {
+    &GpuSqlDispatcher::OrderByReconstructOrderConst<int32_t>,
+    &GpuSqlDispatcher::OrderByReconstructOrderConst<int64_t>,
+    &GpuSqlDispatcher::OrderByReconstructOrderConst<float>,
+    &GpuSqlDispatcher::OrderByReconstructOrderConst<double>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string>,
+    &GpuSqlDispatcher::OrderByReconstructOrderConst<int8_t>,
+    &GpuSqlDispatcher::OrderByReconstructOrderCol<int32_t>,
+    &GpuSqlDispatcher::OrderByReconstructOrderCol<int64_t>,
+    &GpuSqlDispatcher::OrderByReconstructOrderCol<float>,
+    &GpuSqlDispatcher::OrderByReconstructOrderCol<double>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string>,
+    &GpuSqlDispatcher::OrderByReconstructOrderCol<int8_t>};
+std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::orderByReconstructRetFunctions_ = {
+    &GpuSqlDispatcher::OrderByReconstructRetConst<int32_t>,
+    &GpuSqlDispatcher::OrderByReconstructRetConst<int64_t>,
+    &GpuSqlDispatcher::OrderByReconstructRetConst<float>,
+    &GpuSqlDispatcher::OrderByReconstructRetConst<double>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string>,
+    &GpuSqlDispatcher::OrderByReconstructRetConst<int8_t>,
+    &GpuSqlDispatcher::OrderByReconstructRetCol<int32_t>,
+    &GpuSqlDispatcher::OrderByReconstructRetCol<int64_t>,
+    &GpuSqlDispatcher::OrderByReconstructRetCol<float>,
+    &GpuSqlDispatcher::OrderByReconstructRetCol<double>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string>,
+    &GpuSqlDispatcher::OrderByReconstructRetCol<int8_t>};
 
-GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::freeOrderByTableFunction = &GpuSqlDispatcher::freeOrderByTable;
-GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::orderByReconstructRetAllBlocksFunction =
-    &GpuSqlDispatcher::orderByReconstructRetAllBlocks;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::freeOrderByTableFunction_ = &GpuSqlDispatcher::FreeOrderByTable;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::orderByReconstructRetAllBlocksFunction_ =
+    &GpuSqlDispatcher::OrderByReconstructRetAllBlocks;
 
-int32_t GpuSqlDispatcher::freeOrderByTable()
+int32_t GpuSqlDispatcher::FreeOrderByTable()
 {
     std::cout << "Freeing order by table." << std::endl;
-    orderByTable.release();
+    orderByTable_.release();
     return 0;
 }
 
-int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
+int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
 {
-    if (!usingGroupBy && isLastBlockOfDevice)
+    if (!usingGroupBy_ && isLastBlockOfDevice_)
     {
-        if (isOverallLastBlock)
+        if (isOverallLastBlock_)
         {
             std::unique_lock<std::mutex> lock(GpuSqlDispatcher::orderByMutex_);
             GpuSqlDispatcher::orderByCV_.wait(lock, [] { return GpuSqlDispatcher::IsOrderByDone(); });
@@ -89,7 +89,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
 
             for (int32_t i = 0; i < Context::getInstance().getDeviceCount(); i++)
             {
-                for (auto& orderBlocks : orderByBlocks[i].reconstructedOrderByOrderColumnBlocks)
+                for (auto& orderBlocks : orderByBlocks_[i].ReconstructedOrderByOrderColumnBlocks)
                 {
                     for (auto& orderBlockArray : orderBlocks.second)
                     {
@@ -97,7 +97,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                     }
                 }
 
-                for (auto& retBlocks : orderByBlocks[i].reconstructedOrderByRetColumnBlocks)
+                for (auto& retBlocks : orderByBlocks_[i].ReconstructedOrderByRetColumnBlocks)
                 {
                     for (auto& retBlockArray : retBlocks.second)
                     {
@@ -105,7 +105,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                     }
                 }
 
-                for (auto& orderBlocksNull : orderByBlocks[i].reconstructedOrderByOrderColumnNullBlocks)
+                for (auto& orderBlocksNull : orderByBlocks_[i].ReconstructedOrderByOrderColumnNullBlocks)
                 {
                     for (auto& orderBlockArray : orderBlocksNull.second)
                     {
@@ -114,7 +114,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                     }
                 }
 
-                for (auto& retBlocksNull : orderByBlocks[i].reconstructedOrderByRetColumnNullBlocks)
+                for (auto& retBlocksNull : orderByBlocks_[i].ReconstructedOrderByRetColumnNullBlocks)
                 {
                     for (auto& retBlockArray : retBlocksNull.second)
                     {
@@ -191,19 +191,19 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                 switch (orderColumn.second[0].get()->GetType())
                 {
                 case COLUMN_INT:
-                    reconstructedOrderByColumnsMerged[orderColumn.first] =
+                    reconstructedOrderByColumnsMerged_[orderColumn.first] =
                         std::make_unique<VariantArray<int32_t>>(resultSetSize);
                     break;
                 case COLUMN_LONG:
-                    reconstructedOrderByColumnsMerged[orderColumn.first] =
+                    reconstructedOrderByColumnsMerged_[orderColumn.first] =
                         std::make_unique<VariantArray<int64_t>>(resultSetSize);
                     break;
                 case COLUMN_FLOAT:
-                    reconstructedOrderByColumnsMerged[orderColumn.first] =
+                    reconstructedOrderByColumnsMerged_[orderColumn.first] =
                         std::make_unique<VariantArray<float>>(resultSetSize);
                     break;
                 case COLUMN_DOUBLE:
-                    reconstructedOrderByColumnsMerged[orderColumn.first] =
+                    reconstructedOrderByColumnsMerged_[orderColumn.first] =
                         std::make_unique<VariantArray<double>>(resultSetSize);
                     break;
                 case COLUMN_POINT:
@@ -213,7 +213,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                 case COLUMN_STRING:
                     throw std::runtime_error("ORDER BY operation not implemented for strings");
                 case COLUMN_INT8_T:
-                    reconstructedOrderByColumnsMerged[orderColumn.first] =
+                    reconstructedOrderByColumnsMerged_[orderColumn.first] =
                         std::make_unique<VariantArray<int8_t>>(resultSetSize);
                     break;
                 default:
@@ -221,11 +221,11 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                 }
 
                 // Alloc the null collumn and zero it
-                reconstructedOrderByColumnsNullMerged[orderColumn.first] =
+                reconstructedOrderByColumnsNullMerged_[orderColumn.first] =
                     std::make_unique<int8_t[]>(resultSetNullSize);
                 for (int32_t i = 0; i < resultSetNullSize; i++)
                 {
-                    reconstructedOrderByColumnsNullMerged[orderColumn.first].get()[i] = 0;
+                    reconstructedOrderByColumnsNullMerged_[orderColumn.first].get()[i] = 0;
                 }
             }
 
@@ -234,8 +234,8 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
             while (dataMerged != true)
             {
                 // Merge the input arrays to the output arrays
-                // Check each entry from left to right (the numbers are in inverse because of the dispatcher)
-                for (int32_t i = orderByColumns.size() - 1; i >= 0; i--)
+                // Check each entry from left to right (the numbers are in inverse because of the dispatcher_)
+                for (int32_t i = orderByColumns_.size() - 1; i >= 0; i--)
                 {
                     // Check if all values pointed to by the counters are equal, if yes - proceed to the next column
                     bool valuesAreEqual = true;
@@ -243,7 +243,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                     int32_t firstNonzeroMergeCounterIdx = -1;
 
                     // WARNING - this works only for non empty columns
-                    switch (reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][0].get()->GetType())
+                    switch (reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][0].get()->GetType())
                     {
                     case COLUMN_INT:
                     {
@@ -254,7 +254,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                             {
                                 lastValue =
                                     dynamic_cast<VariantArray<int32_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 firstNonzeroMergeCounterIdx = j;
@@ -264,7 +264,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                             {
                                 int32_t value =
                                     dynamic_cast<VariantArray<int32_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (lastValue != value)
@@ -285,7 +285,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                             {
                                 lastValue =
                                     dynamic_cast<VariantArray<int64_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 firstNonzeroMergeCounterIdx = j;
@@ -295,7 +295,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                             {
                                 int64_t value =
                                     dynamic_cast<VariantArray<int64_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (lastValue != value)
@@ -316,7 +316,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                             {
                                 lastValue =
                                     dynamic_cast<VariantArray<float>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 firstNonzeroMergeCounterIdx = j;
@@ -326,7 +326,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                             {
                                 float value =
                                     dynamic_cast<VariantArray<float>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (lastValue != value)
@@ -347,7 +347,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                             {
                                 lastValue =
                                     dynamic_cast<VariantArray<double>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 firstNonzeroMergeCounterIdx = j;
@@ -357,7 +357,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                             {
                                 double value =
                                     dynamic_cast<VariantArray<double>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (lastValue != value)
@@ -384,7 +384,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                             {
                                 lastValue =
                                     dynamic_cast<VariantArray<int8_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 firstNonzeroMergeCounterIdx = j;
@@ -394,7 +394,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                             {
                                 int8_t value =
                                     dynamic_cast<VariantArray<int8_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (lastValue != value)
@@ -440,7 +440,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                             retColumn.second[firstNonzeroMergeCounterIdx].get())
                                             ->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
                                     dynamic_cast<VariantArray<int32_t>*>(
-                                        reconstructedOrderByColumnsMerged[retColumn.first].get())
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
                                         ->getData()[resultSetCounter] = value;
                                 }
                                 break;
@@ -451,7 +451,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                             retColumn.second[firstNonzeroMergeCounterIdx].get())
                                             ->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
                                     dynamic_cast<VariantArray<int64_t>*>(
-                                        reconstructedOrderByColumnsMerged[retColumn.first].get())
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
                                         ->getData()[resultSetCounter] = value;
                                 }
                                 break;
@@ -462,7 +462,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                             retColumn.second[firstNonzeroMergeCounterIdx].get())
                                             ->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
                                     dynamic_cast<VariantArray<float>*>(
-                                        reconstructedOrderByColumnsMerged[retColumn.first].get())
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
                                         ->getData()[resultSetCounter] = value;
                                 }
                                 break;
@@ -473,7 +473,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                             retColumn.second[firstNonzeroMergeCounterIdx].get())
                                             ->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
                                     dynamic_cast<VariantArray<double>*>(
-                                        reconstructedOrderByColumnsMerged[retColumn.first].get())
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
                                         ->getData()[resultSetCounter] = value;
                                 }
                                 break;
@@ -493,7 +493,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                             retColumn.second[firstNonzeroMergeCounterIdx].get())
                                             ->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
                                     dynamic_cast<VariantArray<int8_t>*>(
-                                        reconstructedOrderByColumnsMerged[retColumn.first].get())
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
                                         ->getData()[resultSetCounter] = value;
                                 }
                                 break;
@@ -509,11 +509,11 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                      (merge_counters[firstNonzeroMergeCounterIdx] % (sizeof(int8_t) * 8))) &
                                     1;
                                 nullBit <<= (resultSetCounter % (sizeof(int8_t) * 8));
-                                reconstructedOrderByColumnsNullMerged[retColumn.first].get()[resultSetCounter / 8] |=
+                                reconstructedOrderByColumnsNullMerged_[retColumn.first].get()[resultSetCounter / 8] |=
                                     nullBit;
                             }
                             // Add to the null collumn
-                            // reconstructedOrderByOrderColumnNullBlocks[retColumn.first].get()[resultSetCounter];
+                            // ReconstructedOrderByOrderColumnNullBlocks[retColumn.first].get()[resultSetCounter];
 
 
                             resultSetCounter++;
@@ -532,12 +532,12 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                     // If values are not equal
                     // If given column is ASC - find a global minimum
                     // else if given column is DESC - find a global maximum
-                    // Find global minimum or maximum depending on the column type - neeed to distinguish between different data types
+                    // Find global minimum or maximum depending on the column type - neeed to distinguish Between different data types
 
                     int32_t mergeCounterIdx = -1;
 
                     // WARNING - this works only for non empty columns
-                    switch (reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][0].get()->GetType())
+                    switch (reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][0].get()->GetType())
                     {
                     case COLUMN_INT:
                     {
@@ -547,13 +547,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                         for (int32_t j = 0; j < merge_counters.size(); j++)
                         {
                             // Check if we are within the merged block sizes
-                            if (orderByColumns[i].second == OrderBy::Order::ASC &&
+                            if (orderByColumns_[i].second == OrderBy::Order::ASC &&
                                 merge_counters[j] < merge_limits[j])
                             {
                                 // Get the value from the block to which the merge counter points
                                 int32_t value =
                                     dynamic_cast<VariantArray<int32_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (minimum > value)
@@ -562,13 +562,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                     mergeCounterIdx = j;
                                 }
                             }
-                            else if (orderByColumns[i].second == OrderBy::Order::DESC &&
+                            else if (orderByColumns_[i].second == OrderBy::Order::DESC &&
                                      merge_counters[j] < merge_limits[j])
                             {
                                 // Get the value from the block to which the merge counter points
                                 int32_t value =
                                     dynamic_cast<VariantArray<int32_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (maximum < value)
@@ -588,13 +588,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                         for (int32_t j = 0; j < merge_counters.size(); j++)
                         {
                             // Check if we are within the merged block sizes
-                            if (orderByColumns[i].second == OrderBy::Order::ASC &&
+                            if (orderByColumns_[i].second == OrderBy::Order::ASC &&
                                 merge_counters[j] < merge_limits[j])
                             {
                                 // Get the value from the block to which the merge counter points
                                 int64_t value =
                                     dynamic_cast<VariantArray<int64_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (minimum > value)
@@ -603,13 +603,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                     mergeCounterIdx = j;
                                 }
                             }
-                            else if (orderByColumns[i].second == OrderBy::Order::DESC &&
+                            else if (orderByColumns_[i].second == OrderBy::Order::DESC &&
                                      merge_counters[j] < merge_limits[j])
                             {
                                 // Get the value from the block to which the merge counter points
                                 int64_t value =
                                     dynamic_cast<VariantArray<int64_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (maximum < value)
@@ -629,13 +629,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                         for (int32_t j = 0; j < merge_counters.size(); j++)
                         {
                             // Check if we are within the merged block sizes
-                            if (orderByColumns[i].second == OrderBy::Order::ASC &&
+                            if (orderByColumns_[i].second == OrderBy::Order::ASC &&
                                 merge_counters[j] < merge_limits[j])
                             {
                                 // Get the value from the block to which the merge counter points
                                 float value =
                                     dynamic_cast<VariantArray<float>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (minimum > value)
@@ -644,13 +644,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                     mergeCounterIdx = j;
                                 }
                             }
-                            else if (orderByColumns[i].second == OrderBy::Order::DESC &&
+                            else if (orderByColumns_[i].second == OrderBy::Order::DESC &&
                                      merge_counters[j] < merge_limits[j])
                             {
                                 // Get the value from the block to which the merge counter points
                                 float value =
                                     dynamic_cast<VariantArray<float>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (maximum < value)
@@ -670,13 +670,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                         for (int32_t j = 0; j < merge_counters.size(); j++)
                         {
                             // Check if we are within the merged block sizes
-                            if (orderByColumns[i].second == OrderBy::Order::ASC &&
+                            if (orderByColumns_[i].second == OrderBy::Order::ASC &&
                                 merge_counters[j] < merge_limits[j])
                             {
                                 // Get the value from the block to which the merge counter points
                                 double value =
                                     dynamic_cast<VariantArray<double>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (minimum > value)
@@ -685,13 +685,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                     mergeCounterIdx = j;
                                 }
                             }
-                            else if (orderByColumns[i].second == OrderBy::Order::DESC &&
+                            else if (orderByColumns_[i].second == OrderBy::Order::DESC &&
                                      merge_counters[j] < merge_limits[j])
                             {
                                 // Get the value from the block to which the merge counter points
                                 double value =
                                     dynamic_cast<VariantArray<double>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (maximum < value)
@@ -717,13 +717,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                         for (int32_t j = 0; j < merge_counters.size(); j++)
                         {
                             // Check if we are within the merged block sizes
-                            if (orderByColumns[i].second == OrderBy::Order::ASC &&
+                            if (orderByColumns_[i].second == OrderBy::Order::ASC &&
                                 merge_counters[j] < merge_limits[j])
                             {
                                 // Get the value from the block to which the merge counter points
                                 int8_t value =
                                     dynamic_cast<VariantArray<int8_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (minimum > value)
@@ -732,13 +732,13 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                     mergeCounterIdx = j;
                                 }
                             }
-                            else if (orderByColumns[i].second == OrderBy::Order::DESC &&
+                            else if (orderByColumns_[i].second == OrderBy::Order::DESC &&
                                      merge_counters[j] < merge_limits[j])
                             {
                                 // Get the value from the block to which the merge counter points
                                 int8_t value =
                                     dynamic_cast<VariantArray<int8_t>*>(
-                                        reconstructedOrderByOrderColumnBlocks[orderByColumns[i].first][j]
+                                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][j]
                                             .get())
                                         ->getData()[merge_counters[j]];
                                 if (maximum < value)
@@ -771,7 +771,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                                         retColumn.second[mergeCounterIdx].get())
                                                         ->getData()[merge_counters[mergeCounterIdx]];
                                     dynamic_cast<VariantArray<int32_t>*>(
-                                        reconstructedOrderByColumnsMerged[retColumn.first].get())
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
                                         ->getData()[resultSetCounter] = value;
                                 }
                                 break;
@@ -781,7 +781,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                                         retColumn.second[mergeCounterIdx].get())
                                                         ->getData()[merge_counters[mergeCounterIdx]];
                                     dynamic_cast<VariantArray<int64_t>*>(
-                                        reconstructedOrderByColumnsMerged[retColumn.first].get())
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
                                         ->getData()[resultSetCounter] = value;
                                 }
                                 break;
@@ -791,7 +791,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                                       retColumn.second[mergeCounterIdx].get())
                                                       ->getData()[merge_counters[mergeCounterIdx]];
                                     dynamic_cast<VariantArray<float>*>(
-                                        reconstructedOrderByColumnsMerged[retColumn.first].get())
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
                                         ->getData()[resultSetCounter] = value;
                                 }
                                 break;
@@ -801,7 +801,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                                        retColumn.second[mergeCounterIdx].get())
                                                        ->getData()[merge_counters[mergeCounterIdx]];
                                     dynamic_cast<VariantArray<double>*>(
-                                        reconstructedOrderByColumnsMerged[retColumn.first].get())
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
                                         ->getData()[resultSetCounter] = value;
                                 }
                                 break;
@@ -820,7 +820,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                                        retColumn.second[mergeCounterIdx].get())
                                                        ->getData()[merge_counters[mergeCounterIdx]];
                                     dynamic_cast<VariantArray<int8_t>*>(
-                                        reconstructedOrderByColumnsMerged[retColumn.first].get())
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
                                         ->getData()[resultSetCounter] = value;
                                 }
                                 break;
@@ -835,7 +835,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
                                      (merge_counters[mergeCounterIdx] % (sizeof(int8_t) * 8))) &
                                     1;
                                 nullBit <<= (resultSetCounter % (sizeof(int8_t) * 8));
-                                reconstructedOrderByColumnsNullMerged[retColumn.first].get()[resultSetCounter / 8] |=
+                                reconstructedOrderByColumnsNullMerged_[retColumn.first].get()[resultSetCounter / 8] |=
                                     nullBit;
                             }
 
@@ -859,7 +859,7 @@ int32_t GpuSqlDispatcher::orderByReconstructRetAllBlocks()
         }
         else
         {
-            std::cout << "Order by all blocks done in thread: " << dispatcherThreadId << std::endl;
+            std::cout << "Order by all blocks Done in thread: " << dispatcherThreadId_ << std::endl;
             // Increment counter and notify threads
             std::unique_lock<std::mutex> lock(GpuSqlDispatcher::orderByMutex_);
             GpuSqlDispatcher::IncOrderByDoneCounter();

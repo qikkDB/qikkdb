@@ -4,7 +4,7 @@
 #include "../../QueryEngine/GPUCore/GPUCast.cuh"
 
 template <typename OUT, typename IN>
-int32_t GpuSqlDispatcher::castNumericCol()
+int32_t GpuSqlDispatcher::CastNumericCol()
 {
     auto colName = arguments.read<std::string>();
     auto reg = arguments.read<std::string>();
@@ -70,7 +70,7 @@ int32_t GpuSqlDispatcher::castNumericCol()
 }
 
 template <typename OUT, typename IN>
-int32_t GpuSqlDispatcher::castNumericConst()
+int32_t GpuSqlDispatcher::CastNumericConst()
 {
     IN cnst = arguments.read<IN>();
     auto reg = arguments.read<std::string>();

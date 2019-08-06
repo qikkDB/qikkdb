@@ -176,7 +176,7 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
         GpuSqlCustomParser parser(sharedDb, queryMessage.query());
         {
             std::lock_guard<std::mutex> queryLock(queryMutex_);
-            auto ret = parser.parse();
+            auto ret = parser.Parse();
             auto end = std::chrono::high_resolution_clock::now();
             BOOST_LOG_TRIVIAL(info)
                 << "Elapsed: " << std::chrono::duration<float>(end - start).count() << " sec.";

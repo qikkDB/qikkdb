@@ -16,7 +16,7 @@
 /// If WHERE clause is present filtering is done before agreggation
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename OUT, typename IN>
-int32_t GpuSqlDispatcher::aggregationCol()
+int32_t GpuSqlDispatcher::AggregationCol()
 {
     auto colName = arguments.read<std::string>();
     auto reg = arguments.read<std::string>();
@@ -83,7 +83,7 @@ int32_t GpuSqlDispatcher::aggregationCol()
 }
 
 template <typename OP, typename OUT, typename IN>
-int32_t GpuSqlDispatcher::aggregationConst()
+int32_t GpuSqlDispatcher::AggregationConst()
 {
     std::cout << "AggConst" << std::endl;
     return 0;
@@ -315,7 +315,7 @@ public:
 /// and saves the result of group by
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename O, typename K, typename V>
-int32_t GpuSqlDispatcher::aggregationGroupBy()
+int32_t GpuSqlDispatcher::AggregationGroupBy()
 {
     auto colTableName = arguments.read<std::string>();
     auto reg = arguments.read<std::string>();
@@ -401,7 +401,7 @@ int32_t GpuSqlDispatcher::aggregationGroupBy()
 /// and filters it according to WHERE clause
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T>
-int32_t GpuSqlDispatcher::groupByCol()
+int32_t GpuSqlDispatcher::GroupByCol()
 {
     std::string columnName = arguments.read<std::string>();
 
@@ -445,7 +445,7 @@ int32_t GpuSqlDispatcher::groupByCol()
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::groupByConst()
+int32_t GpuSqlDispatcher::GroupByConst()
 {
     return 0;
 }

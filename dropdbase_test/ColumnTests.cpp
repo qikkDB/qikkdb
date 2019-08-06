@@ -784,8 +784,8 @@ TEST(ColumnTests, GetColumnType)
 /*
 TEST(ColumnTests, ColumnStatistics)
 {
-	auto database = std::make_shared<Database>("testDatabase", 1024);
-	Table table(database, "testTable");
+	auto database_ = std::make_shared<Database>("testDatabase", 1024);
+	Table table(database_, "testTable");
 
 	table.CreateColumn("ColumnInt", COLUMN_INT);
 	table.CreateColumn("ColumnLong", COLUMN_LONG);
@@ -811,7 +811,7 @@ TEST(ColumnTests, ColumnStatistics)
 	std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
 	std::vector<std::string> dataString;
 
-	for (int i = 0; i < database->GetBlockSize(); i++)
+	for (int i = 0; i < database_->GetBlockSize(); i++)
 	{
 		dataInt.push_back(1);
 		dataLong.push_back(100000);
@@ -822,7 +822,7 @@ TEST(ColumnTests, ColumnStatistics)
 		dataString.push_back("abc");
 	}
 
-	for (int i = 0; i < database->GetBlockSize(); i++)
+	for (int i = 0; i < database_->GetBlockSize(); i++)
 	{
 		dataInt.push_back(5);
 		dataLong.push_back(500000);
@@ -841,26 +841,26 @@ TEST(ColumnTests, ColumnStatistics)
 	dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->InsertData(dataPolygon);
 	dynamic_cast<ColumnBase<std::string>*>(columnString.get())->InsertData(dataString);
 	auto& blockList = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetBlocksList();
-	ASSERT_EQ(blockList[0]->GetSum(), database->GetBlockSize());
-	ASSERT_EQ(blockList[1]->GetSum(), 5 * database->GetBlockSize());
+	ASSERT_EQ(blockList[0]->GetSum(), database_->GetBlockSize());
+	ASSERT_EQ(blockList[1]->GetSum(), 5 * database_->GetBlockSize());
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetMin(), 1);
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetMax(), 5);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetSum(), database->GetBlockSize() + 5 * database->GetBlockSize());
+	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetSum(), database_->GetBlockSize() + 5 * database_->GetBlockSize());
 	ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->GetAvg(), 3);
 
 	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->GetMin(), 100000);
 	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->GetMax(), 500000);
-	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->GetSum(), 100000 * database->GetBlockSize() + 500000 * database->GetBlockSize());
+	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->GetSum(), 100000 * database_->GetBlockSize() + 500000 * database_->GetBlockSize());
 	ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->GetAvg(), 300000);
 
 	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetMin(), 0.1111);
 	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetMax(), 0.5555);
-	ASSERT_TRUE(std::abs(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetSum() - (0.6666 * database->GetBlockSize())) < std::abs(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetSum()) / 100000.0f);
+	ASSERT_TRUE(std::abs(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetSum() - (0.6666 * database_->GetBlockSize())) < std::abs(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetSum()) / 100000.0f);
 	ASSERT_TRUE(std::abs(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetAvg() - 0.3333) < std::abs(dynamic_cast<ColumnBase<float>*>(columnFloat.get())->GetAvg()) / 100000.0f);
 
 	ASSERT_DOUBLE_EQ(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetMin(), 0.1111);
 	ASSERT_DOUBLE_EQ(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetMax(), 0.5555);
-	ASSERT_TRUE(std::abs(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetSum() - (0.6666 * database->GetBlockSize())) < std::abs(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetSum()) / 100000.0f);
+	ASSERT_TRUE(std::abs(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetSum() - (0.6666 * database_->GetBlockSize())) < std::abs(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetSum()) / 100000.0f);
 	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<double>*>(columnDouble.get())->GetAvg(), 0.3333);
 
 	ASSERT_EQ(PointFactory::WktFromPoint(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->GetMin()), "POINT(0 0)");

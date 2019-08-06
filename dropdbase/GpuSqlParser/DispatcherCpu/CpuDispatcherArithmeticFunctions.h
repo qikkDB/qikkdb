@@ -4,11 +4,11 @@
 #include <tuple>
 
 template <typename OP, typename T, typename U>
-int32_t CpuSqlDispatcher::arithmeticColConst()
+int32_t CpuSqlDispatcher::ArithmeticColConst()
 {
-    auto colName = arguments.read<std::string>();
-    U cnst = arguments.read<U>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    U cnst = arguments_.Read<U>();
+    auto reg = arguments_.Read<std::string>();
 
     constexpr bool bothTypesFloatOrBothIntegral =
         std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
@@ -18,22 +18,22 @@ int32_t CpuSqlDispatcher::arithmeticColConst()
         typename std::conditional<std::is_floating_point<T>::value, T,
                                   typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type>::type ResultType;
 
-    if (loadCol<T>(colName))
+    if (LoadCol<T>(colName))
     {
         return 1;
     }
 
     std::string colPointerNameMin;
     std::string colPointerNameMax;
-    std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+    std::tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
 
-    auto colValMin = allocatedPointers.at(colPointerNameMin);
-    auto colValMax = allocatedPointers.at(colPointerNameMax);
+    auto colValMin = allocatedPointers_.at(colPointerNameMin);
+    auto colValMax = allocatedPointers_.at(colPointerNameMax);
 
     ResultType* resultMin =
-        allocateRegister<ResultType>(reg + "_min", 1, std::get<2>(colValMin) || !OP::isMonotonous);
+        AllocateRegister<ResultType>(reg + "_min", 1, std::get<2>(colValMin) || !OP::isMonotonous);
     ResultType* resultMax =
-        allocateRegister<ResultType>(reg + "_max", 1, std::get<2>(colValMax) || !OP::isMonotonous);
+        AllocateRegister<ResultType>(reg + "_max", 1, std::get<2>(colValMax) || !OP::isMonotonous);
 
     resultMin[0] =
         OP{}.template operator()<ResultType, T, U>(reinterpret_cast<T*>(std::get<0>(colValMin))[0], cnst);
@@ -54,9 +54,9 @@ int32_t CpuSqlDispatcher::arithmeticColConst()
 template <typename OP, typename T, typename U>
 int32_t CpuSqlDispatcher::arithmeticConstCol()
 {
-    T cnst = arguments.read<T>();
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    T cnst = arguments_.Read<T>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     constexpr bool bothTypesFloatOrBothIntegral =
         std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
@@ -66,7 +66,7 @@ int32_t CpuSqlDispatcher::arithmeticConstCol()
         typename std::conditional<std::is_floating_point<T>::value, T,
                                   typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type>::type ResultType;
 
-    if (loadCol<U>(colName))
+    if (LoadCol<U>(colName))
     {
         return 1;
     }
@@ -74,15 +74,15 @@ int32_t CpuSqlDispatcher::arithmeticConstCol()
     std::string colPointerNameMin;
     std::string colPointerNameMax;
 std:
-    tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+    tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
 
-    auto colValMin = allocatedPointers.at(colPointerNameMin);
-    auto colValMax = allocatedPointers.at(colPointerNameMax);
+    auto colValMin = allocatedPointers_.at(colPointerNameMin);
+    auto colValMax = allocatedPointers_.at(colPointerNameMax);
 
     ResultType* resultMin =
-        allocateRegister<ResultType>(reg + "_min", 1, std::get<2>(colValMin) || !OP::isMonotonous);
+        AllocateRegister<ResultType>(reg + "_min", 1, std::get<2>(colValMin) || !OP::isMonotonous);
     ResultType* resultMax =
-        allocateRegister<ResultType>(reg + "_max", 1, std::get<2>(colValMax) || !OP::isMonotonous);
+        AllocateRegister<ResultType>(reg + "_max", 1, std::get<2>(colValMax) || !OP::isMonotonous);
 
     resultMin[0] =
         OP{}.template operator()<ResultType, T, U>(cnst, reinterpret_cast<U*>(std::get<0>(colValMin))[0]);
@@ -102,9 +102,9 @@ std:
 template <typename OP, typename T, typename U>
 int32_t CpuSqlDispatcher::arithmeticColCol()
 {
-    auto colNameLeft = arguments.read<std::string>();
-    auto colNameRight = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    auto colNameRight = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
     constexpr bool bothTypesFloatOrBothIntegral =
         std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
         std::is_integral<T>::value && std::is_integral<U>::value;
@@ -118,36 +118,36 @@ int32_t CpuSqlDispatcher::arithmeticColCol()
 
     if (colNameLeft.front() != '$' && colNameRight.front() != '$')
     {
-        resultMin = allocateRegister<ResultType>(reg + "_min", 1, true);
-        resultMax = allocateRegister<ResultType>(reg + "_max", 1, true);
+        resultMin = AllocateRegister<ResultType>(reg + "_min", 1, true);
+        resultMax = AllocateRegister<ResultType>(reg + "_max", 1, true);
         resultMin[0] = 1;
         resultMax[0] = 1;
     }
     else
     {
-        if (loadCol<T>(colNameLeft) || loadCol<U>(colNameRight))
+        if (LoadCol<T>(colNameLeft) || LoadCol<U>(colNameRight))
         {
             return 1;
         }
 
         std::string colPointerNameLeftMin;
         std::string colPointerNameLeftMax;
-        std::tie(colPointerNameLeftMin, colPointerNameLeftMax) = getPointerNames(colNameLeft);
+        std::tie(colPointerNameLeftMin, colPointerNameLeftMax) = GetPointerNames(colNameLeft);
 
         std::string colPointerNameRightMin;
         std::string colPointerNameRightMax;
-        std::tie(colPointerNameRightMin, colPointerNameRightMax) = getPointerNames(colNameRight);
+        std::tie(colPointerNameRightMin, colPointerNameRightMax) = GetPointerNames(colNameRight);
 
-        auto colValLeftMin = allocatedPointers.at(colPointerNameLeftMin);
-        auto colValLeftMax = allocatedPointers.at(colPointerNameLeftMax);
+        auto colValLeftMin = allocatedPointers_.at(colPointerNameLeftMin);
+        auto colValLeftMax = allocatedPointers_.at(colPointerNameLeftMax);
 
-        auto colValRightMin = allocatedPointers.at(colPointerNameRightMin);
-        auto colValRightMax = allocatedPointers.at(colPointerNameRightMax);
+        auto colValRightMin = allocatedPointers_.at(colPointerNameRightMin);
+        auto colValRightMax = allocatedPointers_.at(colPointerNameRightMax);
 
-        resultMin = allocateRegister<ResultType>(reg + "_min", 1,
+        resultMin = AllocateRegister<ResultType>(reg + "_min", 1,
                                                  std::get<2>(colValLeftMin) ||
                                                      std::get<2>(colValRightMin) || !OP::isMonotonous);
-        resultMax = allocateRegister<ResultType>(reg + "_max", 1,
+        resultMax = AllocateRegister<ResultType>(reg + "_max", 1,
                                                  std::get<2>(colValLeftMax) ||
                                                      std::get<2>(colValRightMax) || !OP::isMonotonous);
 
@@ -171,9 +171,9 @@ int32_t CpuSqlDispatcher::arithmeticColCol()
 template <typename OP, typename T, typename U>
 int32_t CpuSqlDispatcher::arithmeticConstConst()
 {
-    T constLeft = arguments.read<T>();
-    U constRight = arguments.read<U>();
-    auto reg = arguments.read<std::string>();
+    T constLeft = arguments_.Read<T>();
+    U constRight = arguments_.Read<U>();
+    auto reg = arguments_.Read<std::string>();
     constexpr bool bothTypesFloatOrBothIntegral =
         std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
         std::is_integral<T>::value && std::is_integral<U>::value;
@@ -182,8 +182,8 @@ int32_t CpuSqlDispatcher::arithmeticConstConst()
         typename std::conditional<std::is_floating_point<T>::value, T,
                                   typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type>::type ResultType;
 
-    ResultType* resultMin = allocateRegister<ResultType>(reg + "_min", 1, false);
-    ResultType* resultMax = allocateRegister<ResultType>(reg + "_max", 1, false);
+    ResultType* resultMin = AllocateRegister<ResultType>(reg + "_min", 1, false);
+    ResultType* resultMax = AllocateRegister<ResultType>(reg + "_max", 1, false);
 
     resultMin[0] = OP{}.template operator()<ResultType, T, U>(constLeft, constRight);
     resultMax[0] = OP{}.template operator()<ResultType, T, U>(constLeft, constRight);

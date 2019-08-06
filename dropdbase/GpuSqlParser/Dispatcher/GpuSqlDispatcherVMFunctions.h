@@ -12,7 +12,7 @@
 #include "../../BlockBase.h"
 
 template <typename T>
-int32_t GpuSqlDispatcher::retConst()
+int32_t GpuSqlDispatcher::RetConst()
 {
     T cnst = arguments.read<T>();
     std::cout << "RET: cnst" << typeid(T).name() << std::endl;
@@ -26,7 +26,7 @@ int32_t GpuSqlDispatcher::retConst()
 /// aggregation) If GROUP BY is present the results are only coppied from GPU and merged to response
 /// message <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T>
-int32_t GpuSqlDispatcher::retCol()
+int32_t GpuSqlDispatcher::RetCol()
 {
     auto colName = arguments.read<std::string>();
     auto alias = arguments.read<std::string>();
@@ -138,7 +138,7 @@ int32_t GpuSqlDispatcher::retCol()
 /// Sets the last block (for current dispatcher instance and overall) flags
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T>
-int32_t GpuSqlDispatcher::loadCol(std::string& colName)
+int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
 {
     if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
     {

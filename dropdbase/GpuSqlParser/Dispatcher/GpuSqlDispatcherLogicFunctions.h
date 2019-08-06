@@ -14,7 +14,7 @@
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::filterColConst()
+int32_t GpuSqlDispatcher::FilterColConst()
 {
     U cnst = arguments.read<U>();
     auto colName = arguments.read<std::string>();
@@ -59,7 +59,7 @@ int32_t GpuSqlDispatcher::filterColConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::filterConstCol()
+int32_t GpuSqlDispatcher::FilterConstCol()
 {
     auto colName = arguments.read<std::string>();
     T cnst = arguments.read<T>();
@@ -104,7 +104,7 @@ int32_t GpuSqlDispatcher::filterConstCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::filterColCol()
+int32_t GpuSqlDispatcher::FilterColCol()
 {
     auto colNameRight = arguments.read<std::string>();
     auto colNameLeft = arguments.read<std::string>();
@@ -171,7 +171,7 @@ int32_t GpuSqlDispatcher::filterColCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::filterConstConst()
+int32_t GpuSqlDispatcher::FilterConstConst()
 {
     U constRight = arguments.read<U>();
     T constLeft = arguments.read<T>();
@@ -186,7 +186,7 @@ int32_t GpuSqlDispatcher::filterConstConst()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::filterStringColConst()
+int32_t GpuSqlDispatcher::FilterStringColConst()
 {
     std::string cnst = arguments.read<std::string>();
     auto colName = arguments.read<std::string>();
@@ -225,7 +225,7 @@ int32_t GpuSqlDispatcher::filterStringColConst()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::filterStringConstCol()
+int32_t GpuSqlDispatcher::FilterStringConstCol()
 {
     auto colName = arguments.read<std::string>();
     std::string cnst = arguments.read<std::string>();
@@ -263,7 +263,7 @@ int32_t GpuSqlDispatcher::filterStringConstCol()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::filterStringColCol()
+int32_t GpuSqlDispatcher::FilterStringColCol()
 {
     auto colNameRight = arguments.read<std::string>();
     auto colNameLeft = arguments.read<std::string>();
@@ -321,7 +321,7 @@ int32_t GpuSqlDispatcher::filterStringColCol()
 
 
 template <typename OP>
-int32_t GpuSqlDispatcher::filterStringConstConst()
+int32_t GpuSqlDispatcher::FilterStringConstConst()
 {
     std::string cnstRight = arguments.read<std::string>();
     std::string cnstLeft = arguments.read<std::string>();
@@ -345,7 +345,7 @@ int32_t GpuSqlDispatcher::filterStringConstConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::logicalColConst()
+int32_t GpuSqlDispatcher::LogicalColConst()
 {
     U cnst = arguments.read<U>();
     auto colName = arguments.read<std::string>();
@@ -388,7 +388,7 @@ int32_t GpuSqlDispatcher::logicalColConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::logicalConstCol()
+int32_t GpuSqlDispatcher::LogicalConstCol()
 {
     auto colName = arguments.read<std::string>();
     T cnst = arguments.read<T>();
@@ -431,7 +431,7 @@ int32_t GpuSqlDispatcher::logicalConstCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::logicalColCol()
+int32_t GpuSqlDispatcher::LogicalColCol()
 {
     auto colNameRight = arguments.read<std::string>();
     auto colNameLeft = arguments.read<std::string>();
@@ -499,7 +499,7 @@ int32_t GpuSqlDispatcher::logicalColCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::logicalConstConst()
+int32_t GpuSqlDispatcher::LogicalConstConst()
 {
     U constRight = arguments.read<U>();
     T constLeft = arguments.read<T>();
@@ -519,7 +519,7 @@ int32_t GpuSqlDispatcher::logicalConstConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T>
-int32_t GpuSqlDispatcher::logicalNotCol()
+int32_t GpuSqlDispatcher::LogicalNotCol()
 {
     auto colName = arguments.read<std::string>();
     auto reg = arguments.read<std::string>();
@@ -558,14 +558,14 @@ int32_t GpuSqlDispatcher::logicalNotCol()
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::logicalNotConst()
+int32_t GpuSqlDispatcher::LogicalNotConst()
 {
     return 0;
 }
 
 
 template <typename OP>
-int32_t GpuSqlDispatcher::nullMaskCol()
+int32_t GpuSqlDispatcher::NullMaskCol()
 {
     auto colName = arguments.read<std::string>();
     auto reg = arguments.read<std::string>();

@@ -9,7 +9,7 @@
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP>
-int32_t GpuSqlDispatcher::dateExtractCol()
+int32_t GpuSqlDispatcher::DateExtractCol()
 {
     auto colName = arguments.read<std::string>();
     auto reg = arguments.read<std::string>();
@@ -77,7 +77,7 @@ int32_t GpuSqlDispatcher::dateExtractCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP>
-int32_t GpuSqlDispatcher::dateExtractConst()
+int32_t GpuSqlDispatcher::DateExtractConst()
 {
     int64_t cnst = arguments.read<int64_t>();
     auto reg = arguments.read<std::string>();

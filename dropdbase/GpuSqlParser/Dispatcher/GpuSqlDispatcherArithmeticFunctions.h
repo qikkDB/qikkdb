@@ -7,7 +7,7 @@
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::arithmeticColConst()
+int32_t GpuSqlDispatcher::ArithmeticColConst()
 {
     U cnst = arguments.read<U>();
     auto colName = arguments.read<std::string>();
@@ -83,7 +83,7 @@ int32_t GpuSqlDispatcher::arithmeticColConst()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::arithmeticConstCol()
+int32_t GpuSqlDispatcher::ArithmeticConstCol()
 {
     auto colName = arguments.read<std::string>();
     T cnst = arguments.read<T>();
@@ -161,7 +161,7 @@ int32_t GpuSqlDispatcher::arithmeticConstCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::arithmeticColCol()
+int32_t GpuSqlDispatcher::ArithmeticColCol()
 {
     auto colNameRight = arguments.read<std::string>();
     auto colNameLeft = arguments.read<std::string>();
@@ -325,7 +325,7 @@ int32_t GpuSqlDispatcher::arithmeticColCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::arithmeticConstConst()
+int32_t GpuSqlDispatcher::ArithmeticConstConst()
 {
     U constRight = arguments.read<U>();
     T constLeft = arguments.read<T>();

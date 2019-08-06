@@ -4,31 +4,31 @@
 #include "../../QueryEngine/GPUCore/StringOperations.h"
 
 template <typename OP>
-int32_t CpuSqlDispatcher::stringUnaryCol()
+int32_t CpuSqlDispatcher::StringUnaryCol()
 {
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    if (loadCol<std::string>(colName))
+    if (LoadCol<std::string>(colName))
     {
         return 1;
     }
 
     std::string colPointerNameMin;
     std::string colPointerNameMax;
-    std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+    std::tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
 
-    auto colValMin = allocatedPointers.at(colPointerNameMin);
-    auto colValMax = allocatedPointers.at(colPointerNameMax);
+    auto colValMin = allocatedPointers_.at(colPointerNameMin);
+    auto colValMax = allocatedPointers_.at(colPointerNameMax);
 
     std::string resultStringMin =
         OP{}(reinterpret_cast<char*>(std::get<0>(colValMin)), std::get<1>(colValMin));
     std::string resultStringMax =
         OP{}(reinterpret_cast<char*>(std::get<0>(colValMax)), std::get<1>(colValMax));
 
-    char* resultMin = allocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
+    char* resultMin = AllocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
                                              std::get<2>(colValMin) || !OP::isMonotonous);
-    char* resultMax = allocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
+    char* resultMax = AllocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
                                              std::get<2>(colValMax) || !OP::isMonotonous);
 
     std::copy(resultStringMin.begin(), resultStringMin.end(), resultMin);
@@ -41,16 +41,16 @@ int32_t CpuSqlDispatcher::stringUnaryCol()
 
 
 template <typename OP>
-int32_t CpuSqlDispatcher::stringUnaryConst()
+int32_t CpuSqlDispatcher::StringUnaryConst()
 {
-    auto cnst = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto cnst = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     std::string resultStringMin = OP{}(cnst.c_str(), cnst.size());
     std::string resultStringMax = OP{}(cnst.c_str(), cnst.size());
 
-    char* resultMin = allocateRegister<char>(reg + "_min", resultStringMin.size() + 1, !OP::isMonotonous);
-    char* resultMax = allocateRegister<char>(reg + "_max", resultStringMax.size() + 1, !OP::isMonotonous);
+    char* resultMin = AllocateRegister<char>(reg + "_min", resultStringMin.size() + 1, !OP::isMonotonous);
+    char* resultMax = AllocateRegister<char>(reg + "_max", resultStringMax.size() + 1, !OP::isMonotonous);
 
     std::copy(resultStringMin.begin(), resultStringMin.end(), resultMin);
     resultMin[resultStringMin.size()] = '\0';
@@ -62,25 +62,25 @@ int32_t CpuSqlDispatcher::stringUnaryConst()
 
 
 template <typename OP>
-int32_t CpuSqlDispatcher::stringUnaryNumericCol()
+int32_t CpuSqlDispatcher::StringUnaryNumericCol()
 {
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    if (loadCol<std::string>(colName))
+    if (LoadCol<std::string>(colName))
     {
         return 1;
     }
 
     std::string colPointerNameMin;
     std::string colPointerNameMax;
-    std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+    std::tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
 
-    auto colValMin = allocatedPointers.at(colPointerNameMin);
-    auto colValMax = allocatedPointers.at(colPointerNameMax);
+    auto colValMin = allocatedPointers_.at(colPointerNameMin);
+    auto colValMax = allocatedPointers_.at(colPointerNameMax);
 
-    int32_t* resultMin = allocateRegister<int32_t>(reg + "_min", 1, std::get<2>(colValMin) || !OP::isMonotonous);
-    int32_t* resultMax = allocateRegister<int32_t>(reg + "_max", 1, std::get<2>(colValMax) || !OP::isMonotonous);
+    int32_t* resultMin = AllocateRegister<int32_t>(reg + "_min", 1, std::get<2>(colValMin) || !OP::isMonotonous);
+    int32_t* resultMax = AllocateRegister<int32_t>(reg + "_max", 1, std::get<2>(colValMax) || !OP::isMonotonous);
 
     resultMin[0] = OP{}(reinterpret_cast<char*>(std::get<0>(colValMin)), std::get<1>(colValMin));
     resultMax[0] = OP{}(reinterpret_cast<char*>(std::get<0>(colValMax)), std::get<1>(colValMax));
@@ -89,13 +89,13 @@ int32_t CpuSqlDispatcher::stringUnaryNumericCol()
 }
 
 template <typename OP>
-int32_t CpuSqlDispatcher::stringUnaryNumericConst()
+int32_t CpuSqlDispatcher::StringUnaryNumericConst()
 {
-    auto cnst = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto cnst = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t* resultMin = allocateRegister<int32_t>(reg + "_min", 1, !OP::isMonotonous);
-    int32_t* resultMax = allocateRegister<int32_t>(reg + "_max", 1, !OP::isMonotonous);
+    int32_t* resultMin = AllocateRegister<int32_t>(reg + "_min", 1, !OP::isMonotonous);
+    int32_t* resultMax = AllocateRegister<int32_t>(reg + "_max", 1, !OP::isMonotonous);
 
     resultMin[0] = OP{}(cnst.c_str(), cnst.size());
     resultMax[0] = OP{}(cnst.c_str(), cnst.size());
@@ -104,42 +104,42 @@ int32_t CpuSqlDispatcher::stringUnaryNumericConst()
 }
 
 template <typename OP, typename T>
-int32_t CpuSqlDispatcher::stringBinaryNumericColCol()
+int32_t CpuSqlDispatcher::StringBinaryNumericColCol()
 {
-    auto colNameLeft = arguments.read<std::string>();
-    auto colNameRight = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    auto colNameRight = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     char* resultMin = nullptr;
     char* resultMax = nullptr;
 
     if (colNameLeft.front() != '$' && colNameRight.front() != '$')
     {
-        resultMin = allocateRegister<char>(reg + "_min", 1, true);
-        resultMax = allocateRegister<char>(reg + "_max", 1, true);
+        resultMin = AllocateRegister<char>(reg + "_min", 1, true);
+        resultMax = AllocateRegister<char>(reg + "_max", 1, true);
         resultMin[0] = 'a';
         resultMax[0] = 'a';
     }
     else
     {
-        if (loadCol<std::string>(colNameLeft) || loadCol<T>(colNameRight))
+        if (LoadCol<std::string>(colNameLeft) || LoadCol<T>(colNameRight))
         {
             return 1;
         }
 
         std::string colPointerNameLeftMin;
         std::string colPointerNameLeftMax;
-        std::tie(colPointerNameLeftMin, colPointerNameLeftMax) = getPointerNames(colNameLeft);
+        std::tie(colPointerNameLeftMin, colPointerNameLeftMax) = GetPointerNames(colNameLeft);
 
         std::string colPointerNameRightMin;
         std::string colPointerNameRightMax;
-        std::tie(colPointerNameRightMin, colPointerNameRightMax) = getPointerNames(colNameRight);
+        std::tie(colPointerNameRightMin, colPointerNameRightMax) = GetPointerNames(colNameRight);
 
-        auto colValLeftMin = allocatedPointers.at(colPointerNameLeftMin);
-        auto colValLeftMax = allocatedPointers.at(colPointerNameLeftMax);
+        auto colValLeftMin = allocatedPointers_.at(colPointerNameLeftMin);
+        auto colValLeftMax = allocatedPointers_.at(colPointerNameLeftMax);
 
-        auto colValRightMin = allocatedPointers.at(colPointerNameRightMin);
-        auto colValRightMax = allocatedPointers.at(colPointerNameRightMax);
+        auto colValRightMin = allocatedPointers_.at(colPointerNameRightMin);
+        auto colValRightMax = allocatedPointers_.at(colPointerNameRightMax);
 
         std::string resultStringMin =
             OP{}(reinterpret_cast<char*>(std::get<0>(colValLeftMin)), std::get<1>(colValLeftMin),
@@ -148,10 +148,10 @@ int32_t CpuSqlDispatcher::stringBinaryNumericColCol()
             OP{}(reinterpret_cast<char*>(std::get<0>(colValLeftMax)), std::get<1>(colValLeftMax),
                  reinterpret_cast<T*>(std::get<0>(colValRightMax))[0]);
 
-        resultMin = allocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
+        resultMin = AllocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
                                            std::get<2>(colValLeftMin) ||
                                                std::get<2>(colValRightMin) || !OP::isMonotonous);
-        resultMax = allocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
+        resultMax = AllocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
                                            std::get<2>(colValLeftMax) ||
                                                std::get<2>(colValRightMax) || !OP::isMonotonous);
 
@@ -171,32 +171,32 @@ int32_t CpuSqlDispatcher::stringBinaryNumericColCol()
 }
 
 template <typename OP, typename T>
-int32_t CpuSqlDispatcher::stringBinaryNumericColConst()
+int32_t CpuSqlDispatcher::StringBinaryNumericColConst()
 {
-    auto colName = arguments.read<std::string>();
-    T cnst = arguments.read<T>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    T cnst = arguments_.Read<T>();
+    auto reg = arguments_.Read<std::string>();
 
-    if (loadCol<std::string>(colName))
+    if (LoadCol<std::string>(colName))
     {
         return 1;
     }
 
     std::string colPointerNameMin;
     std::string colPointerNameMax;
-    std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+    std::tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
 
-    auto colValMin = allocatedPointers.at(colPointerNameMin);
-    auto colValMax = allocatedPointers.at(colPointerNameMax);
+    auto colValMin = allocatedPointers_.at(colPointerNameMin);
+    auto colValMax = allocatedPointers_.at(colPointerNameMax);
 
     std::string resultStringMin =
         OP{}(reinterpret_cast<char*>(std::get<0>(colValMin)), std::get<1>(colValMin), cnst);
     std::string resultStringMax =
         OP{}(reinterpret_cast<char*>(std::get<0>(colValMax)), std::get<1>(colValMax), cnst);
 
-    char* resultMin = allocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
+    char* resultMin = AllocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
                                              std::get<2>(colValMin) || !OP::isMonotonous);
-    char* resultMax = allocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
+    char* resultMax = AllocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
                                              std::get<2>(colValMax) || !OP::isMonotonous);
 
     std::copy(resultStringMin.begin(), resultStringMin.end(), resultMin);
@@ -213,32 +213,32 @@ int32_t CpuSqlDispatcher::stringBinaryNumericColConst()
 }
 
 template <typename OP, typename T>
-int32_t CpuSqlDispatcher::stringBinaryNumericConstCol()
+int32_t CpuSqlDispatcher::StringBinaryNumericConstCol()
 {
-    std::string cnst = arguments.read<std::string>();
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    std::string cnst = arguments_.Read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    if (loadCol<T>(colName))
+    if (LoadCol<T>(colName))
     {
         return 1;
     }
 
     std::string colPointerNameMin;
     std::string colPointerNameMax;
-    std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+    std::tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
 
-    auto colValMin = allocatedPointers.at(colPointerNameMin);
-    auto colValMax = allocatedPointers.at(colPointerNameMax);
+    auto colValMin = allocatedPointers_.at(colPointerNameMin);
+    auto colValMax = allocatedPointers_.at(colPointerNameMax);
 
     std::string resultStringMin =
         OP{}(cnst.c_str(), cnst.size(), reinterpret_cast<T*>(std::get<0>(colValMin))[0]);
     std::string resultStringMax =
         OP{}(cnst.c_str(), cnst.size(), reinterpret_cast<T*>(std::get<0>(colValMax))[0]);
 
-    char* resultMin = allocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
+    char* resultMin = AllocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
                                              std::get<2>(colValMin) || !OP::isMonotonous);
-    char* resultMax = allocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
+    char* resultMax = AllocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
                                              std::get<2>(colValMax) || !OP::isMonotonous);
 
     std::copy(resultStringMin.begin(), resultStringMin.end(), resultMin);
@@ -255,17 +255,17 @@ int32_t CpuSqlDispatcher::stringBinaryNumericConstCol()
 }
 
 template <typename OP, typename T>
-int32_t CpuSqlDispatcher::stringBinaryNumericConstConst()
+int32_t CpuSqlDispatcher::StringBinaryNumericConstConst()
 {
-    std::string cnstLeft = arguments.read<std::string>();
-    T cnstRight = arguments.read<T>();
-    auto reg = arguments.read<std::string>();
+    std::string cnstLeft = arguments_.Read<std::string>();
+    T cnstRight = arguments_.Read<T>();
+    auto reg = arguments_.Read<std::string>();
 
     std::string resultStringMin = OP{}(cnstLeft.c_str(), cnstLeft.size(), cnstRight);
     std::string resultStringMax = OP{}(cnstLeft.c_str(), cnstLeft.size(), cnstRight);
 
-    char* resultMin = allocateRegister<char>(reg + "_min", resultStringMin.size() + 1, !OP::isMonotonous);
-    char* resultMax = allocateRegister<char>(reg + "_max", resultStringMax.size() + 1, !OP::isMonotonous);
+    char* resultMin = AllocateRegister<char>(reg + "_min", resultStringMin.size() + 1, !OP::isMonotonous);
+    char* resultMax = AllocateRegister<char>(reg + "_max", resultStringMax.size() + 1, !OP::isMonotonous);
 
     std::copy(resultStringMin.begin(), resultStringMin.end(), resultMin);
     resultMin[resultStringMin.size()] = '\0';
@@ -282,42 +282,42 @@ int32_t CpuSqlDispatcher::stringBinaryNumericConstConst()
 
 
 template <typename OP>
-int32_t CpuSqlDispatcher::stringBinaryColCol()
+int32_t CpuSqlDispatcher::StringBinaryColCol()
 {
-    auto colNameLeft = arguments.read<std::string>();
-    auto colNameRight = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    auto colNameRight = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     char* resultMin = nullptr;
     char* resultMax = nullptr;
 
     if (colNameLeft.front() != '$' && colNameRight.front() != '$')
     {
-        resultMin = allocateRegister<char>(reg + "_min", 1, true);
-        resultMax = allocateRegister<char>(reg + "_max", 1, true);
+        resultMin = AllocateRegister<char>(reg + "_min", 1, true);
+        resultMax = AllocateRegister<char>(reg + "_max", 1, true);
         resultMin[0] = 'a';
         resultMax[0] = 'a';
     }
     else
     {
-        if (loadCol<std::string>(colNameLeft) || loadCol<std::string>(colNameRight))
+        if (LoadCol<std::string>(colNameLeft) || LoadCol<std::string>(colNameRight))
         {
             return 1;
         }
 
         std::string colPointerNameLeftMin;
         std::string colPointerNameLeftMax;
-        std::tie(colPointerNameLeftMin, colPointerNameLeftMax) = getPointerNames(colNameLeft);
+        std::tie(colPointerNameLeftMin, colPointerNameLeftMax) = GetPointerNames(colNameLeft);
 
         std::string colPointerNameRightMin;
         std::string colPointerNameRightMax;
-        std::tie(colPointerNameRightMin, colPointerNameRightMax) = getPointerNames(colNameRight);
+        std::tie(colPointerNameRightMin, colPointerNameRightMax) = GetPointerNames(colNameRight);
 
-        auto colValLeftMin = allocatedPointers.at(colPointerNameLeftMin);
-        auto colValLeftMax = allocatedPointers.at(colPointerNameLeftMax);
+        auto colValLeftMin = allocatedPointers_.at(colPointerNameLeftMin);
+        auto colValLeftMax = allocatedPointers_.at(colPointerNameLeftMax);
 
-        auto colValRightMin = allocatedPointers.at(colPointerNameRightMin);
-        auto colValRightMax = allocatedPointers.at(colPointerNameRightMax);
+        auto colValRightMin = allocatedPointers_.at(colPointerNameRightMin);
+        auto colValRightMax = allocatedPointers_.at(colPointerNameRightMax);
 
         std::string resultStringMin =
             OP{}(reinterpret_cast<char*>(std::get<0>(colValLeftMin)), std::get<1>(colValLeftMin),
@@ -326,10 +326,10 @@ int32_t CpuSqlDispatcher::stringBinaryColCol()
             OP{}(reinterpret_cast<char*>(std::get<0>(colValLeftMax)), std::get<1>(colValLeftMax),
                  reinterpret_cast<char*>(std::get<0>(colValRightMax)), std::get<1>(colValRightMax));
 
-        resultMin = allocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
+        resultMin = AllocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
                                            std::get<2>(colValLeftMin) ||
                                                std::get<2>(colValRightMin) || !OP::isMonotonous);
-        resultMax = allocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
+        resultMax = AllocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
                                            std::get<2>(colValLeftMax) ||
                                                std::get<2>(colValRightMax) || !OP::isMonotonous);
 
@@ -350,32 +350,32 @@ int32_t CpuSqlDispatcher::stringBinaryColCol()
 
 
 template <typename OP>
-int32_t CpuSqlDispatcher::stringBinaryColConst()
+int32_t CpuSqlDispatcher::StringBinaryColConst()
 {
-    auto colName = arguments.read<std::string>();
-    std::string cnst = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    std::string cnst = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    if (loadCol<std::string>(colName))
+    if (LoadCol<std::string>(colName))
     {
         return 1;
     }
 
     std::string colPointerNameMin;
     std::string colPointerNameMax;
-    std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+    std::tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
 
-    auto colValMin = allocatedPointers.at(colPointerNameMin);
-    auto colValMax = allocatedPointers.at(colPointerNameMax);
+    auto colValMin = allocatedPointers_.at(colPointerNameMin);
+    auto colValMax = allocatedPointers_.at(colPointerNameMax);
 
     std::string resultStringMin = OP{}(reinterpret_cast<char*>(std::get<0>(colValMin)),
                                        std::get<1>(colValMin), cnst.c_str(), cnst.size());
     std::string resultStringMax = OP{}(reinterpret_cast<char*>(std::get<0>(colValMax)),
                                        std::get<1>(colValMax), cnst.c_str(), cnst.size());
 
-    char* resultMin = allocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
+    char* resultMin = AllocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
                                              std::get<2>(colValMin) || !OP::isMonotonous);
-    char* resultMax = allocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
+    char* resultMax = AllocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
                                              std::get<2>(colValMax) || !OP::isMonotonous);
 
     std::copy(resultStringMin.begin(), resultStringMin.end(), resultMin);
@@ -392,32 +392,32 @@ int32_t CpuSqlDispatcher::stringBinaryColConst()
 }
 
 template <typename OP>
-int32_t CpuSqlDispatcher::stringBinaryConstCol()
+int32_t CpuSqlDispatcher::StringBinaryConstCol()
 {
-    std::string cnst = arguments.read<std::string>();
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    std::string cnst = arguments_.Read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    if (loadCol<std::string>(colName))
+    if (LoadCol<std::string>(colName))
     {
         return 1;
     }
 
     std::string colPointerNameMin;
     std::string colPointerNameMax;
-    std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+    std::tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
 
-    auto colValMin = allocatedPointers.at(colPointerNameMin);
-    auto colValMax = allocatedPointers.at(colPointerNameMax);
+    auto colValMin = allocatedPointers_.at(colPointerNameMin);
+    auto colValMax = allocatedPointers_.at(colPointerNameMax);
 
     std::string resultStringMin = OP{}(reinterpret_cast<char*>(std::get<0>(colValMin)),
                                        std::get<1>(colValMin), cnst.c_str(), cnst.size());
     std::string resultStringMax = OP{}(reinterpret_cast<char*>(std::get<0>(colValMax)),
                                        std::get<1>(colValMax), cnst.c_str(), cnst.size());
 
-    char* resultMin = allocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
+    char* resultMin = AllocateRegister<char>(reg + "_min", resultStringMin.size() + 1,
                                              std::get<2>(colValMin) || !OP::isMonotonous);
-    char* resultMax = allocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
+    char* resultMax = AllocateRegister<char>(reg + "_max", resultStringMax.size() + 1,
                                              std::get<2>(colValMax) || !OP::isMonotonous);
 
     std::copy(resultStringMin.begin(), resultStringMin.end(), resultMin);
@@ -434,19 +434,19 @@ int32_t CpuSqlDispatcher::stringBinaryConstCol()
 }
 
 template <typename OP>
-int32_t CpuSqlDispatcher::stringBinaryConstConst()
+int32_t CpuSqlDispatcher::StringBinaryConstConst()
 {
-    std::string cnstLeft = arguments.read<std::string>();
-    std::string cnstRight = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    std::string cnstLeft = arguments_.Read<std::string>();
+    std::string cnstRight = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     std::string resultStringMin =
         OP{}(cnstLeft.c_str(), cnstLeft.size(), cnstRight.c_str(), cnstRight.size());
     std::string resultStringMax =
         OP{}(cnstLeft.c_str(), cnstLeft.size(), cnstRight.c_str(), cnstRight.size());
 
-    char* resultMin = allocateRegister<char>(reg + "_min", resultStringMin.size() + 1, !OP::isMonotonous);
-    char* resultMax = allocateRegister<char>(reg + "_max", resultStringMax.size() + 1, !OP::isMonotonous);
+    char* resultMin = AllocateRegister<char>(reg + "_min", resultStringMin.size() + 1, !OP::isMonotonous);
+    char* resultMax = AllocateRegister<char>(reg + "_max", resultStringMax.size() + 1, !OP::isMonotonous);
 
     std::copy(resultStringMin.begin(), resultStringMin.end(), resultMin);
     resultMin[resultStringMin.size()] = '\0';

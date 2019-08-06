@@ -14,7 +14,7 @@
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::pointColCol()
+int32_t GpuSqlDispatcher::PointColCol()
 {
     auto colNameRight = arguments.read<std::string>();
     auto colNameLeft = arguments.read<std::string>();
@@ -81,7 +81,7 @@ int32_t GpuSqlDispatcher::pointColCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::pointColConst()
+int32_t GpuSqlDispatcher::PointColConst()
 {
     U cnst = arguments.read<U>();
     auto colNameLeft = arguments.read<std::string>();
@@ -125,7 +125,7 @@ int32_t GpuSqlDispatcher::pointColConst()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::pointConstCol()
+int32_t GpuSqlDispatcher::PointConstCol()
 {
     auto colNameRight = arguments.read<std::string>();
     T cnst = arguments.read<T>();
@@ -170,7 +170,7 @@ int32_t GpuSqlDispatcher::pointConstCol()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::containsColConst()
+int32_t GpuSqlDispatcher::ContainsColConst()
 {
     auto constWkt = arguments.read<std::string>();
     auto colName = arguments.read<std::string>();
@@ -215,7 +215,7 @@ int32_t GpuSqlDispatcher::containsColConst()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::containsConstCol()
+int32_t GpuSqlDispatcher::ContainsConstCol()
 {
     auto colName = arguments.read<std::string>();
     auto constWkt = arguments.read<std::string>();
@@ -261,7 +261,7 @@ int32_t GpuSqlDispatcher::containsConstCol()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::containsColCol()
+int32_t GpuSqlDispatcher::ContainsColCol()
 {
     auto colNamePoint = arguments.read<std::string>();
     auto colNamePolygon = arguments.read<std::string>();
@@ -326,7 +326,7 @@ int32_t GpuSqlDispatcher::containsColCol()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::containsConstConst()
+int32_t GpuSqlDispatcher::ContainsConstConst()
 {
     // TODO : Specialize kernel for all cases.
     auto constPointWkt = arguments.read<std::string>();
@@ -357,7 +357,7 @@ int32_t GpuSqlDispatcher::containsConstConst()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::polygonOperationColConst()
+int32_t GpuSqlDispatcher::PolygonOperationColConst()
 {
     auto colName = arguments.read<std::string>();
     auto constWkt = arguments.read<std::string>();
@@ -390,7 +390,7 @@ int32_t GpuSqlDispatcher::polygonOperationColConst()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::polygonOperationConstCol()
+int32_t GpuSqlDispatcher::PolygonOperationConstCol()
 {
     std::cout << "Polygon operation: " << std::endl;
     return 0;
@@ -401,7 +401,7 @@ int32_t GpuSqlDispatcher::polygonOperationConstCol()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::polygonOperationColCol()
+int32_t GpuSqlDispatcher::PolygonOperationColCol()
 {
     auto colNameRight = arguments.read<std::string>();
     auto colNameLeft = arguments.read<std::string>();
@@ -464,7 +464,7 @@ int32_t GpuSqlDispatcher::polygonOperationColCol()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::polygonOperationConstConst()
+int32_t GpuSqlDispatcher::PolygonOperationConstConst()
 {
     std::cout << "Polygon operation: " << std::endl;
     return 0;

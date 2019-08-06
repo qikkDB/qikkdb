@@ -243,7 +243,7 @@ TEST_F(GPUCompressionTests, CompressionDispatcherLoadInt)
 {
 
 	GpuSqlCustomParser parser(database, "SELECT ColumnInt FROM compressionTable;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	auto &payloads = result->payloads().at("compressionTable.ColumnInt");
@@ -261,7 +261,7 @@ TEST_F(GPUCompressionTests, CompressionDispatcherLoadLong)
 {
 
 	GpuSqlCustomParser parser(database, "SELECT ColumnLong FROM compressionTable;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	auto &payloads = result->payloads().at("compressionTable.ColumnLong");
@@ -279,7 +279,7 @@ TEST_F(GPUCompressionTests, CompressionDispatcherLoadFloat)
 {
 	
 	GpuSqlCustomParser parser(database, "SELECT ColumnFloatPositive FROM compressionTable;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	auto &payloads = result->payloads().at("compressionTable.ColumnFloatPositive");
