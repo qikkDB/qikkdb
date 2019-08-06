@@ -41,43 +41,56 @@ __device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKe
 __device__ bool
 AreEqualMultiKeys(DataType* keyTypes, int32_t keysColCount, void** keysA, int32_t indexA, void** keysB, int32_t indexB)
 {
-    bool equals = true; // todo delete and return instead
     for (int32_t t = 0; t < keysColCount; t++)
     {
         switch (keyTypes[t])
         {
         case DataType::COLUMN_INT:
-            equals &= (reinterpret_cast<int32_t*>(keysA[t])[indexA] ==
-                       reinterpret_cast<int32_t*>(keysB[t])[indexB]);
+            if (reinterpret_cast<int32_t*>(keysA[t])[indexA] != reinterpret_cast<int32_t*>(keysB[t])[indexB])
+            {
+                return false;
+            }
             break;
         case DataType::COLUMN_LONG:
-            equals &= (reinterpret_cast<int64_t*>(keysA[t])[indexA] ==
-                       reinterpret_cast<int64_t*>(keysB[t])[indexB]);
+            if (reinterpret_cast<int64_t*>(keysA[t])[indexA] != reinterpret_cast<int64_t*>(keysB[t])[indexB])
+            {
+                return false;
+            }
             break;
         case DataType::COLUMN_FLOAT:
-            equals &= (reinterpret_cast<float*>(keysA[t])[indexA] == reinterpret_cast<float*>(keysB[t])[indexB]);
+            if (reinterpret_cast<float*>(keysA[t])[indexA] != reinterpret_cast<float*>(keysB[t])[indexB])
+            {
+                return false;
+            }
             break;
         case DataType::COLUMN_DOUBLE:
-            equals &= (reinterpret_cast<double*>(keysA[t])[indexA] ==
-                       reinterpret_cast<double*>(keysB[t])[indexB]);
+            if (reinterpret_cast<double*>(keysA[t])[indexA] != reinterpret_cast<double*>(keysB[t])[indexB])
+            {
+                return false;
+            }
             break;
         case DataType::COLUMN_STRING:
         {
             GPUMemory::GPUString strColA = *reinterpret_cast<GPUMemory::GPUString*>(keysA[t]);
             GPUMemory::GPUString strColB = *reinterpret_cast<GPUMemory::GPUString*>(keysB[t]);
-            equals &= AreEqualStrings(strColA.allChars + GetStringIndex(strColA.stringIndices, indexA),
-                                      GetStringLength(strColA.stringIndices, indexA), strColB, indexB);
+            if (!AreEqualStrings(strColA.allChars + GetStringIndex(strColA.stringIndices, indexA),
+                                 GetStringLength(strColA.stringIndices, indexA), strColB, indexB))
+            {
+                return false;
+            }
             break;
         }
         case DataType::COLUMN_INT8_T:
-            equals &= (reinterpret_cast<int8_t*>(keysA[t])[indexA] ==
-                       reinterpret_cast<int8_t*>(keysB[t])[indexB]);
+            if (reinterpret_cast<int8_t*>(keysA[t])[indexA] != reinterpret_cast<int8_t*>(keysB[t])[indexB])
+            {
+                return false;
+            }
             break;
         default:
             break;
         }
     }
-    return equals;
+    return true;
 }
 
 
