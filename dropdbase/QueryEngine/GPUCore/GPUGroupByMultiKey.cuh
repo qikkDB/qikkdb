@@ -439,7 +439,7 @@ public:
 
             // Run group by kernel (get sourceIndices and aggregate values).
             // Parameter hashCoef is comptued as n-th root of maxHashCount, where n is a number of key columns
-            kernel_group_by_multi_key<AGG><<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
+            kernel_group_by_multi_key<AGG><<<context.calcGridDim(dataElementCount), 768>>>(
                 keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, values_, keyOccurrenceCount_,
                 maxHashCount_, inKeys.get(), inValues, dataElementCount,
                 static_cast<int32_t>(powf(maxHashCount_, 1.0f / keysColCount_)),
