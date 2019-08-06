@@ -116,6 +116,8 @@ __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
 
             for (int32_t point = pointIdx; point < (pointIdx + pointCount); point++)
             {
+                int32_t localIdx = pointIdx - GPUMemory::PointIdxAt(polygon, polyIdx);
+
                 // Set the linked list entry
                 LLPolygonBuffers[((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + LLPolygonEndIdx] = {
                     polygon.polyPoints[point],
@@ -123,8 +125,8 @@ __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                     false,
                     -1.0,
                     -1.0,
-                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point - pointIdx - 1 + pointCount) % pointCount,
-                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point - pointIdx + 1) % pointCount,
+                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + localIdx + (point - pointIdx - 1 + pointCount) % pointCount,
+                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + localIdx + (point - pointIdx + 1) % pointCount,
                     -1};
 
                 // Increment the local pointer to the end of the LL
