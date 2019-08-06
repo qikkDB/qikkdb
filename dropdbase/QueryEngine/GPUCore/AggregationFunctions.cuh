@@ -209,20 +209,6 @@ struct sum
         atomicAdd(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&b));
     }
 
-    // atomicAdd double, for CUDA Arch < 600
-    __device__ void operator()(double* a, double b) const
-    {
-        cuUInt64* ptrAsULL = reinterpret_cast<cuUInt64*>(a);
-        cuUInt64 old = *ptrAsULL;
-        cuUInt64 expected;
-        do
-        {
-            expected = old;
-            old = atomicCAS(ptrAsULL, expected, __double_as_longlong(b + __longlong_as_double(expected)));
-            // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
-        } while (expected != old);
-    }
-
     template <typename OUT, typename IN>
     static void agg(OUT* outValue, IN* ACol, int32_t dataElementCount)
     {
@@ -260,20 +246,6 @@ struct avg
     __device__ void operator()(int64_t* a, int64_t b) const
     {
         atomicAdd(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&b));
-    }
-
-    // atomicAdd double, for CUDA Arch < 600
-    __device__ void operator()(double* a, double b) const
-    {
-        cuUInt64* ptrAsULL = reinterpret_cast<cuUInt64*>(a);
-        cuUInt64 old = *ptrAsULL;
-        cuUInt64 expected;
-        do
-        {
-            expected = old;
-            old = atomicCAS(ptrAsULL, expected, __double_as_longlong(b + __longlong_as_double(expected)));
-            // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
-        } while (expected != old);
     }
 
     template <typename OUT, typename IN>
