@@ -97,22 +97,22 @@ public:
         CheckCudaError(cudaGetLastError());
 
         // DEBUG
-        std::vector<int32_t> LLPolygonABufferSizesDebug(dataElementCount);
-        std::vector<int32_t> LLPolygonBBufferSizesDebug(dataElementCount);
+        // std::vector<int32_t> LLPolygonABufferSizesDebug(dataElementCount);
+        // std::vector<int32_t> LLPolygonBBufferSizesDebug(dataElementCount);
 
-        GPUMemory::copyDeviceToHost(&LLPolygonABufferSizesDebug[0], LLPolygonABufferSizes.get(), dataElementCount);
-        GPUMemory::copyDeviceToHost(&LLPolygonBBufferSizesDebug[0], LLPolygonBBufferSizes.get(), dataElementCount);
+        // GPUMemory::copyDeviceToHost(&LLPolygonABufferSizesDebug[0], LLPolygonABufferSizes.get(), dataElementCount);
+        // GPUMemory::copyDeviceToHost(&LLPolygonBBufferSizesDebug[0], LLPolygonBBufferSizes.get(), dataElementCount);
 
-        for (auto& a : LLPolygonABufferSizesDebug)
-        {
-            printf("%d ", a);
-        }
-        printf("\n");
-        for (auto& b : LLPolygonBBufferSizesDebug)
-        {
-            printf("%d ", b);
-        }
-        printf("\n");
+        // for (auto& a : LLPolygonABufferSizesDebug)
+        // {
+        //     printf("%d ", a);
+        // }
+        // printf("\n");
+        // for (auto& b : LLPolygonBBufferSizesDebug)
+        // {
+        //     printf("%d ", b);
+        // }
+        // printf("\n");
 
 
         // Calculate the inclusive prefix sum for the LL buffer sizes counters for adressing purpose
@@ -162,14 +162,14 @@ public:
         // GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
         // GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
 
-        // for(auto &a : LLa)
+        // for (int32_t i = 0; i < LLa.size(); i++)
         // {
-        //     printf("%d %d\n", a.prevIdx, a.nextIdx);
+        //     printf("%2d: %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx);
         // }
         // printf("\n");
-        // for(auto &b : LLb)
+        // for (int32_t i = 0; i < LLb.size(); i++)
         // {
-        //     printf("%d %d\n", b.prevIdx, b.nextIdx);
+        //     printf("%2d: %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx);
         // }
         // printf("\n");
 
@@ -179,5 +179,23 @@ public:
             LLPolygonABuffers.get(), LLPolygonBBuffers.get(), polygonAin, polygonBin,
             LLPolygonABufferSizesPrefixSum.get(), LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
         CheckCudaError(cudaGetLastError());
+
+        // DEBUG
+        std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
+        std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
+
+        GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
+        GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
+
+        for (int32_t i = 0; i < LLa.size(); i++)
+        {
+            printf("%2d: %2d %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx, LLa[i].crossIdx);
+        }
+        printf("\n");
+        for (int32_t i = 0; i < LLb.size(); i++)
+        {
+            printf("%2d: %2d %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx, LLb[i].crossIdx);
+        }
+        printf("\n");
     }
 };

@@ -68,42 +68,15 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
                 {
                     for (int32_t pointB = pointIdxB; pointB < (pointIdxB + pointCountB); pointB++)
                     {
-                        // printf("PointB: %d Point idxB: %d PointCountB: %d\n", pointB, pointIdxB, pointCountB );
-
-                        // printf("A line idx : %d %d\n", pointA, pointIdxA + (pointA - pointIdxA +
-                        // 1) % pointCountA); printf("B line idx : %d %d\n", pointB, pointIdxB +
-                        // (pointB - pointIdxB + 1) % pointCountB); printf("\n");
-
-
                         LLPolyVertex intersection =
                             calc_intersect(polygonA.polyPoints[pointA],
                                            polygonA.polyPoints[pointIdxA + (pointA - pointIdxA + 1) % pointCountA],
                                            polygonB.polyPoints[pointB],
                                            polygonB.polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]);
+
                         if (intersection.isValidIntersection)
                         {
-                            printf("{%.2f %.2f}\n{%.2f %.2f}\n{%.2f %.2f}\n{%.2f %.2f}\n",
-
-                                   polygonA.polyPoints[pointA].latitude, polygonA.polyPoints[pointA].longitude,
-                                   polygonA
-                                       .polyPoints[pointIdxA + (pointA - pointIdxA + 1) % pointCountA]
-                                       .latitude,
-                                   polygonA
-                                       .polyPoints[pointIdxA + (pointA - pointIdxA + 1) % pointCountA]
-                                       .longitude,
-                                   polygonB.polyPoints[pointB].latitude, polygonB.polyPoints[pointB].longitude,
-                                   polygonB
-                                       .polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]
-                                       .latitude,
-                                   polygonB
-                                       .polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]
-                                       .longitude);
                             intersectCount++;
-                            printf("A line idx : %d %d\n", pointA,
-                                   pointIdxA + (pointA - pointIdxA + 1) % pointCountA);
-                            printf("B line idx : %d %d\n", pointB,
-                                   pointIdxB + (pointB - pointIdxB + 1) % pointCountB);
-                            printf("\n");
                         }
                     }
                 }
@@ -115,8 +88,8 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
         int32_t k = GPUMemory::TotalPointCountAt(polygonB, i);
 
         // Assign the calculated buffers size
-        LLPolygonABufferSizes[i] = intersectCount; // n +
-        LLPolygonBBufferSizes[i] = intersectCount; // k +
+        LLPolygonABufferSizes[i] = n + intersectCount;
+        LLPolygonBBufferSizes[i] = k + intersectCount;
     }
 }
 
@@ -150,8 +123,8 @@ __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                     false,
                     -1.0,
                     -1.0,
-                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point - 1 + pointCount) % pointCount,
-                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point + 1) % pointCount,
+                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point - pointIdx + -1 + pointCount) % pointCount,
+                    ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + (point - pointIdx + 1) % pointCount,
                     -1};
 
                 // Increment the local pointer to the end of the LL
@@ -202,20 +175,21 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex* LLPol
                     {
                         LLPolyVertex intersection =
                             calc_intersect(polygonA.polyPoints[pointA],
-                                           polygonA.polyPoints[pointIdxA + (pointA + 1) % pointCountA],
+                                           polygonA.polyPoints[pointIdxA + (pointA - pointIdxA + 1) % pointCountA],
                                            polygonB.polyPoints[pointB],
-                                           polygonB.polyPoints[pointIdxB + (pointB + 1) % pointCountB]);
+                                           polygonB.polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]);
 
+                        // TODO TODO TODO
                         // If an intersection is valid, insert it into the linked lists and create a cross reference
                         if (intersection.isValidIntersection)
                         {
                             // Save the intersection data
-                            LLPolygonABuffers[LLPolygonAEndIdx] = intersection;
-                            LLPolygonBBuffers[LLPolygonBEndIdx] = intersection;
+                            LLPolygonABuffers[((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + LLPolygonAEndIdx] = intersection;
+                            LLPolygonBBuffers[((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + LLPolygonBEndIdx] = intersection;
 
                             // Write the cross reference indices
-                            LLPolygonABuffers[LLPolygonAEndIdx].crossIdx = LLPolygonBEndIdx;
-                            LLPolygonBBuffers[LLPolygonBEndIdx].crossIdx = LLPolygonAEndIdx;
+                            LLPolygonABuffers[((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + LLPolygonAEndIdx].crossIdx = LLPolygonBEndIdx;
+                            LLPolygonBBuffers[((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + LLPolygonBEndIdx].crossIdx = LLPolygonAEndIdx;
 
                             // "Rewire" the prev and next pointers s othat the point is in it's correct place
                             // according to the parametric distance from the beginning of the line segment
