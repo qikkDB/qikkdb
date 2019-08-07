@@ -24,7 +24,6 @@ private:
     std::string name_;
     int32_t blockSize_;
     std::unordered_map<std::string, Table> tables_;
-    bool saveNecessary_;
 
     /// <summary>
     /// Load column of a table into memory from disk.
@@ -77,14 +76,6 @@ public:
                Context::getInstance().GetLoadedDatabases().end();
     }
     static std::vector<std::string> GetDatabaseNames();
-
-	/// <summary>
-    /// Set saveNecessaty_ to true, because data in the database were modified.
-    /// </summary>
-	void SetSaveNecessaryToTrue()
-	{
-        saveNecessary_ = true;
-	}
 
 	/// <summary>
     /// Set saveNecessaty_ to false for block, column and table, because data in the database were NOT modified yet.

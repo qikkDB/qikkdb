@@ -16,6 +16,7 @@ public:
     virtual std::pair<int8_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) = 0;
     virtual bool GetIsNullable() const = 0;
     virtual void SetIsNullable(bool isNullable) = 0;
+    virtual bool GetSaveNecessary() const = 0;
 
     virtual ~IColumn(){};
 };

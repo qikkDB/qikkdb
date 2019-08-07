@@ -51,7 +51,7 @@ public:
     /// <param name="column">Column that will hold this new block.</param>
     BlockBase(const std::vector<T>& data, ColumnBase<T>& column, bool isCompressed = false, bool isNullable = false)
     : column_(column), size_(0), countOfNotNullValues_(0), isCompressed_(isCompressed),
-      isNullable_(isNullable), wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(false)
+      isNullable_(isNullable), wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(true)
     {
         capacity_ = (isCompressed) ? data.size() : column.GetBlockSize();
         data_ = std::unique_ptr<T[]>(new T[capacity_]);
@@ -81,7 +81,7 @@ public:
     explicit BlockBase(ColumnBase<T>& column)
     : column_(column), size_(0), countOfNotNullValues_(0), capacity_(column_.GetBlockSize()),
       data_(new T[capacity_]), bitMask_(nullptr), isNullable_(column_.GetIsNullable()),
-      wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(false)
+      wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(true)
     {
         GPUMemory::hostPin(data_.get(), capacity_);
         wasRegistered_ = true;
@@ -159,9 +159,14 @@ public:
         return (size_ + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
     }
 
-    bool GetSaveNecessary()
+    bool GetSaveNecessary() const
     {
         return saveNecessary_;
+    }
+
+    void SetSaveNecessaryToFalse()
+    {
+        saveNecessary_ = false;
     }
 
     /// <summary>
