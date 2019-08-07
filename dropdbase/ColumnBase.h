@@ -104,10 +104,11 @@ private:
     float initAvg_ = 0.0; // initial average is needed, because avg_ is constantly changing and we need unchable value for comparing in binary index
     bool initAvgIsSet_ = false;
     bool isNullable_;
+    bool saveNecessary_;
 
 public:
     ColumnBase(const std::string& name, int blockSize, bool isNullable = false)
-    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable)
+    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable), saveNecessary_(false)
     {
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
     }
@@ -170,6 +171,16 @@ public:
         return sum_;
     }
 
+    void SetSaveNecessary(bool saveNecessary)
+    {
+        saveNecessary_ = saveNecessary;
+    }
+
+    bool GetSaveNecessary()
+    {
+        return saveNecessary_;
+    }
+
     /// <summary>
     /// Blocks getter
     /// </summary>
@@ -202,6 +213,7 @@ public:
         }
 
         blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
+        saveNecessary_ = true;
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
@@ -218,6 +230,7 @@ public:
         {
             lastBlock->CompressData();
         }
+        saveNecessary_ = true;
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
@@ -249,7 +262,8 @@ public:
         {
             BlockSplit(blocks_[groupId][indexBlock]);
         }
-
+        
+        saveNecessary_ = true;
         // setColumnStatistics();
     }
 
@@ -355,6 +369,7 @@ public:
             startIdx += toCopy;
         }
         // setColumnStatistics();
+        saveNecessary_ = true;
     }
 
     /// <summary>
@@ -437,7 +452,8 @@ public:
             }
             startIdx += toCopy;
         }
-        setColumnStatistics();
+        //setColumnStatistics();
+        saveNecessary_ = true;
     }
 
     /// <summary>
