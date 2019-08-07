@@ -22,9 +22,9 @@
 /// will have the same data (because all blocks will have the same data), according to column types.
 /// If set to false, data in blocks (rows) will be different (per block), but all blocks will have
 /// the same data. Default value is set to false.</param> <param name="tablesNames">Names of tables
-/// and that implies the number of tables. Defailt value is one table with name 'TableA'.</param> <param
-/// name="columnsTypes">Types of columns in table and that implies the number of columns in each
-/// table. Default value is one column of type int32_t.</param>
+/// and that implies the number of tables. Defailt value is one table with name 'TableA'.</param>
+/// <param name="columnsTypes">Types of columns in table and that implies the number of columns in
+/// each table. Default value is one column of type int32_t.</param>
 std::shared_ptr<Database>
 DatabaseGenerator::GenerateDatabase(const char* databaseName, int blockCount, int blockSize, bool sameDataInBlocks)
 {
@@ -46,9 +46,9 @@ DatabaseGenerator::GenerateDatabase(const char* databaseName, int blockCount, in
 /// will have the same data (because all blocks will have the same data), according to column types.
 /// If set to false, data in blocks (rows) will be different (per block), but all blocks will have
 /// the same data. Default value is set to false.</param> <param name="tablesNames">Names of tables
-/// and that implies the number of tables. Defailt value is one table with name 'TableA'.</param> <param
-/// name="columnsTypes">Types of columns in table and that implies the number of columns in each
-/// table. Default value is one column of type int32_t.</param>
+/// and that implies the number of tables. Defailt value is one table with name 'TableA'.</param>
+/// <param name="columnsTypes">Types of columns in table and that implies the number of columns in
+/// each table. Default value is one column of type int32_t.</param>
 std::shared_ptr<Database>
 DatabaseGenerator::GenerateDatabase(const char* databaseName,
                                     int blockCount,

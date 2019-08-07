@@ -151,7 +151,7 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
 
         const int32_t blockCount =
             usingJoin_ ? joinIndices_->at(table).size() :
-                        database_->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+                         database_->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
         GpuSqlDispatcher::deviceCountLimit_ =
             std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
         if (blockIndex_ >= blockCount)

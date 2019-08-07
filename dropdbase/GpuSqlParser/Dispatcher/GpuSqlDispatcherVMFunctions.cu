@@ -133,14 +133,14 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
                 {
                     int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                            database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
+                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
                         GPUJoin::reorderNullMaskByJoinTableCPU<ColmnarDB::Types::ComplexPolygon>(
-                                std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
-                                joinIndices_->at(table), database_->GetBlockSize());
+                            std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
+                            joinIndices_->at(table), database_->GetBlockSize());
                     }
                 }
                 else
@@ -207,7 +207,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
             });
 
             auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(
-                    database_->GetName(), colName, blockIndex_, nativePoints.size());
+                database_->GetName(), colName, blockIndex_, nativePoints.size());
             if (!std::get<2>(cacheEntry))
             {
                 GPUMemory::copyHostToDevice(std::get<0>(cacheEntry),
@@ -222,7 +222,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
                     int32_t bitMaskCapacity =
                         ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                            database_->GetName(), colName + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
+                        database_->GetName(), colName + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
                     if (!std::get<2>(cacheMaskEntry))
                     {
@@ -263,7 +263,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
             });
 
             auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(
-                    database_->GetName(), joinCacheId, blockIndex_, loadSize);
+                database_->GetName(), joinCacheId, blockIndex_, loadSize);
             if (!std::get<2>(cacheEntry))
             {
                 GPUMemory::copyHostToDevice(std::get<0>(cacheEntry),
@@ -277,14 +277,14 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
                 {
                     int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                            database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
+                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
                         GPUJoin::reorderNullMaskByJoinTableCPU<ColmnarDB::Types::Point>(
-                                std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
-                                joinIndices_->at(table), database_->GetBlockSize());
+                            std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
+                            joinIndices_->at(table), database_->GetBlockSize());
                     }
                     AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheMaskEntry), bitMaskCapacity);
                 }
@@ -383,7 +383,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
                 {
                     int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                            database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
+                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
                     if (!std::get<2>(cacheMaskEntry))
                     {

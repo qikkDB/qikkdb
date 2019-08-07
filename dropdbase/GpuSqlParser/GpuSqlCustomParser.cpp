@@ -264,7 +264,8 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 
     for (int i = 0; i < threadCount; i++)
     {
-        dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database_, groupByInstances, orderByBlocks, i));
+        dispatchers.emplace_back(
+            std::make_unique<GpuSqlDispatcher>(database_, groupByInstances, orderByBlocks, i));
         dispatcher->CopyExecutionDataTo(*dispatchers[i], *cpuWhereDispatcher);
         dispatchers[i]->SetJoinIndices(joinDispatcher->GetJoinIndices());
         dispatcherFutures.push_back(

@@ -117,7 +117,7 @@ public:
     {
         void* allocatedMemory = operator new(size * sizeof(T));
         allocatedPointers_.insert({reg, std::make_tuple(reinterpret_cast<std::uintptr_t>(allocatedMemory),
-                                                       size, resultColColOperation)});
+                                                        size, resultColColOperation)});
         return reinterpret_cast<T*>(allocatedMemory);
     }
 

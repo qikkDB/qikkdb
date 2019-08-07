@@ -23,8 +23,8 @@ int32_t GpuSqlJoinDispatcher::JoinCol()
 
     std::tie(rightTable, rightColumn) = SplitColumnName(colNameRight);
 
-    auto colBaseLeft =
-        dynamic_cast<ColumnBase<T>*>(database_->GetTables().at(leftTable).GetColumns().at(leftColumn).get());
+    auto colBaseLeft = dynamic_cast<ColumnBase<T>*>(
+        database_->GetTables().at(leftTable).GetColumns().at(leftColumn).get());
     auto colBaseRight = dynamic_cast<ColumnBase<T>*>(
         database_->GetTables().at(rightTable).GetColumns().at(rightColumn).get());
 

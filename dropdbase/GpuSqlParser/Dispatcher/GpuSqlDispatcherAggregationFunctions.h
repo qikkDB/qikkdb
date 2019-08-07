@@ -128,7 +128,8 @@ public:
         int8_t* outValueNullMask = nullptr;
         reinterpret_cast<GPUGroupBy<OP, O, K, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
-            ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask, &outValueNullMask);
+            ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask,
+                         &outValueNullMask);
         dispatcher.InsertRegister(groupByColumnName + KEYS_SUFFIX,
                                   PointerAllocation{reinterpret_cast<uintptr_t>(outKeys), outSize, true,
                                                     reinterpret_cast<uintptr_t>(outKeyNullMask)});
@@ -176,7 +177,8 @@ public:
         int8_t* outValueNullMask = nullptr;
         reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
-            ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask, &outValueNullMask);
+            ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask,
+                         &outValueNullMask);
         dispatcher.FillStringRegister(outKeys, groupByColumnName + KEYS_SUFFIX, outSize, true, outKeyNullMask);
         dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
                                                          reinterpret_cast<uintptr_t>(outValueNullMask)});

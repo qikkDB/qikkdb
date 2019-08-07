@@ -243,7 +243,8 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
                     int32_t firstNonzeroMergeCounterIdx = -1;
 
                     // WARNING - this works only for non empty columns
-                    switch (reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][0].get()->GetType())
+                    switch (
+                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][0].get()->GetType())
                     {
                     case COLUMN_INT:
                     {
@@ -537,7 +538,8 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
                     int32_t mergeCounterIdx = -1;
 
                     // WARNING - this works only for non empty columns
-                    switch (reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][0].get()->GetType())
+                    switch (
+                        reconstructedOrderByOrderColumnBlocks[orderByColumns_[i].first][0].get()->GetType())
                     {
                     case COLUMN_INT:
                     {

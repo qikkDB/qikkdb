@@ -371,8 +371,8 @@ int main(int argc, char** argv)
                                                 << "Loading latest-trips-part2.csv ...";
                                             csvDataImporter.ImportTables(database);
                                         }
-										else
-										{
+                                        else
+                                        {
                                             if (strcmp(argv[1], "-t8") == 0)
                                             {
                                                 BOOST_LOG_TRIVIAL(info)
@@ -507,12 +507,12 @@ int main(int argc, char** argv)
                                                             << "Loading CSV from \"" << argv[1] << "\"";
                                                         csvDataImporter.ImportTables(database);
                                                     }
-												}
-											}
-										} 	
-									}
-								}
-                            } 
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
