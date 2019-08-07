@@ -26,17 +26,17 @@ TEST(DispatcherNullTests, SelectNullWithWhere)
 		if(i % 2 == i/8)
 		{
 			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (null);");
-			parser.parse();
+            parser.Parse();
 		}
 		else
 		{
 			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (1);");
-			parser.parse();
+            parser.Parse();
             expectedResults.push_back(1);
 		}
 	}
 	GpuSqlCustomParser parser(database, "SELECT Col1 FROM TestTable WHERE Col1 = 1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(database->
 		GetTables().at("TestTable").GetColumns().at("Col1").get());
@@ -66,18 +66,18 @@ TEST(DispatcherNullTests, IsNullWithPattern)
 		if(i % 2 == i/8)
 		{
 			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (null);");
-			parser.parse();
+            parser.Parse();
             bitMaskPart |= 1 << nullCount++;
 		}
 		else
 		{
 			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (1);");
-			parser.parse();
+            parser.Parse();
 		}
 	}
     expectedMask.push_back(bitMaskPart);
 	GpuSqlCustomParser parser(database, "SELECT Col1 FROM TestTable WHERE Col1 IS NULL;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(database->
 		GetTables().at("TestTable").GetColumns().at("Col1").get());
@@ -106,17 +106,17 @@ TEST(DispatcherNullTests, IsNotNullWithPattern)
 		if(i % 2 == i / 8)
 		{
 			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (null);");
-			parser.parse();
+            parser.Parse();
 		}
 		else
 		{
 			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (1);");
-			parser.parse();
+            parser.Parse();
             expectedResults.push_back(1);
 		}
 	}
 	GpuSqlCustomParser parser(database, "SELECT Col1 FROM TestTable WHERE Col1 IS NOT NULL;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(database->
 		GetTables().at("TestTable").GetColumns().at("Col1").get());
@@ -152,7 +152,7 @@ TEST(DispatcherNullTests, OrderByNullTest)
 		if(i % 2)
 		{
 			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (null);");
-			parser.parse();
+            parser.Parse();
 
 			expectedResults.push_back(std::numeric_limits<int32_t>::lowest());
 		}
@@ -161,7 +161,7 @@ TEST(DispatcherNullTests, OrderByNullTest)
 			int32_t val = rand() % 1000;
 
 			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTable (Col1) VALUES (") + std::to_string(val) + std::string(");"));
-			parser.parse();
+            parser.Parse();
 
 			expectedResults.push_back(val);
 		}
@@ -177,7 +177,7 @@ TEST(DispatcherNullTests, OrderByNullTest)
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT Col1 FROM TestTable ORDER BY Col1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTable").GetColumns().at("Col1").get());
     auto& payload = result->payloads().at("TestTable.Col1");
@@ -227,28 +227,28 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNotNullTables)
 		{
 			{
 				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA, ColJoinA) VALUES (null,") + std::to_string(i) + std::string(");"));
-				parser.parse();
+                parser.Parse();
 			}
 			{
 				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableS (ColB, ColJoinB) VALUES (") + std::to_string(j) + std::string(",") + std::to_string(j) + std::string(");"));
-				parser.parse();
+                parser.Parse();
 			}
 		}
 		else
 		{
 			{
 				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA, ColJoinA) VALUES (") + std::to_string(i) + std::string(",") + std::to_string(i) + std::string(");"));
-				parser.parse();
+                parser.Parse();
 			}
 			{
 				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableS (ColB, ColJoinB) VALUES (null,") + std::to_string(j) + std::string(");"));
-				parser.parse();
+                parser.Parse();
 			}
 		}
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT TestTableR.ColA, TestTableS.ColB FROM TestTableR JOIN TestTableS ON ColJoinA = ColJoinB;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 
@@ -288,8 +288,8 @@ TEST(DispatcherNullTests, JoinIsNotNullTest)
 
 	int32_t blockSize = 1 << 5;
 
-	std::shared_ptr<Database> database(std::make_shared<Database>("TestDbJoinNULL2"));
-	Database::AddToInMemoryDatabaseList(database);
+	std::shared_ptr<Database> database_(std::make_shared<Database>("TestDbJoinNULL2"));
+	Database::AddToInMemoryDatabaseList(database_);
 
 	std::unordered_map<std::string, DataType> columnsR;
 	columnsR.emplace("ColA", COLUMN_INT);
@@ -299,42 +299,42 @@ TEST(DispatcherNullTests, JoinIsNotNullTest)
 	columnsS.emplace("ColB", COLUMN_INT);
 	columnsS.emplace("ColJoinB", COLUMN_INT);
 
-	database->CreateTable(columnsR, "TestTableR");
-	database->CreateTable(columnsS, "TestTableS");
+	database_->CreateTable(columnsR, "TestTableR");
+	database_->CreateTable(columnsS, "TestTableS");
 
 	for (int32_t i = 0, j = blockSize - 1; i < blockSize; i++, j--)
 	{
 		if (i % 2)
 		{
 			{
-				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA, ColJoinA) VALUES (null,") + std::to_string(i) + std::string(");"));
+				GpuSqlCustomParser parser(database_, std::string("INSERT INTO TestTableR (ColA, ColJoinA) VALUES (null,") + std::to_string(i) + std::string(");"));
 				parser.parse();
 			}
 			{
-				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableS (ColB, ColJoinB) VALUES (") + std::to_string(j) + std::string(",") + std::to_string(j) + std::string(");"));
+				GpuSqlCustomParser parser(database_, std::string("INSERT INTO TestTableS (ColB, ColJoinB) VALUES (") + std::to_string(j) + std::string(",") + std::to_string(j) + std::string(");"));
 				parser.parse();
 			}
 		}
 		else
 		{
 			{
-				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA, ColJoinA) VALUES (") + std::to_string(i) + std::string(",") + std::to_string(i) + std::string(");"));
+				GpuSqlCustomParser parser(database_, std::string("INSERT INTO TestTableR (ColA, ColJoinA) VALUES (") + std::to_string(i) + std::string(",") + std::to_string(i) + std::string(");"));
 				parser.parse();
 			}
 			{
-				GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableS (ColB, ColJoinB) VALUES (null,") + std::to_string(j) + std::string(");"));
+				GpuSqlCustomParser parser(database_, std::string("INSERT INTO TestTableS (ColB, ColJoinB) VALUES (null,") + std::to_string(j) + std::string(");"));
 				parser.parse();
 			}
 		}
 	}
 
-	GpuSqlCustomParser parser(database, "SELECT TestTableR.ColA FROM TestTableR JOIN TestTableS ON ColJoinA = ColJoinB WHERE TestTableR.ColA IS NOT NULL;");
-	auto resultPtr = parser.parse();
+	GpuSqlCustomParser parser(database_, "SELECT TestTableR.ColA FROM TestTableR JOIN TestTableS ON ColJoinA = ColJoinB WHERE TestTableR.ColA IS NOT NULL;");
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	auto ColA = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableR").GetColumns().at("ColA").get());
-	auto ColJoinA = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableR").GetColumns().at("ColJoinA").get());
-	auto ColJoinB = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableS").GetColumns().at("ColJoinB").get());
+	auto ColA = dynamic_cast<ColumnBase<int32_t>*>(database_->GetTables().at("TestTableR").GetColumns().at("ColA").get());
+	auto ColJoinA = dynamic_cast<ColumnBase<int32_t>*>(database_->GetTables().at("TestTableR").GetColumns().at("ColJoinA").get());
+	auto ColJoinB = dynamic_cast<ColumnBase<int32_t>*>(database_->GetTables().at("TestTableS").GetColumns().at("ColJoinB").get());
 
 	std::vector<int32_t> expectedResults;
 
@@ -400,28 +400,28 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNullTables)
 		if (i % 2)
 		{
 			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA) VALUES (null);"));
-			parser.parse();
+            parser.Parse();
 		}
 		else
 		{
 			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableR (ColA) VALUES (") + std::to_string(i) + std::string(");"));
-			parser.parse();
+            parser.Parse();
 		}
 
 		if (i < blockSize / 2)
 		{
 			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableS (ColB) VALUES (null);"));
-			parser.parse();
+            parser.Parse();
 		}
 		else
 		{
 			GpuSqlCustomParser parser(database, std::string("INSERT INTO TestTableS (ColB) VALUES (") + std::to_string(i) + std::string(");"));
-			parser.parse();
+            parser.Parse();
 		}
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT TestTableR.ColA, TestTableS.ColB FROM TestTableR JOIN TestTableS ON ColA = ColB;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	auto ColA = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTableR").GetColumns().at("ColA").get());
@@ -488,11 +488,11 @@ TEST(DispatcherNullTests, GroupByNullKeySum)
 		}
 		std::cout << ("INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");") << std::endl;
 		GpuSqlCustomParser parser(database, "INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");");
-		parser.parse();
+        parser.Parse();
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT colKeys, SUM(colVals) FROM TestTable GROUP BY colKeys;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto responseMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
@@ -577,11 +577,11 @@ TEST(DispatcherNullTests, GroupByNullValueSum)
 
 		std::cout << ("INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");") << std::endl;
 		GpuSqlCustomParser parser(database, "INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");");
-		parser.parse();
+        parser.Parse();
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT colKeys, SUM(colVals) FROM TestTable GROUP BY colKeys;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto responseMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
@@ -666,11 +666,11 @@ TEST(DispatcherNullTests, GroupByNullValueAvg)
 
 		std::cout << ("INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");") << std::endl;
 		GpuSqlCustomParser parser(database, "INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");");
-		parser.parse();
+        parser.Parse();
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT colKeys, AVG(colVals) FROM TestTable GROUP BY colKeys;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto responseMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
@@ -747,11 +747,11 @@ TEST(DispatcherNullTests, GroupByNullValueCount)
 
 		std::cout << ("INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");") << std::endl;
 		GpuSqlCustomParser parser(database, "INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");");
-		parser.parse();
+        parser.Parse();
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT colKeys, COUNT(colVals) FROM TestTable GROUP BY colKeys;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto responseMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("COUNT(colVals)"));
@@ -822,11 +822,11 @@ TEST(DispatcherNullTests, GroupByStringNullKeySum)
 		std::string insertQuery = "INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");";
 		std::cout << insertQuery << std::endl;
 		GpuSqlCustomParser parser(database, insertQuery);
-		parser.parse();
+        parser.Parse();
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT colKeys, SUM(colVals) FROM TestTable GROUP BY colKeys;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto responseMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
@@ -914,11 +914,11 @@ TEST(DispatcherNullTests, GroupByStringNullValueSum)
 		std::string insertQuery = "INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");";
 		std::cout << insertQuery << std::endl;
 		GpuSqlCustomParser parser(database, insertQuery);
-		parser.parse();
+        parser.Parse();
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT colKeys, SUM(colVals) FROM TestTable GROUP BY colKeys;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto responseMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
@@ -1007,11 +1007,11 @@ TEST(DispatcherNullTests, GroupByStringNullValueAvg)
 		std::string insertQuery = "INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");";
 		std::cout << insertQuery << std::endl;
 		GpuSqlCustomParser parser(database, insertQuery);
-		parser.parse();
+        parser.Parse();
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT colKeys, AVG(colVals) FROM TestTable GROUP BY colKeys;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto responseMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
@@ -1091,11 +1091,11 @@ TEST(DispatcherNullTests, GroupByStringNullValueCount)
 		std::string insertQuery = "INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");";
 		std::cout << insertQuery << std::endl;
 		GpuSqlCustomParser parser(database, insertQuery);
-		parser.parse();
+        parser.Parse();
 	}
 
 	GpuSqlCustomParser parser(database, "SELECT colKeys, COUNT(colVals) FROM TestTable GROUP BY colKeys;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto responseMessage = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
 	ASSERT_TRUE(responseMessage->nullbitmasks().contains("COUNT(colVals)"));

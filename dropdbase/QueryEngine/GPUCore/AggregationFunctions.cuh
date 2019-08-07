@@ -209,27 +209,6 @@ struct sum
         atomicAdd(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&b));
     }
 
-    // Specialized atomicAdd for double
-    __device__ void operator()(double* a, double b) const
-    {
-        double old = *a;
-        double expected;
-        double newValue;
-        if (old >= b)
-        {
-            return;
-        }
-
-        do
-        {
-            expected = old;
-            newValue = *a + b;
-            uint64_t ret = atomicCAS(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&expected),
-                                     *reinterpret_cast<cuUInt64*>(&newValue));
-            old = *(double*)&ret;
-        } while (old != expected && old < b);
-    }
-
     template <typename OUT, typename IN>
     static void agg(OUT* outValue, IN* ACol, int32_t dataElementCount)
     {
@@ -267,22 +246,6 @@ struct avg
     __device__ void operator()(int64_t* a, int64_t b) const
     {
         atomicAdd(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&b));
-    }
-
-    // Specialized atomicAdd for double
-    __device__ void operator()(double* a, double b) const
-    {
-        double old = *a;
-        double expected;
-        double newValue;
-        do
-        {
-            expected = old;
-            newValue = expected + b;
-            uint64_t ret = atomicCAS(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&expected),
-                                     *reinterpret_cast<cuUInt64*>(&newValue));
-            old = *(double*)&ret;
-        } while (old != expected);
     }
 
     template <typename OUT, typename IN>

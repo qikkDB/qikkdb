@@ -3,14 +3,14 @@
 #include "../CpuSqlDispatcher.h"
 
 template <typename T, typename U>
-int32_t CpuSqlDispatcher::pointColCol()
+int32_t CpuSqlDispatcher::PointColCol()
 {
-    auto colNameLeft = arguments.read<std::string>();
-    auto colNameRight = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    auto colNameRight = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
-    int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+    int8_t* maskMin = AllocateRegister<int8_t>(reg + "_min", 1, true);
+    int8_t* maskMax = AllocateRegister<int8_t>(reg + "_max", 1, true);
 
     maskMin[0] = 1;
     maskMax[0] = 1;
@@ -23,14 +23,14 @@ int32_t CpuSqlDispatcher::pointColCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t CpuSqlDispatcher::pointColConst()
+int32_t CpuSqlDispatcher::PointColConst()
 {
-    auto colNameLeft = arguments.read<std::string>();
-    U cnst = arguments.read<U>();
-    auto reg = arguments.read<std::string>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    U cnst = arguments_.Read<U>();
+    auto reg = arguments_.Read<std::string>();
 
-    int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
-    int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+    int8_t* maskMin = AllocateRegister<int8_t>(reg + "_min", 1, true);
+    int8_t* maskMax = AllocateRegister<int8_t>(reg + "_max", 1, true);
 
     maskMin[0] = 1;
     maskMax[0] = 1;
@@ -43,14 +43,14 @@ int32_t CpuSqlDispatcher::pointColConst()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t CpuSqlDispatcher::pointConstCol()
+int32_t CpuSqlDispatcher::PointConstCol()
 {
-    T cnst = arguments.read<T>();
-    auto colNameRight = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    T cnst = arguments_.Read<T>();
+    auto colNameRight = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
-    int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+    int8_t* maskMin = AllocateRegister<int8_t>(reg + "_min", 1, true);
+    int8_t* maskMax = AllocateRegister<int8_t>(reg + "_max", 1, true);
 
     maskMin[0] = 1;
     maskMax[0] = 1;
@@ -63,14 +63,14 @@ int32_t CpuSqlDispatcher::pointConstCol()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t CpuSqlDispatcher::containsColConst()
+int32_t CpuSqlDispatcher::ContainsColConst()
 {
-    auto colName = arguments.read<std::string>();
-    auto constWkt = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto constWkt = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
-    int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+    int8_t* maskMin = AllocateRegister<int8_t>(reg + "_min", 1, true);
+    int8_t* maskMax = AllocateRegister<int8_t>(reg + "_max", 1, true);
 
     maskMin[0] = 1;
     maskMax[0] = 1;
@@ -83,14 +83,14 @@ int32_t CpuSqlDispatcher::containsColConst()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t CpuSqlDispatcher::containsConstCol()
+int32_t CpuSqlDispatcher::ContainsConstCol()
 {
-    auto colName = arguments.read<std::string>();
-    auto constWkt = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto constWkt = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
-    int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+    int8_t* maskMin = AllocateRegister<int8_t>(reg + "_min", 1, true);
+    int8_t* maskMax = AllocateRegister<int8_t>(reg + "_max", 1, true);
 
     maskMin[0] = 1;
     maskMax[0] = 1;
@@ -103,14 +103,14 @@ int32_t CpuSqlDispatcher::containsConstCol()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t CpuSqlDispatcher::containsColCol()
+int32_t CpuSqlDispatcher::ContainsColCol()
 {
-    auto colNamePolygon = arguments.read<std::string>();
-    auto colNamePoint = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNamePolygon = arguments_.Read<std::string>();
+    auto colNamePoint = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
-    int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+    int8_t* maskMin = AllocateRegister<int8_t>(reg + "_min", 1, true);
+    int8_t* maskMax = AllocateRegister<int8_t>(reg + "_max", 1, true);
 
     maskMin[0] = 1;
     maskMax[0] = 1;
@@ -123,14 +123,14 @@ int32_t CpuSqlDispatcher::containsColCol()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t CpuSqlDispatcher::containsConstConst()
+int32_t CpuSqlDispatcher::ContainsConstConst()
 {
-    auto constPolygonWkt = arguments.read<std::string>();
-    auto constPointWkt = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto constPolygonWkt = arguments_.Read<std::string>();
+    auto constPointWkt = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
-    int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+    int8_t* maskMin = AllocateRegister<int8_t>(reg + "_min", 1, true);
+    int8_t* maskMax = AllocateRegister<int8_t>(reg + "_max", 1, true);
 
     maskMin[0] = 1;
     maskMax[0] = 1;
@@ -144,14 +144,14 @@ int32_t CpuSqlDispatcher::containsConstConst()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t CpuSqlDispatcher::polygonOperationColConst()
+int32_t CpuSqlDispatcher::PolygonOperationColConst()
 {
-    auto colName = arguments.read<std::string>();
-    auto constWkt = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto constWkt = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
-    int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+    int8_t* maskMin = AllocateRegister<int8_t>(reg + "_min", 1, true);
+    int8_t* maskMax = AllocateRegister<int8_t>(reg + "_max", 1, true);
 
     maskMin[0] = 1;
     maskMax[0] = 1;
@@ -165,14 +165,14 @@ int32_t CpuSqlDispatcher::polygonOperationColConst()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t CpuSqlDispatcher::polygonOperationConstCol()
+int32_t CpuSqlDispatcher::PolygonOperationConstCol()
 {
-    auto constWkt = arguments.read<std::string>();
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto constWkt = arguments_.Read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
-    int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+    int8_t* maskMin = AllocateRegister<int8_t>(reg + "_min", 1, true);
+    int8_t* maskMax = AllocateRegister<int8_t>(reg + "_max", 1, true);
 
     maskMin[0] = 1;
     maskMax[0] = 1;
@@ -185,14 +185,14 @@ int32_t CpuSqlDispatcher::polygonOperationConstCol()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t CpuSqlDispatcher::polygonOperationColCol()
+int32_t CpuSqlDispatcher::PolygonOperationColCol()
 {
-    auto colNameLeft = arguments.read<std::string>();
-    auto colNameRight = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    auto colNameRight = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
-    int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+    int8_t* maskMin = AllocateRegister<int8_t>(reg + "_min", 1, true);
+    int8_t* maskMax = AllocateRegister<int8_t>(reg + "_max", 1, true);
 
     maskMin[0] = 1;
     maskMax[0] = 1;
@@ -206,14 +206,14 @@ int32_t CpuSqlDispatcher::polygonOperationColCol()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t CpuSqlDispatcher::polygonOperationConstConst()
+int32_t CpuSqlDispatcher::PolygonOperationConstConst()
 {
-    auto constWktLeft = arguments.read<std::string>();
-    auto constWktRight = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto constWktLeft = arguments_.Read<std::string>();
+    auto constWktRight = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int8_t* maskMin = allocateRegister<int8_t>(reg + "_min", 1, true);
-    int8_t* maskMax = allocateRegister<int8_t>(reg + "_max", 1, true);
+    int8_t* maskMin = AllocateRegister<int8_t>(reg + "_min", 1, true);
+    int8_t* maskMax = AllocateRegister<int8_t>(reg + "_max", 1, true);
 
     maskMin[0] = 1;
     maskMax[0] = 1;

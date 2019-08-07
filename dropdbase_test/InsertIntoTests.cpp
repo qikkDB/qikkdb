@@ -20,7 +20,7 @@ TEST(InsertIntoTests, InsertIntoCorrect)
 	Database::AddToInMemoryDatabaseList(database);
 
 	GpuSqlCustomParser parser(database, "INSERT INTO TableA (colInteger1, colLong1, colFloat1, colPolygon1, colPoint1) VALUES (500,20000000, 2.5, POLYGON((20 15, 11 12, 20 15),(21 30, 35 36, 30 20, 21 30),(61 80,90 89,112 110, 61 80)), POINT(2 5));");
-	parser.parse();
+    parser.Parse();
 	auto& table = database->GetTables().at("TableA");
 	
 	std::vector<int32_t> dataInIntBlock;
@@ -96,7 +96,7 @@ TEST(InsertIntoTests, InsertIntoTableNotFound)
 		
 	EXPECT_THROW({ try 
 		{
-			parser.parse();
+            parser.Parse();
 		}
         catch (const TableNotFoundFromException& expected)
         {
@@ -121,12 +121,12 @@ TEST(InsertIntoTests, InsertIntoTableNullValue)
 		if(i % 2 == i/8)
 		{
 			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (null);");
-			parser.parse();
+            parser.Parse();
 		}
 		else
 		{
 			GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1) VALUES (1);");
-			parser.parse();
+            parser.Parse();
 		}
 	}
 	auto& blockList = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTable").GetColumns().at("Col1").get())->GetBlocksList();

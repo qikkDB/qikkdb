@@ -80,7 +80,7 @@ void OrderByTestTemplate(int32_t colCount,
     if(PERFORM_CPU_TEST)
     {
     // Sort the input data on the CPU
-    // This is done by a new algorithm where we want to sort the input columns accross
+    // This is Done by a new algorithm where we want to sort the input columns accross
     // multiple columns - ORDER BY
     // The algorithm:
     //      Input: A list of columns to be ordered by in that order

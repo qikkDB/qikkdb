@@ -83,19 +83,19 @@ for operation in operations_binary:
                 row = "Col"
 
             if operation != 'contains' and (colVal in geo_types or rowVal in geo_types):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == STRING or rowVal == STRING:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation == "contains" and (colVal != POLYGON or rowVal != POINT):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             else:
                 op = operation
@@ -138,7 +138,7 @@ for operation in operations_unary:
             col = "Col"
 
         if colVal in geo_types or colVal == STRING:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
         else:
             op = operation
         function = "GpuSqlDispatcher::" + op + col + "<" + colVal + ">"
@@ -182,9 +182,9 @@ for operation in operations_move:
             col = "Col"
 
         if (operation == 'groupBy') and (colVal == BOOL or colVal in geo_types):
-            function = "GpuSqlDispatcher::" + "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
+            function = "GpuSqlDispatcher::" + "InvalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         elif (operation == 'ret') and (colVal == BOOL):
-            function = "GpuSqlDispatcher::" + "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
+            function = "GpuSqlDispatcher::" + "InvalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
         else:
             function = "GpuSqlDispatcher::" + operation + col + "<" + colVal + ">"
 
@@ -225,19 +225,19 @@ for operation in operations_filter:
                 row = "Col"
 
             if colVal in geo_types or rowVal in geo_types:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == STRING and rowVal != STRING:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal != STRING and rowVal == STRING:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == STRING and rowVal == STRING:
                 op = "filterString"
@@ -275,13 +275,13 @@ for operation in operations_logical:
                 row = "Col"
 
             if colVal in geo_types or rowVal in geo_types:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == STRING or rowVal == STRING:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             else:
                 op = "logical"
@@ -313,17 +313,17 @@ for operation in operations_arithmetic:
                 row = "Col"
 
             if colVal in geo_types or rowVal in geo_types:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == STRING or rowVal == STRING:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == BOOL or rowVal == BOOL:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif (operation == "mod" or operation in bitwise_operations) and (
                     colVal in floating_types or rowVal in floating_types):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             else:
                 op = "arithmetic"
@@ -350,13 +350,13 @@ for operation in unary_arithmetic_operations:
             col = "Col"
 
         if colVal in geo_types:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
 
         elif colVal == STRING:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
 
         elif colVal == BOOL:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
 
         else:
             op = "arithmeticUnary"
@@ -401,14 +401,14 @@ for operation in operations_aggregation:
             col = "Col"
 
         if (colVal in geo_types and operation != "count") or (colVal == STRING) or (colVal == BOOL):
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
         else:
             op = "aggregation"
         retVal = colVal
         if operation == "count":
             retVal = LONG
         # TODO: for avg FLOAT/DOUBLE
-        if op != "invalidOperandTypesErrorHandler":
+        if op != "InvalidOperandTypesErrorHandler":
             function = "GpuSqlDispatcher::" + op + col + "<AggregationFunctions::" + operation + ", " + retVal + ", " + colVal + ">"
         else:
             function = "GpuSqlDispatcher::" + op + col + "<AggregationFunctions::" + operation + ", " + colVal + ">"
@@ -444,14 +444,14 @@ for operation in operations_aggregation:
                     (keyVal in geo_types) or \
                     (valueVal in geo_types or valueVal == STRING) or (
                     valueVal == BOOL or keyVal == BOOL):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
             else:
                 op = "aggregationGroupBy"
             retVal = valueVal
             if operation == "count":
                 retVal = LONG
             # TODO: for avg FLOAT/DOUBLE
-            if op != "invalidOperandTypesErrorHandler":
+            if op != "InvalidOperandTypesErrorHandler":
                 function = "GpuSqlDispatcher::" + op + "<AggregationFunctions::" + operation + ", " + retVal + ", " + keyVal + ", " + valueVal + ">"
             else:
                 function = "GpuSqlDispatcher::" + op + col + row + "<AggregationFunctions::" + operation + ", " + keyVal + ", " + valueVal + ">"
@@ -481,14 +481,14 @@ for operation in operations_aggregation:
                     (keyVal in geo_types) or \
                     (valueVal in geo_types or valueVal == STRING) or (
                     valueVal == BOOL or keyVal == BOOL):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
             else:
                 op = "aggregationGroupBy"
             retVal = valueVal
             if operation == "count":
                 retVal = LONG
             # TODO: for avg FLOAT/DOUBLE
-            if op != "invalidOperandTypesErrorHandler":
+            if op != "InvalidOperandTypesErrorHandler":
                 function = "GpuSqlDispatcher::" + op + "<AggregationFunctions::" + operation + ", " + retVal + ", " + keyVal + ", " + valueVal + ">"
             else:
                 function = "GpuSqlDispatcher::" + op + 'Col' + row + "<AggregationFunctions::" + operation + ", " + keyVal + ", " + valueVal + ">"
@@ -515,7 +515,7 @@ for operation in operations_date:
             col = "Col"
 
         if colVal != LONG:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
             function = "GpuSqlDispatcher::" + op + col + "<DateOperations::" + operation + ", " + colVal + ">"
         else:
             op = "dateExtract"
@@ -547,7 +547,7 @@ for operation in polygon_operations:
                 row = "Col"
 
             if colVal != POLYGON or rowVal != POLYGON:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             else:
                 op = "polygonOperation"
@@ -579,9 +579,9 @@ for colIdx, colVal in enumerate(all_types):
             row = "Col"
 
         if col == "Const" and row == "Const":
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
         elif colVal not in numeric_types or rowVal not in numeric_types:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
         else:
             op = operation
 
@@ -607,7 +607,7 @@ for operation in operations_string_unary:
             col = "Col"
 
         if colVal != STRING:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
         else:
             op = "stringUnary"
 
@@ -637,7 +637,7 @@ for operation in ['orderBy', 'orderByReconstructOrder', 'orderByReconstructRet']
             col = "Col"
 
         if colVal == STRING or colVal in geo_types:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
         else:
             op = operation
 
@@ -664,7 +664,7 @@ for operation in ['len']:
             col = "Col"
 
         if colVal != STRING:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
         else:
             op = "stringUnaryNumeric"
 
@@ -694,7 +694,7 @@ for opIdx, operation in enumerate(['joinGreater', 'joinLess', 'joinGreaterEqual'
             col = "Col"
 
         if colVal == STRING or colVal in geo_types:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
         else:
             op = "join"
 
@@ -727,7 +727,7 @@ for operation in operations_string_binary:
                 row = "Col"
 
             if (operation == 'left' or operation == 'right') and (colVal != STRING or rowVal not in [INT, LONG]):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             else:
                 op = "stringBinaryNumeric"
@@ -763,7 +763,7 @@ for operation in ["concat"]:
                 row = "Col"
 
             if colVal != STRING or rowVal != STRING:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             else:
                 op = "stringBinary"
@@ -797,7 +797,7 @@ for opIdx, operation in enumerate(["castToInt", "castToLong", "castToFloat", "ca
         if colVal in numeric_types and types[opIdx] in numeric_types:
             op = "castNumeric"
         else:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
 
         function = "GpuSqlDispatcher::" + op + col + "<" + types[opIdx] + ", " + colVal + ">"
 

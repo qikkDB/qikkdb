@@ -49,10 +49,10 @@ protected:
             groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
             ->InsertData(values);
 
-        // Execute the query
+        // Execute the query_
         GpuSqlCustomParser parser(groupByDatabase, 
             "SELECT colIntegerK, " + aggregationFunction + "(colIntegerV) FROM " + tableName + " GROUP BY colIntegerK;");
-        auto resultPtr = parser.parse();
+        auto resultPtr = parser.Parse();
         auto result =
             dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colIntegerK");
@@ -86,10 +86,10 @@ protected:
 			groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
 			->InsertData(values);
 
-		// Execute the query
+		// Execute the query_
 		GpuSqlCustomParser parser(groupByDatabase,
 			"SELECT colIntegerK, " + aggregationFunction + "(colIntegerV - 2) FROM " + tableName + " GROUP BY colIntegerK;");
-		auto resultPtr = parser.parse();
+		auto resultPtr = parser.Parse();
 		auto result =
 			dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 		auto& payloadKeys = result->payloads().at("SimpleTable.colIntegerK");
@@ -123,10 +123,10 @@ protected:
 			groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
 			->InsertData(values);
 
-		// Execute the query
+		// Execute the query_
 		GpuSqlCustomParser parser(groupByDatabase,
 			"SELECT colIntegerK + 2, " + aggregationFunction + "(colIntegerV) FROM " + tableName + " GROUP BY colIntegerK;");
-		auto resultPtr = parser.parse();
+		auto resultPtr = parser.Parse();
 		auto result =
 			dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 		auto& payloadKeys = result->payloads().at("colIntegerK+2");
@@ -159,10 +159,10 @@ protected:
             groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
             ->InsertData(values);
 
-        // Execute the query
+        // Execute the query_
         GpuSqlCustomParser parser(groupByDatabase, 
             "SELECT colIntegerK, COUNT(colIntegerV) FROM " + tableName + " GROUP BY colIntegerK;");
-        auto resultPtr = parser.parse();
+        auto resultPtr = parser.Parse();
         auto result =
             dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colIntegerK");
@@ -197,10 +197,10 @@ protected:
             groupByDatabase->GetTables().at(tableName).GetColumns().at("colInteger").get())
             ->InsertData(values);
 
-        // Execute the query
+        // Execute the query_
         GpuSqlCustomParser parser(groupByDatabase, 
             "SELECT colString, " + aggregationFunction + "(colInteger) FROM " + tableName + " GROUP BY colString;");
-        auto resultPtr = parser.parse();
+        auto resultPtr = parser.Parse();
         auto result =
             dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colString");
@@ -233,10 +233,10 @@ protected:
             groupByDatabase->GetTables().at(tableName).GetColumns().at("colInteger").get())
             ->InsertData(values);
 
-        // Execute the query
+        // Execute the query_
         GpuSqlCustomParser parser(groupByDatabase, 
             "SELECT colString, COUNT(colInteger) FROM " + tableName + " GROUP BY colString;");
-        auto resultPtr = parser.parse();
+        auto resultPtr = parser.Parse();
         auto result =
             dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colString");
@@ -270,10 +270,10 @@ protected:
 			groupByDatabase->GetTables().at(tableName).GetColumns().at("colInteger").get())
 			->InsertData(values);
 
-		// Execute the query
+		// Execute the query_
 		GpuSqlCustomParser parser(groupByDatabase,
 			"SELECT LEFT(colString, 3), " + aggregationFunction + "(colInteger) FROM " + tableName + " GROUP BY colString;");
-		auto resultPtr = parser.parse();
+		auto resultPtr = parser.Parse();
 		auto result =
 			dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 		auto& payloadKeys = result->payloads().at("LEFT(colString,3)");
@@ -312,10 +312,10 @@ protected:
 			groupByDatabase->GetTables().at(tableName).GetColumns().at("colInteger").get())
 			->InsertData(keys);
 
-		// Execute the query
+		// Execute the query_
 		GpuSqlCustomParser parser(groupByDatabase,
 			"SELECT colInteger, " + aggregationFunction + "(colID) FROM " + tableName + " GROUP BY colInteger ORDER BY colInteger;");
-		auto resultPtr = parser.parse();
+		auto resultPtr = parser.Parse();
 		auto result =
 			dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 		auto& payloadKeys = result->payloads().at(tableName + ".colInteger");
@@ -359,10 +359,10 @@ protected:
 			groupByDatabase->GetTables().at(tableName).GetColumns().at("colInteger").get())
 			->InsertData(values);
 
-		// Execute the query
+		// Execute the query_
 		GpuSqlCustomParser parser(groupByDatabase,
 			"SELECT colInteger, " + aggregationFunction + "(colID) FROM " + tableName + " GROUP BY colInteger ORDER BY " + aggregationFunction  + "(colID) - 2;");
-		auto resultPtr = parser.parse();
+		auto resultPtr = parser.Parse();
 		auto result =
 			dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 		auto& payloadKeys = result->payloads().at(tableName + ".colInteger");
@@ -409,10 +409,10 @@ protected:
             multiCols += "colIntegerK" + std::to_string(i) + (i == keys.size() - 1 ? "" : ", ");
         }
         std::cout << "Running GroupBy multi-key: " << multiCols << std::endl;
-        // Execute the query
+        // Execute the query_
         GpuSqlCustomParser parser(groupByDatabase, 
             "SELECT " + multiCols + ", " + aggregationFunction + "(colIntegerV) FROM " + tableName + " GROUP BY " + multiCols + ";");
-        auto resultPtr = parser.parse();
+        auto resultPtr = parser.Parse();
         auto result =
             dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         
@@ -474,10 +474,10 @@ protected:
             multiCols += "colIntegerK" + std::to_string(i) + (i == keys.size() - 1 ? "" : ", ");
         }
         std::cout << "Running GroupBy multi-key: " << multiCols << std::endl;
-        // Execute the query
+        // Execute the query_
         GpuSqlCustomParser parser(groupByDatabase, 
             "SELECT " + multiCols + ", COUNT(colIntegerV) FROM " + tableName + " GROUP BY " + multiCols + ";");
-        auto resultPtr = parser.parse();
+        auto resultPtr = parser.Parse();
         auto result =
             dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         
@@ -537,10 +537,10 @@ protected:
         
         std::string multiCols = "colKeyInt0, colKeyInt1, colKeyString0";
         std::cout << "Running GroupBy multi-key: " << multiCols << std::endl;
-        // Execute the query
+        // Execute the query_
         GpuSqlCustomParser parser(groupByDatabase, 
             "SELECT " + multiCols + ", " + aggregationFunction + "(colIntegerV) FROM " + tableName + " GROUP BY " + multiCols + ";");
-        auto resultPtr = parser.parse();
+        auto resultPtr = parser.Parse();
         auto result =
             dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         

@@ -3,12 +3,12 @@
 #include "../CpuSqlDispatcher.h"
 
 template <typename OP>
-int32_t CpuSqlDispatcher::dateExtractCol()
+int32_t CpuSqlDispatcher::DateExtractCol()
 {
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    if (loadCol<int64_t>(colName))
+    if (LoadCol<int64_t>(colName))
     {
         return 1;
     }
@@ -16,13 +16,13 @@ int32_t CpuSqlDispatcher::dateExtractCol()
     // TODO ResultType
     std::string colPointerNameMin;
     std::string colPointerNameMax;
-    std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+    std::tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
 
-    auto colValMin = allocatedPointers.at(colPointerNameMin);
-    auto colValMax = allocatedPointers.at(colPointerNameMax);
+    auto colValMin = allocatedPointers_.at(colPointerNameMin);
+    auto colValMax = allocatedPointers_.at(colPointerNameMax);
 
-    int32_t* resultMin = allocateRegister<int32_t>(reg + "_min", 1, std::get<2>(colValMin));
-    int32_t* resultMax = allocateRegister<int32_t>(reg + "_max", 1, std::get<2>(colValMax));
+    int32_t* resultMin = AllocateRegister<int32_t>(reg + "_min", 1, std::get<2>(colValMin));
+    int32_t* resultMax = AllocateRegister<int32_t>(reg + "_max", 1, std::get<2>(colValMax));
 
     resultMin[0] = OP{}.operator()(reinterpret_cast<int64_t*>(std::get<0>(colValMin))[0]);
     resultMax[0] = OP{}.operator()(reinterpret_cast<int64_t*>(std::get<0>(colValMax))[0]);
@@ -36,13 +36,13 @@ int32_t CpuSqlDispatcher::dateExtractCol()
 }
 
 template <typename OP>
-int32_t CpuSqlDispatcher::dateExtractConst()
+int32_t CpuSqlDispatcher::DateExtractConst()
 {
-    auto cnst = arguments.read<int64_t>();
-    auto reg = arguments.read<std::string>();
+    auto cnst = arguments_.Read<int64_t>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t* resultMin = allocateRegister<int32_t>(reg + "_min", 1, false);
-    int32_t* resultMax = allocateRegister<int32_t>(reg + "_max", 1, false);
+    int32_t* resultMin = AllocateRegister<int32_t>(reg + "_min", 1, false);
+    int32_t* resultMax = AllocateRegister<int32_t>(reg + "_max", 1, false);
 
     resultMin[0] = OP{}.operator()(cnst);
     resultMax[0] = OP{}.operator()(cnst);

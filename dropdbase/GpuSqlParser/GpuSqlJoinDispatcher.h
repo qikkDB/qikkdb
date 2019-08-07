@@ -21,59 +21,59 @@ class GpuSqlJoinDispatcher
 public:
     GpuSqlJoinDispatcher(const std::shared_ptr<Database>& database);
 
-    void addJoinFunction(DataType type, std::string op);
+    void AddJoinFunction(DataType type, std::string op);
 
-    void addJoinDoneFunction();
+    void AddJoinDoneFunction();
 
     template <typename T>
-    void addArgument(T argument)
+    void AddArgument(T argument)
     {
-        arguments.insert<T>(argument);
+        arguments_.Insert<T>(argument);
     }
 
-    std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* getJoinIndices();
+    std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* GetJoinIndices();
 
-    void execute();
+    void Execute();
 
 private:
     typedef int32_t (GpuSqlJoinDispatcher::*DispatchJoinFunction)();
-    std::vector<DispatchJoinFunction> dispatcherFunctions;
-    MemoryStream arguments;
-    const std::shared_ptr<Database>& database;
-    int32_t instructionPointer;
-    std::unordered_map<std::string, std::vector<std::vector<int32_t>>> joinIndices;
+    std::vector<DispatchJoinFunction> dispatcherFunctions_;
+    MemoryStream arguments_;
+    const std::shared_ptr<Database>& database_;
+    int32_t instructionPointer_;
+    std::unordered_map<std::string, std::vector<std::vector<int32_t>>> joinIndices_;
 
-    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinEqualFunctions;
-    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinGreaterFunctions;
-    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinLessFunctions;
-    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinGreaterEqualFunctions;
-    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinLessEqualFunctions;
-    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinNotEqualFunctions;
-    static DispatchJoinFunction joinDoneFunction;
-
-    template <typename OP, typename T>
-    int32_t joinCol();
+    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinEqualFunctions_;
+    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinGreaterFunctions_;
+    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinLessFunctions_;
+    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinGreaterEqualFunctions_;
+    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinLessEqualFunctions_;
+    static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinNotEqualFunctions_;
+    static DispatchJoinFunction joinDoneFunction_;
 
     template <typename OP, typename T>
-    int32_t joinConst();
-
-    int32_t joinDone();
+    int32_t JoinCol();
 
     template <typename OP, typename T>
-    int32_t invalidOperandTypesErrorHandlerCol()
+    int32_t JoinConst();
+
+    int32_t JoinDone();
+
+    template <typename OP, typename T>
+    int32_t InvalidOperandTypesErrorHandlerCol()
     {
-        auto colName = arguments.read<std::string>();
+        auto colName = arguments_.Read<std::string>();
 
         throw InvalidOperandsException(colName, std::string(""), std::string(typeid(OP).name()));
     }
 
     template <typename OP, typename T>
-    int32_t invalidOperandTypesErrorHandlerConst()
+    int32_t InvalidOperandTypesErrorHandlerConst()
     {
-        T cnst = arguments.read<T>();
+        T cnst = arguments_.Read<T>();
 
         throw InvalidOperandsException(std::string(""), std::string("cnst"), std::string(typeid(OP).name()));
     }
 
-    std::pair<std::string, std::string> splitColumnName(const std::string& colName);
+    std::pair<std::string, std::string> SplitColumnName(const std::string& colName);
 };

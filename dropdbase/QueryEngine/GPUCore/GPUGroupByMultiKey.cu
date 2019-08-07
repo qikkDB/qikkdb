@@ -1,11 +1,11 @@
 #include "GPUGroupByMultiKey.cuh"
 
-
-__device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKeys, int32_t i)
+__device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKeys, int32_t i, const int32_t hashCoef)
 {
     int32_t hash = 0;
     for (int32_t t = 0; t < keysColCount; t++)
     {
+        hash += hashCoef * hash;
         switch (keyTypes[t])
         {
         case DataType::COLUMN_INT:
@@ -21,10 +21,12 @@ __device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKe
             hash ^= static_cast<int32_t>(reinterpret_cast<double*>(inKeys[t])[i]);
             break;
         case DataType::COLUMN_STRING:
+        {
             GPUMemory::GPUString strCol = *reinterpret_cast<GPUMemory::GPUString*>(inKeys[t]);
             hash ^= GetHash(strCol.allChars + GetStringIndex(strCol.stringIndices, i),
                             GetStringLength(strCol.stringIndices, i));
-            break;
+        }
+        break;
         case DataType::COLUMN_INT8_T:
             hash ^= static_cast<int32_t>(reinterpret_cast<int8_t*>(inKeys[t])[i]);
             break;
@@ -39,43 +41,56 @@ __device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKe
 __device__ bool
 AreEqualMultiKeys(DataType* keyTypes, int32_t keysColCount, void** keysA, int32_t indexA, void** keysB, int32_t indexB)
 {
-    bool equals = true;
     for (int32_t t = 0; t < keysColCount; t++)
     {
         switch (keyTypes[t])
         {
         case DataType::COLUMN_INT:
-            equals &= (reinterpret_cast<int32_t*>(keysA[t])[indexA] ==
-                       reinterpret_cast<int32_t*>(keysB[t])[indexB]);
+            if (reinterpret_cast<int32_t*>(keysA[t])[indexA] != reinterpret_cast<int32_t*>(keysB[t])[indexB])
+            {
+                return false;
+            }
             break;
         case DataType::COLUMN_LONG:
-            equals &= (reinterpret_cast<int64_t*>(keysA[t])[indexA] ==
-                       reinterpret_cast<int64_t*>(keysB[t])[indexB]);
+            if (reinterpret_cast<int64_t*>(keysA[t])[indexA] != reinterpret_cast<int64_t*>(keysB[t])[indexB])
+            {
+                return false;
+            }
             break;
         case DataType::COLUMN_FLOAT:
-            equals &= (reinterpret_cast<float*>(keysA[t])[indexA] == reinterpret_cast<float*>(keysB[t])[indexB]);
+            if (reinterpret_cast<float*>(keysA[t])[indexA] != reinterpret_cast<float*>(keysB[t])[indexB])
+            {
+                return false;
+            }
             break;
         case DataType::COLUMN_DOUBLE:
-            equals &= (reinterpret_cast<double*>(keysA[t])[indexA] ==
-                       reinterpret_cast<double*>(keysB[t])[indexB]);
+            if (reinterpret_cast<double*>(keysA[t])[indexA] != reinterpret_cast<double*>(keysB[t])[indexB])
+            {
+                return false;
+            }
             break;
         case DataType::COLUMN_STRING:
         {
             GPUMemory::GPUString strColA = *reinterpret_cast<GPUMemory::GPUString*>(keysA[t]);
             GPUMemory::GPUString strColB = *reinterpret_cast<GPUMemory::GPUString*>(keysB[t]);
-            equals &= AreEqualStrings(strColA.allChars + GetStringIndex(strColA.stringIndices, indexA),
-                                      GetStringLength(strColA.stringIndices, indexA), strColB, indexB);
+            if (!AreEqualStrings(strColA.allChars + GetStringIndex(strColA.stringIndices, indexA),
+                                 GetStringLength(strColA.stringIndices, indexA), strColB, indexB))
+            {
+                return false;
+            }
             break;
         }
         case DataType::COLUMN_INT8_T:
-            equals &= (reinterpret_cast<int8_t*>(keysA[t])[indexA] ==
-                       reinterpret_cast<int8_t*>(keysB[t])[indexB]);
+            if (reinterpret_cast<int8_t*>(keysA[t])[indexA] != reinterpret_cast<int8_t*>(keysB[t])[indexB])
+            {
+                return false;
+            }
             break;
         default:
             break;
         }
     }
-    return equals;
+    return true;
 }
 
 
