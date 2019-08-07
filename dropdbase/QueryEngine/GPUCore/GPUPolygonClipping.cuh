@@ -76,9 +76,10 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex* LLPol
                                                              int32_t* LLPolygonABufferSizesPrefixSum,
                                                              int32_t* LLPolygonBBufferSizesPrefixSum,
                                                              int32_t dataElementCount);
-                                                            
+
 // Check if a point is withing a complex polygon at a given index
-__device__ bool isPointInComplexPolygonAt(NativeGeoPoint geoPoint, GPUMemory::GPUPolygon polygon, int32_t idx);
+__device__ bool
+is_point_in_complex_polygon_at(NativeGeoPoint geoPoint, GPUMemory::GPUPolygon polygon, int32_t idx);
 
 // Decide which intersection points are entry points and whoch ones are exit points and label them accordingly
 __global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
@@ -236,6 +237,6 @@ public:
         // {
         //     printf("%2d: %2d %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx, LLb[i].isEntry);
         // }
-        // printf("\n");
+        // printf("\n");ßß
     }
 };

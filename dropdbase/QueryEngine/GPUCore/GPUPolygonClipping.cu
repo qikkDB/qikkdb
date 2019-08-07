@@ -11,7 +11,7 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, Nat
 
     if (axb == 0)
     {
-        LLPolyVertex retFail = {{0, 0}, true, false, false,  -1.0, -1.0, -1, -1, -1};
+        LLPolyVertex retFail = {{0, 0}, true, false, false, -1.0, -1.0, -1, -1, -1};
         return retFail;
     }
 
@@ -263,7 +263,7 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex* LLPol
     }
 }
 
-__device__ bool isPointInComplexPolygonAt(NativeGeoPoint geoPoint, GPUMemory::GPUPolygon polygon, int32_t idx)
+__device__ bool is_point_in_complex_polygon_at(NativeGeoPoint geoPoint, GPUMemory::GPUPolygon polygon, int32_t idx)
 {
     bool isPointInPolygon = false;
 
@@ -281,11 +281,13 @@ __device__ bool isPointInComplexPolygonAt(NativeGeoPoint geoPoint, GPUMemory::GP
             int32_t pBeg = point;
             int32_t pEnd = pointIdx + (point - pointIdx + 1) % pointCount;
 
-            if (((polygon.polyPoints[pBeg].longitude > geoPoint.longitude) != (polygon.polyPoints[pEnd].longitude > geoPoint.longitude)) &&
-                (geoPoint.latitude < (polygon.polyPoints[pEnd].latitude - polygon.polyPoints[pBeg].latitude) *
-                                        (geoPoint.longitude - polygon.polyPoints[pBeg].longitude) /
-                                        (polygon.polyPoints[pEnd].longitude - polygon.polyPoints[pBeg].longitude) +
-                                    polygon.polyPoints[pBeg].latitude))
+            if (((polygon.polyPoints[pBeg].longitude > geoPoint.longitude) !=
+                 (polygon.polyPoints[pEnd].longitude > geoPoint.longitude)) &&
+                (geoPoint.latitude <
+                 (polygon.polyPoints[pEnd].latitude - polygon.polyPoints[pBeg].latitude) *
+                         (geoPoint.longitude - polygon.polyPoints[pBeg].longitude) /
+                         (polygon.polyPoints[pEnd].longitude - polygon.polyPoints[pBeg].longitude) +
+                     polygon.polyPoints[pBeg].latitude))
             {
                 isPointInPolygon = !isPointInPolygon;
             }
@@ -321,20 +323,21 @@ __global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
             int32_t endIdx = ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + localIdx + pointCount - 1;
 
             // Check the inclusion of the first point in the other polygon
-            bool isPointInPolygon = !isPointInComplexPolygonAt(LLPolygonBuffers[begIdx].vertex, polygonSecondary, i);
+            bool isPointInPolygon =
+                !is_point_in_complex_polygon_at(LLPolygonBuffers[begIdx].vertex, polygonSecondary, i);
 
             int32_t nextIdx = begIdx;
             do
             {
                 // If the given vertex is an intersection - assign the correct entry/exit label
-                if(LLPolygonBuffers[nextIdx].isIntersection)
+                if (LLPolygonBuffers[nextIdx].isIntersection)
                 {
                     LLPolygonBuffers[nextIdx].isEntry = isPointInPolygon;
                     isPointInPolygon = !isPointInPolygon;
                 }
 
                 nextIdx = LLPolygonBuffers[nextIdx].nextIdx;
-            } while(nextIdx != begIdx);
+            } while (nextIdx != begIdx);
         }
     }
 }
