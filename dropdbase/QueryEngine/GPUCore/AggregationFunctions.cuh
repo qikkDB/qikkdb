@@ -79,6 +79,15 @@ struct min
         } while (old != expected && old > b);
     }
 
+    template <typename T>
+    __device__ void nonatomic(T* a, T b) const
+    {
+        if (b < *a)
+        {
+            *a = b;
+        }
+    }
+
     template <typename OUT, typename IN>
     static void agg(OUT* outValue, IN* ACol, int32_t dataElementCount)
     {
@@ -170,6 +179,15 @@ struct max
         } while (old != expected && old < b);
     }
 
+    template <typename T>
+    __device__ void nonatomic(T* a, T b) const
+    {
+        if (b > *a)
+        {
+            *a = b;
+        }
+    }
+
     template <typename OUT, typename IN>
     static void agg(OUT* outValue, IN* ACol, int32_t dataElementCount)
     {
@@ -207,6 +225,12 @@ struct sum
     __device__ void operator()(int64_t* a, int64_t b) const
     {
         atomicAdd(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&b));
+    }
+
+    template <typename T>
+    __device__ void nonatomic(T* a, T b) const
+    {
+        *a += b;
     }
 
     template <typename OUT, typename IN>
@@ -248,6 +272,12 @@ struct avg
         atomicAdd(reinterpret_cast<cuUInt64*>(a), *reinterpret_cast<cuUInt64*>(&b));
     }
 
+    template <typename T>
+    __device__ void nonatomic(T* a, T b) const
+    {
+        *a += b;
+    }
+
     template <typename OUT, typename IN>
     static void agg(OUT* outValue, IN* ACol, int32_t dataElementCount)
     {
@@ -283,6 +313,12 @@ struct count
 {
     template <typename T>
     __device__ void operator()(T* a, T b) const
+    {
+        // empty
+    }
+
+    template <typename T>
+    __device__ void nonatomic(T* a, T b) const
     {
         // empty
     }
