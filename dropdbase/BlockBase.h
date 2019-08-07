@@ -159,11 +159,6 @@ public:
         return (size_ + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
     }
 
-    void SetSaveNecessary(bool saveNecessary)
-    {
-        saveNecessary_ = saveNecessary;
-    }
-
     bool GetSaveNecessary()
     {
         return saveNecessary_;

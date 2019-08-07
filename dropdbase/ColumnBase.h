@@ -171,11 +171,6 @@ public:
         return sum_;
     }
 
-    void SetSaveNecessary(bool saveNecessary)
-    {
-        saveNecessary_ = saveNecessary;
-    }
-
     bool GetSaveNecessary()
     {
         return saveNecessary_;

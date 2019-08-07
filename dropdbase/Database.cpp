@@ -27,6 +27,7 @@ Database::Database(const char* databaseName, int32_t blockSize)
 {
     name_ = databaseName;
     blockSize_ = blockSize;
+    bool saveNecessary_ = false;
 }
 
 Database::~Database()
@@ -81,8 +82,6 @@ void Database::PersistOnlyDbFile(const char* path)
     auto& name = GetName();
     auto pathStr = std::string(path);
 
-    BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size() << " tables.";
-
     boost::filesystem::create_directories(path);
 
     int32_t blockSize = GetBlockSize();
@@ -116,6 +115,115 @@ void Database::PersistOnlyDbFile(const char* path)
         }
     }
     dbFile.close();
+}
+
+/// <summary>
+/// Save database from memory to disk.
+/// </summary>
+/// <param name="path">Path to database storage directory.</param>
+void Database::Persist(const char* path)
+{
+    auto& tables = GetTables();
+    auto& name = GetName();
+    auto pathStr = std::string(path);
+
+    BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size() << " tables.";
+
+    int32_t blockSize = GetBlockSize();
+    int32_t tableSize = tables.size();
+
+    PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
+
+    // write files .col:
+    for (const auto& table : tables)
+    {
+        const auto& columns = table.second.GetColumns();
+
+        std::vector<std::thread> threads;
+
+        for (const auto& column : columns)
+        {
+            threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name, std::ref(table));
+        }
+
+        for (int j = 0; j < columns.size(); j++)
+        {
+            threads[j].join();
+        }
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk.";
+}
+
+/// <summary>
+/// Save modified blocks and columns of the database from memory to disk.
+/// </summary>
+/// <param name="path">Path to database storage directory.</param>
+void Database::PersistOnlyModified(const char* path)
+{
+	if (saveNecessary_)
+	{
+        auto& tables = GetTables();
+        auto& name = GetName();
+        auto pathStr = std::string(path);
+
+        BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size()
+                                << " tables because it was modified.";
+
+        boost::filesystem::create_directories(path);
+
+        int32_t blockSize = GetBlockSize();
+        int32_t tableSize = tables.size();
+
+        // write file .db
+        BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << ".db";
+        std::ofstream dbFile(pathStr + "/" + name + ".db", std::ios::binary);
+
+        int32_t dbNameLength = name.length() + 1; // +1 because '\0'
+
+        dbFile.write(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); // write db name length
+        dbFile.write(name.c_str(), dbNameLength); // write db name
+        dbFile.write(reinterpret_cast<char*>(&blockSize), sizeof(int32_t)); // write block size
+        dbFile.write(reinterpret_cast<char*>(&tableSize), sizeof(int32_t)); // write number of tables
+        for (auto& table : tables)
+        {
+            auto& columns = table.second.GetColumns();
+            int32_t tableNameLength = table.first.length() + 1; // +1 because '\0'
+            int32_t columnNumber = columns.size();
+
+            dbFile.write(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); // write table name length
+            dbFile.write(table.first.c_str(), tableNameLength); // write table name
+            dbFile.write(reinterpret_cast<char*>(&columnNumber), sizeof(int32_t)); // write number of columns of the table
+            for (const auto& column : columns)
+            {
+                int32_t columnNameLength = column.first.length() + 1; // +1 because '\0'
+
+                dbFile.write(reinterpret_cast<char*>(&columnNameLength), sizeof(int32_t)); // write column name length
+                dbFile.write(column.first.c_str(), columnNameLength); // write column name
+            }
+        }
+        dbFile.close();
+
+        // write files .col:
+        for (const auto& table : tables)
+        {
+            const auto& columns = table.second.GetColumns();
+
+            std::vector<std::thread> threads;
+
+            for (const auto& column : columns)
+            {
+                threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name, std::ref(table));
+            }
+
+            for (int j = 0; j < columns.size(); j++)
+            {
+                threads[j].join();
+            }
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk.";
+	}
 }
 
 /// <summary>
@@ -188,14 +296,29 @@ void Database::Persist(const char* path)
 /// <summary>
 /// Save all databases currently in memory to disk. All databases will be saved in the same directory
 /// </summary>
-/// <param name="path">Path to database storage directory.</param>
 void Database::SaveAllToDisk()
 {
+    BOOST_LOG_TRIVIAL(info) << "Saving all loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
     for (auto& database : Context::getInstance().GetLoadedDatabases())
     {
         database.second->Persist(path);
     }
+    BOOST_LOG_TRIVIAL(info) << "Saving loaded databases to disk has finished.";
+}
+
+/// <summary>
+/// Save only modified blocks and columns to disk. All databases will be saved in the same directory.
+/// </summary>
+void Database::SaveModifiedToDisk()
+{
+    BOOST_LOG_TRIVIAL(info) << "Saving only modified blocks and columns of the loaded databases to disk has started...";
+    auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
+    for (auto& database : Context::getInstance().GetLoadedDatabases())
+    {
+        database.second->PersistOnlyModified(path);
+    }
+    BOOST_LOG_TRIVIAL(info) << "Saving only modified blocks and columns of the loaded databases to disk has finished.";
 }
 
 /// <summary>
