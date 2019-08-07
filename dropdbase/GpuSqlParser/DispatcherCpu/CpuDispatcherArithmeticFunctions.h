@@ -11,8 +11,8 @@ int32_t CpuSqlDispatcher::ArithmeticColConst()
     auto reg = arguments_.Read<std::string>();
 
     constexpr bool bothTypesFloatOrBothIntegral =
-        std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
-        std::is_integral<T>::value && std::is_integral<U>::value;
+        (std::is_floating_point<T>::value && std::is_floating_point<U>::value) ||
+        (std::is_integral<T>::value && std::is_integral<U>::value);
     typedef typename std::conditional<
         bothTypesFloatOrBothIntegral, typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
         typename std::conditional<std::is_floating_point<T>::value, T,
@@ -59,8 +59,8 @@ int32_t CpuSqlDispatcher::arithmeticConstCol()
     auto reg = arguments_.Read<std::string>();
 
     constexpr bool bothTypesFloatOrBothIntegral =
-        std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
-        std::is_integral<T>::value && std::is_integral<U>::value;
+        (std::is_floating_point<T>::value && std::is_floating_point<U>::value) ||
+        (std::is_integral<T>::value && std::is_integral<U>::value);
     typedef typename std::conditional<
         bothTypesFloatOrBothIntegral, typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
         typename std::conditional<std::is_floating_point<T>::value, T,
@@ -73,8 +73,7 @@ int32_t CpuSqlDispatcher::arithmeticConstCol()
 
     std::string colPointerNameMin;
     std::string colPointerNameMax;
-std:
-    tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
+    std::tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
 
     auto colValMin = allocatedPointers_.at(colPointerNameMin);
     auto colValMax = allocatedPointers_.at(colPointerNameMax);
@@ -106,8 +105,8 @@ int32_t CpuSqlDispatcher::arithmeticColCol()
     auto colNameRight = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
     constexpr bool bothTypesFloatOrBothIntegral =
-        std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
-        std::is_integral<T>::value && std::is_integral<U>::value;
+        (std::is_floating_point<T>::value && std::is_floating_point<U>::value) ||
+        (std::is_integral<T>::value && std::is_integral<U>::value);
     typedef typename std::conditional<
         bothTypesFloatOrBothIntegral, typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
         typename std::conditional<std::is_floating_point<T>::value, T,
@@ -175,8 +174,8 @@ int32_t CpuSqlDispatcher::arithmeticConstConst()
     U constRight = arguments_.Read<U>();
     auto reg = arguments_.Read<std::string>();
     constexpr bool bothTypesFloatOrBothIntegral =
-        std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
-        std::is_integral<T>::value && std::is_integral<U>::value;
+        (std::is_floating_point<T>::value && std::is_floating_point<U>::value) ||
+        (std::is_integral<T>::value && std::is_integral<U>::value);
     typedef typename std::conditional<
         bothTypesFloatOrBothIntegral, typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
         typename std::conditional<std::is_floating_point<T>::value, T,
