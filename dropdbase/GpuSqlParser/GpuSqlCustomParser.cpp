@@ -43,10 +43,17 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
     antlr4::ANTLRInputStream sqlInputStream(query);
     GpuSqlLexer sqlLexer(&sqlInputStream);
+    std::unique_ptr<ThrowErrorListener> throwErrorListener = std::make_unique<ThrowErrorListener>();
+
+    sqlLexer.removeErrorListeners();
+    sqlLexer.addErrorListener(throwErrorListener.get());
+
     antlr4::CommonTokenStream commonTokenStream(&sqlLexer);
     GpuSqlParser parser(&commonTokenStream);
-    parser.setErrorHandler(std::make_shared<antlr4::BailErrorStrategy>());
+    parser.removeErrorListeners();
+    parser.addErrorListener(throwErrorListener.get());
     parser.getInterpreter<antlr4::atn::ParserATNSimulator>()->setPredictionMode(antlr4::atn::PredictionMode::SLL);
+
     GpuSqlParser::StatementContext* statement = parser.statement();
 
     antlr4::tree::ParseTreeWalker walker;
@@ -478,4 +485,15 @@ bool GpuSqlCustomParser::containsAggregation(GpuSqlParser::SelectColumnContext* 
     walker.walk(&findAggListener, ctx);
 
     return findAggListener.containsAggregation;
+}
+
+void ThrowErrorListener::syntaxError(antlr4::Recognizer* recognizer,
+                                     antlr4::Token* offendingSymbol,
+                                     size_t line,
+                                     size_t charPositionInLine,
+                                     const std::string& msg,
+                                     std::exception_ptr e)
+{
+    std::string finalMsg = "Error : line " + std::to_string(line) + ":" + std::to_string(charPositionInLine) + " " + msg;
+    throw antlr4::ParseCancellationException(finalMsg);
 }
