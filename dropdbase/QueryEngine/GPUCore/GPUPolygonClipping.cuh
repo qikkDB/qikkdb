@@ -40,6 +40,7 @@ struct LLPolyVertex
 
     bool isIntersection; // Is this an intersection or a polygon vertex
     bool isValidIntersection; // Is this a valid interection ? ( does the point lie between the crossing lines)
+    bool isEntry; // Is this an entry (true) or an exit (false) to the other polygon
 
     float distanceAlongA; // Distance of the intersection from the beginning of the first line
     float distanceAlongB; // Distance of the intersection from the beginning of the second line
@@ -75,7 +76,15 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex* LLPol
                                                              int32_t* LLPolygonABufferSizesPrefixSum,
                                                              int32_t* LLPolygonBBufferSizesPrefixSum,
                                                              int32_t dataElementCount);
+                                                            
+// Check if a point is withing a complex polygon at a given index
+__device__ bool isPointInComplexPolygonAt(NativeGeoPoint geoPoint, GPUMemory::GPUPolygon polygon, int32_t idx);
 
+// Decide which intersection points are entry points and whoch ones are exit points and label them accordingly
+__global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
+                                           GPUMemory::GPUPolygon polygon,
+                                           int32_t* LLPolygonBufferSizesPrefixSum,
+                                           int32_t dataElementCount);
 
 class GPUPolygonClipping
 {
@@ -181,21 +190,33 @@ public:
         CheckCudaError(cudaGetLastError());
 
         // DEBUG
-        std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
-        std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
+        // std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
+        // std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
 
-        GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
-        GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
+        // GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
+        // GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
 
-        for (int32_t i = 0; i < LLa.size(); i++)
-        {
-            printf("%2d: %2d %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx, LLa[i].crossIdx);
-        }
-        printf("\n");
-        for (int32_t i = 0; i < LLb.size(); i++)
-        {
-            printf("%2d: %2d %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx, LLb[i].crossIdx);
-        }
-        printf("\n");
+        // for (int32_t i = 0; i < LLa.size(); i++)
+        // {
+        //     printf("%2d: %2d %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx, LLa[i].crossIdx);
+        // }
+        // printf("\n");
+        // for (int32_t i = 0; i < LLb.size(); i++)
+        // {
+        //     printf("%2d: %2d %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx, LLb[i].crossIdx);
+        // }
+        // printf("\n");
+
+        // Decide which intersection points are entry points and whoch ones are exit points
+        // and label them accordingly
+        kernel_label_intersections<<<Context::getInstance().calcGridDim(dataElementCount),
+                                     Context::getInstance().getBlockDim()>>>(
+            LLPolygonABuffers.get(), polygonAin, LLPolygonABufferSizesPrefixSum.get(), dataElementCount);
+        CheckCudaError(cudaGetLastError());
+
+        kernel_label_intersections<<<Context::getInstance().calcGridDim(dataElementCount),
+                                     Context::getInstance().getBlockDim()>>>(
+            LLPolygonBBuffers.get(), polygonBin, LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
+        CheckCudaError(cudaGetLastError());
     }
 };
