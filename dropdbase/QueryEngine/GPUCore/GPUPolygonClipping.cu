@@ -296,7 +296,8 @@ __device__ bool isPointInComplexPolygonAt(NativeGeoPoint geoPoint, GPUMemory::GP
 }
 
 __global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
-                                           GPUMemory::GPUPolygon polygon,
+                                           GPUMemory::GPUPolygon polygonPrimary,
+                                           GPUMemory::GPUPolygon polygonSecondary,
                                            int32_t* LLPolygonBufferSizesPrefixSum,
                                            int32_t dataElementCount)
 {
@@ -305,23 +306,35 @@ __global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        int32_t LLPolygonEndIdx = 0;
-
-        int32_t polyIdx = GPUMemory::PolyIdxAt(polygon, i);
-        int32_t polyCount = GPUMemory::PolyCountAt(polygon, i);
+        int32_t polyIdx = GPUMemory::PolyIdxAt(polygonPrimary, i);
+        int32_t polyCount = GPUMemory::PolyCountAt(polygonPrimary, i);
 
         for (int32_t p = polyIdx; p < (polyIdx + polyCount); p++)
         {
-            int32_t pointIdx = GPUMemory::PointIdxAt(polygon, p);
-            int32_t pointCount = GPUMemory::PointCountAt(polygon, p);
+            int32_t pointIdx = GPUMemory::PointIdxAt(polygonPrimary, p);
+            int32_t pointCount = GPUMemory::PointCountAt(polygonPrimary, p);
 
             // Iterate trough the linked list for the current sub polygon and label the intersections
-            int32_t localIdx = pointIdx - GPUMemory::PointIdxAt(polygon, polyIdx);
+            int32_t localIdx = pointIdx - GPUMemory::PointIdxAt(polygonPrimary, polyIdx);
 
             int32_t begIdx = ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + localIdx;
             int32_t endIdx = ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + localIdx + pointCount - 1;
 
-            printf("%d: %d %d", i, begIdx, endIdx);
+            // Check the inclusion of the first point in the other polygon
+            bool isPointInPolygon = !isPointInComplexPolygonAt(LLPolygonBuffers[begIdx].vertex, polygonSecondary, i);
+
+            int32_t nextIdx = begIdx;
+            do
+            {
+                // If the given vertex is an intersection - assign the correct entry/exit label
+                if(LLPolygonBuffers[nextIdx].isIntersection)
+                {
+                    LLPolygonBuffers[nextIdx].isEntry = isPointInPolygon;
+                    isPointInPolygon = !isPointInPolygon;
+                }
+
+                nextIdx = LLPolygonBuffers[nextIdx].nextIdx;
+            } while(nextIdx != begIdx);
         }
     }
 }

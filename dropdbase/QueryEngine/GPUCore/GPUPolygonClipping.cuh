@@ -82,7 +82,8 @@ __device__ bool isPointInComplexPolygonAt(NativeGeoPoint geoPoint, GPUMemory::GP
 
 // Decide which intersection points are entry points and whoch ones are exit points and label them accordingly
 __global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
-                                           GPUMemory::GPUPolygon polygon,
+                                           GPUMemory::GPUPolygon polygonPrimary,
+                                           GPUMemory::GPUPolygon polygonSecondary,
                                            int32_t* LLPolygonBufferSizesPrefixSum,
                                            int32_t dataElementCount);
 
@@ -141,9 +142,9 @@ public:
                                     LLPolygonBBufferSizesPrefixSum.get() + dataElementCount - 1, 1);
 
         // DEBUG
-        std::printf("Sizes A total: %d\n", LLPolygonABufferSizesTotal);
-        std::printf("Sizes B total: %d\n", LLPolygonBBufferSizesTotal);
-        std::printf("\n");
+        // std::printf("Sizes A total: %d\n", LLPolygonABufferSizesTotal);
+        // std::printf("Sizes B total: %d\n", LLPolygonBBufferSizesTotal);
+        // std::printf("\n");
 
         // Alloc the linked list buffers for the polygon clipping
         cuda_ptr<LLPolyVertex> LLPolygonABuffers(LLPolygonABufferSizesTotal);
@@ -211,12 +212,30 @@ public:
         // and label them accordingly
         kernel_label_intersections<<<Context::getInstance().calcGridDim(dataElementCount),
                                      Context::getInstance().getBlockDim()>>>(
-            LLPolygonABuffers.get(), polygonAin, LLPolygonABufferSizesPrefixSum.get(), dataElementCount);
+            LLPolygonABuffers.get(), polygonAin, polygonBin, LLPolygonABufferSizesPrefixSum.get(), dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         kernel_label_intersections<<<Context::getInstance().calcGridDim(dataElementCount),
                                      Context::getInstance().getBlockDim()>>>(
-            LLPolygonBBuffers.get(), polygonBin, LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
+            LLPolygonBBuffers.get(), polygonBin, polygonAin, LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
         CheckCudaError(cudaGetLastError());
+
+        // DEBUG
+        // std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
+        // std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
+
+        // GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
+        // GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
+
+        // for (int32_t i = 0; i < LLa.size(); i++)
+        // {
+        //     printf("%2d: %2d %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx, LLa[i].isEntry);
+        // }
+        // printf("\n");
+        // for (int32_t i = 0; i < LLb.size(); i++)
+        // {
+        //     printf("%2d: %2d %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx, LLb[i].isEntry);
+        // }
+        // printf("\n");
     }
 };
