@@ -8,7 +8,7 @@
 
 constexpr int32_t GBS_SOURCE_INDEX_EMPTY_KEY = -1;
 constexpr int32_t GBS_SOURCE_INDEX_KEY_IN_BUFFER = -2;
-constexpr int32_t GBS_STRING_HASH_SEED = 31;
+constexpr int32_t GBS_STRING_HASH_COEF = 31;
 
 
 __device__ int32_t GetHash(char* text, int32_t length);
@@ -35,17 +35,18 @@ __device__ bool IsNewKey(char* checkedKeyChars,
 /// <param name="inValues">input buffer with values</param>
 /// <param name="dataElementCount">count of rows in input</param>
 /// <param name="errorFlag">GPU pointer to error flag</param>
-template <typename AGG, typename V, int32_t ARRAY_MULTIPLIER>
+template <typename AGG, typename V>
 __global__ void kernel_group_by_string(int32_t* sourceIndices,
                                        int32_t* stringLengths,
                                        GPUMemory::GPUString keysBuffer,
                                        V* values,
                                        int8_t* valuesNullMaskUncompressed,
                                        int64_t* keyOccurrenceCount,
-                                       int32_t loweredMaxHashCount,
+                                       const int32_t loweredMaxHashCount,
                                        GPUMemory::GPUString inKeys,
                                        V* inValues,
-                                       int32_t dataElementCount,
+                                       const int32_t dataElementCount,
+                                       const int32_t arrayMultiplier,
                                        int32_t* errorFlag,
                                        int8_t* inKeysNullMask,
                                        int8_t* inValuesNullMask)
@@ -127,8 +128,7 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                 // Aggregate value
                 if (values)
                 {
-                    AGG{}(values + foundIndex * ARRAY_MULTIPLIER + threadIdx.x % ARRAY_MULTIPLIER,
-                          inValues[i]);
+                    AGG{}(values + foundIndex * arrayMultiplier + threadIdx.x % arrayMultiplier, inValues[i]);
                     if (valuesNullMaskUncompressed[foundIndex])
                     {
                         valuesNullMaskUncompressed[foundIndex] = 0;
@@ -137,8 +137,8 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                 // Increment occurrence counter
                 if (keyOccurrenceCount)
                 {
-                    atomicAdd(reinterpret_cast<cuUInt64*>(keyOccurrenceCount + foundIndex * ARRAY_MULTIPLIER +
-                                                          threadIdx.x % ARRAY_MULTIPLIER),
+                    atomicAdd(reinterpret_cast<cuUInt64*>(keyOccurrenceCount + foundIndex * arrayMultiplier +
+                                                          threadIdx.x % arrayMultiplier),
                               1);
                 }
             }
@@ -179,9 +179,6 @@ private:
                                           std::is_same<AGG, AggregationFunctions::max>::value ||
                                           std::is_same<AGG, AggregationFunctions::sum>::value;
 
-    /// How many times should be values and occurrences arrays duplicated, for speedup
-    static constexpr int32_t ARRAY_MULTIPLIER = 128; // should be multiple of 32
-
 public:
     /// Temp buffer where one value points to input key
     /// or tells the key is already in keysBuffer_
@@ -209,7 +206,7 @@ public:
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
     GPUGroupBy(int32_t maxHashCount) : maxHashCount_(maxHashCount + 1) // + 1 for NULL key
     {
-        const size_t multipliedCount = static_cast<size_t>(maxHashCount_) * ARRAY_MULTIPLIER;
+        const size_t multipliedCount = static_cast<size_t>(maxHashCount_) * GB_ARRAY_MULTIPLIER;
         try
         {
             // Allocate buffers needed for key storing
@@ -329,11 +326,10 @@ public:
         if (dataElementCount > 0)
         {
             Context& context = Context::getInstance();
-            kernel_group_by_string<AGG, V, ARRAY_MULTIPLIER>
-                <<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
-                    sourceIndices_, stringLengths_, keysBuffer_, values_, valuesNullMaskUncompressed_,
-                    keyOccurrenceCount_, maxHashCount_ - 1, inKeys, inValues, dataElementCount,
-                    errorFlagSwapper_.GetFlagPointer(), inKeysNullMask, inValuesNullMask);
+            kernel_group_by_string<AGG><<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
+                sourceIndices_, stringLengths_, keysBuffer_, values_, valuesNullMaskUncompressed_,
+                keyOccurrenceCount_, maxHashCount_ - 1, inKeys, inValues, dataElementCount,
+                GB_ARRAY_MULTIPLIER, errorFlagSwapper_.GetFlagPointer(), inKeysNullMask, inValuesNullMask);
             errorFlagSwapper_.Swap();
 
             GPUMemory::GPUString sideBuffer;
@@ -409,8 +405,8 @@ public:
 
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
-            MergeMultipliedArrays<AGG, V, ARRAY_MULTIPLIER, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                                             maxHashCount_);
+            MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
+                                                                           maxHashCount_, GB_ARRAY_MULTIPLIER);
         cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
         cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 
@@ -456,8 +452,8 @@ public:
 
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
-            MergeMultipliedArrays<AGG, V, ARRAY_MULTIPLIER, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                                             maxHashCount_);
+            MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
+                                                                           maxHashCount_, GB_ARRAY_MULTIPLIER);
         cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
         cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 

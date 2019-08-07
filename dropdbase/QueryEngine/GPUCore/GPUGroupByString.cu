@@ -6,7 +6,7 @@ __device__ int32_t GetHash(char* text, int32_t length)
     int32_t hash = 0;
     for (int32_t i = 0; i < length; i++)
     {
-        hash = GBS_STRING_HASH_SEED * hash + text[i];
+        hash = GBS_STRING_HASH_COEF * hash + text[i];
     }
     return hash;
 }

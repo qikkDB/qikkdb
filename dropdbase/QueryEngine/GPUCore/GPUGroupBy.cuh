@@ -19,6 +19,11 @@
 #include "AggregationFunctions.cuh"
 #include "GPUTypes.h"
 
+/// How many times should be values and occurrences arrays duplicated
+/// (for speedup atomic operations)
+constexpr int32_t GB_ARRAY_MULTIPLIER = 256; // should be multiple of 32
+
+
 /// Universal null key calculator
 template <typename K>
 __device__ __host__ constexpr K getEmptyValue()
@@ -72,15 +77,16 @@ __device__ T genericAtomicCAS(T* address, T compare, T val)
 /// <param name="inValues">input buffer with values</param>
 /// <param name="dataElementCount">count of rows in input</param>
 /// <param name="errorFlag">GPU pointer to error flag</param>
-template <typename AGG, typename K, typename V, int32_t ARRAY_MULTIPLIER>
+template <typename AGG, typename K, typename V>
 __global__ void group_by_kernel(K* keys,
                                 V* values,
                                 int8_t* valuesNullMask,
                                 int64_t* keyOccurrenceCount,
-                                int32_t loweredMaxHashCount,
+                                const int32_t loweredMaxHashCount,
                                 K* inKeys,
                                 V* inValues,
-                                int32_t dataElementCount,
+                                const int32_t dataElementCount,
+                                const int32_t arrayMultiplier,
                                 int32_t* errorFlag,
                                 int8_t* inKeysNullMask,
                                 int8_t* inValuesNullMask)
@@ -183,8 +189,7 @@ __global__ void group_by_kernel(K* keys,
             {
                 if (values)
                 {
-                    AGG{}(values + foundIndex * ARRAY_MULTIPLIER + threadIdx.x % ARRAY_MULTIPLIER,
-                          inValues[i]);
+                    AGG{}(values + foundIndex * arrayMultiplier + threadIdx.x % arrayMultiplier, inValues[i]);
                     if (valuesNullMask[foundIndex])
                     {
                         valuesNullMask[foundIndex] = 0;
@@ -192,8 +197,8 @@ __global__ void group_by_kernel(K* keys,
                 }
                 if (keyOccurrenceCount)
                 {
-                    atomicAdd(reinterpret_cast<cuUInt64*>(keyOccurrenceCount + foundIndex * ARRAY_MULTIPLIER +
-                                                          threadIdx.x % ARRAY_MULTIPLIER),
+                    atomicAdd(reinterpret_cast<cuUInt64*>(keyOccurrenceCount + foundIndex * arrayMultiplier +
+                                                          threadIdx.x % arrayMultiplier),
                               1);
                 }
             }
@@ -216,9 +221,13 @@ __global__ void is_bucket_occupied_kernel(int8_t* occupancyMask, K* keys, int32_
 }
 
 /// Kernel for merging multiplied arrays (values with AGG nonatomic functions and occurrences with +=)
-template <typename AGG, typename V, int32_t ARRAY_MULTIPLIER, bool USE_VALUES, bool USE_OCCURRENCES>
-__global__ void
-kernel_merge_multiplied_arrays(V* mergedValues, int64_t* mergedOccurrences, V* inValues, int64_t* inOccurrences, int32_t maxHashCount)
+template <typename AGG, typename V, bool USE_VALUES, bool USE_OCCURRENCES>
+__global__ void kernel_merge_multiplied_arrays(V* mergedValues,
+                                               int64_t* mergedOccurrences,
+                                               V* inValues,
+                                               int64_t* inOccurrences,
+                                               const int32_t maxHashCount,
+                                               const int32_t arrayMultiplier)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -233,15 +242,15 @@ kernel_merge_multiplied_arrays(V* mergedValues, int64_t* mergedOccurrences, V* i
         {
             mergedOccurrences[i] = 0;
         }
-        for (int32_t j = 0; j < ARRAY_MULTIPLIER; j++)
+        for (int32_t j = 0; j < arrayMultiplier; j++)
         {
             if (USE_VALUES)
             {
-                AGG{}.template nonatomic<V>(mergedValues + i, inValues[i * ARRAY_MULTIPLIER + j]);
+                AGG{}.template nonatomic<V>(mergedValues + i, inValues[i * arrayMultiplier + j]);
             }
             if (USE_OCCURRENCES)
             {
-                mergedOccurrences[i] += inOccurrences[i * ARRAY_MULTIPLIER + j];
+                mergedOccurrences[i] += inOccurrences[i * arrayMultiplier + j];
             }
         }
     }
@@ -252,16 +261,16 @@ kernel_merge_multiplied_arrays(V* mergedValues, int64_t* mergedOccurrences, V* i
 /// <param name="inValues">input n-plicated array of values</param>
 /// <param name="inOccurrences">input n-plicated array of occurrences</param>
 /// <param name="maxHashCount">size of one hash table</param>
-template <typename AGG, typename V, int32_t ARRAY_MULTIPLIER, bool USE_VALUES, bool USE_OCCURRENCES>
+template <typename AGG, typename V, bool USE_VALUES, bool USE_OCCURRENCES>
 std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>>
-MergeMultipliedArrays(V* inValues, int64_t* inOccurrences, int32_t maxHashCount)
+MergeMultipliedArrays(V* inValues, int64_t* inOccurrences, const int32_t maxHashCount, const int32_t arrayMultiplier)
 {
     // Merge multipied arrays (values and occurrences)
     cuda_ptr<V> mergedValues(maxHashCount);
     cuda_ptr<int64_t> mergedOccurrences(maxHashCount);
-    kernel_merge_multiplied_arrays<AGG, V, ARRAY_MULTIPLIER, USE_VALUES, USE_OCCURRENCES>
+    kernel_merge_multiplied_arrays<AGG, V, USE_VALUES, USE_OCCURRENCES>
         <<<Context::getInstance().calcGridDim(maxHashCount), Context::getInstance().getBlockDim()>>>(
-            mergedValues.get(), mergedOccurrences.get(), inValues, inOccurrences, maxHashCount);
+            mergedValues.get(), mergedOccurrences.get(), inValues, inOccurrences, maxHashCount, arrayMultiplier);
     CheckCudaError(cudaGetLastError());
     return std::make_tuple<cuda_ptr<V>, cuda_ptr<int64_t>>(std::move(mergedValues), std::move(mergedOccurrences));
 }
@@ -284,9 +293,6 @@ private:
                                           std::is_same<AGG, AggregationFunctions::max>::value ||
                                           std::is_same<AGG, AggregationFunctions::sum>::value;
 
-    /// How many times should be values and occurrences arrays duplicated, for speedup
-    static constexpr int32_t ARRAY_MULTIPLIER = 32; // should be multiple of 32
-
     /// Key buffer of the hash table
     K* keys_ = nullptr;
 
@@ -307,7 +313,7 @@ public:
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
     GPUGroupBy(int32_t maxHashCount) : maxHashCount_(maxHashCount + 1) // + 1 for NULL key
     {
-        const size_t multipliedCount = static_cast<size_t>(maxHashCount_) * ARRAY_MULTIPLIER;
+        const size_t multipliedCount = static_cast<size_t>(maxHashCount_) * GB_ARRAY_MULTIPLIER;
         try
         {
             GPUMemory::alloc(&keys_, maxHashCount_);
@@ -382,10 +388,11 @@ public:
     {
         if (dataElementCount > 0)
         {
-            group_by_kernel<AGG, K, V, ARRAY_MULTIPLIER>
+            group_by_kernel<AGG>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                    keys_, values_, valuesNullMask_, keyOccurrenceCount_, maxHashCount_ - 1, inKeys, inValues,
-                    dataElementCount, errorFlagSwapper_.GetFlagPointer(), inKeysNullMask, inValuesNullMask);
+                    keys_, values_, valuesNullMask_, keyOccurrenceCount_, maxHashCount_ - 1, inKeys,
+                    inValues, dataElementCount, GB_ARRAY_MULTIPLIER,
+                    errorFlagSwapper_.GetFlagPointer(), inKeysNullMask, inValuesNullMask);
             errorFlagSwapper_.Swap();
         }
     }
@@ -426,8 +433,8 @@ public:
 
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
-            MergeMultipliedArrays<AGG, V, ARRAY_MULTIPLIER, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                                             maxHashCount_);
+            MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
+                                                                           maxHashCount_, GB_ARRAY_MULTIPLIER);
         cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
         cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 
@@ -478,8 +485,8 @@ public:
 
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
-            MergeMultipliedArrays<AGG, V, ARRAY_MULTIPLIER, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                                             maxHashCount_);
+            MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
+                                                                           maxHashCount_, GB_ARRAY_MULTIPLIER);
         cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
         cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 

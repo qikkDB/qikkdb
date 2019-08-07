@@ -107,17 +107,18 @@ void FreeKeysVector(std::vector<void*> keysVector, std::vector<DataType> keyType
 
 /// GROUP BY Kernel processes input (inKeys and inValues). New keys from inKeys are added
 /// to the hash table and values from inValues are aggregated.
-template <typename AGG, typename V, int32_t ARRAY_MULTIPLIER>
+template <typename AGG, typename V>
 __global__ void kernel_group_by_multi_key(DataType* keyTypes,
-                                          int32_t keysColCount,
+                                          const int32_t keysColCount,
                                           int32_t* sourceIndices,
                                           void** keysBuffer,
                                           V* values,
                                           int64_t* keyOccurrenceCount,
-                                          int32_t maxHashCount,
+                                          const int32_t maxHashCount,
                                           void** inKeys,
                                           V* inValues,
-                                          int32_t dataElementCount,
+                                          const int32_t dataElementCount,
+                                          const int32_t arrayMultiplier,
                                           const int32_t hashCoef,
                                           int32_t* errorFlag)
 {
@@ -177,12 +178,12 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
             // Use aggregation of values on the bucket and the corresponding counter
             if (values)
             {
-                AGG{}(values + foundIndex * ARRAY_MULTIPLIER + threadIdx.x % ARRAY_MULTIPLIER, inValues[i]);
+                AGG{}(values + foundIndex * arrayMultiplier + threadIdx.x % arrayMultiplier, inValues[i]);
             }
             if (keyOccurrenceCount)
             {
-                atomicAdd(reinterpret_cast<cuUInt64*>(keyOccurrenceCount + foundIndex * ARRAY_MULTIPLIER +
-                                                      threadIdx.x % ARRAY_MULTIPLIER),
+                atomicAdd(reinterpret_cast<cuUInt64*>(keyOccurrenceCount + foundIndex * arrayMultiplier +
+                                                      threadIdx.x % arrayMultiplier),
                           1);
             }
         }
@@ -224,9 +225,6 @@ private:
                                           std::is_same<AGG, AggregationFunctions::max>::value ||
                                           std::is_same<AGG, AggregationFunctions::sum>::value;
 
-    /// How many times should be values and occurrences arrays duplicated, for speedup
-    static constexpr int32_t ARRAY_MULTIPLIER = 128; // should be multiple of 32
-
 public:
     /// Indices to input keys - because of atomicity
     int32_t* sourceIndices_ = nullptr;
@@ -258,7 +256,7 @@ public:
     GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes)
     : maxHashCount_(maxHashCount), keysColCount_(keyTypes.size())
     {
-        const size_t multipliedCount = static_cast<size_t>(maxHashCount_) * ARRAY_MULTIPLIER;
+        const size_t multipliedCount = static_cast<size_t>(maxHashCount_) * GB_ARRAY_MULTIPLIER;
         try
         {
             // Allocate buffers needed for key storing
@@ -444,12 +442,11 @@ public:
 
             // Run group by kernel (get sourceIndices and aggregate values).
             // Parameter hashCoef is comptued as n-th root of maxHashCount, where n is a number of key columns
-            kernel_group_by_multi_key<AGG, V, ARRAY_MULTIPLIER>
-                <<<context.calcGridDim(dataElementCount), 768>>>(
-                    keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, values_,
-                    keyOccurrenceCount_, maxHashCount_, inKeys.get(), inValues, dataElementCount,
-                    static_cast<int32_t>(powf(maxHashCount_, 1.0f / keysColCount_)),
-                    errorFlagSwapper_.GetFlagPointer());
+            kernel_group_by_multi_key<AGG><<<context.calcGridDim(dataElementCount), 768>>>(
+                keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, values_, keyOccurrenceCount_,
+                maxHashCount_, inKeys.get(), inValues, dataElementCount, GB_ARRAY_MULTIPLIER,
+                static_cast<int32_t>(powf(maxHashCount_, 1.0f / keysColCount_)),
+                errorFlagSwapper_.GetFlagPointer());
             errorFlagSwapper_.Swap();
 
             cuda_ptr<int32_t*> stringLengthsBuffers(keysColCount_, 0); // alloc pointers and set to nullptr
@@ -577,8 +574,8 @@ public:
 
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
-            MergeMultipliedArrays<AGG, V, ARRAY_MULTIPLIER, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                                             maxHashCount_);
+            MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
+                                                                           maxHashCount_, GB_ARRAY_MULTIPLIER);
         cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
         cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 
@@ -665,8 +662,8 @@ public:
 
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
-            MergeMultipliedArrays<AGG, V, ARRAY_MULTIPLIER, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                                             maxHashCount_);
+            MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
+                                                                           maxHashCount_, GB_ARRAY_MULTIPLIER);
         cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
         cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 
