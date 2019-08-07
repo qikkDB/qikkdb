@@ -73,6 +73,143 @@ std::vector<std::string> Database::GetDatabaseNames()
 }
 
 /// <summary>
+/// Set saveNecessaty_ to false for block, column and table, because data in the database were NOT modified yet.
+/// </summary>
+void Database::SetSaveNecessaryToFalseForEverything()
+{
+    auto& tables = GetTables();
+
+    for (auto& table : tables)
+    {
+        table.second.SetSaveNecessaryToFalse();
+
+        auto& columns = table.second.GetColumns();
+
+        for (const auto& column : columns)
+        {
+            auto type = column.second.get()->GetColumnType();
+
+            switch (type)
+            {
+            case COLUMN_POLYGON:
+            {
+                auto castedColumn =
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+            }
+            break;
+
+			case COLUMN_POINT:
+			{
+                auto castedColumn =
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+			}
+            break;
+
+			case COLUMN_STRING:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+            }
+            break;
+
+			case COLUMN_INT8_T:
+			{
+                auto castedColumn = dynamic_cast<ColumnBase<int8_t>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+			}
+            break;
+
+			case COLUMN_INT:
+			{
+                auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+			}
+            break;
+
+            case COLUMN_LONG:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+            }
+            break;
+
+			case COLUMN_FLOAT:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<float>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+            }
+            break;
+
+			case COLUMN_DOUBLE:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<double>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+            }
+            break;
+            }
+        }
+    }
+}
+
+/// <summary>
 /// Save only .db file to disk.
 /// </summary>
 /// <param name="path">Path to database storage directory.</param>
@@ -161,8 +298,8 @@ void Database::Persist(const char* path)
 /// <param name="path">Path to database storage directory.</param>
 void Database::PersistOnlyModified(const char* path)
 {
-	if (saveNecessary_)
-	{
+    if (saveNecessary_)
+    {
         auto& tables = GetTables();
         auto& name = GetName();
         auto pathStr = std::string(path);
@@ -223,7 +360,7 @@ void Database::PersistOnlyModified(const char* path)
         }
 
         BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk.";
-	}
+    }
 }
 
 /// <summary>
@@ -312,13 +449,15 @@ void Database::SaveAllToDisk()
 /// </summary>
 void Database::SaveModifiedToDisk()
 {
-    BOOST_LOG_TRIVIAL(info) << "Saving only modified blocks and columns of the loaded databases to disk has started...";
+    BOOST_LOG_TRIVIAL(info)
+        << "Saving only modified blocks and columns of the loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
     for (auto& database : Context::getInstance().GetLoadedDatabases())
     {
         database.second->PersistOnlyModified(path);
     }
-    BOOST_LOG_TRIVIAL(info) << "Saving only modified blocks and columns of the loaded databases to disk has finished.";
+    BOOST_LOG_TRIVIAL(info)
+        << "Saving only modified blocks and columns of the loaded databases to disk has finished.";
 }
 
 /// <summary>
@@ -341,6 +480,7 @@ void Database::LoadDatabasesFromDisk()
 
                 if (database != nullptr)
                 {
+                    database->SetSaveNecessaryToFalseForEverything();
                     Context::getInstance().GetLoadedDatabases().insert({database->name_, database});
                 }
             }
@@ -913,7 +1053,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int8_t*>(data.get());
                 std::vector<int8_t> dataInt(dataTemp, dataTemp + dataLength);
 
-                auto& block = columnInt.AddBlock(dataInt, groupId, false, (bool)isCompressed);
+                auto& block = columnInt.AddBlock(dataInt, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -992,7 +1132,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int32_t*>(data.get());
                 std::vector<int32_t> dataInt(dataTemp, dataTemp + dataLength);
 
-                auto& block = columnInt.AddBlock(dataInt, groupId, false, (bool)isCompressed);
+                auto& block = columnInt.AddBlock(dataInt, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -1071,7 +1211,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int64_t*>(data.get());
                 std::vector<int64_t> dataLong(dataTemp, dataTemp + dataLength);
 
-                auto& block = columnLong.AddBlock(dataLong, groupId, false, (bool)isCompressed);
+                auto& block = columnLong.AddBlock(dataLong, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -1150,7 +1290,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<float*>(data.get());
                 std::vector<float> dataFloat(dataTemp, dataTemp + dataLength);
 
-                auto& block = columnFloat.AddBlock(dataFloat, groupId, false, (bool)isCompressed);
+                auto& block = columnFloat.AddBlock(dataFloat, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -1229,7 +1369,8 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<double*>(data.get());
                 std::vector<double> dataDouble(dataTemp, dataTemp + dataLength);
 
-                auto& block = columnDouble.AddBlock(dataDouble, groupId, false, (bool)isCompressed);
+                auto& block =
+                    columnDouble.AddBlock(dataDouble, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 

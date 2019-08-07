@@ -86,6 +86,11 @@ public:
         saveNecessary_ = true;
 	}
 
+	/// <summary>
+    /// Set saveNecessaty_ to false for block, column and table, because data in the database were NOT modified yet.
+    /// </summary>
+    void SetSaveNecessaryToFalseForEverything();
+
     /// <summary>
     /// Save only .db file to disk.
     /// </summary>
