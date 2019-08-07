@@ -93,7 +93,6 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
         case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
-                BOOST_LOG_TRIVIAL(debug) << "Inserting into int buffer payload index: " << i;
                 finalPayload.mutable_intpayload()->add_intdata(payload.second.intpayload().intdata()[i]);
             }
             break;
