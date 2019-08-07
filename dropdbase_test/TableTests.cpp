@@ -451,7 +451,7 @@ TEST(TableTests, SavingNecessary)
     auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get()); 
 	auto& blockInt = castedColumn->AddBlock();
 
-    ASSERT_EQ(true, table.GetSaveNecesary());
+    ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(true, castedColumn->GetSaveNecessary());
     ASSERT_EQ(true, blockInt.GetSaveNecessary());
 
@@ -459,7 +459,7 @@ TEST(TableTests, SavingNecessary)
 	castedColumn->SetSaveNecessaryToFalse();
 	blockInt.SetSaveNecessaryToFalse();
 	
-    ASSERT_EQ(false, table.GetSaveNecesary());
+    ASSERT_EQ(false, table.GetSaveNecessary());
     ASSERT_EQ(false, castedColumn->GetSaveNecessary());
     ASSERT_EQ(false, blockInt.GetSaveNecessary());
 
@@ -468,7 +468,7 @@ TEST(TableTests, SavingNecessary)
     auto castedColumn2 = dynamic_cast<ColumnBase<int32_t>*>(columnInt2.get()); 
 	auto& blockInt2 = castedColumn2->AddBlock();
 
-	ASSERT_EQ(true, table.GetSaveNecesary());
+	ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(false, castedColumn->GetSaveNecessary());
     ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
     ASSERT_EQ(false, blockInt.GetSaveNecessary());
@@ -485,7 +485,7 @@ TEST(TableTests, SavingNecessary)
 	data.insert({"ColumnInt",dataInt});
 	table.InsertData(data);
 
-	ASSERT_EQ(true, table.GetSaveNecesary());
+	ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(true, castedColumn->GetSaveNecessary());
     ASSERT_EQ(false, castedColumn2->GetSaveNecessary());
     ASSERT_EQ(true, blockInt.GetSaveNecessary());
@@ -504,7 +504,7 @@ TEST(TableTests, SavingNecessary)
 	data2.insert({"ColumnInt",dataInt2});
 	table.InsertData(data2);
 
-	ASSERT_EQ(true, table.GetSaveNecesary());
+	ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(true, castedColumn->GetSaveNecessary());
     ASSERT_EQ(false, castedColumn2->GetSaveNecessary());
     ASSERT_EQ(true, blockInt.GetSaveNecessary());
