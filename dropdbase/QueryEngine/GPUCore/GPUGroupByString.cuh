@@ -406,7 +406,8 @@ public:
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
             MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                           maxHashCount_, GB_ARRAY_MULTIPLIER);
+                                                                           occupancyMask.get(), maxHashCount_,
+                                                                           GB_ARRAY_MULTIPLIER);
         cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
         cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 
@@ -453,7 +454,8 @@ public:
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
             MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                           maxHashCount_, GB_ARRAY_MULTIPLIER);
+                                                                           occupancyMask.get(), maxHashCount_,
+                                                                           GB_ARRAY_MULTIPLIER);
         cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
         cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 

@@ -226,6 +226,7 @@ __global__ void kernel_merge_multiplied_arrays(V* mergedValues,
                                                int64_t* mergedOccurrences,
                                                V* inValues,
                                                int64_t* inOccurrences,
+                                               int8_t* occupancyMask,
                                                const int32_t maxHashCount,
                                                const int32_t arrayMultiplier)
 {
@@ -234,23 +235,26 @@ __global__ void kernel_merge_multiplied_arrays(V* mergedValues,
 
     for (int32_t i = idx; i < maxHashCount; i += stride)
     {
-        if (USE_VALUES)
-        {
-            mergedValues[i] = AGG::template getInitValue<V>();
-        }
-        if (USE_OCCURRENCES)
-        {
-            mergedOccurrences[i] = 0;
-        }
-        for (int32_t j = 0; j < arrayMultiplier; j++)
+        if (occupancyMask[i])
         {
             if (USE_VALUES)
             {
-                AGG{}.template nonatomic<V>(mergedValues + i, inValues[i * arrayMultiplier + j]);
+                mergedValues[i] = AGG::template getInitValue<V>();
             }
             if (USE_OCCURRENCES)
             {
-                mergedOccurrences[i] += inOccurrences[i * arrayMultiplier + j];
+                mergedOccurrences[i] = 0;
+            }
+            for (int32_t j = 0; j < arrayMultiplier; j++)
+            {
+                if (USE_VALUES)
+                {
+                    AGG{}.template nonatomic<V>(mergedValues + i, inValues[i * arrayMultiplier + j]);
+                }
+                if (USE_OCCURRENCES)
+                {
+                    mergedOccurrences[i] += inOccurrences[i * arrayMultiplier + j];
+                }
             }
         }
     }
@@ -263,14 +267,15 @@ __global__ void kernel_merge_multiplied_arrays(V* mergedValues,
 /// <param name="maxHashCount">size of one hash table</param>
 template <typename AGG, typename V, bool USE_VALUES, bool USE_OCCURRENCES>
 std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>>
-MergeMultipliedArrays(V* inValues, int64_t* inOccurrences, const int32_t maxHashCount, const int32_t arrayMultiplier)
+MergeMultipliedArrays(V* inValues, int64_t* inOccurrences, int8_t* occupancyMask, const int32_t maxHashCount, const int32_t arrayMultiplier)
 {
     // Merge multipied arrays (values and occurrences)
     cuda_ptr<V> mergedValues(maxHashCount);
     cuda_ptr<int64_t> mergedOccurrences(maxHashCount);
     kernel_merge_multiplied_arrays<AGG, V, USE_VALUES, USE_OCCURRENCES>
         <<<Context::getInstance().calcGridDim(maxHashCount), Context::getInstance().getBlockDim()>>>(
-            mergedValues.get(), mergedOccurrences.get(), inValues, inOccurrences, maxHashCount, arrayMultiplier);
+            mergedValues.get(), mergedOccurrences.get(), inValues, inOccurrences, occupancyMask,
+            maxHashCount, arrayMultiplier);
     CheckCudaError(cudaGetLastError());
     return std::make_tuple<cuda_ptr<V>, cuda_ptr<int64_t>>(std::move(mergedValues), std::move(mergedOccurrences));
 }
@@ -434,7 +439,8 @@ public:
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
             MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                           maxHashCount_, GB_ARRAY_MULTIPLIER);
+                                                                           occupancyMask.get(), maxHashCount_,
+                                                                           GB_ARRAY_MULTIPLIER);
         cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
         cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 
@@ -486,7 +492,8 @@ public:
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
             MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                           maxHashCount_, GB_ARRAY_MULTIPLIER);
+                                                                           occupancyMask.get(), maxHashCount_,
+                                                                           GB_ARRAY_MULTIPLIER);
         cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
         cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 
