@@ -1,5 +1,6 @@
 #include <boost/log/trivial.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/algorithm/string.hpp>
 #include <thread>
 #include <vector>
 #include <sstream>
@@ -169,17 +170,18 @@ void CSVDataImporter::ParseAndImport(int threadId,
                         value = (int32_t)std::stoi(field);
                         break;
                     case COLUMN_LONG:
-                        try
-                        {
-                            value = (int64_t)std::stoll(field);
-                        }
-                        catch (std::invalid_argument&)
+                        // Check for chars - and : to find out if it is datetime
+                        if (boost::contains(field, "-") && boost::contains(field, ":"))
                         {
                             std::tm t;
                             std::istringstream ss(field);
                             ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
                             std::time_t epochTime = std::mktime(&t);
                             value = static_cast<int64_t>(epochTime);
+                        }
+                        else // If not, parse as raw long long
+                        {
+                            value = static_cast<int64_t>(std::stoll(field));
                         }
                         break;
                     case COLUMN_FLOAT:
