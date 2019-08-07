@@ -16,63 +16,63 @@
 template <typename T, typename U>
 int32_t GpuSqlDispatcher::PointColCol()
 {
-    auto colNameRight = arguments.read<std::string>();
-    auto colNameLeft = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNameRight = arguments_.Read<std::string>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     std::cout << "PointColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-    int32_t loadFlag = loadCol<U>(colNameRight);
+    int32_t loadFlag = LoadCol<U>(colNameRight);
     if (loadFlag)
     {
         return loadFlag;
     }
-    loadFlag = loadCol<T>(colNameLeft);
+    loadFlag = LoadCol<T>(colNameLeft);
     if (loadFlag)
     {
         return loadFlag;
     }
 
-    PointerAllocation columnRight = allocatedPointers.at(colNameRight);
-    PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
+    PointerAllocation columnRight = allocatedPointers_.at(colNameRight);
+    PointerAllocation columnLeft = allocatedPointers_.at(colNameLeft);
 
-    int32_t retSize = std::min(columnLeft.elementCount, columnRight.elementCount);
+    int32_t retSize = std::min(columnLeft.ElementCount, columnRight.ElementCount);
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         NativeGeoPoint* pointCol;
-        if (columnLeft.gpuNullMaskPtr || columnRight.gpuNullMaskPtr)
+        if (columnLeft.GpuNullMaskPtr || columnRight.GpuNullMaskPtr)
         {
             int8_t* combinedMask;
-            pointCol = allocateRegister<NativeGeoPoint>(reg, retSize, &combinedMask);
+            pointCol = AllocateRegister<NativeGeoPoint>(reg, retSize, &combinedMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            if (columnLeft.gpuNullMaskPtr && columnRight.gpuNullMaskPtr)
+            if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
             {
                 GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
-                    combinedMask, reinterpret_cast<int8_t*>(columnLeft.gpuNullMaskPtr),
-                    reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+                    combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
+                    reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
-            else if (columnLeft.gpuNullMaskPtr)
+            else if (columnLeft.GpuNullMaskPtr)
             {
                 GPUMemory::copyDeviceToDevice(combinedMask,
-                                              reinterpret_cast<int8_t*>(columnLeft.gpuNullMaskPtr), bitMaskSize);
+                                              reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr), bitMaskSize);
             }
-            else if (columnRight.gpuNullMaskPtr)
+            else if (columnRight.GpuNullMaskPtr)
             {
                 GPUMemory::copyDeviceToDevice(combinedMask,
-                                              reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+                                              reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
         }
         else
         {
-            pointCol = allocateRegister<NativeGeoPoint>(reg, retSize);
+            pointCol = AllocateRegister<NativeGeoPoint>(reg, retSize);
         }
-        GPUConversion::ConvertColCol(pointCol, reinterpret_cast<T*>(columnLeft.gpuPtr),
-                                     reinterpret_cast<U*>(columnRight.gpuPtr), retSize);
+        GPUConversion::ConvertColCol(pointCol, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                     reinterpret_cast<U*>(columnRight.GpuPtr), retSize);
     }
 
-    freeColumnIfRegister<U>(colNameRight);
-    freeColumnIfRegister<T>(colNameLeft);
+    FreeColumnIfRegister<U>(colNameRight);
+    FreeColumnIfRegister<T>(colNameLeft);
     return 0;
 }
 
@@ -83,40 +83,40 @@ int32_t GpuSqlDispatcher::PointColCol()
 template <typename T, typename U>
 int32_t GpuSqlDispatcher::PointColConst()
 {
-    U cnst = arguments.read<U>();
-    auto colNameLeft = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    U cnst = arguments_.Read<U>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     std::cout << "PointColConst: " << colNameLeft << " " << reg << std::endl;
 
-    int32_t loadFlag = loadCol<T>(colNameLeft);
+    int32_t loadFlag = LoadCol<T>(colNameLeft);
     if (loadFlag)
     {
         return loadFlag;
     }
 
-    PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
+    PointerAllocation columnLeft = allocatedPointers_.at(colNameLeft);
 
-    int32_t retSize = columnLeft.elementCount;
+    int32_t retSize = columnLeft.ElementCount;
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         NativeGeoPoint* pointCol;
-        if (columnLeft.gpuNullMaskPtr)
+        if (columnLeft.GpuNullMaskPtr)
         {
             int8_t* nullMask;
-            pointCol = allocateRegister<NativeGeoPoint>(reg, retSize, &nullMask);
+            pointCol = AllocateRegister<NativeGeoPoint>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(columnLeft.gpuNullMaskPtr), bitMaskSize);
+            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr), bitMaskSize);
         }
         else
         {
-            pointCol = allocateRegister<NativeGeoPoint>(reg, retSize);
+            pointCol = AllocateRegister<NativeGeoPoint>(reg, retSize);
         }
-        GPUConversion::ConvertColConst(pointCol, reinterpret_cast<T*>(columnLeft.gpuPtr), cnst, retSize);
+        GPUConversion::ConvertColConst(pointCol, reinterpret_cast<T*>(columnLeft.GpuPtr), cnst, retSize);
     }
 
-    freeColumnIfRegister<T>(colNameLeft);
+    FreeColumnIfRegister<T>(colNameLeft);
     return 0;
 }
 
@@ -127,41 +127,41 @@ int32_t GpuSqlDispatcher::PointColConst()
 template <typename T, typename U>
 int32_t GpuSqlDispatcher::PointConstCol()
 {
-    auto colNameRight = arguments.read<std::string>();
-    T cnst = arguments.read<T>();
-    auto reg = arguments.read<std::string>();
+    auto colNameRight = arguments_.Read<std::string>();
+    T cnst = arguments_.Read<T>();
+    auto reg = arguments_.Read<std::string>();
 
     std::cout << "PointConstCol: " << colNameRight << " " << reg << std::endl;
 
-    int32_t loadFlag = loadCol<U>(colNameRight);
+    int32_t loadFlag = LoadCol<U>(colNameRight);
     if (loadFlag)
     {
         return loadFlag;
     }
 
-    PointerAllocation columnRight = allocatedPointers.at(colNameRight);
+    PointerAllocation columnRight = allocatedPointers_.at(colNameRight);
 
-    int32_t retSize = columnRight.elementCount;
+    int32_t retSize = columnRight.ElementCount;
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         NativeGeoPoint* pointCol;
-        if (columnRight.gpuNullMaskPtr)
+        if (columnRight.GpuNullMaskPtr)
         {
             int8_t* nullMask;
-            pointCol = allocateRegister<NativeGeoPoint>(reg, retSize, &nullMask);
+            pointCol = AllocateRegister<NativeGeoPoint>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr),
+            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr),
                                           bitMaskSize);
         }
         else
         {
-            pointCol = allocateRegister<NativeGeoPoint>(reg, retSize);
+            pointCol = AllocateRegister<NativeGeoPoint>(reg, retSize);
         }
-        GPUConversion::ConvertConstCol(pointCol, cnst, reinterpret_cast<U*>(columnRight.gpuPtr), retSize);
+        GPUConversion::ConvertConstCol(pointCol, cnst, reinterpret_cast<U*>(columnRight.GpuPtr), retSize);
     }
 
-    freeColumnIfRegister<U>(colNameRight);
+    FreeColumnIfRegister<U>(colNameRight);
     return 0;
 }
 
@@ -172,11 +172,11 @@ int32_t GpuSqlDispatcher::PointConstCol()
 template <typename T, typename U>
 int32_t GpuSqlDispatcher::ContainsColConst()
 {
-    auto constWkt = arguments.read<std::string>();
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto constWkt = arguments_.Read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<T>(colName);
+    int32_t loadFlag = LoadCol<T>(colName);
     if (loadFlag)
     {
         return loadFlag;
@@ -184,26 +184,26 @@ int32_t GpuSqlDispatcher::ContainsColConst()
 
     std::cout << "ContainsColConst: " + colName << " " << constWkt << " " << reg << std::endl;
 
-    auto polygonCol = findComplexPolygon(colName);
+    auto polygonCol = FindComplexPolygon(colName);
     ColmnarDB::Types::Point pointConst = PointFactory::FromWkt(constWkt);
 
     GPUMemory::GPUPolygon polygons = std::get<0>(polygonCol);
-    NativeGeoPoint* pointConstPtr = insertConstPointGpu(pointConst);
+    NativeGeoPoint* pointConstPtr = InsertConstPointGpu(pointConst);
     int32_t retSize = std::get<1>(polygonCol);
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         int8_t* result;
         if (std::get<2>(polygonCol))
         {
             int8_t* nullMask;
-            result = allocateRegister<int8_t>(reg, retSize, &nullMask);
+            result = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(std::get<2>(polygonCol)), bitMaskSize);
         }
         else
         {
-            result = allocateRegister<int8_t>(reg, retSize);
+            result = AllocateRegister<int8_t>(reg, retSize);
         }
         GPUPolygonContains::contains(result, polygons, retSize, pointConstPtr, 1);
     }
@@ -217,11 +217,11 @@ int32_t GpuSqlDispatcher::ContainsColConst()
 template <typename T, typename U>
 int32_t GpuSqlDispatcher::ContainsConstCol()
 {
-    auto colName = arguments.read<std::string>();
-    auto constWkt = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto constWkt = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<U>(colName);
+    int32_t loadFlag = LoadCol<U>(colName);
     if (loadFlag)
     {
         return loadFlag;
@@ -229,29 +229,29 @@ int32_t GpuSqlDispatcher::ContainsConstCol()
 
     std::cout << "ContainsConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
 
-    PointerAllocation columnPoint = allocatedPointers.at(colName);
+    PointerAllocation columnPoint = allocatedPointers_.at(colName);
     ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
-    GPUMemory::GPUPolygon gpuPolygon = insertConstPolygonGpu(polygonConst);
+    GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(polygonConst);
 
-    int32_t retSize = columnPoint.elementCount;
+    int32_t retSize = columnPoint.ElementCount;
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         int8_t* result;
-        if (columnPoint.gpuNullMaskPtr)
+        if (columnPoint.GpuNullMaskPtr)
         {
             int8_t* nullMask;
-            result = allocateRegister<int8_t>(reg, retSize, &nullMask);
+            result = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(columnPoint.gpuNullMaskPtr),
+            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(columnPoint.GpuNullMaskPtr),
                                           bitMaskSize);
         }
         else
         {
-            result = allocateRegister<int8_t>(reg, retSize);
+            result = AllocateRegister<int8_t>(reg, retSize);
         }
         GPUPolygonContains::contains(result, gpuPolygon, 1,
-                                     reinterpret_cast<NativeGeoPoint*>(columnPoint.gpuPtr), retSize);
+                                     reinterpret_cast<NativeGeoPoint*>(columnPoint.GpuPtr), retSize);
     }
     return 0;
 }
@@ -263,16 +263,16 @@ int32_t GpuSqlDispatcher::ContainsConstCol()
 template <typename T, typename U>
 int32_t GpuSqlDispatcher::ContainsColCol()
 {
-    auto colNamePoint = arguments.read<std::string>();
-    auto colNamePolygon = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNamePoint = arguments_.Read<std::string>();
+    auto colNamePolygon = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<U>(colNamePoint);
+    int32_t loadFlag = LoadCol<U>(colNamePoint);
     if (loadFlag)
     {
         return loadFlag;
     }
-    loadFlag = loadCol<T>(colNamePolygon);
+    loadFlag = LoadCol<T>(colNamePolygon);
     if (loadFlag)
     {
         return loadFlag;
@@ -280,30 +280,30 @@ int32_t GpuSqlDispatcher::ContainsColCol()
 
     std::cout << "ContainsColCol: " + colNamePolygon << " " << colNamePoint << " " << reg << std::endl;
 
-    PointerAllocation pointCol = allocatedPointers.at(colNamePoint);
-    auto polygonCol = findComplexPolygon(colNamePolygon);
+    PointerAllocation pointCol = allocatedPointers_.at(colNamePoint);
+    auto polygonCol = FindComplexPolygon(colNamePolygon);
 
 
-    int32_t retSize = std::min(pointCol.elementCount, std::get<1>(polygonCol));
+    int32_t retSize = std::min(pointCol.ElementCount, std::get<1>(polygonCol));
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         int8_t* result;
-        if (pointCol.gpuNullMaskPtr || std::get<2>(polygonCol))
+        if (pointCol.GpuNullMaskPtr || std::get<2>(polygonCol))
         {
             int8_t* combinedMask;
-            result = allocateRegister<int8_t>(reg, retSize, &combinedMask);
+            result = AllocateRegister<int8_t>(reg, retSize, &combinedMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            if (pointCol.gpuNullMaskPtr && std::get<2>(polygonCol))
+            if (pointCol.GpuNullMaskPtr && std::get<2>(polygonCol))
             {
                 GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
-                    combinedMask, reinterpret_cast<int8_t*>(pointCol.gpuNullMaskPtr),
+                    combinedMask, reinterpret_cast<int8_t*>(pointCol.GpuNullMaskPtr),
                     reinterpret_cast<int8_t*>(std::get<2>(polygonCol)), bitMaskSize);
             }
-            else if (pointCol.gpuNullMaskPtr)
+            else if (pointCol.GpuNullMaskPtr)
             {
                 GPUMemory::copyDeviceToDevice(combinedMask,
-                                              reinterpret_cast<int8_t*>(pointCol.gpuNullMaskPtr), bitMaskSize);
+                                              reinterpret_cast<int8_t*>(pointCol.GpuNullMaskPtr), bitMaskSize);
             }
             else if (std::get<2>(polygonCol))
             {
@@ -313,10 +313,10 @@ int32_t GpuSqlDispatcher::ContainsColCol()
         }
         else
         {
-            result = allocateRegister<int8_t>(reg, retSize);
+            result = AllocateRegister<int8_t>(reg, retSize);
         }
         GPUPolygonContains::contains(result, std::get<0>(polygonCol), std::get<1>(polygonCol),
-                                     reinterpret_cast<NativeGeoPoint*>(pointCol.gpuPtr), pointCol.elementCount);
+                                     reinterpret_cast<NativeGeoPoint*>(pointCol.GpuPtr), pointCol.ElementCount);
     }
     return 0;
 }
@@ -329,23 +329,23 @@ template <typename T, typename U>
 int32_t GpuSqlDispatcher::ContainsConstConst()
 {
     // TODO : Specialize kernel for all cases.
-    auto constPointWkt = arguments.read<std::string>();
-    auto constPolygonWkt = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto constPointWkt = arguments_.Read<std::string>();
+    auto constPolygonWkt = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     std::cout << "ContainsConstConst: " + constPolygonWkt << " " << constPointWkt << " " << reg << std::endl;
 
     ColmnarDB::Types::Point constPoint = PointFactory::FromWkt(constPointWkt);
     ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constPolygonWkt);
 
-    NativeGeoPoint* constNativeGeoPoint = insertConstPointGpu(constPoint);
-    GPUMemory::GPUPolygon gpuPolygon = insertConstPolygonGpu(constPolygon);
+    NativeGeoPoint* constNativeGeoPoint = InsertConstPointGpu(constPoint);
+    GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(constPolygon);
 
-    int32_t retSize = database->GetBlockSize();
+    int32_t retSize = database_->GetBlockSize();
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
-        int8_t* result = allocateRegister<int8_t>(reg, retSize);
+        int8_t* result = AllocateRegister<int8_t>(reg, retSize);
         GPUPolygonContains::containsConst(result, gpuPolygon, constNativeGeoPoint, retSize);
     }
     return 0;
@@ -359,11 +359,11 @@ int32_t GpuSqlDispatcher::ContainsConstConst()
 template <typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::PolygonOperationColConst()
 {
-    auto colName = arguments.read<std::string>();
-    auto constWkt = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto constWkt = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<U>(colName);
+    int32_t loadFlag = LoadCol<U>(colName);
     if (loadFlag)
     {
         return loadFlag;
@@ -371,13 +371,13 @@ int32_t GpuSqlDispatcher::PolygonOperationColConst()
 
     std::cout << "PolygonOPConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
 
-    auto polygonLeft = findComplexPolygon(colName);
+    auto polygonLeft = FindComplexPolygon(colName);
     ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
-    GPUMemory::GPUPolygon gpuPolygon = insertConstPolygonGpu(polygonConst);
+    GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(polygonConst);
 
     int32_t retSize = std::get<1>(polygonLeft);
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         // TODO
     }
@@ -403,36 +403,36 @@ int32_t GpuSqlDispatcher::PolygonOperationConstCol()
 template <typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::PolygonOperationColCol()
 {
-    auto colNameRight = arguments.read<std::string>();
-    auto colNameLeft = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNameRight = arguments_.Read<std::string>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     std::cout << "Polygon operation: " << colNameRight << " " << colNameLeft << " " << reg << std::endl;
 
-    int32_t loadFlag = loadCol<U>(colNameLeft);
+    int32_t loadFlag = LoadCol<U>(colNameLeft);
     if (loadFlag)
     {
         return loadFlag;
     }
-    loadFlag = loadCol<T>(colNameRight);
+    loadFlag = LoadCol<T>(colNameRight);
     if (loadFlag)
     {
         return loadFlag;
     }
 
-    auto polygonLeft = findComplexPolygon(colNameLeft);
-    auto polygonRight = findComplexPolygon(colNameRight);
+    auto polygonLeft = FindComplexPolygon(colNameLeft);
+    auto polygonRight = FindComplexPolygon(colNameRight);
 
     int32_t dataSize = std::min(std::get<1>(polygonLeft), std::get<1>(polygonRight));
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUPolygon outPolygon;
         GPUPolygonClipping::ColCol<OP>(outPolygon, std::get<0>(polygonLeft), std::get<0>(polygonRight), dataSize);
         if (std::get<2>(polygonLeft) || std::get<2>(polygonRight))
         {
             int32_t bitMaskSize = ((dataSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            int8_t* combinedMask = allocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
-            fillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
+            int8_t* combinedMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
+            FillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
             if (std::get<2>(polygonLeft) && std::get<2>(polygonRight))
             {
                 GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
@@ -452,7 +452,7 @@ int32_t GpuSqlDispatcher::PolygonOperationColCol()
         }
         else
         {
-            fillPolygonRegister(outPolygon, reg, dataSize);
+            FillPolygonRegister(outPolygon, reg, dataSize);
         }
     }
     return 0;

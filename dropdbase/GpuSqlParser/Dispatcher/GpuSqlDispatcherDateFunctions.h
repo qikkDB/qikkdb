@@ -11,10 +11,10 @@
 template <typename OP>
 int32_t GpuSqlDispatcher::DateExtractCol()
 {
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<int64_t>(colName);
+    int32_t loadFlag = LoadCol<int64_t>(colName);
     if (loadFlag)
     {
         return loadFlag;
@@ -22,53 +22,53 @@ int32_t GpuSqlDispatcher::DateExtractCol()
 
     std::cout << "ExtractDatePartCol: " << colName << " " << reg << std::endl;
 
-    if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) !=
-        groupByColumns.end())
+    if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
+        groupByColumns_.end())
     {
-        if (isOverallLastBlock)
+        if (isOverallLastBlock_)
         {
-            PointerAllocation column = allocatedPointers.at(colName + KEYS_SUFFIX);
-            int32_t retSize = column.elementCount;
+            PointerAllocation column = allocatedPointers_.at(colName + KEYS_SUFFIX);
+            int32_t retSize = column.ElementCount;
             int32_t* result;
-            if (column.gpuNullMaskPtr)
+            if (column.GpuNullMaskPtr)
             {
                 int8_t* nullMask;
-                result = allocateRegister<int32_t>(reg + KEYS_SUFFIX, retSize, &nullMask);
+                result = AllocateRegister<int32_t>(reg + KEYS_SUFFIX, retSize, &nullMask);
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
             }
             else
             {
-                result = allocateRegister<int32_t>(reg + KEYS_SUFFIX, retSize);
+                result = AllocateRegister<int32_t>(reg + KEYS_SUFFIX, retSize);
             }
-            GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.gpuPtr), retSize);
-            groupByColumns.push_back({reg, COLUMN_INT});
+            GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
+            groupByColumns_.push_back({reg, COLUMN_INT});
         }
     }
-    else if (isOverallLastBlock || !usingGroupBy || insideGroupBy || insideAggregation)
+    else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
     {
-        PointerAllocation column = allocatedPointers.at(colName);
-        int32_t retSize = column.elementCount;
+        PointerAllocation column = allocatedPointers_.at(colName);
+        int32_t retSize = column.ElementCount;
 
-        if (!isRegisterAllocated(reg))
+        if (!IsRegisterAllocated(reg))
         {
             int32_t* result;
-            if (column.gpuNullMaskPtr)
+            if (column.GpuNullMaskPtr)
             {
                 int8_t* nullMask;
-                result = allocateRegister<int32_t>(reg, retSize, &nullMask);
+                result = AllocateRegister<int32_t>(reg, retSize, &nullMask);
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
             }
             else
             {
-                result = allocateRegister<int32_t>(reg, retSize);
+                result = AllocateRegister<int32_t>(reg, retSize);
             }
-            GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.gpuPtr), retSize);
+            GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
         }
     }
 
-    freeColumnIfRegister<int64_t>(colName);
+    FreeColumnIfRegister<int64_t>(colName);
     return 0;
 }
 
@@ -79,15 +79,15 @@ int32_t GpuSqlDispatcher::DateExtractCol()
 template <typename OP>
 int32_t GpuSqlDispatcher::DateExtractConst()
 {
-    int64_t cnst = arguments.read<int64_t>();
-    auto reg = arguments.read<std::string>();
+    int64_t cnst = arguments_.Read<int64_t>();
+    auto reg = arguments_.Read<std::string>();
     std::cout << "ExtractDatePartConst: " << cnst << " " << reg << std::endl;
 
     int32_t retSize = 1;
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
-        int32_t* result = allocateRegister<int32_t>(reg, retSize);
+        int32_t* result = AllocateRegister<int32_t>(reg, retSize);
         GPUDate::extractConst<OP>(result, cnst, retSize);
     }
     return 0;

@@ -14,7 +14,7 @@
 template <typename T>
 int32_t GpuSqlDispatcher::RetConst()
 {
-    T cnst = arguments.read<T>();
+    T cnst = arguments_.Read<T>();
     std::cout << "RET: cnst" << typeid(T).name() << std::endl;
     return 0;
 }
@@ -28,46 +28,46 @@ int32_t GpuSqlDispatcher::RetConst()
 template <typename T>
 int32_t GpuSqlDispatcher::RetCol()
 {
-    auto colName = arguments.read<std::string>();
-    auto alias = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto alias = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<T>(colName);
+    int32_t loadFlag = LoadCol<T>(colName);
     if (loadFlag)
     {
         return loadFlag;
     }
 
-    std::cout << "RetCol: " << colName << ", thread: " << dispatcherThreadId << std::endl;
+    std::cout << "RetCol: " << colName << ", thread: " << dispatcherThreadId_ << std::endl;
 
     int32_t outSize;
     std::unique_ptr<T[]> outData;
     std::string nullMaskString = "";
-    if (usingGroupBy)
+    if (usingGroupBy_)
     {
-        if (isOverallLastBlock)
+        if (isOverallLastBlock_)
         {
-            PointerAllocation col = allocatedPointers.at(
-                colName + (std::find_if(groupByColumns.begin(), groupByColumns.end(),
-                                        StringDataTypeComp(colName)) != groupByColumns.end() ?
+            PointerAllocation col = allocatedPointers_.at(
+                colName + (std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
+                                        StringDataTypeComp(colName)) != groupByColumns_.end() ?
                                KEYS_SUFFIX :
                                ""));
-            outSize = col.elementCount;
-            if (usingOrderBy)
+            outSize = col.ElementCount;
+            if (usingOrderBy_)
             {
                 std::cout << "Reordering result block." << std::endl;
-                PointerAllocation orderByIndices = allocatedPointers.at("$orderByIndices");
-                GPUOrderBy::ReOrderByIdxInplace(reinterpret_cast<T*>(col.gpuPtr),
-                                                reinterpret_cast<int32_t*>(orderByIndices.gpuPtr), outSize);
+                PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
+                GPUOrderBy::ReOrderByIdxInplace(reinterpret_cast<T*>(col.GpuPtr),
+                                                reinterpret_cast<int32_t*>(orderByIndices.GpuPtr), outSize);
             }
 
             outData = std::make_unique<T[]>(outSize);
-            GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(col.gpuPtr), outSize);
-            if (col.gpuNullMaskPtr)
+            GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(col.GpuPtr), outSize);
+            if (col.GpuNullMaskPtr)
             {
                 size_t bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
                 std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
                 GPUMemory::copyDeviceToHost(nullMask.get(),
-                                            reinterpret_cast<int8_t*>(col.gpuNullMaskPtr), bitMaskSize);
+                                            reinterpret_cast<int8_t*>(col.GpuNullMaskPtr), bitMaskSize);
                 nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
             }
         }
@@ -78,18 +78,18 @@ int32_t GpuSqlDispatcher::RetCol()
     }
     else
     {
-        if (usingOrderBy)
+        if (usingOrderBy_)
         {
-            if (isOverallLastBlock)
+            if (isOverallLastBlock_)
             {
                 VariantArray<T>* reconstructedColumn =
-                    dynamic_cast<VariantArray<T>*>(reconstructedOrderByColumnsMerged.at(colName).get());
+                    dynamic_cast<VariantArray<T>*>(reconstructedOrderByColumnsMerged_.at(colName).get());
                 outData = std::move(reconstructedColumn->getDataRef());
                 outSize = reconstructedColumn->GetSize();
 
                 size_t bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
                 nullMaskString = std::string(reinterpret_cast<char*>(
-                                                 reconstructedOrderByColumnsNullMerged.at(colName).get()),
+                                                 reconstructedOrderByColumnsNullMerged_.at(colName).get()),
                                              bitMaskSize);
             }
             else
@@ -99,25 +99,25 @@ int32_t GpuSqlDispatcher::RetCol()
         }
         else
         {
-            PointerAllocation col = allocatedPointers.at(colName);
-            int32_t inSize = col.elementCount;
+            PointerAllocation col = allocatedPointers_.at(colName);
+            int32_t inSize = col.ElementCount;
             outData = std::make_unique<T[]>(inSize);
             // ToDo: Podmienene zapnut podla velkost buffera
             // GPUMemory::hostPin(outData.get(), inSize);
-            if (col.gpuNullMaskPtr)
+            if (col.GpuNullMaskPtr)
             {
-                size_t bitMaskSize = (database->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
                 std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
-                GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(col.gpuPtr),
-                                               reinterpret_cast<int8_t*>(filter_), col.elementCount,
-                                               nullMask.get(), reinterpret_cast<int8_t*>(col.gpuNullMaskPtr));
+                GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(col.GpuPtr),
+                                               reinterpret_cast<int8_t*>(filter_), col.ElementCount,
+                                               nullMask.get(), reinterpret_cast<int8_t*>(col.GpuNullMaskPtr));
                 bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
                 nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
             }
             else
             {
-                GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(col.gpuPtr),
-                                               reinterpret_cast<int8_t*>(filter_), col.elementCount);
+                GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(col.GpuPtr),
+                                               reinterpret_cast<int8_t*>(filter_), col.ElementCount);
             }
             // GPUMemory::hostUnregister(outData.get());
             std::cout << "dataSize: " << outSize << std::endl;
@@ -127,7 +127,7 @@ int32_t GpuSqlDispatcher::RetCol()
     if (outSize > 0)
     {
         ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-        insertIntoPayload(payload, outData, outSize);
+        InsertIntoPayload(payload, outData, outSize);
         MergePayloadToSelfResponse(alias, payload, nullMaskString);
     }
     return 0;
@@ -140,48 +140,48 @@ int32_t GpuSqlDispatcher::RetCol()
 template <typename T>
 int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
 {
-    if (allocatedPointers.find(colName) == allocatedPointers.end() && !colName.empty() && colName.front() != '$')
+    if (allocatedPointers_.find(colName) == allocatedPointers_.end() && !colName.empty() && colName.front() != '$')
     {
         std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
 
         std::string table;
         std::string column;
 
-        std::tie(table, column) = splitColumnName(colName);
+        std::tie(table, column) = SplitColumnName(colName);
 
         const int32_t blockCount =
-            usingJoin ? joinIndices->at(table).size() :
-                        database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+            usingJoin_ ? joinIndices_->at(table).size() :
+                        database_->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
         GpuSqlDispatcher::deviceCountLimit_ =
             std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
-        if (blockIndex >= blockCount)
+        if (blockIndex_ >= blockCount)
         {
             return 1;
         }
-        if (blockIndex >= blockCount - Context::getInstance().getDeviceCount())
+        if (blockIndex_ >= blockCount - Context::getInstance().getDeviceCount())
         {
-            isLastBlockOfDevice = true;
+            isLastBlockOfDevice_ = true;
         }
-        if (blockIndex == blockCount - 1)
+        if (blockIndex_ == blockCount - 1)
         {
-            isOverallLastBlock = true;
+            isOverallLastBlock_ = true;
         }
 
-        noLoad = false;
+        noLoad_ = false;
 
-        if (loadNecessary == 0)
+        if (loadNecessary_ == 0)
         {
-            instructionPointer = jmpInstuctionPosition;
+            instructionPointer_ = jmpInstructionPosition_;
             return 12;
         }
 
         const ColumnBase<T>* col = dynamic_cast<const ColumnBase<T>*>(
-            database->GetTables().at(table).GetColumns().at(column).get());
+            database_->GetTables().at(table).GetColumns().at(column).get());
 
-        if (!usingJoin)
+        if (!usingJoin_)
         {
             int8_t* nullMaskPtr = nullptr;
-            auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex]);
+            auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex_]);
             size_t realSize;
             std::tuple<T*, size_t, bool> cacheEntry;
             if (block->IsCompressed())
@@ -189,8 +189,8 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
                 size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
                 size_t compressedSize = block->GetSize();
                 cacheEntry =
-                    Context::getInstance().getCacheForCurrentDevice().getColumn<T>(database->GetName(),
-                                                                                   colName, blockIndex,
+                    Context::getInstance().getCacheForCurrentDevice().getColumn<T>(database_->GetName(),
+                                                                                   colName, blockIndex_,
                                                                                    uncompressedSize);
                 if (!std::get<2>(cacheEntry))
                 {
@@ -212,8 +212,8 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
             else
             {
                 cacheEntry =
-                    Context::getInstance().getCacheForCurrentDevice().getColumn<T>(database->GetName(),
-                                                                                   colName, blockIndex,
+                    Context::getInstance().getCacheForCurrentDevice().getColumn<T>(database_->GetName(),
+                                                                                   colName, blockIndex_,
                                                                                    block->GetSize());
                 if (!std::get<2>(cacheEntry))
                 {
@@ -225,77 +225,77 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
 
             if (block->GetNullBitmask())
             {
-                if (allocatedPointers.find(colName + NULL_SUFFIX) == allocatedPointers.end())
+                if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
                 {
                     int32_t bitMaskCapacity = ((realSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                        database->GetName(), colName + NULL_SUFFIX, blockIndex, bitMaskCapacity);
+                        database_->GetName(), colName + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry),
                                                     block->GetNullBitmask(), bitMaskCapacity);
                     }
-                    addCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheMaskEntry), bitMaskCapacity);
+                    AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheMaskEntry), bitMaskCapacity);
                 }
                 else
                 {
                     nullMaskPtr =
-                        reinterpret_cast<int8_t*>(allocatedPointers.at(colName + NULL_SUFFIX).gpuPtr);
+                        reinterpret_cast<int8_t*>(allocatedPointers_.at(colName + NULL_SUFFIX).GpuPtr);
                 }
             }
-            addCachedRegister(colName, std::get<0>(cacheEntry), realSize, nullMaskPtr);
-            noLoad = false;
+            AddCachedRegister(colName, std::get<0>(cacheEntry), realSize, nullMaskPtr);
+            noLoad_ = false;
         }
 
         else
         {
             std::cout << "Loading joined block." << std::endl;
-            int32_t loadSize = joinIndices->at(table)[blockIndex].size();
+            int32_t loadSize = joinIndices_->at(table)[blockIndex_].size();
             std::string joinCacheId = colName + "_join";
-            for (auto& joinTable : *joinIndices)
+            for (auto& joinTable : *joinIndices_)
             {
                 joinCacheId += "_" + joinTable.first;
             }
 
             auto cacheEntry =
-                Context::getInstance().getCacheForCurrentDevice().getColumn<T>(database->GetName(), joinCacheId,
-                                                                               blockIndex, loadSize);
+                Context::getInstance().getCacheForCurrentDevice().getColumn<T>(database_->GetName(), joinCacheId,
+                                                                               blockIndex_, loadSize);
             int8_t* nullMaskPtr = nullptr;
 
             if (!std::get<2>(cacheEntry))
             {
                 int32_t outDataSize;
-                GPUJoin::reorderByJoinTableCPU<T>(std::get<0>(cacheEntry), outDataSize, *col, blockIndex,
-                                                  joinIndices->at(table), database->GetBlockSize());
+                GPUJoin::reorderByJoinTableCPU<T>(std::get<0>(cacheEntry), outDataSize, *col, blockIndex_,
+                                                  joinIndices_->at(table), database_->GetBlockSize());
             }
 
             if (col->GetIsNullable())
             {
-                if (allocatedPointers.find(colName + NULL_SUFFIX) == allocatedPointers.end())
+                if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
                 {
                     int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                        database->GetName(), joinCacheId + NULL_SUFFIX, blockIndex, bitMaskCapacity);
+                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
 
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
                         GPUJoin::reorderNullMaskByJoinTableCPU<T>(std::get<0>(cacheMaskEntry), outMaskSize,
-                                                                  *col, blockIndex, joinIndices->at(table),
-                                                                  database->GetBlockSize());
+                                                                  *col, blockIndex_, joinIndices_->at(table),
+                                                                  database_->GetBlockSize());
                     }
-                    addCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheMaskEntry), bitMaskCapacity);
+                    AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheMaskEntry), bitMaskCapacity);
                 }
                 else
                 {
                     nullMaskPtr =
-                        reinterpret_cast<int8_t*>(allocatedPointers.at(colName + NULL_SUFFIX).gpuPtr);
+                        reinterpret_cast<int8_t*>(allocatedPointers_.at(colName + NULL_SUFFIX).GpuPtr);
                 }
             }
-            addCachedRegister(colName, std::get<0>(cacheEntry), loadSize, nullMaskPtr);
-            noLoad = false;
+            AddCachedRegister(colName, std::get<0>(cacheEntry), loadSize, nullMaskPtr);
+            noLoad_ = false;
         }
     }
     return 0;
