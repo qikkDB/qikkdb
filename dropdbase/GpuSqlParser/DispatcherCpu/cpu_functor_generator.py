@@ -82,7 +82,7 @@ for operation in ["whereResult"]:
             col = "Col"
 
         if colVal in [STRING, POINT, POLYGON]:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
 
         else:
             op = operation
@@ -114,19 +114,19 @@ for operation in operations_binary:
                 row = "Col"
 
             if operation != 'contains' and (colVal in geo_types or rowVal in geo_types):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == STRING or rowVal == STRING:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation == "contains" and (colVal != POLYGON or rowVal != POINT):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             else:
                 op = operation
@@ -169,7 +169,7 @@ print()
 #             col = "Col"
 #
 #         if colVal in geo_types or colVal == STRING:
-#             op = "invalidOperandTypesErrorHandler"
+#             op = "InvalidOperandTypesErrorHandler"
 #         else:
 #             op = operation
 #         function = "CpuSqlDispatcher::" + op + col + "<" + colVal + ">"
@@ -213,9 +213,9 @@ print()
 #             col = "Col"
 #
 #         if (operation == 'groupBy') and (colVal == STRING or colVal == BOOL or colVal in geo_types):
-#             function = "CpuSqlDispatcher::" + "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
+#             function = "CpuSqlDispatcher::" + "InvalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
 #         elif (operation == 'ret') and (colVal == BOOL):
-#             function = "CpuSqlDispatcher::" + "invalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
+#             function = "CpuSqlDispatcher::" + "InvalidOperandTypesErrorHandler" + col + "<" + colVal + ">"
 #         else:
 #             function = "CpuSqlDispatcher::" + operation + col + "<" + colVal + ">"
 #
@@ -256,20 +256,20 @@ for operation in operations_filter:
                 row = "Col"
 
             if colVal in geo_types or rowVal in geo_types:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == STRING and rowVal != STRING:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal != STRING and rowVal == STRING:
 
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation == "mod" and (colVal in floating_types or rowVal in floating_types):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == STRING and rowVal == STRING:
                 op = "filterString"
@@ -307,13 +307,13 @@ for operation in operations_logical:
                 row = "Col"
 
             if colVal in geo_types or rowVal in geo_types:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == STRING or rowVal == STRING:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif operation in arithmetic_operations and (colVal == BOOL or rowVal == BOOL):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             else:
                 op = "logical"
@@ -345,17 +345,17 @@ for operation in operations_arithmetic:
                 row = "Col"
 
             if colVal in geo_types or rowVal in geo_types:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == STRING or rowVal == STRING:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif colVal == BOOL or rowVal == BOOL:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             elif (operation == "mod" or operation in bitwise_operations) and (
                     colVal in floating_types or rowVal in floating_types):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             else:
                 op = "arithmetic"
@@ -382,7 +382,7 @@ for operation in operations_date:
             col = "Col"
 
         if colVal != LONG:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
             function = "CpuSqlDispatcher::" + op + col + "<DateOperations::" + operation + ", " + colVal + ">"
         else:
             op = "dateExtract"
@@ -408,13 +408,13 @@ for operation in unary_arithmetic_operations:
             col = "Col"
 
         if colVal in geo_types:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
 
         elif colVal == STRING:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
 
         elif colVal == BOOL:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
 
         else:
             op = "arithmeticUnary"
@@ -443,7 +443,7 @@ for opIdx, operation in enumerate(["castToInt", "castToLong", "castToFloat", "ca
         if colVal in numeric_types and types[opIdx] in numeric_types:
             op = "castNumeric"
         else:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
 
         function = "CpuSqlDispatcher::" + op + col + "<" + types[opIdx] + ", " + colVal + ">"
 
@@ -467,7 +467,7 @@ for operation in operations_string_unary:
             col = "Col"
 
         if colVal != STRING:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
         else:
             op = "stringUnary"
 
@@ -497,7 +497,7 @@ for operation in ['len']:
             col = "Col"
 
         if colVal != STRING:
-            op = "invalidOperandTypesErrorHandler"
+            op = "InvalidOperandTypesErrorHandler"
         else:
             op = "stringUnaryNumeric"
 
@@ -533,7 +533,7 @@ for operation in operations_string_binary:
                 row = "Col"
 
             if (operation == 'left' or operation == 'right') and (colVal != STRING or rowVal not in [INT, LONG]):
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             else:
                 op = "stringBinaryNumeric"
@@ -569,7 +569,7 @@ for operation in ["concat"]:
                 row = "Col"
 
             if colVal != STRING or rowVal != STRING:
-                op = "invalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandler"
 
             else:
                 op = "stringBinary"
@@ -618,14 +618,14 @@ print()
 #             col = "Col"
 #
 #         if (colVal in geo_types and operation != "count") or (colVal == STRING) or (colVal == BOOL):
-#             op = "invalidOperandTypesErrorHandler"
+#             op = "InvalidOperandTypesErrorHandler"
 #         else:
 #             op = "aggregation"
 #         retVal = colVal
 #         if operation == "count":
 #             retVal = LONG
 #         # TODO: for avg FLOAT/DOUBLE
-#         if op != "invalidOperandTypesErrorHandler":
+#         if op != "InvalidOperandTypesErrorHandler":
 #             function = "CpuSqlDispatcher::" + op + col + "<AggregationFunctions::" + operation + ", " + retVal + ", " + colVal + ">"
 #         else:
 #             function = "CpuSqlDispatcher::" + op + col + "<AggregationFunctions::" + operation + ", " + colVal + ">"
@@ -661,14 +661,14 @@ print()
 #                     (colVal in geo_types or colVal == STRING) or \
 #                     (rowVal in geo_types or rowVal == STRING) or (
 #                     rowVal == BOOL or colVal == BOOL):
-#                 op = "invalidOperandTypesErrorHandler"
+#                 op = "InvalidOperandTypesErrorHandler"
 #             else:
 #                 op = "aggregationGroupBy"
 #             retVal = colVal
 #             if operation == "count":
 #                 retVal = LONG
 #             # TODO: for avg FLOAT/DOUBLE
-#             if op != "invalidOperandTypesErrorHandler":
+#             if op != "InvalidOperandTypesErrorHandler":
 #                 function = "CpuSqlDispatcher::" + op + "<AggregationFunctions::" + operation + ", " + retVal + ", " + colVal + ", " + rowVal + ">"
 #             else:
 #                 function = "CpuSqlDispatcher::" + op + col + row + "<AggregationFunctions::" + operation + ", " + colVal + ", " + rowVal + ">"
@@ -701,7 +701,7 @@ print()
 #                 row = "Col"
 #
 #             if colVal != POLYGON or rowVal != POLYGON:
-#                 op = "invalidOperandTypesErrorHandler"
+#                 op = "InvalidOperandTypesErrorHandler"
 #
 #             else:
 #                 op = "polygonOperation"
@@ -733,9 +733,9 @@ print()
 #             row = "Col"
 #
 #         if col == "Const" and row == "Const":
-#             op = "invalidOperandTypesErrorHandler"
+#             op = "InvalidOperandTypesErrorHandler"
 #         elif colVal not in numeric_types or rowVal not in numeric_types:
-#             op = "invalidOperandTypesErrorHandler"
+#             op = "InvalidOperandTypesErrorHandler"
 #         else:
 #             op = operation
 #

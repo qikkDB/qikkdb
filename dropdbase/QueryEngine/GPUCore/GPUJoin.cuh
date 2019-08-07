@@ -42,7 +42,7 @@ kernel_calc_hash_histo(int32_t* HashTableHisto, int32_t hashTableSize, T* Column
         shared_memory[threadIdx.x] = 0;
         __syncthreads();
 
-        if(i < dataElementCount)
+        if (i < dataElementCount)
         {
             if (nullBitMaskR)
             {
@@ -88,7 +88,7 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
         shared_memory[threadIdx.x] = (i == 0) ? 0 : HashTablePrefixSum[i - 1];
         __syncthreads();
 
-        if(i < dataElementCount)
+        if (i < dataElementCount)
         {
             if (nullBitMaskR)
             {
@@ -139,7 +139,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
         // Count the number of result hash matches for this entry
         int32_t hashMatchCounter = 0;
 
-        if(i < dataElementCountColumnSBlock)
+        if (i < dataElementCountColumnSBlock)
         {
             // Hash table buckets probing and occurance counting
             int32_t hash_idx = hash(ColumnSBlock[i]);
@@ -170,7 +170,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
                                 else
                                 {
                                     if (OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]],
-                                            ColumnSBlock[i]))
+                                             ColumnSBlock[i]))
                                     {
                                         hashMatchCounter++;
                                     }
@@ -179,7 +179,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
                             else
                             {
                                 if (OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]],
-                                        ColumnSBlock[i]))
+                                         ColumnSBlock[i]))
                                 {
                                     hashMatchCounter++;
                                 }
@@ -199,7 +199,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
                             else
                             {
                                 if (OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]],
-                                        ColumnSBlock[i]))
+                                         ColumnSBlock[i]))
                                 {
                                     hashMatchCounter++;
                                 }
@@ -208,7 +208,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
                         else
                         {
                             if (OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]],
-                                    ColumnSBlock[i]))
+                                     ColumnSBlock[i]))
                             {
                                 hashMatchCounter++;
                             }
@@ -243,7 +243,7 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
 
     for (int32_t i = idx; i < joinTableSize; i += stride)
     {
-        if(i < dataElementCountColumnSBlock)
+        if (i < dataElementCountColumnSBlock)
         {
             int32_t join_prefix_sum_offset_index = 0;
             // Hash table buckets probing
@@ -278,7 +278,7 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                                 {
                                     if (join_prefix_sum_offset_index < JoinTableHisto[i] &&
                                         OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]],
-                                            ColumnSBlock[i]))
+                                             ColumnSBlock[i]))
                                     {
                                         resultColumnQABlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] =
                                             HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
@@ -292,7 +292,7 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                             {
                                 if (join_prefix_sum_offset_index < JoinTableHisto[i] &&
                                     OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]],
-                                        ColumnSBlock[i]))
+                                         ColumnSBlock[i]))
                                 {
                                     resultColumnQABlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] =
                                         HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
@@ -317,7 +317,7 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                             {
                                 if (join_prefix_sum_offset_index < JoinTableHisto[i] &&
                                     OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]],
-                                        ColumnSBlock[i]))
+                                         ColumnSBlock[i]))
                                 {
                                     resultColumnQABlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] =
                                         HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];
@@ -331,7 +331,7 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                         {
                             if (join_prefix_sum_offset_index < JoinTableHisto[i] &&
                                 OP{}(ColumnRBlock[HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k]],
-                                    ColumnSBlock[i]))
+                                     ColumnSBlock[i]))
                             {
                                 resultColumnQABlockIdx[((i == 0) ? 0 : JoinTablePrefixSum[i - 1]) + join_prefix_sum_offset_index] =
                                     HashTableHashBuckets[((j == 0) ? 0 : HashTablePrefixSum[j - 1]) + k];

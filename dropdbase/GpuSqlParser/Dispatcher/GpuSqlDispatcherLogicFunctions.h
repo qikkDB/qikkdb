@@ -14,13 +14,13 @@
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::filterColConst()
+int32_t GpuSqlDispatcher::FilterColConst()
 {
-    U cnst = arguments.read<U>();
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    U cnst = arguments_.Read<U>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<T>(colName);
+    int32_t loadFlag = LoadCol<T>(colName);
     if (loadFlag)
     {
         return loadFlag;
@@ -28,29 +28,29 @@ int32_t GpuSqlDispatcher::filterColConst()
 
     std::cout << "Filter: " << colName << " " << reg << std::endl;
 
-    PointerAllocation column = allocatedPointers.at(colName);
-    int32_t retSize = column.elementCount;
+    PointerAllocation column = allocatedPointers_.at(colName);
+    int32_t retSize = column.ElementCount;
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         int8_t* mask;
-        if (column.gpuNullMaskPtr)
+        if (column.GpuNullMaskPtr)
         {
             int8_t* nullMask;
-            mask = allocateRegister<int8_t>(reg, retSize, &nullMask);
+            mask = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
         }
         else
         {
-            mask = allocateRegister<int8_t>(reg, retSize);
+            mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPUFilter::colConst<OP, T, U>(mask, reinterpret_cast<T*>(column.gpuPtr), cnst,
-                                      reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), retSize);
+        GPUFilter::colConst<OP, T, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
+                                      reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
-    freeColumnIfRegister<T>(colName);
+    FreeColumnIfRegister<T>(colName);
     return 0;
 }
 
@@ -59,13 +59,13 @@ int32_t GpuSqlDispatcher::filterColConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::filterConstCol()
+int32_t GpuSqlDispatcher::FilterConstCol()
 {
-    auto colName = arguments.read<std::string>();
-    T cnst = arguments.read<T>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    T cnst = arguments_.Read<T>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<U>(colName);
+    int32_t loadFlag = LoadCol<U>(colName);
     if (loadFlag)
     {
         return loadFlag;
@@ -73,29 +73,29 @@ int32_t GpuSqlDispatcher::filterConstCol()
 
     std::cout << "Filter: " << colName << " " << reg << std::endl;
 
-    PointerAllocation column = allocatedPointers.at(colName);
-    int32_t retSize = column.elementCount;
+    PointerAllocation column = allocatedPointers_.at(colName);
+    int32_t retSize = column.ElementCount;
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         int8_t* mask;
-        if (column.gpuNullMaskPtr)
+        if (column.GpuNullMaskPtr)
         {
             int8_t* nullMask;
-            mask = allocateRegister<int8_t>(reg, retSize, &nullMask);
+            mask = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
         }
         else
         {
-            mask = allocateRegister<int8_t>(reg, retSize);
+            mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPUFilter::constCol<OP, T, U>(mask, cnst, reinterpret_cast<U*>(column.gpuPtr),
-                                      reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), retSize);
+        GPUFilter::constCol<OP, T, U>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
+                                      reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
-    freeColumnIfRegister<U>(colName);
+    FreeColumnIfRegister<U>(colName);
     return 0;
 }
 
@@ -104,18 +104,18 @@ int32_t GpuSqlDispatcher::filterConstCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::filterColCol()
+int32_t GpuSqlDispatcher::FilterColCol()
 {
-    auto colNameRight = arguments.read<std::string>();
-    auto colNameLeft = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNameRight = arguments_.Read<std::string>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<U>(colNameRight);
+    int32_t loadFlag = LoadCol<U>(colNameRight);
     if (loadFlag)
     {
         return loadFlag;
     }
-    loadFlag = loadCol<T>(colNameLeft);
+    loadFlag = LoadCol<T>(colNameLeft);
     if (loadFlag)
     {
         return loadFlag;
@@ -123,46 +123,46 @@ int32_t GpuSqlDispatcher::filterColCol()
 
     std::cout << "Filter: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-    PointerAllocation columnRight = allocatedPointers.at(colNameRight);
-    PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
-    int32_t retSize = std::min(columnLeft.elementCount, columnRight.elementCount);
+    PointerAllocation columnRight = allocatedPointers_.at(colNameRight);
+    PointerAllocation columnLeft = allocatedPointers_.at(colNameLeft);
+    int32_t retSize = std::min(columnLeft.ElementCount, columnRight.ElementCount);
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
-        if (columnLeft.gpuNullMaskPtr || columnRight.gpuNullMaskPtr)
+        if (columnLeft.GpuNullMaskPtr || columnRight.GpuNullMaskPtr)
         {
             int8_t* combinedMask;
-            int8_t* mask = allocateRegister<int8_t>(reg, retSize, &combinedMask);
+            int8_t* mask = AllocateRegister<int8_t>(reg, retSize, &combinedMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            if (columnLeft.gpuNullMaskPtr && columnRight.gpuNullMaskPtr)
+            if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
             {
                 GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
-                    combinedMask, reinterpret_cast<int8_t*>(columnLeft.gpuNullMaskPtr),
-                    reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+                    combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
+                    reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
-            if (columnLeft.gpuNullMaskPtr)
+            if (columnLeft.GpuNullMaskPtr)
             {
                 GPUMemory::copyDeviceToDevice(combinedMask,
-                                              reinterpret_cast<int8_t*>(columnLeft.gpuNullMaskPtr), bitMaskSize);
+                                              reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr), bitMaskSize);
             }
-            else if (columnRight.gpuNullMaskPtr)
+            else if (columnRight.GpuNullMaskPtr)
             {
                 GPUMemory::copyDeviceToDevice(combinedMask,
-                                              reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+                                              reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
-            GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.gpuPtr),
-                                        reinterpret_cast<U*>(columnRight.gpuPtr), combinedMask, retSize);
+            GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                        reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
         }
         else
         {
-            int8_t* mask = allocateRegister<int8_t>(reg, retSize);
-            GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.gpuPtr),
-                                        reinterpret_cast<U*>(columnRight.gpuPtr), nullptr, retSize);
+            int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
+            GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                        reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
         }
     }
 
-    freeColumnIfRegister<U>(colNameRight);
-    freeColumnIfRegister<T>(colNameLeft);
+    FreeColumnIfRegister<U>(colNameRight);
+    FreeColumnIfRegister<T>(colNameLeft);
     return 0;
 }
 
@@ -171,28 +171,28 @@ int32_t GpuSqlDispatcher::filterColCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::filterConstConst()
+int32_t GpuSqlDispatcher::FilterConstConst()
 {
-    U constRight = arguments.read<U>();
-    T constLeft = arguments.read<T>();
-    auto reg = arguments.read<std::string>();
+    U constRight = arguments_.Read<U>();
+    T constLeft = arguments_.Read<T>();
+    auto reg = arguments_.Read<std::string>();
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
-        int8_t* mask = allocateRegister<int8_t>(reg, database->GetBlockSize());
-        GPUFilter::constConst<OP, T, U>(mask, constLeft, constRight, database->GetBlockSize());
+        int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
+        GPUFilter::constConst<OP, T, U>(mask, constLeft, constRight, database_->GetBlockSize());
     }
     return 0;
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::filterStringColConst()
+int32_t GpuSqlDispatcher::FilterStringColConst()
 {
-    std::string cnst = arguments.read<std::string>();
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    std::string cnst = arguments_.Read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<std::string>(colName);
+    int32_t loadFlag = LoadCol<std::string>(colName);
     if (loadFlag)
     {
         return loadFlag;
@@ -200,24 +200,24 @@ int32_t GpuSqlDispatcher::filterStringColConst()
 
     std::cout << "FilterStringColConst: " << colName << " " << cnst << " " << reg << std::endl;
 
-    auto column = findStringColumn(colName);
+    auto column = FindStringColumn(colName);
     int32_t retSize = std::get<1>(column);
     int8_t* nullBitMask = std::get<2>(column);
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
-        GPUMemory::GPUString constString = insertConstStringGpu(cnst);
+        GPUMemory::GPUString constString = InsertConstStringGpu(cnst);
         int8_t* mask;
         if (nullBitMask)
         {
             int8_t* nullMask;
-            mask = allocateRegister<int8_t>(reg, retSize, &nullMask);
+            mask = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             GPUMemory::copyDeviceToDevice(nullMask, nullBitMask, bitMaskSize);
         }
         else
         {
-            mask = allocateRegister<int8_t>(reg, retSize);
+            mask = AllocateRegister<int8_t>(reg, retSize);
         }
         GPUFilter::colConst<OP>(mask, std::get<0>(column), constString, nullBitMask, retSize);
     }
@@ -225,13 +225,13 @@ int32_t GpuSqlDispatcher::filterStringColConst()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::filterStringConstCol()
+int32_t GpuSqlDispatcher::FilterStringConstCol()
 {
-    auto colName = arguments.read<std::string>();
-    std::string cnst = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    std::string cnst = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<std::string>(colName);
+    int32_t loadFlag = LoadCol<std::string>(colName);
     if (loadFlag)
     {
         return loadFlag;
@@ -239,23 +239,23 @@ int32_t GpuSqlDispatcher::filterStringConstCol()
 
     std::cout << "FilterStringConstCol: " << cnst << " " << colName << " " << reg << std::endl;
 
-    std::tuple<GPUMemory::GPUString, int32_t, int8_t*> column = findStringColumn(colName);
+    std::tuple<GPUMemory::GPUString, int32_t, int8_t*> column = FindStringColumn(colName);
     int32_t retSize = std::get<1>(column);
     int8_t* nullBitMask = std::get<2>(column);
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
-        GPUMemory::GPUString constString = insertConstStringGpu(cnst);
+        GPUMemory::GPUString constString = InsertConstStringGpu(cnst);
         int8_t* mask;
         if (nullBitMask)
         {
             int8_t* nullMask;
-            mask = allocateRegister<int8_t>(reg, retSize, &nullMask);
+            mask = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             GPUMemory::copyDeviceToDevice(nullMask, nullBitMask, bitMaskSize);
         }
         else
         {
-            mask = allocateRegister<int8_t>(reg, retSize);
+            mask = AllocateRegister<int8_t>(reg, retSize);
         }
         GPUFilter::constCol<OP>(mask, constString, std::get<0>(column), nullBitMask, retSize);
     }
@@ -263,18 +263,18 @@ int32_t GpuSqlDispatcher::filterStringConstCol()
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::filterStringColCol()
+int32_t GpuSqlDispatcher::FilterStringColCol()
 {
-    auto colNameRight = arguments.read<std::string>();
-    auto colNameLeft = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNameRight = arguments_.Read<std::string>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<std::string>(colNameRight);
+    int32_t loadFlag = LoadCol<std::string>(colNameRight);
     if (loadFlag)
     {
         return loadFlag;
     }
-    loadFlag = loadCol<std::string>(colNameLeft);
+    loadFlag = LoadCol<std::string>(colNameLeft);
     if (loadFlag)
     {
         return loadFlag;
@@ -282,17 +282,17 @@ int32_t GpuSqlDispatcher::filterStringColCol()
 
     std::cout << "FilterStringColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-    std::tuple<GPUMemory::GPUString, int32_t, int8_t*> columnLeft = findStringColumn(colNameLeft);
-    std::tuple<GPUMemory::GPUString, int32_t, int8_t*> columnRight = findStringColumn(colNameRight);
+    std::tuple<GPUMemory::GPUString, int32_t, int8_t*> columnLeft = FindStringColumn(colNameLeft);
+    std::tuple<GPUMemory::GPUString, int32_t, int8_t*> columnRight = FindStringColumn(colNameRight);
     int32_t retSize = std::max(std::get<1>(columnLeft), std::get<1>(columnRight));
     int8_t* leftMask = std::get<2>(columnLeft);
     int8_t* rightMask = std::get<2>(columnRight);
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         if (leftMask || rightMask)
         {
             int8_t* combinedMask;
-            int8_t* mask = allocateRegister<int8_t>(reg, retSize, &combinedMask);
+            int8_t* mask = AllocateRegister<int8_t>(reg, retSize, &combinedMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (leftMask && rightMask)
             {
@@ -312,7 +312,7 @@ int32_t GpuSqlDispatcher::filterStringColCol()
 
         else
         {
-            int8_t* mask = allocateRegister<int8_t>(reg, retSize);
+            int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
             GPUFilter::colCol<OP>(mask, std::get<0>(columnLeft), std::get<0>(columnRight), nullptr, retSize);
         }
     }
@@ -321,21 +321,21 @@ int32_t GpuSqlDispatcher::filterStringColCol()
 
 
 template <typename OP>
-int32_t GpuSqlDispatcher::filterStringConstConst()
+int32_t GpuSqlDispatcher::FilterStringConstConst()
 {
-    std::string cnstRight = arguments.read<std::string>();
-    std::string cnstLeft = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    std::string cnstRight = arguments_.Read<std::string>();
+    std::string cnstLeft = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     std::cout << "FilterStringConstConst: " << cnstLeft << " " << cnstRight << " " << reg << std::endl;
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
-        GPUMemory::GPUString constStringLeft = insertConstStringGpu(cnstLeft);
-        GPUMemory::GPUString constStringRight = insertConstStringGpu(cnstRight);
+        GPUMemory::GPUString constStringLeft = InsertConstStringGpu(cnstLeft);
+        GPUMemory::GPUString constStringRight = InsertConstStringGpu(cnstRight);
 
-        int8_t* mask = allocateRegister<int8_t>(reg, database->GetBlockSize());
-        GPUFilter::constConst<OP>(mask, constStringLeft, constStringRight, database->GetBlockSize());
+        int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
+        GPUFilter::constConst<OP>(mask, constStringLeft, constStringRight, database_->GetBlockSize());
     }
     return 0;
 }
@@ -345,41 +345,41 @@ int32_t GpuSqlDispatcher::filterStringConstConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::logicalColConst()
+int32_t GpuSqlDispatcher::LogicalColConst()
 {
-    U cnst = arguments.read<U>();
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    U cnst = arguments_.Read<U>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<T>(colName);
+    int32_t loadFlag = LoadCol<T>(colName);
     if (loadFlag)
     {
         return loadFlag;
     }
 
-    PointerAllocation column = allocatedPointers.at(colName);
-    int32_t retSize = column.elementCount;
+    PointerAllocation column = allocatedPointers_.at(colName);
+    int32_t retSize = column.ElementCount;
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         int8_t* mask;
-        if (column.gpuNullMaskPtr)
+        if (column.GpuNullMaskPtr)
         {
             int8_t* nullMask;
-            mask = allocateRegister<int8_t>(reg, retSize, &nullMask);
+            mask = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
         }
         else
         {
-            mask = allocateRegister<int8_t>(reg, retSize);
+            mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPULogic::colConst<OP, T, U>(mask, reinterpret_cast<T*>(column.gpuPtr), cnst,
-                                     reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), retSize);
+        GPULogic::colConst<OP, T, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
+                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
-    freeColumnIfRegister<T>(colName);
+    FreeColumnIfRegister<T>(colName);
     return 0;
 }
 
@@ -388,41 +388,41 @@ int32_t GpuSqlDispatcher::logicalColConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::logicalConstCol()
+int32_t GpuSqlDispatcher::LogicalConstCol()
 {
-    auto colName = arguments.read<std::string>();
-    T cnst = arguments.read<T>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    T cnst = arguments_.Read<T>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<U>(colName);
+    int32_t loadFlag = LoadCol<U>(colName);
     if (loadFlag)
     {
         return loadFlag;
     }
 
-    PointerAllocation column = allocatedPointers.at(colName);
-    int32_t retSize = column.elementCount;
+    PointerAllocation column = allocatedPointers_.at(colName);
+    int32_t retSize = column.ElementCount;
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         int8_t* mask;
-        if (column.gpuNullMaskPtr)
+        if (column.GpuNullMaskPtr)
         {
             int8_t* nullMask;
-            mask = allocateRegister<int8_t>(reg, retSize, &nullMask);
+            mask = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
         }
         else
         {
-            mask = allocateRegister<int8_t>(reg, retSize);
+            mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPULogic::constCol<OP, T, U>(mask, cnst, reinterpret_cast<U*>(column.gpuPtr),
-                                     reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), retSize);
+        GPULogic::constCol<OP, T, U>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
+                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
-    freeColumnIfRegister<U>(colName);
+    FreeColumnIfRegister<U>(colName);
     return 0;
 }
 
@@ -431,18 +431,18 @@ int32_t GpuSqlDispatcher::logicalConstCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::logicalColCol()
+int32_t GpuSqlDispatcher::LogicalColCol()
 {
-    auto colNameRight = arguments.read<std::string>();
-    auto colNameLeft = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colNameRight = arguments_.Read<std::string>();
+    auto colNameLeft = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<U>(colNameRight);
+    int32_t loadFlag = LoadCol<U>(colNameRight);
     if (loadFlag)
     {
         return loadFlag;
     }
-    loadFlag = loadCol<T>(colNameLeft);
+    loadFlag = LoadCol<T>(colNameLeft);
     if (loadFlag)
     {
         return loadFlag;
@@ -450,47 +450,47 @@ int32_t GpuSqlDispatcher::logicalColCol()
 
     std::cout << "Logical: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
 
-    PointerAllocation columnRight = allocatedPointers.at(colNameRight);
-    PointerAllocation columnLeft = allocatedPointers.at(colNameLeft);
+    PointerAllocation columnRight = allocatedPointers_.at(colNameRight);
+    PointerAllocation columnLeft = allocatedPointers_.at(colNameLeft);
 
-    int32_t retSize = std::min(columnLeft.elementCount, columnRight.elementCount);
+    int32_t retSize = std::min(columnLeft.ElementCount, columnRight.ElementCount);
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
-        if (columnLeft.gpuNullMaskPtr || columnRight.gpuNullMaskPtr)
+        if (columnLeft.GpuNullMaskPtr || columnRight.GpuNullMaskPtr)
         {
             int8_t* combinedMask;
-            int8_t* mask = allocateRegister<int8_t>(reg, retSize, &combinedMask);
+            int8_t* mask = AllocateRegister<int8_t>(reg, retSize, &combinedMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            if (columnLeft.gpuNullMaskPtr && columnRight.gpuNullMaskPtr)
+            if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
             {
                 GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
-                    combinedMask, reinterpret_cast<int8_t*>(columnLeft.gpuNullMaskPtr),
-                    reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+                    combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
+                    reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
-            if (columnLeft.gpuNullMaskPtr)
+            if (columnLeft.GpuNullMaskPtr)
             {
                 GPUMemory::copyDeviceToDevice(combinedMask,
-                                              reinterpret_cast<int8_t*>(columnLeft.gpuNullMaskPtr), bitMaskSize);
+                                              reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr), bitMaskSize);
             }
-            else if (columnRight.gpuNullMaskPtr)
+            else if (columnRight.GpuNullMaskPtr)
             {
                 GPUMemory::copyDeviceToDevice(combinedMask,
-                                              reinterpret_cast<int8_t*>(columnRight.gpuNullMaskPtr), bitMaskSize);
+                                              reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
-            GPULogic::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.gpuPtr),
-                                       reinterpret_cast<U*>(columnRight.gpuPtr), combinedMask, retSize);
+            GPULogic::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                       reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
         }
         else
         {
-            int8_t* mask = allocateRegister<int8_t>(reg, retSize);
-            GPULogic::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.gpuPtr),
-                                       reinterpret_cast<U*>(columnRight.gpuPtr), nullptr, retSize);
+            int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
+            GPULogic::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                       reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
         }
     }
 
-    freeColumnIfRegister<U>(colNameRight);
-    freeColumnIfRegister<T>(colNameLeft);
+    FreeColumnIfRegister<U>(colNameRight);
+    FreeColumnIfRegister<T>(colNameLeft);
     return 0;
 }
 
@@ -499,16 +499,16 @@ int32_t GpuSqlDispatcher::logicalColCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::logicalConstConst()
+int32_t GpuSqlDispatcher::LogicalConstConst()
 {
-    U constRight = arguments.read<U>();
-    T constLeft = arguments.read<T>();
-    auto reg = arguments.read<std::string>();
+    U constRight = arguments_.Read<U>();
+    T constLeft = arguments_.Read<T>();
+    auto reg = arguments_.Read<std::string>();
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
-        int8_t* mask = allocateRegister<int8_t>(reg, database->GetBlockSize());
-        GPULogic::constConst<OP, T, U>(mask, constLeft, constRight, database->GetBlockSize());
+        int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
+        GPULogic::constConst<OP, T, U>(mask, constLeft, constRight, database_->GetBlockSize());
     }
 
     return 0;
@@ -519,12 +519,12 @@ int32_t GpuSqlDispatcher::logicalConstConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T>
-int32_t GpuSqlDispatcher::logicalNotCol()
+int32_t GpuSqlDispatcher::LogicalNotCol()
 {
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = loadCol<T>(colName);
+    int32_t loadFlag = LoadCol<T>(colName);
     if (loadFlag)
     {
         return loadFlag;
@@ -532,43 +532,43 @@ int32_t GpuSqlDispatcher::logicalNotCol()
 
     std::cout << "NotCol: " << colName << " " << reg << std::endl;
 
-    PointerAllocation column = allocatedPointers.at(colName);
-    int32_t retSize = column.elementCount;
+    PointerAllocation column = allocatedPointers_.at(colName);
+    int32_t retSize = column.ElementCount;
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         int8_t* mask;
-        if (column.gpuNullMaskPtr)
+        if (column.GpuNullMaskPtr)
         {
             int8_t* nullMask;
-            mask = allocateRegister<int8_t>(reg, retSize, &nullMask);
+            mask = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
         }
         else
         {
-            mask = allocateRegister<int8_t>(reg, retSize);
+            mask = AllocateRegister<int8_t>(reg, retSize);
         }
-        GPULogic::not_col<int8_t, T>(mask, reinterpret_cast<T*>(column.gpuPtr),
-                                     reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), retSize);
+        GPULogic::not_col<int8_t, T>(mask, reinterpret_cast<T*>(column.GpuPtr),
+                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
-    freeColumnIfRegister<T>(colName);
+    FreeColumnIfRegister<T>(colName);
     return 0;
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::logicalNotConst()
+int32_t GpuSqlDispatcher::LogicalNotConst()
 {
     return 0;
 }
 
 
 template <typename OP>
-int32_t GpuSqlDispatcher::nullMaskCol()
+int32_t GpuSqlDispatcher::NullMaskCol()
 {
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     std::cout << "NullMaskCol: " << colName << " " << reg << std::endl;
 
@@ -577,24 +577,24 @@ int32_t GpuSqlDispatcher::nullMaskCol()
         throw NullMaskOperationInvalidOperandException();
     }
 
-    int32_t loadFlag = loadColNullMask(colName);
+    int32_t loadFlag = LoadColNullMask(colName);
     if (loadFlag)
     {
         return loadFlag;
     }
 
-    PointerAllocation columnMask = allocatedPointers.at(colName + NULL_SUFFIX);
-    size_t nullMaskSize = (columnMask.elementCount + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
+    PointerAllocation columnMask = allocatedPointers_.at(colName + NULL_SUFFIX);
+    size_t nullMaskSize = (columnMask.ElementCount + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
         int8_t* outFilterMask;
 
         int8_t* nullMask;
-        outFilterMask = allocateRegister<int8_t>(reg, columnMask.elementCount, &nullMask);
-        GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(columnMask.gpuPtr), nullMaskSize);
-        GPUNullMask::Col<OP>(outFilterMask, reinterpret_cast<int8_t*>(columnMask.gpuPtr),
-                             nullMaskSize, columnMask.elementCount);
+        outFilterMask = AllocateRegister<int8_t>(reg, columnMask.ElementCount, &nullMask);
+        GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(columnMask.GpuPtr), nullMaskSize);
+        GPUNullMask::Col<OP>(outFilterMask, reinterpret_cast<int8_t*>(columnMask.GpuPtr),
+                             nullMaskSize, columnMask.ElementCount);
     }
     return 0;
 }

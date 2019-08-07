@@ -3,23 +3,23 @@
 #include "../CpuSqlDispatcher.h"
 
 template <typename OUT, typename IN>
-int32_t CpuSqlDispatcher::castNumericCol()
+int32_t CpuSqlDispatcher::CastNumericCol()
 {
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
-    loadCol<IN>(colName);
+    LoadCol<IN>(colName);
 
     // TODO ResultType
     std::string colPointerNameMin;
     std::string colPointerNameMax;
-    std::tie(colPointerNameMin, colPointerNameMax) = getPointerNames(colName);
+    std::tie(colPointerNameMin, colPointerNameMax) = GetPointerNames(colName);
 
-    auto colValMin = allocatedPointers.at(colPointerNameMin);
-    auto colValMax = allocatedPointers.at(colPointerNameMax);
+    auto colValMin = allocatedPointers_.at(colPointerNameMin);
+    auto colValMax = allocatedPointers_.at(colPointerNameMax);
 
-    OUT* resultMin = allocateRegister<OUT>(reg + "_min", 1, std::get<2>(colValMin));
-    OUT* resultMax = allocateRegister<OUT>(reg + "_max", 1, std::get<2>(colValMax));
+    OUT* resultMin = AllocateRegister<OUT>(reg + "_min", 1, std::get<2>(colValMin));
+    OUT* resultMax = AllocateRegister<OUT>(reg + "_max", 1, std::get<2>(colValMax));
 
     resultMin[0] = static_cast<OUT>(reinterpret_cast<IN*>(std::get<0>(colValMin))[0]);
     resultMax[0] = static_cast<OUT>(reinterpret_cast<IN*>(std::get<0>(colValMax))[0]);
@@ -33,13 +33,13 @@ int32_t CpuSqlDispatcher::castNumericCol()
 }
 
 template <typename OUT, typename IN>
-int32_t CpuSqlDispatcher::castNumericConst()
+int32_t CpuSqlDispatcher::CastNumericConst()
 {
-    IN cnst = arguments.read<IN>();
-    auto reg = arguments.read<std::string>();
+    IN cnst = arguments_.Read<IN>();
+    auto reg = arguments_.Read<std::string>();
 
-    OUT* resultMin = allocateRegister<OUT>(reg + "_min", 1, false);
-    OUT* resultMax = allocateRegister<OUT>(reg + "_max", 1, false);
+    OUT* resultMin = AllocateRegister<OUT>(reg + "_min", 1, false);
+    OUT* resultMax = AllocateRegister<OUT>(reg + "_max", 1, false);
 
     resultMin[0] = static_cast<OUT>(cnst);
     resultMax[0] = static_cast<OUT>(cnst);

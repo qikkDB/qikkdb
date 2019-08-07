@@ -28,7 +28,7 @@ TEST(DispatcherTests, IntGtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -69,7 +69,7 @@ TEST(DispatcherTests, IntGtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 500 > colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -110,7 +110,7 @@ TEST(DispatcherTests, IntGtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger2 FROM TableA WHERE colInteger2 > colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -151,7 +151,7 @@ TEST(DispatcherTests, IntGtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 10 > 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -179,7 +179,7 @@ TEST(DispatcherTests, IntGtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 5 > 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -191,7 +191,7 @@ TEST(DispatcherTests, LongGtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 > 500000000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -232,7 +232,7 @@ TEST(DispatcherTests, LongGtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 500000000 > colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -273,7 +273,7 @@ TEST(DispatcherTests, LongGtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong2 FROM TableA WHERE colLong2 > colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -315,7 +315,7 @@ TEST(DispatcherTests, LongGtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 10 > 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -343,7 +343,7 @@ TEST(DispatcherTests, LongGtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 5 > 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -355,7 +355,7 @@ TEST(DispatcherTests, FloatGtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 > 5.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -389,7 +389,7 @@ TEST(DispatcherTests, FloatGtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5.5 > colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -430,7 +430,7 @@ TEST(DispatcherTests, FloatGtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colFloat2 FROM TableA WHERE colFloat2 > colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -464,7 +464,7 @@ TEST(DispatcherTests, FloatGtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 10 > 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -492,7 +492,7 @@ TEST(DispatcherTests, FloatGtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5 > 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -504,7 +504,7 @@ TEST(DispatcherTests, DoubleGtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 > 5.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -545,7 +545,7 @@ TEST(DispatcherTests, DoubleGtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.5 > colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -586,7 +586,7 @@ TEST(DispatcherTests, DoubleGtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colDouble2 FROM TableA WHERE colDouble2 > colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -627,7 +627,7 @@ TEST(DispatcherTests, DoubleGtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 10 > 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -655,7 +655,7 @@ TEST(DispatcherTests, DoubleGtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5 > 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -671,7 +671,7 @@ TEST(DispatcherTests, IntLtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 < 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -712,7 +712,7 @@ TEST(DispatcherTests, IntLtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 500 < colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -753,7 +753,7 @@ TEST(DispatcherTests, IntLtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 < colInteger2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -794,7 +794,7 @@ TEST(DispatcherTests, IntLtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 5 < 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -822,7 +822,7 @@ TEST(DispatcherTests, IntLtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 10 < 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -834,7 +834,7 @@ TEST(DispatcherTests, LongLtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 < 500000000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -875,7 +875,7 @@ TEST(DispatcherTests, LongLtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 500000000 < colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -916,7 +916,7 @@ TEST(DispatcherTests, LongLtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 < colLong2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -957,7 +957,7 @@ TEST(DispatcherTests, LongLtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 5 < 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -985,7 +985,7 @@ TEST(DispatcherTests, LongLtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 10 < 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -997,7 +997,7 @@ TEST(DispatcherTests, FloatLtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 < 5.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -1038,7 +1038,7 @@ TEST(DispatcherTests, FloatLtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5.5 < colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -1079,7 +1079,7 @@ TEST(DispatcherTests, FloatLtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 < colFloat2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -1120,7 +1120,7 @@ TEST(DispatcherTests, FloatLtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5 < 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -1148,7 +1148,7 @@ TEST(DispatcherTests, FloatLtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 10 < 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -1160,7 +1160,7 @@ TEST(DispatcherTests, DoubleLtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 < 5.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -1201,7 +1201,7 @@ TEST(DispatcherTests, DoubleLtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.5 < colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -1242,7 +1242,7 @@ TEST(DispatcherTests, DoubleLtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 < colDouble2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -1283,7 +1283,7 @@ TEST(DispatcherTests, DoubleLtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5 < 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -1311,7 +1311,7 @@ TEST(DispatcherTests, DoubleLtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 10 < 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -1327,7 +1327,7 @@ TEST(DispatcherTests, IntEqGtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 >= 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -1361,7 +1361,7 @@ TEST(DispatcherTests, IntEqGtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 500 >= colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -1402,7 +1402,7 @@ TEST(DispatcherTests, IntEqGtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger2 FROM TableA WHERE colInteger2 >= colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -1443,7 +1443,7 @@ TEST(DispatcherTests, IntEqGtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 10 >= 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -1471,7 +1471,7 @@ TEST(DispatcherTests, IntEqGtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 5 >= 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -1483,7 +1483,7 @@ TEST(DispatcherTests, LongEqGtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 >= 500000000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -1524,7 +1524,7 @@ TEST(DispatcherTests, LongEqGtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 500000000 >= colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -1565,7 +1565,7 @@ TEST(DispatcherTests, LongEqGtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database, "SELECT colLong2 FROM TableA WHERE colLong2 >= colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -1606,7 +1606,7 @@ TEST(DispatcherTests, LongEqGtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 10 >= 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -1634,7 +1634,7 @@ TEST(DispatcherTests, LongEqGtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 5 >= 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -1646,7 +1646,7 @@ TEST(DispatcherTests, FloatEqGtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 >= 5.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -1687,7 +1687,7 @@ TEST(DispatcherTests, FloatEqGtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5.5 >= colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -1728,7 +1728,7 @@ TEST(DispatcherTests, FloatEqGtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat2 FROM TableA WHERE colFloat2 >= colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -1769,7 +1769,7 @@ TEST(DispatcherTests, FloatEqGtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 10 >= 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -1797,7 +1797,7 @@ TEST(DispatcherTests, FloatEqGtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5 >= 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -1809,7 +1809,7 @@ TEST(DispatcherTests, DoubleEqGtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 >= 5.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -1843,7 +1843,7 @@ TEST(DispatcherTests, DoubleEqGtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.5 >= colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -1884,7 +1884,7 @@ TEST(DispatcherTests, DoubleEqGtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble2 FROM TableA WHERE colDouble2 >= colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -1925,7 +1925,7 @@ TEST(DispatcherTests, DoubleEqGtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 10 >= 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -1953,7 +1953,7 @@ TEST(DispatcherTests, DoubleEqGtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5 >= 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -1969,7 +1969,7 @@ TEST(DispatcherTests, IntEqLtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 <= 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -2010,7 +2010,7 @@ TEST(DispatcherTests, IntEqLtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 500 <= colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -2051,7 +2051,7 @@ TEST(DispatcherTests, IntEqLtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 <= colInteger2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -2092,7 +2092,7 @@ TEST(DispatcherTests, IntEqLtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 5 <= 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -2120,7 +2120,7 @@ TEST(DispatcherTests, IntEqLtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 10 <= 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -2132,7 +2132,7 @@ TEST(DispatcherTests, LongEqLtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 <= 500000000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -2174,7 +2174,7 @@ TEST(DispatcherTests, LongEqLtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 500000000 <= colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -2215,7 +2215,7 @@ TEST(DispatcherTests, LongEqLtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 <= colLong2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -2256,7 +2256,7 @@ TEST(DispatcherTests, LongEqLtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 5 <= 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -2284,7 +2284,7 @@ TEST(DispatcherTests, LongEqLtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 10 <= 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -2296,7 +2296,7 @@ TEST(DispatcherTests, FloatEqLtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 <= 5.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -2337,7 +2337,7 @@ TEST(DispatcherTests, FloatEqLtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5.5 <= colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -2378,7 +2378,7 @@ TEST(DispatcherTests, FloatEqLtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 <= colFloat2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -2419,7 +2419,7 @@ TEST(DispatcherTests, FloatEqLtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5 <= 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -2447,7 +2447,7 @@ TEST(DispatcherTests, FloatEqLtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 10 <= 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -2459,7 +2459,7 @@ TEST(DispatcherTests, DoubleEqLtColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 <= 5.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -2500,7 +2500,7 @@ TEST(DispatcherTests, DoubleEqLtConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.5 <= colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -2541,7 +2541,7 @@ TEST(DispatcherTests, DoubleEqLtColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 <= colDouble2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -2583,7 +2583,7 @@ TEST(DispatcherTests, DoubleEqLtConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5 <= 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -2611,7 +2611,7 @@ TEST(DispatcherTests, DoubleEqLtConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 10 <= 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -2627,7 +2627,7 @@ TEST(DispatcherTests, IntEqColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 = 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -2656,7 +2656,7 @@ TEST(DispatcherTests, IntEqConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 5 = colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -2687,7 +2687,7 @@ TEST(DispatcherTests, IntEqColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger2 FROM TableA WHERE colInteger2 = colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -2718,7 +2718,7 @@ TEST(DispatcherTests, IntEqConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 5 = 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -2746,7 +2746,7 @@ TEST(DispatcherTests, IntEqConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 5 = 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -2758,7 +2758,7 @@ TEST(DispatcherTests, LongEqColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 = 500000000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -2769,7 +2769,7 @@ TEST(DispatcherTests, LongEqConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 500000000 = colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -2780,7 +2780,7 @@ TEST(DispatcherTests, LongEqColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong2 FROM TableA WHERE colLong2 = colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -2821,7 +2821,7 @@ TEST(DispatcherTests, LongEqConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 5 = 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -2849,7 +2849,7 @@ TEST(DispatcherTests, LongEqConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 5 = 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -2861,7 +2861,7 @@ TEST(DispatcherTests, FloatEqColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 = 5.1111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -2891,7 +2891,7 @@ TEST(DispatcherTests, FloatEqConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5.1111 = colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -2920,7 +2920,7 @@ TEST(DispatcherTests, FloatEqColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat2 FROM TableA WHERE colFloat2 = colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -2951,7 +2951,7 @@ TEST(DispatcherTests, FloatEqConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5 = 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -2979,7 +2979,7 @@ TEST(DispatcherTests, FloatEqConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5 = 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -2990,8 +2990,8 @@ TEST(DispatcherTests, FloatEqConstConstFalse)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 = 5.1111111;");
-	auto resultPtr = parser.parse();
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colDouble1 FROM TableA WHERE colDouble1 = 5.1111111;");
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -3019,8 +3019,8 @@ TEST(DispatcherTests, FloatEqConstConstFalse)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.1111111 = colDouble1;");
-	auto resultPtr = parser.parse();
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colDouble1 FROM TableA WHERE 5.1111111 = colDouble1;");
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -3049,7 +3049,7 @@ TEST(DispatcherTests, DoubleEqColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble2 FROM TableA WHERE colDouble2 = colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -3080,7 +3080,7 @@ TEST(DispatcherTests, DoubleEqConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5 = 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -3108,7 +3108,7 @@ TEST(DispatcherTests, DoubleEqConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5 = 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -3124,7 +3124,7 @@ TEST(DispatcherTests, IntNotEqColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 != 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -3153,7 +3153,7 @@ TEST(DispatcherTests, IntNotEqConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 500 != colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -3194,7 +3194,7 @@ TEST(DispatcherTests, IntNotEqColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger2 FROM TableA WHERE colInteger2 != colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -3235,7 +3235,7 @@ TEST(DispatcherTests, IntNotEqConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 10 != 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -3263,7 +3263,7 @@ TEST(DispatcherTests, IntNotEqConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 5 != 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -3275,7 +3275,7 @@ TEST(DispatcherTests, LongNotEqColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 != 50000000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -3316,7 +3316,7 @@ TEST(DispatcherTests, LongNotEqConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE -500000000 != colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -3357,7 +3357,7 @@ TEST(DispatcherTests, LongNotEqColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong2 FROM TableA WHERE colLong2 != colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -3398,7 +3398,7 @@ TEST(DispatcherTests, LongNotEqConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 5 != 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -3426,7 +3426,7 @@ TEST(DispatcherTests, LongNotEqConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 5 != 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -3438,7 +3438,7 @@ TEST(DispatcherTests, FloatNotEqColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 != 5.1111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -3467,7 +3467,7 @@ TEST(DispatcherTests, FloatNotEqConstColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5.1111 != colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -3496,7 +3496,7 @@ TEST(DispatcherTests, FloatNotEqColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat2 FROM TableA WHERE colFloat2 != colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -3527,7 +3527,7 @@ TEST(DispatcherTests, FloatNotEqConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5 != 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -3555,7 +3555,7 @@ TEST(DispatcherTests, FloatNotEqConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5 != 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -3566,8 +3566,8 @@ TEST(DispatcherTests, FloatNotEqConstConstFalse)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 != 5.1111111;");
-	auto resultPtr = parser.parse();
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colDouble1 FROM TableA WHERE colDouble1 != 5.1111111;");
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -3607,8 +3607,8 @@ TEST(DispatcherTests, FloatNotEqConstConstFalse)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.1111111 != colDouble1;");
-	auto resultPtr = parser.parse();
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colDouble1 FROM TableA WHERE 5.1111111 != colDouble1;");
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -3649,7 +3649,7 @@ TEST(DispatcherTests, DoubleNotEqColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble2 FROM TableA WHERE colDouble2 != colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -3680,7 +3680,7 @@ TEST(DispatcherTests, DoubleNotEqConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5 != 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -3708,7 +3708,7 @@ TEST(DispatcherTests, DoubleNotEqConstConstFalse)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5 != 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -3724,7 +3724,7 @@ TEST(DispatcherTests, IntAndColumnConstNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 AND 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -3753,7 +3753,7 @@ TEST(DispatcherTests, IntAndColumnConstZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -3764,7 +3764,7 @@ TEST(DispatcherTests, IntAndConstColumnNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 5 AND colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -3793,7 +3793,7 @@ TEST(DispatcherTests, IntAndConstColumnZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 0 AND colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -3804,7 +3804,7 @@ TEST(DispatcherTests, IntAndColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 AND colInteger2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -3835,7 +3835,7 @@ TEST(DispatcherTests, IntAndConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 10 AND 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -3863,7 +3863,7 @@ TEST(DispatcherTests, IntAndConstConstFalseRightZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 5 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -3874,7 +3874,7 @@ TEST(DispatcherTests, IntAndConstConstFalseLeftZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 0 AND 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -3885,7 +3885,7 @@ TEST(DispatcherTests, IntAndConstConstFalseBothZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 0 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -3897,7 +3897,7 @@ TEST(DispatcherTests, LongAndColumnConstNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 AND 500000000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -3938,7 +3938,7 @@ TEST(DispatcherTests, LongAndColumnConstZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -3948,7 +3948,7 @@ TEST(DispatcherTests, LongAndConstColumnNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 500000000 AND colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -3989,7 +3989,7 @@ TEST(DispatcherTests, LongAndConstColumnZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 0 AND colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4000,7 +4000,7 @@ TEST(DispatcherTests, LongAndColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 AND colLong2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -4041,7 +4041,7 @@ TEST(DispatcherTests, LongAndConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 10 AND 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -4069,7 +4069,7 @@ TEST(DispatcherTests, LongAndConstConstFalseRightZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 5 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4080,7 +4080,7 @@ TEST(DispatcherTests, LongAndConstConstFalseLeftZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 0 AND 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4091,7 +4091,7 @@ TEST(DispatcherTests, LongAndConstConstFalseBothZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 0 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4103,7 +4103,7 @@ TEST(DispatcherTests, FloatAndColumnConstNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 AND 5.1111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -4134,7 +4134,7 @@ TEST(DispatcherTests, FloatAndColumnConstZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4145,7 +4145,7 @@ TEST(DispatcherTests, FloatAndConstColumnNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5.1111 AND colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -4176,7 +4176,7 @@ TEST(DispatcherTests, FloatAndConstColumnZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 0 AND colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4187,7 +4187,7 @@ TEST(DispatcherTests, FloatAndColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat2 AND colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -4217,7 +4217,7 @@ TEST(DispatcherTests, FloatAndConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 10.1111 AND 5.1111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -4246,7 +4246,7 @@ TEST(DispatcherTests, FloatAndConstConstFalseRightZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5.1111 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4257,7 +4257,7 @@ TEST(DispatcherTests, FloatAndConstConstFalseLeftZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 0 AND 5.1111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4268,7 +4268,7 @@ TEST(DispatcherTests, FloatAndConstConstFalseBothZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 0 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4280,7 +4280,7 @@ TEST(DispatcherTests, DoubleAndColumnConstNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 AND 5.1111111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -4311,7 +4311,7 @@ TEST(DispatcherTests, DoubleAndColumnConstZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4322,7 +4322,7 @@ TEST(DispatcherTests, DoubleAndConstColumnNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.1111111 AND colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -4353,7 +4353,7 @@ TEST(DispatcherTests, DoubleAndConstColumnZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 0 AND colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4364,7 +4364,7 @@ TEST(DispatcherTests, DoubleAndColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble2 AND colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -4394,7 +4394,7 @@ TEST(DispatcherTests, DoubleAndConstConstTrue)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 10.1111111 AND 5.1111111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -4423,7 +4423,7 @@ TEST(DispatcherTests, DoubleAndConstConstFalseRightZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.11111111 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4434,7 +4434,7 @@ TEST(DispatcherTests, DoubleAndConstConstFalseLeftZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 0 AND 5.11111111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4445,7 +4445,7 @@ TEST(DispatcherTests, DoubleAndConstConstFalseBothZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 0 AND 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4462,7 +4462,7 @@ TEST(DispatcherTests, IntOrColumnConstNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 OR 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -4490,7 +4490,7 @@ TEST(DispatcherTests, IntOrColumnConstZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -4521,7 +4521,7 @@ TEST(DispatcherTests, IntOrConstColumnNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 5 OR colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -4549,7 +4549,7 @@ TEST(DispatcherTests, IntOrConstColumnZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 0 OR colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -4580,7 +4580,7 @@ TEST(DispatcherTests, IntOrColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 OR colInteger2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -4611,7 +4611,7 @@ TEST(DispatcherTests, IntOrConstConstNonZeroValues)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 10 OR 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -4639,7 +4639,7 @@ TEST(DispatcherTests, IntOrConstConstFalseRightZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 10 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -4667,7 +4667,7 @@ TEST(DispatcherTests, IntOrConstConstFalseLeftZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 0 OR 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -4695,7 +4695,7 @@ TEST(DispatcherTests, IntOrConstConstFalseBothZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE 0 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4707,7 +4707,7 @@ TEST(DispatcherTests, LongOrColumnConstNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 OR 500000000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -4735,7 +4735,7 @@ TEST(DispatcherTests, LongOrColumnConstZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -4776,7 +4776,7 @@ TEST(DispatcherTests, LongOrConstColumnNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 500000000 OR colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -4804,7 +4804,7 @@ TEST(DispatcherTests, LongOrConstColumnZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 0 OR colLong1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -4845,7 +4845,7 @@ TEST(DispatcherTests, LongOrColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 OR colLong2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -4886,7 +4886,7 @@ TEST(DispatcherTests, LongOrConstConstNonZeroValues)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 10 OR 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -4914,7 +4914,7 @@ TEST(DispatcherTests, LongOrConstConstFalseRightZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 5 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -4942,7 +4942,7 @@ TEST(DispatcherTests, LongOrConstConstFalseLeftZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 0 OR 5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -4970,7 +4970,7 @@ TEST(DispatcherTests, LongOrConstConstFalseBothZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE 0 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -4982,7 +4982,7 @@ TEST(DispatcherTests, FloatOrColumnConstNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 OR 5.1111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5010,7 +5010,7 @@ TEST(DispatcherTests, FloatOrColumnConstZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5041,7 +5041,7 @@ TEST(DispatcherTests, FloatOrConstColumnNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5.1111 OR colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5069,7 +5069,7 @@ TEST(DispatcherTests, FloatOrConstColumnZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 0 OR colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5100,7 +5100,7 @@ TEST(DispatcherTests, FloatOrColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat2 OR colFloat1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5130,7 +5130,7 @@ TEST(DispatcherTests, FloatOrConstConstNonZeroValues)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 10.1111 OR 5.1111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5158,7 +5158,7 @@ TEST(DispatcherTests, FloatOrConstConstFalseRightZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 5.1111 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5186,7 +5186,7 @@ TEST(DispatcherTests, FloatOrConstConstFalseLeftZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 0 OR 5.1111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5214,7 +5214,7 @@ TEST(DispatcherTests, FloatOrConstConstFalseBothZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE 0 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -5226,7 +5226,7 @@ TEST(DispatcherTests, DoubleOrColumnConstNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 OR 5.1111111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -5254,7 +5254,7 @@ TEST(DispatcherTests, DoubleOrColumnConstZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -5285,7 +5285,7 @@ TEST(DispatcherTests, DoubleOrConstColumnNonZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.1111111 OR colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -5313,7 +5313,7 @@ TEST(DispatcherTests, DoubleOrConstColumnZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 0 OR colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -5344,7 +5344,7 @@ TEST(DispatcherTests, DoubleOrColumnColumn)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble2 OR colDouble1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -5375,7 +5375,7 @@ TEST(DispatcherTests, DoubleOrConstConstNonZeroValues)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 10.1111111 OR 5.1111111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -5403,7 +5403,7 @@ TEST(DispatcherTests, DoubleOrConstConstFalseRightZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.11111111 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -5431,7 +5431,7 @@ TEST(DispatcherTests, DoubleOrConstConstFalseLeftZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 0 OR 5.11111111;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -5459,7 +5459,7 @@ TEST(DispatcherTests, DoubleOrConstConstFalseBothZero)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 0 OR 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -5475,7 +5475,7 @@ TEST(DispatcherTests, IntNegation)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE !(colInteger1 > 5);");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -5517,7 +5517,7 @@ TEST(DispatcherTests, LongNegation)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE !(colLong1 > 500000000);");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -5559,7 +5559,7 @@ TEST(DispatcherTests, FloatNegation)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE !(colFloat1 > 6.5555);");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5601,7 +5601,7 @@ TEST(DispatcherTests, DoubleNegation)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE !(colDouble1 > 9.66666666);");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -5644,7 +5644,7 @@ TEST(DispatcherTests, IntAddColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 + 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -5678,7 +5678,7 @@ TEST(DispatcherTests, IntAddColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 + 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -5718,7 +5718,7 @@ TEST(DispatcherTests, IntAddColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 + 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -5758,7 +5758,7 @@ TEST(DispatcherTests, LongAddColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 + 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -5785,7 +5785,7 @@ TEST(DispatcherTests, LongAddColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 + 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -5825,7 +5825,7 @@ TEST(DispatcherTests, LongAddColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 + 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -5865,7 +5865,7 @@ TEST(DispatcherTests, FloatAddColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 + 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5892,7 +5892,7 @@ TEST(DispatcherTests, FloatAddColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 + 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5932,7 +5932,7 @@ TEST(DispatcherTests, FloatAddColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 + 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -5972,7 +5972,7 @@ TEST(DispatcherTests, DoubleAddColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 + 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -5999,7 +5999,7 @@ TEST(DispatcherTests, DoubleAddColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 + 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -6032,7 +6032,7 @@ TEST(DispatcherTests, DoubleAddColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 + 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -6076,7 +6076,7 @@ TEST(DispatcherTests, IntSubColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 - 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -6103,7 +6103,7 @@ TEST(DispatcherTests, IntSubColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 - 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -6143,7 +6143,7 @@ TEST(DispatcherTests, IntSubColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 - 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -6183,7 +6183,7 @@ TEST(DispatcherTests, LongSubColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 - 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -6210,7 +6210,7 @@ TEST(DispatcherTests, LongSubColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 - 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -6250,7 +6250,7 @@ TEST(DispatcherTests, LongSubColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 - 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -6290,7 +6290,7 @@ TEST(DispatcherTests, FloatSubColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 - 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -6317,7 +6317,7 @@ TEST(DispatcherTests, FloatSubColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 - 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -6357,7 +6357,7 @@ TEST(DispatcherTests, FloatSubColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 - 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -6397,7 +6397,7 @@ TEST(DispatcherTests, DoubleSubColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 - 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -6424,7 +6424,7 @@ TEST(DispatcherTests, DoubleSubColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 - 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -6457,7 +6457,7 @@ TEST(DispatcherTests, DoubleSubColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 - 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -6498,7 +6498,7 @@ TEST(DispatcherTests, IntMulColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 * 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -6525,7 +6525,7 @@ TEST(DispatcherTests, IntMulColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 * 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -6565,7 +6565,7 @@ TEST(DispatcherTests, IntMulColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 * 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -6605,7 +6605,7 @@ TEST(DispatcherTests, LongMulColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 * 2 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -6632,7 +6632,7 @@ TEST(DispatcherTests, LongMulColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 * 2 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -6665,7 +6665,7 @@ TEST(DispatcherTests, LongMulColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 * 2 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -6705,7 +6705,7 @@ TEST(DispatcherTests, FloatMulColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 * 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -6732,7 +6732,7 @@ TEST(DispatcherTests, FloatMulColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 * 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -6772,7 +6772,7 @@ TEST(DispatcherTests, FloatMulColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 * 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -6812,7 +6812,7 @@ TEST(DispatcherTests, DoubleMulColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 * 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -6839,7 +6839,7 @@ TEST(DispatcherTests, DoubleMulColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 * 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -6879,7 +6879,7 @@ TEST(DispatcherTests, DoubleMulColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 * 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -6920,7 +6920,7 @@ TEST(DispatcherTests, IntDivColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 / 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -6947,7 +6947,7 @@ TEST(DispatcherTests, IntDivColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 / 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -6958,7 +6958,7 @@ TEST(DispatcherTests, IntDivColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 / 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -6998,7 +6998,7 @@ TEST(DispatcherTests, LongDivColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 / 2 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -7025,7 +7025,7 @@ TEST(DispatcherTests, LongDivColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 / 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -7065,7 +7065,7 @@ TEST(DispatcherTests, LongDivColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 / 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -7105,7 +7105,7 @@ TEST(DispatcherTests, FloatDivColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 / 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -7139,7 +7139,7 @@ TEST(DispatcherTests, FloatDivColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 / 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -7152,7 +7152,7 @@ TEST(DispatcherTests, FloatDivColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colFloat1 / 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -7182,7 +7182,7 @@ TEST(DispatcherTests, DoubleDivColumnConst) //FIXME Dispatch je chybny, treba ho
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 / 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -7209,7 +7209,7 @@ TEST(DispatcherTests, DoubleDivColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 / 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -7220,7 +7220,7 @@ TEST(DispatcherTests, DoubleDivColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 / 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<double> expectedResult;
@@ -7250,7 +7250,7 @@ TEST(DispatcherTests, IntDivColumnConstFloat) //FIXME chyba je v CUDA kerneli, m
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 / 5.0 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -7277,7 +7277,7 @@ TEST(DispatcherTests, IntDivColumnConstGtConstFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 / 5.0 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -7288,7 +7288,7 @@ TEST(DispatcherTests, IntDivColumnConstLtConstFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 / 5.0 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -7318,7 +7318,7 @@ TEST(DispatcherTests, LongDivColumnConstFloat) //FIXME test je dobry, kernel tre
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 / 2.0 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResult;
@@ -7345,7 +7345,7 @@ TEST(DispatcherTests, LongDivColumnConstGtConstFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 / 5.0 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -7385,7 +7385,7 @@ TEST(DispatcherTests, LongDivColumnConstLtConstFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 / 5.0 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -7427,7 +7427,7 @@ TEST(DispatcherTests, IntModColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 % 5 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -7454,7 +7454,7 @@ TEST(DispatcherTests, IntModColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 % 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -7465,7 +7465,7 @@ TEST(DispatcherTests, IntModColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 % 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
@@ -7505,7 +7505,7 @@ TEST(DispatcherTests, LongModColumnConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 % 2 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -7532,7 +7532,7 @@ TEST(DispatcherTests, LongModColumnConstGtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 % 5 > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -7543,7 +7543,7 @@ TEST(DispatcherTests, LongModColumnConstLtConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colLong1 FROM TableA WHERE colLong1 % 5 < 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int64_t> expectedResult;
@@ -7583,7 +7583,7 @@ TEST(DispatcherTests, DateTimeNow)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT YEAR(NOW()), MONTH(NOW()), DAY(NOW()), HOUR(NOW()), MINUTE(NOW()) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsYear;
@@ -7647,7 +7647,7 @@ TEST(DispatcherTests, DateTimeCol)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT YEAR(colLong3), MONTH(colLong3), DAY(colLong3), HOUR(colLong3), MINUTE(colLong3), SECOND(colLong3) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsYear;
@@ -7720,7 +7720,7 @@ TEST(DispatcherTests, RetPolygons)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPolygon1 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<std::string> expectedResultsPolygons;
@@ -7751,7 +7751,7 @@ TEST(DispatcherTests, RetPolygonsWhere)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPolygon1 FROM TableA WHERE colInteger1 < 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<std::string> expectedResultsPolygons;
@@ -7785,7 +7785,7 @@ TEST(DispatcherTests, RetPoints)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPoint1 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<std::string> expectedResultsPoints;
@@ -7816,7 +7816,7 @@ TEST(DispatcherTests, RetPointsWhere)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colPoint1 FROM TableA WHERE colInteger1 < 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<std::string> expectedResultsPoints;
@@ -7860,7 +7860,7 @@ TEST(DispatcherTests, RetString)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colString1 FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<std::string> expectedResultsStrings;
@@ -7891,7 +7891,7 @@ TEST(DispatcherTests, RetStringWhere)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colString1 FROM TableA WHERE colInteger1 < 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<std::string> expectedResultsStrings;
@@ -7935,7 +7935,7 @@ TEST(DispatcherTests, PointFromColCol)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(colInteger1, colFloat1) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<std::string> expectedResultsPoints;
@@ -7972,7 +7972,7 @@ TEST(DispatcherTests, PointFromColConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(colInteger1, 4.5) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<std::string> expectedResultsPoints;
@@ -8007,7 +8007,7 @@ TEST(DispatcherTests, PointFromConstCol)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT POINT(7, colFloat1) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<std::string> expectedResultsPoints;
@@ -8043,7 +8043,7 @@ TEST(DispatcherTests, AggregationMin)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT MIN(colInteger1) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("MIN(colInteger1)");
 
@@ -8076,7 +8076,7 @@ TEST(DispatcherTests, AggregationMax)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT MAX(colInteger1) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("MAX(colInteger1)");
 
@@ -8109,7 +8109,7 @@ TEST(DispatcherTests, AggregationSum)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT SUM(colInteger1) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("SUM(colInteger1)");
 
@@ -8138,7 +8138,7 @@ TEST(DispatcherTests, AggregationAvg)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT AVG(colInteger1) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("AVG(colInteger1)");
 
@@ -8170,7 +8170,7 @@ TEST(DispatcherTests, AggregationCount)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COUNT(colInteger1) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloads = result->payloads().at("COUNT(colInteger1)");
 	ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
@@ -8183,7 +8183,7 @@ TEST(DispatcherTests, Alias)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT (t.colInteger1 - 10) AS col1, t.colFloat1 AS col2 FROM TableA as t WHERE t.colInteger1 > 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8229,7 +8229,7 @@ TEST(DispatcherTests, LimitOffset)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 LIMIT 10 OFFSET 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8270,7 +8270,7 @@ TEST(DispatcherTests, Limit)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 LIMIT 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8310,7 +8310,7 @@ TEST(DispatcherTests, Offset)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 OFFSET 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8350,7 +8350,7 @@ TEST(DispatcherTests, LargeOffset)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 OFFSET 10000000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 
@@ -8364,7 +8364,7 @@ TEST(DispatcherTests, LargeLimit)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 LIMIT 10000000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8398,7 +8398,7 @@ TEST(DispatcherTests, BitwiseOrColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 | 20) > 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8432,7 +8432,7 @@ TEST(DispatcherTests, BitwiseAndColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 & 20) > 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8466,7 +8466,7 @@ TEST(DispatcherTests, BitwiseXorColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 ^ 20) > 100;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8500,7 +8500,7 @@ TEST(DispatcherTests, BitwiseLeftShiftColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 << 2) > 100;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8534,7 +8534,7 @@ TEST(DispatcherTests, BitwiseRightShiftColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 >> 2) > 100;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8568,7 +8568,7 @@ TEST(DispatcherTests, BitwiseOrColColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 | colInteger2) > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8604,7 +8604,7 @@ TEST(DispatcherTests, BitwiseAndColColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 & colInteger2) > 10;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8640,7 +8640,7 @@ TEST(DispatcherTests, BitwiseXorColColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE (colInteger1 ^ colInteger2) > 500;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8676,7 +8676,7 @@ TEST(DispatcherTests, NotEqualsAlternativeOperator)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE colInteger1 <> 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8710,7 +8710,7 @@ TEST(DispatcherTests, MinusColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE -colInteger1 = 3;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), 0);
@@ -8721,7 +8721,7 @@ TEST(DispatcherTests, AbsColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ABS(colInteger1) = 3;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8755,7 +8755,7 @@ TEST(DispatcherTests, SinColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIN(colInteger1) > 0.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8789,7 +8789,7 @@ TEST(DispatcherTests, CosColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE COS(colInteger1) > 0.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8823,7 +8823,7 @@ TEST(DispatcherTests, TanColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE TAN(colInteger1) > 2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8857,7 +8857,7 @@ TEST(DispatcherTests, SinColFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIN(colFloat1) > 0.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8893,7 +8893,7 @@ TEST(DispatcherTests, CosColFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE COS(colFloat1) > 0.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8929,7 +8929,7 @@ TEST(DispatcherTests, TanColFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE TAN(colFloat1) > 2;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -8965,7 +8965,7 @@ TEST(DispatcherTests, SinPiColFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIN(colFloat1 + PI()) > 0.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9001,7 +9001,7 @@ TEST(DispatcherTests, ArcSinColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ASIN(colInteger1 / 1024.0) > 0.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9035,7 +9035,7 @@ TEST(DispatcherTests, ArcCosColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ACOS(colInteger1 / 1024.0) > 0.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9069,7 +9069,7 @@ TEST(DispatcherTests, ArcTanColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ATAN(colInteger1) > 0.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9103,7 +9103,7 @@ TEST(DispatcherTests, Logarithm10ColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE LOG10(colInteger1) > 1.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9137,7 +9137,7 @@ TEST(DispatcherTests, LogarithmNaturalColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE LOG(colInteger1) > 1.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9171,7 +9171,7 @@ TEST(DispatcherTests, LogarithmColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE LOG(colInteger1, 3.0) > 1.5;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9205,7 +9205,7 @@ TEST(DispatcherTests, ExponentialColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE EXP(colInteger1) > 2000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9240,7 +9240,7 @@ TEST(DispatcherTests, PowerColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE POW(colInteger1, 2) > 2000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9275,7 +9275,7 @@ TEST(DispatcherTests, SqrtColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SQRT(colInteger1) > 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9310,7 +9310,7 @@ TEST(DispatcherTests, SquareColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SQUARE(colInteger1) > 2000;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9345,7 +9345,7 @@ TEST(DispatcherTests, SignPositiveColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIGN(colInteger1) = 1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9380,7 +9380,7 @@ TEST(DispatcherTests, SignNegativeColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIGN(colInteger1) = -1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9415,7 +9415,7 @@ TEST(DispatcherTests, SignZeroColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE SIGN(colInteger1) = 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9450,7 +9450,7 @@ TEST(DispatcherTests, RootColConstInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ROOT(colInteger1, 2) > 0;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -9488,7 +9488,7 @@ TEST(DispatcherTests, RoundColFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT ROUND(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResultsFloat;
@@ -9525,7 +9525,7 @@ TEST(DispatcherTests, FloorColFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT FLOOR(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResultsFloat;
@@ -9562,7 +9562,7 @@ TEST(DispatcherTests, CeilColFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT CEIL(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResultsFloat;
@@ -9599,7 +9599,7 @@ TEST(DispatcherTests, RoundColInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT ROUND(colInteger1) FROM TableA WHERE colInteger1 >= 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResultsFloat;
@@ -9634,7 +9634,7 @@ TEST(DispatcherTests, CotColFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT COT(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResultsFloat;
@@ -9671,7 +9671,7 @@ TEST(DispatcherTests, Atan2ColFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT ATAN2(colFloat1, colFloat1 + 1) FROM TableA WHERE colInteger1 >= 20;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResultsFloat;
@@ -9723,7 +9723,7 @@ ColmnarDB::NetworkClient::Message::QueryResponsePayload RunQuery(std::string col
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT " + col + " " + fromWhere + ";");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	return result->payloads().at(col);
 }
@@ -10413,9 +10413,9 @@ TEST(DispatcherTests, PolygonClippingAndContains)
 {
 	Context::getInstance();
 
-	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_,
 		"SELECT colInteger1 FROM TableA WHERE GEO_CONTAINS(GEO_INTERSECT(colPolygon1, colPolygon2), colPoint1);");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<std::string> expectedResultsPoints;
@@ -10427,12 +10427,12 @@ TEST(DispatcherTests, CreateDropDatabase)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(nullptr, "CREATE DATABASE createdDb;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	
 	ASSERT_TRUE(Database::Exists("createdDb"));
 
 	GpuSqlCustomParser parser2(nullptr, "DROP DATABASE createdDb;");
-	resultPtr = parser2.parse();
+	resultPtr = parser2.Parse();
 
 	ASSERT_TRUE(!Database::Exists("createdDb"));
 }
@@ -10442,12 +10442,12 @@ TEST(DispatcherTests, CreateDropDatabaseWithDelimitedIdentifiers)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "CREATE DATABASE [createdDb%^&*()-+];");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 
 	ASSERT_TRUE(Database::Exists("createdDb%^&*()-+"));
 
 	GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database, "DROP DATABASE [createdDb%^&*()-+];");
-	resultPtr = parser2.parse();
+	resultPtr = parser2.Parse();
 
 	ASSERT_TRUE(!Database::Exists("createdDb%^&*()-+"));
 }
@@ -10459,7 +10459,7 @@ TEST(DispatcherTests, CreateAlterDropTable)
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "CREATE TABLE tblA (colA int, colB float, INDEX ind (colA, colB));");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") != DispatcherObjs::GetInstance().database->GetTables().end());
 
@@ -10477,11 +10477,11 @@ TEST(DispatcherTests, CreateAlterDropTable)
 
 	for (int32_t i = 0; i < 5; i++)
 	{
-		resultPtr = parser2.parse();
+		resultPtr = parser2.Parse();
 	}
 
 	GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database, "SELECT colA, colB from tblA;");
-	resultPtr = parser3.parse();
+	resultPtr = parser3.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsColA;
@@ -10511,14 +10511,14 @@ TEST(DispatcherTests, CreateAlterDropTable)
 	}
 
 	GpuSqlCustomParser parser4(DispatcherObjs::GetInstance().database, "ALTER TABLE tblA DROP COLUMN colA, ADD colC float;");
-	resultPtr = parser4.parse();
+	resultPtr = parser4.Parse();
 
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetColumns().find("colA")
 		== DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetColumns().end());
 
 
 	GpuSqlCustomParser parser5(DispatcherObjs::GetInstance().database, "SELECT colB, colC from tblA;");
-	resultPtr = parser5.parse();
+	resultPtr = parser5.Parse();
 	result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	auto &payloadsColB2 = result->payloads().at("tblA.colB");
 	auto &payloadsColC = result->payloads().at("tblA.colC");
@@ -10539,7 +10539,7 @@ TEST(DispatcherTests, CreateAlterDropTable)
 	}
 
 	GpuSqlCustomParser parser6(DispatcherObjs::GetInstance().database, "DROP TABLE tblA;");
-	resultPtr = parser6.parse();
+	resultPtr = parser6.Parse();
 
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
 }
@@ -10548,7 +10548,7 @@ TEST(DispatcherTests, IsNull)
 {
 	Context::getInstance();
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colInteger1 IS NULL;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	ASSERT_EQ(result->payloads().size(),0);
 }
@@ -10557,7 +10557,7 @@ TEST(DispatcherTests, IsNotNull)
 {
 	Context::getInstance();
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE colInteger1 IS NOT NULL;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 	std::vector<float> expectedResultsFloat;
 	auto column = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance().database->
@@ -10580,8 +10580,8 @@ TEST(DispatcherTests, IsNotNull)
 
 //TEST(DispatcherTests, WhereEvaluation)
 //{
-//	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ((colInteger2 != 500) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
-//	auto resultPtr = parser.parse();
+//	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colInteger1 FROM TableA WHERE ((colInteger2 != 500) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
+//	auto resultPtr = parser.Parse();
 //	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 //
 //	FAIL();
@@ -10589,8 +10589,8 @@ TEST(DispatcherTests, IsNotNull)
 //
 //TEST(DispatcherTests, WhereEvaluationColColPropagation)
 //{
-//	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA WHERE ((colInteger2 > colInteger1) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
-//	auto resultPtr = parser.parse();
+//	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colInteger1 FROM TableA WHERE ((colInteger2 > colInteger1) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
+//	auto resultPtr = parser.Parse();
 //	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 //
 //	FAIL();
@@ -10609,10 +10609,10 @@ std::string GetInsertIntoValuesString(const std::vector<std::vector<int32_t>>& d
 TEST(DispatcherTests, WhereEvaluationAdvanced)
 {
 	GpuSqlCustomParser parserCreateDatabase(nullptr, "CREATE DATABASE WhereEvalDatabase 10;");
-	auto resultPtr = parserCreateDatabase.parse();
+	auto resultPtr = parserCreateDatabase.Parse();
 
 	GpuSqlCustomParser parserCreateTable(Database::GetDatabaseByName("WhereEvalDatabase"), "CREATE TABLE TableA (ColA INT, ColB INT, ColC INT, ColD INT, INDEX IndA(ColA, ColB, ColC));");
-	resultPtr = parserCreateTable.parse();
+	resultPtr = parserCreateTable.Parse();
 
 	std::vector<int32_t> dataIntA({ 1,  2, 3, 4,  5, 12, 17, 16, 19, 20, 1, 5, 3, 4,  2, 40, 150, 59, 110, 70});
 	std::vector<int32_t> dataIntB({ 4, 10, 1, 2,  3,  1,  3,  2,  3,  2, 7, 1, 1, 2, 10,  1,   1,  1,   1,  1});
@@ -10622,7 +10622,7 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
 	for (int32_t i = 0; i < dataIntA.size(); i++)
 	{
 		GpuSqlCustomParser parserInsertInto(Database::GetDatabaseByName("WhereEvalDatabase"), "INSERT INTO TableA (ColA, ColB, ColC, ColD) VALUES (" + GetInsertIntoValuesString({ dataIntA, dataIntB, dataIntC, dataIntD }, i) + ");");
-		resultPtr = parserInsertInto.parse();
+		resultPtr = parserInsertInto.Parse();
 	}
 
 	std::vector<int32_t> dataIntASorted({ 1, 1,  2,  2, 3, 3, 4, 4, 5,  5, 12, 16, 17, 19, 20, 40, 59, 70, 110, 150});
@@ -10708,13 +10708,13 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
 	}
 
 	GpuSqlCustomParser parser(Database::GetDatabaseByName("WhereEvalDatabase"), "SELECT ColA FROM TableA WHERE (ColA >= 10 AND ColA < 50) AND ((5 < (ColB + ColC)) AND SIN(ColD));");
-	resultPtr = parser.parse();
+	resultPtr = parser.Parse();
 	LoadColHelper& loadColHelper = LoadColHelper::getInstance();
 
 	ASSERT_EQ(loadColHelper.countSkippedBlocks, 2);
 
 	GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE WhereEvalDatabase;");
-	resultPtr = parserDropDatabase.parse();
+	resultPtr = parserDropDatabase.Parse();
 }
 
 template<typename T>
@@ -10747,7 +10747,7 @@ TEST(DispatcherTests, OrderByTestSimple)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA ORDER BY colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -10776,7 +10776,7 @@ TEST(DispatcherTests, OrderByTestMulticolumnMultitype)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1, colDouble1 FROM TableA ORDER BY colInteger1 ASC, colLong1 DESC, colFloat1 ASC, colDouble1 DESC;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	auto dataIn1 = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colInteger1").get())->GetBlocksList();
@@ -10880,7 +10880,7 @@ TEST(DispatcherTests, JoinSimpleTest)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA JOIN TableB ON colInteger1 = colInteger3;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::cout << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size() << std::endl;
@@ -10928,7 +10928,7 @@ TEST(DispatcherTests, JoinWhereTest)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 FROM TableA JOIN TableB ON colInteger1 = colInteger3 WHERE colFloat1 < 200;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::cout << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size() << std::endl;
@@ -10979,7 +10979,7 @@ TEST(DispatcherTests, JoinGroupByTest)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1, COUNT(colInteger1) FROM TableA JOIN TableB ON colInteger1 = colInteger3 GROUP BY colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::cout << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size() << std::endl;
@@ -11036,7 +11036,7 @@ TEST(DispatcherTests, JoinGroupByWhereTest)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1, COUNT(colInteger1) FROM TableA JOIN TableB ON colInteger1 = colInteger3 WHERE colFloat1 < 200 GROUP BY colInteger1;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::cout << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size() << std::endl;
@@ -11094,7 +11094,7 @@ TEST(DispatcherTests, JoinWhereStringTest)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colString1 FROM TableA JOIN TableB ON colInteger1 = colInteger3 WHERE colFloat1 < 200;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::cout << "Result size: " << result->payloads().at("TableA.colString1").stringpayload().stringdata().size() << std::endl;
@@ -11151,7 +11151,7 @@ TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA%^&*()-+") == DispatcherObjs::GetInstance().database->GetTables().end());
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "CREATE TABLE [tblA%^&*()-+] ([colA%^&*()-+] int, [colB%^&*()-+] float, INDEX [ind%^&*()-+] ([colA%^&*()-+], [colB%^&*()-+]));");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA%^&*()-+") != DispatcherObjs::GetInstance().database->GetTables().end());
 
@@ -11169,11 +11169,11 @@ TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
 
 	for (int32_t i = 0; i < 5; i++)
 	{
-		resultPtr = parser2.parse();
+		resultPtr = parser2.Parse();
 	}
 
 	GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database, "SELECT [colA%^&*()-+], [colB%^&*()-+] from [tblA%^&*()-+];");
-	resultPtr = parser3.parse();
+	resultPtr = parser3.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsColA;
@@ -11203,14 +11203,14 @@ TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
 	}
 
 	GpuSqlCustomParser parser4(DispatcherObjs::GetInstance().database, "ALTER TABLE [tblA%^&*()-+] DROP COLUMN [colA%^&*()-+], ADD [colC%^&*()-+] float;");
-	resultPtr = parser4.parse();
+	resultPtr = parser4.Parse();
 
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().at("tblA%^&*()-+").GetColumns().find("colA%^&*()-+")
 		== DispatcherObjs::GetInstance().database->GetTables().at("tblA%^&*()-+").GetColumns().end());
 
 
 	GpuSqlCustomParser parser5(DispatcherObjs::GetInstance().database, "SELECT [colB%^&*()-+], [colC%^&*()-+] from [tblA%^&*()-+];");
-	resultPtr = parser5.parse();
+	resultPtr = parser5.Parse();
 	result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResultsColC;
@@ -11239,7 +11239,7 @@ TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
 	}
 
 	GpuSqlCustomParser parser6(DispatcherObjs::GetInstance().database, "DROP TABLE [tblA%^&*()-+];");
-	resultPtr = parser6.parse();
+	resultPtr = parser6.Parse();
 
 	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA%^&*()-+") == DispatcherObjs::GetInstance().database->GetTables().end());
 }
@@ -11250,7 +11250,7 @@ TEST(DispatcherTests, CastFloatColToInt)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT CAST(colFloat1 AS INT) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -11281,7 +11281,7 @@ TEST(DispatcherTests, CastIntColToFloat)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT CAST(colInteger1 AS FLOAT) FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResultsFloat;
@@ -11313,7 +11313,7 @@ TEST(DispatcherTests, AliasWhereSimpleTest)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colInteger1 - 100 AS result FROM TableA WHERE result > 300;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResultsInt;
@@ -11347,7 +11347,7 @@ TEST(DispatcherTests, AllColumnsWithDuplicatesTest)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT *, colInteger1, colFloat1, * FROM TableA;");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	ASSERT_EQ(result->payloads().size(), DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().size());
@@ -11528,7 +11528,7 @@ TEST(DispatcherTests, StringLeftWhereColConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE LEFT(colString1, 4) = \"Word\";");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResultsFloat;
@@ -11565,7 +11565,7 @@ TEST(DispatcherTests, StringConcatLeftWhereColConst)
 	Context::getInstance();
 
 	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colFloat1 FROM TableA WHERE CONCAT(\"Concat\", LEFT(colString1, 4)) = \"ConcatWord\";");
-	auto resultPtr = parser.parse();
+	auto resultPtr = parser.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<float> expectedResultsFloat;

@@ -7,16 +7,16 @@
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::arithmeticUnaryCol()
+int32_t GpuSqlDispatcher::ArithmeticUnaryCol()
 {
-    auto colName = arguments.read<std::string>();
-    auto reg = arguments.read<std::string>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
 
     // TODO STD conditional :: if OP == abs return type = T
 
     typedef typename std::conditional<OP::isFloatRetType, float, T>::type ResultType;
 
-    int32_t loadFlag = loadCol<T>(colName);
+    int32_t loadFlag = LoadCol<T>(colName);
     if (loadFlag)
     {
         return loadFlag;
@@ -24,51 +24,51 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 
     std::cout << "ArithmeticUnaryCol: " << colName << " " << reg << std::endl;
 
-    if (std::find_if(groupByColumns.begin(), groupByColumns.end(), StringDataTypeComp(colName)) !=
-        groupByColumns.end())
+    if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
+        groupByColumns_.end())
     {
-        if (isOverallLastBlock)
+        if (isOverallLastBlock_)
         {
-            PointerAllocation column = allocatedPointers.at(colName + KEYS_SUFFIX);
-            int32_t retSize = column.elementCount;
+            PointerAllocation column = allocatedPointers_.at(colName + KEYS_SUFFIX);
+            int32_t retSize = column.ElementCount;
             ResultType* result;
-            if (column.gpuNullMaskPtr)
+            if (column.GpuNullMaskPtr)
             {
                 int8_t* nullMask;
-                result = allocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize, &nullMask);
+                result = AllocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize, &nullMask);
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
             }
             else
             {
-                result = allocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize);
+                result = AllocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize);
             }
-            GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(column.gpuPtr), retSize);
-            groupByColumns.push_back({reg, ::GetColumnType<ResultType>()});
+            GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(column.GpuPtr), retSize);
+            groupByColumns_.push_back({reg, ::GetColumnType<ResultType>()});
         }
     }
-    else if (isOverallLastBlock || !usingGroupBy || insideGroupBy || insideAggregation)
+    else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
     {
-        PointerAllocation column = allocatedPointers.at(colName);
-        int32_t retSize = column.elementCount;
-        if (!isRegisterAllocated(reg))
+        PointerAllocation column = allocatedPointers_.at(colName);
+        int32_t retSize = column.ElementCount;
+        if (!IsRegisterAllocated(reg))
         {
             ResultType* result;
-            if (column.gpuNullMaskPtr)
+            if (column.GpuNullMaskPtr)
             {
                 int8_t* nullMask;
-                result = allocateRegister<ResultType>(reg, retSize, &nullMask);
+                result = AllocateRegister<ResultType>(reg, retSize, &nullMask);
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.gpuNullMaskPtr), bitMaskSize);
+                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
             }
             else
             {
-                result = allocateRegister<ResultType>(reg, retSize);
+                result = AllocateRegister<ResultType>(reg, retSize);
             }
-            GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(column.gpuPtr), retSize);
+            GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(column.GpuPtr), retSize);
         }
     }
-    freeColumnIfRegister<T>(colName);
+    FreeColumnIfRegister<T>(colName);
     return 0;
 }
 
@@ -77,10 +77,10 @@ int32_t GpuSqlDispatcher::arithmeticUnaryCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::arithmeticUnaryConst()
+int32_t GpuSqlDispatcher::ArithmeticUnaryConst()
 {
-    T cnst = arguments.read<T>();
-    auto reg = arguments.read<std::string>();
+    T cnst = arguments_.Read<T>();
+    auto reg = arguments_.Read<std::string>();
 
     // TODO STD conditional :: if OP == abs return type = T
     typedef typename std::conditional<OP::isFloatRetType, float, T>::type ResultType;
@@ -89,9 +89,9 @@ int32_t GpuSqlDispatcher::arithmeticUnaryConst()
 
     int32_t retSize = 1;
 
-    if (!isRegisterAllocated(reg))
+    if (!IsRegisterAllocated(reg))
     {
-        ResultType* result = allocateRegister<ResultType>(reg, retSize);
+        ResultType* result = AllocateRegister<ResultType>(reg, retSize);
         GPUArithmeticUnary::cnst<OP, ResultType, T>(result, cnst, retSize);
     }
 

@@ -22,7 +22,7 @@
 #include <thread>
 
 GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database>& database, const std::string& query)
-: database(database), isSingleGpuStatement(false), query(query)
+: database_(database), isSingleGpuStatement_(false), query_(query)
 {
     LoadColHelper& loadColHelper = LoadColHelper::getInstance();
     loadColHelper.countSkippedBlocks = 0;
@@ -37,11 +37,11 @@ GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database>& database
 /// All real dispatcher instances are exucuted in separate threads and their results are aggregated
 /// Limit anf Offset are applied on final result set
 /// <returns="responseMessage">Final protobuf response message of executed statement (query result set)</returns>
-std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
+std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 {
     Context& context = Context::getInstance();
 
-    antlr4::ANTLRInputStream sqlInputStream(query);
+    antlr4::ANTLRInputStream sqlInputStream(query_);
     GpuSqlLexer sqlLexer(&sqlInputStream);
     std::unique_ptr<ThrowErrorListener> throwErrorListener = std::make_unique<ThrowErrorListener>();
 
@@ -66,18 +66,18 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
         groupByInstances.emplace_back(nullptr);
     }
 
-    std::unique_ptr<CpuSqlDispatcher> cpuWhereDispatcher = std::make_unique<CpuSqlDispatcher>(database);
+    std::unique_ptr<CpuSqlDispatcher> cpuWhereDispatcher = std::make_unique<CpuSqlDispatcher>(database_);
     std::unique_ptr<GpuSqlDispatcher> dispatcher =
-        std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, -1);
-    std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher = std::make_unique<GpuSqlJoinDispatcher>(database);
+        std::make_unique<GpuSqlDispatcher>(database_, groupByInstances, orderByBlocks, -1);
+    std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher = std::make_unique<GpuSqlJoinDispatcher>(database_);
 
-    GpuSqlListener gpuSqlListener(database, *dispatcher, *joinDispatcher);
+    GpuSqlListener gpuSqlListener(database_, *dispatcher, *joinDispatcher);
 
-    CpuWhereListener cpuWhereListener(database, *cpuWhereDispatcher);
+    CpuWhereListener cpuWhereListener(database_, *cpuWhereDispatcher);
 
     if (statement->sqlSelect())
     {
-        if (database == nullptr)
+        if (database_ == nullptr)
         {
             throw DatabaseNotFoundException();
         }
@@ -92,7 +92,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
         if (statement->sqlSelect()->joinClauses())
         {
             walker.walk(&gpuSqlListener, statement->sqlSelect()->joinClauses());
-            joinDispatcher->execute();
+            joinDispatcher->Execute();
         }
 
         if (statement->sqlSelect()->whereClause())
@@ -111,7 +111,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
         for (auto column : statement->sqlSelect()->selectColumns()->selectColumn())
         {
-            if (containsAggregation(column))
+            if (ContainsAggregation(column))
             {
                 aggColumns.push_back(column);
             }
@@ -171,71 +171,71 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
         if (!gpuSqlListener.GetUsingLoad() && !gpuSqlListener.GetUsingWhere())
         {
-            isSingleGpuStatement = true;
+            isSingleGpuStatement_ = true;
         }
     }
     else if (statement->showStatement())
     {
-        isSingleGpuStatement = true;
+        isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->showStatement());
     }
     else if (statement->sqlInsertInto())
     {
-        if (database == nullptr)
+        if (database_ == nullptr)
         {
             throw DatabaseNotFoundException();
         }
 
-        isSingleGpuStatement = true;
+        isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->sqlInsertInto());
     }
     else if (statement->sqlCreateDb())
     {
-        isSingleGpuStatement = true;
+        isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->sqlCreateDb());
     }
     else if (statement->sqlDropDb())
     {
-        isSingleGpuStatement = true;
+        isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->sqlDropDb());
     }
     else if (statement->sqlCreateTable())
     {
-        if (database == nullptr)
+        if (database_ == nullptr)
         {
             throw DatabaseNotFoundException();
         }
 
-        isSingleGpuStatement = true;
+        isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->sqlCreateTable());
     }
     else if (statement->sqlDropTable())
     {
-        if (database == nullptr)
+        if (database_ == nullptr)
         {
             throw DatabaseNotFoundException();
         }
 
-        isSingleGpuStatement = true;
+        isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->sqlDropTable());
     }
     else if (statement->sqlAlterTable())
     {
-        if (database == nullptr)
+        if (database_ == nullptr)
         {
             throw DatabaseNotFoundException();
         }
 
-        isSingleGpuStatement = true;
+        isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->sqlAlterTable());
     }
     else if (statement->sqlCreateIndex())
     {
-        isSingleGpuStatement = true;
+        isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->sqlCreateIndex());
     }
 
-    int32_t threadCount = isSingleGpuStatement ? 1 : context.getDeviceCount();
+    int32_t threadCount = isSingleGpuStatement_ ? 1 : context.getDeviceCount();
 
     GpuSqlDispatcher::ResetGroupByCounters();
     GpuSqlDispatcher::ResetOrderByCounters();
@@ -245,9 +245,9 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
     std::vector<std::exception_ptr> dispatcherExceptions;
     std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults;
     std::vector<std::string> lockList;
-    if (database)
+    if (database_)
     {
-        const std::string dbName = database->GetName();
+        const std::string dbName = database_->GetName();
         for (auto& tableName : GpuSqlDispatcher::linkTable)
         {
             lockList.push_back(dbName + "." + tableName.first);
@@ -264,11 +264,12 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 
     for (int i = 0; i < threadCount; i++)
     {
-        dispatchers.emplace_back(std::make_unique<GpuSqlDispatcher>(database, groupByInstances, orderByBlocks, i));
-        dispatcher->copyExecutionDataTo(*dispatchers[i], *cpuWhereDispatcher);
-        dispatchers[i]->setJoinIndices(joinDispatcher->getJoinIndices());
+        dispatchers.emplace_back(
+            std::make_unique<GpuSqlDispatcher>(database_, groupByInstances, orderByBlocks, i));
+        dispatcher->CopyExecutionDataTo(*dispatchers[i], *cpuWhereDispatcher);
+        dispatchers[i]->SetJoinIndices(joinDispatcher->GetJoinIndices());
         dispatcherFutures.push_back(
-            std::thread(std::bind(&GpuSqlDispatcher::execute, dispatchers[i].get(),
+            std::thread(std::bind(&GpuSqlDispatcher::Execute, dispatchers[i].get(),
                                   std::ref(dispatcherResults[i]), std::ref(dispatcherExceptions[i]))));
     }
 
@@ -294,7 +295,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
         }
     }
 
-    auto ret = (mergeDispatcherResults(dispatcherResults, gpuSqlListener.resultLimit, gpuSqlListener.resultOffset));
+    auto ret = (MergeDispatcherResults(dispatcherResults, gpuSqlListener.ResultLimit, gpuSqlListener.ResultOffset));
 
     return ret;
 }
@@ -305,7 +306,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::parse()
 /// <param="resultOffset">Row offset</param>
 /// <returns="reponseMessage">Merged response message</returns>
 std::unique_ptr<google::protobuf::Message>
-GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,
+GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,
                                            int64_t resultLimit,
                                            int64_t resultOffset)
 {
@@ -331,7 +332,7 @@ GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::p
         }
     }
 
-    trimResponseMessage(responseMessage.get(), resultLimit, resultOffset);
+    TrimResponseMessage(responseMessage.get(), resultLimit, resultOffset);
     return std::move(responseMessage);
 }
 
@@ -339,7 +340,7 @@ GpuSqlCustomParser::mergeDispatcherResults(std::vector<std::unique_ptr<google::p
 /// <param="responseMessage">Response message to be trimmed</param>
 /// <param="limit">Row limit</param>
 /// <param="offset">Row offset</param>
-void GpuSqlCustomParser::trimResponseMessage(google::protobuf::Message* responseMessage, int64_t limit, int64_t offset)
+void GpuSqlCustomParser::TrimResponseMessage(google::protobuf::Message* responseMessage, int64_t limit, int64_t offset)
 {
     auto queryResponseMessage =
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(responseMessage);
@@ -347,7 +348,7 @@ void GpuSqlCustomParser::trimResponseMessage(google::protobuf::Message* response
     {
         std::string key = queryPayload.first;
         ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload = queryPayload.second;
-        trimPayload(payload, limit, offset);
+        TrimPayload(payload, limit, offset);
     }
 }
 
@@ -355,7 +356,7 @@ void GpuSqlCustomParser::trimResponseMessage(google::protobuf::Message* response
 /// <param="payload">Payload to be trimmed</param>
 /// <param="limit">Row limit</param>
 /// <param="offset">Row offset</param>
-void GpuSqlCustomParser::trimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                      int64_t limit,
                                      int64_t offset)
 {
@@ -465,7 +466,7 @@ void GpuSqlCustomParser::trimPayload(ColmnarDB::NetworkClient::Message::QueryRes
     }
 }
 
-bool GpuSqlCustomParser::containsAggregation(GpuSqlParser::SelectColumnContext* ctx)
+bool GpuSqlCustomParser::ContainsAggregation(GpuSqlParser::SelectColumnContext* ctx)
 {
     antlr4::tree::ParseTreeWalker walker;
 

@@ -8,17 +8,17 @@ constexpr float pi()
 }
 
 CpuWhereListener::CpuWhereListener(const std::shared_ptr<Database>& database, CpuSqlDispatcher& dispatcher)
-: database(database), dispatcher(dispatcher), insideAlias(false)
+: database_(database), dispatcher_(dispatcher), insideAlias_(false)
 {
 }
 
 void CpuWhereListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext* ctx)
 {
-    std::pair<std::string, DataType> right = stackTopAndPop();
-    std::pair<std::string, DataType> left = stackTopAndPop();
+    std::pair<std::string, DataType> right = StackTopAndPop();
+    std::pair<std::string, DataType> left = StackTopAndPop();
 
     std::string op = ctx->op->getText();
-    stringToUpper(op);
+    StringToUpper(op);
 
     DataType rightOperandType = std::get<1>(right);
     DataType leftOperandType = std::get<1>(left);
@@ -26,12 +26,12 @@ void CpuWhereListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext*
     std::string rightOperand = std::get<0>(right);
     std::string leftOperand = std::get<0>(left);
 
-    pushArgument(leftOperand.c_str(), leftOperandType);
-    pushArgument(rightOperand.c_str(), rightOperandType);
+    PushArgument(leftOperand.c_str(), leftOperandType);
+    PushArgument(rightOperand.c_str(), rightOperandType);
 
     std::string reg;
-    trimReg(rightOperand);
-    trimReg(leftOperand);
+    TrimReg(rightOperand);
+    TrimReg(leftOperand);
 
     DataType returnDataType;
 
@@ -72,43 +72,43 @@ void CpuWhereListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext*
         break;
     case GpuSqlLexer::ASTERISK:
         reg = "$" + leftOperand + op + rightOperand;
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::DIVISION:
         reg = "$" + leftOperand + op + rightOperand;
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::PLUS:
         reg = "$" + leftOperand + op + rightOperand;
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::MINUS:
         reg = "$" + leftOperand + op + rightOperand;
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::MODULO:
         reg = "$" + leftOperand + op + rightOperand;
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::BIT_OR:
         reg = "$" + leftOperand + op + rightOperand;
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::BIT_AND:
         reg = "$" + leftOperand + op + rightOperand;
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::XOR:
         reg = "$" + leftOperand + op + rightOperand;
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::L_SHIFT:
         reg = "$" + leftOperand + op + rightOperand;
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::R_SHIFT:
         reg = "$" + leftOperand + op + rightOperand;
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::POINT:
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
@@ -132,15 +132,15 @@ void CpuWhereListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext*
         break;
     case GpuSqlLexer::POW:
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::ROOT:
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
-        returnDataType = getReturnDataType(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     case GpuSqlLexer::ATAN2:
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
-        returnDataType = getReturnDataType(DataType::COLUMN_FLOAT);
+        returnDataType = GetReturnDataType(DataType::COLUMN_FLOAT);
         break;
     case GpuSqlLexer::CONCAT:
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
@@ -157,10 +157,10 @@ void CpuWhereListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext*
     default:
         break;
     }
-    dispatcher.addBinaryOperation(leftOperandType, rightOperandType, ctx->op->getType());
+    dispatcher_.AddBinaryOperation(leftOperandType, rightOperandType, ctx->op->getType());
 
-    pushArgument(reg.c_str(), returnDataType);
-    pushTempResult(reg, returnDataType);
+    PushArgument(reg.c_str(), returnDataType);
+    PushTempResult(reg, returnDataType);
 }
 
 void CpuWhereListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContext* ctx)
@@ -169,20 +169,20 @@ void CpuWhereListener::exitTernaryOperation(GpuSqlParser::TernaryOperationContex
 
 void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* ctx)
 {
-    std::pair<std::string, DataType> arg = stackTopAndPop();
+    std::pair<std::string, DataType> arg = StackTopAndPop();
 
     std::string op = ctx->op->getText();
-    stringToUpper(op);
+    StringToUpper(op);
 
     std::string operand = std::get<0>(arg);
     DataType operandType = std::get<1>(arg);
 
-    pushArgument(operand.c_str(), operandType);
+    PushArgument(operand.c_str(), operandType);
 
     DataType returnDataType;
 
     std::string reg;
-    trimReg(operand);
+    TrimReg(operand);
 
     switch (ctx->op->getType())
     {
@@ -208,7 +208,7 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* c
         break;
     case GpuSqlLexer::MINUS:
         reg = "$" + op + operand;
-        returnDataType = getReturnDataType(operandType);
+        returnDataType = GetReturnDataType(operandType);
         break;
     case GpuSqlLexer::YEAR:
         reg = "$" + op + "(" + operand + ")";
@@ -236,7 +236,7 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* c
         break;
     case GpuSqlLexer::ABS:
         reg = "$" + op + "(" + operand + ")";
-        returnDataType = getReturnDataType(operandType);
+        returnDataType = GetReturnDataType(operandType);
         break;
     case GpuSqlLexer::SIN:
         reg = "$" + op + "(" + operand + ")";
@@ -329,67 +329,67 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* c
     default:
         break;
     }
-    dispatcher.addUnaryOperation(operandType, ctx->op->getType());
+    dispatcher_.AddUnaryOperation(operandType, ctx->op->getType());
 
-    pushArgument(reg.c_str(), returnDataType);
-    pushTempResult(reg, returnDataType);
+    PushArgument(reg.c_str(), returnDataType);
+    PushTempResult(reg, returnDataType);
 }
 
 void CpuWhereListener::exitCastOperation(GpuSqlParser::CastOperationContext* ctx)
 {
-    std::pair<std::string, DataType> arg = stackTopAndPop();
+    std::pair<std::string, DataType> arg = StackTopAndPop();
 
     std::string operand = std::get<0>(arg);
     DataType operandType = std::get<1>(arg);
 
-    pushArgument(operand.c_str(), operandType);
+    PushArgument(operand.c_str(), operandType);
     std::string castTypeStr = ctx->DATATYPE()->getText();
-    stringToUpper(castTypeStr);
-    DataType castType = getDataTypeFromString(castTypeStr);
+    StringToUpper(castTypeStr);
+    DataType castType = GetDataTypeFromString(castTypeStr);
 
-    dispatcher.addCastOperation(operandType, castType, castTypeStr);
+    dispatcher_.AddCastOperation(operandType, castType, castTypeStr);
 
-    trimReg(operand);
+    TrimReg(operand);
     std::string reg = "$CAST(" + operand + "AS" + castTypeStr + ")";
 
-    pushArgument(reg.c_str(), castType);
-    pushTempResult(reg, castType);
+    PushArgument(reg.c_str(), castType);
+    PushTempResult(reg, castType);
 }
 
 void CpuWhereListener::exitIntLiteral(GpuSqlParser::IntLiteralContext* ctx)
 {
     std::string token = ctx->getText();
-    if (isLong(token))
+    if (IsLong(token))
     {
-        parserStack.push(std::make_pair(token, DataType::CONST_LONG));
+        parserStack_.push(std::make_pair(token, DataType::CONST_LONG));
     }
     else
     {
-        parserStack.push(std::make_pair(token, DataType::CONST_INT));
+        parserStack_.push(std::make_pair(token, DataType::CONST_INT));
     }
 }
 
 void CpuWhereListener::exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext* ctx)
 {
     std::string token = ctx->getText();
-    if (isDouble(token))
+    if (IsDouble(token))
     {
-        parserStack.push(std::make_pair(token, DataType::CONST_DOUBLE));
+        parserStack_.push(std::make_pair(token, DataType::CONST_DOUBLE));
     }
     else
     {
-        parserStack.push(std::make_pair(token, DataType::CONST_FLOAT));
+        parserStack_.push(std::make_pair(token, DataType::CONST_FLOAT));
     }
 }
 
 void CpuWhereListener::exitStringLiteral(GpuSqlParser::StringLiteralContext* ctx)
 {
-    parserStack.push(std::make_pair(ctx->getText(), DataType::CONST_STRING));
+    parserStack_.push(std::make_pair(ctx->getText(), DataType::CONST_STRING));
 }
 
 void CpuWhereListener::exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext* ctx)
 {
-    parserStack.push(std::make_pair(ctx->getText(), DataType::CONST_INT8_T));
+    parserStack_.push(std::make_pair(ctx->getText(), DataType::CONST_INT8_T));
 }
 
 void CpuWhereListener::exitGeoReference(GpuSqlParser::GeoReferenceContext* ctx)
@@ -399,13 +399,13 @@ void CpuWhereListener::exitGeoReference(GpuSqlParser::GeoReferenceContext* ctx)
     antlr4::misc::Interval interval(start, stop);
     std::string geoValue = ctx->geometry()->start->getInputStream()->getText(interval);
 
-    if (isPolygon(geoValue))
+    if (IsPolygon(geoValue))
     {
-        parserStack.push(std::make_pair(geoValue, DataType::CONST_POLYGON));
+        parserStack_.push(std::make_pair(geoValue, DataType::CONST_POLYGON));
     }
-    else if (isPoint(geoValue))
+    else if (IsPoint(geoValue))
     {
-        parserStack.push(std::make_pair(geoValue, DataType::CONST_POINT));
+        parserStack_.push(std::make_pair(geoValue, DataType::CONST_POINT));
     }
 }
 
@@ -413,17 +413,17 @@ void CpuWhereListener::exitVarReference(GpuSqlParser::VarReferenceContext* ctx)
 {
     std::string colName = ctx->columnId()->getText();
 
-    if (columnAliasContexts.find(colName) != columnAliasContexts.end() && !insideAlias)
+    if (columnAliasContexts_.find(colName) != columnAliasContexts_.end() && !insideAlias_)
     {
-        walkAliasExpression(colName);
+        WalkAliasExpression(colName);
         return;
     }
 
-    std::pair<std::string, DataType> tableColumnData = generateAndValidateColumnName(ctx->columnId());
+    std::pair<std::string, DataType> tableColumnData = GenerateAndValidateColumnName(ctx->columnId());
     const DataType columnType = std::get<1>(tableColumnData);
     const std::string tableColumn = std::get<0>(tableColumnData);
 
-    parserStack.push(std::make_pair(tableColumn, columnType));
+    parserStack_.push(std::make_pair(tableColumn, columnType));
 }
 
 void CpuWhereListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext* ctx)
@@ -444,27 +444,27 @@ void CpuWhereListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext*
     ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
     std::time_t epochTime = std::mktime(&t);
 
-    parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
+    parserStack_.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
 }
 
 void CpuWhereListener::exitPiLiteral(GpuSqlParser::PiLiteralContext* ctx)
 {
-    parserStack.push(std::make_pair(std::to_string(pi()), DataType::CONST_FLOAT));
-    shortColumnNames.insert({std::to_string(pi()), ctx->PI()->getText()});
+    parserStack_.push(std::make_pair(std::to_string(pi()), DataType::CONST_FLOAT));
+    shortColumnNames_.insert({std::to_string(pi()), ctx->PI()->getText()});
 }
 
 void CpuWhereListener::exitNowLiteral(GpuSqlParser::NowLiteralContext* ctx)
 {
     std::time_t epochTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    parserStack.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
-    shortColumnNames.insert({std::to_string(epochTime), ctx->NOW()->getText()});
+    parserStack_.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
+    shortColumnNames_.insert({std::to_string(epochTime), ctx->NOW()->getText()});
 }
 
 void CpuWhereListener::exitWhereClause(GpuSqlParser::WhereClauseContext* ctx)
 {
-    std::pair<std::string, DataType> arg = stackTopAndPop();
-    dispatcher.addArgument<const std::string&>(std::get<0>(arg));
-    dispatcher.addWhereResultFunction(std::get<1>(arg));
+    std::pair<std::string, DataType> arg = StackTopAndPop();
+    dispatcher_.AddArgument<const std::string&>(std::get<0>(arg));
+    dispatcher_.AddWhereResultFunction(std::get<1>(arg));
 }
 
 void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
@@ -472,22 +472,22 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
     for (auto fromTable : ctx->fromTable())
     {
         std::string table = fromTable->table()->getText();
-        trimDelimitedIdentifier(table);
-        if (database->GetTables().find(table) == database->GetTables().end())
+        TrimDelimitedIdentifier(table);
+        if (database_->GetTables().find(table) == database_->GetTables().end())
         {
             throw TableNotFoundFromException();
         }
-        loadedTables.insert(table);
+        loadedTables_.insert(table);
 
         if (fromTable->alias())
         {
             std::string alias = fromTable->alias()->getText();
-            trimDelimitedIdentifier(alias);
-            if (tableAliases.find(alias) != tableAliases.end())
+            TrimDelimitedIdentifier(alias);
+            if (tableAliases_.find(alias) != tableAliases_.end())
             {
                 throw AliasRedefinitionException();
             }
-            tableAliases.insert({alias, table});
+            tableAliases_.insert({alias, table});
         }
     }
 }
@@ -499,30 +499,30 @@ void CpuWhereListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsCon
         if (selectColumn->alias())
         {
             std::string alias = selectColumn->alias()->getText();
-            if (columnAliasContexts.find(alias) != columnAliasContexts.end())
+            if (columnAliasContexts_.find(alias) != columnAliasContexts_.end())
             {
                 throw AliasRedefinitionException();
             }
-            columnAliasContexts.insert({alias, selectColumn->expression()});
+            columnAliasContexts_.insert({alias, selectColumn->expression()});
         }
     }
 }
 
-void CpuWhereListener::pushArgument(const char* token, DataType dataType)
+void CpuWhereListener::PushArgument(const char* token, DataType dataType)
 {
     switch (dataType)
     {
     case DataType::CONST_INT:
-        dispatcher.addArgument<int32_t>(std::stoi(token));
+        dispatcher_.AddArgument<int32_t>(std::stoi(token));
         break;
     case DataType::CONST_LONG:
-        dispatcher.addArgument<int64_t>(std::stoll(token));
+        dispatcher_.AddArgument<int64_t>(std::stoll(token));
         break;
     case DataType::CONST_FLOAT:
-        dispatcher.addArgument<float>(std::stof(token));
+        dispatcher_.AddArgument<float>(std::stof(token));
         break;
     case DataType::CONST_DOUBLE:
-        dispatcher.addArgument<double>(std::stod(token));
+        dispatcher_.AddArgument<double>(std::stod(token));
         break;
     case DataType::CONST_POINT:
     case DataType::CONST_POLYGON:
@@ -535,7 +535,7 @@ void CpuWhereListener::pushArgument(const char* token, DataType dataType)
     case DataType::COLUMN_POLYGON:
     case DataType::COLUMN_STRING:
     case DataType::COLUMN_INT8_T:
-        dispatcher.addArgument<const std::string&>(token);
+        dispatcher_.AddArgument<const std::string&>(token);
         break;
     case DataType::DATA_TYPE_SIZE:
     case DataType::CONST_ERROR:
@@ -543,14 +543,14 @@ void CpuWhereListener::pushArgument(const char* token, DataType dataType)
     }
 }
 
-std::pair<std::string, DataType> CpuWhereListener::stackTopAndPop()
+std::pair<std::string, DataType> CpuWhereListener::StackTopAndPop()
 {
-    std::pair<std::string, DataType> value = parserStack.top();
-    parserStack.pop();
+    std::pair<std::string, DataType> value = parserStack_.top();
+    parserStack_.pop();
     return value;
 }
 
-void CpuWhereListener::stringToUpper(std::string& str)
+void CpuWhereListener::StringToUpper(std::string& str)
 {
     for (auto& c : str)
     {
@@ -558,12 +558,12 @@ void CpuWhereListener::stringToUpper(std::string& str)
     }
 }
 
-void CpuWhereListener::pushTempResult(std::string reg, DataType type)
+void CpuWhereListener::PushTempResult(std::string reg, DataType type)
 {
-    parserStack.push(std::make_pair(reg, type));
+    parserStack_.push(std::make_pair(reg, type));
 }
 
-bool CpuWhereListener::isLong(const std::string& value)
+bool CpuWhereListener::IsLong(const std::string& value)
 {
     try
     {
@@ -577,7 +577,7 @@ bool CpuWhereListener::isLong(const std::string& value)
     return false;
 }
 
-bool CpuWhereListener::isDouble(const std::string& value)
+bool CpuWhereListener::IsDouble(const std::string& value)
 {
     try
     {
@@ -591,17 +591,17 @@ bool CpuWhereListener::isDouble(const std::string& value)
     return false;
 }
 
-bool CpuWhereListener::isPoint(const std::string& value)
+bool CpuWhereListener::IsPoint(const std::string& value)
 {
     return (value.find("POINT") == 0);
 }
 
-bool CpuWhereListener::isPolygon(const std::string& value)
+bool CpuWhereListener::IsPolygon(const std::string& value)
 {
     return (value.find("POLYGON") == 0);
 }
 
-void CpuWhereListener::trimDelimitedIdentifier(std::string& str)
+void CpuWhereListener::TrimDelimitedIdentifier(std::string& str)
 {
     if (str.front() == '[' && str.back() == ']' && str.size() > 2)
     {
@@ -610,7 +610,7 @@ void CpuWhereListener::trimDelimitedIdentifier(std::string& str)
     }
 }
 
-DataType CpuWhereListener::getReturnDataType(DataType left, DataType right)
+DataType CpuWhereListener::GetReturnDataType(DataType left, DataType right)
 {
     if (right < DataType::COLUMN_INT)
     {
@@ -625,7 +625,7 @@ DataType CpuWhereListener::getReturnDataType(DataType left, DataType right)
     return result;
 }
 
-DataType CpuWhereListener::getReturnDataType(DataType operand)
+DataType CpuWhereListener::GetReturnDataType(DataType operand)
 {
     if (operand < DataType::COLUMN_INT)
     {
@@ -634,12 +634,12 @@ DataType CpuWhereListener::getReturnDataType(DataType operand)
     return operand;
 }
 
-DataType CpuWhereListener::getDataTypeFromString(const std::string& dataType)
+DataType CpuWhereListener::GetDataTypeFromString(const std::string& dataType)
 {
     return ::GetColumnDataTypeFromString(dataType);
 }
 
-std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName(GpuSqlParser::ColumnIdContext* ctx)
+std::pair<std::string, DataType> CpuWhereListener::GenerateAndValidateColumnName(GpuSqlParser::ColumnIdContext* ctx)
 {
     std::string table;
     std::string column;
@@ -649,34 +649,34 @@ std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName
     if (ctx->table())
     {
         table = ctx->table()->getText();
-        trimDelimitedIdentifier(table);
+        TrimDelimitedIdentifier(table);
         column = ctx->column()->getText();
-        trimDelimitedIdentifier(column);
+        TrimDelimitedIdentifier(column);
 
-        if (tableAliases.find(table) != tableAliases.end())
+        if (tableAliases_.find(table) != tableAliases_.end())
         {
-            table = tableAliases.at(table);
+            table = tableAliases_.at(table);
         }
 
-        if (loadedTables.find(table) == loadedTables.end())
+        if (loadedTables_.find(table) == loadedTables_.end())
         {
             throw TableNotFoundFromException();
         }
-        if (database->GetTables().at(table).GetColumns().find(column) ==
-            database->GetTables().at(table).GetColumns().end())
+        if (database_->GetTables().at(table).GetColumns().find(column) ==
+            database_->GetTables().at(table).GetColumns().end())
         {
             throw ColumnNotFoundException();
         }
 
-        shortColumnNames.insert({table + "." + column, table + "." + column});
+        shortColumnNames_.insert({table + "." + column, table + "." + column});
     }
     else
     {
         int uses = 0;
-        for (auto& tab : loadedTables)
+        for (auto& tab : loadedTables_)
         {
-            if (database->GetTables().at(tab).GetColumns().find(col) !=
-                database->GetTables().at(tab).GetColumns().end())
+            if (database_->GetTables().at(tab).GetColumns().find(col) !=
+                database_->GetTables().at(tab).GetColumns().end())
             {
                 table = tab;
                 column = col;
@@ -692,33 +692,33 @@ std::pair<std::string, DataType> CpuWhereListener::generateAndValidateColumnName
             throw ColumnNotFoundException();
         }
 
-        shortColumnNames.insert({table + "." + column, column});
+        shortColumnNames_.insert({table + "." + column, column});
     }
 
     std::string tableColumn = table + "." + column;
-    DataType columnType = database->GetTables().at(table).GetColumns().at(column)->GetColumnType();
+    DataType columnType = database_->GetTables().at(table).GetColumns().at(column)->GetColumnType();
 
     std::pair<std::string, DataType> tableColumnPair = std::make_pair(tableColumn, columnType);
 
     return tableColumnPair;
 }
 
-void CpuWhereListener::walkAliasExpression(const std::string& alias)
+void CpuWhereListener::WalkAliasExpression(const std::string& alias)
 {
     antlr4::tree::ParseTreeWalker walker;
-    insideAlias = true;
-    walker.walk(this, columnAliasContexts.at(alias));
-    insideAlias = false;
+    insideAlias_ = true;
+    walker.walk(this, columnAliasContexts_.at(alias));
+    insideAlias_ = false;
 }
 
-void CpuWhereListener::trimReg(std::string& reg)
+void CpuWhereListener::TrimReg(std::string& reg)
 {
     if (reg.front() == '$')
     {
         reg.erase(reg.begin());
     }
-    else if (shortColumnNames.find(reg) != shortColumnNames.end())
+    else if (shortColumnNames_.find(reg) != shortColumnNames_.end())
     {
-        reg = shortColumnNames.at(reg);
+        reg = shortColumnNames_.at(reg);
     }
 }

@@ -24,61 +24,61 @@ class Database;
 class GpuSqlListener : public GpuSqlParserBaseListener
 {
 private:
-    const std::shared_ptr<Database>& database;
-    GpuSqlDispatcher& dispatcher;
-    GpuSqlJoinDispatcher& joinDispatcher;
-    std::stack<std::pair<std::string, DataType>> parserStack;
-    std::unordered_map<std::string, std::string> tableAliases;
-    std::unordered_set<std::string> columnAliases;
-    std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts;
-    std::unordered_set<std::string> loadedTables;
-    std::unordered_map<std::string, std::string> shortColumnNames;
-    int32_t linkTableIndex;
-    int32_t orderByColumnIndex;
-    std::unordered_map<std::string, std::pair<DataType, std::string>> returnColumns;
-    std::unordered_map<std::string, std::pair<DataType, OrderBy::Order>> orderByColumns;
-    std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns;
-    std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns;
+    const std::shared_ptr<Database>& database_;
+    GpuSqlDispatcher& dispatcher_;
+    GpuSqlJoinDispatcher& joinDispatcher_;
+    std::stack<std::pair<std::string, DataType>> parserStack_;
+    std::unordered_map<std::string, std::string> tableAliases_;
+    std::unordered_set<std::string> columnAliases_;
+    std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts_;
+    std::unordered_set<std::string> loadedTables_;
+    std::unordered_map<std::string, std::string> shortColumnNames_;
+    int32_t linkTableIndex_;
+    int32_t orderByColumnIndex_;
+    std::unordered_map<std::string, std::pair<DataType, std::string>> returnColumns_;
+    std::unordered_map<std::string, std::pair<DataType, OrderBy::Order>> orderByColumns_;
+    std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns_;
+    std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns_;
 
-    bool usingLoad;
-    bool usingWhere;
+    bool usingLoad_;
+    bool usingWhere_;
 
-    bool usingGroupBy;
-    bool usingAgg;
-    bool insideAgg;
-    bool insideGroupBy;
-    bool insideOrderBy;
-    bool insideAlias;
+    bool usingGroupBy_;
+    bool usingAgg_;
+    bool insideAgg_;
+    bool insideGroupBy_;
+    bool insideOrderBy_;
+    bool insideAlias_;
 
-    bool insideSelectColumn;
-    bool isAggSelectColumn;
-    bool isSelectColumnValid;
+    bool insideSelectColumn_;
+    bool isAggSelectColumn_;
+    bool isSelectColumnValid_;
 
-    void pushArgument(const char* token, DataType dataType);
-    std::pair<std::string, DataType> stackTopAndPop();
-    void stringToUpper(std::string& str);
+    void PushArgument(const char* token, DataType dataType);
+    std::pair<std::string, DataType> StackTopAndPop();
+    void StringToUpper(std::string& str);
 
-    void pushTempResult(std::string reg, DataType type);
+    void PushTempResult(std::string reg, DataType type);
 
-    bool isLong(const std::string& value);
+    bool IsLong(const std::string& value);
 
-    bool isDouble(const std::string& value);
+    bool IsDouble(const std::string& value);
 
-    bool isPoint(const std::string& value);
+    bool IsPoint(const std::string& value);
 
-    bool isPolygon(const std::string& value);
+    bool IsPolygon(const std::string& value);
 
-    void trimDelimitedIdentifier(std::string& str);
+    void TrimDelimitedIdentifier(std::string& str);
 
-    DataType getReturnDataType(DataType left, DataType right);
-    DataType getReturnDataType(DataType operand);
-    DataType getDataTypeFromString(const std::string& dataType);
+    DataType GetReturnDataType(DataType left, DataType right);
+    DataType GetReturnDataType(DataType operand);
+    DataType GetDataTypeFromString(const std::string& dataType);
 
-    void trimReg(std::string& reg);
+    void TrimReg(std::string& reg);
 
-    std::pair<std::string, DataType> generateAndValidateColumnName(GpuSqlParser::ColumnIdContext* ctx);
+    std::pair<std::string, DataType> GenerateAndValidateColumnName(GpuSqlParser::ColumnIdContext* ctx);
 
-    void walkAliasExpression(const std::string& alias);
+    void WalkAliasExpression(const std::string& alias);
 
 
 public:
@@ -86,8 +86,8 @@ public:
                    GpuSqlDispatcher& dispatcher,
                    GpuSqlJoinDispatcher& joinDispatcher);
 
-    int64_t resultLimit;
-    int64_t resultOffset;
+    int64_t ResultLimit;
+    int64_t ResultOffset;
 
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext* ctx) override;
 

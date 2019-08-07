@@ -127,7 +127,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 		dynamic_cast<ColumnBase<double>*>(colDouble2.get())->AddBlock(dataDouble2);
 
 		std::vector<std::string> dataString2;
-		dataString2.push_back("Drop database");
+		dataString2.push_back("Drop database_");
 		dataString2.push_back("Is this the fastest DB?");
 		dataString2.push_back("Speed of electron");
 		dynamic_cast<ColumnBase<std::string>*>(colString2.get())->AddBlock(dataString2);
@@ -173,7 +173,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 		Database::RemoveFromInMemoryDatabaseList(db.c_str());
 	}
 
-	//load different database, but with the same data:
+	//load different database_, but with the same data:
 	Database::LoadDatabasesFromDisk();
 	
 	auto& loadedTables = Database::GetDatabaseByName(dbName)->GetTables();
@@ -270,7 +270,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	{
 		auto data = dynamic_cast<ColumnBase<std::string>*>(secondTableColumns.at("colString").get())->GetBlocksList().at(i)->GetData();
 		ASSERT_FALSE(dynamic_cast<ColumnBase<std::string>*>(secondTableColumns.at("colString").get())->GetBlocksList().at(i)->GetIsNullable());
-		ASSERT_EQ(data[0], "Drop database");
+		ASSERT_EQ(data[0], "Drop database_");
 		ASSERT_EQ(data[1], "Is this the fastest DB?");
 		ASSERT_EQ(data[2], "Speed of electron");
 	}
@@ -339,7 +339,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 	}
 	ASSERT_TRUE(deleted) << "DeleteTableFromDisk";
 
-	//drop database TestDatabase:
+	//drop database_ TestDatabase:
 	database->DeleteDatabaseFromDisk();
 	deleted = true;
 

@@ -35,12 +35,12 @@ int32_t GpuSqlDispatcher::deviceCountLimit_;
 std::unordered_map<std::string, int32_t> GpuSqlDispatcher::linkTable;
 
 #ifndef NDEBUG
-void AssertDeviceMatchesCurrentThread(int dispatcherThreadId)
+void AssertDeviceMatchesCurrentThread(int dispatcherThreadId_)
 {
     int device = -1;
     cudaGetDevice(&device);
-    std::cout << "Current device for tid " << dispatcherThreadId << " is " << device << "\n";
-    if (device != dispatcherThreadId)
+    std::cout << "Current device for tid " << dispatcherThreadId_ << " is " << device << "\n";
+    if (device != dispatcherThreadId_)
     {
         abort();
     }
@@ -51,15 +51,15 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database>& database,
                                    std::vector<std::unique_ptr<IGroupBy>>& groupByTables,
                                    std::vector<OrderByBlocks>& orderByBlocks,
                                    int dispatcherThreadId)
-: database(database), blockIndex(dispatcherThreadId), instructionPointer(0), constPointCounter(0),
-  constPolygonCounter(0), constStringCounter(0), filter_(0), usedRegisterMemory(0),
-  maxRegisterMemory(0), // TODO value from config e.g.
-  groupByTables(groupByTables), dispatcherThreadId(dispatcherThreadId), insideAggregation(false),
-  insideGroupBy(false), usingGroupBy(false), usingOrderBy(false), usingJoin(false),
-  isLastBlockOfDevice(false), isOverallLastBlock(false), noLoad(true), loadNecessary(1),
-  cpuDispatcher(database), jmpInstuctionPosition(0),
-  insertIntoData(std::make_unique<InsertIntoStruct>()), joinIndices(nullptr), orderByTable(nullptr),
-  orderByBlocks(orderByBlocks)
+: database_(database), blockIndex_(dispatcherThreadId), instructionPointer_(0),
+  constPointCounter_(0), constPolygonCounter_(0), constStringCounter_(0), filter_(0),
+  usedRegisterMemory_(0), maxRegisterMemory_(0), // TODO value from config e.g.
+  groupByTables_(groupByTables), dispatcherThreadId_(dispatcherThreadId), insideAggregation_(false),
+  insideGroupBy_(false), usingGroupBy_(false), usingOrderBy_(false), usingJoin_(false),
+  isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true), loadNecessary_(1),
+  cpuDispatcher_(database), jmpInstructionPosition_(0),
+  insertIntoData_(std::make_unique<InsertIntoStruct>()), joinIndices_(nullptr),
+  orderByTable_(nullptr), orderByBlocks_(orderByBlocks)
 {
 }
 
@@ -68,20 +68,20 @@ GpuSqlDispatcher::~GpuSqlDispatcher()
 }
 
 
-void GpuSqlDispatcher::copyExecutionDataTo(GpuSqlDispatcher& other, CpuSqlDispatcher& sourceCpuDispatcher)
+void GpuSqlDispatcher::CopyExecutionDataTo(GpuSqlDispatcher& other, CpuSqlDispatcher& sourceCpuDispatcher)
 {
-    other.dispatcherFunctions = dispatcherFunctions;
-    other.arguments = arguments;
-    other.jmpInstuctionPosition = jmpInstuctionPosition;
-    sourceCpuDispatcher.copyExecutionDataTo(other.cpuDispatcher);
+    other.dispatcherFunctions_ = dispatcherFunctions_;
+    other.arguments_ = arguments_;
+    other.jmpInstructionPosition_ = jmpInstructionPosition_;
+    sourceCpuDispatcher.CopyExecutionDataTo(other.cpuDispatcher_);
 }
 
-void GpuSqlDispatcher::setJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx)
+void GpuSqlDispatcher::SetJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx)
 {
     if (!joinIdx->empty())
     {
-        joinIndices = joinIdx;
-        usingJoin = true;
+        joinIndices_ = joinIdx;
+        usingJoin_ = true;
     }
 }
 
@@ -89,14 +89,14 @@ void GpuSqlDispatcher::setJoinIndices(std::unordered_map<std::string, std::vecto
 /// Iterates through all dispatcher functions in the operations array (filled from GpuSqlListener) and executes them
 /// until running out of blocks
 /// <param name="result">Response message to the SQL statement</param>
-void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception)
+void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception)
 {
     try
     {
         Context& context = Context::getInstance();
-        context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
-        context.bindDeviceToContext(dispatcherThreadId);
-        context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
+        context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex_);
+        context.bindDeviceToContext(dispatcherThreadId_);
+        context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex_);
 
         LoadColHelper& loadColHelper = LoadColHelper::getInstance();
 
@@ -105,10 +105,10 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
         while (err == 0)
         {
 
-            err = (this->*dispatcherFunctions[instructionPointer++])();
+            err = (this->*dispatcherFunctions_[instructionPointer_++])();
 #ifndef NDEBUG
-            printf("tid:%d ip: %d \n", dispatcherThreadId, instructionPointer - 1);
-            AssertDeviceMatchesCurrentThread(dispatcherThreadId);
+            printf("tid:%d ip: %d \n", dispatcherThreadId_, instructionPointer_ - 1);
+            AssertDeviceMatchesCurrentThread(dispatcherThreadId_);
 #endif
             if (err)
             {
@@ -134,11 +134,11 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
                 }
                 if (err == 6)
                 {
-                    std::cout << "Create database completed sucessfully" << std::endl;
+                    std::cout << "Create database_ completed sucessfully" << std::endl;
                 }
                 if (err == 7)
                 {
-                    std::cout << "Drop database completed sucessfully" << std::endl;
+                    std::cout << "Drop database_ completed sucessfully" << std::endl;
                 }
                 if (err == 8)
                 {
@@ -166,628 +166,629 @@ void GpuSqlDispatcher::execute(std::unique_ptr<google::protobuf::Message>& resul
                 break;
             }
         }
-        result = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(std::move(responseMessage));
+        result = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(
+            std::move(responseMessage_));
     }
     catch (...)
     {
         exception = std::current_exception();
     }
-    cleanUpGpuPointers();
+    CleanUpGpuPointers();
 }
 
-const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GpuSqlDispatcher::getQueryResponseMessage()
+const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GpuSqlDispatcher::GetQueryResponseMessage()
 {
-    return responseMessage;
+    return responseMessage_;
 }
 
-void GpuSqlDispatcher::addRetFunction(DataType type)
+void GpuSqlDispatcher::AddRetFunction(DataType type)
 {
-    dispatcherFunctions.push_back(retFunctions[type]);
+    dispatcherFunctions_.push_back(retFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addOrderByFunction(DataType type)
+void GpuSqlDispatcher::AddOrderByFunction(DataType type)
 {
-    dispatcherFunctions.push_back(orderByFunctions[type]);
+    dispatcherFunctions_.push_back(orderByFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addOrderByReconstructOrderFunction(DataType type)
+void GpuSqlDispatcher::AddOrderByReconstructOrderFunction(DataType type)
 {
-    dispatcherFunctions.push_back(orderByReconstructOrderFunctions[type]);
+    dispatcherFunctions_.push_back(orderByReconstructOrderFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addOrderByReconstructRetFunction(DataType type)
+void GpuSqlDispatcher::AddOrderByReconstructRetFunction(DataType type)
 {
-    dispatcherFunctions.push_back(orderByReconstructRetFunctions[type]);
+    dispatcherFunctions_.push_back(orderByReconstructRetFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addFreeOrderByTableFunction()
+void GpuSqlDispatcher::AddFreeOrderByTableFunction()
 {
-    dispatcherFunctions.push_back(freeOrderByTableFunction);
+    dispatcherFunctions_.push_back(freeOrderByTableFunction_);
 }
 
-void GpuSqlDispatcher::addOrderByReconstructRetAllBlocksFunction()
+void GpuSqlDispatcher::AddOrderByReconstructRetAllBlocksFunction()
 {
-    dispatcherFunctions.push_back(orderByReconstructRetAllBlocksFunction);
+    dispatcherFunctions_.push_back(orderByReconstructRetAllBlocksFunction_);
 }
 
-void GpuSqlDispatcher::addLockRegisterFunction()
+void GpuSqlDispatcher::AddLockRegisterFunction()
 {
-    dispatcherFunctions.push_back(lockRegisterFunction);
+    dispatcherFunctions_.push_back(lockRegisterFunction_);
 }
 
-void GpuSqlDispatcher::addFilFunction()
+void GpuSqlDispatcher::AddFilFunction()
 {
-    dispatcherFunctions.push_back(filFunction);
+    dispatcherFunctions_.push_back(filFunction_);
 }
 
-void GpuSqlDispatcher::addWhereEvaluationFunction()
+void GpuSqlDispatcher::AddWhereEvaluationFunction()
 {
-    dispatcherFunctions.push_back(whereEvaluationFunction);
+    dispatcherFunctions_.push_back(whereEvaluationFunction_);
 }
 
-void GpuSqlDispatcher::addJmpInstruction()
+void GpuSqlDispatcher::AddJmpInstruction()
 {
-    dispatcherFunctions.push_back(jmpFunction);
-    jmpInstuctionPosition = dispatcherFunctions.size() - 1;
+    dispatcherFunctions_.push_back(jmpFunction_);
+    jmpInstructionPosition_ = dispatcherFunctions_.size() - 1;
 }
 
-void GpuSqlDispatcher::addDoneFunction()
+void GpuSqlDispatcher::AddDoneFunction()
 {
-    dispatcherFunctions.push_back(doneFunction);
+    dispatcherFunctions_.push_back(doneFunction_);
 }
 
-void GpuSqlDispatcher::addShowDatabasesFunction()
+void GpuSqlDispatcher::AddShowDatabasesFunction()
 {
-    dispatcherFunctions.push_back(showDatabasesFunction);
+    dispatcherFunctions_.push_back(showDatabasesFunction_);
 }
 
-void GpuSqlDispatcher::addShowTablesFunction()
+void GpuSqlDispatcher::AddShowTablesFunction()
 {
-    dispatcherFunctions.push_back(showTablesFunction);
+    dispatcherFunctions_.push_back(showTablesFunction_);
 }
 
-void GpuSqlDispatcher::addShowColumnsFunction()
+void GpuSqlDispatcher::AddShowColumnsFunction()
 {
-    dispatcherFunctions.push_back(showColumnsFunction);
+    dispatcherFunctions_.push_back(showColumnsFunction_);
 }
 
-void GpuSqlDispatcher::addCreateDatabaseFunction()
+void GpuSqlDispatcher::AddCreateDatabaseFunction()
 {
-    dispatcherFunctions.push_back(createDatabaseFunction);
+    dispatcherFunctions_.push_back(createDatabaseFunction_);
 }
 
-void GpuSqlDispatcher::addDropDatabaseFunction()
+void GpuSqlDispatcher::AddDropDatabaseFunction()
 {
-    dispatcherFunctions.push_back(dropDatabaseFunction);
+    dispatcherFunctions_.push_back(dropDatabaseFunction_);
 }
 
-void GpuSqlDispatcher::addCreateTableFunction()
+void GpuSqlDispatcher::AddCreateTableFunction()
 {
-    dispatcherFunctions.push_back(createTableFunction);
+    dispatcherFunctions_.push_back(createTableFunction_);
 }
 
-void GpuSqlDispatcher::addDropTableFunction()
+void GpuSqlDispatcher::AddDropTableFunction()
 {
-    dispatcherFunctions.push_back(dropTableFunction);
+    dispatcherFunctions_.push_back(dropTableFunction_);
 }
 
-void GpuSqlDispatcher::addAlterTableFunction()
+void GpuSqlDispatcher::AddAlterTableFunction()
 {
-    dispatcherFunctions.push_back(alterTableFunction);
+    dispatcherFunctions_.push_back(alterTableFunction_);
 }
 
-void GpuSqlDispatcher::addCreateIndexFunction()
+void GpuSqlDispatcher::AddCreateIndexFunction()
 {
-    dispatcherFunctions.push_back(createIndexFunction);
+    dispatcherFunctions_.push_back(createIndexFunction_);
 }
 
-void GpuSqlDispatcher::addInsertIntoFunction(DataType type)
+void GpuSqlDispatcher::AddInsertIntoFunction(DataType type)
 {
-    dispatcherFunctions.push_back(insertIntoFunctions[type]);
+    dispatcherFunctions_.push_back(insertIntoFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addInsertIntoDoneFunction()
+void GpuSqlDispatcher::AddInsertIntoDoneFunction()
 {
-    dispatcherFunctions.push_back(insertIntoDoneFunction);
+    dispatcherFunctions_.push_back(insertIntoDoneFunction_);
 }
 
-void GpuSqlDispatcher::addGreaterFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddGreaterFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(greaterFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(greaterFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 
-void GpuSqlDispatcher::addLessFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddLessFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(lessFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(lessFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 
-void GpuSqlDispatcher::addGreaterEqualFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddGreaterEqualFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(greaterEqualFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(greaterEqualFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 
-void GpuSqlDispatcher::addLessEqualFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddLessEqualFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(lessEqualFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(lessEqualFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 
-void GpuSqlDispatcher::addEqualFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddEqualFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(equalFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(equalFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 
-void GpuSqlDispatcher::addNotEqualFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddNotEqualFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(notEqualFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(notEqualFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 
-void GpuSqlDispatcher::addLogicalAndFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddLogicalAndFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(logicalAndFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(logicalAndFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 
-void GpuSqlDispatcher::addLogicalOrFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddLogicalOrFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(logicalOrFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(logicalOrFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 
-void GpuSqlDispatcher::addMulFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddMulFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(mulFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(mulFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 
-void GpuSqlDispatcher::addDivFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddDivFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(divFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(divFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 
-void GpuSqlDispatcher::addAddFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddAddFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(addFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(addFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
 
-void GpuSqlDispatcher::addSubFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddSubFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(subFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(subFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addModFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddModFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(modFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(modFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addBitwiseOrFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddBitwiseOrFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(bitwiseOrFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(bitwiseOrFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addBitwiseAndFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddBitwiseAndFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(bitwiseAndFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(bitwiseAndFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addBitwiseXorFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddBitwiseXorFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(bitwiseXorFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(bitwiseXorFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addBitwiseLeftShiftFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddBitwiseLeftShiftFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(bitwiseLeftShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(bitwiseLeftShiftFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addBitwiseRightShiftFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddBitwiseRightShiftFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(bitwiseRightShiftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(bitwiseRightShiftFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addPointFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddPointFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(pointFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(pointFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addLogarithmFunction(DataType number, DataType base)
+void GpuSqlDispatcher::AddLogarithmFunction(DataType number, DataType base)
 {
-    dispatcherFunctions.push_back(logarithmFunctions[DataType::DATA_TYPE_SIZE * number + base]);
+    dispatcherFunctions_.push_back(logarithmFunctions_[DataType::DATA_TYPE_SIZE * number + base]);
 }
 
-void GpuSqlDispatcher::addArctangent2Function(DataType y, DataType x)
+void GpuSqlDispatcher::AddArctangent2Function(DataType y, DataType x)
 {
-    dispatcherFunctions.push_back(arctangent2Functions[DataType::DATA_TYPE_SIZE * y + x]);
+    dispatcherFunctions_.push_back(arctangent2Functions_[DataType::DATA_TYPE_SIZE * y + x]);
 }
 
-void GpuSqlDispatcher::addConcatFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddConcatFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(concatFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(concatFunctions[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addLeftFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddLeftFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(leftFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(leftFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addRightFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddRightFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(rightFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(rightFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addPowerFunction(DataType base, DataType exponent)
+void GpuSqlDispatcher::AddPowerFunction(DataType base, DataType exponent)
 {
-    dispatcherFunctions.push_back(powerFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
+    dispatcherFunctions_.push_back(powerFunctions_[DataType::DATA_TYPE_SIZE * base + exponent]);
 }
 
-void GpuSqlDispatcher::addRootFunction(DataType base, DataType exponent)
+void GpuSqlDispatcher::AddRootFunction(DataType base, DataType exponent)
 {
-    dispatcherFunctions.push_back(rootFunctions[DataType::DATA_TYPE_SIZE * base + exponent]);
+    dispatcherFunctions_.push_back(rootFunctions_[DataType::DATA_TYPE_SIZE * base + exponent]);
 }
 
-void GpuSqlDispatcher::addContainsFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddContainsFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(containsFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(containsFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addIntersectFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddIntersectFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(intersectFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(intersectFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addUnionFunction(DataType left, DataType right)
+void GpuSqlDispatcher::AddUnionFunction(DataType left, DataType right)
 {
-    dispatcherFunctions.push_back(unionFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(unionFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
 }
 
-void GpuSqlDispatcher::addCastToIntFunction(DataType operand)
+void GpuSqlDispatcher::AddCastToIntFunction(DataType operand)
 {
-    dispatcherFunctions.push_back(castToIntFunctions[operand]);
+    dispatcherFunctions_.push_back(castToIntFunctions_[operand]);
 }
 
-void GpuSqlDispatcher::addCastToLongFunction(DataType operand)
+void GpuSqlDispatcher::AddCastToLongFunction(DataType operand)
 {
-    dispatcherFunctions.push_back(castToLongFunctions[operand]);
+    dispatcherFunctions_.push_back(castToLongFunctions_[operand]);
 }
 
-void GpuSqlDispatcher::addCastToDateFunction(DataType operand)
+void GpuSqlDispatcher::AddCastToDateFunction(DataType operand)
 {
-    // dispatcherFunctions.push_back(castToDateFunctions[operand]);
+    // dispatcherFunctions_.push_back(castToDateFunctions[operand]);
 }
 
-void GpuSqlDispatcher::addCastToFloatFunction(DataType operand)
+void GpuSqlDispatcher::AddCastToFloatFunction(DataType operand)
 {
-    dispatcherFunctions.push_back(castToFloatFunctions[operand]);
+    dispatcherFunctions_.push_back(castToFloatFunctions_[operand]);
 }
 
-void GpuSqlDispatcher::addCastToDoubleFunction(DataType operand)
+void GpuSqlDispatcher::AddCastToDoubleFunction(DataType operand)
 {
-    dispatcherFunctions.push_back(castToDoubleFunctions[operand]);
+    dispatcherFunctions_.push_back(castToDoubleFunctions_[operand]);
 }
 
-void GpuSqlDispatcher::addCastToStringFunction(DataType operand)
+void GpuSqlDispatcher::AddCastToStringFunction(DataType operand)
 {
-    dispatcherFunctions.push_back(castToStringFunctions[operand]);
+    dispatcherFunctions_.push_back(castToStringFunctions_[operand]);
 }
 
-void GpuSqlDispatcher::addCastToPointFunction(DataType operand)
+void GpuSqlDispatcher::AddCastToPointFunction(DataType operand)
 {
-    dispatcherFunctions.push_back(castToPointFunctions[operand]);
+    dispatcherFunctions_.push_back(castToPointFunctions_[operand]);
 }
 
-void GpuSqlDispatcher::addCastToPolygonFunction(DataType operand)
+void GpuSqlDispatcher::AddCastToPolygonFunction(DataType operand)
 {
-    dispatcherFunctions.push_back(castToPolygonFunctions[operand]);
+    dispatcherFunctions_.push_back(castToPolygonFunctions_[operand]);
 }
 
-void GpuSqlDispatcher::addCastToInt8tFunction(DataType operand)
+void GpuSqlDispatcher::AddCastToInt8TFunction(DataType operand)
 {
-    dispatcherFunctions.push_back(castToInt8tFunctions[operand]);
+    dispatcherFunctions_.push_back(castToInt8TFunctions_[operand]);
 }
 
-void GpuSqlDispatcher::addLogicalNotFunction(DataType type)
+void GpuSqlDispatcher::AddLogicalNotFunction(DataType type)
 {
-    dispatcherFunctions.push_back(logicalNotFunctions[type]);
+    dispatcherFunctions_.push_back(logicalNotFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addIsNullFunction()
+void GpuSqlDispatcher::AddIsNullFunction()
 {
-    dispatcherFunctions.push_back(isNullFunction);
+    dispatcherFunctions_.push_back(isNullFunction_);
 }
 
-void GpuSqlDispatcher::addIsNotNullFunction()
+void GpuSqlDispatcher::AddIsNotNullFunction()
 {
-    dispatcherFunctions.push_back(isNotNullFunction);
+    dispatcherFunctions_.push_back(isNotNullFunction_);
 }
 
-void GpuSqlDispatcher::addMinusFunction(DataType type)
+void GpuSqlDispatcher::AddMinusFunction(DataType type)
 {
-    dispatcherFunctions.push_back(minusFunctions[type]);
+    dispatcherFunctions_.push_back(minusFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addYearFunction(DataType type)
+void GpuSqlDispatcher::AddYearFunction(DataType type)
 {
-    dispatcherFunctions.push_back(yearFunctions[type]);
+    dispatcherFunctions_.push_back(yearFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addMonthFunction(DataType type)
+void GpuSqlDispatcher::AddMonthFunction(DataType type)
 {
-    dispatcherFunctions.push_back(monthFunctions[type]);
+    dispatcherFunctions_.push_back(monthFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addDayFunction(DataType type)
+void GpuSqlDispatcher::AddDayFunction(DataType type)
 {
-    dispatcherFunctions.push_back(dayFunctions[type]);
+    dispatcherFunctions_.push_back(dayFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addHourFunction(DataType type)
+void GpuSqlDispatcher::AddHourFunction(DataType type)
 {
-    dispatcherFunctions.push_back(hourFunctions[type]);
+    dispatcherFunctions_.push_back(hourFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addMinuteFunction(DataType type)
+void GpuSqlDispatcher::AddMinuteFunction(DataType type)
 {
-    dispatcherFunctions.push_back(minuteFunctions[type]);
+    dispatcherFunctions_.push_back(minuteFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addSecondFunction(DataType type)
+void GpuSqlDispatcher::AddSecondFunction(DataType type)
 {
-    dispatcherFunctions.push_back(secondFunctions[type]);
+    dispatcherFunctions_.push_back(secondFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addAbsoluteFunction(DataType type)
+void GpuSqlDispatcher::AddAbsoluteFunction(DataType type)
 {
-    dispatcherFunctions.push_back(absoluteFunctions[type]);
+    dispatcherFunctions_.push_back(absoluteFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addSineFunction(DataType type)
+void GpuSqlDispatcher::AddSineFunction(DataType type)
 {
-    dispatcherFunctions.push_back(sineFunctions[type]);
+    dispatcherFunctions_.push_back(sineFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addCosineFunction(DataType type)
+void GpuSqlDispatcher::AddCosineFunction(DataType type)
 {
-    dispatcherFunctions.push_back(cosineFunctions[type]);
+    dispatcherFunctions_.push_back(cosineFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addTangentFunction(DataType type)
+void GpuSqlDispatcher::AddTangentFunction(DataType type)
 {
-    dispatcherFunctions.push_back(tangentFunctions[type]);
+    dispatcherFunctions_.push_back(tangentFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addCotangentFunction(DataType type)
+void GpuSqlDispatcher::AddCotangentFunction(DataType type)
 {
-    dispatcherFunctions.push_back(cotangentFunctions[type]);
+    dispatcherFunctions_.push_back(cotangentFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addArcsineFunction(DataType type)
+void GpuSqlDispatcher::AddArcsineFunction(DataType type)
 {
-    dispatcherFunctions.push_back(arcsineFunctions[type]);
+    dispatcherFunctions_.push_back(arcsineFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addArccosineFunction(DataType type)
+void GpuSqlDispatcher::AddArccosineFunction(DataType type)
 {
-    dispatcherFunctions.push_back(arccosineFunctions[type]);
+    dispatcherFunctions_.push_back(arccosineFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addArctangentFunction(DataType type)
+void GpuSqlDispatcher::AddArctangentFunction(DataType type)
 {
-    dispatcherFunctions.push_back(arctangentFunctions[type]);
+    dispatcherFunctions_.push_back(arctangentFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addLogarithm10Function(DataType type)
+void GpuSqlDispatcher::AddLogarithm10Function(DataType type)
 {
-    dispatcherFunctions.push_back(logarithm10Functions[type]);
+    dispatcherFunctions_.push_back(logarithm10Functions_[type]);
 }
 
-void GpuSqlDispatcher::addLogarithmNaturalFunction(DataType type)
+void GpuSqlDispatcher::AddLogarithmNaturalFunction(DataType type)
 {
-    dispatcherFunctions.push_back(logarithmNaturalFunctions[type]);
+    dispatcherFunctions_.push_back(logarithmNaturalFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addExponentialFunction(DataType type)
+void GpuSqlDispatcher::AddExponentialFunction(DataType type)
 {
-    dispatcherFunctions.push_back(exponentialFunctions[type]);
+    dispatcherFunctions_.push_back(exponentialFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addSquareFunction(DataType type)
+void GpuSqlDispatcher::AddSquareFunction(DataType type)
 {
-    dispatcherFunctions.push_back(squareFunctions[type]);
+    dispatcherFunctions_.push_back(squareFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addSquareRootFunction(DataType type)
+void GpuSqlDispatcher::AddSquareRootFunction(DataType type)
 {
-    dispatcherFunctions.push_back(squareRootFunctions[type]);
+    dispatcherFunctions_.push_back(squareRootFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addSignFunction(DataType type)
+void GpuSqlDispatcher::AddSignFunction(DataType type)
 {
-    dispatcherFunctions.push_back(signFunctions[type]);
+    dispatcherFunctions_.push_back(signFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addRoundFunction(DataType type)
+void GpuSqlDispatcher::AddRoundFunction(DataType type)
 {
-    dispatcherFunctions.push_back(roundFunctions[type]);
+    dispatcherFunctions_.push_back(roundFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addFloorFunction(DataType type)
+void GpuSqlDispatcher::AddFloorFunction(DataType type)
 {
-    dispatcherFunctions.push_back(floorFunctions[type]);
+    dispatcherFunctions_.push_back(floorFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addCeilFunction(DataType type)
+void GpuSqlDispatcher::AddCeilFunction(DataType type)
 {
-    dispatcherFunctions.push_back(ceilFunctions[type]);
+    dispatcherFunctions_.push_back(ceilFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addLtrimFunction(DataType type)
+void GpuSqlDispatcher::AddLtrimFunction(DataType type)
 {
-    dispatcherFunctions.push_back(ltrimFunctions[type]);
+    dispatcherFunctions_.push_back(ltrimFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addRtrimFunction(DataType type)
+void GpuSqlDispatcher::AddRtrimFunction(DataType type)
 {
-    dispatcherFunctions.push_back(rtrimFunctions[type]);
+    dispatcherFunctions_.push_back(rtrimFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addLowerFunction(DataType type)
+void GpuSqlDispatcher::AddLowerFunction(DataType type)
 {
-    dispatcherFunctions.push_back(lowerFunctions[type]);
+    dispatcherFunctions_.push_back(lowerFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addUpperFunction(DataType type)
+void GpuSqlDispatcher::AddUpperFunction(DataType type)
 {
-    dispatcherFunctions.push_back(upperFunctions[type]);
+    dispatcherFunctions_.push_back(upperFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addReverseFunction(DataType type)
+void GpuSqlDispatcher::AddReverseFunction(DataType type)
 {
-    dispatcherFunctions.push_back(reverseFunctions[type]);
+    dispatcherFunctions_.push_back(reverseFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addLenFunction(DataType type)
+void GpuSqlDispatcher::AddLenFunction(DataType type)
 {
-    dispatcherFunctions.push_back(lenFunctions[type]);
+    dispatcherFunctions_.push_back(lenFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addMinFunction(DataType key, DataType value, GroupByType groupByType)
+void GpuSqlDispatcher::AddMinFunction(DataType key, DataType value, GroupByType groupByType)
 {
     GpuSqlDispatcher::DispatchFunction fun;
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = minAggregationFunctions[DataType::DATA_TYPE_SIZE * key + value];
+        fun = minAggregationFunctions_[DataType::DATA_TYPE_SIZE * key + value];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
-        fun = minGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
+        fun = minGroupByFunctions_[DataType::DATA_TYPE_SIZE * key + value];
         break;
     case GroupByType::MULTI_KEY_GROUP_BY:
-        fun = minGroupByMultiKeyFunctions[value];
+        fun = minGroupByMultiKeyFunctions_[value];
         break;
     default:
         break;
     }
-    dispatcherFunctions.push_back(fun);
+    dispatcherFunctions_.push_back(fun);
 }
 
-void GpuSqlDispatcher::addMaxFunction(DataType key, DataType value, GroupByType groupByType)
+void GpuSqlDispatcher::AddMaxFunction(DataType key, DataType value, GroupByType groupByType)
 {
     GpuSqlDispatcher::DispatchFunction fun;
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = maxAggregationFunctions[DataType::DATA_TYPE_SIZE * key + value];
+        fun = maxAggregationFunctions_[DataType::DATA_TYPE_SIZE * key + value];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
-        fun = maxGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
+        fun = maxGroupByFunctions_[DataType::DATA_TYPE_SIZE * key + value];
         break;
     case GroupByType::MULTI_KEY_GROUP_BY:
-        fun = maxGroupByMultiKeyFunctions[value];
+        fun = maxGroupByMultiKeyFunctions_[value];
         break;
     default:
         break;
     }
-    dispatcherFunctions.push_back(fun);
+    dispatcherFunctions_.push_back(fun);
 }
 
-void GpuSqlDispatcher::addSumFunction(DataType key, DataType value, GroupByType groupByType)
+void GpuSqlDispatcher::AddSumFunction(DataType key, DataType value, GroupByType groupByType)
 {
     GpuSqlDispatcher::DispatchFunction fun;
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = sumAggregationFunctions[DataType::DATA_TYPE_SIZE * key + value];
+        fun = sumAggregationFunctions_[DataType::DATA_TYPE_SIZE * key + value];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
-        fun = sumGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
+        fun = sumGroupByFunctions_[DataType::DATA_TYPE_SIZE * key + value];
         break;
     case GroupByType::MULTI_KEY_GROUP_BY:
-        fun = sumGroupByMultiKeyFunctions[value];
+        fun = sumGroupByMultiKeyFunctions_[value];
         break;
     default:
         break;
     }
-    dispatcherFunctions.push_back(fun);
+    dispatcherFunctions_.push_back(fun);
 }
 
-void GpuSqlDispatcher::addCountFunction(DataType key, DataType value, GroupByType groupByType)
+void GpuSqlDispatcher::AddCountFunction(DataType key, DataType value, GroupByType groupByType)
 {
     GpuSqlDispatcher::DispatchFunction fun;
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = countAggregationFunctions[DataType::DATA_TYPE_SIZE * key + value];
+        fun = countAggregationFunctions_[DataType::DATA_TYPE_SIZE * key + value];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
-        fun = countGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
+        fun = countGroupByFunctions_[DataType::DATA_TYPE_SIZE * key + value];
         break;
     case GroupByType::MULTI_KEY_GROUP_BY:
-        fun = countGroupByMultiKeyFunctions[value];
+        fun = countGroupByMultiKeyFunctions_[value];
         break;
     default:
         break;
     }
-    dispatcherFunctions.push_back(fun);
+    dispatcherFunctions_.push_back(fun);
 }
 
-void GpuSqlDispatcher::addAvgFunction(DataType key, DataType value, GroupByType groupByType)
+void GpuSqlDispatcher::AddAvgFunction(DataType key, DataType value, GroupByType groupByType)
 {
     GpuSqlDispatcher::DispatchFunction fun;
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = avgAggregationFunctions[DataType::DATA_TYPE_SIZE * key + value];
+        fun = avgAggregationFunctions_[DataType::DATA_TYPE_SIZE * key + value];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
-        fun = avgGroupByFunctions[DataType::DATA_TYPE_SIZE * key + value];
+        fun = avgGroupByFunctions_[DataType::DATA_TYPE_SIZE * key + value];
         break;
     case GroupByType::MULTI_KEY_GROUP_BY:
-        fun = avgGroupByMultiKeyFunctions[value];
+        fun = avgGroupByMultiKeyFunctions_[value];
         break;
     default:
         break;
     }
-    dispatcherFunctions.push_back(fun);
+    dispatcherFunctions_.push_back(fun);
 }
 
-void GpuSqlDispatcher::addGroupByFunction(DataType type)
+void GpuSqlDispatcher::AddGroupByFunction(DataType type)
 {
-    dispatcherFunctions.push_back(groupByFunctions[type]);
+    dispatcherFunctions_.push_back(groupByFunctions_[type]);
 }
 
-void GpuSqlDispatcher::addGroupByBeginFunction()
+void GpuSqlDispatcher::AddGroupByBeginFunction()
 {
-    dispatcherFunctions.push_back(groupByBeginFunction);
+    dispatcherFunctions_.push_back(groupByBeginFunction_);
 }
 
-void GpuSqlDispatcher::addGroupByDoneFunction()
+void GpuSqlDispatcher::AddGroupByDoneFunction()
 {
-    dispatcherFunctions.push_back(groupByDoneFunction);
+    dispatcherFunctions_.push_back(groupByDoneFunction_);
 }
 
-void GpuSqlDispatcher::addAggregationBeginFunction()
+void GpuSqlDispatcher::AddAggregationBeginFunction()
 {
-    dispatcherFunctions.push_back(aggregationBeginFunction);
+    dispatcherFunctions_.push_back(aggregationBeginFunction_);
 }
 
-void GpuSqlDispatcher::addAggregationDoneFunction()
+void GpuSqlDispatcher::AddAggregationDoneFunction()
 {
-    dispatcherFunctions.push_back(aggregationDoneFunction);
+    dispatcherFunctions_.push_back(aggregationDoneFunction_);
 }
 
-void GpuSqlDispatcher::addBetweenFunction(DataType op1, DataType op2, DataType op3)
+void GpuSqlDispatcher::AddBetweenFunction(DataType op1, DataType op2, DataType op3)
 {
     // TODO: Between
 }
 
-void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn,
+void GpuSqlDispatcher::FillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn,
                                            const std::string& reg,
                                            int32_t size,
                                            bool useCache,
@@ -812,9 +813,9 @@ void GpuSqlDispatcher::fillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn,
 
 void GpuSqlDispatcher::InsertRegister(const std::string& registerName, PointerAllocation registerValues)
 {
-    if (allocatedPointers.find(registerName) == allocatedPointers.end())
+    if (allocatedPointers_.find(registerName) == allocatedPointers_.end())
     {
-        allocatedPointers.insert({registerName, registerValues});
+        allocatedPointers_.insert({registerName, registerValues});
     }
     else
     {
@@ -822,7 +823,7 @@ void GpuSqlDispatcher::InsertRegister(const std::string& registerName, PointerAl
     }
 }
 
-void GpuSqlDispatcher::fillStringRegister(GPUMemory::GPUString& stringColumn,
+void GpuSqlDispatcher::FillStringRegister(GPUMemory::GPUString& stringColumn,
                                           const std::string& reg,
                                           int32_t size,
                                           bool useCache,
@@ -836,9 +837,9 @@ void GpuSqlDispatcher::fillStringRegister(GPUMemory::GPUString& stringColumn,
                                      !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
 }
 
-int32_t GpuSqlDispatcher::loadColNullMask(std::string& colName)
+int32_t GpuSqlDispatcher::LoadColNullMask(std::string& colName)
 {
-    if (allocatedPointers.find(colName + NULL_SUFFIX) == allocatedPointers.end() &&
+    if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
     {
         std::cout << "LoadNullMask: " << colName << std::endl;
@@ -849,42 +850,42 @@ int32_t GpuSqlDispatcher::loadColNullMask(std::string& colName)
         const std::string column = colName.substr(endOfPolyIdx + 1);
 
         const int32_t blockCount =
-            database->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
+            database_->GetTables().at(table).GetColumns().at(column).get()->GetBlockCount();
         GpuSqlDispatcher::deviceCountLimit_ =
             std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
-        if (blockIndex >= blockCount)
+        if (blockIndex_ >= blockCount)
         {
             return 1;
         }
-        if (blockIndex >= blockCount - Context::getInstance().getDeviceCount())
+        if (blockIndex_ >= blockCount - Context::getInstance().getDeviceCount())
         {
-            isLastBlockOfDevice = true;
+            isLastBlockOfDevice_ = true;
         }
-        if (blockIndex == blockCount - 1)
+        if (blockIndex_ == blockCount - 1)
         {
-            isOverallLastBlock = true;
+            isOverallLastBlock_ = true;
         }
 
         auto blockNullMask =
-            database->GetTables().at(table).GetColumns().at(column)->GetNullBitMaskForBlock(blockIndex);
+            database_->GetTables().at(table).GetColumns().at(column)->GetNullBitMaskForBlock(blockIndex_);
         size_t blockNullMaskSize =
             (std::get<1>(blockNullMask) + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
 
         auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-            database->GetName(), colName + NULL_SUFFIX, blockIndex, blockNullMaskSize);
+            database_->GetName(), colName + NULL_SUFFIX, blockIndex_, blockNullMaskSize);
         if (!std::get<2>(cacheEntry))
         {
             GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), std::get<0>(blockNullMask), blockNullMaskSize);
         }
-        addCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheEntry), std::get<1>(blockNullMask));
+        AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheEntry), std::get<1>(blockNullMask));
 
-        noLoad = false;
+        noLoad_ = false;
     }
     return 0;
 }
 
 GPUMemory::GPUPolygon
-GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName,
+GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
                                        const std::string& colName,
                                        const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
                                        int32_t size,
@@ -894,47 +895,48 @@ GpuSqlDispatcher::insertComplexPolygon(const std::string& databaseName,
     if (useCache)
     {
         if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyPoints",
-                                                                             blockIndex) &&
+                                                                             blockIndex_) &&
             Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_pointIdx",
-                                                                             blockIndex) &&
+                                                                             blockIndex_) &&
             Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_pointCount",
-                                                                             blockIndex) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx", blockIndex) &&
+                                                                             blockIndex_) &&
+            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx",
+                                                                             blockIndex_) &&
             Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyCount",
-                                                                             blockIndex))
+                                                                             blockIndex_))
         {
             GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
             GPUMemory::GPUPolygon polygon;
             polygon.polyPoints = std::get<0>(
-                cache.getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints", blockIndex, size));
+                cache.getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints", blockIndex_, size));
             polygon.pointIdx = std::get<0>(
-                cache.getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex, size));
+                cache.getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex_, size));
             polygon.pointCount = std::get<0>(
-                cache.getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex, size));
+                cache.getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex_, size));
             polygon.polyIdx =
-                std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex, size));
-            polygon.polyCount =
-                std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyCount", blockIndex, size));
-            fillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
+                std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex_, size));
+            polygon.polyCount = std::get<0>(
+                cache.getColumn<int32_t>(databaseName, colName + "_polyCount", blockIndex_, size));
+            FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
             return polygon;
         }
         else
         {
             GPUMemory::GPUPolygon polygon =
-                ComplexPolygonFactory::PrepareGPUPolygon(polygons, databaseName, colName, blockIndex);
-            fillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
+                ComplexPolygonFactory::PrepareGPUPolygon(polygons, databaseName, colName, blockIndex_);
+            FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
             return polygon;
         }
     }
     else
     {
         GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons);
-        fillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
+        FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
         return polygon;
     }
 }
 
-GPUMemory::GPUString GpuSqlDispatcher::insertString(const std::string& databaseName,
+GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseName,
                                                     const std::string& colName,
                                                     const std::vector<std::string>& strings,
                                                     int32_t size,
@@ -944,104 +946,105 @@ GPUMemory::GPUString GpuSqlDispatcher::insertString(const std::string& databaseN
     if (useCache)
     {
         if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_stringIndices",
-                                                                             blockIndex) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_allChars", blockIndex))
+                                                                             blockIndex_) &&
+            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_allChars",
+                                                                             blockIndex_))
         {
             GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
             GPUMemory::GPUString gpuString;
             gpuString.stringIndices = std::get<0>(
-                cache.getColumn<int64_t>(databaseName, colName + "_stringIndices", blockIndex, size));
+                cache.getColumn<int64_t>(databaseName, colName + "_stringIndices", blockIndex_, size));
             gpuString.allChars =
-                std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex, size));
-            fillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
+                std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex_, size));
+            FillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
             return gpuString;
         }
         else
         {
             GPUMemory::GPUString gpuString =
-                StringFactory::PrepareGPUString(strings, databaseName, colName, blockIndex);
-            fillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
+                StringFactory::PrepareGPUString(strings, databaseName, colName, blockIndex_);
+            FillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
             return gpuString;
         }
     }
     else
     {
         GPUMemory::GPUString gpuString = StringFactory::PrepareGPUString(strings);
-        fillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
+        FillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
         return gpuString;
     }
 }
 
-std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> GpuSqlDispatcher::findComplexPolygon(std::string colName)
+std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> GpuSqlDispatcher::FindComplexPolygon(std::string colName)
 {
     GPUMemory::GPUPolygon polygon;
-    int32_t size = allocatedPointers.at(colName + "_polyPoints").elementCount;
+    int32_t size = allocatedPointers_.at(colName + "_polyPoints").ElementCount;
 
     polygon.polyPoints =
-        reinterpret_cast<NativeGeoPoint*>(allocatedPointers.at(colName + "_polyPoints").gpuPtr);
-    polygon.pointIdx = reinterpret_cast<int32_t*>(allocatedPointers.at(colName + "_pointIdx").gpuPtr);
-    polygon.pointCount = reinterpret_cast<int32_t*>(allocatedPointers.at(colName + "_pointCount").gpuPtr);
-    polygon.polyIdx = reinterpret_cast<int32_t*>(allocatedPointers.at(colName + "_polyIdx").gpuPtr);
-    polygon.polyCount = reinterpret_cast<int32_t*>(allocatedPointers.at(colName + "_polyCount").gpuPtr);
+        reinterpret_cast<NativeGeoPoint*>(allocatedPointers_.at(colName + "_polyPoints").GpuPtr);
+    polygon.pointIdx = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_pointIdx").GpuPtr);
+    polygon.pointCount = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_pointCount").GpuPtr);
+    polygon.polyIdx = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_polyIdx").GpuPtr);
+    polygon.polyCount = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_polyCount").GpuPtr);
 
     return std::make_tuple(polygon, size,
-                           reinterpret_cast<int8_t*>(allocatedPointers.at(colName + "_polyPoints").gpuNullMaskPtr));
+                           reinterpret_cast<int8_t*>(allocatedPointers_.at(colName + "_polyPoints").GpuNullMaskPtr));
 }
 
-std::tuple<GPUMemory::GPUString, int32_t, int8_t*> GpuSqlDispatcher::findStringColumn(const std::string& colName)
+std::tuple<GPUMemory::GPUString, int32_t, int8_t*> GpuSqlDispatcher::FindStringColumn(const std::string& colName)
 {
     GPUMemory::GPUString gpuString;
-    int32_t size = allocatedPointers.at(colName + "_stringIndices").elementCount;
+    int32_t size = allocatedPointers_.at(colName + "_stringIndices").ElementCount;
     gpuString.stringIndices =
-        reinterpret_cast<int64_t*>(allocatedPointers.at(colName + "_stringIndices").gpuPtr);
-    gpuString.allChars = reinterpret_cast<char*>(allocatedPointers.at(colName + "_allChars").gpuPtr);
+        reinterpret_cast<int64_t*>(allocatedPointers_.at(colName + "_stringIndices").GpuPtr);
+    gpuString.allChars = reinterpret_cast<char*>(allocatedPointers_.at(colName + "_allChars").GpuPtr);
     return std::make_tuple(gpuString, size,
                            reinterpret_cast<int8_t*>(
-                               allocatedPointers.at(colName + "_stringIndices").gpuNullMaskPtr));
+                               allocatedPointers_.at(colName + "_stringIndices").GpuNullMaskPtr));
 }
 
-GPUMemory::GPUString GpuSqlDispatcher::insertConstStringGpu(const std::string& str)
+GPUMemory::GPUString GpuSqlDispatcher::InsertConstStringGpu(const std::string& str)
 {
-    std::string name = "constString" + std::to_string(constStringCounter);
-    constStringCounter++;
-    return insertString(database->GetName(), name, {str}, 1);
+    std::string name = "constString" + std::to_string(constStringCounter_);
+    constStringCounter_++;
+    return InsertString(database_->GetName(), name, {str}, 1);
 }
 
 /// Clears all allocated buffers
 /// Resets memory stream reading index to prepare for execution on the next block of data
-void GpuSqlDispatcher::cleanUpGpuPointers()
+void GpuSqlDispatcher::CleanUpGpuPointers()
 {
-    usingGroupBy = false;
-    arguments.reset();
-    for (auto& ptr : allocatedPointers)
+    usingGroupBy_ = false;
+    arguments_.Reset();
+    for (auto& ptr : allocatedPointers_)
     {
-        if (ptr.second.gpuPtr != 0 && ptr.second.shouldBeFreed)
+        if (ptr.second.GpuPtr != 0 && ptr.second.ShouldBeFreed)
         {
-            GPUMemory::free(reinterpret_cast<void*>(ptr.second.gpuPtr));
+            GPUMemory::free(reinterpret_cast<void*>(ptr.second.GpuPtr));
         }
     }
-    usedRegisterMemory = 0;
-    usingGroupBy = false;
-    aggregatedRegisters.clear();
-    allocatedPointers.clear();
+    usedRegisterMemory_ = 0;
+    usingGroupBy_ = false;
+    aggregatedRegisters_.clear();
+    allocatedPointers_.clear();
 }
 
 
 /// Implementation of FIL operation
 /// Marks WHERE clause result register as the filtering register
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::fil()
+int32_t GpuSqlDispatcher::Fil()
 {
-    auto reg = arguments.read<std::string>();
+    auto reg = arguments_.Read<std::string>();
     std::cout << "Filter: " << reg << std::endl;
-    filter_ = allocatedPointers.at(reg).gpuPtr;
+    filter_ = allocatedPointers_.at(reg).GpuPtr;
     return 0;
 }
 
-int32_t GpuSqlDispatcher::whereEvaluation()
+int32_t GpuSqlDispatcher::WhereEvaluation()
 {
-    loadNecessary = usingJoin ? 1 : cpuDispatcher.execute(blockIndex);
-    std::cout << "Where load evaluation: " << loadNecessary << std::endl;
+    loadNecessary_ = usingJoin_ ? 1 : cpuDispatcher_.Execute(blockIndex_);
+    std::cout << "Where load evaluation: " << loadNecessary_ << std::endl;
     return 0;
 }
 
@@ -1049,22 +1052,22 @@ int32_t GpuSqlDispatcher::whereEvaluation()
 /// Implementation of JMP operation
 /// Determines next block index to process by this instance of dispatcher based on CUDA device count
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::jmp()
+int32_t GpuSqlDispatcher::Jmp()
 {
     Context& context = Context::getInstance();
 
-    if (noLoad && loadNecessary != 0)
+    if (noLoad_ && loadNecessary_ != 0)
     {
-        cleanUpGpuPointers();
+        CleanUpGpuPointers();
         return 0;
     }
 
-    if (!isLastBlockOfDevice)
+    if (!isLastBlockOfDevice_)
     {
-        blockIndex += context.getDeviceCount();
-        context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex);
-        instructionPointer = 0;
-        cleanUpGpuPointers();
+        blockIndex_ += context.getDeviceCount();
+        context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex_);
+        instructionPointer_ = 0;
+        CleanUpGpuPointers();
         return 0;
     }
 
@@ -1076,9 +1079,9 @@ int32_t GpuSqlDispatcher::jmp()
 /// Implementation of DONE operation
 /// Clears all allocated temporary result buffers
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::done()
+int32_t GpuSqlDispatcher::Done()
 {
-    cleanUpGpuPointers();
+    CleanUpGpuPointers();
     std::cout << "Done" << std::endl;
     return 1;
 }
@@ -1086,7 +1089,7 @@ int32_t GpuSqlDispatcher::done()
 /// Implementation of SHOW DATABASES operation
 /// Inserts database names to the response message
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::showDatabases()
+int32_t GpuSqlDispatcher::ShowDatabases()
 {
     auto databases_map = Database::GetDatabaseNames();
     std::unique_ptr<std::string[]> outData(new std::string[databases_map.size()]);
@@ -1098,7 +1101,7 @@ int32_t GpuSqlDispatcher::showDatabases()
     }
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    insertIntoPayload(payload, outData, databases_map.size());
+    InsertIntoPayload(payload, outData, databases_map.size());
     MergePayloadToSelfResponse("Databases", payload);
 
     return 2;
@@ -1108,13 +1111,13 @@ int32_t GpuSqlDispatcher::showDatabases()
 /// Implementation of SHOW TABLES operation
 /// Inserts table names to the response message
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::showTables()
+int32_t GpuSqlDispatcher::ShowTables()
 {
-    std::string db = arguments.read<std::string>();
+    std::string db = arguments_.Read<std::string>();
     std::shared_ptr<Database> database = Database::GetDatabaseByName(db);
 
-    std::unique_ptr<std::string[]> outData(new std::string[database->GetTables().size()]);
-    auto& tables_map = database->GetTables();
+    std::unique_ptr<std::string[]> outData(new std::string[database_->GetTables().size()]);
+    auto& tables_map = database_->GetTables();
 
     int i = 0;
     for (auto& tableName : tables_map)
@@ -1123,7 +1126,7 @@ int32_t GpuSqlDispatcher::showTables()
     }
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    insertIntoPayload(payload, outData, tables_map.size());
+    InsertIntoPayload(payload, outData, tables_map.size());
     MergePayloadToSelfResponse(db, payload);
 
     return 3;
@@ -1132,13 +1135,13 @@ int32_t GpuSqlDispatcher::showTables()
 /// Implementation of SHOW COLUMN operation
 /// Inserts column names and their types to the response message
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::showColumns()
+int32_t GpuSqlDispatcher::ShowColumns()
 {
-    std::string db = arguments.read<std::string>();
-    std::string tab = arguments.read<std::string>();
+    std::string db = arguments_.Read<std::string>();
+    std::string tab = arguments_.Read<std::string>();
 
     std::shared_ptr<Database> database = Database::GetDatabaseByName(db);
-    auto& table = database->GetTables().at(tab);
+    auto& table = database_->GetTables().at(tab);
 
     auto& columns_map = table.GetColumns();
     // std::vector<std::string> columns;
@@ -1155,57 +1158,57 @@ int32_t GpuSqlDispatcher::showColumns()
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadName;
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadType;
-    insertIntoPayload(payloadName, outDataName, columns_map.size());
-    insertIntoPayload(payloadType, outDataType, columns_map.size());
+    InsertIntoPayload(payloadName, outDataName, columns_map.size());
+    InsertIntoPayload(payloadType, outDataType, columns_map.size());
     MergePayloadToSelfResponse(tab + "_columns", payloadName);
     MergePayloadToSelfResponse(tab + "_types", payloadType);
     return 4;
 }
 
-int32_t GpuSqlDispatcher::createDatabase()
+int32_t GpuSqlDispatcher::CreateDatabase()
 {
-    std::string newDbName = arguments.read<std::string>();
-    int32_t newDbBlockSize = arguments.read<int32_t>();
+    std::string newDbName = arguments_.Read<std::string>();
+    int32_t newDbBlockSize = arguments_.Read<int32_t>();
     std::shared_ptr<Database> newDb = std::make_shared<Database>(newDbName.c_str(), newDbBlockSize);
     Database::AddToInMemoryDatabaseList(newDb);
     return 6;
 }
 
-int32_t GpuSqlDispatcher::dropDatabase()
+int32_t GpuSqlDispatcher::DropDatabase()
 {
-    std::string dbName = arguments.read<std::string>();
+    std::string dbName = arguments_.Read<std::string>();
     Database::GetDatabaseByName(dbName)->DeleteDatabaseFromDisk();
     Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
     return 7;
 }
 
-int32_t GpuSqlDispatcher::createTable()
+int32_t GpuSqlDispatcher::CreateTable()
 {
     std::unordered_map<std::string, DataType> newColumns;
     std::unordered_map<std::string, std::vector<std::string>> newIndices;
 
-    std::string newTableName = arguments.read<std::string>();
+    std::string newTableName = arguments_.Read<std::string>();
 
-    int32_t newColumnsCount = arguments.read<int32_t>();
+    int32_t newColumnsCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < newColumnsCount; i++)
     {
-        std::string newColumnName = arguments.read<std::string>();
-        int32_t newColumnDataType = arguments.read<int32_t>();
+        std::string newColumnName = arguments_.Read<std::string>();
+        int32_t newColumnDataType = arguments_.Read<int32_t>();
         newColumns.insert({newColumnName, static_cast<DataType>(newColumnDataType)});
     }
 
     std::vector<std::string> allIndexColumns;
 
-    int32_t newIndexCount = arguments.read<int32_t>();
+    int32_t newIndexCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < newIndexCount; i++)
     {
-        std::string newIndexName = arguments.read<std::string>();
-        int32_t newIndexColumnCount = arguments.read<int32_t>();
+        std::string newIndexName = arguments_.Read<std::string>();
+        int32_t newIndexColumnCount = arguments_.Read<int32_t>();
         std::vector<std::string> newIndexColumns;
 
         for (int32_t j = 0; j < newIndexColumnCount; j++)
         {
-            std::string newIndexColumn = arguments.read<std::string>();
+            std::string newIndexColumn = arguments_.Read<std::string>();
             newIndexColumns.push_back(newIndexColumn);
             if (std::find(allIndexColumns.begin(), allIndexColumns.end(), newIndexColumn) ==
                 allIndexColumns.end())
@@ -1216,71 +1219,71 @@ int32_t GpuSqlDispatcher::createTable()
         newIndices.insert({newIndexName, newIndexColumns});
     }
 
-    database->CreateTable(newColumns, newTableName.c_str()).SetSortingColumns(allIndexColumns);
+    database_->CreateTable(newColumns, newTableName.c_str()).SetSortingColumns(allIndexColumns);
     return 8;
 }
 
-int32_t GpuSqlDispatcher::dropTable()
+int32_t GpuSqlDispatcher::DropTable()
 {
-    std::string tableName = arguments.read<std::string>();
-    database->GetTables().erase(tableName);
-    database->DeleteTableFromDisk(tableName.c_str());
+    std::string tableName = arguments_.Read<std::string>();
+    database_->GetTables().erase(tableName);
+    database_->DeleteTableFromDisk(tableName.c_str());
     return 9;
 }
 
-int32_t GpuSqlDispatcher::alterTable()
+int32_t GpuSqlDispatcher::AlterTable()
 {
-    std::string tableName = arguments.read<std::string>();
+    std::string tableName = arguments_.Read<std::string>();
 
-    int32_t addColumnsCount = arguments.read<int32_t>();
+    int32_t addColumnsCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < addColumnsCount; i++)
     {
-        std::string addColumnName = arguments.read<std::string>();
-        int32_t addColumnDataType = arguments.read<int32_t>();
-        database->GetTables().at(tableName).CreateColumn(addColumnName.c_str(),
-                                                         static_cast<DataType>(addColumnDataType));
-        int64_t tableSize = database->GetTables().at(tableName).GetSize();
-        database->GetTables().at(tableName).GetColumns().at(addColumnName)->InsertNullData(tableSize);
+        std::string addColumnName = arguments_.Read<std::string>();
+        int32_t addColumnDataType = arguments_.Read<int32_t>();
+        database_->GetTables().at(tableName).CreateColumn(addColumnName.c_str(),
+                                                          static_cast<DataType>(addColumnDataType));
+        int64_t tableSize = database_->GetTables().at(tableName).GetSize();
+        database_->GetTables().at(tableName).GetColumns().at(addColumnName)->InsertNullData(tableSize);
     }
 
-    int32_t dropColumnsCount = arguments.read<int32_t>();
+    int32_t dropColumnsCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < dropColumnsCount; i++)
     {
-        std::string dropColumnName = arguments.read<std::string>();
-        database->GetTables().at(tableName).EraseColumn(dropColumnName);
-        database->DeleteColumnFromDisk(tableName.c_str(), dropColumnName.c_str());
+        std::string dropColumnName = arguments_.Read<std::string>();
+        database_->GetTables().at(tableName).EraseColumn(dropColumnName);
+        database_->DeleteColumnFromDisk(tableName.c_str(), dropColumnName.c_str());
     }
     return 10;
 }
 
-int32_t GpuSqlDispatcher::createIndex()
+int32_t GpuSqlDispatcher::CreateIndex()
 {
-    std::string indexName = arguments.read<std::string>();
-    std::string tableName = arguments.read<std::string>();
+    std::string indexName = arguments_.Read<std::string>();
+    std::string tableName = arguments_.Read<std::string>();
     std::vector<std::string> sortingColumns;
 
-    for (auto& column : database->GetTables().at(tableName).GetSortingColumns())
+    for (auto& column : database_->GetTables().at(tableName).GetSortingColumns())
     {
         sortingColumns.push_back(column);
     }
 
-    int32_t indexColumnCount = arguments.read<int32_t>();
+    int32_t indexColumnCount = arguments_.Read<int32_t>();
     for (int i = 0; i < indexColumnCount; i++)
     {
-        std::string indexColumn = arguments.read<std::string>();
+        std::string indexColumn = arguments_.Read<std::string>();
         if (std::find(sortingColumns.begin(), sortingColumns.end(), indexColumn) == sortingColumns.end())
         {
             sortingColumns.push_back(indexColumn);
         }
     }
 
-    database->GetTables().at(tableName).SetSortingColumns(sortingColumns);
+    database_->GetTables().at(tableName).SetSortingColumns(sortingColumns);
 
     return 11;
 }
 
 
-void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int32_t[]>& data,
                                          int32_t dataSize)
 {
@@ -1290,7 +1293,7 @@ void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
     }
 }
 
-void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int64_t[]>& data,
                                          int32_t dataSize)
 {
@@ -1300,7 +1303,7 @@ void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
     }
 }
 
-void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<float[]>& data,
                                          int32_t dataSize)
 {
@@ -1310,7 +1313,7 @@ void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
     }
 }
 
-void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<double[]>& data,
                                          int32_t dataSize)
 {
@@ -1320,7 +1323,7 @@ void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
     }
 }
 
-void GpuSqlDispatcher::insertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<std::string[]>& data,
                                          int32_t dataSize)
 {
@@ -1463,19 +1466,19 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
     {
         trimmedKey = key.substr(1, std::string::npos);
     }
-    MergePayload(trimmedKey, &responseMessage, payload);
+    MergePayload(trimmedKey, &responseMessage_, payload);
     if (!nullBitMaskString.empty())
     {
-        MergePayloadBitmask(trimmedKey, &responseMessage, nullBitMaskString);
+        MergePayloadBitmask(trimmedKey, &responseMessage_, nullBitMaskString);
     }
 }
 
-bool GpuSqlDispatcher::isRegisterAllocated(const std::string& reg)
+bool GpuSqlDispatcher::IsRegisterAllocated(const std::string& reg)
 {
-    return allocatedPointers.find(reg) != allocatedPointers.end();
+    return allocatedPointers_.find(reg) != allocatedPointers_.end();
 }
 
-std::pair<std::string, std::string> GpuSqlDispatcher::splitColumnName(const std::string& colName)
+std::pair<std::string, std::string> GpuSqlDispatcher::SplitColumnName(const std::string& colName)
 {
     const size_t splitIdx = colName.find(".");
     const std::string table = colName.substr(0, splitIdx);

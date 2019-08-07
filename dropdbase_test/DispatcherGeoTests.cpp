@@ -37,7 +37,7 @@ protected:
 	}
 
 	// This is testing queries like "SELECT colID FROM SimpleTable WHERE POLYGON(...) CONTAINS colPoint;"
-	// polygon - const, wkt from query; point - col (as vector of NativeGeoPoints here)
+	// polygon - const, wkt from query_; point - col (as vector of NativeGeoPoints here)
 	void GeoContainsGenericTest(const std::string& polygon,
 		std::vector<NativeGeoPoint> points,
 		std::vector<int32_t> expectedResult)
@@ -65,9 +65,9 @@ protected:
 		reinterpret_cast<ColumnBase<ColmnarDB::Types::Point>*>(geoDatabase->GetTables().at("SimpleTable").
 			GetColumns().at("colPoint").get())->InsertData(colPoint);
 
-		// Execute the query
+		// Execute the query_
 		GpuSqlCustomParser parser(geoDatabase, "SELECT colID FROM " + tableName + " WHERE GEO_CONTAINS(" + polygon + ", colPoint);");
-		auto resultPtr = parser.parse();
+		auto resultPtr = parser.Parse();
 		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 		auto &payloads = result->payloads().at("SimpleTable.colID");
 
@@ -96,9 +96,9 @@ protected:
 		reinterpret_cast<ColumnBase<int32_t>*>(geoDatabase->GetTables().at("SimpleTable").
 			GetColumns().at("colID").get())->InsertData(colID);
 
-		// Execute the query
+		// Execute the query_
 		GpuSqlCustomParser parser(geoDatabase, "SELECT colID FROM " + tableName + " WHERE GEO_CONTAINS("+ polygon +" , " + point + ");");
-		auto resultPtr = parser.parse();
+		auto resultPtr = parser.Parse();
 		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 		auto &payloads = result->payloads().at("SimpleTable.colID");
 
@@ -125,9 +125,9 @@ protected:
 		reinterpret_cast<ColumnBase<int32_t>*>(geoDatabase->GetTables().at("SimpleTable").
 			GetColumns().at("colID").get())->InsertData(colID);
 
-		// Execute the query
+		// Execute the query_
 		GpuSqlCustomParser parser(geoDatabase, "SELECT colID FROM " + tableName + " WHERE GEO_CONTAINS(" + polygon + " , " + point + ");");
-		auto resultPtr = parser.parse();
+		auto resultPtr = parser.Parse();
 		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 		ASSERT_EQ(result->payloads().size(), 0);
 	}
@@ -159,10 +159,10 @@ protected:
 		reinterpret_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(geoDatabase->GetTables().at("SimpleTable").
 			GetColumns().at("colPolygon").get())->InsertData(colPolygon);
 
-		// Execute the query
+		// Execute the query_
 		GpuSqlCustomParser parser(geoDatabase, "SELECT colPolygon FROM " + tableName + " WHERE colID >= " +
 			std::to_string(whereThreshold) + ";");
-		auto resultPtr = parser.parse();
+		auto resultPtr = parser.Parse();
 		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 		if(expectedResult.size() > 0)

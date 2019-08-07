@@ -22,7 +22,7 @@ TEST(OrderByMergeTests, OrderByMergeTest)
     // Get instance
     Context::getInstance();
 
-    // Create custom database
+    // Create custom database_
     const std::string databaseName = "OrderByDatabase";
 	const std::string tableName = "OrderByTable";
 	const int32_t blockSize = 8;  
@@ -32,7 +32,7 @@ TEST(OrderByMergeTests, OrderByMergeTest)
     std::shared_ptr<Database> database = std::make_shared<Database>(databaseName.c_str(), blockSize);
     Database::AddToInMemoryDatabaseList(database);
 
-    // Create table with columns in database
+    // Create table with columns in database_
     auto columns = std::unordered_map<std::string, DataType>();
     columns.insert(std::make_pair<std::string, DataType>("colInteger1", DataType::COLUMN_INT));
     columns.insert(std::make_pair<std::string, DataType>("colInteger2", DataType::COLUMN_INT));
@@ -57,11 +57,11 @@ TEST(OrderByMergeTests, OrderByMergeTest)
     // Execute the query
     GpuSqlCustomParser parser(database, 
                               "SELECT colInteger1, colInteger2 FROM OrderByTable ORDER BY colInteger1 ASC, colInteger2 DESC;");
-    auto resultPtr = parser.parse();
+    auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	//auto columnInt1 = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("OrderByTable").GetColumns().at("colInteger1").get());
-	//auto columnInt2 = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("OrderByTable").GetColumns().at("colInteger2").get());
+	//auto columnInt1 = dynamic_cast<ColumnBase<int32_t>*>(database_->GetTables().at("OrderByTable").GetColumns().at("colInteger1").get());
+	//auto columnInt2 = dynamic_cast<ColumnBase<int32_t>*>(database_->GetTables().at("OrderByTable").GetColumns().at("colInteger2").get());
 
     auto &payload1 = result->payloads().at("OrderByTable.colInteger1");
     auto &payload2 = result->payloads().at("OrderByTable.colInteger2");
