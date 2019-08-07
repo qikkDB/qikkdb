@@ -262,13 +262,3 @@ TEST(DispatcherTestsRegression, JoinEmptyResult)
 
 	Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
 }
-
-TEST(DispatcherTestsRegression, CastExpression)
-{
-    Context::getInstance();
-
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT CAST(colInteger1/10 AS INT) FROM TableA;");
-    auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-}
