@@ -647,6 +647,17 @@ std::vector<std::string> Table::GetSortingColumns()
 void Table::SetSortingColumns(std::vector<std::string> columns)
 {
     sortingColumns = columns;
+    saveNecesarry_ = true;
+}
+
+bool Table::GetSaveNecesary()
+{
+    return saveNecesarry_;
+}
+
+void Table::SetSaveNecessaryToFalse()
+{
+    saveNecesarry_ = false;
 }
 
 /// <summary>
@@ -713,6 +724,7 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
     }
     std::unique_lock<std::mutex> lock(*columnsMutex_);
     columns.insert(std::make_pair(columnName, std::move(column)));
+    saveNecesarry_ = true;
 }
 
 
@@ -846,6 +858,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
             }
         }
     }
+    saveNecesarry_ = true;
 }
 #endif
 

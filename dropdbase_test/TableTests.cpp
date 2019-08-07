@@ -440,3 +440,73 @@ TEST(TableTests, ClusteredIndexInsertWithNullValues_advanced)
 		ASSERT_EQ(sortedDataInt3[i], dataColumn3[i]);
 	}
 }
+
+TEST(TableTests, SavingNecessary)
+{
+    auto database = std::make_shared<Database>("testDatabase", 10);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnInt", COLUMN_INT);
+	auto& columnInt = table.GetColumns().at("ColumnInt");
+    auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get()); 
+	auto& blockInt = castedColumn->AddBlock();
+
+    ASSERT_EQ(true, table.GetSaveNecesary());
+    ASSERT_EQ(true, castedColumn->GetSaveNecessary());
+    ASSERT_EQ(true, blockInt.GetSaveNecessary());
+
+	table.SetSaveNecessaryToFalse();
+	castedColumn->SetSaveNecessaryToFalse();
+	blockInt.SetSaveNecessaryToFalse();
+	
+    ASSERT_EQ(false, table.GetSaveNecesary());
+    ASSERT_EQ(false, castedColumn->GetSaveNecessary());
+    ASSERT_EQ(false, blockInt.GetSaveNecessary());
+
+	table.CreateColumn("ColumnInt2", COLUMN_INT);
+	auto& columnInt2 = table.GetColumns().at("ColumnInt2");
+    auto castedColumn2 = dynamic_cast<ColumnBase<int32_t>*>(columnInt2.get()); 
+	auto& blockInt2 = castedColumn2->AddBlock();
+
+	ASSERT_EQ(true, table.GetSaveNecesary());
+    ASSERT_EQ(false, castedColumn->GetSaveNecessary());
+    ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
+    ASSERT_EQ(false, blockInt.GetSaveNecessary());
+    ASSERT_EQ(true, blockInt2.GetSaveNecessary());
+
+	table.SetSaveNecessaryToFalse();
+	castedColumn->SetSaveNecessaryToFalse();
+	castedColumn2->SetSaveNecessaryToFalse();
+	blockInt.SetSaveNecessaryToFalse();
+	blockInt2.SetSaveNecessaryToFalse();
+
+	std::unordered_map<std::string, std::any> data;
+	std::vector<int32_t> dataInt({1024});
+	data.insert({"ColumnInt",dataInt});
+	table.InsertData(data);
+
+	ASSERT_EQ(true, table.GetSaveNecesary());
+    ASSERT_EQ(true, castedColumn->GetSaveNecessary());
+    ASSERT_EQ(false, castedColumn2->GetSaveNecessary());
+    ASSERT_EQ(true, blockInt.GetSaveNecessary());
+    ASSERT_EQ(false, blockInt2.GetSaveNecessary());
+
+	table.SetSaveNecessaryToFalse();
+	castedColumn->SetSaveNecessaryToFalse();
+	castedColumn2->SetSaveNecessaryToFalse();
+	blockInt.SetSaveNecessaryToFalse();
+	blockInt2.SetSaveNecessaryToFalse();
+
+	table.SetSortingColumns({"ColumnInt"});
+
+	std::unordered_map<std::string, std::any> data2;
+	std::vector<int32_t> dataInt2({1025});
+	data2.insert({"ColumnInt",dataInt2});
+	table.InsertData(data2);
+
+	ASSERT_EQ(true, table.GetSaveNecesary());
+    ASSERT_EQ(true, castedColumn->GetSaveNecessary());
+    ASSERT_EQ(false, castedColumn2->GetSaveNecessary());
+    ASSERT_EQ(true, blockInt.GetSaveNecessary());
+    ASSERT_EQ(false, blockInt2.GetSaveNecessary());
+}

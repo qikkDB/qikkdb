@@ -108,7 +108,7 @@ private:
 
 public:
     ColumnBase(const std::string& name, int blockSize, bool isNullable = false)
-    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable), saveNecessary_(false)
+    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable), saveNecessary_(true)
     {
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
     }
@@ -171,14 +171,14 @@ public:
         return sum_;
     }
 
-    void SetSaveNecessary(bool saveNecessary)
-    {
-        saveNecessary_ = saveNecessary;
-    }
-
     bool GetSaveNecessary()
     {
         return saveNecessary_;
+    }
+
+    void SetSaveNecessaryToFalse()
+    {
+        saveNecessary_ = false;
     }
 
     /// <summary>
@@ -339,6 +339,9 @@ public:
     {
         size_ += columnData.size();
         int startIdx = 0;
+        
+        saveNecessary_ = true;
+
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
         {
             auto& lastBlock = blocks_[groupId].back();
@@ -369,7 +372,6 @@ public:
             startIdx += toCopy;
         }
         // setColumnStatistics();
-        saveNecessary_ = true;
     }
 
     /// <summary>
