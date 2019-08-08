@@ -341,6 +341,7 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                         reinterpret_cast<double*>(inKeys[t])[sourceIndices[i]];
                     break;
                 case DataType::COLUMN_STRING:
+                {
                     // Copy strings from inKeys according to sourceIndices
                     GPUMemory::GPUString& sideBufferStr = stringSideBuffers[t];
                     GPUMemory::GPUString& inKeysStr = *reinterpret_cast<GPUMemory::GPUString*>(inKeys[t]);
@@ -350,6 +351,7 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                             inKeysStr.allChars[GetStringIndex(inKeysStr.stringIndices, sourceIndices[i]) + j];
                     }
                     break;
+                }
                 case DataType::COLUMN_INT8_T:
                     reinterpret_cast<int8_t*>(keysBuffer[t])[i] =
                         reinterpret_cast<int8_t*>(inKeys[t])[sourceIndices[i]];
