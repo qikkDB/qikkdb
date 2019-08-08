@@ -11,7 +11,7 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, Nat
 
     if (axb == 0)
     {
-        LLPolyVertex retFail = {{0, 0}, true, false, false, -1.0, -1.0, -1, -1, -1};
+        LLPolyVertex retFail = {{0, 0}, true, false, false, false, -1.0, -1.0, -1, -1, -1};
         return retFail;
     }
 
@@ -26,6 +26,7 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, Nat
     LLPolyVertex ret = {{sA.latitude + alongA * adx, sA.longitude + alongA * ady},
                         true,
                         intersectionValidity,
+                        false,
                         false,
                         alongA,
                         alongB,
@@ -122,6 +123,7 @@ __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                 // Set the linked list entry
                 LLPolygonBuffers[((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + LLPolygonEndIdx] = {
                     polygon.polyPoints[point],
+                    false,
                     false,
                     false,
                     false,
