@@ -20,19 +20,19 @@ namespace PolygonFunctions
 {
 struct polyIntersect
 {
-    __device__ __host__ void operator()(bool& turnA, bool& turnB) const
+    __device__ __host__ void operator()(bool turnTable[2]) const
     {
-        turnA = true;
-        turnB = true;
+        turnTable[0] = true;
+        turnTable[1] = true;
     }
 };
 
 struct polyUnion
 {
-    __device__ __host__ void operator()(bool& turnA, bool& turnB) const
+    __device__ __host__ void operator()(bool turnTable[2]) const
     {
-        turnA = false;
-        turnB = false;
+        turnTable[0] = false;
+        turnTable[1] = false;
     }
 };
 } // namespace PolygonFunctions
@@ -93,17 +93,20 @@ __global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
                                            int32_t* LLPolygonBufferSizesPrefixSum,
                                            int32_t dataElementCount);
 
-// A set of methods for clipping
-// Reconstruct the polyIdx of the result polygon
+// Clip the polygons in different phases
 template <typename OP>
-__global__ void kernel_clip_polyIdx(int32_t* polyCount,
-                                    LLPolyVertex* LLPolygonABuffers,
-                                    LLPolyVertex* LLPolygonBBuffers,
-                                    GPUMemory::GPUPolygon polygonA,
-                                    GPUMemory::GPUPolygon polygonB,
-                                    int32_t* LLPolygonABufferSizesPrefixSum,
-                                    int32_t* LLPolygonBBufferSizesPrefixSum,
-                                    int32_t dataElementCount)
+__device__ void clip_polygons(int32_t* polyCount,
+                              int32_t* polyIdx,
+                              int32_t* pointCount,
+                              int32_t* pointIdx,
+                              NativeGeoPoint* polyPoints,
+                              LLPolyVertex* LLPolygonABuffers,
+                              LLPolyVertex* LLPolygonBBuffers,
+                              GPUMemory::GPUPolygon polygonA,
+                              GPUMemory::GPUPolygon polygonB,
+                              int32_t* LLPolygonABufferSizesPrefixSum,
+                              int32_t* LLPolygonBBufferSizesPrefixSum,
+                              int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -117,107 +120,148 @@ __global__ void kernel_clip_polyIdx(int32_t* polyCount,
         int32_t begIdxA = ((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + n;
         int32_t endIdxA = LLPolygonABufferSizesPrefixSum[i] - 1;
 
-        bool turnA;
-        bool turnB;
-        OP{}(turnA, turnB);
+        int32_t begIdxB = ((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + k;
+        int32_t endIdxB = LLPolygonBBufferSizesPrefixSum[i] - 1;
 
-        int32_t componentCount = 0;
+        // Initialize the turn table
+        bool turnTable[2];
+        OP{}(turnTable);
 
         // Calculate the component count
-        bool isPolyAActive = true;
+        int32_t componentCount = 0;
+
+        int32_t turnNumber = 0;
+        LLPolyVertex* turnTableLL[2] = {LLPolygonABuffers, LLPolygonBBuffers};
         for (int32_t point = begIdxA; point <= endIdxA; point++)
         {
-            if (LLPolygonABuffers[point].wasProcessed == false)
+            if (turnTableLL[turnNumber][point].wasProcessed == false)
             {
+                // Calculate the sub component count
+                int32_t subComponentCount = 0;
+
                 int32_t nextIdx = point;
                 do
                 {
-                    if(isPolyAActive)
-                    {
-                        LLPolygonABuffers[nextIdx].wasProcessed = true;
-                        LLPolygonBBuffers[LLPolygonABuffers[nextIdx].crossIdx].wasProcessed = true;
-                    }
-                    else
-                    {
-                        LLPolygonBBuffers[nextIdx].wasProcessed = true;
-                        LLPolygonABuffers[LLPolygonBBuffers[nextIdx].crossIdx].wasProcessed = true;
-                    }
+                    turnTableLL[turnNumber][nextIdx].wasProcessed = true;
+                    turnTableLL[1 - turnNumber][turnTableLL[turnNumber][nextIdx].crossIdx].wasProcessed = true;
 
-                    bool moveForward;
-                    if(isPolyAActive)
+                    bool forward = (turnTableLL[turnNumber][nextIdx].isEntry == turnTable[turnNumber]);
+                    do
                     {
-                        moveForward = (LLPolygonABuffers[nextIdx].isEntry == turnA);
-                        do {
-                            if (moveForward)
-                                nextIdx = LLPolygonABuffers[nextIdx].nextIdx;
-                            else
-                                nextIdx = LLPolygonABuffers[nextIdx].prevIdx;
-                        } while (!LLPolygonABuffers[nextIdx].isIntersection);
-                    }
-                    else
-                    {
-                        moveForward = (LLPolygonBBuffers[nextIdx].isEntry == turnB);
-                        do {
-                            if (moveForward)
-                                nextIdx = LLPolygonBBuffers[nextIdx].nextIdx;
-                            else
-                                nextIdx = LLPolygonBBuffers[nextIdx].prevIdx;
-                        } while (!LLPolygonBBuffers[nextIdx].isIntersection);
-                    }
-                    
+                        // Write the output point
+                        if(polyCount && pointCount && polyPoints)
+                        {
+                            polyPoints[((i == 0) ? 0 : pointIdx[((i == 0) ? 0 : polyIdx[i - 1]) + componentCount]) + subComponentCount] = turnTableLL[turnNumber][nextIdx].vertex;
+                        }
 
-                    if(isPolyAActive)
-                    {
-                        nextIdx = LLPolygonABuffers[nextIdx].crossIdx;
-                        isPolyAActive = false;
-                    }
-                    else
-                    {
-                        nextIdx = LLPolygonBBuffers[nextIdx].crossIdx;
-                        isPolyAActive = true;
-                    }
+                        if (forward)
+                        {
+                            nextIdx = turnTableLL[turnNumber][nextIdx].nextIdx;
+                        }
+                        else
+                        {
+                            nextIdx = turnTableLL[turnNumber][nextIdx].prevIdx;
+                        }
 
-                    if(isPolyAActive && LLPolygonABuffers[nextIdx].wasProcessed == true)
-                    {
-                        break;
-                    }
-                    else if(!isPolyAActive && LLPolygonBBuffers[nextIdx].wasProcessed == true)
-                    {
-                        break;
-                    }
-                } while (true);
+                        subComponentCount++;
+                    } while (!turnTableLL[turnNumber][nextIdx].isIntersection);
+
+                    nextIdx = turnTableLL[turnNumber][nextIdx].crossIdx;
+                    turnNumber = 1 - turnNumber;
+                } while (!turnTableLL[turnNumber][nextIdx].wasProcessed);
+
+                if (polyCount && pointCount)
+                {
+                    pointCount[((i == 0) ? 0 : polyIdx[i - 1]) + componentCount] = subComponentCount;
+                }
 
                 componentCount++;
             }
         }
 
         // Reset the processed flags for the next reconstruction operation
+        for (int32_t pointA = begIdxA; pointA <= endIdxA; pointA++)
+        {
+            LLPolygonABuffers[pointA].wasProcessed = false;
+        }
+
+        for (int32_t pointB = begIdxB; pointB <= endIdxB; pointB++)
+        {
+            LLPolygonBBuffers[pointB].wasProcessed = false;
+        }
 
         // Write the results
-        polyCount[i] = componentCount;
+        if (polyCount)
+        {
+            polyCount[i] = componentCount;
+        }
     }
+}
+
+// A set of methods for clipping
+// Reconstruct the polyIdx of the result polygon
+template <typename OP>
+__global__ void kernel_clip_polyIdx(int32_t* polyCount,
+                                    LLPolyVertex* LLPolygonABuffers,
+                                    LLPolyVertex* LLPolygonBBuffers,
+                                    GPUMemory::GPUPolygon polygonA,
+                                    GPUMemory::GPUPolygon polygonB,
+                                    int32_t* LLPolygonABufferSizesPrefixSum,
+                                    int32_t* LLPolygonBBufferSizesPrefixSum,
+                                    int32_t dataElementCount)
+{
+    clip_polygons<OP>(polyCount, nullptr, nullptr, nullptr, nullptr, LLPolygonABuffers,
+                      LLPolygonBBuffers, polygonA, polygonB, LLPolygonABufferSizesPrefixSum,
+                      LLPolygonBBufferSizesPrefixSum, dataElementCount);
 }
 
 // Reconstruct the pointIdx of the result polygon
 template <typename OP>
-__global__ void kernel_clip_pointIdx()
+__global__ void kernel_clip_pointIdx(int32_t* polyCount,
+                                     int32_t* polyIdx,
+                                     int32_t* pointCount,
+                                     LLPolyVertex* LLPolygonABuffers,
+                                     LLPolyVertex* LLPolygonBBuffers,
+                                     GPUMemory::GPUPolygon polygonA,
+                                     GPUMemory::GPUPolygon polygonB,
+                                     int32_t* LLPolygonABufferSizesPrefixSum,
+                                     int32_t* LLPolygonBBufferSizesPrefixSum,
+                                     int32_t dataElementCount)
 {
+    clip_polygons<OP>(polyCount, polyIdx, pointCount, nullptr, nullptr, LLPolygonABuffers,
+                      LLPolygonBBuffers, polygonA, polygonB, LLPolygonABufferSizesPrefixSum,
+                      LLPolygonBBufferSizesPrefixSum, dataElementCount);
 }
 
 // Reconstruc the polyPoints of the result polygon
 template <typename OP>
-__global__ void kernel_clip_polyPoints()
+__global__ void kernel_clip_polyPoints(int32_t* polyCount,
+                                       int32_t* polyIdx,
+                                       int32_t* pointCount,
+                                       int32_t* pointIdx,
+                                       NativeGeoPoint* polyPoints,
+                                       LLPolyVertex* LLPolygonABuffers,
+                                       LLPolyVertex* LLPolygonBBuffers,
+                                       GPUMemory::GPUPolygon polygonA,
+                                       GPUMemory::GPUPolygon polygonB,
+                                       int32_t* LLPolygonABufferSizesPrefixSum,
+                                       int32_t* LLPolygonBBufferSizesPrefixSum,
+                                       int32_t dataElementCount)
 {
+    clip_polygons<OP>(polyCount, polyIdx, pointCount, pointIdx, polyPoints, LLPolygonABuffers,
+                      LLPolygonBBuffers, polygonA, polygonB, LLPolygonABufferSizesPrefixSum,
+                      LLPolygonBBufferSizesPrefixSum, dataElementCount);
 }
 
 class GPUPolygonClipping
 {
 public:
     // This method expects polygonOut to be with unallocated arrays !!!
+    // returns - isEmpty
     template <typename OP>
-    static void ColCol(GPUMemory::GPUPolygon polygonOut,
-                       GPUMemory::GPUPolygon polygonAin,
-                       GPUMemory::GPUPolygon polygonBin,
+    static bool ColCol(GPUMemory::GPUPolygon &polygonOut,
+                       GPUMemory::GPUPolygon &polygonAin,
+                       GPUMemory::GPUPolygon &polygonBin,
                        int32_t dataElementCount)
     {
         // Create buffers for the linked lists
@@ -379,17 +423,63 @@ public:
         GPUMemory::alloc(&(polygonOut.polyIdx), dataElementCount);
         GPUReconstruct::PrefixSum(polygonOut.polyIdx, polyCount.get(), dataElementCount);
 
+        // Retrieve the pointIdx array length
+        int32_t pointIdxSize;
+        GPUMemory::copyDeviceToHost(&pointIdxSize, polygonOut.polyIdx + dataElementCount - 1, 1);
+
         // DEBUG
-        std::vector<int32_t> polyCount_cpu(dataElementCount);
-        std::vector<int32_t> polyIdx_cpu(dataElementCount);
+        // std::vector<int32_t> polyCount_cpu(dataElementCount);
+        // std::vector<int32_t> polyIdx_cpu(dataElementCount);
 
-        GPUMemory::copyDeviceToHost(&polyCount_cpu[0], polyCount.get(), dataElementCount);
-        GPUMemory::copyDeviceToHost(&polyIdx_cpu[0], polygonOut.polyIdx, dataElementCount);
+        // GPUMemory::copyDeviceToHost(&polyCount_cpu[0], polyCount.get(), dataElementCount);
+        // GPUMemory::copyDeviceToHost(&polyIdx_cpu[0], polygonOut.polyIdx, dataElementCount);
 
-        for (int32_t i = 0; i < dataElementCount; i++)
-        {
-            printf("%2d: %2d %2d\n", i, polyCount_cpu[i], polyIdx_cpu[i]);
-        }
-        printf("\n");
+        // for (int32_t i = 0; i < dataElementCount; i++)
+        // {
+        //     printf("%2d: %2d %2d\n", i, polyCount_cpu[i], polyIdx_cpu[i]);
+        // }
+        // printf("\n");
+
+        // Process the pointIdx array
+        cuda_ptr<int32_t> pointCount(pointIdxSize);
+
+        kernel_clip_pointIdx<OP>
+            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
+                polyCount.get(), polygonOut.polyIdx, pointCount.get(), LLPolygonABuffers.get(),
+                LLPolygonBBuffers.get(), polygonAin, polygonBin, LLPolygonABufferSizesPrefixSum.get(),
+                LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
+        CheckCudaError(cudaGetLastError());
+
+        GPUMemory::alloc(&(polygonOut.pointIdx), pointIdxSize);
+        GPUReconstruct::PrefixSum(polygonOut.pointIdx, pointCount.get(), pointIdxSize);
+
+        // Retrieve the polyPoints array length
+        int32_t polyPointsSize;
+        GPUMemory::copyDeviceToHost(&polyPointsSize, polygonOut.pointIdx + pointIdxSize - 1, 1);
+
+        // DEBUG
+        // std::vector<int32_t> pointCount_cpu(pointIdxSize);
+        // std::vector<int32_t> pointIdx_cpu(pointIdxSize);
+
+        // GPUMemory::copyDeviceToHost(&pointCount_cpu[0], pointCount.get(), pointIdxSize);
+        // GPUMemory::copyDeviceToHost(&pointIdx_cpu[0], polygonOut.pointIdx, pointIdxSize);
+
+        // for (int32_t i = 0; i < pointIdxSize; i++)
+        // {
+        //     printf("%2d: %2d %2d\n", i, pointCount_cpu[i], pointIdx_cpu[i]);
+        // }
+        // printf("\n");
+
+        // Process the polyPoints array
+        GPUMemory::alloc(&(polygonOut.polyPoints), polyPointsSize);
+
+        kernel_clip_polyPoints<OP>
+            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
+                polyCount.get(), polygonOut.polyIdx, pointCount.get(),polygonOut.pointIdx, polygonOut.polyPoints, LLPolygonABuffers.get(),
+                LLPolygonBBuffers.get(), polygonAin, polygonBin, LLPolygonABufferSizesPrefixSum.get(),
+                LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
+        CheckCudaError(cudaGetLastError());
+
+        return true;
     }
 };

@@ -74,11 +74,12 @@ TEST(GPUPolygonClippingTests, PoygonTest)
 	GPUMemory::copyHostToDevice(polygonB.polyPoints, &polyBpolyPoints[0], polyBpolyPoints.size());
 
 	// Perform the polygon intersect
-	GPUMemory::GPUPolygon polygonOut;	// WARNING This is a dummy polygon
+	GPUMemory::GPUPolygon polygonOut;	// This needs to be empty
 	GPUPolygonClipping::ColCol<PolygonFunctions::polyIntersect>(polygonOut, polygonA, polygonB, dataElementCount);
 
 	// Free the polygons
 	GPUMemory::free(polygonA);
 	GPUMemory::free(polygonB);
+	GPUMemory::free(polygonOut);
 
 }
