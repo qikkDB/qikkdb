@@ -10,6 +10,7 @@
 #include <boost/log/trivial.hpp>
 
 std::mutex TCPClientHandler::queryMutex_;
+std::mutex TCPClientHandler::importMutex_;
 
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult()
 {
@@ -246,6 +247,7 @@ TCPClientHandler::HandleCSVImport(ITCPWorker& worker,
     auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
     try
     {
+        std::lock_guard<std::mutex> importLock(importMutex_);
         auto importDB = Database::GetDatabaseByName(csvImportMessage.databasename());
         if (importDB == nullptr)
         {
@@ -305,6 +307,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         resultMessage->set_message("Database was not found");
         return resultMessage;
     }
+    std::lock_guard<std::mutex> importLock(importMutex_);
     auto& tables = sharedDb->GetTables();
     auto search = tables.find(tableName);
     if (search == tables.end())
