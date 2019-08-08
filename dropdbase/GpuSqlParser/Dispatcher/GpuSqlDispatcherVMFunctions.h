@@ -16,16 +16,16 @@ template <typename T>
 int32_t GpuSqlDispatcher::RetConst()
 {
     T cnst = arguments_.Read<T>();
-    std::string _ = arguments_.Read<std::string>();
-
+    std::string alias = arguments_.Read<std::string>();
 
     std::cout << "RET: cnst" << typeid(T).name() << " " << cnst << std::endl;
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+
     std::unique_ptr<T[]> outData(new T[1]);
     outData[0] = cnst;
     InsertIntoPayload(payload, outData, 1);
-    MergePayloadToSelfResponse(std::to_string(cnst), payload, "");
+    MergePayloadToSelfResponse(alias, payload, "");
     return 0;
 }
 

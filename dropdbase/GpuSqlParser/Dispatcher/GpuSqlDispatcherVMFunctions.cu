@@ -608,7 +608,7 @@ template <>
 int32_t GpuSqlDispatcher::RetConst<std::string>()
 {
     std::string cnst = arguments_.Read<std::string>();
-    std::string _ = arguments_.Read<std::string>();
+    std::string alias = arguments_.Read<std::string>();
 
     std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
 
@@ -616,7 +616,7 @@ int32_t GpuSqlDispatcher::RetConst<std::string>()
     std::unique_ptr<std::string[]> outData(new std::string[1]);
     outData[0] = cnst;
     InsertIntoPayload(payload, outData, 1);
-    MergePayloadToSelfResponse(cnst, payload, "");
+    MergePayloadToSelfResponse(alias, payload, "");
     return 0;
 }
 
@@ -624,16 +624,15 @@ template <>
 int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
 {
     std::string cnst = arguments_.Read<std::string>();
-    std::string _ = arguments_.Read<std::string>();
+    std::string alias = arguments_.Read<std::string>();
 
-    std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
-
+    std::cout << "RET: cnst" << typeid(ColmnarDB::Types::Point).name() << std::endl;
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     std::unique_ptr<std::string[]> outData(new std::string[1]);
     outData[0] = cnst;
     InsertIntoPayload(payload, outData, 1);
-    MergePayloadToSelfResponse(cnst, payload, "");
+    MergePayloadToSelfResponse(alias, payload, "");
     return 0;
 }
 
@@ -641,15 +640,15 @@ template <>
 int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
 {
     std::string cnst = arguments_.Read<std::string>();
-    std::string _ = arguments_.Read<std::string>();
+    std::string alias = arguments_.Read<std::string>();
 
-    std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
+    std::cout << "RET: cnst" << typeid(ColmnarDB::Types::ComplexPolygon).name() << std::endl;
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     std::unique_ptr<std::string[]> outData(new std::string[1]);
     outData[0] = cnst;
     InsertIntoPayload(payload, outData, 1);
-    MergePayloadToSelfResponse(cnst, payload, "");
+    MergePayloadToSelfResponse(alias, payload, "");
     return 0;
 }
 
