@@ -35,9 +35,12 @@ __device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKe
             hash = 0;
             break;
         }
-        crc = (CRC_32_TAB[((crc >> 24) ^ hash) & 0xFF] ^ (crc << 8));
+        for (int32_t i = 0; i < 4; i++)
+        {
+            crc = (CRC_32_TAB[((crc >> 24) ^ ((hash >> (i * 8)) ^ 0xFF)) & 0xFF] ^ (crc << 8));
+        }
     }
-    return (crc >> 16) ^ (crc & 0xFFFF);
+    return (crc >> hashCoef) ^ (crc & ((1 << hashCoef) - 1));
 }
 
 

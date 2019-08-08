@@ -297,6 +297,7 @@ public:
     GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes)
     : maxHashCount_(maxHashCount), keysColCount_(keyTypes.size())
     {
+        // TODO check if maxHashCount is integer pow of 2
         const size_t multipliedCount = static_cast<size_t>(maxHashCount_) * GB_ARRAY_MULTIPLIER;
         try
         {
@@ -486,8 +487,7 @@ public:
             kernel_group_by_multi_key<AGG><<<context.calcGridDim(dataElementCount), 768>>>(
                 keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, values_, keyOccurrenceCount_,
                 maxHashCount_, inKeys.get(), inValues, dataElementCount, GB_ARRAY_MULTIPLIER,
-                static_cast<int32_t>(powf(maxHashCount_, 1.0f / keysColCount_) + 0.5f),
-                errorFlagSwapper_.GetFlagPointer());
+                static_cast<int32_t>(log2f(maxHashCount_) + 0.5f), errorFlagSwapper_.GetFlagPointer());
             errorFlagSwapper_.Swap();
 
             cuda_ptr<int32_t*> stringLengthsBuffers(keysColCount_, 0); // alloc pointers and set to nullptr
