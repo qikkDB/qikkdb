@@ -608,8 +608,10 @@ template <>
 int32_t GpuSqlDispatcher::RetConst<std::string>()
 {
     std::string cnst = arguments_.Read<std::string>();
-    std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
     std::string _ = arguments_.Read<std::string>();
+
+    std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
+
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     std::unique_ptr<std::string[]> outData(new std::string[1]);
     outData[0] = cnst;
@@ -622,8 +624,11 @@ template <>
 int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
 {
     std::string cnst = arguments_.Read<std::string>();
-    std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
     std::string _ = arguments_.Read<std::string>();
+
+    std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
+
+
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     std::unique_ptr<std::string[]> outData(new std::string[1]);
     outData[0] = cnst;
@@ -636,8 +641,10 @@ template <>
 int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
 {
     std::string cnst = arguments_.Read<std::string>();
-    std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
     std::string _ = arguments_.Read<std::string>();
+
+    std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
+
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     std::unique_ptr<std::string[]> outData(new std::string[1]);
     outData[0] = cnst;
