@@ -151,7 +151,10 @@ __device__ void clip_polygons(int32_t* polyCount,
                         // Write the output point
                         if(polyCount && pointCount && polyPoints)
                         {
-                            polyPoints[((i == 0) ? 0 : pointIdx[((i == 0) ? 0 : polyIdx[i - 1]) + componentCount]) + subComponentCount] = turnTableLL[turnNumber][nextIdx].vertex;
+                            int32_t poly_idx = i;
+                            int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + componentCount);
+                            int32_t polyPoint_idx = (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + subComponentCount);
+                            polyPoints[polyPoint_idx] = turnTableLL[turnNumber][nextIdx].vertex;
                         }
 
                         if (forward)
@@ -172,7 +175,9 @@ __device__ void clip_polygons(int32_t* polyCount,
 
                 if (polyCount && pointCount)
                 {
-                    pointCount[((i == 0) ? 0 : polyIdx[i - 1]) + componentCount] = subComponentCount;
+                    int32_t poly_idx = i;
+                    int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + componentCount);
+                    pointCount[point_idx] = subComponentCount;
                 }
 
                 componentCount++;
@@ -193,7 +198,8 @@ __device__ void clip_polygons(int32_t* polyCount,
         // Write the results
         if (polyCount)
         {
-            polyCount[i] = componentCount;
+            int32_t poly_idx = i;
+            polyCount[poly_idx] = componentCount;
         }
     }
 }
@@ -479,6 +485,17 @@ public:
                 LLPolygonBBuffers.get(), polygonAin, polygonBin, LLPolygonABufferSizesPrefixSum.get(),
                 LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
         CheckCudaError(cudaGetLastError());
+
+        // DEBUG
+        // std::vector<NativeGeoPoint> polyPoints_cpu(polyPointsSize);
+
+        // GPUMemory::copyDeviceToHost(&polyPoints_cpu[0], polygonOut.polyPoints, polyPointsSize);
+
+        // for (int32_t i = 0; i < polyPointsSize; i++)
+        // {
+        //     printf("%2d: %.2f %.2f\n", i, polyPoints_cpu[i].latitude, polyPoints_cpu[i].longitude);
+        // }
+        // printf("\n");
 
         return true;
     }
