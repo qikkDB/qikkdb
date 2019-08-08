@@ -1035,6 +1035,15 @@ template <>
 int32_t GpuSqlDispatcher::RetCol<std::string>();
 
 template <>
+int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>();
+
+template <>
+int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>();
+
+template <>
+int32_t GpuSqlDispatcher::RetConst<std::string>();
+
+template <>
 int32_t GpuSqlDispatcher::GroupByCol<std::string>();
 
 template <>

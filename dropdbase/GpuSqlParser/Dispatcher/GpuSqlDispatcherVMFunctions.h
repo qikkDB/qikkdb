@@ -16,7 +16,13 @@ template <typename T>
 int32_t GpuSqlDispatcher::RetConst()
 {
     T cnst = arguments_.Read<T>();
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "RET: cnst" << typeid(T).name() << "\n";
+    std::cout << "RET: cnst" << typeid(T).name() << " " << cnst << std::endl;
+    std::string _ = arguments_.Read<std::string>();
+    ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+    std::unique_ptr<T[]> outData(new T[1]);
+    outData[0] = cnst;
+    InsertIntoPayload(payload, outData, 1);
+    MergePayloadToSelfResponse(std::to_string(cnst), payload, "");
     return 0;
 }
 

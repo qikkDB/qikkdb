@@ -664,7 +664,7 @@ void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext* ctx)
         DataType retType = std::get<0>(retCol.second);
         std::string alias = std::get<1>(retCol.second);
         dispatcher_.AddRetFunction(retType);
-        dispatcher_.AddArgument<const std::string&>(colName);
+        PushArgument(colName.c_str(), retType);
         dispatcher_.AddArgument<const std::string&>(alias);
     }
 
