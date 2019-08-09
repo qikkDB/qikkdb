@@ -356,8 +356,8 @@ public:
                 // setColumnStatistics();
                 return;
             }
-            size_ += emptySpace;
             int emptySpace = lastBlock->EmptyBlockSpace();
+            size_ += emptySpace;
             lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
             if (compress && lastBlock->IsFull())
             {
