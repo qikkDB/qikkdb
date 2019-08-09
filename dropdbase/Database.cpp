@@ -326,7 +326,7 @@ void Database::PersistOnlyModified(const char* path)
 				}
 			}
 
-			for (int j = 0; j < columns.size(); j++)
+			for (int j = 0; j < threads.size(); j++)
 			{
 				threads[j].join();
 			}
@@ -621,7 +621,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
     std::ifstream colFile(pathStr + dbName + SEPARATOR + table.GetName() + SEPARATOR + columnName + ".col",
                           std::ios::binary);
 
-    int32_t nullIndex = 0;
+    int32_t emptyBlockIndex = 0;
 
     int32_t type;
     bool isNullable;
@@ -677,10 +677,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int64_t dataLength;
             colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int64_t)); // read data length (data block length)
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnPolygon.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty ComplexPolygon block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty ComplexPolygon block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -713,7 +713,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 BOOST_LOG_TRIVIAL(debug) << "Added ComplexPolygon block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -769,10 +769,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int64_t dataLength;
             colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int64_t)); // read byte data length (data block length)
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnPoint.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Point block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Point block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -806,7 +806,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 BOOST_LOG_TRIVIAL(debug) << "Added Point block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -853,10 +853,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int64_t dataLength;
             colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int64_t)); // read data length (data block length)
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnString.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty String block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty String block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -887,7 +887,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 BOOST_LOG_TRIVIAL(debug) << "Added String block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -944,10 +944,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int8_t sum;
             colFile.read(reinterpret_cast<char*>(&sum), sizeof(int8_t)); // read statistics sum
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnInt.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Int8 block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Int8 block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -966,7 +966,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 BOOST_LOG_TRIVIAL(debug) << "Added Int8 block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -1023,10 +1023,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int32_t sum;
             colFile.read(reinterpret_cast<char*>(&sum), sizeof(int32_t)); // read statistics sum
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnInt.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Int32 block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Int32 block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -1045,7 +1045,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 BOOST_LOG_TRIVIAL(debug) << "Added Int32 block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -1102,10 +1102,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int64_t sum;
             colFile.read(reinterpret_cast<char*>(&sum), sizeof(int64_t)); // read statistics sum
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnLong.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Int64 block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Int64 block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -1124,7 +1124,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 BOOST_LOG_TRIVIAL(debug) << "Added Int64 block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -1181,10 +1181,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             float sum;
             colFile.read(reinterpret_cast<char*>(&sum), sizeof(float)); // read statistics sum
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnFloat.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Float block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Float block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -1203,7 +1203,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 BOOST_LOG_TRIVIAL(debug) << "Added Float block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -1260,10 +1260,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             double sum;
             colFile.read(reinterpret_cast<char*>(&sum), sizeof(double)); // read statistics sum
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnDouble.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Double block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Double block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -1283,7 +1283,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 BOOST_LOG_TRIVIAL(debug) << "Added Double block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -1413,7 +1413,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                            const std::pair<const std::string, Table>& table)
 {
     BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << SEPARATOR
-                             << table.first << SEPARATOR << column.second->GetName() << " .col";
+                             << table.first << SEPARATOR << column.second->GetName() << ".col";
 
     std::ofstream colFile(pathStr + "/" + name + SEPARATOR + table.first + SEPARATOR +
                               column.second->GetName() + ".col",
