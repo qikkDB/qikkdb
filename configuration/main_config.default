@@ -1,11 +1,11 @@
 # db settings
 UsingGPU: true
 Dir: ../dropdbase
-DatabaseDir: ../databases
+DatabaseDir: ../databases/
 BlockSize: 262144
 BlockCount: 1024
 GroupByBuckets: 262144  # must be power of 2
-UsingCompression: true
+UsingCompression: false
 GPUCachePercent: 75
 
 #network settings

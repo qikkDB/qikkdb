@@ -72,6 +72,143 @@ std::vector<std::string> Database::GetDatabaseNames()
 }
 
 /// <summary>
+/// Set saveNecessaty_ to false for block, column and table, because data in the database were NOT modified yet.
+/// </summary>
+void Database::SetSaveNecessaryToFalseForEverything()
+{
+    auto& tables = GetTables();
+
+    for (auto& table : tables)
+    {
+        table.second.SetSaveNecessaryToFalse();
+
+        auto& columns = table.second.GetColumns();
+
+        for (const auto& column : columns)
+        {
+            auto type = column.second.get()->GetColumnType();
+
+            switch (type)
+            {
+            case COLUMN_POLYGON:
+            {
+                auto castedColumn =
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+            }
+            break;
+
+			case COLUMN_POINT:
+			{
+                auto castedColumn =
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+			}
+            break;
+
+			case COLUMN_STRING:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+            }
+            break;
+
+			case COLUMN_INT8_T:
+			{
+                auto castedColumn = dynamic_cast<ColumnBase<int8_t>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+			}
+            break;
+
+			case COLUMN_INT:
+			{
+                auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+			}
+            break;
+
+            case COLUMN_LONG:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+            }
+            break;
+
+			case COLUMN_FLOAT:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<float>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+            }
+            break;
+
+			case COLUMN_DOUBLE:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<double>*>(column.second.get());
+                castedColumn->SetSaveNecessaryToFalse();
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    blocks[i]->SetSaveNecessaryToFalse();
+                }
+            }
+            break;
+            }
+        }
+    }
+}
+
+/// <summary>
 /// Save only .db file to disk.
 /// </summary>
 /// <param name="path">Path to database storage directory.</param>
@@ -80,8 +217,6 @@ void Database::PersistOnlyDbFile(const char* path)
     auto& tables = GetTables();
     auto& name = GetName();
     auto pathStr = std::string(path);
-
-    BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size() << " tables.";
 
     boost::filesystem::create_directories(path);
 
@@ -130,39 +265,10 @@ void Database::Persist(const char* path)
 
     BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size() << " tables.";
 
-    boost::filesystem::create_directories(path);
-
     int32_t blockSize = GetBlockSize();
     int32_t tableSize = tables.size();
 
-    // write file .db
-    BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << ".db";
-    std::ofstream dbFile(pathStr + "/" + name + ".db", std::ios::binary);
-
-    int32_t dbNameLength = name.length() + 1; // +1 because '\0'
-
-    dbFile.write(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); // write db name length
-    dbFile.write(name.c_str(), dbNameLength); // write db name
-    dbFile.write(reinterpret_cast<char*>(&blockSize), sizeof(int32_t)); // write block size
-    dbFile.write(reinterpret_cast<char*>(&tableSize), sizeof(int32_t)); // write number of tables
-    for (auto& table : tables)
-    {
-        auto& columns = table.second.GetColumns();
-        int32_t tableNameLength = table.first.length() + 1; // +1 because '\0'
-        int32_t columnNumber = columns.size();
-
-        dbFile.write(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); // write table name length
-        dbFile.write(table.first.c_str(), tableNameLength); // write table name
-        dbFile.write(reinterpret_cast<char*>(&columnNumber), sizeof(int32_t)); // write number of columns of the table
-        for (const auto& column : columns)
-        {
-            int32_t columnNameLength = column.first.length() + 1; // +1 because '\0'
-
-            dbFile.write(reinterpret_cast<char*>(&columnNameLength), sizeof(int32_t)); // write column name length
-            dbFile.write(column.first.c_str(), columnNameLength); // write column name
-        }
-    }
-    dbFile.close();
+    PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
 
     // write files .col:
     for (const auto& table : tables)
@@ -186,16 +292,78 @@ void Database::Persist(const char* path)
 }
 
 /// <summary>
-/// Save all databases currently in memory to disk. All databases will be saved in the same directory
+/// Save modified blocks and columns of the database from memory to disk.
 /// </summary>
 /// <param name="path">Path to database storage directory.</param>
+void Database::PersistOnlyModified(const char* path)
+{
+    auto& tables = GetTables();
+    auto& name = GetName();
+    auto pathStr = std::string(path);
+
+    BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size()
+                            << " tables because if it was modified.";
+
+    int32_t blockSize = GetBlockSize();
+    int32_t tableSize = tables.size();
+
+    PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
+
+    // write files .col:
+    for (const auto& table : tables)
+    {
+        if (table.second.GetSaveNecessary())
+		{
+			const auto& columns = table.second.GetColumns();
+
+			std::vector<std::thread> threads;
+
+			for (const auto& column : columns)
+			{
+                if (column.second.get()->GetSaveNecessary())
+				{
+					threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name, std::ref(table));
+				}
+			}
+
+			for (int j = 0; j < threads.size(); j++)
+			{
+				threads[j].join();
+			}
+		}
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk.";
+}
+
+/// <summary>
+/// Save all databases currently in memory to disk. All databases will be saved in the same directory
+/// </summary>
 void Database::SaveAllToDisk()
 {
+    BOOST_LOG_TRIVIAL(info) << "Saving all loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
     for (auto& database : Context::getInstance().GetLoadedDatabases())
     {
         database.second->Persist(path);
     }
+    BOOST_LOG_TRIVIAL(info) << "Saving loaded databases to disk has finished.";
+}
+
+/// <summary>
+/// Save only modified blocks and columns to disk. All databases will be saved in the same directory.
+/// </summary>
+void Database::SaveModifiedToDisk()
+{
+    BOOST_LOG_TRIVIAL(info)
+        << "Saving only modified blocks and columns of the loaded databases to disk has started...";
+    auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
+    for (auto& database : Context::getInstance().GetLoadedDatabases())
+    {
+        database.second->PersistOnlyModified(path);
+    }
+    BOOST_LOG_TRIVIAL(info)
+        << "Saving only modified blocks and columns of the loaded databases to disk has finished.";
 }
 
 /// <summary>
@@ -218,6 +386,7 @@ void Database::LoadDatabasesFromDisk()
 
                 if (database != nullptr)
                 {
+                    database->SetSaveNecessaryToFalseForEverything();
                     Context::getInstance().GetLoadedDatabases().insert({database->name_, database});
                 }
             }
@@ -452,7 +621,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
     std::ifstream colFile(pathStr + dbName + SEPARATOR + table.GetName() + SEPARATOR + columnName + ".col",
                           std::ios::binary);
 
-    int32_t nullIndex = 0;
+    int32_t emptyBlockIndex = 0;
 
     int32_t type;
     bool isNullable;
@@ -508,10 +677,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int64_t dataLength;
             colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int64_t)); // read data length (data block length)
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnPolygon.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty ComplexPolygon block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty ComplexPolygon block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -544,7 +713,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 BOOST_LOG_TRIVIAL(debug) << "Added ComplexPolygon block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -600,10 +769,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int64_t dataLength;
             colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int64_t)); // read byte data length (data block length)
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnPoint.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Point block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Point block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -637,7 +806,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 BOOST_LOG_TRIVIAL(debug) << "Added Point block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -684,10 +853,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int64_t dataLength;
             colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int64_t)); // read data length (data block length)
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnString.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty String block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty String block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -718,7 +887,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 BOOST_LOG_TRIVIAL(debug) << "Added String block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -775,10 +944,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int8_t sum;
             colFile.read(reinterpret_cast<char*>(&sum), sizeof(int8_t)); // read statistics sum
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnInt.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Int8 block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Int8 block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -790,14 +959,14 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int8_t*>(data.get());
                 std::vector<int8_t> dataInt(dataTemp, dataTemp + dataLength);
 
-                auto& block = columnInt.AddBlock(dataInt, groupId, false, (bool)isCompressed);
+                auto& block = columnInt.AddBlock(dataInt, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
                 BOOST_LOG_TRIVIAL(debug) << "Added Int8 block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -854,10 +1023,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int32_t sum;
             colFile.read(reinterpret_cast<char*>(&sum), sizeof(int32_t)); // read statistics sum
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnInt.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Int32 block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Int32 block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -869,14 +1038,14 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int32_t*>(data.get());
                 std::vector<int32_t> dataInt(dataTemp, dataTemp + dataLength);
 
-                auto& block = columnInt.AddBlock(dataInt, groupId, false, (bool)isCompressed);
+                auto& block = columnInt.AddBlock(dataInt, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
                 BOOST_LOG_TRIVIAL(debug) << "Added Int32 block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -933,10 +1102,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             int64_t sum;
             colFile.read(reinterpret_cast<char*>(&sum), sizeof(int64_t)); // read statistics sum
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnLong.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Int64 block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Int64 block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -948,14 +1117,14 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<int64_t*>(data.get());
                 std::vector<int64_t> dataLong(dataTemp, dataTemp + dataLength);
 
-                auto& block = columnLong.AddBlock(dataLong, groupId, false, (bool)isCompressed);
+                auto& block = columnLong.AddBlock(dataLong, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
                 BOOST_LOG_TRIVIAL(debug) << "Added Int64 block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -1012,10 +1181,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             float sum;
             colFile.read(reinterpret_cast<char*>(&sum), sizeof(float)); // read statistics sum
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnFloat.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Float block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Float block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -1027,14 +1196,14 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<float*>(data.get());
                 std::vector<float> dataFloat(dataTemp, dataTemp + dataLength);
 
-                auto& block = columnFloat.AddBlock(dataFloat, groupId, false, (bool)isCompressed);
+                auto& block = columnFloat.AddBlock(dataFloat, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
                 BOOST_LOG_TRIVIAL(debug) << "Added Float block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -1091,10 +1260,10 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             double sum;
             colFile.read(reinterpret_cast<char*>(&sum), sizeof(double)); // read statistics sum
 
-            if (index != nullIndex) // there is null block
+            if (index != emptyBlockIndex) // there is null block
             {
                 columnDouble.AddBlock(); // add empty block
-                BOOST_LOG_TRIVIAL(debug) << "Added empty Double block at index: " << nullIndex;
+                BOOST_LOG_TRIVIAL(debug) << "Added empty Double block at index: " << emptyBlockIndex;
             }
             else // read data from block
             {
@@ -1106,14 +1275,15 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 dataTemp = reinterpret_cast<double*>(data.get());
                 std::vector<double> dataDouble(dataTemp, dataTemp + dataLength);
 
-                auto& block = columnDouble.AddBlock(dataDouble, groupId, false, (bool)isCompressed);
+                auto& block =
+                    columnDouble.AddBlock(dataDouble, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
                 BOOST_LOG_TRIVIAL(debug) << "Added Double block with data at index: " << index;
             }
 
-            nullIndex += 1;
+            emptyBlockIndex += 1;
         }
     }
     break;
@@ -1243,7 +1413,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                            const std::pair<const std::string, Table>& table)
 {
     BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << SEPARATOR
-                             << table.first << SEPARATOR << column.second->GetName() << " .col";
+                             << table.first << SEPARATOR << column.second->GetName() << ".col";
 
     std::ofstream colFile(pathStr + "/" + name + SEPARATOR + table.first + SEPARATOR +
                               column.second->GetName() + ".col",
