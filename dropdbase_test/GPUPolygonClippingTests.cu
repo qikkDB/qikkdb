@@ -52,6 +52,14 @@ TEST(GPUPolygonClippingTests, PoygonTest)
 		{0.0, 0.6}
 	};
 
+	std::vector<int32_t> outPolyIdxCorrect = {};
+	std::vector<int32_t> outPointIdxCorrect = {};
+	std::vector<NativeGeoPoint> outPolyPointsCorrect = {};
+
+	std::vector<int32_t> outPolyIdx;
+	std::vector<int32_t> outPointIdx;
+	std::vector<NativeGeoPoint> outPolyPoints;
+
 	// Alloc the GPU structures
 	GPUMemory::GPUPolygon polygonA;
 	GPUMemory::GPUPolygon polygonB;
@@ -77,9 +85,40 @@ TEST(GPUPolygonClippingTests, PoygonTest)
 	GPUMemory::GPUPolygon polygonOut;	// This needs to be empty
 	GPUPolygonClipping::ColCol<PolygonFunctions::polyIntersect>(polygonOut, polygonA, polygonB, dataElementCount);
 
+	// Copy back the results
+	outPolyIdx.resize(dataElementCount);
+	GPUMemory::copyDeviceToHost(&outPolyIdx[0], polygonOut.polyIdx, outPolyIdx.size());
+
+	outPointIdx.resize(outPolyIdx[dataElementCount - 1]);
+	GPUMemory::copyDeviceToHost(&outPointIdx[0], polygonOut.pointIdx, outPointIdx.size());
+
+	outPolyPoints.resize(outPointIdx[outPolyIdx[dataElementCount - 1] - 1]);
+	GPUMemory::copyDeviceToHost(&outPolyPoints[0], polygonOut.polyPoints, outPolyPoints.size());
+
 	// Free the polygons
 	GPUMemory::free(polygonA);
 	GPUMemory::free(polygonB);
 	GPUMemory::free(polygonOut);
+
+	// Check the results
+
+	// DEBUG
+	for(int32_t i = 0; i < outPolyIdx.size(); i++)
+	{
+		printf("%d : %d\n", i, outPolyIdx[i]);
+	}
+	printf("\n");
+
+	for(int32_t i = 0; i < outPointIdx.size(); i++)
+	{
+		printf("%d : %d\n", i, outPointIdx[i]);
+	}
+	printf("\n");
+
+	for(int32_t i = 0; i < outPolyPoints.size(); i++)
+	{
+		printf("%d : %.2f %.2f\n", i, outPolyPoints[i].latitude,outPolyPoints[i].longitude);
+	}
+	printf("\n");
 
 }

@@ -42,12 +42,11 @@ struct LLPolyVertex
 {
     NativeGeoPoint vertex; // The vertex coordinates
 
-    // bool isIntersection; // Is this an intersection or a polygon vertex
-    // bool isValidIntersection; // Is this a valid interection ? ( does the point lie between the crossing lines)
-    // bool isEntry; // Is this an entry (true) or an exit (false) to the other polygon
-    // bool wasProcessed; // Was the vertex processed already during the result clipping
-
     // One variable to represent the linked list flags
+    // isIntersection - Is this an intersection or a polygon vertex
+    // isValidIntersection - Is this a valid interection ? ( does the point lie between the crossing lines)
+    // isEntry - Is this an entry (true) or an exit (false) to the other polygon
+    // wasProcessed - Was the vertex processed already during the result clipping
     // | empty | empty | empty | empty | isIntersection | isValidIntersection | isEntry | wasProcessed |
     uint8_t LLflags;
 
@@ -60,17 +59,41 @@ struct LLPolyVertex
 };
 
 // Getting and setting the bit flags for the polygon linked list methods
-// Setters
-inline __device__ void setIsIntersection(LLPolyVertex &v, bool flag) { v.LLflags = (v.LLflags & 0xF7) | ((static_cast<uint8_t>(flag)) << 3); }
-inline __device__ void setIsValidIntersection(LLPolyVertex &v, bool flag) { v.LLflags = (v.LLflags & 0xFB) | ((static_cast<uint8_t>(flag)) << 2); }
-inline __device__ void setIsEntry(LLPolyVertex &v, bool flag) { v.LLflags = (v.LLflags & 0xFD) | ((static_cast<uint8_t>(flag)) << 1); }
-inline __device__ void setWasProcessed(LLPolyVertex &v, bool flag) { v.LLflags = (v.LLflags & 0xFE) | ((static_cast<uint8_t>(flag)) << 0); }
-
 // Getters
-inline __device__ bool getIsIntersection(LLPolyVertex &v) { return static_cast<bool>((v.LLflags >> 3) & 0x01); }
-inline __device__ bool getIsValidIntersection(LLPolyVertex &v) { return static_cast<bool>((v.LLflags >> 2) & 0x01); }
-inline __device__ bool getIsEntry(LLPolyVertex &v) { return static_cast<bool>((v.LLflags >> 1) & 0x01); }
-inline __device__ bool getWasProcessed(LLPolyVertex &v) { return static_cast<bool>((v.LLflags >> 0) & 0x01); }
+inline __device__ bool getIsIntersection(LLPolyVertex& v)
+{
+    return static_cast<bool>((v.LLflags >> 3) & 0x01);
+}
+inline __device__ bool getIsValidIntersection(LLPolyVertex& v)
+{
+    return static_cast<bool>((v.LLflags >> 2) & 0x01);
+}
+inline __device__ bool getIsEntry(LLPolyVertex& v)
+{
+    return static_cast<bool>((v.LLflags >> 1) & 0x01);
+}
+inline __device__ bool getWasProcessed(LLPolyVertex& v)
+{
+    return static_cast<bool>((v.LLflags >> 0) & 0x01);
+}
+
+// Setters
+inline __device__ void setIsIntersection(LLPolyVertex& v, bool flag)
+{
+    v.LLflags = (v.LLflags & 0xF7) | ((static_cast<uint8_t>(flag)) << 3);
+}
+inline __device__ void setIsValidIntersection(LLPolyVertex& v, bool flag)
+{
+    v.LLflags = (v.LLflags & 0xFB) | ((static_cast<uint8_t>(flag)) << 2);
+}
+inline __device__ void setIsEntry(LLPolyVertex& v, bool flag)
+{
+    v.LLflags = (v.LLflags & 0xFD) | ((static_cast<uint8_t>(flag)) << 1);
+}
+inline __device__ void setWasProcessed(LLPolyVertex& v, bool flag)
+{
+    v.LLflags = (v.LLflags & 0xFE) | ((static_cast<uint8_t>(flag)) << 0);
+}
 
 // Calcualte an intersection point between two lines
 __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, NativeGeoPoint sB, NativeGeoPoint eB);
@@ -160,17 +183,21 @@ __device__ void clip_polygons(int32_t* polyCount,
                 do
                 {
                     setWasProcessed(LLPolygonBuffersTable[turnNumber][nextIdx], true);
-                    setWasProcessed(LLPolygonBuffersTable[1 - turnNumber][LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx], true);
+                    setWasProcessed(LLPolygonBuffersTable[1 - turnNumber]
+                                                         [LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx],
+                                    true);
 
-                    bool forward = (getIsEntry(LLPolygonBuffersTable[turnNumber][nextIdx]) == turnTable[turnNumber]);
+                    bool forward =
+                        (getIsEntry(LLPolygonBuffersTable[turnNumber][nextIdx]) == turnTable[turnNumber]);
                     do
                     {
                         // Write the output point
-                        if(polyCount && pointCount && polyPoints)
+                        if (polyCount && pointCount && polyPoints)
                         {
                             int32_t poly_idx = i;
                             int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + componentCount);
-                            int32_t polyPoint_idx = (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + subComponentCount);
+                            int32_t polyPoint_idx =
+                                (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + subComponentCount);
                             polyPoints[polyPoint_idx] = LLPolygonBuffersTable[turnNumber][nextIdx].vertex;
                         }
 
@@ -282,9 +309,9 @@ public:
     // This method expects polygonOut to be with unallocated arrays !!!
     // returns - isEmpty
     template <typename OP>
-    static bool ColCol(GPUMemory::GPUPolygon &polygonOut,
-                       GPUMemory::GPUPolygon &polygonAin,
-                       GPUMemory::GPUPolygon &polygonBin,
+    static bool ColCol(GPUMemory::GPUPolygon& polygonOut,
+                       GPUMemory::GPUPolygon& polygonAin,
+                       GPUMemory::GPUPolygon& polygonBin,
                        int32_t dataElementCount)
     {
         // Create buffers for the linked lists
@@ -296,25 +323,6 @@ public:
                                       Context::getInstance().getBlockDimPoly()>>>(
             LLPolygonABufferSizes.get(), LLPolygonBBufferSizes.get(), polygonAin, polygonBin, dataElementCount);
         CheckCudaError(cudaGetLastError());
-
-        // DEBUG
-        // std::vector<int32_t> LLPolygonABufferSizesDebug(dataElementCount);
-        // std::vector<int32_t> LLPolygonBBufferSizesDebug(dataElementCount);
-
-        // GPUMemory::copyDeviceToHost(&LLPolygonABufferSizesDebug[0], LLPolygonABufferSizes.get(), dataElementCount);
-        // GPUMemory::copyDeviceToHost(&LLPolygonBBufferSizesDebug[0], LLPolygonBBufferSizes.get(), dataElementCount);
-
-        // for (auto& a : LLPolygonABufferSizesDebug)
-        // {
-        //     printf("%d ", a);
-        // }
-        // printf("\n");
-        // for (auto& b : LLPolygonBBufferSizesDebug)
-        // {
-        //     printf("%d ", b);
-        // }
-        // printf("\n");
-
 
         // Calculate the inclusive prefix sum for the LL buffer sizes counters for adressing purpose
         cuda_ptr<int32_t> LLPolygonABufferSizesPrefixSum(dataElementCount);
@@ -331,11 +339,6 @@ public:
                                     LLPolygonABufferSizesPrefixSum.get() + dataElementCount - 1, 1);
         GPUMemory::copyDeviceToHost(&LLPolygonBBufferSizesTotal,
                                     LLPolygonBBufferSizesPrefixSum.get() + dataElementCount - 1, 1);
-
-        // DEBUG
-        // std::printf("Sizes A total: %d\n", LLPolygonABufferSizesTotal);
-        // std::printf("Sizes B total: %d\n", LLPolygonBBufferSizesTotal);
-        // std::printf("\n");
 
         // Alloc the linked list buffers for the polygon clipping
         cuda_ptr<LLPolyVertex> LLPolygonABuffers(LLPolygonABufferSizesTotal);
@@ -356,48 +359,12 @@ public:
                                                                   dataElementCount);
         CheckCudaError(cudaGetLastError());
 
-        // DEBUG
-        // std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
-        // std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
-
-        // GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
-        // GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
-
-        // for (int32_t i = 0; i < LLa.size(); i++)
-        // {
-        //     printf("%2d: %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx);
-        // }
-        // printf("\n");
-        // for (int32_t i = 0; i < LLb.size(); i++)
-        // {
-        //     printf("%2d: %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx);
-        // }
-        // printf("\n");
-
         // Insert the intersections into the linked lists and cross link the intersections for intersect/union traversal
         kernel_add_and_crosslink_intersections_to_LL<<<Context::getInstance().calcGridDim(dataElementCount),
                                                        Context::getInstance().getBlockDim()>>>(
             LLPolygonABuffers.get(), LLPolygonBBuffers.get(), polygonAin, polygonBin,
             LLPolygonABufferSizesPrefixSum.get(), LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
         CheckCudaError(cudaGetLastError());
-
-        // DEBUG
-        // std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
-        // std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
-
-        // GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
-        // GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
-
-        // for (int32_t i = 0; i < LLa.size(); i++)
-        // {
-        //     printf("%2d: %2d %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx, LLa[i].crossIdx);
-        // }
-        // printf("\n");
-        // for (int32_t i = 0; i < LLb.size(); i++)
-        // {
-        //     printf("%2d: %2d %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx, LLb[i].crossIdx);
-        // }
-        // printf("\n");
 
         // Decide which intersection points are entry points and whoch ones are exit points
         // and label them accordingly
@@ -410,29 +377,6 @@ public:
                                      Context::getInstance().getBlockDim()>>>(
             LLPolygonBBuffers.get(), polygonBin, polygonAin, LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
         CheckCudaError(cudaGetLastError());
-
-        // DEBUG
-        // std::vector<LLPolyVertex> LLa(LLPolygonABufferSizesTotal);
-        // std::vector<LLPolyVertex> LLb(LLPolygonBBufferSizesTotal);
-
-        // GPUMemory::copyDeviceToHost(&LLa[0], LLPolygonABuffers.get(), LLPolygonABufferSizesTotal);
-        // GPUMemory::copyDeviceToHost(&LLb[0], LLPolygonBBuffers.get(), LLPolygonBBufferSizesTotal);
-
-        // for (int32_t i = 0; i < LLa.size(); i++)
-        // {
-        //     printf("%2d: %2d %2d %2d\n", i, LLa[i].prevIdx, LLa[i].nextIdx, LLa[i].isEntry);
-        // }
-        // printf("\n");
-        // for (int32_t i = 0; i < LLb.size(); i++)
-        // {
-        //     printf("%2d: %2d %2d %2d\n", i, LLb[i].prevIdx, LLb[i].nextIdx, LLb[i].isEntry);
-        // }
-        // printf("\n");
-
-        // Clip the prepared data structure and produce the result complex polygins
-        // polygonOut.polyIdx
-        // polygonOut.pointIdx
-        // polygonOut.polyPoints
 
         // Process the polyIdx array
         cuda_ptr<int32_t> polyCount(dataElementCount);
@@ -449,19 +393,6 @@ public:
         // Retrieve the pointIdx array length
         int32_t pointIdxSize;
         GPUMemory::copyDeviceToHost(&pointIdxSize, polygonOut.polyIdx + dataElementCount - 1, 1);
-
-        // DEBUG
-        std::vector<int32_t> polyCount_cpu(dataElementCount);
-        std::vector<int32_t> polyIdx_cpu(dataElementCount);
-
-        GPUMemory::copyDeviceToHost(&polyCount_cpu[0], polyCount.get(), dataElementCount);
-        GPUMemory::copyDeviceToHost(&polyIdx_cpu[0], polygonOut.polyIdx, dataElementCount);
-
-        for (int32_t i = 0; i < dataElementCount; i++)
-        {
-            printf("%2d: %2d %2d\n", i, polyCount_cpu[i], polyIdx_cpu[i]);
-        }
-        printf("\n");
 
         // Process the pointIdx array
         cuda_ptr<int32_t> pointCount(pointIdxSize);
@@ -480,40 +411,16 @@ public:
         int32_t polyPointsSize;
         GPUMemory::copyDeviceToHost(&polyPointsSize, polygonOut.pointIdx + pointIdxSize - 1, 1);
 
-        // DEBUG
-        std::vector<int32_t> pointCount_cpu(pointIdxSize);
-        std::vector<int32_t> pointIdx_cpu(pointIdxSize);
-
-        GPUMemory::copyDeviceToHost(&pointCount_cpu[0], pointCount.get(), pointIdxSize);
-        GPUMemory::copyDeviceToHost(&pointIdx_cpu[0], polygonOut.pointIdx, pointIdxSize);
-
-        for (int32_t i = 0; i < pointIdxSize; i++)
-        {
-            printf("%2d: %2d %2d\n", i, pointCount_cpu[i], pointIdx_cpu[i]);
-        }
-        printf("\n");
-
         // Process the polyPoints array
         GPUMemory::alloc(&(polygonOut.polyPoints), polyPointsSize);
 
         kernel_clip_polyPoints<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                polyCount.get(), polygonOut.polyIdx, pointCount.get(),polygonOut.pointIdx, polygonOut.polyPoints, LLPolygonABuffers.get(),
-                LLPolygonBBuffers.get(), polygonAin, polygonBin, LLPolygonABufferSizesPrefixSum.get(),
+                polyCount.get(), polygonOut.polyIdx, pointCount.get(), polygonOut.pointIdx,
+                polygonOut.polyPoints, LLPolygonABuffers.get(), LLPolygonBBuffers.get(), polygonAin,
+                polygonBin, LLPolygonABufferSizesPrefixSum.get(),
                 LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
         CheckCudaError(cudaGetLastError());
-
-        // DEBUG
-        std::vector<NativeGeoPoint> polyPoints_cpu(polyPointsSize);
-
-        GPUMemory::copyDeviceToHost(&polyPoints_cpu[0], polygonOut.polyPoints, polyPointsSize);
-
-        for (int32_t i = 0; i < polyPointsSize; i++)
-        {
-            //printf("%2d: %.2f %.2f\n", i, polyPoints_cpu[i].latitude, polyPoints_cpu[i].longitude);
-            printf("[%.2f, %.2f],\n", polyPoints_cpu[i].latitude, polyPoints_cpu[i].longitude);
-        }
-        printf("\n");
 
         return true;
     }
