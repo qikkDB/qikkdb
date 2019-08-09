@@ -123,7 +123,7 @@ __device__ void clip_polygons(int32_t* polyCount,
         int32_t begIdxB = ((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + k;
         int32_t endIdxB = LLPolygonBBufferSizesPrefixSum[i] - 1;
 
-        // Initialize the turn table
+        // Fill the turn table according to clipping operation
         bool turnTable[2];
         OP{}(turnTable);
 
@@ -131,10 +131,10 @@ __device__ void clip_polygons(int32_t* polyCount,
         int32_t componentCount = 0;
 
         int32_t turnNumber = 0;
-        LLPolyVertex* turnTableLL[2] = {LLPolygonABuffers, LLPolygonBBuffers};
+        LLPolyVertex* LLPolygonBuffersTable[2] = {LLPolygonABuffers, LLPolygonBBuffers};
         for (int32_t point = begIdxA; point <= endIdxA; point++)
         {
-            if (turnTableLL[turnNumber][point].wasProcessed == false)
+            if (LLPolygonBuffersTable[turnNumber][point].wasProcessed == false)
             {
                 // Calculate the sub component count
                 int32_t subComponentCount = 0;
@@ -142,10 +142,10 @@ __device__ void clip_polygons(int32_t* polyCount,
                 int32_t nextIdx = point;
                 do
                 {
-                    turnTableLL[turnNumber][nextIdx].wasProcessed = true;
-                    turnTableLL[1 - turnNumber][turnTableLL[turnNumber][nextIdx].crossIdx].wasProcessed = true;
+                    LLPolygonBuffersTable[turnNumber][nextIdx].wasProcessed = true;
+                    LLPolygonBuffersTable[1 - turnNumber][LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx].wasProcessed = true;
 
-                    bool forward = (turnTableLL[turnNumber][nextIdx].isEntry == turnTable[turnNumber]);
+                    bool forward = (LLPolygonBuffersTable[turnNumber][nextIdx].isEntry == turnTable[turnNumber]);
                     do
                     {
                         // Write the output point
@@ -154,24 +154,24 @@ __device__ void clip_polygons(int32_t* polyCount,
                             int32_t poly_idx = i;
                             int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + componentCount);
                             int32_t polyPoint_idx = (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + subComponentCount);
-                            polyPoints[polyPoint_idx] = turnTableLL[turnNumber][nextIdx].vertex;
+                            polyPoints[polyPoint_idx] = LLPolygonBuffersTable[turnNumber][nextIdx].vertex;
                         }
 
                         if (forward)
                         {
-                            nextIdx = turnTableLL[turnNumber][nextIdx].nextIdx;
+                            nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].nextIdx;
                         }
                         else
                         {
-                            nextIdx = turnTableLL[turnNumber][nextIdx].prevIdx;
+                            nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].prevIdx;
                         }
 
                         subComponentCount++;
-                    } while (!turnTableLL[turnNumber][nextIdx].isIntersection);
+                    } while (!LLPolygonBuffersTable[turnNumber][nextIdx].isIntersection);
 
-                    nextIdx = turnTableLL[turnNumber][nextIdx].crossIdx;
+                    nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx;
                     turnNumber = 1 - turnNumber;
-                } while (!turnTableLL[turnNumber][nextIdx].wasProcessed);
+                } while (!LLPolygonBuffersTable[turnNumber][nextIdx].wasProcessed);
 
                 if (polyCount && pointCount)
                 {
@@ -434,17 +434,17 @@ public:
         GPUMemory::copyDeviceToHost(&pointIdxSize, polygonOut.polyIdx + dataElementCount - 1, 1);
 
         // DEBUG
-        // std::vector<int32_t> polyCount_cpu(dataElementCount);
-        // std::vector<int32_t> polyIdx_cpu(dataElementCount);
+        std::vector<int32_t> polyCount_cpu(dataElementCount);
+        std::vector<int32_t> polyIdx_cpu(dataElementCount);
 
-        // GPUMemory::copyDeviceToHost(&polyCount_cpu[0], polyCount.get(), dataElementCount);
-        // GPUMemory::copyDeviceToHost(&polyIdx_cpu[0], polygonOut.polyIdx, dataElementCount);
+        GPUMemory::copyDeviceToHost(&polyCount_cpu[0], polyCount.get(), dataElementCount);
+        GPUMemory::copyDeviceToHost(&polyIdx_cpu[0], polygonOut.polyIdx, dataElementCount);
 
-        // for (int32_t i = 0; i < dataElementCount; i++)
-        // {
-        //     printf("%2d: %2d %2d\n", i, polyCount_cpu[i], polyIdx_cpu[i]);
-        // }
-        // printf("\n");
+        for (int32_t i = 0; i < dataElementCount; i++)
+        {
+            printf("%2d: %2d %2d\n", i, polyCount_cpu[i], polyIdx_cpu[i]);
+        }
+        printf("\n");
 
         // Process the pointIdx array
         cuda_ptr<int32_t> pointCount(pointIdxSize);
@@ -464,17 +464,17 @@ public:
         GPUMemory::copyDeviceToHost(&polyPointsSize, polygonOut.pointIdx + pointIdxSize - 1, 1);
 
         // DEBUG
-        // std::vector<int32_t> pointCount_cpu(pointIdxSize);
-        // std::vector<int32_t> pointIdx_cpu(pointIdxSize);
+        std::vector<int32_t> pointCount_cpu(pointIdxSize);
+        std::vector<int32_t> pointIdx_cpu(pointIdxSize);
 
-        // GPUMemory::copyDeviceToHost(&pointCount_cpu[0], pointCount.get(), pointIdxSize);
-        // GPUMemory::copyDeviceToHost(&pointIdx_cpu[0], polygonOut.pointIdx, pointIdxSize);
+        GPUMemory::copyDeviceToHost(&pointCount_cpu[0], pointCount.get(), pointIdxSize);
+        GPUMemory::copyDeviceToHost(&pointIdx_cpu[0], polygonOut.pointIdx, pointIdxSize);
 
-        // for (int32_t i = 0; i < pointIdxSize; i++)
-        // {
-        //     printf("%2d: %2d %2d\n", i, pointCount_cpu[i], pointIdx_cpu[i]);
-        // }
-        // printf("\n");
+        for (int32_t i = 0; i < pointIdxSize; i++)
+        {
+            printf("%2d: %2d %2d\n", i, pointCount_cpu[i], pointIdx_cpu[i]);
+        }
+        printf("\n");
 
         // Process the polyPoints array
         GPUMemory::alloc(&(polygonOut.polyPoints), polyPointsSize);
@@ -487,15 +487,16 @@ public:
         CheckCudaError(cudaGetLastError());
 
         // DEBUG
-        // std::vector<NativeGeoPoint> polyPoints_cpu(polyPointsSize);
+        std::vector<NativeGeoPoint> polyPoints_cpu(polyPointsSize);
 
-        // GPUMemory::copyDeviceToHost(&polyPoints_cpu[0], polygonOut.polyPoints, polyPointsSize);
+        GPUMemory::copyDeviceToHost(&polyPoints_cpu[0], polygonOut.polyPoints, polyPointsSize);
 
-        // for (int32_t i = 0; i < polyPointsSize; i++)
-        // {
-        //     printf("%2d: %.2f %.2f\n", i, polyPoints_cpu[i].latitude, polyPoints_cpu[i].longitude);
-        // }
-        // printf("\n");
+        for (int32_t i = 0; i < polyPointsSize; i++)
+        {
+            //printf("%2d: %.2f %.2f\n", i, polyPoints_cpu[i].latitude, polyPoints_cpu[i].longitude);
+            printf("[%.2f, %.2f],\n", polyPoints_cpu[i].latitude, polyPoints_cpu[i].longitude);
+        }
+        printf("\n");
 
         return true;
     }
