@@ -1163,7 +1163,7 @@ int32_t GpuSqlDispatcher::ShowColumns()
     for (auto& column : columns_map)
     {
         outDataName[i] = column.first;
-        outDataType[i] = std::to_string(column.second.get()->GetColumnType());
+        outDataType[i] = ::GetStringFromColumnDataType(column.second.get()->GetColumnType());
         i++;
     }
 
