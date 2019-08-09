@@ -12,19 +12,21 @@
 
 TEST(GPUPolygonClippingTests, PoygonTest)
 {
-	int32_t dataElementCount = 2;
+	int32_t dataElementCount = 3;
 
-	std::vector<int32_t> polyApolyIdx = {3, 4};
-	std::vector<int32_t> polyApointsIdx = {4, 8, 12, 15};
+	std::vector<int32_t> polyApolyIdx = {3, 4, 7};
+	std::vector<int32_t> polyApointsIdx = {4, 8, 12, 15, 22, 27, 31};
 	std::vector<NativeGeoPoint> polyApolyPoints = {
 		{4.5, 5.5},
 		{6.0, 5.5},
 		{6.0, 4.5},
 		{4.5, 4.5},
+
 		{10.0, 0.0},
 		{0.0, 0.0},
 		{0.0, 10.0},
 		{10.0, 10.0},
+
 		{7.0, 7.0},
 		{3.0, 7.0},
 		{3.0, 3.0},
@@ -32,15 +34,35 @@ TEST(GPUPolygonClippingTests, PoygonTest)
 
 		{0.0, 0.0},
 		{1.0, 0.0},
-		{0.5, 1.0}
+		{0.5, 1.0},
+
+		{-6.31, -1.49},
+		{-4, 5},
+		{2.13, 6.03},
+		{4.9, 2.23}, 
+		{-0.52, -0.49},
+		{3.88, -3.45},
+		{-4.33, -3.89},
+
+		{-3.77, 2.88},
+		{1.12, 5.24},
+		{3.52, 2.73},
+		{-0.92, 0.45},
+		{-2.82, -2.57},
+
+		{-2.52, 1.91},
+		{0.96, 4.25},
+		{2.16, 2.81},
+		{-1.98, 0.43}
 	};
 
-	std::vector<int32_t> polyBpolyIdx = {2, 3};
-	std::vector<int32_t> polyBpointsIdx = {3, 7, 11};
+	std::vector<int32_t> polyBpolyIdx = {2, 3, 5};
+	std::vector<int32_t> polyBpointsIdx = {3, 7, 11, 17, 23};
 	std::vector<NativeGeoPoint> polyBpolyPoints = {
 		{13.0, 5.5},
 		{13.0, 4.5},
 		{5.0, 5.0},
+
 		{4.0, 4.0},
 		{15.0, 4.0},
 		{15.0, 6.0},
@@ -49,7 +71,21 @@ TEST(GPUPolygonClippingTests, PoygonTest)
 		{0.0, 0.4},
 		{1.0, 0.4},
 		{1.0, 0.6},
-		{0.0, 0.6}
+		{0.0, 0.6},
+
+		{-5.12, 4.59},
+		{0.42, -5.63},
+		{3.86, 0.41},
+		{2.06, 3.75},
+		{1.22, 6.83},
+		{-4.6, 6.45},
+
+		{-3.32, 4.11},
+		{0.92, 3.69},
+		{2.26, 0.21},
+		{0, -3}, 
+		{0.48, 1.65}, 
+		{-2.94, 2.27}
 	};
 
 	std::vector<int32_t> outPolyIdxCorrect = {};
