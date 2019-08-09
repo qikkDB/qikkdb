@@ -154,6 +154,14 @@ private:
     std::string message_;
 };
 
+struct AlreadyModifiedColumnException : public std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Duplication in columns for modification.";
+    }
+};
+
 struct IndexAlreadyExistsException : public std::exception
 {
     IndexAlreadyExistsException(const std::string& index)

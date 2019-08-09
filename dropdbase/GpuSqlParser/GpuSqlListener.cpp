@@ -1162,6 +1162,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
 
     std::unordered_map<std::string, DataType> addColumns;
     std::unordered_set<std::string> dropColumns;
+    std::unordered_map<std::string, DataType> alterColumns;
 
     for (auto& entry : ctx->alterTableEntries()->alterTableEntry())
     {
@@ -1196,7 +1197,26 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
 
             dropColumns.insert({dropColumnName});
         }
-        // Alter Column - type casting
+        else if (entry->alterColumn())
+        {
+            auto alterColumnContext = entry->alterColumn();
+            DataType alterColumnDataType = GetDataTypeFromString(alterColumnContext->DATATYPE()->getText());
+            std::string alterColumnName = alterColumnContext->column()->getText();
+            TrimDelimitedIdentifier(alterColumnName);
+
+            if (database_->GetTables().at(tableName).GetColumns().find(alterColumnName) ==
+                database_->GetTables().at(tableName).GetColumns().end())
+            {
+                throw ColumnNotFoundException();
+            }
+
+            if (alterColumns.find(alterColumnName) != alterColumns.end())
+            {
+                throw AlreadyModifiedColumnException();
+            }
+
+            alterColumns.insert({alterColumnName, alterColumnDataType});
+        }
     }
 
     dispatcher_.AddAlterTableFunction();
@@ -1214,6 +1234,13 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     {
         dispatcher_.AddArgument<const std::string&>(dropColumn);
     }
+
+    dispatcher_.AddArgument<int32_t>(alterColumns.size());
+    for (auto& alterColumn : alterColumns)
+    {
+        dispatcher_.AddArgument<const std::string&>(alterColumn.first);
+        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(alterColumn.second));
+	}
 }
 
 void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext* ctx)

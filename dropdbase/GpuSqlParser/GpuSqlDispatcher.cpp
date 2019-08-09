@@ -1269,6 +1269,20 @@ int32_t GpuSqlDispatcher::AlterTable()
         database_->GetTables().at(tableName).EraseColumn(dropColumnName);
         database_->DeleteColumnFromDisk(tableName.c_str(), dropColumnName.c_str());
     }
+
+    int32_t alterColumnsCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < alterColumnsCount; i++)
+    {
+        std::string alterColumnName = arguments_.Read<std::string>();
+        int32_t alterColumnDataType = arguments_.Read<int32_t>();
+
+        if (isValidCast(database_->GetTables().at(tableName).GetColumns().at(alterColumnName)->GetColumnType(),
+                        static_cast<DataType>(alterColumnDataType)))
+        {
+            database_->GetTables().at(tableName).CreateColumn((alterColumnName + "_temp").c_str(),
+                                                              static_cast<DataType>(alterColumnDataType));
+        }
+    }
     return 10;
 }
 
@@ -1500,4 +1514,26 @@ std::pair<std::string, std::string> GpuSqlDispatcher::SplitColumnName(const std:
     const std::string table = colName.substr(0, splitIdx);
     const std::string column = colName.substr(splitIdx + 1);
     return {table, column};
+}
+
+bool GpuSqlDispatcher::isValidCast(DataType fromType, DataType toType)
+{
+    const bool isToTypeNumeric = (toType >= COLUMN_INT && toType <= COLUMN_DOUBLE) || toType == COLUMN_INT8_T;
+
+    if (toType == COLUMN_STRING)
+    {
+        return true;
+    }
+
+    else if (toType == COLUMN_POINT || toType == COLUMN_POLYGON)
+    {
+        return fromType == COLUMN_STRING; 
+    }
+
+    else if (isToTypeNumeric)
+    {
+        return fromType != COLUMN_POINT && fromType != COLUMN_POLYGON;
+    }
+
+    return false;
 }

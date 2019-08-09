@@ -495,6 +495,63 @@ public:
         InsertData(NullArray(length), nullMask);
     }
 
+    void CopyDataToColumn(IColumn* destinationColumn)
+    {
+        auto toType = destinationColumn->GetColumnType();
+        auto fromType = GetColumnType();
+
+        switch (toType)
+        {
+        case COLUMN_INT:
+            auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(destinationColumn);
+
+            switch (fromType)
+            {
+            case COLUMN_INT:
+
+                for (auto& block : blocks_)
+                {
+                    int32_t blockCountOnIdx = block.second.size();
+                    for (int32_t i = 0; i < blockCountOnIdx; i++)
+                    {
+                        auto newBlock = castedColumn->AddBlock(block.first);
+                        auto dataToCopy = block.second.front().GetData();
+
+						newBlock.InsertData(dataToCopy);
+                        block.second.erase(0);
+                    }
+				}
+
+                break;
+
+			case COLUMN_LONG:
+
+                for (auto& block : blocks_)
+                {
+                    int32_t blockCountOnIdx = block.second.size();
+                    for (int32_t i = 0; i < blockCountOnIdx; i++)
+                    {
+                        auto newBlock = castedColumn->AddBlock(block.first);
+                        auto dataToCopy = block.second.front().GetData();
+
+						vector<int32_t> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = static_cast<int32_t>(dataToCopy[j]);
+                        }
+
+                        newBlock.InsertData(castedDataToCopy);
+                        block.second.erase(0);
+                    }
+                }
+
+                break;
+            }
+
+            break;
+        }
+    }
+
     /// <summary>
     /// Returns type of ColumnBase
     /// </summary>

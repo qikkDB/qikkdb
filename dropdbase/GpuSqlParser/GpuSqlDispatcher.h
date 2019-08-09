@@ -108,6 +108,7 @@ private:
     std::unordered_set<std::string> registerLockList_;
     bool IsRegisterAllocated(const std::string& reg);
     std::pair<std::string, std::string> SplitColumnName(const std::string& colName);
+    bool isValidCast(DataType fromType, DataType toType);
     std::vector<std::unique_ptr<IGroupBy>>& groupByTables_;
     CpuSqlDispatcher cpuDispatcher_;
 
