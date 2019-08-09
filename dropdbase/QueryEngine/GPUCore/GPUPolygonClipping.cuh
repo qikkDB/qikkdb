@@ -42,10 +42,14 @@ struct LLPolyVertex
 {
     NativeGeoPoint vertex; // The vertex coordinates
 
-    bool isIntersection; // Is this an intersection or a polygon vertex
-    bool isValidIntersection; // Is this a valid interection ? ( does the point lie between the crossing lines)
-    bool isEntry; // Is this an entry (true) or an exit (false) to the other polygon
-    bool wasProcessed; // Was the vertex processed already during the result clipping
+    // bool isIntersection; // Is this an intersection or a polygon vertex
+    // bool isValidIntersection; // Is this a valid interection ? ( does the point lie between the crossing lines)
+    // bool isEntry; // Is this an entry (true) or an exit (false) to the other polygon
+    // bool wasProcessed; // Was the vertex processed already during the result clipping
+
+    // One variable to represent the linked list flags
+    // | empty | empty | empty | empty | isIntersection | isValidIntersection | isEntry | wasProcessed |
+    uint8_t LLflags;
 
     float distanceAlongA; // Distance of the intersection from the beginning of the first line
     float distanceAlongB; // Distance of the intersection from the beginning of the second line
@@ -54,6 +58,19 @@ struct LLPolyVertex
     int32_t nextIdx; // Index of the next member in the LL
     int32_t crossIdx; // Index in the other complex polygon for cross linking during traversal
 };
+
+// Getting and setting the bit flags for the polygon linked list methods
+// Setters
+inline __device__ void setIsIntersection(LLPolyVertex &v, bool flag) { v.LLflags = (v.LLflags & 0xF7) | ((static_cast<uint8_t>(flag)) << 3); }
+inline __device__ void setIsValidIntersection(LLPolyVertex &v, bool flag) { v.LLflags = (v.LLflags & 0xFB) | ((static_cast<uint8_t>(flag)) << 2); }
+inline __device__ void setIsEntry(LLPolyVertex &v, bool flag) { v.LLflags = (v.LLflags & 0xFD) | ((static_cast<uint8_t>(flag)) << 1); }
+inline __device__ void setWasProcessed(LLPolyVertex &v, bool flag) { v.LLflags = (v.LLflags & 0xFE) | ((static_cast<uint8_t>(flag)) << 0); }
+
+// Getters
+inline __device__ bool getIsIntersection(LLPolyVertex &v) { return static_cast<bool>((v.LLflags >> 3) & 0x01); }
+inline __device__ bool getIsValidIntersection(LLPolyVertex &v) { return static_cast<bool>((v.LLflags >> 2) & 0x01); }
+inline __device__ bool getIsEntry(LLPolyVertex &v) { return static_cast<bool>((v.LLflags >> 1) & 0x01); }
+inline __device__ bool getWasProcessed(LLPolyVertex &v) { return static_cast<bool>((v.LLflags >> 0) & 0x01); }
 
 // Calcualte an intersection point between two lines
 __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, NativeGeoPoint sB, NativeGeoPoint eB);
@@ -134,7 +151,7 @@ __device__ void clip_polygons(int32_t* polyCount,
         LLPolyVertex* LLPolygonBuffersTable[2] = {LLPolygonABuffers, LLPolygonBBuffers};
         for (int32_t point = begIdxA; point <= endIdxA; point++)
         {
-            if (LLPolygonBuffersTable[turnNumber][point].wasProcessed == false)
+            if (getWasProcessed(LLPolygonBuffersTable[turnNumber][point]) == false)
             {
                 // Calculate the sub component count
                 int32_t subComponentCount = 0;
@@ -142,10 +159,10 @@ __device__ void clip_polygons(int32_t* polyCount,
                 int32_t nextIdx = point;
                 do
                 {
-                    LLPolygonBuffersTable[turnNumber][nextIdx].wasProcessed = true;
-                    LLPolygonBuffersTable[1 - turnNumber][LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx].wasProcessed = true;
+                    setWasProcessed(LLPolygonBuffersTable[turnNumber][nextIdx], true);
+                    setWasProcessed(LLPolygonBuffersTable[1 - turnNumber][LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx], true);
 
-                    bool forward = (LLPolygonBuffersTable[turnNumber][nextIdx].isEntry == turnTable[turnNumber]);
+                    bool forward = (getIsEntry(LLPolygonBuffersTable[turnNumber][nextIdx]) == turnTable[turnNumber]);
                     do
                     {
                         // Write the output point
@@ -167,11 +184,11 @@ __device__ void clip_polygons(int32_t* polyCount,
                         }
 
                         subComponentCount++;
-                    } while (!LLPolygonBuffersTable[turnNumber][nextIdx].isIntersection);
+                    } while (!getIsIntersection(LLPolygonBuffersTable[turnNumber][nextIdx]));
 
                     nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx;
                     turnNumber = 1 - turnNumber;
-                } while (!LLPolygonBuffersTable[turnNumber][nextIdx].wasProcessed);
+                } while (!getWasProcessed(LLPolygonBuffersTable[turnNumber][nextIdx]));
 
                 if (polyCount && pointCount)
                 {
@@ -187,12 +204,12 @@ __device__ void clip_polygons(int32_t* polyCount,
         // Reset the processed flags for the next reconstruction operation
         for (int32_t pointA = begIdxA; pointA <= endIdxA; pointA++)
         {
-            LLPolygonABuffers[pointA].wasProcessed = false;
+            setWasProcessed(LLPolygonABuffers[pointA], false);
         }
 
         for (int32_t pointB = begIdxB; pointB <= endIdxB; pointB++)
         {
-            LLPolygonBBuffers[pointB].wasProcessed = false;
+            setWasProcessed(LLPolygonBBuffers[pointB], false);
         }
 
         // Write the results

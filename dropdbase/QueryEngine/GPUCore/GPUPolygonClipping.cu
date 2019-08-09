@@ -11,7 +11,13 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, Nat
 
     if (axb == 0)
     {
-        LLPolyVertex retFail = {{0, 0}, true, false, false, false, -1.0, -1.0, -1, -1, -1};
+        LLPolyVertex retFail = {{0, 0}, 0x0, -1.0, -1.0, -1, -1, -1};
+
+        setIsIntersection(retFail, true);
+        setIsValidIntersection(retFail, false);
+        setIsEntry(retFail, false);
+        setWasProcessed(retFail, false);
+
         return retFail;
     }
 
@@ -24,15 +30,17 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, Nat
     bool intersectionValidity = (alongA > 0 && alongA < 1 && alongB > 0 && alongB < 1);
 
     LLPolyVertex ret = {{sA.latitude + alongA * adx, sA.longitude + alongA * ady},
-                        true,
-                        intersectionValidity,
-                        false,
-                        false,
+                        0x0,
                         alongA,
                         alongB,
                         -1,
                         -1,
                         -1};
+
+    setIsIntersection(ret, true);
+    setIsValidIntersection(ret, intersectionValidity);
+    setIsEntry(ret, false);
+    setWasProcessed(ret, false);
 
     return ret;
 }
@@ -76,7 +84,7 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
                                            polygonB.polyPoints[pointB],
                                            polygonB.polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]);
 
-                        if (intersection.isValidIntersection)
+                        if (getIsValidIntersection(intersection))
                         {
                             intersectCount++;
                         }
@@ -121,12 +129,9 @@ __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                 int32_t localIdx = pointIdx - GPUMemory::PointIdxAt(polygon, polyIdx);
 
                 // Set the linked list entry
-                LLPolygonBuffers[((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + LLPolygonEndIdx] = {
+                LLPolyVertex vertex = {
                     polygon.polyPoints[point],
-                    false,
-                    false,
-                    false,
-                    false,
+                    0x0,
                     -1.0,
                     -1.0,
                     ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + localIdx +
@@ -134,6 +139,13 @@ __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                     ((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + localIdx +
                         (point - pointIdx + 1) % pointCount,
                     -1};
+
+                setIsIntersection(vertex, false);
+                setIsValidIntersection(vertex, false);
+                setIsEntry(vertex, false);
+                setWasProcessed(vertex, false);
+
+                LLPolygonBuffers[((i == 0) ? 0 : LLPolygonBufferSizesPrefixSum[i - 1]) + LLPolygonEndIdx] = vertex;
 
                 // Increment the local pointer to the end of the LL
                 LLPolygonEndIdx++;
@@ -188,7 +200,7 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex* LLPol
                                            polygonB.polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]);
 
                         // If an intersection is valid, insert it into the linked lists and create a cross reference
-                        if (intersection.isValidIntersection)
+                        if (getIsValidIntersection(intersection))
                         {
                             int32_t LLPolygonAEndIdxLocal =
                                 ((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + LLPolygonAEndIdx;
@@ -332,9 +344,9 @@ __global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
             do
             {
                 // If the given vertex is an intersection - assign the correct entry/exit label
-                if (LLPolygonBuffers[nextIdx].isIntersection)
+                if (getIsIntersection(LLPolygonBuffers[nextIdx]))
                 {
-                    LLPolygonBuffers[nextIdx].isEntry = isPointInPolygon;
+                    setIsEntry(LLPolygonBuffers[nextIdx], isPointInPolygon);
                     isPointInPolygon = !isPointInPolygon;
                 }
 
