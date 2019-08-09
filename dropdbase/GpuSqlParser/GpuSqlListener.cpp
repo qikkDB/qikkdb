@@ -1387,7 +1387,8 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext* ctx)
         if (hasValue)
         {
             int valueIndex = std::find(columns.begin(), columns.end(), columnPair) - columns.begin();
-            std::cout << values[valueIndex].c_str() << " " << columnName << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info)
+                << values[valueIndex].c_str() << " " << columnName << '\n';
             PushArgument(values[valueIndex].c_str(),
                          static_cast<DataType>(static_cast<int>(columnDataType) - DataType::COLUMN_INT));
         }

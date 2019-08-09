@@ -45,7 +45,8 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
     {
         CudaLogBoost::getInstance(CudaLogBoost::info)
             << "Loaded Column: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name();
-        std::cout << "Load: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name() << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info)
+            << "Load: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name() << '\n';
 
         std::string table;
         std::string column;
@@ -110,7 +111,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
         }
         else
         {
-            std::cout << "Loading joined block." << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Loading joined block." << '\n';
             int32_t loadSize = joinIndices_->at(table)[blockIndex_].size();
             std::string joinCacheId = colName + "_join";
             for (auto& joinTable : *joinIndices_)
@@ -162,7 +163,8 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
 {
     if (allocatedPointers_.find(colName) == allocatedPointers_.end() && !colName.empty() && colName.front() != '$')
     {
-        std::cout << "Load: " << colName << " " << typeid(ColmnarDB::Types::Point).name() << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info)
+            << "Load: " << colName << " " << typeid(ColmnarDB::Types::Point).name() << '\n';
 
         std::string table;
         std::string column;
@@ -242,7 +244,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
         }
         else
         {
-            std::cout << "Loading joined block." << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Loading joined block." << '\n';
             int32_t loadSize = joinIndices_->at(table)[blockIndex_].size();
             std::string joinCacheId = colName + "_join";
             for (auto& joinTable : *joinIndices_)
@@ -309,7 +311,8 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
     if (allocatedPointers_.find(colName + "_allChars") == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
     {
-        std::cout << "Load: " << colName << " " << typeid(std::string).name() << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info)
+            << "Load: " << colName << " " << typeid(std::string).name() << '\n';
 
         std::string table;
         std::string column;
@@ -362,7 +365,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
         }
         else
         {
-            std::cout << "Loading joined block." << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Loading joined block." << '\n';
             int32_t loadSize = joinIndices_->at(table)[blockIndex_].size();
             std::string joinCacheId = colName + "_join";
             for (auto& joinTable : *joinIndices_)
@@ -425,7 +428,8 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>()
         {
             return loadFlag;
         }
-        std::cout << "RetPolygonCol: " << col << ", thread: " << dispatcherThreadId_ << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info)
+            << "RetPolygonCol: " << col << ", thread: " << dispatcherThreadId_ << '\n';
 
         std::unique_ptr<std::string[]> outData(new std::string[database_->GetBlockSize()]);
         std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> ACol = FindComplexPolygon(col);
@@ -446,7 +450,7 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>()
             GPUReconstruct::ReconstructPolyColToWKT(outData.get(), &outSize, std::get<0>(ACol),
                                                     reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol));
         }
-        std::cout << "dataSize: " << outSize << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "dataSize: " << outSize << '\n';
 
         if (outSize > 0)
         {
@@ -476,7 +480,8 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
             return loadFlag;
         }
 
-        std::cout << "RetPointCol: " << colName << ", thread: " << dispatcherThreadId_ << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info)
+            << "RetPointCol: " << colName << ", thread: " << dispatcherThreadId_ << '\n';
 
         std::unique_ptr<std::string[]> outData(new std::string[database_->GetBlockSize()]);
         PointerAllocation ACol = allocatedPointers_.at(colName);
@@ -505,7 +510,7 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
         }
         // GPUMemory::hostUnregister(outData.get());
 
-        std::cout << "dataSize: " << outSize << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "dataSize: " << outSize << '\n';
 
         if (outSize > 0)
         {
@@ -529,7 +534,8 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
         return loadFlag;
     }
 
-    std::cout << "RetStringCol: " << colName << ", thread: " << dispatcherThreadId_ << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "RetStringCol: " << colName << ", thread: " << dispatcherThreadId_ << '\n';
 
     int32_t outSize;
     std::unique_ptr<std::string[]> outData;
@@ -586,7 +592,7 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
             GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col),
                                                  reinterpret_cast<int8_t*>(filter_), std::get<1>(col));
         }
-        std::cout << "dataSize: " << outSize << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "dataSize: " << outSize << '\n';
     }
 
     if (outSize > 0)
@@ -602,7 +608,7 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
 int32_t GpuSqlDispatcher::LockRegister()
 {
     std::string reg = arguments_.Read<std::string>();
-    std::cout << "Locked register: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Locked register: " << reg << '\n';
     registerLockList_.insert(reg);
     return 0;
 }

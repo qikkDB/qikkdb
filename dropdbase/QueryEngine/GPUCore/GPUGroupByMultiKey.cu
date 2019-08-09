@@ -2,39 +2,45 @@
 
 __device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKeys, int32_t i, const int32_t hashCoef)
 {
-    int32_t hash = 0;
+    uint32_t crc = 0xFFFFFFFF;
+
     for (int32_t t = 0; t < keysColCount; t++)
     {
-        hash += hashCoef * hash;
+        uint32_t hash = 0;
         switch (keyTypes[t])
         {
         case DataType::COLUMN_INT:
-            hash ^= reinterpret_cast<int32_t*>(inKeys[t])[i];
+            hash = reinterpret_cast<uint32_t*>(inKeys[t])[i];
             break;
         case DataType::COLUMN_LONG:
-            hash ^= static_cast<int32_t>(reinterpret_cast<int64_t*>(inKeys[t])[i]);
+            hash = static_cast<uint32_t>(reinterpret_cast<int64_t*>(inKeys[t])[i]);
             break;
         case DataType::COLUMN_FLOAT:
-            hash ^= static_cast<int32_t>(reinterpret_cast<float*>(inKeys[t])[i]);
+            hash = static_cast<uint32_t>(reinterpret_cast<float*>(inKeys[t])[i]);
             break;
         case DataType::COLUMN_DOUBLE:
-            hash ^= static_cast<int32_t>(reinterpret_cast<double*>(inKeys[t])[i]);
+            hash = static_cast<uint32_t>(reinterpret_cast<double*>(inKeys[t])[i]);
             break;
         case DataType::COLUMN_STRING:
         {
             GPUMemory::GPUString strCol = *reinterpret_cast<GPUMemory::GPUString*>(inKeys[t]);
-            hash ^= GetHash(strCol.allChars + GetStringIndex(strCol.stringIndices, i),
-                            GetStringLength(strCol.stringIndices, i));
+            hash = GetHash(strCol.allChars + GetStringIndex(strCol.stringIndices, i),
+                           GetStringLength(strCol.stringIndices, i));
         }
         break;
         case DataType::COLUMN_INT8_T:
-            hash ^= static_cast<int32_t>(reinterpret_cast<int8_t*>(inKeys[t])[i]);
+            hash = static_cast<uint32_t>(reinterpret_cast<int8_t*>(inKeys[t])[i]);
             break;
         default:
+            hash = 0;
             break;
         }
+        for (int32_t i = 0; i < 4; i++)
+        {
+            crc = (CRC_32_TAB[((crc >> 24) ^ ((hash >> (i * 8)) ^ 0xFF)) & 0xFF] ^ (crc << 8));
+        }
     }
-    return hash;
+    return (crc >> hashCoef) ^ (crc & ((1 << hashCoef) - 1));
 }
 
 
@@ -341,6 +347,7 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                         reinterpret_cast<double*>(inKeys[t])[sourceIndices[i]];
                     break;
                 case DataType::COLUMN_STRING:
+                {
                     // Copy strings from inKeys according to sourceIndices
                     GPUMemory::GPUString& sideBufferStr = stringSideBuffers[t];
                     GPUMemory::GPUString& inKeysStr = *reinterpret_cast<GPUMemory::GPUString*>(inKeys[t]);
@@ -350,6 +357,7 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                             inKeysStr.allChars[GetStringIndex(inKeysStr.stringIndices, sourceIndices[i]) + j];
                     }
                     break;
+                }
                 case DataType::COLUMN_INT8_T:
                     reinterpret_cast<int8_t*>(keysBuffer[t])[i] =
                         reinterpret_cast<int8_t*>(inKeys[t])[sourceIndices[i]];

@@ -1,3 +1,4 @@
+#pragma once
 /// Namespace with date-time device functors to extract year/month/day and hour/minute/second.
 /// Time (hours, minutes and seconds) is in regular cycles 86400 seconds long.
 /// Date counts with leap years, so 400 years long regular cycle is used in calculations.

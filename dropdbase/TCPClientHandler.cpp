@@ -10,6 +10,7 @@
 #include <boost/log/trivial.hpp>
 
 std::mutex TCPClientHandler::queryMutex_;
+std::mutex TCPClientHandler::importMutex_;
 
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult()
 {
@@ -93,7 +94,6 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
         case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
-                BOOST_LOG_TRIVIAL(debug) << "Inserting into int buffer payload index: " << i;
                 finalPayload.mutable_intpayload()->add_intdata(payload.second.intpayload().intdata()[i]);
             }
             break;
@@ -247,6 +247,7 @@ TCPClientHandler::HandleCSVImport(ITCPWorker& worker,
     auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
     try
     {
+        std::lock_guard<std::mutex> importLock(importMutex_);
         auto importDB = Database::GetDatabaseByName(csvImportMessage.databasename());
         if (importDB == nullptr)
         {
@@ -263,7 +264,7 @@ TCPClientHandler::HandleCSVImport(ITCPWorker& worker,
     }
     catch (std::exception& e)
     {
-        std::cerr << "CSVImport: " << e.what() << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "CSVImport: " << e.what();
     }
     return resultMessage;
 }
@@ -306,6 +307,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         resultMessage->set_message("Database was not found");
         return resultMessage;
     }
+    std::lock_guard<std::mutex> importLock(importMutex_);
     auto& tables = sharedDb->GetTables();
     auto search = tables.find(tableName);
     if (search == tables.end())

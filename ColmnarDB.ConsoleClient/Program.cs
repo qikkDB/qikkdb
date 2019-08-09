@@ -27,6 +27,7 @@ namespace ColmnarDB.ConsoleClient
             Query query = new Query();
             
             bool exit = false;
+            ReadLine.HistoryEnabled = true;
 
             while (!exit)
             {

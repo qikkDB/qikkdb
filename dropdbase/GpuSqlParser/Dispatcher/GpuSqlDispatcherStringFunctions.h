@@ -20,7 +20,7 @@ int32_t GpuSqlDispatcher::StringUnaryCol()
         return loadFlag;
     }
 
-    std::cout << "StringUnaryCol: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "StringUnaryCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
         groupByColumns_.end())
@@ -78,7 +78,7 @@ int32_t GpuSqlDispatcher::StringUnaryConst()
     std::string cnst = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "StringUnaryConst: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "StringUnaryConst: " << reg << '\n';
 
     GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst);
 
@@ -103,7 +103,7 @@ int32_t GpuSqlDispatcher::StringUnaryNumericCol()
         return loadFlag;
     }
 
-    std::cout << "StringIntUnaryCol: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "StringIntUnaryCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
         groupByColumns_.end())
@@ -148,7 +148,7 @@ int32_t GpuSqlDispatcher::StringUnaryNumericConst()
     std::string cnst = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "StringUnaryConst: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "StringUnaryConst: " << reg << '\n';
 
     GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst);
 
@@ -180,7 +180,8 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColCol()
         return loadFlag;
     }
 
-    std::cout << "StringBinaryNumericColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "StringBinaryNumericColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     bool isLeftKey = std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
                                   StringDataTypeComp(colNameLeft)) != groupByColumns_.end();
@@ -286,7 +287,7 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColConst()
         return loadFlag;
     }
 
-    std::cout << "StringBinaryColConst: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryColConst: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
         groupByColumns_.end())
@@ -351,7 +352,7 @@ int32_t GpuSqlDispatcher::StringBinaryNumericConstCol()
         return loadFlag;
     }
 
-    std::cout << "StringBinaryConstCol: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryConstCol: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
         groupByColumns_.end())
@@ -412,7 +413,7 @@ int32_t GpuSqlDispatcher::StringBinaryNumericConstConst()
     std::string cnstLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "StringBinaryConstConst: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryConstConst: " << reg << '\n';
 
     GPUMemory::GPUString gpuString = InsertConstStringGpu(cnstLeft);
 
@@ -444,7 +445,8 @@ int32_t GpuSqlDispatcher::StringBinaryColCol()
         return loadFlag;
     }
 
-    std::cout << "StringBinaryColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "StringBinaryColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     bool isLeftKey = std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
                                   StringDataTypeComp(colNameLeft)) != groupByColumns_.end();
@@ -548,7 +550,7 @@ int32_t GpuSqlDispatcher::StringBinaryColConst()
         return loadFlag;
     }
 
-    std::cout << "StringBinaryColConst: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryColConst: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
         groupByColumns_.end())
@@ -615,7 +617,7 @@ int32_t GpuSqlDispatcher::StringBinaryConstCol()
         return loadFlag;
     }
 
-    std::cout << "StringBinaryConstCol: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryConstCol: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
         groupByColumns_.end())
@@ -676,7 +678,7 @@ int32_t GpuSqlDispatcher::StringBinaryConstConst()
     std::string cnstLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "StringBinaryConstConst: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryConstConst: " << reg << '\n';
 
     GPUMemory::GPUString gpuStringLeft = InsertConstStringGpu(cnstLeft);
     GPUMemory::GPUString gpuStringRight = InsertConstStringGpu(cnstRight);

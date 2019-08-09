@@ -20,7 +20,8 @@ int32_t GpuSqlDispatcher::PointColCol()
     auto colNameLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "PointColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "PointColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     int32_t loadFlag = LoadCol<U>(colNameRight);
     if (loadFlag)
@@ -87,7 +88,7 @@ int32_t GpuSqlDispatcher::PointColConst()
     auto colNameLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "PointColConst: " << colNameLeft << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "PointColConst: " << colNameLeft << " " << reg << '\n';
 
     int32_t loadFlag = LoadCol<T>(colNameLeft);
     if (loadFlag)
@@ -131,7 +132,7 @@ int32_t GpuSqlDispatcher::PointConstCol()
     T cnst = arguments_.Read<T>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "PointConstCol: " << colNameRight << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "PointConstCol: " << colNameRight << " " << reg << '\n';
 
     int32_t loadFlag = LoadCol<U>(colNameRight);
     if (loadFlag)
@@ -182,7 +183,8 @@ int32_t GpuSqlDispatcher::ContainsColConst()
         return loadFlag;
     }
 
-    std::cout << "ContainsColConst: " + colName << " " << constWkt << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "ContainsColConst: " + colName << " " << constWkt << " " << reg << '\n';
 
     auto polygonCol = FindComplexPolygon(colName);
     ColmnarDB::Types::Point pointConst = PointFactory::FromWkt(constWkt);
@@ -227,7 +229,8 @@ int32_t GpuSqlDispatcher::ContainsConstCol()
         return loadFlag;
     }
 
-    std::cout << "ContainsConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "ContainsConstCol: " + constWkt << " " << colName << " " << reg << '\n';
 
     PointerAllocation columnPoint = allocatedPointers_.at(colName);
     ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
@@ -278,7 +281,8 @@ int32_t GpuSqlDispatcher::ContainsColCol()
         return loadFlag;
     }
 
-    std::cout << "ContainsColCol: " + colNamePolygon << " " << colNamePoint << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "ContainsColCol: " + colNamePolygon << " " << colNamePoint << " " << reg << '\n';
 
     PointerAllocation pointCol = allocatedPointers_.at(colNamePoint);
     auto polygonCol = FindComplexPolygon(colNamePolygon);
@@ -333,7 +337,8 @@ int32_t GpuSqlDispatcher::ContainsConstConst()
     auto constPolygonWkt = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "ContainsConstConst: " + constPolygonWkt << " " << constPointWkt << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "ContainsConstConst: " + constPolygonWkt << " " << constPointWkt << " " << reg << '\n';
 
     ColmnarDB::Types::Point constPoint = PointFactory::FromWkt(constPointWkt);
     ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constPolygonWkt);
@@ -369,7 +374,8 @@ int32_t GpuSqlDispatcher::PolygonOperationColConst()
         return loadFlag;
     }
 
-    std::cout << "PolygonOPConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "PolygonOPConstCol: " + constWkt << " " << colName << " " << reg << '\n';
 
     auto polygonLeft = FindComplexPolygon(colName);
     ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
@@ -392,7 +398,7 @@ int32_t GpuSqlDispatcher::PolygonOperationColConst()
 template <typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::PolygonOperationConstCol()
 {
-    std::cout << "Polygon operation: " << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Polygon operation: " << '\n';
     return 0;
 }
 /// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does
@@ -407,7 +413,8 @@ int32_t GpuSqlDispatcher::PolygonOperationColCol()
     auto colNameLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "Polygon operation: " << colNameRight << " " << colNameLeft << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Polygon operation: " << colNameRight << " " << colNameLeft << " " << reg << '\n';
 
     int32_t loadFlag = LoadCol<U>(colNameLeft);
     if (loadFlag)
@@ -466,6 +473,6 @@ int32_t GpuSqlDispatcher::PolygonOperationColCol()
 template <typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::PolygonOperationConstConst()
 {
-    std::cout << "Polygon operation: " << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Polygon operation: " << '\n';
     return 0;
 }

@@ -65,7 +65,7 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::orderByReconstructRetAllBlo
 
 int32_t GpuSqlDispatcher::FreeOrderByTable()
 {
-    std::cout << "Freeing order by table." << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Freeing order by table." << '\n';
     orderByTable_.release();
     return 0;
 }
@@ -79,7 +79,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
             std::unique_lock<std::mutex> lock(GpuSqlDispatcher::orderByMutex_);
             GpuSqlDispatcher::orderByCV_.wait(lock, [] { return GpuSqlDispatcher::IsOrderByDone(); });
 
-            std::cout << "Merging partially ordered blocks." << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Merging partially ordered blocks." << '\n';
 
             std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
             std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
@@ -861,7 +861,8 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
         }
         else
         {
-            std::cout << "Order by all blocks Done in thread: " << dispatcherThreadId_ << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info)
+                << "Order by all blocks Done in thread: " << dispatcherThreadId_ << '\n';
             // Increment counter and notify threads
             std::unique_lock<std::mutex> lock(GpuSqlDispatcher::orderByMutex_);
             GpuSqlDispatcher::IncOrderByDoneCounter();

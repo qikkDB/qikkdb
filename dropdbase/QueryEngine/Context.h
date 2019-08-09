@@ -57,7 +57,7 @@ private:
         // deviceCount_ = 1;
         /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
 
-        printf("INFO: Found %d CUDA devices\n", deviceCount_);
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Found " << deviceCount_ << "CUDA devices" << '\n';
         const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
         // Get devices information
         for (int32_t i = 0; i < deviceCount_; i++)
@@ -87,14 +87,18 @@ private:
             queriedBlockDimensionList.push_back(deviceProp.maxThreadsPerBlock);
 
             // Print device info
-            printf("INFO: Device ID: %d: %s \t maxBlockDim: %d\n", i, deviceProp.name, deviceProp.maxThreadsPerBlock);
+            CudaLogBoost::getInstance(CudaLogBoost::info)
+                << "Device ID: " << i << ": " << deviceProp.name
+                << "\t maxBlockDim: " << deviceProp.maxThreadsPerBlock << "\n";
 
-            printf("INFO: Memory: Total: %zu B Free: %zu B Cache: %zu B\n", total, free, cacheSize);
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Memory: Total: " << total << " B Free: " << free
+                                                          << "B Cache: " << cacheSize << " B" << '\n';
         }
 
         // Bind default device and notify the user
         bindDeviceToContext(DEFAULT_DEVICE_ID);
-        printf("INFO: Bound default device ID: %d\n", getBoundDeviceID());
+        CudaLogBoost::getInstance(CudaLogBoost::info)
+            << "Bound default device ID: " << getBoundDeviceID() << '\n';
 
         // Enable peer to peer communication of each GPU to the default device
         // This operation is unidirectional
