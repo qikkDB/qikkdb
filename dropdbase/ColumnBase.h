@@ -231,6 +231,7 @@ public:
             lastBlock->CompressData();
         }
         saveNecessary_ = true;
+        size_ += data.size();
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
@@ -337,7 +338,6 @@ public:
     /// <param name="columnData">Data to be inserted</param>
     void InsertData(const std::vector<T>& columnData, int groupId = -1, bool compress = false)
     {
-        size_ += columnData.size();
         int startIdx = 0;
         
         saveNecessary_ = true;
@@ -347,6 +347,7 @@ public:
             auto& lastBlock = blocks_[groupId].back();
             if (columnData.size() <= lastBlock->EmptyBlockSpace())
             {
+                size_ += columnData.size();
                 lastBlock->InsertData(columnData);
                 if (compress && lastBlock->IsFull())
                 {
@@ -355,6 +356,7 @@ public:
                 // setColumnStatistics();
                 return;
             }
+            size_ += emptySpace;
             int emptySpace = lastBlock->EmptyBlockSpace();
             lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
             if (compress && lastBlock->IsFull())
@@ -383,7 +385,6 @@ public:
                     int groupId = -1,
                     bool compress = false)
     {
-        size_ += columnData.size();
         int startIdx = 0;
         int maskIdx = 0;
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
@@ -391,6 +392,7 @@ public:
             auto& lastBlock = blocks_[groupId].back();
             if (columnData.size() <= lastBlock->EmptyBlockSpace())
             {
+                size_ += columnData.size();
                 lastBlock->InsertData(columnData);
                 auto maskPtr = lastBlock->GetNullBitmask();
                 int bitMaskStartIdx = lastBlock->BlockCapacity() - lastBlock->EmptyBlockSpace() - 1;
@@ -412,8 +414,10 @@ public:
                 setColumnStatistics();
                 return;
             }
+
             int emptySpace = lastBlock->EmptyBlockSpace();
             auto maskPtr = lastBlock->GetNullBitmask();
+            size_ += emptySpace;
             int bitMaskStartIdx = lastBlock->BlockCapacity() - lastBlock->EmptyBlockSpace() - 1;
             lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
             for (int i = bitMaskStartIdx; i < lastBlock->BlockCapacity(); i++)
