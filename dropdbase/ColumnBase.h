@@ -6,6 +6,7 @@
 
 #include "BlockBase.h"
 #include "ComplexPolygonFactory.h"
+#include "PointFactory.h"
 #include "IColumn.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
@@ -503,52 +504,349 @@ public:
         switch (toType)
         {
         case COLUMN_INT:
+        {
             auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(destinationColumn);
 
-            switch (fromType)
+            for (auto& block : blocks_)
             {
-            case COLUMN_INT:
-
-                for (auto& block : blocks_)
+                int32_t blockCountOnIdx = block.second.size();
+                for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int32_t blockCountOnIdx = block.second.size();
-                    for (int32_t i = 0; i < blockCountOnIdx; i++)
+                    auto newBlock = castedColumn->AddBlock(block.first);
+                    auto dataToCopy = block.second.front().GetData();
+
+                    switch (fromType)
                     {
-                        auto newBlock = castedColumn->AddBlock(block.first);
-                        auto dataToCopy = block.second.front().GetData();
-
-						newBlock.InsertData(dataToCopy);
-                        block.second.erase(0);
-                    }
-				}
-
-                break;
-
-			case COLUMN_LONG:
-
-                for (auto& block : blocks_)
-                {
-                    int32_t blockCountOnIdx = block.second.size();
-                    for (int32_t i = 0; i < blockCountOnIdx; i++)
+                    case COLUMN_INT:
+                    case COLUMN_LONG:
+                    case COLUMN_DOUBLE:
+                    case COLUMN_FLOAT:
+                    case COLUMN_INT8_T:
                     {
-                        auto newBlock = castedColumn->AddBlock(block.first);
-                        auto dataToCopy = block.second.front().GetData();
-
-						vector<int32_t> castedDataToCopy;
+                        std::vector<int32_t> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = static_cast<int32_t>(dataToCopy[j]);
                         }
-
-                        newBlock.InsertData(castedDataToCopy);
-                        block.second.erase(0);
                     }
+                    break;
+
+                    case COLUMN_STRING:
+                    {
+                        std::vector<int32_t> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = std::stol(dataToCopy[j]);
+                        }
+                    }
+                    break;
+
+                    default:
+                        throw std::runtime_error(
+                            "Attempt to execute unsupported column type conversion.");
+                        break;
+                    }
+
+                    block.second.erase(0);
                 }
-
-                break;
             }
+        }
+        break;
 
-            break;
+        case COLUMN_LONG:
+        {
+            auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(destinationColumn);
+
+            for (auto& block : blocks_)
+            {
+                int32_t blockCountOnIdx = block.second.size();
+                for (int32_t i = 0; i < blockCountOnIdx; i++)
+                {
+                    auto newBlock = castedColumn->AddBlock(block.first);
+                    auto dataToCopy = block.second.front().GetData();
+
+                    switch (fromType)
+                    {
+                    case COLUMN_INT:
+                    case COLUMN_LONG:
+                    case COLUMN_DOUBLE:
+                    case COLUMN_FLOAT:
+                    case COLUMN_INT8_T:
+                    {
+                        std::vector<int64_t> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = static_cast<int64_t>(dataToCopy[j]);
+                        }
+                    }
+                    break;
+
+                    case COLUMN_STRING:
+                    {
+                        std::vector<int64_t> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = std::stoll(dataToCopy[j]);
+                        }
+                    }
+                    break;
+
+                    default:
+                        throw std::runtime_error(
+                            "Attempt to execute unsupported column type conversion.");
+                        break;
+                    }
+
+                    block.second.erase(0);
+                }
+            }
+        }
+        break;
+
+        case COLUMN_DOUBLE:
+        {
+            auto castedColumn = dynamic_cast<ColumnBase<double>*>(destinationColumn);
+
+            for (auto& block : blocks_)
+            {
+                int32_t blockCountOnIdx = block.second.size();
+                for (int32_t i = 0; i < blockCountOnIdx; i++)
+                {
+                    auto newBlock = castedColumn->AddBlock(block.first);
+                    auto dataToCopy = block.second.front().GetData();
+
+                    switch (fromType)
+                    {
+                    case COLUMN_INT:
+                    case COLUMN_LONG:
+                    case COLUMN_DOUBLE:
+                    case COLUMN_FLOAT:
+                    case COLUMN_INT8_T:
+                    {
+                        std::vector<double> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = static_cast<double>(dataToCopy[j]);
+                        }
+                    }
+                    break;
+
+                    case COLUMN_STRING:
+                    {
+                        std::vector<double> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = std::stod(dataToCopy[j]);
+                        }
+                    }
+                    break;
+
+                    default:
+                        throw std::runtime_error(
+                            "Attempt to execute unsupported column type conversion.");
+                        break;
+                    }
+
+                    block.second.erase(0);
+                }
+            }
+        }
+        break;
+
+        case COLUMN_FLOAT:
+        {
+            auto castedColumn = dynamic_cast<ColumnBase<float>*>(destinationColumn);
+
+            for (auto& block : blocks_)
+            {
+                int32_t blockCountOnIdx = block.second.size();
+                for (int32_t i = 0; i < blockCountOnIdx; i++)
+                {
+                    auto newBlock = castedColumn->AddBlock(block.first);
+                    auto dataToCopy = block.second.front().GetData();
+
+                    switch (fromType)
+                    {
+                    case COLUMN_INT:
+                    case COLUMN_LONG:
+                    case COLUMN_DOUBLE:
+                    case COLUMN_FLOAT:
+                    case COLUMN_INT8_T:
+                    {
+                        std::vector<float> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = static_cast<float>(dataToCopy[j]);
+                        }
+                    }
+                    break;
+
+                    case COLUMN_STRING:
+                    {
+                        std::vector<float> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = std::stof(dataToCopy[j]);
+                        }
+                    }
+                    break;
+
+                    default:
+                        throw std::runtime_error(
+                            "Attempt to execute unsupported column type conversion.");
+                        break;
+                    }
+
+                    block.second.erase(0);
+                }
+            }
+        }
+        break;
+
+        case COLUMN_POINT:
+        {
+            auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(destinationColumn);
+
+            for (auto& block : blocks_)
+            {
+                int32_t blockCountOnIdx = block.second.size();
+                for (int32_t i = 0; i < blockCountOnIdx; i++)
+                {
+                    auto newBlock = castedColumn->AddBlock(block.first);
+                    auto dataToCopy = block.second.front().GetData();
+
+                    switch (fromType)
+                    {
+                    case COLUMN_POINT:
+                        // TODO
+                        {
+                        }
+                    case COLUMN_STRING:
+                    {
+                        std::vector<ColmnarDB::Types::Point> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = PointFactory::FromWkt(dataToCopy[j]);
+                        }
+                    }
+                    break;
+
+                    default:
+                        throw std::runtime_error(
+                            "Attempt to execute unsupported column type conversion.");
+                        break;
+                    }
+
+                    block.second.erase(0);
+                }
+            }
+        }
+        break;
+
+        case COLUMN_POLYGON:
+        {
+            auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(destinationColumn);
+
+            for (auto& block : blocks_)
+            {
+                int32_t blockCountOnIdx = block.second.size();
+                for (int32_t i = 0; i < blockCountOnIdx; i++)
+                {
+                    auto newBlock = castedColumn->AddBlock(block.first);
+                    auto dataToCopy = block.second.front().GetData();
+
+                    switch (fromType)
+                    {
+                    case COLUMN_POLYGON:
+                        // TODO
+                        {
+                        }
+                    case COLUMN_STRING:
+                    {
+                        std::vector<ColmnarDB::Types::ComplexPolygon> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = ComplexPolygonFactory::FromWkt(dataToCopy[j]);
+                        }
+                    }
+                    break;
+
+                    default:
+                        throw std::runtime_error(
+                            "Attempt to execute unsupported column type conversion.");
+                        break;
+                    }
+
+                    block.second.erase(0);
+                }
+            }
+        }
+        break;
+
+        case COLUMN_STRING:
+        {
+            auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(destinationColumn);
+
+            for (auto& block : blocks_)
+            {
+                int32_t blockCountOnIdx = block.second.size();
+                for (int32_t i = 0; i < blockCountOnIdx; i++)
+                {
+                    auto newBlock = castedColumn->AddBlock(block.first);
+                    auto dataToCopy = block.second.front().GetData();
+
+                    switch (fromType)
+                    {
+                    case COLUMN_INT:
+                    case COLUMN_LONG:
+                    case COLUMN_DOUBLE:
+                    case COLUMN_FLOAT:
+                    case COLUMN_INT8_T:
+                    {
+                        std::vector<std::string> castedDataToCopy;
+
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = std::to_string(dataToCopy[j]);
+                        }
+                    }
+                    break;
+                    case COLUMN_POINT:
+                    {
+                        std::vector<std::string> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = PointFactory::WktFromPoint(dataToCopy[j]);
+                        }
+                    }
+                    break;
+                    case COLUMN_POLYGON:
+                    {
+                        std::vector<std::string> castedDataToCopy;
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = ComplexPolygonFactory::WktFromPolygon(dataToCopy[j]);
+                        }
+                    }
+                    break;
+                    case COLUMN_STRING:
+                        // TODO
+                        {
+                        }
+                    default:
+                        throw std::runtime_error(
+                            "Attempt to execute unsupported column type conversion.");
+                        break;
+
+                    }
+
+                    block.second.erase(0);
+                }
+            }
+        }
+		break;
+
+            // TODO int 8_t
         }
     }
 

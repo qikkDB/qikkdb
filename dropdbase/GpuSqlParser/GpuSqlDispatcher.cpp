@@ -1525,9 +1525,14 @@ bool GpuSqlDispatcher::isValidCast(DataType fromType, DataType toType)
         return true;
     }
 
-    else if (toType == COLUMN_POINT || toType == COLUMN_POLYGON)
+    else if (toType == COLUMN_POINT)
     {
-        return fromType == COLUMN_STRING; 
+        return fromType == COLUMN_STRING || toType == COLUMN_POINT; 
+    }
+
+	else if (toType == COLUMN_POLYGON)
+    {
+        return fromType == COLUMN_STRING || toType == COLUMN_POLYGON;
     }
 
     else if (isToTypeNumeric)
