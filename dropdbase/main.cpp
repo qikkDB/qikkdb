@@ -531,7 +531,7 @@ int main(int argc, char** argv)
         tcpServer.Run();
     }
 
-    Database::SaveAllToDisk();
+    Database::SaveModifiedToDisk();
     BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
 
     /*

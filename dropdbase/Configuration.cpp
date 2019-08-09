@@ -12,25 +12,27 @@ void Configuration::LoadConfigurationFile()
         if (boost::filesystem::exists(this->configurationFile)) // If user specific config exsits, load that
         {
             yamlParsed_ = YAML::LoadFile(this->configurationFile);
-            // BOOST_LOG_TRIVIAL(info) << "Loaded specific configuration." << std::endl;
-            std::cout << "Loaded specific configuration." << std::endl;
+            // BOOST_LOG_TRIVIAL(info) << "Loaded specific configuration." << '\n';
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Loaded specific configuration." << '\n';
         }
         else // Otherwise load default config file
         {
             yamlParsed_ = YAML::LoadFile(this->configurationFileDefault);
-            // BOOST_LOG_TRIVIAL(info) << "Loaded default configuration." << std::endl;
-            std::cout << "Loaded default configuration." << std::endl;
+            // BOOST_LOG_TRIVIAL(info) << "Loaded default configuration." << '\n';
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Loaded default configuration." << '\n';
         }
     }
     catch (YAML::ParserException&)
     {
-        // BOOST_LOG_TRIVIAL(warning) << "Configuration file could not be parsed. Using default values." << std::endl;
-        std::cerr << "Configuration file could not be parsed. Using default values." << std::endl;
+        // BOOST_LOG_TRIVIAL(warning) << "Configuration file could not be parsed. Using default values." << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::warning)
+            << "Configuration file could not be parsed. Using default values." << '\n';
     }
     catch (YAML::BadFile&)
     {
-        // BOOST_LOG_TRIVIAL(warning) << "Configuration file could not found. Using default values." << std::endl;
-        std::cerr << "Configuration file could not found. Using default values." << std::endl;
+        // BOOST_LOG_TRIVIAL(warning) << "Configuration file could not found. Using default values." << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::warning)
+            << "Configuration file could not found. Using default values." << '\n';
     }
 
     // setting particular YAML entries into configuration values

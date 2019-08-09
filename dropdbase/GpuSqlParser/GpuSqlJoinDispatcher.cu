@@ -18,7 +18,8 @@ void GpuSqlJoinDispatcher::Execute()
         {
             if (err != 1)
             {
-                std::cout << "Error occured while producing join indices." << std::endl;
+                CudaLogBoost::getInstance(CudaLogBoost::info)
+                    << "Error occured while producing join indices." << '\n';
             }
             break;
         }
@@ -65,7 +66,7 @@ std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* GpuSqlJoinDi
 
 int32_t GpuSqlJoinDispatcher::JoinDone()
 {
-    std::cout << "Join Done." << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Join Done." << '\n';
     return 1;
 }
 

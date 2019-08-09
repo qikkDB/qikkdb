@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <sstream>
 
 class CudaLogBoost
 {
@@ -53,8 +54,16 @@ public:
     void operator=(CudaLogBoost const&) = delete;
 
     CudaLogBoost& operator<<(const std::string& text);
+    CudaLogBoost& operator<<(int64_t value);
+    CudaLogBoost& operator<<(size_t value);
+    CudaLogBoost& operator<<(int32_t value);
+    CudaLogBoost& operator<<(short value);
+    CudaLogBoost& operator<<(char value);
+    CudaLogBoost& operator<<(double value);
+    CudaLogBoost& operator<<(float value);
 
 private:
     Severity severity;
+    std::stringstream buffer_;
     CudaLogBoost(Severity severity);
 };

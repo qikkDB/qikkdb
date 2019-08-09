@@ -99,9 +99,6 @@ TEST(GPUJoinTests, JoinTestEmpty)
 	ColumnBase<int32_t> ColumnR_("ColumnR", BLOCK_SIZE);
 	ColumnBase<int32_t> ColumnS_("ColumnS", BLOCK_SIZE);
 
-	int32_t integerColumnCount_A = 1;
-	int32_t integerColumnCount_B = 3;
-
 	for (int32_t i = 0; i < BLOCK_COUNT; i++)
 	{
 		auto& blockR = ColumnR_.AddBlock();

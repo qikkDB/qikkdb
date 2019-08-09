@@ -619,7 +619,7 @@ public:
             registerLockList_.find(col) == registerLockList_.end() &&
             allocatedPointers_.find(col) != allocatedPointers_.end())
         {
-            std::cout << "Free: " << col << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Free: " << col << '\n';
 
             GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col).GpuPtr));
             usedRegisterMemory_ -= allocatedPointers_.at(col).ElementCount * sizeof(T);

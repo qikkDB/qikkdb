@@ -333,7 +333,8 @@ public:
 
         whereResult_ = whereResultMin || whereResultMax;
 
-        std::cout << "Where result: " << colName << ", " << whereResult_ << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info)
+            << "Where result: " << colName << ", " << whereResult_ << '\n';
 
         return 1;
     }
@@ -344,7 +345,7 @@ public:
         T cnst = arguments_.Read<T>();
         whereResult_ = static_cast<int64_t>(cnst);
 
-        std::cout << "Where result const: " << whereResult_ << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Where result const: " << whereResult_ << '\n';
 
         return 1;
     }

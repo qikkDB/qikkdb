@@ -104,10 +104,11 @@ private:
     float initAvg_ = 0.0; // initial average is needed, because avg_ is constantly changing and we need unchable value for comparing in binary index
     bool initAvgIsSet_ = false;
     bool isNullable_;
+    bool saveNecessary_;
 
 public:
     ColumnBase(const std::string& name, int blockSize, bool isNullable = false)
-    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable)
+    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable), saveNecessary_(true)
     {
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
     }
@@ -148,6 +149,11 @@ public:
         isNullable_ = isNullable;
     }
 
+	virtual bool GetSaveNecessary() const override
+    {
+        return saveNecessary_;
+    }
+
     static std::vector<T> NullArray(int length);
 
     T GetMax()
@@ -168,6 +174,11 @@ public:
     T GetSum()
     {
         return sum_;
+    }
+
+    void SetSaveNecessaryToFalse()
+    {
+        saveNecessary_ = false;
     }
 
     /// <summary>
@@ -202,6 +213,7 @@ public:
         }
 
         blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
+        saveNecessary_ = true;
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
@@ -218,6 +230,8 @@ public:
         {
             lastBlock->CompressData();
         }
+        saveNecessary_ = true;
+        size_ += data.size();
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
@@ -249,7 +263,8 @@ public:
         {
             BlockSplit(blocks_[groupId][indexBlock]);
         }
-
+        
+        saveNecessary_ = true;
         // setColumnStatistics();
     }
 
@@ -323,13 +338,16 @@ public:
     /// <param name="columnData">Data to be inserted</param>
     void InsertData(const std::vector<T>& columnData, int groupId = -1, bool compress = false)
     {
-        size_ += columnData.size();
         int startIdx = 0;
+        
+        saveNecessary_ = true;
+
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
         {
             auto& lastBlock = blocks_[groupId].back();
             if (columnData.size() <= lastBlock->EmptyBlockSpace())
             {
+                size_ += columnData.size();
                 lastBlock->InsertData(columnData);
                 if (compress && lastBlock->IsFull())
                 {
@@ -339,6 +357,7 @@ public:
                 return;
             }
             int emptySpace = lastBlock->EmptyBlockSpace();
+            size_ += emptySpace;
             lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
             if (compress && lastBlock->IsFull())
             {
@@ -366,7 +385,6 @@ public:
                     int groupId = -1,
                     bool compress = false)
     {
-        size_ += columnData.size();
         int startIdx = 0;
         int maskIdx = 0;
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
@@ -374,6 +392,7 @@ public:
             auto& lastBlock = blocks_[groupId].back();
             if (columnData.size() <= lastBlock->EmptyBlockSpace())
             {
+                size_ += columnData.size();
                 lastBlock->InsertData(columnData);
                 auto maskPtr = lastBlock->GetNullBitmask();
                 int bitMaskStartIdx = lastBlock->BlockCapacity() - lastBlock->EmptyBlockSpace() - 1;
@@ -395,8 +414,10 @@ public:
                 setColumnStatistics();
                 return;
             }
+
             int emptySpace = lastBlock->EmptyBlockSpace();
             auto maskPtr = lastBlock->GetNullBitmask();
+            size_ += emptySpace;
             int bitMaskStartIdx = lastBlock->BlockCapacity() - lastBlock->EmptyBlockSpace() - 1;
             lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
             for (int i = bitMaskStartIdx; i < lastBlock->BlockCapacity(); i++)
@@ -437,7 +458,8 @@ public:
             }
             startIdx += toCopy;
         }
-        setColumnStatistics();
+        //setColumnStatistics();
+        saveNecessary_ = true;
     }
 
     /// <summary>

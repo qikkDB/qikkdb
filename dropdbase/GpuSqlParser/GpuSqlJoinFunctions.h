@@ -11,7 +11,7 @@ int32_t GpuSqlJoinDispatcher::JoinCol()
     std::string colNameRight = arguments_.Read<std::string>();
     JoinType joinType = static_cast<JoinType>(arguments_.Read<int32_t>());
 
-    std::cout << "JoinCol: " << colNameLeft << " " << colNameRight << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "JoinCol: " << colNameLeft << " " << colNameRight << '\n';
 
     std::string leftTable;
     std::string leftColumn;
