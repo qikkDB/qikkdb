@@ -1065,3 +1065,9 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
 
 template <>
 int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName);
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructOrderCol<std::string>();
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructRetCol<std::string>();

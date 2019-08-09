@@ -142,8 +142,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetCol()
 
     if (!usingGroupBy_)
     {
-        CudaLogBoost::getInstance(CudaLogBoost::info)
-            << "Recostructing order by return column: " << colName << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering return column: " << colName << '\n';
 
         int32_t loadFlag = LoadCol<T>(colName);
         if (loadFlag)

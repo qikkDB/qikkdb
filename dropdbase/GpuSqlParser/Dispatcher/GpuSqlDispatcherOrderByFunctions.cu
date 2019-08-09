@@ -63,6 +63,103 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::freeOrderByTableFunction_ =
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::orderByReconstructRetAllBlocksFunction_ =
     &GpuSqlDispatcher::OrderByReconstructRetAllBlocks;
 
+
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructOrderCol<std::string>()
+{
+    auto colName = arguments_.Read<std::string>();
+
+    if (!usingGroupBy_)
+    {
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering order by column: " << colName << '\n';
+
+        int32_t loadFlag = LoadCol<std::string>(colName);
+        if (loadFlag)
+        {
+            return loadFlag;
+        }
+
+        auto col = FindStringColumn(colName);
+        size_t inSize = std::get<1>(col);
+        size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+
+        std::unique_ptr<VariantArray<std::string>> outData = std::make_unique<VariantArray<std::string>>(inSize);
+        std::unique_ptr<int8_t[]> outNullData = std::make_unique<int8_t[]>(inNullColSize);
+
+        GPUMemory::GPUString reorderedColumn;
+        cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
+
+        PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
+        GPUOrderBy::ReOrderStringByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr), std::get<0>(col), inSize);
+        GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
+                                           reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                           std::get<2>(col), inSize);
+
+        //GPUOrderBy::TransformNullValsToSmallestVal(reorderedColumn.get(), reorderedNullColumn.get(), inSize);
+
+        int32_t outSize;
+        GPUReconstruct::ReconstructStringCol(outData->getData(), &outSize, reorderedColumn,
+                                             reinterpret_cast<int8_t*>(filter_), inSize, outNullData.get(), reorderedNullColumn.get());
+        outData->resize(outSize);
+
+        orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByOrderColumnBlocks[colName].push_back(
+            std::move(outData));
+        orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByOrderColumnNullBlocks[colName].push_back(
+            std::move(outNullData));
+    }
+    return 0;
+}
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructRetCol<std::string>()
+{
+    auto colName = arguments_.Read<std::string>();
+
+    if (!usingGroupBy_)
+    {
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering return column: " << colName << '\n';
+
+        int32_t loadFlag = LoadCol<std::string>(colName);
+        if (loadFlag)
+        {
+            return loadFlag;
+        }
+
+        auto col = FindStringColumn(colName);
+        size_t inSize = std::get<1>(col);
+        size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+
+        std::unique_ptr<VariantArray<std::string>> outData =
+            std::make_unique<VariantArray<std::string>>(inSize);
+        std::unique_ptr<int8_t[]> outNullData = std::make_unique<int8_t[]>(inNullColSize);
+
+        GPUMemory::GPUString reorderedColumn;
+        cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
+
+        PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
+        GPUOrderBy::ReOrderStringByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                       std::get<0>(col), inSize);
+        GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
+                                           reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                           std::get<2>(col), inSize);
+
+        // GPUOrderBy::TransformNullValsToSmallestVal(reorderedColumn.get(), reorderedNullColumn.get(), inSize);
+
+        int32_t outSize;
+        GPUReconstruct::ReconstructStringCol(outData->getData(), &outSize, reorderedColumn,
+                                             reinterpret_cast<int8_t*>(filter_), inSize,
+                                             outNullData.get(), reorderedNullColumn.get());
+        outData->resize(outSize);
+
+        orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByRetColumnBlocks[colName].push_back(
+            std::move(outData));
+        orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByRetColumnNullBlocks[colName].push_back(
+            std::move(outNullData));
+    }
+    return 0;
+}
+
 int32_t GpuSqlDispatcher::FreeOrderByTable()
 {
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Freeing order by table." << '\n';
