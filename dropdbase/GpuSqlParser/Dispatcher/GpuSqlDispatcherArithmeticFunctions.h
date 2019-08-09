@@ -26,7 +26,7 @@ int32_t GpuSqlDispatcher::ArithmeticColConst()
         return loadFlag;
     }
 
-    std::cout << "ArithmeticColConst: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "ArithmeticColConst: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
         groupByColumns_.end())
@@ -103,7 +103,7 @@ int32_t GpuSqlDispatcher::ArithmeticConstCol()
         return loadFlag;
     }
 
-    std::cout << "ArithmeticConstCol: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "ArithmeticConstCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
         groupByColumns_.end())
@@ -185,7 +185,8 @@ int32_t GpuSqlDispatcher::ArithmeticColCol()
         return loadFlag;
     }
 
-    std::cout << "ArithmeticColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "ArithmeticColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colNameRight)) !=
         groupByColumns_.end())
@@ -337,7 +338,7 @@ int32_t GpuSqlDispatcher::ArithmeticConstConst()
         bothTypesFloatOrBothIntegral, typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
         typename std::conditional<std::is_floating_point<T>::value, T,
                                   typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type>::type ResultType;
-    std::cout << "ArithmeticConstConst: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "ArithmeticConstConst: " << reg << '\n';
 
     int32_t retSize = 1;
 

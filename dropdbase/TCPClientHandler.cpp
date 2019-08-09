@@ -264,7 +264,7 @@ TCPClientHandler::HandleCSVImport(ITCPWorker& worker,
     }
     catch (std::exception& e)
     {
-        std::cerr << "CSVImport: " << e.what() << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "CSVImport: " << e.what();
     }
     return resultMessage;
 }

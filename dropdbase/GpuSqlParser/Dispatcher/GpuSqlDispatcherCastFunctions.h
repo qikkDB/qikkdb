@@ -15,7 +15,7 @@ int32_t GpuSqlDispatcher::CastNumericCol()
         return loadFlag;
     }
 
-    std::cout << "CastNumericCol: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastNumericCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
         groupByColumns_.end())
@@ -75,7 +75,7 @@ int32_t GpuSqlDispatcher::CastNumericConst()
     IN cnst = arguments_.Read<IN>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "CastNumericConst: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastNumericConst: " << reg << '\n';
 
     int32_t retSize = 1;
 

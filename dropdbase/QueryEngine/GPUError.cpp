@@ -1,7 +1,7 @@
 #include "GPUError.h"
 #include <iostream>
 #include <cuda_runtime_api.h>
-
+#include "../CudaLogBoost.h"
 #ifndef WIN32
 #include <execinfo.h>
 #endif // !WIN32
@@ -28,17 +28,18 @@ void CheckCudaError(cudaError_t cudaError)
 
     if (cudaError != cudaSuccess)
     {
-        std::cout << "CUDA Error " << cudaError << ": " << cudaGetErrorName(cudaError)
-                  << ", backtrace:" << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::error)
+            << "CUDA Error " << cudaError << ": " << cudaGetErrorName(cudaError) << '\n';
 #ifndef WIN32
+        CudaLogBoost::getInstance(CudaLogBoost::debug) << "Backtrace:" << '\n';
         void* backtraceArray[25];
         int btSize = backtrace(backtraceArray, 25);
         char** symbols = backtrace_symbols(backtraceArray, btSize);
         for (int i = 0; i < btSize; i++)
         {
-            std::cout << i << ": " << symbols[i] << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::debug) << i << ": " << symbols[i] << '\n';
         }
-        std::cout << "---- backtrace end --------" << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::debug) << "---- backtrace end --------" << '\n';
 #endif
 #ifdef DEBUG
         abort();
@@ -51,16 +52,18 @@ void CheckQueryEngineError(const QueryEngineErrorType errorType, const std::stri
 {
     if (errorType != QueryEngineErrorType::GPU_EXTENSION_SUCCESS)
     {
-        std::cout << "QueryEngineError " << errorType << ": " << message << ", backtrace:" << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::error)
+            << "QueryEngineError " << errorType << ": " << message << "Backtrace:" << '\n';
 #ifndef WIN32
+        CudaLogBoost::getInstance(CudaLogBoost::debug) << "Backtrace:" << '\n';
         void* backtraceArray[25];
         int btSize = backtrace(backtraceArray, 25);
         char** symbols = backtrace_symbols(backtraceArray, btSize);
         for (int i = 0; i < btSize; i++)
         {
-            std::cout << i << ": " << symbols[i] << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::debug) << i << ": " << symbols[i] << '\n';
         }
-        std::cout << "---- backtrace end --------" << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::debug) << "---- backtrace end --------" << '\n';
 #endif
         throw query_engine_error(errorType, message);
     }

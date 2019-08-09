@@ -61,7 +61,7 @@ private:
                         }
                         catch (std::exception& e)
                         {
-                            printf("Exception in worker: %s", e.what());
+                            BOOST_LOG_TRIVIAL(info) << "Exception in worker: " << e.what();
                         }
                     },
                     std::move(socket));

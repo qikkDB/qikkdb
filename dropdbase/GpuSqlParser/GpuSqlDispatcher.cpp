@@ -39,7 +39,8 @@ void AssertDeviceMatchesCurrentThread(int dispatcherThreadId_)
 {
     int device = -1;
     cudaGetDevice(&device);
-    std::cout << "Current device for tid " << dispatcherThreadId_ << " is " << device << "\n";
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Current device for tid " << dispatcherThreadId_ << " is " << device << "\n";
     if (device != dispatcherThreadId_)
     {
         abort();
@@ -114,51 +115,61 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
             {
                 if (err == 1)
                 {
-                    std::cout << "Out of blocks." << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info) << "Out of blocks." << '\n';
                 }
                 if (err == 2)
                 {
-                    std::cout << "Show databases completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Show databases completed sucessfully" << '\n';
                 }
                 if (err == 3)
                 {
-                    std::cout << "Show tables completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Show tables completed sucessfully" << '\n';
                 }
                 if (err == 4)
                 {
-                    std::cout << "Show columns completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Show columns completed sucessfully" << '\n';
                 }
                 if (err == 5)
                 {
-                    std::cout << "Insert into completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Insert into completed sucessfully" << '\n';
                 }
                 if (err == 6)
                 {
-                    std::cout << "Create database_ completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Create database_ completed sucessfully" << '\n';
                 }
                 if (err == 7)
                 {
-                    std::cout << "Drop database_ completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Drop database_ completed sucessfully" << '\n';
                 }
                 if (err == 8)
                 {
-                    std::cout << "Create table completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Create table completed sucessfully" << '\n';
                 }
                 if (err == 9)
                 {
-                    std::cout << "Drop table completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Drop table completed sucessfully" << '\n';
                 }
                 if (err == 10)
                 {
-                    std::cout << "Alter table completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Alter table completed sucessfully" << '\n';
                 }
                 if (err == 11)
                 {
-                    std::cout << "Create index completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Create index completed sucessfully" << '\n';
                 }
                 if (err == 12)
                 {
-                    std::cout << "Load skipped" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info) << "Load skipped" << '\n';
                     loadColHelper.countSkippedBlocks++;
                     err = 0;
                     continue;
@@ -842,7 +853,7 @@ int32_t GpuSqlDispatcher::LoadColNullMask(std::string& colName)
     if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
     {
-        std::cout << "LoadNullMask: " << colName << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "LoadNullMask: " << colName << '\n';
 
         // split colName to table and column name
         const size_t endOfPolyIdx = colName.find(".");
@@ -1036,7 +1047,7 @@ void GpuSqlDispatcher::CleanUpGpuPointers()
 int32_t GpuSqlDispatcher::Fil()
 {
     auto reg = arguments_.Read<std::string>();
-    std::cout << "Filter: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Filter: " << reg << '\n';
     filter_ = allocatedPointers_.at(reg).GpuPtr;
     return 0;
 }
@@ -1044,7 +1055,7 @@ int32_t GpuSqlDispatcher::Fil()
 int32_t GpuSqlDispatcher::WhereEvaluation()
 {
     loadNecessary_ = usingJoin_ ? 1 : cpuDispatcher_.Execute(blockIndex_);
-    std::cout << "Where load evaluation: " << loadNecessary_ << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where load evaluation: " << loadNecessary_ << '\n';
     return 0;
 }
 
@@ -1071,7 +1082,7 @@ int32_t GpuSqlDispatcher::Jmp()
         return 0;
     }
 
-    std::cout << "Jump" << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Jump" << '\n';
     return 0;
 }
 
@@ -1082,7 +1093,7 @@ int32_t GpuSqlDispatcher::Jmp()
 int32_t GpuSqlDispatcher::Done()
 {
     CleanUpGpuPointers();
-    std::cout << "Done" << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Done" << '\n';
     return 1;
 }
 

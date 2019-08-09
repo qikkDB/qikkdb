@@ -24,10 +24,12 @@ int32_t CpuSqlDispatcher::CastNumericCol()
     resultMin[0] = static_cast<OUT>(reinterpret_cast<IN*>(std::get<0>(colValMin))[0]);
     resultMax[0] = static_cast<OUT>(reinterpret_cast<IN*>(std::get<0>(colValMax))[0]);
 
-    std::cout << "Where evaluation castNumericCol_min: " << colName << ", " << reg + "_min"
-              << ": " << resultMin[0] << std::endl;
-    std::cout << "Where evaluation castNumericCol_max: " << colName << ", " << reg + "_max"
-              << ": " << resultMax[0] << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Where evaluation castNumericCol_min: " << colName << ", " << reg + "_min"
+        << ": " << resultMin[0] << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Where evaluation castNumericCol_max: " << colName << ", " << reg + "_max"
+        << ": " << resultMax[0] << '\n';
 
     return 0;
 }
@@ -44,10 +46,10 @@ int32_t CpuSqlDispatcher::CastNumericConst()
     resultMin[0] = static_cast<OUT>(cnst);
     resultMax[0] = static_cast<OUT>(cnst);
 
-    std::cout << "Where evaluation castNumericConst_min: " << reg + "_min"
-              << ": " << resultMin[0] << std::endl;
-    std::cout << "Where evaluation castNumericConst_max: " << reg + "_max"
-              << ": " << resultMax[0] << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation castNumericConst_min: " << reg + "_min"
+                                                  << ": " << resultMin[0] << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation castNumericConst_max: " << reg + "_max"
+                                                  << ": " << resultMax[0] << '\n';
 
     return 0;
 }

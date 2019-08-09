@@ -40,13 +40,15 @@ int32_t CpuSqlDispatcher::ArithmeticColConst()
     resultMax[0] =
         OP{}.template operator()<ResultType, T, U>(reinterpret_cast<T*>(std::get<0>(colValMax))[0], cnst);
 
-    std::cout << std::string(typeid(ResultType).name()) << std::endl;
-    std::cout << "Where evaluation arithmeticColConstMin: "
-              << reinterpret_cast<T*>(std::get<0>(colValMin))[0] << ", " << reg + "_min"
-              << ": " << resultMin[0] << std::endl;
-    std::cout << "Where evaluation arithmeticColConstMax: "
-              << reinterpret_cast<T*>(std::get<0>(colValMax))[0] << ", " << reg + "_max"
-              << ": " << resultMax[0] << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << std::string(typeid(ResultType).name()) << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Where evaluation arithmeticColConstMin: " << reinterpret_cast<T*>(std::get<0>(colValMin))[0]
+        << ", " << reg + "_min"
+        << ": " << resultMin[0] << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Where evaluation arithmeticColConstMax: " << reinterpret_cast<T*>(std::get<0>(colValMax))[0]
+        << ", " << reg + "_max"
+        << ": " << resultMax[0] << '\n';
 
     return 0;
 }
@@ -88,12 +90,14 @@ int32_t CpuSqlDispatcher::arithmeticConstCol()
     resultMax[0] =
         OP{}.template operator()<ResultType, T, U>(cnst, reinterpret_cast<U*>(std::get<0>(colValMax))[0]);
 
-    std::cout << "Where evaluation arithmeticConstColMin: "
-              << reinterpret_cast<T*>(std::get<0>(colValMin))[0] << ", " << reg + "_min"
-              << ": " << resultMin[0] << std::endl;
-    std::cout << "Where evaluation arithmeticConstColMax: "
-              << reinterpret_cast<T*>(std::get<0>(colValMax))[0] << ", " << reg + "_max"
-              << ": " << resultMax[0] << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Where evaluation arithmeticConstColMin: " << reinterpret_cast<T*>(std::get<0>(colValMin))[0]
+        << ", " << reg + "_min"
+        << ": " << resultMin[0] << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Where evaluation arithmeticConstColMax: " << reinterpret_cast<T*>(std::get<0>(colValMax))[0]
+        << ", " << reg + "_max"
+        << ": " << resultMax[0] << '\n';
 
     return 0;
 }
@@ -157,12 +161,12 @@ int32_t CpuSqlDispatcher::arithmeticColCol()
             OP{}.template operator()<ResultType, T, U>(reinterpret_cast<T*>(std::get<0>(colValLeftMax))[0],
                                                        reinterpret_cast<U*>(std::get<0>(colValRightMax))[0]);
     }
-    std::cout << "Where evaluation arithmeticColCol_min: " << colNameLeft << ", " << colNameRight
-              << ", " << reg + "_min"
-              << ": " << resultMin[0] << std::endl;
-    std::cout << "Where evaluation arithmeticColCol_max: " << colNameLeft << ", " << colNameRight
-              << ", " << reg + "_max"
-              << ": " << resultMax[0] << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation arithmeticColCol_min: " << colNameLeft
+                                                  << ", " << colNameRight << ", " << reg + "_min"
+                                                  << ": " << resultMin[0] << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation arithmeticColCol_max: " << colNameLeft
+                                                  << ", " << colNameRight << ", " << reg + "_max"
+                                                  << ": " << resultMax[0] << '\n';
 
     return 0;
 }
@@ -187,10 +191,12 @@ int32_t CpuSqlDispatcher::arithmeticConstConst()
     resultMin[0] = OP{}.template operator()<ResultType, T, U>(constLeft, constRight);
     resultMax[0] = OP{}.template operator()<ResultType, T, U>(constLeft, constRight);
 
-    std::cout << "Where evaluation arithmeticConstConst_min: " << reg + "_min"
-              << ": " << resultMin[0] << std::endl;
-    std::cout << "Where evaluation arithmeticConstConst_max: " << reg + "_max"
-              << ": " << resultMax[0] << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Where evaluation arithmeticConstConst_min: " << reg + "_min"
+        << ": " << resultMin[0] << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Where evaluation arithmeticConstConst_max: " << reg + "_max"
+        << ": " << resultMax[0] << '\n';
 
     return 0;
 }
