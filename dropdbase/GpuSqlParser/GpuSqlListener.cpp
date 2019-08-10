@@ -583,6 +583,16 @@ void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext* ctx)
 /// <param name="ctx">Aggregation context</param>
 void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext* ctx)
 {
+    bool aggAsterisk = false;
+
+    if (ctx->ASTERISK())
+    {
+        aggAsterisk = true;
+        // JOIN case handled in dispatcher
+        std::string tableName = *(loadedTables_.begin());
+        PushTempResult(tableName, COLUMN_INT);
+    }
+
     std::pair<std::string, DataType> arg = StackTopAndPop();
 
     std::string op = ctx->op->getText();
@@ -628,7 +638,7 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext* ctx)
         returnDataType = GetReturnDataType(valueType);
         break;
     case GpuSqlLexer::COUNT_AGG:
-        reg = "$" + op + "(" + value + ")";
+        reg = "$" + op + "(" + (aggAsterisk ? "*" : value) + ")";
         dispatcher_.AddCountFunction(keyType, valueType, groupByType);
         returnDataType = DataType::COLUMN_LONG;
         break;
@@ -648,6 +658,8 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext* ctx)
 
     PushArgument(reg.c_str(), returnDataType);
     PushTempResult(reg, returnDataType);
+
+	dispatcher_.AddArgument<bool>(aggAsterisk);
 
     dispatcher_.AddAggregationDoneFunction();
     insideAgg_ = false;

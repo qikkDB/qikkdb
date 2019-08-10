@@ -235,6 +235,11 @@ public:
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
+	virtual size_t GetBlockSize(int32_t blockIndex) const override
+    {
+        return (GetBlocksList()[blockIndex])->GetSize();
+    }
+
     virtual int64_t GetSize() const override
     {
         return size_;

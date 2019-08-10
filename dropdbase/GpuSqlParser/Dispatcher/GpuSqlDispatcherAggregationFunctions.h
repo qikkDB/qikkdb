@@ -20,11 +20,15 @@ int32_t GpuSqlDispatcher::AggregationCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
+    auto aggAsterisk = arguments_.Read<bool>();
 
-    int32_t loadFlag = LoadCol<IN>(colName);
-    if (loadFlag)
+    if (!aggAsterisk)
     {
-        return loadFlag;
+        int32_t loadFlag = LoadCol<IN>(colName);
+        if (loadFlag)
+        {
+            return loadFlag;
+        }
     }
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "AggCol: " << colName << " " << reg << '\n';
@@ -321,23 +325,29 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
 {
     auto colTableName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
+    auto aggAsterisk = arguments_.Read<bool>();
 
-    int32_t loadFlag = LoadCol<V>(colTableName);
-    if (loadFlag)
+    if (!aggAsterisk)
     {
-        return loadFlag;
+        int32_t loadFlag = LoadCol<V>(colTableName);
+        if (loadFlag)
+        {
+            return loadFlag;
+        }
     }
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "AggGroupBy: " << colTableName << " " << reg
                                                   << ", thread: " << dispatcherThreadId_ << '\n';
 
-
-    PointerAllocation& column = allocatedPointers_.at(colTableName);
+    PointerAllocation& column = aggAsterisk ?
+                                    PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0} :
+                                    allocatedPointers_.at(colTableName);
     int32_t reconstructOutSize;
 
     // Reconstruct column only if it is not group by column (if it is group by column it was already reconstructed in GroupByCol)
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colTableName)) ==
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !aggAsterisk)
     {
         V* reconstructOutReg;
         GPUReconstruct::reconstructColKeep<V>(&reconstructOutReg, &reconstructOutSize,
