@@ -39,8 +39,8 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database,
                                GpuSqlJoinDispatcher& joinDispatcher)
 : database_(database), dispatcher_(dispatcher), joinDispatcher_(joinDispatcher), linkTableIndex_(0),
   orderByColumnIndex_(0), usingLoad_(false), usingWhere_(false), usingGroupBy_(false),
-  usingAgg_(false), insideAgg_(false), insideGroupBy_(false), insideOrderBy_(false),
-  insideAlias_(false), insideSelectColumn_(false), isAggSelectColumn_(false),
+  usingAgg_(false), insideAgg_(false), insideWhere_(false), insideGroupBy_(false),
+  insideOrderBy_(false), insideAlias_(false), insideSelectColumn_(false), isAggSelectColumn_(false),
   isSelectColumnValid_(false), ResultLimit(std::numeric_limits<int64_t>::max()), ResultOffset(0)
 {
     GpuSqlDispatcher::linkTable.clear();
@@ -565,6 +565,10 @@ void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext* ctx)
     {
         throw NestedAggregationException();
     }
+    if (insideWhere_)
+    {
+        throw AggregationWhereException();
+    }
     insideAgg_ = true;
     usingAgg_ = true;
     isAggSelectColumn_ = insideSelectColumn_;
@@ -852,10 +856,12 @@ void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext* ctx)
     std::pair<std::string, DataType> arg = StackTopAndPop();
     dispatcher_.AddArgument<const std::string&>(std::get<0>(arg));
     dispatcher_.AddFilFunction();
+    insideWhere_ = false;
 }
 
 void GpuSqlListener::enterWhereClause(GpuSqlParser::WhereClauseContext* ctx)
 {
+    insideWhere_ = true;
     dispatcher_.AddWhereEvaluationFunction();
 }
 

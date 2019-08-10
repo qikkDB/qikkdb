@@ -128,6 +128,15 @@ struct AggregationOrderByException : public std::exception
     }
 };
 
+struct AggregationWhereException : public std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Use of aggregation functions in WHERE clause is not allowed.";
+    }
+};
+
+
 struct OrderByColumnAlreadyReferencedException : public std::exception
 {
     const char* what() const noexcept override

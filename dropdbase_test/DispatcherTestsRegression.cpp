@@ -262,3 +262,14 @@ TEST(DispatcherTestsRegression, JoinEmptyResult)
 
 	Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
 }
+
+TEST(DispatcherTestsRegression, AggregationInWhereWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1, COUNT(colInteger2) FROM TableA WHERE "
+                              "COUNT(colInteger2) > 10 GROUP "
+                              "BY colInteger1;");
+    ASSERT_THROW(parser.Parse(), AggregationWhereException);
+}

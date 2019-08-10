@@ -46,6 +46,7 @@ private:
     bool usingGroupBy_;
     bool usingAgg_;
     bool insideAgg_;
+    bool insideWhere_;
     bool insideGroupBy_;
     bool insideOrderBy_;
     bool insideAlias_;
