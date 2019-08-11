@@ -583,6 +583,77 @@ protected:
         }
     }
 
+	void GroupByMultiKeyCountAsteriskTest(std::vector<std::vector<int32_t>> keys,
+										  std::vector<int32_t> values,
+										  std::unordered_map<std::vector<int32_t>, int64_t, boost::hash<std::vector<int32_t>>> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            columns.insert(std::make_pair<std::string, DataType>("colIntegerK" + std::to_string(i),
+                                                                 DataType::COLUMN_INT));
+        }
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerV", DataType::COLUMN_INT));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            reinterpret_cast<ColumnBase<int32_t>*>(groupByDatabase->GetTables()
+                                                       .at(tableName)
+                                                       .GetColumns()
+                                                       .at("colIntegerK" + std::to_string(i))
+                                                       .get())
+                ->InsertData(keys[i]);
+        }
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
+            ->InsertData(values);
+
+        std::string multiCols;
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            multiCols += "colIntegerK" + std::to_string(i) + (i == keys.size() - 1 ? "" : ", ");
+        }
+        std::cout << "Running GroupBy multi-key: " << multiCols << std::endl;
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase, "SELECT " + multiCols + ", COUNT(*) FROM " +
+                                                       tableName + " GROUP BY " + multiCols + ";");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+        std::vector<ColmnarDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
+
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            payloadKeys.emplace_back(result->payloads().at(tableName + ".colIntegerK" + std::to_string(i)));
+        }
+        auto& payloadValues = result->payloads().at("COUNT(*)");
+
+        for (int32_t i = 0; i < keys.size(); i++)
+        {
+            ASSERT_EQ(expectedResult.size(), payloadKeys[i].intpayload().intdata_size())
+                << " wrong number of keys at col " << i;
+        }
+
+        for (int32_t i = 0; i < payloadKeys[0].intpayload().intdata_size(); i++)
+        {
+            std::vector<int32_t> key;
+            for (int32_t c = 0; c < payloadKeys.size(); c++)
+            {
+                key.emplace_back(payloadKeys[c].intpayload().intdata()[i]);
+                std::cout << payloadKeys[c].intpayload().intdata()[i]
+                          << (c == payloadKeys.size() - 1 ? ": " : ", ");
+            }
+            std::cout << payloadValues.int64payload().int64data()[i] << std::endl;
+
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end())
+                << " bad key at result row " << i;
+            ASSERT_EQ(expectedResult[key], payloadValues.int64payload().int64data()[i])
+                << " at result row " << i;
+        }
+    }
+
     void GroupByMultiKeyStringTest(std::string aggregationFunction,
                         std::tuple<std::vector<int32_t>, std::vector<int32_t>, std::vector<std::string>> keys,
                         std::vector<int32_t> values,
@@ -797,6 +868,13 @@ TEST_F(DispatcherGroupByTests, MultiKeySimpleCount)
     GroupByMultiKeyCountTest({ {1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1} },
         {5, 5, 24, 1, 7, 1, 1, 2},
         { {{1, 2}, 2}, {{1, 5}, 1}, {{2, 1}, 1}, {{5, 1}, 2}, {{7, 7}, 1}, {{-1, -5}, 1} });
+}
+
+TEST_F(DispatcherGroupByTests, MultiKeySimpleCountAsterisk)
+{
+    GroupByMultiKeyCountTest({{1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1}},
+                             {5, 5, 24, 1, 7, 1, 1, 2},
+                             {{{1, 2}, 2}, {{1, 5}, 1}, {{2, 1}, 1}, {{5, 1}, 2}, {{7, 7}, 1}, {{-1, -5}, 1}});
 }
 
 
