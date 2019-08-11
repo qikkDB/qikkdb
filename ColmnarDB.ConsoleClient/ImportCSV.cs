@@ -14,11 +14,13 @@ namespace ColmnarDB.ConsoleClient
         /// </summary>
         /// <param name="path">path to csv file that should be imported</param>
         /// <param name="database">database that is used</param>
-        public void Import(string path, string database, ColumnarDBClient client){
+        public void Import(string path, string database, ColumnarDBClient client)
+        {
             try
             {
-                client.ImportCSV(database, path);
-                Console.WriteLine(SuccessfulImport(path, database));
+                throw new NotImplementedException("CSVImport semantics change, use integration platform, or modify main (it will be faster anyway).");
+                //client.ImportCSV(database, path);
+                //Console.WriteLine(SuccessfulImport(path, database));
             }
             catch (FileNotFoundException)
             {
@@ -37,7 +39,7 @@ namespace ColmnarDB.ConsoleClient
                 Console.WriteLine(UnknownException() + e.Message);
             }
         }
-        
+
         /// <summary>
         /// Returns output for successful import of CSV file
         /// </summary>
@@ -57,7 +59,7 @@ namespace ColmnarDB.ConsoleClient
         {
             return string.Format("Selected CSV file: '{0}' was not found. Check if the file exists.", path);
         }
-        
+
         /// <summary>
         /// Return output when there is an unkown exception
         /// </summary>

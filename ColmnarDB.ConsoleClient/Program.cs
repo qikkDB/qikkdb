@@ -19,13 +19,13 @@ namespace ColmnarDB.ConsoleClient
         /// </summary>
         public static void Main(string[] args)
         {
-            ColumnarDBClient client = new ColumnarDBClient(IpAddress,Port);
+            ColumnarDBClient client = new ColumnarDBClient(IpAddress, Port);
             client.Connect();
-            
+
             UseDatabase use = new UseDatabase();
             ImportCSV import = new ImportCSV();
             Query query = new Query();
-            
+
             bool exit = false;
             ReadLine.HistoryEnabled = true;
 
@@ -43,15 +43,15 @@ namespace ColmnarDB.ConsoleClient
                 {
                     parameters = wholeCommand;
                     command = "query";
-                } 
-                else if (splitCommand.Length > 1) 
+                }
+                else if (splitCommand.Length > 1)
                 {
                     parameters = wholeCommand.Substring(command.Length + 1);
                 }
 
                 switch (command)
                 {
-                    case "exit":                       
+                    case "exit":
                         exit = true;
                         client.Close();
                         break;
@@ -64,7 +64,7 @@ namespace ColmnarDB.ConsoleClient
                         use.Use(parameters, client);
 
                         break;
-                    case "query":                  
+                    case "query":
                         if (parameters == "")
                         {
                             Console.WriteLine("Missing argument");
@@ -74,7 +74,7 @@ namespace ColmnarDB.ConsoleClient
                         query.RunQuery(parameters, Console.WindowWidth, client);
 
                         break;
-                    case "import":
+                    /*case "import":
 
                         string[] splitParameters = parameters.Split(" ");
 
@@ -87,9 +87,9 @@ namespace ColmnarDB.ConsoleClient
                         database = splitParameters[0];
                         filePath = parameters.Substring(database.Length + 1);
 
-                        import.Import(filePath,database, client);
-                       
-                        break;
+                        import.Import(filePath, database, client);
+
+                        break;*/
                     case "help":
                         //formated console output
                         const string format = "{0,-30} {1,-30}";
@@ -97,7 +97,7 @@ namespace ColmnarDB.ConsoleClient
                         Console.WriteLine();
                         Console.WriteLine(String.Format(format, "use [database]", "Set current working database"));
                         Console.WriteLine(String.Format(format, "[query]", "Run given query"));
-                        Console.WriteLine(String.Format(format, "import [database] [file path]", "Import given .csv file into database"));
+                        //Console.WriteLine(String.Format(format, "import [database] [file path]", "Import given .csv file into database"));
                         Console.WriteLine(String.Format(format, "help", "Show information about commands"));
                         Console.WriteLine(String.Format(format, "exit", "Exit the console"));
                         Console.WriteLine();
