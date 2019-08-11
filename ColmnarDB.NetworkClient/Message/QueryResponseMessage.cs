@@ -49,15 +49,18 @@ namespace ColmnarDB.NetworkClient.Message {
             "REIuTmV0d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VQb2x5Z29u",
             "UGF5bG9hZEgAElQKDXN0cmluZ1BheWxvYWQYCCABKAsyOy5Db2xtbmFyREIu",
             "TmV0d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VTdHJpbmdQYXls",
-            "b2FkSABCCQoHcGF5bG9hZCLXAgoUUXVlcnlSZXNwb25zZU1lc3NhZ2USVQoI",
+            "b2FkSABCCQoHcGF5bG9hZCLrAwoUUXVlcnlSZXNwb25zZU1lc3NhZ2USVQoI",
             "cGF5bG9hZHMYASADKAsyQy5Db2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNz",
-            "YWdlLlF1ZXJ5UmVzcG9uc2VNZXNzYWdlLlBheWxvYWRzRW50cnkSUQoGdGlt",
-            "aW5nGAIgAygLMkEuQ29sbW5hckRCLk5ldHdvcmtDbGllbnQuTWVzc2FnZS5R",
-            "dWVyeVJlc3BvbnNlTWVzc2FnZS5UaW1pbmdFbnRyeRpmCg1QYXlsb2Fkc0Vu",
-            "dHJ5EgsKA2tleRgBIAEoCRJECgV2YWx1ZRgCIAEoCzI1LkNvbG1uYXJEQi5O",
-            "ZXR3b3JrQ2xpZW50Lk1lc3NhZ2UuUXVlcnlSZXNwb25zZVBheWxvYWQ6AjgB",
-            "Gi0KC1RpbWluZ0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAjoC",
-            "OAFiBnByb3RvMw=="));
+            "YWdlLlF1ZXJ5UmVzcG9uc2VNZXNzYWdlLlBheWxvYWRzRW50cnkSXQoMbnVs",
+            "bEJpdE1hc2tzGAMgAygLMkcuQ29sbW5hckRCLk5ldHdvcmtDbGllbnQuTWVz",
+            "c2FnZS5RdWVyeVJlc3BvbnNlTWVzc2FnZS5OdWxsQml0TWFza3NFbnRyeRJR",
+            "CgZ0aW1pbmcYAiADKAsyQS5Db2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNz",
+            "YWdlLlF1ZXJ5UmVzcG9uc2VNZXNzYWdlLlRpbWluZ0VudHJ5GmYKDVBheWxv",
+            "YWRzRW50cnkSCwoDa2V5GAEgASgJEkQKBXZhbHVlGAIgASgLMjUuQ29sbW5h",
+            "ckRCLk5ldHdvcmtDbGllbnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlUGF5bG9h",
+            "ZDoCOAEaMwoRTnVsbEJpdE1hc2tzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZh",
+            "bHVlGAIgASgMOgI4ARotCgtUaW1pbmdFbnRyeRILCgNrZXkYASABKAkSDQoF",
+            "dmFsdWUYAiABKAI6AjgBYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::ColmnarDB.Types.ComplexPolygonReflection.Descriptor, global::ColmnarDB.Types.PointReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -69,7 +72,7 @@ namespace ColmnarDB.NetworkClient.Message {
             new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload.Parser, new[]{ "PointData" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.Parser, new[]{ "StringData" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePayload.Parser, new[]{ "IntPayload", "FloatPayload", "Int64Payload", "DoublePayload", "PointPayload", "PolygonPayload", "StringPayload" }, new[]{ "Payload" }, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseMessage), global::ColmnarDB.NetworkClient.Message.QueryResponseMessage.Parser, new[]{ "Payloads", "Timing" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, })
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseMessage), global::ColmnarDB.NetworkClient.Message.QueryResponseMessage.Parser, new[]{ "Payloads", "NullBitMasks", "Timing" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, null, })
           }));
     }
     #endregion
@@ -1352,6 +1355,7 @@ namespace ColmnarDB.NetworkClient.Message {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public QueryResponseMessage(QueryResponseMessage other) : this() {
       payloads_ = other.payloads_.Clone();
+      nullBitMasks_ = other.nullBitMasks_.Clone();
       timing_ = other.timing_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -1369,6 +1373,16 @@ namespace ColmnarDB.NetworkClient.Message {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload> Payloads {
       get { return payloads_; }
+    }
+
+    /// <summary>Field number for the "nullBitMasks" field.</summary>
+    public const int NullBitMasksFieldNumber = 3;
+    private static readonly pbc::MapField<string, pb::ByteString>.Codec _map_nullBitMasks_codec
+        = new pbc::MapField<string, pb::ByteString>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForBytes(18), 26);
+    private readonly pbc::MapField<string, pb::ByteString> nullBitMasks_ = new pbc::MapField<string, pb::ByteString>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::MapField<string, pb::ByteString> NullBitMasks {
+      get { return nullBitMasks_; }
     }
 
     /// <summary>Field number for the "timing" field.</summary>
@@ -1395,6 +1409,7 @@ namespace ColmnarDB.NetworkClient.Message {
         return true;
       }
       if (!Payloads.Equals(other.Payloads)) return false;
+      if (!NullBitMasks.Equals(other.NullBitMasks)) return false;
       if (!Timing.Equals(other.Timing)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -1403,6 +1418,7 @@ namespace ColmnarDB.NetworkClient.Message {
     public override int GetHashCode() {
       int hash = 1;
       hash ^= Payloads.GetHashCode();
+      hash ^= NullBitMasks.GetHashCode();
       hash ^= Timing.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -1419,6 +1435,7 @@ namespace ColmnarDB.NetworkClient.Message {
     public void WriteTo(pb::CodedOutputStream output) {
       payloads_.WriteTo(output, _map_payloads_codec);
       timing_.WriteTo(output, _map_timing_codec);
+      nullBitMasks_.WriteTo(output, _map_nullBitMasks_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1428,6 +1445,7 @@ namespace ColmnarDB.NetworkClient.Message {
     public int CalculateSize() {
       int size = 0;
       size += payloads_.CalculateSize(_map_payloads_codec);
+      size += nullBitMasks_.CalculateSize(_map_nullBitMasks_codec);
       size += timing_.CalculateSize(_map_timing_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1441,6 +1459,7 @@ namespace ColmnarDB.NetworkClient.Message {
         return;
       }
       payloads_.Add(other.payloads_);
+      nullBitMasks_.Add(other.nullBitMasks_);
       timing_.Add(other.timing_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1459,6 +1478,10 @@ namespace ColmnarDB.NetworkClient.Message {
           }
           case 18: {
             timing_.AddEntriesFrom(input, _map_timing_codec);
+            break;
+          }
+          case 26: {
+            nullBitMasks_.AddEntriesFrom(input, _map_nullBitMasks_codec);
             break;
           }
         }
