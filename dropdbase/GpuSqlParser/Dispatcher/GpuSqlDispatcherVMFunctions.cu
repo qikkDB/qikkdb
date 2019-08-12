@@ -613,9 +613,19 @@ int32_t GpuSqlDispatcher::RetConst<std::string>()
     std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    std::unique_ptr<std::string[]> outData(new std::string[1]);
-    outData[0] = cnst;
-    InsertIntoPayload(payload, outData, 1);
+    size_t dataElementCount = 1;
+    if (usingJoin_)
+    {
+        dataElementCount = joinIndices_->begin()->second.size();
+    }
+    else
+    {
+        dataElementCount = database_->GetTables().at(loadedTableName_).GetSize();
+    }
+
+    std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
+    std::fill(outData.get(), outData.get() + dataElementCount, cnst);
+    InsertIntoPayload(payload, outData, dataElementCount);
     MergePayloadToSelfResponse(alias, payload, "");
     return 0;
 }
@@ -629,9 +639,19 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
     std::cout << "RET: cnst" << typeid(ColmnarDB::Types::Point).name() << std::endl;
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    std::unique_ptr<std::string[]> outData(new std::string[1]);
-    outData[0] = cnst;
-    InsertIntoPayload(payload, outData, 1);
+    size_t dataElementCount = 1;
+    if (usingJoin_)
+    {
+        dataElementCount = joinIndices_->begin()->second.size();
+    }
+    else
+    {
+        dataElementCount = database_->GetTables().at(loadedTableName_).GetSize();
+    }
+
+    std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
+    std::fill(outData.get(), outData.get() + dataElementCount, cnst);
+    InsertIntoPayload(payload, outData, dataElementCount);
     MergePayloadToSelfResponse(alias, payload, "");
     return 0;
 }
@@ -645,9 +665,19 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
     std::cout << "RET: cnst" << typeid(ColmnarDB::Types::ComplexPolygon).name() << std::endl;
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    std::unique_ptr<std::string[]> outData(new std::string[1]);
-    outData[0] = cnst;
-    InsertIntoPayload(payload, outData, 1);
+    size_t dataElementCount = 1;
+    if (usingJoin_)
+    {
+        dataElementCount = joinIndices_->begin()->second.size();
+    }
+    else
+    {
+        dataElementCount = database_->GetTables().at(loadedTableName_).GetSize();
+    }
+
+    std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
+    std::fill(outData.get(), outData.get() + dataElementCount, cnst);
+    InsertIntoPayload(payload, outData, dataElementCount);
     MergePayloadToSelfResponse(alias, payload, "");
     return 0;
 }
