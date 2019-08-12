@@ -96,12 +96,12 @@ int32_t GpuSqlDispatcher::OrderByReconstructOrderCol<std::string>()
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                            std::get<2>(col), inSize);
 
-        //GPUOrderBy::TransformNullValsToSmallestVal(reorderedColumn.get(), reorderedNullColumn.get(), inSize);
-
         int32_t outSize;
         GPUReconstruct::ReconstructStringCol(outData->getData(), &outSize, reorderedColumn,
                                              reinterpret_cast<int8_t*>(filter_), inSize, outNullData.get(), reorderedNullColumn.get());
         outData->resize(outSize);
+		
+		GPUMemory::free(reorderedColumn);
 
         orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByOrderColumnBlocks[colName].push_back(
             std::move(outData));
@@ -144,13 +144,13 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetCol<std::string>()
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                            std::get<2>(col), inSize);
 
-        // GPUOrderBy::TransformNullValsToSmallestVal(reorderedColumn.get(), reorderedNullColumn.get(), inSize);
-
         int32_t outSize;
         GPUReconstruct::ReconstructStringCol(outData->getData(), &outSize, reorderedColumn,
                                              reinterpret_cast<int8_t*>(filter_), inSize,
                                              outNullData.get(), reorderedNullColumn.get());
         outData->resize(outSize);
+
+		GPUMemory::free(reorderedColumn);
 
         orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByRetColumnBlocks[colName].push_back(
             std::move(outData));
