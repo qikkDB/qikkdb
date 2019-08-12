@@ -105,10 +105,9 @@ void Database::SetSaveNecessaryToFalseForEverything()
             }
             break;
 
-			case COLUMN_POINT:
-			{
-                auto castedColumn =
-                    dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.second.get());
+            case COLUMN_POINT:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.second.get());
                 castedColumn->SetSaveNecessaryToFalse();
 
                 auto& blocks = castedColumn->GetBlocksList();
@@ -117,10 +116,10 @@ void Database::SetSaveNecessaryToFalseForEverything()
                 {
                     blocks[i]->SetSaveNecessaryToFalse();
                 }
-			}
+            }
             break;
 
-			case COLUMN_STRING:
+            case COLUMN_STRING:
             {
                 auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(column.second.get());
                 castedColumn->SetSaveNecessaryToFalse();
@@ -134,8 +133,8 @@ void Database::SetSaveNecessaryToFalseForEverything()
             }
             break;
 
-			case COLUMN_INT8_T:
-			{
+            case COLUMN_INT8_T:
+            {
                 auto castedColumn = dynamic_cast<ColumnBase<int8_t>*>(column.second.get());
                 castedColumn->SetSaveNecessaryToFalse();
 
@@ -145,11 +144,11 @@ void Database::SetSaveNecessaryToFalseForEverything()
                 {
                     blocks[i]->SetSaveNecessaryToFalse();
                 }
-			}
+            }
             break;
 
-			case COLUMN_INT:
-			{
+            case COLUMN_INT:
+            {
                 auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(column.second.get());
                 castedColumn->SetSaveNecessaryToFalse();
 
@@ -159,7 +158,7 @@ void Database::SetSaveNecessaryToFalseForEverything()
                 {
                     blocks[i]->SetSaveNecessaryToFalse();
                 }
-			}
+            }
             break;
 
             case COLUMN_LONG:
@@ -176,7 +175,7 @@ void Database::SetSaveNecessaryToFalseForEverything()
             }
             break;
 
-			case COLUMN_FLOAT:
+            case COLUMN_FLOAT:
             {
                 auto castedColumn = dynamic_cast<ColumnBase<float>*>(column.second.get());
                 castedColumn->SetSaveNecessaryToFalse();
@@ -190,7 +189,7 @@ void Database::SetSaveNecessaryToFalseForEverything()
             }
             break;
 
-			case COLUMN_DOUBLE:
+            case COLUMN_DOUBLE:
             {
                 auto castedColumn = dynamic_cast<ColumnBase<double>*>(column.second.get());
                 castedColumn->SetSaveNecessaryToFalse();
@@ -236,21 +235,28 @@ void Database::PersistOnlyDbFile(const char* path)
     for (auto& table : tables)
     {
         auto& columns = table.second.GetColumns();
+        auto& sortingColumns = table.second.GetSortingColumns();
         int32_t tableNameLength = table.first.length() + 1; // +1 because '\0'
         int32_t columnNumber = columns.size();
+        int32_t sortingColumnNumber = sortingColumns.size();
 
         dbFile.write(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); // write table name length
         dbFile.write(table.first.c_str(), tableNameLength); // write table name
         dbFile.write(reinterpret_cast<char*>(&columnNumber), sizeof(int32_t)); // write number of columns of the table
+        dbFile.write(reinterpret_cast<char*>(&sortingColumnNumber), sizeof(int32_t)); // write number of sorting columns of the table
 
-		for (const std::string sortingColumn : table.second.GetSortingColumns())
+        if (sortingColumnNumber > 0)
         {
-            int32_t sortingColumnLength = sortingColumn.length() + 1; // +1 because '\0'
+            for (const std::string sortingColumn : sortingColumns)
+            {
+                int32_t sortingColumnLength = sortingColumn.length() + 1; // +1 because '\0'
 
-            dbFile.write(reinterpret_cast<char*>(&sortingColumnLength), sizeof(int32_t)); // write sorting column name length
-            dbFile.write(sortingColumn.c_str(), sortingColumnLength); // write sorting column name
-            BOOST_LOG_TRIVIAL(debug) << "Sorting column (table: " + std::string(table.first.c_str()) +
-                                            ") saved: " + std::string(sortingColumn.c_str()) + ".";
+                dbFile.write(reinterpret_cast<char*>(&sortingColumnLength),
+                             sizeof(int32_t)); // write sorting column name length
+                dbFile.write(sortingColumn.c_str(), sortingColumnLength); // write sorting column name
+                BOOST_LOG_TRIVIAL(debug) << "Sorting column (table: " + std::string(table.first.c_str()) +
+                                                ") saved: " + std::string(sortingColumn.c_str()) + ".";
+            }
         }
 
         for (const auto& column : columns)
@@ -324,24 +330,25 @@ void Database::PersistOnlyModified(const char* path)
     for (const auto& table : tables)
     {
         if (table.second.GetSaveNecessary())
-		{
-			const auto& columns = table.second.GetColumns();
+        {
+            const auto& columns = table.second.GetColumns();
 
-			std::vector<std::thread> threads;
+            std::vector<std::thread> threads;
 
-			for (const auto& column : columns)
-			{
+            for (const auto& column : columns)
+            {
                 if (column.second.get()->GetSaveNecessary())
-				{
-					threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name, std::ref(table));
-				}
-			}
+                {
+                    threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name,
+                                         std::ref(table));
+                }
+            }
 
-			for (int j = 0; j < threads.size(); j++)
-			{
-				threads[j].join();
-			}
-		}
+            for (int j = 0; j < threads.size(); j++)
+            {
+                threads[j].join();
+            }
+        }
     }
 
     BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk.";
@@ -580,12 +587,14 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
         database->tables_.emplace(
             std::make_pair(std::string(tableName.get()), Table(database, tableName.get())));
         int32_t columnCount;
+        int32_t sortingColumnCount;
         dbFile.read(reinterpret_cast<char*>(&columnCount), sizeof(int32_t)); // read number of columns
+        dbFile.read(reinterpret_cast<char*>(&sortingColumnCount), sizeof(int32_t)); // read number of sorting columns
 
         std::vector<std::string> columnNames;
         std::vector<std::string> sortingColumnNames;
 
-		for (int32_t j = 0; j < columnCount; j++)
+        for (int32_t j = 0; j < sortingColumnCount; j++)
         {
             int32_t sortingColumnLength;
             dbFile.read(reinterpret_cast<char*>(&sortingColumnLength), sizeof(int32_t)); // read sorting column name length
