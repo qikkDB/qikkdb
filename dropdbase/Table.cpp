@@ -679,6 +679,7 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name)
 : database(database), name(name), columnsMutex_(std::make_unique<std::mutex>())
 {
     blockSize = database->GetBlockSize();
+    saveNecesarry_ = true;
 }
 
 /// <summary>
