@@ -235,7 +235,7 @@ void Database::PersistOnlyDbFile(const char* path)
     for (auto& table : tables)
     {
         auto& columns = table.second.GetColumns();
-        auto& sortingColumns = table.second.GetSortingColumns();
+        const auto& sortingColumns = table.second.GetSortingColumns();
         int32_t tableNameLength = table.first.length() + 1; // +1 because '\0'
         int32_t columnNumber = columns.size();
         int32_t sortingColumnNumber = sortingColumns.size();
