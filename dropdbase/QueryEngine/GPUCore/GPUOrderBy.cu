@@ -101,8 +101,8 @@ void GPUOrderBy::ReOrderStringByIdx(GPUMemory::GPUString& outCol, int32_t* inInd
         GPUMemory::alloc(&outCol.stringIndices, dataElementCount);
 
         int64_t totalCharCount;
-        GPUMemory::copyDeviceToHost(&totalCharCount, inCol.stringIndices + dataElementCount - 1, 1);
-        GPUMemory::alloc(&outCol.stringIndices, totalCharCount);
+        GPUMemory::copyDeviceToHost(&totalCharCount, &inCol.stringIndices[dataElementCount - 1], 1);
+        GPUMemory::alloc(&outCol.allChars, totalCharCount);
 
         kernel_reorder_chars_by_idx<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
             outCol, inIndices, inCol, outStringIndices.get(), outStringLengths.get(), dataElementCount);

@@ -13013,8 +13013,6 @@ TEST(DispatcherTests, ReorderStringOrderBy)
 
     for (int i = 0; i < payloadsString.stringpayload().stringdata_size(); i++)
     {
-        // std::cout << "Expected: " << intStringPairs[i].second << " " << intStringPairs[i].first << std::endl;
-        // std::cout << "Result: " << payloadsString.stringpayload().stringdata()[i] << std::endl;
         ASSERT_EQ(intStringPairs[i].first, payloadsString.stringpayload().stringdata()[i]);
     }
 }

@@ -24,6 +24,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string>,
     &GpuSqlDispatcher::OrderByCol<int8_t>};
+
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::orderByReconstructOrderFunctions_ = {
     &GpuSqlDispatcher::OrderByReconstructOrderConst<int32_t>,
     &GpuSqlDispatcher::OrderByReconstructOrderConst<int64_t>,
@@ -31,7 +32,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::OrderByReconstructOrderConst<double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string>,
+    &GpuSqlDispatcher::OrderByReconstructOrderConst<std::string>,
     &GpuSqlDispatcher::OrderByReconstructOrderConst<int8_t>,
     &GpuSqlDispatcher::OrderByReconstructOrderCol<int32_t>,
     &GpuSqlDispatcher::OrderByReconstructOrderCol<int64_t>,
@@ -39,8 +40,9 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::OrderByReconstructOrderCol<double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string>,
+    &GpuSqlDispatcher::OrderByReconstructOrderCol<std::string>,
     &GpuSqlDispatcher::OrderByReconstructOrderCol<int8_t>};
+
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::orderByReconstructRetFunctions_ = {
     &GpuSqlDispatcher::OrderByReconstructRetConst<int32_t>,
     &GpuSqlDispatcher::OrderByReconstructRetConst<int64_t>,
@@ -48,7 +50,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::OrderByReconstructRetConst<double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string>,
+    &GpuSqlDispatcher::OrderByReconstructRetConst<std::string>,
     &GpuSqlDispatcher::OrderByReconstructRetConst<int8_t>,
     &GpuSqlDispatcher::OrderByReconstructRetCol<int32_t>,
     &GpuSqlDispatcher::OrderByReconstructRetCol<int64_t>,
@@ -56,13 +58,12 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::OrderByReconstructRetCol<double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string>,
+    &GpuSqlDispatcher::OrderByReconstructRetCol<std::string>,
     &GpuSqlDispatcher::OrderByReconstructRetCol<int8_t>};
 
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::freeOrderByTableFunction_ = &GpuSqlDispatcher::FreeOrderByTable;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::orderByReconstructRetAllBlocksFunction_ =
     &GpuSqlDispatcher::OrderByReconstructRetAllBlocks;
-
 
 
 template <>
@@ -84,21 +85,24 @@ int32_t GpuSqlDispatcher::OrderByReconstructOrderCol<std::string>()
         size_t inSize = std::get<1>(col);
         size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 
-        std::unique_ptr<VariantArray<std::string>> outData = std::make_unique<VariantArray<std::string>>(inSize);
+        std::unique_ptr<VariantArray<std::string>> outData =
+            std::make_unique<VariantArray<std::string>>(inSize);
         std::unique_ptr<int8_t[]> outNullData = std::make_unique<int8_t[]>(inNullColSize);
 
         GPUMemory::GPUString reorderedColumn;
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
-        GPUOrderBy::ReOrderStringByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr), std::get<0>(col), inSize);
+        GPUOrderBy::ReOrderStringByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                       std::get<0>(col), inSize);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                            std::get<2>(col), inSize);
 
         int32_t outSize;
         GPUReconstruct::ReconstructStringCol(outData->getData(), &outSize, reorderedColumn,
-                                             reinterpret_cast<int8_t*>(filter_), inSize, outNullData.get(), reorderedNullColumn.get());
+                                             reinterpret_cast<int8_t*>(filter_), inSize,
+                                             outNullData.get(), reorderedNullColumn.get());
         outData->resize(outSize);
 		
 		GPUMemory::free(reorderedColumn);
@@ -308,7 +312,9 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
                 case COLUMN_POLYGON:
                     throw std::runtime_error("ORDER BY operation not implemented for polygons");
                 case COLUMN_STRING:
-                    throw std::runtime_error("ORDER BY operation not implemented for strings");
+                    reconstructedOrderByColumnsMerged_[orderColumn.first] =
+                        std::make_unique<VariantArray<std::string>>(resultSetSize);
+                    break;
                 case COLUMN_INT8_T:
                     reconstructedOrderByColumnsMerged_[orderColumn.first] =
                         std::make_unique<VariantArray<int8_t>>(resultSetSize);
@@ -582,8 +588,16 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
                                     throw std::runtime_error(
                                         "ORDER BY operation not implemented for polygons");
                                 case COLUMN_STRING:
-                                    throw std::runtime_error(
-                                        "ORDER BY operation not implemented for strings");
+                                {
+                                    std::string value =
+                                        dynamic_cast<VariantArray<std::string>*>(
+                                            retColumn.second[firstNonzeroMergeCounterIdx].get())
+                                            ->getData()[merge_counters[firstNonzeroMergeCounterIdx]];
+                                    dynamic_cast<VariantArray<std::string>*>(
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
+                                        ->getData()[resultSetCounter] = value;
+                                }
+                                break;
                                 case COLUMN_INT8_T:
                                 {
                                     int8_t value =
@@ -911,8 +925,15 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
                                     throw std::runtime_error(
                                         "ORDER BY operation not implemented for polygons");
                                 case COLUMN_STRING:
-                                    throw std::runtime_error(
-                                        "ORDER BY operation not implemented for strings");
+                                {
+                                    std::string value = dynamic_cast<VariantArray<std::string>*>(
+                                                            retColumn.second[mergeCounterIdx].get())
+                                                            ->getData()[merge_counters[mergeCounterIdx]];
+                                    dynamic_cast<VariantArray<std::string>*>(
+                                        reconstructedOrderByColumnsMerged_[retColumn.first].get())
+                                        ->getData()[resultSetCounter] = value;
+                                }
+                                break;
                                 case COLUMN_INT8_T:
                                 {
                                     int8_t value = dynamic_cast<VariantArray<int8_t>*>(
