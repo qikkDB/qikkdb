@@ -45,7 +45,27 @@ private:
     // Meyer's singleton
     Context()
     {
-        // Save found device count and notify the user
+        Initialize();
+    }
+
+    ~Context()
+    {
+        gpuCaches_.clear();
+        gpuAllocators_.clear();
+        for (int32_t i = 0; i < deviceCount_; i++)
+        {
+            // Bind device and clean up
+            bindDeviceToContext(i);
+            cudaDeviceReset();
+        }
+    }
+
+    Context(const Context&) = delete;
+
+    Context& operator=(const Context&) = delete;
+
+    void Initialize()
+    {
         if (cudaGetDeviceCount(&deviceCount_) != cudaSuccess)
         {
             throw std::invalid_argument("INFO: Unable to get device count");
@@ -56,7 +76,7 @@ private:
         /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
         // deviceCount_ = 1;
         /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
-
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing CUDA devices..." << '\n';
         CudaLogBoost::getInstance(CudaLogBoost::info) << "Found " << deviceCount_ << " CUDA devices" << '\n';
         const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
         // Get devices information
@@ -117,21 +137,7 @@ private:
                 }
             }
         }
-    };
-
-    ~Context()
-    {
-        for (int32_t i = 0; i < deviceCount_; i++)
-        {
-            // Bind device and clean up
-            bindDeviceToContext(i);
-            cudaDeviceReset();
-        }
     }
-
-    Context(const Context&) = delete;
-
-    Context& operator=(const Context&) = delete;
 
 public:
     /// The default bound CUDA device ID
@@ -255,5 +261,19 @@ public:
     std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases()
     {
         return loadedDatabases_;
+    }
+
+    void Reset()
+    {
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Resetting all CUDA devices" << '\n';
+        gpuCaches_.clear();
+        gpuAllocators_.clear();
+        for (int32_t i = 0; i < deviceCount_; i++)
+        {
+            // Bind device and clean up
+            bindDeviceToContext(i);
+            cudaDeviceReset();
+        }
+        Initialize();
     }
 };
