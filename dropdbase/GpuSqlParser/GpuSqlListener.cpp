@@ -769,7 +769,7 @@ void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
             throw TableNotFoundFromException();
         }
         loadedTables_.insert(table);
-
+        dispatcher_.SetLoadedTableName(table);
         if (fromTable->alias())
         {
             std::string alias = fromTable->alias()->getText();

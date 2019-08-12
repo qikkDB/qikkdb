@@ -21,10 +21,19 @@ int32_t GpuSqlDispatcher::RetConst()
     std::cout << "RET: cnst" << typeid(T).name() << " " << cnst << std::endl;
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+    size_t dataElementCount = 1;
+    if (usingJoin_)
+    {
+        dataElementCount = joinIndices_->begin()->second.size();
+    }
+    else
+    {
+        dataElementCount = database_->GetTables().at(loadedTableName_).GetSize();
+    }
 
-    std::unique_ptr<T[]> outData(new T[1]);
-    outData[0] = cnst;
-    InsertIntoPayload(payload, outData, 1);
+    std::unique_ptr<T[]> outData(new T[dataElementCount]);
+    std::fill(outData.get(), outData.get() + dataElementCount, cnst);
+    InsertIntoPayload(payload, outData, dataElementCount);
     MergePayloadToSelfResponse(alias, payload, "");
     return 0;
 }

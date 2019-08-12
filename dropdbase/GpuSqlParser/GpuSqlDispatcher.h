@@ -88,6 +88,7 @@ private:
     int32_t jmpInstructionPosition_;
     int32_t constStringCounter_;
     const std::shared_ptr<Database>& database_;
+    std::string loadedTableName_;
     std::unordered_map<std::string, PointerAllocation> allocatedPointers_;
     std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIndices_;
 
@@ -559,6 +560,8 @@ public:
     void AddAggregationDoneFunction();
 
     void AddBetweenFunction(DataType op1, DataType op2, DataType op3);
+
+    void SetLoadedTableName(const std::string& tableName);
 
     static std::unordered_map<std::string, int32_t> linkTable;
 

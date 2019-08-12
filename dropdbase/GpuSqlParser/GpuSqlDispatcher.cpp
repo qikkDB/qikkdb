@@ -60,7 +60,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database>& database,
   isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true), loadNecessary_(1),
   cpuDispatcher_(database), jmpInstructionPosition_(0),
   insertIntoData_(std::make_unique<InsertIntoStruct>()), joinIndices_(nullptr),
-  orderByTable_(nullptr), orderByBlocks_(orderByBlocks)
+  orderByTable_(nullptr), orderByBlocks_(orderByBlocks), loadedTableName_("")
 {
 }
 
@@ -68,12 +68,17 @@ GpuSqlDispatcher::~GpuSqlDispatcher()
 {
 }
 
+void GpuSqlDispatcher::SetLoadedTableName(const std::string& tableName)
+{
+    loadedTableName_ = tableName;
+}
 
 void GpuSqlDispatcher::CopyExecutionDataTo(GpuSqlDispatcher& other, CpuSqlDispatcher& sourceCpuDispatcher)
 {
     other.dispatcherFunctions_ = dispatcherFunctions_;
     other.arguments_ = arguments_;
     other.jmpInstructionPosition_ = jmpInstructionPosition_;
+    other.loadedTableName_ = loadedTableName_;
     sourceCpuDispatcher.CopyExecutionDataTo(other.cpuDispatcher_);
 }
 
