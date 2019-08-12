@@ -12966,3 +12966,55 @@ TEST(DispatcherTests, RetConstJoin)
         ASSERT_EQ(payloads.intpayload().intdata()[i], 5);
     }
 }
+
+TEST(DispatcherTests, ReorderStringOrderBy)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colString1 FROM TableA ORDER BY colInteger1;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance()
+                                                                   .database->GetTables()
+                                                                   .at("TableA")
+                                                                   .GetColumns()
+                                                                   .at("colString1")
+                                                                   .get());
+    auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
+                                                            .database->GetTables()
+                                                            .at("TableA")
+                                                            .GetColumns()
+                                                            .at("colInteger1")
+                                                            .get());
+
+    std::vector<std::pair<std::string, std::int32_t>> intStringPairs;
+
+    for (int i = 0; i < 2; i++)
+    {
+        auto blockString = columnString->GetBlocksList()[i];
+        auto blockInt = columnInt->GetBlocksList()[i];
+
+        for (int k = 0; k < (1 << 11); k++)
+        {
+            intStringPairs.push_back({blockString->GetData()[k], blockInt->GetData()[k]});
+        }
+    }
+
+    std::stable_sort(intStringPairs.begin(), intStringPairs.end(),
+                     [](const std::pair<std::string, std::int32_t>& a,
+                        const std::pair<std::string, std::int32_t>& b) -> bool {
+                         return a.second < b.second;
+                     });
+
+    auto& payloadsString = result->payloads().at("TableA.colString1");
+    ASSERT_EQ(payloadsString.stringpayload().stringdata_size(), intStringPairs.size());
+
+    for (int i = 0; i < payloadsString.stringpayload().stringdata_size(); i++)
+    {
+        // std::cout << "Expected: " << intStringPairs[i].second << " " << intStringPairs[i].first << std::endl;
+        // std::cout << "Result: " << payloadsString.stringpayload().stringdata()[i] << std::endl;
+        ASSERT_EQ(intStringPairs[i].first, payloadsString.stringpayload().stringdata()[i]);
+    }
+}
