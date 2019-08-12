@@ -167,13 +167,14 @@ std::unique_ptr<google::protobuf::Message>
 TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
                            const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage)
 {
+    std::lock_guard<std::mutex> queryLock(queryMutex_);
     try
     {
         auto start = std::chrono::high_resolution_clock::now();
         auto sharedDb = database.lock();
         GpuSqlCustomParser parser(sharedDb, queryMessage.query());
         {
-            std::lock_guard<std::mutex> queryLock(queryMutex_);
+
             auto ret = parser.Parse();
             auto end = std::chrono::high_resolution_clock::now();
             BOOST_LOG_TRIVIAL(info)
@@ -187,7 +188,16 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
             return ret;
         }
     }
-    catch (std::exception& e)
+    catch (const cuda_error& e)
+    {
+        std::lock_guard<std::mutex> importLock(importMutex_);
+        Context::getInstance().Reset();
+        auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+        infoMessage->set_message(e.what());
+        infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+        return infoMessage;
+    }
+    catch (const std::exception& e)
     {
         auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
         infoMessage->set_message(e.what());
