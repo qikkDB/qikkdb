@@ -517,8 +517,7 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    auto newBlock = castedColumn->AddBlock(block.first);
-                    auto dataToCopy = block.second.front().GetData();
+                    auto dataToCopy = block.second.begin().GetData();
                     std::vector<int32_t> castedDataToCopy;
 
                     switch (fromType)
@@ -550,15 +549,14 @@ public:
                             "Attempt to execute unsupported column type conversion.");
                         break;
                     }
-
-                    newBlock.InsertData(castedDataToCopy);
-                    block.second.erase(0);
+                    auto newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
+                    block.second.erase(block.second.begin());
                 }
             }
         }
         break;
 
-        case COLUMN_LONG:
+      /*  case COLUMN_LONG:
         {
             auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(destinationColumn);
 
@@ -899,6 +897,7 @@ public:
             }
         }
         break;
+*/
 
         default:
             throw std::runtime_error(

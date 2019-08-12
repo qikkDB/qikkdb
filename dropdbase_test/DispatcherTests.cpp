@@ -13149,7 +13149,6 @@ TEST(DispatcherTests, AlterTableAlterColumn)
 	resultPtr = parser3.Parse();
 
 	auto& table = DispatcherObjs::GetInstance().database->GetTables().at("tblA");
-	auto& column = table.GetColumns().at("colA");
-	auto type = column->GetColumnType();
+    auto type = table.GetColumns().at("colA")->GetColumnType();
 //	ASSERT_EQ(type, COLUMN_FLOAT);
 }

@@ -1276,11 +1276,67 @@ int32_t GpuSqlDispatcher::AlterTable()
         std::string alterColumnName = arguments_.Read<std::string>();
         int32_t alterColumnDataType = arguments_.Read<int32_t>();
 
-        if (isValidCast(database_->GetTables().at(tableName).GetColumns().at(alterColumnName)->GetColumnType(),
-                        static_cast<DataType>(alterColumnDataType)))
+        auto originType = database_->GetTables().at(tableName).GetColumns().at(alterColumnName)->GetColumnType();
+        if (isValidCast(originType, static_cast<DataType>(alterColumnDataType)))
         {
             database_->GetTables().at(tableName).CreateColumn((alterColumnName + "_temp").c_str(),
                                                               static_cast<DataType>(alterColumnDataType));
+            auto oldColumn = database_->GetTables().at(tableName).GetColumns().at(alterColumnName).get();
+            auto newColumn = database_->GetTables().at(tableName).GetColumns().at(alterColumnName + "_temp").get();
+
+            switch(originType)
+            {
+                case COLUMN_INT:
+                {
+                    dynamic_cast<ColumnBase<int32_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_LONG:
+                {
+                    dynamic_cast<ColumnBase<int64_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_FLOAT:
+                {
+                    dynamic_cast<ColumnBase<float>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_DOUBLE:
+                {
+                    dynamic_cast<ColumnBase<double>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_POINT:
+                {
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_POLYGON:
+                {
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::Polygon>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_STRING:
+                {
+                    dynamic_cast<ColumnBase<std::string>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_INT8_T:
+                {
+                    dynamic_cast<ColumnBase<int8_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+                default:
+                break;
+            }
+            
             database_->GetTables().at(tableName).EraseColumn(alterColumnName);
             database_->GetTables()
                 .at(tableName)
