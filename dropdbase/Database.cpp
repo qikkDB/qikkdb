@@ -242,6 +242,17 @@ void Database::PersistOnlyDbFile(const char* path)
         dbFile.write(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); // write table name length
         dbFile.write(table.first.c_str(), tableNameLength); // write table name
         dbFile.write(reinterpret_cast<char*>(&columnNumber), sizeof(int32_t)); // write number of columns of the table
+
+		for (const std::string sortingColumn : table.second.GetSortingColumns())
+        {
+            int32_t sortingColumnLength = sortingColumn.length() + 1; // +1 because '\0'
+
+            dbFile.write(reinterpret_cast<char*>(&sortingColumnLength), sizeof(int32_t)); // write sorting column name length
+            dbFile.write(sortingColumn.c_str(), sortingColumnLength); // write sorting column name
+            BOOST_LOG_TRIVIAL(debug) << "Sorting column (table: " + std::string(table.first.c_str()) +
+                                            ") saved: " + std::string(sortingColumn.c_str()) + ".";
+        }
+
         for (const auto& column : columns)
         {
             int32_t columnNameLength = column.first.length() + 1; // +1 because '\0'
@@ -572,6 +583,19 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
         dbFile.read(reinterpret_cast<char*>(&columnCount), sizeof(int32_t)); // read number of columns
 
         std::vector<std::string> columnNames;
+        std::vector<std::string> sortingColumnNames;
+
+		for (int32_t j = 0; j < columnCount; j++)
+        {
+            int32_t sortingColumnLength;
+            dbFile.read(reinterpret_cast<char*>(&sortingColumnLength), sizeof(int32_t)); // read sorting column name length
+
+            std::unique_ptr<char[]> sortingColumnName(new char[sortingColumnLength]);
+            dbFile.read(sortingColumnName.get(), sortingColumnLength); // read sorting column name
+            BOOST_LOG_TRIVIAL(debug) << "Sorting column (table: " + std::string(tableName.get()) +
+                                            ") loaded: " + std::string(sortingColumnName.get()) + ".";
+            sortingColumnNames.push_back(sortingColumnName.get());
+        }
 
         for (int32_t j = 0; j < columnCount; j++)
         {
@@ -585,6 +609,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
         }
 
         auto& table = database->tables_.at(tableName.get());
+        table.SetSortingColumns(sortingColumnNames);
 
         std::vector<std::thread> threads;
 
