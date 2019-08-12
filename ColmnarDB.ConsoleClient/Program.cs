@@ -6,7 +6,14 @@ namespace ColmnarDB.ConsoleClient
     public class Program
     {
         public static readonly string IpAddress = "127.0.0.1";
-        public static readonly short Port = 12345;
+        public static readonly short Port = 12345; 
+        private static bool exit = false;
+
+        private static void QuitConsole()
+        {
+            exit = true;
+            client.Close();
+        }
 
         /// <summary>
         /// Reads input from console
@@ -25,8 +32,7 @@ namespace ColmnarDB.ConsoleClient
             UseDatabase use = new UseDatabase();
             ImportCSV import = new ImportCSV();
             Query query = new Query();
-
-            bool exit = false;
+            
             ReadLine.HistoryEnabled = true;
 
             while (!exit)
@@ -39,7 +45,7 @@ namespace ColmnarDB.ConsoleClient
                 string database = "";
                 string filePath = "";
 
-                if (command != "exit" && command != "use" && command != "import" && command != "help")
+                if (command != "test" && command != "exit" && command != "quit" && command != "use" && command != "import" && command != "help")
                 {
                     parameters = wholeCommand;
                     command = "query";
@@ -52,9 +58,13 @@ namespace ColmnarDB.ConsoleClient
                 switch (command)
                 {
                     case "exit":
-                        exit = true;
-                        client.Close();
+                        QuitConsole();
                         break;
+
+                    case "quit":
+                        QuitConsole();
+                        break;
+
                     case "use":
                         if (parameters == "")
                         {
@@ -74,6 +84,18 @@ namespace ColmnarDB.ConsoleClient
                         query.RunQuery(parameters, Console.WindowWidth, client);
 
                         break;
+
+                    case "test":
+                        if (parameters == "")
+                        {
+                            Console.WriteLine("Missing argument");
+                            break;
+                        }
+
+                        query.RunTestQuery(parameters, Console.WindowWidth, client);
+
+                        break;
+
                     /*case "import":
 
                         string[] splitParameters = parameters.Split(" ");

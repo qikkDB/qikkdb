@@ -16,6 +16,48 @@ namespace ColmnarDB.ConsoleClient
     /// </summary>
     public class Query
     {
+        public static readonly short numberOfQueryExec = 200;
+
+        /// <summary>
+        /// Run a query N times and print the query's average execution time.
+        /// </summary>
+        /// <param name="query">Executed query</param>
+        public void RunTestQuery(string queryString, int consoleWidth, ColumnarDBClient client)
+        {
+            try
+            {
+                (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
+                float resultSum = 0;
+
+                //execute query n times (used cache):
+                for (int i = 0; i < numberOfQueryExec; i++)
+                {
+                    client.Query(queryString);
+                    result = client.GetNextQueryResult();
+                    resultSum += result.executionTimes.Values.Sum();
+                } 
+                
+                Console.WriteLine(SuccessfulQuery(queryString));
+                Console.Out.WriteLine((resultSum / numberOfQueryExec) + " (average cached " + numberOfQueryExec + " runs)");
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            catch (QueryException e)
+            {
+                Console.WriteLine("Query Exception: " + e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(UnknownException() + e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Run a query one time and print result.
+        /// </summary>
+        /// <param name="query">Executed query</param>
         public void RunQuery(string query, int consoleWidth, ColumnarDBClient client)
         {
             try
@@ -41,7 +83,6 @@ namespace ColmnarDB.ConsoleClient
             {
                 Console.WriteLine(UnknownException() + e.Message);
             }
-
         }
 
         /// <summary>
