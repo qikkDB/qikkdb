@@ -168,11 +168,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         {
             walker.walk(&gpuSqlListener, statement->sqlSelect()->limit());
         }
-
-        if (!gpuSqlListener.GetUsingLoad() && !gpuSqlListener.GetUsingWhere())
-        {
-            isSingleGpuStatement_ = true;
-        }
     }
     else if (statement->showStatement())
     {

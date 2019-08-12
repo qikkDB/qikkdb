@@ -499,6 +499,18 @@ public:
         cub::DeviceScan::ExclusiveSum(tempBuffer.get(), tempBufferSize, inMask, prefixSumPointer, dataElementCount);
     }
 
+    template <typename T>
+    static void Sum(int64_t* outPointer, T* inputBuffer, int32_t dataElementCount)
+    {
+        // Start the column reconstruction
+        size_t tempBufferSize = 0;
+        // Calculate the sum for getting tempBufferSize (in-place scan)
+        cub::DeviceReduce::Sum(nullptr, tempBufferSize, inputBuffer, outPointer, dataElementCount);
+        // Temporary storage
+        cuda_ptr<int8_t> tempBuffer(tempBufferSize);
+        // Run exclusive prefix sum
+        cub::DeviceReduce::Sum(tempBuffer.get(), tempBufferSize, inputBuffer, outPointer, dataElementCount);
+    }
     // Compress memory-wasting null mask with size equal to dataElementCount (aligning to 32 bit)
     static cuda_ptr<int8_t> CompressNullMask(int8_t* inputNullMask, int32_t dataElementCount);
 };

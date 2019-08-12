@@ -613,14 +613,26 @@ int32_t GpuSqlDispatcher::RetConst<std::string>()
     std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    size_t dataElementCount = 1;
+    int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
+    if (loadFlag)
+    {
+        return loadFlag;
+    }
+    int64_t dataElementCount = 1;
     if (usingJoin_)
     {
         dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
     }
     else
     {
-        dataElementCount = database_->GetTables().at(loadedTableName_).GetSize();
+        dataElementCount =
+            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex_);
+    }
+    if (filter_)
+    {
+        cuda_ptr<int64_t> outSum(1);
+        GPUReconstruct::Sum(outSum.get(), reinterpret_cast<int8_t*>(filter_), dataElementCount);
+        GPUMemory::copyDeviceToHost(&dataElementCount, outSum.get(), 1);
     }
 
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
@@ -639,14 +651,26 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
     std::cout << "RET: cnst" << typeid(ColmnarDB::Types::Point).name() << std::endl;
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    size_t dataElementCount = 1;
+    int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
+    if (loadFlag)
+    {
+        return loadFlag;
+    }
+    int64_t dataElementCount = 1;
     if (usingJoin_)
     {
         dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
     }
     else
     {
-        dataElementCount = database_->GetTables().at(loadedTableName_).GetSize();
+        dataElementCount =
+            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex_);
+    }
+    if (filter_)
+    {
+        cuda_ptr<int64_t> outSum(1);
+        GPUReconstruct::Sum(outSum.get(), reinterpret_cast<int8_t*>(filter_), dataElementCount);
+        GPUMemory::copyDeviceToHost(&dataElementCount, outSum.get(), 1);
     }
 
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
@@ -665,14 +689,26 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
     std::cout << "RET: cnst" << typeid(ColmnarDB::Types::ComplexPolygon).name() << std::endl;
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    size_t dataElementCount = 1;
+    int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
+    if (loadFlag)
+    {
+        return loadFlag;
+    }
+    int64_t dataElementCount = 1;
     if (usingJoin_)
     {
         dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
     }
     else
     {
-        dataElementCount = database_->GetTables().at(loadedTableName_).GetSize();
+        dataElementCount =
+            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex_);
+    }
+    if (filter_)
+    {
+        cuda_ptr<int64_t> outSum(1);
+        GPUReconstruct::Sum(outSum.get(), reinterpret_cast<int8_t*>(filter_), dataElementCount);
+        GPUMemory::copyDeviceToHost(&dataElementCount, outSum.get(), 1);
     }
 
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
@@ -687,5 +723,31 @@ int32_t GpuSqlDispatcher::LockRegister()
     std::string reg = arguments_.Read<std::string>();
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Locked register: " << reg << '\n';
     registerLockList_.insert(reg);
+    return 0;
+}
+
+int32_t GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
+{
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "TableInfo: " << tableName << '\n';
+
+    const int32_t blockCount =
+        usingJoin_ ?
+            joinIndices_->at(tableName).size() :
+            database_->GetTables().at(tableName).GetColumns().begin()->second.get()->GetBlockCount();
+    GpuSqlDispatcher::deviceCountLimit_ =
+        std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
+    if (blockIndex_ >= blockCount)
+    {
+        return 1;
+    }
+    if (blockIndex_ >= blockCount - Context::getInstance().getDeviceCount())
+    {
+        isLastBlockOfDevice_ = true;
+    }
+    if (blockIndex_ == blockCount - 1)
+    {
+        isOverallLastBlock_ = true;
+    }
+
     return 0;
 }

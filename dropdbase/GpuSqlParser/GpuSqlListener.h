@@ -40,9 +40,6 @@ private:
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns_;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns_;
 
-    bool usingLoad_;
-    bool usingWhere_;
-
     bool usingGroupBy_;
     bool usingAgg_;
     bool insideAgg_;

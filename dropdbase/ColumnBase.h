@@ -149,7 +149,7 @@ public:
         isNullable_ = isNullable;
     }
 
-	virtual bool GetSaveNecessary() const override
+    virtual bool GetSaveNecessary() const override
     {
         return saveNecessary_;
     }
@@ -263,7 +263,7 @@ public:
         {
             BlockSplit(blocks_[groupId][indexBlock]);
         }
-        
+
         saveNecessary_ = true;
         // setColumnStatistics();
     }
@@ -339,7 +339,7 @@ public:
     void InsertData(const std::vector<T>& columnData, int groupId = -1, bool compress = false)
     {
         int startIdx = 0;
-        
+
         saveNecessary_ = true;
 
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
@@ -458,7 +458,7 @@ public:
             }
             startIdx += toCopy;
         }
-        //setColumnStatistics();
+        // setColumnStatistics();
         saveNecessary_ = true;
     }
 
@@ -510,5 +510,10 @@ public:
         }
 
         return ret;
+    }
+
+    virtual int64_t GetBlockSizeForIndex(int32_t blockIdx) const override
+    {
+        return GetBlocksList()[blockIdx]->GetSize();
     }
 };

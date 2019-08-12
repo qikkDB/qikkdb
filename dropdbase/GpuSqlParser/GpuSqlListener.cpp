@@ -38,10 +38,10 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database,
                                GpuSqlDispatcher& dispatcher,
                                GpuSqlJoinDispatcher& joinDispatcher)
 : database_(database), dispatcher_(dispatcher), joinDispatcher_(joinDispatcher), linkTableIndex_(0),
-  orderByColumnIndex_(0), usingLoad_(false), usingWhere_(false), usingGroupBy_(false),
-  usingAgg_(false), insideAgg_(false), insideWhere_(false), insideGroupBy_(false),
-  insideOrderBy_(false), insideAlias_(false), insideSelectColumn_(false), isAggSelectColumn_(false),
-  isSelectColumnValid_(false), ResultLimit(std::numeric_limits<int64_t>::max()), ResultOffset(0)
+  orderByColumnIndex_(0), usingGroupBy_(false), usingAgg_(false), insideAgg_(false),
+  insideWhere_(false), insideGroupBy_(false), insideOrderBy_(false), insideAlias_(false),
+  insideSelectColumn_(false), isAggSelectColumn_(false), isSelectColumnValid_(false),
+  ResultLimit(std::numeric_limits<int64_t>::max()), ResultOffset(0)
 {
     GpuSqlDispatcher::linkTable.clear();
 }
@@ -852,7 +852,6 @@ void GpuSqlListener::exitJoinClauses(GpuSqlParser::JoinClausesContext* ctx)
 /// <param name="ctx">Where Clause context</param>
 void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext* ctx)
 {
-    usingWhere_ = true;
     std::pair<std::string, DataType> arg = StackTopAndPop();
     dispatcher_.AddArgument<const std::string&>(std::get<0>(arg));
     dispatcher_.AddFilFunction();
@@ -1419,16 +1418,6 @@ void GpuSqlListener::exitOffset(GpuSqlParser::OffsetContext* ctx)
     ResultOffset = std::stoi(ctx->getText());
 }
 
-bool GpuSqlListener::GetUsingLoad()
-{
-    return usingLoad_;
-}
-
-bool GpuSqlListener::GetUsingWhere()
-{
-    return usingWhere_;
-}
-
 void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext* ctx)
 {
     for (auto& selectColumn : ctx->selectColumn())
@@ -1516,7 +1505,6 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext* ctx)
     const std::string tableColumn = std::get<0>(tableColumnData);
 
     parserStack_.push(std::make_pair(tableColumn, columnType));
-    usingLoad_ = true;
 
     if (GpuSqlDispatcher::linkTable.find(tableColumn) == GpuSqlDispatcher::linkTable.end())
     {

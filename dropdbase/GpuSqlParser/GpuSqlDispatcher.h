@@ -615,6 +615,8 @@ public:
 
     int32_t LoadColNullMask(std::string& colName);
 
+    int32_t LoadTableBlockInfo(const std::string& tableName);
+
     template <typename T>
     void FreeColumnIfRegister(const std::string& col)
     {
