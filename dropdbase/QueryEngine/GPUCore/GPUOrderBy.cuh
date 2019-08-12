@@ -152,8 +152,10 @@ public:
                                 Context::getInstance().getBlockDim()>>>(outCol, inIndices, inCol, dataElementCount);
     }
 
-    static void
-    ReOrderStringByIdx(GPUMemory::GPUString& outCol, int32_t* inIndices, GPUMemory::GPUString inCol, int32_t dataElementCount);
+    static void ReOrderStringByIdx(GPUMemory::GPUString& outCol,
+                                   int32_t* inIndices,
+                                   GPUMemory::GPUString inCol,
+                                   int32_t dataElementCount);
 
     template <typename T>
     static void ReOrderByIdxInplace(T* col, int32_t* indices, int32_t dataElementCount)

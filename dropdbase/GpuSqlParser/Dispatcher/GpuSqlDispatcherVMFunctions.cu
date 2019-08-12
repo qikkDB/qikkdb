@@ -573,7 +573,7 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
 
                 std::get<0>(col).stringIndices = reorderedColumn.stringIndices;
                 std::get<0>(col).allChars = reorderedColumn.allChars;
-                std::get<2>(col) = reorderedNullColumn.release();                
+                std::get<2>(col) = reorderedNullColumn.release();
             }
 
             outData = std::make_unique<std::string[]>(outSize);
@@ -599,23 +599,45 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
     }
     else
     {
-        auto col = FindStringColumn(colName);
-        outSize = std::get<1>(col);
-        outData = std::make_unique<std::string[]>(outSize);
-        if (std::get<2>(col))
+        if (usingOrderBy_)
         {
-            size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-            std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
-            GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col),
-                                                 reinterpret_cast<int8_t*>(filter_),
-                                                 std::get<1>(col), nullMask.get(), std::get<2>(col));
-            bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-            nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
+            if (isOverallLastBlock_)
+            {
+                VariantArray<std::string>* reconstructedColumn = dynamic_cast<VariantArray<std::string>*>(
+                    reconstructedOrderByColumnsMerged_.at(colName).get());
+                outData = std::move(reconstructedColumn->getDataRef());
+                outSize = reconstructedColumn->GetSize();
+
+                size_t bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                nullMaskString = std::string(reinterpret_cast<char*>(
+                                                 reconstructedOrderByColumnsNullMerged_.at(colName).get()),
+                                             bitMaskSize);
+            }
+            else
+            {
+                return 0;
+            }
         }
         else
         {
-            GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col),
-                                                 reinterpret_cast<int8_t*>(filter_), std::get<1>(col));
+            auto col = FindStringColumn(colName);
+            outSize = std::get<1>(col);
+            outData = std::make_unique<std::string[]>(outSize);
+            if (std::get<2>(col))
+            {
+                size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col),
+                                                     reinterpret_cast<int8_t*>(filter_),
+                                                     std::get<1>(col), nullMask.get(), std::get<2>(col));
+                bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
+            }
+            else
+            {
+                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col),
+                                                     reinterpret_cast<int8_t*>(filter_), std::get<1>(col));
+            }
         }
         CudaLogBoost::getInstance(CudaLogBoost::info) << "dataSize: " << outSize << '\n';
     }

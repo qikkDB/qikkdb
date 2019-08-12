@@ -11806,7 +11806,7 @@ TEST(DispatcherTests, OrderByTestSimple)
 
     for (int i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
     {
-        ASSERT_EQ(expectedResultsInt[i], v[i].key);
+        ASSERT_EQ(expectedResultsInt[i], v[i].key) << i;
     }
 }
 
