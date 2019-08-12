@@ -30,6 +30,16 @@ namespace ColmnarDB.ConsoleClient
                 Dictionary<string, float> executionTimes = null;
                 float resultSum = 0;
 
+                client.Query(queryString);
+
+                while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                {
+                    resultSum += executionTimes.Values.Sum();
+                }
+
+                Console.Out.WriteLine((resultSum).ToString() + " (first run)");
+                resultSum = 0;
+
                 //execute query N times (used cache):
                 for (int i = 0; i < numberOfQueryExec; i++)
                 {
