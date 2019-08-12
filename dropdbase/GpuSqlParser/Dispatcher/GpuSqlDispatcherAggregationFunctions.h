@@ -338,10 +338,8 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "AggGroupBy: " << colTableName << " " << reg
                                                   << ", thread: " << dispatcherThreadId_ << '\n';
-
-    PointerAllocation& column = aggAsterisk ?
-                                    PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0} :
-                                    allocatedPointers_.at(colTableName);
+    PointerAllocation dummyAllocation = PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0};
+    PointerAllocation& column = aggAsterisk ? dummyAllocation : allocatedPointers_.at(colTableName);
     int32_t reconstructOutSize;
 
     // Reconstruct column only if it is not group by column (if it is group by column it was already reconstructed in GroupByCol)
