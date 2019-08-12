@@ -12841,6 +12841,43 @@ TEST(DispatcherTests, RetConst)
     }
 }
 
+TEST(DispatcherTests, RetConstWithFilter)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT 5 FROM TableA WHERE 500 < colInteger1;;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    int32_t expectedSize = 0;
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < (1 << 11); j++)
+        {
+            if (j % 2)
+            {
+                if (500 < j % 1024)
+                {
+                    ++expectedSize;
+                }
+            }
+            else
+            {
+                if (500 < (j % 1024) * -1)
+                {
+                    ++expectedSize;
+                }
+            }
+        }
+    }
+    auto& payloadsInt = result->payloads().at("5");
+    ASSERT_EQ(payloadsInt.intpayload().intdata_size(), expectedSize);
+    for (int i = 0; i < expectedSize; i++)
+    {
+        ASSERT_EQ(5, payloadsInt.intpayload().intdata()[i]);
+    }
+}
+
 TEST(DispatcherTests, RetConstWithColumn)
 {
     Context::getInstance();
