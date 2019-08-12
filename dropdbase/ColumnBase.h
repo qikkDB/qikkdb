@@ -531,7 +531,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = static_cast<int32_t>(dataToCopy[j]);
+                            castedDataToCopy.push_back(static_cast<int32_t>(dataToCopy[j]));
                         }
                     }
                     break;
@@ -540,7 +540,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = std::stol(dataToCopy[j]);
+                            castedDataToCopy.push_back(std::stol(dataToCopy[j]));
                         }
                     }
                     break;
@@ -581,7 +581,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = static_cast<int64_t>(dataToCopy[j]);
+                            castedDataToCopy.push_back(static_cast<int64_t>(dataToCopy[j]));
                         }
                     }
                     break;
@@ -590,7 +590,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = std::stoll(dataToCopy[j]);
+                            castedDataToCopy.push_back(std::stoll(dataToCopy[j]));
                         }
                     }
                     break;
@@ -631,7 +631,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = static_cast<double>(dataToCopy[j]);
+                            castedDataToCopy.push_back(static_cast<double>(dataToCopy[j]));
                         }
                     }
                     break;
@@ -640,7 +640,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = std::stod(dataToCopy[j]);
+                            castedDataToCopy.push_back(std::stod(dataToCopy[j]));
                         }
                     }
                     break;
@@ -681,7 +681,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = static_cast<float>(dataToCopy[j]);
+                            castedDataToCopy.push_back(static_cast<float>(dataToCopy[j]));
                         }
                     }
                     break;
@@ -690,7 +690,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = std::stof(dataToCopy[j]);
+                            castedDataToCopy.push_back(std::stof(dataToCopy[j]));
                         }
                     }
                     break;
@@ -731,7 +731,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = PointFactory::FromWkt(dataToCopy[j]);
+                            castedDataToCopy.push_back(PointFactory::FromWkt(dataToCopy[j]));
                         }
                     }
                     break;
@@ -772,7 +772,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = ComplexPolygonFactory::FromWkt(dataToCopy[j]);
+                            castedDataToCopy.push_back(ComplexPolygonFactory::FromWkt(dataToCopy[j]));
                         }
                     }
                     break;
@@ -813,7 +813,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = std::to_string(dataToCopy[j]);
+                            castedDataToCopy.push_back(std::to_string(dataToCopy[j]));
                         }
                     }
                     break;
@@ -821,7 +821,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = PointFactory::WktFromPoint(dataToCopy[j]);
+                            castedDataToCopy.push_back(PointFactory::WktFromPoint(dataToCopy[j]));
                         }
                     }
                     break;
@@ -829,7 +829,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = ComplexPolygonFactory::WktFromPolygon(dataToCopy[j]);
+                            castedDataToCopy.push_back(ComplexPolygonFactory::WktFromPolygon(dataToCopy[j]));
                         }
                     }
                     break;
@@ -873,7 +873,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = static_cast<int8_t>(dataToCopy[j]);
+                            castedDataToCopy.push_back(static_cast<int8_t>(dataToCopy[j]));
                         }
                     }
                     break;
@@ -882,7 +882,7 @@ public:
                     {
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
-                            castedDataToCopy = static_cast<int8_t>(std::stol(dataToCopy[j]));
+                            castedDataToCopy.push_back(static_cast<int8_t>(std::stol(dataToCopy[j])));
                         }
                     }
                     break;
@@ -899,6 +899,11 @@ public:
             }
         }
         break;
+
+        default:
+            throw std::runtime_error(
+                            "Attempt to execute unsupported column type conversion.");
+            break;
         }
     }
 

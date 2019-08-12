@@ -13116,3 +13116,40 @@ TEST(DispatcherTests, AggregationCountAsterisJoinWhereNoGroupBy)
     ASSERT_EQ(payloads.int64payload().int64data().size(), 1);
     ASSERT_EQ(payloads.int64payload().int64data()[0], expectedResultCount);
 }
+
+TEST(DispatcherTests, AlterTableAlterColumn)
+{
+	Context::getInstance();
+
+	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") == DispatcherObjs::GetInstance().database->GetTables().end());
+
+	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "CREATE TABLE tblA (colA int, colB float, INDEX ind (colA, colB));");
+	auto resultPtr = parser.Parse();
+
+	ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") != DispatcherObjs::GetInstance().database->GetTables().end());
+
+	std::vector<std::string> expectedSortingColumns = { "colA", "colB" };
+	std::vector<std::string> resultSortingColumns = DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetSortingColumns();
+
+	ASSERT_TRUE(expectedSortingColumns.size() == resultSortingColumns.size());
+
+	for (int i = 0; i < expectedSortingColumns.size(); i++)
+	{
+		ASSERT_TRUE(expectedSortingColumns[i] == resultSortingColumns[i]);
+	}
+
+	GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database, "INSERT INTO tblA (colA, colB) VALUES (1, 2.0);");
+
+	for (int32_t i = 0; i < 5; i++)
+	{
+		resultPtr = parser2.Parse();
+	}
+
+	GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database, "ALTER TABLE tblA ALTER COLUMN colA float;");
+	resultPtr = parser3.Parse();
+
+	auto& table = DispatcherObjs::GetInstance().database->GetTables().at("tblA");
+	auto& column = table.GetColumns().at("colA");
+	auto type = column->GetColumnType();
+//	ASSERT_EQ(type, COLUMN_FLOAT);
+}
