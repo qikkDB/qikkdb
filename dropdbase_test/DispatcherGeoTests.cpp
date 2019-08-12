@@ -179,6 +179,59 @@ protected:
 			ASSERT_EQ(result->payloads().size(), 0);
 		}
 	}
+
+	void PolygonClipping(
+		std::vector<std::string> inputWktA,
+		std::vector<std::string> inputWktB,
+		std::vector<std::string> expectedResult)
+	{
+		auto columns = std::unordered_map<std::string, DataType>();
+		columns.insert(std::make_pair<std::string, DataType>("colPolygonA", DataType::COLUMN_POLYGON));
+		columns.insert(std::make_pair<std::string, DataType>("colPolygonB", DataType::COLUMN_POLYGON));
+		geoDatabase->CreateTable(columns, tableName.c_str());
+
+		// Create column with polygons
+		std::vector<ColmnarDB::Types::ComplexPolygon> colPolygonA;
+		for (auto wkt : inputWktA)
+		{
+			colPolygonA.push_back(ComplexPolygonFactory::FromWkt(wkt));
+		}
+		reinterpret_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(geoDatabase->GetTables().at(tableName.c_str()).
+			GetColumns().at("colPolygonA").get())->InsertData(colPolygonA);
+
+		std::vector<ColmnarDB::Types::ComplexPolygon> colPolygonB;
+		for (auto wkt : inputWktB)
+		{
+			colPolygonB.push_back(ComplexPolygonFactory::FromWkt(wkt));
+		}
+		reinterpret_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(geoDatabase->GetTables().at(tableName.c_str()).
+			GetColumns().at("colPolygonB").get())->InsertData(colPolygonB);
+
+		// Execute the query_
+		GpuSqlCustomParser parser(geoDatabase, "SELECT GEO_INTERSECT(colPolygonA, colPolygonB) as geoOut FROM " + tableName + ";");
+		auto resultPtr = parser.Parse();
+		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+		auto &payloads = result->payloads().at("geoOut");
+		for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+		{
+			std::cout << payloads.stringpayload().stringdata()[i] << std::endl;
+		}
+
+		// if(expectedResult.size() > 0)
+		// {
+		// 	auto &payloads = result->payloads().at("geoOut");
+		// 	ASSERT_EQ(expectedResult.size(), payloads.stringpayload().stringdata_size()) << "size is not correct";
+		// 	for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+		// 	{
+		// 		ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
+		// 	}
+		// }
+		// else
+		// {
+		// 	ASSERT_EQ(result->payloads().size(), 0);
+		// }
+	}
 };
 
 
@@ -258,4 +311,20 @@ TEST_F(DispatcherGeoTests, PolygonReconstructFullMask)
 		testPolygons,
 		0,
 		testPolygons);
+}
+
+
+TEST_F(DispatcherGeoTests, PolygonIntersectTest)
+{
+	PolygonClipping(
+		{
+		 "POLYGON((4.50 5.50, 6.00 5.50, 6.00 4.50, 4.50 4.50, 4.50 5.50), (10.00 0.00, 0.00 0.00, 0.00 10.00, 10.00 10.00, 10.00 0.00), (7.00 7.00, 3.00 7.00, 3.00 3.00, 7.00 3.00, 7.00 7.00))",
+		 "POLYGON((0.00 0.00, 1.00 0.00, 0.50 1.00, 0.00 0.00))",
+		 "POLYGON((-6.31 -1.49, -4.00 5.00, 2.13 6.03, 4.90 2.23, -0.52 -0.49, 3.88 -3.45, -4.33 -3.89, -6.31 -1.49), (-3.77 2.88, 1.12 5.24, 3.52 2.73, -0.92 0.45, -2.82 -2.57, -3.77 2.88), (-2.52 1.91, 0.96 4.25, 2.16 2.81, -1.98 0.43, -2.52 1.91))"
+		},
+		{"POLYGON((13.00 5.50, 13.00 4.50, 5.00 5.00, 13.00 5.50), (4.00 4.00, 15.00 4.00, 15.00 6.00, 4.00 6.00, 4.00 4.00))",
+		 "POLYGON((0.00 0.40, 1.00 0.40, 1.00 0.60, 0.00 0.60, 0.00 0.40))",
+		 "POLYGON((-5.12 4.59, 0.42 -5.63, 3.86 0.41, 2.06 3.75, 1.22 6.83, -4.60 6.45, -5.12 4.59), (-3.32 4.11, 0.92 3.69, 2.26 0.21, 0.00 -3.00, 0.48 1.65, -2.94 2.27, -3.32 4.11))"},
+		{""}
+	);
 }
