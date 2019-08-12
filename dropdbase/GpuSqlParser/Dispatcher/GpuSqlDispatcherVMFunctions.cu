@@ -616,7 +616,7 @@ int32_t GpuSqlDispatcher::RetConst<std::string>()
     size_t dataElementCount = 1;
     if (usingJoin_)
     {
-        dataElementCount = joinIndices_->begin()->second.size();
+        dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
     }
     else
     {
@@ -642,7 +642,7 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
     size_t dataElementCount = 1;
     if (usingJoin_)
     {
-        dataElementCount = joinIndices_->begin()->second.size();
+        dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
     }
     else
     {
@@ -668,7 +668,7 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
     size_t dataElementCount = 1;
     if (usingJoin_)
     {
-        dataElementCount = joinIndices_->begin()->second.size();
+        dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
     }
     else
     {
