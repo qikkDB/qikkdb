@@ -39,7 +39,7 @@ namespace ColmnarDB.ConsoleClient
                 //string database = "";
                 //string filePath = "";
 
-                if (command != "test" && command != "exit" && command != "quit" && command != "use" && command != "import" && command != "help")
+                if (command != "q" && command != "test" && command != "exit" && command != "quit" && command != "use" && command != "import" && command != "help")
                 {
                     parameters = wholeCommand;
                     command = "query";
@@ -52,11 +52,8 @@ namespace ColmnarDB.ConsoleClient
                 switch (command)
                 {
                     case "exit":
-                        exit = true;
-                        client.Close();
-                        break;
-
                     case "quit":
+                    case "q":
                         exit = true;
                         client.Close();
                         break;
@@ -119,6 +116,7 @@ namespace ColmnarDB.ConsoleClient
                         Console.WriteLine(String.Format(format, "help", "Show information about commands"));
                         Console.WriteLine(String.Format(format, "exit", "Exit the console"));
                         Console.WriteLine(String.Format(format, "quit", "Exit the console"));
+                        Console.WriteLine(String.Format(format, "q", "Exit the console"));
                         Console.WriteLine(String.Format(format, "test [query]", "Run a query " + Query.numberOfQueryExec + " times and print the result"));
                         Console.WriteLine();
                         break;
