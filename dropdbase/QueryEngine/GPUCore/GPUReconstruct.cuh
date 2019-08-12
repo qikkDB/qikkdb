@@ -508,7 +508,7 @@ public:
         cub::DeviceReduce::Sum(nullptr, tempBufferSize, inputBuffer, outPointer, dataElementCount);
         // Temporary storage
         cuda_ptr<int8_t> tempBuffer(tempBufferSize);
-        // Run exclusive prefix sum
+        // Run sum
         cub::DeviceReduce::Sum(tempBuffer.get(), tempBufferSize, inputBuffer, outPointer, dataElementCount);
     }
     // Compress memory-wasting null mask with size equal to dataElementCount (aligning to 32 bit)

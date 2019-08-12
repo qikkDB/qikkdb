@@ -610,7 +610,7 @@ int32_t GpuSqlDispatcher::RetConst<std::string>()
     std::string cnst = arguments_.Read<std::string>();
     std::string alias = arguments_.Read<std::string>();
 
-    std::cout << "RET: cnst" << typeid(std::string).name() << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "RET: cnst" << typeid(std::string).name() << '\n';
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
@@ -648,7 +648,8 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
     std::string cnst = arguments_.Read<std::string>();
     std::string alias = arguments_.Read<std::string>();
 
-    std::cout << "RET: cnst" << typeid(ColmnarDB::Types::Point).name() << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "RET: cnst" << typeid(ColmnarDB::Types::Point).name() << '\n';
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
@@ -686,7 +687,8 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
     std::string cnst = arguments_.Read<std::string>();
     std::string alias = arguments_.Read<std::string>();
 
-    std::cout << "RET: cnst" << typeid(ColmnarDB::Types::ComplexPolygon).name() << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "RET: cnst" << typeid(ColmnarDB::Types::ComplexPolygon).name() << '\n';
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);

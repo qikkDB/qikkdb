@@ -18,7 +18,7 @@ int32_t GpuSqlDispatcher::RetConst()
     T cnst = arguments_.Read<T>();
     std::string alias = arguments_.Read<std::string>();
 
-    std::cout << "RET: cnst" << typeid(T).name() << " " << cnst << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "RET: cnst" << typeid(T).name() << " " << cnst << '\n';
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
