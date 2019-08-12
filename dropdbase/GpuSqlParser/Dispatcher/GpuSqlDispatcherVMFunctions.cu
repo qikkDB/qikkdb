@@ -551,6 +551,31 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
                                KEYS_SUFFIX :
                                ""));
             outSize = std::get<1>(col);
+
+            if (usingOrderBy_)
+            {
+                CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering result block." << '\n';
+
+                GPUMemory::GPUString reorderedColumn;
+                size_t inNullColSize = (outSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+                cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
+
+                PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
+                GPUOrderBy::ReOrderStringByIdx(reorderedColumn,
+                                               reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                               std::get<0>(col), outSize);
+                GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
+                                                   reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                                   std::get<2>(col), outSize);
+
+                GPUMemory::free(std::get<0>(col));
+                GPUMemory::free(std::get<2>(col));
+
+                std::get<0>(col).stringIndices = reorderedColumn.stringIndices;
+                std::get<0>(col).allChars = reorderedColumn.allChars;
+                std::get<2>(col) = reorderedNullColumn.release();                
+            }
+
             outData = std::make_unique<std::string[]>(outSize);
             if (std::get<2>(col))
             {

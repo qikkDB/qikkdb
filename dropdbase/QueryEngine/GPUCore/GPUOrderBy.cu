@@ -88,8 +88,10 @@ void GPUOrderBy::ReOrderStringByIdx(GPUMemory::GPUString& outCol, int32_t* inInd
     if (dataElementCount > 0)
     {
         cuda_ptr<int32_t> inStringLengths(dataElementCount);
-        kernel_lengths_from_indices<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
-            inStringLengths.get(), inCol.stringIndices, dataElementCount);
+        kernel_lengths_from_indices<int32_t, int64_t>
+            <<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(inStringLengths.get(),
+                                                                               inCol.stringIndices,
+                                                                               dataElementCount);
 
         cuda_ptr<int32_t> outStringLengths(dataElementCount);
         kernel_reorder_by_idx<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(

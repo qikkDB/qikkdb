@@ -216,6 +216,43 @@ protected:
                 << " at key \"" << key << "\"";
         }
     }
+
+    void GBSOBGenericTest(std::string aggregationFunction,
+                        std::vector<std::string> keys,
+                        std::vector<int32_t> values,
+                        std::vector<std::pair<std::string, int32_t>> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
+        columns.insert(std::make_pair<std::string, DataType>("colInteger", DataType::COLUMN_INT));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<std::string>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
+            ->InsertData(keys);
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colInteger").get())
+            ->InsertData(values);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase, 
+            "SELECT colString, " + aggregationFunction + "(colInteger) FROM " + tableName + " GROUP BY colString ORDER BY " + aggregationFunction + "(colInteger);");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadKeys = result->payloads().at(tableName + ".colString");
+        auto& payloadValues = result->payloads().at(aggregationFunction + "(colInteger)");
+
+        ASSERT_EQ(expectedResult.size(), payloadKeys.stringpayload().stringdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadKeys.stringpayload().stringdata_size(); i++)
+        {
+            std::string key = payloadKeys.stringpayload().stringdata()[i];
+            ASSERT_EQ(expectedResult[i].first, key) << " key \"" << key << "\"";
+            ASSERT_EQ(expectedResult[i].second, payloadValues.intpayload().intdata()[i])
+                << " at key \"" << key << "\"";
+        }
+    }
     
     void GBSCountTest(std::vector<std::string> keys,
                         std::vector<int32_t> values,
@@ -292,7 +329,7 @@ protected:
 
 	void GBOBKeysGenericTest(std::string aggregationFunction,
 		std::vector<int32_t> keys,
-		std::unordered_map<int32_t, int32_t> expectedResult)
+		std::vector<std::pair<int32_t, int32_t>> expectedResult)
 	{
 		auto columns = std::unordered_map<std::string, DataType>();
 		columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
@@ -326,8 +363,8 @@ protected:
 		for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
 		{
 			int32_t key = payloadKeys.intpayload().intdata()[i];
-			ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
-			ASSERT_EQ(expectedResult.at(key), payloadValues.intpayload().intdata()[i])
+			ASSERT_EQ(expectedResult[i].first, key) << " key \"" << key << "\"";
+			ASSERT_EQ(expectedResult[i].second, payloadValues.intpayload().intdata()[i])
 				<< " at key \"" << key << "\"";
 		}
 	}
@@ -335,7 +372,7 @@ protected:
 	void GBOBValuesGenericTest(std::string aggregationFunction,
 		std::vector<std::string> keys,
 		std::vector<int32_t> values,
-		std::unordered_map<int32_t, int32_t> expectedResult)
+		std::vector<std::pair<int32_t, int32_t>> expectedResult)
 	{
 		auto columns = std::unordered_map<std::string, DataType>();
 		columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
@@ -373,8 +410,8 @@ protected:
 		for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
 		{
 			int32_t key = payloadKeys.intpayload().intdata()[i];
-			ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
-			ASSERT_EQ(expectedResult.at(key), payloadValues.intpayload().intdata()[i])
+			ASSERT_EQ(expectedResult[i].first, key) << " key \"" << key << "\"";
+			ASSERT_EQ(expectedResult[i].second, payloadValues.intpayload().intdata()[i])
 				<< " at key \"" << key << "\"";
 		}
 	}
@@ -661,6 +698,14 @@ TEST_F(DispatcherGroupByTests, StringSimpleCount)
     GBSCountTest({"Apple", "Abcd", "Apple", "XYZ", "Banana", "XYZ", "Abcd", "0", "XYZ", "XYZ"},
                    {      1,      2,       3,     4,        5,     6,      7,  10,    13,    15},
                    {{"Apple", 2}, {"Abcd", 2}, {"Banana", 1}, {"XYZ", 4}, {"0", 1}});
+}
+
+TEST_F(DispatcherGroupByTests, StringSimpleSumOrderBy)
+{
+    GBSOBGenericTest("SUM",
+                   {"Apple", "Abcd", "Apple", "XYZ", "Banana", "XYZ", "Abcd", "0", "XYZ", "XYZ"},
+                   {      1,      2,       3,     4,        5,     6,      7,  10,    13,    15},
+                   {{"Apple", 4}, {"Banana", 5}, {"Abcd", 9}, {"0", 10}, {"XYZ", 38}});
 }
 
 TEST_F(DispatcherGroupByTests, StringKeyOpSimpleSum)
