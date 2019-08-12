@@ -154,6 +154,11 @@ public:
     {
         return saveNecessary_;
     }
+    
+    virtual void SetColumnName(std::string newName) override
+    {
+        name_ = newName;
+	}
 
     static std::vector<T> NullArray(int length);
 
@@ -514,6 +519,7 @@ public:
                 {
                     auto newBlock = castedColumn->AddBlock(block.first);
                     auto dataToCopy = block.second.front().GetData();
+                    std::vector<int32_t> castedDataToCopy;
 
                     switch (fromType)
                     {
@@ -523,7 +529,6 @@ public:
                     case COLUMN_FLOAT:
                     case COLUMN_INT8_T:
                     {
-                        std::vector<int32_t> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = static_cast<int32_t>(dataToCopy[j]);
@@ -533,7 +538,6 @@ public:
 
                     case COLUMN_STRING:
                     {
-                        std::vector<int32_t> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = std::stol(dataToCopy[j]);
@@ -547,6 +551,7 @@ public:
                         break;
                     }
 
+                    newBlock.InsertData(castedDataToCopy);
                     block.second.erase(0);
                 }
             }
@@ -564,6 +569,7 @@ public:
                 {
                     auto newBlock = castedColumn->AddBlock(block.first);
                     auto dataToCopy = block.second.front().GetData();
+                    std::vector<int64_t> castedDataToCopy;
 
                     switch (fromType)
                     {
@@ -573,7 +579,6 @@ public:
                     case COLUMN_FLOAT:
                     case COLUMN_INT8_T:
                     {
-                        std::vector<int64_t> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = static_cast<int64_t>(dataToCopy[j]);
@@ -583,7 +588,6 @@ public:
 
                     case COLUMN_STRING:
                     {
-                        std::vector<int64_t> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = std::stoll(dataToCopy[j]);
@@ -597,6 +601,7 @@ public:
                         break;
                     }
 
+                    newBlock.InsertData(castedDataToCopy);
                     block.second.erase(0);
                 }
             }
@@ -614,6 +619,7 @@ public:
                 {
                     auto newBlock = castedColumn->AddBlock(block.first);
                     auto dataToCopy = block.second.front().GetData();
+                    std::vector<double> castedDataToCopy;
 
                     switch (fromType)
                     {
@@ -623,7 +629,6 @@ public:
                     case COLUMN_FLOAT:
                     case COLUMN_INT8_T:
                     {
-                        std::vector<double> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = static_cast<double>(dataToCopy[j]);
@@ -633,7 +638,6 @@ public:
 
                     case COLUMN_STRING:
                     {
-                        std::vector<double> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = std::stod(dataToCopy[j]);
@@ -647,6 +651,7 @@ public:
                         break;
                     }
 
+                    newBlock.InsertData(castedDataToCopy);
                     block.second.erase(0);
                 }
             }
@@ -664,6 +669,7 @@ public:
                 {
                     auto newBlock = castedColumn->AddBlock(block.first);
                     auto dataToCopy = block.second.front().GetData();
+                    std::vector<float> castedDataToCopy;
 
                     switch (fromType)
                     {
@@ -673,7 +679,6 @@ public:
                     case COLUMN_FLOAT:
                     case COLUMN_INT8_T:
                     {
-                        std::vector<float> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = static_cast<float>(dataToCopy[j]);
@@ -683,7 +688,6 @@ public:
 
                     case COLUMN_STRING:
                     {
-                        std::vector<float> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = std::stof(dataToCopy[j]);
@@ -697,6 +701,7 @@ public:
                         break;
                     }
 
+                    newBlock.InsertData(castedDataToCopy);
                     block.second.erase(0);
                 }
             }
@@ -714,16 +719,16 @@ public:
                 {
                     auto newBlock = castedColumn->AddBlock(block.first);
                     auto dataToCopy = block.second.front().GetData();
+                    std::vector<ColmnarDB::Types::Point> castedDataToCopy;
 
                     switch (fromType)
                     {
                     case COLUMN_POINT:
-                        // TODO
-                        {
-                        }
+                    {
+                        castedDataToCopy = dataToCopy;
+                    }
                     case COLUMN_STRING:
                     {
-                        std::vector<ColmnarDB::Types::Point> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = PointFactory::FromWkt(dataToCopy[j]);
@@ -737,6 +742,7 @@ public:
                         break;
                     }
 
+                    newBlock.InsertData(castedDataToCopy);
                     block.second.erase(0);
                 }
             }
@@ -754,16 +760,16 @@ public:
                 {
                     auto newBlock = castedColumn->AddBlock(block.first);
                     auto dataToCopy = block.second.front().GetData();
+                    std::vector<ColmnarDB::Types::ComplexPolygon> castedDataToCopy;
 
                     switch (fromType)
                     {
                     case COLUMN_POLYGON:
-                        // TODO
-                        {
-                        }
+                    {
+                        castedDataToCopy = dataToCopy;
+                    }
                     case COLUMN_STRING:
                     {
-                        std::vector<ColmnarDB::Types::ComplexPolygon> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = ComplexPolygonFactory::FromWkt(dataToCopy[j]);
@@ -777,6 +783,7 @@ public:
                         break;
                     }
 
+                    newBlock.InsertData(castedDataToCopy);
                     block.second.erase(0);
                 }
             }
@@ -794,6 +801,7 @@ public:
                 {
                     auto newBlock = castedColumn->AddBlock(block.first);
                     auto dataToCopy = block.second.front().GetData();
+                    std::vector<std::string> castedDataToCopy;
 
                     switch (fromType)
                     {
@@ -803,8 +811,6 @@ public:
                     case COLUMN_FLOAT:
                     case COLUMN_INT8_T:
                     {
-                        std::vector<std::string> castedDataToCopy;
-
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = std::to_string(dataToCopy[j]);
@@ -813,7 +819,6 @@ public:
                     break;
                     case COLUMN_POINT:
                     {
-                        std::vector<std::string> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = PointFactory::WktFromPoint(dataToCopy[j]);
@@ -822,7 +827,6 @@ public:
                     break;
                     case COLUMN_POLYGON:
                     {
-                        std::vector<std::string> castedDataToCopy;
                         for (int32_t j = 0; j < dataToCopy.size(); j++)
                         {
                             castedDataToCopy = ComplexPolygonFactory::WktFromPolygon(dataToCopy[j]);
@@ -830,23 +834,71 @@ public:
                     }
                     break;
                     case COLUMN_STRING:
-                        // TODO
-                        {
-                        }
+                    {
+                        castedDataToCopy = dataToCopy;
+                    }
                     default:
                         throw std::runtime_error(
                             "Attempt to execute unsupported column type conversion.");
                         break;
-
                     }
 
+                    newBlock.InsertData(castedDataToCopy);
                     block.second.erase(0);
                 }
             }
         }
-		break;
+        break;
 
-            // TODO int 8_t
+        case COLUMN_INT8_T:
+        {
+            auto castedColumn = dynamic_cast<ColumnBase<int8_t>*>(destinationColumn);
+
+            for (auto& block : blocks_)
+            {
+                int32_t blockCountOnIdx = block.second.size();
+                for (int32_t i = 0; i < blockCountOnIdx; i++)
+                {
+                    auto newBlock = castedColumn->AddBlock(block.first);
+                    auto dataToCopy = block.second.front().GetData();
+                    std::vector<int8_t> castedDataToCopy;
+
+                    switch (fromType)
+                    {
+                    case COLUMN_INT:
+                    case COLUMN_LONG:
+                    case COLUMN_DOUBLE:
+                    case COLUMN_FLOAT:
+                    case COLUMN_INT8_T:
+                    {
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = static_cast<int8_t>(dataToCopy[j]);
+                        }
+                    }
+                    break;
+
+                    case COLUMN_STRING:
+                    {
+                        for (int32_t j = 0; j < dataToCopy.size(); j++)
+                        {
+                            castedDataToCopy = static_cast<int8_t>(std::stol(dataToCopy[j]));
+                        }
+                    }
+                    break;
+
+                    default:
+                        throw std::runtime_error(
+                            "Attempt to execute unsupported column type conversion.");
+                        break;
+                    }
+
+                    newBlock.InsertData(castedDataToCopy);
+                    block.second.erase(0);
+                }
+            }
+        }
+        break;
         }
     }
 

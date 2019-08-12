@@ -1281,6 +1281,12 @@ int32_t GpuSqlDispatcher::AlterTable()
         {
             database_->GetTables().at(tableName).CreateColumn((alterColumnName + "_temp").c_str(),
                                                               static_cast<DataType>(alterColumnDataType));
+            database_->GetTables().at(tableName).EraseColumn(alterColumnName);
+            database_->GetTables()
+                .at(tableName)
+                .GetColumns()
+                .at((alterColumnName + "_temp").c_str())
+                ->SetColumnName(alterColumnName);
         }
     }
     return 10;
