@@ -61,7 +61,6 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
                 lastResultLen_ = std::max(payload.second.stringpayload().stringdata().size(), lastResultLen_);
                 break;
             default:
-                throw std::out_of_range("Invalid networking payload case");
                 break;
             }
         }
@@ -140,7 +139,6 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
             }
             break;
         default:
-            throw std::out_of_range("Invalid networking payload case");
             break;
         }
         smallPayload->mutable_payloads()->insert({payload.first, finalPayload});
