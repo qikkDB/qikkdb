@@ -5,15 +5,9 @@ namespace ColmnarDB.ConsoleClient
 {
     public class Program
     {
-        public static readonly string IpAddress = "127.0.0.1";
-        public static readonly short Port = 12345; 
+        public static readonly string ipAddress = "127.0.0.1";
+        public static readonly short port = 12345; 
         private static bool exit = false;
-
-        private static void QuitConsole()
-        {
-            exit = true;
-            client.Close();
-        }
 
         /// <summary>
         /// Reads input from console
@@ -26,7 +20,7 @@ namespace ColmnarDB.ConsoleClient
         /// </summary>
         public static void Main(string[] args)
         {
-            ColumnarDBClient client = new ColumnarDBClient(IpAddress, Port);
+            ColumnarDBClient client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
             client.Connect();
 
             UseDatabase use = new UseDatabase();
@@ -42,8 +36,8 @@ namespace ColmnarDB.ConsoleClient
 
                 string command = splitCommand[0].ToLower();
                 string parameters = "";
-                string database = "";
-                string filePath = "";
+                //string database = "";
+                //string filePath = "";
 
                 if (command != "test" && command != "exit" && command != "quit" && command != "use" && command != "import" && command != "help")
                 {
@@ -58,11 +52,13 @@ namespace ColmnarDB.ConsoleClient
                 switch (command)
                 {
                     case "exit":
-                        QuitConsole();
+                        exit = true;
+                        client.Close();
                         break;
 
                     case "quit":
-                        QuitConsole();
+                        exit = true;
+                        client.Close();
                         break;
 
                     case "use":
@@ -122,12 +118,13 @@ namespace ColmnarDB.ConsoleClient
                         //Console.WriteLine(String.Format(format, "import [database] [file path]", "Import given .csv file into database"));
                         Console.WriteLine(String.Format(format, "help", "Show information about commands"));
                         Console.WriteLine(String.Format(format, "exit", "Exit the console"));
+                        Console.WriteLine(String.Format(format, "quit", "Exit the console"));
+                        Console.WriteLine(String.Format(format, "test [query]", "Run a query " + Query.numberOfQueryExec + " times and print the result"));
                         Console.WriteLine();
                         break;
                     default:
                         Console.WriteLine("Unknown command, for more information about commands type 'help'");
                         break;
-
                 }
             }
         }

@@ -26,16 +26,20 @@ namespace ColmnarDB.ConsoleClient
         {
             try
             {
-                (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
+                ColumnarDataTable result = null;
+                Dictionary<string, float> executionTimes = null;
                 float resultSum = 0;
 
-                //execute query n times (used cache):
+                //execute query N times (used cache):
                 for (int i = 0; i < numberOfQueryExec; i++)
                 {
                     client.Query(queryString);
-                    result = client.GetNextQueryResult();
-                    resultSum += result.executionTimes.Values.Sum();
-                } 
+
+                    while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                    {
+                        resultSum += executionTimes.Values.Sum();
+                    }                   
+                }
                 
                 Console.WriteLine(SuccessfulQuery(queryString));
                 Console.Out.WriteLine((resultSum / numberOfQueryExec) + " (average cached " + numberOfQueryExec + " runs)");

@@ -57,7 +57,7 @@ private:
         // deviceCount_ = 1;
         /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
 
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "Found " << deviceCount_ << "CUDA devices" << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Found " << deviceCount_ << " CUDA devices" << '\n';
         const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
         // Get devices information
         for (int32_t i = 0; i < deviceCount_; i++)

@@ -9,8 +9,8 @@ namespace ColmnarDB.BenchmarkUtility
 {
     public class Program
     {
-        public static readonly string IpAddress = "127.0.0.1";
-        public static readonly short Port = 12345;
+        public static readonly string ipAddress = "127.0.0.1";
+        public static readonly short port = 12345;
 
         public static readonly string resultFilePath = "results.txt";
         public static readonly int numberOfQueryExec = 200;
@@ -34,7 +34,7 @@ namespace ColmnarDB.BenchmarkUtility
         {
             Array.Sort(args);
 
-            ColumnarDBClient client = new ColumnarDBClient(IpAddress, Port);
+            ColumnarDBClient client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
             client.Connect();
             Console.Out.WriteLine("Client has successfully connected to server.");
 
@@ -76,24 +76,30 @@ namespace ColmnarDB.BenchmarkUtility
                         resultFile.WriteLine(queryString);
 
                         //execute query first time (no cache):
+                        float resultSum = 0;
                         client.Query(queryString);
-                        (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
-                        result = client.GetNextQueryResult();
-                        float resultSum = result.executionTimes.Values.Sum();
+                        Dictionary<string, float> executionTimes = null;
+                        ColumnarDataTable result = null;
+
+                        while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                        {
+                            resultSum += executionTimes.Values.Sum();
+                        }
                 
                         //save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
-                        Console.Out.WriteLine((resultSum).ToString() + " (first run)");
+                        Console.Out.WriteLine((resultSum).ToString() + " (first run)"); 
 
-                        resultSum = 0;
-
-                        //execute query n times (used cache):
+                        //execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
                             client.Query(queryString);
-                            result = client.GetNextQueryResult();
-                            resultSum += result.executionTimes.Values.Sum();
-                        } 
+
+                            while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                            {
+                                resultSum += executionTimes.Values.Sum();
+                            }                   
+                        }
 
                         //save query result to a file:
                         resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached N runs)");
@@ -118,23 +124,29 @@ namespace ColmnarDB.BenchmarkUtility
                         resultFile.WriteLine(queryString);
 
                         //execute query first time (no cache):
+                        float resultSum = 0;
                         client.Query(queryString);
-                        (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
-                        result = client.GetNextQueryResult();
-                        float resultSum = result.executionTimes.Values.Sum();
+                        Dictionary<string, float> executionTimes = null;
+                        ColumnarDataTable result = null;
 
+                        while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                        {
+                            resultSum += executionTimes.Values.Sum();
+                        }
+                
                         //save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
-                        Console.Out.WriteLine((resultSum).ToString() + " (first run)");
+                        Console.Out.WriteLine((resultSum).ToString() + " (first run)"); 
 
-                        resultSum = 0;
-
-                        //execute query n times (used cache):
+                        //execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
                             client.Query(queryString);
-                            result = client.GetNextQueryResult();
-                            resultSum += result.executionTimes.Values.Sum();
+
+                            while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                            {
+                                resultSum += executionTimes.Values.Sum();
+                            }                   
                         }
 
                         //save query result to a file:
@@ -160,23 +172,29 @@ namespace ColmnarDB.BenchmarkUtility
                         resultFile.WriteLine(queryString);
 
                         //execute query first time (no cache):
+                        float resultSum = 0;
                         client.Query(queryString);
-                        (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
-                        result = client.GetNextQueryResult();
-                        float resultSum = result.executionTimes.Values.Sum();
+                        Dictionary<string, float> executionTimes = null;
+                        ColumnarDataTable result = null;
 
+                        while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                        {
+                            resultSum += executionTimes.Values.Sum();
+                        }
+                
                         //save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
-                        Console.Out.WriteLine((resultSum).ToString() + " (first run)");
+                        Console.Out.WriteLine((resultSum).ToString() + " (first run)"); 
 
-                        resultSum = 0;
-
-                        //execute query n times (used cache):
+                        //execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
                             client.Query(queryString);
-                            result = client.GetNextQueryResult();
-                            resultSum += result.executionTimes.Values.Sum();
+
+                            while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                            {
+                                resultSum += executionTimes.Values.Sum();
+                            }                   
                         }
 
                         //save query result to a file:
@@ -202,23 +220,29 @@ namespace ColmnarDB.BenchmarkUtility
                         resultFile.WriteLine(queryString);
 
                         //execute query first time (no cache):
+                        float resultSum = 0;
                         client.Query(queryString);
-                        (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
-                        result = client.GetNextQueryResult();
-                        float resultSum = result.executionTimes.Values.Sum();
+                        Dictionary<string, float> executionTimes = null;
+                        ColumnarDataTable result = null;
 
+                        while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                        {
+                            resultSum += executionTimes.Values.Sum();
+                        }
+                
                         //save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
-                        Console.Out.WriteLine((resultSum).ToString() + " (first run)");
+                        Console.Out.WriteLine((resultSum).ToString() + " (first run)"); 
 
-                        resultSum = 0;
-
-                        //execute query n times (used cache):
+                        //execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
                             client.Query(queryString);
-                            result = client.GetNextQueryResult();
-                            resultSum += result.executionTimes.Values.Sum();
+
+                            while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                            {
+                                resultSum += executionTimes.Values.Sum();
+                            }                   
                         }
 
                         //save query result to a file:
