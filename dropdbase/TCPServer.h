@@ -28,10 +28,6 @@ private:
     boost::asio::io_context ioContext_;
     boost::asio::ip::tcp::acceptor acceptor_;
 
-    size_t clientCount_;
-    std::mutex clientCountMutex_;
-    std::condition_variable clientCountCv_;
-
     /// <summary>
     /// Listen for new client requests asynchronously
     /// </summary>
@@ -40,32 +36,19 @@ private:
         acceptor_.async_accept([this](boost::system::error_code ec, boost::asio::ip::tcp::socket socket) {
             if (!ec)
             {
-                std::thread handlerThread(
-                    [this](boost::asio::ip::tcp::socket&& sock) {
-                        try
-                        {
-                            BOOST_LOG_TRIVIAL(info) << "Accepting client "
-                                                    << sock.remote_endpoint().address().to_string();
-                            Worker worker(std::make_unique<ClientHandler>(), std::move(sock),
-                                          Configuration::GetInstance().GetTimeout());
-                            {
-                                std::lock_guard<std::mutex> lock(clientCountMutex_);
-                                clientCount_++;
-                            }
-                            worker.HandleClient();
-                            {
-                                std::lock_guard<std::mutex> lock(clientCountMutex_);
-                                clientCount_--;
-                            }
-                            clientCountCv_.notify_all();
-                        }
-                        catch (std::exception& e)
-                        {
-                            BOOST_LOG_TRIVIAL(info) << "Exception in worker: " << e.what();
-                        }
-                    },
-                    std::move(socket));
-                handlerThread.detach();
+                try
+                {
+                    BOOST_LOG_TRIVIAL(info)
+                        << "Accepting client " << socket.remote_endpoint().address().to_string();
+
+                    std::make_shared<Worker>(std::make_unique<ClientHandler>(), std::move(socket),
+                                             Configuration::GetInstance().GetTimeout())
+                        ->HandleClient();
+                }
+                catch (std::exception& e)
+                {
+                    BOOST_LOG_TRIVIAL(info) << "Exception in worker: " << e.what();
+                }
             }
             Listen();
         });
@@ -79,8 +62,7 @@ public:
     /// <param name="port">Port on which to listen</param>
     TCPServer(const char* ipAddress, short port)
     : ioContext_(),
-      acceptor_(ioContext_, boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ipAddress), port)),
-      clientCount_(0){};
+      acceptor_(ioContext_, boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ipAddress), port)){};
 
     /// <summary>
     /// Starts processing network requests in loop
@@ -98,8 +80,6 @@ public:
     {
         Worker::AbortAllWorkers();
         acceptor_.cancel();
-        std::unique_lock<std::mutex> lock(clientCountMutex_);
-        clientCountCv_.wait(lock, [this] { return clientCount_ == 0; });
         ioContext_.stop();
     }
 

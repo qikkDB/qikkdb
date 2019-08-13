@@ -15,15 +15,26 @@ public:
     /// </summary>
     /// <param name="message">Protobuffer message.</param>
     /// <param name="socket">Socket to which the message will be written.</param>
-    static void WriteToNetwork(const google::protobuf::Message& message, boost::asio::ip::tcp::socket& socket);
+    static void WriteToNetwork(const google::protobuf::Message& message,
+                               boost::asio::ip::tcp::socket& socket,
+                               std::function<void()> handler);
 
     /// <summary>
     /// Read message from network.
     /// </summary>
     /// <param name="socket">Socket from which the message will be read.</param>
     /// <returns>Any protobuffer message.</param>
-    static google::protobuf::Any ReadFromNetwork(boost::asio::ip::tcp::socket& socket);
+    static void ReadFromNetwork(boost::asio::ip::tcp::socket& socket,
+                                std::function<void(google::protobuf::Any)> handler);
 
-    static void ReadRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType columnType);
-    static void WriteRaw(boost::asio::ip::tcp::socket& socket, char* dataBuffer, int32_t elementCount, DataType dataType);
+    static void ReadRaw(boost::asio::ip::tcp::socket& socket,
+                        char* dataBuffer,
+                        int32_t elementCount,
+                        DataType dataType,
+                        std::function<void(char*, int32_t)> handler);
+    static void WriteRaw(boost::asio::ip::tcp::socket& socket,
+                         char* dataBuffer,
+                         int32_t elementCount,
+                         DataType dataType,
+                         std::function<void()> handler);
 };

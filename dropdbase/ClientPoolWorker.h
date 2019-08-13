@@ -6,7 +6,15 @@
 class ClientPoolWorker final : public ITCPWorker
 {
 private:
+    static constexpr int32_t MAXIMUM_BULK_FRAGMENT_SIZE = 8192 * 1024;
+    static constexpr size_t NULL_BUFFER_SIZE =
+        (MAXIMUM_BULK_FRAGMENT_SIZE + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+    std::unique_ptr<char[]> dataBuffer_;
+    std::unique_ptr<char[]> nullBuffer_;
+
     bool quit_;
+    void ClientLoop();
 
 public:
     /// <summary>

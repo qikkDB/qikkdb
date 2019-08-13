@@ -7,7 +7,7 @@ class Database;
 /// <summary>
 /// Receiving and dispatching for network requests
 /// </summary>
-class ITCPWorker
+class ITCPWorker : public std::enable_shared_from_this<ITCPWorker>
 {
 protected:
     /// <summary>
