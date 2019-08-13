@@ -430,6 +430,7 @@ public:
                          GPUMemory::GPUPolygon& polygonBinConst,
                          int32_t dataElementCount)
     {
+        return false;
     }
 
     template <typename OP>
@@ -438,6 +439,7 @@ public:
                          GPUMemory::GPUPolygon& polygonBin,
                          int32_t dataElementCount)
     {
+        return false;
     }
 
     template <typename OP>
@@ -446,5 +448,6 @@ public:
                            GPUMemory::GPUPolygon& polygonBinConst,
                            int32_t dataElementCount)
     {
+        return false;
     }
 };
