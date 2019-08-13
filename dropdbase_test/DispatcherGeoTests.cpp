@@ -20,6 +20,8 @@ protected:
 		"POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 4.5000, 2.6789 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 4.5000))"
 	};
 
+	enum ClipTest{INTERSECT_TEST, UNION_TEST};
+
 	std::shared_ptr<Database> geoDatabase;
 
 	virtual void SetUp()
@@ -183,7 +185,8 @@ protected:
 	void PolygonClipping(
 		std::vector<std::string> inputWktA,
 		std::vector<std::string> inputWktB,
-		std::vector<std::string> expectedResult)
+		std::vector<std::string> expectedResult,
+		ClipTest clipTest)
 	{
 		auto columns = std::unordered_map<std::string, DataType>();
 		columns.insert(std::make_pair<std::string, DataType>("colPolygonA", DataType::COLUMN_POLYGON));
@@ -208,29 +211,48 @@ protected:
 			GetColumns().at("colPolygonB").get())->InsertData(colPolygonB);
 
 		// Execute the query_
-		GpuSqlCustomParser parser(geoDatabase, "SELECT GEO_INTERSECT(colPolygonA, colPolygonB) as geoOut FROM " + tableName + ";");
-		auto resultPtr = parser.Parse();
-		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-
-		auto &payloads = result->payloads().at("geoOut");
-		for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+		if(clipTest == INTERSECT_TEST)
 		{
-			std::cout << payloads.stringpayload().stringdata()[i] << std::endl;
-		}
+			GpuSqlCustomParser parser(geoDatabase, "SELECT GEO_INTERSECT(colPolygonA, colPolygonB) as geoOut FROM " + tableName + ";");
+			auto resultPtr = parser.Parse();
+			auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-		// if(expectedResult.size() > 0)
-		// {
-		// 	auto &payloads = result->payloads().at("geoOut");
-		// 	ASSERT_EQ(expectedResult.size(), payloads.stringpayload().stringdata_size()) << "size is not correct";
-		// 	for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
-		// 	{
-		// 		ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
-		// 	}
-		// }
-		// else
-		// {
-		// 	ASSERT_EQ(result->payloads().size(), 0);
-		// }
+			if(expectedResult.size() > 0)
+			{
+				auto &payloads = result->payloads().at("geoOut");
+				ASSERT_EQ(expectedResult.size(), payloads.stringpayload().stringdata_size()) << "size is not correct";
+				for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+				{
+					ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
+					//std::cout << payloads.stringpayload().stringdata()[i] << std::endl;
+				}
+			}
+			else
+			{
+				ASSERT_EQ(result->payloads().size(), 0);
+			}
+		}
+		else if(clipTest == UNION_TEST)
+		{
+			GpuSqlCustomParser parser(geoDatabase, "SELECT GEO_UNION(colPolygonA, colPolygonB) as geoOut FROM " + tableName + ";");
+			auto resultPtr = parser.Parse();
+			auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+			if(expectedResult.size() > 0)
+			{
+				auto &payloads = result->payloads().at("geoOut");
+				ASSERT_EQ(expectedResult.size(), payloads.stringpayload().stringdata_size()) << "size is not correct";
+				for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+				{
+					ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
+					//std::cout << payloads.stringpayload().stringdata()[i] << std::endl;
+				}
+			}
+			else
+			{
+				ASSERT_EQ(result->payloads().size(), 0);
+			}
+		}
 	}
 };
 
@@ -322,11 +344,38 @@ TEST_F(DispatcherGeoTests, PolygonIntersectTest)
 		 "POLYGON((0.00 0.00, 1.00 0.00, 0.50 1.00, 0.00 0.00))",
 		 "POLYGON((-6.31 -1.49, -4.00 5.00, 2.13 6.03, 4.90 2.23, -0.52 -0.49, 3.88 -3.45, -4.33 -3.89, -6.31 -1.49), (-3.77 2.88, 1.12 5.24, 3.52 2.73, -0.92 0.45, -2.82 -2.57, -3.77 2.88), (-2.52 1.91, 0.96 4.25, 2.16 2.81, -1.98 0.43, -2.52 1.91))"
 		},
-		{"POLYGON((13.00 5.50, 13.00 4.50, 5.00 5.00, 13.00 5.50), (4.00 4.00, 15.00 4.00, 15.00 6.00, 4.00 6.00, 4.00 4.00))",
+		{
+		 "POLYGON((13.00 5.50, 13.00 4.50, 5.00 5.00, 13.00 5.50), (4.00 4.00, 15.00 4.00, 15.00 6.00, 4.00 6.00, 4.00 4.00))",
 		 "POLYGON((0.00 0.40, 1.00 0.40, 1.00 0.60, 0.00 0.60, 0.00 0.40))",
-		 "POLYGON((-5.12 4.59, 0.42 -5.63, 3.86 0.41, 2.06 3.75, 1.22 6.83, -4.60 6.45, -5.12 4.59), (-3.32 4.11, 0.92 3.69, 2.26 0.21, 0.00 -3.00, 0.48 1.65, -2.94 2.27, -3.32 4.11))"},
-		{""}
+		 "POLYGON((-5.12 4.59, 0.42 -5.63, 3.86 0.41, 2.06 3.75, 1.22 6.83, -4.60 6.45, -5.12 4.59), (-3.32 4.11, 0.92 3.69, 2.26 0.21, 0.00 -3.00, 0.48 1.65, -2.94 2.27, -3.32 4.11))"
+		},
+		{
+		 "POLYGON((6.0000 4.9375, 6.0000 4.5000, 4.5000 4.5000, 4.5000 5.5000, 6.0000 5.5000, 6.0000 5.0625, 5.0000 5.0000, 6.0000 4.9375), (10.0000 4.6875, 10.0000 3.0000, 7.0000 4.0000, 7.0000 4.8750, 10.0000 4.6875), (10.0000 5.3125, 10.0000 6.0000, 7.0000 6.0000, 7.0000 5.1250, 10.0000 5.3125))",
+		 "POLYGON((0.8000 0.4000, 0.7000 0.6000, 0.3000 0.6000, 0.2000 0.4000, 0.8000 0.4000))",
+		 "POLYGON((-4.5320 3.5053, -4.0000 5.0000, 1.4685 5.9189, 1.8666 4.4592, 1.1200 5.2400, -1.5788 3.9375, -3.3200 4.1100, -3.1298 3.1890, -3.7700 2.8800, -3.5695 1.7297, -4.5320 3.5053), (3.3094 1.4317, 2.0357 0.7926, 1.6579 1.7738, 2.8070 2.3639, 3.3094 1.4317), (2.2761 -2.3710, 1.0321 -1.5341, 0.0000 -3.0000, 0.2085 -0.9801, -0.5200 -0.4900, 0.3017 -0.0777, 0.4276 1.1420, -0.9200 0.4500, -1.9706 -1.2199, -0.6307 -3.6917, 1.5917 -3.5726, 2.2761 -2.3710), (0.2290 3.7585, 0.9600 4.2500, 2.1600 2.8100, 1.4222 2.3858, 0.9200 3.6900, 0.2290 3.7585), (-2.1875 2.1336, -2.5200 1.9100, -1.9800 0.4300, 0.2232 1.6966, -2.1875 2.1336))"
+		},
+		INTERSECT_TEST
 	);
+}
 
-	FAIL();
+TEST_F(DispatcherGeoTests, PolygonUnionTest)
+{
+	PolygonClipping(
+		{
+		 "POLYGON((4.50 5.50, 6.00 5.50, 6.00 4.50, 4.50 4.50, 4.50 5.50), (10.00 0.00, 0.00 0.00, 0.00 10.00, 10.00 10.00, 10.00 0.00), (7.00 7.00, 3.00 7.00, 3.00 3.00, 7.00 3.00, 7.00 7.00))",
+		 "POLYGON((0.00 0.00, 1.00 0.00, 0.50 1.00, 0.00 0.00))",
+		 "POLYGON((-6.31 -1.49, -4.00 5.00, 2.13 6.03, 4.90 2.23, -0.52 -0.49, 3.88 -3.45, -4.33 -3.89, -6.31 -1.49), (-3.77 2.88, 1.12 5.24, 3.52 2.73, -0.92 0.45, -2.82 -2.57, -3.77 2.88), (-2.52 1.91, 0.96 4.25, 2.16 2.81, -1.98 0.43, -2.52 1.91))"
+		},
+		{
+		 "POLYGON((13.00 5.50, 13.00 4.50, 5.00 5.00, 13.00 5.50), (4.00 4.00, 15.00 4.00, 15.00 6.00, 4.00 6.00, 4.00 4.00))",
+		 "POLYGON((0.00 0.40, 1.00 0.40, 1.00 0.60, 0.00 0.60, 0.00 0.40))",
+		 "POLYGON((-5.12 4.59, 0.42 -5.63, 3.86 0.41, 2.06 3.75, 1.22 6.83, -4.60 6.45, -5.12 4.59), (-3.32 4.11, 0.92 3.69, 2.26 0.21, 0.00 -3.00, 0.48 1.65, -2.94 2.27, -3.32 4.11))"
+		},
+		{
+		 "POLYGON((6.0000 4.9375, 6.0000 5.0625, 7.0000 5.1250, 7.0000 4.8750, 6.0000 4.9375), (10.0000 4.6875, 10.0000 5.3125, 13.0000 5.5000, 13.0000 4.5000, 10.0000 4.6875), (10.0000 3.0000, 10.0000 0.0000, 0.0000 0.0000, 0.0000 10.0000, 10.0000 10.0000, 10.0000 6.0000, 15.0000 6.0000, 15.0000 4.0000, 10.0000 3.0000), (7.0000 4.0000, 7.0000 3.0000, 3.0000 3.0000, 3.0000 7.0000, 7.0000 7.0000, 7.0000 6.0000, 4.0000 6.0000, 4.0000 4.0000, 7.0000 4.0000))",
+		 "POLYGON((0.8000 0.4000, 1.0000 0.0000, 0.0000 0.0000, 0.2000 0.4000, 0.0000 0.4000, 0.0000 0.6000, 0.3000 0.6000, 0.5000 1.0000, 0.7000 0.6000, 1.0000 0.6000, 1.0000 0.4000, 0.8000 0.4000))",
+		 "POLYGON((-4.5320 3.5053, -6.3100 -1.4900, -4.3300 -3.8900, -0.6307 -3.6917, 0.4200 -5.6300, 1.5917 -3.5726, 3.8800 -3.4500, 2.2761 -2.3710, 3.8600 0.4100, 3.3094 1.4317, 4.9000 2.2300, 2.1300 6.0300, 1.4685 5.9189, 1.2200 6.8300, -4.6000 6.4500, -5.1200 4.5900, -4.5320 3.5053), (2.0357 0.7926, 0.3017 -0.0777, 0.2085 -0.9801, 1.0321 -1.5341, 2.2600 0.2100, 2.0357 0.7926), (1.8666 4.4592, 3.5200 2.7300, 2.8070 2.3639, 2.0600 3.7500, 1.8666 4.4592), (-1.9706 -1.2199, -2.8200 -2.5700, -3.5695 1.7297, -1.9706 -1.2199), (-1.5788 3.9375, -3.1298 3.1890, -2.9400 2.2700, -2.1875 2.1336, 0.2290 3.7585, -1.5788 3.9375), (1.6579 1.7738, 0.4276 1.1420, 0.4800 1.6500, 0.2232 1.6966, 1.4222 2.3858, 1.6579 1.7738))"
+		},
+		UNION_TEST
+	);
 }
