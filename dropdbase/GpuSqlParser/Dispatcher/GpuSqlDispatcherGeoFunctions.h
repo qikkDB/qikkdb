@@ -426,6 +426,43 @@ int32_t GpuSqlDispatcher::PolygonOperationColCol()
     int32_t dataSize = std::min(std::get<1>(polygonLeft), std::get<1>(polygonRight));
     if (!IsRegisterAllocated(reg))
     {
+        ///////////////////////////////////////////////////////////////////////////////////////
+        // DEBUG
+        
+        GPUMemory::GPUPolygon input = std::get<0>(polygonLeft);
+
+        std::vector<int32_t> outPolyIdx;
+        std::vector<int32_t> outPointIdx;
+        std::vector<NativeGeoPoint> outPolyPoints;
+
+        // Copy back the results
+        outPolyIdx.resize(dataSize);
+        GPUMemory::copyDeviceToHost(&outPolyIdx[0], input.polyIdx, outPolyIdx.size());
+
+        outPointIdx.resize(outPolyIdx[dataSize - 1]);
+        GPUMemory::copyDeviceToHost(&outPointIdx[0], input.pointIdx, outPointIdx.size());
+
+        outPolyPoints.resize(outPointIdx[outPolyIdx[dataSize - 1] - 1]);
+        GPUMemory::copyDeviceToHost(&outPolyPoints[0], input.polyPoints, outPolyPoints.size());
+
+        for(int32_t i = 0; i < outPolyIdx.size(); i++)
+        {
+            printf("POLY : %d : %d\n", i, outPolyIdx[i]);
+        }
+
+        for(int32_t i = 0; i < outPointIdx.size(); i++)
+        {
+            printf("POINT : %d : %d\n", i, outPointIdx[i]);
+        }
+
+        for(int32_t i = 0; i < outPolyPoints.size(); i++)
+        {
+            printf("%d : %.2f %.2f\n", i, outPolyPoints[i].latitude, outPolyPoints[i].longitude);
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////
+
+
+
         GPUMemory::GPUPolygon outPolygon;
         GPUPolygonClipping::ColCol<OP>(outPolygon, std::get<0>(polygonLeft), std::get<0>(polygonRight), dataSize);
         if (std::get<2>(polygonLeft) || std::get<2>(polygonRight))

@@ -86,18 +86,23 @@ __global__ void kernel_predict_wkt_lengths(int32_t* outStringLengths, GPUMemory:
         const int32_t subpolyEndIdx = subpolyStartIdx + GPUMemory::PolyCountAt(inPolygonCol, i);
         for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++)
         {
-            const int32_t pointCount = GPUMemory::PointCountAt(inPolygonCol, j) - 2;
-            const int32_t pointStartIdx = GPUMemory::PointIdxAt(inPolygonCol, j) + 1;
+            const int32_t pointCount = GPUMemory::PointCountAt(inPolygonCol, j);// - 2;
+            const int32_t pointStartIdx = GPUMemory::PointIdxAt(inPolygonCol, j);// + 1;
             const int32_t pointEndIdx = pointStartIdx + pointCount;
 
             // Count the decimal part and colons between points (".0000 .0000, .0000 .0000")
-            charCounter += pointCount * (2 * WKT_DECIMAL_PLACES + 5) - 2;
+            // Add +1 to add the first point to WKT
+            charCounter += (pointCount + 1) * (2 * WKT_DECIMAL_PLACES + 5) - 2;
             for (int32_t k = pointStartIdx; k < pointEndIdx; k++)
             {
                 // Count the integer part ("150".0000, "-0".1000)
                 charCounter += GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[k].latitude) +
                                GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[k].longitude);
             }
+
+            // Repeat the last element for the WKT format
+            charCounter += GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[pointStartIdx].latitude) +
+                               GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[pointStartIdx].longitude);
         }
         outStringLengths[i] = charCounter;
     }
@@ -248,8 +253,8 @@ kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon in
         for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++) // via sub-polygons
         {
             outWkt.allChars[charId++] = '(';
-            const int32_t pointCount = GPUMemory::PointCountAt(inPolygonCol, j) - 2;
-            const int32_t pointStartIdx = GPUMemory::PointIdxAt(inPolygonCol, j) + 1;
+            const int32_t pointCount = GPUMemory::PointCountAt(inPolygonCol, j);// - 2;
+            const int32_t pointStartIdx = GPUMemory::PointIdxAt(inPolygonCol, j);// + 1;
             const int32_t pointEndIdx = pointStartIdx + pointCount;
 
             for (int32_t k = pointStartIdx; k < pointEndIdx; k++) // via points
@@ -258,10 +263,15 @@ kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon in
                 outWkt.allChars[charId++] = ' ';
                 FloatToString(outWkt.allChars, charId, inPolygonCol.polyPoints[k].longitude);
 
-                if (k < pointEndIdx - 1)
+                outWkt.allChars[charId++] = ',';
+                outWkt.allChars[charId++] = ' ';
+
+                // Repeat the last element for the WKT reconstruction
+                if(k == pointEndIdx - 1)
                 {
-                    outWkt.allChars[charId++] = ',';
+                    FloatToString(outWkt.allChars, charId, inPolygonCol.polyPoints[pointStartIdx].latitude);
                     outWkt.allChars[charId++] = ' ';
+                    FloatToString(outWkt.allChars, charId, inPolygonCol.polyPoints[pointStartIdx].longitude);
                 }
             }
 
