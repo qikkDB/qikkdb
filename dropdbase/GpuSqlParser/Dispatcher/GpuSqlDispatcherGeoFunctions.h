@@ -333,7 +333,7 @@ int32_t GpuSqlDispatcher::ContainsConstConst()
     auto constPolygonWkt = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "ContainsConstConst: " + constPolygonWkt << " " << constPointWkt << " " << reg << std::endl;
+    std::cout << "ContainsConstConst: " << constPolygonWkt << " " << constPointWkt << " " << reg << std::endl;
 
     ColmnarDB::Types::Point constPoint = PointFactory::FromWkt(constPointWkt);
     ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constPolygonWkt);
@@ -359,27 +359,40 @@ int32_t GpuSqlDispatcher::ContainsConstConst()
 template <typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::PolygonOperationColConst()
 {
-    auto colName = arguments_.Read<std::string>();
     auto constWkt = arguments_.Read<std::string>();
+    auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<U>(colName);
+    int32_t loadFlag = LoadCol<T>(colName);
     if (loadFlag)
     {
         return loadFlag;
     }
 
-    std::cout << "PolygonOPConstCol: " + constWkt << " " << colName << " " << reg << std::endl;
+    std::cout << "PolygonOPColConst: " << colName << " " << constWkt << " " << reg << std::endl;
 
-    auto polygonLeft = FindComplexPolygon(colName);
+    auto polygonCol = FindComplexPolygon(colName);
     ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
-    GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(polygonConst);
+    GPUMemory::GPUPolygon gpuPolygonConst = InsertConstPolygonGpu(polygonConst);
 
-    int32_t retSize = std::get<1>(polygonLeft);
+    int32_t dataSize = std::get<1>(polygonCol);
 
     if (!IsRegisterAllocated(reg))
     {
-        // TODO
+        GPUMemory::GPUPolygon outPolygon;
+        GPUPolygonClipping::ColConst<OP>(outPolygon, std::get<0>(polygonCol), gpuPolygonConst, dataSize);
+        if (std::get<2>(polygonCol))
+        {
+            int32_t bitMaskSize = ((dataSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+            int8_t* combinedMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
+            GPUMemory::copyDeviceToDevice(combinedMask,
+                                          reinterpret_cast<int8_t*>(std::get<2>(polygonCol)), bitMaskSize);
+            FillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
+        }
+        else
+        {
+            FillPolygonRegister(outPolygon, reg, dataSize);
+        }
     }
     return 0;
 }
@@ -392,7 +405,41 @@ int32_t GpuSqlDispatcher::PolygonOperationColConst()
 template <typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::PolygonOperationConstCol()
 {
-    std::cout << "Polygon operation: " << std::endl;
+    auto colName = arguments_.Read<std::string>();
+    auto constWkt = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    int32_t loadFlag = LoadCol<U>(colName);
+    if (loadFlag)
+    {
+        return loadFlag;
+    }
+
+    std::cout << "PolygonOPConstCol: " << constWkt << " " << colName << " " << reg << std::endl;
+
+    auto polygonCol = FindComplexPolygon(colName);
+    ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
+    GPUMemory::GPUPolygon gpuPolygonConst = InsertConstPolygonGpu(polygonConst);
+
+    int32_t dataSize = std::get<1>(polygonCol);
+
+    if (!IsRegisterAllocated(reg))
+    {
+        GPUMemory::GPUPolygon outPolygon;
+        GPUPolygonClipping::ColConst<OP>(outPolygon, std::get<0>(polygonCol), gpuPolygonConst, dataSize);
+        if (std::get<2>(polygonCol))
+        {
+            int32_t bitMaskSize = ((dataSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+            int8_t* combinedMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
+            GPUMemory::copyDeviceToDevice(combinedMask,
+                                          reinterpret_cast<int8_t*>(std::get<2>(polygonCol)), bitMaskSize);
+            FillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
+        }
+        else
+        {
+            FillPolygonRegister(outPolygon, reg, dataSize);
+        }
+    }
     return 0;
 }
 /// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does
@@ -409,12 +456,12 @@ int32_t GpuSqlDispatcher::PolygonOperationColCol()
 
     std::cout << "Polygon operation: " << colNameRight << " " << colNameLeft << " " << reg << std::endl;
 
-    int32_t loadFlag = LoadCol<U>(colNameLeft);
+    int32_t loadFlag = LoadCol<T>(colNameLeft);
     if (loadFlag)
     {
         return loadFlag;
     }
-    loadFlag = LoadCol<T>(colNameRight);
+    loadFlag = LoadCol<U>(colNameRight);
     if (loadFlag)
     {
         return loadFlag;
@@ -466,6 +513,24 @@ int32_t GpuSqlDispatcher::PolygonOperationColCol()
 template <typename OP, typename T, typename U>
 int32_t GpuSqlDispatcher::PolygonOperationConstConst()
 {
-    std::cout << "Polygon operation: " << std::endl;
+    auto constWktRight = arguments_.Read<std::string>();
+    auto constWktLeft = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    std::cout << "PolygonOPConstConst: " << constWktLeft << " " << constWktRight << " " << reg << std::endl;
+
+    ColmnarDB::Types::ComplexPolygon polygonConstLeft = ComplexPolygonFactory::FromWkt(constWktLeft);
+    ColmnarDB::Types::ComplexPolygon polygonConstRight = ComplexPolygonFactory::FromWkt(constWktRight);
+    GPUMemory::GPUPolygon gpuPolygonConstLeft = InsertConstPolygonGpu(polygonConstLeft);
+    GPUMemory::GPUPolygon gpuPolygonConstRight = InsertConstPolygonGpu(polygonConstRight);
+
+    int32_t dataSize = 1;
+
+    if (!IsRegisterAllocated(reg))
+    {
+        GPUMemory::GPUPolygon outPolygon;
+        GPUPolygonClipping::ConstConst<OP>(outPolygon, gpuPolygonConstLeft, gpuPolygonConstRight, dataSize);
+        FillPolygonRegister(outPolygon, reg, dataSize);
+    }
     return 0;
 }

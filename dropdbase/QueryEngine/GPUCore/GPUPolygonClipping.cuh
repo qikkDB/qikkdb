@@ -424,4 +424,27 @@ public:
 
         return true;
     }
+    template <typename OP>
+    static bool ColConst(GPUMemory::GPUPolygon& polygonOut,
+                         GPUMemory::GPUPolygon& polygonAin,
+                         GPUMemory::GPUPolygon& polygonBinConst,
+                         int32_t dataElementCount)
+    {
+    }
+
+    template <typename OP>
+    static bool ConstCol(GPUMemory::GPUPolygon& polygonOut,
+                         GPUMemory::GPUPolygon& polygonAinConst,
+                         GPUMemory::GPUPolygon& polygonBin,
+                         int32_t dataElementCount)
+    {
+    }
+
+    template <typename OP>
+    static bool ConstConst(GPUMemory::GPUPolygon& polygonOut,
+                           GPUMemory::GPUPolygon& polygonAinConst,
+                           GPUMemory::GPUPolygon& polygonBinConst,
+                           int32_t dataElementCount)
+    {
+    }
 };
