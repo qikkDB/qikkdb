@@ -872,9 +872,9 @@ TEST_F(DispatcherGroupByTests, MultiKeySimpleCount)
 
 TEST_F(DispatcherGroupByTests, MultiKeySimpleCountAsterisk)
 {
-    GroupByMultiKeyCountTest({{1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1}},
-                             {5, 5, 24, 1, 7, 1, 1, 2},
-                             {{{1, 2}, 2}, {{1, 5}, 1}, {{2, 1}, 1}, {{5, 1}, 2}, {{7, 7}, 1}, {{-1, -5}, 1}});
+    GroupByMultiKeyCountAsteriskTest(
+        {{1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1}}, {5, 5, 24, 1, 7, 1, 1, 2},
+        {{{1, 2}, 2}, {{1, 5}, 1}, {{2, 1}, 1}, {{5, 1}, 2}, {{7, 7}, 1}, {{-1, -5}, 1}});
 }
 
 

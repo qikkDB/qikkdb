@@ -13065,3 +13065,54 @@ TEST(DispatcherTests, AggregationCountAsteriskWhereNoGroupBy)
     ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
     ASSERT_EQ(payloads.int64payload().int64data()[0], outSize);
 }
+
+TEST(DispatcherTests, AggregationCountAsterisJoinWhereNoGroupBy)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT COUNT(*) FROM TableA JOIN TableB ON colInteger1 = "
+                              "colInteger3 WHERE colInteger1 > 512;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+
+    auto leftCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
+                                                          .database->GetTables()
+                                                          .at("TableA")
+                                                          .GetColumns()
+                                                          .at("colInteger1")
+                                                          .get());
+    auto rightCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
+                                                           .database->GetTables()
+                                                           .at("TableB")
+                                                           .GetColumns()
+                                                           .at("colInteger3")
+                                                           .get());
+
+    int32_t expectedResultCount = 0;
+
+    for (int32_t leftBlockIdx = 0; leftBlockIdx < leftCol->GetBlockCount(); leftBlockIdx++)
+    {
+        auto leftBlock = leftCol->GetBlocksList()[leftBlockIdx];
+        for (int32_t leftRowIdx = 0; leftRowIdx < leftBlock->GetSize(); leftRowIdx++)
+        {
+            for (int32_t rightBlockIdx = 0; rightBlockIdx < rightCol->GetBlockCount(); rightBlockIdx++)
+            {
+                auto rightBlock = rightCol->GetBlocksList()[rightBlockIdx];
+                for (int32_t rightRowIdx = 0; rightRowIdx < rightBlock->GetSize(); rightRowIdx++)
+                {
+                    if (leftBlock->GetData()[leftRowIdx] == rightBlock->GetData()[rightRowIdx] && leftBlock->GetData()[leftRowIdx] > 512)
+                    {
+                        expectedResultCount++;
+                    }
+                }
+            }
+        }
+    }
+
+    auto payloads = result->payloads().at("COUNT(*)");
+
+    ASSERT_EQ(payloads.int64payload().int64data().size(), 1);
+    ASSERT_EQ(payloads.int64payload().int64data()[0], expectedResultCount);
+}
