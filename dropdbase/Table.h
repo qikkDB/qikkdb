@@ -61,6 +61,7 @@ public:
     void SetSortingColumns(std::vector<std::string> columns);
     bool GetSaveNecessary() const;
     void SetSaveNecessaryToFalse();
+    void RenameColumn(std::string oldColumnName, std::string newColumnName);
 
     /// <summary>
     /// Removes column from columns.

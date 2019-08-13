@@ -1277,7 +1277,7 @@ int32_t GpuSqlDispatcher::AlterTable()
         int32_t alterColumnDataType = arguments_.Read<int32_t>();
 
         auto originType = database_->GetTables().at(tableName).GetColumns().at(alterColumnName)->GetColumnType();
-        if (isValidCast(originType, static_cast<DataType>(alterColumnDataType)))
+        if (isValidCast(originType, static_cast<DataType>(alterColumnDataType)) && originType != static_cast<DataType>(alterColumnDataType))
         {
             database_->GetTables().at(tableName).CreateColumn((alterColumnName + "_temp").c_str(),
                                                               static_cast<DataType>(alterColumnDataType));
@@ -1318,7 +1318,7 @@ int32_t GpuSqlDispatcher::AlterTable()
 
                 case COLUMN_POLYGON:
                 {
-                    dynamic_cast<ColumnBase<ColmnarDB::Types::Polygon>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(oldColumn)->CopyDataToColumn(newColumn);
                     break;
                 }
 
@@ -1334,15 +1334,13 @@ int32_t GpuSqlDispatcher::AlterTable()
                     break;
                 }
                 default:
-                break;
+                    throw std::runtime_error(
+                            "Attempt to execute unsupported column type conversion.");
+                    break;
             }
             
             database_->GetTables().at(tableName).EraseColumn(alterColumnName);
-            database_->GetTables()
-                .at(tableName)
-                .GetColumns()
-                .at((alterColumnName + "_temp").c_str())
-                ->SetColumnName(alterColumnName);
+            database_->GetTables().at(tableName).RenameColumn(alterColumnName + "_temp", alterColumnName);
         }
     }
     return 10;

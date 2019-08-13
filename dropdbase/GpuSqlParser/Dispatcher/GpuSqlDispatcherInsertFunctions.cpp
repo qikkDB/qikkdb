@@ -29,6 +29,7 @@ template <>
 int32_t GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>()
 {
     std::string column = arguments_.Read<std::string>();
+    std::cout << "Column name: " << column << std::endl;
     bool hasValue = arguments_.Read<bool>();
 
     ColmnarDB::Types::Point point;
@@ -36,6 +37,7 @@ int32_t GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>()
     if (hasValue)
     {
         std::string args = arguments_.Read<std::string>();
+        std::cout << "Args: " << args << std::endl;
         point = PointFactory::FromWkt(args);
     }
     else

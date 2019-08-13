@@ -532,7 +532,7 @@ int main(int argc, char** argv)
     }
 
     Database::SaveModifiedToDisk();
-    BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
+    BOOST_LOG_TRIVIAL(info) << "TellStoryDB exiting cleanly...";
 
     /*
     CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
@@ -563,6 +563,5 @@ int main(int argc, char** argv)
     {
         Database::RemoveFromInMemoryDatabaseList(db.c_str());
     }
-    BOOST_LOG_TRIVIAL(info) << "TellStoryDB exited.";
     return 0;
 }

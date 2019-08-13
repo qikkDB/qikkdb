@@ -660,6 +660,14 @@ void Table::SetSaveNecessaryToFalse()
     saveNecesarry_ = false;
 }
 
+void Table::RenameColumn(std::string oldColumnName, std::string newColumnName)
+{
+    columns.at(oldColumnName)->SetColumnName(newColumnName);
+    auto handler = columns.extract(oldColumnName);
+    handler.key() = newColumnName;
+    columns.insert(move(handler));
+}
+
 /// <summary>
 /// Removes column from columns.
 /// </summary>
