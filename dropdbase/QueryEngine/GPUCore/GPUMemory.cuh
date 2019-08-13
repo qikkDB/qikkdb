@@ -54,7 +54,7 @@ struct GPUPolygon
 };
 
 /// Struct for GPU representation of string column (with pointers to start of condensed buffers).
-struct GPUString
+struct GPUString       
 {
     /// All chars from all strings condensed
     char* allChars;

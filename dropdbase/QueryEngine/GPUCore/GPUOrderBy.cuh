@@ -61,6 +61,22 @@ __global__ void kernel_reorder_chars_by_idx(GPUMemory::GPUString outCol,
                                             int32_t* outStringLenghts,
                                             int32_t dataElementCount);
 
+__global__ void kernel_reorder_points_by_idx(GPUMemory::GPUPolygon outCol,
+                                             int32_t* inIndices,
+                                             GPUMemory::GPUPolygon inCol,
+                                             int32_t* outComplexPolygonIndices,
+                                             int32_t* outComplexPolygonLengths,
+                                             int32_t* outPolygonIndices,
+                                             int32_t* outPolygonLengths,
+                                             int32_t dataElementCount);
+
+__global__ void kernel_reorder_by_idx_and_lenghts(int32_t* outCol,
+                                                  int32_t* inIndices,
+                                                  int32_t* inCol,
+                                                  int32_t* outIndices,
+                                                  int32_t* outLengths,
+                                                  int32_t dataElementCount);
+
 // Reorder a null column by a given index column
 __global__ void kernel_reorder_null_values_by_idx(int8_t* outNullBitMask,
                                                   int32_t* inIndices,
@@ -156,6 +172,11 @@ public:
                                    int32_t* inIndices,
                                    GPUMemory::GPUString inCol,
                                    int32_t dataElementCount);
+
+    static void ReOrderPolygonByIdx(GPUMemory::GPUPolygon& outCol,
+                                    int32_t* inIndices,
+                                    GPUMemory::GPUPolygon inCol,
+                                    int32_t dataElementCount);
 
     template <typename T>
     static void ReOrderByIdxInplace(T* col, int32_t* indices, int32_t dataElementCount)
