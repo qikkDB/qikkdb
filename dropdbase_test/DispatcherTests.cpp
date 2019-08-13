@@ -13016,3 +13016,52 @@ TEST(DispatcherTests, ReorderStringOrderBy)
         ASSERT_EQ(intStringPairs[i].first, payloadsString.stringpayload().stringdata()[i]);
     }
 }
+
+TEST(DispatcherTests, AggregationCountAsteriskNoGroupBy)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT COUNT(*) FROM TableA;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& payloads = result->payloads().at("COUNT(*)");
+
+    ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
+    ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+}
+
+TEST(DispatcherTests, AggregationCountAsteriskWhereNoGroupBy)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT COUNT(*) FROM TableA WHERE colInteger1 > 512;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& payloads = result->payloads().at("COUNT(*)");
+
+    int64_t outSize = 0;
+
+    auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
+                                                            .database->GetTables()
+                                                            .at("TableA")
+                                                            .GetColumns()
+                                                            .at("colInteger1")
+                                                            .get());
+
+    for (int i = 0; i < TEST_BLOCK_COUNT; i++)
+    {
+        auto blockInt = columnInt->GetBlocksList()[i];
+        for (int k = 0; k < blockInt->GetSize(); k++)
+        {
+            if(blockInt->GetData()[k] > 512)
+            {
+                outSize++;
+            }
+        }
+    }
+
+    ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
+    ASSERT_EQ(payloads.int64payload().int64data()[0], outSize);
+}

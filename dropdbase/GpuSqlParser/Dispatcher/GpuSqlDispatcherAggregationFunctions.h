@@ -22,39 +22,45 @@ int32_t GpuSqlDispatcher::AggregationCol()
     auto reg = arguments_.Read<std::string>();
     auto aggAsterisk = arguments_.Read<bool>();
 
-    if (!aggAsterisk)
+    int32_t loadFlag = aggAsterisk ? LoadTableBlockInfo(loadedTableName_) : LoadCol<IN>(colName);
+    if (loadFlag)
     {
-        int32_t loadFlag = LoadCol<IN>(colName);
-        if (loadFlag)
-        {
-            return loadFlag;
-        }
+        return loadFlag;
     }
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "AggCol: " << colName << " " << reg << '\n';
 
-    PointerAllocation& column = allocatedPointers_.at(colName);
+    PointerAllocation dummyAllocation = PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0};
+    PointerAllocation& column = aggAsterisk ? dummyAllocation : allocatedPointers_.at(colName);
+
     int32_t reconstructOutSize;
 
     IN* reconstructOutReg = nullptr;
     if (std::is_same<OP, AggregationFunctions::count>::value)
     {
-        // If mask is present - count suitable rows
-        if (filter_)
+        if (!aggAsterisk)
         {
-            int32_t* indexes = nullptr;
-            GPUReconstruct::GenerateIndexesKeep(&indexes, &reconstructOutSize,
-                                                reinterpret_cast<int8_t*>(filter_), column.ElementCount);
-            if (indexes)
+            // If mask is present - count suitable rows
+            if (filter_)
             {
-                GPUMemory::free(indexes);
+                int32_t* indexes = nullptr;
+                GPUReconstruct::GenerateIndexesKeep(&indexes, &reconstructOutSize,
+                                                    reinterpret_cast<int8_t*>(filter_), column.ElementCount);
+                if (indexes)
+                {
+                    GPUMemory::free(indexes);
+                }
+            }
+            // If mask is nullptr - count full rows
+            else
+            {
+                reconstructOutSize = column.ElementCount;
             }
         }
-        // If mask is nullptr - count full rows
         else
         {
-            reconstructOutSize = column.ElementCount;
-        }
+            reconstructOutSize = GetBlockSize();            
+        }        
     }
     else
     {

@@ -26,22 +26,8 @@ int32_t GpuSqlDispatcher::RetConst()
     {
         return loadFlag;
     }
-    int64_t dataElementCount = 1;
-    if (usingJoin_)
-    {
-        dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
-    }
-    else
-    {
-        dataElementCount =
-            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex_);
-    }
-    if (filter_)
-    {
-        cuda_ptr<int64_t> outSum(1);
-        GPUReconstruct::Sum(outSum.get(), reinterpret_cast<int8_t*>(filter_), dataElementCount);
-        GPUMemory::copyDeviceToHost(&dataElementCount, outSum.get(), 1);
-    }
+    
+    int64_t dataElementCount = GetBlockSize();
 
     std::unique_ptr<T[]> outData(new T[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);

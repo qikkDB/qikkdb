@@ -665,22 +665,8 @@ int32_t GpuSqlDispatcher::RetConst<std::string>()
     {
         return loadFlag;
     }
-    int64_t dataElementCount = 1;
-    if (usingJoin_)
-    {
-        dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
-    }
-    else
-    {
-        dataElementCount =
-            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex_);
-    }
-    if (filter_)
-    {
-        cuda_ptr<int64_t> outSum(1);
-        GPUReconstruct::Sum(outSum.get(), reinterpret_cast<int8_t*>(filter_), dataElementCount);
-        GPUMemory::copyDeviceToHost(&dataElementCount, outSum.get(), 1);
-    }
+    
+    int64_t dataElementCount = GetBlockSize();
 
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
@@ -704,22 +690,8 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
     {
         return loadFlag;
     }
-    int64_t dataElementCount = 1;
-    if (usingJoin_)
-    {
-        dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
-    }
-    else
-    {
-        dataElementCount =
-            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex_);
-    }
-    if (filter_)
-    {
-        cuda_ptr<int64_t> outSum(1);
-        GPUReconstruct::Sum(outSum.get(), reinterpret_cast<int8_t*>(filter_), dataElementCount);
-        GPUMemory::copyDeviceToHost(&dataElementCount, outSum.get(), 1);
-    }
+
+    int64_t dataElementCount = GetBlockSize();
 
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
@@ -743,22 +715,8 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
     {
         return loadFlag;
     }
-    int64_t dataElementCount = 1;
-    if (usingJoin_)
-    {
-        dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
-    }
-    else
-    {
-        dataElementCount =
-            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex_);
-    }
-    if (filter_)
-    {
-        cuda_ptr<int64_t> outSum(1);
-        GPUReconstruct::Sum(outSum.get(), reinterpret_cast<int8_t*>(filter_), dataElementCount);
-        GPUMemory::copyDeviceToHost(&dataElementCount, outSum.get(), 1);
-    }
+
+    int64_t dataElementCount = GetBlockSize();
 
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
@@ -799,4 +757,25 @@ int32_t GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
     }
 
     return 0;
+}
+
+size_t GpuSqlDispatcher::GetBlockSize()
+{
+    int64_t dataElementCount = 0;
+    if (usingJoin_)
+    {
+        dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
+    }
+    else
+    {
+        dataElementCount =
+            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex_);
+    }
+    if (filter_)
+    {
+        cuda_ptr<int64_t> outSum(1);
+        GPUReconstruct::Sum(outSum.get(), reinterpret_cast<int8_t*>(filter_), dataElementCount);
+        GPUMemory::copyDeviceToHost(&dataElementCount, outSum.get(), 1);
+    }
+    return dataElementCount;
 }

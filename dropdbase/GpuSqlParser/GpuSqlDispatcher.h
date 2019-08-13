@@ -617,6 +617,8 @@ public:
 
     int32_t LoadTableBlockInfo(const std::string& tableName);
 
+    size_t GetBlockSize();
+
     template <typename T>
     void FreeColumnIfRegister(const std::string& col)
     {
