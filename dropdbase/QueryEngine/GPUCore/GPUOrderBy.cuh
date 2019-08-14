@@ -23,6 +23,8 @@
 // Fill the index buffers with default indices
 __global__ void kernel_fill_indices(int32_t* indices, int32_t dataElementCount);
 
+__device__ int64_t GetPolygonIndex(int32_t* indices, const int32_t i);
+
 // Transform the input data null rows to the smallest possible value
 template <typename T>
 __global__ void kernel_transform_null_values(T* inCol, int8_t* nullBitMask, int32_t dataElementCount)
@@ -64,18 +66,19 @@ __global__ void kernel_reorder_chars_by_idx(GPUMemory::GPUString outCol,
 __global__ void kernel_reorder_points_by_idx(GPUMemory::GPUPolygon outCol,
                                              int32_t* inIndices,
                                              GPUMemory::GPUPolygon inCol,
-                                             int32_t* outComplexPolygonIndices,
-                                             int32_t* outComplexPolygonLengths,
                                              int32_t* outPolygonIndices,
                                              int32_t* outPolygonLengths,
+                                             int32_t* outPointIndices,
+                                             int32_t* outPointLengths,
                                              int32_t dataElementCount);
 
-__global__ void kernel_reorder_by_idx_and_lenghts(int32_t* outCol,
-                                                  int32_t* inIndices,
-                                                  int32_t* inCol,
-                                                  int32_t* outIndices,
-                                                  int32_t* outLengths,
-                                                  int32_t dataElementCount);
+__global__ void kernel_reorder_poly_lengths_by_cp_idx_and_cp_lenghts(int32_t* outPointLengths,
+                                                                     int32_t* inOrderIndices,
+                                                                     int32_t* inPointLenghts,
+                                                                     int32_t* inPolygonIndices,
+                                                                     int32_t* outPolygonIndices,
+                                                                     int32_t* outPolygonLengths,
+                                                                     int32_t dataElementCount);
 
 // Reorder a null column by a given index column
 __global__ void kernel_reorder_null_values_by_idx(int8_t* outNullBitMask,

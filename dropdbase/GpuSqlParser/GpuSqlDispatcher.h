@@ -1074,3 +1074,10 @@ int32_t GpuSqlDispatcher::OrderByReconstructOrderCol<std::string>();
 
 template <>
 int32_t GpuSqlDispatcher::OrderByReconstructRetCol<std::string>();
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructOrderCol<ColmnarDB::Types::ComplexPolygon>();
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructRetCol<ColmnarDB::Types::ComplexPolygon>();
+
