@@ -93,17 +93,8 @@ TEST(InsertIntoTests, InsertIntoTableNotFound)
 	Database::AddToInMemoryDatabaseList(database);
 	
 	GpuSqlCustomParser parser(database, "INSERT INTO TableB (colInteger1, colLong1, colFloat1, colPolygon1, colPoint1) VALUES (500,20000000, 2.5, POLYGON((20 15, 11 12, 20 15),(21 30, 35 36, 30 20, 21 30),(61 80,90 89,112 110, 61 80)), POINT(2 5));");
-		
-	EXPECT_THROW({ try 
-		{
-            parser.Parse();
-		}
-        catch (const TableNotFoundFromException& expected)
-        {
-			EXPECT_STREQ("Table was not found in FROM clause.", expected.what());
-			throw;
-        }
-    },TableNotFoundFromException);
+
+	ASSERT_THROW(parser.Parse(), TableNotFoundFromException);
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
 }
 
