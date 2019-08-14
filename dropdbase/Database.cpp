@@ -314,44 +314,44 @@ void Database::Persist(const char* path)
 /// <param name="path">Path to database storage directory.</param>
 void Database::PersistOnlyModified(const char* path)
 {
-	auto& tables = GetTables();
-	auto& name = GetName();
-	auto pathStr = std::string(path);
+    auto& tables = GetTables();
+    auto& name = GetName();
+    auto pathStr = std::string(path);
 
-	BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size()
-		<< " tables because if it was modified.";
+    BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size()
+                            << " table/s.";
 
-	int32_t blockSize = GetBlockSize();
-	int32_t tableSize = tables.size();
+    int32_t blockSize = GetBlockSize();
+    int32_t tableSize = tables.size();
 
-	PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
+    PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
 
-	// write files .col:
-	for (const auto& table : tables)
-	{
-		if (table.second.GetSaveNecessary())
-		{
-			const auto& columns = table.second.GetColumns();
+    // write files .col:
+    for (const auto& table : tables)
+    {
+        if (table.second.GetSaveNecessary())
+        {
+            const auto& columns = table.second.GetColumns();
 
-			std::vector<std::thread> threads;
+            std::vector<std::thread> threads;
 
-			for (const auto& column : columns)
-			{
-				if (column.second.get()->GetSaveNecessary())
-				{
-					threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name,
-						std::ref(table));
-				}
-			}
+            for (const auto& column : columns)
+            {
+                if (column.second.get()->GetSaveNecessary())
+                {
+                    threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name,
+                                         std::ref(table));
+                }
+            }
 
-			for (int j = 0; j < threads.size(); j++)
-			{
-				threads[j].join();
-			}
-		}
-	}
+            for (int j = 0; j < threads.size(); j++)
+            {
+                threads[j].join();
+            }
+        }
+    }
 
-	BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk.";
+    BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk.";
 }
 
 /// <summary>
