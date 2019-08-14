@@ -13117,180 +13117,548 @@ TEST(DispatcherTests, AggregationCountAsterisJoinWhereNoGroupBy)
     ASSERT_EQ(payloads.int64payload().int64data()[0], expectedResultCount);
 }
 
-TEST(DispatcherTests, AlterTableAlterColumn)
+TEST(DispatcherTests, AlterTableAlterColumnIntToFloat)
 {
 	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
 	auto resultPtr = createDatabase.Parse();
 
 	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
 
-	ASSERT_TRUE(database->GetTables().find("testTableA") == database->GetTables().end());
+	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
-	GpuSqlCustomParser parser(database, "CREATE TABLE testTableA (colA int, colB float, colC geo_point, colD geo_polygon, colE string);");
+	GpuSqlCustomParser parser(database, "CREATE TABLE testTable (col int);");
 	resultPtr = parser.Parse();
 
-	ASSERT_TRUE(database->GetTables().find("testTableA") != database->GetTables().end());
+	ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
 
-	auto& table = database->GetTables().at("testTableA");
-    auto type = table.GetColumns().at("colA")->GetColumnType();
+	auto& table = database->GetTables().at("testTable");
+    auto type = table.GetColumns().at("col")->GetColumnType();
+
 	ASSERT_EQ(type, COLUMN_INT);
 
-    type = table.GetColumns().at("colB")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_FLOAT);
+	GpuSqlCustomParser parser2(database, "INSERT INTO testTable (col) VALUES (1);");
 
-	type = table.GetColumns().at("colC")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_POINT);
-
-	type = table.GetColumns().at("colD")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_POLYGON);
-
-	type = table.GetColumns().at("colE")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_STRING);
-
-	/*std::vector<std::string> expectedSortingColumns = { "colA", "colB" };
-	std::vector<std::string> resultSortingColumns = database->GetTables().at("testTableA").GetSortingColumns();
-
-	ASSERT_TRUE(expectedSortingColumns.size() == resultSortingColumns.size());
-
-	for (int i = 0; i < expectedSortingColumns.size(); i++)
-	{
-		ASSERT_TRUE(expectedSortingColumns[i] == resultSortingColumns[i]);
-	}*/
-
-	GpuSqlCustomParser parser2(database, "INSERT INTO testTableA (colA, colB, colC, colD, colE) VALUES (1, 2.5, POINT(10.11 11.1), POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11)), \"randomString\");");
-
-	std::vector<float> expectedResultsColA;
+	std::vector<float> expectedResultsCol;
 	for (int32_t i = 0; i < 22; i++)
 	{
 		resultPtr = parser2.Parse();
-		expectedResultsColA.push_back(static_cast<float>(1));
+		expectedResultsCol.push_back(static_cast<float>(1));
 	}
 
-	std::vector<std::string> expectedResultsColPOINT;
-	std::vector<std::string> expectedResultsColPOLYGON;
-	std::vector<std::string> expectedResultsColSTRING;
-	for (int32_t i = 0; i < 22; i++)
-	{
-		ColmnarDB::Types::Point point = PointFactory::FromWkt("POINT(10.11 11.1)");
-		expectedResultsColPOINT.push_back(PointFactory::WktFromPoint(point, true));
-		ColmnarDB::Types::ComplexPolygon polygon = ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))");
-		expectedResultsColPOLYGON.push_back(ComplexPolygonFactory::WktFromPolygon(polygon, true));
-		expectedResultsColSTRING.push_back("randomString");
-	}
-
-	/*GpuSqlCustomParser parser7(database, "SELECT colE from testTableA;");
-	resultPtr = parser7.Parse();
-	auto resultA = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-
-	auto &payloadsColString = resultA->payloads().at("testTableA.colE");
-
-	ASSERT_EQ(payloadsColString.stringpayload().stringdata_size(), expectedResultsColSTRING.size());
-
-	for (int i = 0; i < payloadsColString.stringpayload().stringdata_size(); i++)
-	{
-		ASSERT_EQ(expectedResultsColSTRING[i], payloadsColString.stringpayload().stringdata()[i]) << "Iteration: " << i;
-	}*/
-
-	/*GpuSqlCustomParser parser7(database, "SELECT colD from testTableA;");
-	resultPtr = parser7.Parse();
-	auto resultA = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-
-	auto &payloadsColPolygon = resultA->payloads().at("testTableA.colD");
-
-	ASSERT_EQ(payloadsColPolygon.stringpayload().stringdata_size(), expectedResultsColPOLYGON.size());
-
-	for (int i = 0; i < payloadsColPolygon.stringpayload().stringdata_size(); i++)
-	{
-		ASSERT_EQ(expectedResultsColPOLYGON[i], payloadsColPolygon.stringpayload().stringdata()[i]) << "Iteration: " << i;
-	}*/
-
-	/* GpuSqlCustomParser parser7(database, "SELECT colC from testTableA;");
-	resultPtr = parser7.Parse();
-	auto resultA = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-
-	auto &payloadsColCA = resultA->payloads().at("testTableA.colC");
-
-	ASSERT_EQ(payloadsColCA.stringpayload().stringdata_size(), expectedResultsColC.size());
-
-	for (int i = 0; i < payloadsColCA.stringpayload().stringdata_size(); i++)
-	{
-		ASSERT_EQ(expectedResultsColC[i], payloadsColCA.stringpayload().stringdata()[i]);
-	}*/
-
-
-	// INT TO FLOAT
-	GpuSqlCustomParser parser3(database, "ALTER TABLE testTableA ALTER COLUMN colA float;");
+	GpuSqlCustomParser parser3(database, "ALTER TABLE testTable ALTER COLUMN col float;");
 	resultPtr = parser3.Parse();
 
-	type = table.GetColumns().at("colA")->GetColumnType();
+	type = table.GetColumns().at("col")->GetColumnType();
 	ASSERT_EQ(type, COLUMN_FLOAT);
 
-    type = table.GetColumns().at("colB")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_FLOAT);
-
-	type = table.GetColumns().at("colC")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_POINT);
-
-	type = table.GetColumns().at("colD")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_POLYGON);
-
-	type = table.GetColumns().at("colE")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_STRING);
-
-	GpuSqlCustomParser parser4(database, "SELECT colA from testTableA;");
+	GpuSqlCustomParser parser4(database, "SELECT col from testTable;");
 	resultPtr = parser4.Parse();
 	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	auto &payloadsColA = result->payloads().at("testTableA.colA");
+	auto &payloadsCol = result->payloads().at("testTable.col");
 
-	ASSERT_EQ(payloadsColA.floatpayload().floatdata_size(), expectedResultsColA.size());
+	ASSERT_EQ(payloadsCol.floatpayload().floatdata_size(), expectedResultsCol.size());
 
-	for (int i = 0; i < payloadsColA.floatpayload().floatdata_size(); i++)
+	for (int i = 0; i < payloadsCol.floatpayload().floatdata_size(); i++)
 	{
-		ASSERT_FLOAT_EQ(expectedResultsColA[i], payloadsColA.floatpayload().floatdata()[i]);
+		ASSERT_FLOAT_EQ(expectedResultsCol[i], payloadsCol.floatpayload().floatdata()[i]);
 	}
 
-	//POINT TO STRING
-	GpuSqlCustomParser parser5(database, "ALTER TABLE testTableA ALTER COLUMN colC string;");
-	resultPtr = parser5.Parse();
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	resultPtr = parserDropDb.Parse();
+}
 
-	type = table.GetColumns().at("colA")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_FLOAT);
+TEST(DispatcherTests, AlterTableAlterColumnPointToString)
+{
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
+	auto resultPtr = createDatabase.Parse();
 
-    type = table.GetColumns().at("colB")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_FLOAT);
+	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
 
-	type = table.GetColumns().at("colC")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_STRING);
+	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
-	type = table.GetColumns().at("colD")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_POLYGON);
+	GpuSqlCustomParser parser(database, "CREATE TABLE testTable (col geo_point);");
+	resultPtr = parser.Parse();
 
-	type = table.GetColumns().at("colE")->GetColumnType();
-	ASSERT_EQ(type, COLUMN_STRING);
+	ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
 
-	std::vector<std::string> expectedResultsColC;
+	auto& table = database->GetTables().at("testTable");
+    auto type = table.GetColumns().at("col")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_POINT);
+
+	GpuSqlCustomParser parser2(database, "INSERT INTO testTable (col) VALUES (POINT(10.11 11.1));");
+
+	std::vector<std::string> expectedResultsCol;
 	for (int32_t i = 0; i < 22; i++)
 	{
-		expectedResultsColC.push_back("POINT(10.11 11.1)");
+		resultPtr = parser2.Parse();
+		expectedResultsCol.push_back("POINT(10.11 11.1)");
 	}
 
-	GpuSqlCustomParser parser6(database, "SELECT colC from testTableA;");
-	resultPtr = parser6.Parse();
-	result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	GpuSqlCustomParser parser3(database, "ALTER TABLE testTable ALTER COLUMN col string;");
+	resultPtr = parser3.Parse();
 
-	auto &payloadsColC = result->payloads().at("testTableA.colC");
+	type = table.GetColumns().at("col")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
 
-	ASSERT_EQ(payloadsColC.stringpayload().stringdata_size(), expectedResultsColC.size());
+	GpuSqlCustomParser parser4(database, "SELECT col from testTable;");
+	resultPtr = parser4.Parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	for (int i = 0; i < payloadsColC.stringpayload().stringdata_size(); i++)
+	auto &payloadsCol = result->payloads().at("testTable.col");
+
+	ASSERT_EQ(payloadsCol.stringpayload().stringdata_size(), expectedResultsCol.size());
+
+	for (int i = 0; i < payloadsCol.stringpayload().stringdata_size(); i++)
 	{
-		ASSERT_EQ(expectedResultsColC[i], payloadsColC.stringpayload().stringdata()[i]);
+		ASSERT_EQ(expectedResultsCol[i], payloadsCol.stringpayload().stringdata()[i]);
+	}
+
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	resultPtr = parserDropDb.Parse();
+}
+
+TEST(DispatcherTests, AlterTableAlterColumnPolygonToString)
+{
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
+	auto resultPtr = createDatabase.Parse();
+
+	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+
+	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
+
+	GpuSqlCustomParser parser(database, "CREATE TABLE testTable (col geo_polygon);");
+	resultPtr = parser.Parse();
+
+	ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
+
+	auto& table = database->GetTables().at("testTable");
+    auto type = table.GetColumns().at("col")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_POLYGON);
+
+	GpuSqlCustomParser parser2(database, "INSERT INTO testTable (col) VALUES (POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11)));");
+
+	std::vector<std::string> expectedResultsCol;
+	for (int32_t i = 0; i < 22; i++)
+	{
+		resultPtr = parser2.Parse();
+		expectedResultsCol.push_back("POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11, 90 89.15, 112.12 110, 61 80.11))");
+	}
+
+	GpuSqlCustomParser parser3(database, "ALTER TABLE testTable ALTER COLUMN col string;");
+	resultPtr = parser3.Parse();
+
+	type = table.GetColumns().at("col")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+	GpuSqlCustomParser parser4(database, "SELECT col from testTable;");
+	resultPtr = parser4.Parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto &payloadsCol = result->payloads().at("testTable.col");
+
+	ASSERT_EQ(payloadsCol.stringpayload().stringdata_size(), expectedResultsCol.size());
+
+	for (int i = 0; i < payloadsCol.stringpayload().stringdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsCol[i], payloadsCol.stringpayload().stringdata()[i]);
+	}
+
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	resultPtr = parserDropDb.Parse();
+}
+
+TEST(DispatcherTests, AlterTableAlterColumnStringToPolygon)
+{
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 3;");
+	auto resultPtr = createDatabase.Parse();
+
+	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+
+	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
+
+	GpuSqlCustomParser parser(database, "CREATE TABLE testTable (colP string, colS string);");
+	resultPtr = parser.Parse();
+
+	ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
+
+	auto& table = database->GetTables().at("testTable");
+    auto type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+    type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+	GpuSqlCustomParser parser2(database, "INSERT INTO testTable (colP, colS) VALUES (\"POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 89.15,112.12 110, 61 80.11))\", \"randomString\");");
+
+	std::vector<std::string> expectedResultsCol;
+	std::vector<std::string> expectedResultsColString;
+	for (int32_t i = 0; i < 7; i++)
+	{
+		resultPtr = parser2.Parse();
+		ColmnarDB::Types::ComplexPolygon polygon = ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11, 90 89.15, 112.12 110, 61 80.11))");
+		ColmnarDB::Types::ComplexPolygon emptyPolygon = ComplexPolygonFactory::FromWkt("POLYGON((0 0))");
+		expectedResultsCol.push_back(ComplexPolygonFactory::WktFromPolygon(polygon, true));
+		expectedResultsColString.push_back(ComplexPolygonFactory::WktFromPolygon(emptyPolygon, true));
+	}
+
+	GpuSqlCustomParser parser3(database, "ALTER TABLE testTable ALTER COLUMN colP geo_polygon;");
+	resultPtr = parser3.Parse();
+
+	type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_POLYGON);
+
+	type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+	GpuSqlCustomParser parser4(database, "SELECT colP from testTable;");
+	resultPtr = parser4.Parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto &payloadsCol = result->payloads().at("testTable.colP");
+
+	ASSERT_EQ(payloadsCol.stringpayload().stringdata_size(), expectedResultsCol.size());
+
+	for (int i = 0; i < payloadsCol.stringpayload().stringdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsCol[i], payloadsCol.stringpayload().stringdata()[i]);
+	}
+///////
+	GpuSqlCustomParser parser5(database, "ALTER TABLE testTable ALTER COLUMN colS geo_polygon;");
+	resultPtr = parser5.Parse();
+
+	type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_POLYGON);
+
+	type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_POLYGON);
+
+	GpuSqlCustomParser parser6(database, "SELECT colS from testTable;");
+	resultPtr = parser6.Parse();
+	auto resultString = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto &payloadsColString = resultString->payloads().at("testTable.colS");
+
+	ASSERT_EQ(payloadsColString.stringpayload().stringdata_size(), expectedResultsColString.size());
+
+	for (int i = 0; i < payloadsColString.stringpayload().stringdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsColString[i], payloadsColString.stringpayload().stringdata()[i]);
+	}
+
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	resultPtr = parserDropDb.Parse();
+}
+
+TEST(DispatcherTests, AlterTableAlterColumnStringToPoint)
+{
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 3;");
+	auto resultPtr = createDatabase.Parse();
+
+	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+
+	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
+
+	GpuSqlCustomParser parser(database, "CREATE TABLE testTable (colP string, colS string);");
+	resultPtr = parser.Parse();
+
+	ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
+
+	auto& table = database->GetTables().at("testTable");
+    auto type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+    type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+	GpuSqlCustomParser parser2(database, "INSERT INTO testTable (colP, colS) VALUES (\"POINT(11.5 1.3)\", \"randomString\");");
+
+	std::vector<std::string> expectedResultsCol;
+	std::vector<std::string> expectedResultsColString;
+	for (int32_t i = 0; i < 7; i++)
+	{
+		resultPtr = parser2.Parse();
+		ColmnarDB::Types::Point point = PointFactory::FromWkt("POINT(11.5 1.3)");
+		ColmnarDB::Types::Point emptyPoint = ColmnarDB::Types::Point();
+		expectedResultsCol.push_back(PointFactory::WktFromPoint(point, true));
+		expectedResultsColString.push_back(PointFactory::WktFromPoint(emptyPoint, true));
+	}
+
+	GpuSqlCustomParser parser3(database, "ALTER TABLE testTable ALTER COLUMN colP geo_point;");
+	resultPtr = parser3.Parse();
+
+	type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_POINT);
+
+	type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+	GpuSqlCustomParser parser4(database, "SELECT colP from testTable;");
+	resultPtr = parser4.Parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto &payloadsCol = result->payloads().at("testTable.colP");
+
+	ASSERT_EQ(payloadsCol.stringpayload().stringdata_size(), expectedResultsCol.size());
+
+	for (int i = 0; i < payloadsCol.stringpayload().stringdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsCol[i], payloadsCol.stringpayload().stringdata()[i]);
+	}
+///////
+	GpuSqlCustomParser parser5(database, "ALTER TABLE testTable ALTER COLUMN colS geo_point;");
+	resultPtr = parser5.Parse();
+
+	type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_POINT);
+
+	type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_POINT);
+
+	GpuSqlCustomParser parser6(database, "SELECT colS from testTable;");
+	resultPtr = parser6.Parse();
+	auto resultString = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto &payloadsColString = resultString->payloads().at("testTable.colS");
+
+	ASSERT_EQ(payloadsColString.stringpayload().stringdata_size(), expectedResultsColString.size());
+
+	for (int i = 0; i < payloadsColString.stringpayload().stringdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsColString[i], payloadsColString.stringpayload().stringdata()[i]);
+	}
+
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	resultPtr = parserDropDb.Parse();
+}
+
+TEST(DispatcherTests, AlterTableAlterColumnStringToDouble)
+{
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 3;");
+	auto resultPtr = createDatabase.Parse();
+
+	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+
+	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
+
+	GpuSqlCustomParser parser(database, "CREATE TABLE testTable (colP string, colS string);");
+	resultPtr = parser.Parse();
+
+	ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
+
+	auto& table = database->GetTables().at("testTable");
+    auto type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+    type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+	GpuSqlCustomParser parser2(database, "INSERT INTO testTable (colP, colS) VALUES (\"2.5\", \"randomString\");");
+
+	std::vector<double> expectedResultsCol;
+	//std::vector<double> expectedResultsColString;
+	for (int32_t i = 0; i < 7; i++)
+	{
+		resultPtr = parser2.Parse();
+		expectedResultsCol.push_back(2.5);
+		//expectedResultsColString.push_back(std::numeric_limits<double>::quiet_NaN());
+	}
+
+	GpuSqlCustomParser parser3(database, "ALTER TABLE testTable ALTER COLUMN colP double;");
+	resultPtr = parser3.Parse();
+
+	type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_DOUBLE);
+
+	type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+	GpuSqlCustomParser parser4(database, "SELECT colP from testTable;");
+	resultPtr = parser4.Parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto &payloadsCol = result->payloads().at("testTable.colP");
+
+	ASSERT_EQ(payloadsCol.doublepayload().doubledata_size(), expectedResultsCol.size());
+
+	for (int i = 0; i < payloadsCol.doublepayload().doubledata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsCol[i], payloadsCol.doublepayload().doubledata()[i]);
+	}
+///////
+	GpuSqlCustomParser parser5(database, "ALTER TABLE testTable ALTER COLUMN colS double;");
+	resultPtr = parser5.Parse();
+
+	type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_DOUBLE);
+
+	type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_DOUBLE);
+
+	GpuSqlCustomParser parser6(database, "SELECT colS from testTable;");
+	resultPtr = parser6.Parse();
+	auto resultString = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto &payloadsColString = resultString->payloads().at("testTable.colS");
+
+	for (int i = 0; i < payloadsColString.doublepayload().doubledata_size(); i++)
+	{
+		ASSERT_TRUE(std::isnan(payloadsColString.doublepayload().doubledata()[i]));
+	}
+
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	resultPtr = parserDropDb.Parse();
+}
+
+TEST(DispatcherTests, AlterTableAlterColumnStringToInt)
+{
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 3;");
+	auto resultPtr = createDatabase.Parse();
+
+	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+
+	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
+
+	GpuSqlCustomParser parser(database, "CREATE TABLE testTable (colP string, colS string);");
+	resultPtr = parser.Parse();
+
+	ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
+
+	auto& table = database->GetTables().at("testTable");
+    auto type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+    type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+	GpuSqlCustomParser parser2(database, "INSERT INTO testTable (colP, colS) VALUES (\"2\", \"randomString\");");
+
+	std::vector<int32_t> expectedResultsCol;
+	std::vector<int32_t> expectedResultsColString;
+	for (int32_t i = 0; i < 7; i++)
+	{
+		resultPtr = parser2.Parse();
+		expectedResultsCol.push_back(2);
+		expectedResultsColString.push_back(std::numeric_limits<int32_t>::min());
+	}
+
+	GpuSqlCustomParser parser3(database, "ALTER TABLE testTable ALTER COLUMN colP int;");
+	resultPtr = parser3.Parse();
+
+	type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_INT);
+
+	type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_STRING);
+
+	GpuSqlCustomParser parser4(database, "SELECT colP from testTable;");
+	resultPtr = parser4.Parse();
+	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto &payloadsCol = result->payloads().at("testTable.colP");
+
+	ASSERT_EQ(payloadsCol.intpayload().intdata_size(), expectedResultsCol.size());
+
+	for (int i = 0; i < payloadsCol.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsCol[i], payloadsCol.intpayload().intdata()[i]);
+	}
+///////
+	GpuSqlCustomParser parser5(database, "ALTER TABLE testTable ALTER COLUMN colS int;");
+	resultPtr = parser5.Parse();
+
+	type = table.GetColumns().at("colP")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_INT);
+
+	type = table.GetColumns().at("colS")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_INT);
+
+	GpuSqlCustomParser parser6(database, "SELECT colS from testTable;");
+	resultPtr = parser6.Parse();
+	auto resultString = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto &payloadsColString = resultString->payloads().at("testTable.colS");
+
+	ASSERT_EQ(payloadsColString.intpayload().intdata_size(), expectedResultsColString.size());
+
+	for (int i = 0; i < payloadsColString.intpayload().intdata_size(); i++)
+	{
+		ASSERT_EQ(expectedResultsColString[i], payloadsColString.intpayload().intdata()[i]);
+	}
+
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	resultPtr = parserDropDb.Parse();
+}
+
+TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
+{
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
+	auto resultPtr = createDatabase.Parse();
+
+	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+
+	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
+
+	GpuSqlCustomParser parser(database, "CREATE TABLE testTable (col int);");
+	resultPtr = parser.Parse();
+
+	ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
+
+	auto& table = database->GetTables().at("testTable");
+    auto type = table.GetColumns().at("col")->GetColumnType();
+
+	ASSERT_EQ(type, COLUMN_INT);
+
+	GpuSqlCustomParser parser2(database, "INSERT INTO testTable (col) VALUES (1);");
+	GpuSqlCustomParser parser3(database, "INSERT INTO testTable (col) VALUES (NULL);");
+
+	std::vector<float> expectedResultsCol;
+	for (int32_t i = 0; i < 11; i++)
+	{
+		resultPtr = parser2.Parse();
+		resultPtr = parser3.Parse();
+	}
+
+	GpuSqlCustomParser parserSelect(database, "SELECT col from testTable;");
+	resultPtr = parserSelect.Parse();
+	auto resultInt = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto &payloadsColInt = resultInt->payloads().at("testTable.col");
+	ASSERT_EQ(payloadsColInt.intpayload().intdata_size(), 22);
+
+	for (int i = 0; i < 11; i+=2)
+	{
+		ASSERT_EQ(1, payloadsColInt.intpayload().intdata()[i]);
 	}
 
 
-	GpuSqlCustomParser parserDropTable(database, "DROP TABLE testTableA;");
-	resultPtr = parserDropTable.Parse();
+	auto& blocksBeforeCast = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("col").get())->GetBlocksList();
+
+	GpuSqlCustomParser parser4(database, "ALTER TABLE testTable ALTER COLUMN col float;");
+	resultPtr = parser4.Parse();
+
+	type = table.GetColumns().at("col")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_FLOAT);
+
+	auto& blocksAfterCast = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("col").get())->GetBlocksList();
+	
+	int size = blocksBeforeCast.size();
+	ASSERT_EQ(blocksBeforeCast.size(), blocksAfterCast.size());
+	for(int32_t i = 0; i < blocksBeforeCast.size(); i++)
+	{
+		int blockSize = blocksBeforeCast[i]->GetSize();
+		int maskSize = blocksBeforeCast[i]->GetNullBitmaskSize();
+		for(int32_t j = 0; j < blocksBeforeCast[i]->GetSize(); j++)
+		{
+			int bitMaskIdx = (j / (sizeof(char) * 8));
+            int shiftIdx = (j % (sizeof(char) * 8));
+			//TODO i=1, j=0 SegFault
+			int8_t oldBit = (blocksBeforeCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+			int8_t newBit = (blocksAfterCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+
+			ASSERT_EQ((blocksBeforeCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1, (blocksAfterCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1);
+		}
+	}
 
 	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
 	resultPtr = parserDropDb.Parse();

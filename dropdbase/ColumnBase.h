@@ -516,17 +516,35 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
+                    int8_t* mask = block.second.front()->GetNullBitmask();
+                    int8_t maskSize = block.second.front()->GetNullBitmaskSize();
+
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<int32_t> castedDataToCopy;
+                    std::vector<int8_t> newNullMask;
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         int32_t data = static_cast<int32_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
+
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+                        newNullMask.push_back(bit);
                     }
                     
-                    castedColumn->AddBlock(castedDataToCopy, block.first);
+                    auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
+                    
+                    for (int32_t j = 0; j < blockSize; j++)
+                    {
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                    }
+
                     block.second.erase(block.second.begin());
                 }
             }
@@ -542,17 +560,35 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                   auto dataToCopy = block.second.front()->GetData();
+                    int8_t* mask = block.second.front()->GetNullBitmask();
+                    int8_t maskSize = block.second.front()->GetNullBitmaskSize();
+
+                    auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<int64_t> castedDataToCopy;
+                    std::vector<int8_t> newNullMask;
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         int64_t data = static_cast<int64_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
+
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+                        newNullMask.push_back(bit);
                     }
                     
-                    castedColumn->AddBlock(castedDataToCopy, block.first);
+                    auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
+
+                    for (int32_t j = 0; j < blockSize; j++)
+                    {
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                    }
+
                     block.second.erase(block.second.begin());
                 }
             }
@@ -568,17 +604,35 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
+                    int8_t* mask = block.second.front()->GetNullBitmask();
+                    int8_t maskSize = block.second.front()->GetNullBitmaskSize();
+
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<double> castedDataToCopy;
+                    std::vector<int8_t> newNullMask;
                     
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         double data = static_cast<double>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
+
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+                        newNullMask.push_back(bit);
                     }
                     
-                    castedColumn->AddBlock(castedDataToCopy, block.first);
+                    auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
+
+                    for (int32_t j = 0; j < blockSize; j++)
+                    {
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                    }
+
                     block.second.erase(block.second.begin());
                 }
             }
@@ -594,17 +648,35 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
+                    int8_t* mask = block.second.front()->GetNullBitmask();
+                    int8_t maskSize = block.second.front()->GetNullBitmaskSize();
+
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<float> castedDataToCopy;
+                    std::vector<int8_t> newNullMask;
                     
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         float data = static_cast<float>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
+
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+                        newNullMask.push_back(bit);
                     }
                     
-                    castedColumn->AddBlock(castedDataToCopy, block.first);
+                    auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
+
+                    for (int32_t j = 0; j < blockSize; j++)
+                    {
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                    }
+
                     block.second.erase(block.second.begin());
                 }
             }
@@ -620,17 +692,35 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
+                    int8_t* mask = block.second.front()->GetNullBitmask();
+                    int8_t maskSize = block.second.front()->GetNullBitmaskSize();
+
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<int8_t> castedDataToCopy;
+                    std::vector<int8_t> newNullMask;
                     
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         int8_t data = static_cast<int8_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
+
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+                        newNullMask.push_back(bit);
                     }
                     
-                    castedColumn->AddBlock(castedDataToCopy, block.first);
+                    auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
+
+                    for (int32_t j = 0; j < blockSize; j++)
+                    {
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                    }
+
                     block.second.erase(block.second.begin());
                 }
             }
@@ -646,17 +736,35 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
+                    int8_t* mask = block.second.front()->GetNullBitmask();
+                    int8_t maskSize = block.second.front()->GetNullBitmaskSize();
+
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<std::string> castedDataToCopy;
+                    std::vector<int8_t> newNullMask;
                     
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         std::string data = std::to_string(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
+
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+                        newNullMask.push_back(bit);
                     }
                     
-                    castedColumn->AddBlock(castedDataToCopy, block.first);
+                    auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
+
+                    for (int32_t j = 0; j < blockSize; j++)
+                    {
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                    }
+
                     block.second.erase(block.second.begin());
                 }
             }
