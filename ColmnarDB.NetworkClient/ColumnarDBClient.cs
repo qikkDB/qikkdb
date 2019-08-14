@@ -165,7 +165,7 @@ namespace ColmnarDB.NetworkClient
         {
             int shiftOffset = idx % 8;
             int byteOffset = idx / 8;
-            if ((nullMask[byteOffset] >> shiftOffset & 1) == 1)
+            if ((nullMask[byteOffset] >> shiftOffset & 1) == 0)
             {
                 return val;
             }
