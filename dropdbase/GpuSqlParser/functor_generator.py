@@ -662,7 +662,7 @@ for operation in ['OrderByReconstructOrder', 'OrderByReconstructRet']:
         elif colIdx >= len(types):
             col = "Col"
 
-        if colVal in geo_types:
+        if colVal == POINT:
             op = "InvalidOperandTypesErrorHandler"
         else:
             op = operation

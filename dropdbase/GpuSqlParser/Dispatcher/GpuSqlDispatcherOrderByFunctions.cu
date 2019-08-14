@@ -31,7 +31,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::OrderByReconstructOrderConst<float>,
     &GpuSqlDispatcher::OrderByReconstructOrderConst<double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::OrderByReconstructOrderConst<ColmnarDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::OrderByReconstructOrderConst<std::string>,
     &GpuSqlDispatcher::OrderByReconstructOrderConst<int8_t>,
     &GpuSqlDispatcher::OrderByReconstructOrderCol<int32_t>,
@@ -39,7 +39,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::OrderByReconstructOrderCol<float>,
     &GpuSqlDispatcher::OrderByReconstructOrderCol<double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::OrderByReconstructOrderCol<ColmnarDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::OrderByReconstructOrderCol<std::string>,
     &GpuSqlDispatcher::OrderByReconstructOrderCol<int8_t>};
 
@@ -49,7 +49,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::OrderByReconstructRetConst<float>,
     &GpuSqlDispatcher::OrderByReconstructRetConst<double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::OrderByReconstructRetConst<ColmnarDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::OrderByReconstructRetConst<std::string>,
     &GpuSqlDispatcher::OrderByReconstructRetConst<int8_t>,
     &GpuSqlDispatcher::OrderByReconstructRetCol<int32_t>,
@@ -57,9 +57,10 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::OrderByReconstructRetCol<float>,
     &GpuSqlDispatcher::OrderByReconstructRetCol<double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::OrderByReconstructRetCol<ColmnarDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::OrderByReconstructRetCol<std::string>,
     &GpuSqlDispatcher::OrderByReconstructRetCol<int8_t>};
+
 
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::freeOrderByTableFunction_ = &GpuSqlDispatcher::FreeOrderByTable;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::orderByReconstructRetAllBlocksFunction_ =

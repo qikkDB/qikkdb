@@ -13017,6 +13017,60 @@ TEST(DispatcherTests, ReorderStringOrderBy)
     }
 }
 
+TEST(DispatcherTests, ReorderPolygonOrderBy)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colPolygon1 FROM TableA ORDER BY colInteger1;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    std::vector<std::pair<std::string, int32_t>> expectedResultsPolygons;
+
+    auto columnPolygon =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(DispatcherObjs::GetInstance()
+                                                                        .database->GetTables()
+                                                                        .at("TableA")
+                                                                        .GetColumns()
+                                                                        .at("colPolygon1")
+                                                                        .get());
+
+    auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
+                                                            .database->GetTables()
+                                                            .at("TableA")
+                                                            .GetColumns()
+                                                            .at("colInteger1")
+                                                            .get());
+
+    for (int i = 0; i < 2; i++)
+    {
+        auto blockInt = columnInt->GetBlocksList()[i];
+        auto blockPolygon = columnPolygon->GetBlocksList()[i];
+        for (int k = 0; k < (1 << 11); k++)
+        {
+            expectedResultsPolygons.push_back(
+                {ComplexPolygonFactory::WktFromPolygon(blockPolygon->GetData()[k], true),
+                 blockInt->GetData()[k]});
+        }
+    }
+
+    std::stable_sort(expectedResultsPolygons.begin(), expectedResultsPolygons.end(),
+                     [](const std::pair<std::string, std::int32_t>& a,
+                        const std::pair<std::string, std::int32_t>& b) -> bool {
+                         return a.second < b.second;
+                     });
+
+    auto& payloads = result->payloads().at("TableA.colPolygon1");
+
+    ASSERT_EQ(payloads.stringpayload().stringdata_size(), expectedResultsPolygons.size());
+
+    for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResultsPolygons[i].first, payloads.stringpayload().stringdata()[i]);
+    }
+}
+
 TEST(DispatcherTests, AggregationCountAsteriskNoGroupBy)
 {
     Context::getInstance();
@@ -13055,7 +13109,7 @@ TEST(DispatcherTests, AggregationCountAsteriskWhereNoGroupBy)
         auto blockInt = columnInt->GetBlocksList()[i];
         for (int k = 0; k < blockInt->GetSize(); k++)
         {
-            if(blockInt->GetData()[k] > 512)
+            if (blockInt->GetData()[k] > 512)
             {
                 outSize++;
             }
@@ -13102,7 +13156,8 @@ TEST(DispatcherTests, AggregationCountAsterisJoinWhereNoGroupBy)
                 auto rightBlock = rightCol->GetBlocksList()[rightBlockIdx];
                 for (int32_t rightRowIdx = 0; rightRowIdx < rightBlock->GetSize(); rightRowIdx++)
                 {
-                    if (leftBlock->GetData()[leftRowIdx] == rightBlock->GetData()[rightRowIdx] && leftBlock->GetData()[leftRowIdx] > 512)
+                    if (leftBlock->GetData()[leftRowIdx] == rightBlock->GetData()[rightRowIdx] &&
+                        leftBlock->GetData()[leftRowIdx] > 512)
                     {
                         expectedResultCount++;
                     }
