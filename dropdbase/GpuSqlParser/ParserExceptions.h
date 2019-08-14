@@ -8,36 +8,76 @@
 #include <exception>
 #include <string>
 
-struct DatabaseNotFoundException : public std::exception
+struct DatabaseNotUsedException : public std::exception
 {
     const char* what() const noexcept override
     {
-        return "Database was not found.";
+        return "No database is currently being used.";
     }
+};
+
+struct DatabaseNotFoundException : public std::exception
+{
+    DatabaseNotFoundException(const std::string& database)
+    : message_("Database: \"" + database + "\" was not found.")
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
 };
 
 struct DatabaseAlreadyExistsException : public std::exception
 {
+    DatabaseAlreadyExistsException(const std::string& database)
+    : message_("Database: \"" + database + "\" already exists.")
+    {
+    }
+
     const char* what() const noexcept override
     {
-        return "Database already exists.";
+        return message_.c_str();
     }
+
+private:
+    std::string message_;
 };
 
 struct TableNotFoundFromException : public std::exception
 {
+    TableNotFoundFromException(const std::string& table)
+    : message_("Table: \"" + table + "\" was not found in the FROM clause.")
+    {
+    }
+
     const char* what() const noexcept override
     {
-        return "Table was not found in FROM clause.";
+        return message_.c_str();
     }
+
+private:
+    std::string message_;
 };
 
 struct TableAlreadyExistsException : public std::exception
 {
+    TableAlreadyExistsException(const std::string& table)
+    : message_("Table: \"" + table + "\" already exists.")
+    {
+    }
+
     const char* what() const noexcept override
     {
-        return "Table already exists.";
+        return message_.c_str();
     }
+
+private:
+    std::string message_;
 };
 
 struct TableIsFilledException : public std::exception
@@ -50,50 +90,99 @@ struct TableIsFilledException : public std::exception
 
 struct ColumnAmbiguityException : public std::exception
 {
+    ColumnAmbiguityException(const std::string& column)
+    : message_("Column: \"" + column + "\" was found in more than one table.")
+    {
+    }
+
     const char* what() const noexcept override
     {
-        return "Column was found in more than one table.";
+        return message_.c_str();
     }
+
+private:
+    std::string message_;
 };
 
 struct ColumnAlreadyExistsException : public std::exception
 {
+    ColumnAlreadyExistsException(const std::string& column)
+    : message_("Column: \"" + column + "\" already exists.")
+    {
+    }
+
     const char* what() const noexcept override
     {
-        return "Column already exists.";
+        return message_.c_str();
     }
+
+private:
+    std::string message_;
 };
+
 
 struct ColumnAlreadyExistsInIndexException : public std::exception
 {
+    ColumnAlreadyExistsInIndexException(const std::string& column)
+    : message_("Column: \"" + column + "\" already referenced multiple times in single index.")
+    {
+    }
+
     const char* what() const noexcept override
     {
-        return "Column already referenced multiple times in single index.";
+        return message_.c_str();
     }
+
+private:
+    std::string message_;
 };
 
 struct ColumnNotFoundException : public std::exception
 {
+    ColumnNotFoundException(const std::string& column)
+    : message_("Column: \"" + column + "\" was not found in table.")
+    {
+    }
+
     const char* what() const noexcept override
     {
-        return "Column was not found in table.";
+        return message_.c_str();
     }
+
+private:
+    std::string message_;
 };
 
 struct IndexAlreadyExistsException : public std::exception
 {
+    IndexAlreadyExistsException(const std::string& index)
+    : message_("Index: \"" + index + "\" already exists in table.")
+    {
+    }
+
     const char* what() const noexcept override
     {
-        return "Index already exists in table.";
+        return message_.c_str();
     }
+
+private:
+    std::string message_;
 };
 
 struct ColumnGroupByException : public std::exception
 {
+    ColumnGroupByException(const std::string& column)
+    : message_("Column: \"" + column + "\" must appear in GROUP BY clause or be used in AGGREGATE function.")
+    {
+    }
+
     const char* what() const noexcept override
     {
-        return "Column must appear in GROUP BY clause or be used in AGGREGATE function.";
+        return message_.c_str();
     }
+
+private:
+    std::string message_;
 };
 
 struct InsertIntoException : public std::exception

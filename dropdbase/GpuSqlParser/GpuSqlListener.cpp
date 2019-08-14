@@ -711,7 +711,7 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext* ctx)
 
     if (!isSelectColumnValid_)
     {
-        throw ColumnGroupByException();
+        throw ColumnGroupByException(colName);
     }
 
     std::string alias;
@@ -778,7 +778,7 @@ void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
         TrimDelimitedIdentifier(table);
         if (database_->GetTables().find(table) == database_->GetTables().end())
         {
-            throw TableNotFoundFromException();
+            throw TableNotFoundFromException(table);
         }
         loadedTables_.insert(table);
         dispatcher_.SetLoadedTableName(table);
@@ -802,7 +802,7 @@ void GpuSqlListener::exitJoinClause(GpuSqlParser::JoinClauseContext* ctx)
 
     if (database_->GetTables().find(joinTable) == database_->GetTables().end())
     {
-        throw TableNotFoundFromException();
+        throw TableNotFoundFromException(joinTable);
     }
 
     loadedTables_.insert(joinTable);
@@ -940,7 +940,7 @@ void GpuSqlListener::exitShowTables(GpuSqlParser::ShowTablesContext* ctx)
 
         if (!Database::Exists(db))
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotFoundException(db);
         }
     }
     else
@@ -951,7 +951,7 @@ void GpuSqlListener::exitShowTables(GpuSqlParser::ShowTablesContext* ctx)
         }
         else
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotFoundException(db);
         }
     }
 
@@ -977,7 +977,7 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext* ctx)
 
         if (!Database::Exists(db))
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotFoundException(db);
         }
     }
     else
@@ -989,7 +989,7 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext* ctx)
         }
         else
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotFoundException(db);
         }
     }
 
@@ -999,7 +999,7 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext* ctx)
 
     if (databaseObject->GetTables().find(table) == databaseObject->GetTables().end())
     {
-        throw TableNotFoundFromException();
+        throw TableNotFoundFromException(table);
     }
 
     dispatcher_.AddArgument<const std::string&>(db);
@@ -1013,7 +1013,7 @@ void GpuSqlListener::exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext* ctx)
 
     if (Database::Exists(newDbName))
     {
-        throw DatabaseAlreadyExistsException();
+        throw DatabaseAlreadyExistsException(newDbName);
     }
 
     int32_t newDbBlockSize;
@@ -1039,7 +1039,7 @@ void GpuSqlListener::exitSqlDropDb(GpuSqlParser::SqlDropDbContext* ctx)
 
     if (!Database::Exists(dbName))
     {
-        throw DatabaseNotFoundException();
+        throw DatabaseNotFoundException(dbName);
     }
 
     dispatcher_.AddDropDatabaseFunction();
@@ -1053,7 +1053,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
 
     if (database_->GetTables().find(newTableName) != database_->GetTables().end())
     {
-        throw TableAlreadyExistsException();
+        throw TableAlreadyExistsException(newTableName);
     }
 
     std::unordered_map<std::string, DataType> newColumns;
@@ -1070,7 +1070,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
 
             if (newColumns.find(newColumnName) != newColumns.end())
             {
-                throw ColumnAlreadyExistsException();
+                throw ColumnAlreadyExistsException(newColumnName);
             }
 
             newColumns.insert({newColumnName, newColumnDataType});
@@ -1083,7 +1083,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
 
             if (newIndices.find(indexName) != newIndices.end())
             {
-                throw IndexAlreadyExistsException();
+                throw IndexAlreadyExistsException(indexName);
             }
 
             std::vector<std::string> indexColumns;
@@ -1094,12 +1094,12 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
 
                 if (newColumns.find(indexColumnName) == newColumns.end())
                 {
-                    throw ColumnNotFoundException();
+                    throw ColumnNotFoundException(indexColumnName);
                 }
                 if (std::find(indexColumns.begin(), indexColumns.end(), indexColumnName) !=
                     indexColumns.end())
                 {
-                    throw ColumnAlreadyExistsInIndexException();
+                    throw ColumnAlreadyExistsInIndexException(indexColumnName);
                 }
                 indexColumns.push_back(indexColumnName);
             }
@@ -1136,7 +1136,7 @@ void GpuSqlListener::exitSqlDropTable(GpuSqlParser::SqlDropTableContext* ctx)
 
     if (database_->GetTables().find(tableName) == database_->GetTables().end())
     {
-        throw TableNotFoundFromException();
+        throw TableNotFoundFromException(tableName);
     }
 
     dispatcher_.AddDropTableFunction();
@@ -1150,7 +1150,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
 
     if (database_->GetTables().find(tableName) == database_->GetTables().end())
     {
-        throw TableNotFoundFromException();
+        throw TableNotFoundFromException(tableName);
     }
 
     std::unordered_map<std::string, DataType> addColumns;
@@ -1169,7 +1169,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
                     database_->GetTables().at(tableName).GetColumns().end() ||
                 addColumns.find(addColumnName) != addColumns.end())
             {
-                throw ColumnAlreadyExistsException();
+                throw ColumnAlreadyExistsException(addColumnName);
             }
 
             addColumns.insert({addColumnName, addColumnDataType});
@@ -1184,7 +1184,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
                     database_->GetTables().at(tableName).GetColumns().end() ||
                 dropColumns.find(dropColumnName) != dropColumns.end())
             {
-                throw ColumnNotFoundException();
+                throw ColumnNotFoundException(dropColumnName);
             }
 
             dropColumns.insert({dropColumnName});
@@ -1219,7 +1219,7 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext* ctx
 
     if (database_->GetTables().find(tableName) == database_->GetTables().end())
     {
-        throw TableNotFoundFromException();
+        throw TableNotFoundFromException(tableName);
     }
 
     if (database_->GetTables().at(tableName).GetSize() > 0)
@@ -1239,11 +1239,11 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext* ctx
         if (database_->GetTables().at(tableName).GetColumns().find(indexColumnName) ==
             database_->GetTables().at(tableName).GetColumns().end())
         {
-            throw ColumnNotFoundException();
+            throw ColumnNotFoundException(indexColumnName);
         }
         if (std::find(indexColumns.begin(), indexColumns.end(), indexColumnName) != indexColumns.end())
         {
-            throw ColumnAlreadyExistsInIndexException();
+            throw ColumnAlreadyExistsInIndexException(indexColumnName);
         }
         indexColumns.push_back(indexColumnName);
     }
@@ -1337,7 +1337,7 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext* ctx)
 
     if (database_->GetTables().find(table) == database_->GetTables().end())
     {
-        throw TableNotFoundFromException();
+        throw TableNotFoundFromException(table);
     }
     auto& tab = database_->GetTables().at(table);
 
@@ -1348,7 +1348,7 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext* ctx)
     {
         if (insertIntoColumn->table())
         {
-            throw ColumnNotFoundException();
+            throw ColumnNotFoundException(insertIntoColumn->getText());
         }
 
         std::string column = insertIntoColumn->column()->getText();
@@ -1356,7 +1356,7 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext* ctx)
 
         if (tab.GetColumns().find(column) == tab.GetColumns().end())
         {
-            throw ColumnNotFoundException();
+            throw ColumnNotFoundException(column);
         }
         DataType columnDataType = tab.GetColumns().at(column).get()->GetColumnType();
         std::pair<std::string, DataType> columnPair = std::make_pair(column, columnDataType);
@@ -1622,12 +1622,12 @@ std::pair<std::string, DataType> GpuSqlListener::GenerateAndValidateColumnName(G
 
         if (loadedTables_.find(table) == loadedTables_.end())
         {
-            throw TableNotFoundFromException();
+            throw TableNotFoundFromException(table);
         }
         if (database_->GetTables().at(table).GetColumns().find(column) ==
             database_->GetTables().at(table).GetColumns().end())
         {
-            throw ColumnNotFoundException();
+            throw ColumnNotFoundException(column);
         }
         shortColumnNames_.insert({table + "." + column, table + "." + column});
     }
@@ -1645,12 +1645,12 @@ std::pair<std::string, DataType> GpuSqlListener::GenerateAndValidateColumnName(G
             }
             if (uses > 1)
             {
-                throw ColumnAmbiguityException();
+                throw ColumnAmbiguityException(col);
             }
         }
         if (column.empty())
         {
-            throw ColumnNotFoundException();
+            throw ColumnNotFoundException(col);
         }
 
         shortColumnNames_.insert({table + "." + column, column});
@@ -1669,7 +1669,7 @@ std::pair<std::string, DataType> GpuSqlListener::GenerateAndValidateColumnName(G
     if (usingGroupBy_ && !insideAgg_ &&
         originalGroupByColumns_.find(tableColumnPair) == originalGroupByColumns_.end())
     {
-        throw ColumnGroupByException();
+        throw ColumnGroupByException(column);
     }
 
     return tableColumnPair;

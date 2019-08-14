@@ -79,7 +79,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
@@ -178,7 +178,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;
@@ -198,7 +198,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;
@@ -208,7 +208,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;
@@ -218,7 +218,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;

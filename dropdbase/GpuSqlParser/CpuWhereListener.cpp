@@ -475,7 +475,7 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
         TrimDelimitedIdentifier(table);
         if (database_->GetTables().find(table) == database_->GetTables().end())
         {
-            throw TableNotFoundFromException();
+            throw TableNotFoundFromException(table);
         }
         loadedTables_.insert(table);
 
@@ -660,12 +660,12 @@ std::pair<std::string, DataType> CpuWhereListener::GenerateAndValidateColumnName
 
         if (loadedTables_.find(table) == loadedTables_.end())
         {
-            throw TableNotFoundFromException();
+            throw TableNotFoundFromException(table);
         }
         if (database_->GetTables().at(table).GetColumns().find(column) ==
             database_->GetTables().at(table).GetColumns().end())
         {
-            throw ColumnNotFoundException();
+            throw ColumnNotFoundException(column);
         }
 
         shortColumnNames_.insert({table + "." + column, table + "." + column});
@@ -684,12 +684,12 @@ std::pair<std::string, DataType> CpuWhereListener::GenerateAndValidateColumnName
             }
             if (uses > 1)
             {
-                throw ColumnAmbiguityException();
+                throw ColumnAmbiguityException(col);
             }
         }
         if (column.empty())
         {
-            throw ColumnNotFoundException();
+            throw ColumnNotFoundException(col);
         }
 
         shortColumnNames_.insert({table + "." + column, column});
