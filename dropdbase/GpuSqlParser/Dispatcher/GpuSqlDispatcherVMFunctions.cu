@@ -44,8 +44,6 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
         !colName.empty() && colName.front() != '$')
     {
         CudaLogBoost::getInstance(CudaLogBoost::info)
-            << "Loaded Column: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name();
-        CudaLogBoost::getInstance(CudaLogBoost::info)
             << "Load: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name() << '\n';
 
         std::string table;

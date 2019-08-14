@@ -182,7 +182,6 @@ void GPUOrderBy::ReOrderPolygonByIdx(GPUMemory::GPUPolygon& outCol,
 
     if (dataElementCount > 0)
     {
-
         cuda_ptr<int32_t> inPolygonLengths(dataElementCount);
         kernel_lengths_from_indices<int32_t, int32_t>
             <<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(inPolygonLengths.get(),
