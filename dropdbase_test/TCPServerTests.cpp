@@ -132,6 +132,7 @@ void connect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& contex
         while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
         {
             context.poll();
+            context.restart();
         }
         ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
     }
@@ -140,7 +141,7 @@ void connect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& contex
         std::string what = e.what();
         std::cout << what << "\n";
         throw e;
-	}
+    }
 }
 
 void disconnect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& context)
@@ -151,6 +152,7 @@ void disconnect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& con
     infoMessage.set_message("");
     networkMessage.WriteToNetwork(infoMessage, sock, []() {});
     context.poll();
+    context.restart();
 }
 
 void query(boost::asio::ip::tcp::socket& sock, const char* queryString, boost::asio::io_context& context)
@@ -177,6 +179,7 @@ void query(boost::asio::ip::tcp::socket& sock, const char* queryString, boost::a
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
         context.poll();
+        context.restart();
     }
     ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::WAIT);
 }
@@ -207,6 +210,7 @@ getNextQueryResult(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& 
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
         context.poll();
+        context.restart();
     }
     return future.get();
 }
@@ -237,6 +241,7 @@ void importCSV(boost::asio::ip::tcp::socket& sock, const char* name, const char*
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
         context.poll();
+        context.restart();
     }
     ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 }
@@ -265,6 +270,7 @@ void setDatabase(boost::asio::ip::tcp::socket& sock, const char* name, boost::as
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
         context.poll();
+        context.restart();
     }
     ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 }
@@ -282,26 +288,27 @@ void bulkImport(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& con
     networkMessage.WriteToNetwork(bulkImportMessage, sock, [&sock, &promise, dataBuff, &networkMessage]() mutable {
         networkMessage.WriteRaw(sock, reinterpret_cast<char*>(dataBuff), 5, DataType::COLUMN_INT,
                                 [&sock, &promise, &networkMessage]() {
-            networkMessage.ReadFromNetwork(sock, [&promise](google::protobuf::Any response) {
-                ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-                if (!response.UnpackTo(&infoMessage))
-                {
-                    promise.set_exception(
-                        std::make_exception_ptr(std::domain_error("Invalid message received")));
-                }
-                else
-                {
-                    promise.set_value(infoMessage);
-                }
-            });
-        });
+                                    networkMessage.ReadFromNetwork(sock, [&promise](google::protobuf::Any response) {
+                                        ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                        if (!response.UnpackTo(&infoMessage))
+                                        {
+                                            promise.set_exception(std::make_exception_ptr(
+                                                std::domain_error("Invalid message received")));
+                                        }
+                                        else
+                                        {
+                                            promise.set_value(infoMessage);
+                                        }
+                                    });
+                                });
     });
     auto future = promise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
         context.poll();
+        context.restart();
     }
-    ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK); 
+    ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 }
 
 TEST(TCPServer, ServerMessageInfo)

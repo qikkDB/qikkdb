@@ -14,16 +14,18 @@ void NetworkMessage::WriteToNetwork(const google::protobuf::Message& message,
 {
     google::protobuf::Any packedMsg;
     packedMsg.PackFrom(message);
-    int size = packedMsg.ByteSize();
-    serializedMessage_ = std::unique_ptr<char[]>(new char[size]);
-    packedMsg.SerializeToArray(serializedMessage_.get(), size);
-    boost::endian::native_to_big_inplace(size);
-    boost::asio::async_write(
-        socket, boost::asio::buffer(&size, sizeof(size)),
-        [this, &socket, size = packedMsg.ByteSize(), handler](const boost::system::error_code& error, std::size_t bytes) {
-            if (!error)
-            {
-                boost::asio::async_write(socket, boost::asio::buffer(serializedMessage_.get(), size),
+    size_ = packedMsg.ByteSize();
+    serializedMessage_ = std::unique_ptr<char[]>(new char[size_]);
+    packedMsg.SerializeToArray(serializedMessage_.get(), size_);
+    boost::endian::native_to_big_inplace(size_);
+    boost::asio::async_write(socket, boost::asio::buffer(&size_, sizeof(size_)),
+                             [this, &socket, size = packedMsg.ByteSize(),
+                              handler](const boost::system::error_code& error, std::size_t bytes) {
+                                 std::cout << "wrote " << bytes << "\n";
+                                 if (!error)
+                                 {
+                                     boost::asio::async_write(
+                                         socket, boost::asio::buffer(serializedMessage_.get(), size),
                                          [handler](const boost::system::error_code& error, std::size_t bytes) {
                                              if (!error)
                                              {
@@ -35,13 +37,13 @@ void NetworkMessage::WriteToNetwork(const google::protobuf::Message& message,
                                                  throw std::runtime_error(message);
                                              }
                                          });
-            }
-            else
-            {
-                std::string message = error.message();
-                throw std::runtime_error(message);
-            }
-        });
+                                 }
+                                 else
+                                 {
+                                     std::string message = error.message();
+                                     throw std::runtime_error(message);
+                                 }
+                             });
 }
 
 /// <summary>
@@ -60,25 +62,24 @@ void NetworkMessage::ReadFromNetwork(boost::asio::ip::tcp::socket& socket,
                 int32_t readSize = *(reinterpret_cast<const int32_t*>(lengthBuffer_.data()));
                 boost::endian::big_to_native_inplace(readSize);
                 serializedMessage_ = std::unique_ptr<char[]>(new char[readSize]);
-                boost::asio::async_read(socket, boost::asio::buffer(serializedMessage_.get(), readSize),
-                                        [this, &socket, readSize,
-                                         handler](const boost::system::error_code& error, std::size_t bytes) {
-                                            if (!error)
-                                            {
-                                                google::protobuf::Any ret;
-                                                if (!ret.ParseFromArray(serializedMessage_.get(), readSize))
-                                                {
-                                                    throw std::invalid_argument(
-                                                        "Failed to parse message from stream");
-                                                }
-                                                handler(ret);
-                                            }
-                                            else
-                                            {
-                                                std::string message = error.message();
-                                                throw std::runtime_error(message);
-											}
-                                        });
+                boost::asio::async_read(
+                    socket, boost::asio::buffer(serializedMessage_.get(), readSize),
+                    [this, &socket, readSize, handler](const boost::system::error_code& error, std::size_t bytes) {
+                        if (!error)
+                        {
+                            google::protobuf::Any ret;
+                            if (!ret.ParseFromArray(serializedMessage_.get(), readSize))
+                            {
+                                throw std::invalid_argument("Failed to parse message from stream");
+                            }
+                            handler(ret);
+                        }
+                        else
+                        {
+                            std::string message = error.message();
+                            throw std::runtime_error(message);
+                        }
+                    });
             }
             else
             {
