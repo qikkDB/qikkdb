@@ -1207,7 +1207,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
             if (database_->GetTables().at(tableName).GetColumns().find(alterColumnName) ==
                 database_->GetTables().at(tableName).GetColumns().end())
             {
-                throw ColumnNotFoundException();
+                throw ColumnNotFoundException(alterColumnName);
             }
 
             if (alterColumns.find(alterColumnName) != alterColumns.end())

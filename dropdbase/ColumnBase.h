@@ -633,7 +633,7 @@ public:
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
-                    block.second.erase(block.second.begin());
+                   block.second.erase(block.second.begin());
                 }
             }
         }

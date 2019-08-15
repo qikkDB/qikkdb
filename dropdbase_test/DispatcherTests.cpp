@@ -13631,8 +13631,17 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
 		ASSERT_EQ(1, payloadsColInt.intpayload().intdata()[i]);
 	}
 
+	auto blocksBeforeCast = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("col").get())->GetBlocksList();
 
-	auto& blocksBeforeCast = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("col").get())->GetBlocksList();
+	std::vector<std::unique_ptr<int8_t[]>> oldBitmasks;
+
+	for(int32_t i = 0; i< blocksBeforeCast.size(); i++)
+	{
+		size_t bitmaskSize = blocksBeforeCast[i]->GetNullBitmaskSize();
+		std::unique_ptr<int8_t[]> bitmask = std::make_unique<int8_t[]>(bitmaskSize);
+		std::copy(blocksBeforeCast[i]->GetNullBitmask(), blocksBeforeCast[i]->GetNullBitmask() + bitmaskSize, bitmask.get());
+		oldBitmasks.push_back(std::move(bitmask));
+	}
 
 	GpuSqlCustomParser parser4(database, "ALTER TABLE testTable ALTER COLUMN col float;");
 	resultPtr = parser4.Parse();
@@ -13640,25 +13649,92 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
 	type = table.GetColumns().at("col")->GetColumnType();
 	ASSERT_EQ(type, COLUMN_FLOAT);
 
-	auto& blocksAfterCast = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("col").get())->GetBlocksList();
-	
-	int size = blocksBeforeCast.size();
-	ASSERT_EQ(blocksBeforeCast.size(), blocksAfterCast.size());
+	auto blocksAfterCast = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("col").get())->GetBlocksList();
+
 	for(int32_t i = 0; i < blocksBeforeCast.size(); i++)
 	{
-		int blockSize = blocksBeforeCast[i]->GetSize();
-		int maskSize = blocksBeforeCast[i]->GetNullBitmaskSize();
 		for(int32_t j = 0; j < blocksBeforeCast[i]->GetSize(); j++)
 		{
 			int bitMaskIdx = (j / (sizeof(char) * 8));
             int shiftIdx = (j % (sizeof(char) * 8));
-			//TODO i=1, j=0 SegFault
-			int8_t oldBit = (blocksBeforeCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
-			int8_t newBit = (blocksAfterCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
 
-			ASSERT_EQ((blocksBeforeCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1, (blocksAfterCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1);
+			ASSERT_EQ((oldBitmasks[i][bitMaskIdx] >> shiftIdx) & 1, (blocksAfterCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1);
 		}
 	}
+
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	resultPtr = parserDropDb.Parse();
+}
+
+TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopyWithInsertNull)
+{
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
+	auto resultPtr = createDatabase.Parse();
+
+	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+
+	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
+
+	GpuSqlCustomParser parser(database, "CREATE TABLE testTable (col string);");
+	resultPtr = parser.Parse();
+
+	ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
+
+	auto& table = database->GetTables().at("testTable");
+    auto type = table.GetColumns().at("col")->GetColumnType();
+
+	ASSERT_EQ(type, COLUMN_STRING);
+
+	GpuSqlCustomParser parserValue(database, "INSERT INTO testTable (col) VALUES (\"1\");");
+	GpuSqlCustomParser parserNull(database, "INSERT INTO testTable (col) VALUES (NULL);");
+	GpuSqlCustomParser parserWrongValue(database, "INSERT INTO testTable (col) VALUES (\"randomString\");");
+
+	for (int32_t i = 0; i < 5; i++)
+	{
+		resultPtr = parserValue.Parse();
+		resultPtr = parserNull.Parse();
+		resultPtr = parserWrongValue.Parse();
+	}
+
+	GpuSqlCustomParser parserSelect(database, "SELECT col from testTable;");
+	resultPtr = parserSelect.Parse();
+	auto resultInt = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	auto blocksBeforeCast = dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("col").get())->GetBlocksList();
+
+	std::vector<int8_t> oldBitmasks;
+	for(int32_t i = 0; i < 5; i++)
+	{
+		oldBitmasks.push_back(0);
+		oldBitmasks.push_back(1);
+		oldBitmasks.push_back(1);
+	}
+
+	GpuSqlCustomParser parser4(database, "ALTER TABLE testTable ALTER COLUMN col int;");
+	resultPtr = parser4.Parse();
+
+	type = table.GetColumns().at("col")->GetColumnType();
+	ASSERT_EQ(type, COLUMN_INT);
+
+	auto blocksAfterCast = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("col").get())->GetBlocksList();
+	
+	std::vector<int8_t> newBitmasks;
+	for(int32_t i = 0; i < blocksBeforeCast.size(); i++)
+	{
+		for(int32_t j = 0; j < blocksBeforeCast[i]->GetSize(); j++)
+		{
+			int bitMaskIdx = (j / (sizeof(char) * 8));
+            int shiftIdx = (j % (sizeof(char) * 8));
+			newBitmasks.push_back((blocksAfterCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1);
+		}
+	}
+
+	ASSERT_EQ(oldBitmasks.size(), newBitmasks.size());
+	for (int32_t i = 0; i < oldBitmasks.size(); i++)
+	{
+		ASSERT_EQ(oldBitmasks[i], newBitmasks[i]);
+	}
+	
 
 	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
 	resultPtr = parserDropDb.Parse();
