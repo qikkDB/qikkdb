@@ -2,6 +2,7 @@
 #include <array>
 #include <vector>
 #include "ITCPWorker.h"
+#include "NetworkMessage.h"
 
 class ClientPoolWorker final : public ITCPWorker
 {
@@ -15,6 +16,7 @@ private:
 
     bool quit_;
     void ClientLoop();
+    NetworkMessage networkMessage_;
 
 public:
     /// <summary>

@@ -1,5 +1,4 @@
 #include "ClientPoolWorker.h"
-#include "NetworkMessage.h"
 #include "messages/InfoMessage.pb.h"
 #include "messages/QueryMessage.pb.h"
 #include "messages/CSVImportMessage.pb.h"
@@ -21,7 +20,7 @@ ClientPoolWorker::ClientPoolWorker(std::unique_ptr<IClientHandler>&& clientHandl
                                    int requestTimeout)
 : ITCPWorker(std::move(clientHandler), std::move(socket), requestTimeout),
   dataBuffer_(std::make_unique<char[]>(MAXIMUM_BULK_FRAGMENT_SIZE)),
-  nullBuffer_(std::make_unique<char[]>(NULL_BUFFER_SIZE))
+  nullBuffer_(std::make_unique<char[]>(NULL_BUFFER_SIZE)), networkMessage_()
 {
     quit_ = false;
 }
@@ -33,7 +32,7 @@ void ClientPoolWorker::HandleClient()
 {
     BOOST_LOG_TRIVIAL(debug) << "Waiting for hello from " << socket_.remote_endpoint().address().to_string();
     auto self(shared_from_this());
-    NetworkMessage::ReadFromNetwork(socket_, [this, self](google::protobuf::Any recvMsg) {
+    networkMessage_.ReadFromNetwork(socket_, [this, self](google::protobuf::Any recvMsg) {
         ColmnarDB::NetworkClient::Message::InfoMessage outInfo;
         if (!recvMsg.UnpackTo(&outInfo))
         {
@@ -44,7 +43,7 @@ void ClientPoolWorker::HandleClient()
         BOOST_LOG_TRIVIAL(debug) << "Hello from " << socket_.remote_endpoint().address().to_string();
         outInfo.set_message("");
         outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
-        NetworkMessage::WriteToNetwork(outInfo, socket_, [this, self]() {
+        networkMessage_.WriteToNetwork(outInfo, socket_, [this, self]() {
             BOOST_LOG_TRIVIAL(debug) << "Hello to " << socket_.remote_endpoint().address().to_string();
             ClientLoop();
         });
@@ -56,7 +55,7 @@ void ClientPoolWorker::ClientLoop()
     auto self(shared_from_this());
     BOOST_LOG_TRIVIAL(debug)
         << "Waiting for message from " << socket_.remote_endpoint().address().to_string();
-    NetworkMessage::ReadFromNetwork(socket_, [this, self](google::protobuf::Any recvMsg) {
+    networkMessage_.ReadFromNetwork(socket_, [this, self](google::protobuf::Any recvMsg) {
         ColmnarDB::NetworkClient::Message::InfoMessage outInfo;
         BOOST_LOG_TRIVIAL(debug) << "Got message from " << socket_.remote_endpoint().address().to_string();
         if (recvMsg.Is<ColmnarDB::NetworkClient::Message::InfoMessage>())
@@ -70,7 +69,7 @@ void ClientPoolWorker::ClientLoop()
 
             if (resultMessage != nullptr)
             {
-                NetworkMessage::WriteToNetwork(*resultMessage, socket_,
+                networkMessage_.WriteToNetwork(*resultMessage, socket_,
                                                [this, self]() { ClientLoop(); });
             }
         }
@@ -84,7 +83,7 @@ void ClientPoolWorker::ClientLoop()
                 clientHandler_->HandleQuery(*this, queryMessage);
             if (waitMessage != nullptr)
             {
-                NetworkMessage::WriteToNetwork(*waitMessage, socket_,
+                networkMessage_.WriteToNetwork(*waitMessage, socket_,
                                                [this, self]() { ClientLoop(); });
             }
         }
@@ -98,7 +97,7 @@ void ClientPoolWorker::ClientLoop()
                 clientHandler_->HandleCSVImport(*this, csvImportMessage);
             if (importResultMessage != nullptr)
             {
-                NetworkMessage::WriteToNetwork(*importResultMessage, socket_,
+                networkMessage_.WriteToNetwork(*importResultMessage, socket_,
                                                [this, self]() { ClientLoop(); });
             }
         }
@@ -112,7 +111,7 @@ void ClientPoolWorker::ClientLoop()
                 clientHandler_->HandleSetDatabase(*this, setDatabaseMessage);
             if (setDatabaseResult != nullptr)
             {
-                NetworkMessage::WriteToNetwork(*setDatabaseResult, socket_,
+                networkMessage_.WriteToNetwork(*setDatabaseResult, socket_,
                                                [this, self]() { ClientLoop(); });
             }
         }
@@ -130,16 +129,16 @@ void ClientPoolWorker::ClientLoop()
             {
                 outInfo.set_message("Data fragment larger than allowed");
                 outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
-                NetworkMessage::WriteToNetwork(outInfo, socket_, [this, self]() { ClientLoop(); });
+                networkMessage_.WriteToNetwork(outInfo, socket_, [this, self]() { ClientLoop(); });
                 return;
             }
-            NetworkMessage::ReadRaw(
+            networkMessage_.ReadRaw(
                 socket_, dataBuffer_.get(), elementCount, columnType,
                 [this, self, isNullable, bulkImportMessage](char* resultBuffer, int32_t elementCount) {
                     if (isNullable)
                     {
                         size_t nullBufferSize = (elementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                        NetworkMessage::ReadRaw(
+                        networkMessage_.ReadRaw(
                             socket_, nullBuffer_.get(), nullBufferSize, DataType::COLUMN_INT8_T,
                             [this, self, bulkImportMessage](char* resultBuffer, int32_t elementCount) {
                                 std::unique_ptr<google::protobuf::Message> importResultMessage =
@@ -147,7 +146,7 @@ void ClientPoolWorker::ClientLoop()
                                                                      dataBuffer_.get(), resultBuffer);
                                 if (importResultMessage != nullptr)
                                 {
-                                    NetworkMessage::WriteToNetwork(*importResultMessage, socket_,
+                                    networkMessage_.WriteToNetwork(*importResultMessage, socket_,
                                                                    [this, self]() { ClientLoop(); });
                                 }
                             });
@@ -159,7 +158,7 @@ void ClientPoolWorker::ClientLoop()
                                                              dataBuffer_.get(), nullBuffer_.get());
                         if (importResultMessage != nullptr)
                         {
-                            NetworkMessage::WriteToNetwork(*importResultMessage, socket_,
+                            networkMessage_.WriteToNetwork(*importResultMessage, socket_,
                                                            [this, self]() { ClientLoop(); });
                         }
                     }
