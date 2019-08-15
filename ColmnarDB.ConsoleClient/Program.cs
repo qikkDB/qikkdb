@@ -120,12 +120,12 @@ namespace ColmnarDB.ConsoleClient
                         const string format = "{0,-30} {1,-30}";
 
                         Console.WriteLine();
-                        Console.WriteLine(String.Format(format, "h | help", "Show information about commands"));
-                        Console.WriteLine(String.Format(format, "u [database] | use [database]", "Set current working database"));
+                        Console.WriteLine(String.Format(format, "h, help", "Show information about commands"));
+                        Console.WriteLine(String.Format(format, "u [database], use [database]", "Set current working database"));
                         Console.WriteLine(String.Format(format, "[query]", "Run given query"));
                         //Console.WriteLine(String.Format(format, "import [database] [file path]", "Import given .csv file into database"));
-                        Console.WriteLine(String.Format(format, "t [query] | timing [query]", "Run a query " + Query.numberOfQueryExec + 1 + " times and print the first and average cached execution time."));
-                        Console.WriteLine(String.Format(format, "q | quit | exit", "Exit the console"));
+                        Console.WriteLine(String.Format(format, "t [query], timing [query]", "Run a query " + Query.numberOfQueryExec + 1 + " times and print the first and average cached execution time."));
+                        Console.WriteLine(String.Format(format, "q, quit, exit", "Exit the console"));
                         
                         Console.WriteLine();
                         break;
