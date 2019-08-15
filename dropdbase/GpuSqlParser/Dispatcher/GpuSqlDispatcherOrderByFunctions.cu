@@ -273,7 +273,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetCol<ColmnarDB::Types::ComplexPoly
 int32_t GpuSqlDispatcher::FreeOrderByTable()
 {
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Freeing order by table." << '\n';
-    orderByTable_.release();
+    orderByTable_.reset();
     return 0;
 }
 

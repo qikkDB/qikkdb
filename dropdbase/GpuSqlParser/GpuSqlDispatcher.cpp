@@ -1043,6 +1043,7 @@ void GpuSqlDispatcher::CleanUpGpuPointers()
     usingGroupBy_ = false;
     aggregatedRegisters_.clear();
     allocatedPointers_.clear();
+    orderByTable_.reset();
 }
 
 
