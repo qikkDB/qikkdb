@@ -7,6 +7,7 @@
 
 #include <exception>
 #include <string>
+#include "DataType.h"
 
 struct DatabaseNotUsedException : public std::exception
 {
@@ -157,6 +158,22 @@ struct IndexAlreadyExistsException : public std::exception
 {
     IndexAlreadyExistsException(const std::string& index)
     : message_("Index: \"" + index + "\" already exists in table.")
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
+
+struct IndexColumnDataTypeException : public std::exception
+{
+    IndexColumnDataTypeException(const std::string& column, DataType dataType)
+    : message_("Column: \"" + column + "\" of type: " + ::GetStringFromColumnDataType(dataType) + " cannot be used as an index.")
     {
     }
 

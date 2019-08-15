@@ -1096,6 +1096,13 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
                 {
                     throw ColumnNotFoundException(indexColumnName);
                 }
+
+                DataType indexColumnDataType = newColumns.at(indexColumnName);
+                if (indexColumnDataType == DataType::COLUMN_POINT || indexColumnDataType == DataType::COLUMN_POLYGON)
+                {
+                    throw IndexColumnDataTypeException(indexColumnName, indexColumnDataType);
+                }
+
                 if (std::find(indexColumns.begin(), indexColumns.end(), indexColumnName) !=
                     indexColumns.end())
                 {
@@ -1241,6 +1248,14 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext* ctx
         {
             throw ColumnNotFoundException(indexColumnName);
         }
+
+        DataType indexColumnDataType =
+            database_->GetTables().at(tableName).GetColumns().at(indexColumnName)->GetColumnType();
+        if (indexColumnDataType == DataType::COLUMN_POINT || indexColumnDataType == DataType::COLUMN_POLYGON)
+        {
+            throw IndexColumnDataTypeException(indexColumnName, indexColumnDataType);
+        }
+
         if (std::find(indexColumns.begin(), indexColumns.end(), indexColumnName) != indexColumns.end())
         {
             throw ColumnAlreadyExistsInIndexException(indexColumnName);

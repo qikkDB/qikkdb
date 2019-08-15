@@ -25,11 +25,11 @@ DataType GetColumnDataTypeFromString(const std::string& dataType)
     {
         return DataType::COLUMN_DOUBLE;
     }
-    else if (type == "POINT")
+    else if (type == "GEO_POINT")
     {
         return DataType::COLUMN_POINT;
     }
-    else if (type == "POLYGON")
+    else if (type == "GEO_POLYGON")
     {
         return DataType::COLUMN_POLYGON;
     }

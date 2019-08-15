@@ -299,3 +299,16 @@ TEST(DispatcherTestsRegression, AggregationInWhereWrongSemantic)
                               "BY colInteger1;");
     ASSERT_THROW(parser.Parse(), AggregationWhereException);
 }
+
+TEST(DispatcherTestsRegression, CreateIndexWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "CREATE TABLE tblA (colA GEO_POINT, INDEX ind (colA));");
+    ASSERT_THROW(parser.Parse(), IndexColumnDataTypeException);
+
+    GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database,
+                               "CREATE TABLE tblA (colA GEO_POLYGON, INDEX ind (colA));");
+    ASSERT_THROW(parser2.Parse(), IndexColumnDataTypeException);
+}
