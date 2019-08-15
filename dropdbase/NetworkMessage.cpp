@@ -15,22 +15,31 @@ void NetworkMessage::WriteToNetwork(const google::protobuf::Message& message,
     google::protobuf::Any packedMsg;
     packedMsg.PackFrom(message);
     int size = packedMsg.ByteSize();
-    std::unique_ptr<char[]> serializedMessage = std::make_unique<char[]>(size);
-    packedMsg.SerializeToArray(serializedMessage.get(), size);
+    serializedMessage_ = std::unique_ptr<char[]>(new char[size]);
+    packedMsg.SerializeToArray(serializedMessage_.get(), size);
     boost::endian::native_to_big_inplace(size);
     boost::asio::async_write(
         socket, boost::asio::buffer(&size, sizeof(size)),
-        [&socket, size = packedMsg.ByteSize(), serializedMessage{std::move(serializedMessage)},
-         handler](const boost::system::error_code& error, std::size_t bytes) {
+        [this, &socket, size = packedMsg.ByteSize(), handler](const boost::system::error_code& error, std::size_t bytes) {
             if (!error)
             {
-                boost::asio::async_write(socket, boost::asio::buffer(serializedMessage.get(), size),
+                boost::asio::async_write(socket, boost::asio::buffer(serializedMessage_.get(), size),
                                          [handler](const boost::system::error_code& error, std::size_t bytes) {
                                              if (!error)
                                              {
                                                  handler();
                                              }
+                                             else
+                                             {
+                                                 std::string message = error.message();
+                                                 throw std::runtime_error(message);
+                                             }
                                          });
+            }
+            else
+            {
+                std::string message = error.message();
+                throw std::runtime_error(message);
             }
         });
 }
@@ -43,29 +52,38 @@ void NetworkMessage::WriteToNetwork(const google::protobuf::Message& message,
 void NetworkMessage::ReadFromNetwork(boost::asio::ip::tcp::socket& socket,
                                      std::function<void(google::protobuf::Any)> handler)
 {
-    std::array<char, 4> readBuff;
     boost::asio::async_read(
-        socket, boost::asio::buffer(readBuff, 4),
-        [&socket, readBuff, handler](const boost::system::error_code& error, std::size_t bytes) {
+        socket, boost::asio::buffer(lengthBuffer_, 4),
+        [this, &socket, handler](const boost::system::error_code& error, std::size_t bytes) {
             if (!error)
             {
-                int32_t readSize = *(reinterpret_cast<const int32_t*>(readBuff.data()));
+                int32_t readSize = *(reinterpret_cast<const int32_t*>(lengthBuffer_.data()));
                 boost::endian::big_to_native_inplace(readSize);
-                std::unique_ptr<char[]> serializedMessage = std::make_unique<char[]>(readSize);
-                boost::asio::async_read(socket, boost::asio::buffer(serializedMessage.get(), readSize),
-                                        [&socket, serializedMessage{std::move(serializedMessage)}, readSize,
+                serializedMessage_ = std::unique_ptr<char[]>(new char[readSize]);
+                boost::asio::async_read(socket, boost::asio::buffer(serializedMessage_.get(), readSize),
+                                        [this, &socket, readSize,
                                          handler](const boost::system::error_code& error, std::size_t bytes) {
                                             if (!error)
                                             {
                                                 google::protobuf::Any ret;
-                                                if (!ret.ParseFromArray(serializedMessage.get(), readSize))
+                                                if (!ret.ParseFromArray(serializedMessage_.get(), readSize))
                                                 {
                                                     throw std::invalid_argument(
                                                         "Failed to parse message from stream");
                                                 }
                                                 handler(ret);
                                             }
+                                            else
+                                            {
+                                                std::string message = error.message();
+                                                throw std::runtime_error(message);
+											}
                                         });
+            }
+            else
+            {
+                std::string message = error.message();
+                throw std::runtime_error(message);
             }
         });
 }
