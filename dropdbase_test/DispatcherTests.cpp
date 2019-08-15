@@ -13782,6 +13782,7 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
     auto blocksAfterCast =
         dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("col").get())->GetBlocksList();
 
+
     for (int32_t i = 0; i < blocksAfterCast.size(); i++)
     {
         for (int32_t j = 0; j < blocksAfterCast[i]->GetSize(); j++)
@@ -13805,7 +13806,6 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopyWithInsertNull)
     auto resultPtr = createDatabase.Parse();
 
     auto database = Database::GetDatabaseByName("TestDatabaseAlterBitmaskCopyNull");
-
     ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
     GpuSqlCustomParser parser(database, "CREATE TABLE testTable (col string);");
@@ -13872,7 +13872,73 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopyWithInsertNull)
         ASSERT_EQ(oldBitmasks[i], newBitmasks[i]);
     }
 
-
     GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterBitmaskCopyNull;");
+    resultPtr = parserDropDb.Parse();
+}
+
+TEST(DispatcherTests, ClusteredIndexPoint)
+{
+    GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 8;");
+    auto resultPtr = createDatabase.Parse();
+
+    auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+
+    ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
+
+    GpuSqlCustomParser parser(database, "CREATE TABLE testTable (colA int, colB geo_point, INDEX "
+                                        "ind (colA));");
+    resultPtr = parser.Parse();
+
+    ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
+
+    auto& table = database->GetTables().at("testTable");
+    auto type = table.GetColumns().at("colA")->GetColumnType();
+    ASSERT_EQ(type, COLUMN_INT);
+    type = table.GetColumns().at("colB")->GetColumnType();
+    ASSERT_EQ(type, COLUMN_POINT);
+
+    GpuSqlCustomParser parser2(database,
+                               "INSERT INTO testTable (colA, colB) VALUES (1, POINT(2.5 3.23));");
+
+    std::vector<int32_t> expectedResultInt;
+    std::vector<std::string> expectedResultPoint;
+    for (int32_t i = 0; i < 7; i++)
+    {
+        resultPtr = parser2.Parse();
+        expectedResultInt.push_back(1);
+        ColmnarDB::Types::Point point = PointFactory::FromWkt("POINT(2.5 3.23)");
+        expectedResultPoint.push_back(PointFactory::WktFromPoint(point, true));
+    }
+
+    // SELECT COL INT
+    GpuSqlCustomParser parserSelectFromA(database, "SELECT colA from testTable;");
+    resultPtr = parserSelectFromA.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    auto& payloadsColInt = result->payloads().at("testTable.colA");
+
+    ASSERT_EQ(payloadsColInt.intpayload().intdata_size(), expectedResultInt.size());
+
+    for (int i = 0; i < payloadsColInt.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResultInt[i], payloadsColInt.intpayload().intdata()[i]);
+    }
+
+    // SELECT COL POINT
+    GpuSqlCustomParser parserSelectFromB(database, "SELECT colB from testTable;");
+    resultPtr = parserSelectFromB.Parse();
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    auto& payloadsColPoint = result->payloads().at("testTable.colB");
+
+    ASSERT_EQ(payloadsColPoint.stringpayload().stringdata_size(), expectedResultPoint.size());
+
+    for (int i = 0; i < payloadsColPoint.stringpayload().stringdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResultPoint[i], payloadsColPoint.stringpayload().stringdata()[i])
+            << "Iteration: " << i;
+    }
+
+    GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
     resultPtr = parserDropDb.Parse();
 }
