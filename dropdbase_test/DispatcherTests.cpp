@@ -13885,6 +13885,7 @@ TEST(DispatcherTests, ClusteredIndexPoint)
 
     ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
+
     GpuSqlCustomParser parser(database, "CREATE TABLE testTable (colA int, colB geo_point, INDEX "
                                         "ind (colA));");
     resultPtr = parser.Parse();

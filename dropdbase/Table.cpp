@@ -72,20 +72,20 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                 std::vector<ColmnarDB::Types::Point> dataPoint =
                     std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData);
                 auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataPoint[iterator]);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataPoint[iterator], -1, isNullValue);
             }
             else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
             {
                 std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon =
                     std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData);
                 auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataPolygon[iterator]);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataPolygon[iterator], -1, isNullValue);
             }
             else if (wrappedData.type() == typeid(std::vector<std::string>))
             {
                 std::vector<std::string> dataString = std::any_cast<std::vector<std::string>>(wrappedData);
                 auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataString[iterator]);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataString[iterator], -1, isNullValue);
             }
         }
     }
