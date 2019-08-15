@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <sstream>
-
+#include <mutex>
 class CudaLogBoost
 {
 public:
@@ -61,8 +61,11 @@ public:
     CudaLogBoost& operator<<(char value);
     CudaLogBoost& operator<<(double value);
     CudaLogBoost& operator<<(float value);
+    CudaLogBoost& operator<<(void* value);
+    CudaLogBoost& operator<<(const char* value);
 
 private:
+    std::mutex logMutex_;
     Severity severity;
     std::stringstream buffer_;
     CudaLogBoost(Severity severity);
