@@ -13,10 +13,16 @@ namespace ColmnarDB.ConsoleClient
         /// Reads input from console
         /// commands:
         /// use [database]
+        /// u
         /// [query]
         /// import [file path]
         /// help
+        /// h
         /// exit
+        /// quit
+        /// q
+        /// timing
+        /// t
         /// </summary>
         public static void Main(string[] args)
         {
@@ -39,7 +45,7 @@ namespace ColmnarDB.ConsoleClient
                 //string database = "";
                 //string filePath = "";
 
-                if (command != "q" && command != "test" && command != "exit" && command != "quit" && command != "use" && command != "import" && command != "help")
+                if (command != "t" && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u" && command != "use" && command != "h" && command != "help" /* && command != "import" */)
                 {
                     parameters = wholeCommand;
                     command = "query";
@@ -58,6 +64,7 @@ namespace ColmnarDB.ConsoleClient
                         client.Close();
                         break;
 
+                    case "u":
                     case "use":
                         if (parameters == "")
                         {
@@ -77,8 +84,9 @@ namespace ColmnarDB.ConsoleClient
                         query.RunQuery(parameters, Console.WindowWidth, client);
 
                         break;
-
-                    case "test":
+                    
+                    case "t":
+                    case "timing":
                         if (parameters == "")
                         {
                             Console.WriteLine("Missing argument");
@@ -105,19 +113,20 @@ namespace ColmnarDB.ConsoleClient
                         import.Import(filePath, database, client);
 
                         break;*/
+
+                    case "h":
                     case "help":
                         //formated console output
                         const string format = "{0,-30} {1,-30}";
 
                         Console.WriteLine();
-                        Console.WriteLine(String.Format(format, "use [database]", "Set current working database"));
+                        Console.WriteLine(String.Format(format, "h | help", "Show information about commands"));
+                        Console.WriteLine(String.Format(format, "u [database] | use [database]", "Set current working database"));
                         Console.WriteLine(String.Format(format, "[query]", "Run given query"));
                         //Console.WriteLine(String.Format(format, "import [database] [file path]", "Import given .csv file into database"));
-                        Console.WriteLine(String.Format(format, "help", "Show information about commands"));
-                        Console.WriteLine(String.Format(format, "exit", "Exit the console"));
-                        Console.WriteLine(String.Format(format, "quit", "Exit the console"));
-                        Console.WriteLine(String.Format(format, "q", "Exit the console"));
-                        Console.WriteLine(String.Format(format, "test [query]", "Run a query " + Query.numberOfQueryExec + " times and print the result"));
+                        Console.WriteLine(String.Format(format, "t [query] | timing [query]", "Run a query " + Query.numberOfQueryExec + 1 + " times and print the first and average cached execution time."));
+                        Console.WriteLine(String.Format(format, "q | quit | exit", "Exit the console"));
+                        
                         Console.WriteLine();
                         break;
                     default:
