@@ -659,7 +659,7 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext* ctx)
     PushArgument(reg.c_str(), returnDataType);
     PushTempResult(reg, returnDataType);
 
-	dispatcher_.AddArgument<bool>(aggAsterisk);
+    dispatcher_.AddArgument<bool>(aggAsterisk);
 
     dispatcher_.AddAggregationDoneFunction();
     insideAgg_ = false;
@@ -723,7 +723,7 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext* ctx)
 
         if (columnAliases_.find(alias) != columnAliases_.end())
         {
-            throw AliasRedefinitionException();
+            throw AliasRedefinitionException(alias);
         }
         columnAliases_.insert(alias);
     }
@@ -789,7 +789,7 @@ void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
 
             if (tableAliases_.find(alias) != tableAliases_.end())
             {
-                throw AliasRedefinitionException();
+                throw AliasRedefinitionException(alias);
             }
             tableAliases_.insert({alias, table});
         }
@@ -817,7 +817,7 @@ void GpuSqlListener::exitJoinClause(GpuSqlParser::JoinClauseContext* ctx)
 
     if (leftColType != rightColType)
     {
-        throw JoinColumnTypeException();
+        throw JoinColumnTypeException(leftColName, rightColName);
     }
 
     JoinType joinType = JoinType::INNER_JOIN;
@@ -1298,7 +1298,7 @@ void GpuSqlListener::exitOrderByColumn(GpuSqlParser::OrderByColumnContext* ctx)
 
     if (orderByColumns_.find(orderByColName) != orderByColumns_.end())
     {
-        throw OrderByColumnAlreadyReferencedException();
+        throw OrderByColumnAlreadyReferencedException(orderByColName);
     }
 
     DataType dataType = std::get<1>(arg);
@@ -1363,7 +1363,7 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext* ctx)
 
         if (std::find(columns.begin(), columns.end(), columnPair) != columns.end())
         {
-            throw InsertIntoException();
+            throw InsertIntoException(column);
         }
         columns.push_back(columnPair);
     }
@@ -1439,7 +1439,7 @@ void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsConte
             std::string alias = selectColumn->alias()->getText();
             if (columnAliasContexts_.find(alias) != columnAliasContexts_.end())
             {
-                throw AliasRedefinitionException();
+                throw AliasRedefinitionException(alias);
             }
             columnAliasContexts_.insert({alias, selectColumn->expression()});
         }

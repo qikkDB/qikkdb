@@ -485,7 +485,7 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
             TrimDelimitedIdentifier(alias);
             if (tableAliases_.find(alias) != tableAliases_.end())
             {
-                throw AliasRedefinitionException();
+                throw AliasRedefinitionException(alias);
             }
             tableAliases_.insert({alias, table});
         }
@@ -501,7 +501,7 @@ void CpuWhereListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsCon
             std::string alias = selectColumn->alias()->getText();
             if (columnAliasContexts_.find(alias) != columnAliasContexts_.end())
             {
-                throw AliasRedefinitionException();
+                throw AliasRedefinitionException(alias);
             }
             columnAliasContexts_.insert({alias, selectColumn->expression()});
         }
@@ -524,6 +524,12 @@ void CpuWhereListener::PushArgument(const char* token, DataType dataType)
     case DataType::CONST_DOUBLE:
         dispatcher_.AddArgument<double>(std::stod(token));
         break;
+    case DataType::CONST_INT8_T:
+    {
+        std::string booleanToken(token);
+        StringToUpper(booleanToken);
+        dispatcher_.AddArgument<int8_t>(booleanToken == "TRUE");
+    }
     case DataType::CONST_POINT:
     case DataType::CONST_POLYGON:
     case DataType::CONST_STRING:
