@@ -105,44 +105,62 @@ boost::asio::ip::tcp::socket connectSocketToTestServer(boost::asio::io_context& 
     return sock;
 }
 
-void connect(boost::asio::ip::tcp::socket& sock)
+void connect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& context)
 {
-    ColmnarDB::NetworkClient::Message::InfoMessage hello;
-    hello.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::CONN_ESTABLISH);
-    hello.set_message("");
-    std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
-    NetworkMessage::WriteToNetwork(hello, sock, [&sock, &promise]() {
-        NetworkMessage::ReadFromNetwork(sock, [&promise](google::protobuf::Any ret) {
-            ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-            if (!ret.UnpackTo(&infoMessage))
-            {
-                promise.set_exception(
-                    std::make_exception_ptr(std::domain_error("Invalid message received")));
-            }
-            else
-            {
-                promise.set_value(infoMessage);
-            }
+    try
+    {
+        NetworkMessage networkMessage;
+        ColmnarDB::NetworkClient::Message::InfoMessage hello;
+        hello.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::CONN_ESTABLISH);
+        hello.set_message("");
+        std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
+        networkMessage.WriteToNetwork(hello, sock, [&sock, &promise, &networkMessage]() {
+            networkMessage.ReadFromNetwork(sock, [&promise](google::protobuf::Any ret) {
+                ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                if (!ret.UnpackTo(&infoMessage))
+                {
+                    promise.set_exception(
+                        std::make_exception_ptr(std::domain_error("Invalid message received")));
+                }
+                else
+                {
+                    promise.set_value(infoMessage);
+                }
+            });
         });
-    });
-    ASSERT_EQ(promise.get_future().get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+        auto future = promise.get_future();
+        while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+        {
+            context.poll();
+        }
+        ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+    }
+    catch (const std::exception& e)
+    {
+        std::string what = e.what();
+        std::cout << what << "\n";
+        throw e;
+	}
 }
 
-void disconnect(boost::asio::ip::tcp::socket& sock)
+void disconnect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& context)
 {
+    NetworkMessage networkMessage;
     ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
     infoMessage.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::CONN_END);
     infoMessage.set_message("");
-    NetworkMessage::WriteToNetwork(infoMessage, sock, []() {});
+    networkMessage.WriteToNetwork(infoMessage, sock, []() {});
+    context.poll();
 }
 
-void query(boost::asio::ip::tcp::socket& sock, const char* queryString)
+void query(boost::asio::ip::tcp::socket& sock, const char* queryString, boost::asio::io_context& context)
 {
+    NetworkMessage networkMessage;
     ColmnarDB::NetworkClient::Message::QueryMessage query;
     query.set_query(queryString);
     std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
-    NetworkMessage::WriteToNetwork(query, sock, [&sock, &promise]() {
-        NetworkMessage::ReadFromNetwork(sock, [&promise](google::protobuf::Any ret) {
+    networkMessage.WriteToNetwork(query, sock, [&sock, &promise, &networkMessage]() {
+        networkMessage.ReadFromNetwork(sock, [&promise](google::protobuf::Any ret) {
             ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
             if (!ret.UnpackTo(&infoMessage))
             {
@@ -155,17 +173,24 @@ void query(boost::asio::ip::tcp::socket& sock, const char* queryString)
             }
         });
     });
-    ASSERT_EQ(promise.get_future().get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::WAIT);
+    auto future = promise.get_future();
+    while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+    {
+        context.poll();
+    }
+    ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::WAIT);
 }
 
-ColmnarDB::NetworkClient::Message::QueryResponseMessage getNextQueryResult(boost::asio::ip::tcp::socket& sock)
+ColmnarDB::NetworkClient::Message::QueryResponseMessage
+getNextQueryResult(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& context)
 {
+    NetworkMessage networkMessage;
     ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
     infoMessage.set_code(ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode_GET_NEXT_RESULT);
     infoMessage.set_message("");
     std::promise<ColmnarDB::NetworkClient::Message::QueryResponseMessage> retPromise;
-    NetworkMessage::WriteToNetwork(infoMessage, sock, [&sock, &retPromise]() {
-        NetworkMessage::ReadFromNetwork(sock, [&retPromise](google::protobuf::Any response) {
+    networkMessage.WriteToNetwork(infoMessage, sock, [&sock, &retPromise, &networkMessage]() {
+        networkMessage.ReadFromNetwork(sock, [&retPromise](google::protobuf::Any response) {
             ColmnarDB::NetworkClient::Message::QueryResponseMessage ret;
             if (!response.UnpackTo(&ret))
             {
@@ -178,19 +203,24 @@ ColmnarDB::NetworkClient::Message::QueryResponseMessage getNextQueryResult(boost
             }
         });
     });
-
-    return retPromise.get_future().get();
+    auto future = retPromise.get_future();
+    while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+    {
+        context.poll();
+    }
+    return future.get();
 }
 
-void importCSV(boost::asio::ip::tcp::socket& sock, const char* name, const char* data)
+void importCSV(boost::asio::ip::tcp::socket& sock, const char* name, const char* data, boost::asio::io_context& context)
 {
+    NetworkMessage networkMessage;
     ColmnarDB::NetworkClient::Message::CSVImportMessage csvImport;
     csvImport.set_databasename(name);
     csvImport.set_payload(data);
     csvImport.set_csvname(name);
     std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
-    NetworkMessage::WriteToNetwork(csvImport, sock, [&sock, &promise]() {
-        NetworkMessage::ReadFromNetwork(sock, [&sock, &promise](google::protobuf::Any ret) {
+    networkMessage.WriteToNetwork(csvImport, sock, [&sock, &promise, &networkMessage]() {
+        networkMessage.ReadFromNetwork(sock, [&sock, &promise](google::protobuf::Any ret) {
             ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
             if (!ret.UnpackTo(&infoMessage))
             {
@@ -203,16 +233,22 @@ void importCSV(boost::asio::ip::tcp::socket& sock, const char* name, const char*
             }
         });
     });
-    ASSERT_EQ(promise.get_future().get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+    auto future = promise.get_future();
+    while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+    {
+        context.poll();
+    }
+    ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 }
 
-void setDatabase(boost::asio::ip::tcp::socket& sock, const char* name)
+void setDatabase(boost::asio::ip::tcp::socket& sock, const char* name, boost::asio::io_context& context)
 {
+    NetworkMessage networkMessage;
     ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDbMsg;
     setDbMsg.set_databasename(name);
     std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
-    NetworkMessage::WriteToNetwork(setDbMsg, sock, [&sock, &promise]() {
-        NetworkMessage::ReadFromNetwork(sock, [&sock, &promise](google::protobuf::Any ret) {
+    networkMessage.WriteToNetwork(setDbMsg, sock, [&sock, &promise, &networkMessage]() {
+        networkMessage.ReadFromNetwork(sock, [&sock, &promise](google::protobuf::Any ret) {
             ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
             if (!ret.UnpackTo(&infoMessage))
             {
@@ -225,11 +261,17 @@ void setDatabase(boost::asio::ip::tcp::socket& sock, const char* name)
             }
         });
     });
-    ASSERT_EQ(promise.get_future().get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+    auto future = promise.get_future();
+    while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+    {
+        context.poll();
+    }
+    ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 }
 
-void bulkImport(boost::asio::ip::tcp::socket& sock)
+void bulkImport(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& context)
 {
+    NetworkMessage networkMessage;
     ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
     bulkImportMessage.set_tablename("test");
     bulkImportMessage.set_columnname("test");
@@ -237,14 +279,29 @@ void bulkImport(boost::asio::ip::tcp::socket& sock)
     bulkImportMessage.set_elemcount(5);
     int32_t dataBuff[] = {1, 2, 3, 4, 5};
     std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
-    NetworkMessage::WriteToNetwork(bulkImportMessage, sock, [&sock, &promise, dataBuff]() {
-        NetworkMessage::WriteRaw(sock, reinterpret_cast<const char*>(dataBuff), 5, DataType::COLUMN_INT);
-        auto response = NetworkMessage::ReadFromNetwork(sock);
-        ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-        ASSERT_TRUE(response.UnpackTo(&infoMessage));
+    networkMessage.WriteToNetwork(bulkImportMessage, sock, [&sock, &promise, dataBuff, &networkMessage]() mutable {
+        networkMessage.WriteRaw(sock, reinterpret_cast<char*>(dataBuff), 5, DataType::COLUMN_INT,
+                                [&sock, &promise, &networkMessage]() {
+            networkMessage.ReadFromNetwork(sock, [&promise](google::protobuf::Any response) {
+                ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                if (!response.UnpackTo(&infoMessage))
+                {
+                    promise.set_exception(
+                        std::make_exception_ptr(std::domain_error("Invalid message received")));
+                }
+                else
+                {
+                    promise.set_value(infoMessage);
+                }
+            });
+        });
     });
-
-    ASSERT_EQ(promise.get_future().get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+    auto future = promise.get_future();
+    while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+    {
+        context.poll();
+    }
+    ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK); 
 }
 
 TEST(TCPServer, ServerMessageInfo)
@@ -257,8 +314,8 @@ TEST(TCPServer, ServerMessageInfo)
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
         auto sock = connectSocketToTestServer(context);
-        ASSERT_NO_THROW(connect(sock));
-        ASSERT_NO_THROW(disconnect(sock));
+        ASSERT_NO_THROW(connect(sock, context));
+        ASSERT_NO_THROW(disconnect(sock, context));
         testServer.Abort();
         future.join();
         printf("\nServerMessageInfoEnd\n");
@@ -279,9 +336,9 @@ TEST(TCPServer, ServerMessageSetDB)
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
         auto sock = connectSocketToTestServer(context);
-        ASSERT_NO_THROW(connect(sock));
-        ASSERT_NO_THROW(setDatabase(sock, "test"));
-        ASSERT_NO_THROW(disconnect(sock));
+        ASSERT_NO_THROW(connect(sock, context));
+        ASSERT_NO_THROW(setDatabase(sock, "test", context));
+        ASSERT_NO_THROW(disconnect(sock, context));
         testServer.Abort();
         future.join();
         printf("\nServerMessageSetDBEnd\n");
@@ -302,12 +359,12 @@ TEST(TCPServer, ServerMessageQuery)
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
         auto sock = connectSocketToTestServer(context);
-        ASSERT_NO_THROW(connect(sock));
-        ASSERT_NO_THROW(query(sock, "test"));
+        ASSERT_NO_THROW(connect(sock, context));
+        ASSERT_NO_THROW(query(sock, "test", context));
         ColmnarDB::NetworkClient::Message::QueryResponseMessage resp;
-        ASSERT_NO_THROW(resp = getNextQueryResult(sock));
+        ASSERT_NO_THROW(resp = getNextQueryResult(sock, context));
         ASSERT_EQ(resp.payloads().at("test").stringpayload().stringdata()[0], "test");
-        ASSERT_NO_THROW(disconnect(sock));
+        ASSERT_NO_THROW(disconnect(sock, context));
         testServer.Abort();
         future.join();
         printf("\nServerMessageQueryEnd\n");
@@ -328,9 +385,9 @@ TEST(TCPServer, ServerMessageCSV)
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
         auto sock = connectSocketToTestServer(context);
-        ASSERT_NO_THROW(connect(sock));
-        ASSERT_NO_THROW(importCSV(sock, "test", "test"));
-        ASSERT_NO_THROW(disconnect(sock));
+        ASSERT_NO_THROW(connect(sock, context));
+        ASSERT_NO_THROW(importCSV(sock, "test", "test", context));
+        ASSERT_NO_THROW(disconnect(sock, context));
         testServer.Abort();
         future.join();
         printf("\nServerMessageCSVEnd\n");
@@ -352,9 +409,10 @@ TEST(TCPServer, ServerMessageBulkImport)
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
         auto sock = connectSocketToTestServer(context);
-        ASSERT_NO_THROW(connect(sock));
-        ASSERT_NO_THROW(bulkImport(sock));
-        ASSERT_NO_THROW(disconnect(sock));
+        ASSERT_NO_THROW(connect(sock, context));
+        ASSERT_NO_THROW(bulkImport(sock, context));
+        ASSERT_NO_THROW(disconnect(sock, context));
+        context.stop();
         testServer.Abort();
         future.join();
         printf("\nServerMessageBulkImportEnd\n");
