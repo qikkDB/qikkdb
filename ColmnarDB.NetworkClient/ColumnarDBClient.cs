@@ -603,6 +603,25 @@ namespace ColmnarDB.NetworkClient
 
         }
 
+        public void Heartbeat()
+        {
+            InfoMessage message = new InfoMessage { Code = InfoMessage.Types.StatusCode.Heartbeat, Message = "" };
+            try
+            {
+                NetworkMessage.WriteToNetwork(message, _client.GetStream());
+                var responseMessage = NetworkMessage.ReadFromNetwork(_client.GetStream());
+                if (!responseMessage.TryUnpack(out InfoMessage response) || response.Code != InfoMessage.Types.StatusCode.Ok)
+                {
+                    throw new IOException("Invalid response received from server");
+                }
+            }
+            catch (IOException)
+            {
+                CloseWithoutNotify();
+                throw;
+            }
+        }
+
         /// <summary>
         /// Close the connection to the server
         /// </summary>

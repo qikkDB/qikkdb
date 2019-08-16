@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Timers;
 using ColmnarDB.NetworkClient;
 
 namespace ColmnarDB.ConsoleClient
@@ -8,7 +10,8 @@ namespace ColmnarDB.ConsoleClient
         public static readonly string ipAddress = "127.0.0.1";
         public static readonly short port = 12345; 
         private static bool exit = false;
-
+        private static ColumnarDBClient client;
+        private static Mutex mutex;
         /// <summary>
         /// Reads input from console
         /// commands:
@@ -26,13 +29,25 @@ namespace ColmnarDB.ConsoleClient
         /// </summary>
         public static void Main(string[] args)
         {
-            ColumnarDBClient client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
+            int timeout = 30000;
+            if (args.Length >= 2)
+            {
+                if (args[0] == "-t")
+                {
+                    timeout = Convert.ToInt32(args[1]);
+                    Console.WriteLine("Set timeout to: " + timeout.ToString());
+                }
+            }
+            client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
             client.Connect();
-
+            var heartBeatTimer = new System.Timers.Timer(timeout);
+            heartBeatTimer.Elapsed += HeartBeatTimer_Elapsed;
+            heartBeatTimer.AutoReset = true;
+            heartBeatTimer.Enabled = true;
             UseDatabase use = new UseDatabase();
             ImportCSV import = new ImportCSV();
             Query query = new Query();
-            
+
             ReadLine.HistoryEnabled = true;
 
             while (!exit)
@@ -54,7 +69,7 @@ namespace ColmnarDB.ConsoleClient
                 {
                     parameters = wholeCommand.Substring(command.Length + 1);
                 }
-
+                mutex.WaitOne();
                 switch (command)
                 {
                     case "exit":
@@ -84,7 +99,7 @@ namespace ColmnarDB.ConsoleClient
                         query.RunQuery(parameters, Console.WindowWidth, client);
 
                         break;
-                    
+
                     case "t":
                     case "timing":
                         if (parameters == "")
@@ -126,14 +141,24 @@ namespace ColmnarDB.ConsoleClient
                         //Console.WriteLine(String.Format(format, "import [database] [file path]", "Import given .csv file into database"));
                         Console.WriteLine(String.Format(format, "t [query], timing [query]", "Run a query " + Query.numberOfQueryExec + 1 + " times and print the first and average cached execution time."));
                         Console.WriteLine(String.Format(format, "q, quit, exit", "Exit the console"));
-                        
+
                         Console.WriteLine();
                         break;
                     default:
                         Console.WriteLine("Unknown command, for more information about commands type 'help'");
                         break;
                 }
+                mutex.ReleaseMutex();
             }
+            heartBeatTimer.Stop();
+            heartBeatTimer.Dispose();
+        }
+
+        private static void HeartBeatTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            mutex.WaitOne();
+            client.Heartbeat();
+            mutex.ReleaseMutex();
         }
     }
 }
