@@ -7,6 +7,7 @@
 class ClientPoolWorker final : public ITCPWorker
 {
 private:
+    
     static constexpr int32_t MAXIMUM_BULK_FRAGMENT_SIZE = 8192 * 1024;
     static constexpr size_t NULL_BUFFER_SIZE =
         (MAXIMUM_BULK_FRAGMENT_SIZE + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
@@ -14,9 +15,10 @@ private:
     std::unique_ptr<char[]> dataBuffer_;
     std::unique_ptr<char[]> nullBuffer_;
 
-    bool quit_;
     void ClientLoop();
     NetworkMessage networkMessage_;
+
+	void HandleMessage(std::shared_ptr<ITCPWorker> self, google::protobuf::Any& recvMsg);
 
 public:
     /// <summary>
@@ -36,10 +38,10 @@ public:
     // Inherited via ITCPWorker
     virtual void Abort() override;
 
-    inline bool HasStopped()
-    {
-        return quit_;
-    }
+	inline bool HasStopped()
+	{
+		return !socket_.is_open();
+	}
 
     ClientPoolWorker(const ClientPoolWorker&) = delete;
     ClientPoolWorker& operator=(const ClientPoolWorker&) = delete;

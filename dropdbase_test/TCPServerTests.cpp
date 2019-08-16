@@ -316,7 +316,6 @@ TEST(TCPServer, ServerMessageInfo)
     try
     {
         printf("\nServerMessageInfo\n");
-        ITCPWorker::ResetGlobalQuitFlag();
         TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
@@ -338,7 +337,6 @@ TEST(TCPServer, ServerMessageSetDB)
     try
     {
         printf("\nServerMessageSetDB\n");
-        ITCPWorker::ResetGlobalQuitFlag();
         TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
@@ -361,7 +359,6 @@ TEST(TCPServer, ServerMessageQuery)
     try
     {
         printf("\nServerMessageQuery\n");
-        ITCPWorker::ResetGlobalQuitFlag();
         TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
@@ -387,7 +384,6 @@ TEST(TCPServer, ServerMessageCSV)
     try
     {
         printf("\nServerMessageCSV\n");
-        ITCPWorker::ResetGlobalQuitFlag();
         TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
@@ -411,7 +407,6 @@ TEST(TCPServer, ServerMessageBulkImport)
     try
     {
         printf("\nServerMessageBulkImport\n");
-        ITCPWorker::ResetGlobalQuitFlag();
         TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
