@@ -218,6 +218,13 @@ TCPClientHandler::HandleInfoMessage(ITCPWorker& worker,
     {
         return GetNextQueryResult();
     }
+    else if (infoMessage.code() == ColmnarDB::NetworkClient::Message::InfoMessage::HEARTBEAT)
+    {
+        auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+        infoMessage->set_message("");
+        infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+        return infoMessage;
+	}
     else
     {
         BOOST_LOG_TRIVIAL(debug) << "Invalid InfoMessage received, Code = " << infoMessage.code();
