@@ -20,8 +20,10 @@ ClientPoolWorker::ClientPoolWorker(std::unique_ptr<IClientHandler>&& clientHandl
                                    int requestTimeout)
 : ITCPWorker(std::move(clientHandler), std::move(socket), requestTimeout),
   dataBuffer_(std::make_unique<char[]>(MAXIMUM_BULK_FRAGMENT_SIZE)),
-  nullBuffer_(std::make_unique<char[]>(NULL_BUFFER_SIZE)), networkMessage_()
+  nullBuffer_(std::make_unique<char[]>(NULL_BUFFER_SIZE)),
+  networkMessage_(), socketDeadline_{socket.get_executor()}
 {
+    socketDeadline_.expires_at(boost::asio::steady_timer::time_point::max());
 }
 
 /// <summary>
@@ -29,8 +31,10 @@ ClientPoolWorker::ClientPoolWorker(std::unique_ptr<IClientHandler>&& clientHandl
 /// </summary>
 void ClientPoolWorker::HandleClient()
 {
+    OnTimeout(socketDeadline_);
     BOOST_LOG_TRIVIAL(debug) << "Waiting for hello from " << socket_.remote_endpoint().address().to_string();
     auto self(shared_from_this());
+    socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
     networkMessage_.ReadFromNetwork(socket_, [this, self](google::protobuf::Any recvMsg) {
         ColmnarDB::NetworkClient::Message::InfoMessage outInfo;
         if (!recvMsg.UnpackTo(&outInfo))
@@ -54,6 +58,7 @@ void ClientPoolWorker::ClientLoop()
     auto self(shared_from_this());
     BOOST_LOG_TRIVIAL(debug)
         << "Waiting for message from " << socket_.remote_endpoint().address().to_string();
+    socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
     networkMessage_.ReadFromNetwork(socket_, [this, self](google::protobuf::Any recvMsg) {
         HandleMessage(self, recvMsg);
     });
@@ -132,12 +137,14 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
             networkMessage_.WriteToNetwork(outInfo, socket_, [this, self]() { ClientLoop(); });
             return;
         }
+        socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
         networkMessage_.ReadRaw(
             socket_, dataBuffer_.get(), elementCount, columnType,
             [this, self, isNullable, bulkImportMessage](char* resultBuffer, int32_t elementCount) {
                 if (isNullable)
                 {
                     size_t nullBufferSize = (elementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
                     networkMessage_.ReadRaw(
                         socket_, nullBuffer_.get(), nullBufferSize, DataType::COLUMN_INT8_T,
                         [this, self, bulkImportMessage](char* resultBuffer, int32_t elementCount) {
@@ -178,4 +185,30 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
 void ClientPoolWorker::Abort()
 {
     socket_.close();
+    socketDeadline_.cancel();
+}
+
+void ClientPoolWorker::OnTimeout(boost::asio::steady_timer& deadline)
+{
+    auto self(shared_from_this());
+    deadline.async_wait([this, self, &deadline](const boost::system::error_code& /*error*/) {
+        // Check if the connection was closed while the operation was pending.
+        if (HasStopped())
+        {
+            return;
+        }
+        // Check whether the deadline has passed. We compare the deadline
+        // against the current time since a new asynchronous operation may
+        // have moved the deadline before this actor had a chance to run.
+        if (deadline.expiry() <= boost::asio::steady_timer::clock_type::now())
+        {
+            // The deadline has passed. Close the connection.
+            Abort();
+        }
+        else
+        {
+            // Put the actor back to sleep.
+            OnTimeout(deadline);
+        }
+    });
 }

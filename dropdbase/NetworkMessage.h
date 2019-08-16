@@ -11,7 +11,7 @@ private:
     std::array<char, 4> lengthBuffer_;
     std::unique_ptr<char[]> serializedMessage_;
     int size_;
-
+    
 public:
     /// <summary>
     /// Write protobuffer message to the network.

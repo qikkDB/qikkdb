@@ -2,6 +2,7 @@
 #include <boost/endian/conversion.hpp>
 #include <stdexcept>
 #include <boost/asio.hpp>
+#include <boost/log/trivial.hpp>
 
 /// <summary>
 /// Write protobuffer message to the network.
@@ -12,6 +13,7 @@ void NetworkMessage::WriteToNetwork(const google::protobuf::Message& message,
                                     boost::asio::ip::tcp::socket& socket,
                                     std::function<void()> handler)
 {
+    std::string client = socket.remote_endpoint().address().to_string();
     google::protobuf::Any packedMsg;
     packedMsg.PackFrom(message);
     size_ = packedMsg.ByteSize();
@@ -19,14 +21,13 @@ void NetworkMessage::WriteToNetwork(const google::protobuf::Message& message,
     packedMsg.SerializeToArray(serializedMessage_.get(), size_);
     boost::endian::native_to_big_inplace(size_);
     boost::asio::async_write(socket, boost::asio::buffer(&size_, sizeof(size_)),
-                             [this, &socket, size = packedMsg.ByteSize(),
-                              handler](const boost::system::error_code& error, std::size_t bytes) {
-                                 std::cout << "wrote " << bytes << "\n";
+                             [this, &socket, size = packedMsg.ByteSize(), handler,
+                              client](const boost::system::error_code& error, std::size_t bytes) {
                                  if (!error)
                                  {
                                      boost::asio::async_write(
                                          socket, boost::asio::buffer(serializedMessage_.get(), size),
-                                         [handler](const boost::system::error_code& error, std::size_t bytes) {
+                                         [handler, client](const boost::system::error_code& error, std::size_t bytes) {
                                              if (!error)
                                              {
                                                  handler();
@@ -34,14 +35,14 @@ void NetworkMessage::WriteToNetwork(const google::protobuf::Message& message,
                                              else
                                              {
                                                  std::string message = error.message();
-                                                 throw std::runtime_error(message);
+                                                 BOOST_LOG_TRIVIAL(info) << client << " " << message;
                                              }
                                          });
                                  }
                                  else
                                  {
                                      std::string message = error.message();
-                                     throw std::runtime_error(message);
+                                     BOOST_LOG_TRIVIAL(info) << client << " " << message;
                                  }
                              });
 }
@@ -54,9 +55,10 @@ void NetworkMessage::WriteToNetwork(const google::protobuf::Message& message,
 void NetworkMessage::ReadFromNetwork(boost::asio::ip::tcp::socket& socket,
                                      std::function<void(google::protobuf::Any)> handler)
 {
+    std::string client = socket.remote_endpoint().address().to_string();
     boost::asio::async_read(
         socket, boost::asio::buffer(lengthBuffer_, 4),
-        [this, &socket, handler](const boost::system::error_code& error, std::size_t bytes) {
+        [this, &socket, handler, client](const boost::system::error_code& error, std::size_t bytes) {
             if (!error)
             {
                 int32_t readSize = *(reinterpret_cast<const int32_t*>(lengthBuffer_.data()));
@@ -64,7 +66,7 @@ void NetworkMessage::ReadFromNetwork(boost::asio::ip::tcp::socket& socket,
                 serializedMessage_ = std::unique_ptr<char[]>(new char[readSize]);
                 boost::asio::async_read(
                     socket, boost::asio::buffer(serializedMessage_.get(), readSize),
-                    [this, &socket, readSize, handler](const boost::system::error_code& error, std::size_t bytes) {
+                    [this, readSize, handler, client](const boost::system::error_code& error, std::size_t bytes) {
                         if (!error)
                         {
                             google::protobuf::Any ret;
@@ -77,14 +79,14 @@ void NetworkMessage::ReadFromNetwork(boost::asio::ip::tcp::socket& socket,
                         else
                         {
                             std::string message = error.message();
-                            throw std::runtime_error(message);
+                            BOOST_LOG_TRIVIAL(info) << client << " " << message;
                         }
                     });
             }
             else
             {
                 std::string message = error.message();
-                throw std::runtime_error(message);
+                BOOST_LOG_TRIVIAL(info) << client << " " << message;
             }
         });
 }
@@ -97,11 +99,17 @@ void NetworkMessage::WriteRaw(boost::asio::ip::tcp::socket& socket,
 {
     int32_t elementSize = GetDataTypeSize(dataType);
     int32_t totalSize = elementCount * elementSize;
+    std::string client = socket.remote_endpoint().address().to_string();
     boost::asio::async_write(socket, boost::asio::buffer(dataBuffer, totalSize),
-                             [handler](const boost::system::error_code& error, std::size_t bytes) {
+                             [client, handler](const boost::system::error_code& error, std::size_t bytes) {
                                  if (!error)
                                  {
                                      handler();
+                                 }
+                                 else
+                                 {
+                                     std::string message = error.message();
+                                     BOOST_LOG_TRIVIAL(info) << client << " " << message;
                                  }
                              });
 }
@@ -114,12 +122,18 @@ void NetworkMessage::ReadRaw(boost::asio::ip::tcp::socket& socket,
 {
     int32_t elementSize = GetDataTypeSize(dataType);
     int32_t totalSize = elementCount * elementSize;
+    std::string client = socket.remote_endpoint().address().to_string();
     boost::asio::async_read(socket, boost::asio::buffer(dataBuffer, totalSize),
-                            [handler, dataBuffer,
-                             elementCount](const boost::system::error_code& error, std::size_t bytes) {
+                            [handler, dataBuffer, elementCount,
+                             client](const boost::system::error_code& error, std::size_t bytes) {
                                 if (!error)
                                 {
                                     handler(dataBuffer, elementCount);
+                                }
+                                else
+                                {
+                                    std::string message = error.message();
+                                    BOOST_LOG_TRIVIAL(info) << client << " " << message;
                                 }
                             });
 }

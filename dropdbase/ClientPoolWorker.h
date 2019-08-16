@@ -19,6 +19,8 @@ private:
     NetworkMessage networkMessage_;
 
 	void HandleMessage(std::shared_ptr<ITCPWorker> self, google::protobuf::Any& recvMsg);
+    boost::asio::steady_timer socketDeadline_;
+    void OnTimeout(boost::asio::steady_timer& deadline);
 
 public:
     /// <summary>
@@ -38,7 +40,7 @@ public:
     // Inherited via ITCPWorker
     virtual void Abort() override;
 
-	inline bool HasStopped()
+	inline bool HasStopped() const
 	{
 		return !socket_.is_open();
 	}
