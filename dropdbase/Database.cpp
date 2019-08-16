@@ -741,7 +741,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
                     byteIndex += entryByteLength;
                 }
-
+				data.release();
                 auto& block = columnPolygon.AddBlock(dataPolygon, groupId);
                 block.SetNullBitmask(std::move(nullBitMask));
                 BOOST_LOG_TRIVIAL(debug) << "Added ComplexPolygon block with data at index: " << index;
@@ -833,7 +833,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
                     byteIndex += entryByteLength;
                 }
-
+				data.release();
                 auto& block = columnPoint.AddBlock(dataPoint, groupId);
                 block.SetNullBitmask(std::move(nullBitMask));
 
@@ -914,7 +914,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
                     byteIndex += entryByteLength;
                 }
-
+				data.release();
                 auto& block = columnString.AddBlock(dataString, groupId);
                 block.SetNullBitmask(std::move(nullBitMask));
 
