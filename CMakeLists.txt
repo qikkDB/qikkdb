@@ -5,9 +5,11 @@ set(PROJECT_NAME dropdbase_instarea)
 project(${PROJECT_NAME} LANGUAGES C CXX CUDA)
 set(CMAKE_CXX_STANDARD 17)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 include(GetGitRevisionDescription)
+
 get_git_head_revision(GIT_BRANCH GIT_COMMIT_HASH)
-git_describe(GIT_VERSION --tags)
+git_describe(GIT_VERSION --tags --dirty --broken)
 if(GIT_VERSION MATCHES "^R[0-9]+\.[0-9]+$")
   set(GIT_BRANCH "")
 else(GIT_VERSION MATCHES "^R[0-9]+\.[0-9]+$")
@@ -17,7 +19,6 @@ configure_file(
   ${CMAKE_SOURCE_DIR}/dropdbase/Version.h.in
   ${CMAKE_BINARY_DIR}/generated/Version.h
 )
-
 
 include_directories(${CMAKE_BINARY_DIR}/generated)
 
