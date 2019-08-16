@@ -985,15 +985,11 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             }
             else // read data from block
             {
-                std::unique_ptr<char[]> data(new char[dataLength * sizeof(int8_t)]);
-                int8_t* dataTemp;
+                std::vector<int8_t> data(dataLength, 0);
 
-                colFile.read(data.get(), dataLength * sizeof(int8_t)); // read entry data
+                colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(int8_t)); // read entry data
 
-                dataTemp = reinterpret_cast<int8_t*>(data.get());
-                std::vector<int8_t> dataInt(dataTemp, dataTemp + dataLength);
-
-                auto& block = columnInt.AddBlock(dataInt, groupId, false, static_cast<bool>(isCompressed));
+                auto& block = columnInt.AddBlock(data, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -1064,15 +1060,11 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             }
             else // read data from block
             {
-                std::unique_ptr<char[]> data(new char[dataLength * sizeof(int32_t)]);
-                int32_t* dataTemp;
+                std::vector<int32_t> data(dataLength, 0);
 
-                colFile.read(data.get(), dataLength * sizeof(int32_t)); // read entry data
+                colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(int32_t)); // read entry data
 
-                dataTemp = reinterpret_cast<int32_t*>(data.get());
-                std::vector<int32_t> dataInt(dataTemp, dataTemp + dataLength);
-
-                auto& block = columnInt.AddBlock(dataInt, groupId, false, static_cast<bool>(isCompressed));
+                auto& block = columnInt.AddBlock(data, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -1143,15 +1135,11 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             }
             else // read data from block
             {
-                std::unique_ptr<char[]> data(new char[dataLength * sizeof(int64_t)]);
-                int64_t* dataTemp;
+                std::vector<int64_t> data(dataLength, 0);
 
-                colFile.read(data.get(), dataLength * sizeof(int64_t)); // read entry data
+                colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(int64_t)); // read entry data   
 
-                dataTemp = reinterpret_cast<int64_t*>(data.get());
-                std::vector<int64_t> dataLong(dataTemp, dataTemp + dataLength);
-
-                auto& block = columnLong.AddBlock(dataLong, groupId, false, static_cast<bool>(isCompressed));
+                auto& block = columnLong.AddBlock(data, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -1222,15 +1210,11 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             }
             else // read data from block
             {
-                std::unique_ptr<char[]> data(new char[dataLength * sizeof(float)]);
-                float* dataTemp;
+                std::vector<float> data(dataLength, 0);
 
-                colFile.read(data.get(), dataLength * sizeof(float)); // read entry data
+                colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(float)); // read entry data
 
-                dataTemp = reinterpret_cast<float*>(data.get());
-                std::vector<float> dataFloat(dataTemp, dataTemp + dataLength);
-
-                auto& block = columnFloat.AddBlock(dataFloat, groupId, false, static_cast<bool>(isCompressed));
+                auto& block = columnFloat.AddBlock(data, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -1301,16 +1285,11 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
             }
             else // read data from block
             {
-                std::unique_ptr<char[]> data(new char[dataLength * sizeof(double)]);
-                double* dataTemp;
+                std::vector<double> data(dataLength, 0);
 
-                colFile.read(data.get(), dataLength * sizeof(double)); // read entry data
+                colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(double)); // read entry data
 
-                dataTemp = reinterpret_cast<double*>(data.get());
-                std::vector<double> dataDouble(dataTemp, dataTemp + dataLength);
-
-                auto& block =
-                    columnDouble.AddBlock(dataDouble, groupId, false, static_cast<bool>(isCompressed));
+                auto& block = columnDouble.AddBlock(data, groupId, false, static_cast<bool>(isCompressed));
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
