@@ -213,7 +213,7 @@ void ColumnBase<int8_t>::setColumnStatistics()
     avg_ = sum_ / std::accumulate(numOfDataInBlocks.begin(), numOfDataInBlocks.end(), (float)0.0);
 }
 
-template<>
+template <>
 void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 {
     auto toType = destinationColumn->GetColumnType();
@@ -605,7 +605,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
     }
 }
 
-template<>
+template <>
 void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationColumn)
 {
     auto toType = destinationColumn->GetColumnType();
@@ -663,7 +663,7 @@ void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationC
     }
 }
 
-template<>
+template <>
 void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* destinationColumn)
 {
     auto toType = destinationColumn->GetColumnType();

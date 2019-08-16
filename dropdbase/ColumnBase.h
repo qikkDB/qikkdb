@@ -154,11 +154,11 @@ public:
     {
         return saveNecessary_;
     }
-    
+
     virtual void SetColumnName(std::string newName) override
     {
         name_ = newName;
-	}
+    }
 
     static std::vector<T> NullArray(int length);
 
@@ -241,7 +241,7 @@ public:
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
-	virtual size_t GetBlockSize(int32_t blockIndex) const override
+    virtual size_t GetBlockSize(int32_t blockIndex) const override
     {
         return (GetBlocksList()[blockIndex])->GetSize();
     }
@@ -534,9 +534,9 @@ public:
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
-                    
+
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-                    
+
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         int bitMaskIdx = (j / (sizeof(char) * 8));
@@ -578,7 +578,7 @@ public:
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
-                    
+
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
 
                     for (int32_t j = 0; j < blockSize; j++)
@@ -611,7 +611,7 @@ public:
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<double> castedDataToCopy;
                     std::vector<int8_t> newNullMask;
-                    
+
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         double data = static_cast<double>(dataToCopy[j]);
@@ -622,7 +622,7 @@ public:
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
-                    
+
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
 
                     for (int32_t j = 0; j < blockSize; j++)
@@ -633,7 +633,7 @@ public:
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
-                   block.second.erase(block.second.begin());
+                    block.second.erase(block.second.begin());
                 }
             }
         }
@@ -655,7 +655,7 @@ public:
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<float> castedDataToCopy;
                     std::vector<int8_t> newNullMask;
-                    
+
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         float data = static_cast<float>(dataToCopy[j]);
@@ -666,7 +666,7 @@ public:
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
-                    
+
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
 
                     for (int32_t j = 0; j < blockSize; j++)
@@ -699,7 +699,7 @@ public:
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<int8_t> castedDataToCopy;
                     std::vector<int8_t> newNullMask;
-                    
+
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         int8_t data = static_cast<int8_t>(dataToCopy[j]);
@@ -710,7 +710,7 @@ public:
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
-                    
+
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
 
                     for (int32_t j = 0; j < blockSize; j++)
@@ -743,7 +743,7 @@ public:
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<std::string> castedDataToCopy;
                     std::vector<int8_t> newNullMask;
-                    
+
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         std::string data = std::to_string(dataToCopy[j]);
@@ -754,7 +754,7 @@ public:
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
-                    
+
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
 
                     for (int32_t j = 0; j < blockSize; j++)
@@ -772,8 +772,7 @@ public:
         break;
 
         default:
-            throw std::runtime_error(
-                            "Attempt to execute unsupported column type conversion.");
+            throw std::runtime_error("Attempt to execute unsupported column type conversion.");
             break;
         }
     }
@@ -806,11 +805,61 @@ public:
     }
 };
 
-template<>
+template <>
 void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn);
 
-template<>
+template <>
 void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationColumn);
 
-template<>
+template <>
 void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* destinationColumn);
+
+template <>
+std::vector<int32_t> ColumnBase<int32_t>::NullArray(int length);
+
+template <>
+std::vector<float> ColumnBase<float>::NullArray(int length);
+
+template <>
+std::vector<int64_t> ColumnBase<int64_t>::NullArray(int length);
+
+template <>
+std::vector<double> ColumnBase<double>::NullArray(int length);
+
+template <>
+std::vector<int8_t> ColumnBase<int8_t>::NullArray(int length);
+
+template <>
+std::vector<std::string> ColumnBase<std::string>::NullArray(int length);
+
+template <>
+std::vector<ColmnarDB::Types::Point> ColumnBase<ColmnarDB::Types::Point>::NullArray(int length);
+
+template <>
+std::vector<ColmnarDB::Types::ComplexPolygon>
+ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(int length);
+
+template <>
+void ColumnBase<int64_t>::setColumnStatistics();
+
+template <>
+void ColumnBase<float>::setColumnStatistics();
+
+template <>
+void ColumnBase<double>::setColumnStatistics();
+
+template <>
+void ColumnBase<ColmnarDB::Types::Point>::setColumnStatistics();
+
+template <>
+void ColumnBase<ColmnarDB::Types::ComplexPolygon>::setColumnStatistics();
+
+template <>
+void ColumnBase<std::string>::setColumnStatistics();
+
+template <>
+void ColumnBase<int8_t>::setColumnStatistics();
+
+template class ColumnBase<std::string>;
+template class ColumnBase<ColmnarDB::Types::Point>;
+template class ColumnBase<ColmnarDB::Types::ComplexPolygon>;
