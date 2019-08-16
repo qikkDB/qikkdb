@@ -563,5 +563,8 @@ int main(int argc, char** argv)
     {
         Database::RemoveFromInMemoryDatabaseList(db.c_str());
     }
+
+    BOOST_LOG_TRIVIAL(info) << "TellStoryDB exited.";
+	boost::log::core::get()->remove_all_sinks();
     return 0;
 }
