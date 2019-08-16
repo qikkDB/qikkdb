@@ -21,7 +21,12 @@ ClientPoolWorker::ClientPoolWorker(std::unique_ptr<IClientHandler>&& clientHandl
 : ITCPWorker(std::move(clientHandler), std::move(socket), requestTimeout),
   dataBuffer_(std::make_unique<char[]>(MAXIMUM_BULK_FRAGMENT_SIZE)),
   nullBuffer_(std::make_unique<char[]>(NULL_BUFFER_SIZE)),
-  networkMessage_(), socketDeadline_{socket.get_executor()}
+  networkMessage_(), 
+#if BOOST_VERSION < 107000
+	socketDeadline_{socket.get_executor().context()} 
+#else
+	socketDeadline_{ socket.get_executor()}
+#endif
 {
     socketDeadline_.expires_at(boost::asio::steady_timer::time_point::max());
 }
