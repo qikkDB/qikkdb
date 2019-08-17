@@ -311,6 +311,36 @@ void bulkImport(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& con
     ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
 }
 
+void heartbeat(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& context)
+{
+	NetworkMessage networkMessage;
+	ColmnarDB::NetworkClient::Message::InfoMessage heartbeat;
+	heartbeat.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::HEARTBEAT);
+	heartbeat.set_message("");
+	std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
+	networkMessage.WriteToNetwork(heartbeat, sock, [&sock, &promise, &networkMessage]() {
+		networkMessage.ReadFromNetwork(sock, [&promise](google::protobuf::Any ret) {
+			ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+			if (!ret.UnpackTo(&infoMessage))
+			{
+				promise.set_exception(
+					std::make_exception_ptr(std::domain_error("Invalid message received")));
+			}
+			else
+			{
+				promise.set_value(infoMessage);
+			}
+			});
+		});
+	auto future = promise.get_future();
+	while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+	{
+		context.poll();
+		context.restart();
+	}
+	ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+}
+
 TEST(TCPServer, ServerMessageInfo)
 {
     try
@@ -330,6 +360,28 @@ TEST(TCPServer, ServerMessageInfo)
     {
         ASSERT_TRUE(false);
     }
+}
+
+TEST(TCPServer, ServerMessageInfoHeartbeat)
+{
+	try
+	{
+		printf("\ServerMessageInfoHeartbeat\n");
+		TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
+		auto future = std::thread([&testServer]() { testServer.Run(); });
+		boost::asio::io_context context;
+		auto sock = connectSocketToTestServer(context);
+		ASSERT_NO_THROW(connect(sock, context));
+		ASSERT_NO_THROW(heartbeat(sock, context));
+		ASSERT_NO_THROW(disconnect(sock, context));
+		testServer.Abort();
+		future.join();
+		printf("\ServerMessageInfoHeartbeat\n");
+	}
+	catch (...)
+	{
+		ASSERT_TRUE(false);
+	}
 }
 
 TEST(TCPServer, ServerMessageSetDB)
