@@ -1,0 +1,30 @@
+syntax = "proto3";
+package ColmnarDB.NetworkClient.Message;
+
+enum DataType {
+	CONST_INT = 0;
+	CONST_ERROR = -1;
+	CONST_LONG = 1;
+	CONST_FLOAT = 2;
+	CONST_DOUBLE = 3;
+	CONST_POINT = 4;
+	CONST_POLYGON = 5;
+	CONST_STRING = 6;
+	CONST_INT8_T = 7;
+	COLUMN_INT = 8;
+	COLUMN_LONG = 9;
+	COLUMN_FLOAT = 10;
+	COLUMN_DOUBLE = 11;
+	COLUMN_POINT = 12;
+	COLUMN_POLYGON = 13;
+	COLUMN_STRING = 14;
+	COLUMN_INT8_T = 15;
+	DATA_TYPE_SIZE = 16;
+}
+
+message CSVImportMessage {
+    string DatabaseName = 1;
+    string CSVName = 2;
+    string Payload = 3;
+    repeated DataType ColumnTypes = 4;
+}

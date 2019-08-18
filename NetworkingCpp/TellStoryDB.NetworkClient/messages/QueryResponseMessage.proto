@@ -1,0 +1,52 @@
+syntax = "proto3";
+package ColmnarDB.NetworkClient.Message;
+
+import "Types/ComplexPolygon.proto";
+import "Types/Point.proto";
+
+message QueryResponseIntPayload {
+    repeated int32 intData = 1;
+}
+
+message QueryResponseInt64Payload {
+    repeated int64 int64Data = 1;
+}
+
+message QueryResponseFloatPayload {
+    repeated float floatData = 1;
+}
+
+message QueryResponseDoublePayload {
+    repeated double doubleData = 1;
+}
+
+message QueryResponsePolygonPayload {
+    repeated ColmnarDB.Types.ComplexPolygon polygonData = 1;
+}
+
+message QueryResponsePointPayload {
+    repeated ColmnarDB.Types.Point pointData = 1;
+}
+
+message QueryResponseStringPayload {
+    repeated string stringData = 1;
+}
+
+message QueryResponsePayload {
+    oneof payload {
+        QueryResponseIntPayload intPayload = 2;
+        QueryResponseFloatPayload floatPayload = 3;
+        QueryResponseInt64Payload int64Payload = 4;
+        QueryResponseDoublePayload doublePayload = 5;
+        QueryResponsePointPayload pointPayload = 6;
+        QueryResponsePolygonPayload polygonPayload = 7;
+        QueryResponseStringPayload stringPayload = 8;
+    }
+}
+
+
+message QueryResponseMessage {
+    map<string, QueryResponsePayload> payloads = 1;
+    map<string, bytes> nullBitMasks = 3;
+    map<string,float> timing = 2;
+}
