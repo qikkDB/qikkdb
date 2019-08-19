@@ -49,6 +49,8 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
                                             int32_t* LLPolygonBBufferSizes,
                                             GPUMemory::GPUPolygon polygonA,
                                             GPUMemory::GPUPolygon polygonB,
+                                            bool isAConst,
+                                            bool isBConst,
                                             int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -56,11 +58,14 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        int32_t polyIdxA = GPUMemory::PolyIdxAt(polygonA, i);
-        int32_t polyCountA = GPUMemory::PolyCountAt(polygonA, i);
+        int32_t iAIdx = isAConst ? 0 : i;
+        int32_t iBIdx = isBConst ? 0 : i;
 
-        int32_t polyIdxB = GPUMemory::PolyIdxAt(polygonB, i);
-        int32_t polyCountB = GPUMemory::PolyCountAt(polygonB, i);
+        int32_t polyIdxA = GPUMemory::PolyIdxAt(polygonA, iAIdx);
+        int32_t polyCountA = GPUMemory::PolyCountAt(polygonA, iAIdx);
+
+        int32_t polyIdxB = GPUMemory::PolyIdxAt(polygonB, iBIdx);
+        int32_t polyCountB = GPUMemory::PolyCountAt(polygonB, iBIdx);
 
         int32_t intersectCount = 0;
         for (int32_t a = polyIdxA; a < (polyIdxA + polyCountA); a++)
@@ -94,8 +99,8 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
         }
 
         // Get the complex polygon vertex counts n and k
-        int32_t n = GPUMemory::TotalPointCountAt(polygonA, i);
-        int32_t k = GPUMemory::TotalPointCountAt(polygonB, i);
+        int32_t n = GPUMemory::TotalPointCountAt(polygonA, iAIdx);
+        int32_t k = GPUMemory::TotalPointCountAt(polygonB, iBIdx);
 
         // Assign the calculated buffers size
         LLPolygonABufferSizes[i] = n + intersectCount;
@@ -106,6 +111,7 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
 __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                                 GPUMemory::GPUPolygon polygon,
                                 int32_t* LLPolygonBufferSizesPrefixSum,
+                                bool isConst,
                                 int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -113,10 +119,12 @@ __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
+        int32_t iIdx = isConst ? 0 : i;
+
         int32_t LLPolygonEndIdx = 0;
 
-        int32_t polyIdx = GPUMemory::PolyIdxAt(polygon, i);
-        int32_t polyCount = GPUMemory::PolyCountAt(polygon, i);
+        int32_t polyIdx = GPUMemory::PolyIdxAt(polygon, iIdx);
+        int32_t polyCount = GPUMemory::PolyCountAt(polygon, iIdx);
 
         // Transform polygon
         for (int32_t p = polyIdx; p < (polyIdx + polyCount); p++)
@@ -160,6 +168,8 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex* LLPol
                                                              GPUMemory::GPUPolygon polygonB,
                                                              int32_t* LLPolygonABufferSizesPrefixSum,
                                                              int32_t* LLPolygonBBufferSizesPrefixSum,
+                                                             bool isAConst,
+                                                             bool isBConst,
                                                              int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -167,16 +177,19 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex* LLPol
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
+        int32_t iAIdx = isAConst ? 0 : i;
+        int32_t iBIdx = isBConst ? 0 : i;
+
         // "Pointers" to the element after the last valid element of the linked lists
         // They begin after the last non intersection e.g. poly vertex address
-        int32_t LLPolygonAEndIdx = GPUMemory::TotalPointCountAt(polygonA, i);
-        int32_t LLPolygonBEndIdx = GPUMemory::TotalPointCountAt(polygonB, i);
+        int32_t LLPolygonAEndIdx = GPUMemory::TotalPointCountAt(polygonA, iAIdx);
+        int32_t LLPolygonBEndIdx = GPUMemory::TotalPointCountAt(polygonB, iBIdx);
 
-        int32_t polyIdxA = GPUMemory::PolyIdxAt(polygonA, i);
-        int32_t polyCountA = GPUMemory::PolyCountAt(polygonA, i);
+        int32_t polyIdxA = GPUMemory::PolyIdxAt(polygonA, iAIdx);
+        int32_t polyCountA = GPUMemory::PolyCountAt(polygonA, iAIdx);
 
-        int32_t polyIdxB = GPUMemory::PolyIdxAt(polygonB, i);
-        int32_t polyCountB = GPUMemory::PolyCountAt(polygonB, i);
+        int32_t polyIdxB = GPUMemory::PolyIdxAt(polygonB, iBIdx);
+        int32_t polyCountB = GPUMemory::PolyCountAt(polygonB, iBIdx);
 
         for (int32_t a = polyIdxA; a < (polyIdxA + polyCountA); a++)
         {
@@ -315,6 +328,8 @@ __global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
                                            GPUMemory::GPUPolygon polygonPrimary,
                                            GPUMemory::GPUPolygon polygonSecondary,
                                            int32_t* LLPolygonBufferSizesPrefixSum,
+                                           bool isPrimaryConst,
+                                           bool isSecondaryConst,
                                            int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -322,8 +337,11 @@ __global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        int32_t polyIdx = GPUMemory::PolyIdxAt(polygonPrimary, i);
-        int32_t polyCount = GPUMemory::PolyCountAt(polygonPrimary, i);
+        int32_t iPrimary = isPrimaryConst ? 0 : i;
+        int32_t iSecondary = isSecondaryConst ? 0 : i;
+
+        int32_t polyIdx = GPUMemory::PolyIdxAt(polygonPrimary, iPrimary);
+        int32_t polyCount = GPUMemory::PolyCountAt(polygonPrimary, iPrimary);
 
         for (int32_t p = polyIdx; p < (polyIdx + polyCount); p++)
         {
@@ -338,7 +356,7 @@ __global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
 
             // Check the inclusion of the first point in the other polygon
             bool isPointInPolygon =
-                !is_point_in_complex_polygon_at(LLPolygonBuffers[begIdx].vertex, polygonSecondary, i);
+                !is_point_in_complex_polygon_at(LLPolygonBuffers[begIdx].vertex, polygonSecondary, iSecondary);
 
             int32_t nextIdx = begIdx;
             do

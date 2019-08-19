@@ -86,6 +86,8 @@ std::vector<NativeGeoPoint> polyBpolyPoints = {
 	{-2.94, 2.27}
 };
 
+
+
 template<typename OP>
 void polyTest(std::vector<int32_t> &polyApolyIdx,
 			  std::vector<int32_t> &polyApointsIdx,
@@ -145,7 +147,7 @@ float roundCustom(float var)
     return (float)value / 100; 
 } 
 
-TEST(GPUPolygonClippingTests, IntersectTest)
+TEST(GPUPolygonClippingTests, IntersectColColTest)
 {
 	std::vector<int32_t> outPolyIdx;
 	std::vector<int32_t> outPointIdx;
@@ -244,7 +246,7 @@ TEST(GPUPolygonClippingTests, IntersectTest)
 	}
 }
 
-TEST(GPUPolygonClippingTests, UnionTest)
+TEST(GPUPolygonClippingTests, UnionColColTest)
 {
 	std::vector<int32_t> outPolyIdx;
 	std::vector<int32_t> outPointIdx;
@@ -359,4 +361,34 @@ TEST(GPUPolygonClippingTests, UnionTest)
 		ASSERT_FLOAT_EQ(roundCustom(outPolyPoints[i].latitude), roundCustom(outPolyPointsCorrect[i].latitude));
 		ASSERT_FLOAT_EQ(roundCustom(outPolyPoints[i].longitude), roundCustom(outPolyPointsCorrect[i].longitude));
 	}
+}
+
+TEST(GPUPolygonClippingTests, IntersectColConstTest)
+{
+
+}
+
+TEST(GPUPolygonClippingTests, UnionColConstTest)
+{
+
+}
+
+TEST(GPUPolygonClippingTests, IntersectConstColTest)
+{
+
+}
+
+TEST(GPUPolygonClippingTests, UnionConstColTest)
+{
+	
+}
+
+TEST(GPUPolygonClippingTests, IntersectConstConstTest)
+{
+
+}
+
+TEST(GPUPolygonClippingTests, UnionConstConstTest)
+{
+	
 }

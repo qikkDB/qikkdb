@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <algorithm>
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -105,12 +106,15 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
                                             int32_t* LLPolygonBBufferSizes,
                                             GPUMemory::GPUPolygon polygonA,
                                             GPUMemory::GPUPolygon polygonB,
+                                            bool isAConst,
+                                            bool isBConst,
                                             int32_t dataElementCount);
 
 // Build the linked lists from the polygons
 __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                                 GPUMemory::GPUPolygon polygon,
                                 int32_t* LLPolygonBufferSizesPrefixSum,
+                                bool isConst,
                                 int32_t dataElementCount);
 
 // Insert the intersections into the linked lists and cross link the intersections between complex polygons
@@ -120,6 +124,8 @@ __global__ void kernel_add_and_crosslink_intersections_to_LL(LLPolyVertex* LLPol
                                                              GPUMemory::GPUPolygon polygonB,
                                                              int32_t* LLPolygonABufferSizesPrefixSum,
                                                              int32_t* LLPolygonBBufferSizesPrefixSum,
+                                                             bool isAConst,
+                                                             bool isBConst,
                                                              int32_t dataElementCount);
 
 // Check if a point is withing a complex polygon at a given index
@@ -131,6 +137,8 @@ __global__ void kernel_label_intersections(LLPolyVertex* LLPolygonBuffers,
                                            GPUMemory::GPUPolygon polygonPrimary,
                                            GPUMemory::GPUPolygon polygonSecondary,
                                            int32_t* LLPolygonBufferSizesPrefixSum,
+                                           bool isPrimaryConst,
+                                           bool isSecondaryConst,
                                            int32_t dataElementCount);
 
 // Clip the polygons in different phases
@@ -146,6 +154,8 @@ __device__ void clip_polygons(int32_t* polyCount,
                               GPUMemory::GPUPolygon polygonB,
                               int32_t* LLPolygonABufferSizesPrefixSum,
                               int32_t* LLPolygonBBufferSizesPrefixSum,
+                              bool isAConst,
+                              bool isBConst,
                               int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -153,9 +163,12 @@ __device__ void clip_polygons(int32_t* polyCount,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
+        int32_t iAIdx = isAConst ? 0 : i;
+        int32_t iBIdx = isBConst ? 0 : i;
+
         // Get the complex polygon vertex counts n and k
-        int32_t n = GPUMemory::TotalPointCountAt(polygonA, i);
-        int32_t k = GPUMemory::TotalPointCountAt(polygonB, i);
+        int32_t n = GPUMemory::TotalPointCountAt(polygonA, iAIdx);
+        int32_t k = GPUMemory::TotalPointCountAt(polygonB, iBIdx);
 
         int32_t begIdxA = ((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + n;
         int32_t endIdxA = LLPolygonABufferSizesPrefixSum[i] - 1;
@@ -196,8 +209,7 @@ __device__ void clip_polygons(int32_t* polyCount,
                         {
                             int32_t poly_idx = i;
                             int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + componentCount);
-                            int32_t polyPoint_idx =
-                                (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + subComponentCount);
+                            int32_t polyPoint_idx = (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + subComponentCount);
                             polyPoints[polyPoint_idx] = LLPolygonBuffersTable[turnNumber][nextIdx].vertex;
                         }
 
@@ -258,11 +270,13 @@ __global__ void kernel_clip_polyIdx(int32_t* polyCount,
                                     GPUMemory::GPUPolygon polygonB,
                                     int32_t* LLPolygonABufferSizesPrefixSum,
                                     int32_t* LLPolygonBBufferSizesPrefixSum,
+                                    bool isAConst,
+                                    bool isBConst,
                                     int32_t dataElementCount)
 {
     clip_polygons<OP>(polyCount, nullptr, nullptr, nullptr, nullptr, LLPolygonABuffers,
                       LLPolygonBBuffers, polygonA, polygonB, LLPolygonABufferSizesPrefixSum,
-                      LLPolygonBBufferSizesPrefixSum, dataElementCount);
+                      LLPolygonBBufferSizesPrefixSum, isAConst, isBConst, dataElementCount);
 }
 
 // Reconstruct the pointIdx of the result polygon
@@ -276,11 +290,13 @@ __global__ void kernel_clip_pointIdx(int32_t* polyCount,
                                      GPUMemory::GPUPolygon polygonB,
                                      int32_t* LLPolygonABufferSizesPrefixSum,
                                      int32_t* LLPolygonBBufferSizesPrefixSum,
+                                     bool isAConst,
+                                     bool isBConst,
                                      int32_t dataElementCount)
 {
     clip_polygons<OP>(polyCount, polyIdx, pointCount, nullptr, nullptr, LLPolygonABuffers,
                       LLPolygonBBuffers, polygonA, polygonB, LLPolygonABufferSizesPrefixSum,
-                      LLPolygonBBufferSizesPrefixSum, dataElementCount);
+                      LLPolygonBBufferSizesPrefixSum, isAConst, isBConst, dataElementCount);
 }
 
 // Reconstruc the polyPoints of the result polygon
@@ -296,24 +312,31 @@ __global__ void kernel_clip_polyPoints(int32_t* polyCount,
                                        GPUMemory::GPUPolygon polygonB,
                                        int32_t* LLPolygonABufferSizesPrefixSum,
                                        int32_t* LLPolygonBBufferSizesPrefixSum,
+                                       bool isAConst,
+                                       bool isBConst,
                                        int32_t dataElementCount)
 {
     clip_polygons<OP>(polyCount, polyIdx, pointCount, pointIdx, polyPoints, LLPolygonABuffers,
                       LLPolygonBBuffers, polygonA, polygonB, LLPolygonABufferSizesPrefixSum,
-                      LLPolygonBBufferSizesPrefixSum, dataElementCount);
+                      LLPolygonBBufferSizesPrefixSum, isAConst, isBConst, dataElementCount);
 }
 
 class GPUPolygonClipping
 {
-public:
-    // This method expects polygonOut to be with unallocated arrays !!!
-    // returns - isEmpty
-    template <typename OP>
-    static bool ColCol(GPUMemory::GPUPolygon& polygonOut,
-                       GPUMemory::GPUPolygon& polygonAin,
-                       GPUMemory::GPUPolygon& polygonBin,
-                       int32_t dataElementCount)
+private:
+template<typename OP>
+    static void clip(GPUMemory::GPUPolygon& polygonOut,
+                     GPUMemory::GPUPolygon& polygonAin,
+                     GPUMemory::GPUPolygon& polygonBin,
+                     int32_t dataElementCountA,
+                     int32_t dataElementCountB)
     {
+        // Choose the kernel grid size
+        int32_t dataElementCount = std::max(dataElementCountA, dataElementCountB);
+
+        bool isAConst = (dataElementCountA == 1);
+        bool isBConst = (dataElementCountB == 1);
+
         // Create buffers for the linked lists
         cuda_ptr<int32_t> LLPolygonABufferSizes(dataElementCount);
         cuda_ptr<int32_t> LLPolygonBBufferSizes(dataElementCount);
@@ -321,7 +344,7 @@ public:
         // Calcualte the required buffer sizes
         kernel_calc_LL_buffers_size<<<Context::getInstance().calcGridDim(dataElementCount),
                                       Context::getInstance().getBlockDimPoly()>>>(
-            LLPolygonABufferSizes.get(), LLPolygonBBufferSizes.get(), polygonAin, polygonBin, dataElementCount);
+            LLPolygonABufferSizes.get(), LLPolygonBBufferSizes.get(), polygonAin, polygonBin, isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         // Calculate the inclusive prefix sum for the LL buffer sizes counters for adressing purpose
@@ -349,6 +372,7 @@ public:
         kernel_build_LL<<<Context::getInstance().calcGridDim(dataElementCount),
                           Context::getInstance().getBlockDim()>>>(LLPolygonABuffers.get(), polygonAin,
                                                                   LLPolygonABufferSizesPrefixSum.get(),
+                                                                  isAConst,
                                                                   dataElementCount);
         CheckCudaError(cudaGetLastError());
 
@@ -356,6 +380,7 @@ public:
         kernel_build_LL<<<Context::getInstance().calcGridDim(dataElementCount),
                           Context::getInstance().getBlockDim()>>>(LLPolygonBBuffers.get(), polygonBin,
                                                                   LLPolygonBBufferSizesPrefixSum.get(),
+                                                                  isBConst,
                                                                   dataElementCount);
         CheckCudaError(cudaGetLastError());
 
@@ -363,19 +388,19 @@ public:
         kernel_add_and_crosslink_intersections_to_LL<<<Context::getInstance().calcGridDim(dataElementCount),
                                                        Context::getInstance().getBlockDim()>>>(
             LLPolygonABuffers.get(), LLPolygonBBuffers.get(), polygonAin, polygonBin,
-            LLPolygonABufferSizesPrefixSum.get(), LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
+            LLPolygonABufferSizesPrefixSum.get(), LLPolygonBBufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         // Decide which intersection points are entry points and whoch ones are exit points
         // and label them accordingly
         kernel_label_intersections<<<Context::getInstance().calcGridDim(dataElementCount),
                                      Context::getInstance().getBlockDim()>>>(
-            LLPolygonABuffers.get(), polygonAin, polygonBin, LLPolygonABufferSizesPrefixSum.get(), dataElementCount);
+            LLPolygonABuffers.get(), polygonAin, polygonBin, LLPolygonABufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         kernel_label_intersections<<<Context::getInstance().calcGridDim(dataElementCount),
                                      Context::getInstance().getBlockDim()>>>(
-            LLPolygonBBuffers.get(), polygonBin, polygonAin, LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
+            LLPolygonBBuffers.get(), polygonBin, polygonAin, LLPolygonBBufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         // Process the polyIdx array
@@ -384,7 +409,7 @@ public:
         kernel_clip_polyIdx<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                 polyCount.get(), LLPolygonABuffers.get(), LLPolygonBBuffers.get(), polygonAin, polygonBin,
-                LLPolygonABufferSizesPrefixSum.get(), LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
+                LLPolygonABufferSizesPrefixSum.get(), LLPolygonBBufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         GPUMemory::alloc(&(polygonOut.polyIdx), dataElementCount);
@@ -401,7 +426,7 @@ public:
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                 polyCount.get(), polygonOut.polyIdx, pointCount.get(), LLPolygonABuffers.get(),
                 LLPolygonBBuffers.get(), polygonAin, polygonBin, LLPolygonABufferSizesPrefixSum.get(),
-                LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
+                LLPolygonBBufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         GPUMemory::alloc(&(polygonOut.pointIdx), pointIdxSize);
@@ -419,10 +444,21 @@ public:
                 polyCount.get(), polygonOut.polyIdx, pointCount.get(), polygonOut.pointIdx,
                 polygonOut.polyPoints, LLPolygonABuffers.get(), LLPolygonBBuffers.get(), polygonAin,
                 polygonBin, LLPolygonABufferSizesPrefixSum.get(),
-                LLPolygonBBufferSizesPrefixSum.get(), dataElementCount);
+                LLPolygonBBufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
+    }
 
-        return true;
+public:
+    // This method expects polygonOut to be with unallocated arrays !!!
+    // returns - isEmpty
+    template <typename OP>
+    static bool ColCol(GPUMemory::GPUPolygon& polygonOut,
+                       GPUMemory::GPUPolygon& polygonAin,
+                       GPUMemory::GPUPolygon& polygonBin,
+                       int32_t dataElementCount)
+    {
+        clip<OP>(polygonOut, polygonAin, polygonBin, dataElementCount, dataElementCount);
+        return false;
     }
     template <typename OP>
     static bool ColConst(GPUMemory::GPUPolygon& polygonOut,
@@ -430,6 +466,7 @@ public:
                          GPUMemory::GPUPolygon& polygonBinConst,
                          int32_t dataElementCount)
     {
+        clip<OP>(polygonOut, polygonAin, polygonBinConst, dataElementCount, 1);
         return false;
     }
 
@@ -439,6 +476,7 @@ public:
                          GPUMemory::GPUPolygon& polygonBin,
                          int32_t dataElementCount)
     {
+        clip<OP>(polygonOut, polygonAinConst, polygonBin, 1, dataElementCount);
         return false;
     }
 
@@ -448,6 +486,7 @@ public:
                            GPUMemory::GPUPolygon& polygonBinConst,
                            int32_t dataElementCount)
     {
+        clip<OP>(polygonOut, polygonAinConst, polygonBinConst, 1, 1);
         return false;
     }
 };
