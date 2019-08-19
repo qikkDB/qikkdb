@@ -12,6 +12,14 @@
 
 int32_t dataElementCount = 3;
 
+std::vector<int32_t> polyApolyIdxConst = {};
+std::vector<int32_t> polyApointsIdxConst = {};
+std::vector<NativeGeoPoint> polyApolyPointsConst= {};
+
+std::vector<int32_t> polyBpolyIdxConst = {};
+std::vector<int32_t> polyBpointsIdxConst = {};
+std::vector<NativeGeoPoint> polyBpolyPointsConst= {};
+
 std::vector<int32_t> polyApolyIdx = {3, 4, 7};
 std::vector<int32_t> polyApointsIdx = {4, 8, 12, 15, 22, 27, 31};
 std::vector<NativeGeoPoint> polyApolyPoints = {
@@ -33,7 +41,7 @@ std::vector<NativeGeoPoint> polyApolyPoints = {
 	{0.00, 0.00},
 	{1.00, 0.00},
 	{0.50, 1.00},
-	
+
 	{-6.31, -1.49},
 	{-4.00, 5.00},
 	{2.13, 6.03},
@@ -98,6 +106,8 @@ void polyTest(std::vector<int32_t> &polyApolyIdx,
 			  std::vector<int32_t> &outPolyIdx,
 			  std::vector<int32_t> &outPointIdx,
 			  std::vector<NativeGeoPoint> &outPolyPoints,
+			  bool isAConst,
+			  bool isBConst,
 			  int32_t dataElementCount)
 {
 	// Alloc the GPU structures
@@ -164,6 +174,8 @@ TEST(GPUPolygonClippingTests, IntersectColColTest)
 		outPolyIdx,
 		outPointIdx,
 		outPolyPoints,
+		false,
+		false,
 		dataElementCount);
 
 	std::vector<int32_t> outPolyIdxCorrect = {3, 4, 9 };
@@ -262,6 +274,8 @@ TEST(GPUPolygonClippingTests, UnionColColTest)
 		outPolyIdx,
 		outPointIdx,
 		outPolyPoints,
+		false,
+		false,
 		dataElementCount);
 
 	std::vector<int32_t> outPolyIdxCorrect = {4, 5, 11};
