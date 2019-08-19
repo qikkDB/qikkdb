@@ -506,7 +506,7 @@ TEST(TableTests, SavingNecessary)
 
 	ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(true, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(false, castedColumn2->GetSaveNecessary());
+    ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
     ASSERT_EQ(true, blockInt.GetSaveNecessary());
-    ASSERT_EQ(false, blockInt2.GetSaveNecessary());
+    ASSERT_EQ(true, blockInt2.GetSaveNecessary());
 }

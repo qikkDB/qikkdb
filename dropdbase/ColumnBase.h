@@ -396,6 +396,7 @@ public:
                     int groupId = -1,
                     bool compress = false)
     {
+        saveNecessary_ = true;
         int startIdx = 0;
         int maskIdx = 0;
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
@@ -470,7 +471,6 @@ public:
             startIdx += toCopy;
         }
         // setColumnStatistics();
-        saveNecessary_ = true;
     }
 
     /// <summary>
