@@ -51,7 +51,7 @@ void Client::Query(const std::string& queryString)
     }
     if (infoMessage.code() != ColmnarDB::NetworkClient::Message::InfoMessage::WAIT)
     {
-        throw std::invalid_argument("Invalid message code received from server");
+        throw std::invalid_argument(infoMessage.message());
     }
 }
 
@@ -63,11 +63,21 @@ Result Client::GetNextQueryResult()
     NetworkMessage::WriteToNetwork(infoMessage, socket_);
     auto response = NetworkMessage::ReadFromNetwork(socket_);
     ColmnarDB::NetworkClient::Message::QueryResponseMessage queryResponse;
+    Result ret;
     if (!response.UnpackTo(&queryResponse))
     {
-        throw std::domain_error("Invalid message received");
+        ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+        if (!response.UnpackTo(&infoMessage))
+        {
+
+            throw std::domain_error("Invalid message received");
+        }
+        if (infoMessage.code() != ColmnarDB::NetworkClient::Message::InfoMessage::OK)
+        {
+            throw std::runtime_error(infoMessage.message());
+		}
+        return ret;
     }
-    Result ret;
     for (auto& timing : queryResponse.timing())
     {
         ret.executionTimes.insert(timing);
@@ -147,8 +157,8 @@ void Client::BulkImport(const std::string& tableName, const std::unordered_map<s
             static_cast<ColmnarDB::NetworkClient::Message::DataType>(column.second.resultType));
         std::unique_ptr<char[]> dataBuff = nullptr;
         size_t dataSize = 0;
-		size_t idx = 0;
-		size_t typeSize = 1;
+        size_t idx = 0;
+        size_t typeSize = 1;
         switch (column.second.resultType)
         {
         case DataType::COLUMN_INT:
@@ -160,7 +170,7 @@ void Client::BulkImport(const std::string& tableName, const std::unordered_map<s
                           std::any_cast<std::vector<int32_t>>(column.second.resultData).data()) +
                           dataSize,
                       dataBuff.get());
-			typeSize = sizeof(int32_t);
+            typeSize = sizeof(int32_t);
             break;
         case DataType::COLUMN_LONG:
             dataSize = std::any_cast<std::vector<int64_t>>(column.second.resultData).size() * sizeof(int64_t);
@@ -171,7 +181,7 @@ void Client::BulkImport(const std::string& tableName, const std::unordered_map<s
                           std::any_cast<std::vector<int64_t>>(column.second.resultData).data()) +
                           dataSize,
                       dataBuff.get());
-			typeSize = sizeof(int64_t);
+            typeSize = sizeof(int64_t);
             break;
         case DataType::COLUMN_FLOAT:
             dataSize = std::any_cast<std::vector<float>>(column.second.resultData).size() * sizeof(float);
@@ -180,9 +190,9 @@ void Client::BulkImport(const std::string& tableName, const std::unordered_map<s
                 reinterpret_cast<char*>(std::any_cast<std::vector<float>>(column.second.resultData).data()),
                 reinterpret_cast<char*>(std::any_cast<std::vector<float>>(column.second.resultData).data()) + dataSize,
                 dataBuff.get());
-			typeSize = sizeof(float);
+            typeSize = sizeof(float);
             break;
-		case DataType::COLUMN_DOUBLE:
+        case DataType::COLUMN_DOUBLE:
             dataSize = std::any_cast<std::vector<double>>(column.second.resultData).size() * sizeof(double);
             dataBuff = std::make_unique<char[]>(dataSize);
             std::copy(reinterpret_cast<char*>(
@@ -191,7 +201,7 @@ void Client::BulkImport(const std::string& tableName, const std::unordered_map<s
                           std::any_cast<std::vector<double>>(column.second.resultData).data()) +
                           dataSize,
                       dataBuff.get());
-			typeSize = sizeof(double);
+            typeSize = sizeof(double);
             break;
         case DataType::COLUMN_STRING:
             for (const auto& str : std::any_cast<std::vector<std::string>>(column.second.resultData))
@@ -199,13 +209,13 @@ void Client::BulkImport(const std::string& tableName, const std::unordered_map<s
                 dataSize += sizeof(int32_t) + str.length();
             }
             dataBuff = std::make_unique<char[]>(dataSize);
-			for (const auto& str : std::any_cast<std::vector<std::string>>(column.second.resultData))
-			{
-				*reinterpret_cast<int32_t*>(dataBuff.get() + idx) = str.length();
-				idx += sizeof(int32_t);
-				std::copy(str.begin(), str.end(), dataBuff.get() + idx);
-				idx += str.length();
-			}
+            for (const auto& str : std::any_cast<std::vector<std::string>>(column.second.resultData))
+            {
+                *reinterpret_cast<int32_t*>(dataBuff.get() + idx) = str.length();
+                idx += sizeof(int32_t);
+                std::copy(str.begin(), str.end(), dataBuff.get() + idx);
+                idx += str.length();
+            }
             break;
         case DataType::COLUMN_POLYGON:
             for (const auto& poly :
@@ -214,13 +224,14 @@ void Client::BulkImport(const std::string& tableName, const std::unordered_map<s
                 dataSize += sizeof(int32_t) + poly.ByteSize();
             }
             dataBuff = std::make_unique<char[]>(dataSize);
-			for (const auto& poly : std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(column.second.resultData))
-			{
-				*reinterpret_cast<int32_t*>(dataBuff.get() + idx) = poly.ByteSize();
-				idx += sizeof(int32_t);
-				poly.SerializeToArray(dataBuff.get() + idx, poly.ByteSize());
-				idx += poly.ByteSize();
-			}
+            for (const auto& poly :
+                 std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(column.second.resultData))
+            {
+                *reinterpret_cast<int32_t*>(dataBuff.get() + idx) = poly.ByteSize();
+                idx += sizeof(int32_t);
+                poly.SerializeToArray(dataBuff.get() + idx, poly.ByteSize());
+                idx += poly.ByteSize();
+            }
             break;
         case DataType::COLUMN_POINT:
             for (const auto& point :
@@ -229,36 +240,38 @@ void Client::BulkImport(const std::string& tableName, const std::unordered_map<s
                 dataSize += sizeof(int32_t) + point.ByteSize();
             }
             dataBuff = std::make_unique<char[]>(dataSize);
-			for (const auto& point : std::any_cast<std::vector<ColmnarDB::Types::Point>>(column.second.resultData))
-			{
-				*reinterpret_cast<int32_t*>(dataBuff.get() + idx) = point.ByteSize();
-				idx += sizeof(int32_t);
-				point.SerializeToArray(dataBuff.get() + idx, point.ByteSize());
-				idx += point.ByteSize();
-			}
+            for (const auto& point :
+                 std::any_cast<std::vector<ColmnarDB::Types::Point>>(column.second.resultData))
+            {
+                *reinterpret_cast<int32_t*>(dataBuff.get() + idx) = point.ByteSize();
+                idx += sizeof(int32_t);
+                point.SerializeToArray(dataBuff.get() + idx, point.ByteSize());
+                idx += point.ByteSize();
+            }
             break;
         default:
             break;
         }
 
-		for (idx = 0; idx < dataSize; idx += BULK_IMPORT_FRAGMENT_SIZE)
-		{
-			int32_t fragmentSize = (dataSize - idx) < BULK_IMPORT_FRAGMENT_SIZE ? dataSize - idx : BULK_IMPORT_FRAGMENT_SIZE;
-			bulkImportMessage.set_elemcount(fragmentSize / typeSize);
-			NetworkMessage::WriteToNetwork(bulkImportMessage, socket_);
-			NetworkMessage::WriteRaw(socket_, dataBuff.get() + idx, fragmentSize, column.second.resultType);
-			idx += fragmentSize;
-			auto response = NetworkMessage::ReadFromNetwork(socket_);
-			ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-			if (!response.UnpackTo(&infoMessage))
-			{
-				throw std::invalid_argument("Invalid message received from server");
-			}
-			if (infoMessage.code() != ColmnarDB::NetworkClient::Message::InfoMessage::OK)
-			{
-				throw std::invalid_argument("Invalid message code received from server");
-			}
-		}
+        for (idx = 0; idx < dataSize; idx += BULK_IMPORT_FRAGMENT_SIZE)
+        {
+            int32_t fragmentSize =
+                (dataSize - idx) < BULK_IMPORT_FRAGMENT_SIZE ? dataSize - idx : BULK_IMPORT_FRAGMENT_SIZE;
+            bulkImportMessage.set_elemcount(fragmentSize / typeSize);
+            NetworkMessage::WriteToNetwork(bulkImportMessage, socket_);
+            NetworkMessage::WriteRaw(socket_, dataBuff.get() + idx, fragmentSize, column.second.resultType);
+            idx += fragmentSize;
+            auto response = NetworkMessage::ReadFromNetwork(socket_);
+            ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+            if (!response.UnpackTo(&infoMessage))
+            {
+                throw std::invalid_argument("Invalid message received from server");
+            }
+            if (infoMessage.code() != ColmnarDB::NetworkClient::Message::InfoMessage::OK)
+            {
+                throw std::invalid_argument(infoMessage.message());
+            }
+        }
     }
 }
 
@@ -269,6 +282,14 @@ void Client::UseDatabase(const std::string& databaseName)
     NetworkMessage::WriteToNetwork(setDbMsg, socket_);
     auto response = NetworkMessage::ReadFromNetwork(socket_);
     ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+    if (!response.UnpackTo(&infoMessage))
+    {
+        throw std::invalid_argument("Invalid message received from server");
+    }
+    if (infoMessage.code() != ColmnarDB::NetworkClient::Message::InfoMessage::OK)
+    {
+        throw std::invalid_argument(infoMessage.message());
+    }
 }
 
 void Client::Heartbeat()
