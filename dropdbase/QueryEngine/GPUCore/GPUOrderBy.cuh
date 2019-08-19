@@ -23,8 +23,6 @@
 // Fill the index buffers with default indices
 __global__ void kernel_fill_indices(int32_t* indices, int32_t dataElementCount);
 
-__device__ int64_t GetPolygonIndex(int32_t* indices, const int32_t i);
-
 // Transform the input data null rows to the smallest possible value
 template <typename T>
 __global__ void kernel_transform_null_values(T* inCol, int8_t* nullBitMask, int32_t dataElementCount)

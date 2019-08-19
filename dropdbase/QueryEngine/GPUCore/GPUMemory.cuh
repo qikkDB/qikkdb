@@ -54,7 +54,7 @@ struct GPUPolygon
 };
 
 /// Struct for GPU representation of string column (with pointers to start of condensed buffers).
-struct GPUString       
+struct GPUString
 {
     /// All chars from all strings condensed
     char* allChars;
@@ -216,5 +216,20 @@ void hostPin(T* hostPtr, size_t dataElementCount)
 /// Clear all custom allocated memory with the memory allocator.
 /// This is a O(1) operation
 void clear();
+
+template <typename T>
+void PrintGpuBuffer(const char* title, T* bufferGpu, int32_t dataElementCount)
+{
+    std::unique_ptr<T[]> bufferCpu(new T[dataElementCount]);
+    GPUMemory::copyDeviceToHost(bufferCpu.get(), bufferGpu, dataElementCount);
+
+    std::cout << title << ": ";
+
+    for (int32_t i = 0; i < dataElementCount; i++)
+    {
+        std::cout << bufferCpu[i] << " ";
+    }
+    std::cout << std::endl;
+}
 
 }; // namespace GPUMemory
