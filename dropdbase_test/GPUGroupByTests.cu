@@ -256,7 +256,7 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
         if (keyTypes[t] == DataType::COLUMN_STRING)
         {
             GPUMemory::free(*reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]));
-            delete [] reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]);
+            delete reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]);
         }
         else
         {
@@ -401,7 +401,7 @@ void TestGroupByMultiKeyIntString(int32_t totalElementCount)
 		if (keyTypes[t] == DataType::COLUMN_STRING)
 		{
 			GPUMemory::free(*reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]));
-			delete[] reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]);
+			delete reinterpret_cast<GPUMemory::GPUString*>(gpuResultKeys[t]);
 		}
 		else
 		{

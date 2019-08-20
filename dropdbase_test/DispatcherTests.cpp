@@ -13651,9 +13651,9 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
 
 	auto blocksAfterCast = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("col").get())->GetBlocksList();
 
-	for(int32_t i = 0; i < blocksBeforeCast.size(); i++)
+	for(int32_t i = 0; i < blocksAfterCast.size(); i++)
 	{
-		for(int32_t j = 0; j < blocksBeforeCast[i]->GetSize(); j++)
+		for(int32_t j = 0; j < blocksAfterCast[i]->GetSize(); j++)
 		{
 			int bitMaskIdx = (j / (sizeof(char) * 8));
             int shiftIdx = (j % (sizeof(char) * 8));
@@ -13719,9 +13719,9 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopyWithInsertNull)
 	auto blocksAfterCast = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("col").get())->GetBlocksList();
 	
 	std::vector<int8_t> newBitmasks;
-	for(int32_t i = 0; i < blocksBeforeCast.size(); i++)
+	for(int32_t i = 0; i < blocksAfterCast.size(); i++)
 	{
-		for(int32_t j = 0; j < blocksBeforeCast[i]->GetSize(); j++)
+		for(int32_t j = 0; j < blocksAfterCast[i]->GetSize(); j++)
 		{
 			int bitMaskIdx = (j / (sizeof(char) * 8));
             int shiftIdx = (j % (sizeof(char) * 8));
