@@ -1,3 +1,4 @@
+#include "GpuSqlCustomParser.h"
 //
 // Created by Martin Staňo on 2019-01-14.
 //
@@ -6,7 +7,6 @@
 #include "GpuSqlCustomParser.h"
 #include "GpuSqlListener.h"
 #include "CpuWhereListener.h"
-#include "GpuSqlDispatcher.h"
 #include "GpuSqlJoinDispatcher.h"
 #include "ParserExceptions.h"
 #include "../QueryEngine/GPUMemoryCache.h"
@@ -235,7 +235,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     GpuSqlDispatcher::ResetGroupByCounters();
     GpuSqlDispatcher::ResetOrderByCounters();
 
-    std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers;
     std::vector<std::thread> dispatcherFutures;
     std::vector<std::exception_ptr> dispatcherExceptions;
     std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults;
@@ -259,12 +258,12 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 
     for (int i = 0; i < threadCount; i++)
     {
-        dispatchers.emplace_back(
+        dispatchers_.emplace_back(
             std::make_unique<GpuSqlDispatcher>(database_, groupByInstances, orderByBlocks, i));
-        dispatcher->CopyExecutionDataTo(*dispatchers[i], *cpuWhereDispatcher);
-        dispatchers[i]->SetJoinIndices(joinDispatcher->GetJoinIndices());
+        dispatcher->CopyExecutionDataTo(*dispatchers_[i], *cpuWhereDispatcher);
+        dispatchers_[i]->SetJoinIndices(joinDispatcher->GetJoinIndices());
         dispatcherFutures.push_back(
-            std::thread(std::bind(&GpuSqlDispatcher::Execute, dispatchers[i].get(),
+            std::thread(std::bind(&GpuSqlDispatcher::Execute, dispatchers_[i].get(),
                                   std::ref(dispatcherResults[i]), std::ref(dispatcherExceptions[i]))));
     }
 
@@ -293,6 +292,14 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     auto ret = (MergeDispatcherResults(dispatcherResults, gpuSqlListener.ResultLimit, gpuSqlListener.ResultOffset));
 
     return ret;
+}
+
+void GpuSqlCustomParser::InterruptQueryExecution()
+{
+    for (auto& dispatcher : dispatchers_)
+    {
+        dispatcher->Abort();    
+	}
 }
 
 /// Merges partial dispatcher respnse messages to final response message

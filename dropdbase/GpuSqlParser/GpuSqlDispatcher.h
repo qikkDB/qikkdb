@@ -102,6 +102,7 @@ private:
     bool isLastBlockOfDevice_;
     bool isOverallLastBlock_;
     bool noLoad_;
+    bool aborted_;
     int64_t loadNecessary_;
     std::vector<std::pair<std::string, DataType>> groupByColumns_;
     std::unordered_set<std::string> aggregatedRegisters_;
@@ -350,6 +351,8 @@ public:
     void SetJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx);
 
     void Execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception);
+
+	void Abort();
 
     const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GetQueryResponseMessage();
 
