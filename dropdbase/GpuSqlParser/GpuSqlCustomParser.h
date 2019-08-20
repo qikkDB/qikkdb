@@ -39,6 +39,7 @@ private:
     void TrimResponseMessage(google::protobuf::Message* responseMessage, int64_t limit, int64_t offset);
     void TrimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload, int64_t limit, int64_t offset);
     bool isSingleGpuStatement_;
+    bool wasAborted_;
     std::string query_;
     std::unique_ptr<google::protobuf::Message>
     MergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,

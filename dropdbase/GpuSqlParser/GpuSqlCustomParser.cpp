@@ -41,6 +41,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 {
     Context& context = Context::getInstance();
     dispatchers_.clear();
+    wasAborted_ = false;
     antlr4::ANTLRInputStream sqlInputStream(query_);
     GpuSqlLexer sqlLexer(&sqlInputStream);
     std::unique_ptr<ThrowErrorListener> throwErrorListener = std::make_unique<ThrowErrorListener>();
@@ -289,6 +290,10 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         }
     }
 
+    if (wasAborted_)
+    {
+        return nullptr;
+    }
     auto ret = (MergeDispatcherResults(dispatcherResults, gpuSqlListener.ResultLimit, gpuSqlListener.ResultOffset));
 
     return ret;
@@ -298,8 +303,9 @@ void GpuSqlCustomParser::InterruptQueryExecution()
 {
     for (auto& dispatcher : dispatchers_)
     {
-        dispatcher->Abort();    
-	}
+        dispatcher->Abort();
+    }
+    wasAborted_ = true;
 }
 
 /// Merges partial dispatcher respnse messages to final response message
