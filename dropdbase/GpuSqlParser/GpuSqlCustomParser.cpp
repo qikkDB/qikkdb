@@ -40,7 +40,7 @@ GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database>& database
 std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 {
     Context& context = Context::getInstance();
-
+    dispatchers_.clear();
     antlr4::ANTLRInputStream sqlInputStream(query_);
     GpuSqlLexer sqlLexer(&sqlInputStream);
     std::unique_ptr<ThrowErrorListener> throwErrorListener = std::make_unique<ThrowErrorListener>();
