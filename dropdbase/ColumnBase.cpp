@@ -575,7 +575,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                         }
                         catch(std::invalid_argument)
                         {
-                            data = ComplexPolygonFactory::FromWkt("POLYGON((0 0))");
+                            data = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
 
                             newNullMask.push_back(1);
                         }
