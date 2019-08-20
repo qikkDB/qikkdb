@@ -259,8 +259,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetCol<ColmnarDB::Types::ComplexPoly
                                                 outNullData.get(), reorderedNullColumn.get());
         outData->resize(outSize);
         
-        //Already freed in ReconstructToWKT
-        //GPUMemory::free(reorderedColumn);
+        GPUMemory::free(reorderedColumn);
 
         orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByRetColumnBlocks[colName].push_back(
             std::move(outData));
