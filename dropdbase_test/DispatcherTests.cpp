@@ -13174,10 +13174,10 @@ TEST(DispatcherTests, AggregationCountAsterisJoinWhereNoGroupBy)
 
 TEST(DispatcherTests, AlterTableAlterColumnIntToFloat)
 {
-	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterIntToFloat 10;");
 	auto resultPtr = createDatabase.Parse();
 
-	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+	auto database = Database::GetDatabaseByName("TestDatabaseAlterIntToFloat");
 
 	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
@@ -13219,16 +13219,16 @@ TEST(DispatcherTests, AlterTableAlterColumnIntToFloat)
 		ASSERT_FLOAT_EQ(expectedResultsCol[i], payloadsCol.floatpayload().floatdata()[i]);
 	}
 
-	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterIntToFloat;");
 	resultPtr = parserDropDb.Parse();
 }
 
 TEST(DispatcherTests, AlterTableAlterColumnPointToString)
 {
-	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterPointToString 10;");
 	auto resultPtr = createDatabase.Parse();
 
-	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+	auto database = Database::GetDatabaseByName("TestDatabaseAlterPointToString");
 
 	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
@@ -13269,16 +13269,16 @@ TEST(DispatcherTests, AlterTableAlterColumnPointToString)
 		ASSERT_EQ(expectedResultsCol[i], payloadsCol.stringpayload().stringdata()[i]);
 	}
 
-	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterPointToString;");
 	resultPtr = parserDropDb.Parse();
 }
 
 TEST(DispatcherTests, AlterTableAlterColumnPolygonToString)
 {
-	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterPolygonToString 10;");
 	auto resultPtr = createDatabase.Parse();
 
-	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+	auto database = Database::GetDatabaseByName("TestDatabaseAlterPolygonToString");
 
 	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
@@ -13319,16 +13319,16 @@ TEST(DispatcherTests, AlterTableAlterColumnPolygonToString)
 		ASSERT_EQ(expectedResultsCol[i], payloadsCol.stringpayload().stringdata()[i]);
 	}
 
-	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterPolygonToString;");
 	resultPtr = parserDropDb.Parse();
 }
 
 TEST(DispatcherTests, AlterTableAlterColumnStringToPolygon)
 {
-	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 3;");
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterStringToPolygon 3;");
 	auto resultPtr = createDatabase.Parse();
 
-	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+	auto database = Database::GetDatabaseByName("TestDatabaseAlterStringToPolygon");
 
 	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
@@ -13401,16 +13401,16 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToPolygon)
 		ASSERT_EQ(expectedResultsColString[i], payloadsColString.stringpayload().stringdata()[i]);
 	}
 
-	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterStringToPolygon;");
 	resultPtr = parserDropDb.Parse();
 }
 
 TEST(DispatcherTests, AlterTableAlterColumnStringToPoint)
 {
-	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 3;");
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterStringToPoint 3;");
 	auto resultPtr = createDatabase.Parse();
 
-	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+	auto database = Database::GetDatabaseByName("TestDatabaseAlterStringToPoint");
 
 	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
@@ -13483,16 +13483,16 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToPoint)
 		ASSERT_EQ(expectedResultsColString[i], payloadsColString.stringpayload().stringdata()[i]);
 	}
 
-	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterStringToPoint;");
 	resultPtr = parserDropDb.Parse();
 }
 
 TEST(DispatcherTests, AlterTableAlterColumnStringToDouble)
 {
-	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 3;");
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterStringToDouble 3;");
 	auto resultPtr = createDatabase.Parse();
 
-	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+	auto database = Database::GetDatabaseByName("TestDatabaseAlterStringToDouble");
 
 	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
@@ -13561,16 +13561,16 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToDouble)
 		ASSERT_TRUE(std::isnan(payloadsColString.doublepayload().doubledata()[i]));
 	}
 
-	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterStringToDouble;");
 	resultPtr = parserDropDb.Parse();
 }
 
 TEST(DispatcherTests, AlterTableAlterColumnStringToInt)
 {
-	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 3;");
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterStringToInt 3;");
 	auto resultPtr = createDatabase.Parse();
 
-	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+	auto database = Database::GetDatabaseByName("TestDatabaseAlterStringToInt");
 
 	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
@@ -13641,16 +13641,16 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToInt)
 		ASSERT_EQ(expectedResultsColString[i], payloadsColString.intpayload().intdata()[i]);
 	}
 
-	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterStringToInt;");
 	resultPtr = parserDropDb.Parse();
 }
 
 TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
 {
-	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterBitmaskCopy 10;");
 	auto resultPtr = createDatabase.Parse();
 
-	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+	auto database = Database::GetDatabaseByName("TestDatabaseAlterBitmaskCopy");
 
 	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
@@ -13717,16 +13717,16 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
 		}
 	}
 
-	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterBitmaskCopy;");
 	resultPtr = parserDropDb.Parse();
 }
 
 TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopyWithInsertNull)
 {
-	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
+	GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterBitmaskCopyNull 10;");
 	auto resultPtr = createDatabase.Parse();
 
-	auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+	auto database = Database::GetDatabaseByName("TestDatabaseAlterBitmaskCopyNull");
 
 	ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
@@ -13791,6 +13791,6 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopyWithInsertNull)
 	}
 	
 
-	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlter;");
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterBitmaskCopyNull;");
 	resultPtr = parserDropDb.Parse();
 }
