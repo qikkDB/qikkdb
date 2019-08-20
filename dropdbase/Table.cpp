@@ -71,81 +71,92 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                 std::vector<ColmnarDB::Types::Point> dataPoint =
                     std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData);
                 auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataPoint[iterator], -1, isNullValue);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
+                                                           dataPoint[iterator], -1, isNullValue);
             }
             else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
             {
                 std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon =
                     std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData);
                 auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataPolygon[iterator], -1, isNullValue);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
+                                                           dataPolygon[iterator], -1, isNullValue);
             }
             else if (wrappedData.type() == typeid(std::vector<std::string>))
             {
                 std::vector<std::string> dataString = std::any_cast<std::vector<std::string>>(wrappedData);
                 auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, dataString[iterator], -1, isNullValue);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
+                                                           dataString[iterator], -1, isNullValue);
             }
         }
         else
         {
-            switch(columns.at(column.first)->GetColumnType())
+            switch (columns.at(column.first)->GetColumnType())
             {
-                case COLUMN_INT:
-                {
-                    auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentColumn);
-                    castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, GetNullConstant<int32_t>(), -1, true);
-                    break;
-                }
+            case COLUMN_INT:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentColumn);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
+                                                           GetNullConstant<int32_t>(), -1, true);
+                break;
+            }
 
-                case COLUMN_LONG:
-                {
-                    auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(currentColumn);
-                    castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, GetNullConstant<int64_t>(), -1, true);
-                    break;
-                }
+            case COLUMN_LONG:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(currentColumn);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
+                                                           GetNullConstant<int64_t>(), -1, true);
+                break;
+            }
 
-                case COLUMN_FLOAT:
-                {
-                    auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentColumn);
-                    castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, GetNullConstant<float>(), -1, true);
-                    break;                    
-                }
+            case COLUMN_FLOAT:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentColumn);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
+                                                           GetNullConstant<float>(), -1, true);
+                break;
+            }
 
-                case COLUMN_DOUBLE:
-                {
-                    auto castedColumn = dynamic_cast<ColumnBase<double>*>(currentColumn);
-                    castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, GetNullConstant<double>(), -1, true);
-                    break;
-                }
-                
-                case COLUMN_INT8_T:
-                {
-                    auto castedColumn = dynamic_cast<ColumnBase<int8_t>*>(currentColumn);
-                    castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, GetNullConstant<int8_t>(), -1, true);
-                    break;
-                }
-                
-                case COLUMN_STRING:
-                {
-                    auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentColumn);
-                    castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, "", -1, true);
-                    break;
-                }
-                
-                case COLUMN_POINT:
-                {
-                    auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(currentColumn);
-                    castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, ColmnarDB::Types::Point(), -1, true);
-                    break;
-                }
-            
-                case COLUMN_POLYGON:
-                {
-                    auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(currentColumn);
-                    castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, ComplexPolygonFactory::FromWkt("POLYGON((0 0))"), -1, true);
-                    break;
-                }
+            case COLUMN_DOUBLE:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<double>*>(currentColumn);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
+                                                           GetNullConstant<double>(), -1, true);
+                break;
+            }
+
+            case COLUMN_INT8_T:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<int8_t>*>(currentColumn);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
+                                                           GetNullConstant<int8_t>(), -1, true);
+                break;
+            }
+
+            case COLUMN_STRING:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentColumn);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, "", -1, true);
+                break;
+            }
+
+            case COLUMN_POINT:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(currentColumn);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
+                                                           ColmnarDB::Types::Point(), -1, true);
+                break;
+            }
+
+            case COLUMN_POLYGON:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(currentColumn);
+                castedColumn->InsertDataOnSpecificPosition(indexBlock,
+                                                           indexInBlock, ComplexPolygonFactory::FromWkt("POLYGON((0 0))"),
+                                                           -1, true);
+                break;
+            }
             }
         }
     }
@@ -301,7 +312,7 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
 
         maskOfRow.push_back(isNullValue);
 
-        if(data.find(sortingColumn) != data.end())
+        if (data.find(sortingColumn) != data.end())
         {
             const auto& wrappedCurrentSortingColumnData = data.at(sortingColumn);
 
@@ -342,37 +353,37 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
         }
         else
         {
-            switch(columns.at(sortingColumn)->GetColumnType())
+            switch (columns.at(sortingColumn)->GetColumnType())
             {
-                case COLUMN_INT:
+            case COLUMN_INT:
                 resultRow.push_back(GetNullConstant<int32_t>());
                 break;
 
-                case COLUMN_LONG:
+            case COLUMN_LONG:
                 resultRow.push_back(GetNullConstant<int64_t>());
                 break;
 
-                case COLUMN_FLOAT:
+            case COLUMN_FLOAT:
                 resultRow.push_back(GetNullConstant<float>());
                 break;
 
-                case COLUMN_DOUBLE:
+            case COLUMN_DOUBLE:
                 resultRow.push_back(GetNullConstant<double>());
                 break;
-                
-                case COLUMN_INT8_T:
+
+            case COLUMN_INT8_T:
                 resultRow.push_back(GetNullConstant<int8_t>());
                 break;
-                
-                case COLUMN_STRING:
+
+            case COLUMN_STRING:
                 resultRow.push_back("");
                 break;
-                
-                case COLUMN_POINT:
+
+            case COLUMN_POINT:
                 resultRow.push_back(ColmnarDB::Types::Point());
                 break;
-            
-                case COLUMN_POLYGON:
+
+            case COLUMN_POLYGON:
                 resultRow.push_back(ComplexPolygonFactory::FromWkt("POLYGON((0 0))"));
                 break;
             }
@@ -973,6 +984,10 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     }
                 }
             }
+            else
+            {
+				
+			}
         }
     }
     saveNecesarry_ = true;
