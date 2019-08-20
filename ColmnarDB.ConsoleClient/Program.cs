@@ -47,7 +47,7 @@ namespace ColmnarDB.ConsoleClient
             UseDatabase use = new UseDatabase();
             ImportCSV import = new ImportCSV();
             Query query = new Query();
-
+            mutex = new Mutex();
             ReadLine.HistoryEnabled = true;
 
             while (!exit)
