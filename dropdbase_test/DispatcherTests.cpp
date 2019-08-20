@@ -13067,7 +13067,7 @@ TEST(DispatcherTests, ReorderPolygonOrderBy)
 
     for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
     {
-        ASSERT_EQ(expectedResultsPolygons[i].first, payloads.stringpayload().stringdata()[i]);
+        ASSERT_EQ(expectedResultsPolygons[i].first, payloads.stringpayload().stringdata()[i]) << i;
     }
 }
 

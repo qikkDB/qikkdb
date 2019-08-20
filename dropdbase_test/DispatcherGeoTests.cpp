@@ -210,6 +210,21 @@ protected:
 		GpuSqlCustomParser parser(geoDatabase, "SELECT colPolygon FROM " + tableName + " ORDER BY colID DESC;");
 		auto resultPtr = parser.Parse();
 		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+		if (expectedResult.size() > 0)
+        {
+            auto& payloads = result->payloads().at("SimpleTable.colPolygon");
+            ASSERT_EQ(expectedResult.size(), payloads.stringpayload().stringdata_size())
+                << "size is not correct";
+            for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+            {
+                ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
+            }
+        }
+        else
+        {
+            ASSERT_EQ(result->payloads().size(), 0);
+        }
 	}
 };
 

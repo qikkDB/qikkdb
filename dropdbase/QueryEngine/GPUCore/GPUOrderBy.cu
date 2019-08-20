@@ -53,14 +53,14 @@ __global__ void kernel_reorder_points_by_idx(GPUMemory::GPUPolygon outCol,
         int32_t inPolygonIdx = inCol.polyIdx[inIndices[i]];
         for (int32_t j = 0; j < outPolygonLengths[i]; j++)
         {
-            int32_t outPointIdx = outPointIndices[outPolygonIdx];
-            int32_t inPointIdx = inCol.pointIdx[inPolygonIdx];
-            for (int32_t k = 0; k < outPointLengths[outPolygonIdx]; k++)
+            int32_t outPointIdx = outPointIndices[outPolygonIdx + j];
+            int32_t inPointIdx = inCol.pointIdx[inPolygonIdx + j];
+            for (int32_t k = 0; k < outPointLengths[outPolygonIdx + j]; k++)
             {
                 outCol.polyPoints[outPointIdx + k] = inCol.polyPoints[inPointIdx + k];
             }
-            outCol.pointIdx[outPolygonIdx + j] = inCol.pointIdx[inPolygonIdx + j];
-            outCol.pointCount[outPolygonIdx + j] = inCol.pointCount[inPolygonIdx + j];
+            outCol.pointIdx[outPolygonIdx + j] = outPointIndices[outPolygonIdx + j];
+            outCol.pointCount[outPolygonIdx + j] = outPointLengths[outPolygonIdx + j];
         }
         outCol.polyIdx[i] = outPolygonIndices[i];
         outCol.polyCount[i] = outPolygonLengths[i];
@@ -177,30 +177,19 @@ void GPUOrderBy::ReOrderPolygonByIdx(GPUMemory::GPUPolygon& outCol,
 
     if (dataElementCount > 0)
     {
-        GPUMemory::PrintGpuBuffer("In polygon indices: ", inCol.polyIdx, dataElementCount);
-        GPUMemory::PrintGpuBuffer("In polygon count: ", inCol.polyCount, dataElementCount);
-
         cuda_ptr<int32_t> outPolygonLengths(dataElementCount);
         kernel_reorder_by_idx<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
             outPolygonLengths.get(), inIndices, inCol.polyCount, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
-        GPUMemory::PrintGpuBuffer("Reordered polygon lengths: ", outPolygonLengths.get(), dataElementCount);
-
         cuda_ptr<int32_t> outPolygonIndices(dataElementCount);
         GPUReconstruct::PrefixSumExclusive(outPolygonIndices.get(), outPolygonLengths.get(), dataElementCount);
-
-        GPUMemory::PrintGpuBuffer("Reordered polygon indices: ", outPolygonIndices.get(), dataElementCount);
 
         cuda_ptr<int32_t> outPolygonCounts(dataElementCount);
         GPUReconstruct::PrefixSum(outPolygonCounts.get(), outPolygonLengths.get(), dataElementCount);
 
         int32_t totalPolygonCount;
         GPUMemory::copyDeviceToHost(&totalPolygonCount, &outPolygonCounts.get()[dataElementCount - 1], 1);
-
-        std::cout << "Polygon count: " << totalPolygonCount << std::endl;
-
-        GPUMemory::PrintGpuBuffer("In point lenghts: ", inCol.pointCount, totalPolygonCount);
 
         cuda_ptr<int32_t> outPointLengths(totalPolygonCount);
         kernel_reorder_poly_lengths_by_cp_idx_and_cp_lenghts<<<context.calcGridDim(dataElementCount),
@@ -209,20 +198,14 @@ void GPUOrderBy::ReOrderPolygonByIdx(GPUMemory::GPUPolygon& outCol,
             outPolygonIndices.get(), outPolygonLengths.get(), dataElementCount);
         CheckCudaError(cudaGetLastError());
 
-        GPUMemory::PrintGpuBuffer("Reordered point lenghts: ", outPointLengths.get(), totalPolygonCount);
-
         cuda_ptr<int32_t> outPointIndices(totalPolygonCount);
         GPUReconstruct::PrefixSumExclusive(outPointIndices.get(), outPointLengths.get(), totalPolygonCount);
-
-        GPUMemory::PrintGpuBuffer("Reordered point indices: ", outPointIndices.get(), totalPolygonCount);
 
         cuda_ptr<int32_t> outPointsCounts(totalPolygonCount);
         GPUReconstruct::PrefixSum(outPointsCounts.get(), outPointLengths.get(), totalPolygonCount);
 
         int32_t totalPointCount;
         GPUMemory::copyDeviceToHost(&totalPointCount, &outPointsCounts.get()[totalPolygonCount - 1], 1);
-
-        std::cout << "Point count: " << totalPointCount << std::endl;
 
         GPUMemory::alloc(&outCol.polyCount, dataElementCount);
         GPUMemory::alloc(&outCol.polyIdx, dataElementCount);

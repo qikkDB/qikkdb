@@ -230,6 +230,9 @@ void PrintGpuBuffer(const char* title, T* bufferGpu, int32_t dataElementCount)
         std::cout << bufferCpu[i] << " ";
     }
     std::cout << std::endl;
-}
+} 
+
+template<>
+void PrintGpuBuffer<NativeGeoPoint>(const char* title, NativeGeoPoint* bufferGpu, int32_t dataElementCount);
 
 }; // namespace GPUMemory
