@@ -102,6 +102,10 @@ class DummyClientHandler : public IClientHandler
         ret->set_message("");
         return ret;
     }
+
+    virtual void Abort() override
+    {
+    }
 };
 
 boost::asio::ip::tcp::socket connectSocketToTestServer(boost::asio::io_context& context)

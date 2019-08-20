@@ -6,6 +6,7 @@
 #include "IClientHandler.h"
 #include "Database.h"
 #include <memory>
+#include "GpuSqlParser/GpuSqlCustomParser.h"
 
 class TCPClientHandler final : public IClientHandler
 {
@@ -21,6 +22,7 @@ private:
     std::unique_ptr<google::protobuf::Message>
     RunQuery(const std::weak_ptr<Database>& database,
              const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage);
+    std::unique_ptr<GpuSqlCustomParser> parser_;
 
 public:
     TCPClientHandler(){};
@@ -41,4 +43,5 @@ public:
                      const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage,
                      const char* dataBuffer,
                      const char* nullMask = nullptr) override;
+    virtual void Abort() override;
 };

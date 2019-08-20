@@ -58,5 +58,6 @@ public:
     virtual std::unique_ptr<google::protobuf::Message>
     HandleSetDatabase(ITCPWorker& worker,
                       const ColmnarDB::NetworkClient::Message::SetDatabaseMessage& SetDatabaseMessage) = 0;
+    virtual void Abort() = 0;
     virtual ~IClientHandler(){};
 };

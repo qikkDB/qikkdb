@@ -1,5 +1,4 @@
 #include "CSVDataImporter.h"
-#include "GpuSqlParser/GpuSqlCustomParser.h"
 #include "TCPClientHandler.h"
 #include "ITCPWorker.h"
 #include "Configuration.h"
@@ -172,21 +171,17 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
     {
         auto start = std::chrono::high_resolution_clock::now();
         auto sharedDb = database.lock();
-        GpuSqlCustomParser parser(sharedDb, queryMessage.query());
+        parser_ = std::make_unique<GpuSqlCustomParser>(sharedDb, queryMessage.query());
+        auto ret = parser_->Parse();
+        auto end = std::chrono::high_resolution_clock::now();
+        BOOST_LOG_TRIVIAL(info) << "Elapsed: " << std::chrono::duration<float>(end - start).count() << " sec.";
+        if (auto response = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get()))
         {
-
-            auto ret = parser.Parse();
-            auto end = std::chrono::high_resolution_clock::now();
-            BOOST_LOG_TRIVIAL(info)
-                << "Elapsed: " << std::chrono::duration<float>(end - start).count() << " sec.";
-            if (auto response =
-                    dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get()))
-            {
-                response->mutable_timing()->insert(
-                    {"Elapsed", std::chrono::duration<float>(end - start).count() * 1000});
-            }
-            return ret;
+            response->mutable_timing()->insert(
+                {"Elapsed", std::chrono::duration<float>(end - start).count() * 1000});
         }
+        parser_ = nullptr;
+        return ret;
     }
     catch (const cuda_error& e)
     {
@@ -224,7 +219,7 @@ TCPClientHandler::HandleInfoMessage(ITCPWorker& worker,
         infoMessage->set_message("");
         infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
         return infoMessage;
-	}
+    }
     else
     {
         BOOST_LOG_TRIVIAL(debug) << "Invalid InfoMessage received, Code = " << infoMessage.code();
@@ -445,4 +440,13 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
     resultMessage->set_message("");
     return resultMessage;
+}
+
+void TCPClientHandler::Abort()
+{
+    if (parser_)
+    {
+        parser_->InterruptQueryExecution();
+    }
+    
 }

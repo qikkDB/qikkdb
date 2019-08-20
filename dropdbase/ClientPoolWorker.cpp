@@ -208,6 +208,7 @@ void ClientPoolWorker::OnTimeout(boost::asio::steady_timer& deadline)
         if (deadline.expiry() <= boost::asio::steady_timer::clock_type::now())
         {
             // The deadline has passed. Close the connection.
+            clientHandler_->Abort();
             Abort();
         }
         else
