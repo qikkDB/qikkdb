@@ -49,39 +49,41 @@ __global__ void kernel_reorder_points_by_idx(GPUMemory::GPUPolygon outCol,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        int32_t outPolygonIdx = outPolygonIndices[i];
-        int32_t inPolygonIdx = inCol.polyIdx[inIndices[i]];
-        for (int32_t j = 0; j < outPolygonLengths[i]; j++)
+        const int32_t outPolygonIdx = outPolygonIndices[i];
+        const int32_t inPolygonIdx = inCol.polyIdx[inIndices[i]];
+        const int32_t outPolygonLength = outPolygonLengths[i];
+        for (int32_t j = 0; j < outPolygonLength; j++)
         {
-            int32_t outPointIdx = outPointIndices[outPolygonIdx + j];
-            int32_t inPointIdx = inCol.pointIdx[inPolygonIdx + j];
-            for (int32_t k = 0; k < outPointLengths[outPolygonIdx + j]; k++)
+            const int32_t outPointIdx = outPointIndices[outPolygonIdx + j];
+            const int32_t inPointIdx = inCol.pointIdx[inPolygonIdx + j];
+            const int32_t outPointLength = outPointLengths[outPolygonIdx + j];
+            for (int32_t k = 0; k < outPointLength; k++)
             {
                 outCol.polyPoints[outPointIdx + k] = inCol.polyPoints[inPointIdx + k];
             }
-            outCol.pointIdx[outPolygonIdx + j] = outPointIndices[outPolygonIdx + j];
-            outCol.pointCount[outPolygonIdx + j] = outPointLengths[outPolygonIdx + j];
+            outCol.pointIdx[outPolygonIdx + j] = outPointIdx;
+            outCol.pointCount[outPolygonIdx + j] = outPointLength;
         }
-        outCol.polyIdx[i] = outPolygonIndices[i];
-        outCol.polyCount[i] = outPolygonLengths[i];
+        outCol.polyIdx[i] = outPolygonIdx;
+        outCol.polyCount[i] = outPolygonLength;
     }
 }
 
-__global__ void kernel_reorder_poly_lengths_by_cp_idx_and_cp_lenghts(int32_t* outPointLengths,
-                                                                     int32_t* inOrderIndices,
-                                                                     int32_t* inPointLenghts,
-                                                                     int32_t* inPolygonIndices,
-                                                                     int32_t* outPolygonIndices,
-                                                                     int32_t* outPolygonLengths,
-                                                                     int32_t dataElementCount)
+__global__ void kernel_reorder_point_counts_by_poly_idx_lenghts(int32_t* outPointLengths,
+                                                                int32_t* inOrderIndices,
+                                                                int32_t* inPointLenghts,
+                                                                int32_t* inPolygonIndices,
+                                                                int32_t* outPolygonIndices,
+                                                                int32_t* outPolygonLengths,
+                                                                int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        int32_t outPointIdx = outPolygonIndices[i];
-        int32_t inPointIdx = inPolygonIndices[inOrderIndices[i]];
+        const int32_t outPointIdx = outPolygonIndices[i];
+        const int32_t inPointIdx = inPolygonIndices[inOrderIndices[i]];
         for (int32_t j = 0; j < outPolygonLengths[i]; j++)
         {
             outPointLengths[outPointIdx + j] = inPointLenghts[inPointIdx + j];
@@ -177,6 +179,7 @@ void GPUOrderBy::ReOrderPolygonByIdx(GPUMemory::GPUPolygon& outCol,
 
     if (dataElementCount > 0)
     {
+        // Reorder poly count and idx
         cuda_ptr<int32_t> outPolygonLengths(dataElementCount);
         kernel_reorder_by_idx<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
             outPolygonLengths.get(), inIndices, inCol.polyCount, dataElementCount);
@@ -185,15 +188,16 @@ void GPUOrderBy::ReOrderPolygonByIdx(GPUMemory::GPUPolygon& outCol,
         cuda_ptr<int32_t> outPolygonIndices(dataElementCount);
         GPUReconstruct::PrefixSumExclusive(outPolygonIndices.get(), outPolygonLengths.get(), dataElementCount);
 
-        cuda_ptr<int32_t> outPolygonCounts(dataElementCount);
-        GPUReconstruct::PrefixSum(outPolygonCounts.get(), outPolygonLengths.get(), dataElementCount);
-
+        int32_t lastPolygonCount;
+        GPUMemory::copyDeviceToHost(&lastPolygonCount, outPolygonLengths.get() + dataElementCount - 1, 1);
         int32_t totalPolygonCount;
-        GPUMemory::copyDeviceToHost(&totalPolygonCount, &outPolygonCounts.get()[dataElementCount - 1], 1);
+        GPUMemory::copyDeviceToHost(&totalPolygonCount, outPolygonIndices.get() + dataElementCount - 1, 1);
+        totalPolygonCount += lastPolygonCount;
 
+        // Reorder point count and idx
         cuda_ptr<int32_t> outPointLengths(totalPolygonCount);
-        kernel_reorder_poly_lengths_by_cp_idx_and_cp_lenghts<<<context.calcGridDim(dataElementCount),
-                                                               context.getBlockDim()>>>(
+        kernel_reorder_point_counts_by_poly_idx_lenghts<<<context.calcGridDim(dataElementCount),
+                                                          context.getBlockDim()>>>(
             outPointLengths.get(), inIndices, inCol.pointCount, inCol.polyIdx,
             outPolygonIndices.get(), outPolygonLengths.get(), dataElementCount);
         CheckCudaError(cudaGetLastError());
@@ -201,18 +205,20 @@ void GPUOrderBy::ReOrderPolygonByIdx(GPUMemory::GPUPolygon& outCol,
         cuda_ptr<int32_t> outPointIndices(totalPolygonCount);
         GPUReconstruct::PrefixSumExclusive(outPointIndices.get(), outPointLengths.get(), totalPolygonCount);
 
-        cuda_ptr<int32_t> outPointsCounts(totalPolygonCount);
-        GPUReconstruct::PrefixSum(outPointsCounts.get(), outPointLengths.get(), totalPolygonCount);
-
+        int32_t lastPointCount;
+        GPUMemory::copyDeviceToHost(&lastPointCount, outPointLengths.get() + totalPolygonCount - 1, 1);
         int32_t totalPointCount;
-        GPUMemory::copyDeviceToHost(&totalPointCount, &outPointsCounts.get()[totalPolygonCount - 1], 1);
+        GPUMemory::copyDeviceToHost(&totalPointCount, outPointIndices.get() + totalPolygonCount - 1, 1);
+        totalPointCount += lastPointCount;
 
+        // Allocate output GPUPolygon
         GPUMemory::alloc(&outCol.polyCount, dataElementCount);
         GPUMemory::alloc(&outCol.polyIdx, dataElementCount);
         GPUMemory::alloc(&outCol.pointCount, totalPolygonCount);
         GPUMemory::alloc(&outCol.pointIdx, totalPolygonCount);
         GPUMemory::alloc(&outCol.polyPoints, totalPointCount);
 
+        // Reorder polyPoints
         kernel_reorder_points_by_idx<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
             outCol, inIndices, inCol, outPolygonIndices.get(), outPolygonLengths.get(),
             outPointIndices.get(), outPointLengths.get(), dataElementCount);
