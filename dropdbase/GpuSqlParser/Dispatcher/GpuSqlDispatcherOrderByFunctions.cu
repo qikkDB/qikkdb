@@ -30,7 +30,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::OrderByReconstructConst<int64_t>,
     &GpuSqlDispatcher::OrderByReconstructConst<float>,
     &GpuSqlDispatcher::OrderByReconstructConst<double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::OrderByReconstructConst<ColmnarDB::Types::Point>,
     &GpuSqlDispatcher::OrderByReconstructConst<ColmnarDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::OrderByReconstructConst<std::string>,
     &GpuSqlDispatcher::OrderByReconstructConst<int8_t>,
@@ -38,7 +38,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::OrderByReconstructCol<int64_t>,
     &GpuSqlDispatcher::OrderByReconstructCol<float>,
     &GpuSqlDispatcher::OrderByReconstructCol<double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>,
     &GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::OrderByReconstructCol<std::string>,
     &GpuSqlDispatcher::OrderByReconstructCol<int8_t>};
@@ -89,6 +89,64 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>()
         outData->resize(outSize);
 
         GPUMemory::free(reorderedColumn);
+
+        if (isRetColumn)
+        {
+            orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByRetColumnBlocks[colName].push_back(
+                std::move(outData));
+            orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByRetColumnNullBlocks[colName].push_back(
+                std::move(outNullData));
+        }
+        else
+        {
+            orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByOrderColumnBlocks[colName].push_back(
+                std::move(outData));
+            orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByOrderColumnNullBlocks[colName].push_back(
+                std::move(outNullData));
+        }
+    }
+    return 0;
+}
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>()
+{
+    auto colName = arguments_.Read<std::string>();
+    bool isRetColumn = arguments_.Read<bool>();
+
+    if (!usingGroupBy_)
+    {
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering column: " << colName << '\n';
+
+        int32_t loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
+        if (loadFlag)
+        {
+            return loadFlag;
+        }
+
+        PointerAllocation col = allocatedPointers_.at(colName);
+        size_t inSize = col.ElementCount;
+        size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+
+        std::unique_ptr<VariantArray<std::string>> outData =
+            std::make_unique<VariantArray<std::string>>(inSize);
+        std::unique_ptr<int8_t[]> outNullData = std::make_unique<int8_t[]>(inNullColSize);
+
+        cuda_ptr<NativeGeoPoint> reorderedColumn(inSize);
+        cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
+
+        PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
+        GPUOrderBy::ReOrderByIdx(reorderedColumn.get(), reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                 reinterpret_cast<NativeGeoPoint*>(col.GpuPtr), col.ElementCount);
+        GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
+                                           reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                           reinterpret_cast<int8_t*>(col.GpuNullMaskPtr), inSize);
+
+        int32_t outSize;
+        GPUReconstruct::ReconstructPointColToWKT(outData->getData(), &outSize, reorderedColumn.get(),
+                                                 reinterpret_cast<int8_t*>(filter_), inSize,
+                                                 outNullData.get(), reorderedNullColumn.get());
+        outData->resize(outSize);
 
         if (isRetColumn)
         {
@@ -162,8 +220,8 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon
             orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByOrderColumnBlocks[colName].push_back(
                 std::move(outData));
             orderByBlocks_[dispatcherThreadId_].ReconstructedOrderByOrderColumnNullBlocks[colName].push_back(
-                std::move(outNullData));        
-		}       
+                std::move(outNullData));
+        }
     }
     return 0;
 }

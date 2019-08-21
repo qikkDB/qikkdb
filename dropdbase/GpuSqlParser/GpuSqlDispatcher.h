@@ -1064,5 +1064,8 @@ template <>
 int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>();
 
 template <>
+int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>();
+
+template <>
 int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>();
 

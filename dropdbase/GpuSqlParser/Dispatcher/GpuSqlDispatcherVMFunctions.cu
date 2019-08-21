@@ -507,33 +507,55 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
             << "RetPointCol: " << colName << ", thread: " << dispatcherThreadId_ << '\n';
 
         std::unique_ptr<std::string[]> outData(new std::string[database_->GetBlockSize()]);
-        PointerAllocation ACol = allocatedPointers_.at(colName);
         int32_t outSize;
+        std::string nullMaskString = "";
         // ToDo: Podmienene zapnut podla velkost buffera
         // GPUMemory::hostPin(outData.get(), database_->GetBlockSize());
 
-        std::string nullMaskString = "";
-        if (ACol.GpuNullMaskPtr)
+        if (usingOrderBy_)
         {
-            size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-            std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
-            GPUReconstruct::ReconstructPointColToWKT(outData.get(), &outSize,
-                                                     reinterpret_cast<NativeGeoPoint*>(ACol.GpuPtr),
-                                                     reinterpret_cast<int8_t*>(filter_),
-                                                     ACol.ElementCount, nullMask.get(),
-                                                     reinterpret_cast<int8_t*>(ACol.GpuNullMaskPtr));
-            bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-            nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
+            if (isOverallLastBlock_)
+            {
+                VariantArray<std::string>* reconstructedColumn = dynamic_cast<VariantArray<std::string>*>(
+                    reconstructedOrderByColumnsMerged_.at(colName).get());
+                outData = std::move(reconstructedColumn->getDataRef());
+                outSize = reconstructedColumn->GetSize();
+
+                size_t bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                nullMaskString = std::string(reinterpret_cast<char*>(
+                                                 reconstructedOrderByColumnsNullMerged_.at(colName).get()),
+                                             bitMaskSize);
+            }
+            else
+            {
+                return 0;
+            }
         }
         else
         {
-            GPUReconstruct::ReconstructPointColToWKT(outData.get(), &outSize,
-                                                     reinterpret_cast<NativeGeoPoint*>(ACol.GpuPtr),
-                                                     reinterpret_cast<int8_t*>(filter_), ACol.ElementCount);
-        }
-        // GPUMemory::hostUnregister(outData.get());
+            PointerAllocation ACol = allocatedPointers_.at(colName);
 
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "dataSize: " << outSize << '\n';
+            if (ACol.GpuNullMaskPtr)
+            {
+                size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+                GPUReconstruct::ReconstructPointColToWKT(outData.get(), &outSize,
+                                                         reinterpret_cast<NativeGeoPoint*>(ACol.GpuPtr),
+                                                         reinterpret_cast<int8_t*>(filter_),
+                                                         ACol.ElementCount, nullMask.get(),
+                                                         reinterpret_cast<int8_t*>(ACol.GpuNullMaskPtr));
+                bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
+            }
+            else
+            {
+                GPUReconstruct::ReconstructPointColToWKT(outData.get(), &outSize,
+                                                         reinterpret_cast<NativeGeoPoint*>(ACol.GpuPtr),
+                                                         reinterpret_cast<int8_t*>(filter_), ACol.ElementCount);
+            }
+            // GPUMemory::hostUnregister(outData.get());
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "dataSize: " << outSize << '\n';
+        }
 
         if (outSize > 0)
         {

@@ -651,7 +651,7 @@ for operation in ['orderBy']:
     print(declaration)
 print()
 
-for operation in ['OrderByReconstructOrder', 'OrderByReconstructRet']:
+for operation in ['OrderByReconstruct']:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
@@ -662,12 +662,7 @@ for operation in ['OrderByReconstructOrder', 'OrderByReconstructRet']:
         elif colIdx >= len(types):
             col = "Col"
 
-        if colVal == POINT:
-            op = "InvalidOperandTypesErrorHandler"
-        else:
-            op = operation
-
-        function = "GpuSqlDispatcher::" + op + col + "<" + colVal + ">"
+        function = "GpuSqlDispatcher::" + operation + col + "<" + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")
