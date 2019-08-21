@@ -475,7 +475,7 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
         TrimDelimitedIdentifier(table);
         if (database_->GetTables().find(table) == database_->GetTables().end())
         {
-            throw TableNotFoundFromException();
+            throw TableNotFoundFromException(table);
         }
         loadedTables_.insert(table);
 
@@ -485,7 +485,7 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
             TrimDelimitedIdentifier(alias);
             if (tableAliases_.find(alias) != tableAliases_.end())
             {
-                throw AliasRedefinitionException();
+                throw AliasRedefinitionException(alias);
             }
             tableAliases_.insert({alias, table});
         }
@@ -501,7 +501,7 @@ void CpuWhereListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsCon
             std::string alias = selectColumn->alias()->getText();
             if (columnAliasContexts_.find(alias) != columnAliasContexts_.end())
             {
-                throw AliasRedefinitionException();
+                throw AliasRedefinitionException(alias);
             }
             columnAliasContexts_.insert({alias, selectColumn->expression()});
         }
@@ -524,6 +524,12 @@ void CpuWhereListener::PushArgument(const char* token, DataType dataType)
     case DataType::CONST_DOUBLE:
         dispatcher_.AddArgument<double>(std::stod(token));
         break;
+    case DataType::CONST_INT8_T:
+    {
+        std::string booleanToken(token);
+        StringToUpper(booleanToken);
+        dispatcher_.AddArgument<int8_t>(booleanToken == "TRUE");
+    }
     case DataType::CONST_POINT:
     case DataType::CONST_POLYGON:
     case DataType::CONST_STRING:
@@ -660,12 +666,12 @@ std::pair<std::string, DataType> CpuWhereListener::GenerateAndValidateColumnName
 
         if (loadedTables_.find(table) == loadedTables_.end())
         {
-            throw TableNotFoundFromException();
+            throw TableNotFoundFromException(table);
         }
         if (database_->GetTables().at(table).GetColumns().find(column) ==
             database_->GetTables().at(table).GetColumns().end())
         {
-            throw ColumnNotFoundException();
+            throw ColumnNotFoundException(column);
         }
 
         shortColumnNames_.insert({table + "." + column, table + "." + column});
@@ -684,12 +690,12 @@ std::pair<std::string, DataType> CpuWhereListener::GenerateAndValidateColumnName
             }
             if (uses > 1)
             {
-                throw ColumnAmbiguityException();
+                throw ColumnAmbiguityException(col);
             }
         }
         if (column.empty())
         {
-            throw ColumnNotFoundException();
+            throw ColumnNotFoundException(col);
         }
 
         shortColumnNames_.insert({table + "." + column, column});

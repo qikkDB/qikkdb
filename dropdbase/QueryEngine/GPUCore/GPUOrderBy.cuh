@@ -12,6 +12,7 @@
 #include "cuda_ptr.h"
 #include "GPUMemory.cuh"
 #include "GPUArithmetic.cuh"
+#include "GPUReconstruct.cuh"
 #include "../OrderByType.h"
 #include "../../IVariantArray.h"
 #include "cuda_ptr.h"
@@ -52,6 +53,13 @@ __global__ void kernel_reorder_by_idx(T* outCol, int32_t* inIndices, T* inCol, i
         outCol[i] = inCol[inIndices[i]];
     }
 }
+
+__global__ void kernel_reorder_chars_by_idx(GPUMemory::GPUString outCol,
+                                            int32_t* inIndices,
+                                            GPUMemory::GPUString inCol,
+                                            int32_t* outStringIndices,
+                                            int32_t* outStringLenghts,
+                                            int32_t dataElementCount);
 
 // Reorder a null column by a given index column
 __global__ void kernel_reorder_null_values_by_idx(int8_t* outNullBitMask,
@@ -143,6 +151,11 @@ public:
         kernel_reorder_by_idx<<<Context::getInstance().calcGridDim(dataElementCount),
                                 Context::getInstance().getBlockDim()>>>(outCol, inIndices, inCol, dataElementCount);
     }
+
+    static void ReOrderStringByIdx(GPUMemory::GPUString& outCol,
+                                   int32_t* inIndices,
+                                   GPUMemory::GPUString inCol,
+                                   int32_t dataElementCount);
 
     template <typename T>
     static void ReOrderByIdxInplace(T* col, int32_t* indices, int32_t dataElementCount)

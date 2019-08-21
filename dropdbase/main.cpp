@@ -26,6 +26,7 @@
 #include "TCPClientHandler.h"
 #include "ConsoleHandler.h"
 #include "QueryEngine/GPUMemoryCache.h"
+#include "Version.h"
 
 /// Startup function, called automatically.
 /// <param name="argc">program argument count</param>
@@ -64,7 +65,7 @@ int main(int argc, char** argv)
     // Database::SaveAllToDisk();
     // return 0;
 
-    BOOST_LOG_TRIVIAL(info) << "Starting TellStoryDB...";
+    BOOST_LOG_TRIVIAL(info) << "TellStoryDB " << CMAKE_BUILD_TYPE << " " << GIT_VERSION << GIT_BRANCH;
     Context::getInstance(); // Initialize CUDA context
 
     if (argc > 1) // Importing CSV
@@ -531,8 +532,8 @@ int main(int argc, char** argv)
         tcpServer.Run();
     }
 
-    Database::SaveAllToDisk();
-    BOOST_LOG_TRIVIAL(info) << "Exiting cleanly...";
+    Database::SaveModifiedToDisk();
+    BOOST_LOG_TRIVIAL(info) << "TellStoryDB exiting cleanly...";
 
     /*
     CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
@@ -563,6 +564,8 @@ int main(int argc, char** argv)
     {
         Database::RemoveFromInMemoryDatabaseList(db.c_str());
     }
+
     BOOST_LOG_TRIVIAL(info) << "TellStoryDB exited.";
+	boost::log::core::get()->remove_all_sinks();
     return 0;
 }

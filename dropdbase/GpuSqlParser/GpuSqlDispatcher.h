@@ -88,6 +88,7 @@ private:
     int32_t jmpInstructionPosition_;
     int32_t constStringCounter_;
     const std::shared_ptr<Database>& database_;
+    std::string loadedTableName_;
     std::unordered_map<std::string, PointerAllocation> allocatedPointers_;
     std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIndices_;
 
@@ -107,6 +108,7 @@ private:
     std::unordered_set<std::string> registerLockList_;
     bool IsRegisterAllocated(const std::string& reg);
     std::pair<std::string, std::string> SplitColumnName(const std::string& colName);
+    bool isValidCast(DataType fromType, DataType toType);
     std::vector<std::unique_ptr<IGroupBy>>& groupByTables_;
     CpuSqlDispatcher cpuDispatcher_;
 
@@ -560,6 +562,8 @@ public:
 
     void AddBetweenFunction(DataType op1, DataType op2, DataType op3);
 
+    void SetLoadedTableName(const std::string& tableName);
+
     static std::unordered_map<std::string, int32_t> linkTable;
 
     template <typename T>
@@ -612,13 +616,18 @@ public:
 
     int32_t LoadColNullMask(std::string& colName);
 
+    int32_t LoadTableBlockInfo(const std::string& tableName);
+
+    size_t GetBlockSize();
+
     template <typename T>
     void FreeColumnIfRegister(const std::string& col)
     {
         if (usedRegisterMemory_ > maxRegisterMemory_ && !col.empty() && col.front() == '$' &&
-            registerLockList_.find(col) == registerLockList_.end())
+            registerLockList_.find(col) == registerLockList_.end() &&
+            allocatedPointers_.find(col) != allocatedPointers_.end())
         {
-            std::cout << "Free: " << col << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Free: " << col << '\n';
 
             GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col).GpuPtr));
             usedRegisterMemory_ -= allocatedPointers_.at(col).ElementCount * sizeof(T);
@@ -1034,6 +1043,15 @@ template <>
 int32_t GpuSqlDispatcher::RetCol<std::string>();
 
 template <>
+int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>();
+
+template <>
+int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>();
+
+template <>
+int32_t GpuSqlDispatcher::RetConst<std::string>();
+
+template <>
 int32_t GpuSqlDispatcher::GroupByCol<std::string>();
 
 template <>
@@ -1050,3 +1068,9 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
 
 template <>
 int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName);
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructOrderCol<std::string>();
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructRetCol<std::string>();

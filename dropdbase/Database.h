@@ -77,6 +77,11 @@ public:
     }
     static std::vector<std::string> GetDatabaseNames();
 
+	/// <summary>
+    /// Set saveNecessaty_ to false for block, column and table, because data in the database were NOT modified yet.
+    /// </summary>
+    void SetSaveNecessaryToFalseForEverything();
+
     /// <summary>
     /// Save only .db file to disk.
     /// </summary>
@@ -89,10 +94,21 @@ public:
     /// <param name="path">Path to database storage directory.</param>
     void Persist(const char* path);
 
+	/// <summary>
+    /// Save modified blocks and columns of the database from memory to disk.
+    /// </summary>
+    /// <param name="path">Path to database storage directory.</param>
+    void PersistOnlyModified(const char* path);
+
     /// <summary>
     /// Save all databases currently in memory to disk. All databases will be saved in the same directory.
     /// </summary>
     static void SaveAllToDisk();
+
+	/// <summary>
+    /// Save only modified blocks and columns to disk. All databases will be saved in the same directory.
+    /// </summary>
+    static void SaveModifiedToDisk();
 
     /// <summary>
     /// Load databases from disk storage. Databases .db and .col files have to be in the same directory,

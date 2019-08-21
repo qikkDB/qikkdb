@@ -133,6 +133,7 @@ expression : op=LOGICAL_NOT expression                                          
            | op=MAX_AGG LPAREN (expression) RPAREN                                        # aggregation
            | op=SUM_AGG LPAREN (expression) RPAREN                                        # aggregation
            | op=COUNT_AGG LPAREN (expression) RPAREN                                      # aggregation
+           | op=COUNT_AGG LPAREN ASTERISK RPAREN                                          # aggregation
            | op=AVG_AGG LPAREN (expression) RPAREN                                        # aggregation;
 
 geometry : (pointGeometry | polygonGeometry | lineStringGeometry | multiPointGeometry | multiLineStringGeometry | multiPolygonGeometry);

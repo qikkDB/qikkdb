@@ -7,7 +7,7 @@ class Database;
 /// <summary>
 /// Receiving and dispatching for network requests
 /// </summary>
-class ITCPWorker
+class ITCPWorker : public std::enable_shared_from_this<ITCPWorker>
 {
 protected:
     /// <summary>
@@ -22,7 +22,7 @@ protected:
     /// Instance of object responsible for handling messages
     /// </summary>
     std::unique_ptr<IClientHandler> clientHandler_;
-    static bool globalQuit_;
+
 
 public:
     /// <summary>
@@ -37,14 +37,7 @@ public:
     virtual void Abort() = 0;
     ITCPWorker(const ITCPWorker&) = delete;
     ITCPWorker& operator=(const ITCPWorker&) = delete;
-    static void AbortAllWorkers()
-    {
-        globalQuit_ = true;
-    }
-    static void ResetGlobalQuitFlag()
-    {
-        globalQuit_ = false;
-    }
+
     /// <summary>
     /// Current working database
     /// </summary>

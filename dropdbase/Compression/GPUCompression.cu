@@ -92,7 +92,7 @@ bool compressAAFL(const int CWARP_SIZE,
     unsigned long compressedDataSizeTotal =
         compressedDataSize + std::max(sizeof(unsigned long) * compressionBlocksCount, sizeof(T)) +
         std::max(sizeof(unsigned char) * compressionBlocksCount, sizeof(T)) + (sizeof(int64_t) * 3);
-    compressedElementsCount = compressedDataSizeTotal / sizeof(T);
+    compressedElementsCount = (compressedDataSizeTotal + sizeof(T) - 1) / sizeof(T);
 
     bool result = false;
     // Does compression make sense?
@@ -108,10 +108,10 @@ bool compressAAFL(const int CWARP_SIZE,
             positionCodedDataPositionId + (sizeof(unsigned long) * compressionBlocksCount);
         int positionHostOut = positionCodedDataBitLength + (sizeof(char) * compressionBlocksCount);
 
-        hostCompressed.reserve(compressedDataSizeTotal / sizeof(T));
+        hostCompressed.reserve(compressedElementsCount);
 
         // Resulting pointer to host compressed data
-        std::unique_ptr<T[]> data = std::unique_ptr<T[]>(new T[(compressedDataSizeTotal / sizeof(T))]);
+        std::unique_ptr<T[]> data = std::unique_ptr<T[]>(new T[compressedElementsCount]);
 
         // Copy all compression data GPU -> CPU
         std::move(reinterpret_cast<char*>(codedSizes),

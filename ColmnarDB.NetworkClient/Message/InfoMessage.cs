@@ -25,12 +25,12 @@ namespace ColmnarDB.NetworkClient.Message {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChFJbmZvTWVzc2FnZS5wcm90bxIfQ29sbW5hckRCLk5ldHdvcmtDbGllbnQu",
-            "TWVzc2FnZSLfAQoLSW5mb01lc3NhZ2USRQoEQ29kZRgBIAEoDjI3LkNvbG1u",
+            "TWVzc2FnZSLvAQoLSW5mb01lc3NhZ2USRQoEQ29kZRgBIAEoDjI3LkNvbG1u",
             "YXJEQi5OZXR3b3JrQ2xpZW50Lk1lc3NhZ2UuSW5mb01lc3NhZ2UuU3RhdHVz",
-            "Q29kZRIPCgdNZXNzYWdlGAIgASgJIngKClN0YXR1c0NvZGUSBgoCT0sQABII",
-            "CgRXQUlUEAESEwoPR0VUX05FWFRfUkVTVUxUEAYSDwoLUVVFUllfRVJST1IQ",
-            "AhIQCgxJTVBPUlRfRVJST1IQAxISCg5DT05OX0VTVEFCTElTSBAEEgwKCENP",
-            "Tk5fRU5EEAViBnByb3RvMw=="));
+            "Q29kZRIPCgdNZXNzYWdlGAIgASgJIocBCgpTdGF0dXNDb2RlEgYKAk9LEAAS",
+            "CAoEV0FJVBABEhMKD0dFVF9ORVhUX1JFU1VMVBAGEg8KC1FVRVJZX0VSUk9S",
+            "EAISEAoMSU1QT1JUX0VSUk9SEAMSEgoOQ09OTl9FU1RBQkxJU0gQBBIMCghD",
+            "T05OX0VORBAFEg0KCUhFQVJUQkVBVBAHYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -185,7 +185,7 @@ namespace ColmnarDB.NetworkClient.Message {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            code_ = (global::ColmnarDB.NetworkClient.Message.InfoMessage.Types.StatusCode) input.ReadEnum();
+            Code = (global::ColmnarDB.NetworkClient.Message.InfoMessage.Types.StatusCode) input.ReadEnum();
             break;
           }
           case 18: {
@@ -208,6 +208,7 @@ namespace ColmnarDB.NetworkClient.Message {
         [pbr::OriginalName("IMPORT_ERROR")] ImportError = 3,
         [pbr::OriginalName("CONN_ESTABLISH")] ConnEstablish = 4,
         [pbr::OriginalName("CONN_END")] ConnEnd = 5,
+        [pbr::OriginalName("HEARTBEAT")] Heartbeat = 7,
       }
 
     }

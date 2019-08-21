@@ -79,12 +79,13 @@ enum InfoMessage_StatusCode : int {
   InfoMessage_StatusCode_IMPORT_ERROR = 3,
   InfoMessage_StatusCode_CONN_ESTABLISH = 4,
   InfoMessage_StatusCode_CONN_END = 5,
+  InfoMessage_StatusCode_HEARTBEAT = 7,
   InfoMessage_StatusCode_InfoMessage_StatusCode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
   InfoMessage_StatusCode_InfoMessage_StatusCode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
 bool InfoMessage_StatusCode_IsValid(int value);
 constexpr InfoMessage_StatusCode InfoMessage_StatusCode_StatusCode_MIN = InfoMessage_StatusCode_OK;
-constexpr InfoMessage_StatusCode InfoMessage_StatusCode_StatusCode_MAX = InfoMessage_StatusCode_GET_NEXT_RESULT;
+constexpr InfoMessage_StatusCode InfoMessage_StatusCode_StatusCode_MAX = InfoMessage_StatusCode_HEARTBEAT;
 constexpr int InfoMessage_StatusCode_StatusCode_ARRAYSIZE = InfoMessage_StatusCode_StatusCode_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* InfoMessage_StatusCode_descriptor();
@@ -225,6 +226,8 @@ class InfoMessage :
     InfoMessage_StatusCode_CONN_ESTABLISH;
   static constexpr StatusCode CONN_END =
     InfoMessage_StatusCode_CONN_END;
+  static constexpr StatusCode HEARTBEAT =
+    InfoMessage_StatusCode_HEARTBEAT;
   static inline bool StatusCode_IsValid(int value) {
     return InfoMessage_StatusCode_IsValid(value);
   }

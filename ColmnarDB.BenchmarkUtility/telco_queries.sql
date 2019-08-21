@@ -10,3 +10,8 @@ SELECT COUNT(ageId) FROM TargetLoc1B WHERE latitude > 48.1868 AND latitude < 48.
 SELECT COUNT(ageId) FROM TargetLoc1B WHERE latitude > 48.1946 AND latitude < 48.2142 AND longitude > 17.1386 AND longitude < 17.1512 GROUP BY ageId;
 SELECT sum(wealthIndexId) AS sum_wealthIndexId FROM TargetLoc1B WHERE (latitude - longitude) < 15;
 SELECT min(longitude), max(latitude) FROM TargetLoc1B;
+SELECT hwOsId, AVG(ageId) FROM TargetLoc1B WHERE genderId != -1 GROUP BY hwOsId;
+SELECT genderId, COUNT(genderId) FROM TargetLoc1B WHERE ROUND(POW(SQRT(longitude), 2)) = ROUND(longitude) GROUP BY genderId;
+SELECT genderId, COUNT(genderId) FROM TargetLoc1B WHERE ROUND(POW(SQRT(longitude), 2)) = ROUND(SQUARE(ROOT(longitude, 2))) GROUP BY genderId;
+SELECT MAX(ageId * PI()) FROM TargetLoc1B WHERE ROUND(POW(latitude, 2)) > 5 GROUP BY ageId;
+SELECT genderId, MAX(ageId), MIN(wealthIndexId) FROM TargetLoc1B GROUP BY genderId;

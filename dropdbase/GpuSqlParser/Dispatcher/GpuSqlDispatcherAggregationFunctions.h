@@ -20,37 +20,47 @@ int32_t GpuSqlDispatcher::AggregationCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
+    auto aggAsterisk = arguments_.Read<bool>();
 
-    int32_t loadFlag = LoadCol<IN>(colName);
+    int32_t loadFlag = aggAsterisk ? LoadTableBlockInfo(loadedTableName_) : LoadCol<IN>(colName);
     if (loadFlag)
     {
         return loadFlag;
     }
 
-    std::cout << "AggCol: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "AggCol: " << colName << " " << reg << '\n';
 
-    PointerAllocation& column = allocatedPointers_.at(colName);
+    PointerAllocation dummyAllocation = PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0};
+    PointerAllocation& column = aggAsterisk ? dummyAllocation : allocatedPointers_.at(colName);
+
     int32_t reconstructOutSize;
 
     IN* reconstructOutReg = nullptr;
     if (std::is_same<OP, AggregationFunctions::count>::value)
     {
-        // If mask is present - count suitable rows
-        if (filter_)
+        if (!aggAsterisk)
         {
-            int32_t* indexes = nullptr;
-            GPUReconstruct::GenerateIndexesKeep(&indexes, &reconstructOutSize,
-                                                reinterpret_cast<int8_t*>(filter_), column.ElementCount);
-            if (indexes)
+            // If mask is present - count suitable rows
+            if (filter_)
             {
-                GPUMemory::free(indexes);
+                int32_t* indexes = nullptr;
+                GPUReconstruct::GenerateIndexesKeep(&indexes, &reconstructOutSize,
+                                                    reinterpret_cast<int8_t*>(filter_), column.ElementCount);
+                if (indexes)
+                {
+                    GPUMemory::free(indexes);
+                }
+            }
+            // If mask is nullptr - count full rows
+            else
+            {
+                reconstructOutSize = column.ElementCount;
             }
         }
-        // If mask is nullptr - count full rows
         else
         {
-            reconstructOutSize = column.ElementCount;
-        }
+            reconstructOutSize = GetBlockSize();            
+        }        
     }
     else
     {
@@ -85,7 +95,7 @@ int32_t GpuSqlDispatcher::AggregationCol()
 template <typename OP, typename OUT, typename IN>
 int32_t GpuSqlDispatcher::AggregationConst()
 {
-    std::cout << "AggConst" << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "AggConst" << '\n';
     return 0;
 }
 
@@ -321,23 +331,27 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
 {
     auto colTableName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
+    auto aggAsterisk = arguments_.Read<bool>();
 
-    int32_t loadFlag = LoadCol<V>(colTableName);
-    if (loadFlag)
+    if (!aggAsterisk)
     {
-        return loadFlag;
+        int32_t loadFlag = LoadCol<V>(colTableName);
+        if (loadFlag)
+        {
+            return loadFlag;
+        }
     }
 
-    std::cout << "AggGroupBy: " << colTableName << " " << reg << ", thread: " << dispatcherThreadId_
-              << std::endl;
-
-
-    PointerAllocation& column = allocatedPointers_.at(colTableName);
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "AggGroupBy: " << colTableName << " " << reg
+                                                  << ", thread: " << dispatcherThreadId_ << '\n';
+    PointerAllocation dummyAllocation = PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0};
+    PointerAllocation& column = aggAsterisk ? dummyAllocation : allocatedPointers_.at(colTableName);
     int32_t reconstructOutSize;
 
     // Reconstruct column only if it is not group by column (if it is group by column it was already reconstructed in GroupByCol)
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colTableName)) ==
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !aggAsterisk)
     {
         V* reconstructOutReg;
         GPUReconstruct::reconstructColKeep<V>(&reconstructOutReg, &reconstructOutSize,
@@ -365,7 +379,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
 
     if (aggregatedRegisters_.find(reg) == aggregatedRegisters_.end())
     {
-        std::cout << "Processed block in AggGroupBy." << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Processed block in AggGroupBy." << '\n';
         GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::ProcessBlock(groupByColumns_, column, *this);
 
         // If last block was processed, reconstruct group by table
@@ -378,13 +392,15 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
                 GpuSqlDispatcher::groupByCV_.wait(lock,
                                                   [] { return GpuSqlDispatcher::IsGroupByDone(); });
 
-                std::cout << "Reconstructing group by in thread: " << dispatcherThreadId_ << std::endl;
+                CudaLogBoost::getInstance(CudaLogBoost::info)
+                    << "Reconstructing group by in thread: " << dispatcherThreadId_ << '\n';
 
                 GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::GetResults(groupByColumns_, reg, *this);
             }
             else
             {
-                std::cout << "Group by all blocks done in thread: " << dispatcherThreadId_ << std::endl;
+                CudaLogBoost::getInstance(CudaLogBoost::info)
+                    << "Group by all blocks done in thread: " << dispatcherThreadId_ << '\n';
                 // Increment counter and notify threads
                 std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
                 GpuSqlDispatcher::IncGroupByDoneCounter();
@@ -413,7 +429,7 @@ int32_t GpuSqlDispatcher::GroupByCol()
         return loadFlag;
     }
 
-    std::cout << "GroupBy: " << columnName << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "GroupBy: " << columnName << '\n';
 
     PointerAllocation& column = allocatedPointers_.at(columnName);
 

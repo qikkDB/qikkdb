@@ -1,4 +1,5 @@
 #include "GPUOrderBy.cuh"
+#include "GPUStringUnary.cuh"
 
 // Fill the index buffers with default indices
 __global__ void kernel_fill_indices(int32_t* indices, int32_t dataElementCount)
@@ -9,6 +10,28 @@ __global__ void kernel_fill_indices(int32_t* indices, int32_t dataElementCount)
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
         indices[i] = i;
+    }
+}
+
+__global__ void kernel_reorder_chars_by_idx(GPUMemory::GPUString outCol,
+                                            int32_t* inIndices,
+                                            GPUMemory::GPUString inCol,
+                                            int64_t* outStringIndices,
+                                            int32_t* outStringLengths,
+                                            int32_t dataElementCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < dataElementCount; i += stride)
+    {
+        int32_t outColIdx = GetStringIndex(outStringIndices, i);
+        int32_t inColIdx = GetStringIndex(inCol.stringIndices, inIndices[i]);
+        for (int32_t j = 0; j < outStringLengths[i]; j++)
+        {
+            outCol.allChars[outColIdx + j] = inCol.allChars[inColIdx + j];
+        }
+        outCol.stringIndices[i] = outStringIndices[i];
     }
 }
 
@@ -55,5 +78,38 @@ void GPUOrderBy::ReOrderNullValuesByIdx(int8_t* outNullBitMask, int32_t* indices
         kernel_reorder_null_values_by_idx<<<Context::getInstance().calcGridDim(dataElementCount),
                                             Context::getInstance().getBlockDim()>>>(
             reinterpret_cast<int32_t*>(outNullBitMask), indices, inNullBitMask, dataElementCount);
+    }
+}
+
+void GPUOrderBy::ReOrderStringByIdx(GPUMemory::GPUString& outCol, int32_t* inIndices, GPUMemory::GPUString inCol, int32_t dataElementCount)
+{
+    Context& context = Context::getInstance();
+
+    if (dataElementCount > 0)
+    {
+
+        cuda_ptr<int32_t> inStringLengths(dataElementCount);
+        kernel_lengths_from_indices<int32_t, int64_t>
+            <<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(inStringLengths.get(),
+                                                                               inCol.stringIndices,
+                                                                               dataElementCount);
+        cuda_ptr<int32_t> outStringLengths(dataElementCount);
+        kernel_reorder_by_idx<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
+            outStringLengths.get(), inIndices, inStringLengths.get(), dataElementCount);
+        cuda_ptr<int64_t> outStringIndices(dataElementCount);
+        GPUReconstruct::PrefixSum(outStringIndices.get(), outStringLengths.get(), dataElementCount);
+        GPUMemory::alloc(&outCol.stringIndices, dataElementCount);
+
+        int64_t totalCharCount;
+        GPUMemory::copyDeviceToHost(&totalCharCount, &inCol.stringIndices[dataElementCount - 1], 1);
+        GPUMemory::alloc(&outCol.allChars, totalCharCount);
+
+        kernel_reorder_chars_by_idx<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
+            outCol, inIndices, inCol, outStringIndices.get(), outStringLengths.get(), dataElementCount);
+    }
+    else
+    {
+        outCol.stringIndices = nullptr;
+        outCol.allChars = nullptr;
     }
 }

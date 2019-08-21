@@ -16,28 +16,73 @@ namespace ColmnarDB.ConsoleClient
     /// </summary>
     public class Query
     {
-        public Dictionary<string, List<object>> RunQuery(string query, int consoleWidth, ColumnarDBClient client)
+        public static readonly short numberOfQueryExec = 200;
+
+        /// <summary>
+        /// Run a query N times and print the query's average execution time.
+        /// </summary>
+        /// <param name="query">Executed query</param>
+        public void RunTestQuery(string queryString, int consoleWidth, ColumnarDBClient client)
         {
-            Dictionary<string, List<object>> queryResult = new Dictionary<string, List<object>>();
             try
             {
-                (Dictionary<string, List<object>> queryResult, Dictionary<string, float> executionTimes) result = (null, null);
+                ColumnarDataTable result = null;
+                Dictionary<string, float> executionTimes = null;
+                float resultSum = 0;
+
+                client.Query(queryString);
+
+                while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                {
+                    resultSum += executionTimes.Values.Sum();
+                }
+
+                Console.Out.WriteLine((resultSum).ToString() + " (first run)");
+                resultSum = 0;
+
+                //execute query N times (used cache):
+                for (int i = 0; i < numberOfQueryExec; i++)
+                {
+                    client.Query(queryString);
+
+                    while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                    {
+                        resultSum += executionTimes.Values.Sum();
+                    }                   
+                }
+                
+                Console.WriteLine(SuccessfulQuery(queryString));
+                Console.Out.WriteLine((resultSum / numberOfQueryExec) + " (average cached " + numberOfQueryExec + " runs)");
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            catch (QueryException e)
+            {
+                Console.WriteLine("Query Exception: " + e.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(UnknownException() + e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Run a query one time and print result.
+        /// </summary>
+        /// <param name="query">Executed query</param>
+        public void RunQuery(string query, int consoleWidth, ColumnarDBClient client)
+        {
+            try
+            {
+                ColumnarDataTable result = null;
+                Dictionary<string, float> executionTimes = null;
                 client.Query(query);
                 Console.WriteLine(SuccessfulQuery(query));
-                while ((result = client.GetNextQueryResult()).queryResult != null)
+                while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
                 {
-                    PrintResults(result.queryResult, result.executionTimes, consoleWidth);
-                    foreach (var kv in result.queryResult)
-                    {
-                        if (queryResult.ContainsKey(kv.Key))
-                        {
-                            queryResult[kv.Key].AddRange(kv.Value);
-                        }
-                        else
-                        {
-                            queryResult.Add(kv.Key, kv.Value);
-                        }
-                    }
+                    PrintResults(result.GetColumnData(), executionTimes, consoleWidth);
                 }
             }
             catch (IOException e)
@@ -52,10 +97,8 @@ namespace ColmnarDB.ConsoleClient
             {
                 Console.WriteLine(UnknownException() + e.Message);
             }
-
-            return queryResult;
         }
-        
+
         /// <summary>
         /// Returns output for successful query running
         /// </summary>
@@ -65,7 +108,7 @@ namespace ColmnarDB.ConsoleClient
         {
             return string.Format("Successful running entered query: '{0}'", query);
         }
-        
+
         /// <summary>
         /// Return output when there is an unknown exception
         /// </summary>
@@ -81,43 +124,43 @@ namespace ColmnarDB.ConsoleClient
         /// <param name="result">result of SQL query</param>
         /// <param name="time">time of executing query</param>
         /// <param name="consoleWidth">number of chars in row in console</param>
-        public static void PrintResults(Dictionary<string, List<object>> result, Dictionary<string,float> executionTimes, int consoleWidth)
+        public static void PrintResults(Dictionary<string, System.Collections.IList> result, Dictionary<string, float> executionTimes, int consoleWidth)
         {
             var leftAlign = 3;
             var rightAlign = 20;
             string format = "{0,-" + leftAlign + "} {1,-" + rightAlign + "}";
-            
+
             var numberOfRows = 0;
             foreach (var column in result.Keys)
             {
                 numberOfRows = result[column].Count;
             }
-                        
+
             Console.WriteLine("Number of result rows: " + numberOfRows);
             Console.WriteLine("Time of query execution: ");
 
             foreach (var part in executionTimes)
             {
-                Console.WriteLine(format,"",part.Key + ": " + part.Value + " ms");
+                Console.WriteLine(format, "", part.Key + ": " + part.Value + " ms");
             }
-            Console.WriteLine(format,"","Total execution time: " + executionTimes.Values.Sum() + " ms");
-            
+            Console.WriteLine(format, "", "Total execution time: " + executionTimes.Values.Sum() + " ms");
+
             if (numberOfRows == 0)
             {
                 return;
             }
 
-            var numberOfColumnsThatFitIntoConsole =(consoleWidth-1) / (leftAlign+rightAlign+1);
+            var numberOfColumnsThatFitIntoConsole = (consoleWidth - 1) / (leftAlign + rightAlign + 1);
 
             //divide result, because there can be more columns that fit into console 
             while (result.Keys.Count > numberOfColumnsThatFitIntoConsole)
             {
-                Dictionary<string, List<object>> temp = result.Take(numberOfColumnsThatFitIntoConsole).ToDictionary(c => c.Key, c => c.Value);
+                Dictionary<string, System.Collections.IList> temp = result.Take(numberOfColumnsThatFitIntoConsole).ToDictionary(c => c.Key, c => c.Value);
                 result = result.Skip(numberOfColumnsThatFitIntoConsole).ToDictionary(c => c.Key, c => c.Value);
-                
-                PrintDividedOutput(temp,numberOfRows,format,leftAlign,rightAlign);
+
+                PrintDividedOutput(temp, numberOfRows, format, leftAlign, rightAlign);
             }
-            PrintDividedOutput(result,numberOfRows,format,leftAlign,rightAlign);
+            PrintDividedOutput(result, numberOfRows, format, leftAlign, rightAlign);
         }
 
         /// <summary>
@@ -128,26 +171,61 @@ namespace ColmnarDB.ConsoleClient
         /// <param name="format">format for output</param>
         /// <param name="leftAlign">left align of format</param>
         /// <param name="rightAlign">right align of format</param>
-        public static void PrintDividedOutput(Dictionary<string, List<object>> result, int numberOfRows, string format, int leftAlign, int rightAlign)
+        public static void PrintDividedOutput(Dictionary<string, System.Collections.IList> result, int numberOfRows, string format, int leftAlign, int rightAlign)
         {
             for (int i = 0; i < result.Keys.Count; i++)
+            {
+                Console.Write("+");
+                for (int j = 0; j < leftAlign + rightAlign; j++)
                 {
-                    Console.Write("+");
-                    for (int j = 0; j < leftAlign+rightAlign; j++)
-                    {
-                        Console.Write("-");
-                    }
+                    Console.Write("-");
                 }
+            }
 
-                Console.WriteLine("+");
+            Console.WriteLine("+");
 
-                //Prints names of columns
+            //Prints names of columns
+            foreach (var column in result.Keys)
+            {
+                string replacement = Regex.Replace(column, @"\t|\n|\r", "");
+                if (replacement.Length > rightAlign)
+                {
+                    var newValue = replacement.Substring(0, rightAlign - 3) + "...";
+                    Console.Write(format, "|", newValue);
+                }
+                else
+                {
+                    Console.Write(format, "|", replacement);
+                }
+            }
+
+            Console.WriteLine("|");
+
+            //Print line between names of columns and values
+            //23 is a result of format sum 
+            for (int i = 0; i < result.Keys.Count; i++)
+            {
+                Console.Write("+");
+                for (int j = 0; j < leftAlign + rightAlign; j++)
+                {
+                    Console.Write("-");
+                }
+            }
+
+            Console.WriteLine("+");
+
+            //Prints values of each column
+            var columnIndex = 0;
+            for (int i = 0; i < numberOfRows; i++)
+            {
                 foreach (var column in result.Keys)
                 {
-                    string replacement = Regex.Replace(column, @"\t|\n|\r", "");
+                    columnIndex += 1;
+
+                    string replacement = Regex.Replace((result[column][i] ?? "NULL").ToString(), @"\t|\n|\r", "");
                     if (replacement.Length > rightAlign)
                     {
-                        var newValue = replacement.Substring(0, rightAlign-3) + "...";
+                        var newValue = replacement.Substring(0, rightAlign - 3) + "...";
                         Console.Write(format, "|", newValue);
                     }
                     else
@@ -157,52 +235,18 @@ namespace ColmnarDB.ConsoleClient
                 }
 
                 Console.WriteLine("|");
-
-                //Print line between names of columns and values
-                //23 is a result of format sum 
-                for (int i = 0; i < result.Keys.Count; i++)
-                {
-                    Console.Write("+");
-                    for (int j = 0; j < leftAlign+rightAlign; j++)
-                    {
-                        Console.Write("-");
-                    }
-                }
-
-                Console.WriteLine("+");
-
-                //Prints values of each column
-                var columnIndex = 0;
-                for (int i = 0; i < numberOfRows; i++)
-                {
-                    foreach (var column in result.Keys)
-                    {
-                        columnIndex += 1;
-                        string replacement = Regex.Replace(result[column][i].ToString(), @"\t|\n|\r", "");
-                        if (replacement.Length > rightAlign)
-                        {
-                            var newValue = replacement.Substring(0, rightAlign-3) + "...";
-                            Console.Write(format, "|", newValue);
-                        }
-                        else
-                        {
-                            Console.Write(format, "|", replacement);
-                        }
-                    }
-
-                    Console.WriteLine("|");
-                }
-
-                for (int i = 0; i < result.Keys.Count; i++)
-                {
-                    Console.Write("+");
-                    for (int j = 0; j < leftAlign+rightAlign; j++)
-                    {
-                        Console.Write("-");
-                    }
-                }
-
-                Console.WriteLine("+");
             }
+
+            for (int i = 0; i < result.Keys.Count; i++)
+            {
+                Console.Write("+");
+                for (int j = 0; j < leftAlign + rightAlign; j++)
+                {
+                    Console.Write("-");
+                }
+            }
+
+            Console.WriteLine("+");
+        }
     }
 }

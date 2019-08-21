@@ -1494,7 +1494,7 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
         return loadFlag;
     }
 
-    std::cout << "GroupByString: " << columnName << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "GroupByString: " << columnName << '\n';
 
     auto column = FindStringColumn(columnName);
 

@@ -10,6 +10,7 @@
 #include <boost/log/trivial.hpp>
 
 std::mutex TCPClientHandler::queryMutex_;
+std::mutex TCPClientHandler::importMutex_;
 
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult()
 {
@@ -60,7 +61,6 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
                 lastResultLen_ = std::max(payload.second.stringpayload().stringdata().size(), lastResultLen_);
                 break;
             default:
-                throw std::out_of_range("Invalid networking payload case");
                 break;
             }
         }
@@ -93,7 +93,6 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
         case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
-                BOOST_LOG_TRIVIAL(debug) << "Inserting into int buffer payload index: " << i;
                 finalPayload.mutable_intpayload()->add_intdata(payload.second.intpayload().intdata()[i]);
             }
             break;
@@ -140,7 +139,6 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
             }
             break;
         default:
-            throw std::out_of_range("Invalid networking payload case");
             break;
         }
         smallPayload->mutable_payloads()->insert({payload.first, finalPayload});
@@ -169,13 +167,14 @@ std::unique_ptr<google::protobuf::Message>
 TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
                            const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage)
 {
+    std::lock_guard<std::mutex> queryLock(queryMutex_);
     try
     {
         auto start = std::chrono::high_resolution_clock::now();
         auto sharedDb = database.lock();
         GpuSqlCustomParser parser(sharedDb, queryMessage.query());
         {
-            std::lock_guard<std::mutex> queryLock(queryMutex_);
+
             auto ret = parser.Parse();
             auto end = std::chrono::high_resolution_clock::now();
             BOOST_LOG_TRIVIAL(info)
@@ -189,7 +188,16 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
             return ret;
         }
     }
-    catch (std::exception& e)
+    catch (const cuda_error& e)
+    {
+        std::lock_guard<std::mutex> importLock(importMutex_);
+        Context::getInstance().Reset();
+        auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+        infoMessage->set_message(e.what());
+        infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+        return infoMessage;
+    }
+    catch (const std::exception& e)
     {
         auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
         infoMessage->set_message(e.what());
@@ -210,6 +218,13 @@ TCPClientHandler::HandleInfoMessage(ITCPWorker& worker,
     {
         return GetNextQueryResult();
     }
+    else if (infoMessage.code() == ColmnarDB::NetworkClient::Message::InfoMessage::HEARTBEAT)
+    {
+        auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+        infoMessage->set_message("");
+        infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+        return infoMessage;
+	}
     else
     {
         BOOST_LOG_TRIVIAL(debug) << "Invalid InfoMessage received, Code = " << infoMessage.code();
@@ -247,6 +262,7 @@ TCPClientHandler::HandleCSVImport(ITCPWorker& worker,
     auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
     try
     {
+        std::lock_guard<std::mutex> importLock(importMutex_);
         auto importDB = Database::GetDatabaseByName(csvImportMessage.databasename());
         if (importDB == nullptr)
         {
@@ -263,7 +279,7 @@ TCPClientHandler::HandleCSVImport(ITCPWorker& worker,
     }
     catch (std::exception& e)
     {
-        std::cerr << "CSVImport: " << e.what() << std::endl;
+        BOOST_LOG_TRIVIAL(error) << "CSVImport: " << e.what();
     }
     return resultMessage;
 }
@@ -306,6 +322,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         resultMessage->set_message("Database was not found");
         return resultMessage;
     }
+    std::lock_guard<std::mutex> importLock(importMutex_);
     auto& tables = sharedDb->GetTables();
     auto search = tables.find(tableName);
     if (search == tables.end())

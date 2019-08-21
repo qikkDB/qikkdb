@@ -79,7 +79,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
@@ -168,11 +168,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         {
             walker.walk(&gpuSqlListener, statement->sqlSelect()->limit());
         }
-
-        if (!gpuSqlListener.GetUsingLoad() && !gpuSqlListener.GetUsingWhere())
-        {
-            isSingleGpuStatement_ = true;
-        }
     }
     else if (statement->showStatement())
     {
@@ -183,7 +178,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;
@@ -203,7 +198,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;
@@ -213,7 +208,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;
@@ -223,7 +218,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;
@@ -276,7 +271,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     for (int i = 0; i < threadCount; i++)
     {
         dispatcherFutures[i].join();
-        std::cout << "TID: " << i << " Done \n";
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "TID: " << i << " Done" << '\n';
     }
 
     int32_t currentDev = context.getBoundDeviceID();
@@ -310,8 +305,8 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
                                            int64_t resultLimit,
                                            int64_t resultOffset)
 {
-    std::cout << "Limit: " << resultLimit << std::endl;
-    std::cout << "Offset: " << resultOffset << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Limit: " << resultLimit << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Offset: " << resultOffset << '\n';
 
     std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> responseMessage =
         std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
@@ -495,6 +490,7 @@ void ThrowErrorListener::syntaxError(antlr4::Recognizer* recognizer,
                                      const std::string& msg,
                                      std::exception_ptr e)
 {
-    std::string finalMsg = "Error : line " + std::to_string(line) + ":" + std::to_string(charPositionInLine) + " " + msg;
+    std::string finalMsg =
+        "Error : line " + std::to_string(line) + ":" + std::to_string(charPositionInLine) + " " + msg;
     throw antlr4::ParseCancellationException(finalMsg);
 }

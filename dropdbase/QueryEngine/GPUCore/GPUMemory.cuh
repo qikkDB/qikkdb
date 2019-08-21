@@ -124,8 +124,7 @@ void memset(T* p_Block, int value, size_t dataElementCount)
 template <typename T>
 void allocAndSet(T** p_Block, int value, size_t dataElementCount)
 {
-    *p_Block = reinterpret_cast<T*>(
-        Context::getInstance().GetAllocatorForCurrentDevice().allocate(dataElementCount * sizeof(T)));
+    GPUMemory::alloc(p_Block, dataElementCount);
 
     GPUMemory::memset(*p_Block, value, dataElementCount);
 

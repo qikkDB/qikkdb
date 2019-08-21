@@ -10,12 +10,29 @@
 #include "../../Table.h"
 #include "../../ColumnBase.h"
 #include "../../BlockBase.h"
+#include "../../CudaLogBoost.h"
 
 template <typename T>
 int32_t GpuSqlDispatcher::RetConst()
 {
     T cnst = arguments_.Read<T>();
-    std::cout << "RET: cnst" << typeid(T).name() << std::endl;
+    std::string alias = arguments_.Read<std::string>();
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "RET: cnst" << typeid(T).name() << " " << cnst << '\n';
+
+    ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+    int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
+    if (loadFlag)
+    {
+        return loadFlag;
+    }
+    
+    int64_t dataElementCount = GetBlockSize();
+
+    std::unique_ptr<T[]> outData(new T[dataElementCount]);
+    std::fill(outData.get(), outData.get() + dataElementCount, cnst);
+    InsertIntoPayload(payload, outData, dataElementCount);
+    MergePayloadToSelfResponse(alias, payload, "");
     return 0;
 }
 
@@ -37,7 +54,8 @@ int32_t GpuSqlDispatcher::RetCol()
         return loadFlag;
     }
 
-    std::cout << "RetCol: " << colName << ", thread: " << dispatcherThreadId_ << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "RetCol: " << colName << ", thread: " << dispatcherThreadId_ << '\n';
 
     int32_t outSize;
     std::unique_ptr<T[]> outData;
@@ -54,7 +72,7 @@ int32_t GpuSqlDispatcher::RetCol()
             outSize = col.ElementCount;
             if (usingOrderBy_)
             {
-                std::cout << "Reordering result block." << std::endl;
+                CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering result block." << '\n';
                 PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
                 GPUOrderBy::ReOrderByIdxInplace(reinterpret_cast<T*>(col.GpuPtr),
                                                 reinterpret_cast<int32_t*>(orderByIndices.GpuPtr), outSize);
@@ -120,7 +138,7 @@ int32_t GpuSqlDispatcher::RetCol()
                                                reinterpret_cast<int8_t*>(filter_), col.ElementCount);
             }
             // GPUMemory::hostUnregister(outData.get());
-            std::cout << "dataSize: " << outSize << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "dataSize: " << outSize << '\n';
         }
     }
 
@@ -142,7 +160,7 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
 {
     if (allocatedPointers_.find(colName) == allocatedPointers_.end() && !colName.empty() && colName.front() != '$')
     {
-        std::cout << "Load: " << colName << " " << typeid(T).name() << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Load: " << colName << " " << typeid(T).name() << '\n';
 
         std::string table;
         std::string column;
@@ -250,7 +268,7 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
 
         else
         {
-            std::cout << "Loading joined block." << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Loading joined block." << '\n';
             int32_t loadSize = joinIndices_->at(table)[blockIndex_].size();
             std::string joinCacheId = colName + "_join";
             for (auto& joinTable : *joinIndices_)

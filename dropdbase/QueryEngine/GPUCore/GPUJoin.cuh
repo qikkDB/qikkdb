@@ -373,7 +373,8 @@ private:
         // Check for hash table limits
         if (dataElementCount < 0 || dataElementCount > hashTableSize_)
         {
-            std::cerr << "Data element count exceeded hash table size" << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::error)
+                << "Data element count exceeded hash table size" << '\n';
             return;
         }
 
@@ -414,7 +415,8 @@ private:
         // Check for join table limits
         if (dataElementCountColumnSBlock < 0 || dataElementCountColumnSBlock > joinTableSize_)
         {
-            std::cerr << "Data element count exceeded join table size" << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::error)
+                << "Data element count exceeded join table size" << '\n';
             return;
         }
 
@@ -663,7 +665,8 @@ public:
     {
         if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
         {
-            std::cerr << "[ERROR]  Column block index out of bounds" << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::error)
+                << "[ERROR]  Column block index out of bounds" << '\n';
         }
 
         // Allocan output CPU vector
@@ -694,7 +697,8 @@ public:
     {
         if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
         {
-            std::cerr << "[ERROR]  Column block index out of bounds" << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::error)
+                << "[ERROR]  Column block index out of bounds" << '\n';
         }
 
         outBlock.clear();
@@ -721,7 +725,8 @@ public:
     {
         if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
         {
-            std::cerr << "[ERROR]  Column block index out of bounds" << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::error)
+                << "[ERROR]  Column block index out of bounds" << '\n';
         }
 
         // Allocan output CPU vector

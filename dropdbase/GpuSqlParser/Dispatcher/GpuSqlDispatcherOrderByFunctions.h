@@ -26,7 +26,7 @@ int32_t GpuSqlDispatcher::OrderByCol()
     {
         if (isOverallLastBlock_)
         {
-            std::cout << "Order by: " << colName << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Order by: " << colName << '\n';
             PointerAllocation column = allocatedPointers_.at(
                 colName + (std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
                                         StringDataTypeComp(colName)) != groupByColumns_.end() ?
@@ -54,7 +54,7 @@ int32_t GpuSqlDispatcher::OrderByCol()
     }
     else
     {
-        std::cout << "Order by: " << colName << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Order by: " << colName << '\n';
         PointerAllocation column = allocatedPointers_.at(colName);
         int32_t inSize = column.ElementCount;
 
@@ -88,7 +88,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructOrderCol()
 
     if (!usingGroupBy_)
     {
-        std::cout << "Reordering order by column: " << colName << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering order by column: " << colName << '\n';
 
         int32_t loadFlag = LoadCol<T>(colName);
         if (loadFlag)
@@ -142,7 +142,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetCol()
 
     if (!usingGroupBy_)
     {
-        std::cout << "Recostructing order by return column: " << colName << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering return column: " << colName << '\n';
 
         int32_t loadFlag = LoadCol<T>(colName);
         if (loadFlag)

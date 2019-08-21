@@ -11,6 +11,7 @@ message InfoMessage {
         IMPORT_ERROR = 3;
         CONN_ESTABLISH = 4;
         CONN_END = 5;
+		HEARTBEAT = 7;
     }
     StatusCode Code = 1;
     string Message = 2;

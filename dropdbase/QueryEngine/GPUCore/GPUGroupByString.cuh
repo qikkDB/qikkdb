@@ -8,7 +8,7 @@
 
 constexpr int32_t GBS_SOURCE_INDEX_EMPTY_KEY = -1;
 constexpr int32_t GBS_SOURCE_INDEX_KEY_IN_BUFFER = -2;
-constexpr int32_t GBS_STRING_HASH_SEED = 31;
+constexpr int32_t GBS_STRING_HASH_COEF = 31;
 
 
 __device__ int32_t GetHash(char* text, int32_t length);
@@ -42,10 +42,11 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                                        V* values,
                                        int8_t* valuesNullMaskUncompressed,
                                        int64_t* keyOccurrenceCount,
-                                       int32_t loweredMaxHashCount,
+                                       const int32_t loweredMaxHashCount,
                                        GPUMemory::GPUString inKeys,
                                        V* inValues,
-                                       int32_t dataElementCount,
+                                       const int32_t dataElementCount,
+                                       const int32_t arrayMultiplier,
                                        int32_t* errorFlag,
                                        int8_t* inKeysNullMask,
                                        int8_t* inValuesNullMask)
@@ -127,7 +128,7 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                 // Aggregate value
                 if (values)
                 {
-                    AGG{}(&values[foundIndex], inValues[i]);
+                    AGG{}(values + foundIndex * arrayMultiplier + threadIdx.x % arrayMultiplier, inValues[i]);
                     if (valuesNullMaskUncompressed[foundIndex])
                     {
                         valuesNullMaskUncompressed[foundIndex] = 0;
@@ -136,7 +137,9 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                 // Increment occurrence counter
                 if (keyOccurrenceCount)
                 {
-                    atomicAdd(reinterpret_cast<cuUInt64*>(&keyOccurrenceCount[foundIndex]), 1);
+                    atomicAdd(reinterpret_cast<cuUInt64*>(keyOccurrenceCount + foundIndex * arrayMultiplier +
+                                                          threadIdx.x % arrayMultiplier),
+                              1);
                 }
             }
         }
@@ -203,6 +206,7 @@ public:
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
     GPUGroupBy(int32_t maxHashCount) : maxHashCount_(maxHashCount + 1) // + 1 for NULL key
     {
+        const size_t multipliedCount = static_cast<size_t>(maxHashCount_) * GB_ARRAY_MULTIPLIER;
         try
         {
             // Allocate buffers needed for key storing
@@ -211,12 +215,12 @@ public:
             // And for values and occurrences
             if (USE_VALUES)
             {
-                GPUMemory::alloc(&values_, maxHashCount_);
+                GPUMemory::alloc(&values_, multipliedCount);
                 GPUMemory::allocAndSet(&valuesNullMaskUncompressed_, 1, maxHashCount_);
             }
             if (USE_KEY_OCCURRENCES)
             {
-                GPUMemory::allocAndSet(&keyOccurrenceCount_, 0, maxHashCount_);
+                GPUMemory::allocAndSet(&keyOccurrenceCount_, 0, multipliedCount);
             }
         }
         catch (...)
@@ -246,7 +250,7 @@ public:
         GPUMemory::fillArray(sourceIndices_, GBS_SOURCE_INDEX_EMPTY_KEY, maxHashCount_);
         if (USE_VALUES)
         {
-            GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), maxHashCount_);
+            GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), multipliedCount);
         }
     }
 
@@ -325,7 +329,7 @@ public:
             kernel_group_by_string<AGG><<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
                 sourceIndices_, stringLengths_, keysBuffer_, values_, valuesNullMaskUncompressed_,
                 keyOccurrenceCount_, maxHashCount_ - 1, inKeys, inValues, dataElementCount,
-                errorFlagSwapper_.GetFlagPointer(), inKeysNullMask, inValuesNullMask);
+                GB_ARRAY_MULTIPLIER, errorFlagSwapper_.GetFlagPointer(), inKeysNullMask, inValuesNullMask);
             errorFlagSwapper_.Swap();
 
             GPUMemory::GPUString sideBuffer;
@@ -399,15 +403,24 @@ public:
         GPUReconstruct::reconstructCol(keysNullMask, elementCount, keysNullMaskInput.get(),
                                        occupancyMask.get(), maxHashCount_);
 
+        // Merge multipied arrays (values and occurrences)
+        std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
+            MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
+                                                                           occupancyMask.get(), maxHashCount_,
+                                                                           GB_ARRAY_MULTIPLIER);
+        cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
+        cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
+
         if (USE_VALUES)
         {
-            GPUReconstruct::reconstructCol(values, elementCount, values_, occupancyMask.get(), maxHashCount_);
+            GPUReconstruct::reconstructCol(values, elementCount, mergedValues.get(),
+                                           occupancyMask.get(), maxHashCount_);
             GPUReconstruct::reconstructCol(valuesNullMask, elementCount, valuesNullMaskUncompressed_,
                                            occupancyMask.get(), maxHashCount_);
         }
         if (USE_KEY_OCCURRENCES)
         {
-            GPUReconstruct::reconstructCol(occurrences, elementCount, keyOccurrenceCount_,
+            GPUReconstruct::reconstructCol(occurrences, elementCount, mergedOccurrences.get(),
                                            occupancyMask.get(), maxHashCount_);
         }
     }
@@ -438,6 +451,14 @@ public:
                                                  occupancyMask.get(), maxHashCount_, outKeysNullMask,
                                                  outKeysNullMask ? keysNullMaskCompressed.get() : nullptr);
 
+        // Merge multipied arrays (values and occurrences)
+        std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
+            MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
+                                                                           occupancyMask.get(), maxHashCount_,
+                                                                           GB_ARRAY_MULTIPLIER);
+        cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
+        cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
+
         if (USE_VALUES)
         {
             cuda_ptr<int8_t> valuesNullMaskCompressed((maxHashCount_ + sizeof(int32_t) * 8 - 1) /
@@ -454,7 +475,7 @@ public:
             }
 
             // Reconstruct aggregated values
-            if (DIRECT_VALUES) // for min, max and sum: values_ are direct results, just reconstruct them
+            if (DIRECT_VALUES) // for min, max and sum: mergedValues.get() are direct results, just reconstruct them
             {
                 if (!std::is_same<O, V>::value)
                 {
@@ -463,17 +484,19 @@ public:
                 }
                 // reinterpret_cast is needed to solve compilation error
                 GPUReconstruct::reconstructColKeep(outValues, outDataElementCount,
-                                                   reinterpret_cast<O*>(values_), occupancyMask.get(), maxHashCount_,
+                                                   reinterpret_cast<O*>(mergedValues.get()),
+                                                   occupancyMask.get(), maxHashCount_,
                                                    outValuesNullMask, valuesNullMaskCompressedPtr);
             }
-            else if (std::is_same<AGG, AggregationFunctions::avg>::value) // for avg: values_ need to be divided by keyOccurrences_ and reconstructed
+            else if (std::is_same<AGG, AggregationFunctions::avg>::value) // for avg: mergedValues.get() need to be divided by keyOccurrences_ and reconstructed
             {
                 cuda_ptr<O> outValuesGPU(maxHashCount_);
                 // Divide by counts to get averages for buckets
                 try
                 {
-                    GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(), values_,
-                                                                     keyOccurrenceCount_, maxHashCount_);
+                    GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(),
+                                                                     mergedValues.get(),
+                                                                     mergedOccurrences.get(), maxHashCount_);
                 }
                 catch (query_engine_error& err)
                 {
@@ -501,7 +524,7 @@ public:
             // reinterpret_cast is needed to solve compilation error
             // not reinterpreting anything here actually, outValues is int64_t** always in this else-branch
             GPUReconstruct::reconstructColKeep(reinterpret_cast<int64_t**>(outValues), outDataElementCount,
-                                               keyOccurrenceCount_, occupancyMask.get(), maxHashCount_);
+                                               mergedOccurrences.get(), occupancyMask.get(), maxHashCount_);
             if (outValuesNullMask)
             {
                 GPUMemory::allocAndSet(outValuesNullMask, 0,

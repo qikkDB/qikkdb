@@ -32,16 +32,17 @@ ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::Com
         for (int i = 0; i < subpolyCount; i++)
         {
             const auto& subpoly = complPoly.polygons(i);
-            const int subpPointCount = subpoly.geopoints_size() - 1; // -1 because we need to ignore the last element from the WKT format
+            const int subpPointCount =
+                subpoly.geopoints_size() - 1; // -1 because we need to ignore the last element from the WKT format
 
             // Necessary for the raycasting to work, separates components of complex polygons
-            //polyPoints.push_back({0, 0});
+            // polyPoints.push_back({0, 0});
             for (int j = 0; j < subpPointCount; j++)
             {
                 const auto& geopoint = subpoly.geopoints(j);
                 polyPoints.push_back({geopoint.latitude(), geopoint.longitude()});
             }
-            //polyPoints.push_back({0, 0});
+            // polyPoints.push_back({0, 0});
 
             pointIdx.push_back(polyPoints.size());
         }
@@ -105,16 +106,17 @@ ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::Com
         for (int i = 0; i < subpolyCount; i++)
         {
             const auto& subpoly = complPoly.polygons(i);
-            const int subpPointCount = subpoly.geopoints_size() - 1; // -1 because we need to ignore the last element from the WKT format
+            const int subpPointCount =
+                subpoly.geopoints_size() - 1; // -1 because we need to ignore the last element from the WKT format
 
             // Necessary for the raycasting to work, separates components of complex polygons
-            //polyPoints.push_back({0, 0});
+            // polyPoints.push_back({0, 0});
             for (int j = 0; j < subpPointCount; j++)
             {
                 const auto& geopoint = subpoly.geopoints(j);
                 polyPoints.push_back({geopoint.latitude(), geopoint.longitude()});
             }
-            //polyPoints.push_back({0, 0});
+            // polyPoints.push_back({0, 0});
 
             pointIdx.push_back(polyPoints.size());
         }
@@ -218,7 +220,16 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
             startIdx = endOfPolyIdx + 1;
             endOfPolyIdx = polygon.find(',', startIdx);
         }
+
         points.push_back(polygon.substr(startIdx));
+
+		if (points.size() < 2)
+        {
+            throw std::invalid_argument(
+                "Invalid WKT format - too few input points, HINT: First and last points of WKT "
+                "notation must be stated as separate points and they must match");
+        }
+
         for (const auto& point : points)
         {
             ptrdiff_t coordCount = std::count(point.cbegin(), point.cend(), ' ') + 1;

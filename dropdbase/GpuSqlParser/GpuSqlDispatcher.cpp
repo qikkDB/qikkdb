@@ -39,7 +39,8 @@ void AssertDeviceMatchesCurrentThread(int dispatcherThreadId_)
 {
     int device = -1;
     cudaGetDevice(&device);
-    std::cout << "Current device for tid " << dispatcherThreadId_ << " is " << device << "\n";
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Current device for tid " << dispatcherThreadId_ << " is " << device << "\n";
     if (device != dispatcherThreadId_)
     {
         abort();
@@ -60,7 +61,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database>& database,
   isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true), loadNecessary_(1),
   cpuDispatcher_(database), jmpInstructionPosition_(0),
   insertIntoData_(std::make_unique<InsertIntoStruct>()), joinIndices_(nullptr),
-  orderByTable_(nullptr), orderByBlocks_(orderByBlocks)
+  orderByTable_(nullptr), orderByBlocks_(orderByBlocks), loadedTableName_("")
 {
 }
 
@@ -68,12 +69,17 @@ GpuSqlDispatcher::~GpuSqlDispatcher()
 {
 }
 
+void GpuSqlDispatcher::SetLoadedTableName(const std::string& tableName)
+{
+    loadedTableName_ = tableName;
+}
 
 void GpuSqlDispatcher::CopyExecutionDataTo(GpuSqlDispatcher& other, CpuSqlDispatcher& sourceCpuDispatcher)
 {
     other.dispatcherFunctions_ = dispatcherFunctions_;
     other.arguments_ = arguments_;
     other.jmpInstructionPosition_ = jmpInstructionPosition_;
+    other.loadedTableName_ = loadedTableName_;
     sourceCpuDispatcher.CopyExecutionDataTo(other.cpuDispatcher_);
 }
 
@@ -115,51 +121,61 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
             {
                 if (err == 1)
                 {
-                    std::cout << "Out of blocks." << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info) << "Out of blocks." << '\n';
                 }
                 if (err == 2)
                 {
-                    std::cout << "Show databases completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Show databases completed sucessfully" << '\n';
                 }
                 if (err == 3)
                 {
-                    std::cout << "Show tables completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Show tables completed sucessfully" << '\n';
                 }
                 if (err == 4)
                 {
-                    std::cout << "Show columns completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Show columns completed sucessfully" << '\n';
                 }
                 if (err == 5)
                 {
-                    std::cout << "Insert into completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Insert into completed sucessfully" << '\n';
                 }
                 if (err == 6)
                 {
-                    std::cout << "Create database_ completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Create database_ completed sucessfully" << '\n';
                 }
                 if (err == 7)
                 {
-                    std::cout << "Drop database_ completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Drop database_ completed sucessfully" << '\n';
                 }
                 if (err == 8)
                 {
-                    std::cout << "Create table completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Create table completed sucessfully" << '\n';
                 }
                 if (err == 9)
                 {
-                    std::cout << "Drop table completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Drop table completed sucessfully" << '\n';
                 }
                 if (err == 10)
                 {
-                    std::cout << "Alter table completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Alter table completed sucessfully" << '\n';
                 }
                 if (err == 11)
                 {
-                    std::cout << "Create index completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Create index completed sucessfully" << '\n';
                 }
                 if (err == 12)
                 {
-                    std::cout << "Load skipped" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info) << "Load skipped" << '\n';
                     loadColHelper.countSkippedBlocks++;
                     err = 0;
                     continue;
@@ -837,7 +853,7 @@ int32_t GpuSqlDispatcher::LoadColNullMask(std::string& colName)
     if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
     {
-        std::cout << "LoadNullMask: " << colName << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "LoadNullMask: " << colName << '\n';
 
         // split colName to table and column name
         const size_t endOfPolyIdx = colName.find(".");
@@ -1023,7 +1039,7 @@ void GpuSqlDispatcher::CleanUpGpuPointers()
 int32_t GpuSqlDispatcher::Fil()
 {
     auto reg = arguments_.Read<std::string>();
-    std::cout << "Filter: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Filter: " << reg << '\n';
     filter_ = allocatedPointers_.at(reg).GpuPtr;
     return 0;
 }
@@ -1031,7 +1047,7 @@ int32_t GpuSqlDispatcher::Fil()
 int32_t GpuSqlDispatcher::WhereEvaluation()
 {
     loadNecessary_ = usingJoin_ ? 1 : cpuDispatcher_.Execute(blockIndex_);
-    std::cout << "Where load evaluation: " << loadNecessary_ << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where load evaluation: " << loadNecessary_ << '\n';
     return 0;
 }
 
@@ -1058,7 +1074,7 @@ int32_t GpuSqlDispatcher::Jmp()
         return 0;
     }
 
-    std::cout << "Jump" << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Jump" << '\n';
     return 0;
 }
 
@@ -1069,7 +1085,7 @@ int32_t GpuSqlDispatcher::Jmp()
 int32_t GpuSqlDispatcher::Done()
 {
     CleanUpGpuPointers();
-    std::cout << "Done" << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Done" << '\n';
     return 1;
 }
 
@@ -1139,7 +1155,7 @@ int32_t GpuSqlDispatcher::ShowColumns()
     for (auto& column : columns_map)
     {
         outDataName[i] = column.first;
-        outDataType[i] = std::to_string(column.second.get()->GetColumnType());
+        outDataType[i] = ::GetStringFromColumnDataType(column.second.get()->GetColumnType());
         i++;
     }
 
@@ -1239,6 +1255,80 @@ int32_t GpuSqlDispatcher::AlterTable()
         std::string dropColumnName = arguments_.Read<std::string>();
         database_->GetTables().at(tableName).EraseColumn(dropColumnName);
         database_->DeleteColumnFromDisk(tableName.c_str(), dropColumnName.c_str());
+    }
+
+    int32_t alterColumnsCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < alterColumnsCount; i++)
+    {
+        std::string alterColumnName = arguments_.Read<std::string>();
+        int32_t alterColumnDataType = arguments_.Read<int32_t>();
+
+        auto originType = database_->GetTables().at(tableName).GetColumns().at(alterColumnName)->GetColumnType();
+        if (isValidCast(originType, static_cast<DataType>(alterColumnDataType)) && originType != static_cast<DataType>(alterColumnDataType))
+        {
+            database_->GetTables().at(tableName).CreateColumn((alterColumnName + "_temp").c_str(),
+                                                              static_cast<DataType>(alterColumnDataType));
+            auto oldColumn = database_->GetTables().at(tableName).GetColumns().at(alterColumnName).get();
+            auto newColumn = database_->GetTables().at(tableName).GetColumns().at(alterColumnName + "_temp").get();
+
+            switch(originType)
+            {
+                case COLUMN_INT:
+                {
+                    dynamic_cast<ColumnBase<int32_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_LONG:
+                {
+                    dynamic_cast<ColumnBase<int64_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_FLOAT:
+                {
+                    dynamic_cast<ColumnBase<float>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_DOUBLE:
+                {
+                    dynamic_cast<ColumnBase<double>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_POINT:
+                {
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_POLYGON:
+                {
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_STRING:
+                {
+                    dynamic_cast<ColumnBase<std::string>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_INT8_T:
+                {
+                    dynamic_cast<ColumnBase<int8_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+                default:
+                    throw std::runtime_error(
+                            "Attempt to execute unsupported column type conversion.");
+                    break;
+            }
+            
+            database_->GetTables().at(tableName).EraseColumn(alterColumnName);
+            database_->GetTables().at(tableName).RenameColumn(alterColumnName + "_temp", alterColumnName);
+        }
     }
     return 10;
 }
@@ -1471,4 +1561,31 @@ std::pair<std::string, std::string> GpuSqlDispatcher::SplitColumnName(const std:
     const std::string table = colName.substr(0, splitIdx);
     const std::string column = colName.substr(splitIdx + 1);
     return {table, column};
+}
+
+bool GpuSqlDispatcher::isValidCast(DataType fromType, DataType toType)
+{
+    const bool isToTypeNumeric = (toType >= COLUMN_INT && toType <= COLUMN_DOUBLE) || toType == COLUMN_INT8_T;
+
+    if (toType == COLUMN_STRING)
+    {
+        return true;
+    }
+
+    else if (toType == COLUMN_POINT)
+    {
+        return fromType == COLUMN_STRING || toType == COLUMN_POINT; 
+    }
+
+	else if (toType == COLUMN_POLYGON)
+    {
+        return fromType == COLUMN_STRING || toType == COLUMN_POLYGON;
+    }
+
+    else if (isToTypeNumeric)
+    {
+        return fromType != COLUMN_POINT && fromType != COLUMN_POLYGON;
+    }
+
+    return false;
 }

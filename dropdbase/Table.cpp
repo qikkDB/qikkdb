@@ -647,6 +647,25 @@ std::vector<std::string> Table::GetSortingColumns()
 void Table::SetSortingColumns(std::vector<std::string> columns)
 {
     sortingColumns = columns;
+    saveNecesarry_ = true;
+}
+
+bool Table::GetSaveNecessary() const
+{
+    return saveNecesarry_;
+}
+
+void Table::SetSaveNecessaryToFalse()
+{
+    saveNecesarry_ = false;
+}
+
+void Table::RenameColumn(std::string oldColumnName, std::string newColumnName)
+{
+    columns.at(oldColumnName)->SetColumnName(newColumnName);
+    auto handler = columns.extract(oldColumnName);
+    handler.key() = newColumnName;
+    columns.insert(move(handler));
 }
 
 /// <summary>
@@ -668,6 +687,7 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name)
 : database(database), name(name), columnsMutex_(std::make_unique<std::mutex>())
 {
     blockSize = database->GetBlockSize();
+    saveNecesarry_ = true;
 }
 
 /// <summary>
@@ -713,6 +733,7 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
     }
     std::unique_lock<std::mutex> lock(*columnsMutex_);
     columns.insert(std::make_pair(columnName, std::move(column)));
+    saveNecesarry_ = true;
 }
 
 
@@ -846,6 +867,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
             }
         }
     }
+    saveNecesarry_ = true;
 }
 #endif
 

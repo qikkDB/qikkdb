@@ -454,8 +454,15 @@ void GPUReconstruct::ReconstructStringCol(std::string* outStringData,
         {
             size_t length = static_cast<size_t>(
                 i == 0 ? hostStringIndices[0] : hostStringIndices[i] - hostStringIndices[i - 1]);
-            outStringData[i] =
-                std::string(hostAllChars.get() + (i == 0 ? 0 : hostStringIndices[i - 1]), length);
+            if (length == 0)
+            {
+                outStringData[i] = std::string();
+            }
+            else
+            {
+                outStringData[i] =
+                    std::string(hostAllChars.get() + (i == 0 ? 0 : hostStringIndices[i - 1]), length);
+            }
         }
         if (inMask)
         {

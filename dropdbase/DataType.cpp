@@ -25,11 +25,11 @@ DataType GetColumnDataTypeFromString(const std::string& dataType)
     {
         return DataType::COLUMN_DOUBLE;
     }
-    else if (type == "POINT")
+    else if (type == "GEO_POINT")
     {
         return DataType::COLUMN_POINT;
     }
-    else if (type == "POLYGON")
+    else if (type == "GEO_POLYGON")
     {
         return DataType::COLUMN_POLYGON;
     }
@@ -44,5 +44,39 @@ DataType GetColumnDataTypeFromString(const std::string& dataType)
     else
     {
         return DataType::CONST_ERROR;
+    }
+}
+
+std::string GetStringFromColumnDataType(DataType type)
+{
+    switch (type)
+    {
+    case DataType::COLUMN_INT:
+        return "INT32";
+        break;
+    case DataType::COLUMN_LONG:
+        return "INT64";
+        break;
+    case DataType::COLUMN_FLOAT:
+        return "FLOAT";
+		break;
+    case DataType::COLUMN_DOUBLE:
+        return "DOUBLE";
+        break;
+    case DataType::COLUMN_POINT:
+        return "POINT";
+        break;
+    case DataType::COLUMN_POLYGON:
+        return "POLYGON";
+        break;
+    case DataType::COLUMN_STRING:
+        return "STRING";
+		break;
+    case DataType::COLUMN_INT8_T:
+        return "INT8";
+        break;
+    default:
+        return "";
+        break;
     }
 }

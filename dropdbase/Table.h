@@ -31,6 +31,7 @@ private:
     std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
     std::vector<std::string> sortingColumns;
     std::unique_ptr<std::mutex> columnsMutex_;
+    bool saveNecesarry_;
 
 #ifndef __CUDACC__
     void InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
@@ -58,6 +59,9 @@ public:
     const std::unordered_map<std::string, std::unique_ptr<IColumn>>& GetColumns() const;
     std::vector<std::string> GetSortingColumns();
     void SetSortingColumns(std::vector<std::string> columns);
+    bool GetSaveNecessary() const;
+    void SetSaveNecessaryToFalse();
+    void RenameColumn(std::string oldColumnName, std::string newColumnName);
 
     /// <summary>
     /// Removes column from columns.

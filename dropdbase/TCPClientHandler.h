@@ -14,6 +14,7 @@ private:
     int sentRecords_;
     int lastResultLen_;
     static std::mutex queryMutex_;
+    static std::mutex importMutex_;
     std::unique_ptr<google::protobuf::Message> GetNextQueryResult();
     std::future<std::unique_ptr<google::protobuf::Message>> lastQueryResult_;
     std::unique_ptr<google::protobuf::Message> lastResultMessage_;
