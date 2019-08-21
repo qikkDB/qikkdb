@@ -4,11 +4,14 @@
 
 #ifndef DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 #define DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
-
 #include "GpuSqlParser.h"
-#include "GpuSqlDispatcher.h"
+
 #include <string>
 #include <memory>
+
+#include "GpuSqlDispatcher.h"
+
+
 
 class Database;
 

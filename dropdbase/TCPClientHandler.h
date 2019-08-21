@@ -1,4 +1,5 @@
 #pragma once
+#include "GpuSqlParser/GpuSqlCustomParser.h"
 #include <thread>
 #include <mutex>
 #include <google/protobuf/message.h>
@@ -6,7 +7,7 @@
 #include "IClientHandler.h"
 #include "Database.h"
 #include <memory>
-#include "GpuSqlParser/GpuSqlCustomParser.h"
+
 
 class TCPClientHandler final : public IClientHandler
 {

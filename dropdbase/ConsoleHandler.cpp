@@ -1,6 +1,6 @@
 #include "ConsoleHandler.h"
-#include "TCPServer.h"
 #include "TCPClientHandler.h"
+#include "TCPServer.h"
 #include "ClientPoolWorker.h"
 
 static TCPServer<TCPClientHandler, ClientPoolWorker>* currentServer = nullptr;
