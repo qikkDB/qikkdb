@@ -98,7 +98,8 @@ TEST(ClientHandlerTests, TestHandlerQuery)
 	tempWorker.currentDatabase_ = db;
 	ColmnarDB::NetworkClient::Message::QueryMessage queryMessage;
 	queryMessage.set_query("SELECT test FROM test;");
-	auto responsePtr = handlerPtr->HandleQuery(tempWorker, queryMessage);
+    auto responsePtr = handlerPtr->HandleQuery(tempWorker, queryMessage,
+                                               [](std::unique_ptr<google::protobuf::Message>) {});
 	ASSERT_NE(dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(responsePtr.get()), static_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(nullptr));
 	ASSERT_EQ(dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(responsePtr.get())->code(), ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode_WAIT);
 	ColmnarDB::NetworkClient::Message::InfoMessage getNextResultMessage;

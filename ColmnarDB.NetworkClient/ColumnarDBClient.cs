@@ -284,6 +284,18 @@ namespace ColmnarDB.NetworkClient
                 {
                     throw new IOException("Invalid response received from server");
                 }
+                var inputMessage = NetworkMessage.ReadFromNetwork(_client.GetStream());
+                if (inputMessage.TryUnpack(out InfoMessage inResponse))
+                {
+                    if (inResponse.Code != InfoMessage.Types.StatusCode.GetNextResult)
+                    {
+                        throw new QueryException(inResponse.Message);
+                    }
+                }
+                else
+                {
+                    throw new IOException("Invalid response received from server");
+                }
 
             }
             catch (IOException)

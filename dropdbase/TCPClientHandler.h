@@ -22,7 +22,8 @@ private:
     std::unique_ptr<google::protobuf::Message> lastResultMessage_;
     std::unique_ptr<google::protobuf::Message>
     RunQuery(const std::weak_ptr<Database>& database,
-             const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage);
+             const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
+             std::function<void(std::unique_ptr<google::protobuf::Message> notifyMessage)> handler);
     std::unique_ptr<GpuSqlCustomParser> parser_;
 
 public:
@@ -32,7 +33,9 @@ public:
     virtual std::unique_ptr<google::protobuf::Message>
     HandleInfoMessage(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::InfoMessage& infoMessage) override;
     virtual std::unique_ptr<google::protobuf::Message>
-    HandleQuery(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage) override;
+    HandleQuery(ITCPWorker& worker,
+                const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
+                std::function<void(std::unique_ptr<google::protobuf::Message>)> handler) override;
     virtual std::unique_ptr<google::protobuf::Message>
     HandleCSVImport(ITCPWorker& worker,
                     const ColmnarDB::NetworkClient::Message::CSVImportMessage& csvImportMessage) override;

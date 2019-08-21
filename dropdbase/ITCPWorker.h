@@ -37,7 +37,10 @@ public:
     virtual void Abort() = 0;
     ITCPWorker(const ITCPWorker&) = delete;
     ITCPWorker& operator=(const ITCPWorker&) = delete;
-
+    auto& GetSocket()
+    {
+        return socket_;
+    }
     /// <summary>
     /// Current working database
     /// </summary>

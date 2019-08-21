@@ -20,12 +20,17 @@ ClientPoolWorker::ClientPoolWorker(std::unique_ptr<IClientHandler>&& clientHandl
                                    int requestTimeout)
 : ITCPWorker(std::move(clientHandler), std::move(socket), requestTimeout),
   dataBuffer_(std::make_unique<char[]>(MAXIMUM_BULK_FRAGMENT_SIZE)),
-  nullBuffer_(std::make_unique<char[]>(NULL_BUFFER_SIZE)),
-  networkMessage_(), 
+  nullBuffer_(std::make_unique<char[]>(NULL_BUFFER_SIZE)), networkMessage_(),
 #if BOOST_VERSION < 107000
-	socketDeadline_{socket.get_executor().context()} 
+  socketDeadline_
+{
+    socket.get_executor().context()
+}
 #else
-	socketDeadline_{ socket.get_executor()}
+  socketDeadline_
+{
+    socket.get_executor()
+}
 #endif
 {
     socketDeadline_.expires_at(boost::asio::steady_timer::time_point::max());
@@ -92,7 +97,10 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
         recvMsg.UnpackTo(&queryMessage);
         BOOST_LOG_TRIVIAL(debug) << "Query message from " << socket_.remote_endpoint().address().to_string();
         std::unique_ptr<google::protobuf::Message> waitMessage =
-            clientHandler_->HandleQuery(*this, queryMessage);
+            clientHandler_->HandleQuery(*this, queryMessage,
+                                        [this, self](std::unique_ptr<google::protobuf::Message> notifyMessage) {
+                                            networkMessage_.WriteToNetwork(*notifyMessage, socket_, []() {});
+                                        });
         if (waitMessage != nullptr)
         {
             networkMessage_.WriteToNetwork(*waitMessage, socket_, [this, self]() { ClientLoop(); });
@@ -189,6 +197,7 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
 /// </summary>
 void ClientPoolWorker::Abort()
 {
+	clientHandler_->Abort();
     socket_.close();
     socketDeadline_.cancel();
 }
@@ -198,6 +207,7 @@ void ClientPoolWorker::OnTimeout(boost::asio::steady_timer& deadline)
     auto self(shared_from_this());
     deadline.async_wait([this, self, &deadline](const boost::system::error_code& /*error*/) {
         // Check if the connection was closed while the operation was pending.
+        std::cout << "Timeout handler\n";
         if (HasStopped())
         {
             return;
@@ -207,8 +217,7 @@ void ClientPoolWorker::OnTimeout(boost::asio::steady_timer& deadline)
         // have moved the deadline before this actor had a chance to run.
         if (deadline.expiry() <= boost::asio::steady_timer::clock_type::now())
         {
-            // The deadline has passed. Close the connection.
-            clientHandler_->Abort();
+            // The deadline has passed. Close the connection.        
             Abort();
         }
         else

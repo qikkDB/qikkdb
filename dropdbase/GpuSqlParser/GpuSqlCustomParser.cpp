@@ -229,7 +229,10 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->sqlCreateIndex());
     }
-
+    if (wasAborted_)
+    {
+        return nullptr;
+    }
     int32_t threadCount = isSingleGpuStatement_ ? 1 : context.getDeviceCount();
 
     GpuSqlDispatcher::ResetGroupByCounters();

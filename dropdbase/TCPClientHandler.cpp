@@ -7,6 +7,7 @@
 #include <chrono>
 #include "messages/QueryResponseMessage.pb.h"
 #include <boost/log/trivial.hpp>
+#include <boost/asio.hpp>
 
 std::mutex TCPClientHandler::queryMutex_;
 std::mutex TCPClientHandler::importMutex_;
@@ -164,7 +165,8 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 
 std::unique_ptr<google::protobuf::Message>
 TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
-                           const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage)
+                           const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
+                           std::function<void(std::unique_ptr<google::protobuf::Message>)> handler)
 {
     std::lock_guard<std::mutex> queryLock(queryMutex_);
     try
@@ -175,18 +177,36 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
         auto ret = parser_->Parse();
         auto end = std::chrono::high_resolution_clock::now();
         BOOST_LOG_TRIVIAL(info) << "Elapsed: " << std::chrono::duration<float>(end - start).count() << " sec.";
+        std::unique_ptr<google::protobuf::Message> notifyMessage = nullptr;
         if (auto response = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get()))
         {
             response->mutable_timing()->insert(
                 {"Elapsed", std::chrono::duration<float>(end - start).count() * 1000});
+            notifyMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+            dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
+            dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
+                ->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::GET_NEXT_RESULT);
         }
+        else
+        {
+            notifyMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+            dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
+            dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
+                ->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+		}
         parser_ = nullptr;
+        handler(std::move(notifyMessage));
         return ret;
     }
     catch (const cuda_error& e)
     {
         std::lock_guard<std::mutex> importLock(importMutex_);
         Context::getInstance().Reset();
+        auto notifyMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+        dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
+        dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
+            ->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+        handler(std::move(notifyMessage));
         auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
         infoMessage->set_message(e.what());
         infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
@@ -194,6 +214,11 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
     }
     catch (const std::exception& e)
     {
+        auto notifyMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+        dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
+        dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
+            ->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+        handler(std::move(notifyMessage));
         auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
         infoMessage->set_message(e.what());
         infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
@@ -228,13 +253,16 @@ TCPClientHandler::HandleInfoMessage(ITCPWorker& worker,
 }
 
 std::unique_ptr<google::protobuf::Message>
-TCPClientHandler::HandleQuery(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage)
+TCPClientHandler::HandleQuery(ITCPWorker& worker,
+                              const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
+                              std::function<void(std::unique_ptr<google::protobuf::Message> notifyMessage)> handler)
 {
     sentRecords_ = 0;
     lastResultLen_ = 0;
     BOOST_LOG_TRIVIAL(info) << queryMessage.query();
-    lastQueryResult_ = std::async(std::launch::async, std::bind(&TCPClientHandler::RunQuery, this,
-                                                                worker.currentDatabase_, queryMessage));
+    lastQueryResult_ =
+        std::async(std::launch::async, std::bind(&TCPClientHandler::RunQuery, this,
+                                                 worker.currentDatabase_, queryMessage, handler));
     auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
     resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::WAIT);
     resultMessage->set_message("");
@@ -448,5 +476,4 @@ void TCPClientHandler::Abort()
     {
         parser_->InterruptQueryExecution();
     }
-    
 }

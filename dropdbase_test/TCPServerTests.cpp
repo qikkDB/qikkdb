@@ -41,7 +41,7 @@ class DummyClientHandler : public IClientHandler
         }
     }
     virtual std::unique_ptr<google::protobuf::Message>
-    HandleQuery(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage) override
+    HandleQuery(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,std::function<void(std::unique_ptr<google::protobuf::Message>)> handler) override
     {
         std::unique_ptr<ColmnarDB::NetworkClient::Message::InfoMessage> ret =
             std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
