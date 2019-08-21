@@ -59,8 +59,8 @@ int32_t GpuSqlDispatcher::AggregationCol()
         }
         else
         {
-            reconstructOutSize = GetBlockSize();            
-        }        
+            reconstructOutSize = GetBlockSize();
+        }
     }
     else
     {
@@ -333,7 +333,29 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
     auto reg = arguments_.Read<std::string>();
     auto aggAsterisk = arguments_.Read<bool>();
 
-    if (!aggAsterisk)
+    bool aggCount = std::is_same<OP, AggregationFunctions::count>::value;
+
+    PointerAllocation dummyAllocation;
+
+    if (aggCount)
+    {
+        if (!aggAsterisk)
+        {
+            int32_t loadFlag = LoadColNullMask(colTableName);
+            if (loadFlag)
+            {
+                return loadFlag;
+            }
+            auto columnMask = allocatedPointers_.at(colTableName + NULL_SUFFIX);
+            dummyAllocation = PointerAllocation{0, columnMask.ElementCount, false, columnMask.GpuPtr};
+        }
+        else
+        {
+            dummyAllocation = PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0};
+        }
+        aggCount = true;
+    }
+    else
     {
         int32_t loadFlag = LoadCol<V>(colTableName);
         if (loadFlag)
@@ -344,14 +366,13 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "AggGroupBy: " << colTableName << " " << reg
                                                   << ", thread: " << dispatcherThreadId_ << '\n';
-    PointerAllocation dummyAllocation = PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0};
-    PointerAllocation& column = aggAsterisk ? dummyAllocation : allocatedPointers_.at(colTableName);
+    PointerAllocation& column = aggCount ? dummyAllocation : allocatedPointers_.at(colTableName);
     int32_t reconstructOutSize;
 
     // Reconstruct column only if it is not group by column (if it is group by column it was already reconstructed in GroupByCol)
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colTableName)) ==
             groupByColumns_.end() &&
-        !aggAsterisk)
+        !aggCount)
     {
         V* reconstructOutReg;
         GPUReconstruct::reconstructColKeep<V>(&reconstructOutReg, &reconstructOutSize,

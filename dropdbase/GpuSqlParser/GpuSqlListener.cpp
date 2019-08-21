@@ -585,12 +585,18 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext* ctx)
 {
     bool aggAsterisk = false;
 
-    if (ctx->ASTERISK())
+    if (ctx->COUNT_AGG() && ctx->ASTERISK())
     {
         aggAsterisk = true;
         // JOIN case handled in dispatcher
         std::string tableName = *(loadedTables_.begin());
         PushTempResult(tableName, COLUMN_INT);
+    }
+    else if (ctx->COUNT_AGG() && ctx->ASTERISK() == nullptr && usingGroupBy_)
+    {
+        std::pair<std::string, DataType> arg = StackTopAndPop();
+        std::string value = std::get<0>(arg);
+        PushTempResult(value, COLUMN_INT);
     }
 
     std::pair<std::string, DataType> arg = StackTopAndPop();
@@ -1240,7 +1246,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     {
         dispatcher_.AddArgument<const std::string&>(alterColumn.first);
         dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(alterColumn.second));
-	}
+    }
 }
 
 void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext* ctx)

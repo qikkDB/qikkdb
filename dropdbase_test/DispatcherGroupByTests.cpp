@@ -357,6 +357,38 @@ protected:
         }
     }
 
+    void GBSCountStringTest(std::vector<std::string> keys, std::unordered_map<std::string, int64_t> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<std::string>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
+            ->InsertData(keys);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase, "SELECT colString, COUNT(colString) FROM " +
+                                                       tableName + " GROUP BY colString;");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadKeys = result->payloads().at(tableName + ".colString");
+        auto& payloadValues = result->payloads().at("COUNT(colString)");
+
+        //ASSERT_EQ(expectedResult.size(), payloadKeys.stringpayload().stringdata_size())
+        //   << " wrong number of keys";
+        for (int32_t i = 0; i < payloadKeys.stringpayload().stringdata_size(); i++)
+        {
+            std::string key = payloadKeys.stringpayload().stringdata()[i];
+            std::cout << (expectedResult.find(key) == expectedResult.end()) << " key \"" << key
+                      << "\"" << std::endl;
+            ;
+            ASSERT_EQ(expectedResult[key], payloadValues.int64payload().int64data()[i])
+                << " at key \"" << key << "\"";
+        }
+    }
+
     void GBSKeyOpGenericTest(std::string aggregationFunction,
                              std::vector<std::string> keys,
                              std::vector<int32_t> values,
@@ -847,6 +879,12 @@ TEST_F(DispatcherGroupByTests, StringSimpleCount)
     GBSCountTest({"Apple", "Abcd", "Apple", "XYZ", "Banana", "XYZ", "Abcd", "0", "XYZ", "XYZ"},
                  {1, 2, 3, 4, 5, 6, 7, 10, 13, 15},
                  {{"Apple", 2}, {"Abcd", 2}, {"Banana", 1}, {"XYZ", 4}, {"0", 1}});
+}
+
+TEST_F(DispatcherGroupByTests, StringSimpleCountString)
+{
+    GBSCountStringTest({"Apple", "Abcd", "Apple", "XYZ", "Banana", "XYZ", "Abcd", "0", "XYZ", "XYZ"},
+                       {{"Apple", 2}, {"Abcd", 2}, {"Banana", 1}, {"XYZ", 4}, {"0", 1}});
 }
 
 TEST_F(DispatcherGroupByTests, StringSimpleSumOrderBy)
