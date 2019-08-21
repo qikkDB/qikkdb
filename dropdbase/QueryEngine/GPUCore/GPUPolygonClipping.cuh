@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdio>
 #include <cstdint>
 #include <algorithm>
 
@@ -171,93 +172,92 @@ __device__ void clip_polygons(int32_t* polyCount,
         int32_t k = GPUMemory::TotalPointCountAt(polygonB, iBIdx);
 
         int32_t begIdxA = ((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + n;
-        int32_t endIdxA = LLPolygonABufferSizesPrefixSum[i] - 1;
+        int32_t endIdxA = LLPolygonABufferSizesPrefixSum[i];
 
         int32_t begIdxB = ((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + k;
-        int32_t endIdxB = LLPolygonBBufferSizesPrefixSum[i] - 1;
+        int32_t endIdxB = LLPolygonBBufferSizesPrefixSum[i];
 
-        // Fill the turn table according to clipping operation
-        bool turnTable[2];
-        OP{}(turnTable);
+		// Fill the turn table according to clipping operation
+		bool turnTable[2];
+		OP{}(turnTable);
 
-        // Calculate the component count
-        int32_t componentCount = 0;
+		// Calculate the component count
+		int32_t componentCount = 0;
 
-        int32_t turnNumber = 0;
-        LLPolyVertex* LLPolygonBuffersTable[2] = {LLPolygonABuffers, LLPolygonBBuffers};
-        for (int32_t point = begIdxA; point <= endIdxA; point++)
-        {
-            if (getWasProcessed(LLPolygonBuffersTable[turnNumber][point]) == false)
-            {
-                // Calculate the sub component count
-                int32_t subComponentCount = 0;
+		int32_t turnNumber = 0;
+		LLPolyVertex* LLPolygonBuffersTable[2] = {LLPolygonABuffers, LLPolygonBBuffers};
+		for (int32_t point = begIdxA; point < endIdxA; point++)
+		{
+			if (getWasProcessed(LLPolygonBuffersTable[turnNumber][point]) == false)
+			{
+				// Calculate the sub component count
+				int32_t subComponentCount = 0;
 
-                int32_t nextIdx = point;
-                do
-                {
-                    setWasProcessed(LLPolygonBuffersTable[turnNumber][nextIdx], true);
-                    setWasProcessed(LLPolygonBuffersTable[1 - turnNumber]
-                                                         [LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx],
-                                    true);
+				int32_t nextIdx = point;
+				do
+				{
+					setWasProcessed(LLPolygonBuffersTable[turnNumber][nextIdx], true);
+					setWasProcessed(LLPolygonBuffersTable[1 - turnNumber]
+															[LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx], true);
 
-                    bool forward =
-                        (getIsEntry(LLPolygonBuffersTable[turnNumber][nextIdx]) == turnTable[turnNumber]);
-                    do
-                    {
-                        // Write the output point
-                        if (polyCount && pointCount && polyPoints)
-                        {
-                            int32_t poly_idx = i;
-                            int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + componentCount);
-                            int32_t polyPoint_idx = (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + subComponentCount);
-                            polyPoints[polyPoint_idx] = LLPolygonBuffersTable[turnNumber][nextIdx].vertex;
-                        }
+					bool forward =
+						(getIsEntry(LLPolygonBuffersTable[turnNumber][nextIdx]) == turnTable[turnNumber]);
+					do
+					{
+						// Write the output point
+						if (polyCount && pointCount && polyPoints)
+						{
+							int32_t poly_idx = i;
+							int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + componentCount);
+							int32_t polyPoint_idx = (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + subComponentCount);
+							polyPoints[polyPoint_idx] = LLPolygonBuffersTable[turnNumber][nextIdx].vertex;
+						}
 
-                        if (forward)
-                        {
-                            nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].nextIdx;
-                        }
-                        else
-                        {
-                            nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].prevIdx;
-                        }
+						if (forward)
+						{
+							nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].nextIdx;
+						}
+						else
+						{
+							nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].prevIdx;
+						}
 
-                        subComponentCount++;
-                    } while (!getIsIntersection(LLPolygonBuffersTable[turnNumber][nextIdx]));
+						subComponentCount++;
+					} while (!getIsIntersection(LLPolygonBuffersTable[turnNumber][nextIdx]));
 
-                    nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx;
-                    turnNumber = 1 - turnNumber;
-                } while (!getWasProcessed(LLPolygonBuffersTable[turnNumber][nextIdx]));
+					nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx;
+					turnNumber = 1 - turnNumber;
+				} while (!getWasProcessed(LLPolygonBuffersTable[turnNumber][nextIdx]));
 
-                if (polyCount && pointCount)
-                {
-                    int32_t poly_idx = i;
-                    int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + componentCount);
-                    pointCount[point_idx] = subComponentCount;
-                }
+				if (polyCount && pointCount)
+				{
+					int32_t poly_idx = i;
+					int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + componentCount);
+					pointCount[point_idx] = subComponentCount;
+				}
 
-                componentCount++;
-            }
-        }
+				componentCount++;
+			}
+		}
 
-        // Reset the processed flags for the next reconstruction operation
-        for (int32_t pointA = begIdxA; pointA <= endIdxA; pointA++)
-        {
-            setWasProcessed(LLPolygonABuffers[pointA], false);
-        }
+		// Reset the processed flags for the next reconstruction operation
+		for (int32_t pointA = begIdxA; pointA < endIdxA; pointA++)
+		{
+			setWasProcessed(LLPolygonABuffers[pointA], false);
+		}
 
-        for (int32_t pointB = begIdxB; pointB <= endIdxB; pointB++)
-        {
-            setWasProcessed(LLPolygonBBuffers[pointB], false);
-        }
+		for (int32_t pointB = begIdxB; pointB < endIdxB; pointB++)
+		{
+			setWasProcessed(LLPolygonBBuffers[pointB], false);
+		}
 
-        // Write the results
-        if (polyCount)
-        {
-            int32_t poly_idx = i;
-            polyCount[poly_idx] = componentCount;
-        }
-    }
+		// Write the results
+		if (polyCount)
+		{
+			int32_t poly_idx = i;
+			polyCount[poly_idx] = componentCount;
+		}
+	}
 }
 
 // A set of methods for clipping
@@ -400,7 +400,7 @@ template<typename OP>
 
         kernel_label_intersections<<<Context::getInstance().calcGridDim(dataElementCount),
                                      Context::getInstance().getBlockDim()>>>(
-            LLPolygonBBuffers.get(), polygonBin, polygonAin, LLPolygonBBufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
+            LLPolygonBBuffers.get(), polygonBin, polygonAin, LLPolygonBBufferSizesPrefixSum.get(), isBConst, isAConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         // Process the polyIdx array
