@@ -474,6 +474,7 @@ void TCPClientHandler::Abort()
 {
     if (parser_)
     {
+        BOOST_LOG_TRIVIAL(debug) << "Aborting parser...";
         parser_->InterruptQueryExecution();
     }
 }

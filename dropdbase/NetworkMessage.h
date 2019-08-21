@@ -20,23 +20,28 @@ public:
     /// <param name="socket">Socket to which the message will be written.</param>
     void WriteToNetwork(const google::protobuf::Message& message,
                         boost::asio::ip::tcp::socket& socket,
-                        std::function<void()> handler);
+                        std::function<void()> handler,
+                        std::function<void()> abortHandler);
 
     /// <summary>
     /// Read message from network.
     /// </summary>
     /// <param name="socket">Socket from which the message will be read.</param>
     /// <returns>Any protobuffer message.</param>
-    void ReadFromNetwork(boost::asio::ip::tcp::socket& socket, std::function<void(google::protobuf::Any)> handler);
+    void ReadFromNetwork(boost::asio::ip::tcp::socket& socket,
+                         std::function<void(google::protobuf::Any)> handler,
+                         std::function<void()> abortHandler);
 
     void ReadRaw(boost::asio::ip::tcp::socket& socket,
                  char* dataBuffer,
                  int32_t elementCount,
                  DataType dataType,
-                 std::function<void(char*, int32_t)> handler);
+                 std::function<void(char*, int32_t)> handler,
+                 std::function<void()> abortHandler);
     void WriteRaw(boost::asio::ip::tcp::socket& socket,
                   char* dataBuffer,
                   int32_t elementCount,
                   DataType dataType,
-                  std::function<void()> handler);
+                  std::function<void()> handler,
+                  std::function<void()> abortHandler);
 };

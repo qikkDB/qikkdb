@@ -138,8 +138,10 @@ void connect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& contex
                 {
                     promise.set_value(infoMessage);
                 }
-            });
-        });
+                },
+                []() {});
+            },
+            []() {});
         auto future = promise.get_future();
         while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
         {
@@ -162,7 +164,8 @@ void disconnect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& con
     ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
     infoMessage.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::CONN_END);
     infoMessage.set_message("");
-    networkMessage.WriteToNetwork(infoMessage, sock, []() {});
+    networkMessage.WriteToNetwork(
+        infoMessage, sock, []() {}, []() {});
     context.poll();
     context.restart();
 }
@@ -185,8 +188,10 @@ void query(boost::asio::ip::tcp::socket& sock, const char* queryString, boost::a
             {
                 promise.set_value(infoMessage);
             }
-        });
-    });
+            },
+            []() {});
+        },
+        []() {});
     auto future = promise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
@@ -216,8 +221,10 @@ getNextQueryResult(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& 
             {
                 retPromise.set_value(ret);
             }
-        });
-    });
+            },
+            []() {});
+        },
+        []() {});
     auto future = retPromise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
@@ -247,8 +254,10 @@ void importCSV(boost::asio::ip::tcp::socket& sock, const char* name, const char*
             {
                 promise.set_value(infoMessage);
             }
-        });
-    });
+            },
+            []() {});
+        },
+        []() {});
     auto future = promise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
@@ -276,8 +285,10 @@ void setDatabase(boost::asio::ip::tcp::socket& sock, const char* name, boost::as
             {
                 promise.set_value(infoMessage);
             }
-        });
-    });
+            },
+            []() {});
+        },
+        []() {});
     auto future = promise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
@@ -311,9 +322,12 @@ void bulkImport(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& con
                                         {
                                             promise.set_value(infoMessage);
                                         }
-                                    });
-                                });
-    });
+                                        },
+                                        []() {});
+            },
+            []() {});
+        },
+        []() {});
     auto future = promise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
@@ -342,8 +356,10 @@ void heartbeat(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& cont
             {
                 promise.set_value(infoMessage);
             }
-        });
-    });
+            },
+            []() {});
+        },
+        []() {});
     auto future = promise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
