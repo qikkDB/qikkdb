@@ -52,7 +52,7 @@ std::vector<NativeGeoPoint> polyBpolyPoints = {
 
     {4.00, 4.00},  {15.00, 4.00}, {15.00, 6.00}, {4.00, 6.00},
 
-    {0.00, 0.40},  {1.00, 0.40},  {1.00, 0.60},  {0.00, 0.60},
+    {-0.50, 0.40},  {1.00, 0.40},  {1.00, 0.60},  {-0.50, 0.60},
 
     {-5.12, 4.59}, {0.42, -5.63}, {3.86, 0.41},  {2.06, 3.75},  {1.22, 6.83}, {-4.60, 6.45},
 
@@ -214,7 +214,7 @@ TEST(GPUPolygonClippingTests, UnionColColTest)
         {3.000000, 3.000000},   {3.000000, 7.000000},   {7.000000, 7.000000},
         {7.000000, 6.000000},   {4.000000, 6.000000},   {4.000000, 4.000000},
         {0.800000, 0.400000},   {1.000000, 0.000000},   {0.000000, 0.000000},
-        {0.200000, 0.400000},   {0.000000, 0.400000},   {0.000000, 0.600000},
+        {0.200000, 0.400000},   {-0.500000, 0.400000},  {-0.500000, 0.600000},
         {0.300000, 0.600000},   {0.500000, 1.000000},   {0.700000, 0.600000},
         {1.000000, 0.600000},   {1.000000, 0.400000},   {-4.532012, 3.505300},
         {-6.310000, -1.490000}, {-4.330000, -3.890000}, {-0.630680, -3.691742},
@@ -295,7 +295,8 @@ TEST(GPUPolygonClippingTests, IntersectConstColTest)
     {
         // ASSERT_FLOAT_EQ(roundCustom(outPolyPoints[i].latitude), roundCustom(outPolyPointsCorrect[i].latitude));
         // ASSERT_FLOAT_EQ(roundCustom(outPolyPoints[i].longitude), roundCustom(outPolyPointsCorrect[i].longitude));
-        printf("%2d : %.2f %.2f\n", i, outPolyPoints[i].latitude, outPolyPoints[i].longitude);
+        //printf("%2d : %.2f %.2f\n", i, outPolyPoints[i].latitude, outPolyPoints[i].longitude);
+        printf("(%.2f, %.2f),\n", outPolyPoints[i].latitude, outPolyPoints[i].longitude);
     }
 
 	printf("\n");
