@@ -200,7 +200,7 @@ public:
 };
 
 template <typename OP, typename O, typename V>
-class GpuSqlDispatcher::GroupByHelper<OP, O, std::vector<void*>, V>
+class GpuSqlDispatcher::GroupByHelper<OP, O, std::vector<void*>, V> // TODO add null masks
 {
 public:
     static std::unique_ptr<IGroupBy>

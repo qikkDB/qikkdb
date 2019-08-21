@@ -1,39 +1,44 @@
 #include "GPUGroupByMultiKey.cuh"
 
-__device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKeys, int32_t i, const int32_t hashCoef)
+__device__ int32_t GetHash(DataType* keyTypes, const int32_t keysColCount,
+        void** inKeys, int8_t** inKeysNullMask, int32_t i, const int32_t hashCoef)
 {
     uint32_t crc = 0xFFFFFFFF;
 
     for (int32_t t = 0; t < keysColCount; t++)
     {
         uint32_t hash = 0;
-        switch (keyTypes[t])
+        // if not null
+        if((inKeysNullMask[t][i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1 == 0)
         {
-        case DataType::COLUMN_INT:
-            hash = reinterpret_cast<uint32_t*>(inKeys[t])[i];
+            switch (keyTypes[t])
+            {
+            case DataType::COLUMN_INT:
+                hash = reinterpret_cast<uint32_t*>(inKeys[t])[i];
+                break;
+            case DataType::COLUMN_LONG:
+                hash = static_cast<uint32_t>(reinterpret_cast<int64_t*>(inKeys[t])[i]);
+                break;
+            case DataType::COLUMN_FLOAT:
+                hash = static_cast<uint32_t>(reinterpret_cast<float*>(inKeys[t])[i]);
+                break;
+            case DataType::COLUMN_DOUBLE:
+                hash = static_cast<uint32_t>(reinterpret_cast<double*>(inKeys[t])[i]);
+                break;
+            case DataType::COLUMN_STRING:
+            {
+                GPUMemory::GPUString strCol = *reinterpret_cast<GPUMemory::GPUString*>(inKeys[t]);
+                hash = GetHash(strCol.allChars + GetStringIndex(strCol.stringIndices, i),
+                            GetStringLength(strCol.stringIndices, i));
+            }
             break;
-        case DataType::COLUMN_LONG:
-            hash = static_cast<uint32_t>(reinterpret_cast<int64_t*>(inKeys[t])[i]);
-            break;
-        case DataType::COLUMN_FLOAT:
-            hash = static_cast<uint32_t>(reinterpret_cast<float*>(inKeys[t])[i]);
-            break;
-        case DataType::COLUMN_DOUBLE:
-            hash = static_cast<uint32_t>(reinterpret_cast<double*>(inKeys[t])[i]);
-            break;
-        case DataType::COLUMN_STRING:
-        {
-            GPUMemory::GPUString strCol = *reinterpret_cast<GPUMemory::GPUString*>(inKeys[t]);
-            hash = GetHash(strCol.allChars + GetStringIndex(strCol.stringIndices, i),
-                           GetStringLength(strCol.stringIndices, i));
-        }
-        break;
-        case DataType::COLUMN_INT8_T:
-            hash = static_cast<uint32_t>(reinterpret_cast<int8_t*>(inKeys[t])[i]);
-            break;
-        default:
-            hash = 0;
-            break;
+            case DataType::COLUMN_INT8_T:
+                hash = static_cast<uint32_t>(reinterpret_cast<int8_t*>(inKeys[t])[i]);
+                break;
+            default:
+                hash = 0;
+                break;
+            }
         }
         for (int32_t i = 0; i < 4; i++)
         {
@@ -45,32 +50,41 @@ __device__ int32_t GetHash(DataType* keyTypes, int32_t keysColCount, void** inKe
 
 
 __device__ bool
-AreEqualMultiKeys(DataType* keyTypes, int32_t keysColCount, void** keysA, int32_t indexA, void** keysB, int32_t indexB)
+AreEqualMultiKeys(DataType* keyTypes, const int32_t keysColCount, void** keysA, int8_t** keysANullMask, int32_t indexA,
+                      void** keysB, int8_t** keysBNullMask, int32_t indexB, bool compressedBNullMask)
 {
     for (int32_t t = 0; t < keysColCount; t++)
     {
+        const bool nullA = (keysANullMask[t][indexA / (sizeof(int8_t) * 8)] >> (indexA % (sizeof(int8_t) * 8))) & 1;
+        const bool nullB = compressedBNullMask?
+                ((keysBNullMask[t][indexB / (sizeof(int8_t) * 8)] >> (indexB % (sizeof(int8_t) * 8))) & 1) :
+                keysBNullMask[t][indexB];
         switch (keyTypes[t])
         {
         case DataType::COLUMN_INT:
-            if (reinterpret_cast<int32_t*>(keysA[t])[indexA] != reinterpret_cast<int32_t*>(keysB[t])[indexB])
+            if (nullA != nullB || (!nullA &&
+                    reinterpret_cast<int32_t*>(keysA[t])[indexA] != reinterpret_cast<int32_t*>(keysB[t])[indexB]))
             {
                 return false;
             }
             break;
         case DataType::COLUMN_LONG:
-            if (reinterpret_cast<int64_t*>(keysA[t])[indexA] != reinterpret_cast<int64_t*>(keysB[t])[indexB])
+            if (nullA != nullB || (!nullA &&
+                    reinterpret_cast<int64_t*>(keysA[t])[indexA] != reinterpret_cast<int64_t*>(keysB[t])[indexB]))
             {
                 return false;
             }
             break;
         case DataType::COLUMN_FLOAT:
-            if (reinterpret_cast<float*>(keysA[t])[indexA] != reinterpret_cast<float*>(keysB[t])[indexB])
+            if (nullA != nullB || (!nullA &&
+                    reinterpret_cast<float*>(keysA[t])[indexA] != reinterpret_cast<float*>(keysB[t])[indexB]))
             {
                 return false;
             }
             break;
         case DataType::COLUMN_DOUBLE:
-            if (reinterpret_cast<double*>(keysA[t])[indexA] != reinterpret_cast<double*>(keysB[t])[indexB])
+            if (nullA != nullB || (!nullA &&
+                    reinterpret_cast<double*>(keysA[t])[indexA] != reinterpret_cast<double*>(keysB[t])[indexB]))
             {
                 return false;
             }
@@ -79,15 +93,17 @@ AreEqualMultiKeys(DataType* keyTypes, int32_t keysColCount, void** keysA, int32_
         {
             GPUMemory::GPUString strColA = *reinterpret_cast<GPUMemory::GPUString*>(keysA[t]);
             GPUMemory::GPUString strColB = *reinterpret_cast<GPUMemory::GPUString*>(keysB[t]);
-            if (!AreEqualStrings(strColA.allChars + GetStringIndex(strColA.stringIndices, indexA),
-                                 GetStringLength(strColA.stringIndices, indexA), strColB, indexB))
+            if (nullA != nullB || (!nullA &&
+                    !AreEqualStrings(strColA.allChars + GetStringIndex(strColA.stringIndices, indexA),
+                                 GetStringLength(strColA.stringIndices, indexA), strColB, indexB)))
             {
                 return false;
             }
             break;
         }
         case DataType::COLUMN_INT8_T:
-            if (reinterpret_cast<int8_t*>(keysA[t])[indexA] != reinterpret_cast<int8_t*>(keysB[t])[indexB])
+            if (nullA != nullB || (!nullA &&
+                    reinterpret_cast<int8_t*>(keysA[t])[indexA] != reinterpret_cast<int8_t*>(keysB[t])[indexB]))
             {
                 return false;
             }
@@ -101,12 +117,20 @@ AreEqualMultiKeys(DataType* keyTypes, int32_t keysColCount, void** keysA, int32_
 
 
 __device__ bool
-IsNewMultiKey(DataType* keyTypes, int32_t keysColCount, void** inKeys, int32_t i, void** keysBuffer, int32_t* sourceIndices, int32_t index)
+IsNewMultiKey(DataType* keyTypes,
+              const int32_t keysColCount,
+              void** inKeys,
+              int8_t** inKeysNullMask,
+              int32_t i,
+              void** keysBuffer,
+              int8_t** keysNullBuffer,
+              int32_t* sourceIndices,
+              int32_t index)
 {
     return (sourceIndices[index] >= 0 &&
-            !AreEqualMultiKeys(keyTypes, keysColCount, inKeys, i, inKeys, sourceIndices[index])) ||
+            !AreEqualMultiKeys(keyTypes, keysColCount, inKeys, inKeysNullMask, i, inKeys, inKeysNullMask, sourceIndices[index], true)) ||
            (sourceIndices[index] == GBS_SOURCE_INDEX_KEY_IN_BUFFER &&
-            !AreEqualMultiKeys(keyTypes, keysColCount, inKeys, i, keysBuffer, index));
+            !AreEqualMultiKeys(keyTypes, keysColCount, inKeys, inKeysNullMask, i, keysBuffer, keysNullBuffer, index, false));
 }
 
 
@@ -156,9 +180,15 @@ void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector,
 }
 
 
-void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t rowCount, std::vector<void*>* pointers)
+void AllocKeysBuffer(void*** keysBuffer,
+                     int8_t*** keysNullBuffer,
+                     std::vector<DataType> keyTypes,
+                     int32_t rowCount,
+                     std::vector<void*>* pointers,
+                     std::vector<int8_t*>* pointersNullMask)
 {
     GPUMemory::alloc(keysBuffer, keyTypes.size());
+    GPUMemory::alloc(keysNullBuffer, keyTypes.size());
     for (int32_t i = 0; i < keyTypes.size(); i++)
     {
         switch (keyTypes[i])
@@ -237,10 +267,17 @@ void AllocKeysBuffer(void*** keysBuffer, std::vector<DataType> keyTypes, int32_t
                                                            std::to_string(keyTypes[i]) + " is not supported");
             break;
         }
+        int8_t* gpuKeyNullMask;
+        GPUMemory::alloc(&gpuKeyNullMask, rowCount);
+        GPUMemory::copyHostToDevice(*keysNullBuffer + i, &gpuKeyNullMask, 1);
+        if (pointersNullMask)
+        {
+            pointersNullMask->emplace_back(gpuKeyNullMask);
+        }
     }
 }
 
-void FreeKeysBuffer(void** keysBuffer, DataType* keyTypes, int32_t keysColCount)
+void FreeKeysBuffer(void** keysBuffer, int8_t** keysNullBuffer, DataType* keyTypes, int32_t keysColCount)
 {
     // Copy data types back from GPU
     std::vector<DataType> keyTypesHost;
@@ -261,8 +298,15 @@ void FreeKeysBuffer(void** keysBuffer, DataType* keyTypes, int32_t keysColCount)
             }
             GPUMemory::free(ptr);
         }
+        int8_t* ptrNullBuffer;
+        GPUMemory::copyDeviceToHost(&ptrNullBuffer, keysNullBuffer + i, 1); // copy single pointer
+        if (ptrNullBuffer)
+        {
+            GPUMemory::free(ptrNullBuffer);
+        }
     }
     GPUMemory::free(keysBuffer);
+    GPUMemory::free(keysNullBuffer);
 }
 
 void FreeKeysVector(std::vector<void*> keysVector, std::vector<DataType> keyTypes)
@@ -314,10 +358,12 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                                           int32_t keysColCount,
                                           int32_t* sourceIndices,
                                           void** keysBuffer,
+                                          int8_t** keysNullBuffer,
                                           GPUMemory::GPUString* stringSideBuffers,
                                           int32_t** stringLengthsBuffers,
                                           int32_t maxHashCount,
-                                          void** inKeys)
+                                          void** inKeys,
+                                          int8_t** inKeysNullMask)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -365,6 +411,7 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                 default:
                     break;
                 }
+                keysNullBuffer[t][i] = (inKeysNullMask[t][sourceIndices[i] / (sizeof(int8_t) * 8)] >> (sourceIndices[i] % (sizeof(int8_t) * 8))) & 1;
             }
             sourceIndices[i] = GBS_SOURCE_INDEX_KEY_IN_BUFFER; // Mark as stored in keyBuffer
         }

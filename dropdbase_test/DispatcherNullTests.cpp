@@ -1215,3 +1215,112 @@ TEST(DispatcherNullTests, GroupByStringNullValueCount)
     }
     Database::RemoveFromInMemoryDatabaseList("TestDb");
 }
+
+
+//== GROUP BY Multi-key ==
+void TestGBMK(std::vector<int32_t> keysA,
+              std::vector<bool> keysANullMask,
+              std::vector<int32_t> keysB,
+              std::vector<bool> keysBNullMask,
+              std::vector<int32_t> values,
+              std::vector<bool> valuesNullMask,
+              std::vector<int32_t> keysAExpectedResult,
+              std::vector<bool> keysANullMaskExpectedResult,
+              std::vector<int32_t> keysBExpectedResult,
+              std::vector<bool> keysBNullMaskExpectedResult,
+              std::vector<int32_t> valuesExpectedResult,
+              std::vector<bool> valuesNullMaskExpectedResult)
+{
+    Database::RemoveFromInMemoryDatabaseList("TestDb");
+    int blockSize = 4;
+    std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
+    Database::AddToInMemoryDatabaseList(database);
+    std::unordered_map<std::string, DataType> columns;
+    columns.emplace("colKeysA", COLUMN_INT);
+    columns.emplace("colKeysB", COLUMN_INT);
+    columns.emplace("colVals", COLUMN_INT);
+    database->CreateTable(columns, "TestTable");
+    for (int i = 0; i < keysA.size(); i++)
+    {
+        std::string ka = keysANullMask[i] ? "NULL" : std::to_string(keysA[i]);
+        std::string kb = keysBNullMask[i] ? "NULL" : std::to_string(keysB[i]);
+        std::string vl = valuesNullMask[i] ? "NULL" : std::to_string(values[i]);
+        std::string insertQuery = "INSERT INTO TestTable (colKeysA, colKeysB, colVals) VALUES (" +
+                                  ka + ", " + kb + ", " + vl + ");";
+        std::cout << insertQuery << std::endl;
+        GpuSqlCustomParser parser(database, insertQuery);
+        parser.Parse();
+    }
+    GpuSqlCustomParser parser(database, "SELECT colKeysA, colKeysB, SUM(colVals) FROM TestTable "
+                                        "GROUP BY colKeysA, colKeysB;");
+    auto resultPtr = parser.Parse();
+    auto responseMessage =
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeysA"))
+        << "colKeysA null mask does not exist";
+    ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeysB"))
+        << "colKeysB null mask does not exist";
+    ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"))
+        << "colVals null mask does not exist";
+    const std::string& keysANullMaskResult =
+        responseMessage->nullbitmasks().at("TestTable.colKeysA");
+    const std::string& keysBNullMaskResult =
+        responseMessage->nullbitmasks().at("TestTable.colKeysB");
+    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)");
+    auto& keysAResult = responseMessage->payloads().at("TestTable.colKeysA");
+    auto& keysBResult = responseMessage->payloads().at("TestTable.colKeysB");
+    auto& valuesResult = responseMessage->payloads().at("SUM(colVals)");
+
+    ASSERT_EQ(keysAExpectedResult.size(), keysAResult.intpayload().intdata_size());
+    ASSERT_EQ(keysBExpectedResult.size(), keysBResult.intpayload().intdata_size());
+    ASSERT_EQ(valuesExpectedResult.size(), valuesResult.intpayload().intdata_size());
+
+    for (int i = 0; i < keysAResult.intpayload().intdata_size(); i++)
+    {
+        const char keyAChar = keysANullMaskResult[i / 8];
+        const bool keyAIsNull = ((keyAChar >> (i % 8)) & 1);
+        const char keyBChar = keysBNullMaskResult[i / 8];
+        const bool keyBIsNull = ((keyBChar >> (i % 8)) & 1);
+        const char valChar = valuesNullMaskResult[i / 8];
+        const bool valIsNull = ((valChar >> (i % 8)) & 1);
+        int foundIndex = -1;
+        for (int j = 0; j < keysAExpectedResult.size(); j++)
+        {
+            if (keysANullMaskExpectedResult[j] == keyAIsNull && keysBNullMaskExpectedResult[j] == keyBIsNull &&
+                keysAExpectedResult[j] == keysAResult.intpayload().intdata()[i] &&
+                keysBExpectedResult[j] == keysBResult.intpayload().intdata()[i])
+            {
+                foundIndex = j;
+                break;
+            }
+        }
+        if (foundIndex == -1)
+        {
+            FAIL() << "key "
+                   << (keyAIsNull ? "NULL" : std::to_string(keysAResult.intpayload().intdata()[i])) << " "
+                   << (keyBIsNull ? "NULL" : std::to_string(keysBResult.intpayload().intdata()[i]))
+                   << " not found";
+        }
+        else
+        {
+            std::cout
+                << foundIndex << ", key: "
+                << (keyAIsNull ? "NULL" : std::to_string(keysAResult.intpayload().intdata()[i])) << " "
+                << (keyBIsNull ? "NULL" : std::to_string(keysBResult.intpayload().intdata()[i])) << ", value:"
+                << (valIsNull ? "NULL" : std::to_string(valuesResult.intpayload().intdata()[i]))
+                << std::endl;
+            ASSERT_EQ(valuesNullMaskExpectedResult[foundIndex], valIsNull);
+            ASSERT_EQ(valuesExpectedResult[foundIndex], valuesResult.intpayload().intdata()[i]);
+        }
+    }
+}
+
+TEST(DispatcherNullTests, GroupByMultiKeyNullKeySum)
+{
+    TestGBMK({-1, 0, -1, -1, 5, 1, -1, -1}, {true, false, true, false, false, false, true, true},
+             {-1, -1, 0, 0, 3, -1, 3, -1}, {true, true, false, false, false, true, false, true},
+             {10, 10, 10, 10, 10, 10, 10, 10}, {false, false, false, false, false, false, false, false},
+             {-1, -1, -1, 0, 1, 0, 5}, {true, true, true, false, false, false, false},
+             {-1, 0, 3, -1, -1, 0, 3}, {true, false, false, true, true, false, false},
+             {20, 10, 10, 10, 10, 10, 10}, {false, false, false, false, false, false, false});
+}
