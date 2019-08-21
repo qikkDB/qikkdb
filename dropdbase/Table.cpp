@@ -915,10 +915,6 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     }
                 }
             }
-            else
-            {
-				
-			}
         }
     }
     saveNecesarry_ = true;

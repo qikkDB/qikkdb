@@ -13991,7 +13991,7 @@ TEST(DispatcherTests, ClusteredIndexPolygon)
     auto& payloadsColInt = result->payloads().at("testTable.colA");
 
     ASSERT_EQ(payloadsColInt.intpayload().intdata_size(), expectedResultInt.size());
-	auto& columnIntA = table.GetColumns().at("colA");
+    auto& columnIntA = table.GetColumns().at("colA");
     auto& blocksA = dynamic_cast<ColumnBase<int32_t>*>(columnIntA.get())->GetBlocksList();
     ASSERT_EQ(blocksA[0]->GetData()[0], expectedResultInt[0]);
     ASSERT_EQ(blocksA[0]->GetData()[1], expectedResultInt[1]);
@@ -14011,7 +14011,8 @@ TEST(DispatcherTests, ClusteredIndexPolygon)
 
     ASSERT_EQ(payloadsColPolygon.stringpayload().stringdata_size(), expectedResultPolygon.size());
     auto& columnIntB = table.GetColumns().at("colB");
-    auto& blocksB = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnIntB.get())->GetBlocksList();
+    auto& blocksB =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnIntB.get())->GetBlocksList();
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blocksB[0]->GetData()[0], true), expectedResultPolygon[0]);
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blocksB[0]->GetData()[1], true), expectedResultPolygon[1]);
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blocksB[1]->GetData()[0], true), expectedResultPolygon[2]);
@@ -14050,8 +14051,8 @@ TEST(DispatcherTests, ClusteredIndexString)
     std::vector<std::string> expectedResultString;
     for (int32_t i = 0; i < 7; i++)
     {
-        GpuSqlCustomParser parser2(database, "INSERT INTO testTable (colA, colB) VALUES (" + std::to_string(i) +
-                                                 ", \"abc" + std::to_string(i) + "\");");
+        GpuSqlCustomParser parser2(database, "INSERT INTO testTable (colA, colB) VALUES (" +
+                                                 std::to_string(i) + ", \"abc" + std::to_string(i) + "\");");
         resultPtr = parser2.Parse();
         expectedResultInt.push_back(i);
         expectedResultString.push_back("abc" + std::to_string(i));
@@ -14085,8 +14086,7 @@ TEST(DispatcherTests, ClusteredIndexString)
 
     ASSERT_EQ(payloadsColString.stringpayload().stringdata_size(), expectedResultString.size());
     auto& columnIntB = table.GetColumns().at("colB");
-    auto& blocksB =
-        dynamic_cast<ColumnBase<std::string>*>(columnIntB.get())->GetBlocksList();
+    auto& blocksB = dynamic_cast<ColumnBase<std::string>*>(columnIntB.get())->GetBlocksList();
     ASSERT_EQ(blocksB[0]->GetData()[0], expectedResultString[0]);
     ASSERT_EQ(blocksB[0]->GetData()[1], expectedResultString[1]);
     ASSERT_EQ(blocksB[1]->GetData()[0], expectedResultString[2]);
