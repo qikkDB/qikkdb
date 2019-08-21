@@ -37,6 +37,7 @@ public:
     virtual void Abort() = 0;
     ITCPWorker(const ITCPWorker&) = delete;
     ITCPWorker& operator=(const ITCPWorker&) = delete;
+
     /// <summary>
     /// Current working database
     /// </summary>
