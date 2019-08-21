@@ -212,8 +212,7 @@ private:
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> avgGroupByMultiKeyFunctions_;
 
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> orderByFunctions_;
-    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> orderByReconstructOrderFunctions_;
-    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> orderByReconstructRetFunctions_;
+    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> orderByReconstructFunctions_;
 
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> retFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> groupByFunctions_;
@@ -510,9 +509,7 @@ public:
 
     void AddOrderByFunction(DataType type);
 
-    void AddOrderByReconstructOrderFunction(DataType type);
-
-    void AddOrderByReconstructRetFunction(DataType type);
+    void AddOrderByReconstructFunction(DataType type);
 
     void AddFreeOrderByTableFunction();
 
@@ -672,16 +669,10 @@ public:
     int32_t OrderByCol();
 
     template <typename T>
-    int32_t OrderByReconstructOrderConst();
+    int32_t OrderByReconstructConst();
 
     template <typename T>
-    int32_t OrderByReconstructOrderCol();
-
-    template <typename T>
-    int32_t OrderByReconstructRetConst();
-
-    template <typename T>
-    int32_t OrderByReconstructRetCol();
+    int32_t OrderByReconstructCol();
 
     int32_t OrderByReconstructRetAllBlocks();
 
@@ -1070,14 +1061,8 @@ template <>
 int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName);
 
 template <>
-int32_t GpuSqlDispatcher::OrderByReconstructOrderCol<std::string>();
+int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>();
 
 template <>
-int32_t GpuSqlDispatcher::OrderByReconstructRetCol<std::string>();
-
-template <>
-int32_t GpuSqlDispatcher::OrderByReconstructOrderCol<ColmnarDB::Types::ComplexPolygon>();
-
-template <>
-int32_t GpuSqlDispatcher::OrderByReconstructRetCol<ColmnarDB::Types::ComplexPolygon>();
+int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>();
 

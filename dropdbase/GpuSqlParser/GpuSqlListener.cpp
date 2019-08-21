@@ -1315,7 +1315,8 @@ void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext* ctx
         DataType dataType = std::get<0>(orderByColumn.second);
 
         dispatcher_.AddArgument<const std::string&>(orderByColName);
-        dispatcher_.AddOrderByReconstructOrderFunction(dataType);
+        dispatcher_.AddArgument<bool>(false);
+        dispatcher_.AddOrderByReconstructFunction(dataType);
     }
 
     for (auto& returnColumn : returnColumns_)
@@ -1324,7 +1325,8 @@ void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext* ctx
         DataType dataType = std::get<0>(returnColumn.second);
 
         dispatcher_.AddArgument<const std::string&>(returnColName);
-        dispatcher_.AddOrderByReconstructRetFunction(dataType);
+        dispatcher_.AddArgument<bool>(true);
+        dispatcher_.AddOrderByReconstructFunction(dataType);
     }
 
     insideOrderBy_ = false;

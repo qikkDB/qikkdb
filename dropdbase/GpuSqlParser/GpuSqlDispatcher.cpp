@@ -207,14 +207,9 @@ void GpuSqlDispatcher::AddOrderByFunction(DataType type)
     dispatcherFunctions_.push_back(orderByFunctions_[type]);
 }
 
-void GpuSqlDispatcher::AddOrderByReconstructOrderFunction(DataType type)
+void GpuSqlDispatcher::AddOrderByReconstructFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(orderByReconstructOrderFunctions_[type]);
-}
-
-void GpuSqlDispatcher::AddOrderByReconstructRetFunction(DataType type)
-{
-    dispatcherFunctions_.push_back(orderByReconstructRetFunctions_[type]);
+    dispatcherFunctions_.push_back(orderByReconstructFunctions_[type]);
 }
 
 void GpuSqlDispatcher::AddFreeOrderByTableFunction()
