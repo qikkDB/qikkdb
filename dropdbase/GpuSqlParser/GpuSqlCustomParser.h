@@ -10,10 +10,13 @@
 #include <memory>
 
 #include "GpuSqlDispatcher.h"
+#include "GpuSqlJoinDispatcher.h"
 
 
 
 class Database;
+
+class GpuSqlJoinDispatcher;
 
 namespace ColmnarDB
 {
@@ -50,6 +53,7 @@ private:
                            int64_t resultOffset);
 
     std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers_;
+    std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher_;
 
 public:
     GpuSqlCustomParser(const std::shared_ptr<Database>& database, const std::string& query);

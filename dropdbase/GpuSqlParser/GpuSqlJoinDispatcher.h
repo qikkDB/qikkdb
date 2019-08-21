@@ -35,6 +35,8 @@ public:
 
     void Execute();
 
+	void Abort();
+
 private:
     typedef int32_t (GpuSqlJoinDispatcher::*DispatchJoinFunction)();
     std::vector<DispatchJoinFunction> dispatcherFunctions_;
@@ -42,6 +44,7 @@ private:
     const std::shared_ptr<Database>& database_;
     int32_t instructionPointer_;
     std::unordered_map<std::string, std::vector<std::vector<int32_t>>> joinIndices_;
+    bool aborted_;
 
     static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinEqualFunctions_;
     static std::array<DispatchJoinFunction, DataType::DATA_TYPE_SIZE> joinGreaterFunctions_;

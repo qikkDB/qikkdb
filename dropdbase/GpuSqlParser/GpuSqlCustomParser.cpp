@@ -7,7 +7,6 @@
 #include "GpuSqlCustomParser.h"
 #include "GpuSqlListener.h"
 #include "CpuWhereListener.h"
-#include "GpuSqlJoinDispatcher.h"
 #include "ParserExceptions.h"
 #include "../QueryEngine/GPUMemoryCache.h"
 #include "QueryType.h"
@@ -70,9 +69,9 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     std::unique_ptr<CpuSqlDispatcher> cpuWhereDispatcher = std::make_unique<CpuSqlDispatcher>(database_);
     std::unique_ptr<GpuSqlDispatcher> dispatcher =
         std::make_unique<GpuSqlDispatcher>(database_, groupByInstances, orderByBlocks, -1);
-    std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher = std::make_unique<GpuSqlJoinDispatcher>(database_);
+    joinDispatcher_ = std::make_unique<GpuSqlJoinDispatcher>(database_);
 
-    GpuSqlListener gpuSqlListener(database_, *dispatcher, *joinDispatcher);
+    GpuSqlListener gpuSqlListener(database_, *dispatcher, *joinDispatcher_);
 
     CpuWhereListener cpuWhereListener(database_, *cpuWhereDispatcher);
 
@@ -93,7 +92,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         if (statement->sqlSelect()->joinClauses())
         {
             walker.walk(&gpuSqlListener, statement->sqlSelect()->joinClauses());
-            joinDispatcher->Execute();
+            joinDispatcher_->Execute();
         }
 
         if (statement->sqlSelect()->whereClause())
@@ -262,7 +261,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         dispatchers_.emplace_back(
             std::make_unique<GpuSqlDispatcher>(database_, groupByInstances, orderByBlocks, i));
         dispatcher->CopyExecutionDataTo(*dispatchers_[i], *cpuWhereDispatcher);
-        dispatchers_[i]->SetJoinIndices(joinDispatcher->GetJoinIndices());
+        dispatchers_[i]->SetJoinIndices(joinDispatcher_->GetJoinIndices());
         dispatcherFutures.push_back(
             std::thread(std::bind(&GpuSqlDispatcher::Execute, dispatchers_[i].get(),
                                   std::ref(dispatcherResults[i]), std::ref(dispatcherExceptions[i]))));
@@ -305,6 +304,7 @@ void GpuSqlCustomParser::InterruptQueryExecution()
     {
         dispatcher->Abort();
     }
+    joinDispatcher_->Abort();
     wasAborted_ = true;
 }
 

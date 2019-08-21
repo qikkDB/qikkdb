@@ -2,7 +2,7 @@
 #include "../QueryEngine/GPUCore/GPUFilterConditions.cuh"
 
 GpuSqlJoinDispatcher::GpuSqlJoinDispatcher(const std::shared_ptr<Database>& database)
-: database_(database), instructionPointer_(0)
+: database_(database), instructionPointer_(0), aborted_(false)
 {
 }
 
@@ -10,7 +10,7 @@ void GpuSqlJoinDispatcher::Execute()
 {
     int32_t err = 0;
 
-    while (err == 0)
+    while (err == 0 && !aborted_)
     {
         err = (this->*dispatcherFunctions_[instructionPointer_++])();
 
@@ -24,6 +24,11 @@ void GpuSqlJoinDispatcher::Execute()
             break;
         }
     }
+}
+
+void GpuSqlJoinDispatcher::Abort()
+{
+    aborted_ = true;
 }
 
 void GpuSqlJoinDispatcher::AddJoinFunction(DataType type, std::string op)
