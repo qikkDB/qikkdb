@@ -90,75 +90,6 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                                                            dataString[iterator], -1, isNullValue);
             }
         }
-        else
-        {
-            switch (columns.at(column.first)->GetColumnType())
-            {
-            case COLUMN_INT:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
-                                                           GetNullConstant<int32_t>(), -1, true);
-                break;
-            }
-
-            case COLUMN_LONG:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
-                                                           GetNullConstant<int64_t>(), -1, true);
-                break;
-            }
-
-            case COLUMN_FLOAT:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
-                                                           GetNullConstant<float>(), -1, true);
-                break;
-            }
-
-            case COLUMN_DOUBLE:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<double>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
-                                                           GetNullConstant<double>(), -1, true);
-                break;
-            }
-
-            case COLUMN_INT8_T:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<int8_t>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
-                                                           GetNullConstant<int8_t>(), -1, true);
-                break;
-            }
-
-            case COLUMN_STRING:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock, "", -1, true);
-                break;
-            }
-
-            case COLUMN_POINT:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
-                                                           ColmnarDB::Types::Point(), -1, true);
-                break;
-            }
-
-            case COLUMN_POLYGON:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(currentColumn);
-                castedColumn->InsertDataOnSpecificPosition(indexBlock,
-                                                           indexInBlock, ComplexPolygonFactory::FromWkt("POLYGON((0 0))"),
-                                                           -1, true);
-                break;
-            }
-            }
-        }
     }
 }
 
@@ -376,15 +307,15 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
                 break;
 
             case COLUMN_STRING:
-                resultRow.push_back("");
+                resultRow.push_back(ColumnBase<std::string>::NullArray(1)[0]);
                 break;
 
             case COLUMN_POINT:
-                resultRow.push_back(ColmnarDB::Types::Point());
+                resultRow.push_back(ColumnBase<ColmnarDB::Types::Point>::NullArray(1)[0]);
                 break;
 
             case COLUMN_POLYGON:
-                resultRow.push_back(ComplexPolygonFactory::FromWkt("POLYGON((0 0))"));
+                resultRow.push_back(ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0]);
                 break;
             }
         }

@@ -521,7 +521,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                         }
                         catch(std::invalid_argument)
                         {
-                            data = ColmnarDB::Types::Point();
+                            data = ColumnBase<ColmnarDB::Types::Point>::NullArray(1)[0];
 
                             newNullMask.push_back(1);
                         }
@@ -575,7 +575,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                         }
                         catch(std::invalid_argument)
                         {
-                            data = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
+                            data = ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0];
 
                             newNullMask.push_back(1);
                         }

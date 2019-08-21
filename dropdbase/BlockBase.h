@@ -322,12 +322,12 @@ public:
 
         else if (index < size_)
         {
-            /* for (int j = filledBlockSpace - 1; j >= index; j--)
+             /*for (int j = size_ - 1; j >= index; j--)
              {
                  data_[j + 1] = data_[j];
-             }*/
-
-            std::move(data_.get() + index, data_.get() + size_, data_.get() + index + 1);
+             }
+			 */
+            std::move_backward(data_.get() + index, data_.get() + size_, data_.get() + size_ + 1);
 
             int bitMaskIdx = (index / (sizeof(char) * 8));
             int shiftIdx = (index % (sizeof(char) * 8));
