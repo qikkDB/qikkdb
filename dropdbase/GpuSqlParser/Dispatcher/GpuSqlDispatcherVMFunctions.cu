@@ -459,7 +459,7 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>()
             if (std::get<2>(ACol))
             {
                 size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+                std::unique_ptr<int8_t[]> nullMask(new int8_t[bitMaskSize]);
                 GPUReconstruct::ReconstructPolyColToWKT(outData.get(), &outSize, std::get<0>(ACol),
                                                         reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol),
                                                         nullMask.get(), std::get<2>(ACol));
@@ -538,7 +538,7 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
             if (ACol.GpuNullMaskPtr)
             {
                 size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+                std::unique_ptr<int8_t[]> nullMask(new int8_t[bitMaskSize]);
                 GPUReconstruct::ReconstructPointColToWKT(outData.get(), &outSize,
                                                          reinterpret_cast<NativeGeoPoint*>(ACol.GpuPtr),
                                                          reinterpret_cast<int8_t*>(filter_),
@@ -621,7 +621,7 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
                 std::get<2>(col) = reorderedNullColumn.release();
             }
 
-            outData = std::make_unique<std::string[]>(outSize);
+            outData = std::unique_ptr<std::string[]>(new std::string[outSize]);
             if (std::get<2>(col))
             {
                 size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
@@ -667,11 +667,11 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
         {
             auto col = FindStringColumn(colName);
             outSize = std::get<1>(col);
-            outData = std::make_unique<std::string[]>(outSize);
+            outData = std::unique_ptr<std::string[]>(new std::string[outSize]);
             if (std::get<2>(col))
             {
                 size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+                std::unique_ptr<int8_t[]> nullMask(new int8_t[bitMaskSize]);
                 GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col),
                                                      reinterpret_cast<int8_t*>(filter_),
                                                      std::get<1>(col), nullMask.get(), std::get<2>(col));

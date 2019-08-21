@@ -70,7 +70,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>()
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int8_t[]> outNullData = std::make_unique<int8_t[]>(inNullColSize);
+        std::unique_ptr<int8_t[]> outNullData(new int8_t[inNullColSize]);
 
         GPUMemory::GPUString reorderedColumn;
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
@@ -130,7 +130,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>()
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int8_t[]> outNullData = std::make_unique<int8_t[]>(inNullColSize);
+        std::unique_ptr<int8_t[]> outNullData(new int8_t[inNullColSize]);
 
         cuda_ptr<NativeGeoPoint> reorderedColumn(inSize);
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
@@ -188,7 +188,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int8_t[]> outNullData = std::make_unique<int8_t[]>(inNullColSize);
+        std::unique_ptr<int8_t[]> outNullData(new int8_t[inNullColSize]);
 
         GPUMemory::GPUPolygon reorderedColumn;
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);

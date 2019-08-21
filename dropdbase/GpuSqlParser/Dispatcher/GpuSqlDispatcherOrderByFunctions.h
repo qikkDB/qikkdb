@@ -102,7 +102,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol()
         size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 
         std::unique_ptr<VariantArray<T>> outData = std::make_unique<VariantArray<T>>(inSize);
-        std::unique_ptr<int8_t[]> outNullData = std::make_unique<int8_t[]>(inNullColSize);
+        std::unique_ptr<int8_t[]> outNullData(new int8_t[inNullColSize]);
 
         cuda_ptr<T> reorderedColumn(inSize);
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);

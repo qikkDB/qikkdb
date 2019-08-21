@@ -26,7 +26,7 @@ int32_t GpuSqlDispatcher::RetConst()
     {
         return loadFlag;
     }
-    
+
     int64_t dataElementCount = GetBlockSize();
 
     std::unique_ptr<T[]> outData(new T[dataElementCount]);
@@ -78,12 +78,12 @@ int32_t GpuSqlDispatcher::RetCol()
                                                 reinterpret_cast<int32_t*>(orderByIndices.GpuPtr), outSize);
             }
 
-            outData = std::make_unique<T[]>(outSize);
+            outData = std::unique_ptr<T[]>(new T[outSize]);
             GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(col.GpuPtr), outSize);
             if (col.GpuNullMaskPtr)
             {
                 size_t bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+                std::unique_ptr<int8_t[]> nullMask(new int8_t[bitMaskSize]);
                 GPUMemory::copyDeviceToHost(nullMask.get(),
                                             reinterpret_cast<int8_t*>(col.GpuNullMaskPtr), bitMaskSize);
                 nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
@@ -119,13 +119,13 @@ int32_t GpuSqlDispatcher::RetCol()
         {
             PointerAllocation col = allocatedPointers_.at(colName);
             int32_t inSize = col.ElementCount;
-            outData = std::make_unique<T[]>(inSize);
+            outData = std::unique_ptr<T[]>(new T[inSize]);
             // ToDo: Podmienene zapnut podla velkost buffera
             // GPUMemory::hostPin(outData.get(), inSize);
             if (col.GpuNullMaskPtr)
             {
                 size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
+                std::unique_ptr<int8_t[]> nullMask(new int8_t[bitMaskSize]);
                 GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(col.GpuPtr),
                                                reinterpret_cast<int8_t*>(filter_), col.ElementCount,
                                                nullMask.get(), reinterpret_cast<int8_t*>(col.GpuNullMaskPtr));
