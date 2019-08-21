@@ -56,7 +56,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>()
 
     if (!usingGroupBy_)
     {
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering order by column: " << colName << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering column: " << colName << '\n';
 
         int32_t loadFlag = LoadCol<std::string>(colName);
         if (loadFlag)
@@ -116,7 +116,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon
 
     if (!usingGroupBy_)
     {
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering return column: " << colName << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering column: " << colName << '\n';
 
         int32_t loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(colName);
         if (loadFlag)
