@@ -13226,10 +13226,17 @@ TEST(DispatcherTests, AggregationCountAsterisJoinWhereNoGroupBy)
 
 TEST(DispatcherTests, AlterTableAlterColumnIntToFloat)
 {
+<<<<<<< HEAD
     GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterIntToFloat 10;");
     auto resultPtr = createDatabase.Parse();
 
     auto database = Database::GetDatabaseByName("TestDatabaseAlterIntToFloat");
+=======
+    GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
+    auto resultPtr = createDatabase.Parse();
+
+    auto database = Database::GetDatabaseByName("TestDatabaseAlter");
+>>>>>>> Test which causes the bug
 
     ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
@@ -13333,7 +13340,6 @@ TEST(DispatcherTests, AlterTableAlterColumnPolygonToString)
     auto resultPtr = createDatabase.Parse();
 
     auto database = Database::GetDatabaseByName("TestDatabaseAlterPolygonToString");
-
     ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 
     GpuSqlCustomParser parser(database, "CREATE TABLE testTable (col geo_polygon);");
@@ -14096,5 +14102,106 @@ TEST(DispatcherTests, ClusteredIndexString)
     ASSERT_EQ(blocksB[2]->GetData()[2], expectedResultString[6]);
 
     GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseString;");
+    resultPtr = parserDropDb.Parse();
+}
+
+TEST(DispatcherTests, AlterTableAddColumnWithIndex)
+{
+    GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterAddWI 8;");
+    auto resultPtr = createDatabase.Parse();
+
+    auto database = Database::GetDatabaseByName("TestDatabaseAlterAddWI");
+
+    ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
+
+    GpuSqlCustomParser parser(database, "CREATE TABLE testTable (colA int, colB int, INDEX "
+                                        "ind(colA, colB));");
+    resultPtr = parser.Parse();
+
+    ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
+
+    for (int32_t i = 0; i < 15; i++)
+    {
+        GpuSqlCustomParser parser2(database, "INSERT INTO testTable (colA, colB) VALUES (" +
+                                                 std::to_string(i) + ", " + std::to_string(i % 5) + ");");
+        resultPtr = parser2.Parse();
+    }
+
+    auto& table = database->GetTables().at("testTable");
+    auto& columnIntA = table.GetColumns().at("colA");
+    auto& blocksA = dynamic_cast<ColumnBase<int32_t>*>(columnIntA.get())->GetBlocksList();
+
+    auto& columnIntB = table.GetColumns().at("colB");
+    auto& blocksB = dynamic_cast<ColumnBase<int32_t>*>(columnIntB.get())->GetBlocksList();
+
+    ASSERT_EQ(blocksA[0]->GetSize(), 4);
+    ASSERT_EQ(blocksA[0]->GetSize(), blocksB[0]->GetSize());
+    ASSERT_EQ(blocksA[1]->GetSize(), 4);
+    ASSERT_EQ(blocksA[1]->GetSize(), blocksB[1]->GetSize());
+    ASSERT_EQ(blocksA[2]->GetSize(), 7);
+    ASSERT_EQ(blocksA[2]->GetSize(), blocksB[2]->GetSize());
+
+    GpuSqlCustomParser parserAlter(database, "ALTER TABLE testTable ADD colC int;");
+    resultPtr = parserAlter.Parse();
+
+    auto& columnIntC = table.GetColumns().at("colC");
+    auto& blocksC = dynamic_cast<ColumnBase<int32_t>*>(columnIntC.get())->GetBlocksList();
+
+    ASSERT_EQ(blocksC[0]->GetSize(), 4);
+    ASSERT_EQ(blocksC[0]->GetNullBitmask()[0], 15);
+    ASSERT_EQ(blocksC[1]->GetSize(), 4);
+    ASSERT_EQ(blocksC[1]->GetNullBitmask()[0], 15);
+    ASSERT_EQ(blocksC[2]->GetSize(), 7);
+    ASSERT_EQ(blocksC[2]->GetNullBitmask()[0], 127);
+
+    GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterAddWI;");
+    resultPtr = parserDropDb.Parse();
+}
+
+TEST(DispatcherTests, AlterTableAddColumn)
+{
+    GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterAdd 15;");
+    auto resultPtr = createDatabase.Parse();
+
+    auto database = Database::GetDatabaseByName("TestDatabaseAlterAdd");
+
+    ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
+
+    GpuSqlCustomParser parser(database, "CREATE TABLE testTable (colA int, colB int);");
+    resultPtr = parser.Parse();
+
+    ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
+
+    for (int32_t i = 0; i < 17; i++)
+    {
+        GpuSqlCustomParser parser2(database, "INSERT INTO testTable (colA, colB) VALUES (" +
+                                                 std::to_string(i) + ", " + std::to_string(i % 5) + ");");
+        resultPtr = parser2.Parse();
+    }
+
+    auto& table = database->GetTables().at("testTable");
+    auto& columnIntA = table.GetColumns().at("colA");
+    auto& blocksA = dynamic_cast<ColumnBase<int32_t>*>(columnIntA.get())->GetBlocksList();
+
+    auto& columnIntB = table.GetColumns().at("colB");
+    auto& blocksB = dynamic_cast<ColumnBase<int32_t>*>(columnIntB.get())->GetBlocksList();
+
+    ASSERT_EQ(blocksA[0]->GetSize(), 15);
+    ASSERT_EQ(blocksA[0]->GetSize(), blocksB[0]->GetSize());
+    ASSERT_EQ(blocksA[1]->GetSize(), 2);
+    ASSERT_EQ(blocksA[1]->GetSize(), blocksB[1]->GetSize());
+
+    GpuSqlCustomParser parserAlter(database, "ALTER TABLE testTable ADD colC int;");
+    resultPtr = parserAlter.Parse();
+
+    auto& columnIntC = table.GetColumns().at("colC");
+    auto& blocksC = dynamic_cast<ColumnBase<int32_t>*>(columnIntC.get())->GetBlocksList();
+
+    ASSERT_EQ(blocksC[0]->GetSize(), 15);
+    ASSERT_EQ(blocksC[0]->GetNullBitmask()[0], -1);
+    ASSERT_EQ(blocksC[0]->GetNullBitmask()[1], 127);
+    ASSERT_EQ(blocksC[1]->GetSize(), 2);
+    ASSERT_EQ(blocksC[1]->GetNullBitmask()[0], 3);
+    GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterAdd;");
     resultPtr = parserDropDb.Parse();
 }
