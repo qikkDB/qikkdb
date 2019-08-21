@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <list>
 
+
 /// A class for memory allocation operations
 class CudaMemAllocator
 {
@@ -30,6 +31,17 @@ private:
     std::unordered_map<void*, std::list<BlockInfo>::iterator> allocatedBlocks_;
     void SplitBlock(std::multimap<size_t, std::list<BlockInfo>::iterator>::iterator blockIterator,
                     size_t requestedSize);
+    friend void
+    ValidateIterator(int gpuId,
+                     const std::multimap<size_t, std::list<CudaMemAllocator::BlockInfo>::iterator>& container,
+                     std::multimap<size_t, std::list<CudaMemAllocator::BlockInfo>::iterator>::iterator& iterator);
+    friend void ValidateIterator(int gpuId,
+                                 const std::list<CudaMemAllocator::BlockInfo>& container,
+                                 std::list<CudaMemAllocator::BlockInfo>::iterator& iterator);
+    friend void
+    ValidateIterator(int gpuId,
+                     const std::unordered_map<void*, std::list<CudaMemAllocator::BlockInfo>::iterator>& container,
+                     std::unordered_map<void*, std::list<CudaMemAllocator::BlockInfo>::iterator>::iterator& iterator);
 
 public:
     typedef int8_t value_type;
