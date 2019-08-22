@@ -36,6 +36,7 @@ int32_t GpuSqlDispatcher::AggregationCol()
     int32_t reconstructOutSize;
 
     IN* reconstructOutReg = nullptr;
+    int8_t* reconstructOutNullMask = nullptr;
     if (std::is_same<OP, AggregationFunctions::count>::value)
     {
         if (!aggAsterisk)
@@ -66,7 +67,9 @@ int32_t GpuSqlDispatcher::AggregationCol()
     {
         GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize,
                                                reinterpret_cast<IN*>(column.GpuPtr),
-                                               reinterpret_cast<int8_t*>(filter_), column.ElementCount);
+                                               reinterpret_cast<int8_t*>(filter_),
+                                               column.ElementCount, &reconstructOutNullMask,
+                                               reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
     }
 
     if (column.ShouldBeFreed)
@@ -80,6 +83,7 @@ int32_t GpuSqlDispatcher::AggregationCol()
 
     column.GpuPtr = reinterpret_cast<uintptr_t>(reconstructOutReg);
     column.ElementCount = reconstructOutSize;
+    column.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(reconstructOutNullMask);
 
     if (!IsRegisterAllocated(reg))
     {
@@ -347,7 +351,8 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
                 return loadFlag;
             }
             auto columnMask = allocatedPointers_.at(colTableName + NULL_SUFFIX);
-            dummyAllocation = PointerAllocation{0, columnMask.ElementCount, false, columnMask.GpuPtr};
+            int32_t columnSize = GetBlockSize();
+            dummyAllocation = PointerAllocation{0, columnSize, false, columnMask.GpuPtr};
         }
         else
         {
@@ -375,9 +380,12 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
         !aggCount)
     {
         V* reconstructOutReg;
+        int8_t* reconstructOutNullMask;
         GPUReconstruct::reconstructColKeep<V>(&reconstructOutReg, &reconstructOutSize,
                                               reinterpret_cast<V*>(column.GpuPtr),
-                                              reinterpret_cast<int8_t*>(filter_), column.ElementCount);
+                                              reinterpret_cast<int8_t*>(filter_),
+                                              column.ElementCount, &reconstructOutNullMask,
+                                              reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
 
         if (column.ShouldBeFreed)
         {
@@ -389,6 +397,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
         }
         column.GpuPtr = reinterpret_cast<uintptr_t>(reconstructOutReg);
         column.ElementCount = reconstructOutSize;
+        column.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(reconstructOutNullMask);
     }
 
     // TODO void param
