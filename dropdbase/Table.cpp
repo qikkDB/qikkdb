@@ -719,19 +719,260 @@ void Table::RenameColumn(std::string oldColumnName, std::string newColumnName)
     columns.insert(move(handler));
 }
 
+/// <summary>
+/// Insert null values into new column which was added using alter table add column comand to match amount of data in blocks in columns which are already in database
+/// </summary>
+/// <param name="newColumnname">name of new column which was added using alter table add column</param>
 void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 {
     auto& column = columns.begin()->second;
     DataType type = column->GetColumnType();
 
-	
+    std::vector<int32_t> blocksSizes;
 
-	switch (type)
+    switch (type)
     {
     case COLUMN_INT:
+    {
         auto blocks = dynamic_cast<ColumnBase<int32_t>*>(column.get())->GetBlocksList();
 
-        break;
+        for (int32_t i = 0; i < blocks.size(); i++)
+        {
+            blocksSizes.push_back(blocks[i]->GetSize());
+        }
+    }
+    break;
+
+    case COLUMN_LONG:
+    {
+        auto blocks = dynamic_cast<ColumnBase<int64_t>*>(column.get())->GetBlocksList();
+
+        for (int32_t i = 0; i < blocks.size(); i++)
+        {
+            blocksSizes.push_back(blocks[i]->GetSize());
+        }
+    }
+    break;
+
+    case COLUMN_DOUBLE:
+    {
+        auto blocks = dynamic_cast<ColumnBase<double>*>(column.get())->GetBlocksList();
+
+        for (int32_t i = 0; i < blocks.size(); i++)
+        {
+            blocksSizes.push_back(blocks[i]->GetSize());
+        }
+    }
+    break;
+
+    case COLUMN_FLOAT:
+    {
+        auto blocks = dynamic_cast<ColumnBase<float>*>(column.get())->GetBlocksList();
+
+        for (int32_t i = 0; i < blocks.size(); i++)
+        {
+            blocksSizes.push_back(blocks[i]->GetSize());
+        }
+    }
+    break;
+
+    case COLUMN_POINT:
+    {
+        auto blocks = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.get())->GetBlocksList();
+
+        for (int32_t i = 0; i < blocks.size(); i++)
+        {
+            blocksSizes.push_back(blocks[i]->GetSize());
+        }
+    }
+    break;
+
+    case COLUMN_POLYGON:
+    {
+        auto blocks =
+            dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(column.get())->GetBlocksList();
+
+        for (int32_t i = 0; i < blocks.size(); i++)
+        {
+            blocksSizes.push_back(blocks[i]->GetSize());
+        }
+    }
+    break;
+
+    case COLUMN_STRING:
+    {
+        auto blocks = dynamic_cast<ColumnBase<std::string>*>(column.get())->GetBlocksList();
+
+        for (int32_t i = 0; i < blocks.size(); i++)
+        {
+            blocksSizes.push_back(blocks[i]->GetSize());
+        }
+    }
+    break;
+
+    case COLUMN_INT8_T:
+    {
+        auto blocks = dynamic_cast<ColumnBase<int8_t>*>(column.get())->GetBlocksList();
+
+        for (int32_t i = 0; i < blocks.size(); i++)
+        {
+            blocksSizes.push_back(blocks[i]->GetSize());
+        }
+    }
+    break;
+    }
+
+
+    auto newColumn = columns.at(newColumnName).get();
+    DataType newType = newColumn->GetColumnType();
+
+    switch (newType)
+    {
+    case COLUMN_INT:
+    {
+        auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(newColumn);
+        for (int32_t i = 0; i < blocksSizes.size(); i++)
+        {
+            auto& block = castedColumn->AddBlock(ColumnBase<int32_t>::NullArray(blocksSizes[i]));
+
+            for (int32_t j = 0; j < blocksSizes[i]; j++)
+            {
+                int nullMaskOffset = j / (sizeof(char) * 8);
+                int nullMaskShiftOffset = j % (sizeof(char) * 8);
+
+                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+            }
+        }
+    }
+    break;
+
+    case COLUMN_LONG:
+    {
+        auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(newColumn);
+        for (int32_t i = 0; i < blocksSizes.size(); i++)
+        {
+            auto& block = castedColumn->AddBlock(ColumnBase<int64_t>::NullArray(blocksSizes[i]));
+
+            for (int32_t j = 0; j < blocksSizes[i]; j++)
+            {
+                int nullMaskOffset = j / (sizeof(char) * 8);
+                int nullMaskShiftOffset = j % (sizeof(char) * 8);
+
+                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+            }
+        }
+    }
+    break;
+
+    case COLUMN_DOUBLE:
+    {
+        auto castedColumn = dynamic_cast<ColumnBase<double>*>(newColumn);
+        for (int32_t i = 0; i < blocksSizes.size(); i++)
+        {
+            auto& block = castedColumn->AddBlock(ColumnBase<double>::NullArray(blocksSizes[i]));
+
+            for (int32_t j = 0; j < blocksSizes[i]; j++)
+            {
+                int nullMaskOffset = j / (sizeof(char) * 8);
+                int nullMaskShiftOffset = j % (sizeof(char) * 8);
+
+                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+            }
+        }
+    }
+    break;
+
+    case COLUMN_FLOAT:
+    {
+        auto castedColumn = dynamic_cast<ColumnBase<float>*>(newColumn);
+        for (int32_t i = 0; i < blocksSizes.size(); i++)
+        {
+            auto& block = castedColumn->AddBlock(ColumnBase<float>::NullArray(blocksSizes[i]));
+
+            for (int32_t j = 0; j < blocksSizes[i]; j++)
+            {
+                int nullMaskOffset = j / (sizeof(char) * 8);
+                int nullMaskShiftOffset = j % (sizeof(char) * 8);
+
+                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+            }
+        }
+    }
+    break;
+
+    case COLUMN_POINT:
+    {
+        auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(newColumn);
+        for (int32_t i = 0; i < blocksSizes.size(); i++)
+        {
+            auto& block =
+                castedColumn->AddBlock(ColumnBase<ColmnarDB::Types::Point>::NullArray(blocksSizes[i]));
+
+            for (int32_t j = 0; j < blocksSizes[i]; j++)
+            {
+                int nullMaskOffset = j / (sizeof(char) * 8);
+                int nullMaskShiftOffset = j % (sizeof(char) * 8);
+
+                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+            }
+        }
+    }
+    break;
+
+    case COLUMN_POLYGON:
+    {
+        auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(newColumn);
+        for (int32_t i = 0; i < blocksSizes.size(); i++)
+        {
+            auto& block = castedColumn->AddBlock(
+                ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(blocksSizes[i]));
+
+            for (int32_t j = 0; j < blocksSizes[i]; j++)
+            {
+                int nullMaskOffset = j / (sizeof(char) * 8);
+                int nullMaskShiftOffset = j % (sizeof(char) * 8);
+
+                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+            }
+        }
+    }
+    break;
+
+    case COLUMN_STRING:
+    {
+        auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(newColumn);
+        for (int32_t i = 0; i < blocksSizes.size(); i++)
+        {
+            auto& block = castedColumn->AddBlock(ColumnBase<std::string>::NullArray(blocksSizes[i]));
+
+            for (int32_t j = 0; j < blocksSizes[i]; j++)
+            {
+                int nullMaskOffset = j / (sizeof(char) * 8);
+                int nullMaskShiftOffset = j % (sizeof(char) * 8);
+
+                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+            }
+        }
+    }
+    break;
+
+    case COLUMN_INT8_T:
+    {
+        auto castedColumn = dynamic_cast<ColumnBase<int8_t>*>(newColumn);
+        for (int32_t i = 0; i < blocksSizes.size(); i++)
+        {
+            auto& block = castedColumn->AddBlock(ColumnBase<int8_t>::NullArray(blocksSizes[i]));
+
+            for (int32_t j = 0; j < blocksSizes[i]; j++)
+            {
+                int nullMaskOffset = j / (sizeof(char) * 8);
+                int nullMaskShiftOffset = j % (sizeof(char) * 8);
+
+                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+            }
+        }
+    }
+    break;
     }
 }
 
