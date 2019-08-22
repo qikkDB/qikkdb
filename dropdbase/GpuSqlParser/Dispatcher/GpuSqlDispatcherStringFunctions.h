@@ -23,7 +23,8 @@ int32_t GpuSqlDispatcher::StringUnaryCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringUnaryCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -106,7 +107,8 @@ int32_t GpuSqlDispatcher::StringUnaryNumericCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringIntUnaryCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -184,9 +186,11 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColCol()
         << "StringBinaryNumericColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     bool isLeftKey = std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                                  StringDataTypeComp(colNameLeft)) != groupByColumns_.end();
+                                  StringDataTypeComp(colNameLeft)) != groupByColumns_.end() &&
+                     !insideAggregation_;
     bool isRightKey = std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                                   StringDataTypeComp(colNameRight)) != groupByColumns_.end();
+                                   StringDataTypeComp(colNameRight)) != groupByColumns_.end() &&
+                      !insideAggregation_;
 
     if (isLeftKey || isRightKey)
     {
@@ -290,7 +294,8 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColConst()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryColConst: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -355,7 +360,8 @@ int32_t GpuSqlDispatcher::StringBinaryNumericConstCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryConstCol: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -449,9 +455,11 @@ int32_t GpuSqlDispatcher::StringBinaryColCol()
         << "StringBinaryColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     bool isLeftKey = std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                                  StringDataTypeComp(colNameLeft)) != groupByColumns_.end();
+                                  StringDataTypeComp(colNameLeft)) != groupByColumns_.end() &&
+                     !insideAggregation_;
     bool isRightKey = std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                                   StringDataTypeComp(colNameRight)) != groupByColumns_.end();
+                                   StringDataTypeComp(colNameRight)) != groupByColumns_.end() &&
+                      !insideAggregation_;
 
     if (isLeftKey || isRightKey)
     {
@@ -553,7 +561,8 @@ int32_t GpuSqlDispatcher::StringBinaryColConst()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryColConst: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -620,7 +629,8 @@ int32_t GpuSqlDispatcher::StringBinaryConstCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryConstCol: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {

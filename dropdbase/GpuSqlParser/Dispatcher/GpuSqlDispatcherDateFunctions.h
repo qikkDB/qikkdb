@@ -23,7 +23,8 @@ int32_t GpuSqlDispatcher::DateExtractCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "ExtractDatePartCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {

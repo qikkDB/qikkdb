@@ -29,7 +29,8 @@ int32_t GpuSqlDispatcher::ArithmeticColConst()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "ArithmeticColConst: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -106,7 +107,8 @@ int32_t GpuSqlDispatcher::ArithmeticConstCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "ArithmeticConstCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -189,7 +191,8 @@ int32_t GpuSqlDispatcher::ArithmeticColCol()
         << "ArithmeticColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colNameRight)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -233,7 +236,8 @@ int32_t GpuSqlDispatcher::ArithmeticColCol()
         }
     }
     else if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                          StringDataTypeComp(colNameLeft)) != groupByColumns_.end())
+                          StringDataTypeComp(colNameLeft)) != groupByColumns_.end() &&
+             !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {

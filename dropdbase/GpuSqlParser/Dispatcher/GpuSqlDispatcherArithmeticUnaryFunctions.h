@@ -25,7 +25,8 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "ArithmeticUnaryCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {

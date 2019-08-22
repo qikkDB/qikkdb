@@ -142,7 +142,37 @@ protected:
                 << " at key \"" << key << "\"";
         }
     }
+    void GroupByKeyAggOpIntGenericTest(std::string aggregationFunction,
+                                      std::vector<int32_t> keys,
+                                      std::unordered_map<int32_t, int32_t> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerK", DataType::COLUMN_INT));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
 
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerK").get())
+            ->InsertData(keys);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase, "SELECT colIntegerK, " + aggregationFunction + "(colIntegerK - 2) FROM " +
+                                                       tableName + " GROUP BY colIntegerK;");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadKeys = result->payloads().at("SimpleTable.colIntegerK");
+        auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerK-2)");
+
+        ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+        {
+            int32_t key = payloadKeys.intpayload().intdata()[i];
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+            ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i])
+                << " at key \"" << key << "\"";
+        }
+    }
     void GroupByIntCountTest(std::vector<int32_t> keys,
                              std::vector<int32_t> values,
                              std::unordered_map<int32_t, int64_t> expectedResult)
@@ -937,4 +967,11 @@ TEST_F(DispatcherGroupByTests, IntSimpleSumValuesOp)
 {
     GroupByValueOpIntGenericTest("SUM", {0, 1, -1, -1, 0, 1, 2, 1, 1}, {1, 2, 2, 2, 1, 3, 15, 5, -4},
                                  {{0, -2}, {1, -2}, {2, 13}, {-1, 0}});
+}
+
+TEST_F(DispatcherGroupByTests, IntSimpleAggOpOnKey)
+{
+        GroupByKeyAggOpIntGenericTest("MAX",
+                                      {0, 1, -1, -1, 0, 1, 2, 1, 1},
+                                      {{0, -2},{1, -1},{2, 0},{-1, -3}});
 }
