@@ -872,6 +872,12 @@ public:
     template <typename OUT, typename IN>
     int32_t CastNumericConst();
 
+	template <typename OUT>
+    int32_t CastStringCol();
+
+	template <typename OUT>
+    int32_t CastStringConst();
+
     int32_t Between();
 
     template <typename T>

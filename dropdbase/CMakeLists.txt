@@ -89,7 +89,8 @@ set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUStringBinary.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUStringUnary.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUOrderBy.cu
-        ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
+                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUCast.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/Compression/GPUCompression.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherLogicFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherArithmeticFunctions.cu
