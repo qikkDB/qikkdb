@@ -473,6 +473,7 @@ public:
         // setColumnStatistics();
     }
 
+
     /// <summary>
     /// Get all unique values for this column
     /// </summary>

@@ -719,6 +719,22 @@ void Table::RenameColumn(std::string oldColumnName, std::string newColumnName)
     columns.insert(move(handler));
 }
 
+void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
+{
+    auto& column = columns.begin()->second;
+    DataType type = column->GetColumnType();
+
+	
+
+	switch (type)
+    {
+    case COLUMN_INT:
+        auto blocks = dynamic_cast<ColumnBase<int32_t>*>(column.get())->GetBlocksList();
+
+        break;
+    }
+}
+
 /// <summary>
 /// Removes column from columns.
 /// </summary>
