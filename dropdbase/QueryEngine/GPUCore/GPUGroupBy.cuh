@@ -526,9 +526,9 @@ public:
                 // Divide by counts to get averages for buckets
                 try
                 {
-                    GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(),
-                                                                     mergedValues.get(),
-                                                                     mergedOccurrences.get(), maxHashCount_);
+                    GPUArithmetic::Arithmetic<ArithmeticOperations::div>(outValuesGPU.get(),
+                                                                         mergedValues.get(),
+                                                                         mergedOccurrences.get(), maxHashCount_);
                 }
                 catch (const query_engine_error& err)
                 {
@@ -721,8 +721,8 @@ public:
                     GPUMemory::alloc(outValues, *outDataElementCount);
                     try
                     {
-                        GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurrencesMerged,
-                                                                         *outDataElementCount);
+                        GPUArithmetic::Arithmetic<ArithmeticOperations::div>(*outValues, valuesMerged, occurrencesMerged,
+                                                                             *outDataElementCount);
                     }
                     catch (const query_engine_error& err)
                     {

@@ -47,23 +47,10 @@ public:
     /// <param name="ACol">buffer with operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
     template <typename OP, typename T, typename U>
-    static void col(T* output, U* ACol, int32_t dataElementCount)
+    static void ArithmeticUnary(T* output, U ACol, int32_t dataElementCount)
     {
         kernel_arithmetic_unary<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                 output, ACol, dataElementCount);
-    }
-
-    /// Arithmetic unary operation with constant
-    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
-    /// <param name="output">output GPU buffer</param>
-    /// <param name="AConst">operand (constant)</param>
-    /// <param name="dataElementCount">data element count of the output buffer (how many times copy result)</param>
-    template <typename OP, typename T, typename U>
-    static void cnst(T* output, U AConst, int32_t dataElementCount)
-    {
-        kernel_arithmetic_unary<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                output, AConst, dataElementCount);
     }
 };

@@ -210,7 +210,7 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColCol()
                 FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true, combinedMask);
                 if (std::get<2>(columnLeft) && columnRight.GpuNullMaskPtr)
                 {
-                    GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                         combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)),
                         reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
                 }
@@ -252,7 +252,7 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColCol()
                 FillStringRegister(result, reg, retSize, true, combinedMask);
                 if (std::get<2>(columnLeft) && columnRight.GpuNullMaskPtr)
                 {
-                    GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                         combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)),
                         reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
                 }
@@ -478,7 +478,7 @@ int32_t GpuSqlDispatcher::StringBinaryColCol()
                 FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true, combinedMask);
                 if (std::get<2>(columnLeft) && std::get<2>(columnRight))
                 {
-                    GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                         combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)),
                         reinterpret_cast<int8_t*>(std::get<2>(columnRight)), bitMaskSize);
                 }
@@ -519,7 +519,7 @@ int32_t GpuSqlDispatcher::StringBinaryColCol()
                 FillStringRegister(result, reg, retSize, true, combinedMask);
                 if (std::get<2>(columnLeft) && std::get<2>(columnRight))
                 {
-                    GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                         combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)),
                         reinterpret_cast<int8_t*>(std::get<2>(columnRight)), bitMaskSize);
                 }

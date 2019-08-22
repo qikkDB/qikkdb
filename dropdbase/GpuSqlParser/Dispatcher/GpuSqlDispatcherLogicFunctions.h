@@ -137,7 +137,7 @@ int32_t GpuSqlDispatcher::FilterColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                     combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                     reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
@@ -300,8 +300,8 @@ int32_t GpuSqlDispatcher::FilterStringColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (leftMask && rightMask)
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(combinedMask, leftMask,
-                                                                       rightMask, bitMaskSize);
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(combinedMask, leftMask,
+                                                                           rightMask, bitMaskSize);
             }
             if (leftMask)
             {
@@ -470,7 +470,7 @@ int32_t GpuSqlDispatcher::LogicalColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                     combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                     reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }

@@ -44,7 +44,8 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryCol()
             {
                 result = AllocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize);
             }
-            GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(column.GpuPtr), retSize);
+            GPUArithmeticUnary::ArithmeticUnary<OP, ResultType, T*>(result,
+                                                                    reinterpret_cast<T*>(column.GpuPtr), retSize);
             groupByColumns_.push_back({reg, ::GetColumnType<ResultType>()});
         }
     }
@@ -66,7 +67,8 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryCol()
             {
                 result = AllocateRegister<ResultType>(reg, retSize);
             }
-            GPUArithmeticUnary::col<OP, ResultType, T>(result, reinterpret_cast<T*>(column.GpuPtr), retSize);
+            GPUArithmeticUnary::ArithmeticUnary<OP, ResultType, T*>(result,
+                                                                    reinterpret_cast<T*>(column.GpuPtr), retSize);
         }
     }
     FreeColumnIfRegister<T>(colName);
@@ -93,7 +95,7 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryConst()
     if (!IsRegisterAllocated(reg))
     {
         ResultType* result = AllocateRegister<ResultType>(reg, retSize);
-        GPUArithmeticUnary::cnst<OP, ResultType, T>(result, cnst, retSize);
+        GPUArithmeticUnary::ArithmeticUnary<OP, ResultType, T>(result, cnst, retSize);
     }
 
     return 0;

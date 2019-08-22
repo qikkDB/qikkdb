@@ -71,7 +71,7 @@ void testColColArithmetic()
     // Run kernels, copy back values and compare them
 
     // Add
-    GPUArithmetic::colCol<ArithmeticOperations::add>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::add>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -86,7 +86,7 @@ void testColColArithmetic()
     }
 
     // Sub
-    GPUArithmetic::colCol<ArithmeticOperations::sub>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::sub>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -101,7 +101,7 @@ void testColColArithmetic()
     }
 
     // Mul
-    GPUArithmetic::colCol<ArithmeticOperations::mul>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::mul>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -116,7 +116,7 @@ void testColColArithmetic()
     }
 
     // Div
-    GPUArithmetic::colCol<ArithmeticOperations::div>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::div>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -139,7 +139,8 @@ void testColColArithmetic()
     // Modulus
     if (std::is_integral<T>::value)
     {
-        GPUArithmetic::colCol<ArithmeticOperations::mod>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+        GPUArithmetic::Arithmetic<ArithmeticOperations::mod>(outputBuffer, inputBufferA,
+                                                             inputBufferB, DATA_ELEMENT_COUNT);
         GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
         for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
         {
@@ -197,7 +198,7 @@ void testColColArithmetic<float>()
     // Run kernels, copy back values and compare them
 
     // Add
-    GPUArithmetic::colCol<ArithmeticOperations::add>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::add>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -205,7 +206,7 @@ void testColColArithmetic<float>()
     }
 
     // Sub
-    GPUArithmetic::colCol<ArithmeticOperations::sub>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::sub>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -213,7 +214,7 @@ void testColColArithmetic<float>()
     }
 
     // Mul
-    GPUArithmetic::colCol<ArithmeticOperations::mul>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::mul>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -221,7 +222,7 @@ void testColColArithmetic<float>()
     }
 
     // Div
-    GPUArithmetic::colCol<ArithmeticOperations::div>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::div>(outputBuffer, inputBufferA, inputBufferB, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -303,8 +304,8 @@ void testColConstArithmetic()
     // Run kernels, copy back values and compare them
 
     // Add
-    GPUArithmetic::colConst<ArithmeticOperations::add>(outputBuffer, inputBufferA, inputDataBConst,
-                                                       DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::add>(outputBuffer, inputBufferA,
+                                                         inputDataBConst, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -319,8 +320,8 @@ void testColConstArithmetic()
     }
 
     // Sub
-    GPUArithmetic::colConst<ArithmeticOperations::sub>(outputBuffer, inputBufferA, inputDataBConst,
-                                                       DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::sub>(outputBuffer, inputBufferA,
+                                                         inputDataBConst, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -335,8 +336,8 @@ void testColConstArithmetic()
     }
 
     // Mul
-    GPUArithmetic::colConst<ArithmeticOperations::mul>(outputBuffer, inputBufferA, inputDataBConst,
-                                                       DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::mul>(outputBuffer, inputBufferA,
+                                                         inputDataBConst, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -351,8 +352,8 @@ void testColConstArithmetic()
     }
 
     // Div
-    GPUArithmetic::colConst<ArithmeticOperations::div>(outputBuffer, inputBufferA, inputDataBConst,
-                                                       DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::div>(outputBuffer, inputBufferA,
+                                                         inputDataBConst, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -375,8 +376,8 @@ void testColConstArithmetic()
     // Modulus
     if (std::is_integral<T>::value)
     {
-        GPUArithmetic::colConst<ArithmeticOperations::mod>(outputBuffer, inputBufferA,
-                                                           inputDataBConst, DATA_ELEMENT_COUNT);
+        GPUArithmetic::Arithmetic<ArithmeticOperations::mod>(outputBuffer, inputBufferA,
+                                                             inputDataBConst, DATA_ELEMENT_COUNT);
         GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
         for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
         {
@@ -439,8 +440,8 @@ void testColConstArithmetic<float>()
     // Run kernels, copy back values and compare them
 
     // Add
-    GPUArithmetic::colConst<ArithmeticOperations::add>(outputBuffer, inputBufferA, inputDataBConst,
-                                                       DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::add>(outputBuffer, inputBufferA,
+                                                         inputDataBConst, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -448,8 +449,8 @@ void testColConstArithmetic<float>()
     }
 
     // Sub
-    GPUArithmetic::colConst<ArithmeticOperations::sub>(outputBuffer, inputBufferA, inputDataBConst,
-                                                       DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::sub>(outputBuffer, inputBufferA,
+                                                         inputDataBConst, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -457,8 +458,8 @@ void testColConstArithmetic<float>()
     }
 
     // Mul
-    GPUArithmetic::colConst<ArithmeticOperations::mul>(outputBuffer, inputBufferA, inputDataBConst,
-                                                       DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::mul>(outputBuffer, inputBufferA,
+                                                         inputDataBConst, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -466,8 +467,8 @@ void testColConstArithmetic<float>()
     }
 
     // Div
-    GPUArithmetic::colConst<ArithmeticOperations::div>(outputBuffer, inputBufferA, inputDataBConst,
-                                                       DATA_ELEMENT_COUNT);
+    GPUArithmetic::Arithmetic<ArithmeticOperations::div>(outputBuffer, inputBufferA,
+                                                         inputDataBConst, DATA_ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -511,7 +512,7 @@ void testErrors(std::vector<T> inputDataA, std::vector<T> inputDataB, std::vecto
         {
             try
             {
-                GPUArithmetic::colCol<OP>(deviceResult.get(), deviceDataA.get(), deviceDataB.get(), size);
+                GPUArithmetic::Arithmetic<OP>(deviceResult.get(), deviceDataA.get(), deviceDataB.get(), size);
             }
             catch (query_engine_error& err)
             {
@@ -535,8 +536,7 @@ TEST(GPUArithmeticTests, DivisionByZero)
     Context::getInstance();
 
     testErrors<ArithmeticOperations::div, int32_t>({1, 8, 1, -1, 0, -1}, {1, 4, 0, 0, 0, 1},
-                                                   {1, 2, GetNullConstant<int32_t>(),
-                                                    GetNullConstant<int32_t>(),
+                                                   {1, 2, GetNullConstant<int32_t>(), GetNullConstant<int32_t>(),
                                                     GetNullConstant<int32_t>(), -1},
                                                    QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR);
 }
@@ -554,11 +554,11 @@ TEST(GPUArithmeticTests, AddOverflow)
 
 TEST(GPUArithmeticTests, MulOverflow)
 {
-	// Initialize CUDA context:
-	Context::getInstance();
+    // Initialize CUDA context:
+    Context::getInstance();
 
-	testErrors<ArithmeticOperations::mul, int32_t>({ 1, 65536, -65536, -1, 0, -1 }, { 1, 65536, 65536, -1 },
-		{ 1, GetNullConstant<int32_t>(),
-		 GetNullConstant<int32_t>(), 1 },
-		QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR);
+    testErrors<ArithmeticOperations::mul, int32_t>({1, 65536, -65536, -1, 0, -1}, {1, 65536, 65536, -1},
+                                                   {1, GetNullConstant<int32_t>(),
+                                                    GetNullConstant<int32_t>(), 1},
+                                                   QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR);
 }

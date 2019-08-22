@@ -49,7 +49,7 @@ int32_t GpuSqlDispatcher::PointColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                     combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                     reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
@@ -300,7 +300,7 @@ int32_t GpuSqlDispatcher::ContainsColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (pointCol.GpuNullMaskPtr && std::get<2>(polygonCol))
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                     combinedMask, reinterpret_cast<int8_t*>(pointCol.GpuNullMaskPtr),
                     reinterpret_cast<int8_t*>(std::get<2>(polygonCol)), bitMaskSize);
             }
@@ -442,7 +442,7 @@ int32_t GpuSqlDispatcher::PolygonOperationColCol()
             FillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
             if (std::get<2>(polygonLeft) && std::get<2>(polygonRight))
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                     combinedMask, reinterpret_cast<int8_t*>(std::get<2>(polygonLeft)),
                     reinterpret_cast<int8_t*>(std::get<2>(polygonRight)), bitMaskSize);
             }

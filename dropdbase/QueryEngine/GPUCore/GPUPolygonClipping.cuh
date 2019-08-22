@@ -758,12 +758,12 @@ public:
         GPUMemory::allocAndSet(&DLLVertexCounts, 0, dataElementCount);
 
         // Calc (n*k + n + k) for each input row
-        GPUArithmetic::colCol<ArithmeticOperations::mul>(DLLVertexCounts, poly1VertexCounts,
-                                                         poly2VertexCounts, dataElementCount);
-        GPUArithmetic::colCol<ArithmeticOperations::add>(DLLVertexCounts, DLLVertexCounts,
-                                                         poly1VertexCounts, dataElementCount);
-        GPUArithmetic::colCol<ArithmeticOperations::add>(DLLVertexCounts, DLLVertexCounts,
-                                                         poly2VertexCounts, dataElementCount);
+        GPUArithmetic::Arithmetic<ArithmeticOperations::mul>(DLLVertexCounts, poly1VertexCounts,
+                                                             poly2VertexCounts, dataElementCount);
+        GPUArithmetic::Arithmetic<ArithmeticOperations::add>(DLLVertexCounts, DLLVertexCounts,
+                                                             poly1VertexCounts, dataElementCount);
+        GPUArithmetic::Arithmetic<ArithmeticOperations::add>(DLLVertexCounts, DLLVertexCounts,
+                                                             poly2VertexCounts, dataElementCount);
 
         // Calc the prefix sum for each input row - points
         DLLVertexCountOffsets = nullptr;
@@ -789,7 +789,7 @@ public:
         GPUMemory::allocAndSet(&DLLPolygonCounts, 0, dataElementCount);
 
         // Calc (n*k + n + k)/3 for each input row
-        GPUArithmetic::colConst<ArithmeticOperations::div>(DLLPolygonCounts, DLLVertexCounts, 3, dataElementCount);
+        GPUArithmetic::Arithmetic<ArithmeticOperations::div>(DLLPolygonCounts, DLLVertexCounts, 3, dataElementCount);
 
         // Calc the prefix sum for each input row - polygons
         DLLPolygonCountOffsets = nullptr;
