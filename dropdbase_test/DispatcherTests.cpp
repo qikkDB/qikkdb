@@ -13226,17 +13226,10 @@ TEST(DispatcherTests, AggregationCountAsterisJoinWhereNoGroupBy)
 
 TEST(DispatcherTests, AlterTableAlterColumnIntToFloat)
 {
-<<<<<<< HEAD
     GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterIntToFloat 10;");
     auto resultPtr = createDatabase.Parse();
 
     auto database = Database::GetDatabaseByName("TestDatabaseAlterIntToFloat");
-=======
-    GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlter 10;");
-    auto resultPtr = createDatabase.Parse();
-
-    auto database = Database::GetDatabaseByName("TestDatabaseAlter");
->>>>>>> Test which causes the bug
 
     ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
 

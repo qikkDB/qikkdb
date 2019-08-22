@@ -101,14 +101,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
 int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data)
 {
     int size = 0;
-
-    std::vector<std::string> columns;
-    for (auto& row : data)
-    {
-        columns.push_back(row.first);
-    }
-
-    const auto& dataOfFirstColumn = data.at(columns[0]);
+    const auto& dataOfFirstColumn = data.begin()->second;
 
     if (dataOfFirstColumn.type() == typeid(std::vector<int32_t>))
     {

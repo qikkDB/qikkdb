@@ -734,47 +734,38 @@ TEST(TableTests, SavingNecessary)
     auto& table = database->GetTables().at("testTable");
     auto& columnInt = table.GetColumns().at("ColumnInt");
     auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get());
-    auto& blockInt = castedColumn->AddBlock();
 
     ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(true, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt.GetSaveNecessary());
 
     table.SetSaveNecessaryToFalse();
     castedColumn->SetSaveNecessaryToFalse();
-    blockInt.SetSaveNecessaryToFalse();
 
     ASSERT_EQ(false, table.GetSaveNecessary());
     ASSERT_EQ(false, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(false, blockInt.GetSaveNecessary());
 
     GpuSqlCustomParser parser1(database, "ALTER TABLE testTable ADD ColumnInt2 int;");
     resultPtr = parser1.Parse();
 
     auto& columnInt2 = table.GetColumns().at("ColumnInt2");
     auto castedColumn2 = dynamic_cast<ColumnBase<int32_t>*>(columnInt2.get());
-    auto& blockInt2 = castedColumn2->AddBlock();
 
     ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(false, castedColumn->GetSaveNecessary());
     ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(false, blockInt.GetSaveNecessary());
-    ASSERT_EQ(true, blockInt2.GetSaveNecessary());
 
     table.SetSaveNecessaryToFalse();
     castedColumn->SetSaveNecessaryToFalse();
     castedColumn2->SetSaveNecessaryToFalse();
-    blockInt.SetSaveNecessaryToFalse();
-    blockInt2.SetSaveNecessaryToFalse();
 
     GpuSqlCustomParser parser2(database, "INSERT INTO testTable (ColumnInt) VALUES (1024);");
     resultPtr = parser2.Parse();
+    auto blockInt = castedColumn->GetBlocksList()[0];
 
     ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(true, castedColumn->GetSaveNecessary());
     ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt.GetSaveNecessary());
-    ASSERT_EQ(true, blockInt2.GetSaveNecessary());
+    ASSERT_EQ(true, blockInt->GetSaveNecessary());
 
     GpuSqlCustomParser parserDropDb(database, "DROP DATABASE SaveNecDB;");
     resultPtr = parserDropDb.Parse();
@@ -793,62 +784,53 @@ TEST(TableTests, SavingNecessaryWithIndex)
     auto& table = database->GetTables().at("testTable");
     auto& columnInt = table.GetColumns().at("ColumnInt");
     auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get());
-    auto& blockInt = castedColumn->AddBlock();
 
     ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(true, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt.GetSaveNecessary());
 
     table.SetSaveNecessaryToFalse();
     castedColumn->SetSaveNecessaryToFalse();
-    blockInt.SetSaveNecessaryToFalse();
 
     ASSERT_EQ(false, table.GetSaveNecessary());
     ASSERT_EQ(false, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(false, blockInt.GetSaveNecessary());
 
     GpuSqlCustomParser parser1(database, "ALTER TABLE testTable ADD ColumnInt2 int;");
     resultPtr = parser1.Parse();
 
     auto& columnInt2 = table.GetColumns().at("ColumnInt2");
     auto castedColumn2 = dynamic_cast<ColumnBase<int32_t>*>(columnInt2.get());
-    auto& blockInt2 = castedColumn2->AddBlock();
 
     ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(false, castedColumn->GetSaveNecessary());
     ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(false, blockInt.GetSaveNecessary());
-    ASSERT_EQ(true, blockInt2.GetSaveNecessary());
 
     table.SetSaveNecessaryToFalse();
     castedColumn->SetSaveNecessaryToFalse();
     castedColumn2->SetSaveNecessaryToFalse();
-    blockInt.SetSaveNecessaryToFalse();
-    blockInt2.SetSaveNecessaryToFalse();
 
     GpuSqlCustomParser parser2(database, "INSERT INTO testTable (ColumnInt) VALUES (1024);");
     resultPtr = parser2.Parse();
+    auto blockInt = castedColumn->GetBlocksList()[0];
 
     ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(true, castedColumn->GetSaveNecessary());
     ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt.GetSaveNecessary());
-    ASSERT_EQ(true, blockInt2.GetSaveNecessary());
+    ASSERT_EQ(true, blockInt->GetSaveNecessary());
 
     table.SetSaveNecessaryToFalse();
     castedColumn->SetSaveNecessaryToFalse();
     castedColumn2->SetSaveNecessaryToFalse();
-    blockInt.SetSaveNecessaryToFalse();
-    blockInt2.SetSaveNecessaryToFalse();
+    blockInt->SetSaveNecessaryToFalse();
 
     GpuSqlCustomParser parser3(database, "INSERT INTO testTable (ColumnInt2) VALUES (10);");
     resultPtr = parser3.Parse();
+    auto blockInt2 = castedColumn2->GetBlocksList()[0];
 
     ASSERT_EQ(true, table.GetSaveNecessary());
     ASSERT_EQ(true, castedColumn->GetSaveNecessary());
     ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt.GetSaveNecessary());
-    ASSERT_EQ(true, blockInt2.GetSaveNecessary());
+    ASSERT_EQ(true, blockInt->GetSaveNecessary());
+    ASSERT_EQ(true, blockInt2->GetSaveNecessary());
 
     GpuSqlCustomParser parserDropDb(database, "DROP DATABASE SaveNecDB;");
     resultPtr = parserDropDb.Parse();

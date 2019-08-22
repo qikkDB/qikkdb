@@ -1259,8 +1259,6 @@ int32_t GpuSqlDispatcher::AlterTable()
         int32_t addColumnDataType = arguments_.Read<int32_t>();
         database_->GetTables().at(tableName).CreateColumn(addColumnName.c_str(),
                                                           static_cast<DataType>(addColumnDataType));
-        //int64_t tableSize = database_->GetTables().at(tableName).GetSize();
-        //database_->GetTables().at(tableName).GetColumns().at(addColumnName)->InsertNullData(tableSize);
         database_->GetTables().at(tableName).InsertNullDataIntoNewColumn(addColumnName);
     }
 
