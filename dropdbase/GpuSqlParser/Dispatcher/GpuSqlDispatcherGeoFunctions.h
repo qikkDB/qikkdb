@@ -68,8 +68,8 @@ int32_t GpuSqlDispatcher::PointColCol()
         {
             pointCol = AllocateRegister<NativeGeoPoint>(reg, retSize);
         }
-        GPUConversion::ConvertColCol(pointCol, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                     reinterpret_cast<U*>(columnRight.GpuPtr), retSize);
+        GPUConversion::Convert(pointCol, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                               reinterpret_cast<U*>(columnRight.GpuPtr), retSize);
     }
 
     FreeColumnIfRegister<U>(colNameRight);
@@ -114,7 +114,7 @@ int32_t GpuSqlDispatcher::PointColConst()
         {
             pointCol = AllocateRegister<NativeGeoPoint>(reg, retSize);
         }
-        GPUConversion::ConvertColConst(pointCol, reinterpret_cast<T*>(columnLeft.GpuPtr), cnst, retSize);
+        GPUConversion::Convert(pointCol, reinterpret_cast<T*>(columnLeft.GpuPtr), cnst, retSize);
     }
 
     FreeColumnIfRegister<T>(colNameLeft);
@@ -159,7 +159,7 @@ int32_t GpuSqlDispatcher::PointConstCol()
         {
             pointCol = AllocateRegister<NativeGeoPoint>(reg, retSize);
         }
-        GPUConversion::ConvertConstCol(pointCol, cnst, reinterpret_cast<U*>(columnRight.GpuPtr), retSize);
+        GPUConversion::Convert(pointCol, cnst, reinterpret_cast<U*>(columnRight.GpuPtr), retSize);
     }
 
     FreeColumnIfRegister<U>(colNameRight);
