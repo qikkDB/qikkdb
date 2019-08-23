@@ -31,7 +31,7 @@ int32_t GpuSqlDispatcher::StringUnaryCol()
             auto column = FindStringColumn(colName + KEYS_SUFFIX);
             int32_t retSize = std::get<1>(column);
             GPUMemory::GPUString result;
-            GPUStringUnary::Col<OP>(result, std::get<0>(column), retSize);
+            GPUStringUnary::StringUnary<OP>(result, std::get<0>(column), retSize);
             if (std::get<2>(column))
             {
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
@@ -55,7 +55,7 @@ int32_t GpuSqlDispatcher::StringUnaryCol()
         if (!IsRegisterAllocated(reg))
         {
             GPUMemory::GPUString result;
-            GPUStringUnary::Col<OP>(result, std::get<0>(column), retSize);
+            GPUStringUnary::StringUnary<OP>(result, std::get<0>(column), retSize);
             if (std::get<2>(column))
             {
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
@@ -86,7 +86,7 @@ int32_t GpuSqlDispatcher::StringUnaryConst()
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUString result;
-        GPUStringUnary::Const<OP>(result, gpuString);
+        GPUStringUnary::StringUnary<OP>(result, gpuString, 1);
         FillStringRegister(result, reg, 1, true);
     }
     return 0;

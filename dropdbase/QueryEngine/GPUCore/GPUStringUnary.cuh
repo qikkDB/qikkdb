@@ -283,18 +283,9 @@ public:
     /// <param name="inCol">input string column (GPUString)</param>
     /// <param name="dataElementCount">input string count</param>
     template <typename OP>
-    static void Col(GPUMemory::GPUString& output, GPUMemory::GPUString inCol, int32_t dataElementCount)
+    static void StringUnary(GPUMemory::GPUString& output, GPUMemory::GPUString inCol, int32_t dataElementCount)
     {
         output = OP{}(inCol, dataElementCount);
-    }
-
-    /// String unary operations which return string, for constant
-    /// <param name="output">output string constant</param>
-    /// <param name="inConst">input string constant (GPUString)</param>
-    template <typename OP>
-    static void Const(GPUMemory::GPUString& output, GPUMemory::GPUString inConst)
-    {
-        output = OP{}(inConst, 1);
     }
 
     /// String unary operations which return number, for column

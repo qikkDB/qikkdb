@@ -381,7 +381,7 @@ int32_t GpuSqlDispatcher::LogicalColConst()
         }
 
         GPULogic::Logic<OP, T*, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
-                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+                                   reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<T>(colName);
@@ -424,7 +424,7 @@ int32_t GpuSqlDispatcher::LogicalConstCol()
         }
 
         GPULogic::Logic<OP, T, U*>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
-                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+                                   reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<U>(colName);
@@ -485,13 +485,13 @@ int32_t GpuSqlDispatcher::LogicalColCol()
                                               reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
             GPULogic::Logic<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                       reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
+                                        reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
         }
         else
         {
             int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
             GPULogic::Logic<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                       reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
+                                        reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
         }
     }
 
@@ -556,7 +556,7 @@ int32_t GpuSqlDispatcher::LogicalNotCol()
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
         GPULogic::Not<int8_t, T*>(mask, reinterpret_cast<T*>(column.GpuPtr),
-                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+                                  reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<T>(colName);
