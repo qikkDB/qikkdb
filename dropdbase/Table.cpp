@@ -718,14 +718,14 @@ void Table::RenameColumn(std::string oldColumnName, std::string newColumnName)
 /// <param name="newColumnname">name of new column which was added using alter table add column</param>
 void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 {
-    auto& iterator = columns.begin();
+    auto iterator = columns.begin();
 
     if (iterator->second->GetName() == newColumnName)
     {
         iterator++;
     }
 
-	auto& column = iterator->second;
+    auto& column = iterator->second;
     DataType type = column->GetColumnType();
 
     std::vector<int32_t> blocksSizes;
