@@ -46,8 +46,8 @@ int32_t GpuSqlDispatcher::FilterColConst()
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPUFilter::colConst<OP, T, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
-                                      reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPUFilter::Filter<OP, T*, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
+                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<T>(colName);
@@ -91,8 +91,8 @@ int32_t GpuSqlDispatcher::FilterConstCol()
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPUFilter::constCol<OP, T, U>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
-                                      reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPUFilter::Filter<OP, T, U*>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
+                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<U>(colName);
@@ -151,14 +151,14 @@ int32_t GpuSqlDispatcher::FilterColCol()
                 GPUMemory::copyDeviceToDevice(combinedMask,
                                               reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
-            GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                        reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
+            GPUFilter::Filter<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                          reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
         }
         else
         {
             int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
-            GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                        reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
+            GPUFilter::Filter<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                          reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
         }
     }
 
@@ -181,7 +181,7 @@ int32_t GpuSqlDispatcher::FilterConstConst()
     if (!IsRegisterAllocated(reg))
     {
         int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
-        GPUFilter::constConst<OP, T, U>(mask, constLeft, constRight, database_->GetBlockSize());
+        GPUFilter::Filter<OP, T, U>(mask, constLeft, constRight, nullptr, database_->GetBlockSize());
     }
     return 0;
 }
