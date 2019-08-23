@@ -4,9 +4,6 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include <thrust/scan.h>
-#include <thrust/execution_policy.h>
-
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "../../Types/Point.pb.h"

@@ -6,10 +6,6 @@
 
 #include "../../../cub/cub.cuh"
 
-#include <thrust/reduce.h>
-#include <thrust/extrema.h>
-#include <thrust/execution_policy.h>
-
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
 #include "GPUMemory.cuh"

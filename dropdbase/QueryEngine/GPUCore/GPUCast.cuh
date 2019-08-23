@@ -50,6 +50,7 @@ __global__ void kernel_cast_string(OUT* outCol, GPUMemory::GPUString inCol, int3
     {
         const int64_t strIdx = GetStringIndex(inCol.stringIndices, i);
         const int32_t strLength = GetStringLength(inCol.stringIndices, i);
+
         outCol[i] = CastOperations::FromString{}.template operator()<OUT>(inCol.allChars + strIdx, strLength);
     }
 }
@@ -75,6 +76,12 @@ public:
 
         kernel_cast_string<<<Context::getInstance().calcGridDim(dataElementCount),
                              Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
+
+		GPUMemory::PrintGpuBuffer("Out: ", outCol, dataElementCount);
+
+        GPUMemory::PrintGpuBuffer("InIndx: ", inCol.stringIndices, dataElementCount);
+
+        GPUMemory::PrintGpuBuffer("InChars: ", inCol.allChars, dataElementCount);
         CheckCudaError(cudaGetLastError());
     }
 };

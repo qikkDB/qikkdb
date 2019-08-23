@@ -1,18 +1,24 @@
-#pragma once
-
 #include "GPUCast.cuh"
 
 __device__ int32_t CastIntegral(char* str, int32_t length, int32_t base)
 {
     int32_t out = 0;
     int32_t order = 1;
+    int32_t sign = 1;
+    int32_t numBoundary = 0;
 
-    for (int32_t i = length - 1; i >= 0; i++)
+    if (str[0] == '-')
+    {
+        sign = -1;
+        numBoundary = 1;
+    }
+
+    for (int32_t i = length - 1; i >= numBoundary; i--)
     {
         out += (str[i] - '0') * order;
         order *= base;
     }
-    return out;
+    return sign * out;
 }
 
 template <>

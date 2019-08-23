@@ -166,7 +166,7 @@ int32_t GpuSqlDispatcher::CastStringConst()
     if (!IsRegisterAllocated(reg))
     {
         OUT* result = AllocateRegister<OUT>(reg, 1);
-        GPUCast::CastString(result, gpu, 1);
+        GPUCast::CastString(result, gpuString, 1);
     }
     return 0;
 }
