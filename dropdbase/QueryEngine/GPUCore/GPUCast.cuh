@@ -14,6 +14,84 @@
 
 __device__ int32_t CastIntegral(char* str, int32_t length, int32_t base = 10);
 
+template <typename T>
+__device__ T CastDecimal(char* str, int32_t length)
+{
+    T out = 0;
+    int32_t decimalPart = 0;
+    int32_t outSign = 1;
+
+    int c;
+
+    if (*str++ == '-')
+    {
+        outSign = -1;
+        length--;
+    }
+    else
+    {
+        str--;
+    }
+
+    while (((c = *str++) >= '0' && c <= '9') && length > 0)
+    {
+        out = out * 10 + (c - '0');
+        length--;
+    }
+
+    if ((c == '.' || c == ',') && length > 0)
+    {
+        length--;
+        while (((c = *str++) >= '0' && c <= '9') && length > 0)
+        {
+            out = out * 10 + (c - '0');
+            decimalPart--;
+            length--;
+        }
+    }
+
+    else if ((c == 'e' || c == 'E') && length > 0)
+    {
+        length--;
+        int32_t sign = 1;
+        int32_t afterEPart = 0;
+
+        c = *str++;
+        if (c == '-')
+        {
+            sign = -1;
+            length--;
+        }
+
+        else if (c == '+')
+        {
+            length--;
+        }
+
+        while (((c == *str++) >= '0' && c <= '9') && length > 0)
+        {
+            afterEPart = afterEPart * 10 + (c - '0');
+            length--;
+        }
+
+        decimalPart += afterEPart * sign;
+    }
+
+    while (decimalPart > 0)
+    {
+        out *= 10;
+        decimalPart--;
+    }
+
+    while (decimalPart < 0)
+    {
+        out *= 0.1;
+        decimalPart++;
+    }
+
+    return out * outSign;
+}
+
 namespace CastOperations
 {
 
@@ -25,6 +103,12 @@ struct FromString
 
 template <>
 __device__ int32_t FromString::operator()<int32_t>(char* str, int32_t length) const;
+
+template <>
+__device__ float FromString::operator()<float>(char* str, int32_t length) const;
+
+template <>
+__device__ double FromString::operator()<double>(char* str, int32_t length) const;
 
 } // namespace CastOperations
 
@@ -61,7 +145,8 @@ public:
     template <typename OUT, typename IN>
     static void CastNumeric(OUT* outCol, IN inCol, int32_t dataElementCount)
     {
-        static_assert(std::is_arithmetic<typename std::remove_pointer<IN>::type>::value, "InCol must be arithmetic data type");
+        static_assert(std::is_arithmetic<typename std::remove_pointer<IN>::type>::value,
+                      "InCol must be arithmetic data type");
         static_assert(std::is_arithmetic<OUT>::value, "OutCol must be arithmetic data type");
 
         kernel_cast_numeric<<<Context::getInstance().calcGridDim(dataElementCount),
@@ -77,11 +162,6 @@ public:
         kernel_cast_string<<<Context::getInstance().calcGridDim(dataElementCount),
                              Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
 
-		GPUMemory::PrintGpuBuffer("Out: ", outCol, dataElementCount);
-
-        GPUMemory::PrintGpuBuffer("InIndx: ", inCol.stringIndices, dataElementCount);
-
-        GPUMemory::PrintGpuBuffer("InChars: ", inCol.allChars, dataElementCount);
         CheckCudaError(cudaGetLastError());
     }
 };

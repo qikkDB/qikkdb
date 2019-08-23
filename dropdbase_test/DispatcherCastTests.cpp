@@ -56,11 +56,41 @@ protected:
             ASSERT_EQ(expectedResult[i], payloadCast.intpayload().intdata()[i]);
         }
     }
+
+    void CastStringToFloatGenericTest(std::vector<std::string> strings, std::vector<float> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
+        castDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<std::string>*>(
+            castDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
+            ->InsertData(strings);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colString AS FLOAT) FROM " + tableName + ";");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadCast = result->payloads().at("CAST(colStringASFLOAT)");
+
+        ASSERT_EQ(expectedResult.size(), payloadCast.floatpayload().floatdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadCast.floatpayload().floatdata_size(); i++)
+        {
+            ASSERT_FLOAT_EQ(expectedResult[i], payloadCast.floatpayload().floatdata()[i]) << i;
+        }
+    }
 };
 
-// Group By basic numeric keys
 TEST_F(DispatcherCastTests, StringToIntTest)
 {
     CastStringToIntGenericTest({"2", "20", "30", "40", "123", "123123", "0", "-20"},
                                {2, 20, 30, 40, 123, 123123, 0, -20});
+}
+
+TEST_F(DispatcherCastTests, StringToFloatTest)
+{
+    CastStringToFloatGenericTest({"2.0", "20.5", "30", "40.34", "123.78", "123123.4", "0.2", "-20.01"},
+                                 {2.0f, 20.5f, 30.0f, 40.34f, 123.78f, 123123.4f, 0.2f, -20.01f});
 }
