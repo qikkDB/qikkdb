@@ -69,6 +69,43 @@ protected:
         }
     }
 
+    void GroupByIntAliasGenericTest(std::string aggregationFunction,
+                                    std::vector<int32_t> keys,
+                                    std::vector<int32_t> values,
+                                    std::unordered_map<int32_t, int32_t> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerK", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerV", DataType::COLUMN_INT));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerK").get())
+            ->InsertData(keys);
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
+            ->InsertData(values);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase, "SELECT colIntegerK, " + aggregationFunction +
+                                                       "(colIntegerV) FROM " + tableName + " GROUP BY 1;");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadKeys = result->payloads().at(tableName + ".colIntegerK");
+        auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
+
+        ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+        {
+            int32_t key = payloadKeys.intpayload().intdata()[i];
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+            ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i])
+                << " at key \"" << key << "\"";
+        }
+    }
+
     void GroupByValueOpIntGenericTest(std::string aggregationFunction,
                                       std::vector<int32_t> keys,
                                       std::vector<int32_t> values,
@@ -143,8 +180,8 @@ protected:
         }
     }
     void GroupByKeyAggOpIntGenericTest(std::string aggregationFunction,
-                                      std::vector<int32_t> keys,
-                                      std::unordered_map<int32_t, int32_t> expectedResult)
+                                       std::vector<int32_t> keys,
+                                       std::unordered_map<int32_t, int32_t> expectedResult)
     {
         auto columns = std::unordered_map<std::string, DataType>();
         columns.insert(std::make_pair<std::string, DataType>("colIntegerK", DataType::COLUMN_INT));
@@ -376,7 +413,7 @@ protected:
         auto& payloadKeys = result->payloads().at(tableName + ".colString");
         auto& payloadValues = result->payloads().at("COUNT(colString)");
 
-        //ASSERT_EQ(expectedResult.size(), payloadKeys.stringpayload().stringdata_size())
+        // ASSERT_EQ(expectedResult.size(), payloadKeys.stringpayload().stringdata_size())
         //   << " wrong number of keys";
         for (int32_t i = 0; i < payloadKeys.stringpayload().stringdata_size(); i++)
         {
@@ -810,8 +847,10 @@ TEST_F(DispatcherGroupByTests, IntSimpleSum)
 
 TEST_F(DispatcherGroupByTests, IntCollisionsSum)
 {
-    GroupByIntGenericTest("SUM", {0, 1, -1, 2, 262143, 262144, 262145, 1048576, 1048577, 1, 1, 262144, 0}, {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096},
-                          {{0, 4097}, {1, 1538}, {-1, 4}, {2, 8}, {262143, 16}, {262144, 2080}, {262145, 64}, {1048576, 128}, {1048577, 256}});
+    GroupByIntGenericTest(
+        "SUM", {0, 1, -1, 2, 262143, 262144, 262145, 1048576, 1048577, 1, 1, 262144, 0},
+        {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096},
+        {{0, 4097}, {1, 1538}, {-1, 4}, {2, 8}, {262143, 16}, {262144, 2080}, {262145, 64}, {1048576, 128}, {1048577, 256}});
 }
 
 TEST_F(DispatcherGroupByTests, IntSparseKeysSum)
@@ -824,10 +863,16 @@ TEST_F(DispatcherGroupByTests, IntSparseKeysAvg)
     GroupByIntGenericTest("AVG", {2, 30, 7, 2, 30, 7, 2, 2}, {1, 15, 14, 1, 15, 14, 1, 1},
                           {{2, 1}, {7, 14}, {30, 15}});
 }
+
 TEST_F(DispatcherGroupByTests, IntSparseKeysCount)
 {
-    GroupByIntCountTest({2, 30, 7, 2, 30, 7, 2, 2}, {1, 15, 0, 1, 15, 0, 1, 1},
-                          {{2, 4}, {7, 2}, {30, 2}});
+    GroupByIntCountTest({2, 30, 7, 2, 30, 7, 2, 2}, {1, 15, 0, 1, 15, 0, 1, 1}, {{2, 4}, {7, 2}, {30, 2}});
+}
+
+TEST_F(DispatcherGroupByTests, IntSimpleSumNumericAlias)
+{
+    GroupByIntAliasGenericTest("SUM", {0, 1, -1, -1, 0, 1, 2, 1, 1}, {1, 2, 2, 2, 1, 3, 15, 5, -4},
+                               {{0, 2}, {1, 6}, {2, 15}, {-1, 4}});
 }
 
 TEST_F(DispatcherGroupByTests, IntKeyOpSimpleSum)
@@ -927,8 +972,7 @@ TEST_F(DispatcherGroupByTests, StringKeyOpSimpleSum)
 // Group By Multi-keys
 TEST_F(DispatcherGroupByTests, MultiKeySingleBlockSum)
 {
-    GroupByMultiKeyGenericTest("SUM", {{1, 1, 1, 2}, {2, 2, 5, 1}},
-                               {5, 7, 24, 1},
+    GroupByMultiKeyGenericTest("SUM", {{1, 1, 1, 2}, {2, 2, 5, 1}}, {5, 7, 24, 1},
                                {{{1, 2}, 12}, {{1, 5}, 24}, {{2, 1}, 1}});
 }
 
@@ -1038,7 +1082,5 @@ TEST_F(DispatcherGroupByTests, IntSimpleSumValuesOp)
 
 TEST_F(DispatcherGroupByTests, IntSimpleAggOpOnKey)
 {
-        GroupByKeyAggOpIntGenericTest("MAX",
-                                      {0, 1, -1, -1, 0, 1, 2, 1, 1},
-                                      {{0, -2},{1, -1},{2, 0},{-1, -3}});
+    GroupByKeyAggOpIntGenericTest("MAX", {0, 1, -1, -1, 0, 1, 2, 1, 1}, {{0, -2}, {1, -1}, {2, 0}, {-1, -3}});
 }

@@ -274,6 +274,38 @@ private:
     std::string message_;
 };
 
+struct OrderByInvalidColumnException : public std::exception
+{
+    OrderByInvalidColumnException(const std::string& column)
+    : message_("Column: \"" + column + "\" is not a valid ORDER BY column.")
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
+
+struct GroupByInvalidColumnException : public std::exception
+{
+    GroupByInvalidColumnException(const std::string& column)
+    : message_("Column: \"" + column + "\" is not a valid GROUP BY column.")
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
+
 struct RetPolygonGroupByException : public std::exception
 {
     const char* what() const noexcept override
