@@ -7,9 +7,10 @@ __device__ int32_t GetHash(DataType* keyTypes, const int32_t keysColCount,
 
     for (int32_t t = 0; t < keysColCount; t++)
     {
-        uint32_t hash = 0;
+        uint32_t hash;
         // if not null
-        if((inKeysNullMask[t][i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1 == 0)
+        if((inKeysNullMask[t] == nullptr) ||
+                ((inKeysNullMask[t][i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1 == 0))
         {
             switch (keyTypes[t])
             {
@@ -40,6 +41,10 @@ __device__ int32_t GetHash(DataType* keyTypes, const int32_t keysColCount,
                 break;
             }
         }
+        else
+        {
+            hash = 0;
+        }
         for (int32_t i = 0; i < 4; i++)
         {
             crc = (CRC_32_TAB[((crc >> 24) ^ ((hash >> (i * 8)) ^ 0xFF)) & 0xFF] ^ (crc << 8));
@@ -55,10 +60,11 @@ AreEqualMultiKeys(DataType* keyTypes, const int32_t keysColCount, void** keysA, 
 {
     for (int32_t t = 0; t < keysColCount; t++)
     {
-        const bool nullA = (keysANullMask[t][indexA / (sizeof(int8_t) * 8)] >> (indexA % (sizeof(int8_t) * 8))) & 1;
-        const bool nullB = compressedBNullMask?
+        const bool nullA = (keysANullMask[t] != nullptr) &&
+                ((keysANullMask[t][indexA / (sizeof(int8_t) * 8)] >> (indexA % (sizeof(int8_t) * 8))) & 1);
+        const bool nullB = (keysBNullMask[t] != nullptr) && (compressedBNullMask?
                 ((keysBNullMask[t][indexB / (sizeof(int8_t) * 8)] >> (indexB % (sizeof(int8_t) * 8))) & 1) :
-                keysBNullMask[t][indexB];
+                keysBNullMask[t][indexB]);
         switch (keyTypes[t])
         {
         case DataType::COLUMN_INT:
@@ -411,7 +417,11 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                 default:
                     break;
                 }
-                keysNullBuffer[t][i] = (inKeysNullMask[t][sourceIndices[i] / (sizeof(int8_t) * 8)] >> (sourceIndices[i] % (sizeof(int8_t) * 8))) & 1;
+                if(inKeysNullMask[t] != nullptr)
+                {
+                    keysNullBuffer[t][i] =
+                        (inKeysNullMask[t][sourceIndices[i] / (sizeof(int8_t) * 8)] >> (sourceIndices[i] % (sizeof(int8_t) * 8))) & 1;
+                }
             }
             sourceIndices[i] = GBS_SOURCE_INDEX_KEY_IN_BUFFER; // Mark as stored in keyBuffer
         }

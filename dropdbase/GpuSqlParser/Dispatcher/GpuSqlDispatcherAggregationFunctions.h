@@ -200,7 +200,7 @@ public:
 };
 
 template <typename OP, typename O, typename V>
-class GpuSqlDispatcher::GroupByHelper<OP, O, std::vector<void*>, V> // TODO add null masks
+class GpuSqlDispatcher::GroupByHelper<OP, O, std::vector<void*>, V>
 {
 public:
     static std::unique_ptr<IGroupBy>
@@ -222,6 +222,7 @@ public:
                              GpuSqlDispatcher& dispatcher)
     {
         std::vector<void*> keyPtrs;
+        std::vector<int8_t*> keyNullMaskPtrs;
         std::vector<GPUMemory::GPUString*> stringKeyPtrs;
         int32_t minKeySize = std::numeric_limits<int32_t>::max();
 
@@ -236,15 +237,17 @@ public:
                 GPUMemory::GPUString stringCol = std::get<0>(stringColumn);
                 GPUMemory::copyHostToDevice<GPUMemory::GPUString>(stringColPtr, &stringCol, 1);
                 keyPtrs.push_back(reinterpret_cast<void*>(stringColPtr));
+                keyNullMaskPtrs.push_back(std::get<2>(stringColumn));
                 stringKeyPtrs.push_back(stringColPtr);
 
                 minKeySize = std::min(std::get<1>(stringColumn), minKeySize);
             }
             else
             {
-                PointerAllocation column = dispatcher.allocatedPointers_.at(groupByColumn.first);
-                keyPtrs.push_back(reinterpret_cast<void*>(column.GpuPtr));
-                minKeySize = std::min(column.ElementCount, minKeySize);
+                PointerAllocation keyColumn = dispatcher.allocatedPointers_.at(groupByColumn.first);
+                keyPtrs.push_back(reinterpret_cast<void*>(keyColumn.GpuPtr));
+                keyNullMaskPtrs.push_back(reinterpret_cast<int8_t*>(keyColumn.GpuNullMaskPtr));
+                minKeySize = std::min(keyColumn.ElementCount, minKeySize);
             }
         }
 
@@ -252,7 +255,8 @@ public:
 
         reinterpret_cast<GPUGroupBy<OP, O, std::vector<void*>, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
-            ->GroupBy(keyPtrs, reinterpret_cast<V*>(valueColumn.GpuPtr), dataSize);
+            ->ProcessBlock(keyPtrs, keyNullMaskPtrs, reinterpret_cast<V*>(valueColumn.GpuPtr),
+                           dataSize, reinterpret_cast<int8_t*>(valueColumn.GpuNullMaskPtr));
 
         for (auto& stringPtr : stringKeyPtrs)
         {
@@ -266,49 +270,53 @@ public:
     {
         int32_t outSize;
         std::vector<void*> outKeys;
+        std::vector<int8_t*> outKeysNullMasks;
         O* outValues = nullptr;
+        int8_t* outValueNullMask = nullptr;
         reinterpret_cast<GPUGroupBy<OP, O, std::vector<void*>, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
-            ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_);
+            ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_,
+                         &outKeysNullMasks, &outValueNullMask);
 
         for (int32_t i = 0; i < groupByColumns.size(); i++)
         {
             switch (groupByColumns[i].second)
             {
             case DataType::COLUMN_INT:
-                dispatcher.InsertRegister(groupByColumns[i].first + KEYS_SUFFIX,
-                                          PointerAllocation{reinterpret_cast<uintptr_t>(
-                                                                reinterpret_cast<int32_t*>(outKeys[i])),
-                                                            outSize, true, 0});
+                dispatcher.InsertRegister(
+                    groupByColumns[i].first + KEYS_SUFFIX,
+                    PointerAllocation{reinterpret_cast<uintptr_t>(reinterpret_cast<int32_t*>(outKeys[i])),
+                                      outSize, true, reinterpret_cast<uintptr_t>(outKeysNullMasks[i])});
                 break;
             case DataType::COLUMN_LONG:
-                dispatcher.InsertRegister(groupByColumns[i].first + KEYS_SUFFIX,
-                                          PointerAllocation{reinterpret_cast<uintptr_t>(
-                                                                reinterpret_cast<int64_t*>(outKeys[i])),
-                                                            outSize, true, 0});
+                dispatcher.InsertRegister(
+                    groupByColumns[i].first + KEYS_SUFFIX,
+                    PointerAllocation{reinterpret_cast<uintptr_t>(reinterpret_cast<int64_t*>(outKeys[i])),
+                                      outSize, true, reinterpret_cast<uintptr_t>(outKeysNullMasks[i])});
                 break;
             case DataType::COLUMN_FLOAT:
-                dispatcher.InsertRegister(groupByColumns[i].first + KEYS_SUFFIX,
-                                          PointerAllocation{reinterpret_cast<uintptr_t>(
-                                                                reinterpret_cast<float*>(outKeys[i])),
-                                                            outSize, true, 0});
+                dispatcher.InsertRegister(
+                    groupByColumns[i].first + KEYS_SUFFIX,
+                    PointerAllocation{reinterpret_cast<uintptr_t>(reinterpret_cast<float*>(outKeys[i])),
+                                      outSize, true, reinterpret_cast<uintptr_t>(outKeysNullMasks[i])});
                 break;
             case DataType::COLUMN_DOUBLE:
-                dispatcher.InsertRegister(groupByColumns[i].first + KEYS_SUFFIX,
-                                          PointerAllocation{reinterpret_cast<uintptr_t>(
-                                                                reinterpret_cast<double*>(outKeys[i])),
-                                                            outSize, true, 0});
+                dispatcher.InsertRegister(
+                    groupByColumns[i].first + KEYS_SUFFIX,
+                    PointerAllocation{reinterpret_cast<uintptr_t>(reinterpret_cast<double*>(outKeys[i])),
+                                      outSize, true, reinterpret_cast<uintptr_t>(outKeysNullMasks[i])});
                 break;
             case DataType::COLUMN_STRING:
                 dispatcher.FillStringRegister(*(reinterpret_cast<GPUMemory::GPUString*>(outKeys[i])),
-                                              groupByColumns[i].first + KEYS_SUFFIX, outSize, true);
+                                              groupByColumns[i].first + KEYS_SUFFIX, outSize, true,
+                                              outKeysNullMasks[i]);
                 delete reinterpret_cast<GPUMemory::GPUString*>(outKeys[i]); // delete just pointer to struct
                 break;
             case DataType::COLUMN_INT8_T:
-                dispatcher.InsertRegister(groupByColumns[i].first + KEYS_SUFFIX,
-                                          PointerAllocation{reinterpret_cast<uintptr_t>(
-                                                                reinterpret_cast<int8_t*>(outKeys[i])),
-                                                            outSize, true, 0});
+                dispatcher.InsertRegister(
+                    groupByColumns[i].first + KEYS_SUFFIX,
+                    PointerAllocation{reinterpret_cast<uintptr_t>(reinterpret_cast<int8_t*>(outKeys[i])),
+                                      outSize, true, reinterpret_cast<uintptr_t>(outKeysNullMasks[i])});
                 break;
             default:
                 throw std::runtime_error("GROUP BY operation does not support data type " +
@@ -316,8 +324,8 @@ public:
                 break;
             }
         }
-        dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues),
-                                                         outSize, true, 0});
+        dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
+                                                         reinterpret_cast<uintptr_t>(outValueNullMask)});
     }
 };
 
