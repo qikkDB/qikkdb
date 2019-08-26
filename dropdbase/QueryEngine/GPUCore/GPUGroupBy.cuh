@@ -98,8 +98,9 @@ __global__ void group_by_kernel(K* keys,
     {
         const int32_t bitMaskIdx = (i / (sizeof(int8_t) * 8));
         const int32_t shiftIdx = (i % (sizeof(int8_t) * 8));
-        const bool nullKey = inKeysNullMask ? ((inKeysNullMask[bitMaskIdx] >> shiftIdx) & 1) : false;
-        const bool nullValue = inValuesNullMask ? ((inValuesNullMask[bitMaskIdx] >> shiftIdx) & 1) : false;
+        const bool nullKey = (inKeysNullMask != nullptr) && ((inKeysNullMask[bitMaskIdx] >> shiftIdx) & 1);
+        const bool nullValue =
+            (inValuesNullMask != nullptr) && ((inValuesNullMask[bitMaskIdx] >> shiftIdx) & 1);
         int32_t foundIndex = -1;
 
         if (!nullKey)
