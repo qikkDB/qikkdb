@@ -496,6 +496,13 @@ TEST(GPUPolygonClippingTests, UnionConstConstTest)
 
     // Check the results
     polyCompare(outPolyIdx, outPointIdx, outPolyPoints, outPolyIdxCorrect, outPointIdxCorrect, outPolyPointsCorrect);
+
+
+
+	printPolygonAsGeoGebraPolygons(polyApolyIdxConst, polyApointsIdxConst, polyApolyPointsConst, 'A');
+    printPolygonAsGeoGebraPolygons(polyBpolyIdxConst, polyBpointsIdxConst, polyBpolyPointsConst, 'F');
+    printPolygonAsGeoGebraPolygons(outPolyIdx, outPointIdx, outPolyPoints, 'H');
+    FAIL();
 }
 
 
@@ -516,13 +523,15 @@ TEST(GPUPolygonClippingTests, NoIntersectionBInAOverlapTest)
     std::vector<NativeGeoPoint> outPolyPoints;
 
     // Run the intersect test
+    /*
     polyTest<PolygonFunctions::polyIntersect>(polyApolyIdx, polyApointsIdx, polyApolyPoints, polyBpolyIdx,
                                               polyBpointsIdx, polyBpolyPoints, outPolyIdx, outPointIdx,
                                               outPolyPoints, false, false, dataElementCount);
+											  */
 
-    printPolygonAsGeoGebraPolygons(polyApolyIdx, polyApointsIdx, polyApolyPointsConst, 'A');
-    printPolygonAsGeoGebraPolygons(polyBpolyIdx, polyBpointsIdxConst, polyBpolyPointsConst, 'B');
-    printPolygonAsGeoGebraPolygons(outPolyIdx, outPointIdx, outPolyPoints, 'C');
+    //printPolygonAsGeoGebraPolygons(polyApolyIdx, polyApointsIdx, polyApolyPoints, 'A');
+    //printPolygonAsGeoGebraPolygons(polyBpolyIdx, polyBpointsIdx, polyBpolyPoints, 'B');
+    //printPolygonAsGeoGebraPolygons(outPolyIdx, outPointIdx, outPolyPoints, 'C');
 
     // printPolygonAsList(outPolyIdx, outPointIdx, outPolyPoints, true);
 

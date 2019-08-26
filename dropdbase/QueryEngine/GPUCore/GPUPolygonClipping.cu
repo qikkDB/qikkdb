@@ -37,6 +37,7 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, Nat
                         -1,
                         -1};
 
+	setHasIntersections(ret, false);
     setIsIntersection(ret, true);
     setIsValidIntersection(ret, intersectionValidity);
     setIsEntry(ret, false);
@@ -47,6 +48,8 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, Nat
 
 __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
                                             int32_t* LLPolygonBBufferSizes,
+                                            int8_t* PolygonAIntersectionPresenceFlags,
+                                            int8_t* PolygonBIntersectionPresenceFlags,
                                             GPUMemory::GPUPolygon polygonA,
                                             GPUMemory::GPUPolygon polygonB,
                                             bool isAConst,
@@ -78,7 +81,8 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
                 int32_t pointIdxB = GPUMemory::PointIdxAt(polygonB, b);
                 int32_t pointCountB = GPUMemory::PointCountAt(polygonB, b);
 
-                // Calculate intersections count
+                // Calculate total intersections count 
+				bool intersectionPresentInSubPolygon = false; //??? TODO rethink this
                 for (int32_t pointA = pointIdxA; pointA < (pointIdxA + pointCountA); pointA++)
                 {
                     for (int32_t pointB = pointIdxB; pointB < (pointIdxB + pointCountB); pointB++)
@@ -91,10 +95,16 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
 
                         if (getIsValidIntersection(intersection))
                         {
+                            intersectionPresentInSubPolygon = true;
                             intersectCount++;
                         }
                     }
                 }
+               
+				PolygonAIntersectionPresenceFlags[pointIdxA] = intersectionPresentInSubPolygon ? 1 : 0;
+                PolygonBIntersectionPresenceFlags[pointIdxB] = intersectionPresentInSubPolygon ? 1 : 0;
+
+				printf("CUDA_pidA: %2d %2d\n", pointIdxA, PolygonAIntersectionPresenceFlags[i]);
             }
         }
 
@@ -111,6 +121,7 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
 __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                                 GPUMemory::GPUPolygon polygon,
                                 int32_t* LLPolygonBufferSizesPrefixSum,
+                                int8_t* PolygonIntersectionPresenceFlags,
                                 bool isConst,
                                 int32_t dataElementCount)
 {
@@ -148,6 +159,7 @@ __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                         (point - pointIdx + 1) % pointCount,
                     -1};
 
+				setHasIntersections(vertex, PolygonIntersectionPresenceFlags[pointIdx]);
                 setIsIntersection(vertex, false);
                 setIsValidIntersection(vertex, false);
                 setIsEntry(vertex, false);
