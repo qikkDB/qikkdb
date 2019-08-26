@@ -14,14 +14,22 @@ int32_t dataElementCount = 3;
 
 std::vector<int32_t> polyApolyIdxConst = {3};
 std::vector<int32_t> polyApointsIdxConst = {4, 8, 12};
-std::vector<NativeGeoPoint> polyApolyPointsConst = {{4.50, 5.50},  {6.00, 5.50},
-                                                    {6.00, 4.50},  {4.50, 4.50},
+std::vector<NativeGeoPoint> polyApolyPointsConst = {
+	{4.50, 5.50},  
+	{6.00, 5.50},
+    {6.00, 4.50},  
+	{4.50, 4.50},
 
-                                                    {10.00, 0.00}, {0.00, 0.00},
-                                                    {0.00, 10.00}, {10.00, 10.00},
+    {10.00, 0.00}, 
+	{0.00, 0.00},
+    {0.00, 10.00}, 
+	{10.00, 10.00},
 
-                                                    {7.00, 7.00},  {3.00, 7.00},
-                                                    {3.00, 3.00},  {7.00, 3.00}};
+    {7.00, 7.00},  
+	{3.00, 7.00},
+    {3.00, 3.00},  
+	{7.00, 3.00}
+};
 
 std::vector<int32_t> polyBpolyIdxConst = {};
 std::vector<int32_t> polyBpointsIdxConst = {};
@@ -30,33 +38,75 @@ std::vector<NativeGeoPoint> polyBpolyPointsConst = {};
 std::vector<int32_t> polyApolyIdx = {3, 4, 7};
 std::vector<int32_t> polyApointsIdx = {4, 8, 12, 15, 22, 27, 31};
 std::vector<NativeGeoPoint> polyApolyPoints = {
-    {4.50, 5.50},   {6.00, 5.50},   {6.00, 4.50},  {4.50, 4.50},
+    {4.50, 5.50},  
+	{6.00, 5.50},   
+	{6.00, 4.50},  
+	{4.50, 4.50},
 
-    {10.00, 0.00},  {0.00, 0.00},   {0.00, 10.00}, {10.00, 10.00},
+    {10.00, 0.00},  
+	{0.00, 0.00},   
+	{0.00, 10.00}, 
+	{10.00, 10.00},
 
-    {7.00, 7.00},   {3.00, 7.00},   {3.00, 3.00},  {7.00, 3.00},
+    {7.00, 7.00},   
+	{3.00, 7.00},   
+	{3.00, 3.00},  
+	{7.00, 3.00},
 
-    {0.00, 0.00},   {1.00, 0.00},   {0.50, 1.00},
+    {0.00, 0.00},   
+	{1.00, 0.00},   
+	{0.50, 1.00},
 
-    {-6.31, -1.49}, {-4.00, 5.00},  {2.13, 6.03},  {4.90, 2.23},   {-0.52, -0.49},
-    {3.88, -3.45},  {-4.33, -3.89},
+    {-6.31, -1.49}, 
+	{-4.00, 5.00},  
+	{2.13, 6.03},  
+	{4.90, 2.23},   
+	{-0.52, -0.49},
+    {3.88, -3.45},  
+	{-4.33, -3.89},
 
-    {-3.77, 2.88},  {1.12, 5.24},   {3.52, 2.73},  {-0.92, 0.45},  {-2.82, -2.57},
+    {-3.77, 2.88},  
+	{1.12, 5.24},   
+	{3.52, 2.73},  
+	{-0.92, 0.45}, 
+	{-2.82, -2.57},
 
-    {-2.52, 1.91},  {0.96, 4.25},   {2.16, 2.81},  {-1.98, 0.43}};
+    {-2.52, 1.91},  
+	{0.96, 4.25},   
+	{2.16, 2.81},  
+	{-1.98, 0.43}};
 
 std::vector<int32_t> polyBpolyIdx = {2, 3, 5};
 std::vector<int32_t> polyBpointsIdx = {3, 7, 11, 17, 23};
 std::vector<NativeGeoPoint> polyBpolyPoints = {
-    {13.00, 5.50}, {13.00, 4.50}, {5.00, 5.00},
+    {13.00, 5.50}, 
+	{13.00, 4.50}, 
+	{5.00, 5.00},
 
-    {4.00, 4.00},  {15.00, 4.00}, {15.00, 6.00}, {4.00, 6.00},
+    {4.00, 4.00},  
+	{15.00, 4.00}, 
+	{15.00, 6.00}, 
+	{4.00, 6.00},
 
-    {-0.50, 0.40},  {1.00, 0.40},  {1.00, 0.60},  {-0.50, 0.60},
+    {-0.50, 0.40},  
+	{1.00, 0.40},  
+	{1.00, 0.60},  
+	{-0.50, 0.60},
 
-    {-5.12, 4.59}, {0.42, -5.63}, {3.86, 0.41},  {2.06, 3.75},  {1.22, 6.83}, {-4.60, 6.45},
+    {-5.12, 4.59}, 
+	{0.42, -5.63}, 
+	{3.86, 0.41},  
+	{2.06, 3.75},  
+	{1.22, 6.83}, 
+	{-4.60, 6.45},
 
-    {-3.32, 4.11}, {0.92, 3.69},  {2.26, 0.21},  {0.00, -3.00}, {0.48, 1.65}, {-2.94, 2.27}};
+    {-3.32, 4.11}, 
+	{0.92, 3.69},  
+	{2.26, 0.21},  
+	{0.00, -3.00}, 
+	{0.48, 1.65}, 
+	{-2.94, 2.27}
+};
 
 
 template <typename OP>
@@ -271,37 +321,46 @@ TEST(GPUPolygonClippingTests, IntersectConstColTest)
                                               polyBpolyIdx, polyBpointsIdx, polyBpolyPoints, outPolyIdx,
                                               outPointIdx, outPolyPoints, true, false, dataElementCount);
 
+	std::vector<int32_t> outPolyIdxCorrect = {3, 4, 6};
+    std::vector<int32_t> outPointIdxCorrect = {7, 11, 15, 19, 28, 32};
+    std::vector<NativeGeoPoint> outPolyPointsCorrect = {
+        {6.00, 4.94},  {6.00, 4.50},  {4.50, 4.50},  {4.50, 5.50}, {6.00, 5.50}, {6.00, 5.06},
+        {5.00, 5.00},  {10.00, 4.69}, {10.00, 4.00}, {7.00, 4.00}, {7.00, 4.88}, {10.00, 5.31},
+        {10.00, 6.00}, {7.00, 6.00},  {7.00, 5.13},  {0.00, 0.40}, {0.00, 0.60}, {1.00, 0.60},
+        {1.00, 0.40},  {3.63, 0.00},  {2.11, 0.00},  {2.26, 0.21}, {0.92, 3.69}, {0.00, 3.78},
+        {0.00, 6.75},  {1.22, 6.83},  {2.06, 3.75},  {3.86, 0.41}, {0.31, 0.00}, {0.00, 0.00},
+        {0.00, 1.74},  {0.48, 1.65}
+	};
+
     // Check the results
-    // ASSERT_EQ(outPolyIdx.size(), outPolyIdxCorrect.size());
+    ASSERT_EQ(outPolyIdx.size(), outPolyIdxCorrect.size());
     for (int32_t i = 0; i < outPolyIdx.size(); i++)
     {
-        // ASSERT_EQ(outPolyIdx[i], outPolyIdxCorrect[i]);
-        printf("%2d : %2d\n", i, outPolyIdx[i]);
+        ASSERT_EQ(outPolyIdx[i], outPolyIdxCorrect[i]);
+        //printf("%2d, ",outPolyIdx[i]);
     }
 
 	printf("\n");
 
-    // ASSERT_EQ(outPointIdx.size(), outPointIdxCorrect.size());
+    ASSERT_EQ(outPointIdx.size(), outPointIdxCorrect.size());
     for (int32_t i = 0; i < outPointIdx.size(); i++)
     {
-        // ASSERT_EQ(outPointIdx[0], outPointIdxCorrect[0]);
-        printf("%2d : %2d\n", i, outPointIdx[i]);
+        ASSERT_EQ(outPointIdx[0], outPointIdxCorrect[0]);
+        //printf("%2d, ",outPointIdx[i]);
     }
 
 	printf("\n");
 
-    // ASSERT_EQ(outPolyPoints.size(), outPolyPointsCorrect.size());
+    ASSERT_EQ(outPolyPoints.size(), outPolyPointsCorrect.size());
     for (int32_t i = 0; i < outPolyPoints.size(); i++)
     {
-        // ASSERT_FLOAT_EQ(roundCustom(outPolyPoints[i].latitude), roundCustom(outPolyPointsCorrect[i].latitude));
-        // ASSERT_FLOAT_EQ(roundCustom(outPolyPoints[i].longitude), roundCustom(outPolyPointsCorrect[i].longitude));
-        //printf("%2d : %.2f %.2f\n", i, outPolyPoints[i].latitude, outPolyPoints[i].longitude);
-        printf("(%.2f, %.2f),\n", outPolyPoints[i].latitude, outPolyPoints[i].longitude);
+        ASSERT_FLOAT_EQ(roundCustom(outPolyPoints[i].latitude), roundCustom(outPolyPointsCorrect[i].latitude));
+        ASSERT_FLOAT_EQ(roundCustom(outPolyPoints[i].longitude), roundCustom(outPolyPointsCorrect[i].longitude));
+        //printf("{%.2f, %.2f},\n", outPolyPoints[i].latitude, outPolyPoints[i].longitude);
+        //printf("(%.2f, %.2f),\n", outPolyPoints[i].latitude, outPolyPoints[i].longitude);
     }
 
 	printf("\n");
-
-	FAIL();
 }
 
 TEST(GPUPolygonClippingTests, UnionConstColTest)
