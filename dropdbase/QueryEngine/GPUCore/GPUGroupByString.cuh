@@ -685,18 +685,8 @@ public:
                         GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
                         GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount)
                             .get());
-                    sumGroupBy.GetResults(&keysToDiscard, &valuesMerged, outDataElementCount,
-                                          outKeysNullMask, outValuesNullMask);
+                    sumGroupBy.GetResults(&keysToDiscard, &valuesMerged, outDataElementCount);
                     GPUMemory::free(keysToDiscard);
-                    // Don't need these results, will be computed again in countGroupBy - TODO multi-value GroupBy
-                    if (outKeysNullMask) // if used (if double pointer is not nullptr)
-                    {
-                        GPUMemory::free(*outKeysNullMask); // free array
-                    }
-                    if (outValuesNullMask)
-                    {
-                        GPUMemory::free(*outValuesNullMask);
-                    }
 
                     // Calculate sum of occurrences
                     // Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
