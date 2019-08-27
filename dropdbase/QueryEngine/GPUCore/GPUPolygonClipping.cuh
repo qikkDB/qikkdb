@@ -204,7 +204,7 @@ __device__ void clip_polygons(int32_t* polyCount,
 
         // Calculate the component counts
         int32_t nonIntersectComponentCount = 0;
-
+        /*
         // Add the non intersecting polygons to the result
         int32_t polyIdxA = GPUMemory::PolyIdxAt(polygonA, iAIdx);
         int32_t polyCountA = GPUMemory::PolyCountAt(polygonA, iAIdx);
@@ -282,7 +282,7 @@ __device__ void clip_polygons(int32_t* polyCount,
                 }
             }
         }
-		
+		*/
 		//////////////////////////////////////////////////////////////////////////////
         // Reconstruct the intersecting poylgon result
 
@@ -464,9 +464,9 @@ private:
         int32_t PolygonBIntersectionPresenceFlagsCount;
 
         GPUMemory::copyDeviceToHost(&PolygonAIntersectionPresenceFlagsCount,
-                                    polygonAin.polyIdx + dataElementCount - 1, 1);
+                                    polygonAin.polyIdx + dataElementCountA - 1, 1);
         GPUMemory::copyDeviceToHost(&PolygonBIntersectionPresenceFlagsCount,
-                                    polygonBin.polyIdx + dataElementCount - 1, 1);
+                                    polygonBin.polyIdx + dataElementCountB - 1, 1);
 
         cuda_ptr<int8_t> PolygonAIntersectionPresenceFlags(PolygonAIntersectionPresenceFlagsCount, 0);
         cuda_ptr<int8_t> PolygonBIntersectionPresenceFlags(PolygonBIntersectionPresenceFlagsCount, 0);
