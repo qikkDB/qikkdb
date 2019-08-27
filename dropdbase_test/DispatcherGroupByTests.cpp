@@ -808,6 +808,28 @@ TEST_F(DispatcherGroupByTests, IntSimpleSum)
                           {{0, 2}, {1, 6}, {2, 15}, {-1, 4}});
 }
 
+TEST_F(DispatcherGroupByTests, IntCollisionsSum)
+{
+    GroupByIntGenericTest("SUM", {0, 1, -1, 2, 262143, 262144, 262145, 1048576, 1048577, 1, 1, 262144, 0}, {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096},
+                          {{0, 4097}, {1, 1538}, {-1, 4}, {2, 8}, {262143, 16}, {262144, 2080}, {262145, 64}, {1048576, 128}, {1048577, 256}});
+}
+
+TEST_F(DispatcherGroupByTests, IntSparseKeysSum)
+{
+    GroupByIntGenericTest("SUM", {2, 30, 7, 2, 30, 7, 2, 2}, {1, 15, 14, 1, 15, 14, 1, 1},
+                          {{2, 4}, {7, 28}, {30, 30}});
+}
+TEST_F(DispatcherGroupByTests, IntSparseKeysAvg)
+{
+    GroupByIntGenericTest("AVG", {2, 30, 7, 2, 30, 7, 2, 2}, {1, 15, 14, 1, 15, 14, 1, 1},
+                          {{2, 1}, {7, 14}, {30, 15}});
+}
+TEST_F(DispatcherGroupByTests, IntSparseKeysCount)
+{
+    GroupByIntCountTest({2, 30, 7, 2, 30, 7, 2, 2}, {1, 15, 0, 1, 15, 0, 1, 1},
+                          {{2, 4}, {7, 2}, {30, 2}});
+}
+
 TEST_F(DispatcherGroupByTests, IntKeyOpSimpleSum)
 {
     GroupByKeyOpIntGenericTest("SUM", {0, 1, -1, -1, 0, 1, 2, 1, 1}, {1, 2, 2, 2, 1, 3, 15, 5, -4},

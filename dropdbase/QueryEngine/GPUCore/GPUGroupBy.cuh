@@ -363,10 +363,10 @@ public:
     /// Create GPUGroupBy object with existing keys (allocate whole new hash table)
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
     /// <param name="keys">GPU buffer with existing keys (will be copied to a new buffer)</param>
-    GPUGroupBy(int32_t maxHashCount, K* keys) : GPUGroupBy(maxHashCount)
+    GPUGroupBy(int32_t maxHashCount, K* keys, bool firstKeyIsNull) : GPUGroupBy(maxHashCount - (firstKeyIsNull ? 1 : 0))
     {
         // keys_ has value at index 0 reserved for NULL key
-        GPUMemory::copyDeviceToDevice(keys_ + 1, keys, maxHashCount);
+        GPUMemory::copyDeviceToDevice(keys_ + (firstKeyIsNull ? 0 : 1), keys, maxHashCount);
     }
 
     ~GPUGroupBy()
@@ -687,19 +687,23 @@ public:
                     // Calculate sum of values
                     // Initialize new empty sumGroupBy table
                     K* tempKeys = nullptr;
+                    int8_t* tempKeysNulls;
                     GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
                     sumGroupBy.ProcessBlock(
                         keysAllGPU.get(), valuesAllGPU.get(), sumElementCount,
                         GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
                         GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount)
                             .get());
-                    sumGroupBy.GetResults(&tempKeys, &valuesMerged, outDataElementCount);
+                    sumGroupBy.GetResults(&tempKeys, &valuesMerged, outDataElementCount, &tempKeysNulls);
+                    int8_t firstChar;
+                    GPUMemory::copyDeviceToHost(&firstChar, tempKeysNulls, 1);
 
                     // Calculate sum of occurrences
                     // Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
                     GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount,
-                                                                                            tempKeys);
+                                                                                            tempKeys, firstChar & 1 == 1);
                     GPUMemory::free(tempKeys);
+                    GPUMemory::free(tempKeysNulls);
                     countGroupBy.ProcessBlock(
                         keysAllGPU.get(), occurrencesAllGPU.get(), sumElementCount,
                         GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),

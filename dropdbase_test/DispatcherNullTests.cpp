@@ -546,6 +546,7 @@ TEST(DispatcherNullTests, GroupByNullKeySum)
     //  0       | 16
     //  1       | 16
     //  3       | 16
+    int numberOfNullKeys = 0;
     for (int i = 0; i < keysResult.intpayload().intdata_size(); i++)
     {
         const char keyChar = keysNullMaskResult[i / 8];
@@ -556,6 +557,7 @@ TEST(DispatcherNullTests, GroupByNullKeySum)
         if (keyIsNull)
         {
             ASSERT_EQ(expectedValueAtNull, valuesResult.intpayload().intdata()[i]);
+            numberOfNullKeys++;
         }
         else
         {
@@ -565,6 +567,91 @@ TEST(DispatcherNullTests, GroupByNullKeySum)
                       valuesResult.intpayload().intdata()[i]);
         }
     }
+    ASSERT_EQ(1, numberOfNullKeys);
+    Database::RemoveFromInMemoryDatabaseList("TestDb");
+}
+
+TEST(DispatcherNullTests, GroupByNullKeyAvg)
+{
+    Database::RemoveFromInMemoryDatabaseList("TestDb");
+    const int blockSize = 8;
+    std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
+    Database::AddToInMemoryDatabaseList(database);
+    std::unordered_map<std::string, DataType> columns;
+    columns.emplace("colKeys", COLUMN_INT);
+    columns.emplace("colVals", COLUMN_INT);
+    database->CreateTable(columns, "TestTable");
+    std::unordered_map<int32_t, int32_t> expectedResults;
+    int32_t expectedValueAtNull = 0;
+    for (int i = 0; i < 32; i++)
+    {
+        bool nullKey = (i % 4 == 2);
+        int32_t intKey = i % 4;
+        int32_t intVal = 2;
+        std::string key = (nullKey ? "NULL" : std::to_string(intKey));
+        std::string val = std::to_string(intVal);
+        if (nullKey)
+        {
+            expectedValueAtNull = intVal;
+        }
+        else
+        {
+            if (expectedResults.find(intKey) == expectedResults.end())
+            {
+                expectedResults.insert({intKey, intVal});
+            }
+        }
+        std::cout << ("INSERT INTO TestTable (colKeys, colVals) VALUES (" + key + ", " + val + ");")
+                  << std::endl;
+        GpuSqlCustomParser parser(database, "INSERT INTO TestTable (colKeys, colVals) VALUES (" +
+                                                key + ", " + val + ");");
+        parser.Parse();
+    }
+
+    GpuSqlCustomParser parser(database,
+                              "SELECT colKeys, AVG(colVals) FROM TestTable GROUP BY colKeys;");
+    auto resultPtr = parser.Parse();
+    auto responseMessage =
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
+    ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
+    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
+    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)");
+    auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
+    auto& valuesResult = responseMessage->payloads().at("AVG(colVals)");
+
+    // Result should look like:
+    //  colKeys | colVals
+    //  NULL    | 2
+    //  0       | 2
+    //  1       | 2
+    //  3       | 2
+    int numberOfNullKeys = 0;
+    for (int i = 0; i < keysResult.intpayload().intdata_size(); i++)
+    {
+        const char keyChar = keysNullMaskResult[i / 8];
+        const bool keyIsNull = ((keyChar >> (i % 8)) & 1);
+        const char valChar = valuesNullMaskResult[i / 8];
+        const bool valIsNull = ((valChar >> (i % 8)) & 1);
+        std::cout << "key: "
+                  << (keyIsNull ? "NULL" : std::to_string(keysResult.intpayload().intdata()[i])) << ", value:"
+                  << (valIsNull ? "NULL" : std::to_string(valuesResult.intpayload().intdata()[i]))
+                  << std::endl;
+        ASSERT_FALSE(valIsNull) << "at key " << (keyIsNull ? "NULL" : std::to_string(keysResult.intpayload().intdata()[i]));
+        if (keyIsNull)
+        {
+            ASSERT_EQ(expectedValueAtNull, valuesResult.intpayload().intdata()[i]);
+            numberOfNullKeys++;
+        }
+        else
+        {
+            ASSERT_FALSE(expectedResults.find(keysResult.intpayload().intdata()[i]) ==
+                         expectedResults.end());
+            ASSERT_EQ(expectedResults.at(keysResult.intpayload().intdata()[i]),
+                      valuesResult.intpayload().intdata()[i]);
+        }
+    }
+    ASSERT_EQ(1, numberOfNullKeys);
     Database::RemoveFromInMemoryDatabaseList("TestDb");
 }
 
