@@ -903,6 +903,13 @@ TEST_F(DispatcherGroupByTests, StringKeyOpSimpleSum)
 
 
 // Group By Multi-keys
+TEST_F(DispatcherGroupByTests, MultiKeySingleBlockSum)
+{
+    GroupByMultiKeyGenericTest("SUM", {{1, 1, 1, 2}, {2, 2, 5, 1}},
+                               {5, 7, 24, 1},
+                               {{{1, 2}, 12}, {{1, 5}, 24}, {{2, 1}, 1}});
+}
+
 TEST_F(DispatcherGroupByTests, MultiKeySimpleSum)
 {
     GroupByMultiKeyGenericTest("SUM", {{1, 1, 1, 2, 5, 7, -1, 5}, {2, 2, 5, 1, 1, 7, -5, 1}},
