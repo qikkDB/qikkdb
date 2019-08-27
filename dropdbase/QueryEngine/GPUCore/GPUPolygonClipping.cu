@@ -76,16 +76,16 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
             int32_t pointIdxA = GPUMemory::PointIdxAt(polygonA, a);
             int32_t pointCountA = GPUMemory::PointCountAt(polygonA, a);
 
-			int8_t intersectionPresentInSubPolygonA = 0;
+            int8_t intersectionPresentInSubPolygonA = 0;
 
             for (int32_t b = polyIdxB; b < (polyIdxB + polyCountB); b++)
             {
                 int32_t pointIdxB = GPUMemory::PointIdxAt(polygonB, b);
                 int32_t pointCountB = GPUMemory::PointCountAt(polygonB, b);
 
-				int8_t intersectionPresentInSubPolygonB = 0;
+                int8_t intersectionPresentInSubPolygonB = 0;
 
-                // Calculate total intersections count 
+                // Calculate total intersections count
                 for (int32_t pointA = pointIdxA; pointA < (pointIdxA + pointCountA); pointA++)
                 {
                     for (int32_t pointB = pointIdxB; pointB < (pointIdxB + pointCountB); pointB++)
@@ -99,17 +99,15 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
                         if (getIsValidIntersection(intersection))
                         {
                             intersectionPresentInSubPolygonA = 1;
-							intersectionPresentInSubPolygonB = 1;
+                            intersectionPresentInSubPolygonB = 1;
 
                             intersectCount++;
                         }
                     }
                 }
-				PolygonBIntersectionPresenceFlags[pointIdxB] |= intersectionPresentInSubPolygonB;
-				printf("B : %d %d %d\n", pointIdxB, intersectionPresentInSubPolygonB, PolygonBIntersectionPresenceFlags[pointIdxB]);
+                PolygonBIntersectionPresenceFlags[b] |= intersectionPresentInSubPolygonB;
             }
-			PolygonAIntersectionPresenceFlags[pointIdxA] |= intersectionPresentInSubPolygonA;
-			//printf("A : %d %d %d\n", pointIdxA, intersectionPresentInSubPolygonA, PolygonAIntersectionPresenceFlags[pointIdxA]);
+            PolygonAIntersectionPresenceFlags[a] |= intersectionPresentInSubPolygonA;
         }
 
         // Get the complex polygon vertex counts n and k
@@ -163,7 +161,7 @@ __global__ void kernel_build_LL(LLPolyVertex* LLPolygonBuffers,
                         (point - pointIdx + 1) % pointCount,
                     -1};
 
-				setHasIntersections(vertex, PolygonIntersectionPresenceFlags[pointIdx]);
+				setHasIntersections(vertex, PolygonIntersectionPresenceFlags[p]);
                 setIsIntersection(vertex, false);
                 setIsValidIntersection(vertex, false);
                 setIsEntry(vertex, false);
