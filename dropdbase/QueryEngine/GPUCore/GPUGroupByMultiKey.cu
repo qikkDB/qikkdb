@@ -417,10 +417,15 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                 default:
                     break;
                 }
+                // If using keys null mask
                 if(inKeysNullMask[t] != nullptr)
                 {
                     keysNullBuffer[t][i] =
                         (inKeysNullMask[t][sourceIndices[i] / (sizeof(int8_t) * 8)] >> (sourceIndices[i] % (sizeof(int8_t) * 8))) & 1;
+                }
+                else    // If not, set added key as not null
+                {
+                    keysNullBuffer[t][i] = false;
                 }
             }
             sourceIndices[i] = GBS_SOURCE_INDEX_KEY_IN_BUFFER; // Mark as stored in keyBuffer
