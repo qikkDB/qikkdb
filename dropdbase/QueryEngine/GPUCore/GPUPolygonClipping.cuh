@@ -380,24 +380,29 @@ template<typename OP>
 
 
 		// DEBUG
-		std::vector<int8_t> a(PolygonAIntersectionPresenceFlagsCount);
-		std::vector<int8_t> b(PolygonBIntersectionPresenceFlagsCount);
+        int8_t* a = new int8_t[PolygonAIntersectionPresenceFlagsCount];
+        int8_t* b = new int8_t[PolygonBIntersectionPresenceFlagsCount];
 
-		GPUMemory::copyDeviceToHost(&a[0], PolygonAIntersectionPresenceFlags.get(), PolygonAIntersectionPresenceFlagsCount);
-		GPUMemory::copyDeviceToHost(&b[0], PolygonBIntersectionPresenceFlags.get(), PolygonBIntersectionPresenceFlagsCount);
+		GPUMemory::copyDeviceToHost(a, PolygonAIntersectionPresenceFlags.get(), PolygonAIntersectionPresenceFlagsCount);
+        GPUMemory::copyDeviceToHost(b, PolygonBIntersectionPresenceFlags.get(),
+                                    PolygonBIntersectionPresenceFlagsCount);
 
 		for(int32_t i = 0; i < PolygonAIntersectionPresenceFlagsCount; i++) 
 		{
-			std::cout << i << ": " << static_cast<int32_t>(a[i]) << std::endl;
+			printf("%d : %d\n", i, a[i]);
 		}
-		std::cout << std::endl;
+        printf("\n");
 
 		for(int32_t i = 0; i < PolygonBIntersectionPresenceFlagsCount; i++) 
 		{
-			std::cout << i << " : " << static_cast<int32_t>(b[i]) << std::endl;
+            printf("%d : %d\n", i, b[i]);
 		}
-		std::cout << std::endl;
-		exit(0);
+        printf("\n");
+
+
+		delete[] a;
+        delete[] b;
+		//exit(0);
 
         // Calculate the inclusive prefix sum for the LL buffer sizes counters for adressing purpose
         cuda_ptr<int32_t> LLPolygonABufferSizesPrefixSum(dataElementCount);

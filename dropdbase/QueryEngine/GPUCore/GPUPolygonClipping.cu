@@ -37,7 +37,7 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, Nat
                         -1,
                         -1};
 
-	setHasIntersections(ret, false);
+	setHasIntersections(ret, intersectionValidity);
     setIsIntersection(ret, true);
     setIsValidIntersection(ret, intersectionValidity);
     setIsEntry(ret, false);
@@ -76,13 +76,16 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
             int32_t pointIdxA = GPUMemory::PointIdxAt(polygonA, a);
             int32_t pointCountA = GPUMemory::PointCountAt(polygonA, a);
 
+			int8_t intersectionPresentInSubPolygonA = 0;
+
             for (int32_t b = polyIdxB; b < (polyIdxB + polyCountB); b++)
             {
                 int32_t pointIdxB = GPUMemory::PointIdxAt(polygonB, b);
                 int32_t pointCountB = GPUMemory::PointCountAt(polygonB, b);
 
+				int8_t intersectionPresentInSubPolygonB = 0;
+
                 // Calculate total intersections count 
-				bool intersectionPresentInSubPolygon = false; //??? TODO rethink this
                 for (int32_t pointA = pointIdxA; pointA < (pointIdxA + pointCountA); pointA++)
                 {
                     for (int32_t pointB = pointIdxB; pointB < (pointIdxB + pointCountB); pointB++)
@@ -95,17 +98,18 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
 
                         if (getIsValidIntersection(intersection))
                         {
-                            intersectionPresentInSubPolygon = true;
+                            intersectionPresentInSubPolygonA = 1;
+							intersectionPresentInSubPolygonB = 1;
+
                             intersectCount++;
                         }
                     }
                 }
-               
-				PolygonAIntersectionPresenceFlags[pointIdxA] = intersectionPresentInSubPolygon ? 1 : 0;
-                PolygonBIntersectionPresenceFlags[pointIdxB] = intersectionPresentInSubPolygon ? 1 : 0;
-
-				printf("CUDA_pidA: %2d %2d\n", pointIdxA, PolygonAIntersectionPresenceFlags[i]);
+				PolygonBIntersectionPresenceFlags[pointIdxB] |= intersectionPresentInSubPolygonB;
+				printf("B : %d %d %d\n", pointIdxB, intersectionPresentInSubPolygonB, PolygonBIntersectionPresenceFlags[pointIdxB]);
             }
+			PolygonAIntersectionPresenceFlags[pointIdxA] |= intersectionPresentInSubPolygonA;
+			//printf("A : %d %d %d\n", pointIdxA, intersectionPresentInSubPolygonA, PolygonAIntersectionPresenceFlags[pointIdxA]);
         }
 
         // Get the complex polygon vertex counts n and k
