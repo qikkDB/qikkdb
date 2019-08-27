@@ -14,7 +14,7 @@
 TEST(DispatcherNullTests, SelectNullWithWhere)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 1 << 5;
+    const int blockSize = 1 << 5;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb"));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -52,7 +52,7 @@ TEST(DispatcherNullTests, SelectNullWithWhere)
 TEST(DispatcherNullTests, IsNullWithPattern)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 1 << 5;
+    const int blockSize = 1 << 5;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb"));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -94,7 +94,7 @@ TEST(DispatcherNullTests, IsNullWithPattern)
 TEST(DispatcherNullTests, IsNotNullWithPattern)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 1 << 5;
+    const int blockSize = 1 << 5;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb"));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -490,7 +490,7 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNullTables)
 TEST(DispatcherNullTests, GroupByNullKeySum)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 8;
+    const int blockSize = 8;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -571,7 +571,7 @@ TEST(DispatcherNullTests, GroupByNullKeySum)
 TEST(DispatcherNullTests, GroupByNullValueSum)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 8;
+    const int blockSize = 8;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -672,7 +672,7 @@ TEST(DispatcherNullTests, GroupByNullValueSum)
 TEST(DispatcherNullTests, GroupByNullValueAvg)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 8;
+    const int blockSize = 8;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -769,7 +769,7 @@ TEST(DispatcherNullTests, GroupByNullValueAvg)
 TEST(DispatcherNullTests, GroupByNullValueCount)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 8;
+    const int blockSize = 8;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -853,7 +853,7 @@ TEST(DispatcherNullTests, GroupByNullValueCount)
 TEST(DispatcherNullTests, GroupByStringNullKeySum)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 8;
+    const int blockSize = 8;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -939,7 +939,7 @@ TEST(DispatcherNullTests, GroupByStringNullKeySum)
 TEST(DispatcherNullTests, GroupByStringNullValueSum)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 8;
+    const int blockSize = 8;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -1039,7 +1039,7 @@ TEST(DispatcherNullTests, GroupByStringNullValueSum)
 TEST(DispatcherNullTests, GroupByStringNullValueAvg)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 8;
+    const int blockSize = 8;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -1135,7 +1135,7 @@ TEST(DispatcherNullTests, GroupByStringNullValueAvg)
 TEST(DispatcherNullTests, GroupByStringNullValueCount)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 8;
+    const int blockSize = 8;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -1233,7 +1233,7 @@ void TestGBMK(std::string aggregationOperation,
               std::vector<bool> valuesNullMaskExpectedResult)
 {
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 4;
+    const int blockSize = 4;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -1308,7 +1308,10 @@ void TestGBMK(std::string aggregationOperation,
             << ", value:" << (valIsNull ? "NULL" : std::to_string(valuesResult.intpayload().intdata()[i]))
             << std::endl;
         ASSERT_EQ(valuesNullMaskExpectedResult[foundIndex], valIsNull);
-        ASSERT_EQ(valuesExpectedResult[foundIndex], valuesResult.intpayload().intdata()[i]);
+        if (!valIsNull)
+        {
+            ASSERT_EQ(valuesExpectedResult[foundIndex], valuesResult.intpayload().intdata()[i]);
+        }
     }
 }
 
@@ -1326,7 +1329,7 @@ void TestGBMKCount(std::vector<int32_t> keysA,
 {
     const std::string aggregationOperation = "COUNT";
     Database::RemoveFromInMemoryDatabaseList("TestDb");
-    int blockSize = 4;
+    const int blockSize = 4;
     std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
     Database::AddToInMemoryDatabaseList(database);
     std::unordered_map<std::string, DataType> columns;
@@ -1404,7 +1407,7 @@ void TestGBMKCount(std::vector<int32_t> keysA,
     }
 }
 
-
+// NULL keys tests
 TEST(DispatcherNullTests, GroupByMultiKeyNullKeySum)
 {
     TestGBMK("SUM", {-1, 0, -1, 0, 5, 1, -1, -1}, {true, false, true, false, false, false, true, true},
@@ -1455,4 +1458,67 @@ TEST(DispatcherNullTests, GroupByMultiKeyNullKeyCount)
                   {true, false, false, true, true, false, false}, {2, 1, 1, 1, 1, 1, 1});
 }
 
-// todo nullvalue tests (from excel)
+// NULL values tests
+TEST(DispatcherNullTests, GroupByMultiKeyNullValueSum)
+{
+    TestGBMK("SUM", {0, -1, 1, -1, 2, 2, 1, 0, -1, 2, 1, 2, -1, 0},
+             {false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+             {0, -1, -1, 1, 0, 0, 7, 0, -1, 0, 7, 0, 1, 0},
+             {false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+             {2, -21, -1, -1, 2, -1, -1, 2, 5, -1, 1, 7, -1, 2},
+             {false, false, true, false, false, true, true, false, false, true, false, false, false, false},
+             {0, -1, 1, -1, 2, 1}, {false, false, false, false, false, false}, {0, -1, -1, 1, 0, 7},
+             {false, false, false, false, false, false}, {6, -16, -1, -2, 9, 1},
+             {false, false, true, false, false, false});
+}
+
+TEST(DispatcherNullTests, GroupByMultiKeyNullValueMin)
+{
+    TestGBMK("MIN", {0, -1, 1, -1, 2, 2, 1, 0, -1, 2, 1, 2, -1, 0},
+             {false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+             {0, -1, -1, 1, 0, 0, 7, 0, -1, 0, 7, 0, 1, 0},
+             {false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+             {2, -21, -1, -1, 2, -1, -1, 2, 5, -1, 1, 7, -1, 2},
+             {false, false, true, false, false, true, true, false, false, true, false, false, false, false},
+             {0, -1, 1, -1, 2, 1}, {false, false, false, false, false, false}, {0, -1, -1, 1, 0, 7},
+             {false, false, false, false, false, false}, {2, -21, -1, -1, 2, 1},
+             {false, false, true, false, false, false});
+}
+
+TEST(DispatcherNullTests, GroupByMultiKeyNullValueMax)
+{
+    TestGBMK("MAX", {0, -1, 1, -1, 2, 2, 1, 0, -1, 2, 1, 2, -1, 0},
+             {false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+             {0, -1, -1, 1, 0, 0, 7, 0, -1, 0, 7, 0, 1, 0},
+             {false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+             {2, -21, -1, -1, 2, -1, -1, 2, 5, -1, 1, 7, -1, 2},
+             {false, false, true, false, false, true, true, false, false, true, false, false, false, false},
+             {0, -1, 1, -1, 2, 1}, {false, false, false, false, false, false}, {0, -1, -1, 1, 0, 7},
+             {false, false, false, false, false, false}, {2, 5, -1, -1, 7, 1},
+             {false, false, true, false, false, false});
+}
+
+TEST(DispatcherNullTests, GroupByMultiKeyNullValueAvg)
+{
+    TestGBMK("AVG", {0, -1, 1, -1, 2, 2, 1, 0, -1, 2, 1, 2, -1, 0},
+             {false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+             {0, -1, -1, 1, 0, 0, 7, 0, -1, 0, 7, 0, 1, 0},
+             {false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+             {2, -21, -1, -1, 2, -1, -1, 2, 5, -1, 1, 7, -1, 2},
+             {false, false, true, false, false, true, true, false, false, true, false, false, false, false},
+             {0, -1, 1, -1, 2, 1}, {false, false, false, false, false, false}, {0, -1, -1, 1, 0, 7},
+             {false, false, false, false, false, false}, {2, -8, -1, -1, 4, 1},
+             {false, false, true, false, false, false});
+}
+
+TEST(DispatcherNullTests, GroupByMultiKeyNullValueCount)
+{
+    TestGBMKCount({0, -1, 1, -1, 2, 2, 1, 0, -1, 2, 1, 2, -1, 0},
+                  {false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+                  {0, -1, -1, 1, 0, 0, 7, 0, -1, 0, 7, 0, 1, 0},
+                  {false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+                  {2, -21, -1, -1, 2, -1, -1, 2, 5, -1, 2, 7, -1, 2},
+                  {false, false, true, false, false, true, true, false, false, true, false, false, false, false},
+                  {0, -1, 1, -1, 2, 1}, {false, false, false, false, false, false},
+                  {0, -1, -1, 1, 0, 7}, {false, false, false, false, false, false}, {3, 2, 0, 2, 2, 1});
+}
