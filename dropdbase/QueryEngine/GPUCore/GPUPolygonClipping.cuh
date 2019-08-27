@@ -200,11 +200,9 @@ __device__ void clip_polygons(int32_t* polyCount,
 		//////////////////////////////////////////////////////////////////////////////
 		// Reconstruct the NON-intersecting poylgon result
 		
-		// Zero the counters
-
-        // Calculate the component counts
+        // Calculate the non intersecting component counts
         int32_t nonIntersectComponentCount = 0;
-        /*
+        
         // Add the non intersecting polygons to the result
         int32_t polyIdxA = GPUMemory::PolyIdxAt(polygonA, iAIdx);
         int32_t polyCountA = GPUMemory::PolyCountAt(polygonA, iAIdx);
@@ -282,11 +280,11 @@ __device__ void clip_polygons(int32_t* polyCount,
                 }
             }
         }
-		*/
+		
 		//////////////////////////////////////////////////////////////////////////////
         // Reconstruct the intersecting poylgon result
 
-		// Traverse the linked list
+		// Traverse the linked list and calcualte the intersecting component counts
         int32_t turnNumber = 0;
         int32_t IntersectComponentCount = 0;
         LLPolyVertex* LLPolygonBuffersTable[2] = {LLPolygonABuffers, LLPolygonBBuffers};
