@@ -46,12 +46,13 @@ struct LLPolyVertex
     NativeGeoPoint vertex; // The vertex coordinates
 
     // One variable to represent the linked list flags
-	// hasIntersections - Tells if a sub-polygon from the complex polygon to which this vertex belongs has an intersection with the other complex polygon
-    // isIntersection - Is this an intersection or a polygon vertex
-    // isValidIntersection - Is this a valid interection ? ( does the point lie between the crossing lines)
-    // isEntry - Is this an entry (true) or an exit (false) to the other polygon
-    // wasProcessed - Was the vertex processed already during the result clipping
-	// | empty | empty | empty | hasIntersections | isIntersection | isValidIntersection | isEntry | wasProcessed |
+    // hasIntersections - Tells if a sub-polygon from the complex polygon to which this vertex
+    // belongs has an intersection with the other complex polygon isIntersection - Is this an
+    // intersection or a polygon vertex isValidIntersection - Is this a valid interection ? ( does
+    // the point lie between the crossing lines) isEntry - Is this an entry (true) or an exit
+    // (false) to the other polygon wasProcessed - Was the vertex processed already during the
+    // result clipping | empty | empty | empty | hasIntersections | isIntersection |
+    // isValidIntersection | isEntry | wasProcessed |
     uint8_t LLflags;
 
     float distanceAlongA; // Distance of the intersection from the beginning of the first line
@@ -115,8 +116,8 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, Nat
 // are the counts of vertices of the complex polygons A and B
 __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
                                             int32_t* LLPolygonBBufferSizes,
-											int8_t* PolygonAIntersectionPresenceFlags,
-											int8_t* PolygonBIntersectionPresenceFlags,
+                                            int8_t* PolygonAIntersectionPresenceFlags,
+                                            int8_t* PolygonBIntersectionPresenceFlags,
                                             GPUMemory::GPUPolygon polygonA,
                                             GPUMemory::GPUPolygon polygonB,
                                             bool isAConst,
@@ -168,6 +169,8 @@ __device__ void clip_polygons(int32_t* polyCount,
                               GPUMemory::GPUPolygon polygonB,
                               int32_t* LLPolygonABufferSizesPrefixSum,
                               int32_t* LLPolygonBBufferSizesPrefixSum,
+                              int8_t* PolygonAIntersectionPresenceFlags,
+                              int8_t* PolygonBIntersectionPresenceFlags,
                               bool isAConst,
                               bool isBConst,
                               int32_t dataElementCount)
@@ -190,89 +193,178 @@ __device__ void clip_polygons(int32_t* polyCount,
         int32_t begIdxB = ((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + k;
         int32_t endIdxB = LLPolygonBBufferSizesPrefixSum[i];
 
-		// Fill the turn table according to clipping operation
-		bool turnTable[2];
-		OP{}(turnTable);
+        // Fill the turn table according to clipping operation
+        bool turnTable[2];
+        OP{}(turnTable);
 
-		// TODO Check if the two polygons share an intersection - if not - do a special operation else do the classic clipping
+		//////////////////////////////////////////////////////////////////////////////
+		// Reconstruct the NON-intersecting poylgon result
+		
+		// Zero the counters
 
-		// Calculate the component count
-		int32_t componentCount = 0;
+        // Calculate the component counts
+        int32_t nonIntersectComponentCount = 0;
 
-		int32_t turnNumber = 0;
-		LLPolyVertex* LLPolygonBuffersTable[2] = {LLPolygonABuffers, LLPolygonBBuffers};
-		for (int32_t point = begIdxA; point < endIdxA; point++)
-		{
-			if (getWasProcessed(LLPolygonBuffersTable[turnNumber][point]) == false)
-			{
-				// Calculate the sub component count
-				int32_t subComponentCount = 0;
+        // Add the non intersecting polygons to the result
+        int32_t polyIdxA = GPUMemory::PolyIdxAt(polygonA, iAIdx);
+        int32_t polyCountA = GPUMemory::PolyCountAt(polygonA, iAIdx);
+        for (int32_t a = polyIdxA; a < (polyIdxA + polyCountA); a++)
+        {
+			int32_t pointIdxA = GPUMemory::PointIdxAt(polygonA, a);
+            int32_t pointCountA = GPUMemory::PointCountAt(polygonA, a);
+            if (PolygonAIntersectionPresenceFlags[a] == 0)
+            {
+                bool isAinB = is_point_in_complex_polygon_at(polygonA.polyPoints[pointIdxA], polygonB, iBIdx);
+                if (isAinB == turnTable[0])
+                {
+                    int32_t noIntersectSubComponentCount = 0;
 
-				int32_t nextIdx = point;
-				do
-				{
-					setWasProcessed(LLPolygonBuffersTable[turnNumber][nextIdx], true);
-					setWasProcessed(LLPolygonBuffersTable[1 - turnNumber]
-															[LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx], true);
+                    for (int32_t pointA = pointIdxA; pointA < (pointIdxA + pointCountA); pointA++)
+                    {
+                        if (polyCount && pointCount && polyPoints)
+                        {
+                            int32_t poly_idx = i;
+                            int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + nonIntersectComponentCount);
+                            int32_t polyPoint_idx = (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + noIntersectSubComponentCount);
 
-					bool forward =
-						(getIsEntry(LLPolygonBuffersTable[turnNumber][nextIdx]) == turnTable[turnNumber]);
-					do
-					{
-						// Write the output point
-						if (polyCount && pointCount && polyPoints)
-						{
-							int32_t poly_idx = i;
-							int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + componentCount);
-							int32_t polyPoint_idx = (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + subComponentCount);
-							polyPoints[polyPoint_idx] = LLPolygonBuffersTable[turnNumber][nextIdx].vertex;
-						}
+							polyPoints[polyPoint_idx] = polygonA.polyPoints[pointA];
+                        }
+                        noIntersectSubComponentCount++;
+                    }
 
-						if (forward)
-						{
-							nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].nextIdx;
-						}
-						else
-						{
-							nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].prevIdx;
-						}
+                    if (polyCount && pointCount)
+                    {
+                        int32_t poly_idx = i;
+                        int32_t point_idx =
+                            (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + nonIntersectComponentCount);
+                        pointCount[point_idx] = noIntersectSubComponentCount;
+                    }
 
-						subComponentCount++;
-					} while (!getIsIntersection(LLPolygonBuffersTable[turnNumber][nextIdx]));
-
-					nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx;
-					turnNumber = 1 - turnNumber;
-				} while (!getWasProcessed(LLPolygonBuffersTable[turnNumber][nextIdx]));
-
-				if (polyCount && pointCount)
-				{
-					int32_t poly_idx = i;
-					int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + componentCount);
-					pointCount[point_idx] = subComponentCount;
+                    nonIntersectComponentCount++;
 				}
+            }
+        }
 
-				componentCount++;
-			}
-		}
+        int32_t polyIdxB = GPUMemory::PolyIdxAt(polygonB, iBIdx);
+        int32_t polyCountB = GPUMemory::PolyCountAt(polygonB, iBIdx);
+        for (int32_t b = polyIdxB; b < (polyIdxB + polyCountB); b++)
+        {
+			int32_t pointIdxB = GPUMemory::PointIdxAt(polygonB, b);
+            int32_t pointCountB = GPUMemory::PointCountAt(polygonB, b);
+            if (PolygonBIntersectionPresenceFlags[b] == 0)
+            {
+                bool isBinA = is_point_in_complex_polygon_at(polygonB.polyPoints[pointIdxB], polygonA, iAIdx);
+                if (isBinA == turnTable[1])
+                {
+                    int32_t noIntersectSubComponentCount = 0;
 
+                    for (int32_t pointB = pointIdxB; pointB < (pointIdxB + pointCountB); pointB++)
+                    {
+                        if (polyCount && pointCount && polyPoints)
+                        {
+                            int32_t poly_idx = i;
+                            int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + nonIntersectComponentCount);
+                            int32_t polyPoint_idx = (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + noIntersectSubComponentCount);
+
+                            polyPoints[polyPoint_idx] = polygonB.polyPoints[pointB];
+                        }
+                        noIntersectSubComponentCount++;
+                    }
+
+                    if (polyCount && pointCount)
+                    {
+                        int32_t poly_idx = i;
+                        int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) + nonIntersectComponentCount);
+                        pointCount[point_idx] = noIntersectSubComponentCount;
+                    }
+
+                    nonIntersectComponentCount++;
+                }
+            }
+        }
+		
+		//////////////////////////////////////////////////////////////////////////////
+        // Reconstruct the intersecting poylgon result
+
+		// Traverse the linked list
+        int32_t turnNumber = 0;
+        int32_t IntersectComponentCount = 0;
+        LLPolyVertex* LLPolygonBuffersTable[2] = {LLPolygonABuffers, LLPolygonBBuffers};
+        for (int32_t point = begIdxA; point < endIdxA; point++)
+        {
+            if (getWasProcessed(LLPolygonBuffersTable[turnNumber][point]) == false)
+            {
+                // Calculate the sub component count
+                int32_t IntersectSubComponentCount = 0;
+
+                int32_t nextIdx = point;
+                do
+                {
+                    setWasProcessed(LLPolygonBuffersTable[turnNumber][nextIdx], true);
+                    setWasProcessed(LLPolygonBuffersTable[1 - turnNumber][LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx], true);
+
+                    bool forward =
+                        (getIsEntry(LLPolygonBuffersTable[turnNumber][nextIdx]) == turnTable[turnNumber]);
+                    do
+                    {
+                        // Write the output point
+                        if (polyCount && pointCount && polyPoints)
+                        {
+                            int32_t poly_idx = i;
+                            int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) +
+                                                 nonIntersectComponentCount + IntersectComponentCount);
+                            int32_t polyPoint_idx = (((point_idx == 0) ? 0 : pointIdx[point_idx - 1]) + IntersectSubComponentCount);
+                            polyPoints[polyPoint_idx] = LLPolygonBuffersTable[turnNumber][nextIdx].vertex;
+                        }
+
+                        if (forward)
+                        {
+                            nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].nextIdx;
+                        }
+                        else
+                        {
+                            nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].prevIdx;
+                        }
+
+                        IntersectSubComponentCount++;
+                    } while (!getIsIntersection(LLPolygonBuffersTable[turnNumber][nextIdx]));
+
+                    nextIdx = LLPolygonBuffersTable[turnNumber][nextIdx].crossIdx;
+                    turnNumber = 1 - turnNumber;
+                } while (!getWasProcessed(LLPolygonBuffersTable[turnNumber][nextIdx]));
+
+                if (polyCount && pointCount)
+                {
+                    int32_t poly_idx = i;
+                    int32_t point_idx = (((poly_idx == 0) ? 0 : polyIdx[poly_idx - 1]) +
+                                         nonIntersectComponentCount + IntersectComponentCount);
+                    pointCount[point_idx] = IntersectSubComponentCount;
+                }
+
+                IntersectComponentCount++;
+            }
+        }
+
+        // Write the intersecting polygons result sizes
+        if (polyCount)
+        {
+            int32_t poly_idx = i;
+            polyCount[poly_idx] = nonIntersectComponentCount + IntersectComponentCount;
+        }
+
+		//////////////////////////////////////////////////////////////////////////////
 		// Reset the processed flags for the next reconstruction operation
-		for (int32_t pointA = begIdxA; pointA < endIdxA; pointA++)
-		{
-			setWasProcessed(LLPolygonABuffers[pointA], false);
-		}
+        for (int32_t pointA = begIdxA; pointA < endIdxA; pointA++)
+        {
+            setWasProcessed(LLPolygonABuffers[pointA], false);
+        }
 
-		for (int32_t pointB = begIdxB; pointB < endIdxB; pointB++)
-		{
-			setWasProcessed(LLPolygonBBuffers[pointB], false);
-		}
-
-		// Write the results
-		if (polyCount)
-		{
-			int32_t poly_idx = i;
-			polyCount[poly_idx] = componentCount;
-		}
-	}
+        for (int32_t pointB = begIdxB; pointB < endIdxB; pointB++)
+        {
+            setWasProcessed(LLPolygonBBuffers[pointB], false);
+        }
+		
+    }
 }
 
 // A set of methods for clipping
@@ -285,13 +377,16 @@ __global__ void kernel_clip_polyIdx(int32_t* polyCount,
                                     GPUMemory::GPUPolygon polygonB,
                                     int32_t* LLPolygonABufferSizesPrefixSum,
                                     int32_t* LLPolygonBBufferSizesPrefixSum,
+                                    int8_t* PolygonAIntersectionPresenceFlags,
+                                    int8_t* PolygonBIntersectionPresenceFlags,
                                     bool isAConst,
                                     bool isBConst,
                                     int32_t dataElementCount)
 {
     clip_polygons<OP>(polyCount, nullptr, nullptr, nullptr, nullptr, LLPolygonABuffers,
                       LLPolygonBBuffers, polygonA, polygonB, LLPolygonABufferSizesPrefixSum,
-                      LLPolygonBBufferSizesPrefixSum, isAConst, isBConst, dataElementCount);
+                      LLPolygonBBufferSizesPrefixSum, PolygonAIntersectionPresenceFlags,
+                      PolygonBIntersectionPresenceFlags, isAConst, isBConst, dataElementCount);
 }
 
 // Reconstruct the pointIdx of the result polygon
@@ -305,13 +400,16 @@ __global__ void kernel_clip_pointIdx(int32_t* polyCount,
                                      GPUMemory::GPUPolygon polygonB,
                                      int32_t* LLPolygonABufferSizesPrefixSum,
                                      int32_t* LLPolygonBBufferSizesPrefixSum,
+                                     int8_t* PolygonAIntersectionPresenceFlags,
+                                     int8_t* PolygonBIntersectionPresenceFlags,
                                      bool isAConst,
                                      bool isBConst,
                                      int32_t dataElementCount)
 {
     clip_polygons<OP>(polyCount, polyIdx, pointCount, nullptr, nullptr, LLPolygonABuffers,
                       LLPolygonBBuffers, polygonA, polygonB, LLPolygonABufferSizesPrefixSum,
-                      LLPolygonBBufferSizesPrefixSum, isAConst, isBConst, dataElementCount);
+                      LLPolygonBBufferSizesPrefixSum, PolygonAIntersectionPresenceFlags,
+                      PolygonBIntersectionPresenceFlags, isAConst, isBConst, dataElementCount);
 }
 
 // Reconstruc the polyPoints of the result polygon
@@ -327,19 +425,22 @@ __global__ void kernel_clip_polyPoints(int32_t* polyCount,
                                        GPUMemory::GPUPolygon polygonB,
                                        int32_t* LLPolygonABufferSizesPrefixSum,
                                        int32_t* LLPolygonBBufferSizesPrefixSum,
+                                       int8_t* PolygonAIntersectionPresenceFlags,
+                                       int8_t* PolygonBIntersectionPresenceFlags,
                                        bool isAConst,
                                        bool isBConst,
                                        int32_t dataElementCount)
 {
     clip_polygons<OP>(polyCount, polyIdx, pointCount, pointIdx, polyPoints, LLPolygonABuffers,
                       LLPolygonBBuffers, polygonA, polygonB, LLPolygonABufferSizesPrefixSum,
-                      LLPolygonBBufferSizesPrefixSum, isAConst, isBConst, dataElementCount);
+                      LLPolygonBBufferSizesPrefixSum, PolygonAIntersectionPresenceFlags,
+                      PolygonBIntersectionPresenceFlags, isAConst, isBConst, dataElementCount);
 }
 
 class GPUPolygonClipping
 {
 private:
-template<typename OP>
+    template <typename OP>
     static void clip(GPUMemory::GPUPolygon& polygonOut,
                      GPUMemory::GPUPolygon& polygonAin,
                      GPUMemory::GPUPolygon& polygonBin,
@@ -353,56 +454,30 @@ template<typename OP>
         bool isBConst = (dataElementCountB == 1);
 
         // Create buffers for the linked lists
-		// Allocate size buffers
+        // Allocate size buffers
         cuda_ptr<int32_t> LLPolygonABufferSizes(dataElementCount);
         cuda_ptr<int32_t> LLPolygonBBufferSizes(dataElementCount);
 
-		// Allocate polygon intersection flags buffers
-		// These buffers indicate if a polygon from a complex polygon A has a intersection with complex polygon B
-		int32_t PolygonAIntersectionPresenceFlagsCount;
-		int32_t PolygonBIntersectionPresenceFlagsCount;
+        // Allocate polygon intersection flags buffers
+        // These buffers indicate if a polygon from a complex polygon A has a intersection with complex polygon B
+        int32_t PolygonAIntersectionPresenceFlagsCount;
+        int32_t PolygonBIntersectionPresenceFlagsCount;
 
-        GPUMemory::copyDeviceToHost(&PolygonAIntersectionPresenceFlagsCount, polygonAin.polyIdx + dataElementCount - 1, 1);
-		GPUMemory::copyDeviceToHost(&PolygonBIntersectionPresenceFlagsCount, polygonBin.polyIdx + dataElementCount - 1, 1);
+        GPUMemory::copyDeviceToHost(&PolygonAIntersectionPresenceFlagsCount,
+                                    polygonAin.polyIdx + dataElementCount - 1, 1);
+        GPUMemory::copyDeviceToHost(&PolygonBIntersectionPresenceFlagsCount,
+                                    polygonBin.polyIdx + dataElementCount - 1, 1);
 
-		cuda_ptr<int8_t> PolygonAIntersectionPresenceFlags(PolygonAIntersectionPresenceFlagsCount, 0);
-		cuda_ptr<int8_t> PolygonBIntersectionPresenceFlags(PolygonBIntersectionPresenceFlagsCount, 0);
+        cuda_ptr<int8_t> PolygonAIntersectionPresenceFlags(PolygonAIntersectionPresenceFlagsCount, 0);
+        cuda_ptr<int8_t> PolygonBIntersectionPresenceFlags(PolygonBIntersectionPresenceFlagsCount, 0);
 
         // Calcualte the required buffer sizes and the presence of the intersect flags
         kernel_calc_LL_buffers_size<<<Context::getInstance().calcGridDim(dataElementCount),
                                       Context::getInstance().getBlockDimPoly()>>>(
-									LLPolygonABufferSizes.get(), 
-									LLPolygonBBufferSizes.get(),
-									PolygonAIntersectionPresenceFlags.get(),
-									PolygonBIntersectionPresenceFlags.get(),
-									polygonAin, polygonBin, isAConst, isBConst, dataElementCount);
+            LLPolygonABufferSizes.get(), LLPolygonBBufferSizes.get(),
+            PolygonAIntersectionPresenceFlags.get(), PolygonBIntersectionPresenceFlags.get(),
+            polygonAin, polygonBin, isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
-
-
-		// DEBUG
-        int8_t* a = new int8_t[PolygonAIntersectionPresenceFlagsCount];
-        int8_t* b = new int8_t[PolygonBIntersectionPresenceFlagsCount];
-
-		GPUMemory::copyDeviceToHost(a, PolygonAIntersectionPresenceFlags.get(), PolygonAIntersectionPresenceFlagsCount);
-        GPUMemory::copyDeviceToHost(b, PolygonBIntersectionPresenceFlags.get(),
-                                    PolygonBIntersectionPresenceFlagsCount);
-
-		for(int32_t i = 0; i < PolygonAIntersectionPresenceFlagsCount; i++) 
-		{
-			printf("%d : %d\n", i, a[i]);
-		}
-        printf("\n");
-
-		for(int32_t i = 0; i < PolygonBIntersectionPresenceFlagsCount; i++) 
-		{
-            printf("%d : %d\n", i, b[i]);
-		}
-        printf("\n");
-
-
-		delete[] a;
-        delete[] b;
-		//exit(0);
 
         // Calculate the inclusive prefix sum for the LL buffer sizes counters for adressing purpose
         cuda_ptr<int32_t> LLPolygonABufferSizesPrefixSum(dataElementCount);
@@ -429,37 +504,38 @@ template<typename OP>
         kernel_build_LL<<<Context::getInstance().calcGridDim(dataElementCount),
                           Context::getInstance().getBlockDim()>>>(LLPolygonABuffers.get(), polygonAin,
                                                                   LLPolygonABufferSizesPrefixSum.get(),
-																  PolygonAIntersectionPresenceFlags.get(),
-                                                                  isAConst,
-                                                                  dataElementCount);
+                                                                  PolygonAIntersectionPresenceFlags.get(),
+                                                                  isAConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         // B polygon
         kernel_build_LL<<<Context::getInstance().calcGridDim(dataElementCount),
                           Context::getInstance().getBlockDim()>>>(LLPolygonBBuffers.get(), polygonBin,
                                                                   LLPolygonBBufferSizesPrefixSum.get(),
-																  PolygonBIntersectionPresenceFlags.get(),
-                                                                  isBConst,
-                                                                  dataElementCount);
+                                                                  PolygonBIntersectionPresenceFlags.get(),
+                                                                  isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         // Insert the intersections into the linked lists and cross link the intersections for intersect/union traversal
         kernel_add_and_crosslink_intersections_to_LL<<<Context::getInstance().calcGridDim(dataElementCount),
                                                        Context::getInstance().getBlockDim()>>>(
             LLPolygonABuffers.get(), LLPolygonBBuffers.get(), polygonAin, polygonBin,
-            LLPolygonABufferSizesPrefixSum.get(), LLPolygonBBufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
+            LLPolygonABufferSizesPrefixSum.get(), LLPolygonBBufferSizesPrefixSum.get(), isAConst,
+            isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
-        // Decide which intersection points are entry points and whoch ones are exit points
+        // Decide which intersection points are entry points and which ones are exit points
         // and label them accordingly
         kernel_label_intersections<<<Context::getInstance().calcGridDim(dataElementCount),
                                      Context::getInstance().getBlockDim()>>>(
-            LLPolygonABuffers.get(), polygonAin, polygonBin, LLPolygonABufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
+            LLPolygonABuffers.get(), polygonAin, polygonBin, LLPolygonABufferSizesPrefixSum.get(),
+            isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         kernel_label_intersections<<<Context::getInstance().calcGridDim(dataElementCount),
                                      Context::getInstance().getBlockDim()>>>(
-            LLPolygonBBuffers.get(), polygonBin, polygonAin, LLPolygonBBufferSizesPrefixSum.get(), isBConst, isAConst, dataElementCount);
+            LLPolygonBBuffers.get(), polygonBin, polygonAin, LLPolygonBBufferSizesPrefixSum.get(),
+            isBConst, isAConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         // Process the polyIdx array
@@ -467,8 +543,10 @@ template<typename OP>
 
         kernel_clip_polyIdx<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                polyCount.get(), LLPolygonABuffers.get(), LLPolygonBBuffers.get(), polygonAin, polygonBin,
-                LLPolygonABufferSizesPrefixSum.get(), LLPolygonBBufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
+                polyCount.get(), LLPolygonABuffers.get(), LLPolygonBBuffers.get(), polygonAin,
+                polygonBin, LLPolygonABufferSizesPrefixSum.get(),
+                LLPolygonBBufferSizesPrefixSum.get(), PolygonAIntersectionPresenceFlags.get(),
+                PolygonBIntersectionPresenceFlags.get(), isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         GPUMemory::alloc(&(polygonOut.polyIdx), dataElementCount);
@@ -485,7 +563,8 @@ template<typename OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                 polyCount.get(), polygonOut.polyIdx, pointCount.get(), LLPolygonABuffers.get(),
                 LLPolygonBBuffers.get(), polygonAin, polygonBin, LLPolygonABufferSizesPrefixSum.get(),
-                LLPolygonBBufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
+                LLPolygonBBufferSizesPrefixSum.get(), PolygonAIntersectionPresenceFlags.get(),
+                PolygonBIntersectionPresenceFlags.get(), isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
         GPUMemory::alloc(&(polygonOut.pointIdx), pointIdxSize);
@@ -503,7 +582,8 @@ template<typename OP>
                 polyCount.get(), polygonOut.polyIdx, pointCount.get(), polygonOut.pointIdx,
                 polygonOut.polyPoints, LLPolygonABuffers.get(), LLPolygonBBuffers.get(), polygonAin,
                 polygonBin, LLPolygonABufferSizesPrefixSum.get(),
-                LLPolygonBBufferSizesPrefixSum.get(), isAConst, isBConst, dataElementCount);
+                LLPolygonBBufferSizesPrefixSum.get(), PolygonAIntersectionPresenceFlags.get(),
+                PolygonBIntersectionPresenceFlags.get(), isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
     }
 
