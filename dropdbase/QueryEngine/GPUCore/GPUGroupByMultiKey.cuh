@@ -182,6 +182,7 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
+        // Get bool if input value is NULL
         const int32_t bitMaskIdx = (i / (sizeof(int8_t) * 8));
         const int32_t shiftIdx = (i % (sizeof(int8_t) * 8));
         const bool nullValue =
@@ -238,11 +239,12 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
         }
         else // else - if we found a valid index
         {
+            // If the value is not null, aggregate
             if (!nullValue)
             {
-                // Use aggregation of values on the bucket and the corresponding counter
                 if (values)
                 {
+                    // Aggregate value
                     AGG{}(values + foundIndex * arrayMultiplier + threadIdx.x % arrayMultiplier, inValues[i]);
                     if (valuesNullMask[foundIndex])
                     {
@@ -251,6 +253,7 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
                 }
                 if (keyOccurrenceCount)
                 {
+                    // Increment counter
                     atomicAdd(reinterpret_cast<cuUInt64*>(keyOccurrenceCount + foundIndex * arrayMultiplier +
                                                           threadIdx.x % arrayMultiplier),
                               1);
@@ -302,7 +305,7 @@ public:
     int32_t* sourceIndices_ = nullptr;
     /// Keys buffer - all found combination of keys are stored here
     void** keysBuffer_ = nullptr;
-    int8_t** keysNullBuffer_ = nullptr;
+    int8_t** keysNullBuffer_ = nullptr;  // wide, uncompressed
 
 private:
     /// Types of keys
@@ -314,7 +317,7 @@ private:
 
     /// Value buffer of the hash table
     V* values_ = nullptr;
-    int8_t* valuesNullMask_ = nullptr;
+    int8_t* valuesNullMask_ = nullptr;  // wide, uncompressed
     /// Count of values aggregated per key (helper buffer of the hash table)
     int64_t* keyOccurrenceCount_ = nullptr;
 
@@ -423,7 +426,6 @@ public:
     GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes, int32_t* sourceIndices, void** keysBuffer, int8_t** keysNullBuffer)
     : GPUGroupBy(maxHashCount, keyTypes)
     {
-        // TODO copy key null buffer
         // Copy source indices
         GPUMemory::copyDeviceToDevice(sourceIndices_, sourceIndices, maxHashCount_);
 
@@ -1274,8 +1276,6 @@ public:
                     finalGroupBy.GetResults(outKeysVector, reinterpret_cast<int64_t**>(outValues),
                                             outDataElementCount, outKeysNullMasksVector, outValuesNullMask);
                 }
-
-                // TODO free everything (check in code) <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
                 FreeKeysBuffer(multiKeysAllGPU, keysNullMasksAllGPU, keyTypes_, keysColCount_);
             }
