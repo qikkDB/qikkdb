@@ -25,7 +25,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::CastNumericConst<int64_t, double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<int64_t, ColmnarDB::Types::Point>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<int64_t, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<int64_t, std::string>,
+    &GpuSqlDispatcher::CastStringConst<int64_t>,
     &GpuSqlDispatcher::CastNumericConst<int64_t, int8_t>,
     &GpuSqlDispatcher::CastNumericCol<int64_t, int32_t>,
     &GpuSqlDispatcher::CastNumericCol<int64_t, int64_t>,
@@ -33,7 +33,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::CastNumericCol<int64_t, double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int64_t, ColmnarDB::Types::Point>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int64_t, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int64_t, std::string>,
+    &GpuSqlDispatcher::CastStringCol<int64_t>,
     &GpuSqlDispatcher::CastNumericCol<int64_t, int8_t>};
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::castToFloatFunctions_ = {
     &GpuSqlDispatcher::CastNumericConst<float, int32_t>,

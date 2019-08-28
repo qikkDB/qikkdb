@@ -85,7 +85,7 @@ protected:
 
 TEST_F(DispatcherCastTests, StringToIntTest)
 {
-    CastStringToIntGenericTest({"2", "20", "30", "40", "123", "123123", "0", "-20"},
+    CastStringToIntGenericTest({"2", "20.7", "30", "40", "123.1", "123123", "0", "-20"},
                                {2, 20, 30, 40, 123, 123123, 0, -20});
 }
 
@@ -93,4 +93,10 @@ TEST_F(DispatcherCastTests, StringToFloatTest)
 {
     CastStringToFloatGenericTest({"2.0", "20.5", "30", "40.34", "123.78", "123123.4", "0.2", "-20.01"},
                                  {2.0f, 20.5f, 30.0f, 40.34f, 123.78f, 123123.4f, 0.2f, -20.01f});
+}
+
+TEST_F(DispatcherCastTests, StringToFloatExpNotationTest)
+{
+    CastStringToFloatGenericTest({"+1e2", "1.24e3", "1e1", "1e0", "1e-2", "-10.24e-1", "1e-1", "-1e0"},
+                                 {100.0f, 1240.0f, 10.0f, 1.0f, 0.01f, -1.024f, 0.1f, -1.0f});
 }

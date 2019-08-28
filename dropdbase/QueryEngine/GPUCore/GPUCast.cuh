@@ -12,8 +12,6 @@
 #include "MaybeDeref.cuh"
 #include "GPUStringUnary.cuh"
 
-__device__ int32_t CastIntegral(char* str, int32_t length, int32_t base = 10);
-
 template <typename T>
 __device__ T CastDecimal(char* str, int32_t length)
 {
@@ -21,57 +19,63 @@ __device__ T CastDecimal(char* str, int32_t length)
     int32_t decimalPart = 0;
     int32_t outSign = 1;
 
-    int c;
-
-    if (*str++ == '-')
+    if (*str == '-')
     {
         outSign = -1;
         length--;
+        str++;
     }
-    else
-    {
-        str--;
-    }
-
-    while (((c = *str++) >= '0' && c <= '9') && length > 0)
-    {
-        out = out * 10 + (c - '0');
-        length--;
-    }
-
-    if ((c == '.' || c == ',') && length > 0)
+    else if (*str == '+')
     {
         length--;
-        while (((c = *str++) >= '0' && c <= '9') && length > 0)
+        str++;
+    }
+
+    while (*str >= '0' && *str <= '9' && length > 0)
+    {
+        out = out * 10 + (*str - '0');
+        length--;
+        str++;
+    }
+
+    if ((*str == '.' || *str == ',') && length > 0)
+    {
+        length--;
+        str++;
+        while (*str >= '0' && *str <= '9' && length > 0)
         {
-            out = out * 10 + (c - '0');
+            out = out * 10 + (*str - '0');
             decimalPart--;
             length--;
+            str++;
         }
     }
 
-    else if ((c == 'e' || c == 'E') && length > 0)
+    if ((*str == 'e' || *str == 'E') && length > 0)
     {
         length--;
+        str++;
         int32_t sign = 1;
         int32_t afterEPart = 0;
 
-        c = *str++;
-        if (c == '-')
+        if (*str == '-')
         {
             sign = -1;
             length--;
+            str++;
         }
 
-        else if (c == '+')
+        else if (*str == '+')
         {
             length--;
+            str++;
         }
 
-        while (((c == *str++) >= '0' && c <= '9') && length > 0)
+        while (*str >= '0' && *str <= '9' && length > 0)
         {
-            afterEPart = afterEPart * 10 + (c - '0');
+            afterEPart = afterEPart * 10 + (*str - '0');
             length--;
+            str++;
         }
 
         decimalPart += afterEPart * sign;
@@ -103,6 +107,9 @@ struct FromString
 
 template <>
 __device__ int32_t FromString::operator()<int32_t>(char* str, int32_t length) const;
+
+template <>
+__device__ int64_t FromString::operator()<int64_t>(char* str, int32_t length) const;
 
 template <>
 __device__ float FromString::operator()<float>(char* str, int32_t length) const;
