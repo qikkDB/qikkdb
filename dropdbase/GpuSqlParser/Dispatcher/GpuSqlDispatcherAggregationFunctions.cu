@@ -1507,7 +1507,7 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
     if (filter_)
     {
         GPUMemory::free(std::get<0>(column));
-        // TODO GPUMemory::free(std::get<2>(column));
+        GPUMemory::free(std::get<2>(column));
     }
 
     std::get<0>(column) = reconstructOutReg;

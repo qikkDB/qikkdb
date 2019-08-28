@@ -37,13 +37,14 @@ int32_t GpuSqlDispatcher::AggregationCol()
 
     IN* reconstructOutReg = nullptr;
     int8_t* reconstructOutNullMask = nullptr;
-    if (std::is_same<OP, AggregationFunctions::count>::value)
+    if (std::is_same<OP, AggregationFunctions::count>::value) // TODO consider null values
     {
         if (!aggAsterisk)
         {
             // If mask is present - count suitable rows
             if (filter_)
             {
+                // TODO maybe use faster way to count ones in filter_
                 int32_t* indexes = nullptr;
                 GPUReconstruct::GenerateIndexesKeep(&indexes, &reconstructOutSize,
                                                     reinterpret_cast<int8_t*>(filter_), column.ElementCount);
@@ -74,8 +75,11 @@ int32_t GpuSqlDispatcher::AggregationCol()
 
     if (column.ShouldBeFreed)
     {
-        GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
-        // TODO GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
+        if (filter_)
+        {
+            GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
+            GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
+        }
     }
     else
     {
@@ -398,8 +402,11 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
 
         if (column.ShouldBeFreed)
         {
-            GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
-            // TODO GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
+            if (filter_)
+            {
+                GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
+                GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
+            }
         }
         else
         {
@@ -483,8 +490,11 @@ int32_t GpuSqlDispatcher::GroupByCol()
 
     if (column.ShouldBeFreed) // should be freed if it is not cached - if it is temp register like "YEAR(col)"
     {
-        GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
-        // TODO GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
+        if (filter_)
+        {
+            GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
+            GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
+        }
     }
     else
     {
