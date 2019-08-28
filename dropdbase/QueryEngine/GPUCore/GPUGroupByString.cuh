@@ -450,7 +450,7 @@ public:
 
         GPUReconstruct::ReconstructStringColKeep(outKeys, outDataElementCount, keysBuffer_,
                                                  occupancyMask.get(), maxHashCount_, outKeysNullMask,
-                                                 outKeysNullMask ? keysNullMaskCompressed.get() : nullptr);
+                                                 keysNullMaskCompressed.get());
 
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
@@ -465,13 +465,12 @@ public:
             cuda_ptr<int8_t> valuesNullMaskCompressed((maxHashCount_ + sizeof(int32_t) * 8 - 1) /
                                                           (sizeof(int8_t) * 8),
                                                       0);
-            int8_t* valuesNullMaskCompressedPtr =
-                (outValuesNullMask ? valuesNullMaskCompressed.get() : nullptr);
-            if (valuesNullMaskCompressedPtr)
+
+            if (outValuesNullMask)
             {
                 kernel_compress_null_mask<<<Context::getInstance().calcGridDim(maxHashCount_),
                                             Context::getInstance().getBlockDim()>>>(
-                    reinterpret_cast<int32_t*>(valuesNullMaskCompressedPtr),
+                    reinterpret_cast<int32_t*>(valuesNullMaskCompressed.get()),
                     valuesNullMaskUncompressed_, maxHashCount_);
             }
 
@@ -487,7 +486,7 @@ public:
                 GPUReconstruct::reconstructColKeep(outValues, outDataElementCount,
                                                    reinterpret_cast<O*>(mergedValues.get()),
                                                    occupancyMask.get(), maxHashCount_,
-                                                   outValuesNullMask, valuesNullMaskCompressedPtr);
+                                                   outValuesNullMask, valuesNullMaskCompressed.get());
             }
             else if (std::is_same<AGG, AggregationFunctions::avg>::value) // for avg: mergedValues.get() need to be divided by keyOccurrences_ and reconstructed
             {
@@ -512,7 +511,7 @@ public:
                 // Reonstruct result with original occupancyMask
                 GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, outValuesGPU.get(),
                                                    occupancyMask.get(), maxHashCount_,
-                                                   outValuesNullMask, valuesNullMaskCompressedPtr);
+                                                   outValuesNullMask, valuesNullMaskCompressed.get());
             }
         }
         else // for count: reconstruct and return keyOccurrences_

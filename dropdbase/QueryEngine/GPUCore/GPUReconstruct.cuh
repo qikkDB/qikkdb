@@ -179,7 +179,7 @@ public:
         {
             GPUMemory::copyDeviceToHost(outData, ACol, dataElementCount);
             *outDataElementCount = dataElementCount;
-            if (nullMask)
+            if (nullMask && outNullMask)
             {
                 size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
                 GPUMemory::copyDeviceToHost(outNullMask, nullMask, outBitMaskSize);
@@ -263,8 +263,11 @@ public:
             {
                 *outCol = nullptr;
                 *outDataElementCount = 0;
+                if (outNullMask)
+                {
                 *outNullMask = nullptr;
             }
+        }
         }
         catch (...)
         {
