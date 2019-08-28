@@ -31,7 +31,7 @@ private:
     std::unordered_map<std::string, std::string> tableAliases_;
     std::unordered_set<std::string> columnAliases_;
     std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts_;
-    std::unordered_map<int32_t, GpuSqlParser::ExpressionContext*> columnNumericAliasContexts_;
+    std::unordered_map<int64_t, GpuSqlParser::ExpressionContext*> columnNumericAliasContexts_;
     std::unordered_set<std::string> loadedTables_;
     std::unordered_map<std::string, std::string> shortColumnNames_;
     int32_t linkTableIndex_;
@@ -79,7 +79,7 @@ private:
 
     void WalkAliasExpression(const std::string& alias);
 
-    void WalkAliasExpression(const int32_t alias);
+    void WalkAliasExpression(const int64_t alias);
 
 
 public:

@@ -571,8 +571,8 @@ void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext* ctx)
     }
     if (insideGroupBy_)
     {
-        throw AggregationGroupByException();    
-	}
+        throw AggregationGroupByException();
+    }
     insideAgg_ = true;
     usingAgg_ = true;
     isAggSelectColumn_ = insideSelectColumn_;
@@ -927,7 +927,7 @@ void GpuSqlListener::exitGroupByColumn(GpuSqlParser::GroupByColumnContext* ctx)
         }
         else
         {
-            int32_t value = std::stoi(groupByColName);
+            int64_t value = std::stoll(groupByColName);
 
             if (columnNumericAliasContexts_.find(value) != columnNumericAliasContexts_.end() && !insideAlias_)
             {
@@ -1386,7 +1386,7 @@ void GpuSqlListener::exitOrderByColumn(GpuSqlParser::OrderByColumnContext* ctx)
         }
         else
         {
-            int32_t value = std::stoi(orderByColName);
+            int64_t value = std::stoll(orderByColName);
 
             if (columnNumericAliasContexts_.find(value) != columnNumericAliasContexts_.end() && !insideAlias_)
             {
@@ -1792,7 +1792,7 @@ void GpuSqlListener::WalkAliasExpression(const std::string& alias)
     insideAlias_ = false;
 }
 
-void GpuSqlListener::WalkAliasExpression(const int32_t alias)
+void GpuSqlListener::WalkAliasExpression(const int64_t alias)
 {
     antlr4::tree::ParseTreeWalker walker;
     insideAlias_ = true;

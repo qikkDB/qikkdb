@@ -234,6 +234,42 @@ TEST(DispatcherTestsRegression, AggInGroupByAliasWrongSemantic)
     ASSERT_THROW(parser.Parse(), AggregationGroupByException);
 }
 
+TEST(DispatcherTestsRegression, GroupByAliasDataTypeWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1, SUM(colInteger2) FROM TableA GROUP BY 1.1;");
+    ASSERT_THROW(parser.Parse(), GroupByInvalidColumnException);
+}
+
+TEST(DispatcherTestsRegression, GroupByAliasOutOfRangeWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1, SUM(colInteger2) FROM TableA GROUP BY 100;");
+    ASSERT_THROW(parser.Parse(), GroupByInvalidColumnException);
+}
+
+TEST(DispatcherTestsRegression, OrderByAliasDataTypeWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1 FROM TableA ORDER BY 1.1;");
+    ASSERT_THROW(parser.Parse(), OrderByInvalidColumnException);
+}
+
+TEST(DispatcherTestsRegression, OrderByAliasOutOfRangeWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1 FROM TableA ORDER BY 100;");
+    ASSERT_THROW(parser.Parse(), OrderByInvalidColumnException);
+}
+
 TEST(DispatcherTestsRegression, ConstOpOnMultiGPU)
 {
     Context::getInstance();
