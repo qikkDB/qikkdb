@@ -398,6 +398,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
         if (column.ShouldBeFreed)
         {
             GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
+            GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
         }
         else
         {
@@ -472,15 +473,18 @@ int32_t GpuSqlDispatcher::GroupByCol()
     PointerAllocation& column = allocatedPointers_.at(columnName);
 
     int32_t reconstructOutSize;
-    T* reconstructOutReg;
-    GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize,
+    T* reconstructedOutReg;
+    int8_t* reconstructedOutNullMask;
+    GPUReconstruct::reconstructColKeep<T>(&reconstructedOutReg, &reconstructOutSize,
                                           reinterpret_cast<T*>(column.GpuPtr),
-                                          reinterpret_cast<int8_t*>(filter_), column.ElementCount);
+                                          reinterpret_cast<int8_t*>(filter_), column.ElementCount,
+                                          &reconstructedOutNullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
     // TODO add null values to reconstruct
 
     if (column.ShouldBeFreed) // should be freed if it is not cached - if it is temp register like "YEAR(col)"
     {
         GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
+        GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
     }
     else
     {
@@ -488,8 +492,9 @@ int32_t GpuSqlDispatcher::GroupByCol()
     }
 
     // Now rewrite the pointer in the register (correct because the pointer is freed or stored in chache)
-    column.GpuPtr = reinterpret_cast<uintptr_t>(reconstructOutReg);
+    column.GpuPtr = reinterpret_cast<uintptr_t>(reconstructedOutReg);
     column.ElementCount = reconstructOutSize;
+    column.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(reconstructedOutNullMask);
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(columnName)) ==
         groupByColumns_.end())

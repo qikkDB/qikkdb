@@ -836,6 +836,86 @@ protected:
                 << " at result row " << i;
         }
     }
+    
+    void GroupByIntWithWhere(std::string aggregationFunction,
+                             std::vector<int32_t> filterNumbers,
+                             int32_t threshold,
+                             std::vector<int32_t> keys,
+                             std::vector<bool> keyNulls,
+                             std::vector<int32_t> values,
+                             std::vector<bool> valueNulls,
+                             std::unordered_map<std::pair<int32_t, bool>, std::pair<int32_t, bool>, boost::hash<std::pair<int32_t, bool>>> expectedResult)
+    {
+        ASSERT_EQ(filterNumbers.size(), keys.size()) << "bad test input sizes";
+        ASSERT_EQ(filterNumbers.size(), keyNulls.size()) << "bad test input sizes";
+        ASSERT_EQ(filterNumbers.size(), values.size()) << "bad test input sizes";
+        ASSERT_EQ(filterNumbers.size(), valueNulls.size()) << "bad test input sizes";
+
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colFilter", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colKey", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colValue", DataType::COLUMN_INT));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        std::vector<int8_t> compressedKeyNullMask((keyNulls.size()+7)/8);
+        std::vector<int8_t> compressedValueNullMask((valueNulls.size()+7)/8);
+        for(int32_t i = 0; i < keyNulls.size(); i++)
+        {
+            if (i%8 == 0)
+            {
+                compressedKeyNullMask[i/8] = 0;
+            }
+            compressedKeyNullMask[i/8] |= ((keyNulls[i]? 1 : 0) << (i % 8));
+        }
+        for(int32_t i = 0; i < valueNulls.size(); i++)
+        {
+            if (i%8 == 0)
+            {
+                compressedValueNullMask[i/8] = 0;
+            }
+            compressedValueNullMask[i/8] |= ((valueNulls[i]? 1 : 0) << (i % 8));
+        }
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colFilter").get())
+            ->InsertData(filterNumbers);
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colKey").get())
+            ->InsertData(keys, compressedKeyNullMask);
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colValue").get())
+            ->InsertData(values, compressedValueNullMask);
+
+        // Execute the query
+        GpuSqlCustomParser parser(groupByDatabase, "SELECT colKey, " + aggregationFunction + "(colValue) FROM " +
+                                                   tableName + " WHERE colFilter > " + std::to_string(threshold) +
+                                                   " GROUP BY colKey;");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadKeys = result->payloads().at(tableName + ".colKey");
+        auto& payloadValues = result->payloads().at(aggregationFunction + "(colValue)");
+        const std::string& keysNullMaskResult = result->nullbitmasks().at(tableName + ".colKey");
+        const std::string& valuesNullMaskResult = result->nullbitmasks().at(aggregationFunction + "(colValue)");
+
+        ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+        {
+            const char keyChar = keysNullMaskResult[i / 8];
+            const bool keyIsNull = ((keyChar >> (i % 8)) & 1);
+            const char valueChar = valuesNullMaskResult[i / 8];
+            const bool valueIsNull = ((valueChar >> (i % 8)) & 1);
+            int32_t key = keyIsNull? -1 : payloadKeys.intpayload().intdata()[i];
+            int32_t value = valueIsNull? -1 : payloadValues.intpayload().intdata()[i];
+            ASSERT_FALSE(expectedResult.find({key, keyIsNull}) == expectedResult.end()) <<
+                    " key " << (keyIsNull? "NULL" : std::to_string(key)) << " not found";
+            
+            ASSERT_EQ(std::get<0>(expectedResult.at({key, keyIsNull})), value)
+                << " value at key " << (keyIsNull? "NULL" : std::to_string(key));
+            ASSERT_EQ(std::get<1>(expectedResult.at({key, keyIsNull})), valueIsNull)
+                << " value null bit at key " << (keyIsNull? "NULL" : std::to_string(key));
+        }
+    }
 };
 
 // Group By basic numeric keys
@@ -1083,4 +1163,17 @@ TEST_F(DispatcherGroupByTests, IntSimpleSumValuesOp)
 TEST_F(DispatcherGroupByTests, IntSimpleAggOpOnKey)
 {
     GroupByKeyAggOpIntGenericTest("MAX", {0, 1, -1, -1, 0, 1, 2, 1, 1}, {{0, -2}, {1, -1}, {2, 0}, {-1, -3}});
+}
+
+TEST_F(DispatcherGroupByTests, NullKeysWhere)
+{
+    GroupByIntWithWhere("SUM", {0, 8, 7, 1, 8, 2, 9, 7}, 4,
+        {1, -1, 1, -1, 2, -1, 2, 5}, {false, true, false, true, false, true, false, false},
+        {1, 19, 2, 21, 4, -1, 8, -1}, {false, false, false, false, false, true, false, true},
+        {
+            {{-1, true }, {19, false}},
+            {{ 1, false}, { 2, false}},
+            {{ 2, false}, {12, false}},
+            {{ 5, false}, {-1, true }}
+        });
 }
