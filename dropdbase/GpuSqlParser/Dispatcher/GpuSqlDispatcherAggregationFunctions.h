@@ -75,6 +75,7 @@ int32_t GpuSqlDispatcher::AggregationCol()
     if (column.ShouldBeFreed)
     {
         GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
+        GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
     }
     else
     {
