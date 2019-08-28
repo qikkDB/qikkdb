@@ -152,14 +152,13 @@ public:
                 if (outNullMaskGPUPointer)
                 {
                     size_t outBitMaskSize =
-                        (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                        (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
                     GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
-                    GPUMemory::free(outNullMaskGPUPointer);
+                    GPUMemory::free(outNullMaskGPUPointer); // free reconstructed null mask
                 }
-                // Free the memory
                 if (outDataGPUPointer)
                 {
-                    GPUMemory::free(outDataGPUPointer);
+                    GPUMemory::free(outDataGPUPointer); // free reconstructed array
                 }
             }
             catch (...)
@@ -181,7 +180,7 @@ public:
             *outDataElementCount = dataElementCount;
             if (nullMask && outNullMask)
             {
-                size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                size_t outBitMaskSize = (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
                 GPUMemory::copyDeviceToHost(outNullMask, nullMask, outBitMaskSize);
             }
         }
@@ -245,18 +244,14 @@ public:
                         }
                     }
                 }
-                else if (*outCol != ACol) // If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+                else // If inMask is nullptr (if mask is not used)
                 {
-                    GPUMemory::alloc<T>(outCol, dataElementCount);
-                    GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
-                    size_t outBitMaskSize =
-                        (dataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
-                    if (nullMask && outNullMask)
-                    {
-                        GPUMemory::alloc(outNullMask, outBitMaskSize);
-                        GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
-                    }
+                    *outCol = ACol;
                     *outDataElementCount = dataElementCount;
+                    if (outNullMask)
+                    {
+                        *outNullMask = nullMask;
+                    }
                 }
             }
             else
@@ -265,9 +260,9 @@ public:
                 *outDataElementCount = 0;
                 if (outNullMask)
                 {
-                *outNullMask = nullptr;
+                    *outNullMask = nullptr;
+                }
             }
-        }
         }
         catch (...)
         {

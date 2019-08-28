@@ -18,8 +18,8 @@ kernel_reconstruct_null_mask(int32_t* outData, int8_t* ACol, int32_t* prefixSum,
         // The prefix sum includes values from the input array on the same element so the index has to be modified
         if (inMask[i] && (prefixSum[i] - 1) >= 0)
         {
-            int bitMaskIdx = i / (sizeof(char) * 8);
-            int shiftIdx = i % (sizeof(char) * 8);
+            int bitMaskIdx = i / (sizeof(int8_t) * 8);
+            int shiftIdx = i % (sizeof(int8_t) * 8);
             int outBitMaskIdx = (prefixSum[i] - 1) / (sizeof(int32_t) * 8);
             int outBitMaskShiftIdx = (prefixSum[i] - 1) % (sizeof(int32_t) * 8);
             atomicOr(outData + outBitMaskIdx, ((ACol[bitMaskIdx] >> shiftIdx) & 1) << outBitMaskShiftIdx);
@@ -318,7 +318,7 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString* outStringCol
             // Reconstruct chars
             kernel_reconstruct_string_chars<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
                 *outStringCol, inStringCol, inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
-            if (nullMask)
+            if (nullMask && outNullMask)
             {
                 size_t outBitMaskSize =
                     (*outDataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8);
@@ -338,11 +338,9 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString* outStringCol
     {
         *outStringCol = inStringCol;
         *outDataElementCount = inDataElementCount;
-        if (nullMask)
+        if (outNullMask)
         {
-            size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-            GPUMemory::alloc(outNullMask, outBitMaskSize);
-            GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
+            *outNullMask = nullMask;
         }
     }
 
@@ -367,9 +365,12 @@ void GPUReconstruct::ReconstructStringCol(std::string* outStringData,
                                  inDataElementCount, &outNullMaskGPUPointer, nullMask);
         if (outNullMaskGPUPointer)
         {
-            size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+            size_t outBitMaskSize = (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
             GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
-            GPUMemory::free(outNullMaskGPUPointer);
+            if (inMask)
+            {
+                GPUMemory::free(outNullMaskGPUPointer);
+            }
         }
     }
     else // If mask is not used
@@ -378,7 +379,7 @@ void GPUReconstruct::ReconstructStringCol(std::string* outStringData,
         outStringCol = inStringCol;
         if (nullMask)
         {
-            size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+            size_t outBitMaskSize = (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
             GPUMemory::copyDeviceToHost(outNullMask, nullMask, outBitMaskSize);
         }
     }
@@ -623,7 +624,7 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
             kernel_reconstruct_col<<<context.calcGridDim(inSubpolySize), context.getBlockDim()>>>(
                 outCol->polyPoints, inCol.polyPoints, pointPrefixSumPointer.get(), pointMask.get(), inPointSize);
             CheckCudaError(cudaGetLastError());
-            if (nullMask)
+            if (nullMask && outNullMask)
             {
                 size_t outBitMaskSize =
                     (*outDataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8);
@@ -646,11 +647,9 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
     {
         *outCol = inCol;
         *outDataElementCount = inDataElementCount;
-        if (nullMask)
+        if (outNullMask)
         {
-            size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-            GPUMemory::alloc(outNullMask, outBitMaskSize);
-            GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
+            *outNullMask = nullMask;
         }
     }
 
@@ -673,9 +672,12 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string* outStringData,
                            inDataElementCount, &outNullMaskGPUPointer, nullMask);
     if (outNullMaskGPUPointer)
     {
-        size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+        size_t outBitMaskSize = (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
         GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
-        GPUMemory::free(outNullMaskGPUPointer);
+        if (inMask)
+        {
+            GPUMemory::free(outNullMaskGPUPointer);
+        }
     }
     GPUMemory::GPUString gpuWkt;
     ConvertPolyColToWKTCol(&gpuWkt, reconstructedPolygonCol, *outDataElementCount);
@@ -706,12 +708,18 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string* outStringData,
     GPUMemory::GPUString gpuWkt;
     if (outNullMaskGPUPointer)
     {
-        size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+        size_t outBitMaskSize = (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
         GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
-        GPUMemory::free(outNullMaskGPUPointer);
+        if (inMask)
+        {
+            GPUMemory::free(outNullMaskGPUPointer);
+        }
     }
     ConvertPointColToWKTCol(&gpuWkt, reconstructedPointCol, *outDataElementCount);
-    GPUMemory::free(reconstructedPointCol);
+    if (inMask)
+    {
+        GPUMemory::free(reconstructedPointCol);
+    }
     // Use reconstruct without mask - just to convert GPUString to CPU string array
     ReconstructStringCol(outStringData, outDataElementCount, gpuWkt, nullptr, *outDataElementCount);
     if (!gpuWkt.allChars)
