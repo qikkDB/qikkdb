@@ -242,11 +242,11 @@ struct NestedAggregationException : public std::exception
     }
 };
 
-struct AggregationOrderByException : public std::exception
+struct AggregationGroupByException : public std::exception
 {
     const char* what() const noexcept override
     {
-        return "Use of aggregation functions in ORDER BY clause is not allowed.";
+        return "Use of aggregation functions in GROUP BY clause is not allowed.";
     }
 };
 

@@ -569,6 +569,10 @@ void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext* ctx)
     {
         throw AggregationWhereException();
     }
+    if (insideGroupBy_)
+    {
+        throw AggregationGroupByException();    
+	}
     insideAgg_ = true;
     usingAgg_ = true;
     isAggSelectColumn_ = insideSelectColumn_;

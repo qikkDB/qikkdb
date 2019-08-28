@@ -206,6 +206,33 @@ TEST(DispatcherTestsRegression, NonGroupByAggCorrectSemantic)
     parser.Parse();
 }
 
+TEST(DispatcherTestsRegression, AggInWhereWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1, SUM(colInteger2) FROM TableA WHERE "
+                              "SUM(colInteger2) > 2;");
+    ASSERT_THROW(parser.Parse(), AggregationWhereException);
+}
+
+TEST(DispatcherTestsRegression, AggInGroupByWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT SUM(colInteger2) FROM TableA GROUP BY SUM(colInteger2);");
+    ASSERT_THROW(parser.Parse(), AggregationGroupByException);
+}
+
+TEST(DispatcherTestsRegression, AggInGroupByAliasWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT SUM(colInteger2) FROM TableA GROUP BY 1;");
+    ASSERT_THROW(parser.Parse(), AggregationGroupByException);
+}
 
 TEST(DispatcherTestsRegression, ConstOpOnMultiGPU)
 {
