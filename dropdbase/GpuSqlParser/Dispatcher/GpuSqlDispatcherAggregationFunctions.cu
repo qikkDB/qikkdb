@@ -1500,15 +1500,19 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
 
     int32_t reconstructOutSize;
     GPUMemory::GPUString reconstructOutReg;
+    int8_t* reconstructOutNullMask;
     GPUReconstruct::ReconstructStringColKeep(&reconstructOutReg, &reconstructOutSize, std::get<0>(column),
-                                             reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
+                                             reinterpret_cast<int8_t*>(filter_), std::get<1>(column),
+                                            &reconstructOutNullMask, std::get<2>(column));
     if (filter_)
     {
         GPUMemory::free(std::get<0>(column));
+        // TODO GPUMemory::free(std::get<2>(column));
     }
 
     std::get<0>(column) = reconstructOutReg;
     std::get<1>(column) = reconstructOutSize;
+    std::get<2>(column) = reconstructOutNullMask;
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(columnName)) ==
         groupByColumns_.end())

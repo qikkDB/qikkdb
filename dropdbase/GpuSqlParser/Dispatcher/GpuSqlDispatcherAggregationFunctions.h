@@ -75,7 +75,7 @@ int32_t GpuSqlDispatcher::AggregationCol()
     if (column.ShouldBeFreed)
     {
         GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
-        GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
+        // TODO GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
     }
     else
     {
@@ -399,7 +399,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
         if (column.ShouldBeFreed)
         {
             GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
-            GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
+            // TODO GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
         }
         else
         {
@@ -480,12 +480,11 @@ int32_t GpuSqlDispatcher::GroupByCol()
                                           reinterpret_cast<T*>(column.GpuPtr),
                                           reinterpret_cast<int8_t*>(filter_), column.ElementCount,
                                           &reconstructedOutNullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
-    // TODO add null values to reconstruct
 
     if (column.ShouldBeFreed) // should be freed if it is not cached - if it is temp register like "YEAR(col)"
     {
         GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
-        GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
+        // TODO GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
     }
     else
     {
