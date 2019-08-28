@@ -255,14 +255,18 @@ TEST(GPUPolygonClippingTests, IntersectColColTest)
                                               polyBpointsIdx, polyBpolyPoints, outPolyIdx, outPointIdx,
                                               outPolyPoints, false, false, dataElementCount);
 
-    std::vector<int32_t> outPolyIdxCorrect = {};
-    std::vector<int32_t> outPointIdxCorrect = {};
-    std::vector<NativeGeoPoint> outPolyPointsCorrect = {};
-
-	printPolygonAsGeoGebraPolygons(polyApolyIdx, polyApointsIdx, polyApolyPoints, 'A');
-    printPolygonAsGeoGebraPolygons(polyBpolyIdx, polyBpointsIdx, polyBpolyPoints, 'I');
-    printPolygonAsGeoGebraPolygons(outPolyIdx, outPointIdx, outPolyPoints, 'R');
-    FAIL();
+    std::vector<int32_t> outPolyIdxCorrect = {3, 4, 9};
+    std::vector<int32_t> outPointIdxCorrect = {7, 11, 15, 19, 29, 33, 44, 49, 53};
+    std::vector<NativeGeoPoint> outPolyPointsCorrect = {
+        {6.00, 4.94},   {6.00, 4.50},   {4.50, 4.50},  {4.50, 5.50},  {6.00, 5.50},  {6.00, 5.06},
+        {5.00, 5.00},   {10.00, 4.69},  {10.00, 4.00}, {7.00, 4.00},  {7.00, 4.88},  {10.00, 5.31},
+        {10.00, 6.00},  {7.00, 6.00},   {7.00, 5.13},  {0.80, 0.40},  {0.70, 0.60},  {0.30, 0.60},
+        {0.20, 0.40},   {-4.53, 3.51},  {-4.00, 5.00}, {1.47, 5.92},  {1.87, 4.46},  {1.12, 5.24},
+        {-1.58, 3.94},  {-3.32, 4.11},  {-3.13, 3.19}, {-3.77, 2.88}, {-3.57, 1.73}, {3.31, 1.43},
+        {2.04, 0.79},   {1.66, 1.77},   {2.81, 2.36},  {2.28, -2.37}, {1.03, -1.53}, {0.00, -3.00},
+        {0.21, -0.98},  {-0.52, -0.49}, {0.30, -0.08}, {0.43, 1.14},  {-0.92, 0.45}, {-1.97, -1.22},
+        {-0.63, -3.69}, {1.59, -3.57},  {0.23, 3.76},  {0.96, 4.25},  {2.16, 2.81},  {1.42, 2.39},
+        {0.92, 3.69},   {-2.19, 2.13},  {-2.52, 1.91}, {-1.98, 0.43}, {0.22, 1.70}};
 
     // Check the results
     polyCompare(outPolyIdx, outPointIdx, outPolyPoints, outPolyIdxCorrect, outPointIdxCorrect, outPolyPointsCorrect);
@@ -311,14 +315,18 @@ TEST(GPUPolygonClippingTests, IntersectColConstTest)
                                               polyBpointsIdxConst, polyBpolyPointsConst, outPolyIdx,
                                               outPointIdx, outPolyPoints, false, true, dataElementCount);
 
-    std::vector<int32_t> outPolyIdxCorrect = {};
-    std::vector<int32_t> outPointIdxCorrect = {};
-    std::vector<NativeGeoPoint> outPolyPointsCorrect = {};
-
-	printPolygonAsGeoGebraPolygons(polyApolyIdx, polyApointsIdx, polyApolyPoints, 'A');
-    printPolygonAsGeoGebraPolygons(polyBpolyIdxConst, polyBpointsIdxConst, polyBpolyPointsConst, 'I');
-    printPolygonAsGeoGebraPolygons(outPolyIdx, outPointIdx, outPolyPoints, 'R');
-    FAIL();
+    std::vector<int32_t> outPolyIdxCorrect = {2, 3, 8};
+    std::vector<int32_t> outPointIdxCorrect = {9, 13, 16, 26, 30, 41, 46, 50};
+    std::vector<NativeGeoPoint> outPolyPointsCorrect = {
+        {3.63, 0.00},  {2.11, 0.00},  {2.26, 0.21},   {0.92, 3.69},   {0.00, 3.78},   {0.00, 6.75},
+        {1.22, 6.83},  {2.06, 3.75},  {3.86, 0.41},   {0.31, 0.00},   {0.00, 0.00},   {0.00, 1.74},
+        {0.48, 1.65},  {0.31, 0.00},  {0.00, 0.00},   {0.39, 0.78},   {-4.53, 3.51},  {-4.00, 5.00},
+        {1.47, 5.92},  {1.87, 4.46},  {1.12, 5.24},   {-1.58, 3.94},  {-3.32, 4.11},  {-3.13, 3.19},
+        {-3.77, 2.88}, {-3.57, 1.73}, {3.31, 1.43},   {2.04, 0.79},   {1.66, 1.77},   {2.81, 2.36},
+        {2.28, -2.37}, {1.03, -1.53}, {0.00, -3.00},  {0.21, -0.98},  {-0.52, -0.49}, {0.30, -0.08},
+        {0.43, 1.14},  {-0.92, 0.45}, {-1.97, -1.22}, {-0.63, -3.69}, {1.59, -3.57},  {0.23, 3.76},
+        {0.96, 4.25},  {2.16, 2.81},  {1.42, 2.39},   {0.92, 3.69},   {-2.19, 2.13},  {-2.52, 1.91},
+        {-1.98, 0.43}, {0.22, 1.70}};
 
     // Check the results
     polyCompare(outPolyIdx, outPointIdx, outPolyPoints, outPolyIdxCorrect, outPointIdxCorrect, outPolyPointsCorrect);
@@ -367,14 +375,15 @@ TEST(GPUPolygonClippingTests, IntersectConstColTest)
                                               polyBpolyIdx, polyBpointsIdx, polyBpolyPoints, outPolyIdx,
                                               outPointIdx, outPolyPoints, true, false, dataElementCount);
 
-    std::vector<int32_t> outPolyIdxCorrect = {};
-    std::vector<int32_t> outPointIdxCorrect = {};
-    std::vector<NativeGeoPoint> outPolyPointsCorrect = {};
-
-	printPolygonAsGeoGebraPolygons(polyApolyIdxConst, polyApointsIdxConst, polyApolyPointsConst, 'A');
-    printPolygonAsGeoGebraPolygons(polyBpolyIdx, polyBpointsIdx, polyBpolyPoints, 'I');
-    printPolygonAsGeoGebraPolygons(outPolyIdx, outPointIdx, outPolyPoints, 'R');
-    FAIL();
+    std::vector<int32_t> outPolyIdxCorrect = {3, 4, 6};
+    std::vector<int32_t> outPointIdxCorrect = {7, 11, 15, 19, 28, 32};
+    std::vector<NativeGeoPoint> outPolyPointsCorrect = {
+        {6.00, 4.94},  {6.00, 4.50},  {4.50, 4.50},  {4.50, 5.50}, {6.00, 5.50}, {6.00, 5.06},
+        {5.00, 5.00},  {10.00, 4.69}, {10.00, 4.00}, {7.00, 4.00}, {7.00, 4.88}, {10.00, 5.31},
+        {10.00, 6.00}, {7.00, 6.00},  {7.00, 5.13},  {0.00, 0.40}, {0.00, 0.60}, {1.00, 0.60},
+        {1.00, 0.40},  {3.63, 0.00},  {2.11, 0.00},  {2.26, 0.21}, {0.92, 3.69}, {0.00, 3.78},
+        {0.00, 6.75},  {1.22, 6.83},  {2.06, 3.75},  {3.86, 0.41}, {0.31, 0.00}, {0.00, 0.00},
+        {0.00, 1.74},  {0.48, 1.65}};
 
     // Check the results
     polyCompare(outPolyIdx, outPointIdx, outPolyPoints, outPolyIdxCorrect, outPointIdxCorrect, outPolyPointsCorrect);
@@ -421,14 +430,13 @@ TEST(GPUPolygonClippingTests, IntersectConstConstTest)
                                               polyBpolyIdxConst, polyBpointsIdxConst, polyBpolyPointsConst,
                                               outPolyIdx, outPointIdx, outPolyPoints, true, true, 1);
 
-    std::vector<int32_t> outPolyIdxCorrect = {};
-    std::vector<int32_t> outPointIdxCorrect = {};
-    std::vector<NativeGeoPoint> outPolyPointsCorrect = {};
-
-	printPolygonAsGeoGebraPolygons(polyApolyIdxConst, polyApointsIdxConst, polyApolyPointsConst, 'A');
-    printPolygonAsGeoGebraPolygons(polyBpolyIdxConst, polyBpointsIdxConst, polyBpolyPointsConst, 'I');
-    printPolygonAsGeoGebraPolygons(outPolyIdx, outPointIdx, outPolyPoints, 'R');
-    FAIL();
+    std::vector<int32_t> outPolyIdxCorrect = {2};
+    std::vector<int32_t> outPointIdxCorrect = {9, 13};
+    std::vector<NativeGeoPoint> outPolyPointsCorrect = {{3.63, 0.00}, {2.11, 0.00}, {2.26, 0.21},
+                                                        {0.92, 3.69}, {0.00, 3.78}, {0.00, 6.75},
+                                                        {1.22, 6.83}, {2.06, 3.75}, {3.86, 0.41},
+                                                        {0.31, 0.00}, {0.00, 0.00}, {0.00, 1.74},
+                                                        {0.48, 1.65}};
 
     // Check the results
     polyCompare(outPolyIdx, outPointIdx, outPolyPoints, outPolyIdxCorrect, outPointIdxCorrect, outPolyPointsCorrect);
@@ -455,33 +463,4 @@ TEST(GPUPolygonClippingTests, UnionConstConstTest)
 
     // Check the results
     polyCompare(outPolyIdx, outPointIdx, outPolyPoints, outPolyIdxCorrect, outPointIdxCorrect, outPolyPointsCorrect);
-}
-
-
-TEST(GPUPolygonClippingTests, NoIntersectIntersectTest)
-{
-    int32_t dataElementCount = 1;
-
-    std::vector<int32_t> polyApolyIdx = {1};
-    std::vector<int32_t> polyApointsIdx = {4};
-    std::vector<NativeGeoPoint> polyApolyPoints = {{0.00, 0.00}, {2.00, 0.00}, {2.00, 2.00}, {0.00, 2.00}};
-
-    std::vector<int32_t> polyBpolyIdx = {1};
-    std::vector<int32_t> polyBpointsIdx = {4};
-    std::vector<NativeGeoPoint> polyBpolyPoints = {{0.50, 0.50}, {1.50, 0.50}, {1.50, 1.50}, {0.50, 1.50}};
-
-    std::vector<int32_t> outPolyIdx;
-    std::vector<int32_t> outPointIdx;
-    std::vector<NativeGeoPoint> outPolyPoints;
-
-    // Run the intersect test
-    polyTest<PolygonFunctions::polyIntersect>(polyApolyIdx, polyApointsIdx, polyApolyPoints, polyBpolyIdx,
-                                              polyBpointsIdx, polyBpolyPoints, outPolyIdx, outPointIdx,
-                                              outPolyPoints, false, false, dataElementCount);
-
-
-    printPolygonAsGeoGebraPolygons(polyApolyIdx, polyApointsIdx, polyApolyPoints, 'A');
-    printPolygonAsGeoGebraPolygons(polyBpolyIdx, polyBpointsIdx, polyBpolyPoints, 'I');
-    printPolygonAsGeoGebraPolygons(outPolyIdx, outPointIdx, outPolyPoints, 'R');
-    FAIL();
 }
