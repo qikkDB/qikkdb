@@ -279,14 +279,22 @@ TEST(GPUPolygonClippingTests, UnionColColTest)
                                           polyBpolyIdx, polyBpointsIdx, polyBpolyPoints, outPolyIdx,
                                           outPointIdx, outPolyPoints, false, false, dataElementCount);
 
-    std::vector<int32_t> outPolyIdxCorrect = {};
-    std::vector<int32_t> outPointIdxCorrect = {};
-    std::vector<NativeGeoPoint> outPolyPointsCorrect = {};
-
-    printPolygonAsGeoGebraPolygons(polyApolyIdx, polyApointsIdx, polyApolyPoints, 'A');
-    printPolygonAsGeoGebraPolygons(polyBpolyIdx, polyBpointsIdx, polyBpolyPoints, 'I');
-    printPolygonAsGeoGebraPolygons(outPolyIdx, outPointIdx, outPolyPoints, 'R');
-    FAIL();
+    std::vector<int32_t> outPolyIdxCorrect = {4, 5, 11};
+    std::vector<int32_t> outPointIdxCorrect = {4, 8, 16, 24, 35, 51, 56, 60, 63, 68, 73};
+    std::vector<NativeGeoPoint> outPolyPointsCorrect = {
+        {6.00, 4.94},   {6.00, 5.06},   {7.00, 5.13},   {7.00, 4.88},  {10.00, 4.69}, {10.00, 5.31},
+        {13.00, 5.50},  {13.00, 4.50},  {10.00, 4.00},  {10.00, 0.00}, {0.00, 0.00},  {0.00, 10.00},
+        {10.00, 10.00}, {10.00, 6.00},  {15.00, 6.00},  {15.00, 4.00}, {7.00, 4.00},  {7.00, 3.00},
+        {3.00, 3.00},   {3.00, 7.00},   {7.00, 7.00},   {7.00, 6.00},  {4.00, 6.00},  {4.00, 4.00},
+        {0.80, 0.40},   {1.00, 0.00},   {0.00, 0.00},   {0.20, 0.40},  {-0.50, 0.40}, {-0.50, 0.60},
+        {0.30, 0.60},   {0.50, 1.00},   {0.70, 0.60},   {1.00, 0.60},  {1.00, 0.40},  {-4.53, 3.51},
+        {-6.31, -1.49}, {-4.33, -3.89}, {-0.63, -3.69}, {0.42, -5.63}, {1.59, -3.57}, {3.88, -3.45},
+        {2.28, -2.37},  {3.86, 0.41},   {3.31, 1.43},   {4.90, 2.23},  {2.13, 6.03},  {1.47, 5.92},
+        {1.22, 6.83},   {-4.60, 6.45},  {-5.12, 4.59},  {2.04, 0.79},  {0.30, -0.08}, {0.21, -0.98},
+        {1.03, -1.53},  {2.26, 0.21},   {1.87, 4.46},   {3.52, 2.73},  {2.81, 2.36},  {2.06, 3.75},
+        {-1.97, -1.22}, {-2.82, -2.57}, {-3.57, 1.73},  {-1.58, 3.94}, {-3.13, 3.19}, {-2.94, 2.27},
+        {-2.19, 2.13},  {0.23, 3.76},   {1.66, 1.77},   {0.43, 1.14},  {0.48, 1.65},  {0.22, 1.70},
+        {1.42, 2.39}};
 
     // Check the results
     polyCompare(outPolyIdx, outPointIdx, outPolyPoints, outPolyIdxCorrect, outPointIdxCorrect, outPolyPointsCorrect);
@@ -318,6 +326,8 @@ TEST(GPUPolygonClippingTests, IntersectColConstTest)
 
 TEST(GPUPolygonClippingTests, UnionColConstTest)
 {
+	// !!! TEST CASE IS NOT CORRECT
+
     std::vector<int32_t> outPolyIdx;
     std::vector<int32_t> outPointIdx;
     std::vector<NativeGeoPoint> outPolyPoints;

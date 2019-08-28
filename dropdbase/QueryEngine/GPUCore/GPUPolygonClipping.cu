@@ -105,9 +105,11 @@ __global__ void kernel_calc_LL_buffers_size(int32_t* LLPolygonABufferSizes,
                         }
                     }
                 }
-                PolygonBIntersectionPresenceFlags[b] |= intersectionPresentInSubPolygonB;
+                PolygonBIntersectionPresenceFlags[isBConst ? b + i * dataElementCount : b] |=
+                    intersectionPresentInSubPolygonB;
             }
-            PolygonAIntersectionPresenceFlags[a] |= intersectionPresentInSubPolygonA;
+            PolygonAIntersectionPresenceFlags[isAConst ? a + i * dataElementCount : a] |=
+                intersectionPresentInSubPolygonA;
         }
 
         // Get the complex polygon vertex counts n and k

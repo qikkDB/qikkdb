@@ -187,7 +187,10 @@ __device__ void clip_polygons(int32_t* polyCount,
         int32_t n = GPUMemory::TotalPointCountAt(polygonA, iAIdx);
         int32_t k = GPUMemory::TotalPointCountAt(polygonB, iBIdx);
 
-        int32_t begIdxA = ((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]) + n;
+		int32_t LLABegOffset = ((i == 0) ? 0 : LLPolygonABufferSizesPrefixSum[i - 1]);
+		int32_t LLBBegOffset = ((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]);
+
+        int32_t begIdxA = LLABegOffset + n;
         int32_t endIdxA = LLPolygonABufferSizesPrefixSum[i];
 
         int32_t begIdxB = ((i == 0) ? 0 : LLPolygonBBufferSizesPrefixSum[i - 1]) + k;
@@ -210,7 +213,7 @@ __device__ void clip_polygons(int32_t* polyCount,
         {
 			int32_t pointIdxA = GPUMemory::PointIdxAt(polygonA, a);
             int32_t pointCountA = GPUMemory::PointCountAt(polygonA, a);
-            if (PolygonAIntersectionPresenceFlags[a] == 0)
+            if (PolygonAIntersectionPresenceFlags[isAConst ? a + i * dataElementCount : a] == 0)
             {
                 bool isAinB = is_point_in_complex_polygon_at(polygonA.polyPoints[pointIdxA], polygonB, iBIdx);
                 if (isAinB == turnTable[0])
@@ -242,14 +245,15 @@ __device__ void clip_polygons(int32_t* polyCount,
 				}
             }
         }
-
+		
         int32_t polyIdxB = GPUMemory::PolyIdxAt(polygonB, iBIdx);
         int32_t polyCountB = GPUMemory::PolyCountAt(polygonB, iBIdx);
         for (int32_t b = polyIdxB; b < (polyIdxB + polyCountB); b++)
         {
 			int32_t pointIdxB = GPUMemory::PointIdxAt(polygonB, b);
             int32_t pointCountB = GPUMemory::PointCountAt(polygonB, b);
-            if (PolygonBIntersectionPresenceFlags[b] == 0)
+
+            if (PolygonBIntersectionPresenceFlags[isBConst ? b + i * dataElementCount : b] == 0)
             {
                 bool isBinA = is_point_in_complex_polygon_at(polygonB.polyPoints[pointIdxB], polygonA, iAIdx);
                 if (isBinA == turnTable[1])
@@ -465,6 +469,17 @@ private:
                                     polygonAin.polyIdx + dataElementCountA - 1, 1);
         GPUMemory::copyDeviceToHost(&PolygonBIntersectionPresenceFlagsCount,
                                     polygonBin.polyIdx + dataElementCountB - 1, 1);
+
+		// Multiply the size of the intersect count tables if a input col is const by the row count - data element count
+		if(isAConst)
+		{
+			PolygonAIntersectionPresenceFlagsCount *= dataElementCountB;
+		}
+
+		if(isBConst)
+		{
+			PolygonBIntersectionPresenceFlagsCount *= dataElementCountA;
+		}
 
         cuda_ptr<int8_t> PolygonAIntersectionPresenceFlags(PolygonAIntersectionPresenceFlagsCount, 0);
         cuda_ptr<int8_t> PolygonBIntersectionPresenceFlags(PolygonBIntersectionPresenceFlagsCount, 0);
