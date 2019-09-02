@@ -122,11 +122,20 @@ void polyTest(std::vector<int32_t>& polyApolyIdx,
     outPolyIdx.resize(dataElementCount);
     GPUMemory::copyDeviceToHost(&outPolyIdx[0], polygonOut.polyIdx, outPolyIdx.size());
 
-    outPointIdx.resize(outPolyIdx[dataElementCount - 1]);
-    GPUMemory::copyDeviceToHost(&outPointIdx[0], polygonOut.pointIdx, outPointIdx.size());
+	// Check if a result set is empty
+    if (outPolyIdx[dataElementCount - 1] <= 0)
+    {
+        outPointIdx.resize(0);
+        outPolyPoints.resize(0);
+	}
+    else
+    {
+        outPointIdx.resize(outPolyIdx[dataElementCount - 1]);
+        GPUMemory::copyDeviceToHost(&outPointIdx[0], polygonOut.pointIdx, outPointIdx.size());
 
-    outPolyPoints.resize(outPointIdx[outPolyIdx[dataElementCount - 1] - 1]);
-    GPUMemory::copyDeviceToHost(&outPolyPoints[0], polygonOut.polyPoints, outPolyPoints.size());
+        outPolyPoints.resize(outPointIdx[outPolyIdx[dataElementCount - 1] - 1]);
+        GPUMemory::copyDeviceToHost(&outPolyPoints[0], polygonOut.polyPoints, outPolyPoints.size());
+    }
 
     // Free the polygons
     GPUMemory::free(polygonA);
@@ -175,8 +184,8 @@ void printPolygonAsList(std::vector<int32_t> polyIdx,
 {
     for (int32_t i = 0; i < polyIdx.size(); i++)
     {
-        if (showIndex) 
-			printf("%2d : %2d\n", i, polyIdx[i]);
+        if (showIndex)
+            printf("%2d : %2d\n", i, polyIdx[i]);
         else
             printf("%2d, ", polyIdx[i]);
     }
@@ -185,9 +194,9 @@ void printPolygonAsList(std::vector<int32_t> polyIdx,
     for (int32_t i = 0; i < pointIdx.size(); i++)
     {
         if (showIndex)
-        printf("%2d : %2d\n", i, pointIdx[i]);
-        else 
-			printf("%2d, ", pointIdx[i]);
+            printf("%2d : %2d\n", i, pointIdx[i]);
+        else
+            printf("%2d, ", pointIdx[i]);
     }
     printf("\n");
 
@@ -195,8 +204,8 @@ void printPolygonAsList(std::vector<int32_t> polyIdx,
     {
         if (showIndex)
             printf("%2d : %.2f, %.2f\n", i, polyPoints[i].latitude, polyPoints[i].longitude);
-        else   
-			printf("{%.2f, %.2f},\n", polyPoints[i].latitude, polyPoints[i].longitude);
+        else
+            printf("{%.2f, %.2f},\n", polyPoints[i].latitude, polyPoints[i].longitude);
     }
     printf("\n");
 }
@@ -334,7 +343,7 @@ TEST(GPUPolygonClippingTests, IntersectColConstTest)
 
 TEST(GPUPolygonClippingTests, UnionColConstTest)
 {
-	std::vector<int32_t> outPolyIdx;
+    std::vector<int32_t> outPolyIdx;
     std::vector<int32_t> outPointIdx;
     std::vector<NativeGeoPoint> outPolyPoints;
 
@@ -450,8 +459,8 @@ TEST(GPUPolygonClippingTests, UnionConstConstTest)
 
     // Run the intersect test
     polyTest<PolygonFunctions::polyUnion>(polyApolyIdxConst, polyApointsIdxConst, polyApolyPointsConst,
-                                              polyBpolyIdxConst, polyBpointsIdxConst, polyBpolyPointsConst,
-                                              outPolyIdx, outPointIdx, outPolyPoints, true, true, 1);
+                                          polyBpolyIdxConst, polyBpointsIdxConst, polyBpolyPointsConst,
+                                          outPolyIdx, outPointIdx, outPolyPoints, true, true, 1);
 
     std::vector<int32_t> outPolyIdxCorrect = {5};
     std::vector<int32_t> outPointIdxCorrect = {4, 8, 16, 19, 23};
@@ -463,4 +472,31 @@ TEST(GPUPolygonClippingTests, UnionConstConstTest)
 
     // Check the results
     polyCompare(outPolyIdx, outPointIdx, outPolyPoints, outPolyIdxCorrect, outPointIdxCorrect, outPolyPointsCorrect);
+}
+
+TEST(GPUPolygonClippingTests, IntersectColColEmptyResultSetTest)
+{
+    std::vector<int32_t> polyApolyIdx = {1};
+    std::vector<int32_t> polyApointsIdx = {4};
+    std::vector<NativeGeoPoint> polyApolyPoints = {{0.0, 0.0}, {1.0, 0.0}, {1.0, 1.0}, {0.0, 1.0}};
+
+    std::vector<int32_t> polyBpolyIdx = {1};
+    std::vector<int32_t> polyBpointsIdx = {4};
+    std::vector<NativeGeoPoint> polyBpolyPoints = {{2.0, 0.0}, {3.0, 0.0}, {3.0, 3.0}, {2.0, 3.0}};
+
+    std::vector<int32_t> outPolyIdx;
+    std::vector<int32_t> outPointIdx;
+    std::vector<NativeGeoPoint> outPolyPoints;
+
+    // Run the intersect test
+    polyTest<PolygonFunctions::polyIntersect>(polyApolyIdx, polyApointsIdx, polyApolyPoints,
+                                          polyBpolyIdx, polyBpointsIdx, polyBpolyPoints, outPolyIdx,
+                                          outPointIdx, outPolyPoints, false, false, 1);
+
+    ASSERT_EQ(outPolyIdx.size(), 1);
+    ASSERT_EQ(outPolyIdx[0], 0);
+
+    ASSERT_EQ(outPointIdx.size(), 0);
+
+    ASSERT_EQ(outPolyPoints.size(), 0);
 }
