@@ -52,7 +52,7 @@ struct TableStruct_messages_2fQueryResponseMessage_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxillaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[12]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[13]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -77,6 +77,9 @@ extern QueryResponseIntPayloadDefaultTypeInternal _QueryResponseIntPayload_defau
 class QueryResponseMessage;
 class QueryResponseMessageDefaultTypeInternal;
 extern QueryResponseMessageDefaultTypeInternal _QueryResponseMessage_default_instance_;
+class QueryResponseMessage_ColumnOrderEntry_DoNotUse;
+class QueryResponseMessage_ColumnOrderEntry_DoNotUseDefaultTypeInternal;
+extern QueryResponseMessage_ColumnOrderEntry_DoNotUseDefaultTypeInternal _QueryResponseMessage_ColumnOrderEntry_DoNotUse_default_instance_;
 class QueryResponseMessage_NullBitMasksEntry_DoNotUse;
 class QueryResponseMessage_NullBitMasksEntry_DoNotUseDefaultTypeInternal;
 extern QueryResponseMessage_NullBitMasksEntry_DoNotUseDefaultTypeInternal _QueryResponseMessage_NullBitMasksEntry_DoNotUse_default_instance_;
@@ -107,6 +110,7 @@ template<> ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload* Arena
 template<> ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload>(Arena*);
 template<> ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload>(Arena*);
 template<> ::ColmnarDB::NetworkClient::Message::QueryResponseMessage* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryResponseMessage>(Arena*);
+template<> ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse>(Arena*);
 template<> ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse>(Arena*);
 template<> ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse>(Arena*);
 template<> ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse>(Arena*);
@@ -1368,6 +1372,38 @@ public:
 
 // -------------------------------------------------------------------
 
+class QueryResponseMessage_ColumnOrderEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<QueryResponseMessage_ColumnOrderEntry_DoNotUse, 
+    ::PROTOBUF_NAMESPACE_ID::int32, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_INT32,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    0 > {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<QueryResponseMessage_ColumnOrderEntry_DoNotUse, 
+    ::PROTOBUF_NAMESPACE_ID::int32, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_INT32,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    0 > SuperType;
+  QueryResponseMessage_ColumnOrderEntry_DoNotUse();
+  QueryResponseMessage_ColumnOrderEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const QueryResponseMessage_ColumnOrderEntry_DoNotUse& other);
+  static const QueryResponseMessage_ColumnOrderEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const QueryResponseMessage_ColumnOrderEntry_DoNotUse*>(&_QueryResponseMessage_ColumnOrderEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(void*) { return true; }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), s->size(), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "ColmnarDB.NetworkClient.Message.QueryResponseMessage.ColumnOrderEntry.value");
+ }
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& other) final;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_messages_2fQueryResponseMessage_2eproto);
+    return ::descriptor_table_messages_2fQueryResponseMessage_2eproto.file_level_metadata[11];
+  }
+
+  public:
+};
+
+// -------------------------------------------------------------------
+
 class QueryResponseMessage :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.NetworkClient.Message.QueryResponseMessage) */ {
  public:
@@ -1410,7 +1446,7 @@ class QueryResponseMessage :
                &_QueryResponseMessage_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    12;
 
   void Swap(QueryResponseMessage* other);
   friend void swap(QueryResponseMessage& a, QueryResponseMessage& b) {
@@ -1505,6 +1541,15 @@ class QueryResponseMessage :
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
       mutable_nullbitmasks();
 
+  // map<int32, string> columnOrder = 4;
+  int columnorder_size() const;
+  void clear_columnorder();
+  static const int kColumnOrderFieldNumber = 4;
+  const ::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >&
+      columnorder() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >*
+      mutable_columnorder();
+
   // @@protoc_insertion_point(class_scope:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
  private:
   class HasBitSetters;
@@ -1528,6 +1573,12 @@ class QueryResponseMessage :
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_BYTES,
       0 > nullbitmasks_;
+  ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+      QueryResponseMessage_ColumnOrderEntry_DoNotUse,
+      ::PROTOBUF_NAMESPACE_ID::int32, std::string,
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_INT32,
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+      0 > columnorder_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_messages_2fQueryResponseMessage_2eproto;
 };
@@ -2113,6 +2164,8 @@ inline QueryResponsePayload::PayloadCase QueryResponsePayload::payload_case() co
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
 // QueryResponseMessage
 
 // map<string, .ColmnarDB.NetworkClient.Message.QueryResponsePayload> payloads = 1;
@@ -2169,9 +2222,29 @@ QueryResponseMessage::mutable_timing() {
   return timing_.MutableMap();
 }
 
+// map<int32, string> columnOrder = 4;
+inline int QueryResponseMessage::columnorder_size() const {
+  return columnorder_.size();
+}
+inline void QueryResponseMessage::clear_columnorder() {
+  columnorder_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >&
+QueryResponseMessage::columnorder() const {
+  // @@protoc_insertion_point(field_map:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+  return columnorder_.GetMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >*
+QueryResponseMessage::mutable_columnorder() {
+  // @@protoc_insertion_point(field_mutable_map:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+  return columnorder_.MutableMap();
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

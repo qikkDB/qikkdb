@@ -19,6 +19,7 @@ extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOB
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseFloatPayload_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseInt64Payload_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseIntPayload_messages_2fQueryResponseMessage_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseMessage_ColumnOrderEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseMessage_TimingEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto;
@@ -82,6 +83,10 @@ class QueryResponseMessage_TimingEntry_DoNotUseDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<QueryResponseMessage_TimingEntry_DoNotUse> _instance;
 } _QueryResponseMessage_TimingEntry_DoNotUse_default_instance_;
+class QueryResponseMessage_ColumnOrderEntry_DoNotUseDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<QueryResponseMessage_ColumnOrderEntry_DoNotUse> _instance;
+} _QueryResponseMessage_ColumnOrderEntry_DoNotUse_default_instance_;
 class QueryResponseMessageDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<QueryResponseMessage> _instance;
@@ -156,11 +161,25 @@ static void InitDefaultsscc_info_QueryResponseMessage_messages_2fQueryResponseMe
   ::ColmnarDB::NetworkClient::Message::QueryResponseMessage::InitAsDefaultInstance();
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<3> scc_info_QueryResponseMessage_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 3, InitDefaultsscc_info_QueryResponseMessage_messages_2fQueryResponseMessage_2eproto}, {
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<4> scc_info_QueryResponseMessage_messages_2fQueryResponseMessage_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 4, InitDefaultsscc_info_QueryResponseMessage_messages_2fQueryResponseMessage_2eproto}, {
       &scc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,
       &scc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,
-      &scc_info_QueryResponseMessage_TimingEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,}};
+      &scc_info_QueryResponseMessage_TimingEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,
+      &scc_info_QueryResponseMessage_ColumnOrderEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,}};
+
+static void InitDefaultsscc_info_QueryResponseMessage_ColumnOrderEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_ColumnOrderEntry_DoNotUse_default_instance_;
+    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse();
+  }
+  ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse::InitAsDefaultInstance();
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseMessage_ColumnOrderEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsscc_info_QueryResponseMessage_ColumnOrderEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto}, {}};
 
 static void InitDefaultsscc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -267,7 +286,7 @@ static void InitDefaultsscc_info_QueryResponseStringPayload_messages_2fQueryResp
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto =
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsscc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto}, {}};
 
-static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_messages_2fQueryResponseMessage_2eproto[12];
+static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_messages_2fQueryResponseMessage_2eproto[13];
 static constexpr ::PROTOBUF_NAMESPACE_ID::EnumDescriptor const** file_level_enum_descriptors_messages_2fQueryResponseMessage_2eproto = nullptr;
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_messages_2fQueryResponseMessage_2eproto = nullptr;
 
@@ -354,6 +373,15 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fQueryResponseMessag
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse, value_),
   0,
   1,
+  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse, value_),
+  0,
+  1,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -362,6 +390,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fQueryResponseMessag
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, payloads_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, nullbitmasks_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, timing_),
+  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, columnorder_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload)},
@@ -375,7 +404,8 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOB
   { 55, 62, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse)},
   { 64, 71, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse)},
   { 73, 80, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse)},
-  { 82, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage)},
+  { 82, 89, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse)},
+  { 91, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -390,6 +420,7 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_PayloadsEntry_DoNotUse_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_NullBitMasksEntry_DoNotUse_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_TimingEntry_DoNotUse_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_ColumnOrderEntry_DoNotUse_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_default_instance_),
 };
 
@@ -422,31 +453,35 @@ const char descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto[] =
   "kClient.Message.QueryResponsePolygonPayl"
   "oadH\000\022T\n\rstringPayload\030\010 \001(\0132;.ColmnarDB"
   ".NetworkClient.Message.QueryResponseStri"
-  "ngPayloadH\000B\t\n\007payload\"\353\003\n\024QueryResponse"
+  "ngPayloadH\000B\t\n\007payload\"\374\004\n\024QueryResponse"
   "Message\022U\n\010payloads\030\001 \003(\0132C.ColmnarDB.Ne"
   "tworkClient.Message.QueryResponseMessage"
   ".PayloadsEntry\022]\n\014nullBitMasks\030\003 \003(\0132G.C"
   "olmnarDB.NetworkClient.Message.QueryResp"
   "onseMessage.NullBitMasksEntry\022Q\n\006timing\030"
   "\002 \003(\0132A.ColmnarDB.NetworkClient.Message."
-  "QueryResponseMessage.TimingEntry\032f\n\rPayl"
-  "oadsEntry\022\013\n\003key\030\001 \001(\t\022D\n\005value\030\002 \001(\01325."
-  "ColmnarDB.NetworkClient.Message.QueryRes"
-  "ponsePayload:\0028\001\0323\n\021NullBitMasksEntry\022\013\n"
-  "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\014:\0028\001\032-\n\013TimingE"
-  "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001b\006pr"
-  "oto3"
+  "QueryResponseMessage.TimingEntry\022[\n\013colu"
+  "mnOrder\030\004 \003(\0132F.ColmnarDB.NetworkClient."
+  "Message.QueryResponseMessage.ColumnOrder"
+  "Entry\032f\n\rPayloadsEntry\022\013\n\003key\030\001 \001(\t\022D\n\005v"
+  "alue\030\002 \001(\01325.ColmnarDB.NetworkClient.Mes"
+  "sage.QueryResponsePayload:\0028\001\0323\n\021NullBit"
+  "MasksEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\014:\002"
+  "8\001\032-\n\013TimingEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030"
+  "\002 \001(\002:\0028\001\0322\n\020ColumnOrderEntry\022\013\n\003key\030\001 \001"
+  "(\005\022\r\n\005value\030\002 \001(\t:\0028\001b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_messages_2fQueryResponseMessage_2eproto_deps[2] = {
   &::descriptor_table_Types_2fComplexPolygon_2eproto,
   &::descriptor_table_Types_2fPoint_2eproto,
 };
-static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_messages_2fQueryResponseMessage_2eproto_sccs[12] = {
+static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_messages_2fQueryResponseMessage_2eproto_sccs[13] = {
   &scc_info_QueryResponseDoublePayload_messages_2fQueryResponseMessage_2eproto.base,
   &scc_info_QueryResponseFloatPayload_messages_2fQueryResponseMessage_2eproto.base,
   &scc_info_QueryResponseInt64Payload_messages_2fQueryResponseMessage_2eproto.base,
   &scc_info_QueryResponseIntPayload_messages_2fQueryResponseMessage_2eproto.base,
   &scc_info_QueryResponseMessage_messages_2fQueryResponseMessage_2eproto.base,
+  &scc_info_QueryResponseMessage_ColumnOrderEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,
   &scc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,
   &scc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,
   &scc_info_QueryResponseMessage_TimingEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,
@@ -458,10 +493,10 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_mes
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_messages_2fQueryResponseMessage_2eproto_once;
 static bool descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fQueryResponseMessage_2eproto = {
-  &descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized, descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto, "messages/QueryResponseMessage.proto", 1644,
-  &descriptor_table_messages_2fQueryResponseMessage_2eproto_once, descriptor_table_messages_2fQueryResponseMessage_2eproto_sccs, descriptor_table_messages_2fQueryResponseMessage_2eproto_deps, 12, 2,
+  &descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized, descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto, "messages/QueryResponseMessage.proto", 1789,
+  &descriptor_table_messages_2fQueryResponseMessage_2eproto_once, descriptor_table_messages_2fQueryResponseMessage_2eproto_sccs, descriptor_table_messages_2fQueryResponseMessage_2eproto_deps, 13, 2,
   schemas, file_default_instances, TableStruct_messages_2fQueryResponseMessage_2eproto::offsets,
-  file_level_metadata_messages_2fQueryResponseMessage_2eproto, 12, file_level_enum_descriptors_messages_2fQueryResponseMessage_2eproto, file_level_service_descriptors_messages_2fQueryResponseMessage_2eproto,
+  file_level_metadata_messages_2fQueryResponseMessage_2eproto, 13, file_level_enum_descriptors_messages_2fQueryResponseMessage_2eproto, file_level_service_descriptors_messages_2fQueryResponseMessage_2eproto,
 };
 
 // Force running AddDescriptors() at dynamic initialization time.
@@ -3216,6 +3251,23 @@ void QueryResponseMessage_TimingEntry_DoNotUse::MergeFrom(
 
 // ===================================================================
 
+QueryResponseMessage_ColumnOrderEntry_DoNotUse::QueryResponseMessage_ColumnOrderEntry_DoNotUse() {}
+QueryResponseMessage_ColumnOrderEntry_DoNotUse::QueryResponseMessage_ColumnOrderEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+    : SuperType(arena) {}
+void QueryResponseMessage_ColumnOrderEntry_DoNotUse::MergeFrom(const QueryResponseMessage_ColumnOrderEntry_DoNotUse& other) {
+  MergeFromInternal(other);
+}
+::PROTOBUF_NAMESPACE_ID::Metadata QueryResponseMessage_ColumnOrderEntry_DoNotUse::GetMetadata() const {
+  return GetMetadataStatic();
+}
+void QueryResponseMessage_ColumnOrderEntry_DoNotUse::MergeFrom(
+    const ::PROTOBUF_NAMESPACE_ID::Message& other) {
+  ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom(other);
+}
+
+
+// ===================================================================
+
 void QueryResponseMessage::InitAsDefaultInstance() {
 }
 class QueryResponseMessage::HasBitSetters {
@@ -3226,6 +3278,7 @@ class QueryResponseMessage::HasBitSetters {
 const int QueryResponseMessage::kPayloadsFieldNumber;
 const int QueryResponseMessage::kNullBitMasksFieldNumber;
 const int QueryResponseMessage::kTimingFieldNumber;
+const int QueryResponseMessage::kColumnOrderFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 QueryResponseMessage::QueryResponseMessage()
@@ -3240,6 +3293,7 @@ QueryResponseMessage::QueryResponseMessage(const QueryResponseMessage& from)
   payloads_.MergeFrom(from.payloads_);
   timing_.MergeFrom(from.timing_);
   nullbitmasks_.MergeFrom(from.nullbitmasks_);
+  columnorder_.MergeFrom(from.columnorder_);
   // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
 }
 
@@ -3273,6 +3327,7 @@ void QueryResponseMessage::Clear() {
   payloads_.Clear();
   timing_.Clear();
   nullbitmasks_.Clear();
+  columnorder_.Clear();
   _internal_metadata_.Clear();
 }
 
@@ -3318,6 +3373,18 @@ const char* QueryResponseMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAM
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
           } while (::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint8>(ptr) == 26);
+        } else goto handle_unusual;
+        continue;
+      // map<int32, string> columnOrder = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 34)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(&columnorder_, ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint8>(ptr) == 34);
         } else goto handle_unusual;
         continue;
       default: {
@@ -3410,6 +3477,28 @@ bool QueryResponseMessage::MergePartialFromCodedStream(
             parser.key().data(), static_cast<int>(parser.key().length()),
             ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
             "ColmnarDB.NetworkClient.Message.QueryResponseMessage.NullBitMasksEntry.key"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // map<int32, string> columnOrder = 4;
+      case 4: {
+        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (34 & 0xFF)) {
+          QueryResponseMessage_ColumnOrderEntry_DoNotUse::Parser< ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+              QueryResponseMessage_ColumnOrderEntry_DoNotUse,
+              ::PROTOBUF_NAMESPACE_ID::int32, std::string,
+              ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_INT32,
+              ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+              0 >,
+            ::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string > > parser(&columnorder_);
+          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessageNoVirtual(
+              input, &parser));
+          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+            parser.value().data(), static_cast<int>(parser.value().length()),
+            ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
+            "ColmnarDB.NetworkClient.Message.QueryResponseMessage.ColumnOrderEntry.value"));
         } else {
           goto handle_unusual;
         }
@@ -3572,6 +3661,49 @@ void QueryResponseMessage::SerializeWithCachedSizes(
     }
   }
 
+  // map<int32, string> columnOrder = 4;
+  if (!this->columnorder().empty()) {
+    typedef ::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >::const_pointer
+        ConstPtr;
+    typedef ::PROTOBUF_NAMESPACE_ID::internal::SortItem< ::PROTOBUF_NAMESPACE_ID::int32, ConstPtr > SortItem;
+    typedef ::PROTOBUF_NAMESPACE_ID::internal::CompareByFirstField<SortItem> Less;
+    struct Utf8Check {
+      static void Check(ConstPtr p) {
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+          p->second.data(), static_cast<int>(p->second.length()),
+          ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+          "ColmnarDB.NetworkClient.Message.QueryResponseMessage.ColumnOrderEntry.value");
+      }
+    };
+
+    if (output->IsSerializationDeterministic() &&
+        this->columnorder().size() > 1) {
+      ::std::unique_ptr<SortItem[]> items(
+          new SortItem[this->columnorder().size()]);
+      typedef ::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >::size_type size_type;
+      size_type n = 0;
+      for (::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >::const_iterator
+          it = this->columnorder().begin();
+          it != this->columnorder().end(); ++it, ++n) {
+        items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
+      }
+      ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
+      for (size_type i = 0; i < n; i++) {
+        QueryResponseMessage_ColumnOrderEntry_DoNotUse::MapEntryWrapper entry(nullptr, items[static_cast<ptrdiff_t>(i)].second->first, items[static_cast<ptrdiff_t>(i)].second->second);
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(4, entry, output);
+        Utf8Check::Check(&(*items[static_cast<ptrdiff_t>(i)].second));
+      }
+    } else {
+      for (::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >::const_iterator
+          it = this->columnorder().begin();
+          it != this->columnorder().end(); ++it) {
+        QueryResponseMessage_ColumnOrderEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(4, entry, output);
+        Utf8Check::Check(&(*it));
+      }
+    }
+  }
+
   if (_internal_metadata_.have_unknown_fields()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
         _internal_metadata_.unknown_fields(), output);
@@ -3714,6 +3846,49 @@ void QueryResponseMessage::SerializeWithCachedSizes(
     }
   }
 
+  // map<int32, string> columnOrder = 4;
+  if (!this->columnorder().empty()) {
+    typedef ::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >::const_pointer
+        ConstPtr;
+    typedef ::PROTOBUF_NAMESPACE_ID::internal::SortItem< ::PROTOBUF_NAMESPACE_ID::int32, ConstPtr > SortItem;
+    typedef ::PROTOBUF_NAMESPACE_ID::internal::CompareByFirstField<SortItem> Less;
+    struct Utf8Check {
+      static void Check(ConstPtr p) {
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+          p->second.data(), static_cast<int>(p->second.length()),
+          ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+          "ColmnarDB.NetworkClient.Message.QueryResponseMessage.ColumnOrderEntry.value");
+      }
+    };
+
+    if (false &&
+        this->columnorder().size() > 1) {
+      ::std::unique_ptr<SortItem[]> items(
+          new SortItem[this->columnorder().size()]);
+      typedef ::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >::size_type size_type;
+      size_type n = 0;
+      for (::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >::const_iterator
+          it = this->columnorder().begin();
+          it != this->columnorder().end(); ++it, ++n) {
+        items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
+      }
+      ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
+      for (size_type i = 0; i < n; i++) {
+        QueryResponseMessage_ColumnOrderEntry_DoNotUse::MapEntryWrapper entry(nullptr, items[static_cast<ptrdiff_t>(i)].second->first, items[static_cast<ptrdiff_t>(i)].second->second);
+        target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::InternalWriteMessageNoVirtualToArray(4, entry, target);
+        Utf8Check::Check(&(*items[static_cast<ptrdiff_t>(i)].second));
+      }
+    } else {
+      for (::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >::const_iterator
+          it = this->columnorder().begin();
+          it != this->columnorder().end(); ++it) {
+        QueryResponseMessage_ColumnOrderEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
+        target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::InternalWriteMessageNoVirtualToArray(4, entry, target);
+        Utf8Check::Check(&(*it));
+      }
+    }
+  }
+
   if (_internal_metadata_.have_unknown_fields()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target);
@@ -3768,6 +3943,17 @@ size_t QueryResponseMessage::ByteSizeLong() const {
         MessageSizeNoVirtual(entry);
   }
 
+  // map<int32, string> columnOrder = 4;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->columnorder_size());
+  for (::PROTOBUF_NAMESPACE_ID::Map< ::PROTOBUF_NAMESPACE_ID::int32, std::string >::const_iterator
+      it = this->columnorder().begin();
+      it != this->columnorder().end(); ++it) {
+    QueryResponseMessage_ColumnOrderEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        MessageSizeNoVirtual(entry);
+  }
+
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -3798,6 +3984,7 @@ void QueryResponseMessage::MergeFrom(const QueryResponseMessage& from) {
   payloads_.MergeFrom(from.payloads_);
   timing_.MergeFrom(from.timing_);
   nullbitmasks_.MergeFrom(from.nullbitmasks_);
+  columnorder_.MergeFrom(from.columnorder_);
 }
 
 void QueryResponseMessage::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
@@ -3828,6 +4015,7 @@ void QueryResponseMessage::InternalSwap(QueryResponseMessage* other) {
   payloads_.Swap(&other->payloads_);
   timing_.Swap(&other->timing_);
   nullbitmasks_.Swap(&other->nullbitmasks_);
+  columnorder_.Swap(&other->columnorder_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata QueryResponseMessage::GetMetadata() const {
@@ -3872,6 +4060,9 @@ template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseM
 }
 template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse >(Arena* arena) {
   return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse >(arena);
+}
+template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_ColumnOrderEntry_DoNotUse >(arena);
 }
 template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseMessage* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage >(Arena* arena) {
   return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage >(arena);
