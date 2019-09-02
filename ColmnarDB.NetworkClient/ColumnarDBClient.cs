@@ -24,19 +24,22 @@ namespace ColmnarDB.NetworkClient
         private Dictionary<string, System.Type> columnTypes;
         private int size;
         private string tableName;
+        private List<string> orderedColumnNames;    //order of columns defined by SELECT
 
         public ColumnarDataTable()
         {
             columnNames = new List<string>();
             columnData = new Dictionary<string, IList>();
             columnTypes = new Dictionary<string, System.Type>();
+            orderedColumnNames = new List<string>();
             size = 0;
         }
-        public ColumnarDataTable(List<string> columnNames, Dictionary<string, IList> columnData, Dictionary<string, System.Type> columnTypes)
+        public ColumnarDataTable(List<string> columnNames, Dictionary<string, IList> columnData, Dictionary<string, System.Type> columnTypes, List<string> orderedColumnNames)
         {
             this.columnNames = columnNames;
             this.columnData = columnData;
             this.columnTypes = columnTypes;
+            this.orderedColumnNames = orderedColumnNames;
             size = columnData[columnNames[0]].Count;
         }
 
@@ -180,6 +183,13 @@ namespace ColmnarDB.NetworkClient
             List<string> columnNames = new List<string>();
             Dictionary<string, IList> columnDatas = new Dictionary<string, IList>();
             Dictionary<string, System.Type> columnTypes = new Dictionary<string, System.Type>();
+            List<string> orderedColumnNames = new List<string>();
+
+            foreach(var column in response.ColumnOrder)
+            {
+                orderedColumnNames.Add(column);
+            }
+
             foreach (var columnData in response.Payloads)
             {
                 columnNames.Add(columnData.Key);
@@ -264,7 +274,7 @@ namespace ColmnarDB.NetworkClient
                         break;
                 }
             }
-            ColumnarDataTable ret = new ColumnarDataTable(columnNames, columnDatas, columnTypes);
+            ColumnarDataTable ret = new ColumnarDataTable(columnNames, columnDatas, columnTypes, orderedColumnNames);
             return ret;
         }
 
