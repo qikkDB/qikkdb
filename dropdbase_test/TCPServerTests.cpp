@@ -374,7 +374,7 @@ TEST(TCPServer, ServerMessageInfo)
     try
     {
         printf("\nServerMessageInfo\n");
-        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
+        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345, false);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
         auto sock = connectSocketToTestServer(context);
@@ -395,7 +395,7 @@ TEST(TCPServer, ServerMessageInfoHeartbeat)
     try
     {
         printf("\ServerMessageInfoHeartbeat\n");
-        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
+        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345, false);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
         auto sock = connectSocketToTestServer(context);
@@ -417,7 +417,7 @@ TEST(TCPServer, ServerMessageSetDB)
     try
     {
         printf("\nServerMessageSetDB\n");
-        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
+        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345, false);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
         auto sock = connectSocketToTestServer(context);
@@ -439,7 +439,7 @@ TEST(TCPServer, ServerMessageQuery)
     try
     {
         printf("\nServerMessageQuery\n");
-        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
+        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345, false);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
         auto sock = connectSocketToTestServer(context);
@@ -464,7 +464,7 @@ TEST(TCPServer, ServerMessageCSV)
     try
     {
         printf("\nServerMessageCSV\n");
-        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
+        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345, false);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
         auto sock = connectSocketToTestServer(context);
@@ -487,7 +487,7 @@ TEST(TCPServer, ServerMessageBulkImport)
     try
     {
         printf("\nServerMessageBulkImport\n");
-        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345);
+        TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345, false);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
         auto sock = connectSocketToTestServer(context);

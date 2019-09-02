@@ -9,7 +9,7 @@
 #include "ITCPWorker.h"
 #include <atomic>
 #include "Configuration.h"
-
+#include "Database.h"
 class IClientHandler;
 
 /// <summary>
@@ -27,7 +27,8 @@ class TCPServer final
 private:
     boost::asio::io_context ioContext_;
     boost::asio::ip::tcp::acceptor acceptor_;
-
+    boost::asio::steady_timer autoSaveDeadline_;
+    bool saveDBAutomatically_;
     /// <summary>
     /// Listen for new client requests asynchronously
     /// </summary>
@@ -54,15 +55,41 @@ private:
         });
     }
 
+    void AutoSaveDB()
+    {
+        autoSaveDeadline_.async_wait([this](const boost::system::error_code& error) {
+			if (error == boost::asio::error::operation_aborted)
+			{
+				return;
+			}
+            // Check whether the deadline has passed. We compare the deadline
+            // against the current time since a new asynchronous operation may
+            // have moved the deadline before this actor had a chance to run.
+            if (autoSaveDeadline_.expiry() <= boost::asio::steady_timer::clock_type::now())
+            {
+                // The deadline has passed. Save databases.
+                BOOST_LOG_TRIVIAL(info) << "Autosaving databases...";
+                Database::SaveModifiedToDisk();
+            }
+            else
+            {
+                // Put the actor back to sleep.
+                AutoSaveDB();
+            }
+        });
+    }
+
 public:
     /// <summary>
     /// Create new instance of TCPServer class.
     /// </summary>
     /// <param name="ipAddress">IPAddress on which to listen</param>
     /// <param name="port">Port on which to listen</param>
-    TCPServer(const char* ipAddress, short port)
+    TCPServer(const char* ipAddress, short port, bool saveDBAutomatically = true)
     : ioContext_(),
-      acceptor_(ioContext_, boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ipAddress), port)){};
+      acceptor_(ioContext_, boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ipAddress), port)),
+      saveDBAutomatically_(saveDBAutomatically),
+	  autoSaveDeadline_(ioContext_)	{};
 
     /// <summary>
     /// Starts processing network requests in loop
@@ -70,6 +97,12 @@ public:
     void Run()
     {
         Listen();
+        if (saveDBAutomatically_ && Configuration::GetInstance().GetDBSaveInterval() > 0)
+        {
+            autoSaveDeadline_.expires_after(
+                std::chrono::seconds(Configuration::GetInstance().GetDBSaveInterval()));
+            AutoSaveDB();
+        }
         ioContext_.run();
     }
 
@@ -78,6 +111,7 @@ public:
     /// </summary>
     void Abort()
     {
+		autoSaveDeadline_.cancel();
         acceptor_.cancel();
         ioContext_.stop();
     }

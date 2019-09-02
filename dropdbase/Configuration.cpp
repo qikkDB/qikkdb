@@ -47,4 +47,5 @@ void Configuration::LoadConfigurationFile()
     this->SetupConfigurationValue("ListenPort", this->listenPort_);
     this->SetupConfigurationValue("Timeout", this->timeout_);
     this->SetupConfigurationValue("GPUCachePercent", this->GPUCachePercent_);
+    this->SetupConfigurationValue("DBSaveInterval", this->DBSaveInterval_);
 }
