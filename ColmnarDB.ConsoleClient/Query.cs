@@ -89,7 +89,7 @@ namespace ColmnarDB.ConsoleClient
                 Console.WriteLine(SuccessfulQuery(query));
                 while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
                 {
-                    PrintResults(result.GetColumnData(), executionTimes, consoleWidth);
+                    PrintResults(result.GetColumnData(), result.GetOrderedColumnNames(), executionTimes, consoleWidth);
                 }
             }
             catch (IOException e)
@@ -131,7 +131,7 @@ namespace ColmnarDB.ConsoleClient
         /// <param name="result">result of SQL query</param>
         /// <param name="time">time of executing query</param>
         /// <param name="consoleWidth">number of chars in row in console</param>
-        public static void PrintResults(Dictionary<string, System.Collections.IList> result, Dictionary<string, float> executionTimes, int consoleWidth)
+        public static void PrintResults(Dictionary<string, System.Collections.IList> result, List<string> orderedColumnNames, Dictionary<string, float> executionTimes, int consoleWidth)
         {
             var leftAlign = 3;
             var rightAlign = 20;
@@ -165,9 +165,9 @@ namespace ColmnarDB.ConsoleClient
                 Dictionary<string, System.Collections.IList> temp = result.Take(numberOfColumnsThatFitIntoConsole).ToDictionary(c => c.Key, c => c.Value);
                 result = result.Skip(numberOfColumnsThatFitIntoConsole).ToDictionary(c => c.Key, c => c.Value);
 
-                PrintDividedOutput(temp, numberOfRows, format, leftAlign, rightAlign);
+                PrintDividedOutput(temp, orderedColumnNames, numberOfRows, format, leftAlign, rightAlign);
             }
-            PrintDividedOutput(result, numberOfRows, format, leftAlign, rightAlign);
+            PrintDividedOutput(result, orderedColumnNames, numberOfRows, format, leftAlign, rightAlign);
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace ColmnarDB.ConsoleClient
         /// <param name="format">format for output</param>
         /// <param name="leftAlign">left align of format</param>
         /// <param name="rightAlign">right align of format</param>
-        public static void PrintDividedOutput(Dictionary<string, System.Collections.IList> result, int numberOfRows, string format, int leftAlign, int rightAlign)
+        public static void PrintDividedOutput(Dictionary<string, System.Collections.IList> result, List<string> orderedColumnNames, int numberOfRows, string format, int leftAlign, int rightAlign)
         {
             for (int i = 0; i < result.Keys.Count; i++)
             {
@@ -192,7 +192,7 @@ namespace ColmnarDB.ConsoleClient
             Console.WriteLine("+");
 
             //Prints names of columns
-            foreach (var column in result.Keys)
+            foreach (var column in orderedColumnNames)
             {
                 string replacement = Regex.Replace(column, @"\t|\n|\r", "");
                 if (replacement.Length > rightAlign)
@@ -210,7 +210,7 @@ namespace ColmnarDB.ConsoleClient
 
             //Print line between names of columns and values
             //23 is a result of format sum 
-            for (int i = 0; i < result.Keys.Count; i++)
+            for (int i = 0; i < orderedColumnNames.Count; i++)
             {
                 Console.Write("+");
                 for (int j = 0; j < leftAlign + rightAlign; j++)
@@ -225,7 +225,7 @@ namespace ColmnarDB.ConsoleClient
             var columnIndex = 0;
             for (int i = 0; i < numberOfRows; i++)
             {
-                foreach (var column in result.Keys)
+                foreach (var column in orderedColumnNames)
                 {
                     columnIndex += 1;
 

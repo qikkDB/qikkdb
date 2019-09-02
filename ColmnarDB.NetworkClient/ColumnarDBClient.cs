@@ -58,6 +58,10 @@ namespace ColmnarDB.NetworkClient
             return columnData;
         }
 
+        public List<string> GetOrderedColumnNames()
+        {
+            return orderedColumnNames;
+        }
 
         public int GetSize()
         {
