@@ -81,6 +81,31 @@ protected:
             ASSERT_FLOAT_EQ(expectedResult[i], payloadCast.floatpayload().floatdata()[i]) << i;
         }
     }
+
+    void CastStringToPointGenericTest(std::vector<std::string> strings, std::vector<std::string> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
+        castDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<std::string>*>(
+            castDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
+            ->InsertData(strings);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colString AS GEO_POINT) FROM " + tableName + ";");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadCast = result->payloads().at("CAST(colStringASGEO_POINT)");
+
+        ASSERT_EQ(expectedResult.size(), payloadCast.stringpayload().stringdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadCast.stringpayload().stringdata_size(); i++)
+        {
+            ASSERT_EQ(expectedResult[i], payloadCast.stringpayload().stringdata()[i]) << i;
+        }
+    }
 };
 
 TEST_F(DispatcherCastTests, StringToIntTest)
@@ -99,4 +124,14 @@ TEST_F(DispatcherCastTests, StringToFloatExpNotationTest)
 {
     CastStringToFloatGenericTest({"+1e2", "1.24e3", "1e1", "1e0", "1e-2", "-10.24e-1", "1e-1", "-1e0"},
                                  {100.0f, 1240.0f, 10.0f, 1.0f, 0.01f, -1.024f, 0.1f, -1.0f});
+}
+
+TEST_F(DispatcherCastTests, StringToPointTest)
+{
+    CastStringToPointGenericTest({"POINT(12.22 12.345)", "POINT(13 13.3456)", "POINT(14.267 14)",
+                                  "POINT( 15.2   15.3)", "POINT(   16.2 16.3   )", "POINT(    17.2    17.3 )",
+                                  "POINT( 18.2   18.3 )", "POINT( 18.2  18.3    )"},
+                                 {"POINT(12.2200 12.3450)", "POINT(13.0000 13.3456)", "POINT(14.2670 14.0000)",
+                                  "POINT(15.2000 15.3000)", "POINT(16.2000 16.3000)", "POINT(17.2000 17.3000)",
+                                  "POINT(18.2000 18.3000)", "POINT(18.2000 18.3000)"});
 }

@@ -12,6 +12,10 @@
 #include "MaybeDeref.cuh"
 #include "GPUStringUnary.cuh"
 
+__device__ NativeGeoPoint CastNativeGeoPoint(char* str, int32_t length);
+
+__device__ NativeGeoPoint CastWKTPoint(char* str, int32_t length);
+
 template <typename T>
 __device__ T CastDecimal(char* str, int32_t length)
 {
@@ -117,6 +121,9 @@ __device__ float FromString::operator()<float>(char* str, int32_t length) const;
 template <>
 __device__ double FromString::operator()<double>(char* str, int32_t length) const;
 
+template <>
+__device__ NativeGeoPoint FromString::operator()<NativeGeoPoint>(char* str, int32_t length) const;
+
 } // namespace CastOperations
 
 template <typename OUT, typename IN>
@@ -164,7 +171,8 @@ public:
     template <typename OUT>
     static void CastString(OUT* outCol, GPUMemory::GPUString inCol, int32_t dataElementCount)
     {
-        static_assert(std::is_arithmetic<OUT>::value, "OutCol must be arithmetic data type");
+        static_assert(std::is_arithmetic<OUT>::value || std::is_same<OUT, NativeGeoPoint>::value,
+                      "OutCol must be arithmetic or point data type");
 
         kernel_cast_string<<<Context::getInstance().calcGridDim(dataElementCount),
                              Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
