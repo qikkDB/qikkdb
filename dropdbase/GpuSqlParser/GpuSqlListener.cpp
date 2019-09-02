@@ -1549,7 +1549,12 @@ void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsConte
                 throw AliasRedefinitionException(alias);
             }
             columnAliasContexts_.insert({alias, selectColumn->expression()});
+            ColumnOrder.insert({i, alias});
         }
+        else
+        {
+            ColumnOrder.insert({i, selectColumn->getText()});			        
+		}
         columnNumericAliasContexts_.insert({i + 1, selectColumn->expression()});
     }
 }
