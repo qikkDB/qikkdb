@@ -220,11 +220,11 @@ protected:
 			if(expectedResult.size() > 0)
 			{
 				auto &payloads = result->payloads().at("geoOut");
-				ASSERT_EQ(expectedResult.size(), payloads.stringpayload().stringdata_size()) << "size is not correct";
+				//ASSERT_EQ(expectedResult.size(), payloads.stringpayload().stringdata_size()) << "size is not correct";
 				for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
 				{
-					ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
-					//std::cout << payloads.stringpayload().stringdata()[i] << std::endl;
+					//ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
+					std::cout << payloads.stringpayload().stringdata()[i] << std::endl;
 				}
 			}
 			else
@@ -378,4 +378,26 @@ TEST_F(DispatcherGeoTests, PolygonUnionTest)
 		},
 		UNION_TEST
 	);
+}
+
+TEST_F(DispatcherGeoTests, PolygonWKTEmptyResultSet)
+{
+	PolygonClipping(
+		{
+		 "POLYGON((0.0 0.0, 1.0 0.0, 1.0 1.0, 0.0 1.0, 0.0 0.0))",
+         "POLYGON((0.0 0.0, 1.0 0.0, 1.0 1.0, 0.0 1.0, 0.0 0.0))",
+         "POLYGON((0.0 0.0, 1.0 0.0, 1.0 1.0, 0.0 1.0, 0.0 0.0))"
+		},
+		{
+         "POLYGON((2.0 0.0, 3.0 0.0, 3.0 1.0, 2.0 1.0, 2.0 0.0))",
+         "POLYGON((2.0 0.0, 3.0 0.0, 3.0 1.0, 2.0 1.0, 2.0 0.0))",
+         "POLYGON((2.0 0.0, 3.0 0.0, 3.0 1.0, 2.0 1.0, 2.0 0.0))"
+		},
+		{
+		 "POLYGON()",
+		},
+        INTERSECT_TEST
+	);
+
+	FAIL();
 }

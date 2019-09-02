@@ -634,9 +634,9 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
         {
             // Reconstruct each array independently
             int32_t inSubpolySize;
-            int32_t inPointSize;
-
             GPUMemory::copyDeviceToHost(&inSubpolySize, inCol.polyIdx + inDataElementCount - 1, 1);
+
+			int32_t inPointSize;
             GPUMemory::copyDeviceToHost(&inPointSize, inCol.pointIdx + inSubpolySize - 1, 1);
 
             // Complex polygons (reconstruct polyCount and sum it to polyIdx)
