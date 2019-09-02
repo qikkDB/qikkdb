@@ -89,7 +89,7 @@ public:
 
     int64_t ResultLimit;
     int64_t ResultOffset;
-    std::unordered_map<int32_t, std::string> ColumnOrder;
+    std::vector<std::string> ColumnOrder;
 
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext* ctx) override;
 
