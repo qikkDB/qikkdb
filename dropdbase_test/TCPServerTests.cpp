@@ -24,6 +24,7 @@ class DummyClientHandler : public IClientHandler
             (*qrp.mutable_stringpayload()->add_stringdata()) = "test";
             ret->mutable_payloads()->insert({"test", qrp});
             ret->mutable_timing()->insert({"aaa", 2});
+            ret->add_columnorder("test");
             return ret;
         }
         else if (infoMessage.code() == ColmnarDB::NetworkClient::Message::InfoMessage::HEARTBEAT)
@@ -448,6 +449,7 @@ TEST(TCPServer, ServerMessageQuery)
         ColmnarDB::NetworkClient::Message::QueryResponseMessage resp;
         ASSERT_NO_THROW(resp = getNextQueryResult(sock, context));
         ASSERT_EQ(resp.payloads().at("test").stringpayload().stringdata()[0], "test");
+        ASSERT_EQ(resp.columnorder().Get(0), "test");
         ASSERT_NO_THROW(disconnect(sock, context));
         testServer.Abort();
         future.join();

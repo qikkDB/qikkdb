@@ -298,11 +298,9 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     }
     auto ret = (MergeDispatcherResults(dispatcherResults, gpuSqlListener.ResultLimit, gpuSqlListener.ResultOffset));
 
-    for (auto column : gpuSqlListener.ColumnOrder)
+    for (auto& column : gpuSqlListener.ColumnOrder)
     {
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get())
-            ->mutable_columnorder()
-            ->Add(column);
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get())->add_columnorder(column);
     }
 
     return ret;
