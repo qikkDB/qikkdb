@@ -12,6 +12,7 @@
 #include "../QueryEngine/OrderByType.h"
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include <string>
 #include <memory>
 #include <stack>
@@ -89,7 +90,9 @@ public:
 
     int64_t ResultLimit;
     int64_t ResultOffset;
-    std::vector<std::string> ColumnOrder;
+    int32_t CurrentSelectColumnIndex;
+
+    std::map<int32_t, std::string> ColumnOrder;
 
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext* ctx) override;
 

@@ -41,7 +41,7 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database,
   orderByColumnIndex_(0), usingGroupBy_(false), usingAgg_(false), insideAgg_(false),
   insideWhere_(false), insideGroupBy_(false), insideOrderBy_(false), insideAlias_(false),
   insideSelectColumn_(false), isAggSelectColumn_(false), isSelectColumnValid_(false),
-  ResultLimit(std::numeric_limits<int64_t>::max()), ResultOffset(0)
+  ResultLimit(std::numeric_limits<int64_t>::max()), ResultOffset(0), CurrentSelectColumnIndex(0)
 {
     GpuSqlDispatcher::linkTable.clear();
 }
@@ -745,6 +745,7 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext* ctx)
     if (returnColumns_.find(colName) == returnColumns_.end())
     {
         returnColumns_.insert({colName, {retType, alias}});
+        ColumnOrder.insert({CurrentSelectColumnIndex, alias});
 
         dispatcher_.AddArgument<const std::string&>(colName);
         dispatcher_.AddLockRegisterFunction();
@@ -756,6 +757,7 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext* ctx)
 
 void GpuSqlListener::exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext* ctx)
 {
+    int32_t columnOrderNumber = 0;
     for (auto& tableName : loadedTables_)
     {
         const Table& table = database_->GetTables().at(tableName);
@@ -767,6 +769,7 @@ void GpuSqlListener::exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext*
             if (returnColumns_.find(colName) == returnColumns_.end())
             {
                 returnColumns_.insert({colName, {retType, colName}});
+                ColumnOrder.insert({columnOrderNumber++, colName});
 
                 dispatcher_.AddArgument<const std::string&>(colName);
                 dispatcher_.AddLockRegisterFunction();
@@ -1549,12 +1552,8 @@ void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsConte
                 throw AliasRedefinitionException(alias);
             }
             columnAliasContexts_.insert({alias, selectColumn->expression()});
-            ColumnOrder.push_back(alias);
         }
-        else
-        {
-            ColumnOrder.push_back(selectColumn->getText());			        
-		}
+
         columnNumericAliasContexts_.insert({i + 1, selectColumn->expression()});
     }
 }

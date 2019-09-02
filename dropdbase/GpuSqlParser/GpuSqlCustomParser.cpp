@@ -106,18 +106,19 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
             walker.walk(&gpuSqlListener, statement->sqlSelect()->groupByColumns());
         }
 
-        std::vector<GpuSqlParser::SelectColumnContext*> aggColumns;
-        std::vector<GpuSqlParser::SelectColumnContext*> nonAggColumns;
+        int32_t columnOrder = 0;
+        std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> aggColumns;
+        std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> nonAggColumns;
 
         for (auto column : statement->sqlSelect()->selectColumns()->selectColumn())
         {
             if (ContainsAggregation(column))
             {
-                aggColumns.push_back(column);
+                aggColumns.push_back({columnOrder++, column});
             }
             else
             {
-                nonAggColumns.push_back(column);
+                nonAggColumns.push_back({columnOrder++, column});
             }
         }
 
@@ -129,12 +130,14 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 
         for (auto column : aggColumns)
         {
-            walker.walk(&gpuSqlListener, column);
+            gpuSqlListener.CurrentSelectColumnIndex = column.first;
+            walker.walk(&gpuSqlListener, column.second);
         }
 
         for (auto column : nonAggColumns)
         {
-            walker.walk(&gpuSqlListener, column);
+            gpuSqlListener.CurrentSelectColumnIndex = column.first;
+            walker.walk(&gpuSqlListener, column.second);
         }
 
         if (statement->sqlSelect()->orderByColumns())
@@ -300,7 +303,8 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 
     for (auto& column : gpuSqlListener.ColumnOrder)
     {
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get())->add_columnorder(column);
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get())->add_columnorder(
+            column.second);
     }
 
     return ret;
