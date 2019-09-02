@@ -180,7 +180,17 @@ namespace ColmnarDB.ConsoleClient
         /// <param name="rightAlign">right align of format</param>
         public static void PrintDividedOutput(Dictionary<string, System.Collections.IList> result, List<string> orderedColumnNames, int numberOfRows, string format, int leftAlign, int rightAlign)
         {
-            for (int i = 0; i < result.Keys.Count; i++)
+            List<string> orderingColumn = orderedColumnNames;
+           
+            if(orderedColumnNames.Count == 0)
+            {
+                foreach(var column in result.Keys)
+                {
+                    orderingColumn.Add(column);
+                }
+            }
+
+            for (int i = 0; i < orderingColumn.Count; i++)
             {
                 Console.Write("+");
                 for (int j = 0; j < leftAlign + rightAlign; j++)
@@ -192,7 +202,7 @@ namespace ColmnarDB.ConsoleClient
             Console.WriteLine("+");
 
             //Prints names of columns
-            foreach (var column in orderedColumnNames)
+            foreach (var column in orderingColumn)
             {
                 string replacement = Regex.Replace(column, @"\t|\n|\r", "");
                 if (replacement.Length > rightAlign)
@@ -210,7 +220,7 @@ namespace ColmnarDB.ConsoleClient
 
             //Print line between names of columns and values
             //23 is a result of format sum 
-            for (int i = 0; i < orderedColumnNames.Count; i++)
+            for (int i = 0; i < orderingColumn.Count; i++)
             {
                 Console.Write("+");
                 for (int j = 0; j < leftAlign + rightAlign; j++)
@@ -225,7 +235,7 @@ namespace ColmnarDB.ConsoleClient
             var columnIndex = 0;
             for (int i = 0; i < numberOfRows; i++)
             {
-                foreach (var column in orderedColumnNames)
+                foreach (var column in orderingColumn)
                 {
                     columnIndex += 1;
 
@@ -244,7 +254,7 @@ namespace ColmnarDB.ConsoleClient
                 Console.WriteLine("|");
             }
 
-            for (int i = 0; i < result.Keys.Count; i++)
+            for (int i = 0; i < orderingColumn.Count; i++)
             {
                 Console.Write("+");
                 for (int j = 0; j < leftAlign + rightAlign; j++)
