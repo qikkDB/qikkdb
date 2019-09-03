@@ -223,7 +223,7 @@ void PrintGpuBuffer(const char* title, T* bufferGpu, int32_t dataElementCount)
     std::unique_ptr<T[]> bufferCpu(new T[dataElementCount]);
     GPUMemory::copyDeviceToHost(bufferCpu.get(), bufferGpu, dataElementCount);
 
-    std::cout << title << ": ";
+    std::cout << title << " (" << reinterpret_cast<uintptr_t>(bufferGpu) << "): ";
 
     for (int32_t i = 0; i < dataElementCount; i++)
     {

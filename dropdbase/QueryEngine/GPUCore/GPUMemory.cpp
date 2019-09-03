@@ -62,7 +62,7 @@ void GPUMemory::PrintGpuBuffer<NativeGeoPoint>(const char* title, NativeGeoPoint
     std::unique_ptr<NativeGeoPoint[]> bufferCpu(new NativeGeoPoint[dataElementCount]);
     GPUMemory::copyDeviceToHost(bufferCpu.get(), bufferGpu, dataElementCount);
 
-    std::cout << title << ": ";
+    std::cout << title << " (" << reinterpret_cast<uintptr_t>(bufferGpu) << "): ";
 
     for (int32_t i = 0; i < dataElementCount; i++)
     {
