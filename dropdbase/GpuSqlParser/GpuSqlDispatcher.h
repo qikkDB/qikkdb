@@ -661,6 +661,8 @@ public:
                                       int8_t* nullMaskPtr = nullptr);
     std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> FindComplexPolygon(std::string colName);
     std::tuple<GPUMemory::GPUString, int32_t, int8_t*> FindStringColumn(const std::string& colName);
+    void RewriteStringColumn(const std::string& colName,
+            GPUMemory::GPUString newStruct, int32_t newSize, int8_t* newNullMask);
     NativeGeoPoint* InsertConstPointGpu(ColmnarDB::Types::Point& point);
     GPUMemory::GPUPolygon InsertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
     GPUMemory::GPUString InsertConstStringGpu(const std::string& str);

@@ -987,8 +987,9 @@ protected:
             const bool keyIsNull = ((keyChar >> (i % 8)) & 1);
             const char valueChar = valuesNullMaskResult[i / 8];
             const bool valueIsNull = ((valueChar >> (i % 8)) & 1);
-            std::string key = keyIsNull? "x" : payloadKeys.stringpayload().stringdata()[i];
+            std::string key = keyIsNull? "" : payloadKeys.stringpayload().stringdata()[i];
             int32_t value = valueIsNull? -1 : payloadValues.intpayload().intdata()[i];
+            std::cout << key << " " << value << std::endl;
             ASSERT_FALSE(expectedResult.find({key, keyIsNull}) == expectedResult.end()) <<
                     " key " << (keyIsNull? "NULL" : key) << " not found";
             

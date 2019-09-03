@@ -1019,6 +1019,24 @@ std::tuple<GPUMemory::GPUString, int32_t, int8_t*> GpuSqlDispatcher::FindStringC
                                allocatedPointers_.at(colName + "_stringIndices").GpuNullMaskPtr));
 }
 
+void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
+        GPUMemory::GPUString newStruct, int32_t newElementCount, int8_t* newNullMask)
+{
+    // Find corresponding pointers
+    PointerAllocation& stringIndices = allocatedPointers_.at(colName + "_stringIndices");
+    PointerAllocation& allChars = allocatedPointers_.at(colName + "_allChars");
+
+    // Rewrite stringIndices
+    stringIndices.GpuPtr = reinterpret_cast<uintptr_t>(newStruct.stringIndices);
+    stringIndices.ElementCount = newElementCount;
+    stringIndices.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(newNullMask);
+
+    // Rewrite allChars
+    allChars.GpuPtr = reinterpret_cast<uintptr_t>(newStruct.allChars);
+    allChars.ElementCount = newElementCount;
+    allChars.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(newNullMask);
+}
+
 GPUMemory::GPUString GpuSqlDispatcher::InsertConstStringGpu(const std::string& str)
 {
     std::string name = "constString" + std::to_string(constStringCounter_);
