@@ -155,6 +155,11 @@ public:
         return saveNecessary_;
     }
 
+	virtual void SetSaveNecessaryToFalse() override
+    {
+        saveNecessary_ = false;
+    }
+
     virtual void SetColumnName(std::string newName) override
     {
         name_ = newName;
@@ -180,11 +185,6 @@ public:
     T GetSum()
     {
         return sum_;
-    }
-
-    void SetSaveNecessaryToFalse()
-    {
-        saveNecessary_ = false;
     }
 
     /// <summary>

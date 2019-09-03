@@ -288,21 +288,24 @@ void Database::Persist(const char* path)
 	PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
 
 	// write files .col:
-	for (const auto& table : tables)
+	for (auto& table : tables)
 	{
-		const auto& columns = table.second.GetColumns();
+		auto& columns = table.second.GetColumns();
 
 		std::vector<std::thread> threads;
 
 		for (const auto& column : columns)
 		{
 			threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name, std::ref(table));
+            column.second.get()->SetSaveNecessaryToFalse();
 		}
 
 		for (int j = 0; j < columns.size(); j++)
 		{
 			threads[j].join();
 		}
+
+		table.second.SetSaveNecessaryToFalse();
 	}
 
 	BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk.";
@@ -327,7 +330,7 @@ void Database::PersistOnlyModified(const char* path)
     PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
 
     // write files .col:
-    for (const auto& table : tables)
+    for (auto& table : tables)
     {
         if (table.second.GetSaveNecessary())
         {
@@ -335,12 +338,13 @@ void Database::PersistOnlyModified(const char* path)
 
             std::vector<std::thread> threads;
 
-            for (const auto& column : columns)
+            for (auto& column : columns)
             {
                 if (column.second.get()->GetSaveNecessary())
                 {
                     threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name,
                                          std::ref(table));
+                    column.second.get()->SetSaveNecessaryToFalse();
                 }
             }
 
@@ -348,6 +352,8 @@ void Database::PersistOnlyModified(const char* path)
             {
                 threads[j].join();
             }
+
+			table.second.SetSaveNecessaryToFalse();
         }
     }
 
