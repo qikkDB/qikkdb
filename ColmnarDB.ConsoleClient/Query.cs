@@ -180,18 +180,7 @@ namespace ColmnarDB.ConsoleClient
         /// <param name="rightAlign">right align of format</param>
         public static void PrintDividedOutput(Dictionary<string, System.Collections.IList> result, List<string> orderedColumnNames, int numberOfRows, string format, int leftAlign, int rightAlign)
         {
-            /*List<string> orderingColumn = orderedColumnNames;
-           
-            if(orderedColumnNames.Count == 0)
-            {
-                foreach(var column in result.Keys)
-                {
-                    orderingColumn.Add(column);
-                }
-            }
-            */
 
-            //for (int i = 0; i < orderingColumn.Count; i++)
             for (int i = 0; i < orderedColumnNames.Count; i++)
             {
                 Console.Write("+");
@@ -204,7 +193,6 @@ namespace ColmnarDB.ConsoleClient
             Console.WriteLine("+");
 
             //Prints names of columns
-            //foreach (var column in orderingColumn)
             foreach (var column in orderedColumnNames)
             {
                 string replacement = Regex.Replace(column, @"\t|\n|\r", "");
@@ -223,7 +211,6 @@ namespace ColmnarDB.ConsoleClient
 
             //Print line between names of columns and values
             //23 is a result of format sum 
-            //for (int i = 0; i < orderingColumn.Count; i++)
             for (int i = 0; i < orderedColumnNames.Count; i++)
             {
                 Console.Write("+");
@@ -239,7 +226,6 @@ namespace ColmnarDB.ConsoleClient
             var columnIndex = 0;
             for (int i = 0; i < numberOfRows; i++)
             {
-                //foreach (var column in orderingColumn)
                 foreach (var column in orderedColumnNames)
                 {
                     columnIndex += 1;
@@ -259,7 +245,6 @@ namespace ColmnarDB.ConsoleClient
                 Console.WriteLine("|");
             }
 
-            //for (int i = 0; i < orderingColumn.Count; i++)
             for (int i = 0; i < orderedColumnNames.Count; i++)
             {
                 Console.Write("+");
