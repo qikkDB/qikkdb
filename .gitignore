@@ -277,3 +277,5 @@ configuration/main_config
 configuration/log_config
 
 .antlr
+
+TellStoryDB.Setup.Linux/out

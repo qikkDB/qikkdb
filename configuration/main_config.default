@@ -1,6 +1,6 @@
 # db settings
 UsingGPU: true
-Dir: ../dropdbase
+Dir: ../bin/
 DatabaseDir: ../databases/
 BlockSize: 262144
 BlockCount: 1024
