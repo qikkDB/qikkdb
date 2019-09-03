@@ -41,8 +41,8 @@ __device__ NativeGeoPoint CastNativeGeoPoint(char* str, int32_t length)
 // Cast single WKT point matching e.g. 'POINT(122.123 123.23)'
 __device__ NativeGeoPoint CastWKTPoint(char* str, int32_t length)
 {
-    // + 6 represents length of "POINT(" string and - 1 accounts for the trailing parenthesis ")"
-    return CastNativeGeoPoint(str + 6, length - 1);
+    // + 6 represents length of "POINT(" string and lenght - 7 accounts also for the trailing parenthesis ")"
+    return CastNativeGeoPoint(str + 6, length - 7);
 }
 
 template <>
