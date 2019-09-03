@@ -323,9 +323,9 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString* outStringCol
                 size_t outBitMaskSize =
                     (*outDataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8);
                 GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
-                kernel_reconstruct_null_mask<<<context.calcGridDim(*outDataElementCount), context.getBlockDim()>>>(
+                kernel_reconstruct_null_mask<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
                     reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(),
-                    inMask, *outDataElementCount);
+                    inMask, inDataElementCount);
             }
         }
         else // Empty result set
@@ -629,9 +629,9 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
                 size_t outBitMaskSize =
                     (*outDataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8);
                 GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
-                kernel_reconstruct_null_mask<<<context.calcGridDim(*outDataElementCount), context.getBlockDim()>>>(
+                kernel_reconstruct_null_mask<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
                     reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(),
-                    inMask, *outDataElementCount);
+                    inMask, inDataElementCount);
             }
         }
         else // Empty result set
