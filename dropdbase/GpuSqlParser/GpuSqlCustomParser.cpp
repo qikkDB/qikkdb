@@ -303,8 +303,8 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 
     for (auto& column : gpuSqlListener.ColumnOrder)
     {
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get())->add_columnorder(
-            column.second);
+        std::string colName = column.second.front() == '$' ? column.second.substr(1) : column.second;
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get())->add_columnorder(colName);
     }
 
     return ret;
