@@ -961,6 +961,7 @@ void GpuSqlListener::exitGroupByColumn(GpuSqlParser::GroupByColumnContext* ctx)
 void GpuSqlListener::exitShowDatabases(GpuSqlParser::ShowDatabasesContext* ctx)
 {
     dispatcher_.AddShowDatabasesFunction();
+    ColumnOrder.insert({0, "Databases"});
 }
 
 /// Method that executes on exit of SHOW TABLES command
@@ -996,6 +997,7 @@ void GpuSqlListener::exitShowTables(GpuSqlParser::ShowTablesContext* ctx)
     }
 
     dispatcher_.AddArgument<const std::string&>(db);
+    ColumnOrder.insert({0, db});
 }
 
 /// Method that executes on exit of SHOW COLUMNS command
@@ -1044,6 +1046,9 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext* ctx)
 
     dispatcher_.AddArgument<const std::string&>(db);
     dispatcher_.AddArgument<const std::string&>(table);
+
+    ColumnOrder.insert({0, table + "_columns"});
+    ColumnOrder.insert({1, table + "_types"});
 }
 
 void GpuSqlListener::exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext* ctx)
