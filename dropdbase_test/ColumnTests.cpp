@@ -740,7 +740,7 @@ TEST(ColumnTests, InsertNull)
 		ASSERT_TRUE(std::isnan(dataInDoubleBlock[i]));
 		ASSERT_EQ("POINT(0 0)" , PointFactory::WktFromPoint(dataInPointBlock[i]));
 		ASSERT_EQ("POLYGON((0 0, 0 0))", ComplexPolygonFactory::WktFromPolygon(dataInPolygonBlock[i]));
-		ASSERT_EQ("", dataInStringBlock[i]);
+		ASSERT_EQ(" ", dataInStringBlock[i]);
 	}
 }
 

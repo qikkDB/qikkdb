@@ -39,7 +39,7 @@ std::vector<int8_t> ColumnBase<int8_t>::NullArray(int length)
 template <>
 std::vector<std::string> ColumnBase<std::string>::NullArray(int length)
 {
-    return std::vector<std::string>(length, "");
+    return std::vector<std::string>(length, " ");
 }
 
 template <>
