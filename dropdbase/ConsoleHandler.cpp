@@ -63,5 +63,6 @@ void RegisterCtrlCHandler(TCPServer<TCPClientHandler, ClientPoolWorker>* server)
     sigIntHandler.sa_flags = 0;
 
     sigaction(SIGINT, &sigIntHandler, NULL);
+    sigaction(SIGTERM, &sigIntHandler, NULL);
 #endif
 }
