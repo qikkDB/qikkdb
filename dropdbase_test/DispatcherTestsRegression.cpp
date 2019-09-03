@@ -375,3 +375,18 @@ TEST(DispatcherTestsRegression, CreateIndexWrongSemantic)
                                "CREATE TABLE tblA (colA GEO_POLYGON, INDEX ind (colA));");
     ASSERT_THROW(parser2.Parse(), IndexColumnDataTypeException);
 }
+
+TEST(DispatcherTestsRegression, FixedColumnOrdering)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1, SUM(colInteger2) FROM TableA GROUP BY "
+                              "colInteger1;");
+
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->columnorder().Get(0), "TableA.colInteger1");
+    ASSERT_EQ(result->columnorder().Get(1), "SUM(colInteger2)");
+}
