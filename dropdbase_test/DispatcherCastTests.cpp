@@ -106,6 +106,38 @@ protected:
             ASSERT_EQ(expectedResult[i], payloadCast.stringpayload().stringdata()[i]) << i;
         }
     }
+
+    void CastPolygonToStringGenericTest(std::vector<std::string> polygonWkts, std::vector<std::string> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
+        castDatabase->CreateTable(columns, tableName.c_str());
+
+        std::vector<ColmnarDB::Types::ComplexPolygon> polygons;
+
+        std::transform(polygonWkts.data(), polygonWkts.data() + polygonWkts.size(), std::back_inserter(polygons),
+                       [](const std::string& polygonWkt) -> ColmnarDB::Types::ComplexPolygon {
+                           return ComplexPolygonFactory::FromWkt(polygonWkt);
+                       });
+
+        reinterpret_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+            castDatabase->GetTables().at(tableName).GetColumns().at("colPolygon").get())
+            ->InsertData(polygons);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colPolygon AS STRING) FROM " + tableName + ";");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadCast = result->payloads().at("CAST(colPolygonASSTRING)");
+
+        ASSERT_EQ(expectedResult.size(), payloadCast.stringpayload().stringdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadCast.stringpayload().stringdata_size(); i++)
+        {
+            ASSERT_EQ(expectedResult[i], payloadCast.stringpayload().stringdata()[i]) << i;
+        }
+    }
 };
 
 TEST_F(DispatcherCastTests, StringToIntTest)
@@ -134,4 +166,57 @@ TEST_F(DispatcherCastTests, StringToPointTest)
                                  {"POINT(12.2200 12.3450)", "POINT(13.0000 13.3456)", "POINT(14.2670 14.0000)",
                                   "POINT(15.2000 15.3000)", "POINT(16.2000 16.3000)", "POINT(17.2000 17.3000)",
                                   "POINT(18.2000 18.3000)", "POINT(18.2000 18.3000)"});
+}
+
+TEST_F(DispatcherCastTests, PolygonToStringTest)
+{
+    CastPolygonToStringGenericTest(
+        {"POLYGON((4.0000 4.0000, 12.0000 4.0000, 16.0000 16.0000, 4.0000 12.0000, 4.0000 "
+         "4.0000), "
+         "(5.0000 5.0000, 7.0000 5.0000, 7.0000 7.0000, 5.0000 5.0000))",
+         "POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 "
+         "4.5000, 2.6789 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 "
+         "4.5000))",
+         "POLYGON((4.0000 4.0000, 12.0000 4.0000, 16.0000 16.0000, 4.0000 12.0000, 4.0000 "
+         "4.0000), "
+         "(5.0000 5.0000, 7.0000 5.0000, 7.0000 7.0000, 5.0000 5.0000))",
+         "POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 "
+         "4.5000, 2.6789 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 "
+         "4.5000))",
+         "POLYGON((4.0000 4.0000, 12.0000 4.0000, 16.0000 16.0000, 4.0000 12.0000, 4.0000 "
+         "4.0000), "
+         "(5.0000 5.0000, 7.0000 5.0000, 7.0000 7.0000, 5.0000 5.0000))",
+         "POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 "
+         "4.5000, 2.6789 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 "
+         "4.5000))",
+         "POLYGON((4.0000 4.0000, 12.0000 4.0000, 16.0000 16.0000, 4.0000 12.0000, 4.0000 "
+         "4.0000), "
+         "(5.0000 5.0000, 7.0000 5.0000, 7.0000 7.0000, 5.0000 5.0000))",
+         "POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 "
+         "4.5000, 2.6789 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 "
+         "4.5000))"},
+        {"POLYGON((4.0000 4.0000, 12.0000 4.0000, 16.0000 16.0000, 4.0000 12.0000, 4.0000 "
+         "4.0000), "
+         "(5.0000 5.0000, 7.0000 5.0000, 7.0000 7.0000, 5.0000 5.0000))",
+         "POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 "
+         "4.5000, 2.6789 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 "
+         "4.5000))",
+         "POLYGON((4.0000 4.0000, 12.0000 4.0000, 16.0000 16.0000, 4.0000 12.0000, 4.0000 "
+         "4.0000), "
+         "(5.0000 5.0000, 7.0000 5.0000, 7.0000 7.0000, 5.0000 5.0000))",
+         "POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 "
+         "4.5000, 2.6789 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 "
+         "4.5000))",
+         "POLYGON((4.0000 4.0000, 12.0000 4.0000, 16.0000 16.0000, 4.0000 12.0000, 4.0000 "
+         "4.0000), "
+         "(5.0000 5.0000, 7.0000 5.0000, 7.0000 7.0000, 5.0000 5.0000))",
+         "POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 "
+         "4.5000, 2.6789 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 "
+         "4.5000))",
+         "POLYGON((4.0000 4.0000, 12.0000 4.0000, 16.0000 16.0000, 4.0000 12.0000, 4.0000 "
+         "4.0000), "
+         "(5.0000 5.0000, 7.0000 5.0000, 7.0000 7.0000, 5.0000 5.0000))",
+         "POLYGON((-7.0000 -7.0000, -0.6000 3.2000, -9.9900 89.5000, -7.0000 -7.0000), (3.2000 "
+         "4.5000, 2.6789 4.2000, 150.1305 4.1000, 10.5000 2.1000, 0.6000 2.5000, 3.2000 "
+         "4.5000))"});
 }

@@ -878,6 +878,10 @@ public:
 	template <typename OUT>
     int32_t CastStringConst();
 
+    int32_t CastPolygonCol();
+
+    int32_t CastPolygonConst();
+
     int32_t Between();
 
     template <typename T>

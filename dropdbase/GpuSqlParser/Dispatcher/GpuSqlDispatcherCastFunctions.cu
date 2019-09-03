@@ -1,4 +1,5 @@
 #include "GpuSqlDispatcherCastFunctions.h"
+#include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include <array>
 
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::castToIntFunctions_ = {
@@ -109,7 +110,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, float>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::CastPolygonConst,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, std::string>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, int8_t>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, int32_t>,
@@ -117,7 +118,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, float>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, double>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::CastPolygonCol,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, std::string>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, int8_t>};
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::castToInt8TFunctions_ = {
@@ -137,3 +138,62 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int8_t, ColmnarDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int8_t, std::string>,
     &GpuSqlDispatcher::CastNumericCol<int8_t, int8_t>};
+
+
+int32_t GpuSqlDispatcher::CastPolygonCol()
+{
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    int32_t loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(colName);
+    if (loadFlag)
+    {
+        return loadFlag;
+    }
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastPolygonCol: " << colName << " " << reg << '\n';
+
+    auto column = FindComplexPolygon(colName);
+    int32_t retSize = std::get<1>(column);
+
+    if (!IsRegisterAllocated(reg))
+    {
+        GPUMemory::GPUString result;
+        GPUReconstruct::ConvertPolyColToWKTCol(&result, std::get<0>(column), retSize);
+        if (std::get<2>(column))
+        {
+            int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+            int8_t* nullMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
+            FillStringRegister(result, reg, retSize, true, nullMask);
+            GPUMemory::copyDeviceToDevice(nullMask, std::get<2>(column), bitMaskSize);
+        }
+        else
+        {
+            FillStringRegister(result, reg, retSize, true);
+        }
+    }
+
+    return 0;
+}
+
+int32_t GpuSqlDispatcher::CastPolygonConst()
+{
+    auto constWkt = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastPolygonConst: " << constWkt << " " << reg << '\n';
+
+	ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constWkt);
+    GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(constPolygon);
+
+    int32_t retSize = 1;
+
+    if (!IsRegisterAllocated(reg))
+    {
+        GPUMemory::GPUString result;
+        GPUReconstruct::ConvertPolyColToWKTCol(&result, gpuPolygon, retSize);
+        FillStringRegister(result, reg, retSize, true);
+    }
+
+    return 0;
+}
