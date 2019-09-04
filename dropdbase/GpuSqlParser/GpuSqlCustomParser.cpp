@@ -36,7 +36,7 @@ GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database>& database
 /// All real dispatcher instances are exucuted in separate threads and their results are aggregated
 /// Limit anf Offset are applied on final result set
 /// <returns="responseMessage">Final protobuf response message of executed statement (query result set)</returns>
-std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
+DispatcherResult GpuSqlCustomParser::Parse()
 {
     Context& context = Context::getInstance();
     dispatchers_.clear();
@@ -231,7 +231,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     }
     if (wasAborted_)
     {
-        return nullptr;
+		return {};
     }
     int32_t threadCount = isSingleGpuStatement_ ? 1 : context.getDeviceCount();
 
@@ -240,7 +240,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 
     std::vector<std::thread> dispatcherFutures;
     std::vector<std::exception_ptr> dispatcherExceptions;
-    std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults;
+    std::vector<DispatcherResult> dispatcherResults;
     std::vector<std::string> lockList;
     if (database_)
     {
@@ -294,7 +294,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 
     if (wasAborted_)
     {
-        return nullptr;
+		return {};
     }
     auto ret = (MergeDispatcherResults(dispatcherResults, gpuSqlListener.ResultLimit, gpuSqlListener.ResultOffset));
 
@@ -316,34 +316,22 @@ void GpuSqlCustomParser::InterruptQueryExecution()
 /// <param="resultLimit">Row limit</param>
 /// <param="resultOffset">Row offset</param>
 /// <returns="reponseMessage">Merged response message</returns>
-std::unique_ptr<google::protobuf::Message>
-GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,
+DispatcherResult
+GpuSqlCustomParser::MergeDispatcherResults(std::vector<DispatcherResult>& dispatcherResults,
                                            int64_t resultLimit,
                                            int64_t resultOffset)
 {
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Limit: " << resultLimit << '\n';
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Offset: " << resultOffset << '\n';
 
-    std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> responseMessage =
-        std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
+	DispatcherResult responseMessage;
     for (auto& partialResult : dispatcherResults)
     {
-        ColmnarDB::NetworkClient::Message::QueryResponseMessage* partialMessage =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(partialResult.get());
-        for (auto& partialPayload : partialMessage->payloads())
-        {
-            std::string key = partialPayload.first;
-            ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
-            GpuSqlDispatcher::MergePayload(key, responseMessage.get(), payload);
-            if (partialMessage->nullbitmasks().find(key) != partialMessage->nullbitmasks().end())
-            {
-                const std::string& partialBitMask = partialMessage->nullbitmasks().at(key);
-                GpuSqlDispatcher::MergePayloadBitmask(key, responseMessage.get(), partialBitMask);
-            }
-        }
+		responseMessage.MergeData(partialResult);
+		responseMessage.MergeNullMasks(partialResult);
     }
 
-    TrimResponseMessage(responseMessage.get(), resultLimit, resultOffset);
+    TrimResponseMessage(responseMessage, resultLimit, resultOffset);
     return std::move(responseMessage);
 }
 
@@ -351,129 +339,123 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
 /// <param="responseMessage">Response message to be trimmed</param>
 /// <param="limit">Row limit</param>
 /// <param="offset">Row offset</param>
-void GpuSqlCustomParser::TrimResponseMessage(google::protobuf::Message* responseMessage, int64_t limit, int64_t offset)
+void GpuSqlCustomParser::TrimResponseMessage(DispatcherResult& responseMessage, int64_t limit, int64_t offset)
 {
-    auto queryResponseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(responseMessage);
-    for (auto& queryPayload : *queryResponseMessage->mutable_payloads())
+    for (auto& queryPayload : responseMessage.ResultData)
     {
         std::string key = queryPayload.first;
-        ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload = queryPayload.second;
-        TrimPayload(payload, limit, offset);
+        TrimPayload(queryPayload.second, limit, offset);
     }
+}
+
+/// Trims single payload of result message according to limit and offset
+/// <param="payload">Payload to be trimmed</param>
+/// <param="nullMask">Null mask of the payload</param>
+/// <param="limit">Row limit</param>
+/// <param="offset">Row offset</param>
+void GpuSqlCustomParser::TrimPayload(std::unique_ptr<IVariantArray>& payload,
+	std::string& nullMask,
+	int64_t limit,
+	int64_t offset)
+{
+	int64_t payloadSize = payload->GetSize();
+	int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+	int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+	TrimPayload(payload, limit, offset);
+	int64_t byteOffset = (clampedOffset) / (sizeof(int8_t) * 8);
+	nullMask.erase(0, byteOffset);
+	int32_t shiftOffset = (clampedOffset) % (sizeof(int8_t) * 8);
+	int8_t carry = 0;
+	nullMask[0] >>= shiftOffset;
+	for (size_t i = 1; i < nullMask.size(); i++)
+	{
+		int8_t carry = (nullMask[i] & ((1 << shiftOffset) - 1)) << ((sizeof(int8_t) * 8) - shiftOffset);
+		nullMask[i - 1] |= carry;
+		nullMask[i] >>= shiftOffset;
+	}
+	int64_t byteLimit = (clampedLimit) / (sizeof(int8_t) * 8);
+	nullMask.erase(byteLimit + 1);
 }
 
 /// Trims single payload of result message according to limit and offset
 /// <param="payload">Payload to be trimmed</param>
 /// <param="limit">Row limit</param>
 /// <param="offset">Row offset</param>
-void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlCustomParser::TrimPayload(std::unique_ptr<IVariantArray>& payload,
                                      int64_t limit,
                                      int64_t offset)
 {
-    switch (payload.payload_case())
+	int64_t payloadSize = payload->GetSize();
+	int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+	int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+    switch (payload->GetType())
     {
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+    case COLUMN_INT:
     {
-        int64_t payloadSize = payload.intpayload().intdata().size();
-        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
-
-        auto begin = payload.mutable_intpayload()->mutable_intdata()->begin();
-        payload.mutable_intpayload()->mutable_intdata()->erase(begin, begin + clampedOffset);
-
-        begin = payload.mutable_intpayload()->mutable_intdata()->begin();
-        auto end = payload.mutable_intpayload()->mutable_intdata()->end();
-        payload.mutable_intpayload()->mutable_intdata()->erase(begin + clampedLimit, end);
+		VariantArray<int32_t>* data = dynamic_cast<VariantArray<int32_t>*>(payload.get());
+		std::unique_ptr<IVariantArray> newData = std::make_unique <VariantArray<int32_t>>(clampedLimit);
+		VariantArray<int32_t>* newDataPtr = dynamic_cast<VariantArray<int32_t>*>(newData.get());
+		std::copy(data->getData() + clampedOffset, data->getData() + clampedOffset + clampedLimit, newDataPtr->getData());
+		payload.swap(newData);
     }
     break;
 
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+	case COLUMN_FLOAT:
     {
-        int64_t payloadSize = payload.floatpayload().floatdata().size();
-        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
-
-        auto begin = payload.mutable_floatpayload()->mutable_floatdata()->begin();
-        payload.mutable_floatpayload()->mutable_floatdata()->erase(begin, begin + clampedOffset);
-
-        begin = payload.mutable_floatpayload()->mutable_floatdata()->begin();
-        auto end = payload.mutable_floatpayload()->mutable_floatdata()->end();
-        payload.mutable_floatpayload()->mutable_floatdata()->erase(begin + clampedLimit, end);
+		VariantArray<float>* data = dynamic_cast<VariantArray<float>*>(payload.get());
+		std::unique_ptr<IVariantArray> newData = std::make_unique <VariantArray<float>>(clampedLimit);
+		VariantArray<float>* newDataPtr = dynamic_cast<VariantArray<float>*>(newData.get());
+		std::copy(data->getData() + clampedOffset, data->getData() + clampedOffset + clampedLimit, newDataPtr->getData());
+		payload.swap(newData);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+    case COLUMN_LONG:
     {
-        int64_t payloadSize = payload.int64payload().int64data().size();
-        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
-
-        auto begin = payload.mutable_int64payload()->mutable_int64data()->begin();
-        payload.mutable_int64payload()->mutable_int64data()->erase(begin, begin + clampedOffset);
-
-        begin = payload.mutable_int64payload()->mutable_int64data()->begin();
-        auto end = payload.mutable_int64payload()->mutable_int64data()->end();
-        payload.mutable_int64payload()->mutable_int64data()->erase(begin + clampedLimit, end);
+		VariantArray<int64_t>* data = dynamic_cast<VariantArray<int64_t>*>(payload.get());
+		std::unique_ptr<IVariantArray> newData = std::make_unique <VariantArray<int64_t>>(clampedLimit);
+		VariantArray<int64_t>* newDataPtr = dynamic_cast<VariantArray<int64_t>*>(newData.get());
+		std::copy(data->getData() + clampedOffset, data->getData() + clampedOffset + clampedLimit, newDataPtr->getData());
+		payload.swap(newData);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+    case COLUMN_DOUBLE:
     {
-        int64_t payloadSize = payload.doublepayload().doubledata().size();
-        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
-
-        auto begin = payload.mutable_doublepayload()->mutable_doubledata()->begin();
-        payload.mutable_doublepayload()->mutable_doubledata()->erase(begin, begin + clampedOffset);
-
-        begin = payload.mutable_doublepayload()->mutable_doubledata()->begin();
-        auto end = payload.mutable_doublepayload()->mutable_doubledata()->end();
-        payload.mutable_doublepayload()->mutable_doubledata()->erase(begin + clampedLimit, end);
+		VariantArray<double>* data = dynamic_cast<VariantArray<double>*>(payload.get());
+		std::unique_ptr<IVariantArray> newData = std::make_unique <VariantArray<double>>(clampedLimit);
+		VariantArray<double>* newDataPtr = dynamic_cast<VariantArray<double>*>(newData.get());
+		std::copy(data->getData() + clampedOffset, data->getData() + clampedOffset + clampedLimit, newDataPtr->getData());
+		payload.swap(newData);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+    case COLUMN_POINT:
     {
-        int64_t payloadSize = payload.pointpayload().pointdata().size();
-        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
-
-        auto begin = payload.mutable_pointpayload()->mutable_pointdata()->begin();
-        payload.mutable_pointpayload()->mutable_pointdata()->erase(begin, begin + clampedOffset);
-
-        begin = payload.mutable_pointpayload()->mutable_pointdata()->begin();
-        auto end = payload.mutable_pointpayload()->mutable_pointdata()->end();
-        payload.mutable_pointpayload()->mutable_pointdata()->erase(begin + clampedLimit, end);
+		VariantArray<ColmnarDB::Types::Point>* data = dynamic_cast<VariantArray<ColmnarDB::Types::Point>*>(payload.get());
+		std::unique_ptr<IVariantArray> newData = std::make_unique <VariantArray<ColmnarDB::Types::Point>>(clampedLimit);
+		VariantArray<ColmnarDB::Types::Point>* newDataPtr = dynamic_cast<VariantArray<ColmnarDB::Types::Point>*>(newData.get());
+		std::copy(data->getData() + clampedOffset, data->getData() + clampedOffset + clampedLimit, newDataPtr->getData());
+		payload.swap(newData);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+    case COLUMN_POLYGON:
     {
-        int64_t payloadSize = payload.polygonpayload().polygondata().size();
-        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
-
-        auto begin = payload.mutable_polygonpayload()->mutable_polygondata()->begin();
-        payload.mutable_polygonpayload()->mutable_polygondata()->erase(begin, begin + clampedOffset);
-
-        begin = payload.mutable_polygonpayload()->mutable_polygondata()->begin();
-        auto end = payload.mutable_polygonpayload()->mutable_polygondata()->end();
-        payload.mutable_polygonpayload()->mutable_polygondata()->erase(begin + clampedLimit, end);
+		VariantArray<ColmnarDB::Types::ComplexPolygon>* data = dynamic_cast<VariantArray<ColmnarDB::Types::ComplexPolygon>*>(payload.get());
+		std::unique_ptr<IVariantArray> newData = std::make_unique <VariantArray<ColmnarDB::Types::ComplexPolygon>>(clampedLimit);
+		VariantArray<ColmnarDB::Types::ComplexPolygon>* newDataPtr = dynamic_cast<VariantArray<ColmnarDB::Types::ComplexPolygon>*>(newData.get());
+		std::copy(data->getData() + clampedOffset, data->getData() + clampedOffset + clampedLimit, newDataPtr->getData());
+		payload.swap(newData);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
-    {
-        int64_t payloadSize = payload.stringpayload().stringdata().size();
-        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
-
-        auto begin = payload.mutable_stringpayload()->mutable_stringdata()->begin();
-        payload.mutable_stringpayload()->mutable_stringdata()->erase(begin, begin + clampedOffset);
-
-        begin = payload.mutable_stringpayload()->mutable_stringdata()->begin();
-        auto end = payload.mutable_stringpayload()->mutable_stringdata()->end();
-        payload.mutable_stringpayload()->mutable_stringdata()->erase(begin + clampedLimit, end);
+    case COLUMN_STRING:
+	{
+		VariantArray<std::string>* data = dynamic_cast<VariantArray<std::string>*>(payload.get());
+		std::unique_ptr<IVariantArray> newData = std::make_unique <VariantArray<std::string>>(clampedLimit);
+		VariantArray<std::string>* newDataPtr = dynamic_cast<VariantArray<std::string>*>(newData.get());
+		std::copy(data->getData() + clampedOffset, data->getData() + clampedOffset + clampedLimit, newDataPtr->getData());
+		payload.swap(newData);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::PAYLOAD_NOT_SET:
-        break;
+	default:
+		break;
     }
 }
 

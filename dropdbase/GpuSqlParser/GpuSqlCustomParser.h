@@ -42,13 +42,14 @@ class GpuSqlCustomParser
 
 private:
     const std::shared_ptr<Database>& database_;
-    void TrimResponseMessage(google::protobuf::Message* responseMessage, int64_t limit, int64_t offset);
-    void TrimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload, int64_t limit, int64_t offset);
+    void TrimResponseMessage(DispatcherResult& responseMessage, int64_t limit, int64_t offset);
+    void TrimPayload(std::unique_ptr<IVariantArray>& payload, int64_t limit, int64_t offset);
+	void TrimPayload(std::unique_ptr<IVariantArray>& payload, std::string& nullMask, int64_t limit, int64_t offset);
     bool isSingleGpuStatement_;
     bool wasAborted_;
     std::string query_;
-    std::unique_ptr<google::protobuf::Message>
-    MergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,
+	DispatcherResult
+    MergeDispatcherResults(std::vector<DispatcherResult>& dispatcherResults,
                            int64_t resultLimit,
                            int64_t resultOffset);
 
@@ -58,7 +59,7 @@ private:
 public:
     GpuSqlCustomParser(const std::shared_ptr<Database>& database, const std::string& query);
 
-    std::unique_ptr<google::protobuf::Message> Parse();
+	DispatcherResult Parse();
     void InterruptQueryExecution();
     bool ContainsAggregation(GpuSqlParser::SelectColumnContext* ctx);
 };
