@@ -1,10 +1,12 @@
+#include <boost/log/trivial.hpp>
+#include <cstdint>
+
 #include "Table.h"
 #include "Database.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 #include "ColumnBase.h"
 #include "QueryEngine/NullConstants.cuh"
-#include <cstdint>
 
 
 #ifndef __CUDACC__
@@ -692,6 +694,7 @@ void Table::SetSortingColumns(std::vector<std::string> columns)
 {
     sortingColumns = columns;
     saveNecesarry_ = true;
+    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
 bool Table::GetSaveNecessary() const
@@ -702,6 +705,7 @@ bool Table::GetSaveNecessary() const
 void Table::SetSaveNecessaryToFalse()
 {
     saveNecesarry_ = false;
+    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to FALSE for table named: " << name << ".";
 }
 
 void Table::RenameColumn(std::string oldColumnName, std::string newColumnName)
@@ -996,6 +1000,7 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name)
 {
     blockSize = database->GetBlockSize();
     saveNecesarry_ = true;
+    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
 /// <summary>
@@ -1042,6 +1047,7 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
     std::unique_lock<std::mutex> lock(*columnsMutex_);
     columns.insert(std::make_pair(columnName, std::move(column)));
     saveNecesarry_ = true;
+    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
 
@@ -1175,6 +1181,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
         }
     }
     saveNecesarry_ = true;
+    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 #endif
 

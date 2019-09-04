@@ -3,6 +3,7 @@
 #include <string>
 #include <typeinfo>
 #include <vector>
+#include <boost/log/trivial.hpp>
 
 #include "BlockBase.h"
 #include "ComplexPolygonFactory.h"
@@ -158,6 +159,7 @@ public:
 	virtual void SetSaveNecessaryToFalse() override
     {
         saveNecessary_ = false;
+        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to FALSE for column named: " << name_ << ".";
     }
 
     virtual void SetColumnName(std::string newName) override
@@ -220,6 +222,7 @@ public:
 
         blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
         saveNecessary_ = true;
+        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
@@ -237,6 +240,7 @@ public:
             lastBlock->CompressData();
         }
         saveNecessary_ = true;
+        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         size_ += data.size();
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
@@ -276,6 +280,7 @@ public:
         }
 
         saveNecessary_ = true;
+        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         // setColumnStatistics();
     }
 
@@ -352,6 +357,7 @@ public:
         int startIdx = 0;
 
         saveNecessary_ = true;
+        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
 
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
         {
@@ -397,6 +403,7 @@ public:
                     bool compress = false)
     {
         saveNecessary_ = true;
+        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         int startIdx = 0;
         int maskIdx = 0;
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())

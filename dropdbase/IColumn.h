@@ -1,7 +1,9 @@
 #pragma once
-#include "DataType.h"
+
 #include <utility>
 #include <string>
+
+#include "DataType.h"
 
 class IColumn
 {
