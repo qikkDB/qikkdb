@@ -18,7 +18,7 @@ namespace ColmnarDB.ConsoleClient
         {
             try
             {
-                throw new NotImplementedException("CSVImport semantics change, use integration platform, or modify main (it will be faster anyway).");
+                throw new NotImplementedException("CSVImport semantics change, use integration platform, or run dropdbase_instarea.exe from console and use arguments in this form: 'dropdbase_instarea.exe csv_file_path database_name block_size' (if databaseName is not specified, default value 'TestDb' will be used; if blockSize is not specified, default value '1048576' will be used).");
                 //client.ImportCSV(database, path);
                 //Console.WriteLine(SuccessfulImport(path, database));
             }

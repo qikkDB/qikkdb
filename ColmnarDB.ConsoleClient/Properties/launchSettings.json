@@ -1,8 +1,7 @@
 {
   "profiles": {
     "ColmnarDB.ConsoleClient": {
-      "commandName": "Project",
-      "commandLineArgs": "-t 45000"
+      "commandName": "Project"
     }
   }
 }
