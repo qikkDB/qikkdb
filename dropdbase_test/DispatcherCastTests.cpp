@@ -110,7 +110,7 @@ protected:
     void CastPolygonToStringGenericTest(std::vector<std::string> polygonWkts, std::vector<std::string> expectedResult)
     {
         auto columns = std::unordered_map<std::string, DataType>();
-        columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
+        columns.insert(std::make_pair<std::string, DataType>("colPolygon", DataType::COLUMN_POLYGON));
         castDatabase->CreateTable(columns, tableName.c_str());
 
         std::vector<ColmnarDB::Types::ComplexPolygon> polygons;
