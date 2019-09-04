@@ -84,7 +84,7 @@ int32_t GpuSqlDispatcher::InsertIntoDone()
 
     for (auto& column : insertIntoData_->insertIntoData)
     {
-        int32_t lastBlockIdx = database_->GetTables().at(table).GetColumns().at(column.first)->GetBlockCount() - 1;
+        int32_t lastBlockIdx = std::max(database_->GetTables().at(table).GetColumns().at(column.first)->GetBlockCount() - 1, 0);
         Context& context = Context::getInstance();
 
         context.getCacheForDevice(lastBlockIdx % context.getDeviceCount())
