@@ -109,7 +109,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, int64_t>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, float>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::CastPointConst,
     &GpuSqlDispatcher::CastPolygonConst,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, std::string>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, int8_t>,
@@ -117,7 +117,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, int64_t>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, float>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::CastPointCol,
     &GpuSqlDispatcher::CastPolygonCol,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, std::string>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, int8_t>};
@@ -183,7 +183,7 @@ int32_t GpuSqlDispatcher::CastPolygonConst()
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "CastPolygonConst: " << constWkt << " " << reg << '\n';
 
-	ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constWkt);
+    ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constWkt);
     GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(constPolygon);
 
     int32_t retSize = 1;
@@ -192,6 +192,64 @@ int32_t GpuSqlDispatcher::CastPolygonConst()
     {
         GPUMemory::GPUString result;
         GPUReconstruct::ConvertPolyColToWKTCol(&result, gpuPolygon, retSize);
+        FillStringRegister(result, reg, retSize, true);
+    }
+
+    return 0;
+}
+
+int32_t GpuSqlDispatcher::CastPointCol()
+{
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    int32_t loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
+    if (loadFlag)
+    {
+        return loadFlag;
+    }
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastPointCol: " << colName << " " << reg << '\n';
+
+    auto column = allocatedPointers_.at(colName);
+    int32_t retSize = column.ElementCount;
+
+    if (!IsRegisterAllocated(reg))
+    {
+        GPUMemory::GPUString result;
+        GPUReconstruct::ConvertPointColToWKTCol(&result, reinterpret_cast<NativeGeoPoint*>(column.GpuPtr), retSize);
+        if (column.GpuNullMaskPtr)
+        {
+            int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+            int8_t* nullMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
+            FillStringRegister(result, reg, retSize, true, nullMask);
+            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
+        }
+        else
+        {
+            FillStringRegister(result, reg, retSize, true);
+        }
+    }
+
+    return 0;
+}
+
+int32_t GpuSqlDispatcher::CastPointConst()
+{
+    auto constWkt = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastPointConst: " << constWkt << " " << reg << '\n';
+
+    ColmnarDB::Types::Point constPoint = PointFactory::FromWkt(constWkt);
+    NativeGeoPoint* gpuPoint = InsertConstPointGpu(constPoint);
+
+    int32_t retSize = 1;
+
+    if (!IsRegisterAllocated(reg))
+    {
+        GPUMemory::GPUString result;
+        GPUReconstruct::ConvertPointColToWKTCol(&result, gpuPoint, retSize);
         FillStringRegister(result, reg, retSize, true);
     }
 
