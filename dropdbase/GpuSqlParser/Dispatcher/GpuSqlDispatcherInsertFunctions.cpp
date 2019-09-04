@@ -80,15 +80,29 @@ int32_t GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>()
 
 int32_t GpuSqlDispatcher::InsertIntoDone()
 {
+    Context& context = Context::getInstance();
+
     std::string table = arguments_.Read<std::string>();
 
     for (auto& column : insertIntoData_->insertIntoData)
     {
-        int32_t lastBlockIdx = std::max(database_->GetTables().at(table).GetColumns().at(column.first)->GetBlockCount() - 1, 0);
-        Context& context = Context::getInstance();
+        int32_t blockCount = database_->GetTables().at(table).GetColumns().at(column.first)->GetBlockCount();
 
-        context.getCacheForDevice(lastBlockIdx % context.getDeviceCount())
-            .clearCachedBlock(database_->GetName(), table + "." + column.first, lastBlockIdx);
+        if (database_->GetTables().at(table).GetSortingColumns().empty())
+        {
+            int32_t lastBlockIdx = std::max(blockCount - 1, 0);
+
+            context.getCacheForDevice(lastBlockIdx % context.getDeviceCount())
+                .clearCachedBlock(database_->GetName(), table + "." + column.first, lastBlockIdx);
+        }
+        else
+        {
+            for (int32_t i = 0; i < blockCount; i++)
+            {
+                context.getCacheForDevice(i % context.getDeviceCount())
+                    .clearCachedBlock(database_->GetName(), table + "." + column.first, i);
+            }
+        }
     }
 
     database_->GetTables().at(table).InsertData(insertIntoData_->insertIntoData, false, insertIntoNullMasks_);
