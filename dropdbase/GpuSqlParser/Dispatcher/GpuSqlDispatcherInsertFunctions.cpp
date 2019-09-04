@@ -81,6 +81,16 @@ int32_t GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>()
 int32_t GpuSqlDispatcher::InsertIntoDone()
 {
     std::string table = arguments_.Read<std::string>();
+
+    for (auto& column : insertIntoData_->insertIntoData)
+    {
+        int32_t lastBlockIdx = database_->GetTables().at(table).GetColumns().at(column.first)->GetBlockCount() - 1;
+        Context& context = Context::getInstance();
+
+        context.getCacheForDevice(lastBlockIdx % context.getDeviceCount())
+            .clearCachedBlock(database_->GetName(), table + "." + column.first, lastBlockIdx);
+    }
+
     database_->GetTables().at(table).InsertData(insertIntoData_->insertIntoData, false, insertIntoNullMasks_);
     insertIntoData_->insertIntoData.clear();
     insertIntoNullMasks_.clear();

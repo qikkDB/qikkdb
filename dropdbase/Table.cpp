@@ -1087,13 +1087,6 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
         {
             std::string columnName = column.first;
 
-            int32_t lastBlockIdx = columns.find(columnName)->second->GetBlockCount() - 1;
-            Context& context = Context::getInstance();
-
-            context.getCacheForDevice(lastBlockIdx % context.getDeviceCount())
-                .clearCachedBlock(database->GetName(), name + "." + columnName, lastBlockIdx);
-
-
             if (data.find(columnName) != data.end())
             {
                 const auto& wrappedData = data.at(columnName);
