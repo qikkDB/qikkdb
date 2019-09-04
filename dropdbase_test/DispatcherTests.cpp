@@ -14416,7 +14416,7 @@ TEST(DispatcherTests, InsertInto)
         ASSERT_EQ(blocksB[0]->GetData()[i], 2);
         ASSERT_EQ(blocksAa[0]->GetData()[i], -2147483648);
 
-		ASSERT_EQ(payloadsColA.intpayload().intdata()[i], 1) << "Iteration: " << i;
+        ASSERT_EQ(payloadsColA.intpayload().intdata()[i], 1) << "Iteration: " << i;
         ASSERT_EQ(payloadsColB.intpayload().intdata()[i], 2);
         ASSERT_EQ(payloadsColAa.intpayload().intdata()[i], -2147483648);
     }
@@ -14424,7 +14424,7 @@ TEST(DispatcherTests, InsertInto)
     ASSERT_EQ(blocksA[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blocksB[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blocksAa[0]->GetNullBitmask()[0], 63);
-    
+
     //---------------------------------------------------------
     // Insert 5 times into third column, which was empty - filled with null values till now
     GpuSqlCustomParser parserInsert2(database, "insert into testTable (Aa) values (3);");
@@ -14441,7 +14441,7 @@ TEST(DispatcherTests, InsertInto)
     payloadsColB = result->payloads().at("testTable.colB");
     payloadsColAa = result->payloads().at("testTable.Aa");
 
-	ASSERT_EQ(blocksA.size(), 1);
+    ASSERT_EQ(blocksA.size(), 1);
     ASSERT_EQ(blocksB.size(), 1);
     ASSERT_EQ(blocksAa.size(), 1);
 
@@ -14459,7 +14459,7 @@ TEST(DispatcherTests, InsertInto)
         ASSERT_EQ(blocksB[0]->GetData()[i], 2);
         ASSERT_EQ(blocksAa[0]->GetData()[i], -2147483648);
 
-		ASSERT_EQ(payloadsColA.intpayload().intdata()[i], 1);
+        ASSERT_EQ(payloadsColA.intpayload().intdata()[i], 1);
         ASSERT_EQ(payloadsColB.intpayload().intdata()[i], 2);
         ASSERT_EQ(payloadsColAa.intpayload().intdata()[i], -2147483648);
     }
@@ -14470,7 +14470,7 @@ TEST(DispatcherTests, InsertInto)
         ASSERT_EQ(blocksB[0]->GetData()[i + 6], -2147483648);
         ASSERT_EQ(blocksAa[0]->GetData()[i + 6], 3);
 
-		ASSERT_EQ(payloadsColA.intpayload().intdata()[i + 6], -2147483648);
+        ASSERT_EQ(payloadsColA.intpayload().intdata()[i + 6], -2147483648);
         ASSERT_EQ(payloadsColB.intpayload().intdata()[i + 6], -2147483648);
         ASSERT_EQ(payloadsColAa.intpayload().intdata()[i + 6], 3);
     }
@@ -14484,11 +14484,11 @@ TEST(DispatcherTests, InsertInto)
     ASSERT_EQ(blocksAa[0]->GetNullBitmask()[1], 0);
 
     //---------------------------------------------------------
-	// Alter table to add one string column - it should be filled with null values
+    // Alter table to add one string column - it should be filled with null values
     GpuSqlCustomParser parserAlter(database, "alter table testTable add colString string;");
     resultPtr = parserAlter.Parse();
 
-	GpuSqlCustomParser parserSelect5(database, "SELECT colA, colB, Aa, colString from testTable;");
+    GpuSqlCustomParser parserSelect5(database, "SELECT colA, colB, Aa, colString from testTable;");
     resultPtr = parserSelect5.Parse();
     result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     payloadsColA = result->payloads().at("testTable.colA");
@@ -14499,7 +14499,7 @@ TEST(DispatcherTests, InsertInto)
     auto& columnString = table.GetColumns().at("colString");
     auto& blocksString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->GetBlocksList();
 
-	ASSERT_EQ(blocksA.size(), 1);
+    ASSERT_EQ(blocksA.size(), 1);
     ASSERT_EQ(blocksB.size(), 1);
     ASSERT_EQ(blocksAa.size(), 1);
     ASSERT_EQ(blocksString.size(), 1);
@@ -14521,7 +14521,7 @@ TEST(DispatcherTests, InsertInto)
         ASSERT_EQ(blocksAa[0]->GetData()[i], -2147483648);
         ASSERT_EQ(blocksString[0]->GetData()[i], " ");
 
-		ASSERT_EQ(payloadsColA.intpayload().intdata()[i], 1);
+        ASSERT_EQ(payloadsColA.intpayload().intdata()[i], 1);
         ASSERT_EQ(payloadsColB.intpayload().intdata()[i], 2);
         ASSERT_EQ(payloadsColAa.intpayload().intdata()[i], -2147483648);
         ASSERT_EQ(payloadsColString.stringpayload().stringdata()[i], " ");
@@ -14534,7 +14534,7 @@ TEST(DispatcherTests, InsertInto)
         ASSERT_EQ(blocksAa[0]->GetData()[i + 6], 3);
         ASSERT_EQ(blocksString[0]->GetData()[i + 6], " ");
 
-		ASSERT_EQ(payloadsColA.intpayload().intdata()[i + 6], -2147483648);
+        ASSERT_EQ(payloadsColA.intpayload().intdata()[i + 6], -2147483648);
         ASSERT_EQ(payloadsColB.intpayload().intdata()[i + 6], -2147483648);
         ASSERT_EQ(payloadsColAa.intpayload().intdata()[i + 6], 3);
         ASSERT_EQ(payloadsColString.stringpayload().stringdata()[i + 6], " ");
@@ -14550,8 +14550,8 @@ TEST(DispatcherTests, InsertInto)
     ASSERT_EQ(blocksAa[0]->GetNullBitmask()[1], 0);
     ASSERT_EQ(blocksString[0]->GetNullBitmask()[1], 7);
 
-	//---------------------------------------------------------
-	// Insert into new column "colString", other columns should be filled with null values  
+    //---------------------------------------------------------
+    // Insert into new column "colString", other columns should be filled with null values
     GpuSqlCustomParser parserInsert3(database,
                                      "insert into testTable (colString) values (\"abc\");");
 
@@ -14560,7 +14560,7 @@ TEST(DispatcherTests, InsertInto)
         resultPtr = parserInsert3.Parse();
     }
 
-	GpuSqlCustomParser parserSelect6(database, "SELECT colA, colB, Aa, colString from testTable;");
+    GpuSqlCustomParser parserSelect6(database, "SELECT colA, colB, Aa, colString from testTable;");
     resultPtr = parserSelect6.Parse();
     result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     payloadsColA = result->payloads().at("testTable.colA");
@@ -14568,7 +14568,7 @@ TEST(DispatcherTests, InsertInto)
     payloadsColAa = result->payloads().at("testTable.Aa");
     payloadsColString = result->payloads().at("testTable.colString");
 
-	for (int32_t i = 0; i < 6; i++)
+    for (int32_t i = 0; i < 6; i++)
     {
         ASSERT_EQ(payloadsColA.intpayload().intdata()[i], 1);
         ASSERT_EQ(payloadsColB.intpayload().intdata()[i], 2);
@@ -14591,7 +14591,7 @@ TEST(DispatcherTests, InsertInto)
         ASSERT_EQ(blocksAa[0]->GetData()[i + 11], -2147483648);
         ASSERT_EQ(blocksString[0]->GetData()[i + 11], "abc");
 
-		ASSERT_EQ(payloadsColA.intpayload().intdata()[i + 11], -2147483648);
+        ASSERT_EQ(payloadsColA.intpayload().intdata()[i + 11], -2147483648);
         ASSERT_EQ(payloadsColB.intpayload().intdata()[i + 11], -2147483648);
         ASSERT_EQ(payloadsColAa.intpayload().intdata()[i + 11], -2147483648);
         ASSERT_EQ(payloadsColString.stringpayload().stringdata()[i + 11], "abc");
@@ -14603,5 +14603,121 @@ TEST(DispatcherTests, InsertInto)
     ASSERT_EQ(blocksString[0]->GetNullBitmask()[1], 7);
 
     GpuSqlCustomParser parserDropDb(database, "DROP DATABASE InsertIntoDb;");
+    resultPtr = parserDropDb.Parse();
+}
+
+TEST(DispatcherTests, InsertIntoWithIndex)
+{
+    GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE InsertIntoDb 4;");
+    auto resultPtr = createDatabase.Parse();
+    auto database = Database::GetDatabaseByName("InsertIntoDb");
+
+    GpuSqlCustomParser parserCreate(database, "CREATE TABLE testTable (colA int, colB int, Aa int, "
+                                              "INDEX idx(colA, colB, Aa));");
+    resultPtr = parserCreate.Parse();
+    auto& table = database->GetTables().at("testTable");
+
+    // Insert values into two of three columns
+    GpuSqlCustomParser parserInsert(database, "insert into testTable (colA, colB) values (1, 2);");
+
+    for (int32_t i = 0; i < 4; i++)
+    {
+        resultPtr = parserInsert.Parse();
+    }
+
+    // Select right after inserting one row of data - insert into two of three columns
+    GpuSqlCustomParser parserSelect(database, "SELECT colA, colB, Aa from testTable;");
+    resultPtr = parserSelect.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto payloadsColA = result->payloads().at("testTable.colA");
+    auto payloadsColB = result->payloads().at("testTable.colB");
+    auto payloadsColAa = result->payloads().at("testTable.Aa");
+
+    for (int32_t i = 0; i < 4; i++)
+    {
+        ASSERT_EQ(payloadsColA.intpayload().intdata()[0], 1);
+        ASSERT_EQ(payloadsColB.intpayload().intdata()[0], 2);
+        ASSERT_EQ(payloadsColAa.intpayload().intdata()[0], -2147483648);
+    }
+
+    auto& columnIntA = table.GetColumns().at("colA");
+    auto& blocksA = dynamic_cast<ColumnBase<int32_t>*>(columnIntA.get())->GetBlocksList();
+    auto& columnIntB = table.GetColumns().at("colB");
+    auto& blocksB = dynamic_cast<ColumnBase<int32_t>*>(columnIntB.get())->GetBlocksList();
+    auto& columnIntAa = table.GetColumns().at("Aa");
+    auto& blocksAa = dynamic_cast<ColumnBase<int32_t>*>(columnIntAa.get())->GetBlocksList();
+
+    ASSERT_EQ(blocksA.size(), 2);
+    ASSERT_EQ(blocksB.size(), 2);
+    ASSERT_EQ(blocksAa.size(), 2);
+
+    ASSERT_EQ(blocksA[0]->GetSize(), 2);
+    ASSERT_EQ(blocksB[0]->GetSize(), 2);
+    ASSERT_EQ(blocksAa[0]->GetSize(), 2);
+
+	ASSERT_EQ(blocksA[1]->GetSize(), 2);
+    ASSERT_EQ(blocksB[1]->GetSize(), 2);
+    ASSERT_EQ(blocksAa[1]->GetSize(), 2);
+
+    ASSERT_EQ(blocksA[0]->GetNullBitmaskSize(), 1);
+    ASSERT_EQ(blocksB[0]->GetNullBitmaskSize(), 1);
+    ASSERT_EQ(blocksAa[0]->GetNullBitmaskSize(), 1);
+
+	ASSERT_EQ(blocksA[1]->GetNullBitmaskSize(), 1);
+    ASSERT_EQ(blocksB[1]->GetNullBitmaskSize(), 1);
+    ASSERT_EQ(blocksAa[1]->GetNullBitmaskSize(), 1);
+
+	ASSERT_EQ(blocksA[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blocksB[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blocksAa[0]->GetNullBitmask()[0], 3);
+
+    ASSERT_EQ(blocksA[1]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blocksB[1]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blocksAa[1]->GetNullBitmask()[0], 3);
+
+    ASSERT_EQ(blocksA[0]->GetData()[0], 1);
+    ASSERT_EQ(blocksB[0]->GetData()[0], 2);
+    ASSERT_EQ(blocksAa[0]->GetData()[0], -2147483648);
+
+	ASSERT_EQ(blocksA[0]->GetData()[1], 1);
+    ASSERT_EQ(blocksB[0]->GetData()[1], 2);
+    ASSERT_EQ(blocksAa[0]->GetData()[1], -2147483648);
+
+	ASSERT_EQ(blocksA[1]->GetData()[0], 1);
+    ASSERT_EQ(blocksB[1]->GetData()[0], 2);
+    ASSERT_EQ(blocksAa[1]->GetData()[0], -2147483648);
+
+	ASSERT_EQ(blocksA[1]->GetData()[1], 1);
+    ASSERT_EQ(blocksB[1]->GetData()[1], 2);
+    ASSERT_EQ(blocksAa[1]->GetData()[1], -2147483648);
+
+	// Insert values into two of three columns
+    GpuSqlCustomParser parserInsert2(database, "insert into testTable (colA, colB) values (1, 2);");
+
+	for (int32_t i = 0; i < 4; i++)
+    {
+        resultPtr = parserInsert2.Parse();
+    }
+
+	// Select right after inserting one row of data - insert into two of three columns
+    GpuSqlCustomParser parserSelect2(database, "SELECT colA, colB, Aa from testTable;");
+    resultPtr = parserSelect2.Parse();
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    payloadsColA = result->payloads().at("testTable.colA");
+    payloadsColB = result->payloads().at("testTable.colB");
+    payloadsColAa = result->payloads().at("testTable.Aa");
+
+	ASSERT_EQ(payloadsColA.intpayload().intdata_size(), 8);
+    ASSERT_EQ(payloadsColA.intpayload().intdata_size(), payloadsColB.intpayload().intdata_size());
+    ASSERT_EQ(payloadsColA.intpayload().intdata_size(), payloadsColAa.intpayload().intdata_size());
+
+	for (int32_t i = 0; i < payloadsColA.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(payloadsColA.intpayload().intdata()[0], 1);
+        ASSERT_EQ(payloadsColB.intpayload().intdata()[0], 2);
+        ASSERT_EQ(payloadsColAa.intpayload().intdata()[0], -2147483648);
+    }
+
+	GpuSqlCustomParser parserDropDb(database, "DROP DATABASE InsertIntoDb;");
     resultPtr = parserDropDb.Parse();
 }
