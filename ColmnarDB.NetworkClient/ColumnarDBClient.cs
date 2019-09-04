@@ -40,7 +40,7 @@ namespace ColmnarDB.NetworkClient
             this.columnData = columnData;
             this.columnTypes = columnTypes;
             this.orderedColumnNames = orderedColumnNames;
-            size = columnData[columnNames[0]].Count;
+            size = columnNames.Count() > 0 ? columnData[columnNames[0]].Count : 0;
         }
 
         public List<string> GetColumnNames()
