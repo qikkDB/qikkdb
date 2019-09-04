@@ -227,7 +227,8 @@ void PrintGpuBuffer(const char* title, T* bufferGpu, int32_t dataElementCount)
 
     for (int32_t i = 0; i < dataElementCount; i++)
     {
-        std::cout << bufferCpu[i] << " ";
+        typedef typename std::conditional<std::is_integral<T>::value, int32_t, float>::type PrintType;
+        std::cout << static_cast<PrintType>(bufferCpu[i]) << " ";
     }
     std::cout << std::endl;
 } 

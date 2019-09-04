@@ -241,7 +241,7 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
                 realSize = block->GetSize();
             }
 
-            if (block->GetNullBitmask())
+            if (block->IsNullable())
             {
                 if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
                 {

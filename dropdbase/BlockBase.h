@@ -51,7 +51,7 @@ public:
     /// <param name="column">Column that will hold this new block.</param>
     BlockBase(const std::vector<T>& data, ColumnBase<T>& column, bool isCompressed = false, bool isNullable = false)
     : column_(column), size_(0), countOfNotNullValues_(0), isCompressed_(isCompressed),
-      isNullable_(isNullable), wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(true)
+      isNullable_(isNullable), bitMask_(nullptr), wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(true)
     {
         capacity_ = (isCompressed) ? data.size() : column.GetBlockSize();
         data_ = std::unique_ptr<T[]>(new T[capacity_]);

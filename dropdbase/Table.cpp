@@ -1086,7 +1086,6 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
         for (const auto& column : columns)
         {
             std::string columnName = column.first;
-
             if (data.find(columnName) != data.end())
             {
                 const auto& wrappedData = data.at(columnName);
