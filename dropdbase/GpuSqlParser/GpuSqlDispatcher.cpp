@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include "InsertIntoStruct.h"
 
+
 const std::string GpuSqlDispatcher::KEYS_SUFFIX = "_keys";
 const std::string GpuSqlDispatcher::NULL_SUFFIX = "_nullMask";
 
@@ -95,7 +96,7 @@ void GpuSqlDispatcher::SetJoinIndices(std::unordered_map<std::string, std::vecto
 /// Iterates through all dispatcher functions in the operations array (filled from GpuSqlListener) and executes them
 /// until running out of blocks
 /// <param name="result">Response message to the SQL statement</param>
-void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception)
+void GpuSqlDispatcher::Execute(DispatcherResult& result, std::exception_ptr& exception)
 {
     try
     {
@@ -182,8 +183,7 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
                 break;
             }
         }
-        result = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(
-            std::move(responseMessage_));
+        result = std::move(dispatcherResult_);
     }
     catch (...)
     {
@@ -197,9 +197,9 @@ void GpuSqlDispatcher::Abort()
     aborted_ = true;
 }
 
-const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GpuSqlDispatcher::GetQueryResponseMessage()
+const DispatcherResult& GpuSqlDispatcher::GetDispatcherResult()
 {
-    return responseMessage_;
+    return dispatcherResult_;
 }
 
 void GpuSqlDispatcher::AddRetFunction(DataType type)
@@ -1116,10 +1116,7 @@ int32_t GpuSqlDispatcher::ShowDatabases()
     {
         outData[i++] = database;
     }
-
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    InsertIntoPayload(payload, outData, databases_map.size());
-    MergePayloadToSelfResponse("Databases", payload);
+    MergePayloadToSelfResponse("Databases", outData, databases_map.size());
 
     return 2;
 }
@@ -1142,9 +1139,7 @@ int32_t GpuSqlDispatcher::ShowTables()
         outData[i++] = tableName.first;
     }
 
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    InsertIntoPayload(payload, outData, tables_map.size());
-    MergePayloadToSelfResponse(db, payload);
+    MergePayloadToSelfResponse(db, outData, tables_map.size());
 
     return 3;
 }
@@ -1175,10 +1170,8 @@ int32_t GpuSqlDispatcher::ShowColumns()
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadName;
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadType;
-    InsertIntoPayload(payloadName, outDataName, columns_map.size());
-    InsertIntoPayload(payloadType, outDataType, columns_map.size());
-    MergePayloadToSelfResponse(tab + "_columns", payloadName);
-    MergePayloadToSelfResponse(tab + "_types", payloadType);
+    MergePayloadToSelfResponse(tab + "_columns", outDataName, columns_map.size());
+    MergePayloadToSelfResponse(tab + "_types", outDataType, columns_map.size());
     return 4;
 }
 
@@ -1374,196 +1367,13 @@ int32_t GpuSqlDispatcher::CreateIndex()
     return 11;
 }
 
-
-void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                         std::unique_ptr<int32_t[]>& data,
-                                         int32_t dataSize)
-{
-    for (int i = 0; i < dataSize; i++)
-    {
-        payload.mutable_intpayload()->add_intdata(data[i]);
-    }
-}
-
-void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                         std::unique_ptr<int64_t[]>& data,
-                                         int32_t dataSize)
-{
-    for (int i = 0; i < dataSize; i++)
-    {
-        payload.mutable_int64payload()->add_int64data(data[i]);
-    }
-}
-
-void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                         std::unique_ptr<float[]>& data,
-                                         int32_t dataSize)
-{
-    for (int i = 0; i < dataSize; i++)
-    {
-        payload.mutable_floatpayload()->add_floatdata(data[i]);
-    }
-}
-
-void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                         std::unique_ptr<double[]>& data,
-                                         int32_t dataSize)
-{
-    for (int i = 0; i < dataSize; i++)
-    {
-        payload.mutable_doublepayload()->add_doubledata(data[i]);
-    }
-}
-
-void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                         std::unique_ptr<std::string[]>& data,
-                                         int32_t dataSize)
-{
-    for (int i = 0; i < dataSize; i++)
-    {
-        payload.mutable_stringpayload()->add_stringdata(data[i]);
-    }
-}
-
 void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
-                                           ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
+                                           DispatcherResult& responseMessage,
                                            const std::string& nullMask)
 {
-    if (responseMessage->nullbitmasks().find(key) == responseMessage->nullbitmasks().end())
-    {
-        responseMessage->mutable_nullbitmasks()->insert({key, nullMask});
-    }
-    else // If there is payload with existing key, merge or aggregate according to key
-    {
-        responseMessage->mutable_nullbitmasks()->at(key) += nullMask;
-    }
+    responseMessage.AddNullMasks(key, nullMask);
 }
 
-void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
-                                    ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
-                                    ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
-{
-    // If there is payload with new key
-    if (responseMessage->payloads().find(trimmedKey) == responseMessage->payloads().end())
-    {
-        responseMessage->mutable_payloads()->insert({trimmedKey, payload});
-    }
-    else // If there is payload with existing key, merge or aggregate according to key
-    {
-        // Find index of parenthesis (for finding out if it is aggregation function)
-        size_t keyParensIndex = trimmedKey.find('(');
-
-        bool aggregationOperationFound = false;
-        // If no function is used
-        if (keyParensIndex == std::string::npos)
-        {
-            aggregationOperationFound = false;
-        }
-        else
-        {
-            // Get operation name
-            std::string operation = trimmedKey.substr(0, keyParensIndex);
-            // To upper case
-            for (auto& c : operation)
-            {
-                c = toupper(c);
-            }
-            // Switch according to data type of payload (=column)
-            switch (payload.payload_case())
-            {
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
-            {
-                std::pair<bool, int32_t> result = AggregateOnCPU<int32_t>(
-                    operation, payload.intpayload().intdata()[0],
-                    responseMessage->mutable_payloads()->at(trimmedKey).intpayload().intdata()[0]);
-                aggregationOperationFound = result.first;
-                if (aggregationOperationFound)
-                {
-                    responseMessage->mutable_payloads()
-                        ->at(trimmedKey)
-                        .mutable_intpayload()
-                        ->set_intdata(0, result.second);
-                }
-                break;
-            }
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
-            {
-                std::pair<bool, int64_t> result = AggregateOnCPU<int64_t>(
-                    operation, payload.int64payload().int64data()[0],
-                    responseMessage->payloads().at(trimmedKey).int64payload().int64data()[0]);
-                aggregationOperationFound = result.first;
-                if (aggregationOperationFound)
-                {
-                    responseMessage->mutable_payloads()
-                        ->at(trimmedKey)
-                        .mutable_int64payload()
-                        ->set_int64data(0, result.second);
-                }
-                break;
-            }
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
-            {
-                std::pair<bool, float> result = AggregateOnCPU<float>(
-                    operation, payload.floatpayload().floatdata()[0],
-                    responseMessage->mutable_payloads()->at(trimmedKey).floatpayload().floatdata()[0]);
-                aggregationOperationFound = result.first;
-                if (aggregationOperationFound)
-                {
-                    responseMessage->mutable_payloads()
-                        ->at(trimmedKey)
-                        .mutable_floatpayload()
-                        ->set_floatdata(0, result.second);
-                }
-                break;
-            }
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
-            {
-                std::pair<bool, double> result = AggregateOnCPU<double>(
-                    operation, payload.doublepayload().doubledata()[0],
-                    responseMessage->mutable_payloads()->at(trimmedKey).doublepayload().doubledata()[0]);
-                aggregationOperationFound = result.first;
-                if (aggregationOperationFound)
-                {
-                    responseMessage->mutable_payloads()
-                        ->at(trimmedKey)
-                        .mutable_doublepayload()
-                        ->set_doubledata(0, result.second);
-                }
-                break;
-            }
-            default:
-                // This case is taken even without aggregation functions, because Points are
-                // considered functions for some reason
-                if (aggregationOperationFound)
-                {
-                    throw std::out_of_range("Unsupported aggregation type result");
-                }
-                break;
-            }
-        }
-
-        if (!aggregationOperationFound)
-        {
-            responseMessage->mutable_payloads()->at(trimmedKey).MergeFrom(payload);
-        }
-    }
-}
-
-void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
-                                                  ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                                  const std::string& nullBitMaskString)
-{
-    std::string trimmedKey = key.substr(0, std::string::npos);
-    if (!key.empty() && key.front() == '$')
-    {
-        trimmedKey = key.substr(1, std::string::npos);
-    }
-    MergePayload(trimmedKey, &responseMessage_, payload);
-    if (!nullBitMaskString.empty())
-    {
-        MergePayloadBitmask(trimmedKey, &responseMessage_, nullBitMaskString);
-    }
-}
 
 bool GpuSqlDispatcher::IsRegisterAllocated(const std::string& reg)
 {
@@ -1603,4 +1413,87 @@ bool GpuSqlDispatcher::isValidCast(DataType fromType, DataType toType)
     }
 
     return false;
+}
+
+void DispatcherResult::MergeData(DispatcherResult& other)
+{
+    for (auto& otherData : other.ResultData)
+    {
+        switch (otherData.second->GetType())
+        {
+        case COLUMN_INT:
+        {
+            VariantArray<int32_t>* data = dynamic_cast<VariantArray<int32_t>*>(otherData.second.get());
+            AddData(otherData.first, data->getDataRef(), data->GetSize());
+        }
+        break;
+        case COLUMN_LONG:
+        {
+            VariantArray<int64_t>* data = dynamic_cast<VariantArray<int64_t>*>(otherData.second.get());
+            AddData(otherData.first, data->getDataRef(), data->GetSize());
+        }
+        break;
+        case COLUMN_FLOAT:
+        {
+            VariantArray<float>* data = dynamic_cast<VariantArray<float>*>(otherData.second.get());
+            AddData(otherData.first, data->getDataRef(), data->GetSize());
+        }
+        break;
+        case COLUMN_DOUBLE:
+        {
+            VariantArray<double>* data = dynamic_cast<VariantArray<double>*>(otherData.second.get());
+            AddData(otherData.first, data->getDataRef(), data->GetSize());
+        }
+        break;
+        case COLUMN_INT8_T:
+        {
+            VariantArray<int8_t>* data = dynamic_cast<VariantArray<int8_t>*>(otherData.second.get());
+            AddData(otherData.first, data->getDataRef(), data->GetSize());
+        }
+        break;
+        case COLUMN_STRING:
+        {
+            VariantArray<std::string>* data =
+                dynamic_cast<VariantArray<std::string>*>(otherData.second.get());
+            AddData(otherData.first, data->getDataRef(), data->GetSize());
+        }
+        break;
+        case COLUMN_POINT:
+        {
+            VariantArray<ColmnarDB::Types::Point>* data =
+                dynamic_cast<VariantArray<ColmnarDB::Types::Point>*>(otherData.second.get());
+            AddData(otherData.first, data->getDataRef(), data->GetSize());
+        }
+        break;
+        case COLUMN_POLYGON:
+        {
+            VariantArray<ColmnarDB::Types::ComplexPolygon>* data =
+                dynamic_cast<VariantArray<ColmnarDB::Types::ComplexPolygon>*>(otherData.second.get());
+            AddData(otherData.first, data->getDataRef(), data->GetSize());
+        }
+        break;
+        default:
+            break;
+        }
+    }
+}
+
+void DispatcherResult::MergeNullMasks(DispatcherResult& other)
+{
+    for (auto& otherData : other.NullBitMasks)
+    {
+        AddNullMasks(otherData.first, otherData.second);
+    }
+}
+
+void DispatcherResult::AddNullMasks(const std::string& key, const std::string& nullData)
+{
+    if (NullBitMasks.find(key) != NullBitMasks.end())
+    {
+        NullBitMasks.at(key) += nullData;
+    }
+    else
+    {
+        NullBitMasks.emplace(key, nullData);
+    }
 }

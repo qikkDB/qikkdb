@@ -29,6 +29,7 @@
 #include "../ComplexPolygonFactory.h"
 #include "../PointFactory.h"
 #include "../QueryEngine/GPUCore/IOrderBy.h"
+#include "../VariantArray.h"
 
 #ifndef NDEBUG
 void AssertDeviceMatchesCurrentThread(int dispatcherThreadId_);
@@ -62,6 +63,40 @@ private:
     const std::string& str;
 };
 
+struct DispatcherResult
+{
+	std::unordered_map<std::string, std::unique_ptr<IVariantArray>> ResultData;
+	std::unordered_map<std::string, std::string> NullBitMasks;
+
+	void MergeData(DispatcherResult& other);
+	void MergeNullMasks(DispatcherResult& other);
+	template<typename T>
+	void AddData(const std::string& key, const std::unique_ptr<T[]>& data, size_t dataSize)
+	{
+		DataType requestedType = GetColumnType<T>();
+		if (ResultData.find(key) != ResultData.end())
+		{
+			if (ResultData.at(key)->GetType() != requestedType)
+			{
+				throw std::invalid_argument("Dispatcher result requested type does not match type in ResultData");
+			}
+			VariantArray<T>* existingData = dynamic_cast<VariantArray<T>*>(ResultData.at(key).get());
+			std::unique_ptr<IVariantArray> newData = std::make_unique<VariantArray<T>>(dataSize + existingData->GetSize());
+			VariantArray<T>*  newDataPtr = dynamic_cast<VariantArray<T>*>(newData.get());
+			std::copy(existingData->getData(), existingData->getData() + existingData->GetSize(), newDataPtr->getData());
+			std::copy(data.get(), data.get() + dataSize, newDataPtr->getData() + existingData->GetSize());
+			ResultData.at(key).swap(newData);
+		}
+		else
+		{
+			ResultData.emplace(key, std::make_unique<VariantArray<T>>(dataSize));
+			std::copy(data.get(), data.get() + dataSize, dynamic_cast<VariantArray<T>*>(ResultData.at(key).get())->getData());
+		}
+	}
+
+	void AddNullMasks(const std::string& key, const std::string& nullData);
+};
+
 class GpuSqlDispatcher
 {
 private:
@@ -92,7 +127,7 @@ private:
     std::unordered_map<std::string, PointerAllocation> allocatedPointers_;
     std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIndices_;
 
-    ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage_;
+	DispatcherResult dispatcherResult_;
     std::uintptr_t filter_;
     bool insideAggregation_;
     bool insideGroupBy_;
@@ -248,26 +283,6 @@ private:
     static int32_t orderByDoneCounter_;
     static int32_t deviceCountLimit_;
 
-    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                           std::unique_ptr<int32_t[]>& data,
-                           int32_t dataSize);
-
-    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                           std::unique_ptr<int64_t[]>& data,
-                           int32_t dataSize);
-
-    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                           std::unique_ptr<float[]>& data,
-                           int32_t dataSize);
-
-    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                           std::unique_ptr<double[]>& data,
-                           int32_t dataSize);
-
-    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                           std::unique_ptr<std::string[]>& data,
-                           int32_t dataSize);
-
 public:
     static std::mutex groupByMutex_;
     static std::mutex orderByMutex_;
@@ -328,11 +343,57 @@ public:
         }
     }
 
-    static void MergePayload(const std::string& key,
-                             ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
-                             ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload);
+	template<typename T>
+	static void MergePayload(const std::string& trimmedKey,
+		DispatcherResult& responseMessage,
+		const std::unique_ptr<T[]>& payload, size_t payloadSize)
+	{
+		// If there is payload with new key
+		if (responseMessage.ResultData.find(trimmedKey) == responseMessage.ResultData.end())
+		{
+			responseMessage.AddData(trimmedKey,payload,payloadSize);
+		}
+		else // If there is payload with existing key, merge or aggregate according to key
+		{
+			// Find index of parenthesis (for finding out if it is aggregation function)
+			size_t keyParensIndex = trimmedKey.find('(');
+
+			bool aggregationOperationFound = false;
+			// If a function is used
+			if (keyParensIndex != std::string::npos)
+			{
+				// Get operation name
+				std::string operation = trimmedKey.substr(0, keyParensIndex);
+				// To upper case
+				for (auto& c : operation)
+				{
+					c = toupper(c);
+				}
+				// Branch is taken even if T is POINT, because POINT has parens in its text representation
+				if (responseMessage.ResultData.at(trimmedKey)->GetType() != COLUMN_POINT && responseMessage.ResultData.at(trimmedKey)->GetType() != COLUMN_STRING && responseMessage.ResultData.at(trimmedKey)->GetType() != COLUMN_POLYGON)
+				{
+					// Switch according to data type of payload (=column)
+					std::pair<bool, T> result = AggregateOnCPU<T>(
+						operation, payload[0],
+						dynamic_cast<VariantArray<T>*>(responseMessage.ResultData.at(trimmedKey).get())->getData()[0]);
+					aggregationOperationFound = result.first;
+					if (aggregationOperationFound)
+					{
+						dynamic_cast<VariantArray<T>*>(responseMessage.ResultData.at(trimmedKey).get())->getData()[0] = result.second;
+					}
+				}
+				
+			}
+
+			if (!aggregationOperationFound)
+			{
+				responseMessage.AddData(trimmedKey, payload, payloadSize);
+			}
+		}
+	}
+
     static void MergePayloadBitmask(const std::string& key,
-                                    ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
+									DispatcherResult& responseMessage,
                                     const std::string& nullMask);
 
 
@@ -350,11 +411,11 @@ public:
 
     void SetJoinIndices(std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIdx);
 
-    void Execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception);
+    void Execute(DispatcherResult& result, std::exception_ptr& exception);
 
 	void Abort();
 
-    const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GetQueryResponseMessage();
+    const DispatcherResult& GetDispatcherResult();
 
     void AddGreaterFunction(DataType left, DataType right);
 
@@ -643,9 +704,23 @@ public:
     }
 
     // TODO FreeColumnIfRegister<std::string> laso point and polygon
+	template<typename T>
     void MergePayloadToSelfResponse(const std::string& key,
-                                    ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                    const std::string& nullBitMaskString = "");
+                                    const std::unique_ptr<T[]>& payload,
+									size_t payloadSize,
+                                    const std::string& nullBitMaskString = "")
+	{
+		std::string trimmedKey = key.substr(0, std::string::npos);
+		if (!key.empty() && key.front() == '$')
+		{
+			trimmedKey = key.substr(1, std::string::npos);
+		}
+		MergePayload(trimmedKey, dispatcherResult_, payload, payloadSize);
+		if (!nullBitMaskString.empty())
+		{
+			MergePayloadBitmask(trimmedKey, dispatcherResult_, nullBitMaskString);
+		}
+	}
 
     GPUMemory::GPUPolygon InsertComplexPolygon(const std::string& databaseName,
                                                const std::string& colName,
@@ -1077,4 +1152,5 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>();
 
 template <>
 int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>();
+
 

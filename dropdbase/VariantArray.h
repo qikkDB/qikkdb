@@ -50,7 +50,14 @@ public:
 
     void resize(int32_t newSize)
     {
-        size = newSize;
+		if (newSize <= size)
+		{
+			size = newSize;
+		}
+		else
+		{
+			throw std::out_of_range("Variant array new size is larger than old size.")
+		}
     }
 
 private:

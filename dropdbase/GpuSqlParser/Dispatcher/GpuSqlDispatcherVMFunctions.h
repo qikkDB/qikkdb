@@ -20,7 +20,6 @@ int32_t GpuSqlDispatcher::RetConst()
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "RET: cnst" << typeid(T).name() << " " << cnst << '\n';
 
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
     if (loadFlag)
     {
@@ -31,8 +30,7 @@ int32_t GpuSqlDispatcher::RetConst()
 
     std::unique_ptr<T[]> outData(new T[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
-    InsertIntoPayload(payload, outData, dataElementCount);
-    MergePayloadToSelfResponse(alias, payload, "");
+    MergePayloadToSelfResponse(alias, outData, dataElementCount);
     return 0;
 }
 
@@ -144,9 +142,7 @@ int32_t GpuSqlDispatcher::RetCol()
 
     if (outSize > 0)
     {
-        ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-        InsertIntoPayload(payload, outData, outSize);
-        MergePayloadToSelfResponse(alias, payload, nullMaskString);
+        MergePayloadToSelfResponse(alias, outData, outSize, nullMaskString);
     }
     return 0;
 }
