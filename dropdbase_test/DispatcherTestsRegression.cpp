@@ -393,7 +393,7 @@ TEST(DispatcherTestsRegression, JoinTableAliasResult)
         ->InsertData(valuesB);
 
     GpuSqlCustomParser parser(joinDatabase, "SELECT ta.value, tb.value FROM TableA AS ta JOIN "
-                                            "TableB AS tb ON TableA.id = TableB.id;");
+                                            "TableB AS tb ON ta.id = tb.id;");
 
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
