@@ -159,15 +159,29 @@ namespace ColmnarDB.ConsoleClient
 
             var numberOfColumnsThatFitIntoConsole = (consoleWidth - 1) / (leftAlign + rightAlign + 1);
 
-            //divide result, because there can be more columns that fit into console 
-            while (result.Keys.Count > numberOfColumnsThatFitIntoConsole)
+            if(numberOfColumnsThatFitIntoConsole == 0)
             {
-                Dictionary<string, System.Collections.IList> temp = result.Take(numberOfColumnsThatFitIntoConsole).ToDictionary(c => c.Key, c => c.Value);
-                result = result.Skip(numberOfColumnsThatFitIntoConsole).ToDictionary(c => c.Key, c => c.Value);
-
-                PrintDividedOutput(temp, orderedColumnNames, numberOfRows, format, leftAlign, rightAlign);
+                Console.Out.WriteLine("Your console window is not wide enough.");
             }
-            PrintDividedOutput(result, orderedColumnNames, numberOfRows, format, leftAlign, rightAlign);
+
+            else
+            {
+                //divide result, because there can be more columns that fit into console 
+                while (orderedColumnNames.Count > numberOfColumnsThatFitIntoConsole)
+                {
+                    var orderedColumnThatFitIntoConsole = new List<string>();
+                    Dictionary<string, System.Collections.IList> temp = new Dictionary<string, System.Collections.IList>();
+
+                    for (int i = 0; i < numberOfColumnsThatFitIntoConsole; i++)
+                    {
+                        temp.Add(orderedColumnNames[0], result[orderedColumnNames[0]]);
+                        orderedColumnThatFitIntoConsole.Add(orderedColumnNames[0]);
+                        orderedColumnNames.RemoveAt(0);
+                    }
+                    PrintDividedOutput(temp, orderedColumnThatFitIntoConsole, numberOfRows, format, leftAlign, rightAlign);
+                }
+                PrintDividedOutput(result, orderedColumnNames, numberOfRows, format, leftAlign, rightAlign);
+            }
         }
 
         /// <summary>
