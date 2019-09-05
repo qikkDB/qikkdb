@@ -86,14 +86,23 @@ int32_t GpuSqlDispatcher::InsertIntoDone()
 
     for (auto& column : insertIntoData_->insertIntoData)
     {
-        int32_t blockCount = database_->GetTables().at(table).GetColumns().at(column.first)->GetBlockCount();
+        const int32_t blockCount =
+            database_->GetTables().at(table).GetColumns().at(column.first)->GetBlockCount();
+        const bool isColNullable =
+            database_->GetTables().at(table).GetColumns().at(column.first)->GetIsNullable();
 
         if (database_->GetTables().at(table).GetSortingColumns().empty())
         {
-            int32_t lastBlockIdx = std::max(blockCount - 1, 0);
+            const int32_t lastBlockIdx = std::max(blockCount - 1, 0);
 
             context.getCacheForDevice(lastBlockIdx % context.getDeviceCount())
                 .clearCachedBlock(database_->GetName(), table + "." + column.first, lastBlockIdx);
+
+            if (isColNullable)
+            {
+                context.getCacheForDevice(lastBlockIdx % context.getDeviceCount())
+                    .clearCachedBlock(database_->GetName(), table + "." + column.first + NULL_SUFFIX, lastBlockIdx);
+            }
         }
         else
         {
@@ -101,6 +110,12 @@ int32_t GpuSqlDispatcher::InsertIntoDone()
             {
                 context.getCacheForDevice(i % context.getDeviceCount())
                     .clearCachedBlock(database_->GetName(), table + "." + column.first, i);
+
+                if (isColNullable)
+                {
+                    context.getCacheForDevice(i % context.getDeviceCount())
+                        .clearCachedBlock(database_->GetName(), table + "." + column.first + NULL_SUFFIX, i);
+                }
             }
         }
     }
