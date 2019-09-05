@@ -582,14 +582,6 @@ private:
             polygonOut.pointIdx = nullptr;
             polygonOut.polyPoints = nullptr;
 
-            // DEBUG
-            std::vector<int32_t> polyIdx_debug(dataElementCount);
-            GPUMemory::copyDeviceToHost(polyIdx_debug.data(), polygonOut.polyIdx, dataElementCount);
-            for (int32_t i = 0; i < dataElementCount; i++)
-            {
-                printf("PolyIdx: %d\n", polyIdx_debug[i]);
-			}
-
             return;
         }
 

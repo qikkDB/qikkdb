@@ -668,9 +668,6 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
             int32_t inSubpolySize;
             GPUMemory::copyDeviceToHost(&inSubpolySize, inCol.polyIdx + inDataElementCount - 1, 1);
 
-            int32_t inPointSize;
-            GPUMemory::copyDeviceToHost(&inPointSize, inCol.pointIdx + inSubpolySize - 1, 1);
-
             // Complex polygons (reconstruct polyCount and sum it to polyIdx)
             // Alloc a temp count buffer and the result index buffer
             cuda_ptr<int32_t> polyCount(*outDataElementCount);
@@ -685,6 +682,18 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
             // Subpolygons (reconstruct pointCount and sum it to pointIdx)
             int32_t outSubpolySize;
             GPUMemory::copyDeviceToHost(&outSubpolySize, outCol->polyIdx + *outDataElementCount - 1, 1);
+
+			// If result set is empty
+			if (outSubpolySize == 0)
+            {
+                outCol->pointIdx = nullptr;
+                outCol->polyPoints = nullptr;
+
+                return;
+			}
+
+			int32_t inPointSize;
+            GPUMemory::copyDeviceToHost(&inPointSize, inCol.pointIdx + inSubpolySize - 1, 1);
 
             cuda_ptr<int8_t> subpolyMask(inSubpolySize);
             kernel_generate_poly_submask<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
