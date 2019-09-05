@@ -811,7 +811,8 @@ void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
 
 void GpuSqlListener::exitJoinClause(GpuSqlParser::JoinClauseContext* ctx)
 {
-    std::string joinTable = ctx->joinTable()->getText();
+    std::string joinTable = ctx->joinTable()->table()->getText();
+    TrimDelimitedIdentifier(joinTable);
 
     if (database_->GetTables().find(joinTable) == database_->GetTables().end())
     {
@@ -819,6 +820,18 @@ void GpuSqlListener::exitJoinClause(GpuSqlParser::JoinClauseContext* ctx)
     }
 
     loadedTables_.insert(joinTable);
+
+    if (ctx->joinTable()->alias())
+    {
+        std::string alias = ctx->joinTable()->alias()->getText();
+        TrimDelimitedIdentifier(alias);
+
+        if (tableAliases_.find(alias) != tableAliases_.end())
+        {
+            throw AliasRedefinitionException(alias);
+        }
+        tableAliases_.insert({alias, joinTable});
+    }
 
     std::string leftColName;
     DataType leftColType;
