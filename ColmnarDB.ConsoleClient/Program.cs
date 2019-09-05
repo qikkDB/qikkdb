@@ -8,7 +8,7 @@ namespace ColmnarDB.ConsoleClient
     public class Program
     {
         public static readonly string ipAddress = "127.0.0.1";
-        public static readonly short port = 12345; 
+        public static readonly short port = 12345;
         private static bool exit = false;
         private static ColumnarDBClient client;
         private static Mutex mutex;
@@ -62,11 +62,14 @@ namespace ColmnarDB.ConsoleClient
                 if (command != "docs" && command != "man" && command != "t" && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u" && command != "use" && command != "h" && command != "help" /* && command != "import" */)
                 {
                     parameters = wholeCommand;
+                    parameters = parameters.Trim();
+                    parameters = parameters[parameters.Length - 1] != ';' ? parameters + ';' : parameters;
                     command = "query";
                 }
                 else if (splitCommand.Length > 1)
                 {
                     parameters = wholeCommand.Substring(command.Length + 1);
+                    parameters = parameters.Trim();
                 }
                 mutex.WaitOne();
                 switch (command)
@@ -85,6 +88,7 @@ namespace ColmnarDB.ConsoleClient
                             Console.WriteLine("Missing argument");
                             break;
                         }
+                        parameters = parameters[parameters.Length - 1] == ';' ? parameters.Substring(0, parameters.Length - 1) : parameters;
                         use.Use(parameters, client);
 
                         break;
@@ -136,7 +140,7 @@ namespace ColmnarDB.ConsoleClient
                         Console.WriteLine();
                         Console.WriteLine(String.Format(format, "h, help", "Show information about commands"));
                         Console.WriteLine(String.Format(format, "docs, man", "Prints 'Documentation is available at https://docs.tellstory.ai/'"));
-                        Console.WriteLine(String.Format(format, "import [database] [file path]", "Import given .csv file into database"));                       
+                        Console.WriteLine(String.Format(format, "import [database] [file path]", "Import given .csv file into database"));
                         Console.WriteLine(String.Format(format, "u [database], use [database]", "Set current working database"));
                         Console.WriteLine(String.Format(format, "[query]", "Run given query"));
                         Console.WriteLine(String.Format(format, "t [query], timing [query]", "Run a query " + Query.numberOfQueryExec + 1 + " times and print the first and average cached execution time."));
