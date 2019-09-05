@@ -1527,10 +1527,10 @@ int32_t GpuSqlDispatcher::GroupByDone()
     insideGroupBy_ = false;
 
 	//Preparation for group by without aggregation
-    /*if (!containsAggFunction)
+    if (!containsAggFunction)
     {
 
-    }*/
+    }
 
     return 0;
 }
