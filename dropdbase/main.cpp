@@ -496,17 +496,61 @@ int main(int argc, char** argv)
                                                     }
                                                     else
                                                     {
-                                                        // Import CSV file if entered as program argument
-                                                        CSVDataImporter csvDataImporter(argv[1]);
-                                                        ////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
-                                                        std::shared_ptr<Database> database =
-                                                            std::make_shared<Database>(
-                                                                argc > 2 ? argv[2] : "TestDb",
-                                                                argc > 3 ? std::stoll(argv[3]) : 1048576);
-                                                        Database::AddToInMemoryDatabaseList(database);
-                                                        BOOST_LOG_TRIVIAL(info)
-                                                            << "Loading CSV from \"" << argv[1] << "\"";
-                                                        csvDataImporter.ImportTables(database);
+                                                        if (strcmp(argv[1], "-stcs2") == 0)
+                                                        {
+                                                            CSVDataImporter csvDataImporter5(R"(../../data/Target.csv)");
+                                                            std::shared_ptr<Database> database4 =
+                                                                std::make_shared<Database>("stcs", 26652588);
+                                                            Database::AddToInMemoryDatabaseList(database4);
+                                                            BOOST_LOG_TRIVIAL(info)
+                                                                << "Loading Target.csv ...";
+                                                            csvDataImporter5.ImportTables(database4);
+
+                                                            CSVDataImporter csvDataImporter6(
+                                                                R"(../../data/TargetTraffic.csv)");
+                                                            BOOST_LOG_TRIVIAL(info)
+                                                                << "Loading TargetTraffic.csv ...";
+                                                            csvDataImporter6.ImportTables(database4);
+
+                                                            CSVDataImporter csvDataImporter7(R"(../../data/D_Cell.csv)");
+                                                            BOOST_LOG_TRIVIAL(info)
+                                                                << "Loading D_Cell.csv ...";
+                                                            csvDataImporter7.ImportTables(database4);
+                                                        }
+                                                        else
+                                                        {
+                                                            if (strcmp(argv[1], "-test") == 0)
+                                                            {
+                                                                CSVDataImporter csvDataImporter1(R"(../../data/Target.csv)");
+                                                                std::shared_ptr<Database> database =
+                                                                    std::make_shared<Database>(
+                                                                        "stcs", 26652588);
+                                                                Database::AddToInMemoryDatabaseList(database);
+                                                                BOOST_LOG_TRIVIAL(info)
+                                                                    << "Loading Target.csv ...";
+                                                                csvDataImporter1.ImportTables(database);
+
+                                                                CSVDataImporter csvDataImporter2(R"(../../data/D_Cell.csv)");
+                                                                BOOST_LOG_TRIVIAL(info)
+                                                                    << "Loading D_Cell.csv ...";
+                                                                csvDataImporter2.ImportTables(database);
+                                                            }
+                                                            else
+                                                            {
+                                                                // Import CSV file if entered as program argument
+                                                                CSVDataImporter csvDataImporter(argv[1]);
+                                                                ////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
+                                                                std::shared_ptr<Database> database =
+                                                                    std::make_shared<Database>(
+                                                                        argc > 2 ? argv[2] : "TestDb",
+                                                                        argc > 3 ? std::stoll(argv[3]) : 1048576);
+                                                                Database::AddToInMemoryDatabaseList(database);
+                                                                BOOST_LOG_TRIVIAL(info)
+                                                                    << "Loading CSV from \""
+                                                                    << argv[1] << "\"";
+                                                                csvDataImporter.ImportTables(database);
+                                                            }
+														} 
                                                     }
                                                 }
                                             }
@@ -566,6 +610,6 @@ int main(int argc, char** argv)
     }
 
     BOOST_LOG_TRIVIAL(info) << "TellStoryDB exited.";
-	boost::log::core::get()->remove_all_sinks();
+    boost::log::core::get()->remove_all_sinks();
     return 0;
 }
