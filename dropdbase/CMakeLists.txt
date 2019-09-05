@@ -15,7 +15,6 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/ComplexPolygon.pb.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/Point.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/Point.pb.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
         ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUError.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUMemoryCache.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUMemory.cpp
@@ -90,6 +89,8 @@ set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUStringBinary.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUStringUnary.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUOrderBy.cu
+                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUCast.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/Compression/GPUCompression.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherLogicFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherArithmeticFunctions.cu
@@ -110,7 +111,7 @@ if(WIN32)
 	set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "-arch sm_60 -Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\" -Xcompiler=\"/bigobj /wd4251 /wd4275 /wd4244 /wd4267 /wd4305\" --expt-relaxed-constexpr")
 endif(WIN32)
 if(NOT WIN32)
-    set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "-arch sm_60 --compiler-bindir=${CMAKE_CXX_COMPILER} --expt-relaxed-constexpr")
+    set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "-arch sm_60 --expt-relaxed-constexpr")
 endif(NOT WIN32)
 add_library(${PROJECT_NAME}_obj STATIC ${SOURCE_FILES} ${CUDA_FILES})
 set_target_properties(${PROJECT_NAME}_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)

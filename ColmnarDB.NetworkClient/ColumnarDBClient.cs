@@ -24,20 +24,23 @@ namespace ColmnarDB.NetworkClient
         private Dictionary<string, System.Type> columnTypes;
         private int size;
         private string tableName;
+        private List<string> orderedColumnNames;    //order of columns defined by SELECT
 
         public ColumnarDataTable()
         {
             columnNames = new List<string>();
             columnData = new Dictionary<string, IList>();
             columnTypes = new Dictionary<string, System.Type>();
+            orderedColumnNames = new List<string>();
             size = 0;
         }
-        public ColumnarDataTable(List<string> columnNames, Dictionary<string, IList> columnData, Dictionary<string, System.Type> columnTypes)
+        public ColumnarDataTable(List<string> columnNames, Dictionary<string, IList> columnData, Dictionary<string, System.Type> columnTypes, List<string> orderedColumnNames)
         {
             this.columnNames = columnNames;
             this.columnData = columnData;
             this.columnTypes = columnTypes;
-            size = columnData[columnNames[0]].Count;
+            this.orderedColumnNames = orderedColumnNames;
+            size = columnData.Count() > 0 ? columnData[columnNames[0]].Count : 0;
         }
 
         public List<string> GetColumnNames()
@@ -55,6 +58,10 @@ namespace ColmnarDB.NetworkClient
             return columnData;
         }
 
+        public List<string> GetOrderedColumnNames()
+        {
+            return orderedColumnNames;
+        }
 
         public int GetSize()
         {
@@ -180,6 +187,13 @@ namespace ColmnarDB.NetworkClient
             List<string> columnNames = new List<string>();
             Dictionary<string, IList> columnDatas = new Dictionary<string, IList>();
             Dictionary<string, System.Type> columnTypes = new Dictionary<string, System.Type>();
+            List<string> orderedColumnNames = new List<string>();
+
+            foreach(var column in response.ColumnOrder)
+            {
+                orderedColumnNames.Add(column);
+            }
+
             foreach (var columnData in response.Payloads)
             {
                 columnNames.Add(columnData.Key);
@@ -264,7 +278,7 @@ namespace ColmnarDB.NetworkClient
                         break;
                 }
             }
-            ColumnarDataTable ret = new ColumnarDataTable(columnNames, columnDatas, columnTypes);
+            ColumnarDataTable ret = new ColumnarDataTable(columnNames, columnDatas, columnTypes, orderedColumnNames);
             return ret;
         }
 
@@ -281,6 +295,18 @@ namespace ColmnarDB.NetworkClient
                 var serverMessage = NetworkMessage.ReadFromNetwork(_client.GetStream());
 
                 if (!serverMessage.TryUnpack(out InfoMessage response) || response.Code != InfoMessage.Types.StatusCode.Wait)
+                {
+                    throw new IOException("Invalid response received from server");
+                }
+                var inputMessage = NetworkMessage.ReadFromNetwork(_client.GetStream());
+                if (inputMessage.TryUnpack(out InfoMessage inResponse))
+                {
+                    if (inResponse.Code != InfoMessage.Types.StatusCode.GetNextResult)
+                    {
+                        throw new QueryException(inResponse.Message);
+                    }
+                }
+                else
                 {
                     throw new IOException("Invalid response received from server");
                 }

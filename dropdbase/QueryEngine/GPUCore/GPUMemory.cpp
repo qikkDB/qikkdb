@@ -50,3 +50,19 @@ void GPUMemory::free(GPUString stringCol)
         GPUMemory::free(stringCol.stringIndices);
     }
 }
+
+template <>
+void GPUMemory::PrintGpuBuffer<NativeGeoPoint>(const char* title, NativeGeoPoint* bufferGpu, int32_t dataElementCount)
+{
+    std::unique_ptr<NativeGeoPoint[]> bufferCpu(new NativeGeoPoint[dataElementCount]);
+    GPUMemory::copyDeviceToHost(bufferCpu.get(), bufferGpu, dataElementCount);
+
+    std::cout << title << ": ";
+
+    for (int32_t i = 0; i < dataElementCount; i++)
+    {
+        std::cout << "{" << bufferCpu[i].latitude << ", " << bufferCpu[i].longitude << "}"
+                  << " ";
+    }
+    std::cout << std::endl;
+}

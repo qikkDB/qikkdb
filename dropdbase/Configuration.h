@@ -38,6 +38,7 @@ private:
     short listenPort_ = 12345;
     int timeout_ = 5000;
     int GPUCachePercent_ = 73;
+    int DBSaveInterval_ = 300;
 
     void LoadConfigurationFile();
 
@@ -132,5 +133,10 @@ public:
     int GetGPUCachePercentage() const
     {
         return GPUCachePercent_;
+    }
+
+    int GetDBSaveInterval() const
+    {
+        return DBSaveInterval_;
     }
 };

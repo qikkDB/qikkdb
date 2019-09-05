@@ -362,6 +362,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fQueryResponseMessag
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, payloads_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, nullbitmasks_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, timing_),
+  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, columnorder_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload)},
@@ -422,20 +423,20 @@ const char descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto[] =
   "kClient.Message.QueryResponsePolygonPayl"
   "oadH\000\022T\n\rstringPayload\030\010 \001(\0132;.ColmnarDB"
   ".NetworkClient.Message.QueryResponseStri"
-  "ngPayloadH\000B\t\n\007payload\"\353\003\n\024QueryResponse"
+  "ngPayloadH\000B\t\n\007payload\"\200\004\n\024QueryResponse"
   "Message\022U\n\010payloads\030\001 \003(\0132C.ColmnarDB.Ne"
   "tworkClient.Message.QueryResponseMessage"
   ".PayloadsEntry\022]\n\014nullBitMasks\030\003 \003(\0132G.C"
   "olmnarDB.NetworkClient.Message.QueryResp"
   "onseMessage.NullBitMasksEntry\022Q\n\006timing\030"
   "\002 \003(\0132A.ColmnarDB.NetworkClient.Message."
-  "QueryResponseMessage.TimingEntry\032f\n\rPayl"
-  "oadsEntry\022\013\n\003key\030\001 \001(\t\022D\n\005value\030\002 \001(\01325."
-  "ColmnarDB.NetworkClient.Message.QueryRes"
-  "ponsePayload:\0028\001\0323\n\021NullBitMasksEntry\022\013\n"
-  "\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\014:\0028\001\032-\n\013TimingE"
-  "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028\001b\006pr"
-  "oto3"
+  "QueryResponseMessage.TimingEntry\022\023\n\013colu"
+  "mnOrder\030\004 \003(\t\032f\n\rPayloadsEntry\022\013\n\003key\030\001 "
+  "\001(\t\022D\n\005value\030\002 \001(\01325.ColmnarDB.NetworkCl"
+  "ient.Message.QueryResponsePayload:\0028\001\0323\n"
+  "\021NullBitMasksEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value"
+  "\030\002 \001(\014:\0028\001\032-\n\013TimingEntry\022\013\n\003key\030\001 \001(\t\022\r"
+  "\n\005value\030\002 \001(\002:\0028\001b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_messages_2fQueryResponseMessage_2eproto_deps[2] = {
   &::descriptor_table_Types_2fComplexPolygon_2eproto,
@@ -458,7 +459,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_mes
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_messages_2fQueryResponseMessage_2eproto_once;
 static bool descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fQueryResponseMessage_2eproto = {
-  &descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized, descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto, "messages/QueryResponseMessage.proto", 1644,
+  &descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized, descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto, "messages/QueryResponseMessage.proto", 1665,
   &descriptor_table_messages_2fQueryResponseMessage_2eproto_once, descriptor_table_messages_2fQueryResponseMessage_2eproto_sccs, descriptor_table_messages_2fQueryResponseMessage_2eproto_deps, 12, 2,
   schemas, file_default_instances, TableStruct_messages_2fQueryResponseMessage_2eproto::offsets,
   file_level_metadata_messages_2fQueryResponseMessage_2eproto, 12, file_level_enum_descriptors_messages_2fQueryResponseMessage_2eproto, file_level_service_descriptors_messages_2fQueryResponseMessage_2eproto,
@@ -3226,6 +3227,7 @@ class QueryResponseMessage::HasBitSetters {
 const int QueryResponseMessage::kPayloadsFieldNumber;
 const int QueryResponseMessage::kNullBitMasksFieldNumber;
 const int QueryResponseMessage::kTimingFieldNumber;
+const int QueryResponseMessage::kColumnOrderFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 QueryResponseMessage::QueryResponseMessage()
@@ -3235,7 +3237,8 @@ QueryResponseMessage::QueryResponseMessage()
 }
 QueryResponseMessage::QueryResponseMessage(const QueryResponseMessage& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
-      _internal_metadata_(nullptr) {
+      _internal_metadata_(nullptr),
+      columnorder_(from.columnorder_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   payloads_.MergeFrom(from.payloads_);
   timing_.MergeFrom(from.timing_);
@@ -3273,6 +3276,7 @@ void QueryResponseMessage::Clear() {
   payloads_.Clear();
   timing_.Clear();
   nullbitmasks_.Clear();
+  columnorder_.Clear();
   _internal_metadata_.Clear();
 }
 
@@ -3318,6 +3322,18 @@ const char* QueryResponseMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAM
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
           } while (::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint8>(ptr) == 26);
+        } else goto handle_unusual;
+        continue;
+      // repeated string columnOrder = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 34)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(add_columnorder(), ptr, ctx, "ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder");
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint8>(ptr) == 34);
         } else goto handle_unusual;
         continue;
       default: {
@@ -3410,6 +3426,22 @@ bool QueryResponseMessage::MergePartialFromCodedStream(
             parser.key().data(), static_cast<int>(parser.key().length()),
             ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
             "ColmnarDB.NetworkClient.Message.QueryResponseMessage.NullBitMasksEntry.key"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // repeated string columnOrder = 4;
+      case 4: {
+        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (34 & 0xFF)) {
+          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadString(
+                input, this->add_columnorder()));
+          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+            this->columnorder(this->columnorder_size() - 1).data(),
+            static_cast<int>(this->columnorder(this->columnorder_size() - 1).length()),
+            ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
+            "ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder"));
         } else {
           goto handle_unusual;
         }
@@ -3572,6 +3604,16 @@ void QueryResponseMessage::SerializeWithCachedSizes(
     }
   }
 
+  // repeated string columnOrder = 4;
+  for (int i = 0, n = this->columnorder_size(); i < n; i++) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->columnorder(i).data(), static_cast<int>(this->columnorder(i).length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder");
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteString(
+      4, this->columnorder(i), output);
+  }
+
   if (_internal_metadata_.have_unknown_fields()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
         _internal_metadata_.unknown_fields(), output);
@@ -3714,6 +3756,16 @@ void QueryResponseMessage::SerializeWithCachedSizes(
     }
   }
 
+  // repeated string columnOrder = 4;
+  for (int i = 0, n = this->columnorder_size(); i < n; i++) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->columnorder(i).data(), static_cast<int>(this->columnorder(i).length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder");
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      WriteStringToArray(4, this->columnorder(i), target);
+  }
+
   if (_internal_metadata_.have_unknown_fields()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target);
@@ -3768,6 +3820,14 @@ size_t QueryResponseMessage::ByteSizeLong() const {
         MessageSizeNoVirtual(entry);
   }
 
+  // repeated string columnOrder = 4;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->columnorder_size());
+  for (int i = 0, n = this->columnorder_size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      this->columnorder(i));
+  }
+
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -3798,6 +3858,7 @@ void QueryResponseMessage::MergeFrom(const QueryResponseMessage& from) {
   payloads_.MergeFrom(from.payloads_);
   timing_.MergeFrom(from.timing_);
   nullbitmasks_.MergeFrom(from.nullbitmasks_);
+  columnorder_.MergeFrom(from.columnorder_);
 }
 
 void QueryResponseMessage::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
@@ -3828,6 +3889,7 @@ void QueryResponseMessage::InternalSwap(QueryResponseMessage* other) {
   payloads_.Swap(&other->payloads_);
   timing_.Swap(&other->timing_);
   nullbitmasks_.Swap(&other->nullbitmasks_);
+  columnorder_.InternalSwap(CastToBase(&other->columnorder_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata QueryResponseMessage::GetMetadata() const {

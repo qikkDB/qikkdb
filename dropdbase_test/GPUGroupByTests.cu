@@ -117,6 +117,7 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
         // std::cout << "BLOCK " << b << ":" << std::endl;
         int32_t dataElementCount = values[b].size();
         std::vector<void*> gpuInKeys;
+        std::vector<int8_t*> gpuInKeysNullMasks;
         for (int32_t t = 0; t < keysColCount; t++)
         {
             switch (keyTypes[t])
@@ -175,11 +176,12 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
             default:
                 break;
             }
+            gpuInKeysNullMasks.emplace_back(nullptr);
         }
         cuda_ptr<int32_t> gpuInValues(dataElementCount);
         GPUMemory::copyHostToDevice(gpuInValues.get(), values[b].data(), dataElementCount);
 
-        groupBy.GroupBy(gpuInKeys, gpuInValues.get(), dataElementCount);
+        groupBy.ProcessBlock(gpuInKeys, gpuInKeysNullMasks, gpuInValues.get(), dataElementCount, nullptr);
         for (int32_t t = 0; t < keysColCount; t++)
         {
             if (keyTypes[t] == DataType::COLUMN_STRING)
@@ -337,6 +339,7 @@ void TestGroupByMultiKeyIntString(int32_t totalElementCount)
 	for (int32_t b = 0; b < blocks; b++) // per "block"
 	{
 		std::vector<void*> gpuInKeys;
+		std::vector<int8_t*> gpuInKeysNullMasks {nullptr, nullptr};
 
 		int32_t* inIntKeysSingleCol;
 		GPUMemory::alloc(&inIntKeysSingleCol, dataElementCount);
@@ -353,7 +356,7 @@ void TestGroupByMultiKeyIntString(int32_t totalElementCount)
 		cuda_ptr<float> gpuInValues(dataElementCount);
 		GPUMemory::fillArray(gpuInValues.get(), intVal, dataElementCount);
 
-		groupBy.GroupBy(gpuInKeys, gpuInValues.get(), dataElementCount);
+		groupBy.ProcessBlock(gpuInKeys, gpuInKeysNullMasks, gpuInValues.get(), dataElementCount, nullptr);
 		for (int32_t t = 0; t < keysColCount; t++)
 		{
 			if (keyTypes[t] == DataType::COLUMN_STRING)

@@ -1,0 +1,7 @@
+This is preview release for beta testers only. The database can only be used 
+for evaluation, testing, demo purposes, and reporting of bugs and features 
+requests back to Tellstory team. Database can't be used for any production or 
+commercial purposes at this moment, can't be distributed in anyway and can only
+be used by the person to whom the beta testing program was granted. In case you
+have an opportunity for commercial use and need to acquire commercial license 
+please contact us on support@tellstory.ai and we will get back to you shortly.

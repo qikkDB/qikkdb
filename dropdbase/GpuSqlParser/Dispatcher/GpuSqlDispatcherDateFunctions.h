@@ -23,7 +23,8 @@ int32_t GpuSqlDispatcher::DateExtractCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "ExtractDatePartCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -41,7 +42,7 @@ int32_t GpuSqlDispatcher::DateExtractCol()
             {
                 result = AllocateRegister<int32_t>(reg + KEYS_SUFFIX, retSize);
             }
-            GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
+            GPUDate::Extract<OP>(result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
             groupByColumns_.push_back({reg, COLUMN_INT});
         }
     }
@@ -64,7 +65,7 @@ int32_t GpuSqlDispatcher::DateExtractCol()
             {
                 result = AllocateRegister<int32_t>(reg, retSize);
             }
-            GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
+            GPUDate::Extract<OP>(result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
         }
     }
 
@@ -88,7 +89,7 @@ int32_t GpuSqlDispatcher::DateExtractConst()
     if (!IsRegisterAllocated(reg))
     {
         int32_t* result = AllocateRegister<int32_t>(reg, retSize);
-        GPUDate::extractConst<OP>(result, cnst, retSize);
+        GPUDate::Extract<OP>(result, cnst, retSize);
     }
     return 0;
 }

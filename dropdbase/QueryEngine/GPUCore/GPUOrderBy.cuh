@@ -61,6 +61,25 @@ __global__ void kernel_reorder_chars_by_idx(GPUMemory::GPUString outCol,
                                             int32_t* outStringLenghts,
                                             int32_t dataElementCount);
 
+/// Reorder polygon points by already reordered polygon and point indices/lengths
+__global__ void kernel_reorder_points_by_idx(GPUMemory::GPUPolygon outCol,
+                                             int32_t* inIndices,
+                                             GPUMemory::GPUPolygon inCol,
+                                             int32_t* outPolygonIndices,
+                                             int32_t* outPolygonLengths,
+                                             int32_t* outPointIndices,
+                                             int32_t* outPointLengths,
+                                             int32_t dataElementCount);
+
+/// Reorder pointIdx array of GPUPolygon struct based on already reordered polyCount and polyIdx arrays
+__global__ void kernel_reorder_point_counts_by_poly_idx_lenghts(int32_t* outPointLengths,
+                                                                int32_t* inOrderIndices,
+                                                                int32_t* inPointLenghts,
+                                                                int32_t* inPolygonIndices,
+                                                                int32_t* outPolygonIndices,
+                                                                int32_t* outPolygonLengths,
+                                                                int32_t dataElementCount);
+
 // Reorder a null column by a given index column
 __global__ void kernel_reorder_null_values_by_idx(int8_t* outNullBitMask,
                                                   int32_t* inIndices,
@@ -156,6 +175,11 @@ public:
                                    int32_t* inIndices,
                                    GPUMemory::GPUString inCol,
                                    int32_t dataElementCount);
+
+    static void ReOrderPolygonByIdx(GPUMemory::GPUPolygon& outCol,
+                                    int32_t* inIndices,
+                                    GPUMemory::GPUPolygon inCol,
+                                    int32_t dataElementCount);
 
     template <typename T>
     static void ReOrderByIdxInplace(T* col, int32_t* indices, int32_t dataElementCount)

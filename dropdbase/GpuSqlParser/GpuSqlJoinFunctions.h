@@ -35,7 +35,7 @@ int32_t GpuSqlJoinDispatcher::JoinCol()
     {
     case JoinType::INNER_JOIN:
         GPUJoin::JoinTableRonS<OP, T>(leftJoinIndices, rightJoinIndices, *colBaseLeft,
-                                      *colBaseRight, database_->GetBlockSize());
+                                      *colBaseRight, database_->GetBlockSize(), aborted_);
         joinIndices_.emplace(leftTable, std::move(leftJoinIndices));
         joinIndices_.emplace(rightTable, std::move(rightJoinIndices));
         break;

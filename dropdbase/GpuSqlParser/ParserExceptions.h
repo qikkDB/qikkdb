@@ -242,11 +242,11 @@ struct NestedAggregationException : public std::exception
     }
 };
 
-struct AggregationOrderByException : public std::exception
+struct AggregationGroupByException : public std::exception
 {
     const char* what() const noexcept override
     {
-        return "Use of aggregation functions in ORDER BY clause is not allowed.";
+        return "Use of aggregation functions in GROUP BY clause is not allowed.";
     }
 };
 
@@ -262,6 +262,38 @@ struct OrderByColumnAlreadyReferencedException : public std::exception
 {
     OrderByColumnAlreadyReferencedException(const std::string& column)
     : message_("Column: \"" + column + "\" was referenced multiple times in the ORDER BY clause.")
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
+
+struct OrderByInvalidColumnException : public std::exception
+{
+    OrderByInvalidColumnException(const std::string& column)
+    : message_("Column: \"" + column + "\" is not a valid ORDER BY column.")
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
+
+struct GroupByInvalidColumnException : public std::exception
+{
+    GroupByInvalidColumnException(const std::string& column)
+    : message_("Column: \"" + column + "\" is not a valid GROUP BY column.")
     {
     }
 

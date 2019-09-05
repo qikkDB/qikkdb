@@ -98,8 +98,9 @@ __global__ void group_by_kernel(K* keys,
     {
         const int32_t bitMaskIdx = (i / (sizeof(int8_t) * 8));
         const int32_t shiftIdx = (i % (sizeof(int8_t) * 8));
-        const bool nullKey = inKeysNullMask ? ((inKeysNullMask[bitMaskIdx] >> shiftIdx) & 1) : false;
-        const bool nullValue = inValuesNullMask ? ((inValuesNullMask[bitMaskIdx] >> shiftIdx) & 1) : false;
+        const bool nullKey = (inKeysNullMask != nullptr) && ((inKeysNullMask[bitMaskIdx] >> shiftIdx) & 1);
+        const bool nullValue =
+            (inValuesNullMask != nullptr) && ((inValuesNullMask[bitMaskIdx] >> shiftIdx) & 1);
         int32_t foundIndex = -1;
 
         if (!nullKey)
@@ -362,10 +363,10 @@ public:
     /// Create GPUGroupBy object with existing keys (allocate whole new hash table)
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
     /// <param name="keys">GPU buffer with existing keys (will be copied to a new buffer)</param>
-    GPUGroupBy(int32_t maxHashCount, K* keys) : GPUGroupBy(maxHashCount)
+    GPUGroupBy(int32_t maxHashCount, K* keys, bool firstKeyIsNull) : GPUGroupBy(maxHashCount - (firstKeyIsNull ? 1 : 0))
     {
         // keys_ has value at index 0 reserved for NULL key
-        GPUMemory::copyDeviceToDevice(keys_ + 1, keys, maxHashCount);
+        GPUMemory::copyDeviceToDevice(keys_ + (firstKeyIsNull ? 0 : 1), keys, maxHashCount);
     }
 
     ~GPUGroupBy()
@@ -526,9 +527,9 @@ public:
                 // Divide by counts to get averages for buckets
                 try
                 {
-                    GPUArithmetic::colCol<ArithmeticOperations::div>(outValuesGPU.get(),
-                                                                     mergedValues.get(),
-                                                                     mergedOccurrences.get(), maxHashCount_);
+                    GPUArithmetic::Arithmetic<ArithmeticOperations::div>(outValuesGPU.get(),
+                                                                         mergedValues.get(),
+                                                                         mergedOccurrences.get(), maxHashCount_);
                 }
                 catch (const query_engine_error& err)
                 {
@@ -686,29 +687,23 @@ public:
                     // Calculate sum of values
                     // Initialize new empty sumGroupBy table
                     K* tempKeys = nullptr;
+                    int8_t* tempKeysNulls;
                     GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount);
                     sumGroupBy.ProcessBlock(
                         keysAllGPU.get(), valuesAllGPU.get(), sumElementCount,
                         GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
                         GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount)
                             .get());
-                    sumGroupBy.GetResults(&tempKeys, &valuesMerged, outDataElementCount,
-                                          outKeysNullMask, outValuesNullMask);
-                    // Don't need these results, will be computed again in countGroupBy - TODO multi-value GroupBy
-                    if (outKeysNullMask) // if used (if double pointer is not nullptr)
-                    {
-                        GPUMemory::free(*outKeysNullMask); // free array
-                    }
-                    if (outValuesNullMask)
-                    {
-                        GPUMemory::free(*outValuesNullMask);
-                    }
+                    sumGroupBy.GetResults(&tempKeys, &valuesMerged, outDataElementCount, &tempKeysNulls);
+                    int8_t firstChar;
+                    GPUMemory::copyDeviceToHost(&firstChar, tempKeysNulls, 1);
 
                     // Calculate sum of occurrences
                     // Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
                     GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount,
-                                                                                            tempKeys);
+                                                                                            tempKeys, firstChar & 1 == 1);
                     GPUMemory::free(tempKeys);
+                    GPUMemory::free(tempKeysNulls);
                     countGroupBy.ProcessBlock(
                         keysAllGPU.get(), occurrencesAllGPU.get(), sumElementCount,
                         GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
@@ -721,8 +716,8 @@ public:
                     GPUMemory::alloc(outValues, *outDataElementCount);
                     try
                     {
-                        GPUArithmetic::colCol<ArithmeticOperations::div>(*outValues, valuesMerged, occurrencesMerged,
-                                                                         *outDataElementCount);
+                        GPUArithmetic::Arithmetic<ArithmeticOperations::div>(*outValues, valuesMerged, occurrencesMerged,
+                                                                             *outDataElementCount);
                     }
                     catch (const query_engine_error& err)
                     {

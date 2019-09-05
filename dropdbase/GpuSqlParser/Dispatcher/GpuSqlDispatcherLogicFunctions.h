@@ -46,8 +46,8 @@ int32_t GpuSqlDispatcher::FilterColConst()
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPUFilter::colConst<OP, T, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
-                                      reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPUFilter::Filter<OP, T*, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
+                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<T>(colName);
@@ -91,8 +91,8 @@ int32_t GpuSqlDispatcher::FilterConstCol()
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPUFilter::constCol<OP, T, U>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
-                                      reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPUFilter::Filter<OP, T, U*>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
+                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<U>(colName);
@@ -137,7 +137,7 @@ int32_t GpuSqlDispatcher::FilterColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                     combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                     reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
@@ -151,14 +151,14 @@ int32_t GpuSqlDispatcher::FilterColCol()
                 GPUMemory::copyDeviceToDevice(combinedMask,
                                               reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
-            GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                        reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
+            GPUFilter::Filter<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                          reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
         }
         else
         {
             int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
-            GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                        reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
+            GPUFilter::Filter<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                          reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
         }
     }
 
@@ -181,7 +181,7 @@ int32_t GpuSqlDispatcher::FilterConstConst()
     if (!IsRegisterAllocated(reg))
     {
         int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
-        GPUFilter::constConst<OP, T, U>(mask, constLeft, constRight, database_->GetBlockSize());
+        GPUFilter::Filter<OP, T, U>(mask, constLeft, constRight, nullptr, database_->GetBlockSize());
     }
     return 0;
 }
@@ -300,8 +300,8 @@ int32_t GpuSqlDispatcher::FilterStringColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (leftMask && rightMask)
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(combinedMask, leftMask,
-                                                                       rightMask, bitMaskSize);
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(combinedMask, leftMask,
+                                                                           rightMask, bitMaskSize);
             }
             if (leftMask)
             {
@@ -380,8 +380,8 @@ int32_t GpuSqlDispatcher::LogicalColConst()
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPULogic::colConst<OP, T, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
-                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPULogic::Logic<OP, T*, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
+                                   reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<T>(colName);
@@ -423,8 +423,8 @@ int32_t GpuSqlDispatcher::LogicalConstCol()
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPULogic::constCol<OP, T, U>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
-                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPULogic::Logic<OP, T, U*>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
+                                   reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<U>(colName);
@@ -470,7 +470,7 @@ int32_t GpuSqlDispatcher::LogicalColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                     combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                     reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
@@ -484,14 +484,14 @@ int32_t GpuSqlDispatcher::LogicalColCol()
                 GPUMemory::copyDeviceToDevice(combinedMask,
                                               reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
-            GPULogic::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                       reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
+            GPULogic::Logic<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                        reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
         }
         else
         {
             int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
-            GPULogic::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                       reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
+            GPULogic::Logic<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                        reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
         }
     }
 
@@ -514,7 +514,7 @@ int32_t GpuSqlDispatcher::LogicalConstConst()
     if (!IsRegisterAllocated(reg))
     {
         int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
-        GPULogic::constConst<OP, T, U>(mask, constLeft, constRight, database_->GetBlockSize());
+        GPULogic::Logic<OP, T, U>(mask, constLeft, constRight, nullptr, database_->GetBlockSize());
     }
 
     return 0;
@@ -555,8 +555,8 @@ int32_t GpuSqlDispatcher::LogicalNotCol()
         {
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
-        GPULogic::not_col<int8_t, T>(mask, reinterpret_cast<T*>(column.GpuPtr),
-                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPULogic::Not<int8_t, T*>(mask, reinterpret_cast<T*>(column.GpuPtr),
+                                  reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<T>(colName);

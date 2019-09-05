@@ -296,9 +296,9 @@ struct avg
         cudaDeviceSynchronize();
 
         // Divide the result - calculate the average
-        GPUArithmetic::colConst<ArithmeticOperations::div, OUT, OUT, float>(outValue, outValue,
-                                                                            static_cast<float>(dataElementCount),
-                                                                            1);
+        GPUArithmetic::Arithmetic<ArithmeticOperations::div, OUT, OUT*, float>(outValue, outValue,
+                                                                               static_cast<float>(dataElementCount),
+                                                                               1);
     }
 
     template <typename T>

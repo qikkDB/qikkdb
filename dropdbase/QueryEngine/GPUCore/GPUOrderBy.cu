@@ -35,6 +35,30 @@ __global__ void kernel_reorder_chars_by_idx(GPUMemory::GPUString outCol,
     }
 }
 
+// REORDER POLY KERNEL HERE
+
+__global__ void kernel_reorder_point_counts_by_poly_idx_lenghts(int32_t* outPointLengths,
+                                                                int32_t* inOrderIndices,
+                                                                int32_t* inPointLenghts,
+                                                                int32_t* inPolygonIndices,
+                                                                int32_t* outPolygonIndices,
+                                                                int32_t* outPolygonLengths,
+                                                                int32_t dataElementCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < dataElementCount; i += stride)
+    {
+        const int32_t outPointIdx = outPolygonIndices[i];
+        const int32_t inPointIdx = inPolygonIndices[inOrderIndices[i]];
+        for (int32_t j = 0; j < outPolygonLengths[i]; j++)
+        {
+            outPointLengths[outPointIdx + j] = inPointLenghts[inPointIdx + j];
+        }
+    }
+}
+
 // Reorder a null column by a given index column
 __global__ void
 kernel_reorder_null_values_by_idx(int32_t* outNullBitMask, int32_t* inIndices, int8_t* inNullBitMask, int32_t dataElementCount)
@@ -111,5 +135,26 @@ void GPUOrderBy::ReOrderStringByIdx(GPUMemory::GPUString& outCol, int32_t* inInd
     {
         outCol.stringIndices = nullptr;
         outCol.allChars = nullptr;
+    }
+}
+
+void GPUOrderBy::ReOrderPolygonByIdx(GPUMemory::GPUPolygon& outCol,
+                                     int32_t* inIndices,
+                                     GPUMemory::GPUPolygon inCol,
+                                     int32_t dataElementCount)
+{
+    Context& context = Context::getInstance();
+
+    if (dataElementCount > 0)
+    {
+        outCol.polyPoints = inCol.polyPoints;
+        outCol.pointIdx = inCol.pointIdx;
+        outCol.polyIdx = inCol.polyIdx;
+    }
+    else
+    {
+        outCol.polyPoints = nullptr;
+        outCol.pointIdx = nullptr;
+        outCol.polyIdx = nullptr;
     }
 }

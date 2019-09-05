@@ -304,6 +304,53 @@ protected:
             }
         }
     }
+
+	void PolygonReorder(std::vector<std::string> inputWkt,
+		std::vector<std::string> expectedResult)
+	{
+		auto columns = std::unordered_map<std::string, DataType>();
+		columns.insert(std::make_pair<std::string, DataType>("colID", DataType::COLUMN_INT));
+		columns.insert(std::make_pair<std::string, DataType>("colPolygon", DataType::COLUMN_POLYGON));
+		geoDatabase->CreateTable(columns, tableName.c_str());
+
+		// Create column with IDs
+		std::vector<int32_t> colID;
+		for (int i = 0; i < inputWkt.size(); i++)
+		{
+			colID.push_back(i);
+		}
+		reinterpret_cast<ColumnBase<int32_t>*>(geoDatabase->GetTables().at(tableName.c_str()).
+			GetColumns().at("colID").get())->InsertData(colID);
+
+		// Create column with polygons
+		std::vector<ColmnarDB::Types::ComplexPolygon> colPolygon;
+		for (auto wkt : inputWkt)
+		{
+			colPolygon.push_back(ComplexPolygonFactory::FromWkt(wkt));
+		}
+		reinterpret_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(geoDatabase->GetTables().at("SimpleTable").
+			GetColumns().at("colPolygon").get())->InsertData(colPolygon);
+
+		// Execute the query_
+		GpuSqlCustomParser parser(geoDatabase, "SELECT colPolygon FROM " + tableName + " ORDER BY colID DESC;");
+		auto resultPtr = parser.Parse();
+		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+		if (expectedResult.size() > 0)
+        {
+            auto& payloads = result->payloads().at("SimpleTable.colPolygon");
+            ASSERT_EQ(expectedResult.size(), payloads.stringpayload().stringdata_size())
+                << "size is not correct";
+            for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+            {
+                ASSERT_EQ(expectedResult[i], payloads.stringpayload().stringdata()[i]);
+            }
+        }
+        else
+        {
+            ASSERT_EQ(result->payloads().size(), 0);
+        }
+	}
 };
 
 
@@ -394,7 +441,6 @@ TEST_F(DispatcherGeoTests, PolygonReconstructFullMask)
 {
     PolygonReconstruct(testPolygons, 0, testPolygons);
 }
-
 
 TEST_F(DispatcherGeoTests, PolygonIntersectTest)
 {
@@ -548,4 +594,13 @@ TEST_F(DispatcherGeoTests, PolygonWKT_PartialEmptyResultSet_withMask)
                     {"POLYGON((0.0000 0.0000, 0.0000 0.0000))", 
 					 "POLYGON((1.0000 0.5000, 1.0000 1.0000, 0.5000 1.0000, 0.5000 0.5000, 1.0000 0.5000))"},
                     INTERSECT_TEST, {1, 1, 0}, true);
+}
+
+TEST_F(DispatcherGeoTests, PolygonReorderSmall)
+{
+	std::vector<std::string> reorderedPolygons = testPolygons;
+	std::reverse(reorderedPolygons.begin(), reorderedPolygons.end());
+	PolygonReorder(
+		testPolygons,
+		reorderedPolygons);
 }

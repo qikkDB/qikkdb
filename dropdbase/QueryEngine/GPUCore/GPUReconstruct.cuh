@@ -4,9 +4,6 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include <thrust/scan.h>
-#include <thrust/execution_policy.h>
-
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "../../Types/Point.pb.h"
@@ -245,7 +242,7 @@ public:
                         // Construct the output based on the prefix sum
                         kernel_reconstruct_col<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
                             *outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
-                        if (nullMask)
+                        if (nullMask && outNullMask)
                         {
                             size_t outBitMaskSize =
                                 (*outDataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8);
@@ -269,8 +266,9 @@ public:
                 {
                     GPUMemory::alloc<T>(outCol, dataElementCount);
                     GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
-                    size_t outBitMaskSize = (dataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                    if (nullMask)
+                    size_t outBitMaskSize =
+                        (dataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+                    if (nullMask && outNullMask)
                     {
                         GPUMemory::alloc(outNullMask, outBitMaskSize);
                         GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
@@ -291,7 +289,7 @@ public:
             {
                 GPUMemory::free(*outCol);
             }
-            if (*outNullMask)
+            if (outNullMask && *outNullMask)
             {
                 GPUMemory::free(*outNullMask);
             }

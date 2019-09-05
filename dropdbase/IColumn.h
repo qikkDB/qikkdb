@@ -1,7 +1,9 @@
 #pragma once
-#include "DataType.h"
+
 #include <utility>
 #include <string>
+
+#include "DataType.h"
 
 class IColumn
 {
@@ -19,6 +21,7 @@ public:
     virtual bool GetIsNullable() const = 0;
     virtual void SetIsNullable(bool isNullable) = 0;
     virtual bool GetSaveNecessary() const = 0;
+    virtual void SetSaveNecessaryToFalse() = 0;
     virtual void SetColumnName(std::string newName) = 0;
 
     virtual ~IColumn(){};

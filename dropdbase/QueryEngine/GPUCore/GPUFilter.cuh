@@ -99,54 +99,18 @@ public:
     /// <param name="BCol">buffer with right side operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
     template <typename OP, typename T, typename U>
-    static void colCol(int8_t* outMask, T* ACol, U* BCol, int8_t* nullBitMask, int32_t dataElementCount)
+    static void Filter(int8_t* outMask, T ACol, U BCol, int8_t* nullBitMask, int32_t dataElementCount)
     {
-        kernel_filter<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                outMask, ACol, BCol, nullBitMask, dataElementCount);
-        CheckCudaError(cudaGetLastError());
-    }
-
-    /// Filtration operation between a column of binary values and a binary value constant
-    /// <param name="OP">Template parameter for the choice of the filtration operation</param>
-    /// <param name="outMask">output GPU buffer mask</param>
-    /// <param name="ACol">buffer with left side operands</param>
-    /// <param name="BConst">right side constant operand</param>
-    /// <param name="dataElementCount">data element count of the input block</param>
-    template <typename OP, typename T, typename U>
-    static void colConst(int8_t* outMask, T* ACol, U BConst, int8_t* nullBitMask, int32_t dataElementCount)
-    {
-        kernel_filter<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                outMask, ACol, BConst, nullBitMask, dataElementCount);
-        CheckCudaError(cudaGetLastError());
-    }
-
-    /// Filtration operation between a column of binary values and a binary value constant
-    /// <param name="OP">Template parameter for the choice of the filtration operation</param>
-    /// <param name="outMask">output GPU buffer mask</param>
-    /// <param name="AConst">left side constant operand</param>
-    /// <param name="BCol">buffer with right side operands</param>
-    /// <param name="dataElementCount">data element count of the input block</param>
-    template <typename OP, typename T, typename U>
-    static void constCol(int8_t* outMask, T AConst, U* BCol, int8_t* nullBitMask, int32_t dataElementCount)
-    {
-        kernel_filter<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                outMask, AConst, BCol, nullBitMask, dataElementCount);
-        CheckCudaError(cudaGetLastError());
-    }
-
-    /// Filtration operation betweentwo binary constants
-    /// <param name="OP">Template parameter for the choice of the filtration operation</param>
-    /// <param name="outMask">output GPU buffer mask</param>
-    /// <param name="AConst">left side constant operand</param>
-    /// <param name="BConst">right side constant operand</param>
-    /// <param name="dataElementCount">data element count of the input block</param>
-    template <typename OP, typename T, typename U>
-    static void constConst(int8_t* outMask, T AConst, U BConst, int32_t dataElementCount)
-    {
-        GPUMemory::memset(outMask, OP{}(AConst, BConst), dataElementCount);
+        if (std::is_pointer<T>::value || std::is_pointer<U>::value)
+        {
+            kernel_filter<OP>
+                <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
+                    outMask, ACol, BCol, nullBitMask, dataElementCount);
+        }
+        else
+        {
+            GPUMemory::memset(outMask, OP{}(maybe_deref(ACol, 0), maybe_deref(BCol, 0)), dataElementCount);
+        }
         CheckCudaError(cudaGetLastError());
     }
 

@@ -18,7 +18,8 @@ int32_t GpuSqlDispatcher::CastNumericCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "CastNumericCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -38,7 +39,7 @@ int32_t GpuSqlDispatcher::CastNumericCol()
                 result = AllocateRegister<OUT>(reg + KEYS_SUFFIX, retSize);
             }
 
-            GPUCast::CastNumericCol(result, reinterpret_cast<IN*>(column.GpuPtr), retSize);
+            GPUCast::CastNumeric(result, reinterpret_cast<IN*>(column.GpuPtr), retSize);
             groupByColumns_.push_back({reg, ::GetColumnType<OUT>()});
         }
     }
@@ -61,7 +62,7 @@ int32_t GpuSqlDispatcher::CastNumericCol()
             {
                 result = AllocateRegister<OUT>(reg, retSize);
             }
-            GPUCast::CastNumericCol(result, reinterpret_cast<IN*>(column.GpuPtr), retSize);
+            GPUCast::CastNumeric(result, reinterpret_cast<IN*>(column.GpuPtr), retSize);
         }
     }
 
@@ -82,7 +83,90 @@ int32_t GpuSqlDispatcher::CastNumericConst()
     if (!IsRegisterAllocated(reg))
     {
         OUT* result = AllocateRegister<OUT>(reg, retSize);
-        GPUCast::CastNumericConst(result, cnst, retSize);
+        GPUCast::CastNumeric(result, cnst, retSize);
+    }
+    return 0;
+}
+
+template <typename OUT>
+int32_t GpuSqlDispatcher::CastStringCol()
+{
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    int32_t loadFlag = LoadCol<std::string>(colName);
+    if (loadFlag)
+    {
+        return loadFlag;
+    }
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastStringCol: " << colName << " " << reg << '\n';
+
+    if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
+            groupByColumns_.end() &&
+        !insideAggregation_)
+    {
+        if (isOverallLastBlock_)
+        {
+            auto column = FindStringColumn(colName + KEYS_SUFFIX);
+            int32_t retSize = std::get<1>(column);
+            OUT* result;
+
+            if (std::get<2>(column))
+            {
+                int8_t* nullMask;
+                result = AllocateRegister<OUT>(reg + KEYS_SUFFIX, retSize, &nullMask);
+                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                GPUMemory::copyDeviceToDevice(nullMask, std::get<2>(column), bitMaskSize);
+            }
+            else
+            {
+                result = AllocateRegister<OUT>(reg + KEYS_SUFFIX, retSize);
+            }
+
+            GPUCast::CastString(result, std::get<0>(column), retSize);
+            groupByColumns_.push_back({reg, ::GetColumnType<OUT>()});
+        }
+    }
+    else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
+    {
+        auto column = FindStringColumn(colName);
+        int32_t retSize = std::get<1>(column);
+
+        if (!IsRegisterAllocated(reg))
+        {
+            OUT* result;
+            if (std::get<2>(column))
+            {
+                int8_t* nullMask;
+                result = AllocateRegister<OUT>(reg, retSize, &nullMask);
+                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                GPUMemory::copyDeviceToDevice(nullMask, std::get<2>(column), bitMaskSize);
+            }
+            else
+            {
+                result = AllocateRegister<OUT>(reg, retSize);
+            }
+            GPUCast::CastString(result, std::get<0>(column), retSize);
+        }
+    }
+    return 0;
+}
+
+template <typename OUT>
+int32_t GpuSqlDispatcher::CastStringConst()
+{
+    std::string cnst = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastStringConst: " << reg << '\n';
+
+    GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst);
+
+    if (!IsRegisterAllocated(reg))
+    {
+        OUT* result = AllocateRegister<OUT>(reg, 1);
+        GPUCast::CastString(result, gpuString, 1);
     }
     return 0;
 }

@@ -62,6 +62,7 @@ public:
     bool GetSaveNecessary() const;
     void SetSaveNecessaryToFalse();
     void RenameColumn(std::string oldColumnName, std::string newColumnName);
+    void InsertNullDataIntoNewColumn(std::string newColumnName);
 
     /// <summary>
     /// Removes column from columns.

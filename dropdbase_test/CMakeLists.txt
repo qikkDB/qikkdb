@@ -11,6 +11,7 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherNullTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherGeoTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherCastTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherGroupByTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTestsRegression.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp
@@ -35,7 +36,7 @@ if(WIN32)
 	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "-arch sm_60 -Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\" -Xcompiler=\"/bigobj /wd4251 /wd4275 /wd4244 /wd4267 /wd4305\" --expt-relaxed-constexpr")
 endif(WIN32)
 if(NOT WIN32)
-	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "-arch sm_60 --compiler-bindir=${CMAKE_CXX_COMPILER} --expt-relaxed-constexpr")
+	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "-arch sm_60 --expt-relaxed-constexpr")
 endif(NOT WIN32)
 add_executable(${PROJECT_NAME}_test ${TEST_FILES} ${CUDA_TEST_FILES})
 set_target_properties(${PROJECT_NAME}_test PROPERTIES POSITION_INDEPENDENT_CODE ON)

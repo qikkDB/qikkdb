@@ -225,4 +225,23 @@ void hostPin(T* hostPtr, size_t dataElementCount)
 /// This is a O(1) operation
 void clear();
 
+template <typename T>
+void PrintGpuBuffer(const char* title, T* bufferGpu, int32_t dataElementCount)
+{
+    std::unique_ptr<T[]> bufferCpu(new T[dataElementCount]);
+    GPUMemory::copyDeviceToHost(bufferCpu.get(), bufferGpu, dataElementCount);
+
+    std::cout << title << ": ";
+
+    for (int32_t i = 0; i < dataElementCount; i++)
+    {
+        typedef typename std::conditional<std::is_integral<T>::value, int32_t, float>::type PrintType;
+        std::cout << static_cast<PrintType>(bufferCpu[i]) << " ";
+    }
+    std::cout << std::endl;
+} 
+
+template<>
+void PrintGpuBuffer<NativeGeoPoint>(const char* title, NativeGeoPoint* bufferGpu, int32_t dataElementCount);
+
 }; // namespace GPUMemory

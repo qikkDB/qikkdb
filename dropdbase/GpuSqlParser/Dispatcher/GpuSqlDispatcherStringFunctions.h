@@ -23,14 +23,15 @@ int32_t GpuSqlDispatcher::StringUnaryCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringUnaryCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
             auto column = FindStringColumn(colName + KEYS_SUFFIX);
             int32_t retSize = std::get<1>(column);
             GPUMemory::GPUString result;
-            GPUStringUnary::Col<OP>(result, std::get<0>(column), retSize);
+            GPUStringUnary::StringUnary<OP>(result, std::get<0>(column), retSize);
             if (std::get<2>(column))
             {
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
@@ -54,7 +55,7 @@ int32_t GpuSqlDispatcher::StringUnaryCol()
         if (!IsRegisterAllocated(reg))
         {
             GPUMemory::GPUString result;
-            GPUStringUnary::Col<OP>(result, std::get<0>(column), retSize);
+            GPUStringUnary::StringUnary<OP>(result, std::get<0>(column), retSize);
             if (std::get<2>(column))
             {
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
@@ -85,7 +86,7 @@ int32_t GpuSqlDispatcher::StringUnaryConst()
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUString result;
-        GPUStringUnary::Const<OP>(result, gpuString);
+        GPUStringUnary::StringUnary<OP>(result, gpuString, 1);
         FillStringRegister(result, reg, 1, true);
     }
     return 0;
@@ -106,7 +107,8 @@ int32_t GpuSqlDispatcher::StringUnaryNumericCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringIntUnaryCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -184,9 +186,11 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColCol()
         << "StringBinaryNumericColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     bool isLeftKey = std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                                  StringDataTypeComp(colNameLeft)) != groupByColumns_.end();
+                                  StringDataTypeComp(colNameLeft)) != groupByColumns_.end() &&
+                     !insideAggregation_;
     bool isRightKey = std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                                   StringDataTypeComp(colNameRight)) != groupByColumns_.end();
+                                   StringDataTypeComp(colNameRight)) != groupByColumns_.end() &&
+                      !insideAggregation_;
 
     if (isLeftKey || isRightKey)
     {
@@ -206,7 +210,7 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColCol()
                 FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true, combinedMask);
                 if (std::get<2>(columnLeft) && columnRight.GpuNullMaskPtr)
                 {
-                    GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                         combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)),
                         reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
                 }
@@ -248,7 +252,7 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColCol()
                 FillStringRegister(result, reg, retSize, true, combinedMask);
                 if (std::get<2>(columnLeft) && columnRight.GpuNullMaskPtr)
                 {
-                    GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                         combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)),
                         reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
                 }
@@ -290,7 +294,8 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColConst()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryColConst: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -355,7 +360,8 @@ int32_t GpuSqlDispatcher::StringBinaryNumericConstCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryConstCol: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -449,9 +455,11 @@ int32_t GpuSqlDispatcher::StringBinaryColCol()
         << "StringBinaryColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     bool isLeftKey = std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                                  StringDataTypeComp(colNameLeft)) != groupByColumns_.end();
+                                  StringDataTypeComp(colNameLeft)) != groupByColumns_.end() &&
+                     !insideAggregation_;
     bool isRightKey = std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                                   StringDataTypeComp(colNameRight)) != groupByColumns_.end();
+                                   StringDataTypeComp(colNameRight)) != groupByColumns_.end() &&
+                      !insideAggregation_;
 
     if (isLeftKey || isRightKey)
     {
@@ -470,7 +478,7 @@ int32_t GpuSqlDispatcher::StringBinaryColCol()
                 FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true, combinedMask);
                 if (std::get<2>(columnLeft) && std::get<2>(columnRight))
                 {
-                    GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                         combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)),
                         reinterpret_cast<int8_t*>(std::get<2>(columnRight)), bitMaskSize);
                 }
@@ -511,7 +519,7 @@ int32_t GpuSqlDispatcher::StringBinaryColCol()
                 FillStringRegister(result, reg, retSize, true, combinedMask);
                 if (std::get<2>(columnLeft) && std::get<2>(columnRight))
                 {
-                    GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                         combinedMask, reinterpret_cast<int8_t*>(std::get<2>(columnLeft)),
                         reinterpret_cast<int8_t*>(std::get<2>(columnRight)), bitMaskSize);
                 }
@@ -553,7 +561,8 @@ int32_t GpuSqlDispatcher::StringBinaryColConst()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryColConst: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -620,7 +629,8 @@ int32_t GpuSqlDispatcher::StringBinaryConstCol()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryConstCol: " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {

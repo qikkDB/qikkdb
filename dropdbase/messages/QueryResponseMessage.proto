@@ -44,9 +44,9 @@ message QueryResponsePayload {
     }
 }
 
-
 message QueryResponseMessage {
     map<string, QueryResponsePayload> payloads = 1;
     map<string, bytes> nullBitMasks = 3;
-    map<string,float> timing = 2;
+    map<string, float> timing = 2;
+	repeated string columnOrder = 4;
 }

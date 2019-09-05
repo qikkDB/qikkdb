@@ -58,8 +58,8 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database>& database,
   usedRegisterMemory_(0), maxRegisterMemory_(0), // TODO value from config e.g.
   groupByTables_(groupByTables), dispatcherThreadId_(dispatcherThreadId), insideAggregation_(false),
   insideGroupBy_(false), usingGroupBy_(false), usingOrderBy_(false), usingJoin_(false),
-  isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true), loadNecessary_(1),
-  cpuDispatcher_(database), jmpInstructionPosition_(0),
+  isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true), aborted_(false),
+  loadNecessary_(1), cpuDispatcher_(database), jmpInstructionPosition_(0),
   insertIntoData_(std::make_unique<InsertIntoStruct>()), joinIndices_(nullptr),
   orderByTable_(nullptr), orderByBlocks_(orderByBlocks), loadedTableName_("")
 {
@@ -109,7 +109,7 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
 
         int32_t err = 0;
 
-        while (err == 0)
+        while (err == 0 && !aborted_)
         {
 
             err = (this->*dispatcherFunctions_[instructionPointer_++])();
@@ -193,6 +193,11 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
     CleanUpGpuPointers();
 }
 
+void GpuSqlDispatcher::Abort()
+{
+    aborted_ = true;
+}
+
 const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GpuSqlDispatcher::GetQueryResponseMessage()
 {
     return responseMessage_;
@@ -208,14 +213,9 @@ void GpuSqlDispatcher::AddOrderByFunction(DataType type)
     dispatcherFunctions_.push_back(orderByFunctions_[type]);
 }
 
-void GpuSqlDispatcher::AddOrderByReconstructOrderFunction(DataType type)
+void GpuSqlDispatcher::AddOrderByReconstructFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(orderByReconstructOrderFunctions_[type]);
-}
-
-void GpuSqlDispatcher::AddOrderByReconstructRetFunction(DataType type)
-{
-    dispatcherFunctions_.push_back(orderByReconstructRetFunctions_[type]);
+    dispatcherFunctions_.push_back(orderByReconstructFunctions_[type]);
 }
 
 void GpuSqlDispatcher::AddFreeOrderByTableFunction()
@@ -1030,6 +1030,7 @@ void GpuSqlDispatcher::CleanUpGpuPointers()
     usingGroupBy_ = false;
     aggregatedRegisters_.clear();
     allocatedPointers_.clear();
+    orderByTable_.reset();
 }
 
 
@@ -1245,8 +1246,7 @@ int32_t GpuSqlDispatcher::AlterTable()
         int32_t addColumnDataType = arguments_.Read<int32_t>();
         database_->GetTables().at(tableName).CreateColumn(addColumnName.c_str(),
                                                           static_cast<DataType>(addColumnDataType));
-        int64_t tableSize = database_->GetTables().at(tableName).GetSize();
-        database_->GetTables().at(tableName).GetColumns().at(addColumnName)->InsertNullData(tableSize);
+        database_->GetTables().at(tableName).InsertNullDataIntoNewColumn(addColumnName);
     }
 
     int32_t dropColumnsCount = arguments_.Read<int32_t>();
@@ -1263,69 +1263,71 @@ int32_t GpuSqlDispatcher::AlterTable()
         std::string alterColumnName = arguments_.Read<std::string>();
         int32_t alterColumnDataType = arguments_.Read<int32_t>();
 
-        auto originType = database_->GetTables().at(tableName).GetColumns().at(alterColumnName)->GetColumnType();
-        if (isValidCast(originType, static_cast<DataType>(alterColumnDataType)) && originType != static_cast<DataType>(alterColumnDataType))
+        auto originType =
+            database_->GetTables().at(tableName).GetColumns().at(alterColumnName)->GetColumnType();
+        if (isValidCast(originType, static_cast<DataType>(alterColumnDataType)) &&
+            originType != static_cast<DataType>(alterColumnDataType))
         {
             database_->GetTables().at(tableName).CreateColumn((alterColumnName + "_temp").c_str(),
                                                               static_cast<DataType>(alterColumnDataType));
             auto oldColumn = database_->GetTables().at(tableName).GetColumns().at(alterColumnName).get();
-            auto newColumn = database_->GetTables().at(tableName).GetColumns().at(alterColumnName + "_temp").get();
+            auto newColumn =
+                database_->GetTables().at(tableName).GetColumns().at(alterColumnName + "_temp").get();
 
-            switch(originType)
+            switch (originType)
             {
-                case COLUMN_INT:
-                {
-                    dynamic_cast<ColumnBase<int32_t>*>(oldColumn)->CopyDataToColumn(newColumn);
-                    break;
-                }
-
-                case COLUMN_LONG:
-                {
-                    dynamic_cast<ColumnBase<int64_t>*>(oldColumn)->CopyDataToColumn(newColumn);
-                    break;
-                }
-
-                case COLUMN_FLOAT:
-                {
-                    dynamic_cast<ColumnBase<float>*>(oldColumn)->CopyDataToColumn(newColumn);
-                    break;
-                }
-
-                case COLUMN_DOUBLE:
-                {
-                    dynamic_cast<ColumnBase<double>*>(oldColumn)->CopyDataToColumn(newColumn);
-                    break;
-                }
-
-                case COLUMN_POINT:
-                {
-                    dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(oldColumn)->CopyDataToColumn(newColumn);
-                    break;
-                }
-
-                case COLUMN_POLYGON:
-                {
-                    dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(oldColumn)->CopyDataToColumn(newColumn);
-                    break;
-                }
-
-                case COLUMN_STRING:
-                {
-                    dynamic_cast<ColumnBase<std::string>*>(oldColumn)->CopyDataToColumn(newColumn);
-                    break;
-                }
-
-                case COLUMN_INT8_T:
-                {
-                    dynamic_cast<ColumnBase<int8_t>*>(oldColumn)->CopyDataToColumn(newColumn);
-                    break;
-                }
-                default:
-                    throw std::runtime_error(
-                            "Attempt to execute unsupported column type conversion.");
-                    break;
+            case COLUMN_INT:
+            {
+                dynamic_cast<ColumnBase<int32_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
             }
-            
+
+            case COLUMN_LONG:
+            {
+                dynamic_cast<ColumnBase<int64_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_FLOAT:
+            {
+                dynamic_cast<ColumnBase<float>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_DOUBLE:
+            {
+                dynamic_cast<ColumnBase<double>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_POINT:
+            {
+                dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_POLYGON:
+            {
+                dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_STRING:
+            {
+                dynamic_cast<ColumnBase<std::string>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_INT8_T:
+            {
+                dynamic_cast<ColumnBase<int8_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+            default:
+                throw std::runtime_error("Attempt to execute unsupported column type conversion.");
+                break;
+            }
+
             database_->GetTables().at(tableName).EraseColumn(alterColumnName);
             database_->GetTables().at(tableName).RenameColumn(alterColumnName + "_temp", alterColumnName);
         }
@@ -1574,10 +1576,10 @@ bool GpuSqlDispatcher::isValidCast(DataType fromType, DataType toType)
 
     else if (toType == COLUMN_POINT)
     {
-        return fromType == COLUMN_STRING || toType == COLUMN_POINT; 
+        return fromType == COLUMN_STRING || toType == COLUMN_POINT;
     }
 
-	else if (toType == COLUMN_POLYGON)
+    else if (toType == COLUMN_POLYGON)
     {
         return fromType == COLUMN_STRING || toType == COLUMN_POLYGON;
     }

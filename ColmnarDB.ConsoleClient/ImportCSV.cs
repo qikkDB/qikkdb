@@ -18,7 +18,7 @@ namespace ColmnarDB.ConsoleClient
         {
             try
             {
-                throw new NotImplementedException("CSVImport semantics change, use integration platform, or modify main (it will be faster anyway).");
+                throw new NotImplementedException("CSVImport semantics changed, use integration platform or server side import.");
                 //client.ImportCSV(database, path);
                 //Console.WriteLine(SuccessfulImport(path, database));
             }

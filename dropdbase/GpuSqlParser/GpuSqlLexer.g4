@@ -13,8 +13,10 @@ UNDERSCORE  : '_';
 COLON       : ':';
 COMMA       : ',';
 DOT         : '.';
-STRING      : '"' ( ~[\\"\r\n] )* '"';
-DELIMID     : '[' ( ~[\\[\]$\r\n\u002e] )+ ']';
+LSQR_BRC    : '[';
+RSQR_BRC    : ']';
+STRING      : DQOUTE ( ~[\\"\r\n] )* DQOUTE;
+DELIMID     : LSQR_BRC ( ~[\\[\]$\r\n\u002e] )+ RSQR_BRC;
 
 DATELIT                 : YEARLIT MINUS MONTHLIT MINUS DAYLIT;
 

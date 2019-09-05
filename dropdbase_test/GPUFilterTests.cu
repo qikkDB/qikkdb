@@ -18,723 +18,738 @@ const int32_t DATA_ELEMENT_COUNT = 1 << 18;
 constexpr float TEST_FLOAT_LOWEST = -32000.0f;
 constexpr float TEST_FLOAT_HIGHEST = 32000.0f;
 
-template<typename T>
+template <typename T>
 void testColColFilter()
 {
-	// CPU data:
-	std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
-	std::unique_ptr<T[]> inputDataB = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
-	std::unique_ptr<int8_t[]> outputData = std::make_unique<int8_t[]>(DATA_ELEMENT_COUNT);
+    // CPU data:
+    std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
+    std::unique_ptr<T[]> inputDataB = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
+    std::unique_ptr<int8_t[]> outputData = std::make_unique<int8_t[]>(DATA_ELEMENT_COUNT);
 
-	// Fill input data buffers:
-	std::default_random_engine generator;
-	if (std::is_integral<T>::value)
-	{
-		std::uniform_int_distribution<int32_t> distributionInt(std::numeric_limits<int32_t>::lowest(), std::numeric_limits<int32_t>::max());
-		for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-		{
-			inputDataA[i] = distributionInt(generator);
-			inputDataB[i] = distributionInt(generator);
-		}
-	}
-	else
-	{
+    // Fill input data buffers:
+    std::default_random_engine generator;
+    if (std::is_integral<T>::value)
+    {
+        std::uniform_int_distribution<int32_t> distributionInt(std::numeric_limits<int32_t>::lowest(),
+                                                               std::numeric_limits<int32_t>::max());
+        for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+        {
+            inputDataA[i] = distributionInt(generator);
+            inputDataB[i] = distributionInt(generator);
+        }
+    }
+    else
+    {
         std::uniform_real_distribution<float> distributionFloat(TEST_FLOAT_LOWEST, TEST_FLOAT_HIGHEST);
-		for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-		{
-			inputDataA[i] = distributionFloat(generator);
-			inputDataB[i] = distributionFloat(generator);
-		}
-	}
+        for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+        {
+            inputDataA[i] = distributionFloat(generator);
+            inputDataB[i] = distributionFloat(generator);
+        }
+    }
 
 
-	// Create CUDA buffers:
-	T *inputBufferA;
-	T *inputBufferB;
-	int8_t *outputBuffer;
+    // Create CUDA buffers:
+    T* inputBufferA;
+    T* inputBufferB;
+    int8_t* outputBuffer;
 
-	// Alloc buffers in GPU memory:
-	GPUMemory::alloc(&inputBufferA, DATA_ELEMENT_COUNT);
-	GPUMemory::alloc(&inputBufferB, DATA_ELEMENT_COUNT);
-	GPUMemory::alloc(&outputBuffer, DATA_ELEMENT_COUNT);
+    // Alloc buffers in GPU memory:
+    GPUMemory::alloc(&inputBufferA, DATA_ELEMENT_COUNT);
+    GPUMemory::alloc(&inputBufferB, DATA_ELEMENT_COUNT);
+    GPUMemory::alloc(&outputBuffer, DATA_ELEMENT_COUNT);
 
-	// Copy the contents of the buffers to the GPU
-	GPUMemory::copyHostToDevice(inputBufferA, inputDataA.get(), DATA_ELEMENT_COUNT);
-	GPUMemory::copyHostToDevice(inputBufferB, inputDataB.get(), DATA_ELEMENT_COUNT);
+    // Copy the contents of the buffers to the GPU
+    GPUMemory::copyHostToDevice(inputBufferA, inputDataA.get(), DATA_ELEMENT_COUNT);
+    GPUMemory::copyHostToDevice(inputBufferB, inputDataB.get(), DATA_ELEMENT_COUNT);
 
-	//////////////////////////////////////////////////////////////////////////////////////
-	// Run kernels, copy back values and compare them
+    //////////////////////////////////////////////////////////////////////////////////////
+    // Run kernels, copy back values and compare them
 
-	// Greater than
-	GPUFilter::colCol<FilterConditions::greater>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] > inputDataB[i]);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] > inputDataB[i]);
-		}
-	}
+    // Greater than
+    GPUFilter::Filter<FilterConditions::greater>(outputBuffer, inputBufferA, inputBufferB, nullptr,
+                                                 DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] > inputDataB[i]);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] > inputDataB[i]);
+        }
+    }
 
-	// Greater than equal
-	GPUFilter::colCol<FilterConditions::greaterEqual>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] >= inputDataB[i]);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] >= inputDataB[i]);
-		}
-	}
+    // Greater than equal
+    GPUFilter::Filter<FilterConditions::greaterEqual>(outputBuffer, inputBufferA, inputBufferB,
+                                                      nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] >= inputDataB[i]);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] >= inputDataB[i]);
+        }
+    }
 
-	// Less than
-	GPUFilter::colCol<FilterConditions::less>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] < inputDataB[i]);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] < inputDataB[i]);
-		}
-	}
+    // Less than
+    GPUFilter::Filter<FilterConditions::less>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] < inputDataB[i]);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] < inputDataB[i]);
+        }
+    }
 
-	// Less than equal
-	GPUFilter::colCol<FilterConditions::lessEqual>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] <= inputDataB[i]);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] <= inputDataB[i]);
-		}
-	}
+    // Less than equal
+    GPUFilter::Filter<FilterConditions::lessEqual>(outputBuffer, inputBufferA, inputBufferB,
+                                                   nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] <= inputDataB[i]);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] <= inputDataB[i]);
+        }
+    }
 
-	// Equal
-	GPUFilter::colCol<FilterConditions::equal>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] == inputDataB[i]);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] == inputDataB[i]);
-		}
-	}
+    // Equal
+    GPUFilter::Filter<FilterConditions::equal>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] == inputDataB[i]);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] == inputDataB[i]);
+        }
+    }
 
-	// Non equal
-	GPUFilter::colCol<FilterConditions::notEqual>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] != inputDataB[i]);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] != inputDataB[i]);
-		}
-	}
+    // Non equal
+    GPUFilter::Filter<FilterConditions::notEqual>(outputBuffer, inputBufferA, inputBufferB, nullptr,
+                                                  DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] != inputDataB[i]);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] != inputDataB[i]);
+        }
+    }
 
-	//////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////
 
-	// Free buffers in GPU memory:
-	GPUMemory::free(inputBufferA);
-	GPUMemory::free(inputBufferB);
-	GPUMemory::free(outputBuffer);
+    // Free buffers in GPU memory:
+    GPUMemory::free(inputBufferA);
+    GPUMemory::free(inputBufferB);
+    GPUMemory::free(outputBuffer);
 }
 
 
 TEST(GPUFilterTests, FiltersColCol)
 {
-	// Initialize CUDA context:
-	Context::getInstance();
+    // Initialize CUDA context:
+    Context::getInstance();
 
-	testColColFilter<int32_t>();
-	testColColFilter<int64_t>();
-	testColColFilter<float>();
+    testColColFilter<int32_t>();
+    testColColFilter<int64_t>();
+    testColColFilter<float>();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-template<typename T>
+template <typename T>
 void testColConstFilter()
 {
-	// CPU data:
-	std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
-	T inputDataBConstant;
-	std::unique_ptr<int8_t[]> outputData = std::make_unique<int8_t[]>(DATA_ELEMENT_COUNT);
+    // CPU data:
+    std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
+    T inputDataBConstant;
+    std::unique_ptr<int8_t[]> outputData = std::make_unique<int8_t[]>(DATA_ELEMENT_COUNT);
 
-	// Fill input data buffers:
-	std::default_random_engine generator;
-	if (std::is_integral<T>::value)
-	{
-		std::uniform_int_distribution<int32_t> distributionInt(std::numeric_limits<int32_t>::lowest(), std::numeric_limits<int32_t>::max());
-		for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-		{
-			inputDataA[i] = distributionInt(generator);
-		}
-		inputDataBConstant = distributionInt(generator);
-	}
-	else
-	{
+    // Fill input data buffers:
+    std::default_random_engine generator;
+    if (std::is_integral<T>::value)
+    {
+        std::uniform_int_distribution<int32_t> distributionInt(std::numeric_limits<int32_t>::lowest(),
+                                                               std::numeric_limits<int32_t>::max());
+        for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+        {
+            inputDataA[i] = distributionInt(generator);
+        }
+        inputDataBConstant = distributionInt(generator);
+    }
+    else
+    {
         std::uniform_real_distribution<float> distributionFloat(TEST_FLOAT_LOWEST, TEST_FLOAT_HIGHEST);
-		for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-		{
-			inputDataA[i] = distributionFloat(generator);
-		}
-		inputDataBConstant = distributionFloat(generator);
-	}
+        for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+        {
+            inputDataA[i] = distributionFloat(generator);
+        }
+        inputDataBConstant = distributionFloat(generator);
+    }
 
 
-	// Create CUDA buffers:
-	T *inputBufferA;
-	int8_t *outputBuffer;
+    // Create CUDA buffers:
+    T* inputBufferA;
+    int8_t* outputBuffer;
 
-	// Alloc buffers in GPU memory:
-	GPUMemory::alloc(&inputBufferA, DATA_ELEMENT_COUNT);
-	GPUMemory::alloc(&outputBuffer, DATA_ELEMENT_COUNT);
+    // Alloc buffers in GPU memory:
+    GPUMemory::alloc(&inputBufferA, DATA_ELEMENT_COUNT);
+    GPUMemory::alloc(&outputBuffer, DATA_ELEMENT_COUNT);
 
-	// Copy the contents of the buffers to the GPU
-	GPUMemory::copyHostToDevice(inputBufferA, inputDataA.get(), DATA_ELEMENT_COUNT);
+    // Copy the contents of the buffers to the GPU
+    GPUMemory::copyHostToDevice(inputBufferA, inputDataA.get(), DATA_ELEMENT_COUNT);
 
-	//////////////////////////////////////////////////////////////////////////////////////
-	// Run kernels, copy back values and compare them
+    //////////////////////////////////////////////////////////////////////////////////////
+    // Run kernels, copy back values and compare them
 
-	// Greater than
-	GPUFilter::colConst<FilterConditions::greater>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] > inputDataBConstant);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] > inputDataBConstant);
-		}
-	}
+    // Greater than
+    GPUFilter::Filter<FilterConditions::greater>(outputBuffer, inputBufferA, inputDataBConstant,
+                                                 nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] > inputDataBConstant);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] > inputDataBConstant);
+        }
+    }
 
-	// Greater than equal
-	GPUFilter::colConst<FilterConditions::greaterEqual>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] >= inputDataBConstant);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] >= inputDataBConstant);
-		}
-	}
+    // Greater than equal
+    GPUFilter::Filter<FilterConditions::greaterEqual>(outputBuffer, inputBufferA, inputDataBConstant,
+                                                      nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] >= inputDataBConstant);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] >= inputDataBConstant);
+        }
+    }
 
-	// Less than
-	GPUFilter::colConst<FilterConditions::less>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] < inputDataBConstant);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] < inputDataBConstant);
-		}
-	}
+    // Less than
+    GPUFilter::Filter<FilterConditions::less>(outputBuffer, inputBufferA, inputDataBConstant,
+                                              nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] < inputDataBConstant);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] < inputDataBConstant);
+        }
+    }
 
-	// Less than equal
-	GPUFilter::colConst<FilterConditions::lessEqual>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] <= inputDataBConstant);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] <= inputDataBConstant);
-		}
-	}
+    // Less than equal
+    GPUFilter::Filter<FilterConditions::lessEqual>(outputBuffer, inputBufferA, inputDataBConstant,
+                                                   nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] <= inputDataBConstant);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] <= inputDataBConstant);
+        }
+    }
 
-	// Equal
-	GPUFilter::colConst<FilterConditions::equal>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] == inputDataBConstant);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] == inputDataBConstant);
-		}
-	}
+    // Equal
+    GPUFilter::Filter<FilterConditions::equal>(outputBuffer, inputBufferA, inputDataBConstant,
+                                               nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] == inputDataBConstant);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] == inputDataBConstant);
+        }
+    }
 
-	// Non equal
-	GPUFilter::colConst<FilterConditions::notEqual>(outputBuffer, inputBufferA, inputDataBConstant, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] != inputDataBConstant);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] != inputDataBConstant);
-		}
-	}
+    // Non equal
+    GPUFilter::Filter<FilterConditions::notEqual>(outputBuffer, inputBufferA, inputDataBConstant,
+                                                  nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] != inputDataBConstant);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] != inputDataBConstant);
+        }
+    }
 
-	//////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////
 
-	// Free buffers in GPU memory:
-	GPUMemory::free(inputBufferA);
-	GPUMemory::free(outputBuffer);
+    // Free buffers in GPU memory:
+    GPUMemory::free(inputBufferA);
+    GPUMemory::free(outputBuffer);
 }
 
 TEST(GPUFilterTests, FiltersColConst)
 {
-	// Initialize CUDA context:
-	Context::getInstance();
+    // Initialize CUDA context:
+    Context::getInstance();
 
-	testColConstFilter<int32_t>();
-	testColConstFilter<int64_t>();
-	testColConstFilter<float>();
+    testColConstFilter<int32_t>();
+    testColConstFilter<int64_t>();
+    testColConstFilter<float>();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-template<typename T>
+template <typename T>
 void testConstColFilter()
 {
-	// CPU data:
-	std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
-	T inputDataBConstant;
-	std::unique_ptr<int8_t[]> outputData = std::make_unique<int8_t[]>(DATA_ELEMENT_COUNT);
+    // CPU data:
+    std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
+    T inputDataBConstant;
+    std::unique_ptr<int8_t[]> outputData = std::make_unique<int8_t[]>(DATA_ELEMENT_COUNT);
 
-	// Fill input data buffers:
-	std::default_random_engine generator;
-	if (std::is_integral<T>::value)
-	{
-		std::uniform_int_distribution<int32_t> distributionInt(std::numeric_limits<int32_t>::lowest(), std::numeric_limits<int32_t>::max());
-		for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-		{
-			inputDataA[i] = distributionInt(generator);
-		}
-		inputDataBConstant = distributionInt(generator);
-	}
-	else
-	{
+    // Fill input data buffers:
+    std::default_random_engine generator;
+    if (std::is_integral<T>::value)
+    {
+        std::uniform_int_distribution<int32_t> distributionInt(std::numeric_limits<int32_t>::lowest(),
+                                                               std::numeric_limits<int32_t>::max());
+        for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+        {
+            inputDataA[i] = distributionInt(generator);
+        }
+        inputDataBConstant = distributionInt(generator);
+    }
+    else
+    {
         std::uniform_real_distribution<float> distributionFloat(TEST_FLOAT_LOWEST, TEST_FLOAT_HIGHEST);
-		for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-		{
-			inputDataA[i] = distributionFloat(generator);
-		}
-		inputDataBConstant = distributionFloat(generator);
-	}
+        for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+        {
+            inputDataA[i] = distributionFloat(generator);
+        }
+        inputDataBConstant = distributionFloat(generator);
+    }
 
 
-	// Create CUDA buffers:
-	T *inputBufferA;
-	int8_t *outputBuffer;
+    // Create CUDA buffers:
+    T* inputBufferA;
+    int8_t* outputBuffer;
 
-	// Alloc buffers in GPU memory:
-	GPUMemory::alloc(&inputBufferA, DATA_ELEMENT_COUNT);
-	GPUMemory::alloc(&outputBuffer, DATA_ELEMENT_COUNT);
+    // Alloc buffers in GPU memory:
+    GPUMemory::alloc(&inputBufferA, DATA_ELEMENT_COUNT);
+    GPUMemory::alloc(&outputBuffer, DATA_ELEMENT_COUNT);
 
-	// Copy the contents of the buffers to the GPU
-	GPUMemory::copyHostToDevice(inputBufferA, inputDataA.get(), DATA_ELEMENT_COUNT);
+    // Copy the contents of the buffers to the GPU
+    GPUMemory::copyHostToDevice(inputBufferA, inputDataA.get(), DATA_ELEMENT_COUNT);
 
-	//////////////////////////////////////////////////////////////////////////////////////
-	// Run kernels, copy back values and compare them
+    //////////////////////////////////////////////////////////////////////////////////////
+    // Run kernels, copy back values and compare them
 
-	// Greater than
-	GPUFilter::constCol<FilterConditions::greater>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataBConstant > inputDataA[i]);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataBConstant > inputDataA[i]);
-		}
-	}
+    // Greater than
+    GPUFilter::Filter<FilterConditions::greater>(outputBuffer, inputDataBConstant, inputBufferA,
+                                                 nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataBConstant > inputDataA[i]);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataBConstant > inputDataA[i]);
+        }
+    }
 
-	// Greater than equal
-	GPUFilter::constCol<FilterConditions::greaterEqual>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataBConstant >= inputDataA[i]);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataBConstant >= inputDataA[i]);
-		}
-	}
+    // Greater than equal
+    GPUFilter::Filter<FilterConditions::greaterEqual>(outputBuffer, inputDataBConstant,
+                                                      inputBufferA, nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataBConstant >= inputDataA[i]);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataBConstant >= inputDataA[i]);
+        }
+    }
 
-	// Less than
-	GPUFilter::constCol<FilterConditions::less>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataBConstant < inputDataA[i]);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataBConstant < inputDataA[i]);
-		}
-	}
+    // Less than
+    GPUFilter::Filter<FilterConditions::less>(outputBuffer, inputDataBConstant, inputBufferA,
+                                              nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataBConstant < inputDataA[i]);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataBConstant < inputDataA[i]);
+        }
+    }
 
-	// Less than equal
-	GPUFilter::constCol<FilterConditions::lessEqual>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataBConstant <= inputDataA[i]);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataBConstant <= inputDataA[i]);
-		}
-	}
+    // Less than equal
+    GPUFilter::Filter<FilterConditions::lessEqual>(outputBuffer, inputDataBConstant, inputBufferA,
+                                                   nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataBConstant <= inputDataA[i]);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataBConstant <= inputDataA[i]);
+        }
+    }
 
-	// Equal
-	GPUFilter::constCol<FilterConditions::equal>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] == inputDataBConstant);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] == inputDataBConstant);
-		}
-	}
+    // Equal
+    GPUFilter::Filter<FilterConditions::equal>(outputBuffer, inputDataBConstant, inputBufferA,
+                                               nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] == inputDataBConstant);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] == inputDataBConstant);
+        }
+    }
 
-	// Non equal
-	GPUFilter::constCol<FilterConditions::notEqual>(outputBuffer, inputDataBConstant, inputBufferA, nullptr, DATA_ELEMENT_COUNT);
-	GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
-	for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
-	{
-		if (std::is_integral<T>::value)
-		{
-			ASSERT_EQ(outputData[i], inputDataA[i] != inputDataBConstant);
-		}
-		else
-		{
-			ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] != inputDataBConstant);
-		}
-	}
+    // Non equal
+    GPUFilter::Filter<FilterConditions::notEqual>(outputBuffer, inputDataBConstant, inputBufferA,
+                                                  nullptr, DATA_ELEMENT_COUNT);
+    GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
+    for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
+    {
+        if (std::is_integral<T>::value)
+        {
+            ASSERT_EQ(outputData[i], inputDataA[i] != inputDataBConstant);
+        }
+        else
+        {
+            ASSERT_FLOAT_EQ(outputData[i], inputDataA[i] != inputDataBConstant);
+        }
+    }
 
-	//////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////
 
-	// Free buffers in GPU memory:
-	GPUMemory::free(inputBufferA);
-	GPUMemory::free(outputBuffer);
+    // Free buffers in GPU memory:
+    GPUMemory::free(inputBufferA);
+    GPUMemory::free(outputBuffer);
 }
 
 TEST(GPUFilterTests, FiltersConstCol)
 {
-	// Initialize CUDA context:
-	Context::getInstance();
+    // Initialize CUDA context:
+    Context::getInstance();
 
-	testConstColFilter<int32_t>();
-	testConstColFilter<int64_t>();
-	testConstColFilter<float>();
+    testConstColFilter<int32_t>();
+    testConstColFilter<int64_t>();
+    testConstColFilter<float>();
 }
 
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-template<typename T>
+template <typename T>
 void testConstConstFilter()
 {
-	// CPU data:
-	T inputDataAConstant;
-	T inputDataBConstant;
-	int8_t outputData;
+    // CPU data:
+    T inputDataAConstant;
+    T inputDataBConstant;
+    int8_t outputData;
 
-	// Fill input data buffers:
-	std::default_random_engine generator;
-	if (std::is_integral<T>::value)
-	{
-		std::uniform_int_distribution<int32_t> distributionInt(std::numeric_limits<int32_t>::lowest(), std::numeric_limits<int32_t>::max());
+    // Fill input data buffers:
+    std::default_random_engine generator;
+    if (std::is_integral<T>::value)
+    {
+        std::uniform_int_distribution<int32_t> distributionInt(std::numeric_limits<int32_t>::lowest(),
+                                                               std::numeric_limits<int32_t>::max());
 
-		inputDataAConstant = distributionInt(generator);
-		inputDataBConstant = distributionInt(generator);
-	}
-	else
-	{
+        inputDataAConstant = distributionInt(generator);
+        inputDataBConstant = distributionInt(generator);
+    }
+    else
+    {
         std::uniform_real_distribution<float> distributionFloat(TEST_FLOAT_LOWEST, TEST_FLOAT_HIGHEST);
 
-		inputDataAConstant = distributionFloat(generator);
-		inputDataBConstant = distributionFloat(generator);
-	}
+        inputDataAConstant = distributionFloat(generator);
+        inputDataBConstant = distributionFloat(generator);
+    }
 
-	// Create CUDA buffers:
-	int8_t *outputBuffer;
+    // Create CUDA buffers:
+    int8_t* outputBuffer;
 
-	// Alloc buffers in GPU memory:
-	GPUMemory::alloc(&outputBuffer, 1);
+    // Alloc buffers in GPU memory:
+    GPUMemory::alloc(&outputBuffer, 1);
 
-	//////////////////////////////////////////////////////////////////////////////////////
-	// Run kernels, copy back values and compare them
+    //////////////////////////////////////////////////////////////////////////////////////
+    // Run kernels, copy back values and compare them
 
-	// Greater than
-	GPUFilter::constConst<FilterConditions::greater>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
+    // Greater than
+    GPUFilter::Filter<FilterConditions::greater>(outputBuffer, inputDataAConstant,
+                                                 inputDataBConstant, nullptr, 1);
+    GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
-	if (std::is_integral<T>::value)
-	{
-		ASSERT_EQ(outputData, inputDataAConstant > inputDataBConstant);
-	}
-	else
-	{
-		ASSERT_FLOAT_EQ(outputData, inputDataAConstant > inputDataBConstant);
-	}
-
-
-	// Greater than equal
-	GPUFilter::constConst<FilterConditions::greaterEqual>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
-
-	if (std::is_integral<T>::value)
-	{
-		ASSERT_EQ(outputData, inputDataAConstant >= inputDataBConstant);
-	}
-	else
-	{
-		ASSERT_FLOAT_EQ(outputData, inputDataAConstant >= inputDataBConstant);
-	}
+    if (std::is_integral<T>::value)
+    {
+        ASSERT_EQ(outputData, inputDataAConstant > inputDataBConstant);
+    }
+    else
+    {
+        ASSERT_FLOAT_EQ(outputData, inputDataAConstant > inputDataBConstant);
+    }
 
 
-	// Less than
-	GPUFilter::constConst<FilterConditions::less>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
+    // Greater than equal
+    GPUFilter::Filter<FilterConditions::greaterEqual>(outputBuffer, inputDataAConstant,
+                                                      inputDataBConstant, nullptr, 1);
+    GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
-	if (std::is_integral<T>::value)
-	{
-		ASSERT_EQ(outputData, inputDataAConstant < inputDataBConstant);
-	}
-	else
-	{
-		ASSERT_FLOAT_EQ(outputData, inputDataAConstant < inputDataBConstant);
-	}
-
-
-	// Less than equal
-	GPUFilter::constConst<FilterConditions::lessEqual>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
-
-	if (std::is_integral<T>::value)
-	{
-		ASSERT_EQ(outputData, inputDataAConstant <= inputDataBConstant);
-	}
-	else
-	{
-		ASSERT_FLOAT_EQ(outputData, inputDataAConstant <= inputDataBConstant);
-	}
+    if (std::is_integral<T>::value)
+    {
+        ASSERT_EQ(outputData, inputDataAConstant >= inputDataBConstant);
+    }
+    else
+    {
+        ASSERT_FLOAT_EQ(outputData, inputDataAConstant >= inputDataBConstant);
+    }
 
 
-	// Equal
-	GPUFilter::constConst<FilterConditions::equal>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
+    // Less than
+    GPUFilter::Filter<FilterConditions::less>(outputBuffer, inputDataAConstant, inputDataBConstant, nullptr, 1);
+    GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
-	if (std::is_integral<T>::value)
-	{
-		ASSERT_EQ(outputData, inputDataAConstant == inputDataBConstant);
-	}
-	else
-	{
-		ASSERT_FLOAT_EQ(outputData, inputDataAConstant == inputDataBConstant);
-	}
-
-
-	// Non equal
-	GPUFilter::constConst<FilterConditions::notEqual>(outputBuffer, inputDataAConstant, inputDataBConstant, 1);
-	GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
-
-	if (std::is_integral<T>::value)
-	{
-		ASSERT_EQ(outputData, inputDataAConstant != inputDataBConstant);
-	}
-	else
-	{
-		ASSERT_FLOAT_EQ(outputData, inputDataAConstant != inputDataBConstant);
-	}
+    if (std::is_integral<T>::value)
+    {
+        ASSERT_EQ(outputData, inputDataAConstant < inputDataBConstant);
+    }
+    else
+    {
+        ASSERT_FLOAT_EQ(outputData, inputDataAConstant < inputDataBConstant);
+    }
 
 
-	//////////////////////////////////////////////////////////////////////////////////////
+    // Less than equal
+    GPUFilter::Filter<FilterConditions::lessEqual>(outputBuffer, inputDataAConstant,
+                                                   inputDataBConstant, nullptr, 1);
+    GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
-	// Free buffers in GPU memory:
-	GPUMemory::free(outputBuffer);
+    if (std::is_integral<T>::value)
+    {
+        ASSERT_EQ(outputData, inputDataAConstant <= inputDataBConstant);
+    }
+    else
+    {
+        ASSERT_FLOAT_EQ(outputData, inputDataAConstant <= inputDataBConstant);
+    }
+
+
+    // Equal
+    GPUFilter::Filter<FilterConditions::equal>(outputBuffer, inputDataAConstant, inputDataBConstant, nullptr, 1);
+    GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
+
+    if (std::is_integral<T>::value)
+    {
+        ASSERT_EQ(outputData, inputDataAConstant == inputDataBConstant);
+    }
+    else
+    {
+        ASSERT_FLOAT_EQ(outputData, inputDataAConstant == inputDataBConstant);
+    }
+
+
+    // Non equal
+    GPUFilter::Filter<FilterConditions::notEqual>(outputBuffer, inputDataAConstant,
+                                                  inputDataBConstant, nullptr, 1);
+    GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
+
+    if (std::is_integral<T>::value)
+    {
+        ASSERT_EQ(outputData, inputDataAConstant != inputDataBConstant);
+    }
+    else
+    {
+        ASSERT_FLOAT_EQ(outputData, inputDataAConstant != inputDataBConstant);
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////////////////
+
+    // Free buffers in GPU memory:
+    GPUMemory::free(outputBuffer);
 }
 
 
 TEST(GPUFilterTests, FiltersConstConst)
 {
-	// Initialize CUDA context:
-	Context::getInstance();
+    // Initialize CUDA context:
+    Context::getInstance();
 
-	testConstConstFilter<int32_t>();
-	testConstConstFilter<int64_t>();
-	testConstConstFilter<float>();
+    testConstConstFilter<int32_t>();
+    testConstConstFilter<int64_t>();
+    testConstConstFilter<float>();
 }
 
 
 // == String Filters ==
-template<typename OP>
-void TestFilterStringColCol(std::vector<std::string> inputStringACol, std::vector<std::string> inputStringBCol,
-	std::vector<int8_t> expectedResults)
+template <typename OP>
+void TestFilterStringColCol(std::vector<std::string> inputStringACol,
+                            std::vector<std::string> inputStringBCol,
+                            std::vector<int8_t> expectedResults)
 {
-	GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString(inputStringACol);
-	GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(inputStringBCol);
-	int32_t dataElementCount = std::min(inputStringACol.size(), inputStringBCol.size());
-	cuda_ptr<int8_t> gpuMask(dataElementCount);
-	GPUFilter::colCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
-	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
-	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
-	GPUMemory::free(gpuStringACol);
-	GPUMemory::free(gpuStringBCol);
-	
-	ASSERT_EQ(dataElementCount, expectedResults.size());
-	for (int32_t i = 0; i < dataElementCount; i++)
-	{
-		ASSERT_EQ(actualMask[i], expectedResults[i]) << " in ColCol at row " << i;
-	}
+    GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString(inputStringACol);
+    GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(inputStringBCol);
+    int32_t dataElementCount = std::min(inputStringACol.size(), inputStringBCol.size());
+    cuda_ptr<int8_t> gpuMask(dataElementCount);
+    GPUFilter::colCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
+    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+    GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+    GPUMemory::free(gpuStringACol);
+    GPUMemory::free(gpuStringBCol);
+
+    ASSERT_EQ(dataElementCount, expectedResults.size());
+    for (int32_t i = 0; i < dataElementCount; i++)
+    {
+        ASSERT_EQ(actualMask[i], expectedResults[i]) << " in ColCol at row " << i;
+    }
 }
 
-template<typename OP>
-void TestFilterStringColConst(std::vector<std::string> inputStringACol, std::string inputStringBConst,
-	std::vector<int8_t> expectedResults)
+template <typename OP>
+void TestFilterStringColConst(std::vector<std::string> inputStringACol,
+                              std::string inputStringBConst,
+                              std::vector<int8_t> expectedResults)
 {
-	GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString(inputStringACol);
-	GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString({ inputStringBConst });
-	int32_t dataElementCount = inputStringACol.size();
-	cuda_ptr<int8_t> gpuMask(dataElementCount);
-	GPUFilter::colConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
-	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
-	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
-	GPUMemory::free(gpuStringACol);
-	GPUMemory::free(gpuStringBCol);
+    GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString(inputStringACol);
+    GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString({inputStringBConst});
+    int32_t dataElementCount = inputStringACol.size();
+    cuda_ptr<int8_t> gpuMask(dataElementCount);
+    GPUFilter::colConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
+    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+    GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+    GPUMemory::free(gpuStringACol);
+    GPUMemory::free(gpuStringBCol);
 
-	ASSERT_EQ(dataElementCount, expectedResults.size());
-	for (int32_t i = 0; i < dataElementCount; i++)
-	{
-		ASSERT_EQ(actualMask[i], expectedResults[i]) << " in ColConst at row " << i;
-	}
+    ASSERT_EQ(dataElementCount, expectedResults.size());
+    for (int32_t i = 0; i < dataElementCount; i++)
+    {
+        ASSERT_EQ(actualMask[i], expectedResults[i]) << " in ColConst at row " << i;
+    }
 }
 
-template<typename OP>
-void TestFilterStringConstCol(std::string inputStringAConst, std::vector<std::string> inputStringBCol,
-	std::vector<int8_t> expectedResults)
+template <typename OP>
+void TestFilterStringConstCol(std::string inputStringAConst,
+                              std::vector<std::string> inputStringBCol,
+                              std::vector<int8_t> expectedResults)
 {
-	GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString({ inputStringAConst });
-	GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(inputStringBCol);
-	int32_t dataElementCount = inputStringBCol.size();
-	cuda_ptr<int8_t> gpuMask(dataElementCount);
-	GPUFilter::constCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
-	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
-	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
-	GPUMemory::free(gpuStringACol);
-	GPUMemory::free(gpuStringBCol);
+    GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString({inputStringAConst});
+    GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(inputStringBCol);
+    int32_t dataElementCount = inputStringBCol.size();
+    cuda_ptr<int8_t> gpuMask(dataElementCount);
+    GPUFilter::constCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
+    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+    GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+    GPUMemory::free(gpuStringACol);
+    GPUMemory::free(gpuStringBCol);
 
-	ASSERT_EQ(dataElementCount, expectedResults.size());
-	for (int32_t i = 0; i < dataElementCount; i++)
-	{
-		ASSERT_EQ(actualMask[i], expectedResults[i]) << " in ConstCol at row " << i;
-	}
+    ASSERT_EQ(dataElementCount, expectedResults.size());
+    for (int32_t i = 0; i < dataElementCount; i++)
+    {
+        ASSERT_EQ(actualMask[i], expectedResults[i]) << " in ConstCol at row " << i;
+    }
 }
 
-template<typename OP>
-void TestFilterStringConstConst(std::string inputStringAConst, std::string inputStringBConst,
-	int8_t expectedResult)
+template <typename OP>
+void TestFilterStringConstConst(std::string inputStringAConst, std::string inputStringBConst, int8_t expectedResult)
 {
-	GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString({ inputStringAConst });
-	GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString({ inputStringBConst });
-	int32_t dataElementCount = 8;
-	cuda_ptr<int8_t> gpuMask(dataElementCount);
-	GPUFilter::constConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
-	std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
-	GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
-	GPUMemory::free(gpuStringACol);
-	GPUMemory::free(gpuStringBCol);
+    GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString({inputStringAConst});
+    GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString({inputStringBConst});
+    int32_t dataElementCount = 8;
+    cuda_ptr<int8_t> gpuMask(dataElementCount);
+    GPUFilter::constConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
+    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+    GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+    GPUMemory::free(gpuStringACol);
+    GPUMemory::free(gpuStringBCol);
 
-	for (int32_t i = 0; i < dataElementCount; i++)
-	{
-		ASSERT_EQ(actualMask[i], expectedResult) << " in ConstConst at row " << i;
-	}
+    for (int32_t i = 0; i < dataElementCount; i++)
+    {
+        ASSERT_EQ(actualMask[i], expectedResult) << " in ConstConst at row " << i;
+    }
 }
 
 TEST(GPUFilterTests, FiltersStringEq)
 {
-	TestFilterStringColCol<FilterConditions::equal>(
-		{ "Abcd", "XYZW", " ", "_#$\\", "xpr" },
-		{ "Abcd", "road", "z", "_#$\\", "x" },
-		{ 1, 0, 0, 1, 0 });
-	TestFilterStringColConst<FilterConditions::equal>(
-		{ "Abcd", "XYZW", " ", "_#$\\", "xpr" },
-		"Abcd",
-		{ 1, 0, 0, 0, 0 });
-	TestFilterStringConstCol<FilterConditions::equal>(
-		"_#$\\",
-		{ "Abcd", "road", "z", "_#$\\", "x", "" },
-		{ 0, 0, 0, 1, 0, 0 });
-	TestFilterStringConstConst<FilterConditions::equal>("Abcd", "Abcd", 1);
-	TestFilterStringConstConst<FilterConditions::equal>("Abcd", "road", 0);
+    TestFilterStringColCol<FilterConditions::equal>({"Abcd", "XYZW", " ", "_#$\\", "xpr"},
+                                                    {"Abcd", "road", "z", "_#$\\", "x"}, {1, 0, 0, 1, 0});
+    TestFilterStringColConst<FilterConditions::equal>({"Abcd", "XYZW", " ", "_#$\\", "xpr"}, "Abcd",
+                                                      {1, 0, 0, 0, 0});
+    TestFilterStringConstCol<FilterConditions::equal>("_#$\\", {"Abcd", "road", "z", "_#$\\", "x", ""},
+                                                      {0, 0, 0, 1, 0, 0});
+    TestFilterStringConstConst<FilterConditions::equal>("Abcd", "Abcd", 1);
+    TestFilterStringConstConst<FilterConditions::equal>("Abcd", "road", 0);
 }
 
 TEST(GPUFilterTests, FiltersStringNonEq)
 {
-	TestFilterStringColCol<FilterConditions::notEqual>(
-		{ "Abcd", "XYZW", " ", "_#$\\", "xpr" },
-		{ "Abcd", "road", "zzz", "_#$\\", "x" },
-		{ 0, 1, 1, 0, 1 });
-	TestFilterStringColConst<FilterConditions::notEqual>(
-		{ "Abcd", "XYZW", " ", "_#$\\", "xpr" },
-		"Abcd",
-		{ 0, 1, 1, 1, 1 });
-	TestFilterStringConstCol<FilterConditions::notEqual>(
-		"_#$\\",
-		{ "Abcd", "road", "z", "_#$\\", "x", "" },
-		{ 1, 1, 1, 0, 1, 1 });
-	TestFilterStringConstConst<FilterConditions::notEqual>("Abcd", "Abcd", 0);
-	TestFilterStringConstConst<FilterConditions::notEqual>("Abcd", "road", 1);
+    TestFilterStringColCol<FilterConditions::notEqual>({"Abcd", "XYZW", " ", "_#$\\", "xpr"},
+                                                       {"Abcd", "road", "zzz", "_#$\\", "x"},
+                                                       {0, 1, 1, 0, 1});
+    TestFilterStringColConst<FilterConditions::notEqual>({"Abcd", "XYZW", " ", "_#$\\", "xpr"},
+                                                         "Abcd", {0, 1, 1, 1, 1});
+    TestFilterStringConstCol<FilterConditions::notEqual>("_#$\\", {"Abcd", "road", "z", "_#$\\", "x", ""},
+                                                         {1, 1, 1, 0, 1, 1});
+    TestFilterStringConstConst<FilterConditions::notEqual>("Abcd", "Abcd", 0);
+    TestFilterStringConstConst<FilterConditions::notEqual>("Abcd", "road", 1);
 }

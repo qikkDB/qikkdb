@@ -1,4 +1,5 @@
 #pragma once
+#include "GpuSqlParser/GpuSqlCustomParser.h"
 #include <thread>
 #include <mutex>
 #include <google/protobuf/message.h>
@@ -6,6 +7,7 @@
 #include "IClientHandler.h"
 #include "Database.h"
 #include <memory>
+
 
 class TCPClientHandler final : public IClientHandler
 {
@@ -20,7 +22,9 @@ private:
     std::unique_ptr<google::protobuf::Message> lastResultMessage_;
     std::unique_ptr<google::protobuf::Message>
     RunQuery(const std::weak_ptr<Database>& database,
-             const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage);
+             const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
+             std::function<void(std::unique_ptr<google::protobuf::Message> notifyMessage)> handler);
+    std::unique_ptr<GpuSqlCustomParser> parser_;
 
 public:
     TCPClientHandler(){};
@@ -29,7 +33,9 @@ public:
     virtual std::unique_ptr<google::protobuf::Message>
     HandleInfoMessage(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::InfoMessage& infoMessage) override;
     virtual std::unique_ptr<google::protobuf::Message>
-    HandleQuery(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage) override;
+    HandleQuery(ITCPWorker& worker,
+                const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
+                std::function<void(std::unique_ptr<google::protobuf::Message>)> handler) override;
     virtual std::unique_ptr<google::protobuf::Message>
     HandleCSVImport(ITCPWorker& worker,
                     const ColmnarDB::NetworkClient::Message::CSVImportMessage& csvImportMessage) override;
@@ -41,4 +47,5 @@ public:
                      const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage,
                      const char* dataBuffer,
                      const char* nullMask = nullptr) override;
+    virtual void Abort() override;
 };

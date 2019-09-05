@@ -20,12 +20,17 @@ ClientPoolWorker::ClientPoolWorker(std::unique_ptr<IClientHandler>&& clientHandl
                                    int requestTimeout)
 : ITCPWorker(std::move(clientHandler), std::move(socket), requestTimeout),
   dataBuffer_(std::make_unique<char[]>(MAXIMUM_BULK_FRAGMENT_SIZE)),
-  nullBuffer_(std::make_unique<char[]>(NULL_BUFFER_SIZE)),
-  networkMessage_(), 
+  nullBuffer_(std::make_unique<char[]>(NULL_BUFFER_SIZE)), networkMessage_(),
 #if BOOST_VERSION < 107000
-	socketDeadline_{socket.get_executor().context()} 
+  socketDeadline_
+{
+    socket.get_executor().context()
+}
 #else
-	socketDeadline_{ socket.get_executor()}
+  socketDeadline_
+{
+    socket.get_executor()
+}
 #endif
 {
     socketDeadline_.expires_at(boost::asio::steady_timer::time_point::max());
@@ -40,22 +45,29 @@ void ClientPoolWorker::HandleClient()
     BOOST_LOG_TRIVIAL(debug) << "Waiting for hello from " << socket_.remote_endpoint().address().to_string();
     auto self(shared_from_this());
     socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
-    networkMessage_.ReadFromNetwork(socket_, [this, self](google::protobuf::Any recvMsg) {
-        ColmnarDB::NetworkClient::Message::InfoMessage outInfo;
-        if (!recvMsg.UnpackTo(&outInfo))
-        {
-            BOOST_LOG_TRIVIAL(error) << "Invalid message received from client "
-                                     << socket_.remote_endpoint().address().to_string();
-            return;
-        }
-        BOOST_LOG_TRIVIAL(debug) << "Hello from " << socket_.remote_endpoint().address().to_string();
-        outInfo.set_message("");
-        outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
-        networkMessage_.WriteToNetwork(outInfo, socket_, [this, self]() {
-            BOOST_LOG_TRIVIAL(debug) << "Hello to " << socket_.remote_endpoint().address().to_string();
-            ClientLoop();
-        });
-    });
+    networkMessage_.ReadFromNetwork(
+        socket_,
+        [this, self](google::protobuf::Any recvMsg) {
+            ColmnarDB::NetworkClient::Message::InfoMessage outInfo;
+            if (!recvMsg.UnpackTo(&outInfo))
+            {
+                BOOST_LOG_TRIVIAL(error) << "Invalid message received from client "
+                                         << socket_.remote_endpoint().address().to_string();
+                return;
+            }
+            BOOST_LOG_TRIVIAL(debug) << "Hello from " << socket_.remote_endpoint().address().to_string();
+            outInfo.set_message("");
+            outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+            networkMessage_.WriteToNetwork(
+                outInfo, socket_,
+                [this, self]() {
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Hello to " << socket_.remote_endpoint().address().to_string();
+                    ClientLoop();
+                },
+                [this]() { Abort(); });
+        },
+        [this]() { Abort(); });
 }
 
 void ClientPoolWorker::ClientLoop()
@@ -64,9 +76,9 @@ void ClientPoolWorker::ClientLoop()
     BOOST_LOG_TRIVIAL(debug)
         << "Waiting for message from " << socket_.remote_endpoint().address().to_string();
     socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
-    networkMessage_.ReadFromNetwork(socket_, [this, self](google::protobuf::Any recvMsg) {
-        HandleMessage(self, recvMsg);
-    });
+    networkMessage_.ReadFromNetwork(
+        socket_, [this, self](google::protobuf::Any recvMsg) { HandleMessage(self, recvMsg); },
+        [this]() { Abort(); });
 }
 
 void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::protobuf::Any& recvMsg)
@@ -83,7 +95,8 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
 
         if (resultMessage != nullptr)
         {
-            networkMessage_.WriteToNetwork(*resultMessage, socket_, [this, self]() { ClientLoop(); });
+            networkMessage_.WriteToNetwork(
+                *resultMessage, socket_, [this, self]() { ClientLoop(); }, [this]() { Abort(); });
         }
     }
     else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::QueryMessage>())
@@ -91,11 +104,18 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
         ColmnarDB::NetworkClient::Message::QueryMessage queryMessage;
         recvMsg.UnpackTo(&queryMessage);
         BOOST_LOG_TRIVIAL(debug) << "Query message from " << socket_.remote_endpoint().address().to_string();
-        std::unique_ptr<google::protobuf::Message> waitMessage =
-            clientHandler_->HandleQuery(*this, queryMessage);
+        std::unique_ptr<google::protobuf::Message> waitMessage = clientHandler_->HandleQuery(
+            *this, queryMessage, [this, self](std::unique_ptr<google::protobuf::Message> notifyMessage) {
+                if (socket_.is_open())
+                {
+                    networkMessage_.WriteToNetwork(
+                        *notifyMessage, socket_, []() {}, [this]() { Abort(); });
+                }
+            });
         if (waitMessage != nullptr)
         {
-            networkMessage_.WriteToNetwork(*waitMessage, socket_, [this, self]() { ClientLoop(); });
+            networkMessage_.WriteToNetwork(
+                *waitMessage, socket_, [this, self]() { ClientLoop(); }, [this]() { Abort(); });
         }
     }
     else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::CSVImportMessage>())
@@ -107,8 +127,9 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
             clientHandler_->HandleCSVImport(*this, csvImportMessage);
         if (importResultMessage != nullptr)
         {
-            networkMessage_.WriteToNetwork(*importResultMessage, socket_,
-                                           [this, self]() { ClientLoop(); });
+            networkMessage_.WriteToNetwork(
+                *importResultMessage, socket_, [this, self]() { ClientLoop(); },
+                [this]() { Abort(); });
         }
     }
     else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::SetDatabaseMessage>())
@@ -121,8 +142,8 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
             clientHandler_->HandleSetDatabase(*this, setDatabaseMessage);
         if (setDatabaseResult != nullptr)
         {
-            networkMessage_.WriteToNetwork(*setDatabaseResult, socket_,
-                                           [this, self]() { ClientLoop(); });
+            networkMessage_.WriteToNetwork(
+                *setDatabaseResult, socket_, [this, self]() { ClientLoop(); }, [this]() { Abort(); });
         }
     }
     else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::BulkImportMessage>())
@@ -139,7 +160,8 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
         {
             outInfo.set_message("Data fragment larger than allowed");
             outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
-            networkMessage_.WriteToNetwork(outInfo, socket_, [this, self]() { ClientLoop(); });
+            networkMessage_.WriteToNetwork(
+                outInfo, socket_, [this, self]() { ClientLoop(); }, [this]() { Abort(); });
             return;
         }
         socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
@@ -158,10 +180,12 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
                                                                  dataBuffer_.get(), resultBuffer);
                             if (importResultMessage != nullptr)
                             {
-                                networkMessage_.WriteToNetwork(*importResultMessage, socket_,
-                                                               [this, self]() { ClientLoop(); });
+                                networkMessage_.WriteToNetwork(
+                                    *importResultMessage, socket_, [this, self]() { ClientLoop(); },
+                                    [this]() { Abort(); });
                             }
-                        });
+                        },
+                        [this]() { Abort(); });
                 }
                 else
                 {
@@ -170,11 +194,13 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
                                                          dataBuffer_.get(), nullBuffer_.get());
                     if (importResultMessage != nullptr)
                     {
-                        networkMessage_.WriteToNetwork(*importResultMessage, socket_,
-                                                       [this, self]() { ClientLoop(); });
+                        networkMessage_.WriteToNetwork(
+                            *importResultMessage, socket_, [this, self]() { ClientLoop(); },
+                            [this]() { Abort(); });
                     }
                 }
-            });
+            },
+            [this]() { Abort(); });
     }
     else
     {
@@ -189,6 +215,7 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
 /// </summary>
 void ClientPoolWorker::Abort()
 {
+    clientHandler_->Abort();
     socket_.close();
     socketDeadline_.cancel();
 }

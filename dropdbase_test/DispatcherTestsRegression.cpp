@@ -203,9 +203,72 @@ TEST(DispatcherTestsRegression, NonGroupByAggCorrectSemantic)
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT MIN(colInteger1), SUM(colInteger2) FROM TableA;");
-    parser.Parse();
+    ASSERT_NO_THROW(parser.Parse());
 }
 
+TEST(DispatcherTestsRegression, AggInWhereWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1, SUM(colInteger2) FROM TableA WHERE "
+                              "SUM(colInteger2) > 2;");
+    ASSERT_THROW(parser.Parse(), AggregationWhereException);
+}
+
+TEST(DispatcherTestsRegression, AggInGroupByWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT SUM(colInteger2) FROM TableA GROUP BY SUM(colInteger2);");
+    ASSERT_THROW(parser.Parse(), AggregationGroupByException);
+}
+
+TEST(DispatcherTestsRegression, AggInGroupByAliasWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT SUM(colInteger2) FROM TableA GROUP BY 1;");
+    ASSERT_THROW(parser.Parse(), AggregationGroupByException);
+}
+
+TEST(DispatcherTestsRegression, GroupByAliasDataTypeWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1, SUM(colInteger2) FROM TableA GROUP BY 1.1;");
+    ASSERT_THROW(parser.Parse(), GroupByInvalidColumnException);
+}
+
+TEST(DispatcherTestsRegression, GroupByAliasOutOfRangeWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1, SUM(colInteger2) FROM TableA GROUP BY 100;");
+    ASSERT_THROW(parser.Parse(), GroupByInvalidColumnException);
+}
+
+TEST(DispatcherTestsRegression, OrderByAliasDataTypeWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1 FROM TableA ORDER BY 1.1;");
+    ASSERT_THROW(parser.Parse(), OrderByInvalidColumnException);
+}
+
+TEST(DispatcherTestsRegression, OrderByAliasOutOfRangeWrongSemantic)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1 FROM TableA ORDER BY 100;");
+    ASSERT_THROW(parser.Parse(), OrderByInvalidColumnException);
+}
 
 TEST(DispatcherTestsRegression, ConstOpOnMultiGPU)
 {
@@ -243,7 +306,6 @@ TEST(DispatcherTestsRegression, JoinEmptyResult)
     std::vector<int32_t> valuesA = {50};
     std::vector<int32_t> idsB = {1, 1};
     std::vector<int32_t> valuesB = {32, 33};
-
 
     std::shared_ptr<Database> joinDatabase = std::make_shared<Database>(dbName.c_str(), blockSize);
     Database::AddToInMemoryDatabaseList(joinDatabase);
@@ -289,6 +351,61 @@ TEST(DispatcherTestsRegression, JoinEmptyResult)
     Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
 }
 
+// == JOIN ==
+TEST(DispatcherTestsRegression, JoinTableAliasResult)
+{
+    Context::getInstance();
+    const std::string dbName = "JoinTestDb";
+    const std::string tableAName = "TableA";
+    const std::string tableBName = "TableB";
+    const int32_t blockSize = 32; // length of a block
+
+    std::vector<int32_t> idsA = {1};
+    std::vector<int32_t> valuesA = {50};
+    std::vector<int32_t> idsB = {1, 1};
+    std::vector<int32_t> valuesB = {32, 33};
+
+    std::shared_ptr<Database> joinDatabase = std::make_shared<Database>(dbName.c_str(), blockSize);
+    Database::AddToInMemoryDatabaseList(joinDatabase);
+
+    auto columnsA = std::unordered_map<std::string, DataType>();
+    columnsA.insert(std::make_pair<std::string, DataType>("id", DataType::COLUMN_INT));
+    columnsA.insert(std::make_pair<std::string, DataType>("value", DataType::COLUMN_INT));
+    joinDatabase->CreateTable(columnsA, tableAName.c_str());
+
+    auto columnsB = std::unordered_map<std::string, DataType>();
+    columnsB.insert(std::make_pair<std::string, DataType>("id", DataType::COLUMN_INT));
+    columnsB.insert(std::make_pair<std::string, DataType>("value", DataType::COLUMN_INT));
+    joinDatabase->CreateTable(columnsB, tableBName.c_str());
+
+    reinterpret_cast<ColumnBase<int32_t>*>(
+        joinDatabase->GetTables().at(tableAName).GetColumns().at("id").get())
+        ->InsertData(idsA);
+    reinterpret_cast<ColumnBase<int32_t>*>(
+        joinDatabase->GetTables().at(tableAName).GetColumns().at("value").get())
+        ->InsertData(valuesA);
+
+    reinterpret_cast<ColumnBase<int32_t>*>(
+        joinDatabase->GetTables().at(tableBName).GetColumns().at("id").get())
+        ->InsertData(idsB);
+    reinterpret_cast<ColumnBase<int32_t>*>(
+        joinDatabase->GetTables().at(tableBName).GetColumns().at("value").get())
+        ->InsertData(valuesB);
+
+    GpuSqlCustomParser parser(joinDatabase, "SELECT ta.value, tb.value FROM TableA AS ta JOIN "
+                                            "TableB AS tb ON ta.id = tb.id;");
+
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& payloadA = result->payloads().at("TableA.value");
+    auto& payloadB = result->payloads().at("TableB.value");
+
+    ASSERT_EQ(2, payloadA.intpayload().intdata_size());
+    ASSERT_EQ(2, payloadB.intpayload().intdata_size());
+
+    Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
+}
+
 TEST(DispatcherTestsRegression, AggregationInWhereWrongSemantic)
 {
     Context::getInstance();
@@ -311,4 +428,19 @@ TEST(DispatcherTestsRegression, CreateIndexWrongSemantic)
     GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database,
                                "CREATE TABLE tblA (colA GEO_POLYGON, INDEX ind (colA));");
     ASSERT_THROW(parser2.Parse(), IndexColumnDataTypeException);
+}
+
+TEST(DispatcherTestsRegression, FixedColumnOrdering)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1, SUM(colInteger2) FROM TableA GROUP BY "
+                              "colInteger1;");
+
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->columnorder().Get(0), "TableA.colInteger1");
+    ASSERT_EQ(result->columnorder().Get(1), "SUM(colInteger2)");
 }

@@ -43,7 +43,6 @@ protected:
 ///  - DropDatabase()
 TEST_F(DatabaseTests, IntegrationTest)
 {
-	boost::filesystem::current_path();
 
 	Database::AddToInMemoryDatabaseList(database);
 

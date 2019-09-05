@@ -41,7 +41,7 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database,
   orderByColumnIndex_(0), usingGroupBy_(false), usingAgg_(false), insideAgg_(false),
   insideWhere_(false), insideGroupBy_(false), insideOrderBy_(false), insideAlias_(false),
   insideSelectColumn_(false), isAggSelectColumn_(false), isSelectColumnValid_(false),
-  ResultLimit(std::numeric_limits<int64_t>::max()), ResultOffset(0)
+  ResultLimit(std::numeric_limits<int64_t>::max()), ResultOffset(0), CurrentSelectColumnIndex(0)
 {
     GpuSqlDispatcher::linkTable.clear();
 }
@@ -569,6 +569,10 @@ void GpuSqlListener::enterAggregation(GpuSqlParser::AggregationContext* ctx)
     {
         throw AggregationWhereException();
     }
+    if (insideGroupBy_)
+    {
+        throw AggregationGroupByException();
+    }
     insideAgg_ = true;
     usingAgg_ = true;
     isAggSelectColumn_ = insideSelectColumn_;
@@ -585,12 +589,18 @@ void GpuSqlListener::exitAggregation(GpuSqlParser::AggregationContext* ctx)
 {
     bool aggAsterisk = false;
 
-    if (ctx->ASTERISK())
+    if (ctx->COUNT_AGG() && ctx->ASTERISK())
     {
         aggAsterisk = true;
         // JOIN case handled in dispatcher
         std::string tableName = *(loadedTables_.begin());
         PushTempResult(tableName, COLUMN_INT);
+    }
+    else if (ctx->COUNT_AGG() && ctx->ASTERISK() == nullptr && usingGroupBy_)
+    {
+        std::pair<std::string, DataType> arg = StackTopAndPop();
+        std::string value = std::get<0>(arg);
+        PushTempResult(value, COLUMN_INT);
     }
 
     std::pair<std::string, DataType> arg = StackTopAndPop();
@@ -735,6 +745,7 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext* ctx)
     if (returnColumns_.find(colName) == returnColumns_.end())
     {
         returnColumns_.insert({colName, {retType, alias}});
+        ColumnOrder.insert({CurrentSelectColumnIndex, alias});
 
         dispatcher_.AddArgument<const std::string&>(colName);
         dispatcher_.AddLockRegisterFunction();
@@ -746,6 +757,7 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext* ctx)
 
 void GpuSqlListener::exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext* ctx)
 {
+    int32_t columnOrderNumber = 0;
     for (auto& tableName : loadedTables_)
     {
         const Table& table = database_->GetTables().at(tableName);
@@ -757,6 +769,7 @@ void GpuSqlListener::exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext*
             if (returnColumns_.find(colName) == returnColumns_.end())
             {
                 returnColumns_.insert({colName, {retType, colName}});
+                ColumnOrder.insert({columnOrderNumber++, colName});
 
                 dispatcher_.AddArgument<const std::string&>(colName);
                 dispatcher_.AddLockRegisterFunction();
@@ -798,7 +811,8 @@ void GpuSqlListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
 
 void GpuSqlListener::exitJoinClause(GpuSqlParser::JoinClauseContext* ctx)
 {
-    std::string joinTable = ctx->joinTable()->getText();
+    std::string joinTable = ctx->joinTable()->table()->getText();
+    TrimDelimitedIdentifier(joinTable);
 
     if (database_->GetTables().find(joinTable) == database_->GetTables().end())
     {
@@ -806,6 +820,18 @@ void GpuSqlListener::exitJoinClause(GpuSqlParser::JoinClauseContext* ctx)
     }
 
     loadedTables_.insert(joinTable);
+
+    if (ctx->joinTable()->alias())
+    {
+        std::string alias = ctx->joinTable()->alias()->getText();
+        TrimDelimitedIdentifier(alias);
+
+        if (tableAliases_.find(alias) != tableAliases_.end())
+        {
+            throw AliasRedefinitionException(alias);
+        }
+        tableAliases_.insert({alias, joinTable});
+    }
 
     std::string leftColName;
     DataType leftColType;
@@ -905,11 +931,38 @@ void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext* ctx
 void GpuSqlListener::exitGroupByColumn(GpuSqlParser::GroupByColumnContext* ctx)
 {
     std::pair<std::string, DataType> operand = StackTopAndPop();
+    std::string groupByColName = std::get<0>(operand);
+    DataType groupByDataType = std::get<1>(operand);
+
+
+    if (groupByDataType < DataType::COLUMN_INT)
+    {
+        if (groupByDataType != DataType::CONST_INT && groupByDataType != DataType::CONST_LONG)
+        {
+            throw GroupByInvalidColumnException(groupByColName);
+        }
+        else
+        {
+            int64_t value = std::stoll(groupByColName);
+
+            if (columnNumericAliasContexts_.find(value) != columnNumericAliasContexts_.end() && !insideAlias_)
+            {
+                WalkAliasExpression(value);
+                operand = StackTopAndPop();
+                groupByColName = std::get<0>(operand);
+                groupByDataType = std::get<1>(operand);
+            }
+            else
+            {
+                throw GroupByInvalidColumnException(groupByColName);
+            }
+        }
+    }
 
     if (groupByColumns_.find(operand) == groupByColumns_.end())
     {
-        dispatcher_.AddGroupByFunction(std::get<1>(operand));
-        dispatcher_.AddArgument<const std::string&>(std::get<0>(operand));
+        dispatcher_.AddGroupByFunction(groupByDataType);
+        dispatcher_.AddArgument<const std::string&>(groupByColName);
         groupByColumns_.insert(operand);
     }
 }
@@ -921,6 +974,7 @@ void GpuSqlListener::exitGroupByColumn(GpuSqlParser::GroupByColumnContext* ctx)
 void GpuSqlListener::exitShowDatabases(GpuSqlParser::ShowDatabasesContext* ctx)
 {
     dispatcher_.AddShowDatabasesFunction();
+    ColumnOrder.insert({0, "Databases"});
 }
 
 /// Method that executes on exit of SHOW TABLES command
@@ -956,6 +1010,7 @@ void GpuSqlListener::exitShowTables(GpuSqlParser::ShowTablesContext* ctx)
     }
 
     dispatcher_.AddArgument<const std::string&>(db);
+    ColumnOrder.insert({0, db});
 }
 
 /// Method that executes on exit of SHOW COLUMNS command
@@ -1004,6 +1059,9 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext* ctx)
 
     dispatcher_.AddArgument<const std::string&>(db);
     dispatcher_.AddArgument<const std::string&>(table);
+
+    ColumnOrder.insert({0, table + "_columns"});
+    ColumnOrder.insert({1, table + "_types"});
 }
 
 void GpuSqlListener::exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext* ctx)
@@ -1240,7 +1298,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     {
         dispatcher_.AddArgument<const std::string&>(alterColumn.first);
         dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(alterColumn.second));
-	}
+    }
 }
 
 void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext* ctx)
@@ -1315,7 +1373,8 @@ void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext* ctx
         DataType dataType = std::get<0>(orderByColumn.second);
 
         dispatcher_.AddArgument<const std::string&>(orderByColName);
-        dispatcher_.AddOrderByReconstructOrderFunction(dataType);
+        dispatcher_.AddArgument<bool>(false);
+        dispatcher_.AddOrderByReconstructFunction(dataType);
     }
 
     for (auto& returnColumn : returnColumns_)
@@ -1324,7 +1383,8 @@ void GpuSqlListener::exitOrderByColumns(GpuSqlParser::OrderByColumnsContext* ctx
         DataType dataType = std::get<0>(returnColumn.second);
 
         dispatcher_.AddArgument<const std::string&>(returnColName);
-        dispatcher_.AddOrderByReconstructRetFunction(dataType);
+        dispatcher_.AddArgument<bool>(true);
+        dispatcher_.AddOrderByReconstructFunction(dataType);
     }
 
     insideOrderBy_ = false;
@@ -1337,6 +1397,31 @@ void GpuSqlListener::exitOrderByColumn(GpuSqlParser::OrderByColumnContext* ctx)
 {
     std::pair<std::string, DataType> arg = StackTopAndPop();
     std::string orderByColName = std::get<0>(arg);
+    DataType orderByDataType = std::get<1>(arg);
+
+    if (orderByDataType < DataType::COLUMN_INT)
+    {
+        if (orderByDataType != DataType::CONST_INT && orderByDataType != DataType::CONST_LONG)
+        {
+            throw OrderByInvalidColumnException(orderByColName);
+        }
+        else
+        {
+            int64_t value = std::stoll(orderByColName);
+
+            if (columnNumericAliasContexts_.find(value) != columnNumericAliasContexts_.end() && !insideAlias_)
+            {
+                WalkAliasExpression(value);
+                arg = StackTopAndPop();
+                orderByColName = std::get<0>(arg);
+                orderByDataType = std::get<1>(arg);
+            }
+            else
+            {
+                throw OrderByInvalidColumnException(orderByColName);
+            }
+        }
+    }
 
     if (orderByColumns_.find(orderByColName) != orderByColumns_.end())
     {
@@ -1474,8 +1559,9 @@ void GpuSqlListener::exitOffset(GpuSqlParser::OffsetContext* ctx)
 
 void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext* ctx)
 {
-    for (auto& selectColumn : ctx->selectColumn())
+    for (int32_t i = 0; i < ctx->selectColumn().size(); i++)
     {
+        auto selectColumn = ctx->selectColumn()[i];
         if (selectColumn->alias())
         {
             std::string alias = selectColumn->alias()->getText();
@@ -1485,6 +1571,8 @@ void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsConte
             }
             columnAliasContexts_.insert({alias, selectColumn->expression()});
         }
+
+        columnNumericAliasContexts_.insert({i + 1, selectColumn->expression()});
     }
 }
 
@@ -1495,6 +1583,7 @@ void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsConte
 void GpuSqlListener::exitIntLiteral(GpuSqlParser::IntLiteralContext* ctx)
 {
     std::string token = ctx->getText();
+
     if (IsLong(token))
     {
         parserStack_.push(std::make_pair(token, DataType::CONST_LONG));
@@ -1722,6 +1811,14 @@ void GpuSqlListener::WalkAliasExpression(const std::string& alias)
     antlr4::tree::ParseTreeWalker walker;
     insideAlias_ = true;
     walker.walk(this, columnAliasContexts_.at(alias));
+    insideAlias_ = false;
+}
+
+void GpuSqlListener::WalkAliasExpression(const int64_t alias)
+{
+    antlr4::tree::ParseTreeWalker walker;
+    insideAlias_ = true;
+    walker.walk(this, columnNumericAliasContexts_.at(alias));
     insideAlias_ = false;
 }
 

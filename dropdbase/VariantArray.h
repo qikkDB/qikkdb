@@ -8,7 +8,7 @@ template <typename T>
 class VariantArray : public IVariantArray
 {
 public:
-    VariantArray(int32_t size) : data(std::make_unique<T[]>(size)), size(size)
+    VariantArray(int32_t size) : data(new T[size]), size(size)
     {
     }
 

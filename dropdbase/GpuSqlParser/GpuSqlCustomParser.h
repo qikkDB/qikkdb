@@ -4,12 +4,19 @@
 
 #ifndef DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
 #define DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H
-
 #include "GpuSqlParser.h"
+
 #include <string>
 #include <memory>
 
+#include "GpuSqlDispatcher.h"
+#include "GpuSqlJoinDispatcher.h"
+
+
+
 class Database;
+
+class GpuSqlJoinDispatcher;
 
 namespace ColmnarDB
 {
@@ -33,22 +40,26 @@ class Message;
 class GpuSqlCustomParser
 {
 
-
 private:
     const std::shared_ptr<Database>& database_;
     void TrimResponseMessage(google::protobuf::Message* responseMessage, int64_t limit, int64_t offset);
     void TrimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload, int64_t limit, int64_t offset);
     bool isSingleGpuStatement_;
+    bool wasAborted_;
     std::string query_;
     std::unique_ptr<google::protobuf::Message>
     MergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,
                            int64_t resultLimit,
                            int64_t resultOffset);
 
+    std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers_;
+    std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher_;
+
 public:
     GpuSqlCustomParser(const std::shared_ptr<Database>& database, const std::string& query);
 
     std::unique_ptr<google::protobuf::Message> Parse();
+    void InterruptQueryExecution();
     bool ContainsAggregation(GpuSqlParser::SelectColumnContext* ctx);
 };
 
