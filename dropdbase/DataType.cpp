@@ -52,10 +52,10 @@ std::string GetStringFromColumnDataType(DataType type)
     switch (type)
     {
     case DataType::COLUMN_INT:
-        return "INT32";
+        return "INT";
         break;
     case DataType::COLUMN_LONG:
-        return "INT64";
+        return "LONG";
         break;
     case DataType::COLUMN_FLOAT:
         return "FLOAT";
