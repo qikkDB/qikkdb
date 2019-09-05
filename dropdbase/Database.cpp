@@ -749,7 +749,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 }
                 data.release();
 
-				if (dataPolygon.size() > columnPolygon.GetBlockSize())
+                if (dataPolygon.size() > columnPolygon.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
@@ -849,7 +849,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 }
                 data.release();
 
-				if (dataPoint.size() > columnPoint.GetBlockSize())
+                if (dataPoint.size() > columnPoint.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
@@ -938,7 +938,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
                 }
                 data.release();
 
-				if (dataString.size() > columnString.GetBlockSize())
+                if (dataString.size() > columnString.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
@@ -1019,7 +1019,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
                 colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(int8_t)); // read entry data
 
-				if (data.size() > columnInt.GetBlockSize())
+                if (data.size() > columnInt.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
@@ -1101,7 +1101,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
                 colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(int32_t)); // read entry data
 
-				if (data.size() > columnInt.GetBlockSize())
+                if (data.size() > columnInt.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
@@ -1183,7 +1183,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
                 colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(int64_t)); // read entry data
 
-				if (data.size() > columnLong.GetBlockSize())
+                if (data.size() > columnLong.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
@@ -1265,7 +1265,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
                 colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(float)); // read entry data
 
-				if (data.size() > columnFloat.GetBlockSize())
+                if (data.size() > columnFloat.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
@@ -1347,7 +1347,7 @@ void Database::LoadColumn(const char* path, const char* dbName, Table& table, co
 
                 colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(double)); // read entry data
 
-				if (data.size() > columnDouble.GetBlockSize())
+                if (data.size() > columnDouble.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
