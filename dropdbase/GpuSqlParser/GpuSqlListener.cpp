@@ -42,7 +42,7 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database,
   insideWhere_(false), insideGroupBy_(false), insideOrderBy_(false), insideAlias_(false),
   insideSelectColumn_(false), isAggSelectColumn_(false), isSelectColumnValid_(false),
   ResultLimit(std::numeric_limits<int64_t>::max()), ResultOffset(0), CurrentSelectColumnIndex(0),
-  currentExpressionAlias_("")
+  currentExpressionAlias_(""), ContainsAggFunction(false)
 {
     GpuSqlDispatcher::linkTable.clear();
 }
@@ -933,6 +933,7 @@ void GpuSqlListener::enterGroupByColumns(GpuSqlParser::GroupByColumnsContext* ct
 /// <param name="ctx">Group By Columns context</param>
 void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext* ctx)
 {
+    dispatcher_.AddArgument<bool>(ContainsAggFunction);
     dispatcher_.AddGroupByDoneFunction();
     usingGroupBy_ = true;
     insideGroupBy_ = false;

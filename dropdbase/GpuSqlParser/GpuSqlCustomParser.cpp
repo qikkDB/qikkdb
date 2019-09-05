@@ -102,12 +102,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
             walker.walk(&cpuWhereListener, statement->sqlSelect()->whereClause());
         }
 
-        if (statement->sqlSelect()->groupByColumns())
-        {
-            walker.walk(&gpuSqlListener, statement->sqlSelect()->groupByColumns());
-        }
-
-        int32_t columnOrder = 0;
+		int32_t columnOrder = 0;
         std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> aggColumns;
         std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> nonAggColumns;
 
@@ -121,6 +116,13 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
             {
                 nonAggColumns.push_back({columnOrder++, column});
             }
+        }
+
+		gpuSqlListener.ContainsAggFunction = !aggColumns.empty();
+
+        if (statement->sqlSelect()->groupByColumns())
+        {
+            walker.walk(&gpuSqlListener, statement->sqlSelect()->groupByColumns());
         }
 
         for (auto column : statement->sqlSelect()->selectColumns()->selectAllColumns())

@@ -94,6 +94,7 @@ public:
     int64_t ResultLimit;
     int64_t ResultOffset;
     int32_t CurrentSelectColumnIndex;
+    bool ContainsAggFunction;
 
     std::map<int32_t, std::string> ColumnOrder;
 

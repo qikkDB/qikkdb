@@ -1523,7 +1523,14 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
 
 int32_t GpuSqlDispatcher::GroupByDone()
 {
+    bool containsAggFunction = arguments_.Read<bool>();
     insideGroupBy_ = false;
+
+    if (!containsAggFunction)
+    {
+
+    }
+
     return 0;
 }
 
