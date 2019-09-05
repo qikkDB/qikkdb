@@ -178,11 +178,6 @@ namespace ColmnarDB.ConsoleClient
                         orderedColumnThatFitIntoConsole.Add(orderedColumnNames[0]);
                         orderedColumnNames.RemoveAt(0);
                     }
-
-
-                    /*Dictionary<string, System.Collections.IList> temp = result.Take(numberOfColumnsThatFitIntoConsole).ToDictionary(c => c.Key, c => c.Value);
-                    result = result.Skip(numberOfColumnsThatFitIntoConsole).ToDictionary(c => c.Key, c => c.Value);
-                    */
                     PrintDividedOutput(temp, orderedColumnThatFitIntoConsole, numberOfRows, format, leftAlign, rightAlign);
                 }
                 PrintDividedOutput(result, orderedColumnNames, numberOfRows, format, leftAlign, rightAlign);
