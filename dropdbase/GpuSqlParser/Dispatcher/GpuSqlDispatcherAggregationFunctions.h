@@ -73,22 +73,9 @@ int32_t GpuSqlDispatcher::AggregationCol()
                                                reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
     }
 
-    if (filter_)
-    {
-        if (column.ShouldBeFreed)
-        {
-                GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
-                GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
-            }
-        else
-        {
-            column.ShouldBeFreed = true;
-        }
-    }
-
-    column.GpuPtr = reinterpret_cast<uintptr_t>(reconstructOutReg);
-    column.ElementCount = reconstructOutSize;
-    column.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(reconstructOutNullMask);
+    // Rewrite pointers and free old ones when needed
+    RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize,
+            reconstructOutNullMask);
 
     if (!IsRegisterAllocated(reg))
     {
@@ -400,22 +387,9 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
                                               column.ElementCount, &reconstructOutNullMask,
                                               reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
 
-        if (filter_)
-        {
-            if (column.ShouldBeFreed)
-            {
-                    GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
-                    GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
-                }
-            else
-            {
-                column.ShouldBeFreed = true;
-            }
-        }
-
-        column.GpuPtr = reinterpret_cast<uintptr_t>(reconstructOutReg);
-        column.ElementCount = reconstructOutSize;
-        column.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(reconstructOutNullMask);
+        // Rewrite pointers and free old ones when needed
+        RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg),
+                reconstructOutSize, reconstructOutNullMask);
     }
 
     // TODO void param
@@ -481,31 +455,18 @@ int32_t GpuSqlDispatcher::GroupByCol()
 
     PointerAllocation& column = allocatedPointers_.at(columnName);
 
+    // Reconstruct key column
     int32_t reconstructOutSize;
-    T* reconstructedOutReg;
-    int8_t* reconstructedOutNullMask;
-    GPUReconstruct::reconstructColKeep<T>(&reconstructedOutReg, &reconstructOutSize,
+    T* reconstructOutReg;
+    int8_t* reconstructOutNullMask;
+    GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize,
                                           reinterpret_cast<T*>(column.GpuPtr),
                                           reinterpret_cast<int8_t*>(filter_), column.ElementCount,
-                                          &reconstructedOutNullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
-
-    if (filter_)
-    {
-        if (column.ShouldBeFreed) // should be freed if it is not cached - if it is temp register like "YEAR(col)"
-        {
-                GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
-                GPUMemory::free(reinterpret_cast<void*>(column.GpuNullMaskPtr));
-            }
-        else
-        {
-            column.ShouldBeFreed = true; // enable future free in cleanupGpuPointers
-        }
-    }
-
-    // Now rewrite the pointer in the register (correct because the pointer is freed or stored in chache)
-    column.GpuPtr = reinterpret_cast<uintptr_t>(reconstructedOutReg);
-    column.ElementCount = reconstructOutSize;
-    column.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(reconstructedOutNullMask);
+                                          &reconstructOutNullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
+    
+    // Rewrite pointers and free old ones when needed
+    RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize,
+            reconstructOutNullMask);
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(columnName)) ==
         groupByColumns_.end())

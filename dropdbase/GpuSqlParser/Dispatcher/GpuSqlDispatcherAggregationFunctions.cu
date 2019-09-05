@@ -1496,7 +1496,7 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "GroupByString: " << columnName << '\n';
 
-    auto column = FindStringColumn(columnName);
+    const auto column = FindStringColumn(columnName);   // Just copy!
 
     int32_t reconstructOutSize;
     GPUMemory::GPUString reconstructOutReg;
@@ -1505,12 +1505,7 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
                                              reinterpret_cast<int8_t*>(filter_), std::get<1>(column),
                                             &reconstructOutNullMask, std::get<2>(column));
 
-    if (filter_)
-    {
-        GPUMemory::free(std::get<0>(column));
-        GPUMemory::free(std::get<2>(column));
-    }
-
+    // Rewrite pointers and free old ones when needed
     RewriteStringColumn(columnName, reconstructOutReg, reconstructOutSize, reconstructOutNullMask);
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(columnName)) ==

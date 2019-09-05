@@ -1019,9 +1019,38 @@ std::tuple<GPUMemory::GPUString, int32_t, int8_t*> GpuSqlDispatcher::FindStringC
                                allocatedPointers_.at(colName + "_stringIndices").GpuNullMaskPtr));
 }
 
+void GpuSqlDispatcher::RewriteColumn(PointerAllocation& column,
+        uintptr_t reconstructedReg, int32_t reconstructedSize, int8_t* reconstructedNullMask)
+{
+    if (filter_)    // If where mask was used, new buffers were allocated, need to free old GpuPtr
+    {
+        if (column.ShouldBeFreed) // should be freed if it is not cached - if it is temp register like "YEAR(col)"
+        {
+            GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
+            // Do not free null mask because it is stored also as col_nullmask in allocated pointers
+        }
+        else    // If original column was cachced, after rewrite the new pointer will need to be freed
+        {
+            column.ShouldBeFreed = true; // enable future free in cleanupGpuPointers
+        }
+    }
+
+    // Now rewrite the pointer in the register (correct because the pointer is either freed or stored in chache)
+    column.GpuPtr = reconstructedReg;
+    column.ElementCount = reconstructedSize;
+    column.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(reconstructedNullMask);
+}
+
 void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
         GPUMemory::GPUString newStruct, int32_t newElementCount, int8_t* newNullMask)
 {
+    if (filter_)
+    {
+        const auto column = FindStringColumn(colName);
+        GPUMemory::free(std::get<0>(column));
+        // Do not free null mask (std::get<2>) because it is stored also as col_nullmask in allocated pointers
+    }
+
     // Find corresponding pointers
     PointerAllocation& stringIndices = allocatedPointers_.at(colName + "_stringIndices");
     PointerAllocation& allChars = allocatedPointers_.at(colName + "_allChars");
