@@ -113,7 +113,7 @@ int32_t GpuSqlDispatcher::InsertIntoDone()
         }
     }
 
-    database_->GetTables().at(table).InsertData(insertIntoData_->insertIntoData, false, insertIntoNullMasks_);
+    database_->GetTables().at(table).InsertData(insertIntoData_->insertIntoData, false);
     insertIntoData_->insertIntoData.clear();
     insertIntoNullMasks_.clear();
     return 5;

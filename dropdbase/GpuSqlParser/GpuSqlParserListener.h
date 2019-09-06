@@ -1,5 +1,5 @@
 
-// Generated from /home/jvesely/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.1
+// Generated from C:/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -133,6 +133,9 @@ public:
 
   virtual void enterOrderByColumn(GpuSqlParser::OrderByColumnContext *ctx) = 0;
   virtual void exitOrderByColumn(GpuSqlParser::OrderByColumnContext *ctx) = 0;
+
+  virtual void enterInsertIntoRows(GpuSqlParser::InsertIntoRowsContext *ctx) = 0;
+  virtual void exitInsertIntoRows(GpuSqlParser::InsertIntoRowsContext *ctx) = 0;
 
   virtual void enterInsertIntoValues(GpuSqlParser::InsertIntoValuesContext *ctx) = 0;
   virtual void exitInsertIntoValues(GpuSqlParser::InsertIntoValuesContext *ctx) = 0;

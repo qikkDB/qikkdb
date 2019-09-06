@@ -1710,8 +1710,9 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext* ctx)
     auto& tab = database_->GetTables().at(table);
 
     std::vector<std::pair<std::string, DataType>> columns;
-    std::vector<std::string> values;
-    std::vector<bool> isValueNull;
+    std::vector<std::vector<std::string>> values;
+    std::vector<std::vector<bool>> isValueNull;
+
     for (auto& insertIntoColumn : ctx->insertIntoColumns()->columnId())
     {
         if (insertIntoColumn->table())
@@ -1736,50 +1737,60 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext* ctx)
         columns.push_back(columnPair);
     }
 
-    for (auto& value : ctx->insertIntoValues()->columnValue())
+    for (auto& row : ctx->insertIntoRows()->insertIntoValues())
     {
-        auto start = value->start->getStartIndex();
-        auto stop = value->stop->getStopIndex();
-        antlr4::misc::Interval interval(start, stop);
-        std::string valueText = value->start->getInputStream()->getText(interval);
-        values.push_back(valueText);
-        isValueNull.push_back(value->NULLLIT() != nullptr);
+        std::vector<std::string> rowValues;
+        std::vector<bool> rowIsValueNull;
+        for (auto& value : row->columnValue())
+        {
+            auto start = value->start->getStartIndex();
+            auto stop = value->stop->getStopIndex();
+            antlr4::misc::Interval interval(start, stop);
+            std::string valueText = value->start->getInputStream()->getText(interval);
+            rowValues.push_back(valueText);
+            rowIsValueNull.push_back(value->NULLLIT() != nullptr);
+        }
+        values.push_back(rowValues);
+        isValueNull.push_back(rowIsValueNull);
     }
 
-    if (columns.size() != values.size())
+    if (columns.size() != values[0].size())
     {
         throw NotSameAmoutOfValuesException();
     }
 
-    for (auto& column : tab.GetColumns())
+    for (int32_t rowId = 0; rowId < values.size(); rowId++)
     {
-        std::string columnName = column.first;
-        DataType columnDataType = column.second.get()->GetColumnType();
-        std::pair<std::string, DataType> columnPair = std::make_pair(columnName, columnDataType);
-
-        dispatcher_.AddInsertIntoFunction(columnDataType);
-
-
-        bool hasValue = std::find(columns.begin(), columns.end(), columnPair) != columns.end();
-        if (hasValue)
+        for (auto& column : tab.GetColumns())
         {
-            int valueIndex = std::find(columns.begin(), columns.end(), columnPair) - columns.begin();
-            hasValue &= !isValueNull[valueIndex];
-        }
-        dispatcher_.AddArgument<const std::string&>(columnName);
-        dispatcher_.AddArgument<bool>(hasValue);
+            std::string columnName = column.first;
+            DataType columnDataType = column.second.get()->GetColumnType();
+            std::pair<std::string, DataType> columnPair = std::make_pair(columnName, columnDataType);
 
-        if (hasValue)
-        {
-            int valueIndex = std::find(columns.begin(), columns.end(), columnPair) - columns.begin();
-            CudaLogBoost::getInstance(CudaLogBoost::info)
-                << values[valueIndex].c_str() << " " << columnName << '\n';
-            PushArgument(values[valueIndex].c_str(),
-                         static_cast<DataType>(static_cast<int>(columnDataType) - DataType::COLUMN_INT));
+            dispatcher_.AddInsertIntoFunction(columnDataType);
+
+
+            bool hasValue = std::find(columns.begin(), columns.end(), columnPair) != columns.end();
+            if (hasValue)
+            {
+                int valueIndex = std::find(columns.begin(), columns.end(), columnPair) - columns.begin();
+                hasValue &= !isValueNull[rowId][valueIndex];
+            }
+            dispatcher_.AddArgument<const std::string&>(columnName);
+            dispatcher_.AddArgument<bool>(hasValue);
+
+            if (hasValue)
+            {
+                int valueIndex = std::find(columns.begin(), columns.end(), columnPair) - columns.begin();
+                CudaLogBoost::getInstance(CudaLogBoost::info)
+                    << values[rowId][valueIndex].c_str() << " " << columnName << '\n';
+                PushArgument(values[rowId][valueIndex].c_str(),
+                             static_cast<DataType>(static_cast<int>(columnDataType) - DataType::COLUMN_INT));
+            }
         }
-    }
-    dispatcher_.AddArgument<const std::string&>(table);
-    dispatcher_.AddInsertIntoDoneFunction();
+        dispatcher_.AddArgument<const std::string&>(table);
+        dispatcher_.AddInsertIntoDoneFunction();
+    }    
 }
 
 /// Method that executes on exit of LIMIT clause

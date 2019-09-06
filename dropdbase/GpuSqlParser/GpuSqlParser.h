@@ -1,5 +1,5 @@
 
-// Generated from /home/jvesely/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.1
+// Generated from C:/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -56,18 +56,18 @@ public:
     RuleRenameColumnTo = 31, RuleNewTableColumn = 32, RuleNewTableConstraint = 33, 
     RuleSelectColumns = 34, RuleSelectColumn = 35, RuleSelectAllColumns = 36, 
     RuleWhereClause = 37, RuleOrderByColumns = 38, RuleOrderByColumn = 39, 
-    RuleInsertIntoValues = 40, RuleInsertIntoColumns = 41, RuleIndexColumns = 42, 
-    RuleConstraintColumns = 43, RuleGroupByColumns = 44, RuleGroupByColumn = 45, 
-    RuleFromTables = 46, RuleJoinClauses = 47, RuleJoinClause = 48, RuleJoinTable = 49, 
-    RuleJoinColumnLeft = 50, RuleJoinColumnRight = 51, RuleJoinOperator = 52, 
-    RuleJoinType = 53, RuleFromTable = 54, RuleColumnId = 55, RuleTable = 56, 
-    RuleColumn = 57, RuleDatabase = 58, RuleAlias = 59, RuleIndexName = 60, 
-    RuleConstraintName = 61, RuleLimit = 62, RuleOffset = 63, RuleBlockSize = 64, 
-    RuleColumnValue = 65, RuleConstraint = 66, RuleExpression = 67, RuleDatatype = 68, 
-    RuleGeometry = 69, RulePointGeometry = 70, RuleLineStringGeometry = 71, 
-    RulePolygonGeometry = 72, RuleMultiPointGeometry = 73, RuleMultiLineStringGeometry = 74, 
-    RuleMultiPolygonGeometry = 75, RulePointOrClosedPoint = 76, RulePolygon = 77, 
-    RuleLineString = 78, RulePoint = 79
+    RuleInsertIntoRows = 40, RuleInsertIntoValues = 41, RuleInsertIntoColumns = 42, 
+    RuleIndexColumns = 43, RuleConstraintColumns = 44, RuleGroupByColumns = 45, 
+    RuleGroupByColumn = 46, RuleFromTables = 47, RuleJoinClauses = 48, RuleJoinClause = 49, 
+    RuleJoinTable = 50, RuleJoinColumnLeft = 51, RuleJoinColumnRight = 52, 
+    RuleJoinOperator = 53, RuleJoinType = 54, RuleFromTable = 55, RuleColumnId = 56, 
+    RuleTable = 57, RuleColumn = 58, RuleDatabase = 59, RuleAlias = 60, 
+    RuleIndexName = 61, RuleConstraintName = 62, RuleLimit = 63, RuleOffset = 64, 
+    RuleBlockSize = 65, RuleColumnValue = 66, RuleConstraint = 67, RuleExpression = 68, 
+    RuleDatatype = 69, RuleGeometry = 70, RulePointGeometry = 71, RuleLineStringGeometry = 72, 
+    RulePolygonGeometry = 73, RuleMultiPointGeometry = 74, RuleMultiLineStringGeometry = 75, 
+    RuleMultiPolygonGeometry = 76, RulePointOrClosedPoint = 77, RulePolygon = 78, 
+    RuleLineString = 79, RulePoint = 80
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -120,6 +120,7 @@ public:
   class WhereClauseContext;
   class OrderByColumnsContext;
   class OrderByColumnContext;
+  class InsertIntoRowsContext;
   class InsertIntoValuesContext;
   class InsertIntoColumnsContext;
   class IndexColumnsContext;
@@ -436,7 +437,7 @@ public:
     std::vector<antlr4::tree::TerminalNode *> RPAREN();
     antlr4::tree::TerminalNode* RPAREN(size_t i);
     antlr4::tree::TerminalNode *VALUES();
-    InsertIntoValuesContext *insertIntoValues();
+    InsertIntoRowsContext *insertIntoRows();
     antlr4::tree::TerminalNode *SEMICOL();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -807,6 +808,22 @@ public:
   };
 
   OrderByColumnContext* orderByColumn();
+
+  class  InsertIntoRowsContext : public antlr4::ParserRuleContext {
+  public:
+    InsertIntoRowsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<InsertIntoValuesContext *> insertIntoValues();
+    InsertIntoValuesContext* insertIntoValues(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  InsertIntoRowsContext* insertIntoRows();
 
   class  InsertIntoValuesContext : public antlr4::ParserRuleContext {
   public:
@@ -1218,7 +1235,7 @@ public:
   public:
     ExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
    
-    ExpressionContext() : antlr4::ParserRuleContext() { }
+    ExpressionContext() = default;
     void copyFrom(ExpressionContext *context);
     using antlr4::ParserRuleContext::copyFrom;
 

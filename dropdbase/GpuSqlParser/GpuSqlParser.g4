@@ -45,7 +45,7 @@ sqlAlterDatabase:
 sqlCreateIndex:
 	CREATEINDEX indexName ON table LPAREN indexColumns RPAREN SEMICOL;
 sqlInsertInto:
-	INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN insertIntoValues RPAREN SEMICOL;
+	INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN insertIntoRows RPAREN SEMICOL;
 newTableEntries: ((newTableEntry (COMMA newTableEntry)*));
 newTableEntry: (newTableColumn | newTableConstraint);
 alterDatabaseEntries: (
@@ -90,6 +90,7 @@ selectAllColumns: ASTERISK;
 whereClause: expression;
 orderByColumns: ((orderByColumn (COMMA orderByColumn)*));
 orderByColumn: (expression DIR?);
+insertIntoRows: (insertIntoValues (COMMA insertIntoValues)*);
 insertIntoValues: ((columnValue (COMMA columnValue)*));
 insertIntoColumns: ((columnId (COMMA columnId)*));
 indexColumns: ((column (COMMA column)*));
