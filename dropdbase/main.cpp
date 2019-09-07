@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 
     if (argc > 1) // Importing CSV
     {
-        if (strcmp(argv[1], "-t1") == 0)
+        if (strcmp(argv[1], "--t1") == 0)
         {
             BOOST_LOG_TRIVIAL(info) << "Importing Taxi Rides database...";
 
@@ -93,7 +93,7 @@ int main(int argc, char** argv)
         }
         else
         {
-            if (strcmp(argv[1], "-a1") == 0)
+            if (strcmp(argv[1], "--a1") == 0)
             {
                 BOOST_LOG_TRIVIAL(info)
                     << "Importing all databases has started (4 databases will be loaded) ...";
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
             }
             else
             {
-                if (strcmp(argv[1], "-s1") == 0)
+                if (strcmp(argv[1], "--s1") == 0)
                 {
                     BOOST_LOG_TRIVIAL(info) << "Importing small subset (338M rows, 7 columns, 1 "
                                                "table) from Taxi Rides database...";
@@ -163,7 +163,7 @@ int main(int argc, char** argv)
                 }
                 else
                 {
-                    if (strcmp(argv[1], "-t2") == 0)
+                    if (strcmp(argv[1], "--t2") == 0)
                     {
                         BOOST_LOG_TRIVIAL(info) << "Importing Taxi Rides database...";
 
@@ -189,7 +189,7 @@ int main(int argc, char** argv)
                     }
                     else
                     {
-                        if (strcmp(argv[1], "-a2") == 0)
+                        if (strcmp(argv[1], "--a2") == 0)
                         {
                             BOOST_LOG_TRIVIAL(info) << "Importing all databases has started (4 "
                                                        "databases will be loaded) ...";
@@ -244,7 +244,7 @@ int main(int argc, char** argv)
                         }
                         else
                         {
-                            if (strcmp(argv[1], "-s2") == 0)
+                            if (strcmp(argv[1], "--s2") == 0)
                             {
                                 BOOST_LOG_TRIVIAL(info)
                                     << "Importing small subset (338M rows, 7 columns, 1 "
@@ -266,7 +266,7 @@ int main(int argc, char** argv)
                             }
                             else
                             {
-                                if (strcmp(argv[1], "-t4") == 0)
+                                if (strcmp(argv[1], "--t4") == 0)
                                 {
                                     BOOST_LOG_TRIVIAL(info) << "Importing Taxi Rides database...";
 
@@ -292,7 +292,7 @@ int main(int argc, char** argv)
                                 }
                                 else
                                 {
-                                    if (strcmp(argv[1], "-a4") == 0)
+                                    if (strcmp(argv[1], "--a4") == 0)
                                     {
                                         BOOST_LOG_TRIVIAL(info)
                                             << "Importing all databases has started (4 "
@@ -350,7 +350,7 @@ int main(int argc, char** argv)
                                     }
                                     else
                                     {
-                                        if (strcmp(argv[1], "-s4") == 0)
+                                        if (strcmp(argv[1], "--s4") == 0)
                                         {
                                             BOOST_LOG_TRIVIAL(info)
                                                 << "Importing small subset (338M rows, 7 columns, "
@@ -374,7 +374,7 @@ int main(int argc, char** argv)
                                         }
                                         else
                                         {
-                                            if (strcmp(argv[1], "-t8") == 0)
+                                            if (strcmp(argv[1], "--t8") == 0)
                                             {
                                                 BOOST_LOG_TRIVIAL(info)
                                                     << "Importing Taxi Rides database...";
@@ -403,7 +403,7 @@ int main(int argc, char** argv)
                                             }
                                             else
                                             {
-                                                if (strcmp(argv[1], "-a8") == 0)
+                                                if (strcmp(argv[1], "--a8") == 0)
                                                 {
                                                     BOOST_LOG_TRIVIAL(info)
                                                         << "Importing all databases has started (4 "
@@ -467,7 +467,7 @@ int main(int argc, char** argv)
                                                 }
                                                 else
                                                 {
-                                                    if (strcmp(argv[1], "-s8") == 0)
+                                                    if (strcmp(argv[1], "--s8") == 0)
                                                     {
                                                         BOOST_LOG_TRIVIAL(info)
                                                             << "Importing small subset (338M rows, "
@@ -496,7 +496,7 @@ int main(int argc, char** argv)
                                                     }
                                                     else
                                                     {
-                                                        if (strcmp(argv[1], "-stcs2") == 0)
+                                                        if (strcmp(argv[1], "--stcs2") == 0)
                                                         {
                                                             CSVDataImporter csvDataImporter5(R"(../../data/Target.csv)");
                                                             std::shared_ptr<Database> database4 =
@@ -519,27 +519,41 @@ int main(int argc, char** argv)
                                                         }
                                                         else
                                                         {
-                                                            if (strcmp(argv[1], "-test") == 0)
+                                                            if (strcmp(argv[1], "--test") == 0)
                                                             {
-                                                                CSVDataImporter csvDataImporter1(R"(../../data/Target.csv)");
+                                                                CSVDataImporter csvDataImporter1(R"(../../data/AllTableA.csv)");
                                                                 std::shared_ptr<Database> database =
                                                                     std::make_shared<Database>(
-                                                                        "stcs", 26652588);
+                                                                        "AllDataTypes", 2);
                                                                 Database::AddToInMemoryDatabaseList(database);
                                                                 BOOST_LOG_TRIVIAL(info)
-                                                                    << "Loading Target.csv ...";
+                                                                    << "Loading AllTableA.csv ...";
                                                                 csvDataImporter1.ImportTables(database);
 
-                                                                CSVDataImporter csvDataImporter2(R"(../../data/D_Cell.csv)");
+                                                                CSVDataImporter csvDataImporter2(R"(../../data/AllTableB.csv)");
                                                                 BOOST_LOG_TRIVIAL(info)
-                                                                    << "Loading D_Cell.csv ...";
+                                                                    << "Loading AllTableB.csv ...";
                                                                 csvDataImporter2.ImportTables(database);
+
+																CSVDataImporter csvDataImporter3(R"(../../data/AllTableC.csv)");
+                                                                BOOST_LOG_TRIVIAL(info)
+                                                                    << "Loading AllTableC.csv ...";
+                                                                csvDataImporter3.ImportTables(database);
+
+																CSVDataImporter csvDataImporter4(R"(../../data/AllTableD.csv)");
+                                                                BOOST_LOG_TRIVIAL(info)
+                                                                    << "Loading AllTableD.csv ...";
+                                                                csvDataImporter4.ImportTables(database);
+
+																CSVDataImporter csvDataImporter5(R"(../../data/AllTableE.csv)");
+                                                                BOOST_LOG_TRIVIAL(info)
+                                                                    << "Loading AllTableE.csv ...";
+                                                                csvDataImporter5.ImportTables(database);
                                                             }
                                                             else
                                                             {
                                                                 // Import CSV file if entered as program argument
                                                                 CSVDataImporter csvDataImporter(argv[1]);
-                                                                ////CSVDataImporter csvDataImporter(R"(D:\DataGenerator\output\TargetLoc1B.csv)");
                                                                 std::shared_ptr<Database> database =
                                                                     std::make_shared<Database>(
                                                                         argc > 2 ? argv[2] : "TestDb",
@@ -578,31 +592,6 @@ int main(int argc, char** argv)
 
     Database::SaveModifiedToDisk();
     BOOST_LOG_TRIVIAL(info) << "TellStoryDB exiting cleanly...";
-
-    /*
-    CSVDataImporter csvDataImporter(R"(D:\testing-data\TargetLoc100M.csv)");
-    std::shared_ptr<Database> database = std::make_shared<Database>("TestDb", 100000000);
-    Database::AddToInMemoryDatabaseList(database);
-    BOOST_LOG_TRIVIAL(info) << "Loading TargetLoc.csv ...";
-    csvDataImporter.ImportTables(database);
-    */
-
-    /*
-    for (int i = 0; i < 2; i++)
-    {
-        auto start = std::chrono::high_resolution_clock::now();
-
-        GpuSqlCustomParser parser(Database::GetDatabaseByName("TestDb"), "SELECT ageId, COUNT(ageId)
-    FROM TargetLoc1B WHERE latitude > 48.163267512773274 AND latitude < 48.17608989851882 AND
-    longitude > 17.19991468973717 AND longitude < 17.221200700479358 GROUP BY ageId;"); parser.parse();//
-    ->PrintDebugString();
-
-        auto end = std::chrono::high_resolution_clock::now();
-
-        std::chrono::duration<double> elapsed(end - start);
-        BOOST_LOG_TRIVIAL(info) << "Elapsed time: " << elapsed.count() << " s.";
-    }
-    */
 
     for (auto& db : Database::GetDatabaseNames())
     {
