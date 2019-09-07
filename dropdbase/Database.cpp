@@ -23,10 +23,12 @@ std::mutex Database::dbMutex_;
 /// </summary>
 /// <param name="databaseName">Database name.</param>
 /// <param name="blockSize">Block size of all blocks in this database.</param>
-Database::Database(const char* databaseName, int32_t blockSize)
+Database::Database(const char* databaseName, int32_t blockSize, int32_t persistenceFormatVersion)
 {
     name_ = databaseName;
     blockSize_ = blockSize;
+    persistenceFormatVersion_ =
+        persistenceFormatVersion; // persistence format version of the .db file that is saved into disk
 }
 
 Database::~Database()
@@ -228,6 +230,7 @@ void Database::PersistOnlyDbFile(const char* path)
 
     int32_t dbNameLength = name.length() + 1; // +1 because '\0'
 
+	dbFile.write(reinterpret_cast<char*>(&persistenceFormatVersion_), sizeof(int32_t)); // write persistence format version
     dbFile.write(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); // write db name length
     dbFile.write(name.c_str(), dbNameLength); // write db name
     dbFile.write(reinterpret_cast<char*>(&blockSize), sizeof(int32_t)); // write block size
@@ -569,6 +572,10 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     // read file .db
     std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
 
+	int32_t persistenceFormatVersion;
+    dbFile.read(reinterpret_cast<char*>(&persistenceFormatVersion),
+                sizeof(int32_t)); // read persistence format version
+
     int32_t dbNameLength;
     dbFile.read(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); // read db name length
 
@@ -581,7 +588,8 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     int32_t tablesCount;
     dbFile.read(reinterpret_cast<char*>(&tablesCount), sizeof(int32_t)); // read number of tables
 
-    std::shared_ptr<Database> database = std::make_shared<Database>(dbName.get(), blockSize);
+    std::shared_ptr<Database> database =
+        std::make_shared<Database>(dbName.get(), blockSize, persistenceFormatVersion);
 
     for (int32_t i = 0; i < tablesCount; i++)
     {
@@ -630,7 +638,8 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 
         for (const std::string& columnName : columnNames)
         {
-            threads.emplace_back(Database::LoadColumn, path, dbName.get(), std::ref(table), std::ref(columnName));
+            threads.emplace_back(Database::LoadColumn, path, dbName.get(), persistenceFormatVersion,
+                                 std::ref(table), std::ref(columnName));
         }
 
         for (int i = 0; i < columnNames.size(); i++)
@@ -648,9 +657,15 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 /// Load column of a table into memory from disk.
 /// </summary>
 /// <param name="path">Path directory, where column file (*.col) is.</param>
+/// <param name="dbName">Name of the database.</param>
+/// <param name="persistenceFormatVersion">Version of format used to persist .db and .col files into disk.</param>
 /// <param name="table">Instance of table into which the column should be added.</param>
 /// <param name="columnName">Names of particular column.</param>
-void Database::LoadColumn(const char* path, const char* dbName, Table& table, const std::string& columnName)
+void Database::LoadColumn(const char* path,
+                          const char* dbName,
+                          const int32_t persistenceFormatVersion,
+						  Table& table,
+                          const std::string& columnName)
 {
     // read files .col:
     std::string pathStr = std::string(path);

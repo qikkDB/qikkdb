@@ -175,11 +175,13 @@ TEST_F(DatabaseTests, IntegrationTest)
 	//load different database_, but with the same data:
 	Database::LoadDatabasesFromDisk();
 	
+	const int32_t persistenceFormatVersion = Database::GetDatabaseByName(dbName)->GetPersistenceFormatVersion();
 	auto& loadedTables = Database::GetDatabaseByName(dbName)->GetTables();
 	auto& firstTableColumns = loadedTables.at("TestTable1").GetColumns();
 	auto& secondTableColumns = loadedTables.at("TestTable2").GetColumns();
 
 	//high level stuff:
+    ASSERT_EQ(persistenceFormatVersion, 1);
 	ASSERT_EQ(loadedTables.size(), 2);
 	ASSERT_EQ(firstTableColumns.size(), 3);
 	ASSERT_EQ(secondTableColumns.size(), 8);

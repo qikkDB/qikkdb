@@ -22,16 +22,19 @@ class Database
 private:
     static std::mutex dbMutex_;
     std::string name_;
+    int32_t persistenceFormatVersion_;
     int32_t blockSize_;
     std::unordered_map<std::string, Table> tables_;
 
-    /// <summary>
+	/// <summary>
     /// Load column of a table into memory from disk.
     /// </summary>
     /// <param name="path">Path directory, where column file (*.col) is.</param>
-    /// <param name="table">Instance of table into which the column should be added.</param>
-    /// <param name="columnName">Names of particular column.</param>
-    static void LoadColumn(const char* path, const char* dbName, Table& table, const std::string& columnName);
+    /// <param name="dbName">Name of the database.</param>
+    /// <param name="persistenceFormatVersion">Version of format used to persist .db and .col files
+    /// into disk.</param> <param name="table">Instance of table into which the column should be
+    /// added.</param> <param name="columnName">Names of particular column.</param>
+    static void LoadColumn(const char* path, const char* dbName, int32_t persistenceFormatVersion, Table& table, const std::string& columnName);
 
     /// <summary>
     /// Write column into disk.
@@ -53,11 +56,15 @@ public:
     /// </summary>
     /// <param name="databaseName">Database name.</param>
     /// <param name="blockSize">Block size of all blocks in this database.</param>
-    Database(const char* databaseName, int32_t blockSize = 1 << 18);
+    Database(const char* databaseName, int32_t blockSize = 1 << 18, int32_t persistenceFormatVersion_ = 1);
 
     ~Database();
 
     // getters:
+    int32_t GetPersistenceFormatVersion() const
+    {
+        return persistenceFormatVersion_;
+    }
     const std::string& GetName() const
     {
         return name_;
