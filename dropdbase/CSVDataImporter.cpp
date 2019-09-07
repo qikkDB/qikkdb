@@ -173,11 +173,13 @@ void CSVDataImporter::ParseAndImport(int threadId,
                     switch (dataTypes_[columnIndex])
                     {
                     case COLUMN_BOOL:
-                        if ("true".compare(boost::algorithm::to_lower(field)) == 0)
+						std::string fieldCopy = field;
+						boost::algorithm::to_lower(fieldCopy);
+                        if (fieldCopy == "true")
                         {
                             value = static_cast<int8_t>(1);
                         }
-                        else if ("false".compare(boost::algorithm::to_lower(field)) == 0)
+                        else if (fieldCopy == "false")
                         {
                             value = static_cast<int8_t>(0);
 						} 
@@ -418,14 +420,16 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 
     for (auto& s : columnValues)
     {
-
 		// COLUMN_BOOL
-        if ("true".compare(boost::algorithm::to_lower(s)) == 0)
+		std::string sCopy = s;
+		boost::algorithm::to_lower(sCopy);
+		
+        if (sCopy == "true")
         {
             dataTypes.push_back(COLUMN_BOOL);
             continue;
         }
-        else if ("false".compare(boost::algorithm::to_lower(s)) == 0)
+        else if (sCopy == "false")
         {
             dataTypes.push_back(COLUMN_BOOL);
             continue;
