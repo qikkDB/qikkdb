@@ -92,7 +92,7 @@ void CSVDataImporter::ParseAndImport(int threadId,
     std::unordered_map<std::string, std::any> data;
     for (int i = 0; i < headers_.size(); i++)
     {
-        if (dataTypes_[i] == COLUMN_BOOL)
+        if (dataTypes_[i] == COLUMN_INT8_T)
         {
             std::vector<int8_t> v;
             v.reserve(blockSize);
@@ -169,12 +169,13 @@ void CSVDataImporter::ParseAndImport(int threadId,
             {
                 for (auto& field : row)
                 {
+                    std::string fieldCopy = field;
+                    boost::algorithm::to_lower(fieldCopy);
+
                     std::any value;
                     switch (dataTypes_[columnIndex])
                     {
-                    case COLUMN_BOOL:
-						std::string fieldCopy = field;
-						boost::algorithm::to_lower(fieldCopy);
+                    case COLUMN_INT8_T:
                         if (fieldCopy == "true")
                         {
                             value = static_cast<int8_t>(1);
@@ -246,7 +247,7 @@ void CSVDataImporter::ParseAndImport(int threadId,
             std::any& wrappedData = data.at(headers_[columnIndex]);
             switch (dataTypes_[columnIndex])
             {
-            case COLUMN_BOOL:
+            case COLUMN_INT8_T:
                 std::any_cast<std::vector<int32_t>&>(wrappedData).push_back(std::any_cast<int8_t>(field));
                 break;
             case COLUMN_INT:
@@ -298,7 +299,7 @@ void CSVDataImporter::ParseAndImport(int threadId,
                 std::any& wrappedData = data.at(headers_[i]);
                 switch (dataTypes_[i])
                 {
-                case COLUMN_BOOL:
+                case COLUMN_INT8_T:
                     std::any_cast<std::vector<int8_t>&>(wrappedData).clear();
                     break;
                 case COLUMN_INT:
@@ -420,18 +421,18 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 
     for (auto& s : columnValues)
     {
-		// COLUMN_BOOL
+		// COLUMN_INT8_T
 		std::string sCopy = s;
 		boost::algorithm::to_lower(sCopy);
 		
         if (sCopy == "true")
         {
-            dataTypes.push_back(COLUMN_BOOL);
+            dataTypes.push_back(COLUMN_INT8_T);
             continue;
         }
         else if (sCopy == "false")
         {
-            dataTypes.push_back(COLUMN_BOOL);
+            dataTypes.push_back(COLUMN_INT8_T);
             continue;
         } 
 
