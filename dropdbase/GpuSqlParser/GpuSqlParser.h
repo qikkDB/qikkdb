@@ -1,5 +1,5 @@
 
-// Generated from C:/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from /home/jakub/GPU-DB/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.1
 
 #pragma once
 
@@ -977,7 +977,7 @@ public:
   public:
     ExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
    
-    ExpressionContext() = default;
+    ExpressionContext() : antlr4::ParserRuleContext() { }
     void copyFrom(ExpressionContext *context);
     using antlr4::ParserRuleContext::copyFrom;
 

@@ -279,3 +279,4 @@ configuration/log_config
 .antlr
 
 TellStoryDB.Setup.Linux/out
+input.txt

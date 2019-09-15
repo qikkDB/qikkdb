@@ -1,5 +1,5 @@
 
-// Generated from C:/GPU-DB/dropdbase/GpuSqlParser\GpuSqlLexer.g4 by ANTLR 4.7.2
+// Generated from /home/jakub/GPU-DB/dropdbase/GpuSqlParser/GpuSqlLexer.g4 by ANTLR 4.7.1
 
 #pragma once
 

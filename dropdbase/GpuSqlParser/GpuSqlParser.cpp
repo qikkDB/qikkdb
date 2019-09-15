@@ -1,5 +1,5 @@
 
-// Generated from C:/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from /home/jakub/GPU-DB/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.1
 
 
 #include "GpuSqlParserListener.h"
@@ -4705,7 +4705,6 @@ GpuSqlParser::ExpressionContext* GpuSqlParser::expression(int precedence) {
   size_t parentState = getState();
   GpuSqlParser::ExpressionContext *_localctx = _tracker.createInstance<ExpressionContext>(_ctx, parentState);
   GpuSqlParser::ExpressionContext *previousContext = _localctx;
-  (void)previousContext; // Silence compiler, in case the context is not used by generated code.
   size_t startState = 106;
   enterRecursionRule(_localctx, 106, GpuSqlParser::RuleExpression, precedence);
 
