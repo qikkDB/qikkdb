@@ -59,7 +59,7 @@ indexName           : (ID|DELIMID);
 limit               : INTLIT;
 offset              : INTLIT;
 blockSize           : INTLIT;
-columnValue         : (INTLIT|FLOATLIT|geometry|NULLLIT|STRING);
+columnValue         : (NEGINTLIT|NEGFLOATLIT|geometry|NULLLIT|STRING);
 
 expression : op=LOGICAL_NOT expression                                                    # unaryOperation
            | op=MINUS expression                                                          # unaryOperation
