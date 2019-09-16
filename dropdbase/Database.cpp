@@ -230,7 +230,7 @@ void Database::PersistOnlyDbFile(const char* path)
 
     int32_t dbNameLength = name.length() + 1; // +1 because '\0'
 
-	dbFile.write(reinterpret_cast<char*>(&persistenceFormatVersion_), sizeof(int32_t)); // write persistence format version
+    dbFile.write(reinterpret_cast<char*>(&persistenceFormatVersion_), sizeof(int32_t)); // write persistence format version
     dbFile.write(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); // write db name length
     dbFile.write(name.c_str(), dbNameLength); // write db name
     dbFile.write(reinterpret_cast<char*>(&blockSize), sizeof(int32_t)); // write block size
@@ -289,7 +289,7 @@ void Database::Persist(const char* path)
     int32_t blockSize = GetBlockSize();
     int32_t tableSize = tables.size();
 
-    PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
+    PersistOnlyDbFile(path);
 
     // write files .col:
     for (auto& table : tables)
@@ -312,7 +312,14 @@ void Database::Persist(const char* path)
         table.second.SetSaveNecessaryToFalse();
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk.";
+    if (boost::filesystem::exists(boost::filesystem::path(path + name + ".db")))
+    {
+        BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved into disk.";
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(info) << "Database " << name << " was NOT saved into disk. Check if you have write access into the destination folder.";
+    }
 }
 
 /// <summary>
@@ -330,7 +337,7 @@ void Database::PersistOnlyModified(const char* path)
     int32_t blockSize = GetBlockSize();
     int32_t tableSize = tables.size();
 
-    PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
+    PersistOnlyDbFile(path);
 
     // write files .col:
     for (auto& table : tables)
@@ -360,7 +367,15 @@ void Database::PersistOnlyModified(const char* path)
         }
     }
 
-    BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved to disk.";
+    if (boost::filesystem::exists(boost::filesystem::path(path + name + ".db")))
+    {
+        BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved into disk.";
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(info)
+            << "Database " << name << " was NOT saved into disk. Check if you have write access into the destination folder.";
+    }
 }
 
 /// <summary>
@@ -572,7 +587,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     // read file .db
     std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
 
-	int32_t persistenceFormatVersion;
+    int32_t persistenceFormatVersion;
     dbFile.read(reinterpret_cast<char*>(&persistenceFormatVersion),
                 sizeof(int32_t)); // read persistence format version
 
@@ -658,13 +673,13 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 /// </summary>
 /// <param name="path">Path directory, where column file (*.col) is.</param>
 /// <param name="dbName">Name of the database.</param>
-/// <param name="persistenceFormatVersion">Version of format used to persist .db and .col files into disk.</param>
-/// <param name="table">Instance of table into which the column should be added.</param>
-/// <param name="columnName">Names of particular column.</param>
+/// <param name="persistenceFormatVersion">Version of format used to persist .db and .col files into
+/// disk.</param> <param name="table">Instance of table into which the column should be
+/// added.</param> <param name="columnName">Names of particular column.</param>
 void Database::LoadColumn(const char* path,
                           const char* dbName,
                           const int32_t persistenceFormatVersion,
-						  Table& table,
+                          Table& table,
                           const std::string& columnName)
 {
     // read files .col:
