@@ -316,7 +316,10 @@ void GpuSqlCustomParser::InterruptQueryExecution()
     {
         dispatcher->Abort();
     }
-    joinDispatcher_->Abort();
+    if (joinDispatcher_)
+    {
+        joinDispatcher_->Abort();
+    }
     wasAborted_ = true;
 }
 
