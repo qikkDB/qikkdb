@@ -76,6 +76,11 @@ namespace aria {
 			// uses quotes to escape, and handles CSV files that end in either
 			// '\r', '\n', or '\r\n'.
 			explicit CsvParser(const char* input, size_t cursor, size_t inputbuf_size, size_t file_size) : m_inputbuf(input), m_cursor(cursor), m_inputbuf_size(inputbuf_size), m_file_size(file_size) {
+				// UTF-8 BOM is not desired at the start of file
+				if(inputbuf_size > 3 && input[0] == 0xEF && input[1] == 0xBB && input[2] == 0xBF )
+				{
+					throw std::invalid_argument("Invalid input encoding (UTF-8 without BOM is required)");
+				}
 				// Reserve space upfront to improve performance
 				m_fieldbuf.reserve(FIELDBUF_CAP);
 
