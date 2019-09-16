@@ -274,17 +274,17 @@ TEST(DispatcherTestsRegression, ConstOpOnMultiGPU)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT 2+2 FROM TableA;");
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT ABS(1) FROM TableA;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-    auto& payloads = result->payloads().at("2+2");
+    auto& payloads = result->payloads().at("ABS(1)");
     ASSERT_EQ(payloads.intpayload().intdata_size(), DispatcherObjs::GetInstance()
                                                         .database->GetTables()
                                                         .at("TableA")
                                                         .GetColumns()
                                                         .at("colInteger1")
                                                         ->GetSize());
-    ASSERT_EQ(payloads.intpayload().intdata()[0], 4);
+    ASSERT_EQ(payloads.intpayload().intdata()[0], 1);
 }
 
 TEST(DispatcherTestsRegression, SameAliasAsColumn)
