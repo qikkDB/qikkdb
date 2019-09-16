@@ -1,5 +1,5 @@
 
-// Generated from /home/jakub/GPU-DB/dropdbase/GpuSqlParser/GpuSqlLexer.g4 by ANTLR 4.7.1
+// Generated from /home/jvesely/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlLexer.g4 by ANTLR 4.7.1
 
 #pragma once
 
@@ -37,8 +37,7 @@ public:
     RPAREN = 124, GREATER = 125, LESS = 126, GREATEREQ = 127, LESSEQ = 128, 
     LOGICAL_NOT = 129, OR = 130, AND = 131, BIT_OR = 132, BIT_AND = 133, 
     L_SHIFT = 134, R_SHIFT = 135, BOOLEANLIT = 136, TRUE = 137, FALSE = 138, 
-    FLOATLIT = 139, INTLIT = 140, NEGFLOATLIT = 141, NEGINTLIT = 142, NULLLIT = 143, 
-    ID = 144
+    FLOATLIT = 139, INTLIT = 140, NULLLIT = 141, ID = 142
   };
 
   GpuSqlLexer(antlr4::CharStream *input);
