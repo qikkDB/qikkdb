@@ -90,8 +90,11 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryConst()
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "ArithmeticUnaryConst: " << reg << '\n';
 
-    int32_t retSize = 1;
-
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
         ResultType* result = AllocateRegister<ResultType>(reg, retSize);

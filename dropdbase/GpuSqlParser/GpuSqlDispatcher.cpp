@@ -1020,16 +1020,18 @@ std::tuple<GPUMemory::GPUString, int32_t, int8_t*> GpuSqlDispatcher::FindStringC
 }
 
 void GpuSqlDispatcher::RewriteColumn(PointerAllocation& column,
-        uintptr_t reconstructedReg, int32_t reconstructedSize, int8_t* reconstructedNullMask)
+                                     uintptr_t reconstructedReg,
+                                     int32_t reconstructedSize,
+                                     int8_t* reconstructedNullMask)
 {
-    if (filter_)    // If where mask was used, new buffers were allocated, need to free old GpuPtr
+    if (filter_) // If where mask was used, new buffers were allocated, need to free old GpuPtr
     {
         if (column.ShouldBeFreed) // should be freed if it is not cached - if it is temp register like "YEAR(col)"
         {
             GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
             // Do not free null mask because it is stored also as col_nullmask in allocated pointers
         }
-        else    // If original column was cachced, after rewrite the new pointer will need to be freed
+        else // If original column was cachced, after rewrite the new pointer will need to be freed
         {
             column.ShouldBeFreed = true; // enable future free in cleanupGpuPointers
         }
@@ -1042,7 +1044,9 @@ void GpuSqlDispatcher::RewriteColumn(PointerAllocation& column,
 }
 
 void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
-        GPUMemory::GPUString newStruct, int32_t newElementCount, int8_t* newNullMask)
+                                           GPUMemory::GPUString newStruct,
+                                           int32_t newElementCount,
+                                           int8_t* newNullMask)
 {
     if (filter_)
     {
@@ -1066,11 +1070,12 @@ void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
     allChars.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(newNullMask);
 }
 
-GPUMemory::GPUString GpuSqlDispatcher::InsertConstStringGpu(const std::string& str)
+GPUMemory::GPUString GpuSqlDispatcher::InsertConstStringGpu(const std::string& str, size_t size)
 {
+    std::vector<std::string> strings(size, str);
     std::string name = "constString" + std::to_string(constStringCounter_);
     constStringCounter_++;
-    return InsertString(database_->GetName(), name, {str}, 1);
+    return InsertString(database_->GetName(), name, strings, 1);
 }
 
 /// Clears all allocated buffers

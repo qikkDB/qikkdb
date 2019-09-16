@@ -278,7 +278,12 @@ TEST(DispatcherTestsRegression, ConstOpOnMultiGPU)
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloads = result->payloads().at("2+2");
-    ASSERT_EQ(payloads.intpayload().intdata_size(), 2);
+    ASSERT_EQ(payloads.intpayload().intdata_size(), DispatcherObjs::GetInstance()
+                                                        .database->GetTables()
+                                                        .at("TableA")
+                                                        .GetColumns()
+                                                        .at("colInteger1")
+                                                        ->GetSize());
     ASSERT_EQ(payloads.intpayload().intdata()[0], 4);
 }
 

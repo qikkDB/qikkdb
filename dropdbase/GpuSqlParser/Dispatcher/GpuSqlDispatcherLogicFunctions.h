@@ -178,10 +178,15 @@ int32_t GpuSqlDispatcher::FilterConstConst()
     T constLeft = arguments_.Read<T>();
     auto reg = arguments_.Read<std::string>();
 
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
-        int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
-        GPUFilter::Filter<OP, T, U>(mask, constLeft, constRight, nullptr, database_->GetBlockSize());
+        int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
+        GPUFilter::Filter<OP, T, U>(mask, constLeft, constRight, nullptr, retSize);
     }
     return 0;
 }
@@ -333,14 +338,18 @@ int32_t GpuSqlDispatcher::FilterStringConstConst()
 
     CudaLogBoost::getInstance(CudaLogBoost::info)
         << "FilterStringConstConst: " << cnstLeft << " " << cnstRight << " " << reg << '\n';
-
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUString constStringLeft = InsertConstStringGpu(cnstLeft);
         GPUMemory::GPUString constStringRight = InsertConstStringGpu(cnstRight);
 
-        int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
-        GPUFilter::constConst<OP>(mask, constStringLeft, constStringRight, database_->GetBlockSize());
+        int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
+        GPUFilter::constConst<OP>(mask, constStringLeft, constStringRight, retSize);
     }
     return 0;
 }
@@ -510,11 +519,15 @@ int32_t GpuSqlDispatcher::LogicalConstConst()
     U constRight = arguments_.Read<U>();
     T constLeft = arguments_.Read<T>();
     auto reg = arguments_.Read<std::string>();
-
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
-        int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
-        GPULogic::Logic<OP, T, U>(mask, constLeft, constRight, nullptr, database_->GetBlockSize());
+        int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
+        GPULogic::Logic<OP, T, U>(mask, constLeft, constRight, nullptr, retSize);
     }
 
     return 0;

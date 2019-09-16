@@ -352,7 +352,7 @@ public:
 
     void Execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception);
 
-	void Abort();
+    void Abort();
 
     const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GetQueryResponseMessage();
 
@@ -661,13 +661,11 @@ public:
                                       int8_t* nullMaskPtr = nullptr);
     std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> FindComplexPolygon(std::string colName);
     std::tuple<GPUMemory::GPUString, int32_t, int8_t*> FindStringColumn(const std::string& colName);
-    void RewriteColumn(PointerAllocation& column,
-            uintptr_t newPtr, int32_t newSize, int8_t* newNullMask);
-    void RewriteStringColumn(const std::string& colName,
-            GPUMemory::GPUString newStruct, int32_t newSize, int8_t* newNullMask);
+    void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int8_t* newNullMask);
+    void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int8_t* newNullMask);
     NativeGeoPoint* InsertConstPointGpu(ColmnarDB::Types::Point& point);
     GPUMemory::GPUPolygon InsertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
-    GPUMemory::GPUString InsertConstStringGpu(const std::string& str);
+    GPUMemory::GPUString InsertConstStringGpu(const std::string& str, size_t size = 1);
 
     template <typename T>
     int32_t OrderByConst();
@@ -876,15 +874,15 @@ public:
     template <typename OUT, typename IN>
     int32_t CastNumericConst();
 
-	template <typename OUT>
+    template <typename OUT>
     int32_t CastStringCol();
 
-	template <typename OUT>
+    template <typename OUT>
     int32_t CastStringConst();
 
-	int32_t CastPointCol();
+    int32_t CastPointCol();
 
-	int32_t CastPointConst();
+    int32_t CastPointConst();
 
     int32_t CastPolygonCol();
 
@@ -1089,4 +1087,3 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>();
 
 template <>
 int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>();
-

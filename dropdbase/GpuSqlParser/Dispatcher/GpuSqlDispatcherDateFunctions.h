@@ -84,8 +84,11 @@ int32_t GpuSqlDispatcher::DateExtractConst()
     auto reg = arguments_.Read<std::string>();
     CudaLogBoost::getInstance(CudaLogBoost::info) << "ExtractDatePartConst: " << cnst << " " << reg << '\n';
 
-    int32_t retSize = 1;
-
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
         int32_t* result = AllocateRegister<int32_t>(reg, retSize);

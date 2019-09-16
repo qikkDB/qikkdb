@@ -174,8 +174,12 @@ protected:
     void CastConstPointToStringGenericTest(std::string pointWkt, std::string expectedResult)
     {
         auto columns = std::unordered_map<std::string, DataType>();
-        castDatabase->CreateTable(columns, tableName.c_str());
-
+        auto& table = castDatabase->CreateTable(columns, tableName.c_str());
+        table.CreateColumn("test", COLUMN_INT);
+        std::unordered_map<std::string, std::any> data;
+        std::any data_vec = std::vector<int>({1, 2, 3, 4, 5});
+        data.insert(std::make_pair("test", data_vec));
+        table.InsertData(data);
         // Execute the query_
         GpuSqlCustomParser parser(castDatabase,
                                   "SELECT CAST(" + pointWkt + " AS STRING) FROM " + tableName + ";");

@@ -186,8 +186,12 @@ int32_t GpuSqlDispatcher::CastPolygonConst()
     ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constWkt);
     GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(constPolygon);
 
-    int32_t retSize = 1;
+    int32_t retSize = GetBlockSize();
 
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUString result;
@@ -244,8 +248,11 @@ int32_t GpuSqlDispatcher::CastPointConst()
     ColmnarDB::Types::Point constPoint = PointFactory::FromWkt(constWkt);
     NativeGeoPoint* gpuPoint = InsertConstPointGpu(constPoint);
 
-    int32_t retSize = 1;
-
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUString result;

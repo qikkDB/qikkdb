@@ -346,8 +346,11 @@ int32_t GpuSqlDispatcher::ContainsConstConst()
     NativeGeoPoint* constNativeGeoPoint = InsertConstPointGpu(constPoint);
     GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(constPolygon);
 
-    int32_t retSize = database_->GetBlockSize();
-
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
         int8_t* result = AllocateRegister<int8_t>(reg, retSize);

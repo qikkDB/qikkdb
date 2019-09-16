@@ -347,7 +347,11 @@ int32_t GpuSqlDispatcher::ArithmeticConstConst()
                                   typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type>::type ResultType;
     CudaLogBoost::getInstance(CudaLogBoost::info) << "ArithmeticConstConst: " << reg << '\n';
 
-    int32_t retSize = 1;
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
 
     if (!IsRegisterAllocated(reg))
     {

@@ -80,14 +80,18 @@ int32_t GpuSqlDispatcher::StringUnaryConst()
     auto reg = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringUnaryConst: " << reg << '\n';
-
-    GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst);
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
+    GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst, retSize);
 
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUString result;
-        GPUStringUnary::StringUnary<OP>(result, gpuString, 1);
-        FillStringRegister(result, reg, 1, true);
+        GPUStringUnary::StringUnary<OP>(result, gpuString, retSize);
+        FillStringRegister(result, reg, retSize, true);
     }
     return 0;
 }
@@ -151,12 +155,16 @@ int32_t GpuSqlDispatcher::StringUnaryNumericConst()
     auto reg = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringUnaryConst: " << reg << '\n';
-
-    GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst);
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
+    GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst, retSize);
 
     if (!IsRegisterAllocated(reg))
     {
-        int32_t* result = AllocateRegister<int32_t>(reg, 1);
+        int32_t* result = AllocateRegister<int32_t>(reg, retSize);
         GPUStringUnary::Const<OP>(result, gpuString);
     }
     return 0;
@@ -420,14 +428,18 @@ int32_t GpuSqlDispatcher::StringBinaryNumericConstConst()
     auto reg = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryConstConst: " << reg << '\n';
-
-    GPUMemory::GPUString gpuString = InsertConstStringGpu(cnstLeft);
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
+    GPUMemory::GPUString gpuString = InsertConstStringGpu(cnstLeft, retSize);
 
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUString result;
-        GPUStringBinary::ConstConst<OP>(result, gpuString, cnstRight, 1);
-        FillStringRegister(result, reg, 1, true);
+        GPUStringBinary::ConstConst<OP>(result, gpuString, cnstRight, retSize);
+        FillStringRegister(result, reg, retSize, true);
     }
     return 0;
 }
@@ -689,15 +701,19 @@ int32_t GpuSqlDispatcher::StringBinaryConstConst()
     auto reg = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "StringBinaryConstConst: " << reg << '\n';
-
-    GPUMemory::GPUString gpuStringLeft = InsertConstStringGpu(cnstLeft);
-    GPUMemory::GPUString gpuStringRight = InsertConstStringGpu(cnstRight);
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 0;
+    }
+    GPUMemory::GPUString gpuStringLeft = InsertConstStringGpu(cnstLeft, retSize);
+    GPUMemory::GPUString gpuStringRight = InsertConstStringGpu(cnstRight, retSize);
 
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUString result;
-        GPUStringBinary::ConstConst<OP>(result, gpuStringLeft, gpuStringRight, 1);
-        FillStringRegister(result, reg, 1, false);
+        GPUStringBinary::ConstConst<OP>(result, gpuStringLeft, gpuStringRight, retSize);
+        FillStringRegister(result, reg, retSize, false);
     }
     return 0;
 }

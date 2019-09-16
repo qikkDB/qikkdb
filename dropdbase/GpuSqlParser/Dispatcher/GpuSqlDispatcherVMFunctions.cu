@@ -807,6 +807,10 @@ int32_t GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
 size_t GpuSqlDispatcher::GetBlockSize()
 {
     int64_t dataElementCount = 0;
+    if (LoadTableBlockInfo(loadedTableName_) != 0)
+    {
+        return 0;
+    }
     if (usingJoin_)
     {
         dataElementCount = joinIndices_->begin()->second[blockIndex_].size();

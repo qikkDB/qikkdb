@@ -78,7 +78,7 @@ int32_t GpuSqlDispatcher::CastNumericConst()
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "CastNumericConst: " << reg << '\n';
 
-    int32_t retSize = 1;
+    int32_t retSize = GetBlockSize();
 
     if (!IsRegisterAllocated(reg))
     {
@@ -162,11 +162,15 @@ int32_t GpuSqlDispatcher::CastStringConst()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "CastStringConst: " << reg << '\n';
 
     GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst);
-
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
-        OUT* result = AllocateRegister<OUT>(reg, 1);
-        GPUCast::CastString(result, gpuString, 1);
+        OUT* result = AllocateRegister<OUT>(reg, retSize);
+        GPUCast::CastString(result, gpuString, retSize);
     }
     return 0;
 }
