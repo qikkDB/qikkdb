@@ -41,7 +41,8 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database,
   orderByColumnIndex_(0), usingGroupBy_(false), usingAgg_(false), insideAgg_(false),
   insideWhere_(false), insideGroupBy_(false), insideOrderBy_(false), insideAlias_(false),
   insideSelectColumn_(false), isAggSelectColumn_(false), isSelectColumnValid_(false),
-  ResultLimit(std::numeric_limits<int64_t>::max()), ResultOffset(0), CurrentSelectColumnIndex(0)
+  ResultLimit(std::numeric_limits<int64_t>::max()), ResultOffset(0), CurrentSelectColumnIndex(0),
+  currentExpressionAlias_("")
 {
     GpuSqlDispatcher::linkTable.clear();
 }
@@ -701,6 +702,15 @@ void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext* ctx)
 void GpuSqlListener::enterSelectColumn(GpuSqlParser::SelectColumnContext* ctx)
 {
     insideSelectColumn_ = true;
+    if (ctx->alias())
+    {
+        currentExpressionAlias_ = ctx->alias()->getText();
+        TrimDelimitedIdentifier(currentExpressionAlias_);
+    }
+    else
+    {
+        currentExpressionAlias_ = "";
+    }
     isSelectColumnValid_ = !usingGroupBy_;
 }
 
@@ -750,7 +760,7 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext* ctx)
         dispatcher_.AddArgument<const std::string&>(colName);
         dispatcher_.AddLockRegisterFunction();
     }
-
+    currentExpressionAlias_ = "";
     insideSelectColumn_ = false;
     isAggSelectColumn_ = false;
 }
@@ -1637,7 +1647,7 @@ void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext* ctx)
 {
     std::string colName = ctx->columnId()->getText();
 
-    if (columnAliasContexts_.find(colName) != columnAliasContexts_.end() && !insideAlias_)
+    if (columnAliasContexts_.find(colName) != columnAliasContexts_.end() && !insideAlias_ && colName != currentExpressionAlias_)
     {
         WalkAliasExpression(colName);
         return;

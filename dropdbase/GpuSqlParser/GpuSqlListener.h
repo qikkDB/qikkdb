@@ -31,6 +31,7 @@ private:
     std::stack<std::pair<std::string, DataType>> parserStack_;
     std::unordered_map<std::string, std::string> tableAliases_;
     std::unordered_set<std::string> columnAliases_;
+    std::string currentExpressionAlias_;
     std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts_;
     std::unordered_map<int64_t, GpuSqlParser::ExpressionContext*> columnNumericAliasContexts_;
     std::unordered_set<std::string> loadedTables_;
