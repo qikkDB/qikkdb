@@ -176,6 +176,13 @@ public:
         return queriedBlockDimensionList[getBoundDeviceID()];
     }
 
+    /// Get default block dimension for a polygon operation - half the size of a stream
+    /// multiprocessor <returns>the size of an optimal block</returns>
+    int32_t getBlockDimPoly() const
+    {
+        return queriedBlockDimensionList[getBoundDeviceID()] / 2;
+    }
+
     /// Get the currently bound device to the context
     /// <returns>the bound device ID</returns>
     int32_t getBoundDeviceID() const

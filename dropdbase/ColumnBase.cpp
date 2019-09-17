@@ -51,8 +51,7 @@ std::vector<ColmnarDB::Types::Point> ColumnBase<ColmnarDB::Types::Point>::NullAr
 template <>
 std::vector<ColmnarDB::Types::ComplexPolygon> ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(int length)
 {
-    return std::vector<ColmnarDB::Types::ComplexPolygon>(length, ComplexPolygonFactory::FromWkt(
-                                                                     "POLYGON((0 0, 0 0))"));
+    return std::vector<ColmnarDB::Types::ComplexPolygon>(length, ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))"));
 }
 
 template <>
@@ -165,10 +164,10 @@ void ColumnBase<ColmnarDB::Types::Point>::setColumnStatistics()
 template <>
 void ColumnBase<ColmnarDB::Types::ComplexPolygon>::setColumnStatistics()
 {
-    min_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0),(0 0))");
-    max_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0),(0 0))");
+    min_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
+    max_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
     avg_ = (float)0.0;
-    sum_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0),(0 0))");
+    sum_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
 }
 
 template <>

@@ -26,21 +26,15 @@ void GPUMemory::free(GPUPolygon polygonCol)
     {
         GPUMemory::free(polygonCol.polyPoints);
     }
+
     if (polygonCol.pointIdx)
     {
         GPUMemory::free(polygonCol.pointIdx);
     }
-    if (polygonCol.pointCount)
-    {
-        GPUMemory::free(polygonCol.pointCount);
-    }
+
     if (polygonCol.polyIdx)
     {
         GPUMemory::free(polygonCol.polyIdx);
-    }
-    if (polygonCol.polyCount)
-    {
-        GPUMemory::free(polygonCol.polyCount);
     }
 }
 
@@ -50,6 +44,7 @@ void GPUMemory::free(GPUString stringCol)
     {
         GPUMemory::free(stringCol.allChars);
     }
+
     if (stringCol.stringIndices != nullptr)
     {
         GPUMemory::free(stringCol.stringIndices);

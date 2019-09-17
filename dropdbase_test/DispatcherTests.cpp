@@ -13547,19 +13547,16 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToPolygon)
                                "12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 "
                                "89.15,112.12 110, 61 80.11))\", \"randomString\");");
 
-    std::vector<std::string> expectedResultsCol;
-    std::vector<std::string> expectedResultsColString;
-    for (int32_t i = 0; i < 7; i++)
-    {
-        resultPtr = parser2.Parse();
-        ColmnarDB::Types::ComplexPolygon polygon = ComplexPolygonFactory::FromWkt(
-            "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
-            "80.11, 90 89.15, 112.12 110, 61 80.11))");
-        ColmnarDB::Types::ComplexPolygon emptyPolygon =
-            ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
-        expectedResultsCol.push_back(ComplexPolygonFactory::WktFromPolygon(polygon, true));
-        expectedResultsColString.push_back(ComplexPolygonFactory::WktFromPolygon(emptyPolygon, true));
-    }
+	std::vector<std::string> expectedResultsCol;
+	std::vector<std::string> expectedResultsColString;
+	for (int32_t i = 0; i < 7; i++)
+	{
+		resultPtr = parser2.Parse();
+		ColmnarDB::Types::ComplexPolygon polygon = ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11, 90 89.15, 112.12 110, 61 80.11))");
+		ColmnarDB::Types::ComplexPolygon emptyPolygon = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
+		expectedResultsCol.push_back(ComplexPolygonFactory::WktFromPolygon(polygon, true));
+		expectedResultsColString.push_back(ComplexPolygonFactory::WktFromPolygon(emptyPolygon, true));
+	}
 
     GpuSqlCustomParser parser3(database, "ALTER TABLE testTable ALTER COLUMN colP geo_polygon;");
     resultPtr = parser3.Parse();

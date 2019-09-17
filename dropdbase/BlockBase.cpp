@@ -171,10 +171,10 @@ void BlockBase<ColmnarDB::Types::ComplexPolygon>::updateBlockStatistics(const Co
 {
     if (size_ == 0)
     {
-        min_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0),(0 0))");
-        max_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0),(0 0))");
+        min_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
+        max_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
         avg_ = (float)0.0;
-        sum_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0),(0 0))");
+        sum_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
     }
 
     size_++;
