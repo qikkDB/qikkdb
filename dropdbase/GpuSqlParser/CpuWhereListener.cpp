@@ -492,6 +492,31 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
     }
 }
 
+void CpuWhereListener::exitJoinClause(GpuSqlParser::JoinClauseContext* ctx)
+{
+    std::string joinTable = ctx->joinTable()->table()->getText();
+    TrimDelimitedIdentifier(joinTable);
+
+    if (database_->GetTables().find(joinTable) == database_->GetTables().end())
+    {
+        throw TableNotFoundFromException(joinTable);
+    }
+
+    loadedTables_.insert(joinTable);
+
+    if (ctx->joinTable()->alias())
+    {
+        std::string alias = ctx->joinTable()->alias()->getText();
+        TrimDelimitedIdentifier(alias);
+
+        if (tableAliases_.find(alias) != tableAliases_.end())
+        {
+            throw AliasRedefinitionException(alias);
+        }
+        tableAliases_.insert({alias, joinTable});
+    }
+}
+
 void CpuWhereListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext* ctx)
 {
     for (auto& selectColumn : ctx->selectColumn())
