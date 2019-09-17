@@ -81,11 +81,11 @@ __global__ void kernel_predict_wkt_lengths(int32_t* outStringLengths, GPUMemory:
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
         // Count POLYGON word and parentheses ("POLYGON((), ())")
-        int32_t charCounter = 11 + (4 * (GPUMemory::PolyCountAt(inPolygonCol, i) - 1));
+        int32_t charCounter = 11 + (4 * (inPolygonCol.PolyCountAt(i) - 1));
 
 
-        const int32_t subpolyStartIdx = GPUMemory::PolyIdxAt(inPolygonCol, i);
-        const int32_t subpolyEndIdx = subpolyStartIdx + GPUMemory::PolyCountAt(inPolygonCol, i);
+        const int32_t subpolyStartIdx = inPolygonCol.PolyIdxAt(i);
+        const int32_t subpolyEndIdx = subpolyStartIdx + inPolygonCol.PolyCountAt(i);
 
         // If subpolyStartIdx == subpolyEndIdx it means the row in the output polygon is empty
         // Set the char counter for the standard null value for polygons: POLYGON((0.0000 0.0000, 0.0000 0.0000))
@@ -98,8 +98,8 @@ __global__ void kernel_predict_wkt_lengths(int32_t* outStringLengths, GPUMemory:
             // Else calculate the required WKT size
             for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++)
             {
-                const int32_t pointCount = GPUMemory::PointCountAt(inPolygonCol, j); // - 2;
-                const int32_t pointStartIdx = GPUMemory::PointIdxAt(inPolygonCol, j); // + 1;
+                const int32_t pointCount = inPolygonCol.PointCountAt(j); // - 2;
+                const int32_t pointStartIdx = inPolygonCol.PointIdxAt(j); // + 1;
                 const int32_t pointEndIdx = pointStartIdx + pointCount;
 
                 // Count the decimal part and colons between points (".0000 .0000, .0000 .0000")
@@ -131,9 +131,9 @@ kernel_generate_poly_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPoly
 
     for (int32_t i = idx; i < size; i += stride)
     {
-        for (int32_t j = 0; j < GPUMemory::PolyCountAt(polygon, i); j++)
+        for (int32_t j = 0; j < polygon.PolyCountAt(i); j++)
         {
-            outMask[GPUMemory::PolyIdxAt(polygon, i) + j] = inMask[i];
+            outMask[polygon.PolyIdxAt(i) + j] = inMask[i];
         }
     }
 }
@@ -146,9 +146,9 @@ kernel_generate_point_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPol
 
     for (int32_t i = idx; i < size; i += stride)
     {
-        for (int32_t j = 0; j < GPUMemory::PointCountAt(polygon, i); j++)
+        for (int32_t j = 0; j < polygon.PointCountAt(i); j++)
         {
-            outMask[GPUMemory::PointIdxAt(polygon, i) + j] = inMask[i];
+            outMask[polygon.PointIdxAt(i) + j] = inMask[i];
         }
     }
 }
@@ -167,7 +167,7 @@ __global__ void kernel_reconstruct_polyCount_col(int32_t* outPolyCount,
     {
         if (inMask[i] && (prefixSum[i] - 1) >= 0)
         {
-            outPolyCount[prefixSum[i] - 1] = GPUMemory::PolyCountAt(polygon, i);
+            outPolyCount[prefixSum[i] - 1] = polygon.PolyCountAt(i);
         }
     }
 }
@@ -186,7 +186,7 @@ __global__ void kernel_reconstruct_pointCount_col(int32_t* outPointCount,
     {
         if (inMask[i] && (prefixSum[i] - 1) >= 0)
         {
-            outPointCount[prefixSum[i] - 1] = GPUMemory::PointCountAt(polygon, i);
+            outPointCount[prefixSum[i] - 1] = polygon.PointCountAt(i);
         }
     }
 }
@@ -262,8 +262,8 @@ kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon in
         int64_t charId = stringStartIndex + 7;
         outWkt.allChars[charId++] = '(';
 
-        const int32_t subpolyStartIdx = GPUMemory::PolyIdxAt(inPolygonCol, i);
-        const int32_t subpolyEndIdx = subpolyStartIdx + GPUMemory::PolyCountAt(inPolygonCol, i);
+        const int32_t subpolyStartIdx = inPolygonCol.PolyIdxAt(i);
+        const int32_t subpolyEndIdx = subpolyStartIdx + inPolygonCol.PolyCountAt(i);
 
         // If subpolyStartIdx == subpolyEndIdx it means the row in the output polygon is empty
         // We need to add "(0.0000 0.0000, 0.0000 0.0000)" to the result
@@ -282,8 +282,8 @@ kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon in
             for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++) // via sub-polygons
             {
                 outWkt.allChars[charId++] = '(';
-                const int32_t pointCount = GPUMemory::PointCountAt(inPolygonCol, j); // - 2;
-                const int32_t pointStartIdx = GPUMemory::PointIdxAt(inPolygonCol, j); // + 1;
+                const int32_t pointCount = inPolygonCol.PointCountAt(j); // - 2;
+                const int32_t pointStartIdx = inPolygonCol.PointIdxAt(j); // + 1;
                 const int32_t pointEndIdx = pointStartIdx + pointCount;
 
                 for (int32_t k = pointStartIdx; k < pointEndIdx; k++) // via points

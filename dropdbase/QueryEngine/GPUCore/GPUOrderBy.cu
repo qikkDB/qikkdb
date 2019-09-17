@@ -46,8 +46,8 @@ __global__ void kernel_reorder_polyCount_col(int32_t* outPolyCount,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        int32_t polyIdx = GPUMemory::PolyIdxAt(inPolygon, inIndices[i]);
-        int32_t polyCount = GPUMemory::PolyCountAt(inPolygon, inIndices[i]);
+        int32_t polyIdx = inPolygon.PolyIdxAt(inIndices[i]);
+        int32_t polyCount = inPolygon.PolyCountAt(inIndices[i]);
 
         outPolyCount[i] = polyCount;
     }
@@ -65,16 +65,16 @@ __global__ void kernel_reorder_pointCount_col(int32_t* outPointCount,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        int32_t polyIdx = GPUMemory::PolyIdxAt(inPolygon, inIndices[i]);
-        int32_t polyCount = GPUMemory::PolyCountAt(inPolygon, inIndices[i]);
+        int32_t polyIdx = inPolygon.PolyIdxAt(inIndices[i]);
+        int32_t polyCount = inPolygon.PolyCountAt(inIndices[i]);
 
-		int32_t outPolyIdx = GPUMemory::PolyIdxAt(outPolygon, i);
-        int32_t outPolyCount = GPUMemory::PolyCountAt(inPolygon, i);
+		int32_t outPolyIdx = outPolygon.PolyIdxAt(i);
+        int32_t outPolyCount = outPolygon.PolyCountAt(i);
 
         for (int32_t p = polyIdx, op = outPolyIdx; p < (polyIdx + polyCount); p++, op++)
         {
-            int32_t pointIdx = GPUMemory::PointIdxAt(inPolygon, p);
-            int32_t pointCount = GPUMemory::PointCountAt(inPolygon, p);
+            int32_t pointIdx = inPolygon.PointIdxAt(p);
+            int32_t pointCount = inPolygon.PointCountAt(p);
 
 			outPointCount[op] = pointCount;
         }
@@ -91,19 +91,19 @@ __global__ void kernel_reorder_polyPoints_col(GPUMemory::GPUPolygon outPolygon,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        int32_t polyIdx = GPUMemory::PolyIdxAt(inPolygon, inIndices[i]);
-        int32_t polyCount = GPUMemory::PolyCountAt(inPolygon, inIndices[i]);
+        int32_t polyIdx = inPolygon.PolyIdxAt(inIndices[i]);
+        int32_t polyCount = inPolygon.PolyCountAt(inIndices[i]);
 
-		int32_t outPolyIdx = GPUMemory::PolyIdxAt(outPolygon, i);
-        int32_t outPolyCount = GPUMemory::PolyCountAt(outPolygon, i);
+		int32_t outPolyIdx = outPolygon.PolyIdxAt(i);
+        int32_t outPolyCount = outPolygon.PolyCountAt(i);
 
         for (int32_t p = polyIdx, op = outPolyIdx; p < (polyIdx + polyCount); p++, op++)
         {
-            int32_t pointIdx = GPUMemory::PointIdxAt(inPolygon, p);
-            int32_t pointCount = GPUMemory::PointCountAt(inPolygon, p);
+            int32_t pointIdx = inPolygon.PointIdxAt(p);
+            int32_t pointCount = inPolygon.PointCountAt(p);
 
-			int32_t outPointIdx = GPUMemory::PointIdxAt(outPolygon, op);
-            int32_t outPointCount = GPUMemory::PointCountAt(outPolygon, op);
+			int32_t outPointIdx = outPolygon.PointIdxAt(op);
+            int32_t outPointCount = outPolygon.PointCountAt(op);
 
             for (int32_t point = pointIdx, oPoint = outPointIdx; point < (pointIdx + pointCount); point++, oPoint++)
             {

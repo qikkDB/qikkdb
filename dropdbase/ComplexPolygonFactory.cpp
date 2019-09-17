@@ -220,8 +220,7 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 		if (points.size() < 2)
         {
             throw std::invalid_argument(
-                "Invalid WKT format - too few input points, HINT: First and last points of WKT "
-                "notation must be stated as separate points and they must match");
+                "Invalid WKT format - too few input points");
         }
 
         for (const auto& point : points)

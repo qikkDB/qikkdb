@@ -49,17 +49,17 @@ struct GPUPolygon
 
     /// Start indices of each complex polygon in polygon array
     int32_t* polyIdx;
+
+	__device__ __host__ int32_t PointIdxAt(int32_t idx);
+
+	__device__ __host__ int32_t PolyIdxAt(int32_t idx);
+
+	__device__ __host__ int32_t PointCountAt(int32_t idx);
+
+	__device__ __host__ int32_t PolyCountAt(int32_t idx);
+
+	__device__ __host__ int32_t TotalPointCountAt(int32_t idx);
 };
-
-__device__ __host__ int32_t PointIdxAt(GPUPolygon& polygon, int32_t idx);
-
-__device__ __host__ int32_t PolyIdxAt(GPUPolygon& polygon, int32_t idx);
-
-__device__ __host__ int32_t PointCountAt(GPUPolygon& polygon, int32_t idx);
-
-__device__ __host__ int32_t PolyCountAt(GPUPolygon& polygon, int32_t idx);
-
-__device__ __host__ int32_t TotalPointCountAt(GPUPolygon& polygon, int32_t idx);
 
 /// Struct for GPU representation of string column (with pointers to start of condensed buffers).
 struct GPUString

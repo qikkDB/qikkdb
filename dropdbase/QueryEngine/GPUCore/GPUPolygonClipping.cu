@@ -1,5 +1,56 @@
 #include "GPUPolygonClipping.cuh"
 
+// Bit getters
+ __device__ bool LLPolyVertex::GetHasIntersections()
+{
+    return static_cast<bool>((llflags >> 4) & 0x01);
+}
+
+ __device__ bool LLPolyVertex::GetIsIntersection()
+{
+    return static_cast<bool>((llflags >> 3) & 0x01);
+}
+
+ __device__ bool LLPolyVertex::GetIsValidIntersection()
+{
+    return static_cast<bool>((llflags >> 2) & 0x01);
+}
+
+ __device__ bool LLPolyVertex::GetIsEntry()
+{
+    return static_cast<bool>((llflags >> 1) & 0x01);
+}
+
+ __device__ bool LLPolyVertex::GetWasProcessed()
+{
+    return static_cast<bool>((llflags >> 0) & 0x01);
+}
+
+// Bit setters
+__device__ bool LLPolyVertex::SetHasIntersections(bool flag)
+{
+    llflags = (llflags & 0xEF) | ((static_cast<uint8_t>(flag)) << 4);
+}
+__device__ void LLPolyVertex::SetIsIntersection(bool flag)
+{
+    llflags = (llflags & 0xF7) | ((static_cast<uint8_t>(flag)) << 3);
+}
+
+__device__ void LLPolyVertex::SetIsValidIntersection(bool flag)
+{
+    llflags = (llflags & 0xFB) | ((static_cast<uint8_t>(flag)) << 2);
+}
+
+__device__ void LLPolyVertex::SetIsEntry(bool flag)
+{
+    llflags = (llflags & 0xFD) | ((static_cast<uint8_t>(flag)) << 1);
+}
+
+__device__ void LLPolyVertex::SetWasProcessed(bool flag)
+{
+    llflags = (llflags & 0xFE) | ((static_cast<uint8_t>(flag)) << 0);
+}
+
 __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, NativeGeoPoint sB, NativeGeoPoint eB)
 {
     float adx = eA.latitude - sA.latitude;
@@ -13,10 +64,10 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, Nat
     {
         LLPolyVertex retFail = {{0, 0}, 0x0, -1.0, -1.0, -1, -1, -1};
 
-        SetIsIntersection(retFail, true);
-        SetIsValidIntersection(retFail, false);
-        SetIsEntry(retFail, false);
-        SetWasProcessed(retFail, false);
+        retFail.SetIsIntersection(true);
+        retFail.SetIsValidIntersection(false);
+        retFail.SetIsEntry(false);
+        retFail.SetWasProcessed(false);
 
         return retFail;
     }
@@ -29,19 +80,14 @@ __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, Nat
 
     bool intersectionValidity = (alongA > 0 && alongA < 1 && alongB > 0 && alongB < 1);
 
-    LLPolyVertex ret = {{sA.latitude + alongA * adx, sA.longitude + alongA * ady},
-                        0x0,
-                        alongA,
-                        alongB,
-                        -1,
-                        -1,
-                        -1};
+    LLPolyVertex ret = {
+        {sA.latitude + alongA * adx, sA.longitude + alongA * ady}, 0x0, alongA, alongB, -1, -1, -1};
 
-	SetHasIntersections(ret, intersectionValidity);
-    SetIsIntersection(ret, true);
-    SetIsValidIntersection(ret, intersectionValidity);
-    SetIsEntry(ret, false);
-    SetWasProcessed(ret, false);
+    ret.SetHasIntersections(intersectionValidity);
+    ret.SetIsIntersection(true);
+    ret.SetIsValidIntersection(intersectionValidity);
+    ret.SetIsEntry(false);
+    ret.SetWasProcessed(false);
 
     return ret;
 }
@@ -64,24 +110,24 @@ __global__ void kernel_calc_ll_buffers_size(int32_t* llPolygonABufferSizes,
         int32_t iAIdx = isAConst ? 0 : i;
         int32_t iBIdx = isBConst ? 0 : i;
 
-        const int32_t polyIdxA = GPUMemory::PolyIdxAt(polygonA, iAIdx);
-        const int32_t polyCountA = GPUMemory::PolyCountAt(polygonA, iAIdx);
+        const int32_t polyIdxA = polygonA.PolyIdxAt(iAIdx);
+        const int32_t polyCountA = polygonA.PolyCountAt(iAIdx);
 
-        const int32_t polyIdxB = GPUMemory::PolyIdxAt(polygonB, iBIdx);
-        const int32_t polyCountB = GPUMemory::PolyCountAt(polygonB, iBIdx);
+        const int32_t polyIdxB = polygonB.PolyIdxAt(iBIdx);
+        const int32_t polyCountB = polygonB.PolyCountAt(iBIdx);
 
         int32_t intersectCount = 0;
         for (int32_t a = polyIdxA; a < (polyIdxA + polyCountA); a++)
         {
-            const int32_t pointIdxA = GPUMemory::PointIdxAt(polygonA, a);
-            const int32_t pointCountA = GPUMemory::PointCountAt(polygonA, a);
+            const int32_t pointIdxA = polygonA.PointIdxAt(a);
+            const int32_t pointCountA = polygonA.PointCountAt(a);
 
             int8_t intersectionPresentInSubPolygonA = 0;
 
             for (int32_t b = polyIdxB; b < (polyIdxB + polyCountB); b++)
             {
-                const int32_t pointIdxB = GPUMemory::PointIdxAt(polygonB, b);
-                const int32_t pointCountB = GPUMemory::PointCountAt(polygonB, b);
+                const int32_t pointIdxB = polygonB.PointIdxAt(b);
+                const int32_t pointCountB = polygonB.PointCountAt(b);
 
                 int8_t intersectionPresentInSubPolygonB = 0;
 
@@ -96,7 +142,7 @@ __global__ void kernel_calc_ll_buffers_size(int32_t* llPolygonABufferSizes,
                                            polygonB.polyPoints[pointB],
                                            polygonB.polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]);
 
-                        if (GetIsValidIntersection(intersection))
+                        if (intersection.GetIsValidIntersection())
                         {
                             intersectionPresentInSubPolygonA = 1;
                             intersectionPresentInSubPolygonB = 1;
@@ -113,8 +159,8 @@ __global__ void kernel_calc_ll_buffers_size(int32_t* llPolygonABufferSizes,
         }
 
         // Get the complex polygon vertex counts n and k
-        const int32_t n = GPUMemory::TotalPointCountAt(polygonA, iAIdx);
-        const int32_t k = GPUMemory::TotalPointCountAt(polygonB, iBIdx);
+        const int32_t n = polygonA.TotalPointCountAt(iAIdx);
+        const int32_t k = polygonB.TotalPointCountAt(iBIdx);
 
         // Assign the calculated buffers size
         llPolygonABufferSizes[i] = n + intersectCount;
@@ -138,36 +184,35 @@ __global__ void kernel_build_ll(LLPolyVertex* llPolygonBuffers,
 
         int32_t llPolygonEndIdx = 0;
 
-        const int32_t polyIdx = GPUMemory::PolyIdxAt(polygon, iIdx);
-        const int32_t polyCount = GPUMemory::PolyCountAt(polygon, iIdx);
+        const int32_t polyIdx = polygon.PolyIdxAt(iIdx);
+        const int32_t polyCount = polygon.PolyCountAt(iIdx);
 
         // Transform polygon
         for (int32_t p = polyIdx; p < (polyIdx + polyCount); p++)
         {
-            const int32_t pointIdx = GPUMemory::PointIdxAt(polygon, p);
-            const int32_t pointCount = GPUMemory::PointCountAt(polygon, p);
+            const int32_t pointIdx = polygon.PointIdxAt(p);
+            const int32_t pointCount = polygon.PointCountAt(p);
 
             for (int32_t point = pointIdx; point < (pointIdx + pointCount); point++)
             {
-                const int32_t localIdx = pointIdx - GPUMemory::PointIdxAt(polygon, polyIdx);
+                const int32_t localIdx = pointIdx - polygon.PointIdxAt(polyIdx);
 
                 // Set the linked list entry
-                LLPolyVertex vertex = {
-                    polygon.polyPoints[point],
-                    0x0,
-                    -1.0,
-                    -1.0,
-                    ((i == 0) ? 0 : llPolygonBufferSizesPrefixSum[i - 1]) + localIdx +
-                        (point - pointIdx - 1 + pointCount) % pointCount,
-                    ((i == 0) ? 0 : llPolygonBufferSizesPrefixSum[i - 1]) + localIdx +
-                        (point - pointIdx + 1) % pointCount,
-                    -1};
+                LLPolyVertex vertex = {polygon.polyPoints[point],
+                                       0x0,
+                                       -1.0,
+                                       -1.0,
+                                       ((i == 0) ? 0 : llPolygonBufferSizesPrefixSum[i - 1]) +
+                                           localIdx + (point - pointIdx - 1 + pointCount) % pointCount,
+                                       ((i == 0) ? 0 : llPolygonBufferSizesPrefixSum[i - 1]) +
+                                           localIdx + (point - pointIdx + 1) % pointCount,
+                                       -1};
 
-				SetHasIntersections(vertex, PolygonIntersectionPresenceFlags[p]);
-                SetIsIntersection(vertex, false);
-                SetIsValidIntersection(vertex, false);
-                SetIsEntry(vertex, false);
-                SetWasProcessed(vertex, false);
+                vertex.SetHasIntersections(PolygonIntersectionPresenceFlags[p]);
+                vertex.SetIsIntersection(false);
+                vertex.SetIsValidIntersection(false);
+                vertex.SetIsEntry(false);
+                vertex.SetWasProcessed(false);
 
                 llPolygonBuffers[((i == 0) ? 0 : llPolygonBufferSizesPrefixSum[i - 1]) + llPolygonEndIdx] = vertex;
 
@@ -198,24 +243,24 @@ __global__ void kernel_add_and_crosslink_intersections_to_ll(LLPolyVertex* llPol
 
         // "Pointers" to the element after the last valid element of the linked lists
         // They begin after the last non intersection e.g. poly vertex address
-        int32_t llPolygonAEndIdx = GPUMemory::TotalPointCountAt(polygonA, iAIdx);
-        int32_t llPolygonBEndIdx = GPUMemory::TotalPointCountAt(polygonB, iBIdx);
+        int32_t llPolygonAEndIdx = polygonA.TotalPointCountAt(iAIdx);
+        int32_t llPolygonBEndIdx = polygonB.TotalPointCountAt(iBIdx);
 
-        const int32_t polyIdxA = GPUMemory::PolyIdxAt(polygonA, iAIdx);
-        const int32_t polyCountA = GPUMemory::PolyCountAt(polygonA, iAIdx);
+        const int32_t polyIdxA = polygonA.PolyIdxAt(iAIdx);
+        const int32_t polyCountA = polygonA.PolyCountAt(iAIdx);
 
-        const int32_t polyIdxB = GPUMemory::PolyIdxAt(polygonB, iBIdx);
-        const int32_t polyCountB = GPUMemory::PolyCountAt(polygonB, iBIdx);
+        const int32_t polyIdxB = polygonB.PolyIdxAt(iBIdx);
+        const int32_t polyCountB = polygonB.PolyCountAt(iBIdx);
 
         for (int32_t a = polyIdxA; a < (polyIdxA + polyCountA); a++)
         {
-            const int32_t pointIdxA = GPUMemory::PointIdxAt(polygonA, a);
-            const int32_t pointCountA = GPUMemory::PointCountAt(polygonA, a);
+            const int32_t pointIdxA = polygonA.PointIdxAt(a);
+            const int32_t pointCountA = polygonA.PointCountAt(a);
 
             for (int32_t b = polyIdxB; b < (polyIdxB + polyCountB); b++)
             {
-                const int32_t pointIdxB = GPUMemory::PointIdxAt(polygonB, b);
-                const int32_t pointCountB = GPUMemory::PointCountAt(polygonB, b);
+                const int32_t pointIdxB = polygonB.PointIdxAt(b);
+                const int32_t pointCountB = polygonB.PointCountAt(b);
 
                 // Calculate intersections and insert them into the ll
                 for (int32_t pointA = pointIdxA; pointA < (pointIdxA + pointCountA); pointA++)
@@ -229,7 +274,7 @@ __global__ void kernel_add_and_crosslink_intersections_to_ll(LLPolyVertex* llPol
                                            polygonB.polyPoints[pointIdxB + (pointB - pointIdxB + 1) % pointCountB]);
 
                         // If an intersection is valid, insert it into the linked lists and create a cross reference
-                        if (GetIsValidIntersection(intersection))
+                        if (intersection.GetIsValidIntersection())
                         {
                             int32_t llPolygonAEndIdxLocal =
                                 ((i == 0) ? 0 : llPolygonABufferSizesPrefixSum[i - 1]) + llPolygonAEndIdx;
@@ -249,12 +294,12 @@ __global__ void kernel_add_and_crosslink_intersections_to_ll(LLPolyVertex* llPol
                             // according to the parametric distance from the beginning of the line segment
                             //////////////////////////////////////////////////////////////////////////////
                             // First polygon - A
-                            const int32_t localIdxA = pointIdxA - GPUMemory::PointIdxAt(polygonA, polyIdxA);
+                            const int32_t localIdxA = pointIdxA - polygonA.PointIdxAt(polyIdxA);
 
                             const int32_t begIdxA = ((i == 0) ? 0 : llPolygonABufferSizesPrefixSum[i - 1]) +
-                                              localIdxA + (pointA - pointIdxA) % pointCountA;
+                                                    localIdxA + (pointA - pointIdxA) % pointCountA;
                             const int32_t endIdxA = ((i == 0) ? 0 : llPolygonABufferSizesPrefixSum[i - 1]) +
-                                              localIdxA + (pointA - pointIdxA + 1) % pointCountA;
+                                                    localIdxA + (pointA - pointIdxA + 1) % pointCountA;
 
                             int32_t nextIdxA = llPolygonABuffers[begIdxA].nextIdx;
                             while (nextIdxA != endIdxA && llPolygonABuffers[llPolygonAEndIdxLocal].distanceAlongA >
@@ -272,12 +317,12 @@ __global__ void kernel_add_and_crosslink_intersections_to_ll(LLPolyVertex* llPol
                             llPolygonABuffers[nextIdxA].prevIdx = llPolygonAEndIdxLocal;
                             //////////////////////////////////////////////////////////////////////////////
                             // Second polygon - B
-                            const int32_t localIdxB = pointIdxB - GPUMemory::PointIdxAt(polygonB, polyIdxB);
+                            const int32_t localIdxB = pointIdxB - polygonB.PointIdxAt(polyIdxB);
 
                             const int32_t begIdxB = ((i == 0) ? 0 : llPolygonBBufferSizesPrefixSum[i - 1]) +
-                                              localIdxB + (pointB - pointIdxB) % pointCountB;
+                                                    localIdxB + (pointB - pointIdxB) % pointCountB;
                             const int32_t endIdxB = ((i == 0) ? 0 : llPolygonBBufferSizesPrefixSum[i - 1]) +
-                                              localIdxB + (pointB - pointIdxB + 1) % pointCountB;
+                                                    localIdxB + (pointB - pointIdxB + 1) % pointCountB;
 
                             int32_t nextIdxB = llPolygonBBuffers[begIdxB].nextIdx;
                             while (nextIdxB != endIdxB && llPolygonBBuffers[llPolygonBEndIdxLocal].distanceAlongB >
@@ -310,13 +355,13 @@ __device__ bool is_point_in_complex_polygon_at(NativeGeoPoint geoPoint, GPUMemor
 {
     bool isPointInPolygon = false;
 
-    const int32_t polyIdx = GPUMemory::PolyIdxAt(polygon, idx);
-    const int32_t polyCount = GPUMemory::PolyCountAt(polygon, idx);
+    const int32_t polyIdx = polygon.PolyIdxAt(idx);
+    const int32_t polyCount = polygon.PolyCountAt(idx);
 
     for (int32_t p = polyIdx; p < (polyIdx + polyCount); p++)
     {
-        const int32_t pointIdx = GPUMemory::PointIdxAt(polygon, p);
-        const int32_t pointCount = GPUMemory::PointCountAt(polygon, p);
+        const int32_t pointIdx = polygon.PointIdxAt(p);
+        const int32_t pointCount = polygon.PointCountAt(p);
 
         // Dank raycasting magic as seen in GPUPolygonContains
         for (int32_t point = pointIdx; point < (pointIdx + pointCount); point++)
@@ -356,32 +401,32 @@ __global__ void kernel_label_intersections(LLPolyVertex* llPolygonBuffers,
         const int32_t iPrimary = isPrimaryConst ? 0 : i;
         const int32_t iSecondary = isSecondaryConst ? 0 : i;
 
-        const int32_t polyIdx = GPUMemory::PolyIdxAt(polygonPrimary, iPrimary);
-        const int32_t polyCount = GPUMemory::PolyCountAt(polygonPrimary, iPrimary);
+        const int32_t polyIdx = polygonPrimary.PolyIdxAt(iPrimary);
+        const int32_t polyCount = polygonPrimary.PolyCountAt(iPrimary);
 
         for (int32_t p = polyIdx; p < (polyIdx + polyCount); p++)
         {
-            const int32_t pointIdx = GPUMemory::PointIdxAt(polygonPrimary, p);
-            const int32_t pointCount = GPUMemory::PointCountAt(polygonPrimary, p);
+            const int32_t pointIdx = polygonPrimary.PointIdxAt(p);
+            const int32_t pointCount = polygonPrimary.PointCountAt(p);
 
             // Iterate trough the linked list for the current sub polygon and label the intersections
-            const int32_t localIdx = pointIdx - GPUMemory::PointIdxAt(polygonPrimary, polyIdx);
+            const int32_t localIdx = pointIdx - polygonPrimary.PointIdxAt(polyIdx);
 
             const int32_t begIdx = ((i == 0) ? 0 : llPolygonBufferSizesPrefixSum[i - 1]) + localIdx;
             const int32_t endIdx =
                 ((i == 0) ? 0 : llPolygonBufferSizesPrefixSum[i - 1]) + localIdx + pointCount - 1;
 
             // Check the inclusion of the first point in the other polygon
-            bool isPointInPolygon =
-                !is_point_in_complex_polygon_at(llPolygonBuffers[begIdx].vertex, polygonSecondary, iSecondary);
+            bool isPointInPolygon = !is_point_in_complex_polygon_at(llPolygonBuffers[begIdx].vertex,
+                                                                    polygonSecondary, iSecondary);
 
             int32_t nextIdx = begIdx;
             do
             {
                 // If the given vertex is an intersection - assign the correct entry/exit label
-                if (GetIsIntersection(llPolygonBuffers[nextIdx]))
+                if (llPolygonBuffers[nextIdx].GetIsIntersection())
                 {
-                    SetIsEntry(llPolygonBuffers[nextIdx], isPointInPolygon);
+                    llPolygonBuffers[nextIdx].SetIsEntry(isPointInPolygon);
                     isPointInPolygon = !isPointInPolygon;
                 }
 

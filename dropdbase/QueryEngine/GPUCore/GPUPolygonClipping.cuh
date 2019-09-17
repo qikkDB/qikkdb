@@ -61,52 +61,22 @@ struct LLPolyVertex
     int32_t prevIdx; // Index of the previous member in the ll
     int32_t nextIdx; // Index of the next member in the ll
     int32_t crossIdx; // Index in the other complex polygon for cross linking during traversal
+
+	// Getting and setting the bit flags for the polygon linked list methods
+	// Getters
+    __device__ bool GetHasIntersections();
+    __device__ bool GetIsIntersection();
+    __device__ bool GetIsValidIntersection();
+    __device__ bool GetIsEntry();
+    __device__ bool GetWasProcessed();
+
+	// Setters
+    __device__ bool SetHasIntersections(bool flag);
+    __device__ void SetIsIntersection(bool flag);
+    __device__ void SetIsValidIntersection(bool flag);
+    __device__ void SetIsEntry(bool flag);
+    __device__ void SetWasProcessed(bool flag);
 };
-
-// Getting and setting the bit flags for the polygon linked list methods
-// Getters
-inline __device__ bool GetHasIntersections(LLPolyVertex& v)
-{
-    return static_cast<bool>((v.llflags >> 4) & 0x01);
-}
-inline __device__ bool GetIsIntersection(LLPolyVertex& v)
-{
-    return static_cast<bool>((v.llflags >> 3) & 0x01);
-}
-inline __device__ bool GetIsValidIntersection(LLPolyVertex& v)
-{
-    return static_cast<bool>((v.llflags >> 2) & 0x01);
-}
-inline __device__ bool GetIsEntry(LLPolyVertex& v)
-{
-    return static_cast<bool>((v.llflags >> 1) & 0x01);
-}
-inline __device__ bool GetWasProcessed(LLPolyVertex& v)
-{
-    return static_cast<bool>((v.llflags >> 0) & 0x01);
-}
-
-// Setters
-inline __device__ bool SetHasIntersections(LLPolyVertex& v, bool flag)
-{
-    v.llflags = (v.llflags & 0xEF) | ((static_cast<uint8_t>(flag)) << 4);
-}
-inline __device__ void SetIsIntersection(LLPolyVertex& v, bool flag)
-{
-    v.llflags = (v.llflags & 0xF7) | ((static_cast<uint8_t>(flag)) << 3);
-}
-inline __device__ void SetIsValidIntersection(LLPolyVertex& v, bool flag)
-{
-    v.llflags = (v.llflags & 0xFB) | ((static_cast<uint8_t>(flag)) << 2);
-}
-inline __device__ void SetIsEntry(LLPolyVertex& v, bool flag)
-{
-    v.llflags = (v.llflags & 0xFD) | ((static_cast<uint8_t>(flag)) << 1);
-}
-inline __device__ void SetWasProcessed(LLPolyVertex& v, bool flag)
-{
-    v.llflags = (v.llflags & 0xFE) | ((static_cast<uint8_t>(flag)) << 0);
-}
 
 // Calcualte an intersection point between two lines
 __device__ LLPolyVertex calc_intersect(NativeGeoPoint sA, NativeGeoPoint eA, NativeGeoPoint sB, NativeGeoPoint eB);
@@ -184,8 +154,8 @@ __device__ void clip_polygons(int32_t* polyCount,
         int32_t iBIdx = isBConst ? 0 : i;
 
         // Get the complex polygon vertex counts n and k
-        const int32_t n = GPUMemory::TotalPointCountAt(polygonA, iAIdx);
-        const int32_t k = GPUMemory::TotalPointCountAt(polygonB, iBIdx);
+        const int32_t n = polygonA.TotalPointCountAt(iAIdx);
+        const int32_t k = polygonB.TotalPointCountAt(iBIdx);
 
         const int32_t llABegOffset = ((i == 0) ? 0 : llPolygonABufferSizesPrefixSum[i - 1]);
         const int32_t llBBegOffset = ((i == 0) ? 0 : llPolygonBBufferSizesPrefixSum[i - 1]);
@@ -207,12 +177,12 @@ __device__ void clip_polygons(int32_t* polyCount,
         int32_t nonIntersectComponentCount = 0;
 
         // Add the non intersecting polygons to the result
-        const int32_t polyIdxA = GPUMemory::PolyIdxAt(polygonA, iAIdx);
-        const int32_t polyCountA = GPUMemory::PolyCountAt(polygonA, iAIdx);
+        const int32_t polyIdxA = polygonA.PolyIdxAt(iAIdx);
+        const int32_t polyCountA = polygonA.PolyCountAt(iAIdx);
         for (int32_t a = polyIdxA; a < (polyIdxA + polyCountA); a++)
         {
-            const int32_t pointIdxA = GPUMemory::PointIdxAt(polygonA, a);
-            const int32_t pointCountA = GPUMemory::PointCountAt(polygonA, a);
+            const int32_t pointIdxA = polygonA.PointIdxAt(a);
+            const int32_t pointCountA = polygonA.PointCountAt(a);
             if (PolygonAIntersectionPresenceFlags[isAConst ? a + i * dataElementCount : a] == 0)
             {
                 bool isAinB = is_point_in_complex_polygon_at(polygonA.polyPoints[pointIdxA], polygonB, iBIdx);
@@ -228,8 +198,7 @@ __device__ void clip_polygons(int32_t* polyCount,
                             const int32_t pointIdxTemp =
                                 (((polyIdxTemp == 0) ? 0 : polyIdx[polyIdxTemp - 1]) + nonIntersectComponentCount);
                             const int32_t polyPointIdxTemp =
-                                (((pointIdxTemp == 0) ? 0 : pointIdx[pointIdxTemp - 1]) +
-                                                     noIntersectSubComponentCount);
+                                (((pointIdxTemp == 0) ? 0 : pointIdx[pointIdxTemp - 1]) + noIntersectSubComponentCount);
 
                             polyPoints[polyPointIdxTemp] = polygonA.polyPoints[pointA];
                         }
@@ -249,12 +218,12 @@ __device__ void clip_polygons(int32_t* polyCount,
             }
         }
 
-        const int32_t polyIdxB = GPUMemory::PolyIdxAt(polygonB, iBIdx);
-        const int32_t polyCountB = GPUMemory::PolyCountAt(polygonB, iBIdx);
+        const int32_t polyIdxB = polygonB.PolyIdxAt(iBIdx);
+        const int32_t polyCountB = polygonB.PolyCountAt(iBIdx);
         for (int32_t b = polyIdxB; b < (polyIdxB + polyCountB); b++)
         {
-            const int32_t pointIdxB = GPUMemory::PointIdxAt(polygonB, b);
-            const int32_t pointCountB = GPUMemory::PointCountAt(polygonB, b);
+            const int32_t pointIdxB = polygonB.PointIdxAt(b);
+            const int32_t pointCountB = polygonB.PointCountAt(b);
 
             if (PolygonBIntersectionPresenceFlags[isBConst ? b + i * dataElementCount : b] == 0)
             {
@@ -271,8 +240,7 @@ __device__ void clip_polygons(int32_t* polyCount,
                             const int32_t pointIdxTemp =
                                 (((polyIdxTemp == 0) ? 0 : polyIdx[polyIdxTemp - 1]) + nonIntersectComponentCount);
                             const int32_t polyPointIdxTemp =
-                                (((pointIdxTemp == 0) ? 0 : pointIdx[pointIdxTemp - 1]) +
-                                                     noIntersectSubComponentCount);
+                                (((pointIdxTemp == 0) ? 0 : pointIdx[pointIdxTemp - 1]) + noIntersectSubComponentCount);
 
                             polyPoints[polyPointIdxTemp] = polygonB.polyPoints[pointB];
                         }
@@ -298,10 +266,10 @@ __device__ void clip_polygons(int32_t* polyCount,
         // Traverse the linked list and calcualte the intersecting component counts
         int32_t turnNumber = 0;
         int32_t intersectComponentCount = 0;
-        LLPolyVertex * llPolygonBuffersTable[2] = {llPolygonABuffers, llPolygonBBuffers};
+        LLPolyVertex* llPolygonBuffersTable[2] = {llPolygonABuffers, llPolygonBBuffers};
         for (int32_t point = begIdxA; point < endIdxA; point++)
         {
-            if (GetWasProcessed(llPolygonBuffersTable[turnNumber][point]) == false)
+            if (llPolygonBuffersTable[turnNumber][point].GetWasProcessed() == false)
             {
                 // Calculate the sub component count
                 int32_t IntersectSubComponentCount = 0;
@@ -309,13 +277,11 @@ __device__ void clip_polygons(int32_t* polyCount,
                 int32_t nextIdx = point;
                 do
                 {
-                    SetWasProcessed(llPolygonBuffersTable[turnNumber][nextIdx], true);
-                    SetWasProcessed(llPolygonBuffersTable[1 - turnNumber]
-                                                         [llPolygonBuffersTable[turnNumber][nextIdx].crossIdx],
-                                    true);
+                    llPolygonBuffersTable[turnNumber][nextIdx].SetWasProcessed(true);
+                    llPolygonBuffersTable[1 - turnNumber][llPolygonBuffersTable[turnNumber][nextIdx].crossIdx].SetWasProcessed(true);
 
                     bool forward =
-                        (GetIsEntry(llPolygonBuffersTable[turnNumber][nextIdx]) == turnTable[turnNumber]);
+                        (llPolygonBuffersTable[turnNumber][nextIdx].GetIsEntry() == turnTable[turnNumber]);
                     do
                     {
                         // Write the output point
@@ -324,10 +290,11 @@ __device__ void clip_polygons(int32_t* polyCount,
                             const int32_t polyIdxTemp = i;
                             const int32_t pointIdxTemp =
                                 (((polyIdxTemp == 0) ? 0 : polyIdx[polyIdxTemp - 1]) +
-                                                    nonIntersectComponentCount + intersectComponentCount);
+                                 nonIntersectComponentCount + intersectComponentCount);
                             const int32_t polyPointIdxTemp =
                                 (((pointIdxTemp == 0) ? 0 : pointIdx[pointIdxTemp - 1]) + IntersectSubComponentCount);
-                            polyPoints[polyPointIdxTemp] = llPolygonBuffersTable[turnNumber][nextIdx].vertex;
+                            polyPoints[polyPointIdxTemp] =
+                                llPolygonBuffersTable[turnNumber][nextIdx].vertex;
                         }
 
                         if (forward)
@@ -340,17 +307,17 @@ __device__ void clip_polygons(int32_t* polyCount,
                         }
 
                         IntersectSubComponentCount++;
-                    } while (!GetIsIntersection(llPolygonBuffersTable[turnNumber][nextIdx]));
+                    } while (!llPolygonBuffersTable[turnNumber][nextIdx].GetIsIntersection());
 
                     nextIdx = llPolygonBuffersTable[turnNumber][nextIdx].crossIdx;
                     turnNumber = 1 - turnNumber;
-                } while (!GetWasProcessed(llPolygonBuffersTable[turnNumber][nextIdx]));
+                } while (!llPolygonBuffersTable[turnNumber][nextIdx].GetWasProcessed());
 
                 if (polyCount && pointCount)
                 {
                     const int32_t polyIdxTemp = i;
                     const int32_t pointIdxTemp = (((polyIdxTemp == 0) ? 0 : polyIdx[polyIdxTemp - 1]) +
-                                         nonIntersectComponentCount + intersectComponentCount);
+                                                  nonIntersectComponentCount + intersectComponentCount);
                     pointCount[pointIdxTemp] = IntersectSubComponentCount;
                 }
 
@@ -369,12 +336,12 @@ __device__ void clip_polygons(int32_t* polyCount,
         // Reset the processed flags for the next reconstruction operation
         for (int32_t pointA = begIdxA; pointA < endIdxA; pointA++)
         {
-            SetWasProcessed(llPolygonABuffers[pointA], false);
+            llPolygonABuffers[pointA].SetWasProcessed(false);
         }
 
         for (int32_t pointB = begIdxB; pointB < endIdxB; pointB++)
         {
-            SetWasProcessed(llPolygonBBuffers[pointB], false);
+            llPolygonBBuffers[pointB].SetWasProcessed(false);
         }
     }
 }

@@ -1,40 +1,40 @@
 #include "GPUMemory.cuh"
 
-__device__ int32_t GPUMemory::PointIdxAt(GPUMemory::GPUPolygon& polygon, int32_t idx)
+__device__ int32_t GPUMemory::GPUPolygon::PointIdxAt(int32_t idx)
 {
-    return (idx == 0) ? 0 : polygon.pointIdx[idx - 1];
+    return (idx == 0) ? 0 : pointIdx[idx - 1];
 }
 
-__device__ int32_t GPUMemory::PolyIdxAt(GPUMemory::GPUPolygon& polygon, int32_t idx)
+__device__ int32_t GPUMemory::GPUPolygon::PolyIdxAt(int32_t idx)
 {
-    return (idx == 0) ? 0 : polygon.polyIdx[idx - 1];
+    return (idx == 0) ? 0 : polyIdx[idx - 1];
 }
 
-__device__ int32_t GPUMemory::PointCountAt(GPUMemory::GPUPolygon& polygon, int32_t idx)
+__device__ int32_t GPUMemory::GPUPolygon::PointCountAt(int32_t idx)
 {
-    return static_cast<int32_t>(polygon.pointIdx[idx] - PointIdxAt(polygon, idx));
+    return static_cast<int32_t>(pointIdx[idx] - PointIdxAt(idx));
 }
 
-__device__ int32_t GPUMemory::PolyCountAt(GPUMemory::GPUPolygon& polygon, int32_t idx)
+__device__ int32_t GPUMemory::GPUPolygon::PolyCountAt(int32_t idx)
 {
-    return static_cast<int32_t>(polygon.polyIdx[idx] - PolyIdxAt(polygon, idx));
+    return static_cast<int32_t>(polyIdx[idx] - PolyIdxAt(idx));
 }
 
-__device__ __host__ int32_t GPUMemory::TotalPointCountAt(GPUPolygon& polygon, int32_t idx)
+__device__ __host__ int32_t GPUMemory::GPUPolygon::TotalPointCountAt(int32_t idx)
 {
-    int32_t polyIdx = GPUMemory::PolyIdxAt(polygon, idx);
-    int32_t polyCount = GPUMemory::PolyCountAt(polygon, idx);
+    int32_t polyIdx = PolyIdxAt(idx);
+    int32_t polyCount = PolyCountAt(idx);
 
     if (idx == 0)
     {
-        return GPUMemory::PointIdxAt(polygon, polyIdx + polyCount);
+        return PointIdxAt(polyIdx + polyCount);
     }
     else
     {
-        int32_t polyIdxPrev = GPUMemory::PolyIdxAt(polygon, idx - 1);
-        int32_t polyCountPrev = GPUMemory::PolyCountAt(polygon, idx - 1);
+        int32_t polyIdxPrev = PolyIdxAt(idx - 1);
+        int32_t polyCountPrev = PolyCountAt(idx - 1);
 
-        return GPUMemory::PointIdxAt(polygon, polyIdx + polyCount) -
-               GPUMemory::PointIdxAt(polygon, polyIdxPrev + polyCountPrev);
+        return PointIdxAt(polyIdx + polyCount) -
+               PointIdxAt(polyIdxPrev + polyCountPrev);
     }
 }
