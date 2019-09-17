@@ -144,12 +144,14 @@ __device__ void NumericToString(char* allChars, int64_t& startIndex, IN number)
     // Append sign
     if (number < 0)
     {
-        allChars[startIndex] = '-';
+        allChars[startIndex++] = '-';
         // (note that there is no addres move because we will count with negative sign later)
     }
 
     // Append integer part
     int64_t integerPart = static_cast<int64_t>(floorf(fabsf(number)));
+
+	printf("Kernel: %.2f, %d", number, integerPart);
     const int32_t integralDigits = GetNumberOfIntegralDigits(number);
     startIndex += integralDigits;
     do
@@ -157,7 +159,7 @@ __device__ void NumericToString(char* allChars, int64_t& startIndex, IN number)
         allChars[--startIndex] = ('0' + (integerPart % 10));
         integerPart /= 10;
     } while (integerPart > 0);
-    startIndex += integralDigits - (number < 0 ? 1 : 0);
+    startIndex += integralDigits;
 
     // Append decimal part
     int32_t decimalDigits = GetNumberOfDecimalDigits(number);
@@ -270,15 +272,24 @@ public:
             stringLengths.get(), inCol, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
+		GPUMemory::PrintGpuBuffer("Lengths: ", stringLengths.get(), dataElementCount);
+
         GPUMemory::alloc(&(outCol->stringIndices), dataElementCount);
         GPUReconstruct::PrefixSum(outCol->stringIndices, stringLengths.get(), dataElementCount);
+
+
+		GPUMemory::PrintGpuBuffer("Indices: ", outCol->stringIndices, dataElementCount);
 
         int64_t totalCharCount;
         GPUMemory::copyDeviceToHost(&totalCharCount, outCol->stringIndices + dataElementCount - 1, 1);
         GPUMemory::alloc(&(outCol->allChars), totalCharCount);
 
+		std::cout << "total char count: " << totalCharCount << std::endl;
+
         kernel_cast_numeric_to_string<<<Context::getInstance().calcGridDim(dataElementCount),
                                         Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
+
+		GPUMemory::PrintGpuBuffer("Chars: ", outCol->allChars, totalCharCount);
         CheckCudaError(cudaGetLastError());
     }
 
