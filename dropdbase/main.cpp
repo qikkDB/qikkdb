@@ -492,7 +492,6 @@ int main(int argc, char** argv)
                                                         Database::AddToInMemoryDatabaseList(database);
                                                         BOOST_LOG_TRIVIAL(info)
                                                             << "Loading preprocessed_trips_part2.csv ...";
-                                                            << "Loading preprocessed_trips_part2.csv ...";
                                                         csvDataImporter.ImportTables(database);
                                                     }
                                                     else
