@@ -16,6 +16,23 @@ __device__ NativeGeoPoint CastNativeGeoPoint(char* str, int32_t length);
 
 __device__ NativeGeoPoint CastWKTPoint(char* str, int32_t length);
 
+__device__ int32_t GetNumberOfIntegralDigits(int64_t val);
+
+__device__ int32_t GetNumberOfDecimalDigits(double val);
+
+template <typename T>
+__device__ int32_t GetNumberOfDigits(T val)
+{
+    if (std::is_integral<T>::value)
+    {
+        return GetNumberOfIntegralDigits(static_cast<int64_t>(val));
+    }
+    else
+    {
+        return GetNumberOfDecimalDigits(static_cast<double>(val));
+    }
+}
+
 template <typename T>
 __device__ T CastDecimal(char* str, int32_t length)
 {
@@ -100,6 +117,18 @@ __device__ T CastDecimal(char* str, int32_t length)
     return out * outSign;
 }
 
+template <typename IN>
+__global__ void kernel_predict_numeric_string_lengths(int32_t* outStringLengths, IN inCol, int32_t dataElementCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < dataElementCount; i += stride)
+    {
+        outStringLengths[i] = GetNumberOfDigits(maybe_deref(inCol, i));
+    }
+}
+
 namespace CastOperations
 {
 
@@ -138,6 +167,18 @@ __global__ void kernel_cast_numeric(OUT* outCol, IN inCol, int32_t dataElementCo
     }
 }
 
+template <typename IN>
+__global__ void kernel_cast_numeric_to_string(GPUMemory::GPUString& outCol, IN inCol, int32_t dataElementCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < dataElementCount; i += stride)
+    {
+        outCol[i] = static_cast<OUT>(maybe_deref(inCol, i));
+    }
+}
+
 template <typename OUT>
 __global__ void kernel_cast_string(OUT* outCol, GPUMemory::GPUString inCol, int32_t dataElementCount)
 {
@@ -165,6 +206,17 @@ public:
 
         kernel_cast_numeric<<<Context::getInstance().calcGridDim(dataElementCount),
                               Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
+        CheckCudaError(cudaGetLastError());
+    }
+
+    template <typename IN>
+    static void CastNumericToString(GPUMemory::GPUString& outCol, IN inCol, int32_t dataElementCount)
+    {
+        static_assert(std::is_arithmetic<typename std::remove_pointer<IN>::type>::value,
+                      "InCol must be arithmetic data type");
+
+        kernel_cast_numeric_to_string<<<Context::getInstance().calcGridDim(dataElementCount),
+                                        Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
         CheckCudaError(cudaGetLastError());
     }
 
