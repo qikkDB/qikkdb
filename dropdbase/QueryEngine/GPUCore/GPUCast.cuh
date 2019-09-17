@@ -11,26 +11,32 @@
 #include "GPUMemory.cuh"
 #include "MaybeDeref.cuh"
 #include "GPUStringUnary.cuh"
+#include "cuda_ptr.h"
+#include "GPUReconstruct.cuh"
 
 __device__ NativeGeoPoint CastNativeGeoPoint(char* str, int32_t length);
 
 __device__ NativeGeoPoint CastWKTPoint(char* str, int32_t length);
 
-__device__ int32_t GetNumberOfIntegralDigits(int64_t val);
-
-__device__ int32_t GetNumberOfDecimalDigits(double val);
 
 template <typename T>
-__device__ int32_t GetNumberOfDigits(T val)
+__device__ int32_t GetNumberOfIntegralDigits(T val)
 {
-    if (std::is_integral<T>::value)
+    int32_t integralPart = floorf(log10f(fabsf(val))) + 1;
+    return integralPart;
+}
+
+template <typename T>
+__device__ int32_t GetNumberOfDecimalDigits(T val)
+{
+    int decimalPart = 0;
+    while (fabsf(val) != floorf(fabsf(val)))
     {
-        return GetNumberOfIntegralDigits(static_cast<int64_t>(val));
+        val *= 10;
+        decimalPart++;
     }
-    else
-    {
-        return GetNumberOfDecimalDigits(static_cast<double>(val));
-    }
+
+    return decimalPart;
 }
 
 template <typename T>
@@ -125,7 +131,49 @@ __global__ void kernel_predict_numeric_string_lengths(int32_t* outStringLengths,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        outStringLengths[i] = GetNumberOfDigits(maybe_deref(inCol, i));
+        const int32_t decimalDigits = GetNumberOfDecimalDigits(maybe_deref(inCol, i));
+        outStringLengths[i] = ((maybe_deref(inCol, i) < 0) ? 1 : 0) +
+                              GetNumberOfIntegralDigits(maybe_deref(inCol, i)) +
+                              ((decimalDigits > 0) ? (decimalDigits + 1) : 0);
+    }
+}
+
+template <typename IN>
+__device__ void NumericToString(char* allChars, int64_t& startIndex, IN number)
+{
+    // Append sign
+    if (number < 0)
+    {
+        allChars[startIndex] = '-';
+        // (note that there is no addres move because we will count with negative sign later)
+    }
+
+    // Append integer part
+    int64_t integerPart = static_cast<int64_t>(floorf(fabsf(number)));
+    const int32_t integralDigits = GetNumberOfIntegralDigits(number);
+    startIndex += integralDigits;
+    do
+    {
+        allChars[--startIndex] = ('0' + (integerPart % 10));
+        integerPart /= 10;
+    } while (integerPart > 0);
+    startIndex += integralDigits - (number < 0 ? 1 : 0);
+
+    // Append decimal part
+    int32_t decimalDigits = GetNumberOfDecimalDigits(number);
+
+    if (decimalDigits > 0)
+    {
+        int32_t decimalPart =
+            static_cast<int32_t>(roundf(fmodf(fabsf(number), 1.0f) * powf(10.0f, decimalDigits)));
+        allChars[startIndex++] = '.';
+        startIndex += decimalDigits;
+        for (int32_t i = 0; i < decimalDigits; i++) // Fixed decimal places
+        {
+            allChars[--startIndex] = ('0' + (decimalPart % 10));
+            decimalPart /= 10;
+        }
+        startIndex += decimalDigits;
     }
 }
 
@@ -168,14 +216,15 @@ __global__ void kernel_cast_numeric(OUT* outCol, IN inCol, int32_t dataElementCo
 }
 
 template <typename IN>
-__global__ void kernel_cast_numeric_to_string(GPUMemory::GPUString& outCol, IN inCol, int32_t dataElementCount)
+__global__ void kernel_cast_numeric_to_string(GPUMemory::GPUString* outCol, IN inCol, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        outCol[i] = static_cast<OUT>(maybe_deref(inCol, i));
+        int64_t stringIndex = GetStringIndex(outCol->stringIndices, i);
+        NumericToString(outCol->allChars, stringIndex, maybe_deref(inCol, i));
     }
 }
 
@@ -210,10 +259,23 @@ public:
     }
 
     template <typename IN>
-    static void CastNumericToString(GPUMemory::GPUString& outCol, IN inCol, int32_t dataElementCount)
+    static void CastNumericToString(GPUMemory::GPUString* outCol, IN inCol, int32_t dataElementCount)
     {
         static_assert(std::is_arithmetic<typename std::remove_pointer<IN>::type>::value,
                       "InCol must be arithmetic data type");
+
+        cuda_ptr<int32_t> stringLengths(dataElementCount);
+        kernel_predict_numeric_string_lengths<<<Context::getInstance().calcGridDim(dataElementCount),
+                                                Context::getInstance().getBlockDim()>>>(
+            stringLengths.get(), inCol, dataElementCount);
+        CheckCudaError(cudaGetLastError());
+
+        GPUMemory::alloc(&(outCol->stringIndices), dataElementCount);
+        GPUReconstruct::PrefixSum(outCol->stringIndices, stringLengths.get(), dataElementCount);
+
+        int64_t totalCharCount;
+        GPUMemory::copyDeviceToHost(&totalCharCount, outCol->stringIndices + dataElementCount - 1, 1);
+        GPUMemory::alloc(&(outCol->allChars), totalCharCount);
 
         kernel_cast_numeric_to_string<<<Context::getInstance().calcGridDim(dataElementCount),
                                         Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);

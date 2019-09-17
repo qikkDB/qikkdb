@@ -174,3 +174,76 @@ int32_t GpuSqlDispatcher::CastStringConst()
     }
     return 0;
 }
+
+template <typename IN>
+int32_t GpuSqlDispatcher::CastNumericToStringCol()
+{
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    int32_t loadFlag = LoadCol<IN>(colName);
+    if (loadFlag)
+    {
+        return loadFlag;
+    }
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastNumericToStringCol: " << colName << " " << reg << '\n';
+
+    if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
+            groupByColumns_.end() &&
+        !insideAggregation_)
+    {
+        if (isOverallLastBlock_)
+        {
+            PointerAllocation column = allocatedPointers_.at(colName + KEYS_SUFFIX);
+            int32_t retSize = column.ElementCount;
+            GPUMemory::GPUString result;
+            GPUCast::CastNumericToString(&result, reinterpret_cast<IN*>(column.GpuPtr), retSize);
+
+            if (column.GpuNullMaskPtr)
+            {
+                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                int8_t* nullMask = AllocateRegister<int8_t>(reg + KEYS_SUFFIX + NULL_SUFFIX, bitMaskSize);
+                FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true, nullMask);
+                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
+            }
+            else
+            {
+                FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true);
+            }
+           
+            groupByColumns_.push_back({reg, DataType::COLUMN_STRING});
+        }
+    }
+    else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
+    {
+        PointerAllocation column = allocatedPointers_.at(colName);
+        int32_t retSize = column.ElementCount;
+
+        if (!IsRegisterAllocated(reg))
+        {
+            GPUMemory::GPUString result;
+            GPUCast::CastNumericToString(&result, reinterpret_cast<IN*>(column.GpuPtr), retSize);
+
+            if (column.GpuNullMaskPtr)
+            {
+                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                int8_t* nullMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
+                FillStringRegister(result, reg, retSize, true, nullMask);
+                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
+            }
+            else
+            {
+                FillStringRegister(result, reg, retSize, true);
+            }
+        }
+    }
+    FreeColumnIfRegister<IN>(colName);
+    return 0;
+}
+
+template <typename IN>
+int32_t GpuSqlDispatcher::CastNumericToStringConst()
+{
+    return 0;
+}
