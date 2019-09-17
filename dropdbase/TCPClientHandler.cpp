@@ -337,7 +337,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     std::string columnName = bulkImportMessage.columnname();
     DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
     int32_t elementCount = bulkImportMessage.elemcount();
-    bool isNullable = bulkImportMessage.isnullable();
+    bool isNullable = bulkImportMessage.nullmasklen() != 0;
     auto sharedDb = worker.currentDatabase_.lock();
     if (sharedDb == nullptr)
     {
@@ -452,7 +452,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     if (isNullable)
     {
         std::vector<int8_t> nullMaskVector;
-        int32_t nullMaskSize = (elementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+        int32_t nullMaskSize = bulkImportMessage.nullmasklen();
         std::unordered_map<std::string, std::vector<int8_t>> nullMap;
         for (int i = 0; i < nullMaskSize; i++)
         {

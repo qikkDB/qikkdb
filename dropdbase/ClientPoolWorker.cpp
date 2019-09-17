@@ -155,7 +155,7 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
         std::memset(nullBuffer_.get(), 0, NULL_BUFFER_SIZE);
         DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
         int32_t elementCount = bulkImportMessage.elemcount();
-        bool isNullable = bulkImportMessage.isnullable();
+        bool isNullable = bulkImportMessage.nullmasklen() != 0;
         if (elementCount * GetDataTypeSize(columnType) > MAXIMUM_BULK_FRAGMENT_SIZE)
         {
             outInfo.set_message("Data fragment larger than allowed");
@@ -170,7 +170,7 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
             [this, self, isNullable, bulkImportMessage](char* resultBuffer, int32_t elementCount) {
                 if (isNullable)
                 {
-                    size_t nullBufferSize = (elementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    size_t nullBufferSize = bulkImportMessage.nullmasklen();
                     socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
                     networkMessage_.ReadRaw(
                         socket_, nullBuffer_.get(), nullBufferSize, DataType::COLUMN_INT8_T,

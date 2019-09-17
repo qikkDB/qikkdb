@@ -8,5 +8,5 @@ message BulkImportMessage {
     string ColumnName = 2;
     DataType ColumnType = 3;
     int32 ElemCount = 4;
-    bool isNullable = 5;
+    int32 nullMaskLen = 5;
 }

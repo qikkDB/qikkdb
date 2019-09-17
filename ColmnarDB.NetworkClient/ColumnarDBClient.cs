@@ -452,133 +452,413 @@ namespace ColmnarDB.NetworkClient
                     var type = types[column];
                     var columnType = DataType.ColumnInt;
                     var size = dataTable.GetSize();
+                    int elementCount = size;
                     int typeSize = 1;
                     byte[] dataBuffer = null;
+                    byte[] nullMask = null;
                     int i = 0;
                     switch (type.Name)
                     {
                         case nameof(Byte):
-                            columnType = DataType.ColumnInt8T;
-                            dataBuffer = new byte[size];
-                            ((List<byte>)(dataTable.GetColumnData()[column])).CopyTo(dataBuffer, 0);
-                            break;
-                        case nameof(Int32):
-                            columnType = DataType.ColumnInt;
-                            size *= sizeof(int);
-                            typeSize = sizeof(int);
-                            dataBuffer = new byte[size];
-                            Buffer.BlockCopy(((List<Int32>)(dataTable.GetColumnData()[column])).ToArray(), 0, dataBuffer, 0, size);
-                            break;
-                        case nameof(Int64):
-                            columnType = DataType.ColumnLong;
-                            size *= sizeof(long);
-                            typeSize = sizeof(long);
-                            dataBuffer = new byte[size];
-                            Buffer.BlockCopy(((List<Int64>)(dataTable.GetColumnData()[column])).ToArray(), 0, dataBuffer, 0, size);
-                            break;
-                        case nameof(Single):
-                            columnType = DataType.ColumnFloat;
-                            size *= sizeof(float);
-                            typeSize = sizeof(float);
-                            dataBuffer = new byte[size];
-                            Buffer.BlockCopy(((List<Single>)(dataTable.GetColumnData()[column])).ToArray(), 0, dataBuffer, 0, size);
-                            break;
-                        case nameof(Double):
-                            columnType = DataType.ColumnDouble;
-                            size *= sizeof(double);
-                            typeSize = sizeof(double);
-                            dataBuffer = new byte[size];
-                            Buffer.BlockCopy(((List<Double>)(dataTable.GetColumnData()[column])).ToArray(), 0, dataBuffer, 0, size);
-                            break;
-                        case nameof(Point):
-                            columnType = DataType.ColumnPoint;
-                            size = 0;
-                            foreach (var elem in ((List<Point>)(dataTable.GetColumnData()[column])))
                             {
-                                size += sizeof(int) + elem.CalculateSize();
-                            }
-                            dataBuffer = new byte[size];
-                            i = 0;
-                            foreach (var elem in ((List<Point>)(dataTable.GetColumnData()[column])))
-                            {
-                                int len = elem.CalculateSize();
-                                unsafe
+                                columnType = DataType.ColumnInt8T;
+                                dataBuffer = new byte[size];
+                                var list = ((List<byte?>)(dataTable.GetColumnData()[column]));
+                                for (i = 0; i < size; i++)
                                 {
-                                    byte* lenBytes = (byte*)&len;
-                                    for (int j = 0; j < sizeof(int); j++)
+                                    if (list[i] == null)
                                     {
-                                        dataBuffer[i + j] = *lenBytes;
-                                        lenBytes++;
+                                        if(nullMask == null)
+                                        {
+                                            int nullMaskSize = (size + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
+                                            nullMask = new byte[nullMaskSize];
+                                            for(int j = 0; j < nullMaskSize; j++)
+                                            {
+                                                nullMask[j] = 0;
+                                            }
+                                        }
+                                        int byteIdx = i / (sizeof(byte) * 8);
+                                        int shiftIdx = i % (sizeof(byte) * 8);
+                                        nullMask[byteIdx] |= (byte)(1 << shiftIdx);
+                                        dataBuffer[i] = 0;
+                                    }
+                                    else
+                                    {
+                                        dataBuffer[i] = (byte)list[i];
                                     }
                                 }
-                                i += 4;
-                                Buffer.BlockCopy((elem).ToByteArray(), 0, dataBuffer, i, len);
-                                i += len;
+                            }
+                            break;
+                        case nameof(Int32):
+                            {
+                                columnType = DataType.ColumnInt;
+                                size *= sizeof(int);
+                                typeSize = sizeof(int);
+                                dataBuffer = new byte[size];
+                                var list = ((List<int?>)(dataTable.GetColumnData()[column]));
+                                for (i = 0; i < elementCount; i++)
+                                {
+                                    if (list[i] == null)
+                                    {
+                                        if (nullMask == null)
+                                        {
+                                            int nullMaskSize = (elementCount + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
+                                            nullMask = new byte[nullMaskSize];
+                                            for (int j = 0; j < nullMaskSize; j++)
+                                            {
+                                                nullMask[j] = 0;
+                                            }
+                                        }
+                                        int byteIdx = i / (sizeof(byte) * 8);
+                                        int shiftIdx = i % (sizeof(byte) * 8);
+                                        nullMask[byteIdx] |= (byte)(1 << shiftIdx);
+                                        for(int j = 0; j < sizeof(int); j++)
+                                        {
+                                            dataBuffer[sizeof(int) * i + j] = 0;
+                                        }
+                                        
+                                    }
+                                    else
+                                    {
+                                        unsafe
+                                        {
+                                            int elem = (int)list[i];
+                                            byte* elemBytes = (byte*)&elem;
+                                            for (int j = 0; j < sizeof(int); j++)
+                                            {
+                                                dataBuffer[sizeof(int) * i + j] = elemBytes[j];
+                                            }
+                                        }
+                                        
+                                    }
+                                }
+                            }
+                            break;
+                        case nameof(Int64):
+                            {
+                                columnType = DataType.ColumnLong;
+                                size *= sizeof(long);
+                                typeSize = sizeof(long);
+                                dataBuffer = new byte[size];
+                                var list = ((List<long?>)(dataTable.GetColumnData()[column]));
+                                for (i = 0; i < elementCount; i++)
+                                {
+                                    if (list[i] == null)
+                                    {
+                                        if (nullMask == null)
+                                        {
+                                            int nullMaskSize = (elementCount + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
+                                            nullMask = new byte[nullMaskSize];
+                                            for (int j = 0; j < nullMaskSize; j++)
+                                            {
+                                                nullMask[j] = 0;
+                                            }
+                                        }
+                                        int byteIdx = i / (sizeof(byte) * 8);
+                                        int shiftIdx = i % (sizeof(byte) * 8);
+                                        nullMask[byteIdx] |= (byte)(1 << shiftIdx);
+                                        for (int j = 0; j < sizeof(long); j++)
+                                        {
+                                            dataBuffer[sizeof(long) * i + j] = 0;
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        unsafe
+                                        {
+                                            long elem = (long)list[i];
+                                            byte* elemBytes = (byte*)&elem;
+                                            for (int j = 0; j < sizeof(long); j++)
+                                            {
+                                                dataBuffer[sizeof(long) * i + j] = elemBytes[j];
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                            break;
+                        case nameof(Single):
+                            {
+                                columnType = DataType.ColumnFloat;
+                                size *= sizeof(float);
+                                typeSize = sizeof(float);
+                                dataBuffer = new byte[size];
+                                var list = ((List<float?>)(dataTable.GetColumnData()[column]));
+                                for (i = 0; i < elementCount; i++)
+                                {
+                                    if (list[i] == null)
+                                    {
+                                        if (nullMask == null)
+                                        {
+                                            int nullMaskSize = (elementCount + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
+                                            nullMask = new byte[nullMaskSize];
+                                            for (int j = 0; j < nullMaskSize; j++)
+                                            {
+                                                nullMask[j] = 0;
+                                            }
+                                        }
+                                        int byteIdx = i / (sizeof(byte) * 8);
+                                        int shiftIdx = i % (sizeof(byte) * 8);
+                                        nullMask[byteIdx] |= (byte)(1 << shiftIdx);
+                                        for (int j = 0; j < sizeof(float); j++)
+                                        {
+                                            dataBuffer[sizeof(float) * i + j] = 0;
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        unsafe
+                                        {
+                                            float elem = (float)list[i];
+                                            byte* elemBytes = (byte*)&elem;
+                                            for (int j = 0; j < sizeof(float); j++)
+                                            {
+                                                dataBuffer[sizeof(float) * i + j] = elemBytes[j];
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                            break;
+                        case nameof(Double):
+                            {
+                                columnType = DataType.ColumnDouble;
+                                size *= sizeof(double);
+                                typeSize = sizeof(double);
+                                dataBuffer = new byte[size];
+                                var list = ((List<double?>)(dataTable.GetColumnData()[column]));
+                                for (i = 0; i < elementCount; i++)
+                                {
+                                    if (list[i] == null)
+                                    {
+                                        if (nullMask == null)
+                                        {
+                                            int nullMaskSize = (elementCount + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
+                                            nullMask = new byte[nullMaskSize];
+                                            for (int j = 0; j < nullMaskSize; j++)
+                                            {
+                                                nullMask[j] = 0;
+                                            }
+                                        }
+                                        int byteIdx = i / (sizeof(byte) * 8);
+                                        int shiftIdx = i % (sizeof(byte) * 8);
+                                        nullMask[byteIdx] |= (byte)(1 << shiftIdx);
+                                        for (int j = 0; j < sizeof(double); j++)
+                                        {
+                                            dataBuffer[sizeof(double) * i + j] = 0;
+                                        }
+
+                                    }
+                                    else
+                                    {
+                                        unsafe
+                                        {
+                                            float elem = (float)list[i];
+                                            byte* elemBytes = (byte*)&elem;
+                                            for (int j = 0; j < sizeof(double); j++)
+                                            {
+                                                dataBuffer[sizeof(double
+                                                    ) * i + j] = elemBytes[j];
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                            break;
+                        case nameof(Point):
+                            {
+                                columnType = DataType.ColumnPoint;
+                                size = 0;
+                                var pointList = (List<Point>)(dataTable.GetColumnData()[column]);
+                                var defaultElement = new Point();
+                                foreach (var elem in pointList)
+                                {
+                                    if (elem != null)
+                                    {
+                                        size += sizeof(int) + elem.CalculateSize();
+                                    }
+                                    else
+                                    {
+                                        size += sizeof(int) + defaultElement.CalculateSize();
+                                    }
+                                }
+                                dataBuffer = new byte[size];
+                                i = 0;
+                                for(int j = 0; j < pointList.Count; j++)
+                                {
+                                    var elem = pointList[i];
+                                    if(elem == null)
+                                    {
+                                        elem = defaultElement;
+                                        if (nullMask == null)
+                                        {
+                                            int nullMaskSize = (elementCount + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
+                                            nullMask = new byte[nullMaskSize];
+                                            for (int k = 0; k < nullMaskSize; k++)
+                                            {
+                                                nullMask[k] = 0;
+                                            }
+                                        }
+                                        int byteIdx = j / (sizeof(byte) * 8);
+                                        int shiftIdx = j % (sizeof(byte) * 8);
+                                        nullMask[byteIdx] |= (byte)(1 << shiftIdx);
+                                    }
+                                    int len = elem.CalculateSize();
+                                    unsafe
+                                    {
+                                        byte* lenBytes = (byte*)&len;
+                                        for (int k = 0; k < sizeof(int); k++)
+                                        {
+                                            dataBuffer[i + k] = *lenBytes;
+                                            lenBytes++;
+                                        }
+                                    }
+                                    i += 4;
+                                    Buffer.BlockCopy((elem).ToByteArray(), 0, dataBuffer, i, len);
+                                    i += len;
+                                }
                             }
                             break;
                         case nameof(ComplexPolygon):
-                            columnType = DataType.ColumnPolygon;
-                            size = 0;
-                            foreach (var elem in ((List<ComplexPolygon>)(dataTable.GetColumnData()[column])))
-                            {
-                                size += sizeof(int) + elem.CalculateSize();
-                            }
-                            dataBuffer = new byte[size];
-                            i = 0;
-                            foreach (var elem in ((List<ComplexPolygon>)(dataTable.GetColumnData()[column])))
-                            {
-                                int len = elem.CalculateSize();
-                                unsafe
+                            { 
+                                columnType = DataType.ColumnPolygon;
+                                size = 0;
+                                var polygonList = (List<ComplexPolygon>)(dataTable.GetColumnData()[column]);
+                                var defaultElement = new ComplexPolygon();
+                                foreach (var elem in polygonList)
                                 {
-                                    byte* lenBytes = (byte*)&len;
-                                    for (int j = 0; j < sizeof(int); j++)
+                                    if (elem != null)
                                     {
-                                        dataBuffer[i + j] = *lenBytes;
-                                        lenBytes++;
+                                        size += sizeof(int) + elem.CalculateSize();
+                                    }
+                                    else
+                                    {
+                                        size += sizeof(int) + defaultElement.CalculateSize();
                                     }
                                 }
-                                i += 4;
-                                Buffer.BlockCopy((elem).ToByteArray(), 0, dataBuffer, i, len);
-                                i += len;
+                                dataBuffer = new byte[size];
+                                i = 0;
+                                for (int j = 0; j < polygonList.Count; j++)
+                                {
+                                    var elem = polygonList[i];
+                                    if (elem == null)
+                                    {
+                                        elem = defaultElement;
+                                        if (nullMask == null)
+                                        {
+                                            int nullMaskSize = (elementCount + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
+                                            nullMask = new byte[nullMaskSize];
+                                            for (int k = 0; k < nullMaskSize; k++)
+                                            {
+                                                nullMask[k] = 0;
+                                            }
+                                        }
+                                        int byteIdx = j / (sizeof(byte) * 8);
+                                        int shiftIdx = j % (sizeof(byte) * 8);
+                                        nullMask[byteIdx] |= (byte)(1 << shiftIdx);
+                                    }
+                                    int len = elem.CalculateSize();
+                                    unsafe
+                                    {
+                                        byte* lenBytes = (byte*)&len;
+                                        for (int k = 0; k < sizeof(int); k++)
+                                        {
+                                            dataBuffer[i + k] = *lenBytes;
+                                            lenBytes++;
+                                        }
+                                    }
+                                    i += 4;
+                                    Buffer.BlockCopy((elem).ToByteArray(), 0, dataBuffer, i, len);
+                                    i += len;
+                                }
                             }
                             break;
                         case nameof(String):
-                            columnType = DataType.ColumnString;
-                            size = 0;
-                            foreach (var elem in ((List<String>)(dataTable.GetColumnData()[column])))
                             {
-                                size += sizeof(int) + elem.Length;
-                            }
-                            dataBuffer = new byte[size];
-                            i = 0;
-                            foreach (var elem in ((List<String>)(dataTable.GetColumnData()[column])))
-                            {
-                                int len = elem.Length;
-                                unsafe
+                                columnType = DataType.ColumnString;
+                                size = 0;
+                                var stringList = (List<String>)(dataTable.GetColumnData()[column]);
+                                var defaultElement = "";
+                                foreach (var elem in stringList)
                                 {
-                                    byte* lenBytes = (byte*)&len;
-                                    for (int j = 0; j < sizeof(int); j++)
+                                    if (elem != null)
                                     {
-                                        dataBuffer[i + j] = *lenBytes;
-                                        lenBytes++;
+                                        size += sizeof(int) + elem.Length;
+                                    }
+                                    else
+                                    {
+                                        size += sizeof(int) + defaultElement.Length;
                                     }
                                 }
-                                i += 4;
-                                Buffer.BlockCopy(Encoding.UTF8.GetBytes(elem), 0, dataBuffer, i, len);
-                                i += len;
+                                dataBuffer = new byte[size];
+                                i = 0;
+                                for (int j = 0; j < stringList.Count; j++)
+                                {
+                                    var elem = stringList[i];
+                                    if (elem == null)
+                                    {
+                                        elem = defaultElement;
+                                        if (nullMask == null)
+                                        {
+                                            int nullMaskSize = (elementCount + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
+                                            nullMask = new byte[nullMaskSize];
+                                            for (int k = 0; k < nullMaskSize; k++)
+                                            {
+                                                nullMask[k] = 0;
+                                            }
+                                        }
+                                        int byteIdx = j / (sizeof(byte) * 8);
+                                        int shiftIdx = j % (sizeof(byte) * 8);
+                                        nullMask[byteIdx] |= (byte)(1 << shiftIdx);
+                                    }
+                                    int len = elem.Length;
+                                    unsafe
+                                    {
+                                        byte* lenBytes = (byte*)&len;
+                                        for (int k = 0; k < sizeof(int); k++)
+                                        {
+                                            dataBuffer[i + j] = *lenBytes;
+                                            lenBytes++;
+                                        }
+                                    }
+                                    i += 4;
+                                    Buffer.BlockCopy(Encoding.UTF8.GetBytes(elem), 0, dataBuffer, i, len);
+                                    i += len;
+                                }
                             }
                             break;
                     }
-
-                    for (i = 0; i < size; i += BULK_IMPORT_FRAGMENT_SIZE)
+                    int fragmentSize = 0;
+                    int lastNullBuffOffset = -1;
+                    for (i = 0; i < size; i += fragmentSize)
                     {
-                        int fragmentSize = size - i < BULK_IMPORT_FRAGMENT_SIZE ? size - i : BULK_IMPORT_FRAGMENT_SIZE;
+                        fragmentSize = size - i < BULK_IMPORT_FRAGMENT_SIZE ? size - i : BULK_IMPORT_FRAGMENT_SIZE;
+                        fragmentSize = (fragmentSize / typeSize) * typeSize;
                         byte[] smallBuffer = new byte[fragmentSize];
                         Buffer.BlockCopy(dataBuffer, i, smallBuffer, 0, fragmentSize);
+                        int nullBuffSize = ((fragmentSize / typeSize) + sizeof(byte) * 8 - 1)  / (sizeof(byte) * 8);
                         BulkImportMessage bulkImportMessage = new BulkImportMessage()
-                        { TableName = tableName, ElemCount = fragmentSize / typeSize, ColumnName = column, ColumnType = columnType };
+                        { TableName = tableName, ElemCount = fragmentSize / typeSize, ColumnName = column, ColumnType = columnType, NullMaskLen = nullMask != null ? nullBuffSize : 0 };
                         NetworkMessage.WriteToNetwork(bulkImportMessage, _client.GetStream());
                         NetworkMessage.WriteRaw(_client.GetStream(), smallBuffer, fragmentSize);
+                        if(bulkImportMessage.NullMaskLen != 0)
+                        {
+                            
+                            int startOffset = i / (sizeof(byte) * 8);
+                            if(startOffset == lastNullBuffOffset)
+                            {
+                                startOffset++;
+                                nullBuffSize--;
+                            }
+                            byte[] smallNullBuffer = new byte[nullBuffSize];
+                            Buffer.BlockCopy(nullMask, startOffset, smallNullBuffer, 0, nullBuffSize);
+                            NetworkMessage.WriteRaw(_client.GetStream(), smallNullBuffer, nullBuffSize);
+                        }
                         var serverMessage = NetworkMessage.ReadFromNetwork(_client.GetStream());
                         if (!serverMessage.TryUnpack(out InfoMessage response))
                         {
