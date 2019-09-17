@@ -22,7 +22,6 @@ class Database
 private:
     static std::mutex dbMutex_;
     std::string name_;
-    int32_t persistenceFormatVersion_;
     int32_t blockSize_;
     std::unordered_map<std::string, Table> tables_;
 
@@ -50,21 +49,18 @@ private:
 
 public:
     static constexpr const char* SEPARATOR = "@";
+    static constexpr const int32_t PERSISTENCE_FORMAT_VERSION = 1;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
     /// </summary>
     /// <param name="databaseName">Database name.</param>
     /// <param name="blockSize">Block size of all blocks in this database.</param>
-    Database(const char* databaseName, int32_t blockSize = 1 << 18, int32_t persistenceFormatVersion_ = 1);
+    Database(const char* databaseName, int32_t blockSize = 1 << 18);
 
     ~Database();
 
     // getters:
-    int32_t GetPersistenceFormatVersion() const
-    {
-        return persistenceFormatVersion_;
-    }
     const std::string& GetName() const
     {
         return name_;

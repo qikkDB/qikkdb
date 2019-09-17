@@ -23,12 +23,10 @@ std::mutex Database::dbMutex_;
 /// </summary>
 /// <param name="databaseName">Database name.</param>
 /// <param name="blockSize">Block size of all blocks in this database.</param>
-Database::Database(const char* databaseName, int32_t blockSize, int32_t persistenceFormatVersion)
+Database::Database(const char* databaseName, int32_t blockSize)
 {
     name_ = databaseName;
     blockSize_ = blockSize;
-    persistenceFormatVersion_ =
-        persistenceFormatVersion; // persistence format version of the .db file that is saved into disk
 }
 
 Database::~Database()
@@ -230,7 +228,7 @@ void Database::PersistOnlyDbFile(const char* path)
 
     int32_t dbNameLength = name.length() + 1; // +1 because '\0'
 
-    dbFile.write(reinterpret_cast<char*>(&persistenceFormatVersion_), sizeof(int32_t)); // write persistence format version
+    dbFile.write(reinterpret_cast<const char*>(&PERSISTENCE_FORMAT_VERSION), sizeof(int32_t)); // write persistence format version
     dbFile.write(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); // write db name length
     dbFile.write(name.c_str(), dbNameLength); // write db name
     dbFile.write(reinterpret_cast<char*>(&blockSize), sizeof(int32_t)); // write block size
@@ -604,7 +602,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     dbFile.read(reinterpret_cast<char*>(&tablesCount), sizeof(int32_t)); // read number of tables
 
     std::shared_ptr<Database> database =
-        std::make_shared<Database>(dbName.get(), blockSize, persistenceFormatVersion);
+        std::make_shared<Database>(dbName.get(), blockSize);
 
     for (int32_t i = 0; i < tablesCount; i++)
     {
