@@ -909,18 +909,17 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
                                                                              blockIndex_) &&
             Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_pointIdx",
                                                                              blockIndex_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx", 
-                                                                             blockIndex_))
+            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx", blockIndex_))
         {
             GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
             GPUMemory::GPUPolygon polygon;
             polygon.polyPoints = std::get<0>(
                 cache.getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints", blockIndex_, size));
-            polygon.pointIdx = std::get<0>(
-                cache.getColumn<int32_t>(databaseName, colName + "_pointIdx", blockIndex_, size));       
+            polygon.pointIdx =
+                std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointIdx", blockIndex_, size));
             polygon.polyIdx =
                 std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex_, size));
-            
+
             FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
 
             return polygon;
@@ -1099,7 +1098,7 @@ int32_t GpuSqlDispatcher::Fil()
 
 int32_t GpuSqlDispatcher::WhereEvaluation()
 {
-    loadNecessary_ = usingJoin_ ? 1 : cpuDispatcher_.Execute(blockIndex_);
+    loadNecessary_ = 1; // usingJoin_ ? 1 : cpuDispatcher_.Execute(blockIndex_);
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Where load evaluation: " << loadNecessary_ << '\n';
     return 0;
 }
