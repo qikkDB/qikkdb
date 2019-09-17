@@ -15,7 +15,7 @@ statement:
 	| sqlAlterTable
 	| sqlCreateIndex
 	| sqlInsertInto
-	| showStatement( )*;
+	| showStatement;
 
 showStatement: (showDatabases | showTables | showColumns);
 
