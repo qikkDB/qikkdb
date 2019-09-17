@@ -35,14 +35,11 @@ ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::Com
             const int subpPointCount =
                 subpoly.geopoints_size() - 1; // -1 because we need to ignore the last element from the WKT format
 
-            // Necessary for the raycasting to work, separates components of complex polygons
-            // polyPoints.push_back({0, 0});
             for (int j = 0; j < subpPointCount; j++)
             {
                 const auto& geopoint = subpoly.geopoints(j);
                 polyPoints.push_back({geopoint.latitude(), geopoint.longitude()});
             }
-            // polyPoints.push_back({0, 0});
 
             pointIdx.push_back(polyPoints.size());
         }
@@ -109,14 +106,11 @@ ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::Com
             const int subpPointCount =
                 subpoly.geopoints_size() - 1; // -1 because we need to ignore the last element from the WKT format
 
-            // Necessary for the raycasting to work, separates components of complex polygons
-            // polyPoints.push_back({0, 0});
             for (int j = 0; j < subpPointCount; j++)
             {
                 const auto& geopoint = subpoly.geopoints(j);
                 polyPoints.push_back({geopoint.latitude(), geopoint.longitude()});
             }
-            // polyPoints.push_back({0, 0});
 
             pointIdx.push_back(polyPoints.size());
         }
