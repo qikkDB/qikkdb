@@ -248,7 +248,7 @@ void CSVDataImporter::ParseAndImport(int threadId,
             switch (dataTypes_[columnIndex])
             {
             case COLUMN_INT8_T:
-                std::any_cast<std::vector<int32_t>&>(wrappedData).push_back(std::any_cast<int8_t>(field));
+                std::any_cast<std::vector<int8_t>&>(wrappedData).push_back(std::any_cast<int8_t>(field));
                 break;
             case COLUMN_INT:
                 std::any_cast<std::vector<int32_t>&>(wrappedData).push_back(std::any_cast<int32_t>(field));

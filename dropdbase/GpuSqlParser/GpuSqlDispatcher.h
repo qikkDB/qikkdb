@@ -247,7 +247,9 @@ private:
     static int32_t groupByDoneCounter_;
     static int32_t orderByDoneCounter_;
     static int32_t deviceCountLimit_;
-
+    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+                                             std::unique_ptr<int8_t[]>& data,
+                                             int32_t dataSize);
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int32_t[]>& data,
                            int32_t dataSize);

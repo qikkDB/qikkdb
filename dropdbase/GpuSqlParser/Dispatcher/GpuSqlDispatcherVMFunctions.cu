@@ -20,7 +20,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>,
     &GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::RetCol<std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int8_t>};
+    &GpuSqlDispatcher::RetCol<int8_t>};
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::lockRegisterFunction_ = &GpuSqlDispatcher::LockRegister;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::filFunction_ = &GpuSqlDispatcher::Fil;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::whereEvaluationFunction_ = &GpuSqlDispatcher::WhereEvaluation;

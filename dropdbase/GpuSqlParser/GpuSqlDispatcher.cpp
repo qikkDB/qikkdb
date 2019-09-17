@@ -1412,6 +1412,15 @@ int32_t GpuSqlDispatcher::CreateIndex()
     return 11;
 }
 
+void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+                                         std::unique_ptr<int8_t[]>& data,
+                                         int32_t dataSize)
+{
+    for (int i = 0; i < dataSize; i++)
+    {
+        payload.mutable_intpayload()->add_intdata(data[i]);
+    }
+}
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int32_t[]>& data,
