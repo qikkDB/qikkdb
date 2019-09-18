@@ -139,7 +139,7 @@ __global__ void kernel_predict_numeric_string_lengths(int32_t* outStringLengths,
 }
 
 template <typename IN>
-__device__ void NumericToString(char* allChars, int64_t& startIndex, IN number)
+__device__ void NumericToString(char* allChars, int64_t startIndex, IN number)
 {
     // Append sign
     if (number < 0)
@@ -153,13 +153,13 @@ __device__ void NumericToString(char* allChars, int64_t& startIndex, IN number)
 
     printf("Kernel: %.2f, %d", number, integerPart);
     const int32_t integralDigits = GetNumberOfIntegralDigits(number);
-    startIndex += integralDigits - 1;
+    startIndex += integralDigits;
     do
     {
         allChars[--startIndex] = ('0' + (integerPart % 10));
         integerPart /= 10;
     } while (integerPart > 0);
-    startIndex += integralDigits - 1;
+    startIndex += integralDigits;
 
     // Append decimal part
     int32_t decimalDigits = GetNumberOfDecimalDigits(number);
@@ -169,13 +169,13 @@ __device__ void NumericToString(char* allChars, int64_t& startIndex, IN number)
         int32_t decimalPart =
             static_cast<int32_t>(roundf(fmodf(fabsf(number), 1.0f) * powf(10.0f, decimalDigits)));
         allChars[startIndex++] = '.';
-        startIndex += decimalDigits - 1;
+        startIndex += decimalDigits;
         for (int32_t i = 0; i < decimalDigits; i++) // Fixed decimal places
         {
             allChars[--startIndex] = ('0' + (decimalPart % 10));
             decimalPart /= 10;
         }
-        startIndex += decimalDigits - 1;
+        startIndex += decimalDigits;
     }
 }
 
@@ -218,15 +218,15 @@ __global__ void kernel_cast_numeric(OUT* outCol, IN inCol, int32_t dataElementCo
 }
 
 template <typename IN>
-__global__ void kernel_cast_numeric_to_string(GPUMemory::GPUString* outCol, IN inCol, int32_t dataElementCount)
+__global__ void kernel_cast_numeric_to_string(GPUMemory::GPUString outCol, IN inCol, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        int64_t stringIndex = GetStringIndex(outCol->stringIndices, i);
-        NumericToString(outCol->allChars, stringIndex, maybe_deref(inCol, i));
+        int64_t stringIndex = GetStringIndex(outCol.stringIndices, i);
+        NumericToString(outCol.allChars, stringIndex, maybe_deref(inCol, i));
     }
 }
 
@@ -287,8 +287,9 @@ public:
         std::cout << "total char count: " << totalCharCount << std::endl;
 
         kernel_cast_numeric_to_string<<<Context::getInstance().calcGridDim(dataElementCount),
-                                        Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
-
+                                        Context::getInstance().getBlockDim()>>>(*outCol, inCol, dataElementCount);
+        cudaDeviceSynchronize();
+        CheckCudaError(cudaGetLastError());
         GPUMemory::PrintGpuBuffer("Chars: ", outCol->allChars, totalCharCount);
         CheckCudaError(cudaGetLastError());
     }
