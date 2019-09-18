@@ -163,9 +163,15 @@ namespace ColmnarDB.ConsoleClient
 
         private static void HeartBeatTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            mutex.WaitOne();
-            client.Heartbeat();
-            mutex.ReleaseMutex();
+            try
+            {
+                mutex.WaitOne();
+                client.Heartbeat();
+            }
+            finally
+            {
+                mutex.ReleaseMutex();
+            }
         }
     }
 }
