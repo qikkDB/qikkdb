@@ -100,26 +100,13 @@ namespace ColmnarDB.NetworkClient
         /// </summary>
         private TcpClient _client;
 
-        /// <summary>
-        /// Read timeout for the network stream
-        /// </summary>
-        private readonly int _readTimeout;
-
-        /// <summary>
-        /// Write timeout for the network stream
-        /// </summary>
-        private readonly int _writeTimeout;
-
         private const int BULK_IMPORT_FRAGMENT_SIZE = 8192 * 1024;
 
         /// <summary>
         /// Creates new instance of the ColumnarDBClient object
         /// </summary>
-        /// <param name="serverHostnameOrIP">IP or hostname of the database server</param>
-        /// <param name="serverPort">Port of the database server</param>
-        /// <param name="readTimeout">Network read timeout in ms</param>
-        /// <param name="writeTimeout">Network read timeout in ms</param>
-        public ColumnarDBClient(string connectionString, int readTimeout = 60000, int writeTimeout = 60000)
+        /// <param name="connectionString">Connection string in format: Host=ipAddress;Port=port;</param>
+        public ColumnarDBClient(string connectionString)
         {
             var connectionBuilder = new System.Data.Common.DbConnectionStringBuilder();
             connectionBuilder.ConnectionString = connectionString;
@@ -133,8 +120,6 @@ namespace ColmnarDB.NetworkClient
             }
             _serverIP = hostIPs[0];
             _serverPort = serverPort;
-            _readTimeout = readTimeout;
-            _writeTimeout = writeTimeout;
         }
 
 
@@ -145,8 +130,8 @@ namespace ColmnarDB.NetworkClient
         {
             _client = new TcpClient(_serverIP.AddressFamily)
             {
-                ReceiveTimeout = _readTimeout,
-                SendTimeout = _writeTimeout
+                ReceiveTimeout = 0,
+                SendTimeout = 0
             };
             // Timeout after one minute
             _client.Connect(_serverIP, _serverPort);
@@ -314,7 +299,6 @@ namespace ColmnarDB.NetworkClient
             }
             catch (IOException)
             {
-                _client.ReceiveTimeout = _readTimeout;
                 CloseWithoutNotify();
                 throw;
             }
@@ -331,9 +315,7 @@ namespace ColmnarDB.NetworkClient
             try
             {
                 NetworkMessage.WriteToNetwork(message, _client.GetStream());
-                _client.ReceiveTimeout = _readTimeout * 10;
                 var resultMessage = NetworkMessage.ReadFromNetwork(_client.GetStream());
-                _client.ReceiveTimeout = _readTimeout;
 
                 if (!resultMessage.TryUnpack(out QueryResponseMessage queryResult))
                 {
@@ -360,7 +342,6 @@ namespace ColmnarDB.NetworkClient
             }
             catch (IOException)
             {
-                _client.ReceiveTimeout = _readTimeout;
                 CloseWithoutNotify();
                 throw;
             }
