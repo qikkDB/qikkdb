@@ -44,7 +44,15 @@ int main(int argc, char** argv)
     {
         logConfigFile = std::ifstream("../configuration/log_config.default");
     }
-    boost::log::init_from_stream(logConfigFile);
+    if (logConfigFile.fail())
+    {
+        BOOST_LOG_TRIVIAL(error)
+            << "ERROR: Failed to load log configuration in \"../configuration/log_config.default\"";
+    }
+    else
+    {
+        boost::log::init_from_stream(logConfigFile);
+    }
 
     // std::string dbName = "TestDatabase";
     // std::vector<std::string> tableNames = { "TestTable1" };
