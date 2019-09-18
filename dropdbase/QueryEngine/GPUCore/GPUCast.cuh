@@ -272,13 +272,9 @@ public:
             stringLengths.get(), inCol, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
-        GPUMemory::PrintGpuBuffer("Lengths: ", stringLengths.get(), dataElementCount);
-
         GPUMemory::alloc(&(outCol->stringIndices), dataElementCount);
         GPUReconstruct::PrefixSum(outCol->stringIndices, stringLengths.get(), dataElementCount);
 
-
-        GPUMemory::PrintGpuBuffer("Indices: ", outCol->stringIndices, dataElementCount);
 
         int64_t totalCharCount;
         GPUMemory::copyDeviceToHost(&totalCharCount, outCol->stringIndices + dataElementCount - 1, 1);
@@ -288,9 +284,6 @@ public:
 
         kernel_cast_numeric_to_string<<<Context::getInstance().calcGridDim(dataElementCount),
                                         Context::getInstance().getBlockDim()>>>(*outCol, inCol, dataElementCount);
-        cudaDeviceSynchronize();
-        CheckCudaError(cudaGetLastError());
-        GPUMemory::PrintGpuBuffer("Chars: ", outCol->allChars, totalCharCount);
         CheckCudaError(cudaGetLastError());
     }
 

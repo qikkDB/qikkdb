@@ -325,7 +325,7 @@ TEST_F(DispatcherCastTests, IntToStringTest)
     columns.insert(std::make_pair<std::string, DataType>("colInt", DataType::COLUMN_INT));
     castDatabase->CreateTable(columns, tableName.c_str());
 
-    reinterpret_cast<ColumnBase<float>*>(
+    reinterpret_cast<ColumnBase<int32_t>*>(
         castDatabase->GetTables().at(tableName).GetColumns().at("colInt").get())
         ->InsertData({1, -1, 10, 123456, -1245732});
 
