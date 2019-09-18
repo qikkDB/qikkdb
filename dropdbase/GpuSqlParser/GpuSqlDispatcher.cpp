@@ -1171,8 +1171,8 @@ int32_t GpuSqlDispatcher::ShowTables()
     std::string db = arguments_.Read<std::string>();
     std::shared_ptr<Database> database = Database::GetDatabaseByName(db);
 
-    std::unique_ptr<std::string[]> outData(new std::string[database_->GetTables().size()]);
-    auto& tables_map = database_->GetTables();
+    std::unique_ptr<std::string[]> outData(new std::string[database->GetTables().size()]);
+    auto& tables_map = database->GetTables();
 
     int i = 0;
     for (auto& tableName : tables_map)
