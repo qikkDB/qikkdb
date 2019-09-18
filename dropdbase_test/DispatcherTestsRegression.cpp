@@ -86,7 +86,7 @@ TEST(DispatcherTestsRegression, EmptySetAggregationSum)
                               "SELECT SUM(colInteger1) FROM TableA WHERE colInteger1 > 4096;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-    ASSERT_EQ(result->payloads().size(), 0);
+    ASSERT_EQ(result->payloads().size(), 1);
     // TODO: assert at row 0
 }
 
@@ -98,7 +98,7 @@ TEST(DispatcherTestsRegression, EmptySetAggregationMin)
                               "SELECT MIN(colInteger1) FROM TableA WHERE colInteger1 > 4096;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-    ASSERT_EQ(result->payloads().size(), 0);
+    ASSERT_EQ(result->payloads().size(), 1);
     // TODO: assert at row 0
 }
 
