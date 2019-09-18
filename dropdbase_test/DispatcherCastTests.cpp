@@ -191,7 +191,7 @@ protected:
         ASSERT_EQ(expectedResult, payloadCast.stringpayload().stringdata()[0]);
     }
 
-	void CastFloatToStringGenericTest(std::vector<float> floats, std::vector<std::string> expectedResult)
+    void CastFloatToStringGenericTest(std::vector<float> floats, std::vector<std::string> expectedResult)
     {
         auto columns = std::unordered_map<std::string, DataType>();
         columns.insert(std::make_pair<std::string, DataType>("colFloat", DataType::COLUMN_FLOAT));
@@ -319,3 +319,26 @@ TEST_F(DispatcherCastTests, FloatToStringTest)
                                  {"-1.23", "512.3", "231", "5.3123", "1.002", "76.9", "-123.23", "123.67"});
 }
 
+TEST_F(DispatcherCastTests, IntToStringTest)
+{
+    auto columns = std::unordered_map<std::string, DataType>();
+    columns.insert(std::make_pair<std::string, DataType>("colInt", DataType::COLUMN_INT));
+    castDatabase->CreateTable(columns, tableName.c_str());
+
+    reinterpret_cast<ColumnBase<float>*>(
+        castDatabase->GetTables().at(tableName).GetColumns().at("colInt").get())
+        ->InsertData({1, -1, 10, 123456, -1245732});
+
+    // Execute the query_
+    GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colInt AS STRING) FROM " + tableName + ";");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& payloadCast = result->payloads().at("CAST(colIntASSTRING)");
+    std::vector<std::string> expectedResult = {"1", "-1", "10", "123456", "-1245732"};
+    ASSERT_EQ(expectedResult.size(), payloadCast.stringpayload().stringdata_size())
+        << " wrong number of keys";
+    for (int32_t i = 0; i < payloadCast.stringpayload().stringdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResult[i], payloadCast.stringpayload().stringdata()[i]) << i;
+    }
+}
