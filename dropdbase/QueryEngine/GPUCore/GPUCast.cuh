@@ -151,15 +151,15 @@ __device__ void NumericToString(char* allChars, int64_t& startIndex, IN number)
     // Append integer part
     int64_t integerPart = static_cast<int64_t>(floorf(fabsf(number)));
 
-	printf("Kernel: %.2f, %d", number, integerPart);
+    printf("Kernel: %.2f, %d", number, integerPart);
     const int32_t integralDigits = GetNumberOfIntegralDigits(number);
-    startIndex += integralDigits;
+    startIndex += integralDigits - 1;
     do
     {
         allChars[--startIndex] = ('0' + (integerPart % 10));
         integerPart /= 10;
     } while (integerPart > 0);
-    startIndex += integralDigits;
+    startIndex += integralDigits - 1;
 
     // Append decimal part
     int32_t decimalDigits = GetNumberOfDecimalDigits(number);
@@ -169,13 +169,13 @@ __device__ void NumericToString(char* allChars, int64_t& startIndex, IN number)
         int32_t decimalPart =
             static_cast<int32_t>(roundf(fmodf(fabsf(number), 1.0f) * powf(10.0f, decimalDigits)));
         allChars[startIndex++] = '.';
-        startIndex += decimalDigits;
+        startIndex += decimalDigits - 1;
         for (int32_t i = 0; i < decimalDigits; i++) // Fixed decimal places
         {
             allChars[--startIndex] = ('0' + (decimalPart % 10));
             decimalPart /= 10;
         }
-        startIndex += decimalDigits;
+        startIndex += decimalDigits - 1;
     }
 }
 
@@ -272,24 +272,24 @@ public:
             stringLengths.get(), inCol, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
-		GPUMemory::PrintGpuBuffer("Lengths: ", stringLengths.get(), dataElementCount);
+        GPUMemory::PrintGpuBuffer("Lengths: ", stringLengths.get(), dataElementCount);
 
         GPUMemory::alloc(&(outCol->stringIndices), dataElementCount);
         GPUReconstruct::PrefixSum(outCol->stringIndices, stringLengths.get(), dataElementCount);
 
 
-		GPUMemory::PrintGpuBuffer("Indices: ", outCol->stringIndices, dataElementCount);
+        GPUMemory::PrintGpuBuffer("Indices: ", outCol->stringIndices, dataElementCount);
 
         int64_t totalCharCount;
         GPUMemory::copyDeviceToHost(&totalCharCount, outCol->stringIndices + dataElementCount - 1, 1);
         GPUMemory::alloc(&(outCol->allChars), totalCharCount);
 
-		std::cout << "total char count: " << totalCharCount << std::endl;
+        std::cout << "total char count: " << totalCharCount << std::endl;
 
         kernel_cast_numeric_to_string<<<Context::getInstance().calcGridDim(dataElementCount),
                                         Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
 
-		GPUMemory::PrintGpuBuffer("Chars: ", outCol->allChars, totalCharCount);
+        GPUMemory::PrintGpuBuffer("Chars: ", outCol->allChars, totalCharCount);
         CheckCudaError(cudaGetLastError());
     }
 
