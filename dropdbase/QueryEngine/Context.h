@@ -76,9 +76,10 @@ private:
         /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
         // deviceCount_ = 1;
         /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
+        const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
         CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing CUDA devices..." << '\n';
         CudaLogBoost::getInstance(CudaLogBoost::info) << "Found " << deviceCount_ << " CUDA devices" << '\n';
-        const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
+
         // Get devices information
         for (int32_t i = 0; i < deviceCount_; i++)
         {
@@ -95,10 +96,10 @@ private:
             // Print memory info
             size_t free, total;
             cudaMemGetInfo(&free, &total);
-
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing memory for device " << i << "\n";
             // Initialize allocators
             gpuAllocators_.emplace_back(std::make_unique<CudaMemAllocator>(i));
-
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing cache for device " << i << "\n";
             // Initialize cache
             size_t cacheSize = static_cast<int64_t>(free * static_cast<double>(cachePercentage) / 100.0);
             gpuCaches_.emplace_back(std::make_unique<GPUMemoryCache>(i, cacheSize));
@@ -108,7 +109,7 @@ private:
 
             // Print device info
             CudaLogBoost::getInstance(CudaLogBoost::info)
-                << "Device ID: " << i << ": " << deviceProp.name
+                << "Device " << i << " Initialization done " << deviceProp.name
                 << "\t maxBlockDim: " << deviceProp.maxThreadsPerBlock << "\n";
 
             CudaLogBoost::getInstance(CudaLogBoost::info) << "Memory: Total: " << total << " B Free: " << free
