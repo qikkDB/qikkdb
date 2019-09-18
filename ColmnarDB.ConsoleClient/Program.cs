@@ -7,8 +7,8 @@ namespace ColmnarDB.ConsoleClient
 {
     public class Program
     {
-        public static readonly string ipAddress = "127.0.0.1";
-        public static readonly short port = 12345;
+        public static string ipAddress = "127.0.0.1";
+        public static short port = 12345;
         private static bool exit = false;
         private static ColumnarDBClient client;
         private static Mutex mutex;
@@ -38,7 +38,20 @@ namespace ColmnarDB.ConsoleClient
                     timeout = Convert.ToInt32(args[1]);
                     Console.WriteLine("Set timeout to: " + timeout.ToString());
                 }
+                if (args[0] == "-h")
+                {
+                    if (args[1].Contains(':'))
+                    {
+                        ipAddress = args[1].Split(':')[0];
+                        port = Convert.ToInt16(args[1].Split(':')[1]);
+                    }
+                    else
+                    {
+                        ipAddress = args[1];
+                    }
+                }
             }
+
             client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
             client.Connect();
             var heartBeatTimer = new System.Timers.Timer(timeout);
