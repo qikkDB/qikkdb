@@ -2,6 +2,7 @@
 #include "TCPClientHandler.h"
 #include "ITCPWorker.h"
 #include "Configuration.h"
+#include "Database.h"
 #include <functional>
 #include <stdexcept>
 #include <chrono>
@@ -172,6 +173,7 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
                            const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
                            std::function<void(std::unique_ptr<google::protobuf::Message>)> handler)
 {
+    std::unique_lock<std::mutex> dbLock{Database::dbMutex_};
     std::lock_guard<std::mutex> queryLock(queryMutex_);
     try
     {

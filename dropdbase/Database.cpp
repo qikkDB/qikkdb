@@ -228,7 +228,8 @@ void Database::PersistOnlyDbFile(const char* path)
 
     int32_t dbNameLength = name.length() + 1; // +1 because '\0'
 
-    dbFile.write(reinterpret_cast<const char*>(&PERSISTENCE_FORMAT_VERSION), sizeof(int32_t)); // write persistence format version
+    dbFile.write(reinterpret_cast<const char*>(&PERSISTENCE_FORMAT_VERSION),
+                 sizeof(int32_t)); // write persistence format version
     dbFile.write(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); // write db name length
     dbFile.write(name.c_str(), dbNameLength); // write db name
     dbFile.write(reinterpret_cast<char*>(&blockSize), sizeof(int32_t)); // write block size
@@ -316,7 +317,9 @@ void Database::Persist(const char* path)
     }
     else
     {
-        BOOST_LOG_TRIVIAL(info) << "Database " << name << " was NOT saved into disk. Check if you have write access into the destination folder.";
+        BOOST_LOG_TRIVIAL(info)
+            << "Database "
+            << name << " was NOT saved into disk. Check if you have write access into the destination folder.";
     }
 }
 
@@ -372,7 +375,8 @@ void Database::PersistOnlyModified(const char* path)
     else
     {
         BOOST_LOG_TRIVIAL(info)
-            << "Database " << name << " was NOT saved into disk. Check if you have write access into the destination folder.";
+            << "Database "
+            << name << " was NOT saved into disk. Check if you have write access into the destination folder.";
     }
 }
 
@@ -381,6 +385,7 @@ void Database::PersistOnlyModified(const char* path)
 /// </summary>
 void Database::SaveAllToDisk()
 {
+    std::unique_lock<std::mutex>(dbMutex_);
     BOOST_LOG_TRIVIAL(info) << "Saving all loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
     for (auto& database : Context::getInstance().GetLoadedDatabases())
@@ -395,6 +400,7 @@ void Database::SaveAllToDisk()
 /// </summary>
 void Database::SaveModifiedToDisk()
 {
+    std::unique_lock<std::mutex>(dbMutex_);
     BOOST_LOG_TRIVIAL(info)
         << "Saving only modified blocks and columns of the loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
@@ -412,6 +418,7 @@ void Database::SaveModifiedToDisk()
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
+    std::unique_lock<std::mutex>(dbMutex_);
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
     if (boost::filesystem::exists(path))
@@ -444,6 +451,7 @@ void Database::LoadDatabasesFromDisk()
 /// </summary>
 void Database::DeleteDatabaseFromDisk()
 {
+    std::unique_lock<std::mutex>(dbMutex_);
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
     // std::cout << "DeleteDatabaseFromDisk path: " << path << std::endl;
@@ -601,8 +609,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     int32_t tablesCount;
     dbFile.read(reinterpret_cast<char*>(&tablesCount), sizeof(int32_t)); // read number of tables
 
-    std::shared_ptr<Database> database =
-        std::make_shared<Database>(dbName.get(), blockSize);
+    std::shared_ptr<Database> database = std::make_shared<Database>(dbName.get(), blockSize);
 
     for (int32_t i = 0; i < tablesCount; i++)
     {

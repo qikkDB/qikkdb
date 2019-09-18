@@ -20,12 +20,11 @@ class Database
     friend class DatabaseGenerator;
 
 private:
-    static std::mutex dbMutex_;
     std::string name_;
     int32_t blockSize_;
     std::unordered_map<std::string, Table> tables_;
 
-	/// <summary>
+    /// <summary>
     /// Load column of a table into memory from disk.
     /// </summary>
     /// <param name="path">Path directory, where column file (*.col) is.</param>
@@ -33,7 +32,11 @@ private:
     /// <param name="persistenceFormatVersion">Version of format used to persist .db and .col files
     /// into disk.</param> <param name="table">Instance of table into which the column should be
     /// added.</param> <param name="columnName">Names of particular column.</param>
-    static void LoadColumn(const char* path, const char* dbName, int32_t persistenceFormatVersion, Table& table, const std::string& columnName);
+    static void LoadColumn(const char* path,
+                           const char* dbName,
+                           int32_t persistenceFormatVersion,
+                           Table& table,
+                           const std::string& columnName);
 
     /// <summary>
     /// Write column into disk.
@@ -50,7 +53,7 @@ private:
 public:
     static constexpr const char* SEPARATOR = "@";
     static constexpr const int32_t PERSISTENCE_FORMAT_VERSION = 1;
-
+    static std::mutex dbMutex_;
     /// <summary>
     /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
     /// </summary>
@@ -80,7 +83,7 @@ public:
     }
     static std::vector<std::string> GetDatabaseNames();
 
-	/// <summary>
+    /// <summary>
     /// Set saveNecessaty_ to false for block, column and table, because data in the database were NOT modified yet.
     /// </summary>
     void SetSaveNecessaryToFalseForEverything();
@@ -97,7 +100,7 @@ public:
     /// <param name="path">Path to database storage directory.</param>
     void Persist(const char* path);
 
-	/// <summary>
+    /// <summary>
     /// Save modified blocks and columns of the database from memory to disk.
     /// </summary>
     /// <param name="path">Path to database storage directory.</param>
@@ -108,7 +111,7 @@ public:
     /// </summary>
     static void SaveAllToDisk();
 
-	/// <summary>
+    /// <summary>
     /// Save only modified blocks and columns to disk. All databases will be saved in the same directory.
     /// </summary>
     static void SaveModifiedToDisk();
