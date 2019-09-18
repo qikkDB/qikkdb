@@ -17,6 +17,7 @@
 #include "QueryEngine/Context.h"
 
 std::mutex Database::dbMutex_;
+std::mutex Database::dbAccessMutex_;
 
 /// <summary>
 /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
@@ -1479,7 +1480,7 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 /// <param name="database">Database to be added.</param>
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
-    std::lock_guard<std::mutex> lock(dbMutex_);
+    std::lock_guard<std::mutex> lock(dbAccessMutex_);
     if (!Context::getInstance().GetLoadedDatabases().insert({database->name_, database}).second)
     {
         throw std::invalid_argument("Attempt to insert duplicate database name");
@@ -1493,7 +1494,7 @@ void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 void Database::RemoveFromInMemoryDatabaseList(const char* databaseName)
 {
     // erase db from map
-    std::lock_guard<std::mutex> lock(dbMutex_);
+    std::lock_guard<std::mutex> lock(dbAccessMutex_);
     Context::getInstance().GetLoadedDatabases().erase(databaseName);
 }
 

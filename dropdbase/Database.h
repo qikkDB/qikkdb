@@ -20,6 +20,7 @@ class Database
     friend class DatabaseGenerator;
 
 private:
+    static std::mutex dbAccessMutex_;
     std::string name_;
     int32_t blockSize_;
     std::unordered_map<std::string, Table> tables_;
@@ -180,7 +181,7 @@ public:
     /// <returns>Database object or null-</returns>
     static std::shared_ptr<Database> GetDatabaseByName(std::string databaseName)
     {
-        std::lock_guard<std::mutex> lock(dbMutex_);
+        std::lock_guard<std::mutex> lock(dbAccessMutex_);
         try
         {
             return Context::getInstance().GetLoadedDatabases().at(databaseName);
