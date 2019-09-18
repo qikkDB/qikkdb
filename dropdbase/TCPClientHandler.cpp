@@ -73,6 +73,10 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
     }
     std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> smallPayload =
         std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
+    for (const auto& column : completeResult->columnorder())
+    {
+        smallPayload->add_columnorder(column);
+    }
     if (sentRecords_ == 0)
     {
         for (const auto& timing : completeResult->timing())
@@ -193,7 +197,7 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
             dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
             dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
                 ->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
-		}
+        }
         parser_ = nullptr;
         handler(std::move(notifyMessage));
         return ret;
