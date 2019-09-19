@@ -212,7 +212,7 @@ int8_t* CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 #ifdef DEBUG_ALLOC
     unsigned char* resultPtr = static_cast<unsigned char*>((*blockInfoIt).ptr);
     cudaMemset(resultPtr, 0xCC, 512);
-    cudaMemset(resultPtr + numBytes - 512, 0xCC, 512);
+    cudaMemset(resultPtr + alignedSize - 512, 0xCC, 512);
     return static_cast<int8_t*>((*blockInfoIt).ptr) + 512;
 #else
     return static_cast<int8_t*>((*blockInfoIt).ptr);
