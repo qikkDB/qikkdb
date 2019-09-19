@@ -68,7 +68,7 @@ void ValidateIterator(int gpuId,
     }
     free(symbols);
     std::cerr << "-- Backtrace end --" << std::endl;
-	#endif
+#endif
     abort();
 }
 
@@ -98,7 +98,7 @@ void ValidateIterator(int gpuId,
     }
     free(symbols);
     std::cerr << "-- Backtrace end --" << std::endl;
-	#endif
+#endif
     abort();
 }
 #endif
@@ -121,7 +121,7 @@ CudaMemAllocator::CudaMemAllocator(int32_t deviceID) : deviceID_(deviceID)
     (*chainedBlocks_.begin()).sizeOrderIt =
         blocksBySize_.emplace(std::make_pair(free - RESERVED_MEMORY, chainedBlocks_.begin()));
 #ifdef DEBUG_ALLOC
-    logOut = fopen("C:\dbg-alloc.log", "a");
+    logOut = fopen("/home/jvesely/dbg-alloc.log", "a");
     fprintf(logOut, "CudaMemAllocator %d\n", deviceID);
     fprintf(logOut, "Available blocks: %zu\n", chainedBlocks_.size());
     for (auto& ptrs : chainedBlocks_)
@@ -162,9 +162,10 @@ int8_t* CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
         throw std::out_of_range("Invalid allocation size");
     }
 #ifdef DEBUG_ALLOC
+    numBytes += 1024;
     fprintf(logOut, "%d CudaMemAllocator::allocate %zu bytes\n", deviceID_, numBytes);
     fprintf(logOut, "-- Backtrace start --\n");
-	#ifndef WIN32
+#ifndef WIN32
     void* backtraceArray[25];
     int btSize = backtrace(backtraceArray, 25);
     char** symbols = backtrace_symbols(backtraceArray, btSize);
@@ -174,7 +175,7 @@ int8_t* CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
     }
     free(symbols);
     fprintf(logOut, "-- Backtrace end --\n");
-	#endif
+#endif
     fflush(logOut);
 #endif
     // Minimal allocation unit is 512bytes, same as cudaMalloc. Thurst relies on this internally.
@@ -208,7 +209,14 @@ int8_t* CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
     fprintf(logOut, "%d                -allocated %p %zu\n", deviceID_, (*blockInfoIt).ptr, alignedSize);
     fflush(logOut);
 #endif
+#ifdef DEBUG_ALLOC
+    unsigned char* resultPtr = static_cast<unsigned char*>((*blockInfoIt).ptr);
+    cudaMemset(resultPtr, 0xCC, 512);
+    cudaMemset(resultPtr + numBytes - 512, 0xCC, 512);
+    return static_cast<int8_t*>((*blockInfoIt).ptr) + 512;
+#else
     return static_cast<int8_t*>((*blockInfoIt).ptr);
+#endif
 }
 
 /// Deallocate data with the allocator
@@ -217,6 +225,7 @@ int8_t* CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 void CudaMemAllocator::deallocate(int8_t* ptr, size_t numBytes)
 {
 #ifdef DEBUG_ALLOC
+    ptr -= 512;
     fprintf(logOut, "%d CudaMemAllocator::deallocate ptr %p\n", deviceID_, ptr);
 #ifndef WIN32
     fprintf(logOut, "-- Backtrace start --\n");
@@ -328,3 +337,47 @@ void CudaMemAllocator::Clear()
     fflush(logOut);
 #endif
 }
+
+#ifdef DEBUG_ALLOC
+void CudaMemAllocator::ValidateCanaries()
+{
+    for (auto& block : allocatedBlocks_)
+    {
+        unsigned char* resultPtr = reinterpret_cast<unsigned char*>(block.first);
+        size_t numBytes = block.second->blockSize;
+        unsigned char buffer[512];
+        cudaMemcpy(buffer, resultPtr, 512, cudaMemcpyDeviceToHost);
+        for (int i = 0; i < 512; i++)
+        {
+            if (buffer[i] != 0xCC)
+            {
+                void* backtraceArray[25];
+                int btSize = backtrace(backtraceArray, 25);
+                char** symbols = backtrace_symbols(backtraceArray, btSize);
+                for (int i = 0; i < btSize; i++)
+                {
+                    printf("%d: %s\n", i, symbols[i]);
+                }
+                free(symbols);
+                throw std::bad_alloc();
+            }
+        }
+        cudaMemcpy(buffer, resultPtr + numBytes - 512, 512, cudaMemcpyDeviceToHost);
+        for (int64_t i = 0; i < 512; i++)
+        {
+            if (buffer[i] != 0xCC)
+            {
+                void* backtraceArray[25];
+                int btSize = backtrace(backtraceArray, 25);
+                char** symbols = backtrace_symbols(backtraceArray, btSize);
+                for (int i = 0; i < btSize; i++)
+                {
+                    printf("%d: %s\n", i, symbols[i]);
+                }
+                free(symbols);
+                throw std::bad_alloc();
+            }
+        }
+    }
+}
+#endif

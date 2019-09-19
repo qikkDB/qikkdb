@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cuda_runtime_api.h>
 #include "../CudaLogBoost.h"
+#include "Context.h"
 #ifndef WIN32
 #include <execinfo.h>
 #endif // !WIN32
@@ -25,7 +26,10 @@ void CheckCudaError(cudaError_t cudaError)
 #ifdef DEBUG
     cudaDeviceSynchronize();
 #endif // DEBUG
-
+#ifdef DEBUG_ALLOC
+    cudaDeviceSynchronize();
+    Context::getInstance().ValidateCanariesForCurrentDevice();
+#endif
     if (cudaError != cudaSuccess)
     {
         CudaLogBoost::getInstance(CudaLogBoost::error)
@@ -50,6 +54,10 @@ void CheckCudaError(cudaError_t cudaError)
 
 void CheckQueryEngineError(const QueryEngineErrorType errorType, const std::string& message)
 {
+#ifdef DEBUG_ALLOC
+    cudaDeviceSynchronize();
+    Context::getInstance().ValidateCanariesForCurrentDevice();
+#endif
     if (errorType != QueryEngineErrorType::GPU_EXTENSION_SUCCESS)
     {
         CudaLogBoost::getInstance(CudaLogBoost::error)

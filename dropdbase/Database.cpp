@@ -386,7 +386,7 @@ void Database::PersistOnlyModified(const char* path)
 /// </summary>
 void Database::SaveAllToDisk()
 {
-    std::unique_lock<std::mutex>(dbMutex_);
+    std::unique_lock<std::mutex> lock_(dbMutex_);
     BOOST_LOG_TRIVIAL(info) << "Saving all loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
     for (auto& database : Context::getInstance().GetLoadedDatabases())
@@ -401,7 +401,7 @@ void Database::SaveAllToDisk()
 /// </summary>
 void Database::SaveModifiedToDisk()
 {
-    std::unique_lock<std::mutex>(dbMutex_);
+    std::unique_lock<std::mutex> lock_(dbMutex_);
     BOOST_LOG_TRIVIAL(info)
         << "Saving only modified blocks and columns of the loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
@@ -419,7 +419,7 @@ void Database::SaveModifiedToDisk()
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
-    std::unique_lock<std::mutex>(dbMutex_);
+    std::unique_lock<std::mutex> lock_(dbMutex_);
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
     if (boost::filesystem::exists(path))
@@ -452,7 +452,7 @@ void Database::LoadDatabasesFromDisk()
 /// </summary>
 void Database::DeleteDatabaseFromDisk()
 {
-    std::unique_lock<std::mutex>(dbMutex_);
+    std::unique_lock<std::mutex> lock_(dbMutex_);
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
     // std::cout << "DeleteDatabaseFromDisk path: " << path << std::endl;

@@ -221,7 +221,9 @@ public:
         cudaDeviceSynchronize();
         auto error = cudaSetDevice(deviceID);
         cudaDeviceSynchronize();
+#ifndef DEBUG_ALLOC
         CheckCudaError(error);
+#endif
     }
 
     /// Obtain the memory allocator for a given device
@@ -284,4 +286,10 @@ public:
         }
         Initialize();
     }
+#ifdef DEBUG_ALLOC
+    void ValidateCanariesForCurrentDevice()
+    {
+        GetAllocatorForCurrentDevice().ValidateCanaries();
+    }
+#endif
 };

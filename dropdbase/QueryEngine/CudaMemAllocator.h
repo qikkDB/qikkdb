@@ -4,7 +4,7 @@
 #include <map>
 #include <unordered_map>
 #include <list>
-
+#define DEBUG_ALLOC
 
 /// A class for memory allocation operations
 class CudaMemAllocator
@@ -45,6 +45,9 @@ private:
 
 public:
     typedef int8_t value_type;
+#ifdef DEBUG_ALLOC
+    void ValidateCanaries();
+#endif
     CudaMemAllocator(int deviceID);
     ~CudaMemAllocator();
     CudaMemAllocator(const CudaMemAllocator&) = delete;
