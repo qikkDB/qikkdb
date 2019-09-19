@@ -168,8 +168,7 @@ public:
                 GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
                 if (outNullMaskGPUPointer)
                 {
-                    size_t outBitMaskSize =
-                        (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+                    const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
                     GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
                     GPUMemory::free(outNullMaskGPUPointer); // free reconstructed null mask
                 }
@@ -197,7 +196,7 @@ public:
             *outDataElementCount = dataElementCount;
             if (nullMask && outNullMask)
             {
-                size_t outBitMaskSize = (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+                const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
                 GPUMemory::copyDeviceToHost(outNullMask, nullMask, outBitMaskSize);
             }
         }
@@ -243,8 +242,8 @@ public:
                             *outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
                         if (nullMask && outNullMask)
                         {
-                            size_t outBitMaskSize =
-                                (*outDataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8);
+                            const size_t outBitMaskSize =
+                                GPUMemory::CalculateNullMaskSize(*outDataElementCount, true);
                             GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
                             kernel_reconstruct_null_mask<<<context.calcGridDim(dataElementCount),
                                                            context.getBlockDim()>>>(

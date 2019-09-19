@@ -407,8 +407,7 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString* outStringCol
                 *outStringCol, inStringCol, inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
             if (nullMask && outNullMask)
             {
-                size_t outBitMaskSize =
-                    (*outDataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8);
+                const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount, true);
                 GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
                 kernel_reconstruct_null_mask<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
                     reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(),
@@ -452,7 +451,7 @@ void GPUReconstruct::ReconstructStringCol(std::string* outStringData,
                                  inDataElementCount, &outNullMaskGPUPointer, nullMask);
         if (outNullMaskGPUPointer)
         {
-            size_t outBitMaskSize = (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+            const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
             GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
             if (inMask)
             {
@@ -466,7 +465,7 @@ void GPUReconstruct::ReconstructStringCol(std::string* outStringData,
         outStringCol = inStringCol;
         if (nullMask)
         {
-            size_t outBitMaskSize = (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+            const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
             GPUMemory::copyDeviceToHost(outNullMask, nullMask, outBitMaskSize);
         }
     }
@@ -730,8 +729,7 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
             CheckCudaError(cudaGetLastError());
             if (nullMask && outNullMask)
             {
-                size_t outBitMaskSize =
-                    (*outDataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8);
+                const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount, true);
                 GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
                 kernel_reconstruct_null_mask<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
                     reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(),
@@ -774,7 +772,7 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string* outStringData,
                            inDataElementCount, &outNullMaskGPUPointer, nullMask);
     if (outNullMaskGPUPointer)
     {
-        size_t outBitMaskSize = (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+                    const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
         GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
         if (inMask)
         {
@@ -810,7 +808,7 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string* outStringData,
     GPUMemory::GPUString gpuWkt;
     if (outNullMaskGPUPointer)
     {
-        size_t outBitMaskSize = (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+        const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
         GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
         if (inMask)
         {
@@ -833,7 +831,8 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string* outStringData,
 
 cuda_ptr<int8_t> GPUReconstruct::CompressNullMask(int8_t* inputNullMask, int32_t dataElementCount)
 {
-    cuda_ptr<int8_t> nullMaskCompressed((dataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8), 0);
+    const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(dataElementCount, true);
+    cuda_ptr<int8_t> nullMaskCompressed(outBitMaskSize, 0);
     kernel_compress_null_mask<<<Context::getInstance().calcGridDim(dataElementCount),
                                 Context::getInstance().getBlockDim()>>>(
         reinterpret_cast<int32_t*>(nullMaskCompressed.get()), inputNullMask, dataElementCount);
