@@ -225,6 +225,8 @@ void hostPin(T* hostPtr, size_t dataElementCount)
 /// This is a O(1) operation
 void clear();
 
+size_t CalculateNullMaskSize(size_t dataElementCount, bool for32bit = false);
+
 template <typename T>
 void PrintGpuBuffer(const char* title, T* bufferGpu, int32_t dataElementCount)
 {
