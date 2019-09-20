@@ -519,8 +519,9 @@ void ThrowErrorListener::syntaxError(antlr4::Recognizer* recognizer,
                                      const std::string& msg,
                                      std::exception_ptr e)
 {
+    std::string badSymbol = offendingSymbol == nullptr ? std::string("") : offendingSymbol->getText();
     std::string finalMsg = "Error : line " + std::to_string(line) + ":" + std::to_string(charPositionInLine) +
-                           " Incorrect syntax near symbol '" + offendingSymbol->getText() + "'";
+                           " Incorrect syntax near symbol '" + badSymbol + "'";
     BOOST_LOG_TRIVIAL(debug) << finalMsg << " " << msg;
     throw antlr4::ParseCancellationException(finalMsg);
 }
