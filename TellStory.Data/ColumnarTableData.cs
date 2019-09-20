@@ -60,6 +60,8 @@ namespace TellStory.Data
                 columnData.Add(columnName, new List<double?>());
             else if (type == typeof(DateTime))
                 columnData.Add(columnName, new List<long?>());
+            else if (type == typeof(bool))
+                columnData.Add(columnName, new List<byte?>());
             else if (type == typeof(string))
                 columnData.Add(columnName, new List<String>());
 
@@ -73,6 +75,8 @@ namespace TellStory.Data
                 columnTypes.Add(columnName, typeof(double));
             else if (type == typeof(DateTime))
                 columnTypes.Add(columnName, typeof(Int64));
+            else if (type == typeof(bool))
+                columnTypes.Add(columnName, typeof(byte));
             else if (type == typeof(string))
                 columnTypes.Add(columnName, typeof(string));
         }

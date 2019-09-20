@@ -17,9 +17,12 @@ namespace TellStory.Data.Parser
             public Encoding Encoding { get; private set; }
             public CultureInfo CultureInfo { get; private set; }
             public int BatchSize { get; private set; }
+            public bool HasHeader { get; private set; }
 
-            public Configuration(int batchSize = 0, Encoding encoding = null, char columnSeparator = char.MinValue, CultureInfo cultureInfo = null)
+            public Configuration(int batchSize = 0, bool hasHeader = true, Encoding encoding = null, char columnSeparator = char.MinValue, CultureInfo cultureInfo = null)
             {
+                this.HasHeader = hasHeader;
+
                 if (encoding != null)
                 {
                     this.Encoding = encoding;
@@ -61,7 +64,6 @@ namespace TellStory.Data.Parser
         private Configuration configuration;
         private string[] header;
         private Dictionary<string, Type> types;
-        private string file;
         private FileStream stream;
         private StreamReader streamReader;
         private ColumnarTableData tableData;
@@ -70,7 +72,7 @@ namespace TellStory.Data.Parser
         long startBytePosition;
         long endBytePosition;
 
-        public ParserCSV(string file, Dictionary<string, Type> types = null, Configuration configuration = null, long startBytePosition = 0, long endBytePosition = 0)
+        public ParserCSV(string tableName, StreamReader streamReader, Dictionary<string, Type> types = null, Configuration configuration = null, long startBytePosition = 0, long endBytePosition = 0)
         {
             if (configuration != null)
             {
@@ -81,9 +83,7 @@ namespace TellStory.Data.Parser
                 this.configuration = new Configuration();
             }
 
-            this.file = file;
-            this.stream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
-            this.streamReader = new StreamReader(this.stream, configuration.Encoding);
+            this.streamReader = streamReader;
             this.startBytePosition = startBytePosition;
             if (endBytePosition != 0)
             {
@@ -101,13 +101,17 @@ namespace TellStory.Data.Parser
                 this.types = types;
             }
             else
-            {
-                this.types = GuessTypes(file, configuration.ColumnSeparator, configuration.Encoding);
+            {                
+                if (streamReader.BaseStream is FileStream)
+                {
+                    string file = (streamReader.BaseStream as FileStream).Name;
+                    this.types = GuessTypes(file, configuration.HasHeader, configuration.ColumnSeparator, configuration.Encoding);
+                }                
             }
             this.header = new string[this.types.Keys.Count];
             this.types.Keys.CopyTo(this.header, 0);
 
-            this.tableData = new ColumnarTableData(Path.GetFileNameWithoutExtension(this.file));
+            this.tableData = new ColumnarTableData(tableName);
             foreach (var head in this.header)
             {
                 tableData.AddColumn(head, this.types[head]);
@@ -116,7 +120,10 @@ namespace TellStory.Data.Parser
             dataParser = new CsvReader(this.streamReader).Parser;
             dataParser.Configuration.Delimiter = this.configuration.ColumnSeparator.ToString();
             // skip header at the beginning of the file or at the beginning of thread chunk (this line is usually corrupted)
-            dataParser.Read();
+            if (startBytePosition == 0 && this.configuration.HasHeader)
+            {
+                dataParser.Read();
+            }
         }
 
         public static Encoding GuessEncoding(string file)
@@ -158,7 +165,7 @@ namespace TellStory.Data.Parser
             return result;
         }
 
-        public static Dictionary<string, Type> GuessTypes(string file, char separator, Encoding encoding)
+        public static Dictionary<string, Type> GuessTypes(string file, bool hasHeader, char separator, Encoding encoding)
         {
             Dictionary<string, Type> result = new Dictionary<string, Type>();
             string[] header;
@@ -169,7 +176,35 @@ namespace TellStory.Data.Parser
             var parser = new CsvReader(new StreamReader(stream, encoding)).Parser;
             parser.Configuration.Delimiter = separator.ToString();
             // Read CSV header
-            header = parser.Read();
+            if (hasHeader)
+            {
+                var row = parser.Read();
+                header = new string[row.Length];
+                var headerSet = new HashSet<string>();
+                for (int i = 0; i < row.Length; i++)
+                {
+                    // if contains column name, append "2", "3", ...
+                    string colName = row[i];
+                    int suffixId = 2;
+                    while (headerSet.Contains(colName))
+                    {
+                        colName = row[i] + "-" + suffixId++;
+                    }
+                    headerSet.Add(colName);
+                    header[i] = colName;                    
+                }
+            }
+            else
+            {
+                // if there is no header, name of column is C0, C1...
+                var row = parser.Read();
+                header = new string[row.Length];
+                for (int i=0; i<row.Length;i++)
+                {
+                    header[i] = "C" + i;
+                }
+                
+            }
             Dictionary<string, string[]> topRows = new Dictionary<string, string[]>();
             foreach (var head in header)
             {
@@ -206,6 +241,7 @@ namespace TellStory.Data.Parser
 
         private static Type GuessTableColumnType(string columnName, string[] topNvalues)
         {
+            bool boolError = false;
             bool singleError = false;
             bool doubleError = false;
             bool longError = false;
@@ -238,6 +274,10 @@ namespace TellStory.Data.Parser
                 {
                     doubleError = true;
                 }
+                if (!bool.TryParse(value, out bool boolRes))
+                {
+                    boolError = true;
+                }
                 if (doubleError && longError && intError && datetimeError) break;
             }
             if (!intError) return typeof(Int32);
@@ -245,6 +285,7 @@ namespace TellStory.Data.Parser
             if (!singleError) return typeof(Single);
             if (!doubleError) return typeof(Double);
             if (!datetimeError) return typeof(DateTime);
+            if (!boolError) return typeof(bool);
             return typeof(String);
         }
 
@@ -316,7 +357,9 @@ namespace TellStory.Data.Parser
                                     convertedRow[i] = double.Parse(row[i]);
                                 else if (type == typeof(DateTime))
                                     convertedRow[i] = (long) (DateTime.Parse(row[i]).Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
-                                    //convertedRow[i] = DateTime.Parse(row[i]);
+                                //convertedRow[i] = DateTime.Parse(row[i]);
+                                else if (type == typeof(bool))
+                                    convertedRow[i] = Convert.ToByte(bool.Parse(row[i]));
                                 else if (type == typeof(string))
                                     convertedRow[i] = row[i];
                             }

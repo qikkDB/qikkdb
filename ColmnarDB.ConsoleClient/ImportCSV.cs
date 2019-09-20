@@ -39,7 +39,7 @@ namespace ColmnarDB.ConsoleClient
         /// </summary>
         /// <param name="path">path to csv file that should be imported</param>
         /// <param name="database">database that is used</param>
-        public void Import(string path, string database, char columnSeparator = '\0', Encoding encoding = null, int batchSize = 100000, int threadsCount = 0)
+        public void Import(string path, string database, bool hasHeader = true, char columnSeparator = '\0', int batchSize = 100000, int threadsCount = 0, Encoding encoding = null)
         {
             this.databaseName = database;            
 
@@ -55,7 +55,7 @@ namespace ColmnarDB.ConsoleClient
                 {
                     columnSeparator = ParserCSV.GuessSeparator(path, encoding);
                 }                
-                var types = ParserCSV.GuessTypes(path, columnSeparator, encoding);
+                var types = ParserCSV.GuessTypes(path, hasHeader, columnSeparator, encoding);
                 streamLength = ParserCSV.GetStreamLength(path);
 
                 ParserCSV.Configuration configuration = new ParserCSV.Configuration(batchSize: batchSize, encoding: encoding, columnSeparator: columnSeparator);
@@ -66,7 +66,6 @@ namespace ColmnarDB.ConsoleClient
                     if (streamLength > 10000000)
                     {
                         threadsCount = Environment.ProcessorCount;
-                        //threadsCount = 1;
                     }
                     else
                     {
@@ -89,7 +88,7 @@ namespace ColmnarDB.ConsoleClient
                     long start = i * streamThreadLength;
                     long end = i * streamThreadLength + streamThreadLength + 1;
                     int index = i;
-                    threads[index] = new Thread(() => this.ParseAndImportBatch(index, path, configuration, types, out linesImported[index], start, end));
+                    threads[index] = new Thread(() => this.ParseAndImportBatch(index, path, configuration, types, start, end));
                     threads[index].Start();
                     //this.ParseAndImportBatch(index, path, configuration, types, out linesImported[index], start, end);
                 }
@@ -159,11 +158,18 @@ namespace ColmnarDB.ConsoleClient
         /// <summary>
         /// Parses stream in batches and each batch is imported by the client
         /// </summary>
-        /// <param name="rawData">object </param>
+        /// <param name="threadId">Id of thread starting from 0</param>
+        /// <param name="file">Name of the file with full path</param>
+        /// <param name="configuration">Configuration for parser with specified parameters (column separator, encoding, etc.)</param>
+        /// <param name="types">Dictionary describing imported table with tuples (column name, column type)</param>
+        /// <param name="startBytePosition">Start reading position in file</param>
+        /// <param name="endBytePosition">End reading position in file</param>
         /// <returns>string about not finding CSV file</returns>
-        private void ParseAndImportBatch(int threadId, string file, ParserCSV.Configuration configuration, Dictionary<string, Type> types, out long linesCount, long startBytePosition = 0, long endBytePosition = 0)
+        private void ParseAndImportBatch(int threadId, string file, ParserCSV.Configuration configuration, Dictionary<string, Type> types, long startBytePosition = 0, long endBytePosition = 0)
         {
-            ParserCSV parserCSV = new ParserCSV(file: file, configuration: configuration, types: types, startBytePosition: startBytePosition, endBytePosition: endBytePosition);
+            var stream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var streamReader = new StreamReader(stream, configuration.Encoding);
+            ParserCSV parserCSV = new ParserCSV(streamReader: streamReader, tableName: tableName, configuration: configuration, types: types, startBytePosition: startBytePosition, endBytePosition: endBytePosition);
 
             var client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
             client.Connect();
@@ -200,7 +206,6 @@ namespace ColmnarDB.ConsoleClient
             }
 
             client.Dispose();
-            linesCount = lines;
         }
     }
 }

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Timers;
 using ColmnarDB.NetworkClient;
@@ -59,7 +62,7 @@ namespace ColmnarDB.ConsoleClient
             heartBeatTimer.AutoReset = true;
             heartBeatTimer.Enabled = true;
             UseDatabase use = new UseDatabase();
-            ImportCSV import = new ImportCSV();
+            ImportCSV import = new ImportCSV(ipAddress, port);
             Query query = new Query();
             mutex = new Mutex();
             ReadLine.HistoryEnabled = true;
@@ -72,7 +75,7 @@ namespace ColmnarDB.ConsoleClient
                 string command = splitCommand[0].ToLower();
                 string parameters = "";
 
-                if (command != "docs" && command != "man" && command != "t" && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u" && command != "use" && command != "h" && command != "help" /* && command != "import" */)
+                if (command != "docs" && command != "man" && command != "t" && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u" && command != "use" && command != "h" && command != "help"  && command != "import" )
                 {
                     parameters = wholeCommand;
                     parameters = parameters.Trim();
@@ -128,9 +131,9 @@ namespace ColmnarDB.ConsoleClient
 
                         break;
 
-                    /* case "import":
-
-                        string[] splitParameters = parameters.Split(" ");
+                     case "import":
+                        
+                        string[] splitParameters = Regex.Matches(parameters, @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value).ToArray();
 
                         if (parameters == "" || splitParameters.Length < 2)
                         {
@@ -138,12 +141,34 @@ namespace ColmnarDB.ConsoleClient
                             break;
                         }
 
-                        database = splitParameters[0];
-                        filePath = parameters.Substring(database.Length + 1);
+                        string database = splitParameters[0];
+                        string filePath = splitParameters[1];
+                        if (filePath.Length > 0 && filePath.ElementAt(0) == '\"')
+                        {
+                            filePath = filePath.Substring(1, filePath.Length - 2);
+                        }
 
-                        import.Import(filePath, database, client);
+                        if (splitParameters.Length == 2)
+                        {
+                            import.Import(filePath, database);
+                        }
+                        else if (splitParameters.Length == 3) {
+                            import.Import(filePath, database, bool.Parse(splitParameters[2]));
+                        }
+                        else if (splitParameters.Length == 4)
+                        {
+                            import.Import(filePath, database, bool.Parse(splitParameters[2]), columnSeparator: splitParameters[3].ElementAt(0));
+                        }
+                        else if (splitParameters.Length == 5)
+                        {
+                            import.Import(filePath, database, bool.Parse(splitParameters[2]), columnSeparator: splitParameters[3].ElementAt(0), threadsCount: int.Parse(splitParameters[4]));
+                        }
+                        else if (splitParameters.Length == 6)
+                        {
+                            import.Import(filePath, database, bool.Parse(splitParameters[2]), columnSeparator: splitParameters[3].ElementAt(0), threadsCount: int.Parse(splitParameters[4]), batchSize: int.Parse(splitParameters[5]));
+                        }
 
-                        break; */
+                        break; 
 
                     case "h":
                     case "help":
