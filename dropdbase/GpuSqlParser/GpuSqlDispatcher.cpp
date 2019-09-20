@@ -1078,6 +1078,7 @@ void GpuSqlDispatcher::CleanUpGpuPointers()
         }
     }
     usedRegisterMemory_ = 0;
+    filter_ = 0;
     usingGroupBy_ = false;
     aggregatedRegisters_.clear();
     allocatedPointers_.clear();
