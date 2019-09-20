@@ -25,6 +25,7 @@
 
   <PropertyGroup>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

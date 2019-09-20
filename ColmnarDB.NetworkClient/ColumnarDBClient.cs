@@ -780,7 +780,7 @@ namespace ColmnarDB.NetworkClient
                                 i = 0;
                                 for (int j = 0; j < stringList.Count; j++)
                                 {
-                                    var elem = stringList[i];
+                                    var elem = stringList[j];
                                     if (elem == null)
                                     {
                                         elem = defaultElement;
@@ -803,7 +803,7 @@ namespace ColmnarDB.NetworkClient
                                         byte* lenBytes = (byte*)&len;
                                         for (int k = 0; k < sizeof(int); k++)
                                         {
-                                            dataBuffer[i + j] = *lenBytes;
+                                            dataBuffer[i + k] = *lenBytes;
                                             lenBytes++;
                                         }
                                     }
@@ -854,6 +854,11 @@ namespace ColmnarDB.NetworkClient
                 }
             }
             catch (IOException)
+            {
+                CloseWithoutNotify();
+                throw;
+            }
+            catch (Exception ex)
             {
                 CloseWithoutNotify();
                 throw;

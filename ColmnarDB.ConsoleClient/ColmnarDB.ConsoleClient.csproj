@@ -25,10 +25,13 @@
 
   <PropertyGroup>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ColmnarDB.NetworkClient\ColmnarDB.NetworkClient.csproj" />
+    <ProjectReference Include="..\TellStory.Data.Parser\TellStory.Data.Parser.csproj" />
+    <ProjectReference Include="..\TellStory.Data\TellStory.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

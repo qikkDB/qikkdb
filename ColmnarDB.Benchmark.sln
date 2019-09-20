@@ -11,7 +11,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ColmnarDB.NetworkClient", "
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "ColmnarDB.Setup", "ColmnarDB.Setup\GPU-DB-Setup.vdproj", "{15E99F2C-E654-4644-91FD-1FF78E5FDBAF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TellStory.Data.Parser", "TellStory.Data.Parser\TellStory.Data.Parser.csproj", "{1AAC2896-0057-426F-BF39-1B9E7B8529FC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TellStory.Data", "TellStory.Data\TellStory.Data.csproj", "{45390A7F-72B4-48A5-831F-F50586460889}"
+EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
@@ -68,6 +75,30 @@ Global
 		{15E99F2C-E654-4644-91FD-1FF78E5FDBAF}.Release|Any CPU.Build.0 = Release
 		{15E99F2C-E654-4644-91FD-1FF78E5FDBAF}.Release|x64.ActiveCfg = Release
 		{15E99F2C-E654-4644-91FD-1FF78E5FDBAF}.Release|x64.Build.0 = Release
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Debug|x64.Build.0 = Debug|Any CPU
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Release No Web No DLL|Any CPU.ActiveCfg = Release|Any CPU
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Release No Web No DLL|Any CPU.Build.0 = Release|Any CPU
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Release No Web No DLL|x64.ActiveCfg = Release|Any CPU
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Release No Web No DLL|x64.Build.0 = Release|Any CPU
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Release|x64.ActiveCfg = Release|Any CPU
+		{1AAC2896-0057-426F-BF39-1B9E7B8529FC}.Release|x64.Build.0 = Release|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Debug|x64.Build.0 = Debug|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Release No Web No DLL|Any CPU.ActiveCfg = Release|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Release No Web No DLL|Any CPU.Build.0 = Release|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Release No Web No DLL|x64.ActiveCfg = Release|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Release No Web No DLL|x64.Build.0 = Release|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Release|x64.ActiveCfg = Release|Any CPU
+		{45390A7F-72B4-48A5-831F-F50586460889}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
