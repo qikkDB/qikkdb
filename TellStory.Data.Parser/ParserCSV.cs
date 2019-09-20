@@ -205,11 +205,10 @@ namespace TellStory.Data.Parser
                 }
                 
             }
-            Dictionary<string, string[]> topRows = new Dictionary<string, string[]>();
+            Dictionary<string, List<string>> topRows = new Dictionary<string, List<string>>();
             foreach (var head in header)
             {
-                string[] arr = new string[100];
-                topRows.Add(head, arr);
+                topRows.Add(head, new List<string>());
             }
             for (int i = 0; i < 100; i++)
             {
@@ -220,11 +219,8 @@ namespace TellStory.Data.Parser
                 int columnIndex = 0;
                 foreach (var val in vals)
                 {
-                    string[] values;
                     string key = header[columnIndex];
-                    topRows.TryGetValue(key, out values);
-                    values[i] = vals[columnIndex];
-                    topRows[key] = values;
+                    topRows[key].Add(vals[columnIndex]);                    
                     columnIndex++;
                 }
             }
@@ -239,7 +235,7 @@ namespace TellStory.Data.Parser
 
         }
 
-        private static Type GuessTableColumnType(string columnName, string[] topNvalues)
+        private static Type GuessTableColumnType(string columnName, List<string> topNvalues)
         {
             bool boolError = false;
             bool singleError = false;

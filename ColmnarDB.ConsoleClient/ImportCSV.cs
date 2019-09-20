@@ -90,7 +90,7 @@ namespace ColmnarDB.ConsoleClient
                     int index = i;
                     threads[index] = new Thread(() => this.ParseAndImportBatch(index, path, configuration, types, start, end));
                     threads[index].Start();
-                    //this.ParseAndImportBatch(index, path, configuration, types, out linesImported[index], start, end);
+                    //this.ParseAndImportBatch(index, path, configuration, types, start, end);
                 }
                 
                 for (int i = 0; i < threadsCount; i++)
