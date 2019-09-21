@@ -22,6 +22,7 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::RetCol<std::string>,
     &GpuSqlDispatcher::RetCol<int8_t>};
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::lockRegisterFunction_ = &GpuSqlDispatcher::LockRegister;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::getLoadSizeFunction_ = &GpuSqlDispatcher::GetLoadSize;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::filFunction_ = &GpuSqlDispatcher::Fil;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::whereEvaluationFunction_ = &GpuSqlDispatcher::WhereEvaluation;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::jmpFunction_ = &GpuSqlDispatcher::Jmp;
@@ -829,4 +830,24 @@ size_t GpuSqlDispatcher::GetBlockSize()
         GPUMemory::copyDeviceToHost(&dataElementCount, outSum.get(), 1);
     }
     return dataElementCount;
+}
+
+int32_t GpuSqlDispatcher::GetLoadSize()
+{
+    int64_t offset = arguments_.Read<int64_t>();
+    int64_t limit = arguments_.Read<int64_t>();
+
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "GetLoadSize Offset: " << offset << " Limit: " << limit << '\n';
+
+    int64_t blockSize = GetBlockSize();
+
+    std::lock_guard<std::mutex> lock(loadSizeMutex_);
+
+    int64_t remainingDataSize = limit + offset - processedDataSize_;
+
+    loadSize_ = std::min(blockSize, remainingDataSize);
+    processedDataSize_ += loadSize_;
+
+    return 0;
 }

@@ -88,6 +88,7 @@ private:
     int32_t constPolygonCounter_;
     int32_t jmpInstructionPosition_;
     int32_t constStringCounter_;
+    int64_t loadSize_;
     const std::shared_ptr<Database>& database_;
     std::string loadedTableName_;
     std::unordered_map<std::string, PointerAllocation> allocatedPointers_;
@@ -229,6 +230,7 @@ private:
     static DispatchFunction groupByDoneFunction_;
     static DispatchFunction freeOrderByTableFunction_;
     static DispatchFunction orderByReconstructRetAllBlocksFunction_;
+    static DispatchFunction getLoadSizeFunction_;
     static DispatchFunction filFunction_;
     static DispatchFunction whereEvaluationFunction_;
     static DispatchFunction lockRegisterFunction_;
@@ -249,6 +251,8 @@ private:
     static int32_t groupByDoneCounter_;
     static int32_t orderByDoneCounter_;
     static int32_t deviceCountLimit_;
+    static int64_t processedDataSize_;
+
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int8_t[]>& data,
                            int32_t dataSize);
@@ -275,6 +279,7 @@ private:
 public:
     static std::mutex groupByMutex_;
     static std::mutex orderByMutex_;
+    static std::mutex loadSizeMutex_;
 
     static std::condition_variable groupByCV_;
     static std::condition_variable orderByCV_;
@@ -571,6 +576,8 @@ public:
 
     void SetLoadedTableName(const std::string& tableName);
 
+    void AddGetLoadSizeFunction();
+
     static std::unordered_map<std::string, int32_t> linkTable;
 
     template <typename T>
@@ -709,6 +716,8 @@ public:
     int32_t FreeOrderByTable();
 
     int32_t LockRegister();
+
+    int32_t GetLoadSize();
 
     int32_t Fil();
 

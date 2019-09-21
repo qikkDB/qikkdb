@@ -25,9 +25,11 @@ const std::string GpuSqlDispatcher::RECONSTRUCTED_SUFFIX = "_reconstructed";
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 int32_t GpuSqlDispatcher::orderByDoneCounter_ = 0;
+int64_t GpuSqlDispatcher::processedDataSize_ = 0;
 
 std::mutex GpuSqlDispatcher::groupByMutex_;
 std::mutex GpuSqlDispatcher::orderByMutex_;
+std::mutex GpuSqlDispatcher::loadSizeMutex_;
 
 std::condition_variable GpuSqlDispatcher::groupByCV_;
 std::condition_variable GpuSqlDispatcher::orderByCV_;
@@ -62,7 +64,7 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database>& database,
   isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true), aborted_(false),
   loadNecessary_(1), cpuDispatcher_(database), jmpInstructionPosition_(0),
   insertIntoData_(std::make_unique<InsertIntoStruct>()), joinIndices_(nullptr),
-  orderByTable_(nullptr), orderByBlocks_(orderByBlocks), loadedTableName_("")
+  orderByTable_(nullptr), orderByBlocks_(orderByBlocks), loadedTableName_(""), loadSize_(0)
 {
 }
 
@@ -73,6 +75,11 @@ GpuSqlDispatcher::~GpuSqlDispatcher()
 void GpuSqlDispatcher::SetLoadedTableName(const std::string& tableName)
 {
     loadedTableName_ = tableName;
+}
+
+void GpuSqlDispatcher::AddGetLoadSizeFunction()
+{
+    dispatcherFunctions_.push_back(getLoadSizeFunction_);
 }
 
 void GpuSqlDispatcher::CopyExecutionDataTo(GpuSqlDispatcher& other, CpuSqlDispatcher& sourceCpuDispatcher)

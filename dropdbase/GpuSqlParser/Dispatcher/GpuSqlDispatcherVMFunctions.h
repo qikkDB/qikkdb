@@ -188,7 +188,7 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
 
         noLoad_ = false;
 
-        if (loadNecessary_ == 0)
+        if (loadNecessary_ == 0 || loadSize_ <= 0)
         {
             instructionPointer_ = jmpInstructionPosition_;
             return 12;
@@ -233,13 +233,13 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
                 cacheEntry =
                     Context::getInstance().getCacheForCurrentDevice().getColumn<T>(database_->GetName(),
                                                                                    colName, blockIndex_,
-                                                                                   block->GetSize());
+                                                                                   loadSize_);
                 if (!std::get<2>(cacheEntry))
                 {
-                    GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), block->GetSize());
+                    GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), loadSize_);
                 }
 
-                realSize = block->GetSize();
+                realSize = loadSize_;
             }
 
             if (block->IsNullable())

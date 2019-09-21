@@ -1594,6 +1594,13 @@ void GpuSqlListener::SetContainsAggFunction(bool containsAgg)
     ContainsAggFunction = containsAgg;
 }
 
+void GpuSqlListener::LimitOffset()
+{
+    dispatcher_.AddArgument<int64_t>(ResultOffset);
+    dispatcher_.AddArgument<int64_t>(ResultLimit);
+    dispatcher_.AddGetLoadSizeFunction();
+}
+
 void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext* ctx)
 {
     for (int32_t i = 0; i < ctx->selectColumn().size(); i++)

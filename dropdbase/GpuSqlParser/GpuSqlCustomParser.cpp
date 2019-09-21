@@ -82,6 +82,18 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
             throw DatabaseNotUsedException();
         }
 
+        if (statement->sqlSelect()->offset())
+        {
+            walker.walk(&gpuSqlListener, statement->sqlSelect()->offset());
+        }
+
+        if (statement->sqlSelect()->limit())
+        {
+            walker.walk(&gpuSqlListener, statement->sqlSelect()->limit());
+        }
+
+        gpuSqlListener.LimitOffset();
+
         walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
         walker.walk(&cpuWhereListener, statement->sqlSelect()->fromTables());
 
@@ -164,16 +176,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         }
 
         gpuSqlListener.exitSelectColumns(statement->sqlSelect()->selectColumns());
-
-        if (statement->sqlSelect()->offset())
-        {
-            walker.walk(&gpuSqlListener, statement->sqlSelect()->offset());
-        }
-
-        if (statement->sqlSelect()->limit())
-        {
-            walker.walk(&gpuSqlListener, statement->sqlSelect()->limit());
-        }
     }
     else if (statement->showStatement())
     {
@@ -360,7 +362,7 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
         }
     }
 
-    TrimResponseMessage(responseMessage.get(), resultLimit, resultOffset);
+    //TrimResponseMessage(responseMessage.get(), resultLimit, resultOffset);
     return std::move(responseMessage);
 }
 
