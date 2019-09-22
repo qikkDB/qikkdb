@@ -101,6 +101,8 @@ columnValue: (
 		| geometry
 		| NULLLIT
 		| STRING
+		| DATETIMELIT
+		| BOOLEANLIT
 	);
 
 expression:

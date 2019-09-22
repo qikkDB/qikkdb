@@ -1,5 +1,5 @@
 
-// Generated from /home/jvesely/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.1
+// Generated from C:/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
 
 #pragma once
 
@@ -965,6 +965,8 @@ public:
     GeometryContext *geometry();
     antlr4::tree::TerminalNode *NULLLIT();
     antlr4::tree::TerminalNode *STRING();
+    antlr4::tree::TerminalNode *DATETIMELIT();
+    antlr4::tree::TerminalNode *BOOLEANLIT();
     antlr4::tree::TerminalNode *MINUS();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -978,7 +980,7 @@ public:
   public:
     ExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
    
-    ExpressionContext() : antlr4::ParserRuleContext() { }
+    ExpressionContext() = default;
     void copyFrom(ExpressionContext *context);
     using antlr4::ParserRuleContext::copyFrom;
 

@@ -9,11 +9,11 @@ DataType GetColumnDataTypeFromString(const std::string& dataType)
         c = toupper(c);
     }
 
-    if (type == "INT")
+    if (type == "INT" || type == "INTEGER" || type == "INT32")
     {
         return DataType::COLUMN_INT;
     }
-    else if (type == "LONG" || type == "DATE")
+    else if (type == "LONG" || type == "INT64" || type == "DATE" || type == "DATETIME")
     {
         return DataType::COLUMN_LONG;
     }
@@ -37,7 +37,7 @@ DataType GetColumnDataTypeFromString(const std::string& dataType)
     {
         return DataType::COLUMN_STRING;
     }
-    else if (type == "BOOLEAN")
+    else if (type == "BOOLEAN" || type == "BOOL" || type == "INT8")
     {
         return DataType::COLUMN_INT8_T;
     }
@@ -59,7 +59,7 @@ std::string GetStringFromColumnDataType(DataType type)
         break;
     case DataType::COLUMN_FLOAT:
         return "FLOAT";
-		break;
+        break;
     case DataType::COLUMN_DOUBLE:
         return "DOUBLE";
         break;
@@ -71,9 +71,9 @@ std::string GetStringFromColumnDataType(DataType type)
         break;
     case DataType::COLUMN_STRING:
         return "STRING";
-		break;
+        break;
     case DataType::COLUMN_INT8_T:
-        return "INT8";
+        return "BOOL";
         break;
     default:
         return "";
