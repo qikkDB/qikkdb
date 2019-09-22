@@ -30,16 +30,8 @@ __device__ __host__ constexpr K getEmptyValue()
 {
     static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value,
                   "Unsupported data type of key (in function getEmptyValue)");
-
-    if (std::is_integral<K>::value)
-    {
-        return std::numeric_limits<K>::min();
+    return std::numeric_limits<K>::lowest();
     }
-    else
-    {
-        return std::numeric_limits<K>::quiet_NaN();
-    }
-}
 
 /// Generic atomic CAS (compare and set) for any 4 and 8 bytes long data type.
 template <typename T>
