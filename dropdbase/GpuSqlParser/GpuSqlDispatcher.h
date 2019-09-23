@@ -632,8 +632,11 @@ public:
         {
             CudaLogBoost::getInstance(CudaLogBoost::info) << "Free: " << col << '\n';
 
-            GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col).GpuPtr));
-            usedRegisterMemory_ -= allocatedPointers_.at(col).ElementCount * sizeof(T);
+            if (allocatedPointers_.at(col).GpuPtr)
+            {
+                GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col).GpuPtr));
+                usedRegisterMemory_ -= allocatedPointers_.at(col).ElementCount * sizeof(T);
+            }
             allocatedPointers_.erase(col);
 
             if (allocatedPointers_.find(col + NULL_SUFFIX) != allocatedPointers_.end())
