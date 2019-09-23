@@ -1097,6 +1097,7 @@ public:
     antlr4::tree::TerminalNode *LOG();
     antlr4::tree::TerminalNode *POW();
     antlr4::tree::TerminalNode *ROOT();
+    antlr4::tree::TerminalNode *ROUND();
     antlr4::tree::TerminalNode *POINT();
     antlr4::tree::TerminalNode *GEO_CONTAINS();
     antlr4::tree::TerminalNode *GEO_INTERSECT();

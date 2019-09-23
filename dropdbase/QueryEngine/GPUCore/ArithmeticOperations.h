@@ -152,4 +152,17 @@ struct rootNoCheck
         return powf(a, 1.0f / b);
     }
 };
+
+struct roundDecimalNoCheck
+{
+    static constexpr bool isMonotonous = false;
+    static constexpr bool isFloatRetType = true;
+    template <typename T, typename U, typename V>
+    __device__ __host__ T operator()(U a, V b) const
+    {
+        const double multiplier = pow(10.0, b);
+        return ceilf(a * multiplier) / multiplier;
+    }
+};
+
 } // namespace ArithmeticOperations

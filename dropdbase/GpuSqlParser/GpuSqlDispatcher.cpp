@@ -426,6 +426,11 @@ void GpuSqlDispatcher::AddArctangent2Function(DataType y, DataType x)
     dispatcherFunctions_.push_back(arctangent2Functions_[DataType::DATA_TYPE_SIZE * y + x]);
 }
 
+void GpuSqlDispatcher::AddRoundDecimalFunction(DataType y, DataType x)
+{
+    dispatcherFunctions_.push_back(roundDecimalFunctions_[DataType::DATA_TYPE_SIZE * y + x]);
+}
+
 void GpuSqlDispatcher::AddConcatFunction(DataType left, DataType right)
 {
     dispatcherFunctions_.push_back(concatFunctions[DataType::DATA_TYPE_SIZE * left + right]);

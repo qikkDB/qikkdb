@@ -146,6 +146,7 @@ private:
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> arctangent2Functions_;
+    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> roundDecimalFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> concatFunctions;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions_;
@@ -460,8 +461,10 @@ public:
     void AddLogarithm10Function(DataType type);
 
     void AddLogarithmFunction(DataType number, DataType base);
-
+    
     void AddArctangent2Function(DataType y, DataType x);
+
+    void AddRoundDecimalFunction(DataType y, DataType x);
 
     void AddConcatFunction(DataType left, DataType right);
 

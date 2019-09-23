@@ -3346,6 +3346,8 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE* DataTyp
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerColCol<ArithmeticOperations::arctangent2, int8_t, ColmnarDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerColCol<ArithmeticOperations::arctangent2, int8_t, std::string>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerColCol<ArithmeticOperations::arctangent2, int8_t, int8_t>};
+
+std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE* DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::roundDecimalFunctions_ = {};
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE* DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::rootFunctions_ = {
     &GpuSqlDispatcher::ArithmeticConstConst<ArithmeticOperations::root, int32_t, int32_t>,
     &GpuSqlDispatcher::ArithmeticConstConst<ArithmeticOperations::root, int32_t, int64_t>,

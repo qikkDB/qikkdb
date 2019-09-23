@@ -208,6 +208,11 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext* c
         dispatcher_.AddArctangent2Function(leftOperandType, rightOperandType);
         returnDataType = GetReturnDataType(DataType::COLUMN_FLOAT);
         break;
+    case GpuSqlLexer::ROUND:
+        reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
+        dispatcher_.AddRoundDecimalFunction(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(DataType::COLUMN_FLOAT);
+        break;
     case GpuSqlLexer::CONCAT:
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
         dispatcher_.AddConcatFunction(leftOperandType, rightOperandType);

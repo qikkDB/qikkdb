@@ -48,6 +48,7 @@ private:
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> arctangent2Functions_;
+    static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> roundDecimalFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions_;

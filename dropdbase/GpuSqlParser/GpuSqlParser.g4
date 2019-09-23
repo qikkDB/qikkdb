@@ -146,6 +146,7 @@ expression:
 	| op = LOG LPAREN left = expression COMMA right = expression RPAREN				# binaryOperation
 	| op = POW LPAREN left = expression COMMA right = expression RPAREN				# binaryOperation
 	| op = ROOT LPAREN left = expression COMMA right = expression RPAREN			# binaryOperation
+	| op = ROUND LPAREN left = expression COMMA right = expression RPAREN			# binaryOperation
 	| left = expression op = XOR right = expression									# binaryOperation
 	| left = expression op = (BIT_AND | BIT_OR) right = expression					# binaryOperation
 	| left = expression op = (L_SHIFT | R_SHIFT) right = expression					# binaryOperation

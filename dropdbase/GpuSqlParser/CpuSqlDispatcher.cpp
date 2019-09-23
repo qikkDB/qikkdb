@@ -148,6 +148,10 @@ void CpuSqlDispatcher::AddBinaryOperation(DataType left, DataType right, size_t 
         cpuDispatcherFunctions_.push_back(arctangent2Functions_[left * DataType::DATA_TYPE_SIZE + right]);
         break;
 
+    case GpuSqlLexer::ROUND:
+        cpuDispatcherFunctions_.push_back(roundDecimalFunctions_[left * DataType::DATA_TYPE_SIZE + right]);
+        break;
+
     case GpuSqlLexer::LEFT:
         cpuDispatcherFunctions_.push_back(leftFunctions_[left * DataType::DATA_TYPE_SIZE + right]);
         break;

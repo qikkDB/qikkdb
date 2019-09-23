@@ -142,6 +142,10 @@ void CpuWhereListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext*
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
         returnDataType = GetReturnDataType(DataType::COLUMN_FLOAT);
         break;
+    case GpuSqlLexer::ROUND:
+        reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
+        returnDataType = GetReturnDataType(DataType::COLUMN_FLOAT);
+        break;
     case GpuSqlLexer::CONCAT:
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
         returnDataType = DataType::COLUMN_STRING;

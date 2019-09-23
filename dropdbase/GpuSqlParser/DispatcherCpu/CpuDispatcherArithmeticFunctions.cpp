@@ -3387,6 +3387,8 @@ std::array<CpuSqlDispatcher::CpuDispatchFunction, DataType::DATA_TYPE_SIZE* Data
     &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerColCol<ArithmeticOperations::arctangent2NoCheck, int8_t, ColmnarDB::Types::ComplexPolygon>,
     &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerColCol<ArithmeticOperations::arctangent2NoCheck, int8_t, std::string>,
     &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerColCol<ArithmeticOperations::arctangent2NoCheck, int8_t, int8_t>};
+
+std::array<CpuSqlDispatcher::CpuDispatchFunction, DataType::DATA_TYPE_SIZE* DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::roundDecimalFunctions_ = {};
 std::array<CpuSqlDispatcher::CpuDispatchFunction, DataType::DATA_TYPE_SIZE* DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::rootFunctions_ = {
     &CpuSqlDispatcher::arithmeticConstConst<ArithmeticOperations::rootNoCheck, int32_t, int32_t>,
     &CpuSqlDispatcher::arithmeticConstConst<ArithmeticOperations::rootNoCheck, int32_t, int64_t>,

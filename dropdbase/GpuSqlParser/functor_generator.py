@@ -54,7 +54,7 @@ operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "n
 operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operations_logical = ["logicalAnd", "logicalOr"]
 operations_arithmetic = ["mul", "div", "add", "sub", "mod", "bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift",
-                         "bitwiseRightShift", "power", "logarithm", "arctangent2", "root"]
+                         "bitwiseRightShift", "power", "logarithm", "arctangent2", "root", "roundDecimal"]
 operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg", "year", "month", "day", "hour",
                     "minute", "second"]
 operations_aggregation = ["min", "max", "sum", "count", "avg"]
@@ -323,6 +323,9 @@ for operation in operations_arithmetic:
 
             elif (operation == "mod" or operation in bitwise_operations) and (
                     colVal in floating_types or rowVal in floating_types):
+                op = "InvalidOperandTypesErrorHandler"
+
+            elif (operation == "roundDecimal") and (rowVal in floating_types):
                 op = "InvalidOperandTypesErrorHandler"
 
             else:
