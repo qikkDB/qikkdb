@@ -20,6 +20,7 @@ namespace ColmnarDB.ConsoleClient
         private string tableName;
         private string databaseName;
         private long[] linesImported;
+        private long[] linesError;
         private long[] bytesImported;
         private long streamLength;
 
@@ -78,8 +79,10 @@ namespace ColmnarDB.ConsoleClient
 
                 long streamThreadLength = streamLength / threadsCount;
                 long lines = 0;
+                long errors = 0;
                 linesImported = new long[threadsCount];
                 bytesImported = new long[threadsCount];
+                linesError = new long[threadsCount];
                 Thread[] threads = new Thread[threadsCount];
 
                 // Each thread has its own instance of the Parser (because of different position of read) and ColumnarDBClient (because of concurrent bulk import)
@@ -101,11 +104,12 @@ namespace ColmnarDB.ConsoleClient
                 for (int i = 0; i < threadsCount; i++)
                 {
                     lines += linesImported[i];
+                    errors += linesError[i];
                 }
 
                 var endTime = DateTime.Now;
                 Console.WriteLine();
-                Console.WriteLine("Importing done (" + (endTime - startTime).TotalSeconds.ToString() + "s.).");                
+                Console.WriteLine("Importing done (imported " + lines + " records, " + errors + " failed, " + (endTime - startTime).TotalSeconds.ToString() + "sec.).");                
 
             }
             catch (FileNotFoundException)
@@ -176,12 +180,16 @@ namespace ColmnarDB.ConsoleClient
             client.UseDatabase(databaseName);
 
             long lines = 0;
+            long errors = 0;
             while (true)
             {
-                var outData = parserCSV.GetNextParsedDataBatch();
+                long batchImportedLines;
+                long batchErrorLines;
+                var outData = parserCSV.GetNextParsedDataBatch(out batchImportedLines, out batchErrorLines);
                 if (outData == null)
                     break;
-                lines += outData.GetCount();
+                lines += batchImportedLines;
+                errors += batchErrorLines;
 
                 var colData = new NetworkClient.ColumnarDataTable(outData.GetColumnNames(), outData.GetColumnData(), outData.GetColumnTypes(), outData.GetColumnNames());
                 colData.TableName = tableName;                
@@ -190,6 +198,7 @@ namespace ColmnarDB.ConsoleClient
                 
                 linesImported[threadId] = lines;
                 bytesImported[threadId] = parserCSV.GetStreamPosition();
+                linesError[threadId] = errors;
                 
                 long totalLinesImported = 0;
                 for (int i = 0; i < linesImported.Length; i++)
@@ -202,10 +211,20 @@ namespace ColmnarDB.ConsoleClient
                 {
                     totalBytesImported += bytesImported[i];
                 }
-                Console.Write("\rImported " + totalLinesImported + " lines so far (" + Math.Round((float)totalBytesImported / streamLength * 100)  + "%)...");
+
+                long totalLinesError = 0;
+                for (int i = 0; i < linesError.Length; i++)
+                {
+                    totalLinesError += linesError[i];
+                }
+                Console.Write("\rImported " + totalLinesImported + " records so far (" + Math.Min(Math.Round((float)totalBytesImported / streamLength * 100), 100)  + "%)...");
             }
 
             client.Dispose();
+            if (stream != null)
+            {                
+                stream.Dispose();
+            }
         }
     }
 }

@@ -124,6 +124,11 @@ namespace TellStory.Data.Parser
             {
                 dataParser.Read();
             }
+            else if (startBytePosition > 0)
+            {
+                dataParser.Read();
+            }
+
         }
 
         public static Encoding GuessEncoding(string file)
@@ -285,8 +290,11 @@ namespace TellStory.Data.Parser
             return typeof(String);
         }
 
-        public ColumnarTableData GetNextParsedDataBatch()
+        public ColumnarTableData GetNextParsedDataBatch(out long importedLinesCount, out long errorLinesCount)
         {
+            importedLinesCount = 0;
+            errorLinesCount = 0;
+
             if (finished)
             {
                 return null;
@@ -314,7 +322,7 @@ namespace TellStory.Data.Parser
 
                 for (int i = 0; i < row.Length; i++)
                 {
-                    if (row[i] == "" || row[i].ToLower() == "null")
+                    if (row[i].Length == 0 || (row[i].Length == 4 && row[i].ToLower() == "null"))
                     {
                         row[i] = null;
                     }
@@ -373,16 +381,15 @@ namespace TellStory.Data.Parser
 
             if (errorCount > 0)
             {
-                //Model.Services.EventLogService.SaveLog(Model.Enums.EEventLogType.error.ToString(), new Model.Objects.Dataset(), "Error in parsing csv file. [Message: " + errorMsg + ", Failed rows: " + errorCount.ToString() + "]");
+                errorLinesCount = errorCount;
             }
             if (readLinesCount == 0)
             {
                 finished = true;
                 dataParser.Dispose();
-                this.stream.Close();
-                this.stream.Dispose();
                 return null;
             }
+            importedLinesCount = tableData.GetCount();
             return tableData;
         }
 
