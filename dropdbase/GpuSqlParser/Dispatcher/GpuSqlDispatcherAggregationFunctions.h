@@ -74,8 +74,7 @@ int32_t GpuSqlDispatcher::AggregationCol()
     }
 
     // Rewrite pointers and free old ones when needed
-    RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize,
-            reconstructOutNullMask);
+    RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize, reconstructOutNullMask);
 
     if (!IsRegisterAllocated(reg))
     {
@@ -390,8 +389,8 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
                                               reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
 
         // Rewrite pointers and free old ones when needed
-        RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg),
-                reconstructOutSize, reconstructOutNullMask);
+        RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize,
+                      reconstructOutNullMask);
     }
 
     // TODO void param
@@ -464,12 +463,13 @@ int32_t GpuSqlDispatcher::GroupByCol()
     GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize,
                                           reinterpret_cast<T*>(column.GpuPtr),
                                           reinterpret_cast<int8_t*>(filter_), column.ElementCount,
-                                          &reconstructOutNullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
-    
-    InsertRegister(columnName + RECONSTRUCTED_SUFFIX, 
-                    PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize, 
-                                        filter_ ? true : false,
-                                        reinterpret_cast<uintptr_t>(reconstructOutNullMask)});
+                                          &reconstructOutNullMask,
+                                          reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
+
+    InsertRegister(columnName + RECONSTRUCTED_SUFFIX,
+                   PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutReg),
+                                     reconstructOutSize, filter_ ? true : false,
+                                     reinterpret_cast<uintptr_t>(reconstructOutNullMask)});
     InsertRegister(columnName + NULL_SUFFIX + RECONSTRUCTED_SUFFIX,
                    PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutNullMask),
                                      reconstructOutSize, filter_ ? true : false, 0});
