@@ -387,7 +387,12 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
                                               reinterpret_cast<int8_t*>(filter_),
                                               column.ElementCount, &reconstructOutNullMask,
                                               reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
-
+        if (reconstructOutNullMask != reinterpret_cast<int8_t*>(column.GpuNullMaskPtr))
+        {
+            InsertRegister(colTableName + NULL_SUFFIX + RECONSTRUCTED_SUFFIX,
+                           PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutNullMask),
+                                             reconstructOutSize, true, 0});
+        }
         // Rewrite pointers and free old ones when needed
         RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize,
                       reconstructOutNullMask);
