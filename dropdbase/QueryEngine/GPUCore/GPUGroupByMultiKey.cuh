@@ -897,8 +897,15 @@ public:
                                                mergedOccurrences.get(), occupancyMask.get(), maxHashCount_);
             if (outValuesNullMask)
             {
-                GPUMemory::allocAndSet(outValuesNullMask, 0,
+                if (*outDataElementCount == 0)
+                {
+                    *outValuesNullMask = nullptr;
+                }
+                else
+                {
+                    GPUMemory::allocAndSet(outValuesNullMask, 0,
                                        (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8));
+                }
             }
         }
     }
