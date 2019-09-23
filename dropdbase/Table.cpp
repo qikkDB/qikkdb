@@ -1135,6 +1135,12 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                             ->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData),
                                          nullMasks.at(columnName), -1, compress);
                     }
+                    else if (wrappedData.type() == typeid(std::vector<int8_t>))
+                    {
+                        dynamic_cast<ColumnBase<int8_t>*>(columns.find(columnName)->second.get())
+                            ->InsertData(std::any_cast<std::vector<int8_t>>(wrappedData),
+                                         nullMasks.at(columnName), -1, compress);
+                    }
                 }
                 else
                 {
@@ -1176,6 +1182,11 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                             columns.find(columnName)->second.get())
                             ->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData),
                                          -1, compress);
+                    }
+                    else if (wrappedData.type() == typeid(std::vector<int8_t>))
+                    {
+                        dynamic_cast<ColumnBase<int8_t>*>(columns.find(columnName)->second.get())
+                            ->InsertData(std::any_cast<std::vector<int8_t>>(wrappedData), -1, compress);
                     }
                 }
             }

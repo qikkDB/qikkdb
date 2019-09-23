@@ -83,6 +83,8 @@ private:
 
     void WalkAliasExpression(const int64_t alias);
 
+    time_t DateToLong(std::string dateString);
+
 
 public:
     GpuSqlListener(const std::shared_ptr<Database>& database,

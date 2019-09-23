@@ -11370,7 +11370,7 @@ TEST(DispatcherTests, CreateInsertTableEquivalentTypeNotation)
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "CREATE TABLE tblA (colA integer, colB int32, colC int64, colD "
-                              "datetime, colE bool)");
+                              "datetime, colE bool);");
     auto resultPtr = parser.Parse();
 
     ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") !=

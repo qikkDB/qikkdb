@@ -1679,19 +1679,27 @@ void GpuSqlListener::exitDateTimeLiteral(GpuSqlParser::DateTimeLiteralContext* c
     auto stop = ctx->stop->getStopIndex();
     antlr4::misc::Interval interval(start, stop);
     std::string dateValue = ctx->start->getInputStream()->getText(interval);
-    dateValue = dateValue.substr(1, dateValue.size() - 2);
 
-    if (dateValue.size() <= 10)
+    std::time_t epochTime = DateToLong(dateValue);
+
+    parserStack_.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
+}
+
+time_t GpuSqlListener::DateToLong(std::string dateString)
+{
+    if (dateString.front() == '\'' && dateString.back() == '\'')
     {
-        dateValue += " 00:00:00";
+        dateString = dateString.substr(1, dateString.size() - 2);
+    }
+    if (dateString.size() <= 10)
+    {
+        dateString += " 00:00:00";
     }
 
     std::tm t;
-    std::istringstream ss(dateValue);
+    std::istringstream ss(dateString);
     ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
-    std::time_t epochTime = std::mktime(&t);
-
-    parserStack_.push(std::make_pair(std::to_string(epochTime), DataType::CONST_LONG));
+    return std::mktime(&t);
 }
 
 /// Method that executes on exit of PI() literal (3.1415926)
@@ -1872,7 +1880,14 @@ void GpuSqlListener::PushArgument(const char* token, DataType dataType)
         dispatcher_.AddArgument<int32_t>(std::stoi(token));
         break;
     case DataType::CONST_LONG:
-        dispatcher_.AddArgument<int64_t>(std::stoll(token));
+        try
+        {
+            dispatcher_.AddArgument<int64_t>(std::stoll(token));
+        }
+        catch(const std::invalid_argument& e)
+        {
+            dispatcher_.AddArgument<int64_t>(DateToLong(token));
+        }
         break;
     case DataType::CONST_FLOAT:
         dispatcher_.AddArgument<float>(std::stof(token));
@@ -1903,7 +1918,7 @@ void GpuSqlListener::PushArgument(const char* token, DataType dataType)
     {
         std::string booleanToken(token);
         StringToUpper(booleanToken);
-        dispatcher_.AddArgument<int8_t>(booleanToken == "TRUE");
+        dispatcher_.AddArgument<int8_t>(booleanToken == "TRUE" ? 1 : 0);
     }
     break;
     case DataType::DATA_TYPE_SIZE:
