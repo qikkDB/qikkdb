@@ -274,7 +274,7 @@ kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon in
             for (int32_t i = 0; i < (2 + 4 * WKT_DECIMAL_PLACES + 12); i++)
             {
                 outWkt.allChars[charId++] = emptyWkt[i];
-			}
+            }
         }
         else
         {
@@ -418,6 +418,10 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString* outStringCol
         {
             outStringCol->allChars = nullptr;
             outStringCol->stringIndices = nullptr;
+            if (outNullMask)
+            {
+                *outNullMask = nullptr;
+            }
         }
     }
     else // If mask is not used (is nullptr), just copy pointers from inCol to outCol
@@ -683,16 +687,16 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
             int32_t outSubpolySize;
             GPUMemory::copyDeviceToHost(&outSubpolySize, outCol->polyIdx + *outDataElementCount - 1, 1);
 
-			// If result set is empty
-			if (outSubpolySize == 0)
+            // If result set is empty
+            if (outSubpolySize == 0)
             {
                 outCol->pointIdx = nullptr;
                 outCol->polyPoints = nullptr;
 
                 return;
-			}
+            }
 
-			int32_t inPointSize;
+            int32_t inPointSize;
             GPUMemory::copyDeviceToHost(&inPointSize, inCol.pointIdx + inSubpolySize - 1, 1);
 
             cuda_ptr<int8_t> subpolyMask(inSubpolySize);
@@ -741,6 +745,10 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
             outCol->polyPoints = nullptr;
             outCol->pointIdx = nullptr;
             outCol->polyIdx = nullptr;
+            if (outNullMask)
+            {
+                *outNullMask = nullptr;
+            }
         }
     }
     else // If mask is not used (is nullptr), just copy pointers from inCol to outCol
@@ -772,7 +780,7 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string* outStringData,
                            inDataElementCount, &outNullMaskGPUPointer, nullMask);
     if (outNullMaskGPUPointer)
     {
-                    const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
+        const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
         GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
         if (inMask)
         {

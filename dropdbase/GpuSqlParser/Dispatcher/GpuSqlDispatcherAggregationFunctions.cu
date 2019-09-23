@@ -1506,7 +1506,10 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
                                             &reconstructOutNullMask, std::get<2>(column));
 
     FillStringRegister(reconstructOutReg, columnName + RECONSTRUCTED_SUFFIX, reconstructOutSize,
-                        filter_ ? false : true, reconstructOutNullMask);
+                       filter_ ? false : true, reconstructOutNullMask);
+    InsertRegister(columnName + NULL_SUFFIX + RECONSTRUCTED_SUFFIX,
+                   PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutNullMask),
+                                     reconstructOutSize, filter_ ? true : false, 0});
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(columnName)) ==
         groupByColumns_.end())
