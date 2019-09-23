@@ -21,6 +21,7 @@
 
 const std::string GpuSqlDispatcher::KEYS_SUFFIX = "_keys";
 const std::string GpuSqlDispatcher::NULL_SUFFIX = "_nullMask";
+const std::string GpuSqlDispatcher::RECONSTRUCTED_SUFFIX = "_reconstructed";
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 int32_t GpuSqlDispatcher::orderByDoneCounter_ = 0;

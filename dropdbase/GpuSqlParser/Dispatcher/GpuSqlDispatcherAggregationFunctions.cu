@@ -1505,8 +1505,8 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
                                              reinterpret_cast<int8_t*>(filter_), std::get<1>(column),
                                             &reconstructOutNullMask, std::get<2>(column));
 
-    // Rewrite pointers and free old ones when needed
-    RewriteStringColumn(columnName, reconstructOutReg, reconstructOutSize, reconstructOutNullMask);
+    FillStringRegister(reconstructOutReg, columnName + RECONSTRUCTED_SUFFIX, reconstructOutSize,
+                        filter_ ? false : true, reconstructOutNullMask);
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(columnName)) ==
         groupByColumns_.end())

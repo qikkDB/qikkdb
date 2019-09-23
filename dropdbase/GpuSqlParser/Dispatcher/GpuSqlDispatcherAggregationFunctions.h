@@ -109,7 +109,7 @@ public:
                              const PointerAllocation& valueColumn,
                              GpuSqlDispatcher& dispatcher)
     {
-        std::string groupByColumnName = groupByColumns.begin()->first;
+        std::string groupByColumnName = groupByColumns.begin()->first + RECONSTRUCTED_SUFFIX;
         PointerAllocation groupByColumn = dispatcher.allocatedPointers_.at(groupByColumnName);
 
         int32_t dataSize = std::min(groupByColumn.ElementCount, valueColumn.ElementCount);
@@ -159,7 +159,7 @@ public:
                              const PointerAllocation& valueColumn,
                              GpuSqlDispatcher& dispatcher)
     {
-        std::string groupByColumnName = groupByColumns.begin()->first;
+        std::string groupByColumnName = groupByColumns.begin()->first + RECONSTRUCTED_SUFFIX;
         auto groupByColumn = dispatcher.FindStringColumn(groupByColumnName);
 
         int32_t dataSize = std::min(std::get<1>(groupByColumn), valueColumn.ElementCount);
@@ -222,7 +222,8 @@ public:
         {
             if (groupByColumn.second == DataType::COLUMN_STRING)
             {
-                auto stringColumn = dispatcher.FindStringColumn(groupByColumn.first);
+                std::string groupByColumnName = groupByColumn.first + RECONSTRUCTED_SUFFIX;
+                auto stringColumn = dispatcher.FindStringColumn(groupByColumnName);
                 GPUMemory::GPUString* stringColPtr;
                 GPUMemory::alloc<GPUMemory::GPUString>(&stringColPtr, 1);
 
@@ -236,7 +237,8 @@ public:
             }
             else
             {
-                PointerAllocation keyColumn = dispatcher.allocatedPointers_.at(groupByColumn.first);
+                std::string groupByColumnName = groupByColumn.first + RECONSTRUCTED_SUFFIX;
+                PointerAllocation keyColumn = dispatcher.allocatedPointers_.at(groupByColumnName);
                 keyPtrs.push_back(reinterpret_cast<void*>(keyColumn.GpuPtr));
                 keyNullMaskPtrs.push_back(reinterpret_cast<int8_t*>(keyColumn.GpuNullMaskPtr));
                 minKeySize = std::min(keyColumn.ElementCount, minKeySize);
@@ -464,9 +466,10 @@ int32_t GpuSqlDispatcher::GroupByCol()
                                           reinterpret_cast<int8_t*>(filter_), column.ElementCount,
                                           &reconstructOutNullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
     
-    // Rewrite pointers and free old ones when needed
-    RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize,
-            reconstructOutNullMask);
+    InsertRegister(columnName + RECONSTRUCTED_SUFFIX, 
+                    PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize, 
+                                        filter_ ? true : false,
+                                        reinterpret_cast<uintptr_t>(reconstructOutNullMask)});
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(columnName)) ==
         groupByColumns_.end())

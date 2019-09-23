@@ -74,6 +74,7 @@ private:
     };
     static const std::string KEYS_SUFFIX;
     static const std::string NULL_SUFFIX;
+    static const std::string RECONSTRUCTED_SUFFIX;
 
     typedef int32_t (GpuSqlDispatcher::*DispatchFunction)();
     std::vector<DispatchFunction> dispatcherFunctions_;
