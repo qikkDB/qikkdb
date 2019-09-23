@@ -11361,6 +11361,104 @@ TEST(DispatcherTests, CreateAlterDropTable)
                 DispatcherObjs::GetInstance().database->GetTables().end());
 }
 
+TEST(DispatcherTests, CreateInsertTableEquivalentTypeNotation)
+{
+    Context::getInstance();
+
+    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") ==
+                DispatcherObjs::GetInstance().database->GetTables().end());
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "CREATE TABLE tblA (colA integer, colB int32, colC int64, colD "
+                              "datetime, colE bool)");
+    auto resultPtr = parser.Parse();
+
+    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") !=
+                DispatcherObjs::GetInstance().database->GetTables().end());
+
+    GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database,
+                               "INSERT INTO tblA (colA, colB, colC, colD, colE) VALUES (1, 2, 3, "
+                               "'2019-09-11 08:00:00', True);");
+
+    for (int32_t i = 0; i < 5; i++)
+    {
+        resultPtr = parser2.Parse();
+    }
+
+    GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
+                               "SELECT colA, colB, colC, colD, colE from tblA;");
+    resultPtr = parser3.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    std::vector<int32_t> expectedResultsColA;
+    std::vector<int32_t> expectedResultsColB;
+    std::vector<int64_t> expectedResultsColC;
+    std::vector<int64_t> expectedResultsColD;
+    std::vector<int8_t> expectedResultsColE;
+
+    for (int k = 0; k < 5; k++)
+    {
+        expectedResultsColA.push_back(1);
+        expectedResultsColB.push_back(2);
+        expectedResultsColC.push_back(3);
+
+        std::tm t;
+        std::istringstream ss("2019-09-11 08:00:00");
+        ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
+        std::time_t epochTime = std::mktime(&t);
+
+        expectedResultsColD.push_back(epochTime);
+        expectedResultsColE.push_back(1);
+    }
+
+    auto& payloadsColA = result->payloads().at("tblA.colA");
+    auto& payloadsColB = result->payloads().at("tblA.colB");
+    auto& payloadsColC = result->payloads().at("tblA.colC");
+    auto& payloadsColD = result->payloads().at("tblA.colD");
+    auto& payloadsColE = result->payloads().at("tblA.colE");
+
+    ASSERT_EQ(payloadsColA.intpayload().intdata_size(), expectedResultsColA.size());
+
+    for (int i = 0; i < payloadsColA.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResultsColA[i], payloadsColA.intpayload().intdata()[i]);
+    }
+
+    ASSERT_EQ(payloadsColB.intpayload().intdata_size(), expectedResultsColB.size());
+
+    for (int i = 0; i < payloadsColB.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResultsColB[i], payloadsColB.intpayload().intdata()[i]);
+    }
+
+    ASSERT_EQ(payloadsColC.int64payload().int64data_size(), expectedResultsColC.size());
+
+    for (int i = 0; i < payloadsColC.int64payload().int64data_size(); i++)
+    {
+        ASSERT_EQ(expectedResultsColC[i], payloadsColC.int64payload().int64data()[i]);
+    }
+
+    ASSERT_EQ(payloadsColD.int64payload().int64data_size(), expectedResultsColD.size());
+
+    for (int i = 0; i < payloadsColD.int64payload().int64data_size(); i++)
+    {
+        ASSERT_EQ(expectedResultsColD[i], payloadsColD.int64payload().int64data()[i]);
+    }
+
+    ASSERT_EQ(payloadsColE.intpayload().intdata_size(), expectedResultsColE.size());
+
+    for (int i = 0; i < payloadsColE.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResultsColE[i], payloadsColE.intpayload().intdata()[i]);
+    }
+
+    GpuSqlCustomParser parser4(DispatcherObjs::GetInstance().database, "DROP TABLE tblA;");
+    resultPtr = parser4.Parse();
+
+    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") ==
+                DispatcherObjs::GetInstance().database->GetTables().end());
+}
+
 TEST(DispatcherTests, IsNull)
 {
     Context::getInstance();
@@ -13547,16 +13645,19 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToPolygon)
                                "12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 "
                                "89.15,112.12 110, 61 80.11))\", \"randomString\");");
 
-	std::vector<std::string> expectedResultsCol;
-	std::vector<std::string> expectedResultsColString;
-	for (int32_t i = 0; i < 7; i++)
-	{
-		resultPtr = parser2.Parse();
-		ColmnarDB::Types::ComplexPolygon polygon = ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11, 90 89.15, 112.12 110, 61 80.11))");
-		ColmnarDB::Types::ComplexPolygon emptyPolygon = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
-		expectedResultsCol.push_back(ComplexPolygonFactory::WktFromPolygon(polygon, true));
-		expectedResultsColString.push_back(ComplexPolygonFactory::WktFromPolygon(emptyPolygon, true));
-	}
+    std::vector<std::string> expectedResultsCol;
+    std::vector<std::string> expectedResultsColString;
+    for (int32_t i = 0; i < 7; i++)
+    {
+        resultPtr = parser2.Parse();
+        ColmnarDB::Types::ComplexPolygon polygon = ComplexPolygonFactory::FromWkt(
+            "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
+            "80.11, 90 89.15, 112.12 110, 61 80.11))");
+        ColmnarDB::Types::ComplexPolygon emptyPolygon =
+            ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
+        expectedResultsCol.push_back(ComplexPolygonFactory::WktFromPolygon(polygon, true));
+        expectedResultsColString.push_back(ComplexPolygonFactory::WktFromPolygon(emptyPolygon, true));
+    }
 
     GpuSqlCustomParser parser3(database, "ALTER TABLE testTable ALTER COLUMN colP geo_polygon;");
     resultPtr = parser3.Parse();
