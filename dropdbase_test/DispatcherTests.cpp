@@ -10506,7 +10506,7 @@ TEST(DispatcherTests, RoundDecimalColFloat)
     Context::getInstance();
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT ROUND(colFloat1, 3) FROM TableA WHERE "
+                              "SELECT ROUND(colFloat1, 2) FROM TableA WHERE "
                               "colInteger1 >= 20;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -10535,13 +10535,13 @@ TEST(DispatcherTests, RoundDecimalColFloat)
         {
             if (blockInt->GetData()[k] >= 20)
             {
-                const double multiplier = std::pow(10.0, 3);
-                expectedResultsFloat.push_back(std::ceil(blockFloat->GetData()[k] * multiplier) / multiplier);
+                const float multiplier = powf(10.0, 2);
+                expectedResultsFloat.push_back(ceilf(blockFloat->GetData()[k] * multiplier) / multiplier);
             }
         }
     }
 
-    auto& payloadsFloat = result->payloads().at("ROUND(colFloat1, 3)");
+    auto& payloadsFloat = result->payloads().at("ROUND(colFloat1,2)");
 
     ASSERT_EQ(payloadsFloat.floatpayload().floatdata_size(), expectedResultsFloat.size());
 

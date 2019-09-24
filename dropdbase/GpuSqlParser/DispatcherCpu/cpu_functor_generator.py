@@ -329,7 +329,7 @@ print()
 
 for operation in operations_arithmetic:
     declaration = "std::array<CpuSqlDispatcher::CpuDispatchFunction," \
-                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions = {"
+                  "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::" + operation + "Functions_ = {"
 
     for colIdx, colVal in enumerate(all_types):
         for rowIdx, rowVal in enumerate(all_types):

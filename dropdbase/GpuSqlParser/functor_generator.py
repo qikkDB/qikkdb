@@ -329,7 +329,7 @@ for operation in operations_arithmetic:
                 op = "InvalidOperandTypesErrorHandler"
 
             else:
-                op = "arithmetic"
+                op = "Arithmetic"
 
             function = "GpuSqlDispatcher::" + op + col + row + "<ArithmeticOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
 
