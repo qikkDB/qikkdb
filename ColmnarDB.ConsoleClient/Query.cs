@@ -85,7 +85,7 @@ namespace ColmnarDB.ConsoleClient
                 }
                 catch (QueryException)
                 {
-                    Console.WriteLine("Query Exception occured:");
+                    Console.WriteLine("Query Exception occured, more details below:");
                 }
                 
                 while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
