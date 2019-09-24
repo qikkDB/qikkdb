@@ -82,8 +82,10 @@ public:
     /// Insert new column with proper data type into the table.
     /// </summary>
     /// <param name="columnName">Name of column.</param>
-    /// <param name="dataType">Data type of colum.n</param>
-    void CreateColumn(const char* columnName, DataType columnType, bool isNullable = true);
+    /// <param name="columnType">Data type of column.</param>
+    /// <param name="isNullable">Yields if a column can have NULL values. Default value is 'true'.</param>
+    /// <param name="isUnique">Yields if a column have unique values. Default value is 'false'.</param>
+    void CreateColumn(const char* columnName, DataType columnType, bool isNullable = true, bool isUnique = false);
 
 #ifndef __CUDACC__
     /// <summary>

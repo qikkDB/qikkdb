@@ -20,6 +20,8 @@ public:
     virtual std::pair<int8_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) = 0;
     virtual bool GetIsNullable() const = 0;
     virtual void SetIsNullable(bool isNullable) = 0;
+    virtual bool GetIsUnique() const = 0;
+    virtual void SetIsUnique(bool isUnique) = 0;
     virtual bool GetSaveNecessary() const = 0;
     virtual void SetSaveNecessaryToFalse() = 0;
     virtual void SetColumnName(std::string newName) = 0;

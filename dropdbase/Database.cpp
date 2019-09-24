@@ -701,9 +701,11 @@ void Database::LoadColumn(const char* path,
 
     int32_t type;
     bool isNullable;
+    bool isUnique;
 
     colFile.read(reinterpret_cast<char*>(&type), sizeof(int32_t)); // read type of column
     colFile.read(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // read nullability of column
+    colFile.read(reinterpret_cast<char*>(&isUnique), sizeof(bool)); // read unicity of column
 
     int32_t nullBitMaskAllocationSize =
         ((table.GetBlockSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
@@ -712,11 +714,10 @@ void Database::LoadColumn(const char* path,
     {
     case COLUMN_POLYGON:
     {
-        table.CreateColumn(columnName.c_str(), COLUMN_POLYGON, isNullable);
+        table.CreateColumn(columnName.c_str(), COLUMN_POLYGON, isNullable, isUnique);
 
         auto& columnPolygon =
             dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*table.GetColumns().at(columnName));
-        columnPolygon.SetIsNullable(isNullable);
 
         while (!colFile.eof())
         {
@@ -804,11 +805,10 @@ void Database::LoadColumn(const char* path,
 
     case COLUMN_POINT:
     {
-        table.CreateColumn(columnName.c_str(), COLUMN_POINT, isNullable);
+        table.CreateColumn(columnName.c_str(), COLUMN_POINT, isNullable, isUnique);
 
         auto& columnPoint =
             dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*table.GetColumns().at(columnName));
-        columnPoint.SetIsNullable(isNullable);
 
         while (!colFile.eof())
         {
@@ -905,10 +905,9 @@ void Database::LoadColumn(const char* path,
 
     case COLUMN_STRING:
     {
-        table.CreateColumn(columnName.c_str(), COLUMN_STRING, isNullable);
+        table.CreateColumn(columnName.c_str(), COLUMN_STRING, isNullable, isUnique);
 
         auto& columnString = dynamic_cast<ColumnBase<std::string>&>(*table.GetColumns().at(columnName));
-        columnString.SetIsNullable(isNullable);
 
         while (!colFile.eof())
         {
@@ -994,10 +993,9 @@ void Database::LoadColumn(const char* path,
 
     case COLUMN_INT8_T:
     {
-        table.CreateColumn(columnName.c_str(), COLUMN_INT8_T, isNullable);
+        table.CreateColumn(columnName.c_str(), COLUMN_INT8_T, isNullable, isUnique);
 
         auto& columnInt = dynamic_cast<ColumnBase<int8_t>&>(*table.GetColumns().at(columnName));
-        columnInt.SetIsNullable(isNullable);
 
         while (!colFile.eof())
         {
@@ -1076,10 +1074,9 @@ void Database::LoadColumn(const char* path,
 
     case COLUMN_INT:
     {
-        table.CreateColumn(columnName.c_str(), COLUMN_INT, isNullable);
+        table.CreateColumn(columnName.c_str(), COLUMN_INT, isNullable, isUnique);
 
         auto& columnInt = dynamic_cast<ColumnBase<int32_t>&>(*table.GetColumns().at(columnName));
-        columnInt.SetIsNullable(isNullable);
 
         while (!colFile.eof())
         {
@@ -1158,10 +1155,9 @@ void Database::LoadColumn(const char* path,
 
     case COLUMN_LONG:
     {
-        table.CreateColumn(columnName.c_str(), COLUMN_LONG, isNullable);
+        table.CreateColumn(columnName.c_str(), COLUMN_LONG, isNullable, isUnique);
 
         auto& columnLong = dynamic_cast<ColumnBase<int64_t>&>(*table.GetColumns().at(columnName));
-        columnLong.SetIsNullable(isNullable);
 
         while (!colFile.eof())
         {
@@ -1240,10 +1236,9 @@ void Database::LoadColumn(const char* path,
 
     case COLUMN_FLOAT:
     {
-        table.CreateColumn(columnName.c_str(), COLUMN_FLOAT, isNullable);
+        table.CreateColumn(columnName.c_str(), COLUMN_FLOAT, isNullable, isUnique);
 
         auto& columnFloat = dynamic_cast<ColumnBase<float>&>(*table.GetColumns().at(columnName));
-        columnFloat.SetIsNullable(isNullable);
 
         while (!colFile.eof())
         {
@@ -1322,10 +1317,9 @@ void Database::LoadColumn(const char* path,
 
     case COLUMN_DOUBLE:
     {
-        table.CreateColumn(columnName.c_str(), COLUMN_DOUBLE, isNullable);
+        table.CreateColumn(columnName.c_str(), COLUMN_DOUBLE, isNullable, isUnique);
 
         auto& columnDouble = dynamic_cast<ColumnBase<double>&>(*table.GetColumns().at(columnName));
-        columnDouble.SetIsNullable(isNullable);
 
         while (!colFile.eof())
         {
@@ -1535,9 +1529,11 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
     int32_t type = column.second->GetColumnType();
     bool isNullable = column.second->GetIsNullable();
+    bool isUnique = column.second->GetIsUnique();
 
     colFile.write(reinterpret_cast<char*>(&type), sizeof(int32_t)); // write type of column
     colFile.write(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // write nullability of column
+    colFile.write(reinterpret_cast<char*>(&isUnique), sizeof(bool)); // write unicity of column
 
     switch (type)
     {

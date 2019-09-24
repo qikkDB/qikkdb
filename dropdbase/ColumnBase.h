@@ -106,11 +106,13 @@ private:
     float initAvg_ = 0.0; // initial average is needed, because avg_ is constantly changing and we need unchable value for comparing in binary index
     bool initAvgIsSet_ = false;
     bool isNullable_;
+    bool isUnique_;
     bool saveNecessary_;
 
 public:
-    ColumnBase(const std::string& name, int blockSize, bool isNullable = false)
-    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable), saveNecessary_(true)
+    ColumnBase(const std::string& name, int blockSize, bool isNullable = false, bool isUnique = false)
+    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable),
+      saveNecessary_(true), isUnique_(isUnique)
     {
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
     }
@@ -151,12 +153,30 @@ public:
         isNullable_ = isNullable;
     }
 
+    virtual bool GetIsUnique() const override
+    {
+        return isUnique_;
+    }
+
+    virtual void SetIsUnique(bool isUnique) override
+    {
+        isUnique_ = isUnique;
+        if (isUnique)
+        {
+            BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to TRUE for column named: " << name_ << ".";
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to FALSE for column named: " << name_ << ".";
+		}
+    }
+
     virtual bool GetSaveNecessary() const override
     {
         return saveNecessary_;
     }
 
-	virtual void SetSaveNecessaryToFalse() override
+    virtual void SetSaveNecessaryToFalse() override
     {
         saveNecessary_ = false;
         BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to FALSE for column named: " << name_ << ".";
