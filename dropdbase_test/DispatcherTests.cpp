@@ -11436,14 +11436,14 @@ TEST(DispatcherTests, CreateInsertTableEquivalentTypeNotation)
     }
 
     GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
-                               "SELECT colA, colB, colC, colD, colE from tblA;");
+                               "SELECT colA, colB, colC, YEAR(colD), colE from tblA;");
     resultPtr = parser3.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsColA;
     std::vector<int32_t> expectedResultsColB;
     std::vector<int64_t> expectedResultsColC;
-    std::vector<int64_t> expectedResultsColD;
+    std::vector<int32_t> expectedResultsColD;
     std::vector<int8_t> expectedResultsColE;
 
     for (int k = 0; k < 5; k++)
@@ -11451,20 +11451,14 @@ TEST(DispatcherTests, CreateInsertTableEquivalentTypeNotation)
         expectedResultsColA.push_back(1);
         expectedResultsColB.push_back(2);
         expectedResultsColC.push_back(3);
-
-        std::tm t;
-        std::istringstream ss("2019-09-11 08:00:00");
-        ss >> std::get_time(&t, "%Y-%m-%d %H:%M:%S");
-        std::time_t epochTime = std::mktime(&t);
-
-        expectedResultsColD.push_back(epochTime);
+        expectedResultsColD.push_back(2019);
         expectedResultsColE.push_back(1);
     }
 
     auto& payloadsColA = result->payloads().at("tblA.colA");
     auto& payloadsColB = result->payloads().at("tblA.colB");
     auto& payloadsColC = result->payloads().at("tblA.colC");
-    auto& payloadsColD = result->payloads().at("tblA.colD");
+    auto& payloadsColD = result->payloads().at("YEAR(colD)");
     auto& payloadsColE = result->payloads().at("tblA.colE");
 
     ASSERT_EQ(payloadsColA.intpayload().intdata_size(), expectedResultsColA.size());
@@ -11488,11 +11482,11 @@ TEST(DispatcherTests, CreateInsertTableEquivalentTypeNotation)
         ASSERT_EQ(expectedResultsColC[i], payloadsColC.int64payload().int64data()[i]);
     }
 
-    ASSERT_EQ(payloadsColD.int64payload().int64data_size(), expectedResultsColD.size());
+    ASSERT_EQ(payloadsColD.intpayload().intdata_size(), expectedResultsColD.size());
 
-    for (int i = 0; i < payloadsColD.int64payload().int64data_size(); i++)
+    for (int i = 0; i < payloadsColD.intpayload().intdata_size(); i++)
     {
-        ASSERT_EQ(expectedResultsColD[i], payloadsColD.int64payload().int64data()[i]);
+        ASSERT_EQ(expectedResultsColD[i], payloadsColD.intpayload().intdata()[i]);
     }
 
     ASSERT_EQ(payloadsColE.intpayload().intdata_size(), expectedResultsColE.size());
