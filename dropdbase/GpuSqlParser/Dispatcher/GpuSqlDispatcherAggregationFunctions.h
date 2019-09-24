@@ -28,7 +28,7 @@ int32_t GpuSqlDispatcher::AggregationCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "AggCol: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "AggCol: " << colName << " " << reg << '\n';
 
     PointerAllocation dummyAllocation = PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0};
     PointerAllocation& column = aggAsterisk ? dummyAllocation : allocatedPointers_.at(colName);
@@ -90,7 +90,7 @@ int32_t GpuSqlDispatcher::AggregationCol()
 template <typename OP, typename OUT, typename IN>
 int32_t GpuSqlDispatcher::AggregationConst()
 {
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "AggConst" << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "AggConst" << '\n';
     return 0;
 }
 
@@ -370,7 +370,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
         }
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "AggGroupBy: " << colTableName << " " << reg
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "AggGroupBy: " << colTableName << " " << reg
                                                   << ", thread: " << dispatcherThreadId_ << '\n';
     PointerAllocation& column = aggCount ? dummyAllocation : allocatedPointers_.at(colTableName);
     int32_t reconstructOutSize;
@@ -407,7 +407,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
 
     if (aggregatedRegisters_.find(reg) == aggregatedRegisters_.end())
     {
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "Processed block in AggGroupBy." << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::debug) << "Processed block in AggGroupBy." << '\n';
         GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::ProcessBlock(groupByColumns_, column, *this);
 
         // If last block was processed, reconstruct group by table
@@ -420,14 +420,14 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
                 GpuSqlDispatcher::groupByCV_.wait(lock,
                                                   [] { return GpuSqlDispatcher::IsGroupByDone(); });
 
-                CudaLogBoost::getInstance(CudaLogBoost::info)
+                CudaLogBoost::getInstance(CudaLogBoost::debug)
                     << "Reconstructing group by in thread: " << dispatcherThreadId_ << '\n';
 
                 GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::GetResults(groupByColumns_, reg, *this);
             }
             else
             {
-                CudaLogBoost::getInstance(CudaLogBoost::info)
+                CudaLogBoost::getInstance(CudaLogBoost::debug)
                     << "Group by all blocks done in thread: " << dispatcherThreadId_ << '\n';
                 // Increment counter and notify threads
                 std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
@@ -457,7 +457,7 @@ int32_t GpuSqlDispatcher::GroupByCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "GroupBy: " << columnName << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "GroupBy: " << columnName << '\n';
 
     PointerAllocation& column = allocatedPointers_.at(columnName);
 

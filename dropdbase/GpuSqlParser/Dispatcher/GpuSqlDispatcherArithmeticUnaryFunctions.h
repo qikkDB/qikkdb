@@ -22,7 +22,7 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "ArithmeticUnaryCol: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "ArithmeticUnaryCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
             groupByColumns_.end() &&
@@ -88,7 +88,7 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryConst()
     // TODO STD conditional :: if OP == abs return type = T
     typedef typename std::conditional<OP::isFloatRetType, float, T>::type ResultType;
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "ArithmeticUnaryConst: " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "ArithmeticUnaryConst: " << reg << '\n';
 
     int32_t retSize = GetBlockSize();
     if (retSize == 0)

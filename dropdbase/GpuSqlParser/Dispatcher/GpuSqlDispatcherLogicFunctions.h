@@ -26,7 +26,7 @@ int32_t GpuSqlDispatcher::FilterColConst()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Filter: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Filter: " << colName << " " << reg << '\n';
 
     PointerAllocation column = allocatedPointers_.at(colName);
     int32_t retSize = column.ElementCount;
@@ -71,7 +71,7 @@ int32_t GpuSqlDispatcher::FilterConstCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Filter: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Filter: " << colName << " " << reg << '\n';
 
     PointerAllocation column = allocatedPointers_.at(colName);
     int32_t retSize = column.ElementCount;
@@ -121,7 +121,7 @@ int32_t GpuSqlDispatcher::FilterColCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Filter: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     PointerAllocation columnRight = allocatedPointers_.at(colNameRight);
@@ -204,7 +204,7 @@ int32_t GpuSqlDispatcher::FilterStringColConst()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "FilterStringColConst: " << colName << " " << cnst << " " << reg << '\n';
 
     auto column = FindStringColumn(colName);
@@ -244,7 +244,7 @@ int32_t GpuSqlDispatcher::FilterStringConstCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "FilterStringConstCol: " << cnst << " " << colName << " " << reg << '\n';
 
     std::tuple<GPUMemory::GPUString, int32_t, int8_t*> column = FindStringColumn(colName);
@@ -288,7 +288,7 @@ int32_t GpuSqlDispatcher::FilterStringColCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "FilterStringColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     std::tuple<GPUMemory::GPUString, int32_t, int8_t*> columnLeft = FindStringColumn(colNameLeft);
@@ -336,7 +336,7 @@ int32_t GpuSqlDispatcher::FilterStringConstConst()
     std::string cnstLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "FilterStringConstConst: " << cnstLeft << " " << cnstRight << " " << reg << '\n';
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
@@ -462,7 +462,7 @@ int32_t GpuSqlDispatcher::LogicalColCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Logical: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     PointerAllocation columnRight = allocatedPointers_.at(colNameRight);
@@ -549,7 +549,7 @@ int32_t GpuSqlDispatcher::LogicalNotCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "NotCol: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "NotCol: " << colName << " " << reg << '\n';
 
     PointerAllocation column = allocatedPointers_.at(colName);
     int32_t retSize = column.ElementCount;
@@ -589,7 +589,7 @@ int32_t GpuSqlDispatcher::NullMaskCol()
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "NullMaskCol: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "NullMaskCol: " << colName << " " << reg << '\n';
 
     if (colName.front() == '$')
     {

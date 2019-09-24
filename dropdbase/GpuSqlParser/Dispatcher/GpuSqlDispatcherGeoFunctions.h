@@ -20,7 +20,7 @@ int32_t GpuSqlDispatcher::PointColCol()
     auto colNameLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "PointColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     int32_t loadFlag = LoadCol<U>(colNameRight);
@@ -88,7 +88,7 @@ int32_t GpuSqlDispatcher::PointColConst()
     auto colNameLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "PointColConst: " << colNameLeft << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "PointColConst: " << colNameLeft << " " << reg << '\n';
 
     int32_t loadFlag = LoadCol<T>(colNameLeft);
     if (loadFlag)
@@ -132,7 +132,7 @@ int32_t GpuSqlDispatcher::PointConstCol()
     T cnst = arguments_.Read<T>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "PointConstCol: " << colNameRight << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "PointConstCol: " << colNameRight << " " << reg << '\n';
 
     int32_t loadFlag = LoadCol<U>(colNameRight);
     if (loadFlag)
@@ -183,7 +183,7 @@ int32_t GpuSqlDispatcher::ContainsColConst()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "ContainsColConst: " + colName << " " << constWkt << " " << reg << '\n';
 
     auto polygonCol = FindComplexPolygon(colName);
@@ -229,7 +229,7 @@ int32_t GpuSqlDispatcher::ContainsConstCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "ContainsConstCol: " + constWkt << " " << colName << " " << reg << '\n';
 
     PointerAllocation columnPoint = allocatedPointers_.at(colName);
@@ -281,7 +281,7 @@ int32_t GpuSqlDispatcher::ContainsColCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "ContainsColCol: " + colNamePolygon << " " << colNamePoint << " " << reg << '\n';
 
     PointerAllocation pointCol = allocatedPointers_.at(colNamePoint);
@@ -337,7 +337,7 @@ int32_t GpuSqlDispatcher::ContainsConstConst()
     auto constPolygonWkt = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "ContainsConstConst: " + constPolygonWkt << " " << constPointWkt << " " << reg << '\n';
 
     ColmnarDB::Types::Point constPoint = PointFactory::FromWkt(constPointWkt);
@@ -377,7 +377,7 @@ int32_t GpuSqlDispatcher::PolygonOperationColConst()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "PolygonOPConstCol: " + constWkt << " " << colName << " " << reg << '\n';
 
     auto polygonCol = FindComplexPolygon(colName);
@@ -448,7 +448,7 @@ int32_t GpuSqlDispatcher::PolygonOperationConstCol()
         }
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Polygon operation: " << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Polygon operation: " << '\n';
 
     return 0;
 }
@@ -464,7 +464,7 @@ int32_t GpuSqlDispatcher::PolygonOperationColCol()
     auto colNameLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Polygon operation: " << colNameRight << " " << colNameLeft << " " << reg << '\n';
 
     int32_t loadFlag = LoadCol<T>(colNameLeft);
@@ -543,7 +543,7 @@ int32_t GpuSqlDispatcher::PolygonOperationConstConst()
         FillPolygonRegister(outPolygon, reg, dataSize);
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Polygon operation: " << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Polygon operation: " << '\n';
 
     return 0;
 }

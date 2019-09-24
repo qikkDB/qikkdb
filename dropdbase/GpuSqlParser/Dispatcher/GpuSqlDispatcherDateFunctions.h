@@ -20,7 +20,7 @@ int32_t GpuSqlDispatcher::DateExtractCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "ExtractDatePartCol: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "ExtractDatePartCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
             groupByColumns_.end() &&
@@ -82,7 +82,7 @@ int32_t GpuSqlDispatcher::DateExtractConst()
 {
     int64_t cnst = arguments_.Read<int64_t>();
     auto reg = arguments_.Read<std::string>();
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "ExtractDatePartConst: " << cnst << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "ExtractDatePartConst: " << cnst << " " << reg << '\n';
 
     int32_t retSize = GetBlockSize();
     if (retSize == 0)

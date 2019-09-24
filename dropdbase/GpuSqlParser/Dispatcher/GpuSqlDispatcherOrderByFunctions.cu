@@ -56,7 +56,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>()
 
     if (!usingGroupBy_)
     {
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering column: " << colName << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::debug) << "Reordering column: " << colName << '\n';
 
         int32_t loadFlag = LoadCol<std::string>(colName);
         if (loadFlag)
@@ -116,7 +116,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>()
 
     if (!usingGroupBy_)
     {
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering column: " << colName << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::debug) << "Reordering column: " << colName << '\n';
 
         int32_t loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
         if (loadFlag)
@@ -174,7 +174,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon
 
     if (!usingGroupBy_)
     {
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering column: " << colName << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::debug) << "Reordering column: " << colName << '\n';
 
         int32_t loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(colName);
         if (loadFlag)
@@ -228,7 +228,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon
 
 int32_t GpuSqlDispatcher::FreeOrderByTable()
 {
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Freeing order by table." << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Freeing order by table." << '\n';
     orderByTable_.reset();
     return 0;
 }
@@ -242,7 +242,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
             std::unique_lock<std::mutex> lock(GpuSqlDispatcher::orderByMutex_);
             GpuSqlDispatcher::orderByCV_.wait(lock, [] { return GpuSqlDispatcher::IsOrderByDone(); });
 
-            CudaLogBoost::getInstance(CudaLogBoost::info) << "Merging partially ordered blocks." << '\n';
+            CudaLogBoost::getInstance(CudaLogBoost::debug) << "Merging partially ordered blocks." << '\n';
 
             std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
             std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
@@ -941,7 +941,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
         }
         else
         {
-            CudaLogBoost::getInstance(CudaLogBoost::info)
+            CudaLogBoost::getInstance(CudaLogBoost::debug)
                 << "Order by all blocks Done in thread: " << dispatcherThreadId_ << '\n';
             // Increment counter and notify threads
             std::unique_lock<std::mutex> lock(GpuSqlDispatcher::orderByMutex_);

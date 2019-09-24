@@ -43,7 +43,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
     if (allocatedPointers_.find(colName + "_polyPoints") == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
     {
-        CudaLogBoost::getInstance(CudaLogBoost::info)
+        CudaLogBoost::getInstance(CudaLogBoost::debug)
             << "Load: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name() << '\n';
 
         std::string table;
@@ -109,7 +109,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
         }
         else
         {
-            CudaLogBoost::getInstance(CudaLogBoost::info) << "Loading joined block." << '\n';
+            CudaLogBoost::getInstance(CudaLogBoost::debug) << "Loading joined block." << '\n';
             int32_t loadSize = joinIndices_->at(table)[blockIndex_].size();
             std::string joinCacheId = colName + "_join";
             for (auto& joinTable : *joinIndices_)
@@ -161,7 +161,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
 {
     if (allocatedPointers_.find(colName) == allocatedPointers_.end() && !colName.empty() && colName.front() != '$')
     {
-        CudaLogBoost::getInstance(CudaLogBoost::info)
+        CudaLogBoost::getInstance(CudaLogBoost::debug)
             << "Load: " << colName << " " << typeid(ColmnarDB::Types::Point).name() << '\n';
 
         std::string table;
@@ -242,7 +242,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
         }
         else
         {
-            CudaLogBoost::getInstance(CudaLogBoost::info) << "Loading joined block." << '\n';
+            CudaLogBoost::getInstance(CudaLogBoost::debug) << "Loading joined block." << '\n';
             int32_t loadSize = joinIndices_->at(table)[blockIndex_].size();
             std::string joinCacheId = colName + "_join";
             for (auto& joinTable : *joinIndices_)
@@ -309,7 +309,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
     if (allocatedPointers_.find(colName + "_allChars") == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
     {
-        CudaLogBoost::getInstance(CudaLogBoost::info)
+        CudaLogBoost::getInstance(CudaLogBoost::debug)
             << "Load: " << colName << " " << typeid(std::string).name() << '\n';
 
         std::string table;
@@ -363,7 +363,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
         }
         else
         {
-            CudaLogBoost::getInstance(CudaLogBoost::info) << "Loading joined block." << '\n';
+            CudaLogBoost::getInstance(CudaLogBoost::debug) << "Loading joined block." << '\n';
             int32_t loadSize = joinIndices_->at(table)[blockIndex_].size();
             std::string joinCacheId = colName + "_join";
             for (auto& joinTable : *joinIndices_)
@@ -426,7 +426,7 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>()
         {
             return loadFlag;
         }
-        CudaLogBoost::getInstance(CudaLogBoost::info)
+        CudaLogBoost::getInstance(CudaLogBoost::debug)
             << "RetPolygonCol: " << col << ", thread: " << dispatcherThreadId_ << '\n';
 
         std::unique_ptr<std::string[]> outData(new std::string[database_->GetBlockSize()]);
@@ -472,7 +472,7 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>()
                                                         reinterpret_cast<int8_t*>(filter_),
                                                         std::get<1>(ACol));
             }
-            CudaLogBoost::getInstance(CudaLogBoost::info) << "dataSize: " << outSize << '\n';
+            CudaLogBoost::getInstance(CudaLogBoost::debug) << "dataSize: " << outSize << '\n';
         }
 
         if (outSize > 0)
@@ -503,7 +503,7 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
             return loadFlag;
         }
 
-        CudaLogBoost::getInstance(CudaLogBoost::info)
+        CudaLogBoost::getInstance(CudaLogBoost::debug)
             << "RetPointCol: " << colName << ", thread: " << dispatcherThreadId_ << '\n';
 
         std::unique_ptr<std::string[]> outData(new std::string[database_->GetBlockSize()]);
@@ -554,7 +554,7 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
                                                          reinterpret_cast<int8_t*>(filter_), ACol.ElementCount);
             }
             // GPUMemory::hostUnregister(outData.get());
-            CudaLogBoost::getInstance(CudaLogBoost::info) << "dataSize: " << outSize << '\n';
+            CudaLogBoost::getInstance(CudaLogBoost::debug) << "dataSize: " << outSize << '\n';
         }
 
         if (outSize > 0)
@@ -579,7 +579,7 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "RetStringCol: " << colName << ", thread: " << dispatcherThreadId_ << '\n';
 
     int32_t outSize;
@@ -599,7 +599,7 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
 
             if (usingOrderBy_)
             {
-                CudaLogBoost::getInstance(CudaLogBoost::info) << "Reordering result block." << '\n';
+                CudaLogBoost::getInstance(CudaLogBoost::debug) << "Reordering result block." << '\n';
 
                 GPUMemory::GPUString reorderedColumn;
                 size_t inNullColSize = (outSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
@@ -684,7 +684,7 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
                                                      reinterpret_cast<int8_t*>(filter_), std::get<1>(col));
             }
         }
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "dataSize: " << outSize << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::debug) << "dataSize: " << outSize << '\n';
     }
 
     if (outSize > 0)
@@ -702,7 +702,7 @@ int32_t GpuSqlDispatcher::RetConst<std::string>()
     std::string cnst = arguments_.Read<std::string>();
     std::string alias = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "RET: cnst" << typeid(std::string).name() << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "RET: cnst" << typeid(std::string).name() << '\n';
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
@@ -726,7 +726,7 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
     std::string cnst = arguments_.Read<std::string>();
     std::string alias = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "RET: cnst" << typeid(ColmnarDB::Types::Point).name() << '\n';
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
@@ -751,7 +751,7 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
     std::string cnst = arguments_.Read<std::string>();
     std::string alias = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "RET: cnst" << typeid(ColmnarDB::Types::ComplexPolygon).name() << '\n';
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
@@ -773,14 +773,14 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
 int32_t GpuSqlDispatcher::LockRegister()
 {
     std::string reg = arguments_.Read<std::string>();
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Locked register: " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Locked register: " << reg << '\n';
     registerLockList_.insert(reg);
     return 0;
 }
 
 int32_t GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
 {
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "TableInfo: " << tableName << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "TableInfo: " << tableName << '\n';
 
     const int32_t blockCount =
         usingJoin_ ?

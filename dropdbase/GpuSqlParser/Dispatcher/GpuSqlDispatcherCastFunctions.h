@@ -15,7 +15,7 @@ int32_t GpuSqlDispatcher::CastNumericCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastNumericCol: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastNumericCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
             groupByColumns_.end() &&
@@ -76,7 +76,7 @@ int32_t GpuSqlDispatcher::CastNumericConst()
     IN cnst = arguments_.Read<IN>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastNumericConst: " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastNumericConst: " << reg << '\n';
 
     int32_t retSize = GetBlockSize();
 
@@ -100,7 +100,7 @@ int32_t GpuSqlDispatcher::CastStringCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastStringCol: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastStringCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
             groupByColumns_.end() &&
@@ -159,7 +159,7 @@ int32_t GpuSqlDispatcher::CastStringConst()
     std::string cnst = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastStringConst: " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastStringConst: " << reg << '\n';
 
     GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst);
     int32_t retSize = GetBlockSize();
@@ -187,7 +187,8 @@ int32_t GpuSqlDispatcher::CastNumericToStringCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastNumericToStringCol: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "CastNumericToStringCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
             groupByColumns_.end() &&

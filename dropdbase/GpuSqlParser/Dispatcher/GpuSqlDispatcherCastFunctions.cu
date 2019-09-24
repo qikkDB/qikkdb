@@ -151,7 +151,7 @@ int32_t GpuSqlDispatcher::CastPolygonCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastPolygonCol: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastPolygonCol: " << colName << " " << reg << '\n';
 
     auto column = FindComplexPolygon(colName);
     int32_t retSize = std::get<1>(column);
@@ -181,7 +181,7 @@ int32_t GpuSqlDispatcher::CastPolygonConst()
     auto constWkt = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastPolygonConst: " << constWkt << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastPolygonConst: " << constWkt << " " << reg << '\n';
 
     ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constWkt);
     GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(constPolygon);
@@ -213,7 +213,7 @@ int32_t GpuSqlDispatcher::CastPointCol()
         return loadFlag;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastPointCol: " << colName << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastPointCol: " << colName << " " << reg << '\n';
 
     auto column = allocatedPointers_.at(colName);
     int32_t retSize = column.ElementCount;
@@ -243,7 +243,7 @@ int32_t GpuSqlDispatcher::CastPointConst()
     auto constWkt = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "CastPointConst: " << constWkt << " " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastPointConst: " << constWkt << " " << reg << '\n';
 
     ColmnarDB::Types::Point constPoint = PointFactory::FromWkt(constWkt);
     NativeGeoPoint* gpuPoint = InsertConstPointGpu(constPoint);

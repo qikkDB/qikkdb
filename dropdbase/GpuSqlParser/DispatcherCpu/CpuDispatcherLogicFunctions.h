@@ -46,11 +46,11 @@ int32_t CpuSqlDispatcher::FilterStringColConst()
         break;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation filterStringColConstMin: " << reinterpret_cast<char*>(std::get<0>(colValMin))
         << ", " << reg + "_min"
         << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation filterStringColConstMax: " << reinterpret_cast<char*>(std::get<0>(colValMax))
         << ", " << reg + "_max"
         << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
@@ -99,11 +99,11 @@ int32_t CpuSqlDispatcher::FilterStringConstCol()
         break;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation filterStringConstColMin: " << reinterpret_cast<char*>(std::get<0>(colValMin))
         << ", " << reg + "_min"
         << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation filterStringConstColMax: " << reinterpret_cast<char*>(std::get<0>(colValMax))
         << ", " << reg + "_max"
         << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
@@ -164,10 +164,10 @@ int32_t CpuSqlDispatcher::FilterStringColCol()
                                          std::get<1>(colValRightMax) - 1);
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation filterStringColCol_min: " << colNameLeft
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation filterStringColCol_min: " << colNameLeft
                                                   << ", " << colNameRight << ", " << reg + "_min"
                                                   << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation filterStringColCol_max: " << colNameLeft
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation filterStringColCol_max: " << colNameLeft
                                                   << ", " << colNameRight << ", " << reg + "_max"
                                                   << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
     return 0;
@@ -187,10 +187,10 @@ int32_t CpuSqlDispatcher::FilterStringConstConst()
     maskMin[0] = OP{}.compareStrings(cnstLeft.c_str(), cnstLeft.size(), cnstRight.c_str(), cnstRight.size());
     maskMax[0] = OP{}.compareStrings(cnstLeft.c_str(), cnstLeft.size(), cnstRight.c_str(), cnstRight.size());
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation filterStringConstConst_min: " << reg + "_min"
         << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation filterStringConstConst_max: " << reg + "_max"
         << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
 
@@ -236,11 +236,11 @@ int32_t CpuSqlDispatcher::FilterColConst()
         break;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation filterColConstMin: " << reinterpret_cast<T*>(std::get<0>(colValMin))[0]
         << ", " << reg + "_min"
         << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation filterColConstMax: " << reinterpret_cast<T*>(std::get<0>(colValMax))[0]
         << ", " << reg + "_max"
         << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
@@ -287,11 +287,11 @@ int32_t CpuSqlDispatcher::FilterConstCol()
         break;
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation filterConstColMin: " << reinterpret_cast<U*>(std::get<0>(colValMin))[0]
         << ", " << reg + "_min"
         << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation filterConstColMax: " << reinterpret_cast<U*>(std::get<0>(colValMax))[0]
         << ", " << reg + "_max"
         << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
@@ -347,10 +347,10 @@ int32_t CpuSqlDispatcher::filterColCol()
                                                     reinterpret_cast<U*>(std::get<0>(colValRightMax))[0]);
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation filterColCol_min: " << colNameLeft
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation filterColCol_min: " << colNameLeft
                                                   << ", " << colNameRight << ", " << reg + "_min"
                                                   << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation filterColCol_max: " << colNameLeft
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation filterColCol_max: " << colNameLeft
                                                   << ", " << colNameRight << ", " << reg + "_max"
                                                   << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
     return 0;
@@ -369,9 +369,11 @@ int32_t CpuSqlDispatcher::filterConstConst()
     maskMin[0] = OP{}.template operator()<T, U>(constLeft, constRight);
     maskMax[0] = OP{}.template operator()<T, U>(constLeft, constRight);
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation filterConstConst_min: " << reg + "_min"
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "Where evaluation filterConstConst_min: " << reg + "_min"
                                                   << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation filterConstConst_max: " << reg + "_max"
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "Where evaluation filterConstConst_max: " << reg + "_max"
                                                   << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
 
     return 0;
@@ -413,11 +415,11 @@ int32_t CpuSqlDispatcher::LogicalColConst()
     maskMin[0] = OP{}.template operator()<T, U>(reinterpret_cast<T*>(std::get<0>(colValMin))[0], cnst);
     maskMax[0] = OP{}.template operator()<T, U>(reinterpret_cast<T*>(std::get<0>(colValMax))[0], cnst);
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation logicalColConstMin: " << reinterpret_cast<T*>(std::get<0>(colValMin))[0]
         << ", " << reg + "_min"
         << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation logicalColConstMax: " << reinterpret_cast<T*>(std::get<0>(colValMax))[0]
         << ", " << reg + "_max"
         << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
@@ -461,11 +463,11 @@ int32_t CpuSqlDispatcher::LogicalConstCol()
     maskMin[0] = OP{}.template operator()<T, U>(cnst, reinterpret_cast<U*>(std::get<0>(colValMin))[0]);
     maskMax[0] = OP{}.template operator()<T, U>(cnst, reinterpret_cast<U*>(std::get<0>(colValMax))[0]);
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation logicalConstColMin: " << reinterpret_cast<U*>(std::get<0>(colValMin))[0]
         << ", " << reg + "_min"
         << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation logicalConstColMax: " << reinterpret_cast<U*>(std::get<0>(colValMax))[0]
         << ", " << reg + "_max"
         << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
@@ -547,10 +549,10 @@ int32_t CpuSqlDispatcher::LogicalColCol()
         }
     }
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation logicalColCol_min: " << colNameLeft
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation logicalColCol_min: " << colNameLeft
                                                   << ", " << colNameRight << ", " << reg + "_min"
                                                   << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation logicalColCol_max: " << colNameLeft
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation logicalColCol_max: " << colNameLeft
                                                   << ", " << colNameRight << ", " << reg + "_max"
                                                   << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
 
@@ -569,9 +571,11 @@ int32_t CpuSqlDispatcher::LogicalConstConst()
     maskMin[0] = OP{}.template operator()<T, U>(constLeft, constRight);
     maskMax[0] = OP{}.template operator()<T, U>(constLeft, constRight);
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation logicalConstConst_min: " << reg + "_min"
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "Where evaluation logicalConstConst_min: " << reg + "_min"
                                                   << ": " << static_cast<int32_t>(maskMin[0]) << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation logicalConstConst_max: " << reg + "_max"
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "Where evaluation logicalConstConst_max: " << reg + "_max"
                                                   << ": " << static_cast<int32_t>(maskMax[0]) << '\n';
     return 0;
 }
@@ -599,10 +603,10 @@ int32_t CpuSqlDispatcher::LogicalNotCol()
     resultMin[0] = !reinterpret_cast<T*>(std::get<0>(colValMin))[0];
     resultMax[0] = !reinterpret_cast<T*>(std::get<0>(colValMax))[0];
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation logicalNotCol_min: " << colName << ", " << reg + "_min"
         << ": " << resultMin[0] << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation logicalNotCol_max: " << colName << ", " << reg + "_max"
         << ": " << resultMax[0] << '\n';
     return 0;
@@ -620,9 +624,9 @@ int32_t CpuSqlDispatcher::LogicalNotConst()
     resultMin[0] = !cnst;
     resultMax[0] = !cnst;
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation logicalNotConstMin: " << reg + "_min"
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation logicalNotConstMin: " << reg + "_min"
                                                   << ": " << resultMin[0] << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation logicalNotConstMax: " << reg + "_max"
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation logicalNotConstMax: " << reg + "_max"
                                                   << ": " << resultMax[0] << '\n';
 
     return 0;

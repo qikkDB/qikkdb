@@ -160,10 +160,10 @@ int32_t CpuSqlDispatcher::StringBinaryNumericColCol()
         std::copy(resultStringMax.begin(), resultStringMax.end(), resultMax);
         resultMax[resultStringMax.size()] = '\0';
     }
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation stringColCol_min: " << colNameLeft
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation stringColCol_min: " << colNameLeft
                                                   << ", " << colNameRight << ", " << reg + "_min"
                                                   << ": " << resultMin[0] << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation stringColCol_max: " << colNameLeft
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation stringColCol_max: " << colNameLeft
                                                   << ", " << colNameRight << ", " << reg + "_max"
                                                   << ": " << resultMax[0] << '\n';
 
@@ -204,10 +204,10 @@ int32_t CpuSqlDispatcher::StringBinaryNumericColConst()
     std::copy(resultStringMax.begin(), resultStringMax.end(), resultMax);
     resultMax[resultStringMax.size()] = '\0';
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation stringColConst_min: " << colName << ", " << reg + "_min"
         << ": " << resultMin[0] << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation stringColConst_max: " << colName << ", " << reg + "_max"
         << ": " << resultMax[0] << '\n';
 
@@ -248,10 +248,10 @@ int32_t CpuSqlDispatcher::StringBinaryNumericConstCol()
     std::copy(resultStringMax.begin(), resultStringMax.end(), resultMax);
     resultMax[resultStringMax.size()] = '\0';
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation stringConstCol_min: " << colName << ", " << reg + "_min"
         << ": " << resultMin[0] << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation stringConstCol_max: " << colName << ", " << reg + "_max"
         << ": " << resultMax[0] << '\n';
 
@@ -276,9 +276,9 @@ int32_t CpuSqlDispatcher::StringBinaryNumericConstConst()
     std::copy(resultStringMax.begin(), resultStringMax.end(), resultMax);
     resultMax[resultStringMax.size()] = '\0';
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation stringConstConst_min: " << reg + "_min"
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation stringConstConst_min: " << reg + "_min"
                                                   << ": " << resultMin[0] << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation stringConstConst_max: " << reg + "_max"
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation stringConstConst_max: " << reg + "_max"
                                                   << ": " << resultMax[0] << '\n';
 
     return 0;
@@ -342,10 +342,10 @@ int32_t CpuSqlDispatcher::StringBinaryColCol()
         std::copy(resultStringMax.begin(), resultStringMax.end(), resultMax);
         resultMax[resultStringMax.size()] = '\0';
     }
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation stringColCol_min: " << colNameLeft
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation stringColCol_min: " << colNameLeft
                                                   << ", " << colNameRight << ", " << reg + "_min"
                                                   << ": " << resultMin[0] << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation stringColCol_max: " << colNameLeft
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation stringColCol_max: " << colNameLeft
                                                   << ", " << colNameRight << ", " << reg + "_max"
                                                   << ": " << resultMax[0] << '\n';
 
@@ -387,10 +387,10 @@ int32_t CpuSqlDispatcher::StringBinaryColConst()
     std::copy(resultStringMax.begin(), resultStringMax.end(), resultMax);
     resultMax[resultStringMax.size()] = '\0';
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation stringColConst_min: " << colName << ", " << reg + "_min"
         << ": " << resultMin[0] << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation stringColConst_max: " << colName << ", " << reg + "_max"
         << ": " << resultMax[0] << '\n';
 
@@ -431,10 +431,10 @@ int32_t CpuSqlDispatcher::StringBinaryConstCol()
     std::copy(resultStringMax.begin(), resultStringMax.end(), resultMax);
     resultMax[resultStringMax.size()] = '\0';
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation stringConstCol_min: " << colName << ", " << reg + "_min"
         << ": " << resultMin[0] << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info)
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation stringConstCol_max: " << colName << ", " << reg + "_max"
         << ": " << resultMax[0] << '\n';
 
@@ -461,9 +461,9 @@ int32_t CpuSqlDispatcher::StringBinaryConstConst()
     std::copy(resultStringMax.begin(), resultStringMax.end(), resultMax);
     resultMax[resultStringMax.size()] = '\0';
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation stringConstConst_min: " << reg + "_min"
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation stringConstConst_min: " << reg + "_min"
                                                   << ": " << resultMin[0] << '\n';
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where evaluation stringConstConst_max: " << reg + "_max"
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation stringConstConst_max: " << reg + "_max"
                                                   << ": " << resultMax[0] << '\n';
 
     return 0;
