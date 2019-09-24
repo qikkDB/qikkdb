@@ -161,7 +161,7 @@ struct roundDecimalNoCheck
     __device__ __host__ T operator()(U a, V b) const
     {
         const double multiplier = pow(10.0, b);
-        return ceilf(a * multiplier) / multiplier;
+        return roundf(a * multiplier) / multiplier;
     }
 };
 

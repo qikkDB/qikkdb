@@ -10536,7 +10536,7 @@ TEST(DispatcherTests, RoundDecimalColFloat)
             if (blockInt->GetData()[k] >= 20)
             {
                 const float multiplier = powf(10.0, 2);
-                expectedResultsFloat.push_back(ceilf(blockFloat->GetData()[k] * multiplier) / multiplier);
+                expectedResultsFloat.push_back(roundf(blockFloat->GetData()[k] * multiplier) / multiplier);
             }
         }
     }
