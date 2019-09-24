@@ -78,10 +78,16 @@ namespace ColmnarDB.ConsoleClient
             {
                 ColumnarDataTable result = null;
                 Dictionary<string, float> executionTimes = null;
-
-                client.Query(query);
-                Console.WriteLine(SuccessfulQuery(query));
- 
+                try
+                {
+                    client.Query(query);
+                    Console.WriteLine(SuccessfulQuery(query));
+                }
+                catch (QueryException)
+                {
+                    Console.WriteLine("Query Exception occured:");
+                }
+                
                 while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
                 {
                     PrintResults(result.GetColumnData(), result.GetOrderedColumnNames(), executionTimes, consoleWidth);
