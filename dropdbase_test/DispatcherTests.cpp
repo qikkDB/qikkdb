@@ -14873,3 +14873,70 @@ TEST(DispatcherTests, InsertIntoWithIndex)
     GpuSqlCustomParser parserDropDb(database, "DROP DATABASE InsertIntoDb;");
     resultPtr = parserDropDb.Parse();
 }
+
+TEST(DispatcherTests, WhereEvaluationWithString)
+{
+    GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE WhereEvalString 16;");
+    auto resultPtr = createDatabase.Parse();
+    auto database = Database::GetDatabaseByName("WhereEvalString");
+
+    GpuSqlCustomParser parserCreate(database, "CREATE TABLE testTable (colA int, colB string);");
+    resultPtr = parserCreate.Parse();
+    auto& table = database->GetTables().at("testTable");
+
+    GpuSqlCustomParser parserInsert1(database,
+                                     "insert into testTable (colA, colB) values (1, \"Peto\");");
+    GpuSqlCustomParser parserInsert2(database,
+                                     "insert into testTable (colA, colB) values (2, \"AAA\");");
+    GpuSqlCustomParser parserInsert3(database,
+                                     "insert into testTable (colA, colB) values (3, \"BBB\");");
+    GpuSqlCustomParser parserInsert4(database,
+                                     "insert into testTable (colA, colB) values (4, \"CCC\");");
+
+    resultPtr = parserInsert1.Parse();
+    resultPtr = parserInsert2.Parse();
+    resultPtr = parserInsert3.Parse();
+    resultPtr = parserInsert4.Parse();
+
+    GpuSqlCustomParser parserSelect(database, "SELECT colB FROM testTable WHERE colB = \"Peto\";");
+    resultPtr = parserSelect.Parse();
+
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto payloadsColB = result->payloads().at("testTable.colB");
+    ASSERT_EQ(payloadsColB.stringpayload().stringdata_size(), 1);
+    ASSERT_EQ(payloadsColB.stringpayload().stringdata()[0], "Peto");
+
+    GpuSqlCustomParser parserSelect1(database, "SELECT colA FROM testTable WHERE colB = \"Peto\";");
+    resultPtr = parserSelect1.Parse();
+
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto payloadsColA = result->payloads().at("testTable.colA");
+    ASSERT_EQ(payloadsColA.intpayload().intdata_size(), 1);
+    ASSERT_EQ(payloadsColA.intpayload().intdata()[0], 1);
+
+    GpuSqlCustomParser parserSelect2(database,
+                                     "SELECT colA, colB FROM testTable WHERE colB = \"Peto\";");
+    resultPtr = parserSelect2.Parse();
+
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    payloadsColA = result->payloads().at("testTable.colA");
+    payloadsColB = result->payloads().at("testTable.colB");
+    ASSERT_EQ(payloadsColA.intpayload().intdata_size(), 1);
+    ASSERT_EQ(payloadsColB.stringpayload().stringdata_size(), 1);
+    ASSERT_EQ(payloadsColA.intpayload().intdata()[0], 1);
+    ASSERT_EQ(payloadsColB.stringpayload().stringdata()[0], "Peto");
+
+    GpuSqlCustomParser parserSelect3(database, "SELECT * FROM testTable WHERE colB = \"Peto\";");
+    resultPtr = parserSelect3.Parse();
+
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    payloadsColA = result->payloads().at("testTable.colA");
+    payloadsColB = result->payloads().at("testTable.colB");
+    ASSERT_EQ(payloadsColA.intpayload().intdata_size(), 1);
+    ASSERT_EQ(payloadsColB.stringpayload().stringdata_size(), 1);
+    ASSERT_EQ(payloadsColA.intpayload().intdata()[0], 1);
+    ASSERT_EQ(payloadsColB.stringpayload().stringdata()[0], "Peto");
+
+    GpuSqlCustomParser parserDropDb(database, "DROP DATABASE WhereEvalString;");
+    resultPtr = parserDropDb.Parse();
+}

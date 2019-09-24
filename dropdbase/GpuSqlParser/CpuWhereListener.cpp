@@ -557,11 +557,18 @@ void CpuWhereListener::PushArgument(const char* token, DataType dataType)
     {
         std::string booleanToken(token);
         StringToUpper(booleanToken);
-        dispatcher_.AddArgument<int8_t>(booleanToken == "TRUE");
+        dispatcher_.AddArgument<int8_t>(booleanToken == "TRUE" ? 1 : 0);
     }
+    break;
+    case DataType::CONST_STRING:
+    {
+        std::string str(token);
+        std::string strTrimmed = str.substr(1, str.length() - 2);
+        dispatcher_.AddArgument<const std::string&>(strTrimmed);
+    }
+    break;
     case DataType::CONST_POINT:
     case DataType::CONST_POLYGON:
-    case DataType::CONST_STRING:
     case DataType::COLUMN_INT:
     case DataType::COLUMN_LONG:
     case DataType::COLUMN_FLOAT:
