@@ -277,7 +277,7 @@ namespace ColmnarDB.NetworkClient
             Dictionary<string, System.Type> columnTypes = new Dictionary<string, System.Type>();
             List<string> orderedColumnNames = new List<string>();
 
-            foreach(var column in response.ColumnOrder)
+            foreach (var column in response.ColumnOrder)
             {
                 orderedColumnNames.Add(column);
             }
@@ -543,6 +543,36 @@ namespace ColmnarDB.NetworkClient
                     int i = 0;
                     switch (type.Name)
                     {
+                        case nameof(Boolean):
+                            {
+                                columnType = DataType.ColumnInt8T;
+                                dataBuffer = new byte[size];
+                                var list = ((List<Boolean?>)(dataTable.GetColumnData()[column]));
+                                for (i = 0; i < size; i++)
+                                {
+                                    if (list[i] == null)
+                                    {
+                                        if (nullMask == null)
+                                        {
+                                            int nullMaskSize = (size + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
+                                            nullMask = new byte[nullMaskSize];
+                                            for (int j = 0; j < nullMaskSize; j++)
+                                            {
+                                                nullMask[j] = 0;
+                                            }
+                                        }
+                                        int byteIdx = i / (sizeof(byte) * 8);
+                                        int shiftIdx = i % (sizeof(byte) * 8);
+                                        nullMask[byteIdx] |= (byte)(1 << shiftIdx);
+                                        dataBuffer[i] = 0;
+                                    }
+                                    else
+                                    {
+                                        dataBuffer[i] = (bool)list[i] ? (byte)1 : (byte)0;
+                                    }
+                                }
+                            }
+                            break;
                         case nameof(Byte):
                             {
                                 columnType = DataType.ColumnInt8T;
@@ -552,11 +582,11 @@ namespace ColmnarDB.NetworkClient
                                 {
                                     if (list[i] == null)
                                     {
-                                        if(nullMask == null)
+                                        if (nullMask == null)
                                         {
                                             int nullMaskSize = (size + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
                                             nullMask = new byte[nullMaskSize];
-                                            for(int j = 0; j < nullMaskSize; j++)
+                                            for (int j = 0; j < nullMaskSize; j++)
                                             {
                                                 nullMask[j] = 0;
                                             }
@@ -596,11 +626,11 @@ namespace ColmnarDB.NetworkClient
                                         int byteIdx = i / (sizeof(byte) * 8);
                                         int shiftIdx = i % (sizeof(byte) * 8);
                                         nullMask[byteIdx] |= (byte)(1 << shiftIdx);
-                                        for(int j = 0; j < sizeof(int); j++)
+                                        for (int j = 0; j < sizeof(int); j++)
                                         {
                                             dataBuffer[sizeof(int) * i + j] = 0;
                                         }
-                                        
+
                                     }
                                     else
                                     {
@@ -613,7 +643,7 @@ namespace ColmnarDB.NetworkClient
                                                 dataBuffer[sizeof(int) * i + j] = elemBytes[j];
                                             }
                                         }
-                                        
+
                                     }
                                 }
                             }
@@ -773,10 +803,10 @@ namespace ColmnarDB.NetworkClient
                                 }
                                 dataBuffer = new byte[size];
                                 i = 0;
-                                for(int j = 0; j < pointList.Count; j++)
+                                for (int j = 0; j < pointList.Count; j++)
                                 {
-                                    var elem = pointList[j];
-                                    if(elem == null)
+                                    var elem = pointList[i];
+                                    if (elem == null)
                                     {
                                         elem = defaultElement;
                                         if (nullMask == null)
@@ -809,7 +839,7 @@ namespace ColmnarDB.NetworkClient
                             }
                             break;
                         case nameof(ComplexPolygon):
-                            { 
+                            {
                                 columnType = DataType.ColumnPolygon;
                                 size = 0;
                                 var polygonList = (List<ComplexPolygon>)(dataTable.GetColumnData()[column]);
@@ -921,21 +951,54 @@ namespace ColmnarDB.NetworkClient
                     int lastNullBuffOffset = -1;
                     for (i = 0; i < size; i += fragmentSize)
                     {
-                        fragmentSize = size - i < BULK_IMPORT_FRAGMENT_SIZE ? size - i : BULK_IMPORT_FRAGMENT_SIZE;
-                        fragmentSize = (fragmentSize / typeSize) * typeSize;
+                        int elemCount = 0;
+                        if (columnType == DataType.ColumnString || columnType == DataType.ColumnPolygon)
+                        {
+                            fragmentSize = 0;
+                            while (fragmentSize < BULK_IMPORT_FRAGMENT_SIZE)
+                            {
+                                fragmentSize += 4;
+                                int strSize = 0;
+                                unsafe
+                                {
+                                    byte* lenBytes = (byte*)&strSize;
+                                    for (int k = 0; k < sizeof(int); k++)
+                                    {
+                                        dataBuffer[i + fragmentSize - 4 + k] = *lenBytes;
+                                        lenBytes++;
+                                    }
+
+                                }
+                                if (fragmentSize + strSize > BULK_IMPORT_FRAGMENT_SIZE)
+                                {
+                                    fragmentSize -= 4;
+                                    break;
+                                }
+                                else
+                                {
+                                    elemCount++;
+                                    fragmentSize += strSize;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            fragmentSize = size - i < BULK_IMPORT_FRAGMENT_SIZE ? size - i : BULK_IMPORT_FRAGMENT_SIZE;
+                            fragmentSize = (fragmentSize / typeSize) * typeSize;
+                            elemCount = fragmentSize / typeSize;
+                        }
                         byte[] smallBuffer = new byte[fragmentSize];
                         Buffer.BlockCopy(dataBuffer, i, smallBuffer, 0, fragmentSize);
-                        //int nullBuffSize = ((fragmentSize / typeSize) + sizeof(byte) * 8 - 1)  / (sizeof(byte) * 8);
-                        int nullBuffSize = ((elementCount) + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
+                        int nullBuffSize = ((elemCount) + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
                         BulkImportMessage bulkImportMessage = new BulkImportMessage()
-                        { TableName = tableName, ElemCount = fragmentSize / typeSize, ColumnName = column, ColumnType = columnType, NullMaskLen = nullMask != null ? nullBuffSize : 0 };
+                        { TableName = tableName, ElemCount = elemCount, ColumnName = column, ColumnType = columnType, NullMaskLen = nullMask != null ? nullBuffSize : 0 };
                         NetworkMessage.WriteToNetwork(bulkImportMessage, _client.GetStream());
                         NetworkMessage.WriteRaw(_client.GetStream(), smallBuffer, fragmentSize);
-                        if(bulkImportMessage.NullMaskLen != 0)
+                        if (bulkImportMessage.NullMaskLen != 0)
                         {
-                            
+
                             int startOffset = i / (sizeof(byte) * 8);
-                            if(startOffset == lastNullBuffOffset)
+                            if (startOffset == lastNullBuffOffset)
                             {
                                 startOffset++;
                                 nullBuffSize--;
