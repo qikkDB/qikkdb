@@ -1526,10 +1526,11 @@ int32_t GpuSqlDispatcher::GroupByDone()
     bool containsAggFunction = arguments_.Read<bool>();
     insideGroupBy_ = false;
 
-    if (!containsAggFunction)
+	//Preparation for group by without aggregation
+    /*if (!containsAggFunction)
     {
 
-    }
+    }*/
 
     return 0;
 }
