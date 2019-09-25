@@ -78,5 +78,7 @@ public:
 
     void exitFromTables(GpuSqlParser::FromTablesContext* ctx) override;
 
+    void exitJoinClause(GpuSqlParser::JoinClauseContext* ctx) override;
+
     void ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext* ctx);
 };

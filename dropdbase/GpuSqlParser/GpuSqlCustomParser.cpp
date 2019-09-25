@@ -1,3 +1,4 @@
+#include "GpuSqlCustomParser.h"
 //
 // Created by Martin Staňo on 2019-01-14.
 //
@@ -6,8 +7,6 @@
 #include "GpuSqlCustomParser.h"
 #include "GpuSqlListener.h"
 #include "CpuWhereListener.h"
-#include "GpuSqlDispatcher.h"
-#include "GpuSqlJoinDispatcher.h"
 #include "ParserExceptions.h"
 #include "../QueryEngine/GPUMemoryCache.h"
 #include "QueryType.h"
@@ -40,7 +39,8 @@ GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database>& database
 std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 {
     Context& context = Context::getInstance();
-
+    dispatchers_.clear();
+    wasAborted_ = false;
     antlr4::ANTLRInputStream sqlInputStream(query_);
     GpuSqlLexer sqlLexer(&sqlInputStream);
     std::unique_ptr<ThrowErrorListener> throwErrorListener = std::make_unique<ThrowErrorListener>();
@@ -69,9 +69,9 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     std::unique_ptr<CpuSqlDispatcher> cpuWhereDispatcher = std::make_unique<CpuSqlDispatcher>(database_);
     std::unique_ptr<GpuSqlDispatcher> dispatcher =
         std::make_unique<GpuSqlDispatcher>(database_, groupByInstances, orderByBlocks, -1);
-    std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher = std::make_unique<GpuSqlJoinDispatcher>(database_);
+    joinDispatcher_ = std::make_unique<GpuSqlJoinDispatcher>(database_);
 
-    GpuSqlListener gpuSqlListener(database_, *dispatcher, *joinDispatcher);
+    GpuSqlListener gpuSqlListener(database_, *dispatcher, *joinDispatcher_);
 
     CpuWhereListener cpuWhereListener(database_, *cpuWhereDispatcher);
 
@@ -79,7 +79,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
@@ -92,8 +92,27 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         if (statement->sqlSelect()->joinClauses())
         {
             walker.walk(&gpuSqlListener, statement->sqlSelect()->joinClauses());
-            joinDispatcher->Execute();
+            walker.walk(&cpuWhereListener, statement->sqlSelect()->joinClauses());
+            joinDispatcher_->Execute();
         }
+
+        int32_t columnOrder = 0;
+        std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> aggColumns;
+        std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> nonAggColumns;
+
+        for (auto column : statement->sqlSelect()->selectColumns()->selectColumn())
+        {
+            if (ContainsAggregation(column))
+            {
+                aggColumns.push_back({columnOrder++, column});
+            }
+            else
+            {
+                nonAggColumns.push_back({columnOrder++, column});
+            }
+        }
+
+        gpuSqlListener.SetContainsAggFunction(!aggColumns.empty());
 
         if (statement->sqlSelect()->whereClause())
         {
@@ -106,21 +125,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
             walker.walk(&gpuSqlListener, statement->sqlSelect()->groupByColumns());
         }
 
-        std::vector<GpuSqlParser::SelectColumnContext*> aggColumns;
-        std::vector<GpuSqlParser::SelectColumnContext*> nonAggColumns;
-
-        for (auto column : statement->sqlSelect()->selectColumns()->selectColumn())
-        {
-            if (ContainsAggregation(column))
-            {
-                aggColumns.push_back(column);
-            }
-            else
-            {
-                nonAggColumns.push_back(column);
-            }
-        }
-
         for (auto column : statement->sqlSelect()->selectColumns()->selectAllColumns())
         {
             gpuSqlListener.exitSelectAllColumns(column);
@@ -129,12 +133,14 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 
         for (auto column : aggColumns)
         {
-            walker.walk(&gpuSqlListener, column);
+            gpuSqlListener.CurrentSelectColumnIndex = column.first;
+            walker.walk(&gpuSqlListener, column.second);
         }
 
         for (auto column : nonAggColumns)
         {
-            walker.walk(&gpuSqlListener, column);
+            gpuSqlListener.CurrentSelectColumnIndex = column.first;
+            walker.walk(&gpuSqlListener, column.second);
         }
 
         if (statement->sqlSelect()->orderByColumns())
@@ -168,11 +174,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         {
             walker.walk(&gpuSqlListener, statement->sqlSelect()->limit());
         }
-
-        if (!gpuSqlListener.GetUsingLoad() && !gpuSqlListener.GetUsingWhere())
-        {
-            isSingleGpuStatement_ = true;
-        }
     }
     else if (statement->showStatement())
     {
@@ -183,7 +184,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;
@@ -203,7 +204,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;
@@ -213,7 +214,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;
@@ -223,7 +224,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         if (database_ == nullptr)
         {
-            throw DatabaseNotFoundException();
+            throw DatabaseNotUsedException();
         }
 
         isSingleGpuStatement_ = true;
@@ -234,13 +235,15 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->sqlCreateIndex());
     }
-
+    if (wasAborted_)
+    {
+        return nullptr;
+    }
     int32_t threadCount = isSingleGpuStatement_ ? 1 : context.getDeviceCount();
 
     GpuSqlDispatcher::ResetGroupByCounters();
     GpuSqlDispatcher::ResetOrderByCounters();
 
-    std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers;
     std::vector<std::thread> dispatcherFutures;
     std::vector<std::exception_ptr> dispatcherExceptions;
     std::vector<std::unique_ptr<google::protobuf::Message>> dispatcherResults;
@@ -264,19 +267,19 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 
     for (int i = 0; i < threadCount; i++)
     {
-        dispatchers.emplace_back(
+        dispatchers_.emplace_back(
             std::make_unique<GpuSqlDispatcher>(database_, groupByInstances, orderByBlocks, i));
-        dispatcher->CopyExecutionDataTo(*dispatchers[i], *cpuWhereDispatcher);
-        dispatchers[i]->SetJoinIndices(joinDispatcher->GetJoinIndices());
+        dispatcher->CopyExecutionDataTo(*dispatchers_[i], *cpuWhereDispatcher);
+        dispatchers_[i]->SetJoinIndices(joinDispatcher_->GetJoinIndices());
         dispatcherFutures.push_back(
-            std::thread(std::bind(&GpuSqlDispatcher::Execute, dispatchers[i].get(),
+            std::thread(std::bind(&GpuSqlDispatcher::Execute, dispatchers_[i].get(),
                                   std::ref(dispatcherResults[i]), std::ref(dispatcherExceptions[i]))));
     }
 
     for (int i = 0; i < threadCount; i++)
     {
         dispatcherFutures[i].join();
-        std::cout << "TID: " << i << " Done \n";
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "TID: " << i << " Done" << '\n';
     }
 
     int32_t currentDev = context.getBoundDeviceID();
@@ -295,9 +298,32 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         }
     }
 
+    if (wasAborted_)
+    {
+        return nullptr;
+    }
     auto ret = (MergeDispatcherResults(dispatcherResults, gpuSqlListener.ResultLimit, gpuSqlListener.ResultOffset));
 
+    for (auto& column : gpuSqlListener.ColumnOrder)
+    {
+        std::string colName = column.second.front() == '$' ? column.second.substr(1) : column.second;
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get())->add_columnorder(colName);
+    }
+
     return ret;
+}
+
+void GpuSqlCustomParser::InterruptQueryExecution()
+{
+    for (auto& dispatcher : dispatchers_)
+    {
+        dispatcher->Abort();
+    }
+    if (joinDispatcher_)
+    {
+        joinDispatcher_->Abort();
+    }
+    wasAborted_ = true;
 }
 
 /// Merges partial dispatcher respnse messages to final response message
@@ -310,8 +336,8 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
                                            int64_t resultLimit,
                                            int64_t resultOffset)
 {
-    std::cout << "Limit: " << resultLimit << std::endl;
-    std::cout << "Offset: " << resultOffset << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Limit: " << resultLimit << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Offset: " << resultOffset << '\n';
 
     std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> responseMessage =
         std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
@@ -495,7 +521,9 @@ void ThrowErrorListener::syntaxError(antlr4::Recognizer* recognizer,
                                      const std::string& msg,
                                      std::exception_ptr e)
 {
-    std::string finalMsg =
-        "Error : line " + std::to_string(line) + ":" + std::to_string(charPositionInLine) + " " + msg;
+    std::string badSymbol = offendingSymbol == nullptr ? std::string("") : offendingSymbol->getText();
+    std::string finalMsg = "Error : line " + std::to_string(line) + ":" + std::to_string(charPositionInLine) +
+                           " Incorrect syntax near symbol '" + badSymbol + "'";
+    BOOST_LOG_TRIVIAL(debug) << finalMsg << " " << msg;
     throw antlr4::ParseCancellationException(finalMsg);
 }

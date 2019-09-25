@@ -43,14 +43,22 @@ struct GPUPolygon
 {
     /// Points of polygons
     NativeGeoPoint* polyPoints;
+
     /// Start indices of each polygon in point array
     int32_t* pointIdx;
-    /// Number of points of each polygon
-    int32_t* pointCount;
+
     /// Start indices of each complex polygon in polygon array
     int32_t* polyIdx;
-    /// Number of polygons of each complex polygon
-    int32_t* polyCount;
+
+	__device__ __host__ int32_t PointIdxAt(int32_t idx);
+
+	__device__ __host__ int32_t PolyIdxAt(int32_t idx);
+
+	__device__ __host__ int32_t PointCountAt(int32_t idx);
+
+	__device__ __host__ int32_t PolyCountAt(int32_t idx);
+
+	__device__ __host__ int32_t TotalPointCountAt(int32_t idx);
 };
 
 /// Struct for GPU representation of string column (with pointers to start of condensed buffers).
@@ -216,5 +224,26 @@ void hostPin(T* hostPtr, size_t dataElementCount)
 /// Clear all custom allocated memory with the memory allocator.
 /// This is a O(1) operation
 void clear();
+
+size_t CalculateNullMaskSize(size_t dataElementCount, bool for32bit = false);
+
+template <typename T>
+void PrintGpuBuffer(const char* title, T* bufferGpu, int32_t dataElementCount)
+{
+    std::unique_ptr<T[]> bufferCpu(new T[dataElementCount]);
+    GPUMemory::copyDeviceToHost(bufferCpu.get(), bufferGpu, dataElementCount);
+
+    std::cout << title << " (" << reinterpret_cast<uintptr_t>(bufferGpu) << "): ";
+
+    for (int32_t i = 0; i < dataElementCount; i++)
+    {
+        typedef typename std::conditional<std::is_integral<T>::value, int32_t, float>::type PrintType;
+        std::cout << static_cast<PrintType>(bufferCpu[i]) << " ";
+    }
+    std::cout << std::endl;
+} 
+
+template<>
+void PrintGpuBuffer<NativeGeoPoint>(const char* title, NativeGeoPoint* bufferGpu, int32_t dataElementCount);
 
 }; // namespace GPUMemory

@@ -1505,6 +1505,24 @@ class QueryResponseMessage :
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
       mutable_nullbitmasks();
 
+  // repeated string columnOrder = 4;
+  int columnorder_size() const;
+  void clear_columnorder();
+  static const int kColumnOrderFieldNumber = 4;
+  const std::string& columnorder(int index) const;
+  std::string* mutable_columnorder(int index);
+  void set_columnorder(int index, const std::string& value);
+  void set_columnorder(int index, std::string&& value);
+  void set_columnorder(int index, const char* value);
+  void set_columnorder(int index, const char* value, size_t size);
+  std::string* add_columnorder();
+  void add_columnorder(const std::string& value);
+  void add_columnorder(std::string&& value);
+  void add_columnorder(const char* value);
+  void add_columnorder(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& columnorder() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_columnorder();
+
   // @@protoc_insertion_point(class_scope:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
  private:
   class HasBitSetters;
@@ -1528,6 +1546,7 @@ class QueryResponseMessage :
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_BYTES,
       0 > nullbitmasks_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> columnorder_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_messages_2fQueryResponseMessage_2eproto;
 };
@@ -2167,6 +2186,71 @@ inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, float >*
 QueryResponseMessage::mutable_timing() {
   // @@protoc_insertion_point(field_mutable_map:ColmnarDB.NetworkClient.Message.QueryResponseMessage.timing)
   return timing_.MutableMap();
+}
+
+// repeated string columnOrder = 4;
+inline int QueryResponseMessage::columnorder_size() const {
+  return columnorder_.size();
+}
+inline void QueryResponseMessage::clear_columnorder() {
+  columnorder_.Clear();
+}
+inline const std::string& QueryResponseMessage::columnorder(int index) const {
+  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+  return columnorder_.Get(index);
+}
+inline std::string* QueryResponseMessage::mutable_columnorder(int index) {
+  // @@protoc_insertion_point(field_mutable:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+  return columnorder_.Mutable(index);
+}
+inline void QueryResponseMessage::set_columnorder(int index, const std::string& value) {
+  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+  columnorder_.Mutable(index)->assign(value);
+}
+inline void QueryResponseMessage::set_columnorder(int index, std::string&& value) {
+  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+  columnorder_.Mutable(index)->assign(std::move(value));
+}
+inline void QueryResponseMessage::set_columnorder(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  columnorder_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+}
+inline void QueryResponseMessage::set_columnorder(int index, const char* value, size_t size) {
+  columnorder_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+}
+inline std::string* QueryResponseMessage::add_columnorder() {
+  // @@protoc_insertion_point(field_add_mutable:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+  return columnorder_.Add();
+}
+inline void QueryResponseMessage::add_columnorder(const std::string& value) {
+  columnorder_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+}
+inline void QueryResponseMessage::add_columnorder(std::string&& value) {
+  columnorder_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+}
+inline void QueryResponseMessage::add_columnorder(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  columnorder_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+}
+inline void QueryResponseMessage::add_columnorder(const char* value, size_t size) {
+  columnorder_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+QueryResponseMessage::columnorder() const {
+  // @@protoc_insertion_point(field_list:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+  return columnorder_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+QueryResponseMessage::mutable_columnorder() {
+  // @@protoc_insertion_point(field_mutable_list:ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder)
+  return &columnorder_;
 }
 
 #ifdef __GNUC__

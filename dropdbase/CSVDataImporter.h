@@ -1,10 +1,12 @@
 #pragma once
+
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <sstream>
 #include <any>
+
 #include "Database.h"
 #include "DataType.h"
 #include "Table.h"

@@ -739,8 +739,8 @@ TEST(ColumnTests, InsertNull)
 		ASSERT_TRUE(std::isnan(dataInFloatBlock[i]));
 		ASSERT_TRUE(std::isnan(dataInDoubleBlock[i]));
 		ASSERT_EQ("POINT(0 0)" , PointFactory::WktFromPoint(dataInPointBlock[i]));
-		ASSERT_EQ("POLYGON()", ComplexPolygonFactory::WktFromPolygon(dataInPolygonBlock[i]));
-		ASSERT_EQ("", dataInStringBlock[i]);
+		ASSERT_EQ("POLYGON((0 0, 0 0))", ComplexPolygonFactory::WktFromPolygon(dataInPolygonBlock[i]));
+		ASSERT_EQ(" ", dataInStringBlock[i]);
 	}
 }
 
@@ -868,9 +868,9 @@ TEST(ColumnTests, ColumnStatistics)
 	ASSERT_EQ(PointFactory::WktFromPoint(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->GetSum()), "POINT(0 0)");
 	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->GetAvg(), 0);
 
-	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetMin()), "POLYGON((0 0), (0 0))");
-	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetMax()), "POLYGON((0 0), (0 0))");
-	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetSum()), "POLYGON((0 0), (0 0))");
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetMin()), "POLYGON((0 0, 0 0))");
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetMax()), "POLYGON((0 0, 0 0))");
+	ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetSum()), "POLYGON((0 0, 0 0))");
 	ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetAvg(), 0);
 
 	ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(columnString.get())->GetMin(), "abc");

@@ -56,5 +56,10 @@ namespace ColmnarDB.NetworkClient.Message
 
             return Any.Parser.ParseFrom(data);
         }
+
+        public static void WriteRaw(NetworkStream networkStream, byte[] dataBuffer, Int32 elementCount)
+        {
+            networkStream.Write(dataBuffer, 0, elementCount);
+        }
     }
 }

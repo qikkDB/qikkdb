@@ -12,6 +12,7 @@
 #include "../QueryEngine/OrderByType.h"
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include <string>
 #include <memory>
 #include <stack>
@@ -30,7 +31,9 @@ private:
     std::stack<std::pair<std::string, DataType>> parserStack_;
     std::unordered_map<std::string, std::string> tableAliases_;
     std::unordered_set<std::string> columnAliases_;
+    std::string currentExpressionAlias_;
     std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts_;
+    std::unordered_map<int64_t, GpuSqlParser::ExpressionContext*> columnNumericAliasContexts_;
     std::unordered_set<std::string> loadedTables_;
     std::unordered_map<std::string, std::string> shortColumnNames_;
     int32_t linkTableIndex_;
@@ -40,12 +43,10 @@ private:
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns_;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns_;
 
-    bool usingLoad_;
-    bool usingWhere_;
-
     bool usingGroupBy_;
     bool usingAgg_;
     bool insideAgg_;
+    bool insideWhere_;
     bool insideGroupBy_;
     bool insideOrderBy_;
     bool insideAlias_;
@@ -80,6 +81,10 @@ private:
 
     void WalkAliasExpression(const std::string& alias);
 
+    void WalkAliasExpression(const int64_t alias);
+
+    time_t DateToLong(std::string dateString);
+
 
 public:
     GpuSqlListener(const std::shared_ptr<Database>& database,
@@ -88,6 +93,10 @@ public:
 
     int64_t ResultLimit;
     int64_t ResultOffset;
+    int32_t CurrentSelectColumnIndex;
+    bool ContainsAggFunction;
+
+    std::map<int32_t, std::string> ColumnOrder;
 
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext* ctx) override;
 
@@ -176,6 +185,8 @@ public:
     bool GetUsingLoad();
 
     bool GetUsingWhere();
+
+	void SetContainsAggFunction(bool containsAgg);
 
     void ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext* ctx);
 

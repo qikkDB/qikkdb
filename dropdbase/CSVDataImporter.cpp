@@ -4,6 +4,7 @@
 #include <thread>
 #include <vector>
 #include <sstream>
+#include <string>
 #include <ctime>
 #include <iomanip>
 #include "CSVDataImporter.h"
@@ -91,7 +92,13 @@ void CSVDataImporter::ParseAndImport(int threadId,
     std::unordered_map<std::string, std::any> data;
     for (int i = 0; i < headers_.size(); i++)
     {
-        if (dataTypes_[i] == COLUMN_INT)
+        if (dataTypes_[i] == COLUMN_INT8_T)
+        {
+            std::vector<int8_t> v;
+            v.reserve(blockSize);
+            data[headers_[i]] = std::move(v);
+        }
+        else if (dataTypes_[i] == COLUMN_INT)
         {
             std::vector<int32_t> v;
             v.reserve(blockSize);
@@ -162,12 +169,24 @@ void CSVDataImporter::ParseAndImport(int threadId,
             {
                 for (auto& field : row)
                 {
+                    std::string fieldCopy = field;
+                    boost::algorithm::to_lower(fieldCopy);
 
                     std::any value;
                     switch (dataTypes_[columnIndex])
                     {
+                    case COLUMN_INT8_T:
+                        if (fieldCopy == "true")
+                        {
+                            value = static_cast<int8_t>(1);
+                        }
+                        else if (fieldCopy == "false")
+                        {
+                            value = static_cast<int8_t>(0);
+						} 
+                        break;
                     case COLUMN_INT:
-                        value = (int32_t)std::stoi(field);
+                        value = static_cast<int32_t>(std::stoi(field));
                         break;
                     case COLUMN_LONG:
                         // Check for chars - and : to find out if it is datetime
@@ -185,10 +204,10 @@ void CSVDataImporter::ParseAndImport(int threadId,
                         }
                         break;
                     case COLUMN_FLOAT:
-                        value = (float)std::stof(field);
+                        value = static_cast<float>(std::stof(field));
                         break;
                     case COLUMN_DOUBLE:
-                        value = (double)std::stod(field);
+                        value = static_cast<double>(std::stod(field));
                         break;
                     case COLUMN_POINT:
                         value = PointFactory::FromWkt(field);
@@ -228,6 +247,9 @@ void CSVDataImporter::ParseAndImport(int threadId,
             std::any& wrappedData = data.at(headers_[columnIndex]);
             switch (dataTypes_[columnIndex])
             {
+            case COLUMN_INT8_T:
+                std::any_cast<std::vector<int8_t>&>(wrappedData).push_back(std::any_cast<int8_t>(field));
+                break;
             case COLUMN_INT:
                 std::any_cast<std::vector<int32_t>&>(wrappedData).push_back(std::any_cast<int32_t>(field));
                 break;
@@ -277,6 +299,9 @@ void CSVDataImporter::ParseAndImport(int threadId,
                 std::any& wrappedData = data.at(headers_[i]);
                 switch (dataTypes_[i])
                 {
+                case COLUMN_INT8_T:
+                    std::any_cast<std::vector<int8_t>&>(wrappedData).clear();
+                    break;
                 case COLUMN_INT:
                     std::any_cast<std::vector<int32_t>&>(wrappedData).clear();
                     break;
@@ -396,6 +421,20 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 
     for (auto& s : columnValues)
     {
+		// COLUMN_INT8_T
+		std::string sCopy = s;
+		boost::algorithm::to_lower(sCopy);
+		
+        if (sCopy == "true")
+        {
+            dataTypes.push_back(COLUMN_INT8_T);
+            continue;
+        }
+        else if (sCopy == "false")
+        {
+            dataTypes.push_back(COLUMN_INT8_T);
+            continue;
+        } 
 
         // COLUMN_INT
         try

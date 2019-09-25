@@ -26,21 +26,15 @@ void GPUMemory::free(GPUPolygon polygonCol)
     {
         GPUMemory::free(polygonCol.polyPoints);
     }
+
     if (polygonCol.pointIdx)
     {
         GPUMemory::free(polygonCol.pointIdx);
     }
-    if (polygonCol.pointCount)
-    {
-        GPUMemory::free(polygonCol.pointCount);
-    }
+
     if (polygonCol.polyIdx)
     {
         GPUMemory::free(polygonCol.polyIdx);
-    }
-    if (polygonCol.polyCount)
-    {
-        GPUMemory::free(polygonCol.polyCount);
     }
 }
 
@@ -50,8 +44,38 @@ void GPUMemory::free(GPUString stringCol)
     {
         GPUMemory::free(stringCol.allChars);
     }
+
     if (stringCol.stringIndices != nullptr)
     {
         GPUMemory::free(stringCol.stringIndices);
     }
+}
+
+size_t GPUMemory::CalculateNullMaskSize(size_t dataElementCount, bool for32bit)
+{
+    if (for32bit)
+    {
+        return ((dataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int32_t) * 8)) *
+               (sizeof(int32_t) / sizeof(int8_t));
+    }
+    else
+    {
+        return (dataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+    }
+}
+
+template <>
+void GPUMemory::PrintGpuBuffer<NativeGeoPoint>(const char* title, NativeGeoPoint* bufferGpu, int32_t dataElementCount)
+{
+    std::unique_ptr<NativeGeoPoint[]> bufferCpu(new NativeGeoPoint[dataElementCount]);
+    GPUMemory::copyDeviceToHost(bufferCpu.get(), bufferGpu, dataElementCount);
+
+    std::cout << title << " (" << reinterpret_cast<uintptr_t>(bufferGpu) << "): ";
+
+    for (int32_t i = 0; i < dataElementCount; i++)
+    {
+        std::cout << "{" << bufferCpu[i].latitude << ", " << bufferCpu[i].longitude << "}"
+                  << " ";
+    }
+    std::cout << std::endl;
 }

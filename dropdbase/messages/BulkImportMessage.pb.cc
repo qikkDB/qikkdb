@@ -53,7 +53,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fBulkImportMessage_2
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, columnname_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, columntype_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, elemcount_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, isnullable_),
+  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, nullmasklen_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::ColmnarDB::NetworkClient::Message::BulkImportMessage)},
@@ -66,11 +66,11 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 const char descriptor_table_protodef_messages_2fBulkImportMessage_2eproto[] =
   "\n messages/BulkImportMessage.proto\022\037Colm"
   "narDB.NetworkClient.Message\032\037messages/CS"
-  "VImportMessage.proto\"\240\001\n\021BulkImportMessa"
+  "VImportMessage.proto\"\241\001\n\021BulkImportMessa"
   "ge\022\021\n\tTableName\030\001 \001(\t\022\022\n\nColumnName\030\002 \001("
   "\t\022=\n\nColumnType\030\003 \001(\0162).ColmnarDB.Networ"
   "kClient.Message.DataType\022\021\n\tElemCount\030\004 "
-  "\001(\005\022\022\n\nisNullable\030\005 \001(\010b\006proto3"
+  "\001(\005\022\023\n\013nullMaskLen\030\005 \001(\005b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_messages_2fBulkImportMessage_2eproto_deps[1] = {
   &::descriptor_table_messages_2fCSVImportMessage_2eproto,
@@ -81,7 +81,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_mes
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_messages_2fBulkImportMessage_2eproto_once;
 static bool descriptor_table_messages_2fBulkImportMessage_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fBulkImportMessage_2eproto = {
-  &descriptor_table_messages_2fBulkImportMessage_2eproto_initialized, descriptor_table_protodef_messages_2fBulkImportMessage_2eproto, "messages/BulkImportMessage.proto", 271,
+  &descriptor_table_messages_2fBulkImportMessage_2eproto_initialized, descriptor_table_protodef_messages_2fBulkImportMessage_2eproto, "messages/BulkImportMessage.proto", 272,
   &descriptor_table_messages_2fBulkImportMessage_2eproto_once, descriptor_table_messages_2fBulkImportMessage_2eproto_sccs, descriptor_table_messages_2fBulkImportMessage_2eproto_deps, 1, 1,
   schemas, file_default_instances, TableStruct_messages_2fBulkImportMessage_2eproto::offsets,
   file_level_metadata_messages_2fBulkImportMessage_2eproto, 1, file_level_enum_descriptors_messages_2fBulkImportMessage_2eproto, file_level_service_descriptors_messages_2fBulkImportMessage_2eproto,
@@ -106,7 +106,7 @@ const int BulkImportMessage::kTableNameFieldNumber;
 const int BulkImportMessage::kColumnNameFieldNumber;
 const int BulkImportMessage::kColumnTypeFieldNumber;
 const int BulkImportMessage::kElemCountFieldNumber;
-const int BulkImportMessage::kIsNullableFieldNumber;
+const int BulkImportMessage::kNullMaskLenFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 BulkImportMessage::BulkImportMessage()
@@ -127,8 +127,8 @@ BulkImportMessage::BulkImportMessage(const BulkImportMessage& from)
     columnname_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.columnname_);
   }
   ::memcpy(&columntype_, &from.columntype_,
-    static_cast<size_t>(reinterpret_cast<char*>(&isnullable_) -
-    reinterpret_cast<char*>(&columntype_)) + sizeof(isnullable_));
+    static_cast<size_t>(reinterpret_cast<char*>(&nullmasklen_) -
+    reinterpret_cast<char*>(&columntype_)) + sizeof(nullmasklen_));
   // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.BulkImportMessage)
 }
 
@@ -137,8 +137,8 @@ void BulkImportMessage::SharedCtor() {
   tablename_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   columnname_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   ::memset(&columntype_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&isnullable_) -
-      reinterpret_cast<char*>(&columntype_)) + sizeof(isnullable_));
+      reinterpret_cast<char*>(&nullmasklen_) -
+      reinterpret_cast<char*>(&columntype_)) + sizeof(nullmasklen_));
 }
 
 BulkImportMessage::~BulkImportMessage() {
@@ -169,8 +169,8 @@ void BulkImportMessage::Clear() {
   tablename_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   columnname_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   ::memset(&columntype_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&isnullable_) -
-      reinterpret_cast<char*>(&columntype_)) + sizeof(isnullable_));
+      reinterpret_cast<char*>(&nullmasklen_) -
+      reinterpret_cast<char*>(&columntype_)) + sizeof(nullmasklen_));
   _internal_metadata_.Clear();
 }
 
@@ -211,10 +211,10 @@ const char* BulkImportMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAMESP
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // bool isNullable = 5;
+      // int32 nullMaskLen = 5;
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 40)) {
-          isnullable_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
+          nullmasklen_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -305,13 +305,13 @@ bool BulkImportMessage::MergePartialFromCodedStream(
         break;
       }
 
-      // bool isNullable = 5;
+      // int32 nullMaskLen = 5;
       case 5: {
         if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (40 & 0xFF)) {
 
           DO_((::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadPrimitive<
-                   bool, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_BOOL>(
-                 input, &isnullable_)));
+                   ::PROTOBUF_NAMESPACE_ID::int32, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_INT32>(
+                 input, &nullmasklen_)));
         } else {
           goto handle_unusual;
         }
@@ -376,9 +376,9 @@ void BulkImportMessage::SerializeWithCachedSizes(
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32(4, this->elemcount(), output);
   }
 
-  // bool isNullable = 5;
-  if (this->isnullable() != 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBool(5, this->isnullable(), output);
+  // int32 nullMaskLen = 5;
+  if (this->nullmasklen() != 0) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32(5, this->nullmasklen(), output);
   }
 
   if (_internal_metadata_.have_unknown_fields()) {
@@ -427,9 +427,9 @@ void BulkImportMessage::SerializeWithCachedSizes(
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(4, this->elemcount(), target);
   }
 
-  // bool isNullable = 5;
-  if (this->isnullable() != 0) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(5, this->isnullable(), target);
+  // int32 nullMaskLen = 5;
+  if (this->nullmasklen() != 0) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(5, this->nullmasklen(), target);
   }
 
   if (_internal_metadata_.have_unknown_fields()) {
@@ -480,9 +480,11 @@ size_t BulkImportMessage::ByteSizeLong() const {
         this->elemcount());
   }
 
-  // bool isNullable = 5;
-  if (this->isnullable() != 0) {
-    total_size += 1 + 1;
+  // int32 nullMaskLen = 5;
+  if (this->nullmasklen() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+        this->nullmasklen());
   }
 
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
@@ -526,8 +528,8 @@ void BulkImportMessage::MergeFrom(const BulkImportMessage& from) {
   if (from.elemcount() != 0) {
     set_elemcount(from.elemcount());
   }
-  if (from.isnullable() != 0) {
-    set_isnullable(from.isnullable());
+  if (from.nullmasklen() != 0) {
+    set_nullmasklen(from.nullmasklen());
   }
 }
 
@@ -562,7 +564,7 @@ void BulkImportMessage::InternalSwap(BulkImportMessage* other) {
     GetArenaNoVirtual());
   swap(columntype_, other->columntype_);
   swap(elemcount_, other->elemcount_);
-  swap(isnullable_, other->isnullable_);
+  swap(nullmasklen_, other->nullmasklen_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata BulkImportMessage::GetMetadata() const {

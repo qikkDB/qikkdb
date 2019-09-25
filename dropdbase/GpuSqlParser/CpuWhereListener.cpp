@@ -142,6 +142,10 @@ void CpuWhereListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext*
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
         returnDataType = GetReturnDataType(DataType::COLUMN_FLOAT);
         break;
+    case GpuSqlLexer::ROUND:
+        reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
+        returnDataType = GetReturnDataType(DataType::COLUMN_FLOAT);
+        break;
     case GpuSqlLexer::CONCAT:
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
         returnDataType = DataType::COLUMN_STRING;
@@ -475,7 +479,7 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
         TrimDelimitedIdentifier(table);
         if (database_->GetTables().find(table) == database_->GetTables().end())
         {
-            throw TableNotFoundFromException();
+            throw TableNotFoundFromException(table);
         }
         loadedTables_.insert(table);
 
@@ -485,10 +489,35 @@ void CpuWhereListener::exitFromTables(GpuSqlParser::FromTablesContext* ctx)
             TrimDelimitedIdentifier(alias);
             if (tableAliases_.find(alias) != tableAliases_.end())
             {
-                throw AliasRedefinitionException();
+                throw AliasRedefinitionException(alias);
             }
             tableAliases_.insert({alias, table});
         }
+    }
+}
+
+void CpuWhereListener::exitJoinClause(GpuSqlParser::JoinClauseContext* ctx)
+{
+    std::string joinTable = ctx->joinTable()->table()->getText();
+    TrimDelimitedIdentifier(joinTable);
+
+    if (database_->GetTables().find(joinTable) == database_->GetTables().end())
+    {
+        throw TableNotFoundFromException(joinTable);
+    }
+
+    loadedTables_.insert(joinTable);
+
+    if (ctx->joinTable()->alias())
+    {
+        std::string alias = ctx->joinTable()->alias()->getText();
+        TrimDelimitedIdentifier(alias);
+
+        if (tableAliases_.find(alias) != tableAliases_.end())
+        {
+            throw AliasRedefinitionException(alias);
+        }
+        tableAliases_.insert({alias, joinTable});
     }
 }
 
@@ -501,7 +530,7 @@ void CpuWhereListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsCon
             std::string alias = selectColumn->alias()->getText();
             if (columnAliasContexts_.find(alias) != columnAliasContexts_.end())
             {
-                throw AliasRedefinitionException();
+                throw AliasRedefinitionException(alias);
             }
             columnAliasContexts_.insert({alias, selectColumn->expression()});
         }
@@ -524,9 +553,22 @@ void CpuWhereListener::PushArgument(const char* token, DataType dataType)
     case DataType::CONST_DOUBLE:
         dispatcher_.AddArgument<double>(std::stod(token));
         break;
+    case DataType::CONST_INT8_T:
+    {
+        std::string booleanToken(token);
+        StringToUpper(booleanToken);
+        dispatcher_.AddArgument<int8_t>(booleanToken == "TRUE" ? 1 : 0);
+    }
+    break;
+    case DataType::CONST_STRING:
+    {
+        std::string str(token);
+        std::string strTrimmed = str.substr(1, str.length() - 2);
+        dispatcher_.AddArgument<const std::string&>(strTrimmed);
+    }
+    break;
     case DataType::CONST_POINT:
     case DataType::CONST_POLYGON:
-    case DataType::CONST_STRING:
     case DataType::COLUMN_INT:
     case DataType::COLUMN_LONG:
     case DataType::COLUMN_FLOAT:
@@ -660,12 +702,12 @@ std::pair<std::string, DataType> CpuWhereListener::GenerateAndValidateColumnName
 
         if (loadedTables_.find(table) == loadedTables_.end())
         {
-            throw TableNotFoundFromException();
+            throw TableNotFoundFromException(table);
         }
         if (database_->GetTables().at(table).GetColumns().find(column) ==
             database_->GetTables().at(table).GetColumns().end())
         {
-            throw ColumnNotFoundException();
+            throw ColumnNotFoundException(column);
         }
 
         shortColumnNames_.insert({table + "." + column, table + "." + column});
@@ -684,12 +726,12 @@ std::pair<std::string, DataType> CpuWhereListener::GenerateAndValidateColumnName
             }
             if (uses > 1)
             {
-                throw ColumnAmbiguityException();
+                throw ColumnAmbiguityException(col);
             }
         }
         if (column.empty())
         {
-            throw ColumnNotFoundException();
+            throw ColumnNotFoundException(col);
         }
 
         shortColumnNames_.insert({table + "." + column, column});

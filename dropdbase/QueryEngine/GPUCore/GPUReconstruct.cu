@@ -18,8 +18,8 @@ kernel_reconstruct_null_mask(int32_t* outData, int8_t* ACol, int32_t* prefixSum,
         // The prefix sum includes values from the input array on the same element so the index has to be modified
         if (inMask[i] && (prefixSum[i] - 1) >= 0)
         {
-            int bitMaskIdx = i / (sizeof(char) * 8);
-            int shiftIdx = i % (sizeof(char) * 8);
+            int bitMaskIdx = i / (sizeof(int8_t) * 8);
+            int shiftIdx = i % (sizeof(int8_t) * 8);
             int outBitMaskIdx = (prefixSum[i] - 1) / (sizeof(int32_t) * 8);
             int outBitMaskShiftIdx = (prefixSum[i] - 1) % (sizeof(int32_t) * 8);
             atomicOr(outData + outBitMaskIdx, ((ACol[bitMaskIdx] >> shiftIdx) & 1) << outBitMaskShiftIdx);
@@ -66,22 +66,6 @@ __global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCo
     }
 }
 
-__global__ void
-kernel_generate_submask(int8_t* outMask, int8_t* inMask, int32_t* indices, int32_t* counts, int32_t size)
-{
-    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-    const int32_t stride = blockDim.x * gridDim.x;
-
-    for (int32_t i = idx; i < size; i += stride)
-    {
-        for (int32_t j = 0; j < counts[i]; j++)
-        {
-            outMask[indices[i] + j] = inMask[i];
-        }
-    }
-}
-
-
 /// Helping function to calculate number of digints of integer part of float
 __device__ int32_t GetNumberOfIntegerPartDigits(float number)
 {
@@ -97,25 +81,113 @@ __global__ void kernel_predict_wkt_lengths(int32_t* outStringLengths, GPUMemory:
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
         // Count POLYGON word and parentheses ("POLYGON((), ())")
-        int32_t charCounter = 11 + (4 * (inPolygonCol.polyCount[i] - 1));
-        const int32_t subpolyStartIdx = inPolygonCol.polyIdx[i];
-        const int32_t subpolyEndIdx = subpolyStartIdx + inPolygonCol.polyCount[i];
-        for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++)
-        {
-            const int32_t pointCount = inPolygonCol.pointCount[j] - 2;
-            const int32_t pointStartIdx = inPolygonCol.pointIdx[j] + 1;
-            const int32_t pointEndIdx = pointStartIdx + pointCount;
+        int32_t charCounter = 11 + (4 * (inPolygonCol.PolyCountAt(i) - 1));
 
-            // Count the decimal part and colons between points (".0000 .0000, .0000 .0000")
-            charCounter += pointCount * (2 * WKT_DECIMAL_PLACES + 5) - 2;
-            for (int32_t k = pointStartIdx; k < pointEndIdx; k++)
+
+        const int32_t subpolyStartIdx = inPolygonCol.PolyIdxAt(i);
+        const int32_t subpolyEndIdx = subpolyStartIdx + inPolygonCol.PolyCountAt(i);
+
+        // If subpolyStartIdx == subpolyEndIdx it means the row in the output polygon is empty
+        // Set the char counter for the standard null value for polygons: POLYGON((0.0000 0.0000, 0.0000 0.0000))
+        if (subpolyStartIdx == subpolyEndIdx)
+        {
+            charCounter = 7 + 4 + 4 * WKT_DECIMAL_PLACES + 12;
+        }
+        else
+        {
+            // Else calculate the required WKT size
+            for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++)
             {
-                // Count the integer part ("150".0000, "-0".1000)
-                charCounter += GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[k].latitude) +
-                               GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[k].longitude);
+                const int32_t pointCount = inPolygonCol.PointCountAt(j); // - 2;
+                const int32_t pointStartIdx = inPolygonCol.PointIdxAt(j); // + 1;
+                const int32_t pointEndIdx = pointStartIdx + pointCount;
+
+                // Count the decimal part and colons between points (".0000 .0000, .0000 .0000")
+                // Add +1 to add the first point to WKT
+                charCounter += (pointCount + 1) * (2 * WKT_DECIMAL_PLACES + 5) - 2;
+                for (int32_t k = pointStartIdx; k < pointEndIdx; k++)
+                {
+                    // Count the integer part ("150".0000, "-0".1000)
+                    charCounter += GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[k].latitude) +
+                                   GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[k].longitude);
+                }
+
+                // Repeat the last element for the WKT format
+                charCounter +=
+                    GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[pointStartIdx].latitude) +
+                    GetNumberOfIntegerPartDigits(inPolygonCol.polyPoints[pointStartIdx].longitude);
             }
         }
+
         outStringLengths[i] = charCounter;
+    }
+}
+
+__global__ void
+kernel_generate_poly_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < size; i += stride)
+    {
+        for (int32_t j = 0; j < polygon.PolyCountAt(i); j++)
+        {
+            outMask[polygon.PolyIdxAt(i) + j] = inMask[i];
+        }
+    }
+}
+
+__global__ void
+kernel_generate_point_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < size; i += stride)
+    {
+        for (int32_t j = 0; j < polygon.PointCountAt(i); j++)
+        {
+            outMask[polygon.PointIdxAt(i) + j] = inMask[i];
+        }
+    }
+}
+
+/// Kernel for reconstructing polygon subPolygons
+__global__ void kernel_reconstruct_polyCount_col(int32_t* outPolyCount,
+                                                 GPUMemory::GPUPolygon polygon,
+                                                 int32_t* prefixSum,
+                                                 int8_t* inMask,
+                                                 int32_t dataElementCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < dataElementCount; i += stride)
+    {
+        if (inMask[i] && (prefixSum[i] - 1) >= 0)
+        {
+            outPolyCount[prefixSum[i] - 1] = polygon.PolyCountAt(i);
+        }
+    }
+}
+
+/// Kernel for reconstructing polygon points
+__global__ void kernel_reconstruct_pointCount_col(int32_t* outPointCount,
+                                                  GPUMemory::GPUPolygon polygon,
+                                                  int32_t* prefixSum,
+                                                  int8_t* inMask,
+                                                  int32_t dataElementCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < dataElementCount; i += stride)
+    {
+        if (inMask[i] && (prefixSum[i] - 1) >= 0)
+        {
+            outPointCount[prefixSum[i] - 1] = polygon.PointCountAt(i);
+        }
     }
 }
 
@@ -190,42 +262,68 @@ kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon in
         int64_t charId = stringStartIndex + 7;
         outWkt.allChars[charId++] = '(';
 
-        const int32_t subpolyStartIdx = inPolygonCol.polyIdx[i];
-        const int32_t subpolyEndIdx = subpolyStartIdx + inPolygonCol.polyCount[i];
+        const int32_t subpolyStartIdx = inPolygonCol.PolyIdxAt(i);
+        const int32_t subpolyEndIdx = subpolyStartIdx + inPolygonCol.PolyCountAt(i);
 
-        for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++) // via sub-polygons
+        // If subpolyStartIdx == subpolyEndIdx it means the row in the output polygon is empty
+        // We need to add "(0.0000 0.0000, 0.0000 0.0000)" to the result
+        if (subpolyStartIdx == subpolyEndIdx)
         {
-            outWkt.allChars[charId++] = '(';
-            const int32_t pointCount = inPolygonCol.pointCount[j] - 2;
-            const int32_t pointStartIdx = inPolygonCol.pointIdx[j] + 1;
-            const int32_t pointEndIdx = pointStartIdx + pointCount;
+            const char* emptyWkt = "(0.0000 0.0000, 0.0000 0.0000)";
 
-            for (int32_t k = pointStartIdx; k < pointEndIdx; k++) // via points
+            for (int32_t i = 0; i < (2 + 4 * WKT_DECIMAL_PLACES + 12); i++)
             {
-                FloatToString(outWkt.allChars, charId, inPolygonCol.polyPoints[k].latitude);
-                outWkt.allChars[charId++] = ' ';
-                FloatToString(outWkt.allChars, charId, inPolygonCol.polyPoints[k].longitude);
+                outWkt.allChars[charId++] = emptyWkt[i];
+            }
+        }
+        else
+        {
 
-                if (k < pointEndIdx - 1)
+            for (int32_t j = subpolyStartIdx; j < subpolyEndIdx; j++) // via sub-polygons
+            {
+                outWkt.allChars[charId++] = '(';
+                const int32_t pointCount = inPolygonCol.PointCountAt(j); // - 2;
+                const int32_t pointStartIdx = inPolygonCol.PointIdxAt(j); // + 1;
+                const int32_t pointEndIdx = pointStartIdx + pointCount;
+
+                for (int32_t k = pointStartIdx; k < pointEndIdx; k++) // via points
+                {
+                    FloatToString(outWkt.allChars, charId, inPolygonCol.polyPoints[k].latitude);
+                    outWkt.allChars[charId++] = ' ';
+                    FloatToString(outWkt.allChars, charId, inPolygonCol.polyPoints[k].longitude);
+
+                    outWkt.allChars[charId++] = ',';
+                    outWkt.allChars[charId++] = ' ';
+
+                    // Repeat the last element for the WKT reconstruction
+                    if (k == pointEndIdx - 1)
+                    {
+                        FloatToString(outWkt.allChars, charId,
+                                      inPolygonCol.polyPoints[pointStartIdx].latitude);
+                        outWkt.allChars[charId++] = ' ';
+                        FloatToString(outWkt.allChars, charId,
+                                      inPolygonCol.polyPoints[pointStartIdx].longitude);
+                    }
+                }
+
+                outWkt.allChars[charId++] = ')';
+                if (j < subpolyEndIdx - 1)
                 {
                     outWkt.allChars[charId++] = ',';
                     outWkt.allChars[charId++] = ' ';
                 }
             }
-
-            outWkt.allChars[charId++] = ')';
-            if (j < subpolyEndIdx - 1)
-            {
-                outWkt.allChars[charId++] = ',';
-                outWkt.allChars[charId++] = ' ';
-            }
         }
         outWkt.allChars[charId++] = ')';
-        /*
+
         // Lengths mis-match check
+        /*
         if (charId != outWkt.stringIndices[i])
         {
             printf("Not match fin id! %d\n", outWkt.stringIndices[i] - charId);
+        }
+        else{
+            printf("Match OK\n");
         }
         */
     }
@@ -261,17 +359,6 @@ __global__ void kernel_convert_point_to_wkt(GPUMemory::GPUString outWkt, NativeG
         */
     }
 }
-
-
-int32_t GPUReconstruct::CalculateCount(int32_t* indices, int32_t* counts, int32_t size)
-{
-    int32_t lastIndex;
-    int32_t lastCount;
-    GPUMemory::copyDeviceToHost(&lastIndex, indices + size - 1, 1);
-    GPUMemory::copyDeviceToHost(&lastCount, counts + size - 1, 1);
-    return lastIndex + lastCount;
-}
-
 
 void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString* outStringCol,
                                               int32_t* outDataElementCount,
@@ -318,31 +405,32 @@ void GPUReconstruct::ReconstructStringColKeep(GPUMemory::GPUString* outStringCol
             // Reconstruct chars
             kernel_reconstruct_string_chars<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
                 *outStringCol, inStringCol, inLengths.get(), inPrefixSumPointer.get(), inMask, inDataElementCount);
-            if (nullMask)
+            if (nullMask && outNullMask)
             {
-                size_t outBitMaskSize =
-                    (*outDataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8);
+                const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount, true);
                 GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
-                kernel_reconstruct_null_mask<<<context.calcGridDim(*outDataElementCount), context.getBlockDim()>>>(
+                kernel_reconstruct_null_mask<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
                     reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(),
-                    inMask, *outDataElementCount);
+                    inMask, inDataElementCount);
             }
         }
         else // Empty result set
         {
             outStringCol->allChars = nullptr;
             outStringCol->stringIndices = nullptr;
+            if (outNullMask)
+            {
+                *outNullMask = nullptr;
+            }
         }
     }
     else // If mask is not used (is nullptr), just copy pointers from inCol to outCol
     {
         *outStringCol = inStringCol;
         *outDataElementCount = inDataElementCount;
-        if (nullMask)
+        if (outNullMask)
         {
-            size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-            GPUMemory::alloc(outNullMask, outBitMaskSize);
-            GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
+            *outNullMask = nullMask;
         }
     }
 
@@ -367,9 +455,12 @@ void GPUReconstruct::ReconstructStringCol(std::string* outStringData,
                                  inDataElementCount, &outNullMaskGPUPointer, nullMask);
         if (outNullMaskGPUPointer)
         {
-            size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+            const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
             GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
-            GPUMemory::free(outNullMaskGPUPointer);
+            if (inMask)
+            {
+                GPUMemory::free(outNullMaskGPUPointer);
+            }
         }
     }
     else // If mask is not used
@@ -378,7 +469,7 @@ void GPUReconstruct::ReconstructStringCol(std::string* outStringData,
         outStringCol = inStringCol;
         if (nullMask)
         {
-            size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+            const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
             GPUMemory::copyDeviceToHost(outNullMask, nullMask, outBitMaskSize);
         }
     }
@@ -399,8 +490,15 @@ void GPUReconstruct::ReconstructStringCol(std::string* outStringData,
         {
             size_t length = static_cast<size_t>(
                 i == 0 ? hostStringIndices[0] : hostStringIndices[i] - hostStringIndices[i - 1]);
-            outStringData[i] =
-                std::string(hostAllChars.get() + (i == 0 ? 0 : hostStringIndices[i - 1]), length);
+            if (length == 0)
+            {
+                outStringData[i] = std::string();
+            }
+            else
+            {
+                outStringData[i] =
+                    std::string(hostAllChars.get() + (i == 0 ? 0 : hostStringIndices[i - 1]), length);
+            }
         }
         if (inMask)
         {
@@ -571,42 +669,59 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
         if (*outDataElementCount > 0) // Not empty result set
         {
             // Reconstruct each array independently
-            int32_t inSubpolySize = CalculateCount(inCol.polyIdx, inCol.polyCount, inDataElementCount);
-            int32_t inPointSize = CalculateCount(inCol.pointIdx, inCol.pointCount, inSubpolySize);
+            int32_t inSubpolySize;
+            GPUMemory::copyDeviceToHost(&inSubpolySize, inCol.polyIdx + inDataElementCount - 1, 1);
 
             // Complex polygons (reconstruct polyCount and sum it to polyIdx)
-            GPUMemory::alloc(&(outCol->polyCount), *outDataElementCount);
+            // Alloc a temp count buffer and the result index buffer
+            cuda_ptr<int32_t> polyCount(*outDataElementCount);
             GPUMemory::alloc(&(outCol->polyIdx), *outDataElementCount);
-            kernel_reconstruct_col<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
-                outCol->polyCount, inCol.polyCount, inPrefixSumPointer.get(), inMask, inDataElementCount);
+
+            kernel_reconstruct_polyCount_col<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
+                polyCount.get(), inCol, inPrefixSumPointer.get(), inMask, inDataElementCount);
             CheckCudaError(cudaGetLastError());
-            PrefixSumExclusive(outCol->polyIdx, outCol->polyCount, *outDataElementCount);
+
+            PrefixSum(outCol->polyIdx, polyCount.get(), *outDataElementCount);
 
             // Subpolygons (reconstruct pointCount and sum it to pointIdx)
-            int32_t outSubpolySize = CalculateCount(outCol->polyIdx, outCol->polyCount, *outDataElementCount);
+            int32_t outSubpolySize;
+            GPUMemory::copyDeviceToHost(&outSubpolySize, outCol->polyIdx + *outDataElementCount - 1, 1);
+
+            // If result set is empty
+            if (outSubpolySize == 0)
+            {
+                outCol->pointIdx = nullptr;
+                outCol->polyPoints = nullptr;
+
+                return;
+            }
+
+            int32_t inPointSize;
+            GPUMemory::copyDeviceToHost(&inPointSize, inCol.pointIdx + inSubpolySize - 1, 1);
 
             cuda_ptr<int8_t> subpolyMask(inSubpolySize);
-            kernel_generate_submask<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
-                subpolyMask.get(), inMask, inCol.polyIdx, inCol.polyCount, inDataElementCount);
+            kernel_generate_poly_submask<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
+                subpolyMask.get(), inMask, inCol, inDataElementCount);
             CheckCudaError(cudaGetLastError());
 
             cuda_ptr<int32_t> subpolyPrefixSumPointer(inSubpolySize);
             PrefixSum(subpolyPrefixSumPointer.get(), subpolyMask.get(), inSubpolySize);
 
-            GPUMemory::alloc(&(outCol->pointCount), outSubpolySize);
+            cuda_ptr<int32_t> pointCount(outSubpolySize);
             GPUMemory::alloc(&(outCol->pointIdx), outSubpolySize);
-            kernel_reconstruct_col<<<context.calcGridDim(inSubpolySize), context.getBlockDim()>>>(
-                outCol->pointCount, inCol.pointCount, subpolyPrefixSumPointer.get(),
-                subpolyMask.get(), inSubpolySize);
+
+            kernel_reconstruct_pointCount_col<<<context.calcGridDim(inSubpolySize), context.getBlockDim()>>>(
+                pointCount.get(), inCol, subpolyPrefixSumPointer.get(), subpolyMask.get(), inSubpolySize);
             CheckCudaError(cudaGetLastError());
-            PrefixSumExclusive(outCol->pointIdx, outCol->pointCount, outSubpolySize);
+            PrefixSum(outCol->pointIdx, pointCount.get(), outSubpolySize);
 
             // Points (reconstruct polyPoints)
-            int32_t outPointSize = CalculateCount(outCol->pointIdx, outCol->pointCount, outSubpolySize);
+            int32_t outPointSize;
+            GPUMemory::copyDeviceToHost(&outPointSize, outCol->pointIdx + outSubpolySize - 1, 1);
 
             cuda_ptr<int8_t> pointMask(inPointSize);
-            kernel_generate_submask<<<context.calcGridDim(inSubpolySize), context.getBlockDim()>>>(
-                pointMask.get(), subpolyMask.get(), inCol.pointIdx, inCol.pointCount, inSubpolySize);
+            kernel_generate_point_submask<<<context.calcGridDim(inSubpolySize), context.getBlockDim()>>>(
+                pointMask.get(), subpolyMask.get(), inCol, inSubpolySize);
             CheckCudaError(cudaGetLastError());
 
             cuda_ptr<int32_t> pointPrefixSumPointer(inPointSize);
@@ -616,34 +731,33 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
             kernel_reconstruct_col<<<context.calcGridDim(inSubpolySize), context.getBlockDim()>>>(
                 outCol->polyPoints, inCol.polyPoints, pointPrefixSumPointer.get(), pointMask.get(), inPointSize);
             CheckCudaError(cudaGetLastError());
-            if (nullMask)
+            if (nullMask && outNullMask)
             {
-                size_t outBitMaskSize =
-                    (*outDataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8);
+                const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount, true);
                 GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
-                kernel_reconstruct_null_mask<<<context.calcGridDim(*outDataElementCount), context.getBlockDim()>>>(
+                kernel_reconstruct_null_mask<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
                     reinterpret_cast<int32_t*>(*outNullMask), nullMask, inPrefixSumPointer.get(),
-                    inMask, *outDataElementCount);
+                    inMask, inDataElementCount);
             }
         }
         else // Empty result set
         {
             outCol->polyPoints = nullptr;
             outCol->pointIdx = nullptr;
-            outCol->pointCount = nullptr;
             outCol->polyIdx = nullptr;
-            outCol->polyCount = nullptr;
+            if (outNullMask)
+            {
+                *outNullMask = nullptr;
+            }
         }
     }
     else // If mask is not used (is nullptr), just copy pointers from inCol to outCol
     {
         *outCol = inCol;
         *outDataElementCount = inDataElementCount;
-        if (nullMask)
+        if (outNullMask)
         {
-            size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-            GPUMemory::alloc(outNullMask, outBitMaskSize);
-            GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
+            *outNullMask = nullMask;
         }
     }
 
@@ -666,13 +780,16 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string* outStringData,
                            inDataElementCount, &outNullMaskGPUPointer, nullMask);
     if (outNullMaskGPUPointer)
     {
-        size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+        const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
         GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
-        GPUMemory::free(outNullMaskGPUPointer);
+        if (inMask)
+        {
+            GPUMemory::free(outNullMaskGPUPointer);
+        }
     }
     GPUMemory::GPUString gpuWkt;
     ConvertPolyColToWKTCol(&gpuWkt, reconstructedPolygonCol, *outDataElementCount);
-    if (inMask && reconstructedPolygonCol.polyCount)
+    if (inMask)
     {
         GPUMemory::free(reconstructedPolygonCol);
     }
@@ -699,12 +816,18 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string* outStringData,
     GPUMemory::GPUString gpuWkt;
     if (outNullMaskGPUPointer)
     {
-        size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+        const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
         GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
-        GPUMemory::free(outNullMaskGPUPointer);
+        if (inMask)
+        {
+            GPUMemory::free(outNullMaskGPUPointer);
+        }
     }
     ConvertPointColToWKTCol(&gpuWkt, reconstructedPointCol, *outDataElementCount);
-    GPUMemory::free(reconstructedPointCol);
+    if (inMask)
+    {
+        GPUMemory::free(reconstructedPointCol);
+    }
     // Use reconstruct without mask - just to convert GPUString to CPU string array
     ReconstructStringCol(outStringData, outDataElementCount, gpuWkt, nullptr, *outDataElementCount);
     if (!gpuWkt.allChars)
@@ -716,7 +839,8 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string* outStringData,
 
 cuda_ptr<int8_t> GPUReconstruct::CompressNullMask(int8_t* inputNullMask, int32_t dataElementCount)
 {
-    cuda_ptr<int8_t> nullMaskCompressed((dataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8), 0);
+    const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(dataElementCount, true);
+    cuda_ptr<int8_t> nullMaskCompressed(outBitMaskSize, 0);
     kernel_compress_null_mask<<<Context::getInstance().calcGridDim(dataElementCount),
                                 Context::getInstance().getBlockDim()>>>(
         reinterpret_cast<int32_t*>(nullMaskCompressed.get()), inputNullMask, dataElementCount);

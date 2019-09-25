@@ -373,7 +373,8 @@ private:
         // Check for hash table limits
         if (dataElementCount < 0 || dataElementCount > hashTableSize_)
         {
-            std::cerr << "Data element count exceeded hash table size" << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::error)
+                << "Data element count exceeded hash table size" << '\n';
             return;
         }
 
@@ -414,7 +415,8 @@ private:
         // Check for join table limits
         if (dataElementCountColumnSBlock < 0 || dataElementCountColumnSBlock > joinTableSize_)
         {
-            std::cerr << "Data element count exceeded join table size" << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::error)
+                << "Data element count exceeded join table size" << '\n';
             return;
         }
 
@@ -467,7 +469,8 @@ public:
                               std::vector<std::vector<int32_t>>& resultColumnQBJoinIdx,
                               ColumnBase<T>& ColumnR,
                               ColumnBase<T>& ColumnS,
-                              int32_t blockSize)
+                              int32_t blockSize,
+                              bool& aborted)
     {
         // The result vector - reset
         resultColumnQAJoinIdx.resize(0);
@@ -493,7 +496,7 @@ public:
         // Perform the GPU join
         auto& ColumnRBlockList = ColumnR.GetBlocksList();
         auto& ColumnSBlockList = ColumnS.GetBlocksList();
-        for (int32_t r = 0; r < ColumnR.GetBlockCount(); r++)
+        for (int32_t r = 0; r < ColumnR.GetBlockCount() && !aborted; r++)
         {
             // For the last block process only the remaining elements
             int32_t processedRBlockSize = ColumnRBlockList[r]->GetSize();
@@ -515,7 +518,7 @@ public:
             }
 
             GPUMemory::memset(gpuJoin.JoinTableHisto_, 0, gpuJoin.joinTableSize_);
-            for (int32_t s = 0; s < ColumnS.GetBlockCount(); s++)
+            for (int32_t s = 0; s < ColumnS.GetBlockCount() && !aborted; s++)
             {
                 // The result block size
                 int32_t processedQBlockResultSize = 0;
@@ -663,7 +666,8 @@ public:
     {
         if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
         {
-            std::cerr << "[ERROR]  Column block index out of bounds" << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::error)
+                << "[ERROR]  Column block index out of bounds" << '\n';
         }
 
         // Allocan output CPU vector
@@ -694,7 +698,8 @@ public:
     {
         if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
         {
-            std::cerr << "[ERROR]  Column block index out of bounds" << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::error)
+                << "[ERROR]  Column block index out of bounds" << '\n';
         }
 
         outBlock.clear();
@@ -721,7 +726,8 @@ public:
     {
         if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
         {
-            std::cerr << "[ERROR]  Column block index out of bounds" << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::error)
+                << "[ERROR]  Column block index out of bounds" << '\n';
         }
 
         // Allocan output CPU vector

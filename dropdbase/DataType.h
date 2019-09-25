@@ -69,3 +69,5 @@ constexpr DataType GetColumnType()
 }
 
 DataType GetColumnDataTypeFromString(const std::string& dataType);
+
+std::string GetStringFromColumnDataType(DataType type);

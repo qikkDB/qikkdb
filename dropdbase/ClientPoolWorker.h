@@ -2,11 +2,24 @@
 #include <array>
 #include <vector>
 #include "ITCPWorker.h"
+#include "NetworkMessage.h"
 
 class ClientPoolWorker final : public ITCPWorker
 {
 private:
-    bool quit_;
+    static constexpr int32_t MAXIMUM_BULK_FRAGMENT_SIZE = 8192 * 1024;
+    static constexpr size_t NULL_BUFFER_SIZE =
+        (MAXIMUM_BULK_FRAGMENT_SIZE + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+    std::unique_ptr<char[]> dataBuffer_;
+    std::unique_ptr<char[]> nullBuffer_;
+
+    void ClientLoop();
+    NetworkMessage networkMessage_;
+
+    void HandleMessage(std::shared_ptr<ITCPWorker> self, google::protobuf::Any& recvMsg);
+    boost::asio::steady_timer socketDeadline_;
+    void OnTimeout(boost::asio::steady_timer& deadline);
 
 public:
     /// <summary>
@@ -26,9 +39,9 @@ public:
     // Inherited via ITCPWorker
     virtual void Abort() override;
 
-    inline bool HasStopped()
+    inline bool HasStopped() const
     {
-        return quit_;
+        return !socket_.is_open();
     }
 
     ClientPoolWorker(const ClientPoolWorker&) = delete;

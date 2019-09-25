@@ -67,7 +67,8 @@ TEST(GPUJoinTests, JoinTest)
 	std::vector<std::vector<int32_t>> resultColumnQAJoinIdx;
 	std::vector<std::vector<int32_t>> resultColumnQBJoinIdx;
 
-	GPUJoin::JoinTableRonS<FilterConditions::equal>(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE);
+	bool aborted = false;
+	GPUJoin::JoinTableRonS<FilterConditions::equal>(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE, aborted);
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// Check the results 
@@ -99,9 +100,6 @@ TEST(GPUJoinTests, JoinTestEmpty)
 	ColumnBase<int32_t> ColumnR_("ColumnR", BLOCK_SIZE);
 	ColumnBase<int32_t> ColumnS_("ColumnS", BLOCK_SIZE);
 
-	int32_t integerColumnCount_A = 1;
-	int32_t integerColumnCount_B = 3;
-
 	for (int32_t i = 0; i < BLOCK_COUNT; i++)
 	{
 		auto& blockR = ColumnR_.AddBlock();
@@ -118,7 +116,8 @@ TEST(GPUJoinTests, JoinTestEmpty)
 	std::vector<std::vector<int32_t>> resultColumnQAJoinIdx;
 	std::vector<std::vector<int32_t>> resultColumnQBJoinIdx;
 
-	GPUJoin::JoinTableRonS<FilterConditions::equal>(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE);
+	bool aborted = false;
+	GPUJoin::JoinTableRonS<FilterConditions::equal>(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE, aborted);
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// Check the results 
@@ -168,8 +167,9 @@ TEST(GPUJoinTests, ReorderCPUTest)
 	// Run the join and store the result cross index in two vectors of vectors each containing a vector of max BLOCK_SIZE
 	std::vector<std::vector<int32_t>> resultColumnQAJoinIdx;
 	std::vector<std::vector<int32_t>> resultColumnQBJoinIdx;
-
-	GPUJoin::JoinTableRonS<FilterConditions::equal>(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE);
+	
+	bool aborted = false;
+	GPUJoin::JoinTableRonS<FilterConditions::equal>(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE, aborted);
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// Reorder the blocks
@@ -226,7 +226,8 @@ TEST(GPUJoinTests, ReorderEmptyCPUTest)
 	std::vector<std::vector<int32_t>> resultColumnQAJoinIdx;
 	std::vector<std::vector<int32_t>> resultColumnQBJoinIdx;
 
-	GPUJoin::JoinTableRonS<FilterConditions::equal>(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE);
+    bool aborted = false;
+	GPUJoin::JoinTableRonS<FilterConditions::equal>(resultColumnQAJoinIdx, resultColumnQBJoinIdx, ColumnR_, ColumnS_, BLOCK_SIZE, aborted);
 
 	///////////////////////////////////////////////////////////////////////////////////////////
 	// Reorder the blocks

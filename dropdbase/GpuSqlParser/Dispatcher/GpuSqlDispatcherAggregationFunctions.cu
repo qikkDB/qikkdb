@@ -1494,34 +1494,44 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
         return loadFlag;
     }
 
-    std::cout << "GroupByString: " << columnName << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "GroupByString: " << columnName << '\n';
 
-    auto column = FindStringColumn(columnName);
+    const auto column = FindStringColumn(columnName);   // Just copy!
 
     int32_t reconstructOutSize;
     GPUMemory::GPUString reconstructOutReg;
+    int8_t* reconstructOutNullMask;
     GPUReconstruct::ReconstructStringColKeep(&reconstructOutReg, &reconstructOutSize, std::get<0>(column),
-                                             reinterpret_cast<int8_t*>(filter_), std::get<1>(column));
-    if (filter_)
-    {
-        GPUMemory::free(std::get<0>(column));
-    }
+                                             reinterpret_cast<int8_t*>(filter_), std::get<1>(column),
+                                            &reconstructOutNullMask, std::get<2>(column));
 
-    std::get<0>(column) = reconstructOutReg;
-    std::get<1>(column) = reconstructOutSize;
+    FillStringRegister(reconstructOutReg, columnName + RECONSTRUCTED_SUFFIX, reconstructOutSize,
+                       filter_ ? false : true, reconstructOutNullMask);
+    InsertRegister(columnName + NULL_SUFFIX + RECONSTRUCTED_SUFFIX,
+                   PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutNullMask),
+                                     reconstructOutSize, filter_ ? true : false, 0});
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(columnName)) ==
         groupByColumns_.end())
     {
         groupByColumns_.push_back({columnName, DataType::COLUMN_STRING});
     }
+    usingGroupBy_ = true;
 
     return 0;
 }
 
 int32_t GpuSqlDispatcher::GroupByDone()
 {
+    bool containsAggFunction = arguments_.Read<bool>();
     insideGroupBy_ = false;
+
+	//Preparation for group by without aggregation
+    /*if (!containsAggFunction)
+    {
+
+    }*/
+
     return 0;
 }
 

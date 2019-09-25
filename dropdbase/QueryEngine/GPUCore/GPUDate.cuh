@@ -38,26 +38,14 @@ public:
     /// <param name="output">Output GPU buffer for result (int32_t)</param>
     /// <param name="dateTimeCol">Input GPU buffer - datetime (int64_t)</param>
     /// <param name="dataElementCount">Row count (e.g. size of block to process)</param>
-    template <typename OP>
-    static void extractCol(int32_t* output, int64_t* dateTimeCol, int32_t dataElementCount)
+    template <typename OP, typename T>
+    static void Extract(int32_t* output, T dateTimeCol, int32_t dataElementCount)
     {
+        static_assert(std::is_same<typename std::remove_pointer<T>::type, int64_t>::value,
+                      "DateTime can only be extracted from int64 columns");
         kernel_extract<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                 output, dateTimeCol, dataElementCount);
-        cudaDeviceSynchronize();
-        CheckCudaError(cudaGetLastError());
-    }
-
-    /// Extract a value (year/month/dat/hour/minute/second) from a datetime constant
-    /// <param name="output">Output GPU buffer for result (int32_t)</param>
-    /// <param name="dateTimeConst">Input datetime (int64_t)</param>
-    /// <param name="dataElementCount">Output row count (how many times duplicate the value extracted from the constant)</param>
-    template <typename OP>
-    static void extractConst(int32_t* output, int64_t dateTimeConst, int32_t dataElementCount)
-    {
-        kernel_extract<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                output, dateTimeConst, dataElementCount);
         cudaDeviceSynchronize();
         CheckCudaError(cudaGetLastError());
     }

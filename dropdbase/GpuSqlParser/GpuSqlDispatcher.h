@@ -74,6 +74,7 @@ private:
     };
     static const std::string KEYS_SUFFIX;
     static const std::string NULL_SUFFIX;
+    static const std::string RECONSTRUCTED_SUFFIX;
 
     typedef int32_t (GpuSqlDispatcher::*DispatchFunction)();
     std::vector<DispatchFunction> dispatcherFunctions_;
@@ -88,6 +89,7 @@ private:
     int32_t jmpInstructionPosition_;
     int32_t constStringCounter_;
     const std::shared_ptr<Database>& database_;
+    std::string loadedTableName_;
     std::unordered_map<std::string, PointerAllocation> allocatedPointers_;
     std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIndices_;
 
@@ -101,12 +103,14 @@ private:
     bool isLastBlockOfDevice_;
     bool isOverallLastBlock_;
     bool noLoad_;
+    bool aborted_;
     int64_t loadNecessary_;
     std::vector<std::pair<std::string, DataType>> groupByColumns_;
     std::unordered_set<std::string> aggregatedRegisters_;
     std::unordered_set<std::string> registerLockList_;
     bool IsRegisterAllocated(const std::string& reg);
     std::pair<std::string, std::string> SplitColumnName(const std::string& colName);
+    bool isValidCast(DataType fromType, DataType toType);
     std::vector<std::unique_ptr<IGroupBy>>& groupByTables_;
     CpuSqlDispatcher cpuDispatcher_;
 
@@ -142,6 +146,7 @@ private:
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> arctangent2Functions_;
+    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> roundDecimalFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> concatFunctions;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions_;
@@ -210,8 +215,7 @@ private:
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> avgGroupByMultiKeyFunctions_;
 
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> orderByFunctions_;
-    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> orderByReconstructOrderFunctions_;
-    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> orderByReconstructRetFunctions_;
+    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> orderByReconstructFunctions_;
 
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> retFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> groupByFunctions_;
@@ -245,7 +249,9 @@ private:
     static int32_t groupByDoneCounter_;
     static int32_t orderByDoneCounter_;
     static int32_t deviceCountLimit_;
-
+    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+                                             std::unique_ptr<int8_t[]>& data,
+                                             int32_t dataSize);
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int32_t[]>& data,
                            int32_t dataSize);
@@ -350,6 +356,8 @@ public:
 
     void Execute(std::unique_ptr<google::protobuf::Message>& result, std::exception_ptr& exception);
 
+    void Abort();
+
     const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GetQueryResponseMessage();
 
     void AddGreaterFunction(DataType left, DataType right);
@@ -453,8 +461,10 @@ public:
     void AddLogarithm10Function(DataType type);
 
     void AddLogarithmFunction(DataType number, DataType base);
-
+    
     void AddArctangent2Function(DataType y, DataType x);
+
+    void AddRoundDecimalFunction(DataType y, DataType x);
 
     void AddConcatFunction(DataType left, DataType right);
 
@@ -508,9 +518,7 @@ public:
 
     void AddOrderByFunction(DataType type);
 
-    void AddOrderByReconstructOrderFunction(DataType type);
-
-    void AddOrderByReconstructRetFunction(DataType type);
+    void AddOrderByReconstructFunction(DataType type);
 
     void AddFreeOrderByTableFunction();
 
@@ -559,6 +567,8 @@ public:
     void AddAggregationDoneFunction();
 
     void AddBetweenFunction(DataType op1, DataType op2, DataType op3);
+
+    void SetLoadedTableName(const std::string& tableName);
 
     static std::unordered_map<std::string, int32_t> linkTable;
 
@@ -612,6 +622,10 @@ public:
 
     int32_t LoadColNullMask(std::string& colName);
 
+    int32_t LoadTableBlockInfo(const std::string& tableName);
+
+    size_t GetBlockSize();
+
     template <typename T>
     void FreeColumnIfRegister(const std::string& col)
     {
@@ -619,10 +633,13 @@ public:
             registerLockList_.find(col) == registerLockList_.end() &&
             allocatedPointers_.find(col) != allocatedPointers_.end())
         {
-            std::cout << "Free: " << col << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Free: " << col << '\n';
 
-            GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col).GpuPtr));
-            usedRegisterMemory_ -= allocatedPointers_.at(col).ElementCount * sizeof(T);
+            if (allocatedPointers_.at(col).GpuPtr)
+            {
+                GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col).GpuPtr));
+                usedRegisterMemory_ -= allocatedPointers_.at(col).ElementCount * sizeof(T);
+            }
             allocatedPointers_.erase(col);
 
             if (allocatedPointers_.find(col + NULL_SUFFIX) != allocatedPointers_.end())
@@ -653,9 +670,11 @@ public:
                                       int8_t* nullMaskPtr = nullptr);
     std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> FindComplexPolygon(std::string colName);
     std::tuple<GPUMemory::GPUString, int32_t, int8_t*> FindStringColumn(const std::string& colName);
+    void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int8_t* newNullMask);
+    void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int8_t* newNullMask);
     NativeGeoPoint* InsertConstPointGpu(ColmnarDB::Types::Point& point);
     GPUMemory::GPUPolygon InsertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
-    GPUMemory::GPUString InsertConstStringGpu(const std::string& str);
+    GPUMemory::GPUString InsertConstStringGpu(const std::string& str, size_t size = 1);
 
     template <typename T>
     int32_t OrderByConst();
@@ -664,16 +683,10 @@ public:
     int32_t OrderByCol();
 
     template <typename T>
-    int32_t OrderByReconstructOrderConst();
+    int32_t OrderByReconstructConst();
 
     template <typename T>
-    int32_t OrderByReconstructOrderCol();
-
-    template <typename T>
-    int32_t OrderByReconstructRetConst();
-
-    template <typename T>
-    int32_t OrderByReconstructRetCol();
+    int32_t OrderByReconstructCol();
 
     int32_t OrderByReconstructRetAllBlocks();
 
@@ -870,6 +883,26 @@ public:
     template <typename OUT, typename IN>
     int32_t CastNumericConst();
 
+    template <typename IN>
+    int32_t CastNumericToStringCol();
+
+    template <typename IN>
+    int32_t CastNumericToStringConst();
+
+    template <typename OUT>
+    int32_t CastStringCol();
+
+    template <typename OUT>
+    int32_t CastStringConst();
+
+    int32_t CastPointCol();
+
+    int32_t CastPointConst();
+
+    int32_t CastPolygonCol();
+
+    int32_t CastPolygonConst();
+
     int32_t Between();
 
     template <typename T>
@@ -1035,6 +1068,15 @@ template <>
 int32_t GpuSqlDispatcher::RetCol<std::string>();
 
 template <>
+int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>();
+
+template <>
+int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>();
+
+template <>
+int32_t GpuSqlDispatcher::RetConst<std::string>();
+
+template <>
 int32_t GpuSqlDispatcher::GroupByCol<std::string>();
 
 template <>
@@ -1051,3 +1093,12 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
 
 template <>
 int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName);
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>();
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>();
+
+template <>
+int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>();

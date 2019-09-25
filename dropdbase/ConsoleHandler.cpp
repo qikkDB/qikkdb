@@ -1,6 +1,6 @@
 #include "ConsoleHandler.h"
-#include "TCPServer.h"
 #include "TCPClientHandler.h"
+#include "TCPServer.h"
 #include "ClientPoolWorker.h"
 
 static TCPServer<TCPClientHandler, ClientPoolWorker>* currentServer = nullptr;
@@ -63,5 +63,6 @@ void RegisterCtrlCHandler(TCPServer<TCPClientHandler, ClientPoolWorker>* server)
     sigIntHandler.sa_flags = 0;
 
     sigaction(SIGINT, &sigIntHandler, NULL);
+    sigaction(SIGTERM, &sigIntHandler, NULL);
 #endif
 }

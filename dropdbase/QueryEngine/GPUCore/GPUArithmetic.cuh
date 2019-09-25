@@ -245,6 +245,18 @@ struct root
     }
 };
 
+/// Mathematical function root
+struct roundDecimal
+{
+    static constexpr bool isFloatRetType = true;
+    template <typename T, typename U, typename V>
+    __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+    {
+        const double multiplier = pow(10.0, b);
+        return roundf(a * multiplier) / multiplier;
+    }
+};
+
 } // namespace ArithmeticOperations
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -284,63 +296,12 @@ public:
     /// <param name="BCol">buffer with right side operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
     template <typename OP, typename T, typename U, typename V>
-    static void colCol(T* output, U* ACol, V* BCol, int32_t dataElementCount)
+    static void Arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount)
     {
         ErrorFlagSwapper errorFlagSwapper;
         kernel_arithmetic<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                 output, ACol, BCol, dataElementCount, errorFlagSwapper.GetFlagPointer(),
-                std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-        errorFlagSwapper.Swap();
-    }
-
-    /// Arithmetic operation with column and constant
-    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
-    /// <param name="output">output GPU buffer</param>
-    /// <param name="ACol">buffer with left side operands</param>
-    /// <param name="BConst">right side operand constant</param>
-    /// <param name="dataElementCount">data element count of the input block</param>
-    template <typename OP, typename T, typename U, typename V>
-    static void colConst(T* output, U* ACol, V BConst, int32_t dataElementCount)
-    {
-        ErrorFlagSwapper errorFlagSwapper;
-        kernel_arithmetic<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                output, ACol, BConst, dataElementCount, errorFlagSwapper.GetFlagPointer(),
-                std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-        errorFlagSwapper.Swap();
-    }
-
-    /// Arithmetic operation with constant and column
-    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
-    /// <param name="output">output GPU buffer</param>
-    /// <param name="AConst">left side operand constant</param>
-    /// <param name="BCol">buffer with right side operands</param>
-    /// <param name="dataElementCount">data element count of the input block</param>
-    template <typename OP, typename T, typename U, typename V>
-    static void constCol(T* output, U AConst, V* BCol, int32_t dataElementCount)
-    {
-        ErrorFlagSwapper errorFlagSwapper;
-        kernel_arithmetic<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                output, AConst, BCol, dataElementCount, errorFlagSwapper.GetFlagPointer(),
-                std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
-        errorFlagSwapper.Swap();
-    }
-
-    /// Arithmetic operation with two constants
-    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
-    /// <param name="output">output GPU buffer</param>
-    /// <param name="AConst">left side operand constant</param>
-    /// <param name="BConst">right side operand constant</param>
-    /// <param name="dataElementCount">data element count of the input block</param>
-    template <typename OP, typename T, typename U, typename V>
-    static void constConst(T* output, U AConst, V BConst, int32_t dataElementCount)
-    {
-        ErrorFlagSwapper errorFlagSwapper;
-        kernel_arithmetic<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                output, AConst, BConst, dataElementCount, errorFlagSwapper.GetFlagPointer(),
                 std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
         errorFlagSwapper.Swap();
     }

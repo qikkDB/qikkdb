@@ -21,6 +21,7 @@
 
 const std::string GpuSqlDispatcher::KEYS_SUFFIX = "_keys";
 const std::string GpuSqlDispatcher::NULL_SUFFIX = "_nullMask";
+const std::string GpuSqlDispatcher::RECONSTRUCTED_SUFFIX = "_reconstructed";
 
 int32_t GpuSqlDispatcher::groupByDoneCounter_ = 0;
 int32_t GpuSqlDispatcher::orderByDoneCounter_ = 0;
@@ -39,7 +40,8 @@ void AssertDeviceMatchesCurrentThread(int dispatcherThreadId_)
 {
     int device = -1;
     cudaGetDevice(&device);
-    std::cout << "Current device for tid " << dispatcherThreadId_ << " is " << device << "\n";
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Current device for tid " << dispatcherThreadId_ << " is " << device << "\n";
     if (device != dispatcherThreadId_)
     {
         abort();
@@ -51,15 +53,16 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database>& database,
                                    std::vector<std::unique_ptr<IGroupBy>>& groupByTables,
                                    std::vector<OrderByBlocks>& orderByBlocks,
                                    int dispatcherThreadId)
+
 : database_(database), blockIndex_(dispatcherThreadId), instructionPointer_(0),
   constPointCounter_(0), constPolygonCounter_(0), constStringCounter_(0), filter_(0),
   usedRegisterMemory_(0), maxRegisterMemory_(0), // TODO value from config e.g.
   groupByTables_(groupByTables), dispatcherThreadId_(dispatcherThreadId), insideAggregation_(false),
   insideGroupBy_(false), usingGroupBy_(false), usingOrderBy_(false), usingJoin_(false),
-  isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true), loadNecessary_(1),
-  cpuDispatcher_(database), jmpInstructionPosition_(0),
+  isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true), aborted_(false),
+  loadNecessary_(1), cpuDispatcher_(database), jmpInstructionPosition_(0),
   insertIntoData_(std::make_unique<InsertIntoStruct>()), joinIndices_(nullptr),
-  orderByTable_(nullptr), orderByBlocks_(orderByBlocks)
+  orderByTable_(nullptr), orderByBlocks_(orderByBlocks), loadedTableName_("")
 {
 }
 
@@ -67,12 +70,17 @@ GpuSqlDispatcher::~GpuSqlDispatcher()
 {
 }
 
+void GpuSqlDispatcher::SetLoadedTableName(const std::string& tableName)
+{
+    loadedTableName_ = tableName;
+}
 
 void GpuSqlDispatcher::CopyExecutionDataTo(GpuSqlDispatcher& other, CpuSqlDispatcher& sourceCpuDispatcher)
 {
     other.dispatcherFunctions_ = dispatcherFunctions_;
     other.arguments_ = arguments_;
     other.jmpInstructionPosition_ = jmpInstructionPosition_;
+    other.loadedTableName_ = loadedTableName_;
     sourceCpuDispatcher.CopyExecutionDataTo(other.cpuDispatcher_);
 }
 
@@ -102,7 +110,7 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
 
         int32_t err = 0;
 
-        while (err == 0)
+        while (err == 0 && !aborted_)
         {
 
             err = (this->*dispatcherFunctions_[instructionPointer_++])();
@@ -114,51 +122,61 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
             {
                 if (err == 1)
                 {
-                    std::cout << "Out of blocks." << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info) << "Out of blocks." << '\n';
                 }
                 if (err == 2)
                 {
-                    std::cout << "Show databases completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Show databases completed sucessfully" << '\n';
                 }
                 if (err == 3)
                 {
-                    std::cout << "Show tables completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Show tables completed sucessfully" << '\n';
                 }
                 if (err == 4)
                 {
-                    std::cout << "Show columns completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Show columns completed sucessfully" << '\n';
                 }
                 if (err == 5)
                 {
-                    std::cout << "Insert into completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Insert into completed sucessfully" << '\n';
                 }
                 if (err == 6)
                 {
-                    std::cout << "Create database_ completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Create database_ completed sucessfully" << '\n';
                 }
                 if (err == 7)
                 {
-                    std::cout << "Drop database_ completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Drop database_ completed sucessfully" << '\n';
                 }
                 if (err == 8)
                 {
-                    std::cout << "Create table completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Create table completed sucessfully" << '\n';
                 }
                 if (err == 9)
                 {
-                    std::cout << "Drop table completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Drop table completed sucessfully" << '\n';
                 }
                 if (err == 10)
                 {
-                    std::cout << "Alter table completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Alter table completed sucessfully" << '\n';
                 }
                 if (err == 11)
                 {
-                    std::cout << "Create index completed sucessfully" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Create index completed sucessfully" << '\n';
                 }
                 if (err == 12)
                 {
-                    std::cout << "Load skipped" << std::endl;
+                    CudaLogBoost::getInstance(CudaLogBoost::info) << "Load skipped" << '\n';
                     loadColHelper.countSkippedBlocks++;
                     err = 0;
                     continue;
@@ -176,6 +194,11 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
     CleanUpGpuPointers();
 }
 
+void GpuSqlDispatcher::Abort()
+{
+    aborted_ = true;
+}
+
 const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GpuSqlDispatcher::GetQueryResponseMessage()
 {
     return responseMessage_;
@@ -191,14 +214,9 @@ void GpuSqlDispatcher::AddOrderByFunction(DataType type)
     dispatcherFunctions_.push_back(orderByFunctions_[type]);
 }
 
-void GpuSqlDispatcher::AddOrderByReconstructOrderFunction(DataType type)
+void GpuSqlDispatcher::AddOrderByReconstructFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(orderByReconstructOrderFunctions_[type]);
-}
-
-void GpuSqlDispatcher::AddOrderByReconstructRetFunction(DataType type)
-{
-    dispatcherFunctions_.push_back(orderByReconstructRetFunctions_[type]);
+    dispatcherFunctions_.push_back(orderByReconstructFunctions_[type]);
 }
 
 void GpuSqlDispatcher::AddFreeOrderByTableFunction()
@@ -406,6 +424,11 @@ void GpuSqlDispatcher::AddLogarithmFunction(DataType number, DataType base)
 void GpuSqlDispatcher::AddArctangent2Function(DataType y, DataType x)
 {
     dispatcherFunctions_.push_back(arctangent2Functions_[DataType::DATA_TYPE_SIZE * y + x]);
+}
+
+void GpuSqlDispatcher::AddRoundDecimalFunction(DataType y, DataType x)
+{
+    dispatcherFunctions_.push_back(roundDecimalFunctions_[DataType::DATA_TYPE_SIZE * y + x]);
 }
 
 void GpuSqlDispatcher::AddConcatFunction(DataType left, DataType right)
@@ -800,14 +823,8 @@ void GpuSqlDispatcher::FillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn,
     InsertRegister(reg + "_pointIdx",
                    PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointIdx), size,
                                      !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
-    InsertRegister(reg + "_pointCount",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointCount), size,
-                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
     InsertRegister(reg + "_polyIdx",
                    PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size,
-                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
-    InsertRegister(reg + "_polyCount",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyCount), size,
                                      !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
 }
 
@@ -842,7 +859,7 @@ int32_t GpuSqlDispatcher::LoadColNullMask(std::string& colName)
     if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
     {
-        std::cout << "LoadNullMask: " << colName << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "LoadNullMask: " << colName << '\n';
 
         // split colName to table and column name
         const size_t endOfPolyIdx = colName.find(".");
@@ -898,26 +915,19 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
                                                                              blockIndex_) &&
             Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_pointIdx",
                                                                              blockIndex_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_pointCount",
-                                                                             blockIndex_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx",
-                                                                             blockIndex_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyCount",
-                                                                             blockIndex_))
+            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx", blockIndex_))
         {
             GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
             GPUMemory::GPUPolygon polygon;
             polygon.polyPoints = std::get<0>(
                 cache.getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints", blockIndex_, size));
-            polygon.pointIdx = std::get<0>(
-                cache.getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex_, size));
-            polygon.pointCount = std::get<0>(
-                cache.getColumn<int32_t>(databaseName, colName + "_pointCount", blockIndex_, size));
+            polygon.pointIdx =
+                std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointIdx", blockIndex_, size));
             polygon.polyIdx =
                 std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex_, size));
-            polygon.polyCount = std::get<0>(
-                cache.getColumn<int32_t>(databaseName, colName + "_polyCount", blockIndex_, size));
+
             FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
+
             return polygon;
         }
         else
@@ -983,9 +993,7 @@ std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> GpuSqlDispatcher::FindComple
     polygon.polyPoints =
         reinterpret_cast<NativeGeoPoint*>(allocatedPointers_.at(colName + "_polyPoints").GpuPtr);
     polygon.pointIdx = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_pointIdx").GpuPtr);
-    polygon.pointCount = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_pointCount").GpuPtr);
     polygon.polyIdx = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_polyIdx").GpuPtr);
-    polygon.polyCount = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_polyCount").GpuPtr);
 
     return std::make_tuple(polygon, size,
                            reinterpret_cast<int8_t*>(allocatedPointers_.at(colName + "_polyPoints").GpuNullMaskPtr));
@@ -1003,11 +1011,63 @@ std::tuple<GPUMemory::GPUString, int32_t, int8_t*> GpuSqlDispatcher::FindStringC
                                allocatedPointers_.at(colName + "_stringIndices").GpuNullMaskPtr));
 }
 
-GPUMemory::GPUString GpuSqlDispatcher::InsertConstStringGpu(const std::string& str)
+void GpuSqlDispatcher::RewriteColumn(PointerAllocation& column,
+                                     uintptr_t reconstructedReg,
+                                     int32_t reconstructedSize,
+                                     int8_t* reconstructedNullMask)
 {
+    if (filter_) // If where mask was used, new buffers were allocated, need to free old GpuPtr
+    {
+        if (column.ShouldBeFreed) // should be freed if it is not cached - if it is temp register like "YEAR(col)"
+        {
+            GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
+            // Do not free null mask because it is stored also as col_nullmask in allocated pointers
+        }
+        else // If original column was cachced, after rewrite the new pointer will need to be freed
+        {
+            column.ShouldBeFreed = true; // enable future free in cleanupGpuPointers
+        }
+    }
+
+    // Now rewrite the pointer in the register (correct because the pointer is either freed or stored in chache)
+    column.GpuPtr = reconstructedReg;
+    column.ElementCount = reconstructedSize;
+    column.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(reconstructedNullMask);
+}
+
+void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
+                                           GPUMemory::GPUString newStruct,
+                                           int32_t newElementCount,
+                                           int8_t* newNullMask)
+{
+    if (filter_)
+    {
+        const auto column = FindStringColumn(colName);
+        GPUMemory::free(std::get<0>(column));
+        // Do not free null mask (std::get<2>) because it is stored also as col_nullmask in allocated pointers
+    }
+
+    // Find corresponding pointers
+    PointerAllocation& stringIndices = allocatedPointers_.at(colName + "_stringIndices");
+    PointerAllocation& allChars = allocatedPointers_.at(colName + "_allChars");
+
+    // Rewrite stringIndices
+    stringIndices.GpuPtr = reinterpret_cast<uintptr_t>(newStruct.stringIndices);
+    stringIndices.ElementCount = newElementCount;
+    stringIndices.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(newNullMask);
+
+    // Rewrite allChars
+    allChars.GpuPtr = reinterpret_cast<uintptr_t>(newStruct.allChars);
+    allChars.ElementCount = newElementCount;
+    allChars.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(newNullMask);
+}
+
+GPUMemory::GPUString GpuSqlDispatcher::InsertConstStringGpu(const std::string& str, size_t size)
+{
+    std::vector<std::string> strings(size, str);
     std::string name = "constString" + std::to_string(constStringCounter_);
     constStringCounter_++;
-    return InsertString(database_->GetName(), name, {str}, 1);
+    return InsertString(database_->GetName(), name, strings, 1);
 }
 
 /// Clears all allocated buffers
@@ -1024,9 +1084,11 @@ void GpuSqlDispatcher::CleanUpGpuPointers()
         }
     }
     usedRegisterMemory_ = 0;
+    filter_ = 0;
     usingGroupBy_ = false;
     aggregatedRegisters_.clear();
     allocatedPointers_.clear();
+    orderByTable_.reset();
 }
 
 
@@ -1036,15 +1098,17 @@ void GpuSqlDispatcher::CleanUpGpuPointers()
 int32_t GpuSqlDispatcher::Fil()
 {
     auto reg = arguments_.Read<std::string>();
-    std::cout << "Filter: " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Filter: " << reg << '\n';
     filter_ = allocatedPointers_.at(reg).GpuPtr;
     return 0;
 }
 
 int32_t GpuSqlDispatcher::WhereEvaluation()
 {
-    loadNecessary_ = usingJoin_ ? 1 : cpuDispatcher_.Execute(blockIndex_);
-    std::cout << "Where load evaluation: " << loadNecessary_ << std::endl;
+    bool containsAggFunction = arguments_.Read<bool>();
+    //loadNecessary_ = (usingJoin_ || containsAggFunction) ? 1 : cpuDispatcher_.Execute(blockIndex_);
+    loadNecessary_ = usingJoin_  ? 1 : cpuDispatcher_.Execute(blockIndex_);
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Where load evaluation: " << loadNecessary_ << '\n';
     return 0;
 }
 
@@ -1071,7 +1135,7 @@ int32_t GpuSqlDispatcher::Jmp()
         return 0;
     }
 
-    std::cout << "Jump" << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Jump" << '\n';
     return 0;
 }
 
@@ -1082,7 +1146,7 @@ int32_t GpuSqlDispatcher::Jmp()
 int32_t GpuSqlDispatcher::Done()
 {
     CleanUpGpuPointers();
-    std::cout << "Done" << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Done" << '\n';
     return 1;
 }
 
@@ -1116,8 +1180,8 @@ int32_t GpuSqlDispatcher::ShowTables()
     std::string db = arguments_.Read<std::string>();
     std::shared_ptr<Database> database = Database::GetDatabaseByName(db);
 
-    std::unique_ptr<std::string[]> outData(new std::string[database_->GetTables().size()]);
-    auto& tables_map = database_->GetTables();
+    std::unique_ptr<std::string[]> outData(new std::string[database->GetTables().size()]);
+    auto& tables_map = database->GetTables();
 
     int i = 0;
     for (auto& tableName : tables_map)
@@ -1152,7 +1216,7 @@ int32_t GpuSqlDispatcher::ShowColumns()
     for (auto& column : columns_map)
     {
         outDataName[i] = column.first;
-        outDataType[i] = std::to_string(column.second.get()->GetColumnType());
+        outDataType[i] = ::GetStringFromColumnDataType(column.second.get()->GetColumnType());
         i++;
     }
 
@@ -1242,8 +1306,7 @@ int32_t GpuSqlDispatcher::AlterTable()
         int32_t addColumnDataType = arguments_.Read<int32_t>();
         database_->GetTables().at(tableName).CreateColumn(addColumnName.c_str(),
                                                           static_cast<DataType>(addColumnDataType));
-        int64_t tableSize = database_->GetTables().at(tableName).GetSize();
-        database_->GetTables().at(tableName).GetColumns().at(addColumnName)->InsertNullData(tableSize);
+        database_->GetTables().at(tableName).InsertNullDataIntoNewColumn(addColumnName);
     }
 
     int32_t dropColumnsCount = arguments_.Read<int32_t>();
@@ -1252,6 +1315,82 @@ int32_t GpuSqlDispatcher::AlterTable()
         std::string dropColumnName = arguments_.Read<std::string>();
         database_->GetTables().at(tableName).EraseColumn(dropColumnName);
         database_->DeleteColumnFromDisk(tableName.c_str(), dropColumnName.c_str());
+    }
+
+    int32_t alterColumnsCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < alterColumnsCount; i++)
+    {
+        std::string alterColumnName = arguments_.Read<std::string>();
+        int32_t alterColumnDataType = arguments_.Read<int32_t>();
+
+        auto originType =
+            database_->GetTables().at(tableName).GetColumns().at(alterColumnName)->GetColumnType();
+        if (isValidCast(originType, static_cast<DataType>(alterColumnDataType)) &&
+            originType != static_cast<DataType>(alterColumnDataType))
+        {
+            database_->GetTables().at(tableName).CreateColumn((alterColumnName + "_temp").c_str(),
+                                                              static_cast<DataType>(alterColumnDataType));
+            auto oldColumn = database_->GetTables().at(tableName).GetColumns().at(alterColumnName).get();
+            auto newColumn =
+                database_->GetTables().at(tableName).GetColumns().at(alterColumnName + "_temp").get();
+
+            switch (originType)
+            {
+            case COLUMN_INT:
+            {
+                dynamic_cast<ColumnBase<int32_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_LONG:
+            {
+                dynamic_cast<ColumnBase<int64_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_FLOAT:
+            {
+                dynamic_cast<ColumnBase<float>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_DOUBLE:
+            {
+                dynamic_cast<ColumnBase<double>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_POINT:
+            {
+                dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_POLYGON:
+            {
+                dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_STRING:
+            {
+                dynamic_cast<ColumnBase<std::string>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+
+            case COLUMN_INT8_T:
+            {
+                dynamic_cast<ColumnBase<int8_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                break;
+            }
+            default:
+                throw std::runtime_error("Attempt to execute unsupported column type conversion.");
+                break;
+            }
+
+            database_->GetTables().at(tableName).EraseColumn(alterColumnName);
+            database_->GetTables().at(tableName).RenameColumn(alterColumnName + "_temp", alterColumnName);
+        }
     }
     return 10;
 }
@@ -1282,6 +1421,15 @@ int32_t GpuSqlDispatcher::CreateIndex()
     return 11;
 }
 
+void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+                                         std::unique_ptr<int8_t[]>& data,
+                                         int32_t dataSize)
+{
+    for (int i = 0; i < dataSize; i++)
+    {
+        payload.mutable_intpayload()->add_intdata(data[i]);
+    }
+}
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int32_t[]>& data,
@@ -1484,4 +1632,31 @@ std::pair<std::string, std::string> GpuSqlDispatcher::SplitColumnName(const std:
     const std::string table = colName.substr(0, splitIdx);
     const std::string column = colName.substr(splitIdx + 1);
     return {table, column};
+}
+
+bool GpuSqlDispatcher::isValidCast(DataType fromType, DataType toType)
+{
+    const bool isToTypeNumeric = (toType >= COLUMN_INT && toType <= COLUMN_DOUBLE) || toType == COLUMN_INT8_T;
+
+    if (toType == COLUMN_STRING)
+    {
+        return true;
+    }
+
+    else if (toType == COLUMN_POINT)
+    {
+        return fromType == COLUMN_STRING || toType == COLUMN_POINT;
+    }
+
+    else if (toType == COLUMN_POLYGON)
+    {
+        return fromType == COLUMN_STRING || toType == COLUMN_POLYGON;
+    }
+
+    else if (isToTypeNumeric)
+    {
+        return fromType != COLUMN_POINT && fromType != COLUMN_POLYGON;
+    }
+
+    return false;
 }

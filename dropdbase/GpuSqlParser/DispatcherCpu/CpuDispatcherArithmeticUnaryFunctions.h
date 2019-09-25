@@ -30,12 +30,14 @@ int32_t CpuSqlDispatcher::ArithmeticUnaryCol()
     resultMin[0] = OP{}.template operator()<ResultType, T>(reinterpret_cast<T*>(std::get<0>(colValMin))[0]);
     resultMax[0] = OP{}.template operator()<ResultType, T>(reinterpret_cast<T*>(std::get<0>(colValMax))[0]);
 
-    std::cout << "Where evaluation arithmeticUnaryCol_min: "
-              << reinterpret_cast<T*>(std::get<0>(colValMin))[0] << ", " << reg + "_min"
-              << ": " << resultMin[0] << std::endl;
-    std::cout << "Where evaluation arithmeticUnaryCol_max: "
-              << reinterpret_cast<T*>(std::get<0>(colValMax))[0] << ", " << reg + "_max"
-              << ": " << resultMax[0] << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "Where evaluation arithmeticUnaryCol_min: " << reinterpret_cast<T*>(std::get<0>(colValMin))[0]
+        << ", " << reg + "_min"
+        << ": " << resultMin[0] << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "Where evaluation arithmeticUnaryCol_max: " << reinterpret_cast<T*>(std::get<0>(colValMax))[0]
+        << ", " << reg + "_max"
+        << ": " << resultMax[0] << '\n';
 
     return 0;
 }
@@ -54,10 +56,12 @@ int32_t CpuSqlDispatcher::ArithmeticUnaryConst()
     resultMin[0] = OP{}.template operator()<ResultType, T>(cnst);
     resultMax[0] = OP{}.template operator()<ResultType, T>(cnst);
 
-    std::cout << "Where evaluation arithmeticUnaryConst_min: " << reg + "_min"
-              << ": " << resultMin[0] << std::endl;
-    std::cout << "Where evaluation arithmeticUnaryConst_max: " << reg + "_max"
-              << ": " << resultMax[0] << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "Where evaluation arithmeticUnaryConst_min: " << reg + "_min"
+        << ": " << resultMin[0] << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "Where evaluation arithmeticUnaryConst_max: " << reg + "_max"
+        << ": " << resultMax[0] << '\n';
 
     return 0;
 }

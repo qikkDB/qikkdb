@@ -218,11 +218,11 @@ class BulkImportMessage :
   ::PROTOBUF_NAMESPACE_ID::int32 elemcount() const;
   void set_elemcount(::PROTOBUF_NAMESPACE_ID::int32 value);
 
-  // bool isNullable = 5;
-  void clear_isnullable();
-  static const int kIsNullableFieldNumber = 5;
-  bool isnullable() const;
-  void set_isnullable(bool value);
+  // int32 nullMaskLen = 5;
+  void clear_nullmasklen();
+  static const int kNullMaskLenFieldNumber = 5;
+  ::PROTOBUF_NAMESPACE_ID::int32 nullmasklen() const;
+  void set_nullmasklen(::PROTOBUF_NAMESPACE_ID::int32 value);
 
   // @@protoc_insertion_point(class_scope:ColmnarDB.NetworkClient.Message.BulkImportMessage)
  private:
@@ -233,7 +233,7 @@ class BulkImportMessage :
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr columnname_;
   int columntype_;
   ::PROTOBUF_NAMESPACE_ID::int32 elemcount_;
-  bool isnullable_;
+  ::PROTOBUF_NAMESPACE_ID::int32 nullmasklen_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_messages_2fBulkImportMessage_2eproto;
 };
@@ -378,18 +378,18 @@ inline void BulkImportMessage::set_elemcount(::PROTOBUF_NAMESPACE_ID::int32 valu
   // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.ElemCount)
 }
 
-// bool isNullable = 5;
-inline void BulkImportMessage::clear_isnullable() {
-  isnullable_ = false;
+// int32 nullMaskLen = 5;
+inline void BulkImportMessage::clear_nullmasklen() {
+  nullmasklen_ = 0;
 }
-inline bool BulkImportMessage::isnullable() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.BulkImportMessage.isNullable)
-  return isnullable_;
+inline ::PROTOBUF_NAMESPACE_ID::int32 BulkImportMessage::nullmasklen() const {
+  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.BulkImportMessage.nullMaskLen)
+  return nullmasklen_;
 }
-inline void BulkImportMessage::set_isnullable(bool value) {
+inline void BulkImportMessage::set_nullmasklen(::PROTOBUF_NAMESPACE_ID::int32 value) {
   
-  isnullable_ = value;
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.isNullable)
+  nullmasklen_ = value;
+  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.nullMaskLen)
 }
 
 #ifdef __GNUC__

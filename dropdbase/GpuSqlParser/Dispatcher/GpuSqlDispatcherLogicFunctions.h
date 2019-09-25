@@ -26,7 +26,7 @@ int32_t GpuSqlDispatcher::FilterColConst()
         return loadFlag;
     }
 
-    std::cout << "Filter: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Filter: " << colName << " " << reg << '\n';
 
     PointerAllocation column = allocatedPointers_.at(colName);
     int32_t retSize = column.ElementCount;
@@ -46,8 +46,8 @@ int32_t GpuSqlDispatcher::FilterColConst()
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPUFilter::colConst<OP, T, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
-                                      reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPUFilter::Filter<OP, T*, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
+                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<T>(colName);
@@ -71,7 +71,7 @@ int32_t GpuSqlDispatcher::FilterConstCol()
         return loadFlag;
     }
 
-    std::cout << "Filter: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Filter: " << colName << " " << reg << '\n';
 
     PointerAllocation column = allocatedPointers_.at(colName);
     int32_t retSize = column.ElementCount;
@@ -91,8 +91,8 @@ int32_t GpuSqlDispatcher::FilterConstCol()
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPUFilter::constCol<OP, T, U>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
-                                      reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPUFilter::Filter<OP, T, U*>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
+                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<U>(colName);
@@ -121,7 +121,8 @@ int32_t GpuSqlDispatcher::FilterColCol()
         return loadFlag;
     }
 
-    std::cout << "Filter: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "Filter: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     PointerAllocation columnRight = allocatedPointers_.at(colNameRight);
     PointerAllocation columnLeft = allocatedPointers_.at(colNameLeft);
@@ -136,7 +137,7 @@ int32_t GpuSqlDispatcher::FilterColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                     combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                     reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
@@ -150,14 +151,14 @@ int32_t GpuSqlDispatcher::FilterColCol()
                 GPUMemory::copyDeviceToDevice(combinedMask,
                                               reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
-            GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                        reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
+            GPUFilter::Filter<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                          reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
         }
         else
         {
             int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
-            GPUFilter::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                        reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
+            GPUFilter::Filter<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                          reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
         }
     }
 
@@ -177,10 +178,15 @@ int32_t GpuSqlDispatcher::FilterConstConst()
     T constLeft = arguments_.Read<T>();
     auto reg = arguments_.Read<std::string>();
 
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
-        int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
-        GPUFilter::constConst<OP, T, U>(mask, constLeft, constRight, database_->GetBlockSize());
+        int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
+        GPUFilter::Filter<OP, T, U>(mask, constLeft, constRight, nullptr, retSize);
     }
     return 0;
 }
@@ -198,7 +204,8 @@ int32_t GpuSqlDispatcher::FilterStringColConst()
         return loadFlag;
     }
 
-    std::cout << "FilterStringColConst: " << colName << " " << cnst << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "FilterStringColConst: " << colName << " " << cnst << " " << reg << '\n';
 
     auto column = FindStringColumn(colName);
     int32_t retSize = std::get<1>(column);
@@ -237,7 +244,8 @@ int32_t GpuSqlDispatcher::FilterStringConstCol()
         return loadFlag;
     }
 
-    std::cout << "FilterStringConstCol: " << cnst << " " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "FilterStringConstCol: " << cnst << " " << colName << " " << reg << '\n';
 
     std::tuple<GPUMemory::GPUString, int32_t, int8_t*> column = FindStringColumn(colName);
     int32_t retSize = std::get<1>(column);
@@ -280,7 +288,8 @@ int32_t GpuSqlDispatcher::FilterStringColCol()
         return loadFlag;
     }
 
-    std::cout << "FilterStringColCol: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "FilterStringColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     std::tuple<GPUMemory::GPUString, int32_t, int8_t*> columnLeft = FindStringColumn(colNameLeft);
     std::tuple<GPUMemory::GPUString, int32_t, int8_t*> columnRight = FindStringColumn(colNameRight);
@@ -296,8 +305,8 @@ int32_t GpuSqlDispatcher::FilterStringColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (leftMask && rightMask)
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(combinedMask, leftMask,
-                                                                       rightMask, bitMaskSize);
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(combinedMask, leftMask,
+                                                                           rightMask, bitMaskSize);
             }
             if (leftMask)
             {
@@ -327,15 +336,20 @@ int32_t GpuSqlDispatcher::FilterStringConstConst()
     std::string cnstLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "FilterStringConstConst: " << cnstLeft << " " << cnstRight << " " << reg << std::endl;
-
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "FilterStringConstConst: " << cnstLeft << " " << cnstRight << " " << reg << '\n';
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUString constStringLeft = InsertConstStringGpu(cnstLeft);
         GPUMemory::GPUString constStringRight = InsertConstStringGpu(cnstRight);
 
-        int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
-        GPUFilter::constConst<OP>(mask, constStringLeft, constStringRight, database_->GetBlockSize());
+        int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
+        GPUFilter::constConst<OP>(mask, constStringLeft, constStringRight, retSize);
     }
     return 0;
 }
@@ -375,8 +389,8 @@ int32_t GpuSqlDispatcher::LogicalColConst()
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPULogic::colConst<OP, T, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
-                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPULogic::Logic<OP, T*, U>(mask, reinterpret_cast<T*>(column.GpuPtr), cnst,
+                                   reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<T>(colName);
@@ -418,8 +432,8 @@ int32_t GpuSqlDispatcher::LogicalConstCol()
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
 
-        GPULogic::constCol<OP, T, U>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
-                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPULogic::Logic<OP, T, U*>(mask, cnst, reinterpret_cast<U*>(column.GpuPtr),
+                                   reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<U>(colName);
@@ -448,7 +462,8 @@ int32_t GpuSqlDispatcher::LogicalColCol()
         return loadFlag;
     }
 
-    std::cout << "Logical: " << colNameLeft << " " << colNameRight << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "Logical: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
     PointerAllocation columnRight = allocatedPointers_.at(colNameRight);
     PointerAllocation columnLeft = allocatedPointers_.at(colNameLeft);
@@ -464,7 +479,7 @@ int32_t GpuSqlDispatcher::LogicalColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
             {
-                GPUArithmetic::colCol<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
                     combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                     reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
@@ -478,14 +493,14 @@ int32_t GpuSqlDispatcher::LogicalColCol()
                 GPUMemory::copyDeviceToDevice(combinedMask,
                                               reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
-            GPULogic::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                       reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
+            GPULogic::Logic<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                        reinterpret_cast<U*>(columnRight.GpuPtr), combinedMask, retSize);
         }
         else
         {
             int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
-            GPULogic::colCol<OP, T, U>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
-                                       reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
+            GPULogic::Logic<OP, T*, U*>(mask, reinterpret_cast<T*>(columnLeft.GpuPtr),
+                                        reinterpret_cast<U*>(columnRight.GpuPtr), nullptr, retSize);
         }
     }
 
@@ -504,11 +519,15 @@ int32_t GpuSqlDispatcher::LogicalConstConst()
     U constRight = arguments_.Read<U>();
     T constLeft = arguments_.Read<T>();
     auto reg = arguments_.Read<std::string>();
-
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
-        int8_t* mask = AllocateRegister<int8_t>(reg, database_->GetBlockSize());
-        GPULogic::constConst<OP, T, U>(mask, constLeft, constRight, database_->GetBlockSize());
+        int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
+        GPULogic::Logic<OP, T, U>(mask, constLeft, constRight, nullptr, retSize);
     }
 
     return 0;
@@ -530,7 +549,7 @@ int32_t GpuSqlDispatcher::LogicalNotCol()
         return loadFlag;
     }
 
-    std::cout << "NotCol: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "NotCol: " << colName << " " << reg << '\n';
 
     PointerAllocation column = allocatedPointers_.at(colName);
     int32_t retSize = column.ElementCount;
@@ -549,8 +568,8 @@ int32_t GpuSqlDispatcher::LogicalNotCol()
         {
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
-        GPULogic::not_col<int8_t, T>(mask, reinterpret_cast<T*>(column.GpuPtr),
-                                     reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
+        GPULogic::Not<int8_t, T*>(mask, reinterpret_cast<T*>(column.GpuPtr),
+                                  reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), retSize);
     }
 
     FreeColumnIfRegister<T>(colName);
@@ -570,7 +589,7 @@ int32_t GpuSqlDispatcher::NullMaskCol()
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    std::cout << "NullMaskCol: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "NullMaskCol: " << colName << " " << reg << '\n';
 
     if (colName.front() == '$')
     {

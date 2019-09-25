@@ -1,17 +1,17 @@
 # db settings
 UsingGPU: true
-Dir: ../dropdbase
-DatabaseDir: ../databases
+Dir: ../bin/
+DatabaseDir: ../databases/
 BlockSize: 262144
 BlockCount: 1024
 GroupByBuckets: 262144  # must be power of 2
-UsingCompression: true
+UsingCompression: false
 GPUCachePercent: 75
 
 #network settings
 ListenIP: 127.0.0.1
 ListenPort: 12345
-Timeout: 5000
-
+Timeout: 3600000
+DBSaveInterval: 1000
 # To edit configuration values, copy this file to "main_config"
 # (delete suffix ".default") and edit there

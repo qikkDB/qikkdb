@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <functional>
 #include <google/protobuf/message.h>
 #include "messages/InfoMessage.pb.h"
 #include "messages/QueryMessage.pb.h"
@@ -28,7 +29,9 @@ public:
     /// <param name="queryMessage">Message to handle</param>
     /// <returns>InfoMessage telling client to wait for execution to finish</returns>
     virtual std::unique_ptr<google::protobuf::Message>
-    HandleQuery(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage) = 0;
+    HandleQuery(ITCPWorker& worker,
+                const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
+                std::function<void(std::unique_ptr<google::protobuf::Message>)> handler) = 0;
     /// <summary>
     /// Import sent CSV
     /// </summary>
@@ -58,5 +61,6 @@ public:
     virtual std::unique_ptr<google::protobuf::Message>
     HandleSetDatabase(ITCPWorker& worker,
                       const ColmnarDB::NetworkClient::Message::SetDatabaseMessage& SetDatabaseMessage) = 0;
+    virtual void Abort() = 0;
     virtual ~IClientHandler(){};
 };

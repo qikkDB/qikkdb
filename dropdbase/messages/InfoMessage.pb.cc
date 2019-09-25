@@ -62,13 +62,13 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 
 const char descriptor_table_protodef_messages_2fInfoMessage_2eproto[] =
   "\n\032messages/InfoMessage.proto\022\037ColmnarDB."
-  "NetworkClient.Message\"\337\001\n\013InfoMessage\022E\n"
+  "NetworkClient.Message\"\357\001\n\013InfoMessage\022E\n"
   "\004Code\030\001 \001(\01627.ColmnarDB.NetworkClient.Me"
   "ssage.InfoMessage.StatusCode\022\017\n\007Message\030"
-  "\002 \001(\t\"x\n\nStatusCode\022\006\n\002OK\020\000\022\010\n\004WAIT\020\001\022\023\n"
-  "\017GET_NEXT_RESULT\020\006\022\017\n\013QUERY_ERROR\020\002\022\020\n\014I"
-  "MPORT_ERROR\020\003\022\022\n\016CONN_ESTABLISH\020\004\022\014\n\010CON"
-  "N_END\020\005b\006proto3"
+  "\002 \001(\t\"\207\001\n\nStatusCode\022\006\n\002OK\020\000\022\010\n\004WAIT\020\001\022\023"
+  "\n\017GET_NEXT_RESULT\020\006\022\017\n\013QUERY_ERROR\020\002\022\020\n\014"
+  "IMPORT_ERROR\020\003\022\022\n\016CONN_ESTABLISH\020\004\022\014\n\010CO"
+  "NN_END\020\005\022\r\n\tHEARTBEAT\020\007b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_messages_2fInfoMessage_2eproto_deps[1] = {
 };
@@ -78,7 +78,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_mes
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_messages_2fInfoMessage_2eproto_once;
 static bool descriptor_table_messages_2fInfoMessage_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fInfoMessage_2eproto = {
-  &descriptor_table_messages_2fInfoMessage_2eproto_initialized, descriptor_table_protodef_messages_2fInfoMessage_2eproto, "messages/InfoMessage.proto", 295,
+  &descriptor_table_messages_2fInfoMessage_2eproto_initialized, descriptor_table_protodef_messages_2fInfoMessage_2eproto, "messages/InfoMessage.proto", 311,
   &descriptor_table_messages_2fInfoMessage_2eproto_once, descriptor_table_messages_2fInfoMessage_2eproto_sccs, descriptor_table_messages_2fInfoMessage_2eproto_deps, 1, 0,
   schemas, file_default_instances, TableStruct_messages_2fInfoMessage_2eproto::offsets,
   file_level_metadata_messages_2fInfoMessage_2eproto, 1, file_level_enum_descriptors_messages_2fInfoMessage_2eproto, file_level_service_descriptors_messages_2fInfoMessage_2eproto,
@@ -102,6 +102,7 @@ bool InfoMessage_StatusCode_IsValid(int value) {
     case 4:
     case 5:
     case 6:
+    case 7:
       return true;
     default:
       return false;
@@ -116,6 +117,7 @@ constexpr InfoMessage_StatusCode InfoMessage::QUERY_ERROR;
 constexpr InfoMessage_StatusCode InfoMessage::IMPORT_ERROR;
 constexpr InfoMessage_StatusCode InfoMessage::CONN_ESTABLISH;
 constexpr InfoMessage_StatusCode InfoMessage::CONN_END;
+constexpr InfoMessage_StatusCode InfoMessage::HEARTBEAT;
 constexpr InfoMessage_StatusCode InfoMessage::StatusCode_MIN;
 constexpr InfoMessage_StatusCode InfoMessage::StatusCode_MAX;
 constexpr int InfoMessage::StatusCode_ARRAYSIZE;

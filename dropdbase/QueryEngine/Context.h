@@ -45,7 +45,27 @@ private:
     // Meyer's singleton
     Context()
     {
-        // Save found device count and notify the user
+        Initialize();
+    }
+
+    ~Context()
+    {
+        gpuCaches_.clear();
+        gpuAllocators_.clear();
+        for (int32_t i = 0; i < deviceCount_; i++)
+        {
+            // Bind device and clean up
+            bindDeviceToContext(i);
+            cudaDeviceReset();
+        }
+    }
+
+    Context(const Context&) = delete;
+
+    Context& operator=(const Context&) = delete;
+
+    void Initialize()
+    {
         if (cudaGetDeviceCount(&deviceCount_) != cudaSuccess)
         {
             throw std::invalid_argument("INFO: Unable to get device count");
@@ -56,9 +76,10 @@ private:
         /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
         // deviceCount_ = 1;
         /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
-
-        printf("INFO: Found %d CUDA devices\n", deviceCount_);
         const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing CUDA devices..." << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Found " << deviceCount_ << " CUDA devices" << '\n';
+
         // Get devices information
         for (int32_t i = 0; i < deviceCount_; i++)
         {
@@ -75,10 +96,10 @@ private:
             // Print memory info
             size_t free, total;
             cudaMemGetInfo(&free, &total);
-
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing memory for device " << i << "\n";
             // Initialize allocators
             gpuAllocators_.emplace_back(std::make_unique<CudaMemAllocator>(i));
-
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing cache for device " << i << "\n";
             // Initialize cache
             size_t cacheSize = static_cast<int64_t>(free * static_cast<double>(cachePercentage) / 100.0);
             gpuCaches_.emplace_back(std::make_unique<GPUMemoryCache>(i, cacheSize));
@@ -87,14 +108,18 @@ private:
             queriedBlockDimensionList.push_back(deviceProp.maxThreadsPerBlock);
 
             // Print device info
-            printf("INFO: Device ID: %d: %s \t maxBlockDim: %d\n", i, deviceProp.name, deviceProp.maxThreadsPerBlock);
+            CudaLogBoost::getInstance(CudaLogBoost::info)
+                << "Device " << i << " Initialization done " << deviceProp.name
+                << "\t maxBlockDim: " << deviceProp.maxThreadsPerBlock << "\n";
 
-            printf("INFO: Memory: Total: %zu B Free: %zu B Cache: %zu B\n", total, free, cacheSize);
+            CudaLogBoost::getInstance(CudaLogBoost::info) << "Memory: Total: " << total << " B Free: " << free
+                                                          << "B Cache: " << cacheSize << " B" << '\n';
         }
 
         // Bind default device and notify the user
         bindDeviceToContext(DEFAULT_DEVICE_ID);
-        printf("INFO: Bound default device ID: %d\n", getBoundDeviceID());
+        CudaLogBoost::getInstance(CudaLogBoost::info)
+            << "Bound default device ID: " << getBoundDeviceID() << '\n';
 
         // Enable peer to peer communication of each GPU to the default device
         // This operation is unidirectional
@@ -113,21 +138,7 @@ private:
                 }
             }
         }
-    };
-
-    ~Context()
-    {
-        for (int32_t i = 0; i < deviceCount_; i++)
-        {
-            // Bind device and clean up
-            bindDeviceToContext(i);
-            cudaDeviceReset();
-        }
     }
-
-    Context(const Context&) = delete;
-
-    Context& operator=(const Context&) = delete;
 
 public:
     /// The default bound CUDA device ID
@@ -164,6 +175,13 @@ public:
     int32_t getBlockDim() const
     {
         return queriedBlockDimensionList[getBoundDeviceID()];
+    }
+
+    /// Get default block dimension for a polygon operation - half the size of a stream
+    /// multiprocessor <returns>the size of an optimal block</returns>
+    int32_t getBlockDimPoly() const
+    {
+        return queriedBlockDimensionList[getBoundDeviceID()] / 2;
     }
 
     /// Get the currently bound device to the context
@@ -251,5 +269,19 @@ public:
     std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases()
     {
         return loadedDatabases_;
+    }
+
+    void Reset()
+    {
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Resetting all CUDA devices" << '\n';
+        gpuCaches_.clear();
+        gpuAllocators_.clear();
+        for (int32_t i = 0; i < deviceCount_; i++)
+        {
+            // Bind device and clean up
+            bindDeviceToContext(i);
+            cudaDeviceReset();
+        }
+        Initialize();
     }
 };

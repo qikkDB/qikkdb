@@ -51,4 +51,11 @@ public:
     {
         return pointer_.get();
     }
+
+    /// This method releases the raw pointer
+    /// <returns> Raw CUDA pointer embedded in the class</returns>
+    T* release()
+    {
+        return pointer_.release();
+    }
 };

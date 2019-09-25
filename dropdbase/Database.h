@@ -20,7 +20,7 @@ class Database
     friend class DatabaseGenerator;
 
 private:
-    static std::mutex dbMutex_;
+    static std::mutex dbAccessMutex_;
     std::string name_;
     int32_t blockSize_;
     std::unordered_map<std::string, Table> tables_;
@@ -29,9 +29,15 @@ private:
     /// Load column of a table into memory from disk.
     /// </summary>
     /// <param name="path">Path directory, where column file (*.col) is.</param>
-    /// <param name="table">Instance of table into which the column should be added.</param>
-    /// <param name="columnName">Names of particular column.</param>
-    static void LoadColumn(const char* path, const char* dbName, Table& table, const std::string& columnName);
+    /// <param name="dbName">Name of the database.</param>
+    /// <param name="persistenceFormatVersion">Version of format used to persist .db and .col files
+    /// into disk.</param> <param name="table">Instance of table into which the column should be
+    /// added.</param> <param name="columnName">Names of particular column.</param>
+    static void LoadColumn(const char* path,
+                           const char* dbName,
+                           int32_t persistenceFormatVersion,
+                           Table& table,
+                           const std::string& columnName);
 
     /// <summary>
     /// Write column into disk.
@@ -47,7 +53,8 @@ private:
 
 public:
     static constexpr const char* SEPARATOR = "@";
-
+    static constexpr const int32_t PERSISTENCE_FORMAT_VERSION = 1;
+    static std::mutex dbMutex_;
     /// <summary>
     /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
     /// </summary>
@@ -78,6 +85,11 @@ public:
     static std::vector<std::string> GetDatabaseNames();
 
     /// <summary>
+    /// Set saveNecessaty_ to false for block, column and table, because data in the database were NOT modified yet.
+    /// </summary>
+    void SetSaveNecessaryToFalseForEverything();
+
+    /// <summary>
     /// Save only .db file to disk.
     /// </summary>
     /// <param name="path">Path to database storage directory.</param>
@@ -90,9 +102,20 @@ public:
     void Persist(const char* path);
 
     /// <summary>
+    /// Save modified blocks and columns of the database from memory to disk.
+    /// </summary>
+    /// <param name="path">Path to database storage directory.</param>
+    void PersistOnlyModified(const char* path);
+
+    /// <summary>
     /// Save all databases currently in memory to disk. All databases will be saved in the same directory.
     /// </summary>
     static void SaveAllToDisk();
+
+    /// <summary>
+    /// Save only modified blocks and columns to disk. All databases will be saved in the same directory.
+    /// </summary>
+    static void SaveModifiedToDisk();
 
     /// <summary>
     /// Load databases from disk storage. Databases .db and .col files have to be in the same directory,
@@ -158,7 +181,7 @@ public:
     /// <returns>Database object or null-</returns>
     static std::shared_ptr<Database> GetDatabaseByName(std::string databaseName)
     {
-        std::lock_guard<std::mutex> lock(dbMutex_);
+        std::lock_guard<std::mutex> lock(dbAccessMutex_);
         try
         {
             return Context::getInstance().GetLoadedDatabases().at(databaseName);

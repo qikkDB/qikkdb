@@ -23,6 +23,7 @@
 /// If polygon count is equal to 1, the polygon is checked against every point.
 /// If point count is equal to polygon count, points are checked one to one against polygons on the same array index.
 /// </remarks>
+/*
 __global__ void kernel_point_in_polygon(int8_t* outMask,
                                         GPUMemory::GPUPolygon polygonCol,
                                         int32_t polygonCount,
@@ -51,13 +52,13 @@ __global__ void kernel_point_in_polygon(int8_t* outMask,
         {
             polyIdx = 0;
         }
-        int32_t subPolygonsStartIdx = polygonCol.polyIdx[polyIdx];
-        int32_t subPolygonsCount = polygonCol.polyCount[polyIdx];
+        int32_t subPolygonsStartIdx = GPUMemory::PolyIdxAt(polygonCol, polyIdx);
+        int32_t subPolygonsCount = GPUMemory::PolyCountAt(polygonCol, polyIdx);
         int8_t result = 0;
         for (int32_t j = subPolygonsStartIdx; j < subPolygonsStartIdx + subPolygonsCount; j++)
         {
-            int32_t verticesStartIdx = polygonCol.pointIdx[j];
-            int32_t verticesCount = polygonCol.pointCount[j];
+            int32_t verticesStartIdx = GPUMemory::PointIdxAt(polygonCol, j);
+            int32_t verticesCount = GPUMemory::PointCountAt(polygonCol, j);
             NativeGeoPoint previousVertex = polygonCol.polyPoints[verticesStartIdx];
             NativeGeoPoint currentVertex;
             for (int32_t k = verticesStartIdx + 1; k < verticesStartIdx + verticesCount; k++)
@@ -76,6 +77,25 @@ __global__ void kernel_point_in_polygon(int8_t* outMask,
             }
         }
         outMask[i] = result;
+    }
+}
+*/
+
+__global__ void kernel_point_in_polygon(int8_t* outMask,
+                                        GPUMemory::GPUPolygon polygonCol,
+                                        int32_t polygonCount,
+                                        NativeGeoPoint* geoPointCol,
+                                        int32_t pointCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < (pointCount > polygonCount ? pointCount : polygonCount); i += stride)
+    {
+        NativeGeoPoint point = (pointCount == 1) ? geoPointCol[0] : geoPointCol[i];
+        int32_t polyIdx = (polygonCount == 1) ? 0 : i;
+
+        outMask[i] = is_point_in_complex_polygon_at(point, polygonCol, polyIdx);
     }
 }
 

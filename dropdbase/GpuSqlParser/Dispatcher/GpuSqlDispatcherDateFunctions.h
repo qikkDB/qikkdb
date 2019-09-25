@@ -20,10 +20,11 @@ int32_t GpuSqlDispatcher::DateExtractCol()
         return loadFlag;
     }
 
-    std::cout << "ExtractDatePartCol: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "ExtractDatePartCol: " << colName << " " << reg << '\n';
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !insideAggregation_)
     {
         if (isOverallLastBlock_)
         {
@@ -41,7 +42,7 @@ int32_t GpuSqlDispatcher::DateExtractCol()
             {
                 result = AllocateRegister<int32_t>(reg + KEYS_SUFFIX, retSize);
             }
-            GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
+            GPUDate::Extract<OP>(result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
             groupByColumns_.push_back({reg, COLUMN_INT});
         }
     }
@@ -64,7 +65,7 @@ int32_t GpuSqlDispatcher::DateExtractCol()
             {
                 result = AllocateRegister<int32_t>(reg, retSize);
             }
-            GPUDate::extractCol<OP>(result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
+            GPUDate::Extract<OP>(result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
         }
     }
 
@@ -81,14 +82,17 @@ int32_t GpuSqlDispatcher::DateExtractConst()
 {
     int64_t cnst = arguments_.Read<int64_t>();
     auto reg = arguments_.Read<std::string>();
-    std::cout << "ExtractDatePartConst: " << cnst << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "ExtractDatePartConst: " << cnst << " " << reg << '\n';
 
-    int32_t retSize = 1;
-
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
     if (!IsRegisterAllocated(reg))
     {
         int32_t* result = AllocateRegister<int32_t>(reg, retSize);
-        GPUDate::extractConst<OP>(result, cnst, retSize);
+        GPUDate::Extract<OP>(result, cnst, retSize);
     }
     return 0;
 }

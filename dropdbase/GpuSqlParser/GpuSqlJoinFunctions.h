@@ -11,7 +11,7 @@ int32_t GpuSqlJoinDispatcher::JoinCol()
     std::string colNameRight = arguments_.Read<std::string>();
     JoinType joinType = static_cast<JoinType>(arguments_.Read<int32_t>());
 
-    std::cout << "JoinCol: " << colNameLeft << " " << colNameRight << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "JoinCol: " << colNameLeft << " " << colNameRight << '\n';
 
     std::string leftTable;
     std::string leftColumn;
@@ -35,7 +35,7 @@ int32_t GpuSqlJoinDispatcher::JoinCol()
     {
     case JoinType::INNER_JOIN:
         GPUJoin::JoinTableRonS<OP, T>(leftJoinIndices, rightJoinIndices, *colBaseLeft,
-                                      *colBaseRight, database_->GetBlockSize());
+                                      *colBaseRight, database_->GetBlockSize(), aborted_);
         joinIndices_.emplace(leftTable, std::move(leftJoinIndices));
         joinIndices_.emplace(rightTable, std::move(rightJoinIndices));
         break;

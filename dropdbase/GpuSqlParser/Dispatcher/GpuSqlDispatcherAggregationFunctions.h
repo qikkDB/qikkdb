@@ -20,56 +20,61 @@ int32_t GpuSqlDispatcher::AggregationCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
+    auto aggAsterisk = arguments_.Read<bool>();
 
-    int32_t loadFlag = LoadCol<IN>(colName);
+    int32_t loadFlag = aggAsterisk ? LoadTableBlockInfo(loadedTableName_) : LoadCol<IN>(colName);
     if (loadFlag)
     {
         return loadFlag;
     }
 
-    std::cout << "AggCol: " << colName << " " << reg << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "AggCol: " << colName << " " << reg << '\n';
 
-    PointerAllocation& column = allocatedPointers_.at(colName);
+    PointerAllocation dummyAllocation = PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0};
+    PointerAllocation& column = aggAsterisk ? dummyAllocation : allocatedPointers_.at(colName);
+
     int32_t reconstructOutSize;
 
     IN* reconstructOutReg = nullptr;
-    if (std::is_same<OP, AggregationFunctions::count>::value)
+    int8_t* reconstructOutNullMask = nullptr;
+    if (std::is_same<OP, AggregationFunctions::count>::value) // TODO consider null values
     {
-        // If mask is present - count suitable rows
-        if (filter_)
+        if (!aggAsterisk)
         {
-            int32_t* indexes = nullptr;
-            GPUReconstruct::GenerateIndexesKeep(&indexes, &reconstructOutSize,
-                                                reinterpret_cast<int8_t*>(filter_), column.ElementCount);
-            if (indexes)
+            // If mask is present - count suitable rows
+            if (filter_)
             {
-                GPUMemory::free(indexes);
+                // TODO maybe use faster way to count ones in filter_
+                int32_t* indexes = nullptr;
+                GPUReconstruct::GenerateIndexesKeep(&indexes, &reconstructOutSize,
+                                                    reinterpret_cast<int8_t*>(filter_), column.ElementCount);
+                if (indexes)
+                {
+                    GPUMemory::free(indexes);
+                }
+            }
+            // If mask is nullptr - count full rows
+            else
+            {
+                reconstructOutSize = column.ElementCount;
             }
         }
-        // If mask is nullptr - count full rows
         else
         {
-            reconstructOutSize = column.ElementCount;
+            reconstructOutSize = GetBlockSize();
         }
     }
     else
     {
         GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize,
                                                reinterpret_cast<IN*>(column.GpuPtr),
-                                               reinterpret_cast<int8_t*>(filter_), column.ElementCount);
+                                               reinterpret_cast<int8_t*>(filter_),
+                                               column.ElementCount, &reconstructOutNullMask,
+                                               reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
     }
 
-    if (column.ShouldBeFreed)
-    {
-        GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
-    }
-    else
-    {
-        column.ShouldBeFreed = true;
-    }
-
-    column.GpuPtr = reinterpret_cast<uintptr_t>(reconstructOutReg);
-    column.ElementCount = reconstructOutSize;
+    // Rewrite pointers and free old ones when needed
+    RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize, reconstructOutNullMask);
 
     if (!IsRegisterAllocated(reg))
     {
@@ -85,7 +90,7 @@ int32_t GpuSqlDispatcher::AggregationCol()
 template <typename OP, typename OUT, typename IN>
 int32_t GpuSqlDispatcher::AggregationConst()
 {
-    std::cout << "AggConst" << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "AggConst" << '\n';
     return 0;
 }
 
@@ -103,7 +108,7 @@ public:
                              const PointerAllocation& valueColumn,
                              GpuSqlDispatcher& dispatcher)
     {
-        std::string groupByColumnName = groupByColumns.begin()->first;
+        std::string groupByColumnName = groupByColumns.begin()->first + RECONSTRUCTED_SUFFIX;
         PointerAllocation groupByColumn = dispatcher.allocatedPointers_.at(groupByColumnName);
 
         int32_t dataSize = std::min(groupByColumn.ElementCount, valueColumn.ElementCount);
@@ -153,7 +158,7 @@ public:
                              const PointerAllocation& valueColumn,
                              GpuSqlDispatcher& dispatcher)
     {
-        std::string groupByColumnName = groupByColumns.begin()->first;
+        std::string groupByColumnName = groupByColumns.begin()->first + RECONSTRUCTED_SUFFIX;
         auto groupByColumn = dispatcher.FindStringColumn(groupByColumnName);
 
         int32_t dataSize = std::min(std::get<1>(groupByColumn), valueColumn.ElementCount);
@@ -208,6 +213,7 @@ public:
                              GpuSqlDispatcher& dispatcher)
     {
         std::vector<void*> keyPtrs;
+        std::vector<int8_t*> keyNullMaskPtrs;
         std::vector<GPUMemory::GPUString*> stringKeyPtrs;
         int32_t minKeySize = std::numeric_limits<int32_t>::max();
 
@@ -215,22 +221,26 @@ public:
         {
             if (groupByColumn.second == DataType::COLUMN_STRING)
             {
-                auto stringColumn = dispatcher.FindStringColumn(groupByColumn.first);
+                std::string groupByColumnName = groupByColumn.first + RECONSTRUCTED_SUFFIX;
+                auto stringColumn = dispatcher.FindStringColumn(groupByColumnName);
                 GPUMemory::GPUString* stringColPtr;
                 GPUMemory::alloc<GPUMemory::GPUString>(&stringColPtr, 1);
 
                 GPUMemory::GPUString stringCol = std::get<0>(stringColumn);
                 GPUMemory::copyHostToDevice<GPUMemory::GPUString>(stringColPtr, &stringCol, 1);
                 keyPtrs.push_back(reinterpret_cast<void*>(stringColPtr));
+                keyNullMaskPtrs.push_back(std::get<2>(stringColumn));
                 stringKeyPtrs.push_back(stringColPtr);
 
                 minKeySize = std::min(std::get<1>(stringColumn), minKeySize);
             }
             else
             {
-                PointerAllocation column = dispatcher.allocatedPointers_.at(groupByColumn.first);
-                keyPtrs.push_back(reinterpret_cast<void*>(column.GpuPtr));
-                minKeySize = std::min(column.ElementCount, minKeySize);
+                std::string groupByColumnName = groupByColumn.first + RECONSTRUCTED_SUFFIX;
+                PointerAllocation keyColumn = dispatcher.allocatedPointers_.at(groupByColumnName);
+                keyPtrs.push_back(reinterpret_cast<void*>(keyColumn.GpuPtr));
+                keyNullMaskPtrs.push_back(reinterpret_cast<int8_t*>(keyColumn.GpuNullMaskPtr));
+                minKeySize = std::min(keyColumn.ElementCount, minKeySize);
             }
         }
 
@@ -238,7 +248,8 @@ public:
 
         reinterpret_cast<GPUGroupBy<OP, O, std::vector<void*>, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
-            ->GroupBy(keyPtrs, reinterpret_cast<V*>(valueColumn.GpuPtr), dataSize);
+            ->ProcessBlock(keyPtrs, keyNullMaskPtrs, reinterpret_cast<V*>(valueColumn.GpuPtr),
+                           dataSize, reinterpret_cast<int8_t*>(valueColumn.GpuNullMaskPtr));
 
         for (auto& stringPtr : stringKeyPtrs)
         {
@@ -252,49 +263,53 @@ public:
     {
         int32_t outSize;
         std::vector<void*> outKeys;
+        std::vector<int8_t*> outKeysNullMasks;
         O* outValues = nullptr;
+        int8_t* outValueNullMask = nullptr;
         reinterpret_cast<GPUGroupBy<OP, O, std::vector<void*>, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
-            ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_);
+            ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_,
+                         &outKeysNullMasks, &outValueNullMask);
 
         for (int32_t i = 0; i < groupByColumns.size(); i++)
         {
             switch (groupByColumns[i].second)
             {
             case DataType::COLUMN_INT:
-                dispatcher.InsertRegister(groupByColumns[i].first + KEYS_SUFFIX,
-                                          PointerAllocation{reinterpret_cast<uintptr_t>(
-                                                                reinterpret_cast<int32_t*>(outKeys[i])),
-                                                            outSize, true, 0});
+                dispatcher.InsertRegister(
+                    groupByColumns[i].first + KEYS_SUFFIX,
+                    PointerAllocation{reinterpret_cast<uintptr_t>(reinterpret_cast<int32_t*>(outKeys[i])),
+                                      outSize, true, reinterpret_cast<uintptr_t>(outKeysNullMasks[i])});
                 break;
             case DataType::COLUMN_LONG:
-                dispatcher.InsertRegister(groupByColumns[i].first + KEYS_SUFFIX,
-                                          PointerAllocation{reinterpret_cast<uintptr_t>(
-                                                                reinterpret_cast<int64_t*>(outKeys[i])),
-                                                            outSize, true, 0});
+                dispatcher.InsertRegister(
+                    groupByColumns[i].first + KEYS_SUFFIX,
+                    PointerAllocation{reinterpret_cast<uintptr_t>(reinterpret_cast<int64_t*>(outKeys[i])),
+                                      outSize, true, reinterpret_cast<uintptr_t>(outKeysNullMasks[i])});
                 break;
             case DataType::COLUMN_FLOAT:
-                dispatcher.InsertRegister(groupByColumns[i].first + KEYS_SUFFIX,
-                                          PointerAllocation{reinterpret_cast<uintptr_t>(
-                                                                reinterpret_cast<float*>(outKeys[i])),
-                                                            outSize, true, 0});
+                dispatcher.InsertRegister(
+                    groupByColumns[i].first + KEYS_SUFFIX,
+                    PointerAllocation{reinterpret_cast<uintptr_t>(reinterpret_cast<float*>(outKeys[i])),
+                                      outSize, true, reinterpret_cast<uintptr_t>(outKeysNullMasks[i])});
                 break;
             case DataType::COLUMN_DOUBLE:
-                dispatcher.InsertRegister(groupByColumns[i].first + KEYS_SUFFIX,
-                                          PointerAllocation{reinterpret_cast<uintptr_t>(
-                                                                reinterpret_cast<double*>(outKeys[i])),
-                                                            outSize, true, 0});
+                dispatcher.InsertRegister(
+                    groupByColumns[i].first + KEYS_SUFFIX,
+                    PointerAllocation{reinterpret_cast<uintptr_t>(reinterpret_cast<double*>(outKeys[i])),
+                                      outSize, true, reinterpret_cast<uintptr_t>(outKeysNullMasks[i])});
                 break;
             case DataType::COLUMN_STRING:
                 dispatcher.FillStringRegister(*(reinterpret_cast<GPUMemory::GPUString*>(outKeys[i])),
-                                              groupByColumns[i].first + KEYS_SUFFIX, outSize, true);
+                                              groupByColumns[i].first + KEYS_SUFFIX, outSize, true,
+                                              outKeysNullMasks[i]);
                 delete reinterpret_cast<GPUMemory::GPUString*>(outKeys[i]); // delete just pointer to struct
                 break;
             case DataType::COLUMN_INT8_T:
-                dispatcher.InsertRegister(groupByColumns[i].first + KEYS_SUFFIX,
-                                          PointerAllocation{reinterpret_cast<uintptr_t>(
-                                                                reinterpret_cast<int8_t*>(outKeys[i])),
-                                                            outSize, true, 0});
+                dispatcher.InsertRegister(
+                    groupByColumns[i].first + KEYS_SUFFIX,
+                    PointerAllocation{reinterpret_cast<uintptr_t>(reinterpret_cast<int8_t*>(outKeys[i])),
+                                      outSize, true, reinterpret_cast<uintptr_t>(outKeysNullMasks[i])});
                 break;
             default:
                 throw std::runtime_error("GROUP BY operation does not support data type " +
@@ -302,8 +317,8 @@ public:
                 break;
             }
         }
-        dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues),
-                                                         outSize, true, 0});
+        dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
+                                                         reinterpret_cast<uintptr_t>(outValueNullMask)});
     }
 };
 
@@ -321,39 +336,66 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
 {
     auto colTableName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
+    auto aggAsterisk = arguments_.Read<bool>();
 
-    int32_t loadFlag = LoadCol<V>(colTableName);
-    if (loadFlag)
+    bool aggCount = std::is_same<OP, AggregationFunctions::count>::value;
+
+    PointerAllocation dummyAllocation;
+
+    if (aggCount)
     {
-        return loadFlag;
+        if (!aggAsterisk)
+        {
+            int32_t loadFlag = LoadColNullMask(colTableName);
+            if (loadFlag)
+            {
+                return loadFlag;
+            }
+            auto columnMask = allocatedPointers_.at(colTableName + NULL_SUFFIX);
+            int32_t columnSize = GetBlockSize();
+            dummyAllocation = PointerAllocation{0, columnSize, false, columnMask.GpuPtr};
+        }
+        else
+        {
+            dummyAllocation = PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0};
+        }
+        aggCount = true;
+    }
+    else
+    {
+        int32_t loadFlag = LoadCol<V>(colTableName);
+        if (loadFlag)
+        {
+            return loadFlag;
+        }
     }
 
-    std::cout << "AggGroupBy: " << colTableName << " " << reg << ", thread: " << dispatcherThreadId_
-              << std::endl;
-
-
-    PointerAllocation& column = allocatedPointers_.at(colTableName);
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "AggGroupBy: " << colTableName << " " << reg
+                                                  << ", thread: " << dispatcherThreadId_ << '\n';
+    PointerAllocation& column = aggCount ? dummyAllocation : allocatedPointers_.at(colTableName);
     int32_t reconstructOutSize;
 
     // Reconstruct column only if it is not group by column (if it is group by column it was already reconstructed in GroupByCol)
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colTableName)) ==
-        groupByColumns_.end())
+            groupByColumns_.end() &&
+        !aggCount)
     {
         V* reconstructOutReg;
+        int8_t* reconstructOutNullMask;
         GPUReconstruct::reconstructColKeep<V>(&reconstructOutReg, &reconstructOutSize,
                                               reinterpret_cast<V*>(column.GpuPtr),
-                                              reinterpret_cast<int8_t*>(filter_), column.ElementCount);
-
-        if (column.ShouldBeFreed)
+                                              reinterpret_cast<int8_t*>(filter_),
+                                              column.ElementCount, &reconstructOutNullMask,
+                                              reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
+        if (reconstructOutNullMask != reinterpret_cast<int8_t*>(column.GpuNullMaskPtr))
         {
-            GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
+            InsertRegister(colTableName + NULL_SUFFIX + RECONSTRUCTED_SUFFIX,
+                           PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutNullMask),
+                                             reconstructOutSize, true, 0});
         }
-        else
-        {
-            column.ShouldBeFreed = true;
-        }
-        column.GpuPtr = reinterpret_cast<uintptr_t>(reconstructOutReg);
-        column.ElementCount = reconstructOutSize;
+        // Rewrite pointers and free old ones when needed
+        RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize,
+                      reconstructOutNullMask);
     }
 
     // TODO void param
@@ -365,7 +407,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
 
     if (aggregatedRegisters_.find(reg) == aggregatedRegisters_.end())
     {
-        std::cout << "Processed block in AggGroupBy." << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::debug) << "Processed block in AggGroupBy." << '\n';
         GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::ProcessBlock(groupByColumns_, column, *this);
 
         // If last block was processed, reconstruct group by table
@@ -378,13 +420,15 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
                 GpuSqlDispatcher::groupByCV_.wait(lock,
                                                   [] { return GpuSqlDispatcher::IsGroupByDone(); });
 
-                std::cout << "Reconstructing group by in thread: " << dispatcherThreadId_ << std::endl;
+                CudaLogBoost::getInstance(CudaLogBoost::debug)
+                    << "Reconstructing group by in thread: " << dispatcherThreadId_ << '\n';
 
                 GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::GetResults(groupByColumns_, reg, *this);
             }
             else
             {
-                std::cout << "Group by all blocks done in thread: " << dispatcherThreadId_ << std::endl;
+                CudaLogBoost::getInstance(CudaLogBoost::debug)
+                    << "Group by all blocks done in thread: " << dispatcherThreadId_ << '\n';
                 // Increment counter and notify threads
                 std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
                 GpuSqlDispatcher::IncGroupByDoneCounter();
@@ -413,29 +457,27 @@ int32_t GpuSqlDispatcher::GroupByCol()
         return loadFlag;
     }
 
-    std::cout << "GroupBy: " << columnName << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "GroupBy: " << columnName << '\n';
 
     PointerAllocation& column = allocatedPointers_.at(columnName);
 
+    // Reconstruct key column
     int32_t reconstructOutSize;
     T* reconstructOutReg;
+    int8_t* reconstructOutNullMask;
     GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize,
                                           reinterpret_cast<T*>(column.GpuPtr),
-                                          reinterpret_cast<int8_t*>(filter_), column.ElementCount);
-    // TODO add null values to reconstruct
+                                          reinterpret_cast<int8_t*>(filter_), column.ElementCount,
+                                          &reconstructOutNullMask,
+                                          reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
 
-    if (column.ShouldBeFreed) // should be freed if it is not cached - if it is temp register like "YEAR(col)"
-    {
-        GPUMemory::free(reinterpret_cast<void*>(column.GpuPtr));
-    }
-    else
-    {
-        column.ShouldBeFreed = true; // enable future free in cleanupGpuPointers
-    }
-
-    // Now rewrite the pointer in the register (correct because the pointer is freed or stored in chache)
-    column.GpuPtr = reinterpret_cast<uintptr_t>(reconstructOutReg);
-    column.ElementCount = reconstructOutSize;
+    InsertRegister(columnName + RECONSTRUCTED_SUFFIX,
+                   PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutReg),
+                                     reconstructOutSize, filter_ ? true : false,
+                                     reinterpret_cast<uintptr_t>(reconstructOutNullMask)});
+    InsertRegister(columnName + NULL_SUFFIX + RECONSTRUCTED_SUFFIX,
+                   PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutNullMask),
+                                     reconstructOutSize, filter_ ? true : false, 0});
 
     if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(columnName)) ==
         groupByColumns_.end())

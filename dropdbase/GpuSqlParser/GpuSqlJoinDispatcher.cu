@@ -2,7 +2,7 @@
 #include "../QueryEngine/GPUCore/GPUFilterConditions.cuh"
 
 GpuSqlJoinDispatcher::GpuSqlJoinDispatcher(const std::shared_ptr<Database>& database)
-: database_(database), instructionPointer_(0)
+: database_(database), instructionPointer_(0), aborted_(false)
 {
 }
 
@@ -10,7 +10,7 @@ void GpuSqlJoinDispatcher::Execute()
 {
     int32_t err = 0;
 
-    while (err == 0)
+    while (err == 0 && !aborted_)
     {
         err = (this->*dispatcherFunctions_[instructionPointer_++])();
 
@@ -18,11 +18,17 @@ void GpuSqlJoinDispatcher::Execute()
         {
             if (err != 1)
             {
-                std::cout << "Error occured while producing join indices." << std::endl;
+                CudaLogBoost::getInstance(CudaLogBoost::info)
+                    << "Error occured while producing join indices." << '\n';
             }
             break;
         }
     }
+}
+
+void GpuSqlJoinDispatcher::Abort()
+{
+    aborted_ = true;
 }
 
 void GpuSqlJoinDispatcher::AddJoinFunction(DataType type, std::string op)
@@ -65,7 +71,7 @@ std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* GpuSqlJoinDi
 
 int32_t GpuSqlJoinDispatcher::JoinDone()
 {
-    std::cout << "Join Done." << std::endl;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Join Done." << '\n';
     return 1;
 }
 

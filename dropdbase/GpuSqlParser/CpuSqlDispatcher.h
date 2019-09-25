@@ -48,6 +48,7 @@ private:
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> bitwiseRightShiftFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> logarithmFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> arctangent2Functions_;
+    static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> roundDecimalFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions_;
@@ -333,7 +334,8 @@ public:
 
         whereResult_ = whereResultMin || whereResultMax;
 
-        std::cout << "Where result: " << colName << ", " << whereResult_ << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info)
+            << "Where result: " << colName << ", " << whereResult_ << '\n';
 
         return 1;
     }
@@ -344,7 +346,7 @@ public:
         T cnst = arguments_.Read<T>();
         whereResult_ = static_cast<int64_t>(cnst);
 
-        std::cout << "Where result const: " << whereResult_ << std::endl;
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Where result const: " << whereResult_ << '\n';
 
         return 1;
     }

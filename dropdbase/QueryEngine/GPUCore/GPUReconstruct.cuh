@@ -4,9 +4,6 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include <thrust/scan.h>
-#include <thrust/execution_policy.h>
-
 #include "../Context.h"
 #include "GPUMemory.cuh"
 #include "../../Types/Point.pb.h"
@@ -103,11 +100,28 @@ __global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCo
 /// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays).
 /// Expanding is performed by propagating values from inMask based on counts.
 __global__ void
-kernel_generate_submask(int8_t* outMask, int8_t* inMask, int32_t* polyIdx, int32_t* polyCount, int32_t polyIdxSize);
+kernel_generate_poly_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size);
+
+__global__ void
+kernel_generate_point_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size);
 
 /// Kernel for predicitng lenghts of WKT strings based on GPUPolygon struct
 __global__ void
 kernel_predict_wkt_lengths(int32_t* outStringLengths, GPUMemory::GPUPolygon inPolygon, int32_t dataElementCount);
+
+/// Kernel for reconstructing polygon subPolygons
+__global__ void kernel_reconstruct_polyCount_col(int32_t* outPolyCount,
+                                                 GPUMemory::GPUPolygon inPolygon,
+                                                 int32_t* prefixSum,
+                                                 int8_t* inMask,
+                                                 int32_t dataElementCount);
+
+/// Kernel for reconstructing polygon points
+__global__ void kernel_reconstruct_pointCount_col(int32_t* outPointCount,
+                                                  GPUMemory::GPUPolygon inPolygon,
+                                                  int32_t* prefixSum,
+                                                  int8_t* inMask,
+                                                  int32_t dataElementCount);
 
 /// Kernel for convertion of GPUPolygon representation to WKT representation (GPUString)
 __global__ void
@@ -154,15 +168,13 @@ public:
                 GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
                 if (outNullMaskGPUPointer)
                 {
-                    size_t outBitMaskSize =
-                        (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
                     GPUMemory::copyDeviceToHost(outNullMask, outNullMaskGPUPointer, outBitMaskSize);
-                    GPUMemory::free(outNullMaskGPUPointer);
+                    GPUMemory::free(outNullMaskGPUPointer); // free reconstructed null mask
                 }
-                // Free the memory
                 if (outDataGPUPointer)
                 {
-                    GPUMemory::free(outDataGPUPointer);
+                    GPUMemory::free(outDataGPUPointer); // free reconstructed array
                 }
             }
             catch (...)
@@ -182,9 +194,9 @@ public:
         {
             GPUMemory::copyDeviceToHost(outData, ACol, dataElementCount);
             *outDataElementCount = dataElementCount;
-            if (nullMask)
+            if (nullMask && outNullMask)
             {
-                size_t outBitMaskSize = (*outDataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(*outDataElementCount);
                 GPUMemory::copyDeviceToHost(outNullMask, nullMask, outBitMaskSize);
             }
         }
@@ -228,10 +240,10 @@ public:
                         // Construct the output based on the prefix sum
                         kernel_reconstruct_col<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
                             *outCol, ACol, prefixSumPointer.get(), inMask, dataElementCount);
-                        if (nullMask)
+                        if (nullMask && outNullMask)
                         {
-                            size_t outBitMaskSize =
-                                (*outDataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int8_t) * 8);
+                            const size_t outBitMaskSize =
+                                GPUMemory::CalculateNullMaskSize(*outDataElementCount, true);
                             GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
                             kernel_reconstruct_null_mask<<<context.calcGridDim(dataElementCount),
                                                            context.getBlockDim()>>>(
@@ -248,24 +260,24 @@ public:
                         }
                     }
                 }
-                else if (*outCol != ACol) // If inMask is nullptr, just copy whole ACol to outCol (if they are not pointing to the same blocks)
+                else // If inMask is nullptr (if mask is not used)
                 {
-                    GPUMemory::alloc<T>(outCol, dataElementCount);
-                    GPUMemory::copyDeviceToDevice(*outCol, ACol, dataElementCount);
-                    size_t outBitMaskSize = (dataElementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                    if (nullMask)
-                    {
-                        GPUMemory::alloc(outNullMask, outBitMaskSize);
-                        GPUMemory::copyDeviceToDevice(*outNullMask, nullMask, outBitMaskSize);
-                    }
+                    *outCol = ACol;
                     *outDataElementCount = dataElementCount;
+                    if (outNullMask)
+                    {
+                        *outNullMask = nullMask;
+                    }
                 }
             }
             else
             {
                 *outCol = nullptr;
                 *outDataElementCount = 0;
-                *outNullMask = nullptr;
+                if (outNullMask)
+                {
+                    *outNullMask = nullptr;
+                }
             }
         }
         catch (...)
@@ -274,7 +286,7 @@ public:
             {
                 GPUMemory::free(*outCol);
             }
-            if (*outNullMask)
+            if (outNullMask && *outNullMask)
             {
                 GPUMemory::free(*outNullMask);
             }
@@ -499,6 +511,18 @@ public:
         cub::DeviceScan::ExclusiveSum(tempBuffer.get(), tempBufferSize, inMask, prefixSumPointer, dataElementCount);
     }
 
+    template <typename T>
+    static void Sum(int64_t* outPointer, T* inputBuffer, int32_t dataElementCount)
+    {
+        // Start the column reconstruction
+        size_t tempBufferSize = 0;
+        // Calculate the sum for getting tempBufferSize (in-place scan)
+        cub::DeviceReduce::Sum(nullptr, tempBufferSize, inputBuffer, outPointer, dataElementCount);
+        // Temporary storage
+        cuda_ptr<int8_t> tempBuffer(tempBufferSize);
+        // Run sum
+        cub::DeviceReduce::Sum(tempBuffer.get(), tempBufferSize, inputBuffer, outPointer, dataElementCount);
+    }
     // Compress memory-wasting null mask with size equal to dataElementCount (aligning to 32 bit)
     static cuda_ptr<int8_t> CompressNullMask(int8_t* inputNullMask, int32_t dataElementCount);
 };

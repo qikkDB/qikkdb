@@ -1,5 +1,4 @@
 #include "ClientPoolWorker.h"
-#include "NetworkMessage.h"
 #include "messages/InfoMessage.pb.h"
 #include "messages/QueryMessage.pb.h"
 #include "messages/CSVImportMessage.pb.h"
@@ -8,7 +7,6 @@
 #include "IClientHandler.h"
 #include <boost/log/trivial.hpp>
 
-const int32_t MAXIMUM_BULK_FRAGMENT_SIZE = 8192 * 1024;
 
 /// <summary>
 /// Create new instance of ClientPoolWorker object
@@ -20,9 +18,22 @@ const int32_t MAXIMUM_BULK_FRAGMENT_SIZE = 8192 * 1024;
 ClientPoolWorker::ClientPoolWorker(std::unique_ptr<IClientHandler>&& clientHandler,
                                    boost::asio::ip::tcp::socket socket,
                                    int requestTimeout)
-: ITCPWorker(std::move(clientHandler), std::move(socket), requestTimeout)
+: ITCPWorker(std::move(clientHandler), std::move(socket), requestTimeout),
+  dataBuffer_(std::make_unique<char[]>(MAXIMUM_BULK_FRAGMENT_SIZE)),
+  nullBuffer_(std::make_unique<char[]>(NULL_BUFFER_SIZE)), networkMessage_(),
+#if BOOST_VERSION < 107000
+  socketDeadline_
 {
-    quit_ = false;
+    socket.get_executor().context()
+}
+#else
+  socketDeadline_
+{
+    socket.get_executor()
+}
+#endif
+{
+    socketDeadline_.expires_at(boost::asio::steady_timer::time_point::max());
 }
 
 /// <summary>
@@ -30,132 +41,172 @@ ClientPoolWorker::ClientPoolWorker(std::unique_ptr<IClientHandler>&& clientHandl
 /// </summary>
 void ClientPoolWorker::HandleClient()
 {
+    OnTimeout(socketDeadline_);
     BOOST_LOG_TRIVIAL(debug) << "Waiting for hello from " << socket_.remote_endpoint().address().to_string();
-    auto recvMsg = NetworkMessage::ReadFromNetwork(socket_);
-    ColmnarDB::NetworkClient::Message::InfoMessage outInfo;
-    if (!recvMsg.UnpackTo(&outInfo))
-    {
-        BOOST_LOG_TRIVIAL(error) << "Invalid message received from client "
-                                 << socket_.remote_endpoint().address().to_string();
-        Abort();
-        return;
-    }
-    BOOST_LOG_TRIVIAL(debug) << "Hello from " << socket_.remote_endpoint().address().to_string();
-    outInfo.set_message("");
-    outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
-    NetworkMessage::WriteToNetwork(outInfo, socket_);
-    BOOST_LOG_TRIVIAL(debug) << "Hello to " << socket_.remote_endpoint().address().to_string();
-    try
-    {
-        while (!quit_ && !globalQuit_)
-        {
-            BOOST_LOG_TRIVIAL(debug)
-                << "Waiting for message from " << socket_.remote_endpoint().address().to_string();
-            recvMsg = NetworkMessage::ReadFromNetwork(socket_);
-            BOOST_LOG_TRIVIAL(debug)
-                << "Got message from " << socket_.remote_endpoint().address().to_string();
-            if (recvMsg.Is<ColmnarDB::NetworkClient::Message::InfoMessage>())
+    auto self(shared_from_this());
+    socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
+    networkMessage_.ReadFromNetwork(
+        socket_,
+        [this, self](google::protobuf::Any recvMsg) {
+            ColmnarDB::NetworkClient::Message::InfoMessage outInfo;
+            if (!recvMsg.UnpackTo(&outInfo))
             {
-                ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-                recvMsg.UnpackTo(&infoMessage);
-                BOOST_LOG_TRIVIAL(debug)
-                    << "Info message from " << socket_.remote_endpoint().address().to_string();
-                std::unique_ptr<google::protobuf::Message> resultMessage =
-                    clientHandler_->HandleInfoMessage(*this, infoMessage);
-
-                if (resultMessage != nullptr)
-                {
-                    NetworkMessage::WriteToNetwork(*resultMessage, socket_);
-                }
-            }
-            else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::QueryMessage>())
-            {
-                ColmnarDB::NetworkClient::Message::QueryMessage queryMessage;
-                recvMsg.UnpackTo(&queryMessage);
-                BOOST_LOG_TRIVIAL(debug)
-                    << "Query message from " << socket_.remote_endpoint().address().to_string();
-                std::unique_ptr<google::protobuf::Message> waitMessage =
-                    clientHandler_->HandleQuery(*this, queryMessage);
-                if (waitMessage != nullptr)
-                {
-                    NetworkMessage::WriteToNetwork(*waitMessage, socket_);
-                }
-            }
-            else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::CSVImportMessage>())
-            {
-                ColmnarDB::NetworkClient::Message::CSVImportMessage csvImportMessage;
-                recvMsg.UnpackTo(&csvImportMessage);
-                BOOST_LOG_TRIVIAL(debug)
-                    << "CSV message from " << socket_.remote_endpoint().address().to_string();
-                std::unique_ptr<google::protobuf::Message> importResultMessage =
-                    clientHandler_->HandleCSVImport(*this, csvImportMessage);
-                if (importResultMessage != nullptr)
-                {
-                    NetworkMessage::WriteToNetwork(*importResultMessage, socket_);
-                }
-            }
-            else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::SetDatabaseMessage>())
-            {
-                ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDatabaseMessage;
-                recvMsg.UnpackTo(&setDatabaseMessage);
-                BOOST_LOG_TRIVIAL(debug) << "Set database message from "
+                BOOST_LOG_TRIVIAL(error) << "Invalid message received from client "
                                          << socket_.remote_endpoint().address().to_string();
-                std::unique_ptr<google::protobuf::Message> setDatabaseResult =
-                    clientHandler_->HandleSetDatabase(*this, setDatabaseMessage);
-                if (setDatabaseResult != nullptr)
-                {
-                    NetworkMessage::WriteToNetwork(*setDatabaseResult, socket_);
-                }
+                return;
             }
-            else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::BulkImportMessage>())
-            {
-                ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
-                recvMsg.UnpackTo(&bulkImportMessage);
-                BOOST_LOG_TRIVIAL(debug)
-                    << "BulkImport message from " << socket_.remote_endpoint().address().to_string();
-                std::unique_ptr<char[]> dataBuffer(new char[MAXIMUM_BULK_FRAGMENT_SIZE]);
-                constexpr size_t nullBufferSize =
-                    (MAXIMUM_BULK_FRAGMENT_SIZE + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                std::unique_ptr<char[]> nullBuffer(new char[nullBufferSize]);
-                std::memset(nullBuffer.get(), 0, nullBufferSize);
-                DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
-                int32_t elementCount = bulkImportMessage.elemcount();
-                bool isNullable = bulkImportMessage.isnullable();
-                if (elementCount * GetDataTypeSize(columnType) > MAXIMUM_BULK_FRAGMENT_SIZE)
-                {
-                    outInfo.set_message("Data fragment larger than allowed");
-                    outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
-                    NetworkMessage::WriteToNetwork(outInfo, socket_);
-                    continue;
-                }
-                NetworkMessage::ReadRaw(socket_, dataBuffer.get(), elementCount, columnType);
-                if (isNullable)
-                {
-                    size_t nullBufferSize = (elementCount + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                    NetworkMessage::ReadRaw(socket_, nullBuffer.get(), nullBufferSize, DataType::COLUMN_INT8_T);
-                }
-                std::unique_ptr<google::protobuf::Message> importResultMessage =
-                    clientHandler_->HandleBulkImport(*this, bulkImportMessage, dataBuffer.get(),
-                                                     nullBuffer.get());
-                if (importResultMessage != nullptr)
-                {
-                    NetworkMessage::WriteToNetwork(*importResultMessage, socket_);
-                }
-            }
-            else
-            {
-                BOOST_LOG_TRIVIAL(error)
-                    << "Invalid message from " << socket_.remote_endpoint().address().to_string();
-            }
+            BOOST_LOG_TRIVIAL(debug) << "Hello from " << socket_.remote_endpoint().address().to_string();
+            outInfo.set_message("");
+            outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+            networkMessage_.WriteToNetwork(
+                outInfo, socket_,
+                [this, self]() {
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Hello to " << socket_.remote_endpoint().address().to_string();
+                    ClientLoop();
+                },
+                [this, self]() { Abort(); });
+        },
+        [this, self]() { Abort(); });
+}
+
+void ClientPoolWorker::ClientLoop()
+{
+    auto self(shared_from_this());
+    BOOST_LOG_TRIVIAL(debug)
+        << "Waiting for message from " << socket_.remote_endpoint().address().to_string();
+    socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
+    networkMessage_.ReadFromNetwork(
+        socket_, [this, self](google::protobuf::Any recvMsg) { HandleMessage(self, recvMsg); },
+        [this, self]() { Abort(); });
+}
+
+void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::protobuf::Any& recvMsg)
+{
+    ColmnarDB::NetworkClient::Message::InfoMessage outInfo;
+    BOOST_LOG_TRIVIAL(debug) << "Got message from " << socket_.remote_endpoint().address().to_string();
+    if (recvMsg.Is<ColmnarDB::NetworkClient::Message::InfoMessage>())
+    {
+        ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+        recvMsg.UnpackTo(&infoMessage);
+        BOOST_LOG_TRIVIAL(debug) << "Info message from " << socket_.remote_endpoint().address().to_string();
+        std::unique_ptr<google::protobuf::Message> resultMessage =
+            clientHandler_->HandleInfoMessage(*this, infoMessage);
+
+        if (resultMessage != nullptr)
+        {
+            networkMessage_.WriteToNetwork(
+                *resultMessage, socket_, [this, self]() { ClientLoop(); }, [this, self]() { Abort(); });
         }
     }
-    catch (std::exception& e)
+    else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::QueryMessage>())
     {
-        BOOST_LOG_TRIVIAL(error) << e.what();
+        ColmnarDB::NetworkClient::Message::QueryMessage queryMessage;
+        recvMsg.UnpackTo(&queryMessage);
+        BOOST_LOG_TRIVIAL(debug) << "Query message from " << socket_.remote_endpoint().address().to_string();
+        std::unique_ptr<google::protobuf::Message> waitMessage = clientHandler_->HandleQuery(
+            *this, queryMessage, [this, self](std::unique_ptr<google::protobuf::Message> notifyMessage) {
+                if (socket_.is_open())
+                {
+                    networkMessage_.WriteToNetwork(
+                        *notifyMessage, socket_, []() {}, [this, self]() { Abort(); });
+                }
+            });
+        if (waitMessage != nullptr)
+        {
+            networkMessage_.WriteToNetwork(
+                *waitMessage, socket_, [this, self]() { ClientLoop(); }, [this, self]() { Abort(); });
+        }
     }
-    if (!quit_)
+    else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::CSVImportMessage>())
     {
-        Abort();
+        ColmnarDB::NetworkClient::Message::CSVImportMessage csvImportMessage;
+        recvMsg.UnpackTo(&csvImportMessage);
+        BOOST_LOG_TRIVIAL(debug) << "CSV message from " << socket_.remote_endpoint().address().to_string();
+        std::unique_ptr<google::protobuf::Message> importResultMessage =
+            clientHandler_->HandleCSVImport(*this, csvImportMessage);
+        if (importResultMessage != nullptr)
+        {
+            networkMessage_.WriteToNetwork(
+                *importResultMessage, socket_, [this, self]() { ClientLoop(); },
+                [this, self]() { Abort(); });
+        }
+    }
+    else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::SetDatabaseMessage>())
+    {
+        ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDatabaseMessage;
+        recvMsg.UnpackTo(&setDatabaseMessage);
+        BOOST_LOG_TRIVIAL(debug)
+            << "Set database message from " << socket_.remote_endpoint().address().to_string();
+        std::unique_ptr<google::protobuf::Message> setDatabaseResult =
+            clientHandler_->HandleSetDatabase(*this, setDatabaseMessage);
+        if (setDatabaseResult != nullptr)
+        {
+            networkMessage_.WriteToNetwork(
+                *setDatabaseResult, socket_, [this, self]() { ClientLoop(); }, [this, self]() { Abort(); });
+        }
+    }
+    else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::BulkImportMessage>())
+    {
+        ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
+        recvMsg.UnpackTo(&bulkImportMessage);
+        BOOST_LOG_TRIVIAL(debug)
+            << "BulkImport message from " << socket_.remote_endpoint().address().to_string();
+        std::memset(nullBuffer_.get(), 0, NULL_BUFFER_SIZE);
+        DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
+        int32_t elementCount = bulkImportMessage.elemcount();
+        bool isNullable = bulkImportMessage.nullmasklen() != 0;
+        if (elementCount * GetDataTypeSize(columnType) > MAXIMUM_BULK_FRAGMENT_SIZE)
+        {
+            outInfo.set_message("Data fragment larger than allowed");
+            outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+            networkMessage_.WriteToNetwork(
+                outInfo, socket_, [this, self]() { ClientLoop(); }, [this, self]() { Abort(); });
+            return;
+        }
+        socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
+        networkMessage_.ReadRaw(
+            socket_, dataBuffer_.get(), elementCount, columnType,
+            [this, self, isNullable, bulkImportMessage](char* resultBuffer, int32_t elementCount) {
+                if (isNullable)
+                {
+                    size_t nullBufferSize = bulkImportMessage.nullmasklen();
+                    socketDeadline_.expires_after(std::chrono::milliseconds(requestTimeout_));
+                    networkMessage_.ReadRaw(
+                        socket_, nullBuffer_.get(), nullBufferSize, DataType::COLUMN_INT8_T,
+                        [this, self, bulkImportMessage](char* resultBuffer, int32_t elementCount) {
+                            std::unique_ptr<google::protobuf::Message> importResultMessage =
+                                clientHandler_->HandleBulkImport(*this, bulkImportMessage,
+                                                                 dataBuffer_.get(), resultBuffer);
+                            if (importResultMessage != nullptr)
+                            {
+                                networkMessage_.WriteToNetwork(
+                                    *importResultMessage, socket_, [this, self]() { ClientLoop(); },
+                                    [this, self]() { Abort(); });
+                            }
+                        },
+                        [this, self]() { Abort(); });
+                }
+                else
+                {
+                    std::unique_ptr<google::protobuf::Message> importResultMessage =
+                        clientHandler_->HandleBulkImport(*this, bulkImportMessage,
+                                                         dataBuffer_.get(), nullBuffer_.get());
+                    if (importResultMessage != nullptr)
+                    {
+                        networkMessage_.WriteToNetwork(
+                            *importResultMessage, socket_, [this, self]() { ClientLoop(); },
+                            [this, self]() { Abort(); });
+                    }
+                }
+            },
+            [this, self]() { Abort(); });
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(error)
+            << "Invalid message from " << socket_.remote_endpoint().address().to_string();
+        ClientLoop();
     }
 }
 
@@ -164,6 +215,32 @@ void ClientPoolWorker::HandleClient()
 /// </summary>
 void ClientPoolWorker::Abort()
 {
-    quit_ = true;
+    clientHandler_->Abort();
     socket_.close();
+    socketDeadline_.cancel();
+}
+
+void ClientPoolWorker::OnTimeout(boost::asio::steady_timer& deadline)
+{
+    auto self(shared_from_this());
+    deadline.async_wait([this, self, &deadline](const boost::system::error_code& /*error*/) {
+        // Check if the connection was closed while the operation was pending.
+        if (HasStopped())
+        {
+            return;
+        }
+        // Check whether the deadline has passed. We compare the deadline
+        // against the current time since a new asynchronous operation may
+        // have moved the deadline before this actor had a chance to run.
+        if (deadline.expiry() <= boost::asio::steady_timer::clock_type::now())
+        {
+            // The deadline has passed. Close the connection.
+            Abort();
+        }
+        else
+        {
+            // Put the actor back to sleep.
+            OnTimeout(deadline);
+        }
+    });
 }

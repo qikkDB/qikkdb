@@ -9,7 +9,7 @@
 #include "ITCPWorker.h"
 #include <atomic>
 #include "Configuration.h"
-
+#include "Database.h"
 class IClientHandler;
 
 /// <summary>
@@ -27,11 +27,8 @@ class TCPServer final
 private:
     boost::asio::io_context ioContext_;
     boost::asio::ip::tcp::acceptor acceptor_;
-
-    size_t clientCount_;
-    std::mutex clientCountMutex_;
-    std::condition_variable clientCountCv_;
-
+    boost::asio::steady_timer autoSaveDeadline_;
+    bool saveDBAutomatically_;
     /// <summary>
     /// Listen for new client requests asynchronously
     /// </summary>
@@ -40,34 +37,48 @@ private:
         acceptor_.async_accept([this](boost::system::error_code ec, boost::asio::ip::tcp::socket socket) {
             if (!ec)
             {
-                std::thread handlerThread(
-                    [this](boost::asio::ip::tcp::socket&& sock) {
-                        try
-                        {
-                            BOOST_LOG_TRIVIAL(info) << "Accepting client "
-                                                    << sock.remote_endpoint().address().to_string();
-                            Worker worker(std::make_unique<ClientHandler>(), std::move(sock),
-                                          Configuration::GetInstance().GetTimeout());
-                            {
-                                std::lock_guard<std::mutex> lock(clientCountMutex_);
-                                clientCount_++;
-                            }
-                            worker.HandleClient();
-                            {
-                                std::lock_guard<std::mutex> lock(clientCountMutex_);
-                                clientCount_--;
-                            }
-                            clientCountCv_.notify_all();
-                        }
-                        catch (std::exception& e)
-                        {
-                            printf("Exception in worker: %s", e.what());
-                        }
-                    },
-                    std::move(socket));
-                handlerThread.detach();
+                try
+                {
+                    BOOST_LOG_TRIVIAL(info)
+                        << "Accepting client " << socket.remote_endpoint().address().to_string();
+
+                    std::make_shared<Worker>(std::make_unique<ClientHandler>(), std::move(socket),
+                                             Configuration::GetInstance().GetTimeout())
+                        ->HandleClient();
+                }
+                catch (std::exception& e)
+                {
+                    BOOST_LOG_TRIVIAL(info) << "Exception in worker: " << e.what();
+                }
             }
             Listen();
+        });
+    }
+
+    void AutoSaveDB()
+    {
+        autoSaveDeadline_.async_wait([this](const boost::system::error_code& error) {
+            if (error == boost::asio::error::operation_aborted)
+            {
+                return;
+            }
+            // Check whether the deadline has passed. We compare the deadline
+            // against the current time since a new asynchronous operation may
+            // have moved the deadline before this actor had a chance to run.
+            if (autoSaveDeadline_.expiry() <= boost::asio::steady_timer::clock_type::now())
+            {
+                // The deadline has passed. Save databases.
+                BOOST_LOG_TRIVIAL(info) << "Autosaving databases...";
+                Database::SaveModifiedToDisk();
+                autoSaveDeadline_.expires_after(
+                    std::chrono::seconds(Configuration::GetInstance().GetDBSaveInterval()));
+                AutoSaveDB();
+            }
+            else
+            {
+                // Put the actor back to sleep.
+                AutoSaveDB();
+            }
         });
     }
 
@@ -77,10 +88,10 @@ public:
     /// </summary>
     /// <param name="ipAddress">IPAddress on which to listen</param>
     /// <param name="port">Port on which to listen</param>
-    TCPServer(const char* ipAddress, short port)
+    TCPServer(const char* ipAddress, short port, bool saveDBAutomatically = true)
     : ioContext_(),
       acceptor_(ioContext_, boost::asio::ip::tcp::endpoint(boost::asio::ip::make_address(ipAddress), port)),
-      clientCount_(0){};
+      saveDBAutomatically_(saveDBAutomatically), autoSaveDeadline_(ioContext_){};
 
     /// <summary>
     /// Starts processing network requests in loop
@@ -88,6 +99,12 @@ public:
     void Run()
     {
         Listen();
+        if (saveDBAutomatically_ && Configuration::GetInstance().GetDBSaveInterval() > 0)
+        {
+            autoSaveDeadline_.expires_after(
+                std::chrono::seconds(Configuration::GetInstance().GetDBSaveInterval()));
+            AutoSaveDB();
+        }
         ioContext_.run();
     }
 
@@ -96,10 +113,8 @@ public:
     /// </summary>
     void Abort()
     {
-        Worker::AbortAllWorkers();
+        autoSaveDeadline_.cancel();
         acceptor_.cancel();
-        std::unique_lock<std::mutex> lock(clientCountMutex_);
-        clientCountCv_.wait(lock, [this] { return clientCount_ == 0; });
         ioContext_.stop();
     }
 

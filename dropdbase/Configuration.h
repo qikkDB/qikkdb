@@ -2,7 +2,7 @@
 
 #include <yaml-cpp/yaml.h>
 #include <iostream>
-
+#include "CudaLogBoost.h"
 
 class Configuration
 {
@@ -38,6 +38,7 @@ private:
     short listenPort_ = 12345;
     int timeout_ = 5000;
     int GPUCachePercent_ = 73;
+    int DBSaveInterval_ = 300;
 
     void LoadConfigurationFile();
 
@@ -55,21 +56,22 @@ private:
             {
                 configurationValue = yamlParsed_[entryKey].as<T>();
                 // BOOST_LOG_TRIVIAL(info) << "Configuration entry loaded. " << entryKey << ": " << configurationValue << std::endl;
-                std::cout << "Configuration entry loaded. " << entryKey << ": "
-                          << configurationValue << std::endl;
+                CudaLogBoost::getInstance(CudaLogBoost::info)
+                    << "Configuration entry loaded. " << entryKey << ": " << configurationValue << '\n';
             }
             catch (YAML::TypedBadConversion<T>&)
             {
                 // BOOST_LOG_TRIVIAL(warning) << "Configuration entry wrong conversion, using default value." << std::endl;
-                std::cerr << "Configuration entry (" << entryKey
-                          << ") has a wrong conversion, using default value." << std::endl;
+                CudaLogBoost::getInstance(CudaLogBoost::warning)
+                    << "Configuration entry (" << entryKey
+                    << ") has a wrong conversion, using default value." << '\n';
             }
         }
         else
         {
             // BOOST_LOG_TRIVIAL(warning) << "Configuration entry not found, using default value." << std::endl;
-            std::cerr << "Configuration entry (" << entryKey << ") not found, using default value."
-                      << std::endl;
+            CudaLogBoost::getInstance(CudaLogBoost::warning)
+                << "Configuration entry (" << entryKey << ") not found, using default value." << '\n';
         }
     }
 
@@ -131,5 +133,10 @@ public:
     int GetGPUCachePercentage() const
     {
         return GPUCachePercent_;
+    }
+
+    int GetDBSaveInterval() const
+    {
+        return DBSaveInterval_;
     }
 };

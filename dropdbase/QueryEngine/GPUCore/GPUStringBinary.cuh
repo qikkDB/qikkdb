@@ -215,7 +215,7 @@ public:
     template <typename OP, typename T>
     static void ConstConst(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, T BConst, int32_t dataElementCount)
     {
-        GPUStringBinary::Run<OP>(output, AConst, 1, BConst, 1);
+        GPUStringBinary::Run<OP>(output, AConst, dataElementCount, BConst, 1);
         // TODO expand?
     }
 
@@ -265,7 +265,7 @@ public:
     static void
     ConstConst(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, GPUMemory::GPUString BConst, int32_t dataElementCount)
     {
-        GPUStringBinary::Run<OP>(output, AConst, false, BConst, false, 1);
+        GPUStringBinary::Run<OP>(output, AConst, true, BConst, true, dataElementCount);
         // TODO expand?
     }
 };

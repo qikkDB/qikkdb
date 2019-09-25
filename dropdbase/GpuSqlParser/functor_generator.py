@@ -54,7 +54,7 @@ operations_binary = ["greater", "less", "greaterEqual", "lessEqual", "equal", "n
 operations_filter = ["greater", "less", "greaterEqual", "lessEqual", "equal", "notEqual"]
 operations_logical = ["logicalAnd", "logicalOr"]
 operations_arithmetic = ["mul", "div", "add", "sub", "mod", "bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift",
-                         "bitwiseRightShift", "power", "logarithm", "arctangent2", "root"]
+                         "bitwiseRightShift", "power", "logarithm", "arctangent2", "root", "roundDecimal"]
 operations_unary = ["logicalNot", "minus", "min", "max", "sum", "count", "avg", "year", "month", "day", "hour",
                     "minute", "second"]
 operations_aggregation = ["min", "max", "sum", "count", "avg"]
@@ -325,8 +325,11 @@ for operation in operations_arithmetic:
                     colVal in floating_types or rowVal in floating_types):
                 op = "InvalidOperandTypesErrorHandler"
 
+            elif (operation == "roundDecimal") and (rowVal in floating_types):
+                op = "InvalidOperandTypesErrorHandler"
+
             else:
-                op = "arithmetic"
+                op = "Arithmetic"
 
             function = "GpuSqlDispatcher::" + op + col + row + "<ArithmeticOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
 
@@ -625,7 +628,7 @@ for operation in operations_string_unary:
     print(declaration)
 print()
 
-for operation in ['orderBy', 'orderByReconstructOrder', 'orderByReconstructRet']:
+for operation in ['orderBy']:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
@@ -642,6 +645,27 @@ for operation in ['orderBy', 'orderByReconstructOrder', 'orderByReconstructRet']
             op = operation
 
         function = "GpuSqlDispatcher::" + op + col + "<" + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()
+
+for operation in ['OrderByReconstruct']:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        function = "GpuSqlDispatcher::" + operation + col + "<" + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")
