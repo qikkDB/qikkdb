@@ -139,7 +139,7 @@ __global__ void kernel_predict_numeric_string_lengths(int32_t* outStringLengths,
 }
 
 template <typename IN>
-__device__ void NumericToString(char* allChars, int64_t startIndex, IN number)
+__device__ void NumericToString(char* allChars, int64_t startIndex, IN number, int32_t fixedIntegralDigits = 0)
 {
     // Append sign
     if (number < 0)
@@ -153,13 +153,22 @@ __device__ void NumericToString(char* allChars, int64_t startIndex, IN number)
 
     printf("Kernel: %.2f, %d", number, integerPart);
     const int32_t integralDigits = GetNumberOfIntegralDigits(number);
-    startIndex += integralDigits;
+
+    fixedIntegralDigits = max(fixedIntegralDigits, integralDigits);
+
+    startIndex += fixedIntegralDigits;
     do
     {
         allChars[--startIndex] = ('0' + (integerPart % 10));
         integerPart /= 10;
     } while (integerPart > 0);
-    startIndex += integralDigits;
+
+    for (int32_t i = 0; i < fixedIntegralDigits - integralDigits; i++)
+    {
+        allChars[--startIndex] = '0';    
+	}
+
+    startIndex += fixedIntegralDigits;
 
     // Append decimal part
     int32_t decimalDigits = GetNumberOfDecimalDigits(number);
