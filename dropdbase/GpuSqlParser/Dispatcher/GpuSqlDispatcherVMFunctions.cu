@@ -801,6 +801,8 @@ int32_t GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
         isOverallLastBlock_ = true;
     }
 
+	noLoad_ = false;
+	
     return 0;
 }
 
