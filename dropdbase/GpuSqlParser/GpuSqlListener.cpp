@@ -914,6 +914,7 @@ void GpuSqlListener::exitWhereClause(GpuSqlParser::WhereClauseContext* ctx)
 void GpuSqlListener::enterWhereClause(GpuSqlParser::WhereClauseContext* ctx)
 {
     insideWhere_ = true;
+    dispatcher_.AddArgument<bool>(ContainsAggFunction);
     dispatcher_.AddWhereEvaluationFunction();
 }
 
@@ -1576,7 +1577,6 @@ void GpuSqlListener::exitOffset(GpuSqlParser::OffsetContext* ctx)
 void GpuSqlListener::SetContainsAggFunction(bool containsAgg)
 {
     ContainsAggFunction = containsAgg;
-    dispatcher_.AddArgument<bool>(ContainsAggFunction);
 }
 
 void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext* ctx)
