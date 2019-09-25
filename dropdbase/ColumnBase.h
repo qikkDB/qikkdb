@@ -168,7 +168,7 @@ public:
         else
         {
             BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to FALSE for column named: " << name_ << ".";
-		}
+        }
     }
 
     virtual bool GetSaveNecessary() const override
@@ -262,6 +262,21 @@ public:
         saveNecessary_ = true;
         BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         size_ += data.size();
+        return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
+    }
+
+    BlockBase<T>&
+    AddBlock(std::unique_ptr<T[]>&& data, int32_t dataSize, int groupId = -1, bool compress = false, bool isCompressed = false)
+    {
+        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize, *this, isCompressed, isNullable_));
+        auto& lastBlock = blocks_[groupId].back();
+        if (lastBlock->IsFull() && !isCompressed && compress)
+        {
+            lastBlock->CompressData();
+        }
+        saveNecessary_ = true;
+        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
+        size_ += dataSize;
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 

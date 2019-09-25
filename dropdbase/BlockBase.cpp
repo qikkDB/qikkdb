@@ -250,8 +250,13 @@ void BlockBase<int8_t>::updateBlockStatistics(const int8_t& data, bool isNullVal
     }
 }
 
+/// <summary>
+/// Set Block Statistics
+/// </summary>
+/// <param name="insertedDataSize">represents size of data which are inserted</param>
+/// <param name="oldDataSize">represents size of data which are already inserted</param>
 template <>
-void BlockBase<int32_t>::setBlockStatistics(const std::vector<int32_t>& data)
+void BlockBase<int32_t>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
     if (isCompressed_)
     {
@@ -260,14 +265,14 @@ void BlockBase<int32_t>::setBlockStatistics(const std::vector<int32_t>& data)
 
     if (!isNullable_)
     {
-        for (int32_t i = 0; i < data.size(); i++)
+        for (int32_t i = 0; i < insertedDataSize; i++)
         {
-            updateBlockStatistics(data[i], false);
+            updateBlockStatistics(data_[i + oldDataSize], false);
         }
     }
     else
     {
-        size_ += data.size();
+        size_ += insertedDataSize;
 
         min_ = std::numeric_limits<int32_t>::max();
         max_ = std::numeric_limits<int32_t>::lowest();
@@ -296,7 +301,7 @@ void BlockBase<int32_t>::setBlockStatistics(const std::vector<int32_t>& data)
 }
 
 template <>
-void BlockBase<int64_t>::setBlockStatistics(const std::vector<int64_t>& data)
+void BlockBase<int64_t>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
     if (isCompressed_)
     {
@@ -306,14 +311,14 @@ void BlockBase<int64_t>::setBlockStatistics(const std::vector<int64_t>& data)
     if (!isNullable_)
     {
 
-        for (int32_t i = 0; i < data.size(); i++)
+        for (int32_t i = 0; i < insertedDataSize; i++)
         {
-            updateBlockStatistics(data[i], false);
+            updateBlockStatistics(data_[i + oldDataSize], false);
         }
     }
     else
     {
-        size_ += data.size();
+        size_ += insertedDataSize;
 
         min_ = std::numeric_limits<int64_t>::max();
         max_ = std::numeric_limits<int64_t>::lowest();
@@ -342,7 +347,7 @@ void BlockBase<int64_t>::setBlockStatistics(const std::vector<int64_t>& data)
 }
 
 template <>
-void BlockBase<float>::setBlockStatistics(const std::vector<float>& data)
+void BlockBase<float>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
     if (isCompressed_)
     {
@@ -351,14 +356,14 @@ void BlockBase<float>::setBlockStatistics(const std::vector<float>& data)
 
     if (!isNullable_)
     {
-        for (int32_t i = 0; i < data.size(); i++)
+        for (int32_t i = 0; i < insertedDataSize; i++)
         {
-            updateBlockStatistics(data[i], false);
+            updateBlockStatistics(data_[i + oldDataSize], false);
         }
     }
     else
     {
-        size_ += data.size();
+        size_ += insertedDataSize;
 
         min_ = std::numeric_limits<float>::max();
         max_ = std::numeric_limits<float>::lowest();
@@ -387,7 +392,7 @@ void BlockBase<float>::setBlockStatistics(const std::vector<float>& data)
 }
 
 template <>
-void BlockBase<double>::setBlockStatistics(const std::vector<double>& data)
+void BlockBase<double>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
     if (isCompressed_)
     {
@@ -395,14 +400,14 @@ void BlockBase<double>::setBlockStatistics(const std::vector<double>& data)
     }
     if (!isNullable_)
     {
-        for (int32_t i = 0; i < data.size(); i++)
+        for (int32_t i = 0; i < insertedDataSize; i++)
         {
-            updateBlockStatistics(data[i], false);
+            updateBlockStatistics(data_[i + oldDataSize], false);
         }
     }
     else
     {
-        size_ += data.size();
+        size_ += insertedDataSize;
 
         min_ = std::numeric_limits<double>::max();
         max_ = std::numeric_limits<double>::lowest();
@@ -431,42 +436,42 @@ void BlockBase<double>::setBlockStatistics(const std::vector<double>& data)
 }
 
 template <>
-void BlockBase<ColmnarDB::Types::Point>::setBlockStatistics(const std::vector<ColmnarDB::Types::Point>& data)
+void BlockBase<ColmnarDB::Types::Point>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
-    for (int32_t i = 0; i < data.size(); i++)
+    for (int32_t i = 0; i < insertedDataSize; i++)
     {
-        updateBlockStatistics(data[i], false);
+        updateBlockStatistics(data_[i + oldDataSize], false);
     }
 }
 
 template <>
-void BlockBase<ColmnarDB::Types::ComplexPolygon>::setBlockStatistics(const std::vector<ColmnarDB::Types::ComplexPolygon>& data)
+void BlockBase<ColmnarDB::Types::ComplexPolygon>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
-    for (int32_t i = 0; i < data.size(); i++)
+    for (int32_t i = 0; i < insertedDataSize; i++)
     {
-        updateBlockStatistics(data[i], false);
+        updateBlockStatistics(data_[i + oldDataSize], false);
     }
 }
 
 template <>
-void BlockBase<std::string>::setBlockStatistics(const std::vector<std::string>& data)
+void BlockBase<std::string>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
-    for (int32_t i = 0; i < data.size(); i++)
+    for (int32_t i = 0; i < insertedDataSize; i++)
     {
-        updateBlockStatistics(data[i], false);
+        updateBlockStatistics(data_[i + oldDataSize], false);
     }
 }
 
 template <>
-void BlockBase<int8_t>::setBlockStatistics(const std::vector<int8_t>& data)
+void BlockBase<int8_t>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
     if (isCompressed_)
     {
         return;
     }
 
-    for (int32_t i = 0; i < data.size(); i++)
+    for (int32_t i = 0; i < insertedDataSize; i++)
     {
-        updateBlockStatistics(data[i], false);
+        updateBlockStatistics(data_[i + oldDataSize], false);
     }
 }
