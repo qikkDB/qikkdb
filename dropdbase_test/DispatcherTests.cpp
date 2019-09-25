@@ -11824,7 +11824,7 @@ TEST(DispatcherTests, WhereEvaluationAdvanced_FourTimesAnd)
     LoadColHelper& loadColHelper = LoadColHelper::getInstance();
 
 	//2
-    ASSERT_EQ(loadColHelper.countSkippedBlocks, 0);
+    ASSERT_EQ(loadColHelper.countSkippedBlocks, 2);
 
     GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE WhereEvalDatabase;");
     resultPtr = parserDropDatabase.Parse();
