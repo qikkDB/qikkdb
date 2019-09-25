@@ -96,13 +96,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
             joinDispatcher_->Execute();
         }
 
-        if (statement->sqlSelect()->whereClause())
-        {
-            walker.walk(&gpuSqlListener, statement->sqlSelect()->whereClause());
-            walker.walk(&cpuWhereListener, statement->sqlSelect()->whereClause());
-        }
-
-		int32_t columnOrder = 0;
+        int32_t columnOrder = 0;
         std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> aggColumns;
         std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> nonAggColumns;
 
@@ -118,7 +112,13 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
             }
         }
 
-		gpuSqlListener.ContainsAggFunction = !aggColumns.empty();
+        gpuSqlListener.SetContainsAggFunction(!aggColumns.empty());
+
+        if (statement->sqlSelect()->whereClause())
+        {
+            walker.walk(&gpuSqlListener, statement->sqlSelect()->whereClause());
+            walker.walk(&cpuWhereListener, statement->sqlSelect()->whereClause());
+        }
 
         if (statement->sqlSelect()->groupByColumns())
         {

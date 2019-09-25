@@ -186,6 +186,8 @@ public:
 
     bool GetUsingWhere();
 
+	void SetContainsAggFunction(bool containsAgg);
+
     void ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext* ctx);
 
     void LockAliasRegisters();

@@ -1573,6 +1573,12 @@ void GpuSqlListener::exitOffset(GpuSqlParser::OffsetContext* ctx)
     ResultOffset = std::stoi(ctx->getText());
 }
 
+void GpuSqlListener::SetContainsAggFunction(bool containsAgg)
+{
+    ContainsAggFunction = containsAgg;
+    dispatcher_.AddArgument<bool>(ContainsAggFunction);
+}
+
 void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext* ctx)
 {
     for (int32_t i = 0; i < ctx->selectColumn().size(); i++)
