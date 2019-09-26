@@ -1594,10 +1594,15 @@ void GpuSqlListener::SetContainsAggFunction(bool containsAgg)
     ContainsAggFunction = containsAgg;
 }
 
-void GpuSqlListener::LimitOffset()
+void GpuSqlListener::LimitOffset(bool usingWhere, bool usingGroupBy, bool usingOrderBy, bool usingAggregation, bool usingJoin)
 {
     dispatcher_.AddArgument<int64_t>(ResultOffset);
     dispatcher_.AddArgument<int64_t>(ResultLimit);
+    dispatcher_.AddArgument<bool>(usingWhere);
+    dispatcher_.AddArgument<bool>(usingGroupBy);
+    dispatcher_.AddArgument<bool>(usingOrderBy);
+    dispatcher_.AddArgument<bool>(usingAggregation);
+    dispatcher_.AddArgument<bool>(usingJoin);
     dispatcher_.AddGetLoadSizeFunction();
 }
 

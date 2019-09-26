@@ -50,7 +50,13 @@ private:
     MergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,
                            const std::unordered_map<std::string, std::string>& aliasTable,
                            int64_t resultLimit,
-                           int64_t resultOffset);
+                           int64_t resultOffset,
+                           bool usingWhere,
+                           bool usingGroupBy,
+                           bool usingOrderBy,
+                           bool usingAggregation,
+                           bool usingJoin,
+                           bool nonSelect);
 
     std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers_;
     std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher_;

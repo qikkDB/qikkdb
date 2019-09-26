@@ -89,6 +89,7 @@ private:
     int32_t jmpInstructionPosition_;
     int32_t constStringCounter_;
     int64_t loadSize_;
+    int64_t loadOffset_;
     const std::shared_ptr<Database>& database_;
     std::string loadedTableName_;
     std::unordered_map<std::string, PointerAllocation> allocatedPointers_;
@@ -631,8 +632,8 @@ public:
     int32_t LoadColNullMask(std::string& colName);
 
     int32_t LoadTableBlockInfo(const std::string& tableName);
-
-    size_t GetBlockSize();
+    
+    size_t GetBlockSize(int32_t blockIndex = -1);
 
     template <typename T>
     void FreeColumnIfRegister(const std::string& col)

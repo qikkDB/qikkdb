@@ -63,8 +63,8 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database>& database,
   insideGroupBy_(false), usingGroupBy_(false), usingOrderBy_(false), usingJoin_(false),
   isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true), aborted_(false),
   loadNecessary_(1), cpuDispatcher_(database), jmpInstructionPosition_(0),
-  insertIntoData_(std::make_unique<InsertIntoStruct>()), joinIndices_(nullptr),
-  orderByTable_(nullptr), orderByBlocks_(orderByBlocks), loadedTableName_(""), loadSize_(0)
+  insertIntoData_(std::make_unique<InsertIntoStruct>()), joinIndices_(nullptr), orderByTable_(nullptr),
+  orderByBlocks_(orderByBlocks), loadedTableName_(""), loadSize_(0), loadOffset_(0)
 {
 }
 

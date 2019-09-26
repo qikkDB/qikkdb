@@ -71,7 +71,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
 
         noLoad_ = false;
 
-        if (loadNecessary_ == 0)
+        if (loadNecessary_ == 0 || loadSize_ <= 0)
         {
             instructionPointer_ = jmpInstructionPosition_;
             return 12;
@@ -86,12 +86,12 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
             auto block =
                 dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex_]);
             int8_t* nullMaskPtr = nullptr;
+
             if (block->GetNullBitmask())
             {
                 if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
                 {
-                    int32_t bitMaskCapacity =
-                        ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    int32_t bitMaskCapacity = ((loadSize_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     nullMaskPtr = AllocateRegister<int8_t>(colName + NULL_SUFFIX, bitMaskCapacity);
                     GPUMemory::copyHostToDevice(nullMaskPtr, block->GetNullBitmask(), bitMaskCapacity);
                 }
@@ -105,7 +105,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
                                  std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData(),
                                                                                block->GetData() +
                                                                                    block->GetSize()),
-                                 block->GetSize(), false, nullMaskPtr);
+                                 loadSize_, false, nullMaskPtr);
             noLoad_ = false;
         }
         else
@@ -189,7 +189,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
 
         noLoad_ = false;
 
-        if (loadNecessary_ == 0)
+        if (loadNecessary_ == 0 || loadSize_ <= 0)
         {
             instructionPointer_ = jmpInstructionPosition_;
             return 12;
@@ -203,12 +203,12 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
             auto block = dynamic_cast<BlockBase<ColmnarDB::Types::Point>*>(col->GetBlocksList()[blockIndex_]);
 
             std::vector<NativeGeoPoint> nativePoints;
-            std::transform(block->GetData(), block->GetData() + block->GetSize(), std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint {
+            std::transform(block->GetData(), block->GetData() + loadSize_, std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint {
                 return NativeGeoPoint{point.geopoint().latitude(), point.geopoint().longitude()};
             });
 
             auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(
-                database_->GetName(), colName, blockIndex_, nativePoints.size());
+                database_->GetName(), colName + std::to_string(loadSize_), blockIndex_, nativePoints.size());
             if (!std::get<2>(cacheEntry))
             {
                 GPUMemory::copyHostToDevice(std::get<0>(cacheEntry),
@@ -220,10 +220,10 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
             {
                 if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
                 {
-                    int32_t bitMaskCapacity =
-                        ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    int32_t bitMaskCapacity = ((loadSize_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                        database_->GetName(), colName + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
+                        database_->GetName(), colName + NULL_SUFFIX + std::to_string(loadSize_),
+                        blockIndex_, bitMaskCapacity);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
                     if (!std::get<2>(cacheMaskEntry))
                     {
@@ -335,6 +335,14 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
             isOverallLastBlock_ = true;
         }
 
+        noLoad_ = false;
+
+        if (loadNecessary_ == 0 || loadSize_ <= 0)
+        {
+            instructionPointer_ = jmpInstructionPosition_;
+            return 12;
+        }
+
         auto col = dynamic_cast<const ColumnBase<std::string>*>(
             database_->GetTables().at(table).GetColumns().at(column).get());
 
@@ -347,7 +355,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
                 if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
                 {
                     int32_t bitMaskCapacity =
-                        ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                        ((loadSize_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     nullMaskPtr = AllocateRegister<int8_t>(colName + NULL_SUFFIX, bitMaskCapacity);
                     GPUMemory::copyHostToDevice(nullMaskPtr, block->GetNullBitmask(), bitMaskCapacity);
                 }
@@ -358,8 +366,8 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
                 }
             }
             InsertString(database_->GetName(), colName,
-                         std::vector<std::string>(block->GetData(), block->GetData() + block->GetSize()),
-                         block->GetSize(), false, nullMaskPtr);
+                         std::vector<std::string>(block->GetData(), block->GetData() + loadSize_),
+                         loadSize_, false, nullMaskPtr);
             noLoad_ = false;
         }
         else
@@ -807,8 +815,13 @@ int32_t GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
     return 0;
 }
 
-size_t GpuSqlDispatcher::GetBlockSize()
+size_t GpuSqlDispatcher::GetBlockSize(int32_t blockIndex)
 {
+    if(blockIndex == -1)
+    {
+        blockIndex = blockIndex_;
+    }
+
     int64_t dataElementCount = 0;
     if (LoadTableBlockInfo(loadedTableName_) != 0)
     {
@@ -816,12 +829,12 @@ size_t GpuSqlDispatcher::GetBlockSize()
     }
     if (usingJoin_)
     {
-        dataElementCount = joinIndices_->begin()->second[blockIndex_].size();
+        dataElementCount = joinIndices_->begin()->second[blockIndex].size();
     }
     else
     {
         dataElementCount =
-            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex_);
+            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex);
     }
     if (filter_)
     {
@@ -837,17 +850,33 @@ int32_t GpuSqlDispatcher::GetLoadSize()
     int64_t offset = arguments_.Read<int64_t>();
     int64_t limit = arguments_.Read<int64_t>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::info)
-        << "GetLoadSize Offset: " << offset << " Limit: " << limit << '\n';
+    bool usingWhere = arguments_.Read<bool>();
+    bool usingGroupBy = arguments_.Read<bool>();
+    bool usingOrderBy = arguments_.Read<bool>();
+    bool usingAggregation = arguments_.Read<bool>();
+    bool usingJoin = arguments_.Read<bool>();
 
-    int64_t blockSize = GetBlockSize();
+    if (usingWhere || usingGroupBy || usingOrderBy || usingAggregation || usingJoin)
+    {
+        loadOffset_ = 0;
+        loadSize_ = GetBlockSize();
+    }
 
-    std::lock_guard<std::mutex> lock(loadSizeMutex_);
+    else
+    {
+        CudaLogBoost::getInstance(CudaLogBoost::info)
+            << "GetLoadSize Offset: " << offset << " Limit: " << limit << '\n';
 
-    int64_t remainingDataSize = limit + offset - processedDataSize_;
+        int64_t blockSize = GetBlockSize();
 
-    loadSize_ = std::min(blockSize, remainingDataSize);
-    processedDataSize_ += loadSize_;
+        std::lock_guard<std::mutex> lock(loadSizeMutex_);
+
+        int64_t remainingDataSize = limit + offset - processedDataSize_;
+
+        loadOffset_ = 0;
+        loadSize_ = std::min(blockSize, remainingDataSize);
+        processedDataSize_ += loadSize_;
+    }
 
     return 0;
 }
