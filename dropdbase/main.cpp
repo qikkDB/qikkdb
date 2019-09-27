@@ -269,7 +269,8 @@ int main(int argc, char** argv)
                                 std::shared_ptr<Database> database =
                                     std::make_shared<Database>("TaxiRides", 169147072);
                                 Database::AddToInMemoryDatabaseList(database);
-                                BOOST_LOG_TRIVIAL(info) << "Loading preprocessed_trips_part2.csv ...";
+                                BOOST_LOG_TRIVIAL(info)
+                                    << "Loading preprocessed_trips_part2.csv ...";
                                 csvDataImporter.ImportTables(database);
                             }
                             else
@@ -289,13 +290,15 @@ int main(int argc, char** argv)
                                     std::shared_ptr<Database> database3 =
                                         std::make_shared<Database>("TaxiRides", 300257752);
                                     Database::AddToInMemoryDatabaseList(database3);
-                                    BOOST_LOG_TRIVIAL(info) << "Loading preprocessed_trips_part1.csv ...";
+                                    BOOST_LOG_TRIVIAL(info)
+                                        << "Loading preprocessed_trips_part1.csv ...";
                                     csvDataImporter3.ImportTables(database3);
 
                                     CSVDataImporter csvDataImporter4(R"(../../data/preprocessed_trips_part2.csv)");
                                     csvDataImporter4.SetTypes(types);
                                     csvDataImporter4.SetTableName(tableName);
-                                    BOOST_LOG_TRIVIAL(info) << "Loading preprocessed_trips_part2.csv ...";
+                                    BOOST_LOG_TRIVIAL(info)
+                                        << "Loading preprocessed_trips_part2.csv ...";
                                     csvDataImporter4.ImportTables(database3);
                                 }
                                 else
@@ -387,7 +390,8 @@ int main(int argc, char** argv)
                                                 BOOST_LOG_TRIVIAL(info)
                                                     << "Importing Taxi Rides database...";
 
-                                                CSVDataImporter csvDataImporter3(R"(../../data/preprocessed_trips_part1.csv)");
+                                                CSVDataImporter csvDataImporter3(
+                                                    R"(../../data/preprocessed_trips_part1.csv)");
                                                 const std::vector<DataType> types{
                                                     COLUMN_STRING, COLUMN_LONG,   COLUMN_LONG,
                                                     COLUMN_INT,    COLUMN_DOUBLE, COLUMN_DOUBLE,
@@ -402,7 +406,8 @@ int main(int argc, char** argv)
                                                     << "Loading preprocessed_trips_part1.csv ...";
                                                 csvDataImporter3.ImportTables(database3);
 
-                                                CSVDataImporter csvDataImporter4(R"(../../data/preprocessed_trips_part2.csv)");
+                                                CSVDataImporter csvDataImporter4(
+                                                    R"(../../data/preprocessed_trips_part2.csv)");
                                                 csvDataImporter4.SetTypes(types);
                                                 csvDataImporter4.SetTableName(tableName);
                                                 BOOST_LOG_TRIVIAL(info)
@@ -433,7 +438,8 @@ int main(int argc, char** argv)
                                                         << "Loading TargetLoc1B.csv ...";
                                                     csvDataImporter2.ImportTables(database2);
 
-                                                    CSVDataImporter csvDataImporter3(R"(../../data/preprocessed_trips_part1.csv)");
+                                                    CSVDataImporter csvDataImporter3(
+                                                        R"(../../data/preprocessed_trips_part1.csv)");
                                                     const std::vector<DataType> types{
                                                         COLUMN_STRING, COLUMN_LONG,   COLUMN_LONG,
                                                         COLUMN_INT,    COLUMN_DOUBLE, COLUMN_DOUBLE,
@@ -445,14 +451,17 @@ int main(int argc, char** argv)
                                                         std::make_shared<Database>("TaxiRides", 150128876);
                                                     Database::AddToInMemoryDatabaseList(database3);
                                                     BOOST_LOG_TRIVIAL(info)
-                                                        << "Loading preprocessed_trips_part1.csv ...";
+                                                        << "Loading preprocessed_trips_part1.csv "
+                                                           "...";
                                                     csvDataImporter3.ImportTables(database3);
 
-                                                    CSVDataImporter csvDataImporter4(R"(../../data/preprocessed_trips_part2.csv)");
+                                                    CSVDataImporter csvDataImporter4(
+                                                        R"(../../data/preprocessed_trips_part2.csv)");
                                                     csvDataImporter4.SetTypes(types);
                                                     csvDataImporter4.SetTableName(tableName2);
                                                     BOOST_LOG_TRIVIAL(info)
-                                                        << "Loading preprocessed_trips_part2.csv ...";
+                                                        << "Loading preprocessed_trips_part2.csv "
+                                                           "...";
                                                     csvDataImporter4.ImportTables(database3);
 
                                                     CSVDataImporter csvDataImporter5(R"(../../data/Target.csv)");
@@ -499,7 +508,8 @@ int main(int argc, char** argv)
                                                             std::make_shared<Database>("TaxiRides", 42286768);
                                                         Database::AddToInMemoryDatabaseList(database);
                                                         BOOST_LOG_TRIVIAL(info)
-                                                            << "Loading preprocessed_trips_part2.csv ...";
+                                                            << "Loading "
+                                                               "preprocessed_trips_part2.csv ...";
                                                         csvDataImporter.ImportTables(database);
                                                     }
                                                     else
@@ -529,7 +539,8 @@ int main(int argc, char** argv)
                                                         {
                                                             if (strcmp(argv[1], "--test") == 0)
                                                             {
-                                                                CSVDataImporter csvDataImporter1(R"(../../data/AllTableA.csv)");
+                                                                CSVDataImporter csvDataImporter1(
+                                                                    R"(../../data/AllTableA.csv)");
                                                                 std::shared_ptr<Database> database =
                                                                     std::make_shared<Database>(
                                                                         "AllDataTypes", 2);
@@ -538,41 +549,121 @@ int main(int argc, char** argv)
                                                                     << "Loading AllTableA.csv ...";
                                                                 csvDataImporter1.ImportTables(database);
 
-                                                                CSVDataImporter csvDataImporter2(R"(../../data/AllTableB.csv)");
+                                                                CSVDataImporter csvDataImporter2(
+                                                                    R"(../../data/AllTableB.csv)");
                                                                 BOOST_LOG_TRIVIAL(info)
                                                                     << "Loading AllTableB.csv ...";
                                                                 csvDataImporter2.ImportTables(database);
 
-																CSVDataImporter csvDataImporter3(R"(../../data/AllTableC.csv)");
+                                                                CSVDataImporter csvDataImporter3(
+                                                                    R"(../../data/AllTableC.csv)");
                                                                 BOOST_LOG_TRIVIAL(info)
                                                                     << "Loading AllTableC.csv ...";
                                                                 csvDataImporter3.ImportTables(database);
 
-																CSVDataImporter csvDataImporter4(R"(../../data/AllTableD.csv)");
+                                                                CSVDataImporter csvDataImporter4(
+                                                                    R"(../../data/AllTableD.csv)");
                                                                 BOOST_LOG_TRIVIAL(info)
                                                                     << "Loading AllTableD.csv ...";
                                                                 csvDataImporter4.ImportTables(database);
 
-																CSVDataImporter csvDataImporter5(R"(../../data/AllTableE.csv)");
+                                                                CSVDataImporter csvDataImporter5(
+                                                                    R"(../../data/AllTableE.csv)");
                                                                 BOOST_LOG_TRIVIAL(info)
                                                                     << "Loading AllTableE.csv ...";
                                                                 csvDataImporter5.ImportTables(database);
                                                             }
                                                             else
                                                             {
-                                                                // Import CSV file if entered as program argument
-                                                                CSVDataImporter csvDataImporter(argv[1]);
-                                                                std::shared_ptr<Database> database =
-                                                                    std::make_shared<Database>(
-                                                                        argc > 2 ? argv[2] : "TestDb",
-                                                                        argc > 3 ? std::stoll(argv[3]) : 1048576);
-                                                                Database::AddToInMemoryDatabaseList(database);
-                                                                BOOST_LOG_TRIVIAL(info)
-                                                                    << "Loading CSV from \""
-                                                                    << argv[1] << "\"";
-                                                                csvDataImporter.ImportTables(database);
+                                                                if (strcmp(argv[1], "--fe4") == 0)
+                                                                {
+                                                                    BOOST_LOG_TRIVIAL(info)
+                                                                        << "Importing Taxi Rides "
+                                                                           "database as 'test' ...";
+
+                                                                    CSVDataImporter csvDataImporter3(
+                                                                        R"(../../data/preprocessed_trips_part1.csv)");
+                                                                    const std::vector<DataType> types{
+                                                                        COLUMN_STRING,
+                                                                        COLUMN_LONG,
+                                                                        COLUMN_LONG,
+                                                                        COLUMN_INT,
+                                                                        COLUMN_DOUBLE,
+                                                                        COLUMN_DOUBLE,
+                                                                        COLUMN_INT};
+                                                                    const std::string tableName = "trips";
+                                                                    csvDataImporter3.SetTypes(types);
+                                                                    csvDataImporter3.SetTableName(tableName);
+                                                                    std::shared_ptr<Database> database3 =
+                                                                        std::make_shared<Database>("test", 300257752);
+                                                                    Database::AddToInMemoryDatabaseList(database3);
+                                                                    BOOST_LOG_TRIVIAL(info)
+                                                                        << "Loading "
+                                                                           "preprocessed_trips_"
+                                                                           "part1.csv ...";
+                                                                    csvDataImporter3.ImportTables(database3);
+
+                                                                    CSVDataImporter csvDataImporter4(
+                                                                        R"(../../data/preprocessed_trips_part2.csv)");
+                                                                    csvDataImporter4.SetTypes(types);
+                                                                    csvDataImporter4.SetTableName(tableName);
+                                                                    BOOST_LOG_TRIVIAL(info)
+                                                                        << "Loading "
+                                                                           "preprocessed_trips_"
+                                                                           "part2.csv ...";
+                                                                    csvDataImporter4.ImportTables(database3);
+                                                                }
+                                                                else
+                                                                {
+                                                                    if (strcmp(argv[1], "--fe8") == 0)
+                                                                    {
+                                                                        BOOST_LOG_TRIVIAL(info) << "Importing Taxi Rides database as 'test' ...";
+
+                                                                        CSVDataImporter csvDataImporter3(
+                                                                            R"(../../data/preprocessed_trips_part1.csv)");
+                                                                        const std::vector<DataType> types{
+                                                                            COLUMN_STRING,
+                                                                            COLUMN_LONG,
+                                                                            COLUMN_LONG,
+                                                                            COLUMN_INT,
+                                                                            COLUMN_DOUBLE,
+                                                                            COLUMN_DOUBLE,
+                                                                            COLUMN_INT};
+                                                                        const std::string tableName = "trips";
+                                                                        csvDataImporter3.SetTypes(types);
+                                                                        csvDataImporter3.SetTableName(tableName);
+                                                                        std::shared_ptr<Database> database3 =
+                                                                            std::make_shared<Database>("test", 150128876);
+                                                                        Database::AddToInMemoryDatabaseList(database3);
+                                                                        BOOST_LOG_TRIVIAL(info) << "Loading preprocessed_trips_part1.csv ...";
+                                                                        csvDataImporter3.ImportTables(database3);
+
+                                                                        CSVDataImporter csvDataImporter4(
+                                                                            R"(../../data/preprocessed_trips_part2.csv)");
+                                                                        csvDataImporter4.SetTypes(types);
+                                                                        csvDataImporter4.SetTableName(tableName);
+                                                                        BOOST_LOG_TRIVIAL(info) << "Loading preprocessed_trips_part2.csv ...";
+                                                                        csvDataImporter4.ImportTables(database3);
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        // Import CSV file if entered as program argument
+                                                                        CSVDataImporter csvDataImporter(argv[1]);
+                                                                        std::shared_ptr<Database> database =
+                                                                            std::make_shared<Database>(
+                                                                                argc > 2 ? argv[2] : "TestDb",
+                                                                                argc > 3 ?
+                                                                                    std::stoll(argv[3]) :
+                                                                                    1048576);
+                                                                        Database::AddToInMemoryDatabaseList(database);
+                                                                        BOOST_LOG_TRIVIAL(info)
+                                                                            << "Loading CSV from \""
+                                                                            << argv[1] << "\"";
+                                                                        csvDataImporter.ImportTables(database);
+                                                                    }
+                                                                }
                                                             }
-														} 
+                                                        }
                                                     }
                                                 }
                                             }
