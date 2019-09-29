@@ -100,7 +100,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
                             ((loadSize_ + loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                         std::vector<int8_t> maskToOffset(block->GetNullBitmask(),
                                                          block->GetNullBitmask() + offsetBitMaskCapacity);
-                        // bit shift left (<< loadOffset) the mask vector HERE
+                        ShiftNullMaskLeft(maskToOffset, loadOffset_);
                         GPUMemory::copyHostToDevice(nullMaskPtr, maskToOffset.data(), bitMaskCapacity);
                     }
                     else
@@ -246,7 +246,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
                                 ((loadSize_ + loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                             std::vector<int8_t> maskToOffset(block->GetNullBitmask(),
                                                              block->GetNullBitmask() + offsetBitMaskCapacity);
-                            // bit shift left (<< loadOffset) the mask vector HERE
+                            ShiftNullMaskLeft(maskToOffset, loadOffset_);
                             GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry),
                                                         maskToOffset.data(), bitMaskCapacity);
                         }
@@ -389,7 +389,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
                             ((loadSize_ + loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                         std::vector<int8_t> maskToOffset(block->GetNullBitmask(),
                                                          block->GetNullBitmask() + offsetBitMaskCapacity);
-                        // bit shift left (<< loadOffset) the mask vector HERE
+                        ShiftNullMaskLeft(maskToOffset, loadOffset_);
                         GPUMemory::copyHostToDevice(nullMaskPtr, maskToOffset.data(), bitMaskCapacity);
                     }
                     else
@@ -959,6 +959,8 @@ int32_t GpuSqlDispatcher::GetLoadSize()
             loadSize_ = std::min((offset + limit) - offsetLimitBlockDataSize, currentBlockSize) - loadOffset_;
         }
 
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "OffsetBlockIdx: " << offsetBlockIdx << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "OffsetLimitBlockIdx: " << offsetLimitBlockIdx << '\n';
         CudaLogBoost::getInstance(CudaLogBoost::info) << "Block Load Size: " << loadSize_ << '\n';
         CudaLogBoost::getInstance(CudaLogBoost::info) << "Block Load Offset: " << loadOffset_ << '\n';
     }
@@ -966,20 +968,17 @@ int32_t GpuSqlDispatcher::GetLoadSize()
     return 0;
 }
 
-void GpuSqlDispatcher::ShiftNullMaskLeft(std::vector<int8_t>& mask, int32_t shift)
+void GpuSqlDispatcher::ShiftNullMaskLeft(std::vector<int8_t>& mask, int64_t shift)
 {
-    while (shift > 0)
+    while (shift-- > 0)
     {
         int8_t carryBit = 0;
         for (int32_t i = mask.size() - 1; i >= 0; i--)
         {
-            int8_t newCarryBit = (mask[i] >> 7) && 1;
-            std::cout << static_cast<int32_t>(newCarryBit) << std::endl;
+            int8_t newCarryBit = (mask[i] >> 7) & 1;
             mask[i] <<= 1;
-
-            mask[i] = carryBit == 1 ? mask[i] | 1 : mask[i] & 0xFE;
+            mask[i] ^= (-carryBit ^ mask[i]) & 1;
             carryBit = newCarryBit;
         }
-        shift--;
     }
 }

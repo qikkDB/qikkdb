@@ -256,7 +256,7 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
                                 ((loadSize_ + loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                             std::vector<int8_t> maskToOffset(block->GetNullBitmask(),
                                                              block->GetNullBitmask() + offsetBitMaskCapacity);
-                            // bit shift left (maskToOffset << loadOffset) the mask vector HERE
+                            ShiftNullMaskLeft(maskToOffset, loadOffset_);
                             GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry),
                                                         maskToOffset.data(), bitMaskCapacity);
                         }

@@ -269,8 +269,10 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
             {
                 expectedResults1.push_back(val);
                 expectedResults2.push_back(valString);
-                expectedResults3.push_back(ssPoint.str());
-                expectedResults4.push_back(ssPolygon.str());
+                expectedResults3.push_back(
+                    PointFactory::WktFromPoint(PointFactory::FromWkt(ssPoint.str()), true));
+                expectedResults4.push_back(
+                    ComplexPolygonFactory::WktFromPolygon(ComplexPolygonFactory::FromWkt(ssPolygon.str()), true));
             }
         }
     }
@@ -288,11 +290,11 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
     auto& payload2 = result->payloads().at("TestTable.Col2");
     auto& nullBitMask2 = result->nullbitmasks().at("TestTable.Col2");
 
-    auto& payload3 = result->payloads().at("TestTable.Col2");
-    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col2");
+    auto& payload3 = result->payloads().at("TestTable.Col3");
+    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col3");
 
-    auto& payload4 = result->payloads().at("TestTable.Col2");
-    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col2");
+    auto& payload4 = result->payloads().at("TestTable.Col4");
+    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col4");
 
 
     ASSERT_EQ(payload1.intpayload().intdata_size(), expectedResults1.size());
@@ -310,6 +312,148 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
         else
         {
             ASSERT_EQ(expectedResults1[i], 0);
+        }
+
+        int8_t nullBit2 = (nullBitMask2[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        if (!nullBit2)
+        {
+            ASSERT_EQ(expectedResults2[i], payload2.stringpayload().stringdata()[i]);
+        }
+        else
+        {
+            ASSERT_EQ(expectedResults2[i], "0");
+        }
+
+        int8_t nullBit3 = (nullBitMask3[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        if (!nullBit3)
+        {
+            ASSERT_EQ(expectedResults3[i], payload3.stringpayload().stringdata()[i]);
+        }
+        else
+        {
+            ASSERT_EQ(expectedResults3[i], "0");
+        }
+
+        int8_t nullBit4 = (nullBitMask4[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        if (!nullBit4)
+        {
+            ASSERT_EQ(expectedResults4[i], payload4.stringpayload().stringdata()[i]);
+        }
+        else
+        {
+            ASSERT_EQ(expectedResults4[i], "0");
+        }
+    }
+
+    Database::RemoveFromInMemoryDatabaseList("TestDbLimitOffsetNULL");
+}
+
+TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
+{
+    srand(42);
+    Database::RemoveFromInMemoryDatabaseList("TestDbLimitOffsetNULL");
+
+    int32_t blockSize = 1 << 5;
+
+    std::shared_ptr<Database> database(std::make_shared<Database>("TestDbLimitOffsetNULL"));
+    Database::AddToInMemoryDatabaseList(database);
+
+    std::unordered_map<std::string, DataType> columns;
+    columns.emplace("Col1", COLUMN_INT);
+    columns.emplace("Col2", COLUMN_STRING);
+    columns.emplace("Col3", COLUMN_POINT);
+    columns.emplace("Col4", COLUMN_POLYGON);
+    database->CreateTable(columns, "TestTable");
+
+    std::vector<int32_t> expectedResults1;
+    std::vector<std::string> expectedResults2;
+    std::vector<std::string> expectedResults3;
+    std::vector<std::string> expectedResults4;
+
+    for (int32_t i = 0; i < blockSize * 2; i++)
+    {
+        if (i % 2)
+        {
+            GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1, Col2, Col3, Col4) "
+                                                "VALUES (null,null, null, null);");
+            parser.Parse();
+
+            if (i > 4 && expectedResults1.size() < 20)
+            {
+                expectedResults1.push_back(0);
+                expectedResults2.push_back("0");
+                expectedResults3.push_back("0");
+                expectedResults4.push_back("0");
+            }
+        }
+        else
+        {
+            int32_t val = rand() % 1000;
+            std::string valString = std::to_string(val);
+
+            std::stringstream ssPoint;
+            std::stringstream ssPolygon;
+
+            ssPoint << "POINT(" << valString << " " << valString << ")";
+            ssPolygon << "POLYGON((" << valString << " " << valString << ", " << valString << " "
+                      << valString << "))";
+
+            std::stringstream ssQuery;
+
+            ssQuery << "INSERT INTO TestTable (Col1, Col2, Col3, Col4) VALUES (" << valString << ", "
+                    << "\"" << valString << "\""
+                    << ", " << ssPoint.str() << ", " << ssPolygon.str() << ");";
+
+            GpuSqlCustomParser parser(database, ssQuery.str());
+            parser.Parse();
+
+            if (i > 4 && expectedResults1.size() < 20)
+            {
+                expectedResults1.push_back(val);
+                expectedResults2.push_back(valString);
+                expectedResults3.push_back(
+                    PointFactory::WktFromPoint(PointFactory::FromWkt(ssPoint.str()), true));
+                expectedResults4.push_back(
+                    ComplexPolygonFactory::WktFromPolygon(ComplexPolygonFactory::FromWkt(ssPolygon.str()), true));
+            }
+        }
+    }
+
+    GpuSqlCustomParser parser(database,
+                              "SELECT Col1, Col2, Col3, Col4 FROM TestTable LIMIT 20 OFFSET 5;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto column = dynamic_cast<ColumnBase<int32_t>*>(
+        database->GetTables().at("TestTable").GetColumns().at("Col1").get());
+
+    auto& payload1 = result->payloads().at("TestTable.Col1");
+    auto& nullBitMask1 = result->nullbitmasks().at("TestTable.Col1");
+
+    auto& payload2 = result->payloads().at("TestTable.Col2");
+    auto& nullBitMask2 = result->nullbitmasks().at("TestTable.Col2");
+
+    auto& payload3 = result->payloads().at("TestTable.Col3");
+    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col3");
+
+    auto& payload4 = result->payloads().at("TestTable.Col4");
+    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col4");
+
+
+    ASSERT_EQ(payload1.intpayload().intdata_size(), expectedResults1.size());
+    ASSERT_EQ(payload2.stringpayload().stringdata_size(), expectedResults2.size());
+    ASSERT_EQ(payload3.stringpayload().stringdata_size(), expectedResults3.size());
+    ASSERT_EQ(payload4.stringpayload().stringdata_size(), expectedResults4.size());
+
+    for (int32_t i = 0; i < expectedResults1.size(); i++)
+    {
+        int8_t nullBit1 = (nullBitMask1[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        if (!nullBit1)
+        {
+            //ASSERT_EQ(expectedResults1[i], payload1.intpayload().intdata()[i]);
+        }
+        else
+        {
+            //ASSERT_EQ(expectedResults1[i], 0);
         }
 
         int8_t nullBit2 = (nullBitMask2[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
