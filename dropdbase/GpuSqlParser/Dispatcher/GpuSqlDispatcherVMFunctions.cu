@@ -133,7 +133,8 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
                 {
                     int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
+                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_,
+                        bitMaskCapacity, loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
                     if (!std::get<2>(cacheMaskEntry))
                     {
@@ -208,7 +209,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
             });
 
             auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(
-                database_->GetName(), colName + std::to_string(loadSize_), blockIndex_, nativePoints.size());
+                database_->GetName(), colName, blockIndex_, nativePoints.size(), loadSize_, loadOffset_);
             if (!std::get<2>(cacheEntry))
             {
                 GPUMemory::copyHostToDevice(std::get<0>(cacheEntry),
@@ -222,8 +223,8 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
                 {
                     int32_t bitMaskCapacity = ((loadSize_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                        database_->GetName(), colName + NULL_SUFFIX + std::to_string(loadSize_),
-                        blockIndex_, bitMaskCapacity);
+                        database_->GetName(), colName + NULL_SUFFIX, blockIndex_, bitMaskCapacity,
+                        loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
                     if (!std::get<2>(cacheMaskEntry))
                     {
@@ -264,7 +265,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
             });
 
             auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(
-                database_->GetName(), joinCacheId, blockIndex_, loadSize);
+                database_->GetName(), joinCacheId, blockIndex_, loadSize, loadSize_, loadOffset_);
             if (!std::get<2>(cacheEntry))
             {
                 GPUMemory::copyHostToDevice(std::get<0>(cacheEntry),
@@ -278,7 +279,8 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
                 {
                     int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
+                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_,
+                        bitMaskCapacity, loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
                     if (!std::get<2>(cacheMaskEntry))
                     {
@@ -354,8 +356,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
             {
                 if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
                 {
-                    int32_t bitMaskCapacity =
-                        ((loadSize_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    int32_t bitMaskCapacity = ((loadSize_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     nullMaskPtr = AllocateRegister<int8_t>(colName + NULL_SUFFIX, bitMaskCapacity);
                     GPUMemory::copyHostToDevice(nullMaskPtr, block->GetNullBitmask(), bitMaskCapacity);
                 }
@@ -393,7 +394,8 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
                 {
                     int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
+                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_,
+                        bitMaskCapacity, loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
                     if (!std::get<2>(cacheMaskEntry))
                     {
@@ -791,10 +793,7 @@ int32_t GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
 {
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "TableInfo: " << tableName << '\n';
 
-    const int32_t blockCount =
-        usingJoin_ ?
-            joinIndices_->at(tableName).size() :
-            database_->GetTables().at(tableName).GetColumns().begin()->second.get()->GetBlockCount();
+    const int32_t blockCount = GetBlockCount();
     GpuSqlDispatcher::deviceCountLimit_ =
         std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
     if (blockIndex_ >= blockCount)
@@ -817,7 +816,7 @@ int32_t GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
 
 size_t GpuSqlDispatcher::GetBlockSize(int32_t blockIndex)
 {
-    if(blockIndex == -1)
+    if (blockIndex == -1)
     {
         blockIndex = blockIndex_;
     }
@@ -845,6 +844,13 @@ size_t GpuSqlDispatcher::GetBlockSize(int32_t blockIndex)
     return dataElementCount;
 }
 
+int32_t GpuSqlDispatcher::GetBlockCount()
+{
+    return usingJoin_ ?
+               joinIndices_->at(loadedTableName_).size() :
+               database_->GetTables().at(loadedTableName_).GetColumns().begin()->second.get()->GetBlockCount();
+}
+
 int32_t GpuSqlDispatcher::GetLoadSize()
 {
     int64_t offset = arguments_.Read<int64_t>();
@@ -855,8 +861,9 @@ int32_t GpuSqlDispatcher::GetLoadSize()
     bool usingOrderBy = arguments_.Read<bool>();
     bool usingAggregation = arguments_.Read<bool>();
     bool usingJoin = arguments_.Read<bool>();
+    bool usingLoad = arguments_.Read<bool>();
 
-    if (usingWhere || usingGroupBy || usingOrderBy || usingAggregation || usingJoin)
+    if (usingWhere || usingGroupBy || usingOrderBy || usingAggregation || usingJoin || !usingLoad)
     {
         loadOffset_ = 0;
         loadSize_ = GetBlockSize();
@@ -867,15 +874,55 @@ int32_t GpuSqlDispatcher::GetLoadSize()
         CudaLogBoost::getInstance(CudaLogBoost::info)
             << "GetLoadSize Offset: " << offset << " Limit: " << limit << '\n';
 
-        int64_t blockSize = GetBlockSize();
+        int64_t offsetBlockIdx = 0;
+        int64_t remainingOffset = offset;
 
-        std::lock_guard<std::mutex> lock(loadSizeMutex_);
+        while (offsetBlockIdx < GetBlockCount() && remainingOffset >= 0)
+        {
+            remainingOffset -= GetBlockSize(offsetBlockIdx++);
+        }
+        offsetBlockIdx--;
 
-        int64_t remainingDataSize = limit + offset - processedDataSize_;
+        int64_t offsetLimitBlockIdx = 0;
+        int64_t remainingLimitOffset = offset + limit;
 
-        loadOffset_ = 0;
-        loadSize_ = std::min(blockSize, remainingDataSize);
-        processedDataSize_ += loadSize_;
+        while (offsetLimitBlockIdx < GetBlockCount() && remainingLimitOffset >= 0)
+        {
+            remainingLimitOffset -= GetBlockSize(offsetLimitBlockIdx++);
+        }
+        offsetLimitBlockIdx--;
+
+        if (blockIndex_ < offsetBlockIdx || blockIndex_ > offsetLimitBlockIdx)
+        {
+            loadSize_ = 0;
+        }
+
+        const int64_t currentBlockSize = static_cast<int64_t>(GetBlockSize());
+
+        if (blockIndex_ == offsetBlockIdx)
+        {
+            int64_t offsetBlockDataSize = 0;
+            for (int32_t i = 0; i < offsetBlockIdx + 1; i++)
+            {
+                offsetBlockDataSize += GetBlockSize(i);
+            }
+
+            loadSize_ = std::min(offsetBlockDataSize - offset, currentBlockSize);
+            loadOffset_ = std::min(offsetBlockDataSize - loadSize_, currentBlockSize);
+        }
+
+        if (blockIndex_ == offsetLimitBlockIdx)
+        {
+            int64_t offsetLimitBlockDataSize = 0;
+            for (int32_t i = 0; i < offsetLimitBlockIdx; i++)
+            {
+                offsetLimitBlockDataSize += GetBlockSize(i);
+            }
+            loadSize_ = std::min((offset + limit) - offsetLimitBlockDataSize, currentBlockSize) - loadOffset_;
+        }
+
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Block Load Size: " << loadSize_ << '\n';
+        CudaLogBoost::getInstance(CudaLogBoost::info) << "Block Load Offset: " << loadOffset_ << '\n';
     }
 
     return 0;

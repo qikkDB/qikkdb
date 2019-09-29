@@ -183,7 +183,7 @@ public:
 
     void exitOffset(GpuSqlParser::OffsetContext* ctx) override;
 
-    void LimitOffset(bool usingWhere, bool usingGroupBy, bool usingOrderBy, bool usingAggregation, bool usingJoin);
+    void LimitOffset(bool usingWhere, bool usingGroupBy, bool usingOrderBy, bool usingAggregation, bool usingJoin, bool usingLoad);
 
     void SetContainsAggFunction(bool containsAgg);
 

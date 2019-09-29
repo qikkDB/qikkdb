@@ -207,10 +207,8 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
             {
                 size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
                 size_t compressedSize = block->GetSize();
-                cacheEntry =
-                    Context::getInstance().getCacheForCurrentDevice().getColumn<T>(database_->GetName(),
-                                                                                   colName, blockIndex_,
-                                                                                   uncompressedSize);
+                cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+                    database_->GetName(), colName, blockIndex_, uncompressedSize, loadSize_, loadOffset_);
                 if (!std::get<2>(cacheEntry))
                 {
                     T* deviceCompressed;
@@ -230,14 +228,14 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
             }
             else
             {
+                realSize = loadSize_;
+
                 cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
-                    database_->GetName(), colName + std::to_string(realSize), blockIndex_, loadSize_);
+                    database_->GetName(), colName, blockIndex_, loadSize_, loadSize_, loadOffset_);
                 if (!std::get<2>(cacheEntry))
                 {
-                    GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData(), loadSize_);
+                    GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), block->GetData() + loadOffset_, loadSize_);
                 }
-
-                realSize = loadSize_;
             }
 
             if (block->IsNullable())
@@ -245,14 +243,15 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
                 if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
                 {
                     int32_t bitMaskCapacity = ((realSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    int32_t bitMaskOffset = ((loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                        database_->GetName(), colName + NULL_SUFFIX + std::to_string(realSize),
-                        blockIndex_, bitMaskCapacity);
+                        database_->GetName(), colName + NULL_SUFFIX, blockIndex_, bitMaskCapacity,
+                        loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry),
-                                                    block->GetNullBitmask(), bitMaskCapacity);
+                                                    block->GetNullBitmask() + bitMaskOffset, bitMaskCapacity);
                     }
                     AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheMaskEntry), bitMaskCapacity);
                 }
@@ -276,9 +275,8 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
                 joinCacheId += "_" + joinTable.first;
             }
 
-            auto cacheEntry =
-                Context::getInstance().getCacheForCurrentDevice().getColumn<T>(database_->GetName(), joinCacheId,
-                                                                               blockIndex_, loadSize);
+            auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+                database_->GetName(), joinCacheId, blockIndex_, loadSize, loadSize_, loadOffset_);
             int8_t* nullMaskPtr = nullptr;
 
             if (!std::get<2>(cacheEntry))
@@ -294,7 +292,8 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
                 {
                     int32_t bitMaskCapacity = ((loadSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_, bitMaskCapacity);
+                        database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_,
+                        bitMaskCapacity, loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
 
                     if (!std::get<2>(cacheMaskEntry))

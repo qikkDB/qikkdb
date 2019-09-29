@@ -85,7 +85,9 @@ GPUMemory::GPUPolygon
 ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
                                          const std::string& databaseName,
                                          const std::string& columnName,
-                                         size_t blockIndex)
+                                         size_t blockIndex,
+                                         int64_t loadSize,
+                                         int64_t loadOffset)
 {
     // Points of polygons
     std::vector<NativeGeoPoint> polyPoints;
@@ -119,16 +121,15 @@ ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::Com
     GPUMemory::GPUPolygon retPointers;
 
     retPointers.pointIdx = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(
-        databaseName, columnName + "_pointIdx", blockIndex, pointIdx.size()));
+        databaseName, columnName + "_pointIdx", blockIndex, pointIdx.size(), loadSize, loadOffset));
     GPUMemory::copyHostToDevice(retPointers.pointIdx, pointIdx.data(), pointIdx.size());
 
     retPointers.polyIdx = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(
-        databaseName, columnName + "_polyIdx", blockIndex, polyIdx.size()));
+        databaseName, columnName + "_polyIdx", blockIndex, polyIdx.size(), loadSize, loadOffset));
     GPUMemory::copyHostToDevice(retPointers.polyIdx, polyIdx.data(), polyIdx.size());
 
-    retPointers.polyPoints =
-        std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(
-            databaseName, columnName + "_polyPoints", blockIndex, polyPoints.size()));
+    retPointers.polyPoints = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(
+        databaseName, columnName + "_polyPoints", blockIndex, polyPoints.size(), loadSize, loadOffset));
     GPUMemory::copyHostToDevice(retPointers.polyPoints, polyPoints.data(), polyPoints.size());
 
     return retPointers;
@@ -217,10 +218,9 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 
         points.push_back(polygon.substr(startIdx));
 
-		if (points.size() < 2)
+        if (points.size() < 2)
         {
-            throw std::invalid_argument(
-                "Invalid WKT format - too few input points");
+            throw std::invalid_argument("Invalid WKT format - too few input points");
         }
 
         for (const auto& point : points)

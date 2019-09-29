@@ -1,4 +1,5 @@
 #include "GPUMemoryCache.h"
+#include "GPUMemoryCache.h"
 #include <boost/log/trivial.hpp>
 #include "Context.h"
 
@@ -68,6 +69,20 @@ bool GPUMemoryCache::evict()
     return false;
 }
 
+std::map<std::string, GPUMemoryCache::CacheEntry>::iterator GPUMemoryCache::FindPrefix(const std::string& search_for)
+{
+    std::map<std::string, CacheEntry>::iterator i = cacheMap.lower_bound(search_for);
+    if (i != cacheMap.end())
+    {
+        const std::string& key = i->first;
+        if (key.compare(0, search_for.size(), search_for) == 0)
+        {
+            return i;
+        }
+    }
+    return cacheMap.end();
+}
+
 CudaMemAllocator& GPUMemoryCache::GetAllocator()
 {
     return Context::getInstance().GetAllocatorForDevice(deviceID_);
@@ -76,21 +91,28 @@ CudaMemAllocator& GPUMemoryCache::GetAllocator()
 void GPUMemoryCache::clearCachedBlock(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex)
 {
     std::string columnBlock = databaseName + "." + tableAndColumnName + "_" + std::to_string(blockIndex);
-    if (cacheMap.find(columnBlock) != cacheMap.end())
+
+    std::map<std::string, GPUMemoryCache::CacheEntry>::iterator toErase = FindPrefix(columnBlock);
+    while (toErase != cacheMap.end())
     {
-        auto& toErase = cacheMap.at(columnBlock);
-        lruQueue.erase(toErase.lruQueueIt);
+        lruQueue.erase(toErase->second.lruQueueIt);
         Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(
-                                                                               toErase.ptr),
-                                                                           toErase.size);
-        usedSize -= toErase.size;
-        cacheMap.erase(cacheMap.find(columnBlock));
+                                                                               toErase->second.ptr),
+                                                                           toErase->second.size);
+        usedSize -= toErase->second.size;
+        cacheMap.erase(toErase);
+        toErase = FindPrefix(columnBlock);
     }
     // BOOST_LOG_TRIVIAL(debug) << "Cleared cached block " << columnBlock << " on device" << deviceID_;
 }
 
-bool GPUMemoryCache::containsColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex)
+bool GPUMemoryCache::containsColumn(const std::string& databaseName,
+                                    const std::string& tableAndColumnName,
+                                    int32_t blockIndex,
+                                    int64_t loadSize,
+                                    int64_t loadOffset)
 {
-    std::string columnBlock = databaseName + "." + tableAndColumnName + "_" + std::to_string(blockIndex);
+    std::string columnBlock = databaseName + "." + tableAndColumnName + "_" + std::to_string(blockIndex) +
+                              "_" + std::to_string(loadSize) + "_" + std::to_string(loadOffset);
     return cacheMap.find(columnBlock) != cacheMap.end();
 }

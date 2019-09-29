@@ -80,6 +80,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     bool usingOrderBy = false;
     bool usingAggregation = false;
     bool usingJoin = false;
+    bool usingLoad = false;
     bool nonSelect = true;
 
     if (statement->sqlSelect())
@@ -103,6 +104,11 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
             {
                 nonAggColumns.push_back({columnOrder++, column});
             }
+
+            if (ContainsColumnId(column))
+            {
+                usingLoad = true;
+            }
         }
 
         if (statement->sqlSelect()->offset())
@@ -124,7 +130,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 
         gpuSqlListener.SetContainsAggFunction(usingAggregation);
 
-        gpuSqlListener.LimitOffset(usingWhere, usingGroupBy, usingOrderBy, usingAggregation, usingJoin);
+        gpuSqlListener.LimitOffset(usingWhere, usingGroupBy, usingOrderBy, usingAggregation, usingLoad, usingJoin);
 
         walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
         walker.walk(&cpuWhereListener, statement->sqlSelect()->fromTables());
@@ -318,10 +324,11 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         return nullptr;
     }
+
     auto ret =
-        (MergeDispatcherResults(dispatcherResults, gpuSqlListener.GetAliasList(),
-                                gpuSqlListener.ResultLimit, gpuSqlListener.ResultOffset, usingWhere,
-                                usingGroupBy, usingOrderBy, usingAggregation, usingJoin, nonSelect));
+        (MergeDispatcherResults(dispatcherResults, gpuSqlListener.GetAliasList(), gpuSqlListener.ResultLimit,
+                                gpuSqlListener.ResultOffset, usingWhere, usingGroupBy, usingOrderBy,
+                                usingAggregation, usingJoin, nonSelect, usingLoad));
 
     for (auto& column : gpuSqlListener.ColumnOrder)
     {
@@ -360,6 +367,7 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
                                            bool usingOrderBy,
                                            bool usingAggregation,
                                            bool usingJoin,
+                                           bool usingLoad,
                                            bool nonSelect)
 {
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Limit: " << resultLimit << '\n';
@@ -384,7 +392,7 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
         }
     }
 
-    if (usingWhere || usingGroupBy || usingOrderBy || usingAggregation || usingJoin || nonSelect)
+    if (usingWhere || usingGroupBy || usingOrderBy || usingAggregation || usingJoin || !usingLoad || nonSelect)
     {
         TrimResponseMessage(responseMessage.get(), resultLimit, resultOffset);
     }
@@ -541,6 +549,28 @@ bool GpuSqlCustomParser::ContainsAggregation(GpuSqlParser::SelectColumnContext* 
     walker.walk(&findAggListener, ctx);
 
     return findAggListener.containsAggregation;
+}
+
+bool GpuSqlCustomParser::ContainsColumnId(GpuSqlParser::SelectColumnContext* ctx)
+{
+    antlr4::tree::ParseTreeWalker walker;
+
+    class : public GpuSqlParserBaseListener
+    {
+    public:
+        bool containsColumnId = false;
+
+    private:
+        void exitVarReference(GpuSqlParser::VarReferenceContext* ctx) override
+        {
+            containsColumnId = true;
+        }
+
+    } findColListener;
+
+    walker.walk(&findColListener, ctx);
+
+    return findColListener.containsColumnId;
 }
 
 void ThrowErrorListener::syntaxError(antlr4::Recognizer* recognizer,

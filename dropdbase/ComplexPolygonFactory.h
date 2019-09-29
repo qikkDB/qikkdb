@@ -29,7 +29,9 @@ public:
     static GPUMemory::GPUPolygon PrepareGPUPolygon(const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
                                                    const std::string& databaseName,
                                                    const std::string& columnName,
-                                                   size_t blockIndex);
+                                                   size_t blockIndex,
+                                                   int64_t loadSize,
+                                                   int64_t loadOffset);
 
     /// <summary>
     /// Constructor for creating complex polygon and initializing.

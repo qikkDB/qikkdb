@@ -892,16 +892,15 @@ int32_t GpuSqlDispatcher::LoadColNullMask(std::string& colName)
 
         auto blockNullMask =
             database_->GetTables().at(table).GetColumns().at(column)->GetNullBitMaskForBlock(blockIndex_);
-        size_t blockNullMaskSize =
-            (std::get<1>(blockNullMask) + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
+        size_t blockNullMaskSize = (loadSize_ + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
 
         auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
-            database_->GetName(), colName + NULL_SUFFIX, blockIndex_, blockNullMaskSize);
+            database_->GetName(), colName + NULL_SUFFIX, blockIndex_, blockNullMaskSize, loadSize_, loadOffset_);
         if (!std::get<2>(cacheEntry))
         {
             GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), std::get<0>(blockNullMask), blockNullMaskSize);
         }
-        AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheEntry), std::get<1>(blockNullMask));
+        AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheEntry), loadSize_);
 
         noLoad_ = false;
     }
@@ -919,19 +918,22 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
     if (useCache)
     {
         if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyPoints",
-                                                                             blockIndex_) &&
+                                                                             blockIndex_, loadSize_, loadOffset_) &&
             Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_pointIdx",
-                                                                             blockIndex_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx", blockIndex_))
+                                                                             blockIndex_, loadSize_, loadOffset_) &&
+            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx",
+                                                                             blockIndex_, loadSize_, loadOffset_))
         {
             GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
             GPUMemory::GPUPolygon polygon;
-            polygon.polyPoints = std::get<0>(
-                cache.getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints", blockIndex_, size));
+            polygon.polyPoints =
+                std::get<0>(cache.getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints",
+                                                            blockIndex_, size, loadSize_, loadOffset_));
             polygon.pointIdx =
-                std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointIdx", blockIndex_, size));
-            polygon.polyIdx =
-                std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex_, size));
+                std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointIdx",
+                                                     blockIndex_, size, loadSize_, loadOffset_));
+            polygon.polyIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex_,
+                                                                   size, loadSize_, loadOffset_));
 
             FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
 
@@ -940,7 +942,8 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
         else
         {
             GPUMemory::GPUPolygon polygon =
-                ComplexPolygonFactory::PrepareGPUPolygon(polygons, databaseName, colName, blockIndex_);
+                ComplexPolygonFactory::PrepareGPUPolygon(polygons, databaseName, colName,
+                                                         blockIndex_, loadSize_, loadOffset_);
             FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
             return polygon;
         }
@@ -963,23 +966,24 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
     if (useCache)
     {
         if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_stringIndices",
-                                                                             blockIndex_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_allChars",
-                                                                             blockIndex_))
+                                                                             blockIndex_, loadSize_, loadOffset_) &&
+            Context::getInstance().getCacheForCurrentDevice().containsColumn(
+                databaseName, colName + "_allChars" + std::to_string(size), blockIndex_, loadSize_, loadOffset_))
         {
             GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
             GPUMemory::GPUString gpuString;
-            gpuString.stringIndices = std::get<0>(
-                cache.getColumn<int64_t>(databaseName, colName + "_stringIndices", blockIndex_, size));
-            gpuString.allChars =
-                std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex_, size));
+            gpuString.stringIndices =
+                std::get<0>(cache.getColumn<int64_t>(databaseName, colName + "_stringIndices",
+                                                     blockIndex_, size, loadSize_, loadOffset_));
+            gpuString.allChars = std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex_,
+                                                                   size, loadSize_, loadOffset_));
             FillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
             return gpuString;
         }
         else
         {
             GPUMemory::GPUString gpuString =
-                StringFactory::PrepareGPUString(strings, databaseName, colName, blockIndex_);
+                StringFactory::PrepareGPUString(strings, databaseName, colName, blockIndex_, loadSize_, loadOffset_);
             FillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
             return gpuString;
         }

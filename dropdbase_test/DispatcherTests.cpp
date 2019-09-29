@@ -8753,6 +8753,93 @@ TEST(DispatcherTests, LimitOffset)
     }
 }
 
+TEST(DispatcherTests, LimitNoClauses)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1 FROM TableA LIMIT 10;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    std::vector<int32_t> expectedResultsInt;
+
+    auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
+                                                            .database->GetTables()
+                                                            .at("TableA")
+                                                            .GetColumns()
+                                                            .at("colInteger1")
+                                                            .get());
+
+    for (int i = 0; i < 2; i++)
+    {
+        auto blockInt = columnInt->GetBlocksList()[i];
+        for (int k = 0; k < (1 << 11); k++)
+        {
+            expectedResultsInt.push_back(blockInt->GetData()[k]);
+        }
+    }
+
+    auto limit = 10;
+
+    auto first = expectedResultsInt.begin();
+    auto last = expectedResultsInt.begin() + limit;
+    std::vector<int32_t> trimmedExpectedResultsInt(first, last);
+
+    auto& payloadsInt = result->payloads().at("TableA.colInteger1");
+
+    ASSERT_EQ(payloadsInt.intpayload().intdata_size(), trimmedExpectedResultsInt.size());
+
+    for (int i = 0; i < payloadsInt.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(trimmedExpectedResultsInt[i], payloadsInt.intpayload().intdata()[i]);
+    }
+}
+
+TEST(DispatcherTests, LimitOffsetNoClauses)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1 FROM TableA LIMIT 10 OFFSET 10;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    std::vector<int32_t> expectedResultsInt;
+
+    auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
+                                                            .database->GetTables()
+                                                            .at("TableA")
+                                                            .GetColumns()
+                                                            .at("colInteger1")
+                                                            .get());
+
+    for (int i = 0; i < 2; i++)
+    {
+        auto blockInt = columnInt->GetBlocksList()[i];
+        for (int k = 0; k < (1 << 11); k++)
+        {
+            expectedResultsInt.push_back(blockInt->GetData()[k]);
+        }
+    }
+
+    auto limit = 10;
+    auto offset = 10;
+
+    auto first = expectedResultsInt.begin() + offset;
+    auto last = expectedResultsInt.begin() + offset + limit;
+    std::vector<int32_t> trimmedExpectedResultsInt(first, last);
+
+    auto& payloadsInt = result->payloads().at("TableA.colInteger1");
+
+    ASSERT_EQ(payloadsInt.intpayload().intdata_size(), trimmedExpectedResultsInt.size());
+
+    for (int i = 0; i < payloadsInt.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(trimmedExpectedResultsInt[i], payloadsInt.intpayload().intdata()[i]);
+    }
+}
+
 TEST(DispatcherTests, Limit)
 {
     Context::getInstance();
@@ -13129,7 +13216,7 @@ TEST(DispatcherTests, RetConstWithFilter)
     Context::getInstance();
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT 5 FROM TableA WHERE 500 < colInteger1;;");
+                              "SELECT 5 FROM TableA WHERE 500 < colInteger1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     int32_t expectedSize = 0;

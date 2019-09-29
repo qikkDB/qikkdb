@@ -56,6 +56,7 @@ private:
                            bool usingOrderBy,
                            bool usingAggregation,
                            bool usingJoin,
+                           bool usingLoad,
                            bool nonSelect);
 
     std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers_;
@@ -67,6 +68,7 @@ public:
     std::unique_ptr<google::protobuf::Message> Parse();
     void InterruptQueryExecution();
     bool ContainsAggregation(GpuSqlParser::SelectColumnContext* ctx);
+    bool ContainsColumnId(GpuSqlParser::SelectColumnContext* ctx);
 };
 
 class ThrowErrorListener : public antlr4::BaseErrorListener

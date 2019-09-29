@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <map>
 #include <string>
 #include <list>
 #include <stdexcept>
@@ -41,11 +41,14 @@ private:
     /// <summary>
     /// Allocations by name
     /// </summary>
-    std::unordered_map<std::string, CacheEntry> cacheMap;
+    std::map<std::string, CacheEntry> cacheMap;
     /// <summary>
     /// Allocations ordered by eviction priority
     /// </summary>
     std::list<CacheEntryRefWrapper> lruQueue;
+
+    std::map<std::string, CacheEntry>::iterator FindPrefix(const std::string& search_for);
+
 
     /// <summary>
     /// Number of bytes currently used by cache
@@ -95,10 +98,15 @@ public:
     /// <param name="size">Number of elements in block</param>
     /// <returns>Tuple containing pointer, size of cached block, and whether it is fresh allocation or cache hit</returns>
     template <typename T>
-    std::tuple<T*, size_t, bool>
-    getColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex, size_t size)
+    std::tuple<T*, size_t, bool> getColumn(const std::string& databaseName,
+                                           const std::string& tableAndColumnName,
+                                           int32_t blockIndex,
+                                           size_t size,
+                                           int64_t loadSize,
+                                           int64_t loadOffset)
     {
-        std::string columnBlock = databaseName + "." + tableAndColumnName + "_" + std::to_string(blockIndex);
+        std::string columnBlock = databaseName + "." + tableAndColumnName + "_" + std::to_string(blockIndex) +
+                                  "_" + std::to_string(loadSize) + "_" + std::to_string(loadOffset);
         if (cacheMap.find(columnBlock) != cacheMap.end())
         {
             lruQueue.erase(cacheMap.at(columnBlock).lruQueueIt);
@@ -151,7 +159,11 @@ public:
     /// <param name="tableAndColumnName">table and column name of cached column</param>
     /// <param name="blockIndex">Block index of cached column</param>
     /// <returns>True if block is cached, otherwise false</returns>
-    bool containsColumn(const std::string& databaseName, const std::string& tableAndColumnName, int32_t blockIndex);
+    bool containsColumn(const std::string& databaseName,
+                        const std::string& tableAndColumnName,
+                        int32_t blockIndex,
+                        int64_t loadSize,
+                        int64_t loadOffset);
 
 
     void setCurrentBlockIndex(size_t blockIndex)
