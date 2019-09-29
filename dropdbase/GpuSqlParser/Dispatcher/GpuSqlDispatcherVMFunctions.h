@@ -243,15 +243,28 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
                 if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
                 {
                     int32_t bitMaskCapacity = ((realSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                    int32_t bitMaskOffset = ((loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
                         database_->GetName(), colName + NULL_SUFFIX, blockIndex_, bitMaskCapacity,
                         loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
+
                     if (!std::get<2>(cacheMaskEntry))
                     {
-                        GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry),
-                                                    block->GetNullBitmask() + bitMaskOffset, bitMaskCapacity);
+                        if (loadOffset_ > 0)
+                        {
+                            int32_t offsetBitMaskCapacity =
+                                ((loadSize_ + loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                            std::vector<int8_t> maskToOffset(block->GetNullBitmask(),
+                                                             block->GetNullBitmask() + offsetBitMaskCapacity);
+                            // bit shift left (maskToOffset << loadOffset) the mask vector HERE
+                            GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry),
+                                                        maskToOffset.data(), bitMaskCapacity);
+                        }
+                        else
+                        {
+                            GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry),
+                                                        block->GetNullBitmask(), bitMaskCapacity);
+                        }
                     }
                     AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheMaskEntry), bitMaskCapacity);
                 }

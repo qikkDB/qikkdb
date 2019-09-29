@@ -1493,22 +1493,6 @@ void Database::RemoveFromInMemoryDatabaseList(const char* databaseName)
 }
 
 /// <summary>
-/// Get number of blocks.
-/// </summary>
-/// <returns>Number of blocks.</param>
-int Database::GetBlockCount()
-{
-    for (auto& table : tables_)
-    {
-        for (auto& column : table.second.GetColumns())
-        {
-            return column.second.get()->GetBlockCount();
-        }
-    }
-    return 0;
-}
-
-/// <summary>
 /// Write column into disk.
 /// </summary>
 /// <param name="column">Column to be written.</param>

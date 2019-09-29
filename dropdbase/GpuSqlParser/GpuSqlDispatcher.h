@@ -277,6 +277,8 @@ private:
                            std::unique_ptr<std::string[]>& data,
                            int32_t dataSize);
 
+    void ShiftNullMaskLeft(std::vector<int8_t>& mask, int32_t shift);
+
 public:
     static std::mutex groupByMutex_;
     static std::mutex orderByMutex_;

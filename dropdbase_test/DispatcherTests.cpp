@@ -8840,6 +8840,18 @@ TEST(DispatcherTests, LimitOffsetNoClauses)
     }
 }
 
+TEST(DispatcherTests, LimitOffsetAsteriskNoClauses)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT * FROM TableA LIMIT 10 OFFSET 10;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+	FAIL();
+}
+
 TEST(DispatcherTests, Limit)
 {
     Context::getInstance();

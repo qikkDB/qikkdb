@@ -197,10 +197,4 @@ public:
     /// </summary>
     /// <param name="databaseName">Name of database to be removed.</param>
     static void RemoveFromInMemoryDatabaseList(const char* databaseName);
-
-    /// <summary>
-    /// Get number of blocks.
-    /// </summary>
-    /// <returns>Number of blocks.</returns>
-    int GetBlockCount();
 };

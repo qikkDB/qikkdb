@@ -126,11 +126,12 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         usingOrderBy = statement->sqlSelect()->orderByColumns() != nullptr;
         usingAggregation = !aggColumns.empty();
         usingJoin = statement->sqlSelect()->joinClauses() != nullptr;
+        usingLoad = usingLoad || (statement->sqlSelect()->selectColumns()->selectAllColumns().size() > 0);
         nonSelect = false;
 
         gpuSqlListener.SetContainsAggFunction(usingAggregation);
 
-        gpuSqlListener.LimitOffset(usingWhere, usingGroupBy, usingOrderBy, usingAggregation, usingLoad, usingJoin);
+        gpuSqlListener.LimitOffset(usingWhere, usingGroupBy, usingOrderBy, usingAggregation, usingJoin, usingLoad);
 
         walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
         walker.walk(&cpuWhereListener, statement->sqlSelect()->fromTables());
@@ -328,7 +329,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     auto ret =
         (MergeDispatcherResults(dispatcherResults, gpuSqlListener.GetAliasList(), gpuSqlListener.ResultLimit,
                                 gpuSqlListener.ResultOffset, usingWhere, usingGroupBy, usingOrderBy,
-                                usingAggregation, usingJoin, nonSelect, usingLoad));
+                                usingAggregation, usingJoin, usingLoad, nonSelect));
 
     for (auto& column : gpuSqlListener.ColumnOrder)
     {
