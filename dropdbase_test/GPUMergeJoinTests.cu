@@ -55,3 +55,30 @@ TEST(GPUMergeJoinTests, MergeJoinTest)
 
     FAIL();
 }
+
+TEST(GPUMergeJoinTests, MergeJoinCPUTest)
+{
+	constexpr int32_t A_size = 10;
+	constexpr int32_t B_size = 8;
+
+	constexpr int32_t W = 3;
+	constexpr int32_t A_size_rounded = ((A_size + W - 1) / W) * W;
+	constexpr int32_t B_size_rounded  = ((B_size + W - 1) / W) * W;
+
+    constexpr int32_t diag_size_rounded = ((A_size_rounded + B_size_rounded - 1) / W ) * W;
+
+	std::printf("%3d : %3d : %3d\n",A_size_rounded, B_size_rounded, diag_size_rounded );
+
+    for (int32_t i = 0; i < diag_size_rounded; i++)
+    {
+        int32_t a_beg = (i < B_size_rounded) ? (i % W) : (B_size_rounded - W + i % W);
+        int32_t a_end = (i < A_size_rounded) ? (i) : (A_size_rounded - W + i % W);
+
+        int32_t b_beg = (i < A_size_rounded) ? (W - i % W - 1) : (((i - A_size_rounded) / W) * W + W + (W - i % W - 1));
+        int32_t b_end = (i < B_size_rounded) ? ((i / W) * W + (W - i % W - 1)) : ((B_size_rounded - W) + (W - i % W - 1));
+
+        std::printf("%3d : %3d %3d %3d %3d\n", i, a_end, b_beg, a_beg, b_end);
+    }
+
+    FAIL();
+}
