@@ -11,95 +11,70 @@
 
 #include "../../../cub/cub.cuh"
 
-/*
-constexpr int32_t A_size = 8;
-constexpr int32_t B_size = 4;
-//constexpr int32_t B_size = 8;
-constexpr int32_t diag_size = A_size + B_size - 1;
-
-//int32_t A[A_size] = {17, 29, 35, 73, 86, 90, 95, 99};
-//int32_t B[B_size] = {3, 5, 12, 22, 45, 64, 69, 82};
-
-int32_t A[A_size] = {0, 0, 0, 1, 2, 2, 3, 4};
-int32_t B[B_size] = {0, 1, 2, 3};
-
-int32_t A_diag[diag_size];
-int32_t B_diag[diag_size];
-for (int32_t i = 0; i < diag_size; i++)
-{
-	A_diag[i] = -1;
-	B_diag[i] = -1;
-}
-
-for (int32_t i = 0; i < diag_size; i++)
-{
-    int32_t a_beg = std::max(0, i - B_size + 1);
-    int32_t a_end = std::min(i, A_size - 1);
-
-    int32_t b_beg = std::max(0, i - A_size + 1);
-    int32_t b_end = std::min(i, B_size - 1);
-
-	// The merge condition is M[i] = A[a_i] > B[b_i]
-    while (a_beg <= a_end && b_beg <= b_end)
-    {
-        int32_t a_mid = a_beg + (a_end - a_beg) / 2;
-        int32_t b_mid = b_end - (b_end - b_beg) / 2;
-
-		// If this is a 1 and on the uppermost row or rightmost column, it is automatically a merge point
-		if(A[a_mid] > B[b_mid] && (a_mid == 0 || b_mid == (B_size - 1))) {
-			A_diag[a_mid + b_mid] = a_mid;
-			B_diag[a_mid + b_mid] = b_mid;
-
-			break;
-		}
-
-		// If this is a 0 and on the lowermost row or leftmost column, it is automatically a merge point
-		if(A[a_mid] < B[b_mid] && (a_mid == (A_size - 1) || b_mid == 0)) {
-			A_diag[a_mid + b_mid] = a_mid;
-			B_diag[a_mid + b_mid] = b_mid;
-			break;
-		}
-
-
-		// Check merge point condition according to paper
-        if (A[a_mid] > B[b_mid - 1])
-        {
-			if(A[a_mid - 1] <= B[b_mid]) {
-				A_diag[a_mid + b_mid] = a_mid;
-				B_diag[a_mid + b_mid] = b_mid;
-
-				break;
-			}
-			else {
-			a_end = a_mid - 1;
-			b_beg = b_mid + 1;
-			}
-		}
-		else
-        {
-            a_beg = a_mid + 1;
-            b_end = b_mid - 1;
-        }
-    }
-}
-
-for (int32_t i = 0; i < diag_size; i++)
-{
-	std::printf("%d : %d %d\n",i,  A_diag[i], B_diag[i]);
-}
-*/
-
 __global__ void kernel_label_input(int32_t *colBlockIndices, int32_t blockOffset, int32_t dataElementCount);
 
 template<typename T> 
-__global__ void kernel_partition_input(int32_t diagonalCount) 
+__global__ void kernel_partition_input(int32_t *diagonalAIndices,
+									   int32_t *diagonalBIndices,
+									   T *colABlock, 
+									   T *colBBlock, 
+									   int32_t colABlockSize, 
+									   int32_t colBBlockSize, 
+									   int32_t diagonalCount) 
 {
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
 
 	for (int32_t i = idx; i < diagonalCount; i += stride)
 	{
+		int32_t aBeg = max(0, i - colBBlockSize + 1);
+		int32_t aEnd = min(i, colABlockSize - 1);
 
+		int32_t bBeg = max(0, i - colABlockSize + 1);
+		int32_t bEnd = min(i, colBBlockSize - 1);
+
+		// The merge condition is M[i] = A[a_i] > B[b_i]
+		while (aBeg <= aEnd && bBeg <= bEnd)
+		{
+			int32_t aMid = aBeg + (aEnd - aBeg) / 2;
+			int32_t bMid = bEnd - (bEnd - bBeg) / 2;
+
+			// If this is a 1 and on the uppermost row or rightmost column, it is automatically a merge point
+			if(colABlock[aMid] > colBBlock[bMid] && (aMid == 0 || bMid == (colBBlockSize - 1))) {
+				diagonalAIndices[aMid + bMid] = aMid;
+				diagonalBIndices[aMid + bMid] = bMid;
+
+				break;
+			}
+
+			// If this is a 0 and on the lowermost row or leftmost column, it is automatically a merge point
+			if(colABlock[aMid] < colBBlock[bMid] && (aMid == (colABlockSize - 1) || bMid == 0)) {
+				diagonalAIndices[aMid + bMid] = aMid;
+				diagonalBIndices[aMid + bMid] = bMid;
+				break;
+			}
+
+
+			// Check merge point condition according to paper
+			if (colABlock[aMid] > colBBlock[bMid - 1])
+			{
+				if(colABlock[aMid - 1] <= colBBlock[bMid]) {
+					diagonalAIndices[aMid + bMid] = aMid;
+					diagonalBIndices[aMid + bMid] = bMid;
+
+					break;
+				}
+				else {
+				aEnd = aMid - 1;
+				bBeg = bMid + 1;
+				}
+			}
+			else
+			{
+				aBeg = aMid + 1;
+				bEnd = bMid - 1;
+			}
+		}
 	}
 }
 
@@ -180,6 +155,11 @@ public:
 
 				// Sort the input based on the join keys for the A block
 				cub::DeviceRadixSort::SortPairs(tempStorageB.get(), tempStorageSizeB, colBBlock.get(), colBBlockSorted.get(), colBBlockIndices.get(), colBBlockIndicesSorted.get(), colBBlockSize);
+			
+				// TODO Find merge path diagonal intersections
+
+				// TODO Merge the two arrays - find join pairs				
+
 			}
 		}
 	}
