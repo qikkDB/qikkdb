@@ -228,7 +228,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
     std::vector<std::string> expectedResults3;
     std::vector<std::string> expectedResults4;
 
-    for (int32_t i = 0; i < blockSize / 2; i++)
+    for (int32_t i = 0; i < blockSize / 2 + 1; i++)
     {
         if (i % 2)
         {
@@ -236,7 +236,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
                                                 "VALUES (null,null, null, null);");
             parser.Parse();
 
-            if (i > 4 && expectedResults1.size() < 5)
+            if (i > 6 && expectedResults1.size() < 9)
             {
                 expectedResults1.push_back(0);
                 expectedResults2.push_back("0");
@@ -265,7 +265,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
             GpuSqlCustomParser parser(database, ssQuery.str());
             parser.Parse();
 
-            if (i > 4 && expectedResults1.size() < 5)
+            if (i > 6 && expectedResults1.size() < 9)
             {
                 expectedResults1.push_back(val);
                 expectedResults2.push_back(valString);
@@ -278,7 +278,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
     }
 
     GpuSqlCustomParser parser(database,
-                              "SELECT Col1, Col2, Col3, Col4 FROM TestTable LIMIT 5 OFFSET 5;");
+                              "SELECT Col1, Col2, Col3, Col4 FROM TestTable LIMIT 9 OFFSET 7;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
@@ -355,7 +355,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
 
     int32_t blockSize = 1 << 5;
 
-    std::shared_ptr<Database> database(std::make_shared<Database>("TestDbLimitOffsetNULL"));
+    std::shared_ptr<Database> database(std::make_shared<Database>("TestDbLimitOffsetNULL", blockSize));
     Database::AddToInMemoryDatabaseList(database);
 
     std::unordered_map<std::string, DataType> columns;
@@ -370,6 +370,9 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
     std::vector<std::string> expectedResults3;
     std::vector<std::string> expectedResults4;
 
+    int32_t limit = 9;
+    int32_t offset = 7;
+
     for (int32_t i = 0; i < blockSize * 2; i++)
     {
         if (i % 2)
@@ -378,7 +381,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
                                                 "VALUES (null,null, null, null);");
             parser.Parse();
 
-            if (i > 4 && expectedResults1.size() < 20)
+            if (i > offset - 1 && expectedResults1.size() < limit)
             {
                 expectedResults1.push_back(0);
                 expectedResults2.push_back("0");
@@ -407,7 +410,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
             GpuSqlCustomParser parser(database, ssQuery.str());
             parser.Parse();
 
-            if (i > 4 && expectedResults1.size() < 20)
+            if (i > offset - 1 && expectedResults1.size() < limit)
             {
                 expectedResults1.push_back(val);
                 expectedResults2.push_back(valString);
@@ -419,8 +422,8 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
         }
     }
 
-    GpuSqlCustomParser parser(database,
-                              "SELECT Col1, Col2, Col3, Col4 FROM TestTable LIMIT 20 OFFSET 5;");
+    GpuSqlCustomParser parser(database, "SELECT Col1, Col2, Col3, Col4 FROM TestTable LIMIT " +
+                                            std::to_string(limit) + " OFFSET " + std::to_string(offset) + ";");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
@@ -449,11 +452,11 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
         int8_t nullBit1 = (nullBitMask1[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
         if (!nullBit1)
         {
-            //ASSERT_EQ(expectedResults1[i], payload1.intpayload().intdata()[i]);
+            ASSERT_EQ(expectedResults1[i], payload1.intpayload().intdata()[i]) << i;
         }
         else
         {
-            //ASSERT_EQ(expectedResults1[i], 0);
+            ASSERT_EQ(expectedResults1[i], 0);
         }
 
         int8_t nullBit2 = (nullBitMask2[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;

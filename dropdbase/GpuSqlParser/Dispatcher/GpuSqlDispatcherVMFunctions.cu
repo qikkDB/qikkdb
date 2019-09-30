@@ -97,7 +97,12 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
                     if (loadOffset_ > 0)
                     {
                         int32_t offsetBitMaskCapacity =
-                            ((loadSize_ + loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                            ((loadSize_ + loadOffset_ + (sizeof(int8_t) * 8 - 1) * 2) / (8 * sizeof(int8_t)));
+                        int32_t maxBitMaskCapacity =
+                            ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+
+                        offsetBitMaskCapacity = std::min(offsetBitMaskCapacity, maxBitMaskCapacity);
+
                         std::vector<int8_t> maskToOffset(block->GetNullBitmask(),
                                                          block->GetNullBitmask() + offsetBitMaskCapacity);
                         ShiftNullMaskLeft(maskToOffset, loadOffset_);
@@ -243,7 +248,12 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
                         if (loadOffset_ > 0)
                         {
                             int32_t offsetBitMaskCapacity =
-                                ((loadSize_ + loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                                ((loadSize_ + loadOffset_ + (sizeof(int8_t) * 8 - 1) * 2) / (8 * sizeof(int8_t)));
+                            int32_t maxBitMaskCapacity =
+                                ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+
+                            offsetBitMaskCapacity = std::min(offsetBitMaskCapacity, maxBitMaskCapacity);
+
                             std::vector<int8_t> maskToOffset(block->GetNullBitmask(),
                                                              block->GetNullBitmask() + offsetBitMaskCapacity);
                             ShiftNullMaskLeft(maskToOffset, loadOffset_);
@@ -386,7 +396,12 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
                     if (loadOffset_ > 0)
                     {
                         int32_t offsetBitMaskCapacity =
-                            ((loadSize_ + loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                            ((loadSize_ + loadOffset_ + (sizeof(int8_t) * 8 - 1) * 2) / (8 * sizeof(int8_t)));
+                        int32_t maxBitMaskCapacity =
+                            ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+
+                        offsetBitMaskCapacity = std::min(offsetBitMaskCapacity, maxBitMaskCapacity);
+                        
                         std::vector<int8_t> maskToOffset(block->GetNullBitmask(),
                                                          block->GetNullBitmask() + offsetBitMaskCapacity);
                         ShiftNullMaskLeft(maskToOffset, loadOffset_);
