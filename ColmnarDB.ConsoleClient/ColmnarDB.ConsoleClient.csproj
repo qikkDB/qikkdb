@@ -30,11 +30,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ColmnarDB.NetworkClient\ColmnarDB.NetworkClient.csproj" />
-    <ProjectReference Include="..\TellStory.Data.Parser\TellStory.Data.Parser.csproj" />
-    <ProjectReference Include="..\TellStory.Data\TellStory.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="12.1.2" />
     <PackageReference Include="ReadLine" Version="2.0.1" />
   </ItemGroup>
 

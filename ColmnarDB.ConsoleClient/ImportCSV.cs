@@ -5,8 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ColmnarDB.NetworkClient;
-using TellStory.Data;
-using TellStory.Data.Parser;
+
 
 namespace ColmnarDB.ConsoleClient
 {
@@ -66,7 +65,7 @@ namespace ColmnarDB.ConsoleClient
                     // Use more threads if file is bigger than 10MB
                     if (streamLength > 10000000)
                     {
-                        threadsCount = Environment.ProcessorCount;
+                        threadsCount = Environment.ProcessorCount;                        
                     }
                     else
                     {
@@ -185,15 +184,17 @@ namespace ColmnarDB.ConsoleClient
             {
                 long batchImportedLines;
                 long batchErrorLines;
+                
                 var outData = parserCSV.GetNextParsedDataBatch(out batchImportedLines, out batchErrorLines);
+                
                 if (outData == null)
                     break;
                 lines += batchImportedLines;
                 errors += batchErrorLines;
 
                 var colData = new NetworkClient.ColumnarDataTable(outData.GetColumnNames(), outData.GetColumnData(), outData.GetColumnTypes(), outData.GetColumnNames());
-                colData.TableName = tableName;                
-                
+                colData.TableName = tableName;
+
                 client.BulkImport(colData);
                 
                 linesImported[threadId] = lines;

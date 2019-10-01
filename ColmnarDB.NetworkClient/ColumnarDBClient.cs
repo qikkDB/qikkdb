@@ -26,6 +26,16 @@ namespace ColmnarDB.NetworkClient
         private string tableName;
         private List<string> orderedColumnNames;    //order of columns defined by SELECT
 
+        public ColumnarDataTable(string name)
+        {
+            columnNames = new List<string>();
+            columnData = new Dictionary<string, IList>();
+            columnTypes = new Dictionary<string, System.Type>();
+            orderedColumnNames = new List<string>();
+            size = 0;
+            this.tableName = name;
+        }
+
         public ColumnarDataTable()
         {
             columnNames = new List<string>();
@@ -41,6 +51,90 @@ namespace ColmnarDB.NetworkClient
             this.columnTypes = columnTypes;
             this.orderedColumnNames = orderedColumnNames;
             size = columnData.Count() > 0 ? columnData[columnNames[0]].Count : 0;
+        }
+
+        public void AddColumn(string columnName, System.Type type)
+        {
+            columnNames.Add(columnName);
+
+            if (type == typeof(Int32))
+                columnData.Add(columnName, new List<int?>());
+            else if (type == typeof(Int64))
+                columnData.Add(columnName, new List<long?>());
+            else if (type == typeof(float))
+                columnData.Add(columnName, new List<float?>());
+            else if (type == typeof(double))
+                columnData.Add(columnName, new List<double?>());
+            else if (type == typeof(DateTime))
+                columnData.Add(columnName, new List<long?>());
+            else if (type == typeof(bool))
+                columnData.Add(columnName, new List<byte?>());
+            else if (type == typeof(string))
+                columnData.Add(columnName, new List<String>());
+            else if (type == typeof(Point))
+                columnData.Add(columnName, new List<Point>());
+            else if (type == typeof(ComplexPolygon))
+                columnData.Add(columnName, new List<ComplexPolygon>());
+
+
+
+            if (type == typeof(Int32))
+                columnTypes.Add(columnName, typeof(Int32));
+            else if (type == typeof(Int64))
+                columnTypes.Add(columnName, typeof(Int64));
+            else if (type == typeof(float))
+                columnTypes.Add(columnName, typeof(float));
+            else if (type == typeof(double))
+                columnTypes.Add(columnName, typeof(double));
+            else if (type == typeof(DateTime))
+                columnTypes.Add(columnName, typeof(Int64));
+            else if (type == typeof(bool))
+                columnTypes.Add(columnName, typeof(byte));
+            else if (type == typeof(string))
+                columnTypes.Add(columnName, typeof(string));
+            else if (type == typeof(Point))
+                columnTypes.Add(columnName, typeof(Point));
+            else if (type == typeof(ComplexPolygon))
+                columnTypes.Add(columnName, typeof(ComplexPolygon));
+        }
+
+        public void AddRow(object[] values)
+        {
+            for (int i = 0; i < values.Length; i++)
+            {
+                columnData[columnNames[i]].Add(values[i]);
+            }
+            size++;
+        }
+
+        public void AddRow(string[] values)
+        {
+            for (int i = 0; i < values.Length; i++)
+            {
+                System.Type type = columnTypes[columnNames[i]];
+                object convertedValue = null;
+
+                if (type == typeof(Int32))
+                    convertedValue = Int32.Parse(values[i]);
+                else if (type == typeof(Int64))
+                    convertedValue = Int64.Parse(values[i]);
+                else if (type == typeof(float))
+                    convertedValue = float.Parse(values[i]);
+                else if (type == typeof(double))
+                    convertedValue = double.Parse(values[i]);
+                else if (type == typeof(DateTime))
+                    //convertedValue = (long) (DateTime.Parse(values[i]).Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
+                    convertedValue = DateTime.Parse(values[i]);
+                else if (type == typeof(string))
+                    convertedValue = values[i];
+                else if (type == typeof(Point))
+                    convertedValue = new Point(values[i]);
+                else if (type == typeof(ComplexPolygon))
+                    convertedValue = new ComplexPolygon(values[i]);
+
+                columnData[columnNames[i]].Add(convertedValue);
+            }
+            size++;
         }
 
         public List<string> GetColumnNames()
@@ -77,6 +171,15 @@ namespace ColmnarDB.NetworkClient
             set
             {
                 tableName = value;
+            }
+        }
+
+        public void Clear()
+        {
+            foreach (var columnName in columnNames)
+            {
+                columnData[columnName].Clear();
+                size = 0;
             }
         }
     }
@@ -672,7 +775,7 @@ namespace ColmnarDB.NetworkClient
                                 i = 0;
                                 for(int j = 0; j < pointList.Count; j++)
                                 {
-                                    var elem = pointList[i];
+                                    var elem = pointList[j];
                                     if(elem == null)
                                     {
                                         elem = defaultElement;
@@ -726,7 +829,7 @@ namespace ColmnarDB.NetworkClient
                                 i = 0;
                                 for (int j = 0; j < polygonList.Count; j++)
                                 {
-                                    var elem = polygonList[i];
+                                    var elem = polygonList[j];
                                     if (elem == null)
                                     {
                                         elem = defaultElement;
