@@ -74,8 +74,8 @@ TEST(GPUMergeJoinTests, MergeJoinCPUTest)
         int32_t a_beg = i < B_size_rounded ? i % W : W + i - B_size_rounded;
         int32_t a_end = i < A_size_rounded ? i : A_size_rounded - W + i % W;
 
-        int32_t b_beg = 0;
-        int32_t b_end = 0;
+        int32_t b_beg = i < A_size_rounded ? (W - i % W - 1) : ((W + i - A_size_rounded) / W) * W + (W - i % W - 1);
+        int32_t b_end = i < B_size_rounded ? (i / W) * W + (W - i % W - 1) : B_size_rounded - W + (W - i % W - 1);
 
         std::printf("%3d : %3d %3d %3d %3d\n", i, a_end, b_beg, a_beg, b_end);
     }
