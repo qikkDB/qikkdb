@@ -1106,8 +1106,8 @@ int32_t GpuSqlDispatcher::Fil()
 int32_t GpuSqlDispatcher::WhereEvaluation()
 {
     bool containsAggFunction = arguments_.Read<bool>();
-    //loadNecessary_ = (usingJoin_ || containsAggFunction) ? 1 : cpuDispatcher_.Execute(blockIndex_);
-    loadNecessary_ = usingJoin_  ? 1 : cpuDispatcher_.Execute(blockIndex_);
+    // loadNecessary_ = (usingJoin_ || containsAggFunction) ? 1 : cpuDispatcher_.Execute(blockIndex_);
+    loadNecessary_ = usingJoin_ ? 1 : cpuDispatcher_.Execute(blockIndex_);
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Where load evaluation: " << loadNecessary_ << '\n';
     return 0;
 }
@@ -1166,7 +1166,7 @@ int32_t GpuSqlDispatcher::ShowDatabases()
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     InsertIntoPayload(payload, outData, databases_map.size());
-    MergePayloadToSelfResponse("Databases", payload);
+    MergePayloadToSelfResponse("Databases", "Databases", payload);
 
     return 2;
 }
@@ -1191,7 +1191,7 @@ int32_t GpuSqlDispatcher::ShowTables()
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
     InsertIntoPayload(payload, outData, tables_map.size());
-    MergePayloadToSelfResponse(db, payload);
+    MergePayloadToSelfResponse(db, db, payload);
 
     return 3;
 }
@@ -1224,8 +1224,8 @@ int32_t GpuSqlDispatcher::ShowColumns()
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadType;
     InsertIntoPayload(payloadName, outDataName, columns_map.size());
     InsertIntoPayload(payloadType, outDataType, columns_map.size());
-    MergePayloadToSelfResponse(tab + "_columns", payloadName);
-    MergePayloadToSelfResponse(tab + "_types", payloadType);
+    MergePayloadToSelfResponse(tab + "_columns", tab + "_columns", payloadName);
+    MergePayloadToSelfResponse(tab + "_types", tab + "_types", payloadType);
     return 4;
 }
 
@@ -1496,6 +1496,7 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
 }
 
 void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
+                                    const std::string& trimmedRealName,
                                     ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
                                     ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
 {
@@ -1507,7 +1508,8 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
     else // If there is payload with existing key, merge or aggregate according to key
     {
         // Find index of parenthesis (for finding out if it is aggregation function)
-        size_t keyParensIndex = trimmedKey.find('(');
+
+        size_t keyParensIndex = trimmedRealName.find('(');
 
         bool aggregationOperationFound = false;
         // If no function is used
@@ -1518,7 +1520,7 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
         else
         {
             // Get operation name
-            std::string operation = trimmedKey.substr(0, keyParensIndex);
+            std::string operation = trimmedRealName.substr(0, keyParensIndex);
             // To upper case
             for (auto& c : operation)
             {
@@ -1606,15 +1608,21 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
 }
 
 void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
+                                                  const std::string& realName,
                                                   ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                                   const std::string& nullBitMaskString)
 {
-    std::string trimmedKey = key.substr(0, std::string::npos);
+    std::string trimmedKey = key;
+    std::string realTrimmedName = realName;
     if (!key.empty() && key.front() == '$')
     {
         trimmedKey = key.substr(1, std::string::npos);
     }
-    MergePayload(trimmedKey, &responseMessage_, payload);
+    if (!realName.empty() && realName.front() == '$')
+    {
+        realTrimmedName = realName.substr(1, std::string::npos);
+    }
+    MergePayload(trimmedKey, realTrimmedName, &responseMessage_, payload);
     if (!nullBitMaskString.empty())
     {
         MergePayloadBitmask(trimmedKey, &responseMessage_, nullBitMaskString);

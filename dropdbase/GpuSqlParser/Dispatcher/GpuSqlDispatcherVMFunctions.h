@@ -32,7 +32,7 @@ int32_t GpuSqlDispatcher::RetConst()
     std::unique_ptr<T[]> outData(new T[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
     InsertIntoPayload(payload, outData, dataElementCount);
-    MergePayloadToSelfResponse(alias, payload, "");
+    MergePayloadToSelfResponse(alias, "", payload, "");
     return 0;
 }
 
@@ -146,7 +146,7 @@ int32_t GpuSqlDispatcher::RetCol()
     {
         ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
         InsertIntoPayload(payload, outData, outSize);
-        MergePayloadToSelfResponse(alias, payload, nullMaskString);
+        MergePayloadToSelfResponse(alias, colName, payload, nullMaskString);
     }
     return 0;
 }

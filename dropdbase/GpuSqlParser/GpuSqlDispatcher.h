@@ -250,8 +250,8 @@ private:
     static int32_t orderByDoneCounter_;
     static int32_t deviceCountLimit_;
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                             std::unique_ptr<int8_t[]>& data,
-                                             int32_t dataSize);
+                           std::unique_ptr<int8_t[]>& data,
+                           int32_t dataSize);
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int32_t[]>& data,
                            int32_t dataSize);
@@ -333,6 +333,7 @@ public:
     }
 
     static void MergePayload(const std::string& key,
+                             const std::string& trimmedRealName,
                              ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
                              ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload);
     static void MergePayloadBitmask(const std::string& key,
@@ -461,7 +462,7 @@ public:
     void AddLogarithm10Function(DataType type);
 
     void AddLogarithmFunction(DataType number, DataType base);
-    
+
     void AddArctangent2Function(DataType y, DataType x);
 
     void AddRoundDecimalFunction(DataType y, DataType x);
@@ -653,6 +654,7 @@ public:
 
     // TODO FreeColumnIfRegister<std::string> laso point and polygon
     void MergePayloadToSelfResponse(const std::string& key,
+                                    const std::string& realName,
                                     ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                     const std::string& nullBitMaskString = "");
 
