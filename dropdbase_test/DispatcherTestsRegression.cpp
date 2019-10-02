@@ -76,9 +76,9 @@ TEST(DispatcherTestsRegression, EmptySetAggregationCount)
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_EQ(result->payloads().size(), 0);
 
-	//TODO fix this test when COUNT returns "0" when there is empty result set
-    //ASSERT_EQ(result->payloads().size(), 1);
-    //ASSERT_EQ(result->payloads().at("COUNT(colInteger1)").int64payload().int64data()[0], 0);
+    // TODO fix this test when COUNT returns "0" when there is empty result set
+    // ASSERT_EQ(result->payloads().size(), 1);
+    // ASSERT_EQ(result->payloads().at("COUNT(colInteger1)").int64payload().int64data()[0], 0);
 }
 
 TEST(DispatcherTestsRegression, EmptySetAggregationSum)
@@ -465,4 +465,17 @@ TEST(DispatcherTestsRegression, FixedColumnOrdering)
 
     ASSERT_EQ(result->columnorder().Get(0), "TableA.colInteger1");
     ASSERT_EQ(result->columnorder().Get(1), "SUM(colInteger2)");
+}
+
+TEST(DispatcherTestsRegression, MultiBlockAggWithAlias)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT COUNT(colInteger2) as alias FROM TableA;");
+
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& payloadAlias = result->payloads().at("alias");
+    ASSERT_EQ(1, payloadAlias.int64payload().int64data_size());
 }
