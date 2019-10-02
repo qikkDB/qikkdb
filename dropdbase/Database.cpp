@@ -862,7 +862,7 @@ void Database::LoadColumn(const char* path,
 
                     byteIndex += entryByteLength;
 
-					if (dataCount > columnPolygon.GetBlockSize())
+                    if (dataCount > columnPolygon.GetBlockSize())
                     {
                         throw std::runtime_error(
                             "Loaded data from disk does not fit into existing block");
@@ -873,11 +873,11 @@ void Database::LoadColumn(const char* path,
                     {
                         block.InsertData(dataPolygon);
                         dataPolygon.clear();
-					}
+                    }
                 }
                 data.release();
 
-				if (dataPolygon.size() > 0)
+                if (dataPolygon.size() > 0)
                 {
                     block.InsertData(dataPolygon);
                     dataPolygon.clear();
@@ -974,7 +974,7 @@ void Database::LoadColumn(const char* path,
 
                     byteIndex += entryByteLength;
 
-					if (dataCount > columnPoint.GetBlockSize())
+                    if (dataCount > columnPoint.GetBlockSize())
                     {
                         throw std::runtime_error(
                             "Loaded data from disk does not fit into existing block");
@@ -1052,42 +1052,61 @@ void Database::LoadColumn(const char* path,
             }
             else // read data from block
             {
-                std::vector<std::string> dataString;
-                std::unique_ptr<char[]> data(new char[dataLength]);
-
-                colFile.read(data.get(), dataLength); // read block length
+                std::unique_ptr<std::string[]> dataString;
+                std::unique_ptr<char[]> data(new char[oneChunkSize]);
 
                 auto& block = columnString.AddBlock(groupId);
                 int64_t byteIndex = 0;
 
+                int32_t remainingDataLength = dataLength;
                 while (byteIndex < dataLength)
                 {
                     int32_t dataCount = 0;
-                    int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]); // read entry byte length
+                    colFile.read(data.get(), oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength);
 
-                    byteIndex += sizeof(int32_t);
-
-                    std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
-                    memcpy(byteArray.get(), &data[byteIndex], entryByteLength); // read entry data
-
-                    std::string entryDataString(byteArray.get());
-                    dataString.push_back(entryDataString);
-                    dataCount++;
-
-                    byteIndex += entryByteLength;
-
-					if (dataCount > columnString.GetBlockSize())
+                    int64_t byteIndexForChunks = 0;
+                    int32_t remainingChunkSize = oneChunkSize;
+                    int32_t currentChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
+                    while (byteIndexForChunks < currentChunkSize)
                     {
-                        throw std::runtime_error(
-                            "Loaded data from disk does not fit into existing block");
-                        break;
-                    }
+                        int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]); // read entry byte length
 
-                    if (byteIndex >= oneChunkSize)
-                    {
-                        block.InsertData(dataString);
-                        dataString.clear();
+                        byteIndex += sizeof(int32_t);
+                        std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
+
+                        if (remainingChunkSize < entryByteLength)
+                        {
+                            memcpy(byteArray.get(), &data[byteIndex], remainingChunkSize);
+                            colFile.read(data.get(), oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength);
+                            byteIndexForChunks = 0;
+                            remainingChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
+                        }
+                        else
+                        {
+                            memcpy(byteArray.get(), &data[byteIndex], entryByteLength);
+                            remainingChunkSize -= entryByteLength;
+						}
+
+                        std::string entryDataString(byteArray.get());
+                        dataString.push_back(entryDataString);
+                        dataCount++;
+
+                        byteIndex += entryByteLength;
+
+                        if (dataCount > columnString.GetBlockSize())
+                        {
+                            throw std::runtime_error(
+                                "Loaded data from disk does not fit into existing block");
+                            break;
+                        }
+
+                        if (byteIndex >= oneChunkSize)
+                        {
+                            block.InsertData(dataString);
+                            dataString.clear();
+                        }
                     }
+                    remainingDataLength -= oneChunkSize;
                 }
                 data.release();
 
