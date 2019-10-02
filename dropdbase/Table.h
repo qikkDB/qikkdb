@@ -53,6 +53,7 @@ private:
 public:
     const std::shared_ptr<Database>& GetDatabase();
     const std::string& GetName() const;
+    void SetTableName(const std::string& newTableName);
     int32_t GetBlockSize() const;
     void SetBlockSize(int32_t blockSize);
     int32_t GetBlockCount() const;

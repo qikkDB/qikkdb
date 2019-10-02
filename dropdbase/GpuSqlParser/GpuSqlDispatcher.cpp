@@ -1425,6 +1425,22 @@ int32_t GpuSqlDispatcher::AlterTable()
             database_->GetTables().at(tableName).RenameColumn(alterColumnName + "_temp", alterColumnName);
         }
     }
+
+    int32_t renameColumnsCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < renameColumnsCount; i++)
+    {
+        std::string renameColumnNameFrom = arguments_.Read<std::string>();
+        std::string renameColumnNameTo = arguments_.Read<std::string>();
+        database_->GetTables().at(tableName).RenameColumn(renameColumnNameFrom, renameColumnNameTo);
+    }
+
+    bool tableRenamed = arguments_.Read<bool>();
+    if (tableRenamed)
+    {
+        std::string newTableName = arguments_.Read<std::string>();
+        database_->RenameTable(tableName, newTableName);
+    }
+
     return 10;
 }
 

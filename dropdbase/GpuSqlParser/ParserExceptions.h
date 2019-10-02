@@ -156,10 +156,18 @@ private:
 
 struct AlreadyModifiedColumnException : public std::exception
 {
+    AlreadyModifiedColumnException(const std::string& column)
+    : message_("Column: \"" + column + "\" was already modified in this command.")
+    {
+    }
+
     const char* what() const noexcept override
     {
-        return "Duplication in columns for modification.";
+        return message_.c_str();
     }
+
+private:
+    std::string message_;
 };
 
 struct IndexAlreadyExistsException : public std::exception

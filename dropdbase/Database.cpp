@@ -448,6 +448,14 @@ void Database::LoadDatabasesFromDisk()
     }
 }
 
+void Database::RenameTable(const std::string& oldTablename, const std::string& newTableName)
+{
+    tables_.at(oldTablename).SetTableName(newTableName);
+    auto handler = tables_.extract(oldTablename);
+    handler.key() = newTableName;
+    tables_.insert(move(handler));
+}
+
 /// <summary>
 /// Delete database from disk. Deletes .db and .col files which belong to the specified database.
 /// Database is not deleted from memory.

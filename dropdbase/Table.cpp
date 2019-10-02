@@ -654,6 +654,11 @@ const std::string& Table::GetName() const
     return name;
 }
 
+void Table::SetTableName(const std::string& newTableName)
+{
+    name = newTableName;
+}
+
 int Table::GetBlockSize() const
 {
     return blockSize_;

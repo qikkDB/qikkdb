@@ -123,6 +123,8 @@ public:
     /// </summary>
     static void LoadDatabasesFromDisk();
 
+	void RenameTable(const std::string& oldTablename, const std::string& newTableName);
+
     /// <summary>
     /// Delete database from disk. Deletes .db and .col files which belong to the specified
     /// database. Database is not deleted from memory.

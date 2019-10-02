@@ -1261,6 +1261,9 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     std::unordered_map<std::string, DataType> addColumns;
     std::unordered_set<std::string> dropColumns;
     std::unordered_map<std::string, DataType> alterColumns;
+    std::unordered_map<std::string, std::string> renameColumns;
+    std::unordered_set<std::string> renameColumnToNames;
+    std::string newTableName = "";
 
     for (auto& entry : ctx->alterTableEntries()->alterTableEntry())
     {
@@ -1310,10 +1313,41 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
 
             if (alterColumns.find(alterColumnName) != alterColumns.end())
             {
-                throw AlreadyModifiedColumnException();
+                throw AlreadyModifiedColumnException(alterColumnName);
             }
 
             alterColumns.insert({alterColumnName, alterColumnDataType});
+        }
+        else if (entry->renameColumn())
+        {
+            auto renameColumnContext = entry->renameColumn();
+            std::string renameColumnNameFrom = renameColumnContext->renameColumnFrom()->getText();
+            std::string renameColumnNameTo = renameColumnContext->renameColumnTo()->getText();
+            TrimDelimitedIdentifier(renameColumnNameFrom);
+            TrimDelimitedIdentifier(renameColumnNameTo);
+
+            if (database_->GetTables().at(tableName).GetColumns().find(renameColumnNameFrom) ==
+                database_->GetTables().at(tableName).GetColumns().end())
+            {
+                throw ColumnNotFoundException(renameColumnNameFrom);
+            }
+
+            if (renameColumns.find(renameColumnNameFrom) != renameColumns.end())
+            {
+                throw AlreadyModifiedColumnException(renameColumnNameFrom);
+            }
+
+            if (renameColumnToNames.find(renameColumnNameTo) != renameColumnToNames.end())
+            {
+                throw ColumnAlreadyExistsException(renameColumnNameTo);
+            }
+
+            renameColumns.insert({renameColumnNameFrom, renameColumnNameTo});
+        }
+        else if (entry->renameTable())
+        {
+            auto renameTableContext = entry->renameTable();
+            newTableName = renameTableContext->table()->getText();
         }
     }
 
@@ -1339,6 +1373,19 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         dispatcher_.AddArgument<const std::string&>(alterColumn.first);
         dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(alterColumn.second));
     }
+
+    dispatcher_.AddArgument<int32_t>(renameColumns.size());
+    for (auto& renameColumn : renameColumns)
+    {
+        dispatcher_.AddArgument<const std::string&>(renameColumn.first);
+        dispatcher_.AddArgument<const std::string&>(renameColumn.second);
+    }
+
+    dispatcher_.AddArgument<bool>(!newTableName.empty());
+    if (!newTableName.empty())
+    {
+        dispatcher_.AddArgument<const std::string&>(newTableName);		    
+	}
 }
 
 void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext* ctx)

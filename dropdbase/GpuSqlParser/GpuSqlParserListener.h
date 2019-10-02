@@ -77,6 +77,18 @@ public:
   virtual void enterAlterColumn(GpuSqlParser::AlterColumnContext *ctx) = 0;
   virtual void exitAlterColumn(GpuSqlParser::AlterColumnContext *ctx) = 0;
 
+  virtual void enterRenameColumn(GpuSqlParser::RenameColumnContext *ctx) = 0;
+  virtual void exitRenameColumn(GpuSqlParser::RenameColumnContext *ctx) = 0;
+
+  virtual void enterRenameTable(GpuSqlParser::RenameTableContext *ctx) = 0;
+  virtual void exitRenameTable(GpuSqlParser::RenameTableContext *ctx) = 0;
+
+  virtual void enterRenameColumnFrom(GpuSqlParser::RenameColumnFromContext *ctx) = 0;
+  virtual void exitRenameColumnFrom(GpuSqlParser::RenameColumnFromContext *ctx) = 0;
+
+  virtual void enterRenameColumnTo(GpuSqlParser::RenameColumnToContext *ctx) = 0;
+  virtual void exitRenameColumnTo(GpuSqlParser::RenameColumnToContext *ctx) = 0;
+
   virtual void enterNewTableColumn(GpuSqlParser::NewTableColumnContext *ctx) = 0;
   virtual void exitNewTableColumn(GpuSqlParser::NewTableColumnContext *ctx) = 0;
 

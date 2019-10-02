@@ -44,10 +44,14 @@ sqlInsertInto:
 newTableEntries: ((newTableEntry (COMMA newTableEntry)*));
 newTableEntry: (newTableColumn | newTableIndex);
 alterTableEntries: ((alterTableEntry (COMMA alterTableEntry)*));
-alterTableEntry: (addColumn | dropColumn | alterColumn);
+alterTableEntry: (addColumn | dropColumn | alterColumn | renameColumn | renameTable);
 addColumn: (ADD column DATATYPE);
 dropColumn: (DROPCOLUMN column);
 alterColumn: (ALTERCOLUMN column DATATYPE);
+renameColumn: (RENAMECOLUMN renameColumnFrom TO renameColumnTo);
+renameTable: (RENAMETO table);
+renameColumnFrom: column;
+renameColumnTo: column;
 newTableColumn: (column DATATYPE);
 newTableIndex: (INDEX indexName LPAREN indexColumns RPAREN);
 selectColumns: (
