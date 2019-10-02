@@ -305,7 +305,7 @@ public:
     int32_t* sourceIndices_ = nullptr;
     /// Keys buffer - all found combination of keys are stored here
     void** keysBuffer_ = nullptr;
-    int8_t** keysNullBuffer_ = nullptr;  // wide, uncompressed
+    int8_t** keysNullBuffer_ = nullptr; // wide, uncompressed
 
 private:
     /// Types of keys
@@ -317,7 +317,7 @@ private:
 
     /// Value buffer of the hash table
     V* values_ = nullptr;
-    int8_t* valuesNullMask_ = nullptr;  // wide, uncompressed
+    int8_t* valuesNullMask_ = nullptr; // wide, uncompressed
     /// Count of values aggregated per key (helper buffer of the hash table)
     int64_t* keyOccurrenceCount_ = nullptr;
 
@@ -865,8 +865,8 @@ public:
                 try
                 {
                     GPUArithmetic::Arithmetic<ArithmeticOperations::div>(outValuesGPU.get(),
-                                                                     mergedValues.get(),
-                                                                     mergedOccurrences.get(), maxHashCount_);
+                                                                         mergedValues.get(),
+                                                                         mergedOccurrences.get(), maxHashCount_);
                 }
                 catch (const query_engine_error& err)
                 {
@@ -904,7 +904,8 @@ public:
                 else
                 {
                     GPUMemory::allocAndSet(outValuesNullMask, 0,
-                                       (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8));
+                                           (*outDataElementCount + sizeof(int8_t) * 8 - 1) /
+                                               (sizeof(int8_t) * 8));
                 }
             }
         }
@@ -1251,7 +1252,7 @@ public:
                     try
                     {
                         GPUArithmetic::Arithmetic<ArithmeticOperations::div>(*outValues, valuesMerged, occurencesMerged,
-                                                                         *outDataElementCount);
+                                                                             *outDataElementCount);
                     }
                     catch (const query_engine_error& err)
                     {
