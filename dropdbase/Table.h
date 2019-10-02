@@ -27,7 +27,7 @@ private:
 
     const std::shared_ptr<Database>& database;
     std::string name;
-    int32_t blockSize;
+    int32_t blockSize_;
     std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
     std::vector<std::string> sortingColumns;
     std::unique_ptr<std::mutex> columnsMutex_;
@@ -54,6 +54,7 @@ public:
     const std::shared_ptr<Database>& GetDatabase();
     const std::string& GetName() const;
     int32_t GetBlockSize() const;
+    void SetBlockSize(int32_t blockSize);
     int32_t GetBlockCount() const;
     int64_t GetSize() const;
     const std::unordered_map<std::string, std::unique_ptr<IColumn>>& GetColumns() const;
@@ -76,7 +77,8 @@ public:
     /// </summary>
     /// <param name="database">Pointer to the database which will contains the new table.</param>
     /// <param name="name">Name of the newly created table.</param>
-    Table(const std::shared_ptr<Database>& database, const char* name);
+    /// <param name="blockSize">Table block size. If not specified, as the default value a database block size will be used.</param>
+    Table(const std::shared_ptr<Database>& database, const char* name, const int32_t blockSize = -1);
 
     /// <summary>
     /// Insert new column with proper data type into the table.

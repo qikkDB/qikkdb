@@ -632,17 +632,20 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 
         std::unique_ptr<char[]> tableName(new char[tableNameLength]);
         dbFile.read(tableName.get(), tableNameLength); // read table name
-        database->tables_.emplace(
-            std::make_pair(std::string(tableName.get()), Table(database, tableName.get())));
         int32_t tableBlockSize;
+
         if (persistenceFormatVersion > 1)
         {
-            dbFile.read(reinterpret_cast<char*>(&tableBlockSize), sizeof(int32_t)); // read number of columns
+            dbFile.read(reinterpret_cast<char*>(&tableBlockSize), sizeof(int32_t)); // read table block size
         }
         else
         {
             tableBlockSize = databaseBlockSize;
         }
+
+        database->tables_.emplace(std::make_pair(std::string(tableName.get()),
+                                                 Table(database, tableName.get(), tableBlockSize)));
+
         int32_t columnCount;
         int32_t sortingColumnCount;
         dbFile.read(reinterpret_cast<char*>(&columnCount), sizeof(int32_t)); // read number of columns
@@ -1431,10 +1434,13 @@ void Database::LoadColumn(const char* path,
 /// <param name="columns">Columns with types.</param>
 /// <param name="tableName">Table name.</param>
 /// <param name="areNullable">Nullablity of columns. Default values are set to be true.</param>
+/// <param name="blockSize">Table block size. If not specified, as the default value a database
+/// block size will be used.</param>
 /// <returns>Newly created table.</returns>
 Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& columns,
                              const char* tableName,
-                             const std::unordered_map<std::string, bool>& areNullable)
+                             const std::unordered_map<std::string, bool>& areNullable,
+                             int32_t blockSize)
 {
     auto search = tables_.find(tableName);
 
@@ -1471,7 +1477,19 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
     }
     else
     {
-        tables_.emplace(std::make_pair(tableName, Table(Database::GetDatabaseByName(name_), tableName)));
+        if (blockSize == -1)
+        {
+            // if table block size was not specified, use as the default value the block size from database
+            tables_.emplace(std::make_pair(tableName, Table(Database::GetDatabaseByName(name_),
+                                                            tableName, blockSize_)));
+        }
+        else
+        {
+            // if table block size was specified, use it as table block size for this particular table
+            tables_.emplace(std::make_pair(tableName, Table(Database::GetDatabaseByName(name_),
+                                                            tableName, blockSize)));
+        }
+
         auto& table = tables_.at(tableName);
 
         for (auto& entry : columns)

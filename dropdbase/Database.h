@@ -162,11 +162,13 @@ public:
     /// <param name="columns">Columns with types.</param>
     /// <param name="tableName">Table name.</param>
     /// <param name="areNullable">Nullablity of columns. Default values are set to be true.</param>
+    /// <param name="blockSize">Table block size.</param>
     /// <returns>Newly created table.</returns>
     Table&
     CreateTable(const std::unordered_map<std::string, DataType>& columns,
                 const char* tableName,
-                const std::unordered_map<std::string, bool>& areNullable = std::unordered_map<std::string, bool>());
+                const std::unordered_map<std::string, bool>& areNullable = std::unordered_map<std::string, bool>(),
+                int32_t blockSize = -1);
 
     /// <summary>
     /// Add database to in memory list.

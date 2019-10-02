@@ -656,7 +656,12 @@ const std::string& Table::GetName() const
 
 int Table::GetBlockSize() const
 {
-    return blockSize;
+    return blockSize_;
+}
+
+void Table::SetBlockSize(int32_t blockSize)
+{
+    blockSize_ = blockSize;
 }
 
 int32_t Table::GetBlockCount() const
@@ -996,10 +1001,20 @@ void Table::EraseColumn(std::string& columnName)
 /// </summary>
 /// <param name="database">Pointer to the database which will contains the new table.</param>
 /// <param name="name">Name of the newly created table.</param>
-Table::Table(const std::shared_ptr<Database>& database, const char* name)
+/// <param name="blockSize">Table block size. If not specified, as the default value a database block size will be used.</param>
+Table::Table(const std::shared_ptr<Database>& database, const char* name, const int32_t blockSize)
 : database(database), name(name), columnsMutex_(std::make_unique<std::mutex>())
 {
-    blockSize = database->GetBlockSize();
+    if (blockSize == -1)
+    {
+        // if table block size was not specified, use as the default value the block size from database
+        blockSize_ = database->GetBlockSize();
+    }
+    else
+    {
+        // if table block size was specified, use it as table block size for this particular table
+        blockSize_ = blockSize;
+    }
     saveNecesarry_ = true;
     BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
@@ -1015,36 +1030,37 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
 
     if (columnType == COLUMN_INT)
     {
-        column = std::make_unique<ColumnBase<int32_t>>(columnName, blockSize, isNullable, isUnique);
+        column = std::make_unique<ColumnBase<int32_t>>(columnName, blockSize_, isNullable, isUnique);
     }
     else if (columnType == COLUMN_LONG)
     {
-        column = std::make_unique<ColumnBase<int64_t>>(columnName, blockSize, isNullable, isUnique);
+        column = std::make_unique<ColumnBase<int64_t>>(columnName, blockSize_, isNullable, isUnique);
     }
     else if (columnType == COLUMN_DOUBLE)
     {
-        column = std::make_unique<ColumnBase<double>>(columnName, blockSize, isNullable, isUnique);
+        column = std::make_unique<ColumnBase<double>>(columnName, blockSize_, isNullable, isUnique);
     }
     else if (columnType == COLUMN_FLOAT)
     {
-        column = std::make_unique<ColumnBase<float>>(columnName, blockSize, isNullable, isUnique);
+        column = std::make_unique<ColumnBase<float>>(columnName, blockSize_, isNullable, isUnique);
     }
     else if (columnType == COLUMN_STRING)
     {
-        column = std::make_unique<ColumnBase<std::string>>(columnName, blockSize, isNullable, isUnique);
+        column = std::make_unique<ColumnBase<std::string>>(columnName, blockSize_, isNullable, isUnique);
     }
     else if (columnType == COLUMN_POLYGON)
     {
-        column = std::make_unique<ColumnBase<ColmnarDB::Types::ComplexPolygon>>(columnName, blockSize,
+        column = std::make_unique<ColumnBase<ColmnarDB::Types::ComplexPolygon>>(columnName, blockSize_,
                                                                                 isNullable, isUnique);
     }
     else if (columnType == COLUMN_POINT)
     {
-        column = std::make_unique<ColumnBase<ColmnarDB::Types::Point>>(columnName, blockSize, isNullable, isUnique);
+        column = std::make_unique<ColumnBase<ColmnarDB::Types::Point>>(columnName, blockSize_,
+                                                                       isNullable, isUnique);
     }
     else if (columnType == COLUMN_INT8_T)
     {
-        column = std::make_unique<ColumnBase<int8_t>>(columnName, blockSize, isNullable, isUnique);
+        column = std::make_unique<ColumnBase<int8_t>>(columnName, blockSize_, isNullable, isUnique);
     }
     std::unique_lock<std::mutex> lock(*columnsMutex_);
     columns.insert(std::make_pair(columnName, std::move(column)));
