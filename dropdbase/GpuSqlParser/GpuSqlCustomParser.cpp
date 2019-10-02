@@ -302,7 +302,8 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     {
         return nullptr;
     }
-    auto ret = (MergeDispatcherResults(dispatcherResults, gpuSqlListener.ResultLimit, gpuSqlListener.ResultOffset));
+    auto ret = (MergeDispatcherResults(dispatcherResults, gpuSqlListener.GetAliasList(),
+                                       gpuSqlListener.ResultLimit, gpuSqlListener.ResultOffset));
 
     for (auto& column : gpuSqlListener.ColumnOrder)
     {
@@ -333,6 +334,7 @@ void GpuSqlCustomParser::InterruptQueryExecution()
 /// <returns="reponseMessage">Merged response message</returns>
 std::unique_ptr<google::protobuf::Message>
 GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,
+                                           const std::unordered_map<std::string, std::string>& aliasTable,
                                            int64_t resultLimit,
                                            int64_t resultOffset)
 {
@@ -349,7 +351,7 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
         {
             std::string key = partialPayload.first;
             ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
-            GpuSqlDispatcher::MergePayload(key, key, responseMessage.get(), payload);
+            GpuSqlDispatcher::MergePayload(key, aliasTable.at(key), responseMessage.get(), payload);
             if (partialMessage->nullbitmasks().find(key) != partialMessage->nullbitmasks().end())
             {
                 const std::string& partialBitMask = partialMessage->nullbitmasks().at(key);

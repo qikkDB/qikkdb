@@ -47,6 +47,11 @@ GpuSqlListener::GpuSqlListener(const std::shared_ptr<Database>& database,
     GpuSqlDispatcher::linkTable.clear();
 }
 
+const std::unordered_map<std::string, std::string>& GpuSqlListener::GetAliasList() const
+{
+    return expandedColumnAliases_;
+}
+
 /// <summary>
 /// Method that executes on exit of binary operation node in the AST
 /// Pops the two operands from stack, reads operation from context and add dispatcher
@@ -694,6 +699,17 @@ void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext* ctx)
         dispatcher_.AddRetFunction(retType);
         PushArgument(colName.c_str(), retType);
         dispatcher_.AddArgument<const std::string&>(alias);
+        std::string trimmedColName = colName;
+        if (trimmedColName.front() == '$')
+        {
+            trimmedColName.erase(trimmedColName.begin());
+        }
+        std::string trimmedAlias = alias;
+        if (trimmedAlias.front() == '$')
+        {
+            trimmedAlias.erase(trimmedAlias.begin());
+        }
+        expandedColumnAliases_.insert({trimmedAlias, trimmedColName});
     }
 
     dispatcher_.AddJmpInstruction();
@@ -740,7 +756,6 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext* ctx)
     }
 
     std::string alias;
-
     if (ctx->alias())
     {
         alias = ctx->alias()->getText();
@@ -1896,7 +1911,7 @@ void GpuSqlListener::PushArgument(const char* token, DataType dataType)
         {
             dispatcher_.AddArgument<int64_t>(std::stoll(token));
         }
-        catch(const std::invalid_argument& e)
+        catch (const std::invalid_argument& e)
         {
             dispatcher_.AddArgument<int64_t>(DateToLong(token));
         }

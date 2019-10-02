@@ -13,7 +13,6 @@
 #include "GpuSqlJoinDispatcher.h"
 
 
-
 class Database;
 
 class GpuSqlJoinDispatcher;
@@ -49,6 +48,7 @@ private:
     std::string query_;
     std::unique_ptr<google::protobuf::Message>
     MergeDispatcherResults(std::vector<std::unique_ptr<google::protobuf::Message>>& dispatcherResults,
+                           const std::unordered_map<std::string, std::string>& aliasTable,
                            int64_t resultLimit,
                            int64_t resultOffset);
 

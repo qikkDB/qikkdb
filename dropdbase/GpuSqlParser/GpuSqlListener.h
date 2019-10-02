@@ -33,6 +33,7 @@ private:
     std::unordered_set<std::string> columnAliases_;
     std::string currentExpressionAlias_;
     std::unordered_map<std::string, GpuSqlParser::ExpressionContext*> columnAliasContexts_;
+    std::unordered_map<std::string, std::string> expandedColumnAliases_;
     std::unordered_map<int64_t, GpuSqlParser::ExpressionContext*> columnNumericAliasContexts_;
     std::unordered_set<std::string> loadedTables_;
     std::unordered_map<std::string, std::string> shortColumnNames_;
@@ -97,7 +98,7 @@ public:
     bool ContainsAggFunction;
 
     std::map<int32_t, std::string> ColumnOrder;
-
+    const std::unordered_map<std::string, std::string>& GetAliasList() const;
     void exitBinaryOperation(GpuSqlParser::BinaryOperationContext* ctx) override;
 
     void exitTernaryOperation(GpuSqlParser::TernaryOperationContext* ctx) override;
@@ -186,7 +187,7 @@ public:
 
     bool GetUsingWhere();
 
-	void SetContainsAggFunction(bool containsAgg);
+    void SetContainsAggFunction(bool containsAgg);
 
     void ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext* ctx);
 
