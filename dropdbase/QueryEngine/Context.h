@@ -66,9 +66,12 @@ private:
 
     void Initialize()
     {
-        if (cudaGetDeviceCount(&deviceCount_) != cudaSuccess)
+        const cudaError_t err = cudaGetDeviceCount(&deviceCount_);
+        if (err != cudaSuccess)
         {
-            throw std::invalid_argument("INFO: Unable to get device count");
+            CudaLogBoost::getInstance(CudaLogBoost::error)
+                << "cudaGetDeviceCount returns " << err << " which is " << cudaGetErrorName(err) << '\n';
+            throw std::invalid_argument("ERROR: Unable to get device count");
         }
 
         // DANGER     DANGER     DANGER     DANGER      DANGER      DANGER
