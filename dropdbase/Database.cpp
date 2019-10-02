@@ -453,12 +453,41 @@ void Database::LoadDatabasesFromDisk()
     }
 }
 
-void Database::RenameTable(const std::string& oldTablename, const std::string& newTableName)
+/// <summary>
+/// Rename specified table.
+/// </summary>
+/// <param name="oldTableName">Table name of the table which will be renamed.</param>
+/// <param name="oldTableName">New table name to which the table will be renamed.</param>
+void Database::RenameTable(const std::string& oldTableName, const std::string& newTableName)
 {
-    tables_.at(oldTablename).SetTableName(newTableName);
-    auto handler = tables_.extract(oldTablename);
+    tables_.at(oldTableName).SetTableName(newTableName);
+    auto handler = tables_.extract(oldTableName);
     handler.key() = newTableName;
     tables_.insert(std::move(handler));
+
+	auto& path = Configuration::GetInstance().GetDatabaseDir();
+
+    if (boost::filesystem::exists(path))
+    {
+        std::string prefix(path + name_ + SEPARATOR + oldTableName + SEPARATOR);
+
+        for (auto& p : boost::filesystem::directory_iterator(path))
+        {
+            // rename files which starts with prefix of db name and table name:
+            if (!p.path().string().compare(0, prefix.size(), prefix))
+            {
+                std::string columnName = p.path().string().substr(prefix.size());
+                const boost::filesystem::path& newPath{path + name_ + SEPARATOR + newTableName + SEPARATOR + columnName + ".col"};
+                boost::filesystem::rename(p.path(), newPath);
+            }
+        }
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists.";
+    }
+
+    PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
 }
 
 /// <summary>
@@ -481,7 +510,8 @@ void Database::DeleteDatabaseFromDisk()
         }
         else
         {
-            BOOST_LOG_TRIVIAL(info) << "Main (.db) file of db " << name_
+            BOOST_LOG_TRIVIAL(warning) << "Main (.db) file of db "
+                                       << name_
                                     << " was NOT removed from disk. No such file or write access.";
         }
 
@@ -499,7 +529,7 @@ void Database::DeleteDatabaseFromDisk()
                 }
                 else
                 {
-                    BOOST_LOG_TRIVIAL(info)
+                    BOOST_LOG_TRIVIAL(warning)
                         << "File " << p.path().string()
                         << " was NOT removed from disk. No such file or write access.";
                 }
@@ -538,7 +568,7 @@ void Database::DeleteTableFromDisk(const char* tableName)
                 }
                 else
                 {
-                    BOOST_LOG_TRIVIAL(info)
+                    BOOST_LOG_TRIVIAL(warning)
                         << "File " << p.path().string()
                         << " was NOT removed from disk. No such file or write access.";
                 }
@@ -580,7 +610,8 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
         }
         else
         {
-            BOOST_LOG_TRIVIAL(info) << "File " << filePath
+            BOOST_LOG_TRIVIAL(warning)
+                << "File " << filePath
                                     << " was NOT removed from disk. No such file or write access.";
         }
     }

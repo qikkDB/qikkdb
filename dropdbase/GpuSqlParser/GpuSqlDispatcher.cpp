@@ -1442,6 +1442,7 @@ int32_t GpuSqlDispatcher::AlterTable()
         std::string renameColumnNameFrom = arguments_.Read<std::string>();
         std::string renameColumnNameTo = arguments_.Read<std::string>();
         database_->GetTables().at(tableName).RenameColumn(renameColumnNameFrom, renameColumnNameTo);
+		//TODO tu treba dorobit premenovat column file pomocou boostu a potom zavolat PersistOnlyDbFile() !!!!
     }
 
     bool tableRenamed = arguments_.Read<bool>();
@@ -1468,6 +1469,8 @@ int32_t GpuSqlDispatcher::AlterDatabase()
         auto handler = loadedDatabases.extract(databaseName);
         handler.key() = newDatabaseName;
         loadedDatabases.insert(std::move(handler));
+
+		// TODO tu treba dorobit premenovat db a column files pomocou boostu a potom zavolat PersistOnlyDbFile() !!!!
     }
     return 13;
 }

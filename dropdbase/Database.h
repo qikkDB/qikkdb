@@ -125,6 +125,11 @@ public:
     /// </summary>
     static void LoadDatabasesFromDisk();
 
+	/// <summary>
+    /// Rename specified table.
+    /// </summary>
+    /// <param name="oldTableName">Table name of the table which will be renamed.</param>
+    /// <param name="oldTableName">New table name to which the table will be renamed.</param>
 	void RenameTable(const std::string& oldTablename, const std::string& newTableName);
 
     /// <summary>
