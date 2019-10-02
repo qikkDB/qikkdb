@@ -8,9 +8,13 @@ __device__ int32_t GetHash(DataType* keyTypes, const int32_t keysColCount,
     for (int32_t t = 0; t < keysColCount; t++)
     {
         uint32_t hash;
-        // if not null
-        if((inKeysNullMask[t] == nullptr) ||
-                ((inKeysNullMask[t][i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1 == 0))
+        const bool null = (inKeysNullMask[t] != nullptr) &&
+                          ((inKeysNullMask[t][i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1);
+        if (null)
+        {
+            hash = 0;
+        }
+        else
         {
             switch (keyTypes[t])
             {
@@ -40,10 +44,6 @@ __device__ int32_t GetHash(DataType* keyTypes, const int32_t keysColCount,
                 hash = 0;
                 break;
             }
-        }
-        else
-        {
-            hash = 0;
         }
         for (int32_t i = 0; i < 4; i++)
         {
