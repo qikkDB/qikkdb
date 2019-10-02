@@ -10,11 +10,11 @@
 TEST(GPUMergeJoinTests, MergeJoinTest)
 {
 	// Initialize test buffers
-	const int32_t BLOCK_COUNT_A = 16;
-	const int32_t BLOCK_SIZE_A = 1 << 25;	
+	const int32_t BLOCK_COUNT_A = 15;
+    const int32_t BLOCK_SIZE_A = 1 << 25;	
 
-	const int32_t BLOCK_COUNT_B = 16;
-	const int32_t BLOCK_SIZE_B = 1 << 25;	
+	const int32_t BLOCK_COUNT_B = 15;
+    const int32_t BLOCK_SIZE_B = 1 << 25;	
 
 	ColumnBase<int32_t> colA("ColA", BLOCK_SIZE_A);
 	ColumnBase<int32_t> colB("ColB", BLOCK_SIZE_B);
@@ -26,7 +26,7 @@ TEST(GPUMergeJoinTests, MergeJoinTest)
 		std::vector<int32_t> colAData;
 		for (int32_t j = 0; j < BLOCK_SIZE_A; j++)
 		{
-			colAData.push_back(i + j);
+            colAData.push_back(i * BLOCK_SIZE_A + j);
 		}
 
 		blockA.InsertData(colAData);
@@ -39,7 +39,7 @@ TEST(GPUMergeJoinTests, MergeJoinTest)
 		std::vector<int32_t> colBData;
 		for (int32_t j = 0; j < BLOCK_SIZE_B; j++)
 		{
-			colBData.push_back(i + j);
+            colBData.push_back(i * BLOCK_SIZE_B + j);
 		}
 
 		blockB.InsertData(colBData);
@@ -67,7 +67,7 @@ TEST(GPUMergeJoinTests, MergeJoinCPUTest)
 
     constexpr int32_t diag_size_rounded = ((A_size_rounded + B_size_rounded - 1) / W ) * W;
 
-	std::printf("%3d : %3d : %3d\n",A_size_rounded, B_size_rounded, diag_size_rounded );
+	std::printf("%3d : %3d : %3d\n",A_size_rounded, B_size_rounded, diag_size_rounded);
 
     for (int32_t i = 0; i < diag_size_rounded; i++)
     {
