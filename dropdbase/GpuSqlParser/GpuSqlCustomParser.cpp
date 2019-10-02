@@ -21,7 +21,7 @@
 #include <thread>
 
 GpuSqlCustomParser::GpuSqlCustomParser(const std::shared_ptr<Database>& database, const std::string& query)
-: database_(database), isSingleGpuStatement_(false), query_(query)
+: database_(database), isSingleGpuStatement_(false), query_(query), wasAborted_(false)
 {
     LoadColHelper& loadColHelper = LoadColHelper::getInstance();
     loadColHelper.countSkippedBlocks = 0;
@@ -384,12 +384,13 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
         {
             std::string key = partialPayload.first;
             ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
-            GpuSqlDispatcher::MergePayload(key, aliasTable.at(key), responseMessage.get(), payload);
+
             if (partialMessage->nullbitmasks().find(key) != partialMessage->nullbitmasks().end())
             {
                 const std::string& partialBitMask = partialMessage->nullbitmasks().at(key);
                 GpuSqlDispatcher::MergePayloadBitmask(key, responseMessage.get(), partialBitMask);
             }
+            GpuSqlDispatcher::MergePayload(key, aliasTable.at(key), responseMessage.get(), payload);
         }
     }
 

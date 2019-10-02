@@ -253,7 +253,7 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
                         if (loadOffset_ > 0)
                         {
                             int32_t offsetBitMaskCapacity =
-                                ((loadSize_ + loadOffset_ + (sizeof(int8_t) * 8 - 1) * 2) / (8 * sizeof(int8_t)));
+                                ((loadSize_ + loadOffset_ + (sizeof(int8_t) * 8 - 1)) / (8 * sizeof(int8_t)));
                             int32_t maxBitMaskCapacity =
                                 ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
 

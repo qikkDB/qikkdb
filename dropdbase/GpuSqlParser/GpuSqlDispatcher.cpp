@@ -1502,7 +1502,47 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
     }
     else // If there is payload with existing key, merge or aggregate according to key
     {
-        responseMessage->mutable_nullbitmasks()->at(key) += nullMask;
+        size_t dataLength = 0;
+        switch (responseMessage->payloads().at(key).payload_case())
+        {
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+            dataLength = responseMessage->payloads().at(key).intpayload().intdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+            dataLength = responseMessage->payloads().at(key).int64payload().int64data_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+            dataLength = responseMessage->payloads().at(key).floatpayload().floatdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+            dataLength = responseMessage->payloads().at(key).doublepayload().doubledata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+            dataLength = responseMessage->payloads().at(key).stringpayload().stringdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+            dataLength = responseMessage->payloads().at(key).pointpayload().pointdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+            dataLength = responseMessage->payloads().at(key).polygonpayload().polygondata_size();
+            break;
+        default:
+            break;
+        }
+        if (dataLength % 8 == 0)
+        {
+            responseMessage->mutable_nullbitmasks()->at(key) += nullMask;
+        }
+        else
+        {
+            int shiftCount = 8 - (dataLength % 8);
+            std::vector<int8_t> nullMaskVec(nullMask.begin(), nullMask.end());
+            int8_t carryBits = nullMaskVec[0] & ((1 << shiftCount) - 1);
+            responseMessage->mutable_nullbitmasks()->at(key).back() |= (carryBits << (8 - shiftCount));
+            ShiftNullMaskLeft(nullMaskVec, shiftCount);
+            std::string newNullMask(nullMaskVec.begin(), nullMaskVec.end());
+            responseMessage->mutable_nullbitmasks()->at(key) += newNullMask;
+        }
     }
 }
 
@@ -1629,15 +1669,17 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
     {
         trimmedKey = key.substr(1, std::string::npos);
     }
+
     if (!realName.empty() && realName.front() == '$')
     {
         realTrimmedName = realName.substr(1, std::string::npos);
     }
-    MergePayload(trimmedKey, realTrimmedName, &responseMessage_, payload);
+    
     if (!nullBitMaskString.empty())
     {
         MergePayloadBitmask(trimmedKey, &responseMessage_, nullBitMaskString);
     }
+    MergePayload(trimmedKey, realTrimmedName, &responseMessage_, payload);
 }
 
 bool GpuSqlDispatcher::IsRegisterAllocated(const std::string& reg)

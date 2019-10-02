@@ -228,7 +228,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
     std::vector<std::string> expectedResults3;
     std::vector<std::string> expectedResults4;
 
-    for (int32_t i = 0; i < blockSize / 2 + 1; i++)
+    for (int32_t i = 0; i < 17; i++)
     {
         if (i % 2)
         {
@@ -370,10 +370,10 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
     std::vector<std::string> expectedResults3;
     std::vector<std::string> expectedResults4;
 
-    int32_t limit = 9;
-    int32_t offset = 7;
+    int32_t limit = 10;
+    int32_t offset = 28;
 
-    for (int32_t i = 0; i < blockSize * 2; i++)
+    for (int32_t i = 0; i < blockSize * 1.5; i++)
     {
         if (i % 2)
         {

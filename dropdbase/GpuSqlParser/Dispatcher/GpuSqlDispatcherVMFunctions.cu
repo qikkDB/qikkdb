@@ -97,7 +97,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
                     if (loadOffset_ > 0)
                     {
                         int32_t offsetBitMaskCapacity =
-                            ((loadSize_ + loadOffset_ + (sizeof(int8_t) * 8 - 1) * 2) / (8 * sizeof(int8_t)));
+                            ((loadSize_ + loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                         int32_t maxBitMaskCapacity =
                             ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
 
@@ -248,7 +248,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
                         if (loadOffset_ > 0)
                         {
                             int32_t offsetBitMaskCapacity =
-                                ((loadSize_ + loadOffset_ + (sizeof(int8_t) * 8 - 1) * 2) / (8 * sizeof(int8_t)));
+                                ((loadSize_ + loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                             int32_t maxBitMaskCapacity =
                                 ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
 
@@ -396,12 +396,12 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
                     if (loadOffset_ > 0)
                     {
                         int32_t offsetBitMaskCapacity =
-                            ((loadSize_ + loadOffset_ + (sizeof(int8_t) * 8 - 1) * 2) / (8 * sizeof(int8_t)));
+                            ((loadSize_ + loadOffset_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                         int32_t maxBitMaskCapacity =
                             ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
 
                         offsetBitMaskCapacity = std::min(offsetBitMaskCapacity, maxBitMaskCapacity);
-                        
+
                         std::vector<int8_t> maskToOffset(block->GetNullBitmask(),
                                                          block->GetNullBitmask() + offsetBitMaskCapacity);
                         ShiftNullMaskLeft(maskToOffset, loadOffset_);
@@ -974,6 +974,11 @@ int32_t GpuSqlDispatcher::GetLoadSize()
             loadSize_ = std::min((offset + limit) - offsetLimitBlockDataSize, currentBlockSize) - loadOffset_;
         }
 
+        if (blockIndex_ > offsetBlockIdx && blockIndex_ < offsetLimitBlockIdx)
+        {
+            loadSize_ = GetBlockSize();
+		}
+
         CudaLogBoost::getInstance(CudaLogBoost::info) << "OffsetBlockIdx: " << offsetBlockIdx << '\n';
         CudaLogBoost::getInstance(CudaLogBoost::info) << "OffsetLimitBlockIdx: " << offsetLimitBlockIdx << '\n';
         CudaLogBoost::getInstance(CudaLogBoost::info) << "Block Load Size: " << loadSize_ << '\n';
@@ -987,12 +992,13 @@ void GpuSqlDispatcher::ShiftNullMaskLeft(std::vector<int8_t>& mask, int64_t shif
 {
     while (shift-- > 0)
     {
-        int8_t carryBit = 0;
+        uint8_t carryBit = 0;
         for (int32_t i = mask.size() - 1; i >= 0; i--)
         {
-            int8_t newCarryBit = (mask[i] >> 7) & 1;
-            mask[i] <<= 1;
-            mask[i] ^= (-carryBit ^ mask[i]) & 1;
+            uint8_t newCarryBit = mask[i] & 1;
+            mask[i] >>= 1;
+            mask[i] &= 0x7F;
+            mask[i] |= (carryBit << 7);
             carryBit = newCarryBit;
         }
     }

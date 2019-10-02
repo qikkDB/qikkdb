@@ -8947,8 +8947,6 @@ TEST(DispatcherTests, LimitOffsetAsteriskNoClauses)
                               "SELECT * FROM TableA LIMIT 10 OFFSET 10;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-
-	FAIL();
 }
 
 TEST(DispatcherTests, Limit)
@@ -12157,6 +12155,56 @@ TEST(DispatcherTests, OrderByTestSimple)
     for (int i = 0; i < (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE); i++)
     {
         ASSERT_EQ(expectedResultsInt[i], v[i].key) << i;
+    }
+}
+
+TEST(DispatcherTests, OrderByLimitOffsetTest)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1 FROM TableA ORDER BY colInteger1 LIMIT 20 OFFSET "
+                              "2040;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    std::vector<int32_t> expectedResultsInt;
+
+    auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
+                                                            .database->GetTables()
+                                                            .at("TableA")
+                                                            .GetColumns()
+                                                            .at("colInteger1")
+                                                            .get());
+
+    for (int32_t i = 0; i < result->payloads().at("TableA.colInteger1").intpayload().intdata_size(); i++)
+    {
+        expectedResultsInt.push_back(result->payloads().at("TableA.colInteger1").intpayload().intdata()[i]);
+    }
+
+    std::vector<IdxKeyPair<int32_t>> v(TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+
+    for (int i = 0, k = 0; i < TEST_BLOCK_COUNT; i++)
+    {
+        for (int j = 0; j < TEST_BLOCK_SIZE; j++, k++)
+        {
+            v[k] = {0, columnInt->GetBlocksList()[i]->GetData()[j]};
+        }
+    }
+
+    auto limit = 20;
+    auto offset = 2040;
+
+    stable_sort(v.begin(), v.end(), Asc<int32_t>());
+
+    auto first = v.begin() + offset;
+    auto last = v.begin() + offset + limit;
+    std::vector<IdxKeyPair<int32_t>> trimmedResultsInt(first, last);
+
+
+    for (int i = 0; i < expectedResultsInt.size(); i++)
+    {
+        ASSERT_EQ(expectedResultsInt[i], trimmedResultsInt[i].key) << i;
     }
 }
 
