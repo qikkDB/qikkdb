@@ -36,6 +36,7 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::dropDatabaseFunction_ = &Gp
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createTableFunction_ = &GpuSqlDispatcher::CreateTable;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::dropTableFunction_ = &GpuSqlDispatcher::DropTable;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::alterTableFunction_ = &GpuSqlDispatcher::AlterTable;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::alterDatabaseFunction_ = &GpuSqlDispatcher::AlterDatabase;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createIndexFunction_ = &GpuSqlDispatcher::CreateIndex;
 
 template <>

@@ -169,6 +169,8 @@ public:
 
     void exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx) override;
 
+    void exitSqlAlterDatabase(GpuSqlParser::SqlAlterDatabaseContext* ctx) override;
+
     void exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext* ctx) override;
 
     void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext* ctx) override;

@@ -62,6 +62,11 @@ Database::~Database()
     context.bindDeviceToContext(oldDeviceID);
 }
 
+void Database::SetName(const std::string& newDatabaseName)
+{
+    name_ = newDatabaseName;
+}
+
 std::vector<std::string> Database::GetDatabaseNames()
 {
     std::vector<std::string> ret;
@@ -453,7 +458,7 @@ void Database::RenameTable(const std::string& oldTablename, const std::string& n
     tables_.at(oldTablename).SetTableName(newTableName);
     auto handler = tables_.extract(oldTablename);
     handler.key() = newTableName;
-    tables_.insert(move(handler));
+    tables_.insert(std::move(handler));
 }
 
 /// <summary>

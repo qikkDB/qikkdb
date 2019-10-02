@@ -64,6 +64,8 @@ public:
 
     ~Database();
 
+	void SetName(const std::string& newDatabaseName);
+
     // getters:
     const std::string& GetName() const
     {

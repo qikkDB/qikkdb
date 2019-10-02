@@ -52,6 +52,9 @@ public:
   virtual void enterSqlAlterTable(GpuSqlParser::SqlAlterTableContext * /*ctx*/) override { }
   virtual void exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext * /*ctx*/) override { }
 
+  virtual void enterSqlAlterDatabase(GpuSqlParser::SqlAlterDatabaseContext * /*ctx*/) override { }
+  virtual void exitSqlAlterDatabase(GpuSqlParser::SqlAlterDatabaseContext * /*ctx*/) override { }
+
   virtual void enterSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * /*ctx*/) override { }
   virtual void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext * /*ctx*/) override { }
 
@@ -63,6 +66,15 @@ public:
 
   virtual void enterNewTableEntry(GpuSqlParser::NewTableEntryContext * /*ctx*/) override { }
   virtual void exitNewTableEntry(GpuSqlParser::NewTableEntryContext * /*ctx*/) override { }
+
+  virtual void enterAlterDatabaseEntries(GpuSqlParser::AlterDatabaseEntriesContext * /*ctx*/) override { }
+  virtual void exitAlterDatabaseEntries(GpuSqlParser::AlterDatabaseEntriesContext * /*ctx*/) override { }
+
+  virtual void enterAlterDatabaseEntry(GpuSqlParser::AlterDatabaseEntryContext * /*ctx*/) override { }
+  virtual void exitAlterDatabaseEntry(GpuSqlParser::AlterDatabaseEntryContext * /*ctx*/) override { }
+
+  virtual void enterRenameDatabase(GpuSqlParser::RenameDatabaseContext * /*ctx*/) override { }
+  virtual void exitRenameDatabase(GpuSqlParser::RenameDatabaseContext * /*ctx*/) override { }
 
   virtual void enterAlterTableEntries(GpuSqlParser::AlterTableEntriesContext * /*ctx*/) override { }
   virtual void exitAlterTableEntries(GpuSqlParser::AlterTableEntriesContext * /*ctx*/) override { }

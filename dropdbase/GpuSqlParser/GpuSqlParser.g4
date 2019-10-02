@@ -13,6 +13,7 @@ statement:
 	| sqlCreateTable
 	| sqlDropTable
 	| sqlAlterTable
+	| sqlAlterDatabase
 	| sqlCreateIndex
 	| sqlInsertInto
 	| showStatement;
@@ -36,13 +37,16 @@ sqlCreateTable:
 	CREATETABLE table LPAREN newTableEntries RPAREN SEMICOL;
 sqlDropTable: DROPTABLE table SEMICOL;
 sqlAlterTable: ALTERTABLE table alterTableEntries SEMICOL;
+sqlAlterDatabase: ALTERDATABASE database alterDatabaseEntries SEMICOL;
 sqlCreateIndex:
 	CREATEINDEX indexName ON table LPAREN indexColumns RPAREN SEMICOL;
 sqlInsertInto:
 	INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN insertIntoValues RPAREN SEMICOL;
-
 newTableEntries: ((newTableEntry (COMMA newTableEntry)*));
 newTableEntry: (newTableColumn | newTableIndex);
+alterDatabaseEntries: ((alterDatabaseEntry (COMMA alterDatabaseEntry)*));
+alterDatabaseEntry: (renameDatabase);
+renameDatabase: (RENAMETO database);
 alterTableEntries: ((alterTableEntry (COMMA alterTableEntry)*));
 alterTableEntry: (addColumn | dropColumn | alterColumn | renameColumn | renameTable);
 addColumn: (ADD column DATATYPE);

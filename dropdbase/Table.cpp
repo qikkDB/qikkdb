@@ -724,7 +724,7 @@ void Table::RenameColumn(std::string oldColumnName, std::string newColumnName)
     columns.at(oldColumnName)->SetColumnName(newColumnName);
     auto handler = columns.extract(oldColumnName);
     handler.key() = newColumnName;
-    columns.insert(move(handler));
+    columns.insert(std::move(handler));
 }
 
 /// <summary>

@@ -12,6 +12,7 @@ set(TEST_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/BlockTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherNullTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherGeoTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherCastTests.cpp
+				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherAlterTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherGroupByTests.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/DispatcherTestsRegression.cpp
 				${CMAKE_CURRENT_SOURCE_DIR}/ProtocolMessageTests.cpp

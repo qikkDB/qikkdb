@@ -1337,17 +1337,24 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
                 throw AlreadyModifiedColumnException(renameColumnNameFrom);
             }
 
-            if (renameColumnToNames.find(renameColumnNameTo) != renameColumnToNames.end())
+            if (renameColumnNameFrom != renameColumnNameTo &&
+                renameColumnToNames.find(renameColumnNameTo) != renameColumnToNames.end())
             {
                 throw ColumnAlreadyExistsException(renameColumnNameTo);
             }
 
+			renameColumnToNames.insert(renameColumnNameTo);
             renameColumns.insert({renameColumnNameFrom, renameColumnNameTo});
         }
         else if (entry->renameTable())
         {
             auto renameTableContext = entry->renameTable();
             newTableName = renameTableContext->table()->getText();
+
+            if (database_->GetTables().find(newTableName) != database_->GetTables().end())
+            {
+                throw TableAlreadyExistsException(newTableName);
+            }
         }
     }
 
@@ -1384,8 +1391,44 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     dispatcher_.AddArgument<bool>(!newTableName.empty());
     if (!newTableName.empty())
     {
-        dispatcher_.AddArgument<const std::string&>(newTableName);		    
-	}
+        dispatcher_.AddArgument<const std::string&>(newTableName);
+    }
+}
+
+void GpuSqlListener::exitSqlAlterDatabase(GpuSqlParser::SqlAlterDatabaseContext* ctx)
+{
+    std::string databaseName = ctx->database()->getText();
+    TrimDelimitedIdentifier(databaseName);
+
+    if (!Database::Exists(databaseName))
+    {
+        throw DatabaseNotFoundException(databaseName);
+    }
+
+    std::string newDatabaseName = "";
+
+    for (auto& entry : ctx->alterDatabaseEntries()->alterDatabaseEntry())
+    {
+        if (entry->renameDatabase())
+        {
+            auto renameDatabaseContext = entry->renameDatabase();
+            newDatabaseName = renameDatabaseContext->database()->getText();
+
+            if (Database::Exists(newDatabaseName))
+            {
+                throw DatabaseAlreadyExistsException(databaseName);
+            }
+        }
+    }
+
+    dispatcher_.AddAlterDatabaseFunction();
+    dispatcher_.AddArgument<const std::string&>(databaseName);
+
+    dispatcher_.AddArgument<bool>(!newDatabaseName.empty());
+    if (!newDatabaseName.empty())
+    {
+        dispatcher_.AddArgument<const std::string&>(newDatabaseName);
+    }
 }
 
 void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext* ctx)

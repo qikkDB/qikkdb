@@ -19,22 +19,22 @@ public:
     POLYGON = 23, MULTIPOLYGON = 24, DATATYPE = 25, INTTYPE = 26, LONGTYPE = 27, 
     DATETYPE = 28, FLOATTYPE = 29, DOUBLETYPE = 30, STRINGTYPE = 31, BOOLEANTYPE = 32, 
     POINTTYPE = 33, POLYTYPE = 34, INSERTINTO = 35, CREATEDB = 36, DROPDB = 37, 
-    CREATETABLE = 38, DROPTABLE = 39, ALTERTABLE = 40, ADD = 41, DROPCOLUMN = 42, 
-    ALTERCOLUMN = 43, RENAMECOLUMN = 44, RENAMETO = 45, CREATEINDEX = 46, 
-    INDEX = 47, PRIMARYKEY = 48, VALUES = 49, SELECT = 50, FROM = 51, JOIN = 52, 
-    WHERE = 53, GROUPBY = 54, AS = 55, IN = 56, TO = 57, RENAME = 58, ISNULL = 59, 
-    ISNOTNULL = 60, BETWEEN = 61, ON = 62, ORDERBY = 63, DIR = 64, LIMIT = 65, 
-    OFFSET = 66, INNER = 67, FULLOUTER = 68, SHOWDB = 69, SHOWTB = 70, SHOWCL = 71, 
-    AVG_AGG = 72, SUM_AGG = 73, MIN_AGG = 74, MAX_AGG = 75, COUNT_AGG = 76, 
-    YEAR = 77, MONTH = 78, DAY = 79, HOUR = 80, MINUTE = 81, SECOND = 82, 
-    NOW = 83, PI = 84, ABS = 85, SIN = 86, COS = 87, TAN = 88, COT = 89, 
-    ASIN = 90, ACOS = 91, ATAN = 92, ATAN2 = 93, LOG10 = 94, LOG = 95, EXP = 96, 
-    POW = 97, SQRT = 98, SQUARE = 99, SIGN = 100, ROOT = 101, ROUND = 102, 
-    CEIL = 103, FLOOR = 104, LTRIM = 105, RTRIM = 106, LOWER = 107, UPPER = 108, 
-    REVERSE = 109, LEN = 110, LEFT = 111, RIGHT = 112, CONCAT = 113, CAST = 114, 
-    GEO_CONTAINS = 115, GEO_INTERSECT = 116, GEO_UNION = 117, PLUS = 118, 
-    MINUS = 119, ASTERISK = 120, DIVISION = 121, MODULO = 122, XOR = 123, 
-    EQUALS = 124, NOTEQUALS = 125, NOTEQUALS_GT_LT = 126, LPAREN = 127, 
+    CREATETABLE = 38, DROPTABLE = 39, ALTERTABLE = 40, ALTERDATABASE = 41, 
+    ADD = 42, DROPCOLUMN = 43, ALTERCOLUMN = 44, RENAMECOLUMN = 45, RENAMETO = 46, 
+    CREATEINDEX = 47, INDEX = 48, PRIMARYKEY = 49, VALUES = 50, SELECT = 51, 
+    FROM = 52, JOIN = 53, WHERE = 54, GROUPBY = 55, AS = 56, IN = 57, TO = 58, 
+    ISNULL = 59, ISNOTNULL = 60, BETWEEN = 61, ON = 62, ORDERBY = 63, DIR = 64, 
+    LIMIT = 65, OFFSET = 66, INNER = 67, FULLOUTER = 68, SHOWDB = 69, SHOWTB = 70, 
+    SHOWCL = 71, AVG_AGG = 72, SUM_AGG = 73, MIN_AGG = 74, MAX_AGG = 75, 
+    COUNT_AGG = 76, YEAR = 77, MONTH = 78, DAY = 79, HOUR = 80, MINUTE = 81, 
+    SECOND = 82, NOW = 83, PI = 84, ABS = 85, SIN = 86, COS = 87, TAN = 88, 
+    COT = 89, ASIN = 90, ACOS = 91, ATAN = 92, ATAN2 = 93, LOG10 = 94, LOG = 95, 
+    EXP = 96, POW = 97, SQRT = 98, SQUARE = 99, SIGN = 100, ROOT = 101, 
+    ROUND = 102, CEIL = 103, FLOOR = 104, LTRIM = 105, RTRIM = 106, LOWER = 107, 
+    UPPER = 108, REVERSE = 109, LEN = 110, LEFT = 111, RIGHT = 112, CONCAT = 113, 
+    CAST = 114, GEO_CONTAINS = 115, GEO_INTERSECT = 116, GEO_UNION = 117, 
+    PLUS = 118, MINUS = 119, ASTERISK = 120, DIVISION = 121, MODULO = 122, 
+    XOR = 123, EQUALS = 124, NOTEQUALS = 125, NOTEQUALS_GT_LT = 126, LPAREN = 127, 
     RPAREN = 128, GREATER = 129, LESS = 130, GREATEREQ = 131, LESSEQ = 132, 
     LOGICAL_NOT = 133, OR = 134, AND = 135, BIT_OR = 136, BIT_AND = 137, 
     L_SHIFT = 138, R_SHIFT = 139, BOOLEANLIT = 140, TRUE = 141, FALSE = 142, 
@@ -45,23 +45,25 @@ public:
     RuleSqlFile = 0, RuleStatement = 1, RuleShowStatement = 2, RuleShowDatabases = 3, 
     RuleShowTables = 4, RuleShowColumns = 5, RuleSqlSelect = 6, RuleSqlCreateDb = 7, 
     RuleSqlDropDb = 8, RuleSqlCreateTable = 9, RuleSqlDropTable = 10, RuleSqlAlterTable = 11, 
-    RuleSqlCreateIndex = 12, RuleSqlInsertInto = 13, RuleNewTableEntries = 14, 
-    RuleNewTableEntry = 15, RuleAlterTableEntries = 16, RuleAlterTableEntry = 17, 
-    RuleAddColumn = 18, RuleDropColumn = 19, RuleAlterColumn = 20, RuleRenameColumn = 21, 
-    RuleRenameTable = 22, RuleRenameColumnFrom = 23, RuleRenameColumnTo = 24, 
-    RuleNewTableColumn = 25, RuleNewTableIndex = 26, RuleSelectColumns = 27, 
-    RuleSelectColumn = 28, RuleSelectAllColumns = 29, RuleWhereClause = 30, 
-    RuleOrderByColumns = 31, RuleOrderByColumn = 32, RuleInsertIntoValues = 33, 
-    RuleInsertIntoColumns = 34, RuleIndexColumns = 35, RuleGroupByColumns = 36, 
-    RuleGroupByColumn = 37, RuleFromTables = 38, RuleJoinClauses = 39, RuleJoinClause = 40, 
-    RuleJoinTable = 41, RuleJoinColumnLeft = 42, RuleJoinColumnRight = 43, 
-    RuleJoinOperator = 44, RuleJoinType = 45, RuleFromTable = 46, RuleColumnId = 47, 
-    RuleTable = 48, RuleColumn = 49, RuleDatabase = 50, RuleAlias = 51, 
-    RuleIndexName = 52, RuleLimit = 53, RuleOffset = 54, RuleBlockSize = 55, 
-    RuleColumnValue = 56, RuleExpression = 57, RuleGeometry = 58, RulePointGeometry = 59, 
-    RuleLineStringGeometry = 60, RulePolygonGeometry = 61, RuleMultiPointGeometry = 62, 
-    RuleMultiLineStringGeometry = 63, RuleMultiPolygonGeometry = 64, RulePointOrClosedPoint = 65, 
-    RulePolygon = 66, RuleLineString = 67, RulePoint = 68
+    RuleSqlAlterDatabase = 12, RuleSqlCreateIndex = 13, RuleSqlInsertInto = 14, 
+    RuleNewTableEntries = 15, RuleNewTableEntry = 16, RuleAlterDatabaseEntries = 17, 
+    RuleAlterDatabaseEntry = 18, RuleRenameDatabase = 19, RuleAlterTableEntries = 20, 
+    RuleAlterTableEntry = 21, RuleAddColumn = 22, RuleDropColumn = 23, RuleAlterColumn = 24, 
+    RuleRenameColumn = 25, RuleRenameTable = 26, RuleRenameColumnFrom = 27, 
+    RuleRenameColumnTo = 28, RuleNewTableColumn = 29, RuleNewTableIndex = 30, 
+    RuleSelectColumns = 31, RuleSelectColumn = 32, RuleSelectAllColumns = 33, 
+    RuleWhereClause = 34, RuleOrderByColumns = 35, RuleOrderByColumn = 36, 
+    RuleInsertIntoValues = 37, RuleInsertIntoColumns = 38, RuleIndexColumns = 39, 
+    RuleGroupByColumns = 40, RuleGroupByColumn = 41, RuleFromTables = 42, 
+    RuleJoinClauses = 43, RuleJoinClause = 44, RuleJoinTable = 45, RuleJoinColumnLeft = 46, 
+    RuleJoinColumnRight = 47, RuleJoinOperator = 48, RuleJoinType = 49, 
+    RuleFromTable = 50, RuleColumnId = 51, RuleTable = 52, RuleColumn = 53, 
+    RuleDatabase = 54, RuleAlias = 55, RuleIndexName = 56, RuleLimit = 57, 
+    RuleOffset = 58, RuleBlockSize = 59, RuleColumnValue = 60, RuleExpression = 61, 
+    RuleGeometry = 62, RulePointGeometry = 63, RuleLineStringGeometry = 64, 
+    RulePolygonGeometry = 65, RuleMultiPointGeometry = 66, RuleMultiLineStringGeometry = 67, 
+    RuleMultiPolygonGeometry = 68, RulePointOrClosedPoint = 69, RulePolygon = 70, 
+    RuleLineString = 71, RulePoint = 72
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -86,10 +88,14 @@ public:
   class SqlCreateTableContext;
   class SqlDropTableContext;
   class SqlAlterTableContext;
+  class SqlAlterDatabaseContext;
   class SqlCreateIndexContext;
   class SqlInsertIntoContext;
   class NewTableEntriesContext;
   class NewTableEntryContext;
+  class AlterDatabaseEntriesContext;
+  class AlterDatabaseEntryContext;
+  class RenameDatabaseContext;
   class AlterTableEntriesContext;
   class AlterTableEntryContext;
   class AddColumnContext;
@@ -169,6 +175,7 @@ public:
     SqlCreateTableContext *sqlCreateTable();
     SqlDropTableContext *sqlDropTable();
     SqlAlterTableContext *sqlAlterTable();
+    SqlAlterDatabaseContext *sqlAlterDatabase();
     SqlCreateIndexContext *sqlCreateIndex();
     SqlInsertIntoContext *sqlInsertInto();
     ShowStatementContext *showStatement();
@@ -354,6 +361,22 @@ public:
 
   SqlAlterTableContext* sqlAlterTable();
 
+  class  SqlAlterDatabaseContext : public antlr4::ParserRuleContext {
+  public:
+    SqlAlterDatabaseContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ALTERDATABASE();
+    DatabaseContext *database();
+    AlterDatabaseEntriesContext *alterDatabaseEntries();
+    antlr4::tree::TerminalNode *SEMICOL();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  SqlAlterDatabaseContext* sqlAlterDatabase();
+
   class  SqlCreateIndexContext : public antlr4::ParserRuleContext {
   public:
     SqlCreateIndexContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -425,6 +448,49 @@ public:
   };
 
   NewTableEntryContext* newTableEntry();
+
+  class  AlterDatabaseEntriesContext : public antlr4::ParserRuleContext {
+  public:
+    AlterDatabaseEntriesContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<AlterDatabaseEntryContext *> alterDatabaseEntry();
+    AlterDatabaseEntryContext* alterDatabaseEntry(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  AlterDatabaseEntriesContext* alterDatabaseEntries();
+
+  class  AlterDatabaseEntryContext : public antlr4::ParserRuleContext {
+  public:
+    AlterDatabaseEntryContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    RenameDatabaseContext *renameDatabase();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  AlterDatabaseEntryContext* alterDatabaseEntry();
+
+  class  RenameDatabaseContext : public antlr4::ParserRuleContext {
+  public:
+    RenameDatabaseContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *RENAMETO();
+    DatabaseContext *database();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  RenameDatabaseContext* renameDatabase();
 
   class  AlterTableEntriesContext : public antlr4::ParserRuleContext {
   public:

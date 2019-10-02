@@ -178,6 +178,11 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
                     CudaLogBoost::getInstance(CudaLogBoost::info)
                         << "Alter table completed sucessfully" << '\n';
                 }
+                if (err == 13)
+                {
+                    CudaLogBoost::getInstance(CudaLogBoost::info)
+                        << "Alter database completed sucessfully" << '\n';
+                }
                 if (err == 11)
                 {
                     CudaLogBoost::getInstance(CudaLogBoost::info)
@@ -310,6 +315,11 @@ void GpuSqlDispatcher::AddDropTableFunction()
 void GpuSqlDispatcher::AddAlterTableFunction()
 {
     dispatcherFunctions_.push_back(alterTableFunction_);
+}
+
+void GpuSqlDispatcher::AddAlterDatabaseFunction()
+{
+    dispatcherFunctions_.push_back(alterDatabaseFunction_);
 }
 
 void GpuSqlDispatcher::AddCreateIndexFunction()
@@ -1442,6 +1452,24 @@ int32_t GpuSqlDispatcher::AlterTable()
     }
 
     return 10;
+}
+
+int32_t GpuSqlDispatcher::AlterDatabase()
+{
+    std::string databaseName = arguments_.Read<std::string>();
+
+    bool databaseRenamed = arguments_.Read<bool>();
+    if (databaseRenamed)
+    {
+        std::string newDatabaseName = arguments_.Read<std::string>();
+        Database::GetDatabaseByName(databaseName)->SetName(newDatabaseName);
+        auto& loadedDatabases = Context::getInstance().GetLoadedDatabases();
+
+        auto handler = loadedDatabases.extract(databaseName);
+        handler.key() = newDatabaseName;
+        loadedDatabases.insert(std::move(handler));
+    }
+    return 13;
 }
 
 int32_t GpuSqlDispatcher::CreateIndex()

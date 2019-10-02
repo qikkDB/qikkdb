@@ -245,6 +245,7 @@ private:
     static DispatchFunction createTableFunction_;
     static DispatchFunction dropTableFunction_;
     static DispatchFunction alterTableFunction_;
+    static DispatchFunction alterDatabaseFunction_;
     static DispatchFunction createIndexFunction_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> insertIntoFunctions_;
     static DispatchFunction insertIntoDoneFunction_;
@@ -561,6 +562,8 @@ public:
 
     void AddAlterTableFunction();
 
+    void AddAlterDatabaseFunction();
+
     void AddCreateIndexFunction();
 
     void AddInsertIntoFunction(DataType type);
@@ -750,6 +753,8 @@ public:
     int32_t DropTable();
 
     int32_t AlterTable();
+
+	int32_t AlterDatabase();
 
     int32_t CreateIndex();
 

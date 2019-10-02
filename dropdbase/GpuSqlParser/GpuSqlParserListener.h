@@ -50,6 +50,9 @@ public:
   virtual void enterSqlAlterTable(GpuSqlParser::SqlAlterTableContext *ctx) = 0;
   virtual void exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext *ctx) = 0;
 
+  virtual void enterSqlAlterDatabase(GpuSqlParser::SqlAlterDatabaseContext *ctx) = 0;
+  virtual void exitSqlAlterDatabase(GpuSqlParser::SqlAlterDatabaseContext *ctx) = 0;
+
   virtual void enterSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) = 0;
   virtual void exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext *ctx) = 0;
 
@@ -61,6 +64,15 @@ public:
 
   virtual void enterNewTableEntry(GpuSqlParser::NewTableEntryContext *ctx) = 0;
   virtual void exitNewTableEntry(GpuSqlParser::NewTableEntryContext *ctx) = 0;
+
+  virtual void enterAlterDatabaseEntries(GpuSqlParser::AlterDatabaseEntriesContext *ctx) = 0;
+  virtual void exitAlterDatabaseEntries(GpuSqlParser::AlterDatabaseEntriesContext *ctx) = 0;
+
+  virtual void enterAlterDatabaseEntry(GpuSqlParser::AlterDatabaseEntryContext *ctx) = 0;
+  virtual void exitAlterDatabaseEntry(GpuSqlParser::AlterDatabaseEntryContext *ctx) = 0;
+
+  virtual void enterRenameDatabase(GpuSqlParser::RenameDatabaseContext *ctx) = 0;
+  virtual void exitRenameDatabase(GpuSqlParser::RenameDatabaseContext *ctx) = 0;
 
   virtual void enterAlterTableEntries(GpuSqlParser::AlterTableEntriesContext *ctx) = 0;
   virtual void exitAlterTableEntries(GpuSqlParser::AlterTableEntriesContext *ctx) = 0;

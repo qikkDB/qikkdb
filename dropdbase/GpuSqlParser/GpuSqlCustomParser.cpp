@@ -253,6 +253,11 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->sqlAlterTable());
     }
+    else if (statement->sqlAlterDatabase())
+    {
+        isSingleGpuStatement_ = true;
+        walker.walk(&gpuSqlListener, statement->sqlAlterDatabase());
+    }
     else if (statement->sqlCreateIndex())
     {
         isSingleGpuStatement_ = true;
