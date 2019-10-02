@@ -204,20 +204,6 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
         handler(std::move(notifyMessage));
         return ret;
     }
-    catch (const cuda_error& e)
-    {
-        std::lock_guard<std::mutex> importLock(importMutex_);
-        Context::getInstance().Reset();
-        auto notifyMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
-        dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
-        dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
-            ->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
-        handler(std::move(notifyMessage));
-        auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
-        infoMessage->set_message(e.what());
-        infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
-        return infoMessage;
-    }
     catch (const std::exception& e)
     {
         auto notifyMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();

@@ -7,13 +7,6 @@
 #endif // !WIN32
 
 
-cuda_error::cuda_error(cudaError_t cudaError)
-: gpu_error("CUDA Error " + std::to_string(static_cast<int32_t>(cudaError)) + ": " +
-            std::string(cudaGetErrorName(cudaError)))
-{
-    cudaError_ = cudaError;
-}
-
 query_engine_error::query_engine_error(QueryEngineErrorType queryEngineErrorType, const std::string& message)
 : gpu_error("GPU Error " + std::to_string(queryEngineErrorType) + (message.size() > 0 ? (": " + message) : ""))
 {
@@ -41,10 +34,7 @@ void CheckCudaError(cudaError_t cudaError)
         }
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "---- backtrace end --------" << '\n';
 #endif
-#ifdef DEBUG
         abort();
-#endif
-        throw cuda_error(cudaError);
     }
 }
 

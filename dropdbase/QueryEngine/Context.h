@@ -270,18 +270,4 @@ public:
     {
         return loadedDatabases_;
     }
-
-    void Reset()
-    {
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "Resetting all CUDA devices" << '\n';
-        gpuCaches_.clear();
-        gpuAllocators_.clear();
-        for (int32_t i = 0; i < deviceCount_; i++)
-        {
-            // Bind device and clean up
-            bindDeviceToContext(i);
-            cudaDeviceReset();
-        }
-        Initialize();
-    }
 };

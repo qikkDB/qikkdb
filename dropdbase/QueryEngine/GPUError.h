@@ -39,33 +39,6 @@ public:
     }
 };
 
-
-/// Error for CUDA "internal" errors
-class cuda_error : public gpu_error
-{
-private:
-    cudaError_t cudaError_;
-
-public:
-    /// Create cuda_error from cudaError_t status
-    /// and contain the number and the name of the error in an error message.
-    /// <param name="cudaError">return value from cudaGetLastError()</param>
-    explicit cuda_error(cudaError_t cudaError);
-
-
-    ~cuda_error()
-    {
-    }
-
-    /// Return stored value from cudaGetLastError()
-    /// <return>value from cudaGetLastError()</return>
-    cudaError_t GetCudaError() const
-    {
-        return cudaError_;
-    }
-};
-
-
 /// Error for our QueryEngine errors
 class query_engine_error : public gpu_error
 {

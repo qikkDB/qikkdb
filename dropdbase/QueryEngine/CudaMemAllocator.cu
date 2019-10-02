@@ -68,7 +68,7 @@ void ValidateIterator(int gpuId,
     }
     free(symbols);
     std::cerr << "-- Backtrace end --" << std::endl;
-	#endif
+#endif
     abort();
 }
 
@@ -98,7 +98,7 @@ void ValidateIterator(int gpuId,
     }
     free(symbols);
     std::cerr << "-- Backtrace end --" << std::endl;
-	#endif
+#endif
     abort();
 }
 #endif
@@ -164,7 +164,7 @@ int8_t* CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 #ifdef DEBUG_ALLOC
     fprintf(logOut, "%d CudaMemAllocator::allocate %zu bytes\n", deviceID_, numBytes);
     fprintf(logOut, "-- Backtrace start --\n");
-	#ifndef WIN32
+#ifndef WIN32
     void* backtraceArray[25];
     int btSize = backtrace(backtraceArray, 25);
     char** symbols = backtrace_symbols(backtraceArray, btSize);
@@ -174,7 +174,7 @@ int8_t* CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
     }
     free(symbols);
     fprintf(logOut, "-- Backtrace end --\n");
-	#endif
+#endif
     fflush(logOut);
 #endif
     // Minimal allocation unit is 512bytes, same as cudaMalloc. Thurst relies on this internally.
