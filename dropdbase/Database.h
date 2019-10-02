@@ -52,8 +52,8 @@ private:
                             const std::pair<const std::string, Table>& table);
 
 public:
+    static constexpr const int32_t PERSISTENCE_FORMAT_VERSION = 2;
     static constexpr const char* SEPARATOR = "@";
-    static constexpr const int32_t PERSISTENCE_FORMAT_VERSION = 1;
     static std::mutex dbMutex_;
     /// <summary>
     /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.

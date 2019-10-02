@@ -242,9 +242,11 @@ void Database::PersistOnlyDbFile(const char* path)
         int32_t tableNameLength = table.first.length() + 1; // +1 because '\0'
         int32_t columnNumber = columns.size();
         int32_t sortingColumnNumber = sortingColumns.size();
+        int32_t tableBlockSize = table.second.GetBlockSize();
 
         dbFile.write(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); // write table name length
         dbFile.write(table.first.c_str(), tableNameLength); // write table name
+        dbFile.write(reinterpret_cast<char*>(&tableBlockSize), sizeof(int32_t)); // write number of columns of the table
         dbFile.write(reinterpret_cast<char*>(&columnNumber), sizeof(int32_t)); // write number of columns of the table
         dbFile.write(reinterpret_cast<char*>(&sortingColumnNumber),
                      sizeof(int32_t)); // write number of sorting columns of the table
@@ -598,19 +600,30 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     dbFile.read(reinterpret_cast<char*>(&persistenceFormatVersion),
                 sizeof(int32_t)); // read persistence format version
 
+    if (persistenceFormatVersion != Database::PERSISTENCE_FORMAT_VERSION)
+    {
+        BOOST_LOG_TRIVIAL(warning)
+            << "WARNING: Database persistence format version is different. "
+            << "The persisted database files are in persistence format version: " << persistenceFormatVersion
+            << " the current persistence format version in this version of database core is: "
+            << Database::PERSISTENCE_FORMAT_VERSION
+            << ". There is going to be coversion to the database core format verion. "
+            << "The database files on disk will be changed after successful persistence.";
+    }
+
     int32_t dbNameLength;
     dbFile.read(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); // read db name length
 
     std::unique_ptr<char[]> dbName(new char[dbNameLength]);
     dbFile.read(dbName.get(), dbNameLength); // read db name
 
-    int32_t blockSize;
-    dbFile.read(reinterpret_cast<char*>(&blockSize), sizeof(int32_t)); // read block size
+    int32_t databaseBlockSize;
+    dbFile.read(reinterpret_cast<char*>(&databaseBlockSize), sizeof(int32_t)); // read block size
 
     int32_t tablesCount;
     dbFile.read(reinterpret_cast<char*>(&tablesCount), sizeof(int32_t)); // read number of tables
 
-    std::shared_ptr<Database> database = std::make_shared<Database>(dbName.get(), blockSize);
+    std::shared_ptr<Database> database = std::make_shared<Database>(dbName.get(), databaseBlockSize);
 
     for (int32_t i = 0; i < tablesCount; i++)
     {
@@ -621,6 +634,15 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
         dbFile.read(tableName.get(), tableNameLength); // read table name
         database->tables_.emplace(
             std::make_pair(std::string(tableName.get()), Table(database, tableName.get())));
+        int32_t tableBlockSize;
+        if (persistenceFormatVersion > 1)
+        {
+            dbFile.read(reinterpret_cast<char*>(&tableBlockSize), sizeof(int32_t)); // read number of columns
+        }
+        else
+        {
+            tableBlockSize = databaseBlockSize;
+        }
         int32_t columnCount;
         int32_t sortingColumnCount;
         dbFile.read(reinterpret_cast<char*>(&columnCount), sizeof(int32_t)); // read number of columns
