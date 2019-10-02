@@ -763,6 +763,7 @@ void Database::LoadColumn(const char* path,
                           Table& table,
                           const std::string& columnName)
 {
+    int32_t oneChunkSize = 8 * 1024 * 1024;
     // read files .col:
     std::string pathStr = std::string(path);
 
@@ -841,9 +842,12 @@ void Database::LoadColumn(const char* path,
 
                 colFile.read(data.get(), dataLength); // read entry data
 
+                auto& block = columnPolygon.AddBlock(groupId);
                 int64_t byteIndex = 0;
+
                 while (byteIndex < dataLength)
                 {
+                    int32_t dataCount = 0;
                     int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]);
 
                     byteIndex += sizeof(int32_t);
@@ -852,23 +856,33 @@ void Database::LoadColumn(const char* path,
                     memcpy(byteArray.get(), &data[byteIndex], entryByteLength);
 
                     ColmnarDB::Types::ComplexPolygon entryDataPolygon;
-
                     entryDataPolygon.ParseFromArray(byteArray.get(), entryByteLength);
-
                     dataPolygon.push_back(entryDataPolygon);
+                    dataCount++;
 
                     byteIndex += entryByteLength;
+
+					if (dataCount > columnPolygon.GetBlockSize())
+                    {
+                        throw std::runtime_error(
+                            "Loaded data from disk does not fit into existing block");
+                        break;
+                    }
+
+                    if (byteIndex >= oneChunkSize)
+                    {
+                        block.InsertData(dataPolygon);
+                        dataPolygon.clear();
+					}
                 }
                 data.release();
 
-                if (dataPolygon.size() > columnPolygon.GetBlockSize())
+				if (dataPolygon.size() > 0)
                 {
-                    throw std::runtime_error(
-                        "Loaded data from disk does not fit into existing block");
-                    break;
+                    block.InsertData(dataPolygon);
+                    dataPolygon.clear();
                 }
 
-                auto& block = columnPolygon.AddBlock(dataPolygon, groupId);
                 block.SetNullBitmask(std::move(nullBitMask));
                 BOOST_LOG_TRIVIAL(debug) << "Added ComplexPolygon block with data at index: " << index;
             }
@@ -940,9 +954,12 @@ void Database::LoadColumn(const char* path,
 
                 colFile.read(data.get(), dataLength); // read entry data
 
+                auto& block = columnPoint.AddBlock(groupId);
                 int64_t byteIndex = 0;
+
                 while (byteIndex < dataLength)
                 {
+                    int32_t dataCount = 0;
                     int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]);
 
                     byteIndex += sizeof(int32_t);
@@ -951,25 +968,34 @@ void Database::LoadColumn(const char* path,
                     memcpy(byteArray.get(), &data[byteIndex], entryByteLength);
 
                     ColmnarDB::Types::Point entryDataPoint;
-
                     entryDataPoint.ParseFromArray(byteArray.get(), entryByteLength);
-
                     dataPoint.push_back(entryDataPoint);
+                    dataCount++;
 
                     byteIndex += entryByteLength;
+
+					if (dataCount > columnPoint.GetBlockSize())
+                    {
+                        throw std::runtime_error(
+                            "Loaded data from disk does not fit into existing block");
+                        break;
+                    }
+
+                    if (byteIndex >= oneChunkSize)
+                    {
+                        block.InsertData(dataPoint);
+                        dataPoint.clear();
+                    }
                 }
                 data.release();
 
-                if (dataPoint.size() > columnPoint.GetBlockSize())
+                if (dataPoint.size() > 0)
                 {
-                    throw std::runtime_error(
-                        "Loaded data from disk does not fit into existing block");
-                    break;
+                    block.InsertData(dataPoint);
+                    dataPoint.clear();
                 }
 
-                auto& block = columnPoint.AddBlock(dataPoint, groupId);
                 block.SetNullBitmask(std::move(nullBitMask));
-
                 BOOST_LOG_TRIVIAL(debug) << "Added Point block with data at index: " << index;
             }
 
@@ -1031,9 +1057,12 @@ void Database::LoadColumn(const char* path,
 
                 colFile.read(data.get(), dataLength); // read block length
 
+                auto& block = columnString.AddBlock(groupId);
                 int64_t byteIndex = 0;
+
                 while (byteIndex < dataLength)
                 {
+                    int32_t dataCount = 0;
                     int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]); // read entry byte length
 
                     byteIndex += sizeof(int32_t);
@@ -1043,21 +1072,32 @@ void Database::LoadColumn(const char* path,
 
                     std::string entryDataString(byteArray.get());
                     dataString.push_back(entryDataString);
+                    dataCount++;
 
                     byteIndex += entryByteLength;
+
+					if (dataCount > columnString.GetBlockSize())
+                    {
+                        throw std::runtime_error(
+                            "Loaded data from disk does not fit into existing block");
+                        break;
+                    }
+
+                    if (byteIndex >= oneChunkSize)
+                    {
+                        block.InsertData(dataString);
+                        dataString.clear();
+                    }
                 }
                 data.release();
 
-                if (dataString.size() > columnString.GetBlockSize())
+                if (dataString.size() > 0)
                 {
-                    throw std::runtime_error(
-                        "Loaded data from disk does not fit into existing block");
-                    break;
+                    block.InsertData(dataString);
+                    dataString.clear();
                 }
 
-                auto& block = columnString.AddBlock(dataString, groupId);
                 block.SetNullBitmask(std::move(nullBitMask));
-
                 BOOST_LOG_TRIVIAL(debug) << "Added String block with data at index: " << index;
             }
 
@@ -1124,18 +1164,20 @@ void Database::LoadColumn(const char* path,
             }
             else // read data from block
             {
-                std::vector<int8_t> data(dataLength, 0);
+                std::unique_ptr<int8_t[]> data = nullptr;
+                data = std::unique_ptr<int8_t[]>(new int8_t[columnInt.GetBlockSize()]);
 
-                colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(int8_t)); // read entry data
+                colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(int8_t)); // read entry data
 
-                if (data.size() > columnInt.GetBlockSize())
+                if (dataLength > columnInt.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
                     break;
                 }
 
-                auto& block = columnInt.AddBlock(data, groupId, false, static_cast<bool>(isCompressed));
+                auto& block = columnInt.AddBlock(std::move(data), groupId, false,
+                                                 static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -1205,18 +1247,20 @@ void Database::LoadColumn(const char* path,
             }
             else // read data from block
             {
-                std::vector<int32_t> data(dataLength, 0);
+                std::unique_ptr<int32_t[]> data = nullptr;
+                data = std::unique_ptr<int32_t[]>(new int32_t[columnInt.GetBlockSize()]);
 
-                colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(int32_t)); // read entry data
+                colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(int32_t)); // read entry data
 
-                if (data.size() > columnInt.GetBlockSize())
+                if (dataLength > columnInt.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
                     break;
                 }
 
-                auto& block = columnInt.AddBlock(data, groupId, false, static_cast<bool>(isCompressed));
+                auto& block = columnInt.AddBlock(std::move(data), dataLength, groupId, false,
+                                                 static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -1286,18 +1330,20 @@ void Database::LoadColumn(const char* path,
             }
             else // read data from block
             {
-                std::vector<int64_t> data(dataLength, 0);
+                std::unique_ptr<int64_t[]> data = nullptr;
+                data = std::unique_ptr<int64_t[]>(new int64_t[columnLong.GetBlockSize()]);
 
-                colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(int64_t)); // read entry data
+                colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(int64_t)); // read entry data
 
-                if (data.size() > columnLong.GetBlockSize())
+                if (dataLength > columnLong.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
                     break;
                 }
 
-                auto& block = columnLong.AddBlock(data, groupId, false, static_cast<bool>(isCompressed));
+                auto& block = columnLong.AddBlock(std::move(data), dataLength, groupId, false,
+                                                  static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -1367,18 +1413,20 @@ void Database::LoadColumn(const char* path,
             }
             else // read data from block
             {
-                std::vector<float> data(dataLength, 0);
+                std::unique_ptr<float[]> data = nullptr;
+                data = std::unique_ptr<float[]>(new float[columnFloat.GetBlockSize()]);
 
-                colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(float)); // read entry data
+                colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(float)); // read entry data
 
-                if (data.size() > columnFloat.GetBlockSize())
+                if (dataLength > columnFloat.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
                     break;
                 }
 
-                auto& block = columnFloat.AddBlock(data, groupId, false, static_cast<bool>(isCompressed));
+                auto& block = columnFloat.AddBlock(std::move(data), dataLength, groupId, false,
+                                                   static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 
@@ -1448,18 +1496,20 @@ void Database::LoadColumn(const char* path,
             }
             else // read data from block
             {
-                std::vector<double> data(dataLength, 0);
+                std::unique_ptr<double[]> data = nullptr;
+                data = std::unique_ptr<double[]>(new double[columnDouble.GetBlockSize()]);
 
-                colFile.read(reinterpret_cast<char*>(data.data()), dataLength * sizeof(double)); // read entry data
+                colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(double)); // read entry data
 
-                if (data.size() > columnDouble.GetBlockSize())
+                if (dataLength > columnDouble.GetBlockSize())
                 {
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
                     break;
                 }
 
-                auto& block = columnDouble.AddBlock(data, groupId, false, static_cast<bool>(isCompressed));
+                auto& block = columnDouble.AddBlock(std::move(data), dataLength, groupId, false,
+                                                    static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
 

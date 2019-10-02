@@ -254,7 +254,7 @@ void BlockBase<int8_t>::updateBlockStatistics(const int8_t& data, bool isNullVal
 /// Set Block Statistics
 /// </summary>
 /// <param name="insertedDataSize">represents size of data which are inserted</param>
-/// <param name="oldDataSize">represents size of data which are already inserted</param>
+/// <param name="oldDataSize">represents size of data which are already inserted in block</param>
 template <>
 void BlockBase<int32_t>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {

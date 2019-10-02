@@ -251,9 +251,14 @@ public:
     /// </summary>
     /// <param name="data">Data to be inserted</param>
     /// <returns>Last block of column</returns>
-    BlockBase<T>& AddBlock(const std::vector<T>& data, int groupId = -1, bool compress = false, bool isCompressed = false)
+    BlockBase<T>& AddBlock(const std::vector<T>& data,
+                           int groupId = -1,
+                           bool compress = false,
+                           bool isCompressed = false,
+                           bool countBlockStatistics = true)
     {
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed, isNullable_));
+        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed,
+                                                                  isNullable_, countBlockStatistics));
         auto& lastBlock = blocks_[groupId].back();
         if (lastBlock->IsFull() && !isCompressed && compress)
         {
@@ -265,10 +270,15 @@ public:
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
-    BlockBase<T>&
-    AddBlock(std::unique_ptr<T[]>&& data, int32_t dataSize, int groupId = -1, bool compress = false, bool isCompressed = false)
+    BlockBase<T>& AddBlock(std::unique_ptr<T[]>&& data,
+                           int32_t dataSize,
+                           int groupId = -1,
+                           bool compress = false,
+                           bool isCompressed = false,
+                           bool countBlockStatistics = true)
     {
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize, *this, isCompressed, isNullable_));
+        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize, *this, isCompressed,
+                                                                  isNullable_, countBlockStatistics));
         auto& lastBlock = blocks_[groupId].back();
         if (lastBlock->IsFull() && !isCompressed && compress)
         {
