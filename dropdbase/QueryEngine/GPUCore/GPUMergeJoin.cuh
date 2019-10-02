@@ -204,7 +204,8 @@ public:
 				const int32_t colABlockSizeRounded = ((colABlockSize + W - 1) / W) * W;
 				const int32_t colBBlockSizeRounded = ((colBBlockSize + W - 1) / W) * W;
 
-				const int32_t diagonalSizeRounded = ((colABlockSizeRounded + colBBlockSizeRounded - 1) / W) * W;
+				const int32_t diagonalSizeRounded = colABlockSizeRounded + colBBlockSizeRounded - 1;
+
 				kernel_partition_input<<<context.calcGridDim(diagonalSizeRounded), W>>>(diagonalAIndices.get(),
 																					    diagonalBIndices.get(), 
 																						colABlockSorted.get(), 
