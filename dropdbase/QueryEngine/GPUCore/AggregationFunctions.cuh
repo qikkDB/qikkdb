@@ -337,4 +337,32 @@ struct count
         return T{0};
     }
 };
+
+/// A functor for no aggregation operation
+struct none
+{
+    template <typename T>
+    __device__ void operator()(T* a, T b) const
+    {
+        // empty
+    }
+
+    template <typename T>
+    __device__ void nonatomic(T* a, T b) const
+    {
+        // empty
+    }
+
+    template <typename OUT, typename IN>
+    static void agg(OUT* outValue, IN* ACol, int32_t dataElementCount)
+    {
+        // empty
+    }
+
+    template <typename T>
+    static constexpr T getInitValue()
+    {
+        return T{0};
+    }
+};
 } // namespace AggregationFunctions

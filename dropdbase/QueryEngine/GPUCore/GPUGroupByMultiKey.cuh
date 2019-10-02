@@ -884,7 +884,7 @@ public:
                                                    outValuesNullMask, valuesNullMaskCompressed.get());
             }
         }
-        else // for count: reconstruct and return keyOccurrences_
+        else if (std::is_same<AGG, AggregationFunctions::count>::value) // for count: reconstruct and return keyOccurrences_
         {
             if (!std::is_same<O, int64_t>::value)
             {
@@ -1268,7 +1268,7 @@ public:
                     GPUMemory::free(valuesMerged);
                     GPUMemory::free(occurencesMerged);
                 }
-                else // for count
+                else if (std::is_same<AGG, AggregationFunctions::count>::value) // for count
                 {
                     if (!std::is_same<O, int64_t>::value)
                     {
