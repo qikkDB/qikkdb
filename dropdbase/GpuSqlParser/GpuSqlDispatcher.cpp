@@ -968,7 +968,7 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
         if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_stringIndices",
                                                                              blockIndex_, loadSize_, loadOffset_) &&
             Context::getInstance().getCacheForCurrentDevice().containsColumn(
-                databaseName, colName + "_allChars" + std::to_string(size), blockIndex_, loadSize_, loadOffset_))
+                databaseName, colName + "_allChars", blockIndex_, loadSize_, loadOffset_))
         {
             GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
             GPUMemory::GPUString gpuString;
