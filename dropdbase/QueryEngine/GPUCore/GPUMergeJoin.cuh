@@ -104,22 +104,29 @@ __global__ void kernel_partition_input(int32_t *diagonalAIndices,
 	}
 }
 
-/*
+
 template<typename T> 
-__global__ void kernel_merge_join_unique()
+__global__ void kernel_merge_join_unique(int32_t *mergeAIndices,
+									     int32_t *mergeBIndices,
+										 int32_t *diagonalAIndices,
+									     int32_t *diagonalBIndices,
+										 T *colABlock, 
+										 T *colBBlock, 
+									     int32_t colABlockSize, 
+									     int32_t colBBlockSize,
+									     int32_t diagonalCount)
 {
 	extern __shared__ T s[];
 
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
-
 	
 	for (int32_t i = idx; i < diagonalCount; i += stride)
 	{
 
 	}
 }
-*/
+
 
 class MergeJoin
 {
@@ -151,6 +158,7 @@ public:
 		const int32_t colABlockCapacityRounded = ((colABlockCapacity + W - 1) / W) * W;
 		const int32_t colBBlockCapacityRounded  = ((colBBlockCapacity + W - 1) / W) * W;
 
+		const int32_t diagonalCountCapacityRounded = (colABlockCapacityRounded + colBBlockCapacityRounded - 1);
 		const int32_t diagonalCountSparseCapacityRounded = (colABlockCapacityRounded + colBBlockCapacityRounded - 1) / W;
 
 		// Alloc the work buffers for both A and B blocks
@@ -179,6 +187,10 @@ public:
 		// Alloc the merge path diagonal intersections work buffers
 		cuda_ptr<int32_t> diagonalAIndices(diagonalCountSparseCapacityRounded);
 		cuda_ptr<int32_t> diagonalBIndices(diagonalCountSparseCapacityRounded);
+
+		// Alloc the merge path indices buffers
+		cuda_ptr<int32_t> mergeAIndices(diagonalCountCapacityRounded);
+		cuda_ptr<int32_t> mergeBIndices(diagonalCountCapacityRounded);
 
 		// Perform the merge join
         for (int32_t a = 0; a < colABlockCount; a++)
@@ -235,22 +247,33 @@ public:
 				CheckCudaError(cudaGetLastError());
 
 				// Calculate the real diagonal count
-				const int32_t diagonalCountSparseRounded = (colABlockSize + colBBlockSize - 1) / W;
+				const int32_t diagonalCount = (colABlockSize + colBBlockSize - 1);
+
+				// Merge the two arrays - find join pairs
+				kernel_merge_join_unique<<<context.calcGridDim(diagonalCount), W, 2 * W * sizeof(T)>>>(mergeAIndices.get(),
+																									   mergeBIndices.get(),
+																									   diagonalAIndices.get(),
+																									   diagonalBIndices.get(),
+																									   colABlockSorted.get(), 
+																									   colBBlockSorted.get(), 
+																									   colABlockSize, 
+																									   colBBlockSize,
+																									   diagonalCount);
+				CheckCudaError(cudaGetLastError());
 
 				//DEBUG
-				std::vector<int32_t> ia(diagonalCountSparseRounded);
-				std::vector<int32_t> ib(diagonalCountSparseRounded);
+				printf("%d\n", diagonalCount);
 
-				GPUMemory::copyDeviceToHost(ia.data(), diagonalAIndices.get(), diagonalCountSparseRounded);
-				GPUMemory::copyDeviceToHost(ib.data(), diagonalBIndices.get(), diagonalCountSparseRounded);
+				std::vector<int32_t> ia(diagonalCount);
+				std::vector<int32_t> ib(diagonalCount);
 
-				for(int32_t x = 0; x < diagonalCountSparseRounded; x++)
+				GPUMemory::copyDeviceToHost(ia.data(), mergeAIndices.get(), diagonalCount);
+				GPUMemory::copyDeviceToHost(ib.data(), mergeBIndices.get(), diagonalCount);
+
+				for(int32_t x = 0; x < diagonalCount; x++)
 				{
 					printf("%3d : %3d %3d\n", x, ia[x], ib[x]);
 				}
-
-				// Merge the two arrays - find join pairs
-				//kernel_merge_join_unique<<<context.calcGridDim(diagonalSizeRounded), W, 2 * W * sizeof(T)>>>();
 			}
 		}
 	}

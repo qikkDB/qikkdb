@@ -177,8 +177,7 @@ public:
     /// <returns>the size of an optimal block</returns>
     int32_t getBlockDim() const
     {
-        return 3;
-        //queriedBlockDimensionList[getBoundDeviceID()];
+        return queriedBlockDimensionList[getBoundDeviceID()];
     }
 
     /// Get default block dimension for a polygon operation - half the size of a stream
