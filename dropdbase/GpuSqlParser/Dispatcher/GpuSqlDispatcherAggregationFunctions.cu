@@ -1496,14 +1496,14 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "GroupByString: " << columnName << '\n';
 
-    const auto column = FindStringColumn(columnName);   // Just copy!
+    const auto column = FindStringColumn(columnName); // Just copy!
 
     int32_t reconstructOutSize;
     GPUMemory::GPUString reconstructOutReg;
     int8_t* reconstructOutNullMask;
     GPUReconstruct::ReconstructStringColKeep(&reconstructOutReg, &reconstructOutSize, std::get<0>(column),
                                              reinterpret_cast<int8_t*>(filter_), std::get<1>(column),
-                                            &reconstructOutNullMask, std::get<2>(column));
+                                             &reconstructOutNullMask, std::get<2>(column));
 
     FillStringRegister(reconstructOutReg, columnName + RECONSTRUCTED_SUFFIX, reconstructOutSize,
                        filter_ ? false : true, reconstructOutNullMask);
@@ -1526,10 +1526,14 @@ int32_t GpuSqlDispatcher::GroupByDone()
     bool containsAggFunction = arguments_.Read<bool>();
     insideGroupBy_ = false;
 
-	//Preparation for group by without aggregation
+    // Preparation for group by without aggregation
     if (!containsAggFunction)
     {
-
+        std::cout << "GroupByDone not containsAggFunction" << std::endl;
+    }
+    else
+    {
+        std::cout << "Do nothing." << std::endl;
     }
 
     return 0;

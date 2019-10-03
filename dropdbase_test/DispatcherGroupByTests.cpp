@@ -1059,7 +1059,7 @@ protected:
         for (auto value : inKeys)
         {
             expectedResult.insert(value);
-		}
+        }
         ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
             << " wrong number of keys";
         for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
@@ -1344,4 +1344,14 @@ TEST_F(DispatcherGroupByTests, NullStringKeysWhere)
                             {{"one", false}, {2, false}},
                             {{"two", false}, {12, false}},
                             {{"five", false}, {-1, true}}});
+}
+
+TEST_F(DispatcherGroupByTests, IntKeyNoAggSingleBlock)
+{
+    GroupByIntNoAgg({7, 4, 7, 3});
+}
+
+TEST_F(DispatcherGroupByTests, IntKeyNoAggMoreBlocks)
+{
+    GroupByIntNoAgg({0, 1, 2, 3, 4, 8, -1, 5, -3, -4, -5, -255, 2, 8, -5, 7, 9, 9, 5, 4});
 }
