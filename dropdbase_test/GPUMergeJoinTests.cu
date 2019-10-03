@@ -10,15 +10,16 @@
 TEST(GPUMergeJoinTests, MergeJoinTest)
 {
 	// Initialize test buffers
-	const int32_t BLOCK_COUNT_A = 15;
-    const int32_t BLOCK_SIZE_A = 1 << 25;	
+	const int32_t BLOCK_COUNT_A = 1;
+    const int32_t BLOCK_SIZE_A = 13;	
 
-	const int32_t BLOCK_COUNT_B = 15;
-    const int32_t BLOCK_SIZE_B = 1 << 25;	
+	const int32_t BLOCK_COUNT_B = 1;
+    const int32_t BLOCK_SIZE_B = 8;	
 
 	ColumnBase<int32_t> colA("ColA", BLOCK_SIZE_A);
 	ColumnBase<int32_t> colB("ColB", BLOCK_SIZE_B);
 
+	/*
 	for (int32_t i = 0; i < BLOCK_COUNT_A; i++)
 	{
 		auto& blockA = colA.AddBlock();
@@ -43,7 +44,19 @@ TEST(GPUMergeJoinTests, MergeJoinTest)
 		}
 
 		blockB.InsertData(colBData);
-	}
+	}*/
+    auto& blockA = colA.AddBlock();
+    auto& blockB = colB.AddBlock();
+
+    std::vector<int32_t> colAData = {
+        'a', 'a', 'b', 'c', 'c', 'c', 'c', 'd', 'e', 'e', 'f', 'g', 'g'
+    };
+    std::vector<int32_t> colBData = {
+		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'
+    };
+
+	blockA.InsertData(colAData);
+    blockB.InsertData(colBData);
 
 	// Perform the merge join
 	auto start = std::chrono::steady_clock::now();
@@ -56,29 +69,53 @@ TEST(GPUMergeJoinTests, MergeJoinTest)
     FAIL();
 }
 
-TEST(GPUMergeJoinTests, MergeJoinCPUTest)
+TEST(GPUMergeJoinTests, SimpleMerge)
 {
-	constexpr int32_t A_size = 10;
-	constexpr int32_t B_size = 8;
+    std::vector<int32_t> A = {'a', 'a', 'b', 'c', 'c', 'c', 'c',
+                                     'd', 'e', 'e', 'f', 'g', 'g'};
+    std::vector<int32_t> B = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
 
-	constexpr int32_t W = 3;
-	constexpr int32_t A_size_rounded = ((A_size + W - 1) / W) * W;
-	constexpr int32_t B_size_rounded  = ((B_size + W - 1) / W) * W;
+	std::vector<int32_t> C(A.size() + B.size());
 
-    constexpr int32_t diag_size_rounded = ((A_size_rounded + B_size_rounded - 1) / W ) * W;
+	 int a = 0, b = 0, c = 0;
 
-	std::printf("%3d : %3d : %3d\n",A_size_rounded, B_size_rounded, diag_size_rounded);
-
-    for (int32_t i = 0; i < diag_size_rounded; i++)
+    // Classic merge
+     while (a < A.size() && b < B.size())
     {
-        int32_t a_beg = i < B_size_rounded ? i % W : W + i - B_size_rounded;
-        int32_t a_end = i < A_size_rounded ? i : A_size_rounded - W + i % W;
+        if (A[a] > B[b])
+        {
+            printf("CB: %3d : %3d %3d\n", c, a, b);
 
-        int32_t b_beg = i < A_size_rounded ? (W - i % W - 1) : ((W + i - A_size_rounded) / W) * W + (W - i % W - 1);
-        int32_t b_end = i < B_size_rounded ? (i / W) * W + (W - i % W - 1) : B_size_rounded - W + (W - i % W - 1);
+            C[c++] = B[b++];
+        }
+        else if (A[a] < B[b])
+        {
+            printf("CA: %3d : %3d %3d\n", c, a, b);
 
-        std::printf("%3d : %3d %3d %3d %3d\n", i, a_end, b_beg, a_beg, b_end);
+            C[c++] = A[a++];
+        }
+        else if (A[a] == B[b])
+        {
+            printf("CA: %3d : %3d %3d\n", c, a, b);
+
+            C[c++] = A[a++]; // If B has unique keys
+            // C[c++] = B[b++];	// If A has unique keys
+        }
     }
 
-    FAIL();
+    while (a < A.size())
+    {
+        printf("A : %3d : %3d %3d\n", c, a, b);
+
+        C[c++] = A[a++];
+    }
+
+    while (b < B.size())
+    {
+        printf("B : %3d : %3d %3d\n", c, a, b);
+
+        C[c++] = B[b++];
+    }
+
+	FAIL();
 }
