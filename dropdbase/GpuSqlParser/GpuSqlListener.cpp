@@ -9,6 +9,7 @@
 #include "../ComplexPolygonFactory.h"
 #include "ParserExceptions.h"
 #include "JoinType.h"
+#include "GroupByType.h"
 #include "GpuSqlDispatcher.h"
 #include "GpuSqlJoinDispatcher.h"
 #include <ctime>

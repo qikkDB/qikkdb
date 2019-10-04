@@ -1573,8 +1573,9 @@ int32_t GpuSqlDispatcher::GroupByDone()
                 CudaLogBoost::getInstance(CudaLogBoost::debug)
                     << "Reconstructing group by in thread: " << dispatcherThreadId_ << '\n';
 
+				std::string dummyRegName;
                 GpuSqlDispatcher::GroupByHelper<AggregationFunctions::none, int32_t, T, int32_t>::GetResults(
-                    groupByColumns_, std::string(), *this, false);
+                    groupByColumns_, dummyRegName, *this, false);
             }
             else
             {
