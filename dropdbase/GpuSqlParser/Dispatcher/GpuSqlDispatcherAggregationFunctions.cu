@@ -1478,7 +1478,25 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int8_t>};
 
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::groupByBeginFunction_ = &GpuSqlDispatcher::GroupByBegin;
-GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::groupByDoneFunction_ = &GpuSqlDispatcher::GroupByDone;
+
+std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE + 1> GpuSqlDispatcher::groupByDoneFunctions_ = {
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, int32_t>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, int64_t>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, float>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, double>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, std::string>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, int8_t>,
+    &GpuSqlDispatcher::GroupByDone<int32_t>,
+    &GpuSqlDispatcher::GroupByDone<int64_t>,
+    &GpuSqlDispatcher::GroupByDone<float>,
+    &GpuSqlDispatcher::GroupByDone<double>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<AggregationFunctions::none, ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<AggregationFunctions::none, ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::GroupByDone<std::string>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<AggregationFunctions::none, int8_t>,
+    &GpuSqlDispatcher::GroupByDone<std::vector<void*>>};
 
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::aggregationBeginFunction_ = &GpuSqlDispatcher::AggregationBegin;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::aggregationDoneFunction_ = &GpuSqlDispatcher::AggregationDone;
@@ -1521,6 +1539,7 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
     return 0;
 }
 
+template <typename T>
 int32_t GpuSqlDispatcher::GroupByDone()
 {
     bool containsAggFunction = arguments_.Read<bool>();
@@ -1529,11 +1548,43 @@ int32_t GpuSqlDispatcher::GroupByDone()
     // Preparation for group by without aggregation
     if (!containsAggFunction)
     {
+        if (groupByTables_[dispatcherThreadId_] == nullptr)
+        {
+            groupByTables_[dispatcherThreadId_] =
+                GpuSqlDispatcher::GroupByHelper<AggregationFunctions::none, int32_t, T, int32_t>::CreateInstance(
+                    Configuration::GetInstance().GetGroupByBuckets(), groupByColumns_);
+        }
+
+        GpuSqlDispatcher::GroupByHelper<AggregationFunctions::none, int32_t, T, int32_t>::ProcessBlock(
+            groupByColumns_, PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0}, *this);
+
+        if (isLastBlockOfDevice_)
+        {
+            if (isOverallLastBlock_)
+            {
+                // Wait until all threads finished work
+                std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
+                GpuSqlDispatcher::groupByCV_.wait(lock,
+                                                  [] { return GpuSqlDispatcher::IsGroupByDone(); });
+
+                CudaLogBoost::getInstance(CudaLogBoost::debug)
+                    << "Reconstructing group by in thread: " << dispatcherThreadId_ << '\n';
+
+                GpuSqlDispatcher::GroupByHelper<AggregationFunctions::none, int32_t, T, int32_t>::GetResults(
+                    groupByColumns_, reg, *this);
+            }
+            else
+            {
+                CudaLogBoost::getInstance(CudaLogBoost::debug)
+                    << "Group by all blocks done in thread: " << dispatcherThreadId_ << '\n';
+                // Increment counter and notify threads
+                std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
+                GpuSqlDispatcher::IncGroupByDoneCounter();
+                GpuSqlDispatcher::groupByCV_.notify_all();
+            }
+        }
+
         std::cout << "GroupByDone not containsAggFunction" << std::endl;
-    }
-    else
-    {
-        std::cout << "Do nothing." << std::endl;
     }
 
     return 0;

@@ -9,7 +9,6 @@
 #include "../ComplexPolygonFactory.h"
 #include "ParserExceptions.h"
 #include "JoinType.h"
-#include "GroupByType.h"
 #include "GpuSqlDispatcher.h"
 #include "GpuSqlJoinDispatcher.h"
 #include <ctime>
@@ -949,8 +948,16 @@ void GpuSqlListener::enterGroupByColumns(GpuSqlParser::GroupByColumnsContext* ct
 /// <param name="ctx">Group By Columns context</param>
 void GpuSqlListener::exitGroupByColumns(GpuSqlParser::GroupByColumnsContext* ctx)
 {
+    GroupByType groupByType = GroupByType::SINGLE_KEY_GROUP_BY;
+    DataType keyType = std::get<1>(*(groupByColumns_.begin()));
+
+    if (groupByColumns_.size() > 1)
+    {
+        groupByType = GroupByType::MULTI_KEY_GROUP_BY;
+    }
+
     dispatcher_.AddArgument<bool>(ContainsAggFunction);
-    dispatcher_.AddGroupByDoneFunction();
+    dispatcher_.AddGroupByDoneFunction(keyType, groupByType);
     usingGroupBy_ = true;
     insideGroupBy_ = false;
 }

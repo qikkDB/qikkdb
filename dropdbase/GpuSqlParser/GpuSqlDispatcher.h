@@ -228,7 +228,7 @@ private:
     static DispatchFunction aggregationBeginFunction_;
     static DispatchFunction aggregationDoneFunction_;
     static DispatchFunction groupByBeginFunction_;
-    static DispatchFunction groupByDoneFunction_;
+    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE + 1> groupByDoneFunctions_;
     static DispatchFunction freeOrderByTableFunction_;
     static DispatchFunction orderByReconstructRetAllBlocksFunction_;
     static DispatchFunction getLoadSizeFunction_;
@@ -569,7 +569,7 @@ public:
 
     void AddGroupByBeginFunction();
 
-    void AddGroupByDoneFunction();
+    void AddGroupByDoneFunction(DataType key, GroupByType groupByType);
 
     void AddAggregationBeginFunction();
 
@@ -716,6 +716,7 @@ public:
 
     int32_t GroupByBegin();
 
+	template <typename T>
     int32_t GroupByDone();
 
     int32_t FreeOrderByTable();

@@ -34,7 +34,8 @@ all_types = [INT,
 
 bitwise_operations = ["bitwiseOr", "bitwiseAnd", "bitwiseXor", "bitwiseLeftShift", "bitwiseRightShift"]
 arithmetic_operations = ["mul", "div", "add", "sub", "mod", "logarithm", "power"]
-unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'cotangent', 'arcsine', 'arccosine', 'arctangent',
+unary_arithmetic_operations = ['minus', 'absolute', 'sine', 'cosine', 'tangent', 'cotangent', 'arcsine', 'arccosine',
+                               'arctangent',
                                'logarithm10', 'logarithmNatural', 'exponential', 'squareRoot', 'square', 'sign',
                                'round', 'floor', 'ceil']
 geo_operations = ["contains"]
@@ -504,8 +505,6 @@ for operation in operations_aggregation:
     print(declaration)
 print()
 
-
-
 for operation in operations_date:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction, " \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
@@ -675,7 +674,6 @@ for operation in ['OrderByReconstruct']:
     print(declaration)
 print()
 
-
 for operation in ['len']:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
@@ -706,7 +704,8 @@ for operation in ['len']:
     print(declaration)
 print()
 
-for opIdx, operation in enumerate(['joinGreater', 'joinLess', 'joinGreaterEqual', 'joinLessEqual', 'joinEqual', 'joinNotEqual']):
+for opIdx, operation in enumerate(
+        ['joinGreater', 'joinLess', 'joinGreaterEqual', 'joinLessEqual', 'joinEqual', 'joinNotEqual']):
     declaration = "std::array<GpuSqlJoinDispatcher::DispatchJoinFunction," \
                   "DataType::DATA_TYPE_SIZE> GpuSqlJoinDispatcher::" + operation + "Functions = {"
 
@@ -722,7 +721,8 @@ for opIdx, operation in enumerate(['joinGreater', 'joinLess', 'joinGreaterEqual'
         else:
             op = "join"
 
-        function = "GpuSqlJoinDispatcher::" + op + col + "<FilterConditions::" + filter_operations[opIdx] + ", " + colVal + ">"
+        function = "GpuSqlJoinDispatcher::" + op + col + "<FilterConditions::" + filter_operations[
+            opIdx] + ", " + colVal + ">"
 
         if colIdx == len(all_types) - 1:
             declaration += ("&" + function + "};")
@@ -731,7 +731,6 @@ for opIdx, operation in enumerate(['joinGreater', 'joinLess', 'joinGreaterEqual'
 
     print(declaration)
 print()
-
 
 for operation in operations_string_binary:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
@@ -805,9 +804,9 @@ for operation in ["concat"]:
     print(declaration)
 print()
 
-
-
-for opIdx, operation in enumerate(["castToInt", "castToLong", "castToFloat", "castToDouble", "castToPoint", "castToPolygon", "castToString", "castToInt8t"]):
+for opIdx, operation in enumerate(
+        ["castToInt", "castToLong", "castToFloat", "castToDouble", "castToPoint", "castToPolygon", "castToString",
+         "castToInt8t"]):
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
@@ -833,3 +832,31 @@ for opIdx, operation in enumerate(["castToInt", "castToLong", "castToFloat", "ca
     print(declaration)
 print()
 
+for operation in ['groupByDone']:
+    declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
+                  "DataType::DATA_TYPE_SIZE + 1> GpuSqlDispatcher::" + operation + "Functions_ = {"
+
+    for colIdx, colVal in enumerate(all_types):
+
+        if colIdx < len(types):
+            col = "Const"
+        elif colIdx >= len(types):
+            col = "Col"
+
+        if colVal == BOOL or colVal in geo_types or col == "Const":
+            op = "InvalidOperandTypesErrorHandler"
+
+        else:
+            op = "GroupByDone"
+
+        function = "GpuSqlDispatcher::" + op + "<" + colVal + ">"
+
+        if colIdx == len(all_types) - 1:
+            declaration += ("&" + function + ", ")
+            function = "GpuSqlDispatcher::GroupByDone<std::vector<void*>>"
+            declaration += ("&" + function + "};")
+        else:
+            declaration += ("&" + function + ", ")
+
+    print(declaration)
+print()

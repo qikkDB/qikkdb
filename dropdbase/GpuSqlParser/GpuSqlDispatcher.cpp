@@ -798,9 +798,21 @@ void GpuSqlDispatcher::AddGroupByBeginFunction()
     dispatcherFunctions_.push_back(groupByBeginFunction_);
 }
 
-void GpuSqlDispatcher::AddGroupByDoneFunction()
+void GpuSqlDispatcher::AddGroupByDoneFunction(DataType key, GroupByType groupByType)
 {
-    dispatcherFunctions_.push_back(groupByDoneFunction_);
+    GpuSqlDispatcher::DispatchFunction fun;
+    switch (groupByType)
+    {
+    case GroupByType::SINGLE_KEY_GROUP_BY:
+        fun = groupByDoneFunctions_[key];
+        break;
+    case GroupByType::MULTI_KEY_GROUP_BY:
+        fun = groupByDoneFunctions_[DataType::DATA_TYPE_SIZE];
+        break;
+    default:
+        break;
+    }
+    dispatcherFunctions_.push_back(fun);
 }
 
 void GpuSqlDispatcher::AddAggregationBeginFunction()

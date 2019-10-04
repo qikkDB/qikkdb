@@ -1046,7 +1046,7 @@ protected:
         groupByDatabase->CreateTable(columns, tableName.c_str());
 
         reinterpret_cast<ColumnBase<int32_t>*>(
-            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerK").get())
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colKeys").get())
             ->InsertData(inKeys);
 
         // Execute the query_
