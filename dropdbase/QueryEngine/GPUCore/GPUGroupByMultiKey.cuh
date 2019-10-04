@@ -1285,6 +1285,15 @@ public:
                                             outDataElementCount, outKeysNullMasksVector, outValuesNullMask);
                 }
 
+                if (std::is_same<AGG, AggregationFunctions::none>::value) // for group by withou aggregation function
+                {
+                    GPUGroupBy<AGG, O, std::vector<void*>, V> finalGroupBy(sumElementCount, keyTypesHost);
+                    finalGroupBy.ProcessBlock(hostPointersToKeysAll, compressedKeysNullMasksAllPtr,
+                                              nullptr, sumElementCount, nullptr);
+                    finalGroupBy.GetResults(outKeysVector, outValues, outDataElementCount,
+                                            outKeysNullMasksVector, outValuesNullMask);
+                }
+
                 FreeKeysBuffer(multiKeysAllGPU, keysNullMasksAllGPU, keyTypes_, keysColCount_);
             }
             else

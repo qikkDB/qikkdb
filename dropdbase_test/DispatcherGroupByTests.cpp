@@ -1068,6 +1068,81 @@ protected:
             ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
         }
     }
+
+    void GroupByStringNoAgg(std::vector<std::string> inKeys)
+    {
+        std::string tableName = "NoAggTable";
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colKeys", DataType::COLUMN_STRING));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<std::string>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colKeys").get())
+            ->InsertData(inKeys);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase, "SELECT colKeys FROM " + tableName + " GROUP BY colKeys;");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadKeys = result->payloads().at(tableName + ".colKeys");
+        std::set<std::string> expectedResult;
+        for (auto value : inKeys)
+        {
+            expectedResult.insert(value);
+        }
+        ASSERT_EQ(expectedResult.size(), payloadKeys.stringpayload().stringdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadKeys.stringpayload().stringdata_size(); i++)
+        {
+            std::string key = payloadKeys.stringpayload().stringdata()[i];
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+        }
+    }
+
+    void GroupByMultiKeyIntIntStringNoAgg(
+        std::tuple<std::vector<int32_t>, std::vector<int32_t>, std::vector<std::string>> keys)
+    {
+        std::string tableName = "NoAggTable";
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colKeysInt1", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colKeysInt2", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colKeysString", DataType::COLUMN_STRING));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colKeysInt1").get())
+            ->InsertData(std::get<0>(keys));
+
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colKeysInt2").get())
+            ->InsertData(std::get<1>(keys));
+
+        reinterpret_cast<ColumnBase<std::string>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colKeysString").get())
+            ->InsertData(std::get<2>(keys));
+
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase,
+                                  "SELECT colKeysInt1 FROM " + tableName +
+                                      " GROUP BY colKeysInt1, colKeysInt2, colKeysString;");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadKeys = result->payloads().at(tableName + ".colKeysInt1");
+        std::set<int32_t> expectedResult;
+        for (auto value : std::get<0>(keys))
+        {
+            expectedResult.insert(value);
+        }
+        ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+        {
+            int32_t key = payloadKeys.intpayload().intdata()[i];
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+        }
+    }
 };
 
 // Group By basic numeric keys
@@ -1354,4 +1429,16 @@ TEST_F(DispatcherGroupByTests, IntKeyNoAggSingleBlock)
 TEST_F(DispatcherGroupByTests, IntKeyNoAggMoreBlocks)
 {
     GroupByIntNoAgg({0, 1, 2, 3, 4, 8, -1, 5, -3, -4, -5, -255, 2, 8, -5, 7, 9, 9, 5, 4});
+}
+
+TEST_F(DispatcherGroupByTests, StringKeyNoAgg)
+{
+    GroupByStringNoAgg({"Apple", "Abcd", "Apple", "XYZ", "Banana", "XYZ", "Abcd", "0", "XYZ", "XYZ"});
+}
+
+TEST_F(DispatcherGroupByTests, MultiKeyNoAgg)
+{
+    GroupByMultiKeyIntIntStringNoAgg({{5, 2, 2, 2, 2, 5, 1, 7},
+                                      {1, 1, 1, 1, 1, 1, 2, 0},
+                                      {"Apple", "Nut", "Nut", "Apple", "XYZ", "Apple", "Apple", "Nut"}});
 }

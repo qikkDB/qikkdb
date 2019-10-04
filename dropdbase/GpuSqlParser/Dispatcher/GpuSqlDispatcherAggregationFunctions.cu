@@ -1548,6 +1548,9 @@ int32_t GpuSqlDispatcher::GroupByDone()
     // Preparation for group by without aggregation
     if (!containsAggFunction)
     {
+        CudaLogBoost::getInstance(CudaLogBoost::debug)
+            << "Group By without aggregation function: " << typeid(T).name() << '\n';
+
         if (groupByTables_[dispatcherThreadId_] == nullptr)
         {
             groupByTables_[dispatcherThreadId_] =
@@ -1571,7 +1574,7 @@ int32_t GpuSqlDispatcher::GroupByDone()
                     << "Reconstructing group by in thread: " << dispatcherThreadId_ << '\n';
 
                 GpuSqlDispatcher::GroupByHelper<AggregationFunctions::none, int32_t, T, int32_t>::GetResults(
-                    groupByColumns_, reg, *this);
+                    groupByColumns_, std::string(), *this, false);
             }
             else
             {
@@ -1583,8 +1586,6 @@ int32_t GpuSqlDispatcher::GroupByDone()
                 GpuSqlDispatcher::groupByCV_.notify_all();
             }
         }
-
-        std::cout << "GroupByDone not containsAggFunction" << std::endl;
     }
 
     return 0;

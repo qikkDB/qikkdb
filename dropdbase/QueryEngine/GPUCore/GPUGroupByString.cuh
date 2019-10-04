@@ -449,8 +449,8 @@ public:
             GPUReconstruct::CompressNullMask(CreateKeyNullMask().get(), maxHashCount_);
 
         GPUReconstruct::ReconstructStringColKeep(outKeys, outDataElementCount, keysBuffer_,
-                                                 occupancyMask.get(), maxHashCount_, outKeysNullMask,
-                                                 keysNullMaskCompressed.get());
+                                                 occupancyMask.get(), maxHashCount_,
+                                                 outKeysNullMask, keysNullMaskCompressed.get());
 
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
@@ -534,7 +534,8 @@ public:
                 else
                 {
                     GPUMemory::allocAndSet(outValuesNullMask, 0,
-                                       (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8));
+                                           (*outDataElementCount + sizeof(int8_t) * 8 - 1) /
+                                               (sizeof(int8_t) * 8));
                 }
             }
         }
@@ -745,6 +746,17 @@ public:
                     // reinterpret_cast is needed to solve compilation error
                     finalGroupBy.GetResults(outKeys, reinterpret_cast<int64_t**>(outValues),
                                             outDataElementCount, outKeysNullMask, outValuesNullMask);
+                }
+
+                if (std::is_same<AGG, AggregationFunctions::none>::value) // for group by without aggregation function
+                {
+                    GPUGroupBy<AGG, O, std::string, V> finalGroupBy(sumElementCount);
+                    finalGroupBy.ProcessBlock(
+                        keysAllGPU, nullptr, sumElementCount,
+                        GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
+                        nullptr);
+                    finalGroupBy.GetResults(outKeys, outValues, outDataElementCount,
+                                            outKeysNullMask, outValuesNullMask);
                 }
 
                 GPUMemory::free(keysAllGPU);

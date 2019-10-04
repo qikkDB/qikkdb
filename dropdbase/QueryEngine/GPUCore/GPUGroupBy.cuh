@@ -31,7 +31,7 @@ __device__ __host__ constexpr K getEmptyValue()
     static_assert(std::is_integral<K>::value || std::is_floating_point<K>::value,
                   "Unsupported data type of key (in function getEmptyValue)");
     return std::numeric_limits<K>::lowest();
-    }
+}
 
 /// Generic atomic CAS (compare and set) for any 4 and 8 bytes long data type.
 template <typename T>
@@ -355,7 +355,8 @@ public:
     /// Create GPUGroupBy object with existing keys (allocate whole new hash table)
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
     /// <param name="keys">GPU buffer with existing keys (will be copied to a new buffer)</param>
-    GPUGroupBy(int32_t maxHashCount, K* keys, bool firstKeyIsNull) : GPUGroupBy(maxHashCount - (firstKeyIsNull ? 1 : 0))
+    GPUGroupBy(int32_t maxHashCount, K* keys, bool firstKeyIsNull)
+    : GPUGroupBy(maxHashCount - (firstKeyIsNull ? 1 : 0))
     {
         // keys_ has value at index 0 reserved for NULL key
         GPUMemory::copyDeviceToDevice(keys_ + (firstKeyIsNull ? 0 : 1), keys, maxHashCount);
@@ -559,7 +560,8 @@ public:
                 else
                 {
                     GPUMemory::allocAndSet(outValuesNullMask, 0,
-                                       (*outDataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8));
+                                           (*outDataElementCount + sizeof(int8_t) * 8 - 1) /
+                                               (sizeof(int8_t) * 8));
                 }
             }
         }
@@ -699,8 +701,8 @@ public:
 
                     // Calculate sum of occurrences
                     // Initialize countGroupBy table with already existing keys from sumGroupBy - to guarantee the same order
-                    GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(*outDataElementCount,
-                                                                                            tempKeys, firstChar & 1 == 1);
+                    GPUGroupBy<AggregationFunctions::sum, int64_t, K, int64_t> countGroupBy(
+                        *outDataElementCount, tempKeys, firstChar & 1 == 1);
                     GPUMemory::free(tempKeys);
                     GPUMemory::free(tempKeysNulls);
                     countGroupBy.ProcessBlock(
@@ -748,6 +750,16 @@ public:
                     // reinterpret_cast is needed to solve compilation error
                     finalGroupBy.GetResults(outKeys, reinterpret_cast<int64_t**>(outValues),
                                             outDataElementCount, outKeysNullMask, outValuesNullMask);
+                }
+                else if (std::is_same<AGG, AggregationFunctions::none>::value) // for group by without agg
+                {
+                    GPUGroupBy<AGG, O, K, V> finalGroupBy(sumElementCount);
+                    finalGroupBy.ProcessBlock(
+                        keysAllGPU.get(), nullptr, sumElementCount,
+                        GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
+                        nullptr);
+                    finalGroupBy.GetResults(outKeys, outValues, outDataElementCount,
+                                            outKeysNullMask, outValuesNullMask);
                 }
             }
             else

@@ -123,7 +123,8 @@ public:
 
     static void GetResults(const std::vector<std::pair<std::string, DataType>>& groupByColumns,
                            const std::string& reg,
-                           GpuSqlDispatcher& dispatcher)
+                           GpuSqlDispatcher& dispatcher,
+                           bool usingAggregation = true)
     {
         std::string groupByColumnName = groupByColumns.begin()->first;
         int32_t outSize;
@@ -138,8 +139,11 @@ public:
         dispatcher.InsertRegister(groupByColumnName + KEYS_SUFFIX,
                                   PointerAllocation{reinterpret_cast<uintptr_t>(outKeys), outSize, true,
                                                     reinterpret_cast<uintptr_t>(outKeyNullMask)});
-        dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
-                                                         reinterpret_cast<uintptr_t>(outValueNullMask)});
+        if (usingAggregation)
+        {
+            dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
+                                                             reinterpret_cast<uintptr_t>(outValueNullMask)});
+        }
     }
 };
 
@@ -172,7 +176,8 @@ public:
 
     static void GetResults(const std::vector<std::pair<std::string, DataType>>& groupByColumns,
                            const std::string& reg,
-                           GpuSqlDispatcher& dispatcher)
+                           GpuSqlDispatcher& dispatcher,
+                           bool usingAggregation = true)
     {
         std::string groupByColumnName = groupByColumns.begin()->first;
         int32_t outSize;
@@ -185,8 +190,11 @@ public:
             ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask,
                          &outValueNullMask);
         dispatcher.FillStringRegister(outKeys, groupByColumnName + KEYS_SUFFIX, outSize, true, outKeyNullMask);
-        dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
-                                                         reinterpret_cast<uintptr_t>(outValueNullMask)});
+        if (usingAggregation)
+        {
+            dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
+                                                             reinterpret_cast<uintptr_t>(outValueNullMask)});
+        }
     }
 };
 
@@ -259,7 +267,8 @@ public:
 
     static void GetResults(const std::vector<std::pair<std::string, DataType>>& groupByColumns,
                            const std::string& reg,
-                           GpuSqlDispatcher& dispatcher)
+                           GpuSqlDispatcher& dispatcher,
+                           bool usingAggregation = true)
     {
         int32_t outSize;
         std::vector<void*> outKeys;
@@ -317,8 +326,11 @@ public:
                 break;
             }
         }
-        dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
-                                                         reinterpret_cast<uintptr_t>(outValueNullMask)});
+        if (usingAggregation)
+        {
+            dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
+                                                             reinterpret_cast<uintptr_t>(outValueNullMask)});
+        }
     }
 };
 
@@ -371,7 +383,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
     }
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "AggGroupBy: " << colTableName << " " << reg
-                                                  << ", thread: " << dispatcherThreadId_ << '\n';
+                                                   << ", thread: " << dispatcherThreadId_ << '\n';
     PointerAllocation& column = aggCount ? dummyAllocation : allocatedPointers_.at(colTableName);
     int32_t reconstructOutSize;
 
