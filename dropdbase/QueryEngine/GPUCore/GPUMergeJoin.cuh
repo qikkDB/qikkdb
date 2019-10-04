@@ -31,7 +31,7 @@ __global__ void kernel_partition_input(int32_t *diagonalAIndices,
 	for (int32_t i = idx; i < diagonalCount; i += stride)
 	{
 		const int32_t W = blockDim.x;
-		const int32_t outIdx = i / W;
+		const int32_t diagIdx = i / W;
 
         int32_t aBeg = i < colBBlockSizeRounded ? i % W : W + i - colBBlockSizeRounded;
         int32_t aEnd = i < colABlockSizeRounded ? i : colABlockSizeRounded - W + i % W;
@@ -66,17 +66,19 @@ __global__ void kernel_partition_input(int32_t *diagonalAIndices,
 			}
 
 			// If this is a 1 and on the uppermost row or rightmost column, it is automatically a merge point
-			if(colABlock[aMid] > colBBlock[bMid] && (aMid == 0 || bMid == (colBBlockSize - 1))) {
-                diagonalAIndices[outIdx] = aMid;
-                diagonalBIndices[outIdx] = bMid;
+			if(colABlock[aMid] > colBBlock[bMid] && (aMid == 0 || bMid == (colBBlockSize - 1))) 
+			{
+                diagonalAIndices[diagIdx] = aMid;
+                diagonalBIndices[diagIdx] = bMid;
 
 				break;
 			}
 
 			// If this is a 0 and on the lowermost row or leftmost column, it is automatically a merge point
-			if(colABlock[aMid] <= colBBlock[bMid] && (aMid == (colABlockSize - 1) || bMid == 0)) {
-                diagonalAIndices[outIdx] = aMid;
-                diagonalBIndices[outIdx] = bMid;
+			if(colABlock[aMid] <= colBBlock[bMid] && (aMid == (colABlockSize - 1) || bMid == 0)) 
+			{
+                diagonalAIndices[diagIdx] = aMid;
+                diagonalBIndices[diagIdx] = bMid;
 
 				break;
 			}		
@@ -84,15 +86,17 @@ __global__ void kernel_partition_input(int32_t *diagonalAIndices,
 			// Check merge point condition according to paper
 			if (colABlock[aMid] > colBBlock[bMid - 1])
 			{
-				if(colABlock[aMid - 1] <= colBBlock[bMid]) {
-                    diagonalAIndices[outIdx] = aMid;
-                    diagonalBIndices[outIdx] = bMid;
+				if(colABlock[aMid - 1] <= colBBlock[bMid]) 
+				{
+                    diagonalAIndices[diagIdx] = aMid;
+                    diagonalBIndices[diagIdx] = bMid;
 					
 					break;
 				}
-				else {
-				aEnd = aMid - 1;
-				bBeg = bMid + 1;
+				else 
+				{
+					aEnd = aMid - 1;
+					bBeg = bMid + 1;
 				}
 			}
 			else
@@ -116,14 +120,88 @@ __global__ void kernel_merge_join_unique(int32_t *mergeAIndices,
 									     int32_t colBBlockSize,
 									     int32_t diagonalCount)
 {
-	extern __shared__ T s[];
-
 	const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const int32_t stride = blockDim.x * gridDim.x;
 	
 	for (int32_t i = idx; i < diagonalCount; i += stride)
 	{
+		const int32_t W = blockDim.x;
+		const int32_t diagIdx = (i + 1) / W;
 
+		const int32_t baseIdxA = (diagIdx == 0) ? 0 : diagonalAIndices[diagIdx - 1];
+		const int32_t baseIdxB = (diagIdx == 0) ? 0 : diagonalBIndices[diagIdx - 1];
+		
+        int32_t aBegSub = baseIdxA;
+        int32_t aEndSub = baseIdxA + ((diagIdx == 0) ? i % W : (i + 1) % W);
+
+        int32_t bBegSub = baseIdxB;
+        int32_t bEndSub = baseIdxB + ((diagIdx == 0) ? i % W : (i + 1) % W);
+
+		while (aBegSub <= aEndSub && bBegSub <= bEndSub)
+		{
+			int32_t aMidSub = aBegSub + (aEndSub - aBegSub) / 2;
+			int32_t bMidSub = bEndSub - (bEndSub - bBegSub) / 2;
+
+			// Check if the calcualted indices are within merge matrix bounds
+			if(aMidSub >= colABlockSize && bMidSub >= colBBlockSize)
+			{
+				break; 
+			}
+			else if(aMidSub >= colABlockSize && bMidSub < colBBlockSize)
+			{
+				aEndSub = aMidSub - 1;
+				bBegSub = bMidSub + 1;
+
+				continue;			
+			}
+			else if(aMidSub < colABlockSize && bMidSub >= colBBlockSize)
+			{
+				aBegSub = aMidSub + 1;
+				bEndSub = bMidSub - 1;
+
+				continue;			
+			}
+
+			// If this is a 1 and on the uppermost row or rightmost column, it is automatically a merge point
+			if(colABlock[aMidSub] > colBBlock[bMidSub] && (aMidSub == 0 || bMidSub == (colBBlockSize - 1))) 
+			{
+				mergeAIndices[aMidSub + bMidSub] = aMidSub;
+                mergeBIndices[aMidSub + bMidSub] = bMidSub;
+
+				break;
+			}
+
+			// If this is a 0 and on the lowermost row or leftmost column, it is automatically a merge point
+			if(colABlock[aMidSub] <= colBBlock[bMidSub] && (aMidSub == (colABlockSize - 1) || bMidSub == 0)) 
+			{
+				mergeAIndices[aMidSub + bMidSub] = aMidSub;
+                mergeBIndices[aMidSub + bMidSub] = bMidSub;
+
+				break;
+			}		
+
+			// Check merge point condition according to paper
+			if (colABlock[aMidSub] > colBBlock[bMidSub - 1])
+			{
+				if(colABlock[aMidSub - 1] <= colBBlock[bMidSub]) 
+				{
+					mergeAIndices[aMidSub + bMidSub] = aMidSub;
+                    mergeBIndices[aMidSub + bMidSub] = bMidSub;
+					
+					break;
+				}
+				else 
+				{
+					aEndSub = aMidSub - 1;
+					bBegSub = bMidSub + 1;
+				}
+			}
+			else
+			{
+				aBegSub = aMidSub + 1;
+				bEndSub = bMidSub - 1;
+			}
+		}
 	}
 }
 
@@ -192,6 +270,8 @@ public:
 		cuda_ptr<int32_t> mergeAIndices(diagonalCountCapacityRounded);
 		cuda_ptr<int32_t> mergeBIndices(diagonalCountCapacityRounded);
 
+		GPUMemory::memset(mergeAIndices.get(), 0, diagonalCountCapacityRounded);
+
 		// Perform the merge join
         for (int32_t a = 0; a < colABlockCount; a++)
         {
@@ -236,33 +316,33 @@ public:
 				const int32_t diagonalCountRounded = colABlockSizeRounded + colBBlockSizeRounded - 1;
 
 				kernel_partition_input<<<context.calcGridDim(diagonalCountRounded), W>>>(diagonalAIndices.get(),
-																					    diagonalBIndices.get(), 
-																						colABlockSorted.get(), 
-																					    colBBlockSorted.get(), 
-																					    colABlockSize, 
-																					    colBBlockSize, 
-																					    colABlockSizeRounded, 
-																					    colBBlockSizeRounded, 
-																					    diagonalCountRounded);
+																					     diagonalBIndices.get(), 
+																						 colABlockSorted.get(), 
+																					     colBBlockSorted.get(), 
+																					     colABlockSize, 
+																					     colBBlockSize, 
+																					     colABlockSizeRounded, 
+																					     colBBlockSizeRounded, 
+																					     diagonalCountRounded);
 				CheckCudaError(cudaGetLastError());
 
 				// Calculate the real diagonal count
 				const int32_t diagonalCount = (colABlockSize + colBBlockSize - 1);
 
 				// Merge the two arrays - find join pairs
-				kernel_merge_join_unique<<<context.calcGridDim(diagonalCount), W, 2 * W * sizeof(T)>>>(mergeAIndices.get(),
-																									   mergeBIndices.get(),
-																									   diagonalAIndices.get(),
-																									   diagonalBIndices.get(),
-																									   colABlockSorted.get(), 
-																									   colBBlockSorted.get(), 
-																									   colABlockSize, 
-																									   colBBlockSize,
-																									   diagonalCount);
+				kernel_merge_join_unique<<<context.calcGridDim(diagonalCount), W>>>(mergeAIndices.get(),
+																					mergeBIndices.get(),
+																					diagonalAIndices.get(),
+																					diagonalBIndices.get(),
+																					colABlockSorted.get(), 
+																					colBBlockSorted.get(), 
+																					colABlockSize, 
+																					colBBlockSize,
+																					diagonalCount);
 				CheckCudaError(cudaGetLastError());
 
 				//DEBUG
-				printf("%d\n", diagonalCount);
+				printf("%d %d\n", diagonalCount, diagonalCountRounded);
 
 				std::vector<int32_t> ia(diagonalCount);
 				std::vector<int32_t> ib(diagonalCount);

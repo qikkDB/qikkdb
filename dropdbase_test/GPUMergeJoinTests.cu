@@ -44,7 +44,9 @@ TEST(GPUMergeJoinTests, MergeJoinTest)
 		}
 
 		blockB.InsertData(colBData);
-	}*/
+	}
+	*/
+    
     auto& blockA = colA.AddBlock();
     auto& blockB = colB.AddBlock();
 
