@@ -346,6 +346,7 @@ void Database::PersistOnlyModified(const char* path)
     int32_t blockSize = GetBlockSize();
     int32_t tableSize = tables.size();
 
+    // always persist at least db file
     PersistOnlyDbFile(path);
 
     // write files .col:
@@ -465,9 +466,9 @@ void Database::RenameTable(const std::string& oldTableName, const std::string& n
     handler.key() = newTableName;
     tables_.insert(std::move(handler));
 
-	auto& path = Configuration::GetInstance().GetDatabaseDir();
+    auto& path = Configuration::GetInstance().GetDatabaseDir();
 
-    if (boost::filesystem::exists(path))
+    if (boost::filesystem::remove(path + name_ + ".db"))
     {
         std::string prefix(path + name_ + SEPARATOR + oldTableName + SEPARATOR);
 
@@ -477,17 +478,21 @@ void Database::RenameTable(const std::string& oldTableName, const std::string& n
             if (!p.path().string().compare(0, prefix.size(), prefix))
             {
                 std::string columnName = p.path().string().substr(prefix.size());
-                const boost::filesystem::path& newPath{path + name_ + SEPARATOR + newTableName + SEPARATOR + columnName + ".col"};
+                const boost::filesystem::path& newPath{path + name_ + SEPARATOR + newTableName +
+                                                       SEPARATOR + columnName + ".col"};
                 boost::filesystem::rename(p.path(), newPath);
             }
         }
+
+		PersistOnlyDbFile(path.c_str());
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists.";
+        BOOST_LOG_TRIVIAL(warning)
+            << "Renaming table: Main (.db) file of db " << name_
+            << " was NOT removed from disk. No such file (if the database was not yet saved, "
+               "ignore this warning) or no write access.";
     }
-
-    PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
 }
 
 /// <summary>
@@ -502,7 +507,6 @@ void Database::DeleteDatabaseFromDisk()
     // std::cout << "DeleteDatabaseFromDisk path: " << path << std::endl;
     if (boost::filesystem::exists(path))
     {
-        // std::cout << "DeleteDatabaseFromDisk prefix: " << prefix << std::endl;
         // Delete main .db file
         if (boost::filesystem::remove(path + name_ + ".db"))
         {
@@ -511,16 +515,14 @@ void Database::DeleteDatabaseFromDisk()
         else
         {
             BOOST_LOG_TRIVIAL(warning) << "Main (.db) file of db "
-                                       << name_
-                                    << " was NOT removed from disk. No such file or write access.";
+                                       << name_ << " was NOT removed from disk. No such file or write access.";
         }
 
         // Delete tables and columns
         std::string prefix(path + name_ + SEPARATOR);
         for (auto& p : boost::filesystem::directory_iterator(path))
         {
-            // std::cout << "DeleteDatabaseFromDisk p.path().string(): " << p.path().string() <<
-            // std::endl; delete files which starts with prefix of db name:
+            // delete files which starts with prefix of db name:
             if (!p.path().string().compare(0, prefix.size(), prefix))
             {
                 if (boost::filesystem::remove(p.path().string().c_str()))
@@ -611,8 +613,7 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "File " << filePath
-                                    << " was NOT removed from disk. No such file or write access.";
+                << "File " << filePath << " was NOT removed from disk. No such file or write access.";
         }
     }
     else

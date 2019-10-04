@@ -14,10 +14,11 @@
 #include "../Database.h"
 #include "../Table.h"
 #include "LoadColHelper.h"
+#include "InsertIntoStruct.h"
 #include <any>
 #include <string>
 #include <unordered_map>
-#include "InsertIntoStruct.h"
+#include <boost/filesystem.hpp>
 
 const std::string GpuSqlDispatcher::KEYS_SUFFIX = "_keys";
 const std::string GpuSqlDispatcher::NULL_SUFFIX = "_nullMask";
@@ -1439,10 +1440,30 @@ int32_t GpuSqlDispatcher::AlterTable()
     int32_t renameColumnsCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < renameColumnsCount; i++)
     {
+        // rename column in memory:
         std::string renameColumnNameFrom = arguments_.Read<std::string>();
         std::string renameColumnNameTo = arguments_.Read<std::string>();
         database_->GetTables().at(tableName).RenameColumn(renameColumnNameFrom, renameColumnNameTo);
-		//TODO tu treba dorobit premenovat column file pomocou boostu a potom zavolat PersistOnlyDbFile() !!!!
+
+        // rename column on disk, if the database was persisted already:
+        auto& path = Configuration::GetInstance().GetDatabaseDir();
+        if (boost::filesystem::remove(path + database_->GetName() + ".db"))
+        {
+            std::string prefix(path + database_->GetName() + Database::SEPARATOR + tableName + Database::SEPARATOR);
+            const boost::filesystem::path& oldPath{prefix + renameColumnNameFrom + ".col"};
+            const boost::filesystem::path& newPath{prefix + renameColumnNameTo + ".col"};
+            boost::filesystem::rename(oldPath, newPath);
+
+            // update changes in .db file:
+            database_->PersistOnlyDbFile(path.c_str());
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Renaming column: Main (.db) file of db " << database_->GetName()
+                << " was NOT removed from disk. No such file (if the database was not yet saved, "
+                   "ignore this warning) or no write access.";
+        }
     }
 
     bool tableRenamed = arguments_.Read<bool>();
@@ -1462,6 +1483,7 @@ int32_t GpuSqlDispatcher::AlterDatabase()
     bool databaseRenamed = arguments_.Read<bool>();
     if (databaseRenamed)
     {
+        // change database name in memory:
         std::string newDatabaseName = arguments_.Read<std::string>();
         Database::GetDatabaseByName(databaseName)->SetName(newDatabaseName);
         auto& loadedDatabases = Context::getInstance().GetLoadedDatabases();
@@ -1470,7 +1492,36 @@ int32_t GpuSqlDispatcher::AlterDatabase()
         handler.key() = newDatabaseName;
         loadedDatabases.insert(std::move(handler));
 
-		// TODO tu treba dorobit premenovat db a column files pomocou boostu a potom zavolat PersistOnlyDbFile() !!!!
+        // updates saved files on disk, if there are any
+        auto& path = Configuration::GetInstance().GetDatabaseDir();
+
+        // delete main .db file, persist a new .db file and rename .col files:
+        if (boost::filesystem::remove(path + databaseName + ".db"))
+        {
+            BOOST_LOG_TRIVIAL(info) << "Renaming database: Main (.db) file of db " << databaseName
+                                    << " was successfully removed from disk.";
+            // persist updated .db file
+            Database::GetDatabaseByName(newDatabaseName)->PersistOnlyDbFile(path.c_str());
+
+            std::string prefix(path + databaseName + Database::SEPARATOR);
+            for (auto& p : boost::filesystem::directory_iterator(path))
+            {
+                // rename .col files:
+                if (!p.path().string().compare(0, prefix.size(), prefix))
+                {
+                    std::string sufix = p.path().string().substr(prefix.size());
+                    const boost::filesystem::path& newPath{path + newDatabaseName + Database::SEPARATOR + sufix};
+                    boost::filesystem::rename(p.path(), newPath);
+                }
+            }
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Renaming database: Main (.db) file of db " << databaseName
+                << " was NOT removed from disk. No such file (if the database was not yet saved, "
+                   "ignore this warning) or no write access.";
+        }
     }
     return 13;
 }

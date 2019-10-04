@@ -64,7 +64,7 @@ public:
 
     ~Database();
 
-	void SetName(const std::string& newDatabaseName);
+    void SetName(const std::string& newDatabaseName);
 
     // getters:
     const std::string& GetName() const
@@ -125,12 +125,12 @@ public:
     /// </summary>
     static void LoadDatabasesFromDisk();
 
-	/// <summary>
+    /// <summary>
     /// Rename specified table.
     /// </summary>
     /// <param name="oldTableName">Table name of the table which will be renamed.</param>
     /// <param name="oldTableName">New table name to which the table will be renamed.</param>
-	void RenameTable(const std::string& oldTablename, const std::string& newTableName);
+    void RenameTable(const std::string& oldTablename, const std::string& newTableName);
 
     /// <summary>
     /// Delete database from disk. Deletes .db and .col files which belong to the specified
