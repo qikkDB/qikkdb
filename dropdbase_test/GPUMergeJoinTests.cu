@@ -60,64 +60,17 @@ TEST(GPUMergeJoinTests, MergeJoinTest)
 	blockA.InsertData(colAData);
     blockB.InsertData(colBData);
 
+	// Initialize th output buffers
+    std::vector<int32_t> colAJoinIndices;
+    std::vector<int32_t> colBJoinIndices;
+
 	// Perform the merge join
 	auto start = std::chrono::steady_clock::now();
 
-	MergeJoin::JoinUnique(colA, colB);
+	MergeJoin::JoinUnique(colAJoinIndices, colBJoinIndices, colA, colB);
 
 	auto end = std::chrono::steady_clock::now();
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     FAIL();
-}
-
-TEST(GPUMergeJoinTests, SimpleMerge)
-{
-    std::vector<int32_t> A = {'a', 'a', 'b', 'c', 'c', 'c', 'c',
-                                     'd', 'e', 'e', 'f', 'g', 'g'};
-    std::vector<int32_t> B = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'};
-
-	std::vector<int32_t> C(A.size() + B.size());
-
-	 int a = 0, b = 0, c = 0;
-
-    // Classic merge
-     while (a < A.size() && b < B.size())
-    {
-        if (A[a] > B[b])
-        {
-            printf("CB: %3d : %3d %3d\n", c, a, b);
-
-            C[c++] = B[b++];
-        }
-        else if (A[a] < B[b])
-        {
-            printf("CA: %3d : %3d %3d\n", c, a, b);
-
-            C[c++] = A[a++];
-        }
-        else if (A[a] == B[b])
-        {
-            printf("CA: %3d : %3d %3d\n", c, a, b);
-
-            C[c++] = A[a++]; // If B has unique keys
-            // C[c++] = B[b++];	// If A has unique keys
-        }
-    }
-
-    while (a < A.size())
-    {
-        printf("A : %3d : %3d %3d\n", c, a, b);
-
-        C[c++] = A[a++];
-    }
-
-    while (b < B.size())
-    {
-        printf("B : %3d : %3d %3d\n", c, a, b);
-
-        C[c++] = B[b++];
-    }
-
-	FAIL();
 }

@@ -205,16 +205,22 @@ __global__ void kernel_merge_join_unique(int32_t *mergeAIndices,
 	}
 }
 
-
 class MergeJoin
 {
 public:
 	// Column B is considered unique
     template<typename T> 
-	static void JoinUnique(ColumnBase<T>& colA, ColumnBase<T>& colB)
+	static void JoinUnique(std::vector<int32_t> &colAJoinIndices, 
+						   std::vector<int32_t> &colBJoinIndices, 
+						   ColumnBase<T>& colA, 
+						   ColumnBase<T>& colB)
     {
 		// Fetch the context
 		Context& context = Context::getInstance();
+
+		// Clear the input vectors
+		colAJoinIndices.clear();
+		colBJoinIndices.clear();
 
 		// Fetch the column properties for both A and B columns
 		const auto colABlockList = colA.GetBlocksList();
