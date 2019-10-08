@@ -826,86 +826,91 @@ public:
             }
         }
 
-        // Merge multipied arrays (values and occurrences)
-        std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
-            MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                           occupancyMask.get(), maxHashCount_,
-                                                                           GB_ARRAY_MULTIPLIER);
-        cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
-        cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
-
-        if (USE_VALUES)
+        if (!std::is_same<AGG, AggregationFunctions::none>::value)
         {
-            cuda_ptr<int8_t> valuesNullMaskCompressed((maxHashCount_ + sizeof(int32_t) * 8 - 1) /
-                                                          (sizeof(int8_t) * 8),
-                                                      0);
-            kernel_compress_null_mask<<<Context::getInstance().calcGridDim(maxHashCount_),
-                                        Context::getInstance().getBlockDim()>>>(
-                reinterpret_cast<int32_t*>(valuesNullMaskCompressed.get()), valuesNullMask_, maxHashCount_);
+            // Merge multipied arrays (values and occurrences)
+            std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
+                MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
+                                                                               occupancyMask.get(), maxHashCount_,
+                                                                               GB_ARRAY_MULTIPLIER);
+            cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
+            cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 
-            // Reconstruct aggregated values
-            if (DIRECT_VALUES) // for min, max and sum: mergedValues.get() are direct results, just reconstruct them
+            if (USE_VALUES)
             {
-                if (!std::is_same<O, V>::value)
+                cuda_ptr<int8_t> valuesNullMaskCompressed((maxHashCount_ + sizeof(int32_t) * 8 - 1) /
+                                                              (sizeof(int8_t) * 8),
+                                                          0);
+                kernel_compress_null_mask<<<Context::getInstance().calcGridDim(maxHashCount_),
+                                            Context::getInstance().getBlockDim()>>>(
+                    reinterpret_cast<int32_t*>(valuesNullMaskCompressed.get()), valuesNullMask_, maxHashCount_);
+
+                // Reconstruct aggregated values
+                if (DIRECT_VALUES) // for min, max and sum: mergedValues.get() are direct results, just reconstruct them
                 {
-                    CheckQueryEngineError(GPU_EXTENSION_ERROR,
-                                          "Input and output value data type must "
-                                          "be the same in GROUP BY");
+                    if (!std::is_same<O, V>::value)
+                    {
+                        CheckQueryEngineError(GPU_EXTENSION_ERROR,
+                                              "Input and output value data type must "
+                                              "be the same in GROUP BY");
+                    }
+                    // reinterpret_cast is needed to solve compilation error
+                    GPUReconstruct::reconstructColKeep(outValues, outDataElementCount,
+                                                       reinterpret_cast<O*>(mergedValues.get()),
+                                                       occupancyMask.get(), maxHashCount_, outValuesNullMask,
+                                                       valuesNullMaskCompressed.get());
+                }
+                else if (std::is_same<AGG, AggregationFunctions::avg>::value) // for avg: mergedValues.get() need to be divided by keyOccurrences_ and reconstructed
+                {
+                    cuda_ptr<O> outValuesGPU(maxHashCount_);
+                    // Divide by counts to get averages for buckets
+                    try
+                    {
+                        GPUArithmetic::Arithmetic<ArithmeticOperations::div>(outValuesGPU.get(),
+                                                                             mergedValues.get(),
+                                                                             mergedOccurrences.get(),
+                                                                             maxHashCount_);
+                    }
+                    catch (const query_engine_error& err)
+                    {
+                        // Rethrow just if error is not division by zero.
+                        // Division by zero is OK here because it is more efficient to perform division
+                        // on raw (not reconstructed) hash table - and some keyOccurrences here can be 0.
+                        if (err.GetQueryEngineError() != QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR)
+                        {
+                            throw err;
+                        }
+                    }
+                    // Reonstruct result with original occupancyMask
+                    GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, outValuesGPU.get(),
+                                                       occupancyMask.get(), maxHashCount_, outValuesNullMask,
+                                                       valuesNullMaskCompressed.get());
+                }
+            }
+            else if (std::is_same<AGG, AggregationFunctions::count>::value) // for count: reconstruct and return keyOccurrences_
+            {
+                if (!std::is_same<O, int64_t>::value)
+                {
+                    CheckQueryEngineError(GPU_EXTENSION_ERROR, "Output value data type in GROUP BY "
+                                                               "with COUNT must be int64_t");
                 }
                 // reinterpret_cast is needed to solve compilation error
-                GPUReconstruct::reconstructColKeep(outValues, outDataElementCount,
-                                                   reinterpret_cast<O*>(mergedValues.get()),
-                                                   occupancyMask.get(), maxHashCount_,
-                                                   outValuesNullMask, valuesNullMaskCompressed.get());
-            }
-            else if (std::is_same<AGG, AggregationFunctions::avg>::value) // for avg: mergedValues.get() need to be divided by keyOccurrences_ and reconstructed
-            {
-                cuda_ptr<O> outValuesGPU(maxHashCount_);
-                // Divide by counts to get averages for buckets
-                try
+                // not reinterpreting anything here actually, outValues is int64_t** always in this else-branch
+                GPUReconstruct::reconstructColKeep(reinterpret_cast<int64_t**>(outValues),
+                                                   outDataElementCount, mergedOccurrences.get(),
+                                                   occupancyMask.get(), maxHashCount_);
+                if (outValuesNullMask)
                 {
-                    GPUArithmetic::Arithmetic<ArithmeticOperations::div>(outValuesGPU.get(),
-                                                                         mergedValues.get(),
-                                                                         mergedOccurrences.get(), maxHashCount_);
-                }
-                catch (const query_engine_error& err)
-                {
-                    // Rethrow just if error is not division by zero.
-                    // Division by zero is OK here because it is more efficient to perform division
-                    // on raw (not reconstructed) hash table - and some keyOccurrences here can be 0.
-                    if (err.GetQueryEngineError() != QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR)
+                    if (*outDataElementCount == 0)
                     {
-                        throw err;
+                        *outValuesNullMask = nullptr;
                     }
-                }
-                // Reonstruct result with original occupancyMask
-                GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, outValuesGPU.get(),
-                                                   occupancyMask.get(), maxHashCount_,
-                                                   outValuesNullMask, valuesNullMaskCompressed.get());
-            }
-        }
-        else if (std::is_same<AGG, AggregationFunctions::count>::value) // for count: reconstruct and return keyOccurrences_
-        {
-            if (!std::is_same<O, int64_t>::value)
-            {
-                CheckQueryEngineError(GPU_EXTENSION_ERROR, "Output value data type in GROUP BY "
-                                                           "with COUNT must be int64_t");
-            }
-            // reinterpret_cast is needed to solve compilation error
-            // not reinterpreting anything here actually, outValues is int64_t** always in this else-branch
-            GPUReconstruct::reconstructColKeep(reinterpret_cast<int64_t**>(outValues), outDataElementCount,
-                                               mergedOccurrences.get(), occupancyMask.get(), maxHashCount_);
-            if (outValuesNullMask)
-            {
-                if (*outDataElementCount == 0)
-                {
-                    *outValuesNullMask = nullptr;
-                }
-                else
-                {
-                    GPUMemory::allocAndSet(outValuesNullMask, 0,
-                                           (*outDataElementCount + sizeof(int8_t) * 8 - 1) /
-                                               (sizeof(int8_t) * 8));
+                    else
+                    {
+                        GPUMemory::allocAndSet(outValuesNullMask, 0,
+                                               (*outDataElementCount + sizeof(int8_t) * 8 - 1) /
+                                                   (sizeof(int8_t) * 8));
+                    }
                 }
             }
         }
