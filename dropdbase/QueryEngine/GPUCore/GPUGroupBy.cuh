@@ -751,7 +751,7 @@ public:
                     finalGroupBy.GetResults(outKeys, reinterpret_cast<int64_t**>(outValues),
                                             outDataElementCount, outKeysNullMask, outValuesNullMask);
                 }
-                else if (std::is_same<AGG, AggregationFunctions::none>::value) // for group by without agg
+                else // for group by without agg
                 {
                     GPUGroupBy<AGG, O, K, V> finalGroupBy(sumElementCount);
                     finalGroupBy.ProcessBlock(

@@ -1124,23 +1124,37 @@ protected:
 
         // Execute the query_
         GpuSqlCustomParser parser(groupByDatabase,
-                                  "SELECT colKeysInt1 FROM " + tableName +
+                                  "SELECT colKeysInt1, colKeysInt2, colKeysString FROM " + tableName +
                                       " GROUP BY colKeysInt1, colKeysInt2, colKeysString;");
         auto resultPtr = parser.Parse();
         auto result =
             dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-        auto& payloadKeys = result->payloads().at(tableName + ".colKeysInt1");
-        std::set<int32_t> expectedResult;
-        for (auto value : std::get<0>(keys))
+        auto& payloadKeysInt1 = result->payloads().at(tableName + ".colKeysInt1");
+        auto& payloadKeysInt2 = result->payloads().at(tableName + ".colKeysInt2");
+        auto& payloadKeysString = result->payloads().at(tableName + ".colKeysString");
+
+        std::set<std::tuple<int32_t, int32_t, std::string>> expectedResult;
+
+        for (int32_t i = 0; i < std::get<0>(keys).size(); i++)
         {
-            expectedResult.insert(value);
+            expectedResult.insert({std::get<0>(keys)[i], std::get<1>(keys)[i], std::get<2>(keys)[i]});
         }
-        ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+        ASSERT_EQ(expectedResult.size(), payloadKeysInt1.intpayload().intdata_size())
             << " wrong number of keys";
-        for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+        ASSERT_EQ(expectedResult.size(), payloadKeysInt2.intpayload().intdata_size())
+            << " wrong number of keys";
+        ASSERT_EQ(expectedResult.size(), payloadKeysString.stringpayload().stringdata_size())
+            << " wrong number of keys";
+
+        std::vector<std::tuple<int32_t, int32_t, std::string>> realResult;
+
+        for (int32_t i = 0; i < payloadKeysInt1.intpayload().intdata_size(); i++)
         {
-            int32_t key = payloadKeys.intpayload().intdata()[i];
-            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+            int32_t keyInt1 = payloadKeysInt1.intpayload().intdata()[i];
+            int32_t keyInt2 = payloadKeysInt2.intpayload().intdata()[i];
+            std::string keyString = payloadKeysString.stringpayload().stringdata()[i];
+            ASSERT_FALSE(expectedResult.find({keyInt1, keyInt2, keyString}) == expectedResult.end())
+                << " key \"" << keyInt1 << keyInt2 << keyString << "\"";
         }
     }
 };

@@ -748,7 +748,7 @@ public:
                                             outDataElementCount, outKeysNullMask, outValuesNullMask);
                 }
 
-                if (std::is_same<AGG, AggregationFunctions::none>::value) // for group by without aggregation function
+                else // for group by without aggregation function
                 {
                     GPUGroupBy<AGG, O, std::string, V> finalGroupBy(sumElementCount);
                     finalGroupBy.ProcessBlock(
