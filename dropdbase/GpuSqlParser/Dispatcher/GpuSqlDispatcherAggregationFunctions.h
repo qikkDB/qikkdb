@@ -431,6 +431,12 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
                 std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
                 GpuSqlDispatcher::groupByCV_.wait(lock,
                                                   [] { return GpuSqlDispatcher::IsGroupByDone(); });
+                if(GpuSqlDispatcher::thrownException_)
+                {
+                    CudaLogBoost::getInstance(CudaLogBoost::warning)
+                        << "Skip reconstruction group by in thread: " << dispatcherThreadId_ << '\n';
+                    return 13;
+                }
 
                 CudaLogBoost::getInstance(CudaLogBoost::debug)
                     << "Reconstructing group by in thread: " << dispatcherThreadId_ << '\n';

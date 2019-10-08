@@ -254,6 +254,8 @@ private:
     static int32_t deviceCountLimit_;
     static int64_t processedDataSize_;
 
+    static std::atomic_bool thrownException_;
+
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int8_t[]>& data,
                            int32_t dataSize);
@@ -299,12 +301,12 @@ public:
 
     static bool IsGroupByDone()
     {
-        return (groupByDoneCounter_ == deviceCountLimit_);
+        return (groupByDoneCounter_ == deviceCountLimit_) || GpuSqlDispatcher::thrownException_;
     }
 
     static bool IsOrderByDone()
     {
-        return (orderByDoneCounter_ == deviceCountLimit_);
+        return (orderByDoneCounter_ == deviceCountLimit_) || GpuSqlDispatcher::thrownException_;
     }
 
     static void ResetGroupByCounters()

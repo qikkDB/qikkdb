@@ -31,6 +31,8 @@ std::mutex GpuSqlDispatcher::groupByMutex_;
 std::mutex GpuSqlDispatcher::orderByMutex_;
 std::mutex GpuSqlDispatcher::loadSizeMutex_;
 
+std::atomic_bool GpuSqlDispatcher::thrownException_(false);
+
 std::condition_variable GpuSqlDispatcher::groupByCV_;
 std::condition_variable GpuSqlDispatcher::orderByCV_;
 
@@ -188,6 +190,11 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
                     err = 0;
                     continue;
                 }
+                if (err == 13)
+                {
+                    CudaLogBoost::getInstance(CudaLogBoost::error)
+                        << "Abort Dispatch Execution, exception thrown in some thread" << "\n";
+                }
                 break;
             }
         }
@@ -197,6 +204,9 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
     catch (...)
     {
         exception = std::current_exception();
+        GpuSqlDispatcher::thrownException_ = true;
+        GpuSqlDispatcher::groupByCV_.notify_all();
+        GpuSqlDispatcher::orderByCV_.notify_all();
     }
     CleanUpGpuPointers();
 }

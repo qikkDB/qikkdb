@@ -241,6 +241,12 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
         {
             std::unique_lock<std::mutex> lock(GpuSqlDispatcher::orderByMutex_);
             GpuSqlDispatcher::orderByCV_.wait(lock, [] { return GpuSqlDispatcher::IsOrderByDone(); });
+            if (GpuSqlDispatcher::thrownException_)
+            {
+                CudaLogBoost::getInstance(CudaLogBoost::warning)
+                    << "Skip merging partially ordered blocks in thread: " << dispatcherThreadId_ << '\n';
+                return 13;
+            }
 
             CudaLogBoost::getInstance(CudaLogBoost::debug) << "Merging partially ordered blocks." << '\n';
 
