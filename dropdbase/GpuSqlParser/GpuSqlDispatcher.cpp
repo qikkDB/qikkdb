@@ -1503,13 +1503,14 @@ int32_t GpuSqlDispatcher::AlterDatabase()
             // persist updated .db file
             Database::GetDatabaseByName(newDatabaseName)->PersistOnlyDbFile(path.c_str());
 
-            std::string prefix(path + databaseName + Database::SEPARATOR);
+            std::string prefix(databaseName + Database::SEPARATOR);
+            std::string prefix2(path + databaseName + Database::SEPARATOR);
             for (auto& p : boost::filesystem::directory_iterator(path))
             {
                 // rename .col files:
-                if (!p.path().string().compare(0, prefix.size(), prefix))
+                if (!p.path().string().compare(path.size(), prefix.size(), prefix))
                 {
-                    std::string sufix = p.path().string().substr(prefix.size());
+                    std::string sufix = p.path().string().substr(prefix2.size());
                     const boost::filesystem::path& newPath{path + newDatabaseName + Database::SEPARATOR + sufix};
                     boost::filesystem::rename(p.path(), newPath);
                 }

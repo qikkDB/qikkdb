@@ -470,16 +470,18 @@ void Database::RenameTable(const std::string& oldTableName, const std::string& n
 
     if (boost::filesystem::remove(path + name_ + ".db"))
     {
-        std::string prefix(path + name_ + SEPARATOR + oldTableName + SEPARATOR);
+        std::string prefix(name_ + SEPARATOR + oldTableName + SEPARATOR);
+        std::string prefix2(path + name_ + SEPARATOR + oldTableName + SEPARATOR);
 
         for (auto& p : boost::filesystem::directory_iterator(path))
         {
             // rename files which starts with prefix of db name and table name:
-            if (!p.path().string().compare(0, prefix.size(), prefix))
+            if (!p.path().string().compare(path.size(), prefix.size(), prefix))
             {
-                std::string columnName = p.path().string().substr(prefix.size());
+                
+                std::string columnName = p.path().string().substr(prefix2.size());
                 const boost::filesystem::path& newPath{path + name_ + SEPARATOR + newTableName +
-                                                       SEPARATOR + columnName + ".col"};
+                                                       SEPARATOR + columnName};
                 boost::filesystem::rename(p.path(), newPath);
             }
         }

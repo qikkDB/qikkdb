@@ -33,8 +33,12 @@ protected:
         // clean up occurs when test completes or an exception is thrown
         Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
 
-		// clear directory to make sure, there are no old database files
-        boost::filesystem::remove_all(path);
+		// clear directory to make sure, there are no old database files, but do not remove directory:
+        boost::filesystem::path path_to_remove(path);
+        for (boost::filesystem::directory_iterator end_dir_it, it(path_to_remove); it != end_dir_it; ++it)
+        {
+            boost::filesystem::remove_all(it->path());
+        }
     }
 
     void AlterTableRenameColumnGenericTest(std::string newColName)
@@ -101,8 +105,12 @@ protected:
         ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
             path + dbName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colD" + ".col")));
 
-		// clear directory to make sure, there are no old database files
-        boost::filesystem::remove_all(path);
+		// clear directory to make sure, there are no old database files, but do not remove directory:
+        boost::filesystem::path path_to_remove(path);
+        for (boost::filesystem::directory_iterator end_dir_it, it(path_to_remove); it != end_dir_it; ++it)
+        {
+            boost::filesystem::remove_all(it->path());
+        }
     }
 
     void AlterTableRenameTableGenericTest(std::string newTableName)
@@ -160,8 +168,12 @@ protected:
         ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
             path + dbName + Database::SEPARATOR + "SimpleTable" + Database::SEPARATOR + "colD" + ".col")));
 
-        // clear directory to make sure, there are no old database files
-        boost::filesystem::remove_all(path);
+        // clear directory to make sure, there are no old database files, but do not remove directory:
+        boost::filesystem::path path_to_remove(path);
+        for (boost::filesystem::directory_iterator end_dir_it, it(path_to_remove); it != end_dir_it; ++it)
+        {
+            boost::filesystem::remove_all(it->path());
+        }
     }
 
     void AlterTableRenameDatabaseGenericTest(std::string newDatabaseName)
@@ -223,8 +235,12 @@ protected:
         ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
             path + "AlterTestDb" + Database::SEPARATOR + tableName + Database::SEPARATOR + "colD" + ".col")));
 
-        // clear directory to make sure, there are no old database files
-        boost::filesystem::remove_all(path);
+        // clear directory to make sure, there are no old database files, but do not remove directory:
+        boost::filesystem::path path_to_remove(path);
+        for (boost::filesystem::directory_iterator end_dir_it, it(path_to_remove); it != end_dir_it; ++it)
+        {
+            boost::filesystem::remove_all(it->path());
+        }
     }
 };
 
