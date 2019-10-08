@@ -564,6 +564,11 @@ void GpuSqlDispatcher::AddMinusFunction(DataType type)
     dispatcherFunctions_.push_back(minusFunctions_[type]);
 }
 
+void GpuSqlDispatcher::AddDateToStringFunction(DataType type)
+{
+    dispatcherFunctions_.push_back(dateToStringFunctions_[type]);
+}
+
 void GpuSqlDispatcher::AddYearFunction(DataType type)
 {
     dispatcherFunctions_.push_back(yearFunctions_[type]);

@@ -16,23 +16,27 @@ __global__ void kernel_fill_date_string(GPUMemory::GPUString outCol,
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
         int64_t stringIndex = GetStringIndex(outCol.stringIndices, i);
-
         NumericToString(outCol.allChars, stringIndex, maybe_deref(years, i), 4);
-		outCol.allChars[stringIndex++] = '-';
+        stringIndex += 4;
+        outCol.allChars[stringIndex++] = '-';
 
         NumericToString(outCol.allChars, stringIndex, maybe_deref(months, i), 2);
+        stringIndex += 2;
         outCol.allChars[stringIndex++] = '-';
 
         NumericToString(outCol.allChars, stringIndex, maybe_deref(days, i), 2);
+        stringIndex += 2;
         outCol.allChars[stringIndex++] = ' ';
 
-		NumericToString(outCol.allChars, stringIndex, maybe_deref(hours, i), 2);
+        NumericToString(outCol.allChars, stringIndex, maybe_deref(hours, i), 2);
+        stringIndex += 2;
         outCol.allChars[stringIndex++] = ':';
 
-		NumericToString(outCol.allChars, stringIndex, maybe_deref(minutes, i), 2);
+        NumericToString(outCol.allChars, stringIndex, maybe_deref(minutes, i), 2);
+        stringIndex += 2;
         outCol.allChars[stringIndex++] = ':';
 
-		NumericToString(outCol.allChars, stringIndex, maybe_deref(seconds, i), 2);
-
+        NumericToString(outCol.allChars, stringIndex, maybe_deref(seconds, i), 2);
+        stringIndex += 2;
     }
 }

@@ -63,7 +63,7 @@ public:
         CheckCudaError(cudaGetLastError());
     }
 
-    template <typename OP, typename T>
+    template <typename T>
     static void DateToString(GPUMemory::GPUString* output, T dateTimeCol, int32_t dataElementCount)
     {
         static_assert(std::is_same<typename std::remove_pointer<T>::type, int64_t>::value,

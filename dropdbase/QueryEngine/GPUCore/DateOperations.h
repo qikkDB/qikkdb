@@ -34,6 +34,15 @@ __constant__ const int64_t START_DAYS_OF_MONTHS[] = {
     1946, 1977, 2007, 2038, 2069, 2099, 2130, 2160, 2191, 2222, 2250, 2281, 2311, 2342, 2372, 2403,
     2434, 2464, 2495, 2525, 2556, 2587, 2615, 2646, 2676, 2707, 2737, 2768, 2799, 2829, 2860, 2890};
 
+// Placeholder functor for exception throwing
+struct toString
+{
+    __device__ __host__ int32_t operator()(int64_t dateTime) const
+    {
+        return 0;
+    }
+};
+
 /// Year
 struct year
 {

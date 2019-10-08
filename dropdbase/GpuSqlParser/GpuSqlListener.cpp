@@ -345,6 +345,11 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* ctx
         dispatcher_.AddMinusFunction(operandType);
         returnDataType = GetReturnDataType(operandType);
         break;
+    case GpuSqlLexer::DATETYPE:
+        reg = "$" + op + "(" + operand + ")";
+        dispatcher_.AddDateToStringFunction(operandType);
+        returnDataType = COLUMN_STRING;
+        break;
     case GpuSqlLexer::YEAR:
         reg = "$" + op + "(" + operand + ")";
         dispatcher_.AddYearFunction(operandType);
@@ -511,7 +516,7 @@ void GpuSqlListener::exitCastOperation(GpuSqlParser::CastOperationContext* ctx)
     DataType operandType = std::get<1>(arg);
 
     PushArgument(operand.c_str(), operandType);
-    std::string castTypeStr = ctx->DATATYPE()->getText();
+    std::string castTypeStr = ctx->datatype()->getText();
     StringToUpper(castTypeStr);
     DataType castType = GetDataTypeFromString(castTypeStr);
 
@@ -1162,7 +1167,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
         if (entry->newTableColumn())
         {
             auto newColumnContext = entry->newTableColumn();
-            DataType newColumnDataType = GetDataTypeFromString(newColumnContext->DATATYPE()->getText());
+            DataType newColumnDataType = GetDataTypeFromString(newColumnContext->datatype()->getText());
             std::string newColumnName = newColumnContext->column()->getText();
             TrimDelimitedIdentifier(newColumnName);
 
@@ -1270,7 +1275,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         if (entry->addColumn())
         {
             auto addColumnContext = entry->addColumn();
-            DataType addColumnDataType = GetDataTypeFromString(addColumnContext->DATATYPE()->getText());
+            DataType addColumnDataType = GetDataTypeFromString(addColumnContext->datatype()->getText());
             std::string addColumnName = addColumnContext->column()->getText();
             TrimDelimitedIdentifier(addColumnName);
 
@@ -1301,7 +1306,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         else if (entry->alterColumn())
         {
             auto alterColumnContext = entry->alterColumn();
-            DataType alterColumnDataType = GetDataTypeFromString(alterColumnContext->DATATYPE()->getText());
+            DataType alterColumnDataType = GetDataTypeFromString(alterColumnContext->datatype()->getText());
             std::string alterColumnName = alterColumnContext->column()->getText();
             TrimDelimitedIdentifier(alterColumnName);
 

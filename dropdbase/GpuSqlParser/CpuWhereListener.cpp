@@ -347,7 +347,7 @@ void CpuWhereListener::exitCastOperation(GpuSqlParser::CastOperationContext* ctx
     DataType operandType = std::get<1>(arg);
 
     PushArgument(operand.c_str(), operandType);
-    std::string castTypeStr = ctx->DATATYPE()->getText();
+    std::string castTypeStr = ctx->datatype()->getText();
     StringToUpper(castTypeStr);
     DataType castType = GetDataTypeFromString(castTypeStr);
 

@@ -242,6 +242,9 @@ public:
   virtual void enterBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;
   virtual void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext *ctx) = 0;
 
+  virtual void enterDatatype(GpuSqlParser::DatatypeContext *ctx) = 0;
+  virtual void exitDatatype(GpuSqlParser::DatatypeContext *ctx) = 0;
+
   virtual void enterGeometry(GpuSqlParser::GeometryContext *ctx) = 0;
   virtual void exitGeometry(GpuSqlParser::GeometryContext *ctx) = 0;
 

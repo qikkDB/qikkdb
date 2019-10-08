@@ -169,6 +169,7 @@ private:
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> castToPolygonFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> castToInt8TFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> logicalNotFunctions_;
+    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> dateToStringFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> yearFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> monthFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> dayFunctions_;
@@ -441,6 +442,8 @@ public:
     void AddIsNotNullFunction();
 
     void AddMinusFunction(DataType type);
+
+    void AddDateToStringFunction(DataType type);
 
     void AddYearFunction(DataType type);
 
@@ -937,6 +940,10 @@ public:
 
     template <typename OP>
     int32_t NullMaskCol();
+
+    int32_t DateToStringCol();
+
+    int32_t DateToStringConst();
 
     template <typename OP>
     int32_t DateExtractCol();

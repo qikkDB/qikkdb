@@ -22,8 +22,7 @@ __device__ NativeGeoPoint CastWKTPoint(char* str, int32_t length);
 template <typename T>
 __device__ int32_t GetNumberOfIntegralDigits(T val)
 {
-    int32_t integralPart = floorf(log10f(fabsf(val))) + 1;
-    return integralPart;
+    return (floorf(fabsf(val)) > 3.0f ? static_cast<int32_t>(log10f(floorf(fabsf(val)))) : 0) + 1;
 }
 
 template <typename T>
@@ -151,7 +150,6 @@ __device__ void NumericToString(char* allChars, int64_t startIndex, IN number, i
     // Append integer part
     int64_t integerPart = static_cast<int64_t>(floorf(fabsf(number)));
 
-    printf("Kernel: %.2f, %d", number, integerPart);
     const int32_t integralDigits = GetNumberOfIntegralDigits(number);
 
     fixedIntegralDigits = max(fixedIntegralDigits, integralDigits);
@@ -165,8 +163,8 @@ __device__ void NumericToString(char* allChars, int64_t startIndex, IN number, i
 
     for (int32_t i = 0; i < fixedIntegralDigits - integralDigits; i++)
     {
-        allChars[--startIndex] = '0';    
-	}
+        allChars[--startIndex] = '0';
+    }
 
     startIndex += fixedIntegralDigits;
 

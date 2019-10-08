@@ -49,14 +49,14 @@ alterDatabaseEntry: (renameDatabase);
 renameDatabase: (RENAMETO database);
 alterTableEntries: ((alterTableEntry (COMMA alterTableEntry)*));
 alterTableEntry: (addColumn | dropColumn | alterColumn | renameColumn | renameTable);
-addColumn: (ADD column DATATYPE);
+addColumn: (ADD column datatype);
 dropColumn: (DROPCOLUMN column);
-alterColumn: (ALTERCOLUMN column DATATYPE);
+alterColumn: (ALTERCOLUMN column datatype);
 renameColumn: (RENAMECOLUMN renameColumnFrom TO renameColumnTo);
 renameTable: (RENAMETO table);
 renameColumnFrom: column;
 renameColumnTo: column;
-newTableColumn: (column DATATYPE);
+newTableColumn: (column datatype);
 newTableIndex: (INDEX indexName LPAREN indexColumns RPAREN);
 selectColumns: (
 		(
@@ -104,7 +104,7 @@ limit: INTLIT;
 offset: INTLIT;
 blockSize: INTLIT;
 columnValue: (
-		| MINUS? INTLIT
+		MINUS? INTLIT
 		| MINUS? FLOATLIT
 		| geometry
 		| NULLLIT
@@ -135,6 +135,7 @@ expression:
 	| op = ROUND LPAREN expression RPAREN											# unaryOperation
 	| op = FLOOR LPAREN expression RPAREN											# unaryOperation
 	| op = CEIL LPAREN expression RPAREN											# unaryOperation
+	| op = DATETYPE LPAREN expression RPAREN									    # unaryOperation
 	| op = YEAR LPAREN expression RPAREN											# unaryOperation
 	| op = MONTH LPAREN expression RPAREN											# unaryOperation
 	| op = DAY LPAREN expression RPAREN												# unaryOperation
@@ -172,7 +173,7 @@ expression:
 	| expression op = BETWEEN expression op2 = AND expression						# ternaryOperation
 	| left = expression op = AND right = expression									# binaryOperation
 	| left = expression op = OR right = expression									# binaryOperation
-	| op = CAST LPAREN expression AS DATATYPE RPAREN								# castOperation
+	| op = CAST LPAREN expression AS datatype RPAREN								# castOperation
 	| LPAREN expression RPAREN														# parenExpression
 	| columnId																		# varReference
 	| geometry																		# geoReference
@@ -189,6 +190,19 @@ expression:
 	| op = COUNT_AGG LPAREN (expression) RPAREN										# aggregation
 	| op = COUNT_AGG LPAREN ASTERISK RPAREN											# aggregation
 	| op = AVG_AGG LPAREN (expression) RPAREN										# aggregation;
+
+datatype: (
+        INTTYPE
+		| LONGTYPE
+		| DATETYPE
+		| DETETIMETYPE
+		| FLOATTYPE
+		| DOUBLETYPE
+		| STRINGTYPE
+		| BOOLEANTYPE
+		| POINTTYPE
+		| POLYTYPE
+);
 
 geometry: (
 		pointGeometry

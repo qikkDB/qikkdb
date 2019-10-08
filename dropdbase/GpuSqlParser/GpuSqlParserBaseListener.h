@@ -244,6 +244,9 @@ public:
   virtual void enterBooleanLiteral(GpuSqlParser::BooleanLiteralContext * /*ctx*/) override { }
   virtual void exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext * /*ctx*/) override { }
 
+  virtual void enterDatatype(GpuSqlParser::DatatypeContext * /*ctx*/) override { }
+  virtual void exitDatatype(GpuSqlParser::DatatypeContext * /*ctx*/) override { }
+
   virtual void enterGeometry(GpuSqlParser::GeometryContext * /*ctx*/) override { }
   virtual void exitGeometry(GpuSqlParser::GeometryContext * /*ctx*/) override { }
 

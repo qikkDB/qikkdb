@@ -8292,6 +8292,43 @@ TEST(DispatcherTests, RetString)
     }
 }
 
+TEST(DispatcherTests, RetDate)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT DATE(colLong3) FROM TableA;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    std::vector<std::string> expectedResultsStrings;
+
+    auto column = dynamic_cast<ColumnBase<int64_t>*>(
+        DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().at("colLong3").get());
+
+    for (int i = 0; i < 2; i++)
+    {
+        auto block = column->GetBlocksList()[i];
+        for (int k = 0; k < (1 << 11); k++)
+        {
+            time_t t = block->GetData()[k];
+            auto tm = std::localtime(&t);
+            std::stringstream ss;
+            ss << std::put_time(tm, "%Y-%m-%d %H:%M:%S");
+            expectedResultsStrings.push_back(ss.str());
+        }
+    }
+
+    auto& payloads = result->payloads().at("DATE(colLong3)");
+
+    ASSERT_EQ(payloads.stringpayload().stringdata_size(), expectedResultsStrings.size());
+
+    for (int i = 0; i < payloads.stringpayload().stringdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResultsStrings[i], payloads.stringpayload().stringdata()[i]) << " at row " << i;
+    }
+}
+
 TEST(DispatcherTests, RetStringWhere)
 {
     Context::getInstance();

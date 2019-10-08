@@ -16,10 +16,10 @@ public:
     DQOUTE = 8, UNDERSCORE = 9, COLON = 10, COMMA = 11, DOT = 12, LSQR_BRC = 13, 
     RSQR_BRC = 14, STRING = 15, DELIMID = 16, DATELIT = 17, TIMELIT = 18, 
     POINT = 19, MULTIPOINT = 20, LINESTRING = 21, MULTILINESTRING = 22, 
-    POLYGON = 23, MULTIPOLYGON = 24, DATATYPE = 25, INTTYPE = 26, LONGTYPE = 27, 
-    DATETYPE = 28, FLOATTYPE = 29, DOUBLETYPE = 30, STRINGTYPE = 31, BOOLEANTYPE = 32, 
-    POINTTYPE = 33, POLYTYPE = 34, INSERTINTO = 35, CREATEDB = 36, DROPDB = 37, 
-    CREATETABLE = 38, DROPTABLE = 39, ALTERTABLE = 40, ALTERDATABASE = 41, 
+    POLYGON = 23, MULTIPOLYGON = 24, INTTYPE = 25, LONGTYPE = 26, DATETYPE = 27, 
+    DETETIMETYPE = 28, FLOATTYPE = 29, DOUBLETYPE = 30, STRINGTYPE = 31, 
+    BOOLEANTYPE = 32, POINTTYPE = 33, POLYTYPE = 34, INSERTINTO = 35, CREATEDB = 36, 
+    DROPDB = 37, CREATETABLE = 38, DROPTABLE = 39, ALTERTABLE = 40, ALTERDATABASE = 41, 
     ADD = 42, DROPCOLUMN = 43, ALTERCOLUMN = 44, RENAMECOLUMN = 45, RENAMETO = 46, 
     CREATEINDEX = 47, INDEX = 48, PRIMARYKEY = 49, VALUES = 50, SELECT = 51, 
     FROM = 52, JOIN = 53, WHERE = 54, GROUPBY = 55, AS = 56, IN = 57, TO = 58, 
@@ -60,10 +60,10 @@ public:
     RuleFromTable = 50, RuleColumnId = 51, RuleTable = 52, RuleColumn = 53, 
     RuleDatabase = 54, RuleAlias = 55, RuleIndexName = 56, RuleLimit = 57, 
     RuleOffset = 58, RuleBlockSize = 59, RuleColumnValue = 60, RuleExpression = 61, 
-    RuleGeometry = 62, RulePointGeometry = 63, RuleLineStringGeometry = 64, 
-    RulePolygonGeometry = 65, RuleMultiPointGeometry = 66, RuleMultiLineStringGeometry = 67, 
-    RuleMultiPolygonGeometry = 68, RulePointOrClosedPoint = 69, RulePolygon = 70, 
-    RuleLineString = 71, RulePoint = 72
+    RuleDatatype = 62, RuleGeometry = 63, RulePointGeometry = 64, RuleLineStringGeometry = 65, 
+    RulePolygonGeometry = 66, RuleMultiPointGeometry = 67, RuleMultiLineStringGeometry = 68, 
+    RuleMultiPolygonGeometry = 69, RulePointOrClosedPoint = 70, RulePolygon = 71, 
+    RuleLineString = 72, RulePoint = 73
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -138,6 +138,7 @@ public:
   class BlockSizeContext;
   class ColumnValueContext;
   class ExpressionContext;
+  class DatatypeContext;
   class GeometryContext;
   class PointGeometryContext;
   class LineStringGeometryContext;
@@ -531,7 +532,7 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *ADD();
     ColumnContext *column();
-    antlr4::tree::TerminalNode *DATATYPE();
+    DatatypeContext *datatype();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -560,7 +561,7 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *ALTERCOLUMN();
     ColumnContext *column();
-    antlr4::tree::TerminalNode *DATATYPE();
+    DatatypeContext *datatype();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -630,7 +631,7 @@ public:
     NewTableColumnContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     ColumnContext *column();
-    antlr4::tree::TerminalNode *DATATYPE();
+    DatatypeContext *datatype();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -1136,7 +1137,7 @@ public:
     antlr4::tree::TerminalNode *LPAREN();
     ExpressionContext *expression();
     antlr4::tree::TerminalNode *AS();
-    antlr4::tree::TerminalNode *DATATYPE();
+    DatatypeContext *datatype();
     antlr4::tree::TerminalNode *RPAREN();
     antlr4::tree::TerminalNode *CAST();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -1296,6 +1297,7 @@ public:
     antlr4::tree::TerminalNode *ROUND();
     antlr4::tree::TerminalNode *FLOOR();
     antlr4::tree::TerminalNode *CEIL();
+    antlr4::tree::TerminalNode *DATETYPE();
     antlr4::tree::TerminalNode *YEAR();
     antlr4::tree::TerminalNode *MONTH();
     antlr4::tree::TerminalNode *DAY();
@@ -1352,6 +1354,28 @@ public:
 
   ExpressionContext* expression();
   ExpressionContext* expression(int precedence);
+  class  DatatypeContext : public antlr4::ParserRuleContext {
+  public:
+    DatatypeContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *INTTYPE();
+    antlr4::tree::TerminalNode *LONGTYPE();
+    antlr4::tree::TerminalNode *DATETYPE();
+    antlr4::tree::TerminalNode *DETETIMETYPE();
+    antlr4::tree::TerminalNode *FLOATTYPE();
+    antlr4::tree::TerminalNode *DOUBLETYPE();
+    antlr4::tree::TerminalNode *STRINGTYPE();
+    antlr4::tree::TerminalNode *BOOLEANTYPE();
+    antlr4::tree::TerminalNode *POINTTYPE();
+    antlr4::tree::TerminalNode *POLYTYPE();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  DatatypeContext* datatype();
+
   class  GeometryContext : public antlr4::ParserRuleContext {
   public:
     GeometryContext(antlr4::ParserRuleContext *parent, size_t invokingState);

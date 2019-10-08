@@ -1,6 +1,23 @@
 #include "GpuSqlDispatcherDateFunctions.h"
 #include <array>
 
+std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::dateToStringFunctions_ = {
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::toString, int32_t>,
+    &GpuSqlDispatcher::DateToStringConst,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::toString, float>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::toString, double>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::toString, ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::toString, ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::toString, std::string>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::toString, int8_t>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::toString, int32_t>,
+    &GpuSqlDispatcher::DateToStringCol,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::toString, float>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::toString, double>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::toString, ColmnarDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::toString, ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::toString, std::string>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::toString, int8_t>};
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::yearFunctions_ = {
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::year, int32_t>,
     &GpuSqlDispatcher::DateExtractConst<DateOperations::year>,
@@ -103,3 +120,88 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlD
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::second, ColmnarDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::second, std::string>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::second, int8_t>};
+
+int32_t GpuSqlDispatcher::DateToStringCol()
+{
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    int32_t loadFlag = LoadCol<int64_t>(colName);
+    if (loadFlag)
+    {
+        return loadFlag;
+    }
+
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "DateToStringCol: " << colName << " " << reg << '\n';
+
+    if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
+            groupByColumns_.end() &&
+        !insideAggregation_)
+    {
+        if (isOverallLastBlock_)
+        {
+            PointerAllocation column = allocatedPointers_.at(colName + KEYS_SUFFIX);
+            int32_t retSize = column.ElementCount;
+            GPUMemory::GPUString result;
+            GPUDate::DateToString(&result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
+            if (column.GpuNullMaskPtr)
+            {
+                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                int8_t* combinedMask = AllocateRegister<int8_t>(reg + KEYS_SUFFIX + NULL_SUFFIX, bitMaskSize);
+                FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true, combinedMask);
+                GPUMemory::copyDeviceToDevice(combinedMask,
+                                              reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
+            }
+            else
+            {
+                FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true);
+            }
+            groupByColumns_.push_back({reg, DataType::COLUMN_STRING});
+        }
+    }
+    else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
+    {
+        PointerAllocation column = allocatedPointers_.at(colName);
+        int32_t retSize = column.ElementCount;
+
+        if (!IsRegisterAllocated(reg))
+        {
+            GPUMemory::GPUString result;
+            GPUDate::DateToString(&result, reinterpret_cast<int64_t*>(column.GpuPtr), retSize);
+            if (column.GpuNullMaskPtr)
+            {
+                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                int8_t* combinedMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
+                FillStringRegister(result, reg, retSize, true, combinedMask);
+                GPUMemory::copyDeviceToDevice(combinedMask,
+                                              reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
+            }
+            else
+            {
+                FillStringRegister(result, reg, retSize, true);
+            }
+        }
+    }
+    FreeColumnIfRegister<int64_t>(colName);
+    return 0;
+}
+
+int32_t GpuSqlDispatcher::DateToStringConst()
+{
+    int64_t cnst = arguments_.Read<int64_t>();
+    auto reg = arguments_.Read<std::string>();
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "DateToStringConst: " << cnst << " " << reg << '\n';
+
+    int32_t retSize = GetBlockSize();
+    if (retSize == 0)
+    {
+        return 1;
+    }
+    if (!IsRegisterAllocated(reg))
+    {
+        GPUMemory::GPUString result;
+        GPUDate::DateToString(&result, cnst, retSize);
+        FillStringRegister(result, reg, retSize, true);
+    }
+    return 0;
+}
