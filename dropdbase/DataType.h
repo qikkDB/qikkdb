@@ -75,4 +75,4 @@ DataType GetColumnDataTypeFromString(const std::string& dataType);
 
 std::string GetStringFromColumnDataType(DataType type);
 
-DataType GetConstDataTypeFromColumn(DataType type);
+DataType GetConstDataType(DataType type);

@@ -48,10 +48,10 @@ DISPATCHER_INVALID_TYPE(ArithmeticOperations::sub, int8_t)
 END_DISPATCH_TABLE
 
 BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::modFunctions_)
-DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::mod, int32_t, 1, 1, 1, 1, 0, 0, 0, 0)
-DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::mod, int64_t, 1, 1, 1, 1, 0, 0, 0, 0)
-DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::mod, float, 1, 1, 1, 1, 0, 0, 0, 0)
-DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::mod, double, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::mod, int32_t, 1, 1, 0, 0, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::mod, int64_t, 1, 1, 0, 0, 0, 0, 0, 0)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::mod, float)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::mod, double)
 DISPATCHER_INVALID_TYPE(ArithmeticOperations::mod, ColmnarDB::Types::Point)
 DISPATCHER_INVALID_TYPE(ArithmeticOperations::mod, ColmnarDB::Types::ComplexPolygon)
 DISPATCHER_INVALID_TYPE(ArithmeticOperations::mod, std::string)
@@ -67,6 +67,17 @@ DISPATCHER_INVALID_TYPE(ArithmeticOperations::bitwiseOr, ColmnarDB::Types::Point
 DISPATCHER_INVALID_TYPE(ArithmeticOperations::bitwiseOr, ColmnarDB::Types::ComplexPolygon)
 DISPATCHER_INVALID_TYPE(ArithmeticOperations::bitwiseOr, std::string)
 DISPATCHER_INVALID_TYPE(ArithmeticOperations::bitwiseOr, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::bitwiseAndFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::bitwiseAnd, int32_t, 1, 1, 0, 0, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::bitwiseAnd, int64_t, 1, 1, 0, 0, 0, 0, 0, 0)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::bitwiseAnd, float)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::bitwiseAnd, double)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::bitwiseAnd, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::bitwiseAnd, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::bitwiseAnd, std::string)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::bitwiseAnd, int8_t)
 END_DISPATCH_TABLE
 
 BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::bitwiseXorFunctions_)

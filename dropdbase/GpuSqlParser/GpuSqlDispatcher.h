@@ -282,6 +282,8 @@ private:
                            int32_t dataSize);
 
     static void ShiftNullMaskLeft(std::vector<int8_t>& mask, int64_t shift);
+    int32_t GetBinaryDispatchTableIndex(DataType left, DataType right);
+    int32_t GetUnaryDispatchTableIndex(DataType type);
 
 public:
     static std::mutex groupByMutex_;
@@ -724,7 +726,7 @@ public:
 
     int32_t GroupByBegin();
 
-	template <typename T>
+    template <typename T>
     int32_t GroupByDone();
 
     int32_t FreeOrderByTable();

@@ -1,310 +1,202 @@
 #include "GpuSqlDispatcherArithmeticUnaryFunctions.h"
 #include <array>
 #include "../../QueryEngine/GPUCore/GPUArithmeticUnary.cuh"
+#include "DispatcherMacros.h"
 
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::minusFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::minus, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::minus, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::minus, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::minus, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::minus, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::minus, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::minus, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::minus, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::minus, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::minus, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::minus, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::minus, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::minus, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::minus, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::minus, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::minus, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::absoluteFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::absolute, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::absolute, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::absolute, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::absolute, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::absolute, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::absolute, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::absolute, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::absolute, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::absolute, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::absolute, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::absolute, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::absolute, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::absolute, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::absolute, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::absolute, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::absolute, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::sineFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::sine, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::sine, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::sine, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::sine, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::sine, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::sine, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::sine, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::sine, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::sine, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::sine, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::sine, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::sine, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::sine, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::sine, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::sine, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::sine, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::cosineFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::cosine, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::cosine, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::cosine, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::cosine, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::cosine, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::cosine, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::cosine, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::cosine, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::cosine, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::cosine, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::cosine, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::cosine, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::cosine, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::cosine, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::cosine, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::cosine, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::tangentFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::tangent, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::tangent, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::tangent, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::tangent, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::tangent, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::tangent, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::tangent, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::tangent, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::tangent, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::tangent, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::tangent, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::tangent, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::tangent, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::tangent, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::tangent, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::tangent, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::cotangentFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::cotangent, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::cotangent, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::cotangent, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::cotangent, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::cotangent, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::cotangent, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::cotangent, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::cotangent, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::cotangent, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::cotangent, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::cotangent, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::cotangent, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::cotangent, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::cotangent, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::cotangent, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::cotangent, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::arcsineFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arcsine, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arcsine, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arcsine, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arcsine, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arcsine, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arcsine, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arcsine, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arcsine, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arcsine, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arcsine, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arcsine, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arcsine, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arcsine, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arcsine, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arcsine, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arcsine, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::arccosineFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arccosine, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arccosine, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arccosine, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arccosine, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arccosine, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arccosine, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arccosine, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arccosine, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arccosine, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arccosine, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arccosine, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arccosine, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arccosine, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arccosine, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arccosine, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arccosine, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::arctangentFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arctangent, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arctangent, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arctangent, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::arctangent, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arctangent, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arctangent, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arctangent, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::arctangent, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arctangent, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arctangent, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arctangent, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::arctangent, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arctangent, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arctangent, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arctangent, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::arctangent, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::logarithm10Functions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::logarithm10, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::logarithm10, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::logarithm10, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::logarithm10, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::logarithm10, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::logarithm10, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::logarithm10, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::logarithm10, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::logarithm10, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::logarithm10, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::logarithm10, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::logarithm10, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::logarithm10, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::logarithm10, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::logarithm10, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::logarithm10, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::logarithmNaturalFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::logarithmNatural, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::logarithmNatural, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::logarithmNatural, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::logarithmNatural, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::logarithmNatural, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::logarithmNatural, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::logarithmNatural, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::logarithmNatural, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::logarithmNatural, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::logarithmNatural, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::logarithmNatural, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::logarithmNatural, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::logarithmNatural, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::logarithmNatural, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::logarithmNatural, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::logarithmNatural, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::exponentialFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::exponential, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::exponential, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::exponential, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::exponential, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::exponential, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::exponential, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::exponential, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::exponential, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::exponential, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::exponential, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::exponential, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::exponential, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::exponential, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::exponential, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::exponential, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::exponential, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::squareRootFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::squareRoot, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::squareRoot, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::squareRoot, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::squareRoot, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::squareRoot, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::squareRoot, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::squareRoot, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::squareRoot, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::squareRoot, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::squareRoot, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::squareRoot, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::squareRoot, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::squareRoot, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::squareRoot, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::squareRoot, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::squareRoot, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::squareFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::square, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::square, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::square, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::square, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::square, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::square, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::square, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::square, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::square, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::square, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::square, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::square, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::square, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::square, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::square, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::square, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::signFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::sign, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::sign, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::sign, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::sign, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::sign, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::sign, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::sign, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::sign, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::sign, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::sign, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::sign, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::sign, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::sign, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::sign, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::sign, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::sign, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::roundFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::round, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::round, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::round, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::round, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::round, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::round, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::round, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::round, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::round, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::round, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::round, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::round, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::round, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::round, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::round, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::round, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::floorFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::floor, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::floor, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::floor, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::floor, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::floor, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::floor, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::floor, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::floor, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::floor, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::floor, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::floor, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::floor, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::floor, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::floor, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::floor, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::floor, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::ceilFunctions_ = {
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::ceil, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::ceil, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::ceil, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryConst<ArithmeticUnaryOperations::ceil, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::ceil, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::ceil, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::ceil, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ArithmeticUnaryOperations::ceil, int8_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::ceil, int32_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::ceil, int64_t>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::ceil, float>,
-    &GpuSqlDispatcher::ArithmeticUnaryCol<ArithmeticUnaryOperations::ceil, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::ceil, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::ceil, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::ceil, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ArithmeticUnaryOperations::ceil, int8_t>};
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::minusFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::minus, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::minus, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::minus, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::minus, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::minus, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::minus, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::minus, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::minus, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::absoluteFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::absolute, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::absolute, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::absolute, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::absolute, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::absolute, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::absolute, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::absolute, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::absolute, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::sineFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::sine, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::sine, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::sine, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::sine, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sine, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sine, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sine, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sine, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::cosineFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::cosine, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::cosine, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::cosine, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::cosine, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::cosine, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::cosine, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::cosine, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::cosine, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::tangentFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::tangent, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::tangent, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::tangent, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::tangent, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::tangent, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::tangent, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::tangent, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::tangent, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::cotangentFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::cotangent, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::cotangent, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::cotangent, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::cotangent, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::cotangent, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::cotangent, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::cotangent, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::cotangent, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::arcsineFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arcsine, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arcsine, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arcsine, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arcsine, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arcsine, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arcsine, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arcsine, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arcsine, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::arccosineFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arccosine, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arccosine, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arccosine, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arccosine, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arccosine, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arccosine, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arccosine, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arccosine, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::arctangentFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arctangent, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arctangent, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arctangent, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::arctangent, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arctangent, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arctangent, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arctangent, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::arctangent, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::logarithm10Functions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::logarithm10, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::logarithm10, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::logarithm10, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::logarithm10, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::logarithm10, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::logarithm10, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::logarithm10, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::logarithm10, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::logarithmNaturalFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::logarithmNatural, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::logarithmNatural, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::logarithmNatural, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::logarithmNatural, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::logarithmNatural, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::logarithmNatural, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::logarithmNatural, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::logarithmNatural, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::exponentialFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::exponential, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::exponential, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::exponential, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::exponential, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::exponential, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::exponential, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::exponential, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::exponential, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::squareRootFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::squareRoot, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::squareRoot, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::squareRoot, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::squareRoot, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::squareRoot, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::squareRoot, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::squareRoot, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::squareRoot, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::squareFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::square, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::square, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::square, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::square, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::square, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::square, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::square, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::square, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::signFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::sign, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::sign, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::sign, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::sign, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sign, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sign, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sign, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sign, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::roundFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::round, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::round, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::round, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::round, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::round, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::round, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::round, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::round, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::floorFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::floor, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::floor, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::floor, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::floor, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::floor, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::floor, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::floor, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::floor, int8_t)
+END_DISPATCHER_TABLE
+
+BEGIN_DISPATCHER_UNARY_TABLE(GpuSqlDispatcher::ceilFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::ceil, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::ceil, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::ceil, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::ArithmeticUnary, ArithmeticUnaryOperations::ceil, double)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::ceil, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::ceil, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::ceil, std::string)
+DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::ceil, int8_t)
+END_DISPATCHER_TABLE
