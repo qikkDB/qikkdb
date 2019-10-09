@@ -252,7 +252,7 @@ struct roundDecimal
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
     {
-        const double multiplier = pow(10.0, b);
+        const double multiplier = powf(10.0, b);
         return roundf(a * multiplier) / multiplier;
     }
 };
