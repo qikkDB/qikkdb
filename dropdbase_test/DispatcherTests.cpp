@@ -8385,7 +8385,7 @@ TEST(DispatcherTests, RetDateWhere)
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT DATE(colLong3) FROM TableA WHERE DATE(colLong3) = "
-                              "\"2001-01-01 00:01:02\";");
+                              "\"2000-01-01 00:01:02\";");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -8403,7 +8403,7 @@ TEST(DispatcherTests, RetDateWhere)
             auto tm = std::gmtime(&t);
             std::stringstream ss;
             ss << std::put_time(tm, "%Y-%m-%d %H:%M:%S");
-            if (ss.str() == "2001-01-01 00:01:02")
+            if (ss.str() == "2000-01-01 00:01:02")
             {
                 expectedResultsStrings.push_back(ss.str());
             }

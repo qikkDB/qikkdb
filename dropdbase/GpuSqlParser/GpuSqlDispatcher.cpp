@@ -199,7 +199,8 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
                 if (err == 13)
                 {
                     CudaLogBoost::getInstance(CudaLogBoost::error)
-                        << "Abort Dispatch Execution, exception thrown in some thread" << "\n";
+                        << "Abort Dispatch Execution, exception thrown in some thread"
+                        << "\n";
                 }
                 break;
             }
@@ -1005,8 +1006,8 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
     {
         if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_stringIndices",
                                                                              blockIndex_, loadSize_, loadOffset_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(
-                databaseName, colName + "_allChars", blockIndex_, loadSize_, loadOffset_))
+            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_allChars",
+                                                                             blockIndex_, loadSize_, loadOffset_))
         {
             GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
             GPUMemory::GPUString gpuString;
@@ -1800,7 +1801,7 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
     {
         realTrimmedName = realName.substr(1, std::string::npos);
     }
-    
+
     if (!nullBitMaskString.empty())
     {
         MergePayloadBitmask(trimmedKey, &responseMessage_, nullBitMaskString);
@@ -1810,7 +1811,12 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
 
 bool GpuSqlDispatcher::IsRegisterAllocated(const std::string& reg)
 {
-    return allocatedPointers_.find(reg) != allocatedPointers_.end();
+    return (allocatedPointers_.find(reg) != allocatedPointers_.end()) ||
+           (allocatedPointers_.find(reg + "_stringIndices") != allocatedPointers_.end() &&
+            allocatedPointers_.find(reg + "_allChars") != allocatedPointers_.end()) ||
+           (allocatedPointers_.find(reg + "_polyPoints") != allocatedPointers_.end() &&
+            allocatedPointers_.find(reg + "_pointIdx") != allocatedPointers_.end() &&
+            allocatedPointers_.find(reg + "_polyIdx") != allocatedPointers_.end());
 }
 
 std::pair<std::string, std::string> GpuSqlDispatcher::SplitColumnName(const std::string& colName)
