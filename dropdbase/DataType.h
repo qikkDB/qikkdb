@@ -3,6 +3,7 @@
 #include "Types/Point.pb.h"
 #include "Types/ComplexPolygon.pb.h"
 
+
 enum DataType
 {
     CONST_ERROR = -1,
@@ -24,6 +25,8 @@ enum DataType
     COLUMN_INT8_T = 15,
     DATA_TYPE_SIZE = 16
 };
+
+constexpr int32_t numOfDataTypes = DATA_TYPE_SIZE / 2;
 
 constexpr int32_t GetDataTypeSize(DataType type)
 {
@@ -71,3 +74,5 @@ constexpr DataType GetColumnType()
 DataType GetColumnDataTypeFromString(const std::string& dataType);
 
 std::string GetStringFromColumnDataType(DataType type);
+
+DataType GetConstDataTypeFromColumn(DataType type);

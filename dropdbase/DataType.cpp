@@ -80,3 +80,12 @@ std::string GetStringFromColumnDataType(DataType type)
         break;
     }
 }
+
+DataType GetConstDataType(DataType type)
+{
+    if (type >= numOfDataTypes)
+    {
+        return static_cast<DataType>(type - numOfDataTypes);
+    }
+    return type;
+}

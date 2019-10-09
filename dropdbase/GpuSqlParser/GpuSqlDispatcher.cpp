@@ -341,7 +341,7 @@ void GpuSqlDispatcher::AddInsertIntoDoneFunction()
 
 void GpuSqlDispatcher::AddGreaterFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(greaterFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(greaterFunctions_[*left + right]);
 }
 
 
