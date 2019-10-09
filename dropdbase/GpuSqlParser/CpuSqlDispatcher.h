@@ -59,6 +59,7 @@ private:
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rightFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> concatFunctions_;
 
+    static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> dateToStringFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> yearFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> monthFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> dayFunctions_;
@@ -233,6 +234,10 @@ public:
 
     template <typename OP, typename T, typename U>
     int32_t arithmeticConstConst();
+
+	int32_t DateToStringCol();
+
+	int32_t DateToStringConst();
 
     template <typename OP>
     int32_t DateExtractCol();

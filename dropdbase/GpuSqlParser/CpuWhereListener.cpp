@@ -214,6 +214,10 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* c
         reg = "$" + op + operand;
         returnDataType = GetReturnDataType(operandType);
         break;
+    case GpuSqlLexer::DATETYPE:
+        reg = "$" + op + "(" + operand + ")";
+        returnDataType = COLUMN_STRING;
+        break;
     case GpuSqlLexer::YEAR:
         reg = "$" + op + "(" + operand + ")";
         returnDataType = COLUMN_INT;

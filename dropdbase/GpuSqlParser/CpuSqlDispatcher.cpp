@@ -184,6 +184,9 @@ void CpuSqlDispatcher::AddUnaryOperation(DataType type, size_t opType)
     case GpuSqlLexer::MINUS:
         cpuDispatcherFunctions_.push_back(minusFunctions_[type]);
         break;
+    case GpuSqlLexer::DATETYPE:
+        cpuDispatcherFunctions_.push_back(dateToStringFunctions_[type]);
+        break;
     case GpuSqlLexer::YEAR:
         cpuDispatcherFunctions_.push_back(yearFunctions_[type]);
         break;
