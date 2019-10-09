@@ -837,50 +837,77 @@ void Database::LoadColumn(const char* path,
             }
             else // read data from block
             {
-                std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
-                std::unique_ptr<char[]> data(new char[dataLength]);
-
-                colFile.read(data.get(), dataLength); // read entry data
-
                 auto& block = columnPolygon.AddBlock(groupId);
                 int64_t byteIndex = 0;
+                int32_t dataCount = 0;
 
+                int32_t remainingDataLength = dataLength;
                 while (byteIndex < dataLength)
                 {
-                    int32_t dataCount = 0;
-                    int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]);
+                    int32_t currentChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
 
-                    byteIndex += sizeof(int32_t);
+                    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+                    std::unique_ptr<char[]> data(new char[currentChunkSize]);
 
-                    std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
-                    memcpy(byteArray.get(), &data[byteIndex], entryByteLength);
+                    colFile.read(data.get(), currentChunkSize);
 
-                    ColmnarDB::Types::ComplexPolygon entryDataPolygon;
-                    entryDataPolygon.ParseFromArray(byteArray.get(), entryByteLength);
-                    dataPolygon.push_back(entryDataPolygon);
-                    dataCount++;
-
-                    byteIndex += entryByteLength;
-
-                    if (dataCount > columnPolygon.GetBlockSize())
+                    int64_t byteIndexForChunks = 0;
+                    int32_t remainingChunkSize = currentChunkSize;
+                    int32_t dataCountInOneChunk = 0;
+                    while (byteIndexForChunks < currentChunkSize)
                     {
-                        throw std::runtime_error(
-                            "Loaded data from disk does not fit into existing block");
-                        break;
-                    }
+                        int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndexForChunks]);
+                        std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
 
-                    if (byteIndex >= oneChunkSize)
-                    {
-                        block.InsertData(dataPolygon);
-                        dataPolygon.clear();
-                    }
-                }
-                data.release();
+                        byteIndex += sizeof(int32_t);
+                        byteIndexForChunks += sizeof(int32_t);
 
-                if (dataPolygon.size() > 0)
-                {
+                        if ((currentChunkSize - byteIndexForChunks) < entryByteLength)
+                        {
+                            std::unique_ptr<char[]> dataRest(
+                                new char[entryByteLength - (currentChunkSize - byteIndexForChunks)]);
+
+                            colFile.read(dataRest.get(),
+                                         entryByteLength - (currentChunkSize - byteIndexForChunks));
+
+                            memcpy(byteArray.get(), &data[byteIndexForChunks],
+                                   (currentChunkSize - byteIndexForChunks));
+                            memcpy(byteArray.get() + (currentChunkSize - byteIndexForChunks), &dataRest[0],
+                                   entryByteLength - (currentChunkSize - byteIndexForChunks));
+
+                            ColmnarDB::Types::ComplexPolygon entryDataPolygon;
+                            entryDataPolygon.ParseFromArray(byteArray.get(), entryByteLength);
+                            dataPolygon.push_back(entryDataPolygon);
+
+                            byteIndexForChunks += entryByteLength;
+                            remainingChunkSize = 0;
+                        }
+                        else
+                        {
+                            memcpy(byteArray.get(), &data[byteIndexForChunks], entryByteLength);
+                            remainingChunkSize -= entryByteLength;
+
+                            ColmnarDB::Types::ComplexPolygon entryDataPolygon;
+                            entryDataPolygon.ParseFromArray(byteArray.get(), entryByteLength);
+                            dataPolygon.push_back(entryDataPolygon);
+
+                            byteIndexForChunks += entryByteLength;
+                        }
+
+                        dataCountInOneChunk++;
+                        dataCount++;
+                        byteIndex += entryByteLength;
+
+                        if (dataCount > columnPolygon.GetBlockSize())
+                        {
+                            throw std::runtime_error(
+                                "Loaded data from disk does not fit into existing block");
+                            break;
+                        }
+                    }
+                    remainingDataLength -= currentChunkSize;
+
                     block.InsertData(dataPolygon);
-                    dataPolygon.clear();
                 }
 
                 block.SetNullBitmask(std::move(nullBitMask));
@@ -949,50 +976,77 @@ void Database::LoadColumn(const char* path,
             }
             else // read data from block
             {
-                std::vector<ColmnarDB::Types::Point> dataPoint;
-                std::unique_ptr<char[]> data(new char[dataLength]);
-
-                colFile.read(data.get(), dataLength); // read entry data
-
                 auto& block = columnPoint.AddBlock(groupId);
                 int64_t byteIndex = 0;
+                int32_t dataCount = 0;
 
+				int32_t remainingDataLength = dataLength;
                 while (byteIndex < dataLength)
                 {
-                    int32_t dataCount = 0;
-                    int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]);
+                    int32_t currentChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
 
-                    byteIndex += sizeof(int32_t);
+                    std::vector<ColmnarDB::Types::Point> dataPoint;
+                    std::unique_ptr<char[]> data(new char[currentChunkSize]);
 
-                    std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
-                    memcpy(byteArray.get(), &data[byteIndex], entryByteLength);
+                    colFile.read(data.get(), currentChunkSize);
 
-                    ColmnarDB::Types::Point entryDataPoint;
-                    entryDataPoint.ParseFromArray(byteArray.get(), entryByteLength);
-                    dataPoint.push_back(entryDataPoint);
-                    dataCount++;
-
-                    byteIndex += entryByteLength;
-
-                    if (dataCount > columnPoint.GetBlockSize())
+                    int64_t byteIndexForChunks = 0;
+                    int32_t remainingChunkSize = currentChunkSize;
+                    int32_t dataCountInOneChunk = 0;
+                    while (byteIndexForChunks < currentChunkSize)
                     {
-                        throw std::runtime_error(
-                            "Loaded data from disk does not fit into existing block");
-                        break;
-                    }
+                        int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndexForChunks]);
+                        std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
 
-                    if (byteIndex >= oneChunkSize)
-                    {
-                        block.InsertData(dataPoint);
-                        dataPoint.clear();
-                    }
-                }
-                data.release();
+                        byteIndex += sizeof(int32_t);
+                        byteIndexForChunks += sizeof(int32_t);
 
-                if (dataPoint.size() > 0)
-                {
+                        if ((currentChunkSize - byteIndexForChunks) < entryByteLength)
+                        {
+                            std::unique_ptr<char[]> dataRest(
+                                new char[entryByteLength - (currentChunkSize - byteIndexForChunks)]);
+
+                            colFile.read(dataRest.get(),
+                                         entryByteLength - (currentChunkSize - byteIndexForChunks));
+
+                            memcpy(byteArray.get(), &data[byteIndexForChunks],
+                                   (currentChunkSize - byteIndexForChunks));
+                            memcpy(byteArray.get() + (currentChunkSize - byteIndexForChunks), &dataRest[0],
+                                   entryByteLength - (currentChunkSize - byteIndexForChunks));
+
+                            ColmnarDB::Types::Point entryDataPoint;
+                            entryDataPoint.ParseFromArray(byteArray.get(), entryByteLength);
+                            dataPoint.push_back(entryDataPoint);
+
+                            byteIndexForChunks += entryByteLength;
+                            remainingChunkSize = 0;
+                        }
+                        else
+                        {
+                            memcpy(byteArray.get(), &data[byteIndexForChunks], entryByteLength);
+                            remainingChunkSize -= entryByteLength;
+
+                            ColmnarDB::Types::Point entryDataPoint;
+                            entryDataPoint.ParseFromArray(byteArray.get(), entryByteLength);
+                            dataPoint.push_back(entryDataPoint);
+
+                            byteIndexForChunks += entryByteLength;
+                        }
+
+                        dataCountInOneChunk++;
+                        dataCount++;
+                        byteIndex += entryByteLength;
+
+                        if (dataCount > columnPoint.GetBlockSize())
+                        {
+                            throw std::runtime_error(
+                                "Loaded data from disk does not fit into existing block");
+                            break;
+                        }
+                    }
+                    remainingDataLength -= currentChunkSize;
+
                     block.InsertData(dataPoint);
-                    dataPoint.clear();
                 }
 
                 block.SetNullBitmask(std::move(nullBitMask));
@@ -1052,45 +1106,62 @@ void Database::LoadColumn(const char* path,
             }
             else // read data from block
             {
-                std::unique_ptr<std::string[]> dataString;
-                std::unique_ptr<char[]> data(new char[oneChunkSize]);
-
                 auto& block = columnString.AddBlock(groupId);
                 int64_t byteIndex = 0;
+                int32_t dataCount = 0;
 
                 int32_t remainingDataLength = dataLength;
                 while (byteIndex < dataLength)
-                {
-                    int32_t dataCount = 0;
-                    colFile.read(data.get(), oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength);
+				{
+                    int32_t currentChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
+
+					std::vector<std::string> dataString;
+					std::unique_ptr<char[]> data(new char[currentChunkSize]);
+
+                    colFile.read(data.get(), currentChunkSize);
 
                     int64_t byteIndexForChunks = 0;
-                    int32_t remainingChunkSize = oneChunkSize;
-                    int32_t currentChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
+                    int32_t remainingChunkSize = currentChunkSize;
+                    int32_t dataCountInOneChunk = 0;
                     while (byteIndexForChunks < currentChunkSize)
                     {
-                        int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndex]); // read entry byte length
-
-                        byteIndex += sizeof(int32_t);
+                        int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndexForChunks]); 
                         std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
 
-                        if (remainingChunkSize < entryByteLength)
+                        byteIndex += sizeof(int32_t);
+                        byteIndexForChunks += sizeof(int32_t);
+
+                        if ((currentChunkSize - byteIndexForChunks) < entryByteLength)
                         {
-                            memcpy(byteArray.get(), &data[byteIndex], remainingChunkSize);
-                            colFile.read(data.get(), oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength);
-                            byteIndexForChunks = 0;
-                            remainingChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
+                            std::unique_ptr<char[]> dataRest(new char[entryByteLength - (currentChunkSize - byteIndexForChunks)]);
+
+                            colFile.read(dataRest.get(), entryByteLength - (currentChunkSize - byteIndexForChunks));
+
+                            memcpy(byteArray.get(), &data[byteIndexForChunks],
+                                   (currentChunkSize - byteIndexForChunks));
+                            memcpy(byteArray.get() + (currentChunkSize - byteIndexForChunks),
+                                   &dataRest[0],
+                                   entryByteLength - (currentChunkSize - byteIndexForChunks));
+
+							std::string entryDataString(byteArray.get());
+                            dataString.push_back(entryDataString);
+
+                            byteIndexForChunks += entryByteLength;
+                            remainingChunkSize = 0;
                         }
                         else
                         {
-                            memcpy(byteArray.get(), &data[byteIndex], entryByteLength);
+                            memcpy(byteArray.get(), &data[byteIndexForChunks], entryByteLength);
                             remainingChunkSize -= entryByteLength;
+
+                            std::string entryDataString(byteArray.get());
+                            dataString.push_back(entryDataString);
+
+                            byteIndexForChunks += entryByteLength;
 						}
 
-                        std::string entryDataString(byteArray.get());
-                        dataString.push_back(entryDataString);
+						dataCountInOneChunk++;
                         dataCount++;
-
                         byteIndex += entryByteLength;
 
                         if (dataCount > columnString.GetBlockSize())
@@ -1099,21 +1170,10 @@ void Database::LoadColumn(const char* path,
                                 "Loaded data from disk does not fit into existing block");
                             break;
                         }
-
-                        if (byteIndex >= oneChunkSize)
-                        {
-                            block.InsertData(dataString);
-                            dataString.clear();
-                        }
                     }
-                    remainingDataLength -= oneChunkSize;
-                }
-                data.release();
+                    remainingDataLength -= currentChunkSize;
 
-                if (dataString.size() > 0)
-                {
-                    block.InsertData(dataString);
-                    dataString.clear();
+					block.InsertData(dataString);
                 }
 
                 block.SetNullBitmask(std::move(nullBitMask));
