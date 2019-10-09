@@ -471,7 +471,7 @@ TEST_F(DispatcherGeoTests, PolygonIntersectTest)
          "-3.5726, 2.2761 -2.3710), (0.2290 3.7585, 0.9600 4.2500, 2.1600 2.8100, 1.4222 2.3858, "
          "0.9200 3.6900, 0.2290 3.7585), (-2.1875 2.1336, -2.5200 1.9100, -1.9800 0.4300, 0.2232 "
          "1.6966, -2.1875 2.1336))"},
-        INTERSECT_TEST, {0}, false);
+        INTERSECT_TEST, {0, 0, 0}, false);
 }
 
 TEST_F(DispatcherGeoTests, PolygonUnionTest)
@@ -508,7 +508,7 @@ TEST_F(DispatcherGeoTests, PolygonUnionTest)
          "-1.2199), (-1.5788 3.9375, -3.1298 3.1890, -2.9400 2.2700, -2.1875 2.1336, 0.2290 "
          "3.7585, -1.5788 3.9375), (1.6579 1.7738, 0.4276 1.1420, 0.4800 1.6500, 0.2232 1.6966, "
          "1.4222 2.3858, 1.6579 1.7738))"},
-        UNION_TEST, {0}, false);
+        UNION_TEST, {0, 0, 0}, false);
 }
 
 TEST_F(DispatcherGeoTests, PolygonWKT_EmptyResultSet_noMask)
@@ -522,7 +522,7 @@ TEST_F(DispatcherGeoTests, PolygonWKT_EmptyResultSet_noMask)
                     {"POLYGON((0.0000 0.0000, 0.0000 0.0000))", 
 					 "POLYGON((0.0000 0.0000, 0.0000 0.0000))",
                      "POLYGON((0.0000 0.0000, 0.0000 0.0000))"},
-                    INTERSECT_TEST, {0}, false);
+                    INTERSECT_TEST, {0, 0, 0}, false);
 }
 
 TEST_F(DispatcherGeoTests, PolygonWKT_PartialEmptyResultSet_noMask)
@@ -540,7 +540,7 @@ TEST_F(DispatcherGeoTests, PolygonWKT_PartialEmptyResultSet_noMask)
                     {"POLYGON((0.0000 0.0000, 0.0000 0.0000))", 
 					"POLYGON((1.0000 0.5000, 1.0000 1.0000, 0.5000 1.0000, 0.5000 0.5000, 1.0000 0.5000))",
                      "POLYGON((0.0000 0.0000, 0.0000 0.0000))"},
-                    INTERSECT_TEST, {0}, false);
+                    INTERSECT_TEST, {0, 0, 0}, false);
 }
 
 TEST_F(DispatcherGeoTests, PolygonWKT_EmptyResultSet_emptyMask)
