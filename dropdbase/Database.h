@@ -7,6 +7,7 @@
 #include <thread>
 #include <mutex>
 #include "DataType.h"
+#include "ConstraintType.h"
 #include "QueryEngine/Context.h"
 #include "Table.h"
 /// <summary>

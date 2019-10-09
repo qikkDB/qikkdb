@@ -97,6 +97,12 @@ public:
   virtual void enterRenameTable(GpuSqlParser::RenameTableContext * /*ctx*/) override { }
   virtual void exitRenameTable(GpuSqlParser::RenameTableContext * /*ctx*/) override { }
 
+  virtual void enterAddConstraint(GpuSqlParser::AddConstraintContext * /*ctx*/) override { }
+  virtual void exitAddConstraint(GpuSqlParser::AddConstraintContext * /*ctx*/) override { }
+
+  virtual void enterDropConstraint(GpuSqlParser::DropConstraintContext * /*ctx*/) override { }
+  virtual void exitDropConstraint(GpuSqlParser::DropConstraintContext * /*ctx*/) override { }
+
   virtual void enterRenameColumnFrom(GpuSqlParser::RenameColumnFromContext * /*ctx*/) override { }
   virtual void exitRenameColumnFrom(GpuSqlParser::RenameColumnFromContext * /*ctx*/) override { }
 
@@ -106,8 +112,8 @@ public:
   virtual void enterNewTableColumn(GpuSqlParser::NewTableColumnContext * /*ctx*/) override { }
   virtual void exitNewTableColumn(GpuSqlParser::NewTableColumnContext * /*ctx*/) override { }
 
-  virtual void enterNewTableIndex(GpuSqlParser::NewTableIndexContext * /*ctx*/) override { }
-  virtual void exitNewTableIndex(GpuSqlParser::NewTableIndexContext * /*ctx*/) override { }
+  virtual void enterNewTableConstraint(GpuSqlParser::NewTableConstraintContext * /*ctx*/) override { }
+  virtual void exitNewTableConstraint(GpuSqlParser::NewTableConstraintContext * /*ctx*/) override { }
 
   virtual void enterSelectColumns(GpuSqlParser::SelectColumnsContext * /*ctx*/) override { }
   virtual void exitSelectColumns(GpuSqlParser::SelectColumnsContext * /*ctx*/) override { }
@@ -135,6 +141,9 @@ public:
 
   virtual void enterIndexColumns(GpuSqlParser::IndexColumnsContext * /*ctx*/) override { }
   virtual void exitIndexColumns(GpuSqlParser::IndexColumnsContext * /*ctx*/) override { }
+
+  virtual void enterConstraintColumns(GpuSqlParser::ConstraintColumnsContext * /*ctx*/) override { }
+  virtual void exitConstraintColumns(GpuSqlParser::ConstraintColumnsContext * /*ctx*/) override { }
 
   virtual void enterGroupByColumns(GpuSqlParser::GroupByColumnsContext * /*ctx*/) override { }
   virtual void exitGroupByColumns(GpuSqlParser::GroupByColumnsContext * /*ctx*/) override { }
@@ -187,6 +196,9 @@ public:
   virtual void enterIndexName(GpuSqlParser::IndexNameContext * /*ctx*/) override { }
   virtual void exitIndexName(GpuSqlParser::IndexNameContext * /*ctx*/) override { }
 
+  virtual void enterConstraintName(GpuSqlParser::ConstraintNameContext * /*ctx*/) override { }
+  virtual void exitConstraintName(GpuSqlParser::ConstraintNameContext * /*ctx*/) override { }
+
   virtual void enterLimit(GpuSqlParser::LimitContext * /*ctx*/) override { }
   virtual void exitLimit(GpuSqlParser::LimitContext * /*ctx*/) override { }
 
@@ -198,6 +210,9 @@ public:
 
   virtual void enterColumnValue(GpuSqlParser::ColumnValueContext * /*ctx*/) override { }
   virtual void exitColumnValue(GpuSqlParser::ColumnValueContext * /*ctx*/) override { }
+
+  virtual void enterConstraint(GpuSqlParser::ConstraintContext * /*ctx*/) override { }
+  virtual void exitConstraint(GpuSqlParser::ConstraintContext * /*ctx*/) override { }
 
   virtual void enterDecimalLiteral(GpuSqlParser::DecimalLiteralContext * /*ctx*/) override { }
   virtual void exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext * /*ctx*/) override { }

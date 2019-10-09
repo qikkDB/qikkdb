@@ -34,7 +34,7 @@ sqlSelect:
 sqlCreateDb: CREATEDB database (blockSize)? SEMICOL;
 sqlDropDb: DROPDB database SEMICOL;
 sqlCreateTable:
-	CREATETABLE table LPAREN newTableEntries RPAREN SEMICOL;
+	CREATETABLE table (blockSize)? LPAREN newTableEntries RPAREN SEMICOL;
 sqlDropTable: DROPTABLE table SEMICOL;
 sqlAlterTable: ALTERTABLE table alterTableEntries SEMICOL;
 sqlAlterDatabase: ALTERDATABASE database alterDatabaseEntries SEMICOL;
@@ -43,21 +43,23 @@ sqlCreateIndex:
 sqlInsertInto:
 	INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN insertIntoValues RPAREN SEMICOL;
 newTableEntries: ((newTableEntry (COMMA newTableEntry)*));
-newTableEntry: (newTableColumn | newTableIndex);
+newTableEntry: (newTableColumn | newTableConstraint);
 alterDatabaseEntries: ((alterDatabaseEntry (COMMA alterDatabaseEntry)*));
 alterDatabaseEntry: (renameDatabase);
 renameDatabase: (RENAMETO database);
 alterTableEntries: ((alterTableEntry (COMMA alterTableEntry)*));
-alterTableEntry: (addColumn | dropColumn | alterColumn | renameColumn | renameTable);
+alterTableEntry: (addColumn | dropColumn | alterColumn | renameColumn | renameTable | addConstraint | dropConstraint);
 addColumn: (ADD column datatype);
 dropColumn: (DROPCOLUMN column);
 alterColumn: (ALTERCOLUMN column datatype);
 renameColumn: (RENAMECOLUMN renameColumnFrom TO renameColumnTo);
 renameTable: (RENAMETO table);
+addConstraint: (ADD constraint constraintName LPAREN constraintColumns RPAREN);
+dropConstraint: (DROP constraint constraintName);
 renameColumnFrom: column;
 renameColumnTo: column;
-newTableColumn: (column datatype);
-newTableIndex: (INDEX indexName LPAREN indexColumns RPAREN);
+newTableColumn: (column datatype (constraint)?);
+newTableConstraint: (constraint constraintName LPAREN constraintColumns RPAREN);
 selectColumns: (
 		(
 			(selectColumn | selectAllColumns) (
@@ -73,6 +75,7 @@ orderByColumn: (expression DIR?);
 insertIntoValues: ((columnValue (COMMA columnValue)*));
 insertIntoColumns: ((columnId (COMMA columnId)*));
 indexColumns: ((column (COMMA column)*));
+constraintColumns: ((column (COMMA column)*));
 groupByColumns: ((groupByColumn (COMMA groupByColumn)*));
 groupByColumn: expression;
 fromTables: ((fromTable (COMMA fromTable)*));
@@ -100,6 +103,7 @@ column: (ID | DELIMID);
 database: (ID | DELIMID);
 alias: (ID | DELIMID);
 indexName: (ID | DELIMID);
+constraintName: (ID | DELIMID);
 limit: INTLIT;
 offset: INTLIT;
 blockSize: INTLIT;
@@ -112,6 +116,10 @@ columnValue: (
 		| DATETIMELIT
 		| BOOLEANLIT
 	);
+constraint: (
+        UNIQUE
+        | INDEX
+);
 
 expression:
 	op = LOGICAL_NOT expression														# unaryOperation

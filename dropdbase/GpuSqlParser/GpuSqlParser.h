@@ -20,25 +20,27 @@ public:
     DETETIMETYPE = 28, FLOATTYPE = 29, DOUBLETYPE = 30, STRINGTYPE = 31, 
     BOOLEANTYPE = 32, POINTTYPE = 33, POLYTYPE = 34, INSERTINTO = 35, CREATEDB = 36, 
     DROPDB = 37, CREATETABLE = 38, DROPTABLE = 39, ALTERTABLE = 40, ALTERDATABASE = 41, 
-    ADD = 42, DROPCOLUMN = 43, ALTERCOLUMN = 44, RENAMECOLUMN = 45, RENAMETO = 46, 
-    CREATEINDEX = 47, INDEX = 48, PRIMARYKEY = 49, VALUES = 50, SELECT = 51, 
-    FROM = 52, JOIN = 53, WHERE = 54, GROUPBY = 55, AS = 56, IN = 57, TO = 58, 
-    ISNULL = 59, ISNOTNULL = 60, BETWEEN = 61, ON = 62, ORDERBY = 63, DIR = 64, 
-    LIMIT = 65, OFFSET = 66, INNER = 67, FULLOUTER = 68, SHOWDB = 69, SHOWTB = 70, 
-    SHOWCL = 71, AVG_AGG = 72, SUM_AGG = 73, MIN_AGG = 74, MAX_AGG = 75, 
-    COUNT_AGG = 76, YEAR = 77, MONTH = 78, DAY = 79, HOUR = 80, MINUTE = 81, 
-    SECOND = 82, NOW = 83, PI = 84, ABS = 85, SIN = 86, COS = 87, TAN = 88, 
-    COT = 89, ASIN = 90, ACOS = 91, ATAN = 92, ATAN2 = 93, LOG10 = 94, LOG = 95, 
-    EXP = 96, POW = 97, SQRT = 98, SQUARE = 99, SIGN = 100, ROOT = 101, 
-    ROUND = 102, CEIL = 103, FLOOR = 104, LTRIM = 105, RTRIM = 106, LOWER = 107, 
-    UPPER = 108, REVERSE = 109, LEN = 110, LEFT = 111, RIGHT = 112, CONCAT = 113, 
-    CAST = 114, GEO_CONTAINS = 115, GEO_INTERSECT = 116, GEO_UNION = 117, 
-    PLUS = 118, MINUS = 119, ASTERISK = 120, DIVISION = 121, MODULO = 122, 
-    XOR = 123, EQUALS = 124, NOTEQUALS = 125, NOTEQUALS_GT_LT = 126, LPAREN = 127, 
-    RPAREN = 128, GREATER = 129, LESS = 130, GREATEREQ = 131, LESSEQ = 132, 
-    LOGICAL_NOT = 133, OR = 134, AND = 135, BIT_OR = 136, BIT_AND = 137, 
-    L_SHIFT = 138, R_SHIFT = 139, BOOLEANLIT = 140, TRUE = 141, FALSE = 142, 
-    FLOATLIT = 143, INTLIT = 144, NULLLIT = 145, ID = 146
+    DROPCOLUMN = 42, ALTERCOLUMN = 43, RENAMECOLUMN = 44, RENAMETO = 45, 
+    CREATEINDEX = 46, INDEX = 47, UNIQUE = 48, PRIMARYKEY = 49, CREATE = 50, 
+    ADD = 51, DROP = 52, ALTER = 53, RENAME = 54, DATABASE = 55, TABLE = 56, 
+    COLUMN = 57, VALUES = 58, SELECT = 59, FROM = 60, JOIN = 61, WHERE = 62, 
+    GROUPBY = 63, AS = 64, IN = 65, TO = 66, ISNULL = 67, ISNOTNULL = 68, 
+    BETWEEN = 69, ON = 70, ORDERBY = 71, DIR = 72, LIMIT = 73, OFFSET = 74, 
+    INNER = 75, FULLOUTER = 76, SHOWDB = 77, SHOWTB = 78, SHOWCL = 79, AVG_AGG = 80, 
+    SUM_AGG = 81, MIN_AGG = 82, MAX_AGG = 83, COUNT_AGG = 84, YEAR = 85, 
+    MONTH = 86, DAY = 87, HOUR = 88, MINUTE = 89, SECOND = 90, NOW = 91, 
+    PI = 92, ABS = 93, SIN = 94, COS = 95, TAN = 96, COT = 97, ASIN = 98, 
+    ACOS = 99, ATAN = 100, ATAN2 = 101, LOG10 = 102, LOG = 103, EXP = 104, 
+    POW = 105, SQRT = 106, SQUARE = 107, SIGN = 108, ROOT = 109, ROUND = 110, 
+    CEIL = 111, FLOOR = 112, LTRIM = 113, RTRIM = 114, LOWER = 115, UPPER = 116, 
+    REVERSE = 117, LEN = 118, LEFT = 119, RIGHT = 120, CONCAT = 121, CAST = 122, 
+    GEO_CONTAINS = 123, GEO_INTERSECT = 124, GEO_UNION = 125, PLUS = 126, 
+    MINUS = 127, ASTERISK = 128, DIVISION = 129, MODULO = 130, XOR = 131, 
+    EQUALS = 132, NOTEQUALS = 133, NOTEQUALS_GT_LT = 134, LPAREN = 135, 
+    RPAREN = 136, GREATER = 137, LESS = 138, GREATEREQ = 139, LESSEQ = 140, 
+    LOGICAL_NOT = 141, OR = 142, AND = 143, BIT_OR = 144, BIT_AND = 145, 
+    L_SHIFT = 146, R_SHIFT = 147, BOOLEANLIT = 148, TRUE = 149, FALSE = 150, 
+    FLOATLIT = 151, INTLIT = 152, NULLLIT = 153, ID = 154
   };
 
   enum {
@@ -49,21 +51,23 @@ public:
     RuleNewTableEntries = 15, RuleNewTableEntry = 16, RuleAlterDatabaseEntries = 17, 
     RuleAlterDatabaseEntry = 18, RuleRenameDatabase = 19, RuleAlterTableEntries = 20, 
     RuleAlterTableEntry = 21, RuleAddColumn = 22, RuleDropColumn = 23, RuleAlterColumn = 24, 
-    RuleRenameColumn = 25, RuleRenameTable = 26, RuleRenameColumnFrom = 27, 
-    RuleRenameColumnTo = 28, RuleNewTableColumn = 29, RuleNewTableIndex = 30, 
-    RuleSelectColumns = 31, RuleSelectColumn = 32, RuleSelectAllColumns = 33, 
-    RuleWhereClause = 34, RuleOrderByColumns = 35, RuleOrderByColumn = 36, 
-    RuleInsertIntoValues = 37, RuleInsertIntoColumns = 38, RuleIndexColumns = 39, 
-    RuleGroupByColumns = 40, RuleGroupByColumn = 41, RuleFromTables = 42, 
-    RuleJoinClauses = 43, RuleJoinClause = 44, RuleJoinTable = 45, RuleJoinColumnLeft = 46, 
-    RuleJoinColumnRight = 47, RuleJoinOperator = 48, RuleJoinType = 49, 
-    RuleFromTable = 50, RuleColumnId = 51, RuleTable = 52, RuleColumn = 53, 
-    RuleDatabase = 54, RuleAlias = 55, RuleIndexName = 56, RuleLimit = 57, 
-    RuleOffset = 58, RuleBlockSize = 59, RuleColumnValue = 60, RuleExpression = 61, 
-    RuleDatatype = 62, RuleGeometry = 63, RulePointGeometry = 64, RuleLineStringGeometry = 65, 
-    RulePolygonGeometry = 66, RuleMultiPointGeometry = 67, RuleMultiLineStringGeometry = 68, 
-    RuleMultiPolygonGeometry = 69, RulePointOrClosedPoint = 70, RulePolygon = 71, 
-    RuleLineString = 72, RulePoint = 73
+    RuleRenameColumn = 25, RuleRenameTable = 26, RuleAddConstraint = 27, 
+    RuleDropConstraint = 28, RuleRenameColumnFrom = 29, RuleRenameColumnTo = 30, 
+    RuleNewTableColumn = 31, RuleNewTableConstraint = 32, RuleSelectColumns = 33, 
+    RuleSelectColumn = 34, RuleSelectAllColumns = 35, RuleWhereClause = 36, 
+    RuleOrderByColumns = 37, RuleOrderByColumn = 38, RuleInsertIntoValues = 39, 
+    RuleInsertIntoColumns = 40, RuleIndexColumns = 41, RuleConstraintColumns = 42, 
+    RuleGroupByColumns = 43, RuleGroupByColumn = 44, RuleFromTables = 45, 
+    RuleJoinClauses = 46, RuleJoinClause = 47, RuleJoinTable = 48, RuleJoinColumnLeft = 49, 
+    RuleJoinColumnRight = 50, RuleJoinOperator = 51, RuleJoinType = 52, 
+    RuleFromTable = 53, RuleColumnId = 54, RuleTable = 55, RuleColumn = 56, 
+    RuleDatabase = 57, RuleAlias = 58, RuleIndexName = 59, RuleConstraintName = 60, 
+    RuleLimit = 61, RuleOffset = 62, RuleBlockSize = 63, RuleColumnValue = 64, 
+    RuleConstraint = 65, RuleExpression = 66, RuleDatatype = 67, RuleGeometry = 68, 
+    RulePointGeometry = 69, RuleLineStringGeometry = 70, RulePolygonGeometry = 71, 
+    RuleMultiPointGeometry = 72, RuleMultiLineStringGeometry = 73, RuleMultiPolygonGeometry = 74, 
+    RulePointOrClosedPoint = 75, RulePolygon = 76, RuleLineString = 77, 
+    RulePoint = 78
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -103,10 +107,12 @@ public:
   class AlterColumnContext;
   class RenameColumnContext;
   class RenameTableContext;
+  class AddConstraintContext;
+  class DropConstraintContext;
   class RenameColumnFromContext;
   class RenameColumnToContext;
   class NewTableColumnContext;
-  class NewTableIndexContext;
+  class NewTableConstraintContext;
   class SelectColumnsContext;
   class SelectColumnContext;
   class SelectAllColumnsContext;
@@ -116,6 +122,7 @@ public:
   class InsertIntoValuesContext;
   class InsertIntoColumnsContext;
   class IndexColumnsContext;
+  class ConstraintColumnsContext;
   class GroupByColumnsContext;
   class GroupByColumnContext;
   class FromTablesContext;
@@ -133,10 +140,12 @@ public:
   class DatabaseContext;
   class AliasContext;
   class IndexNameContext;
+  class ConstraintNameContext;
   class LimitContext;
   class OffsetContext;
   class BlockSizeContext;
   class ColumnValueContext;
+  class ConstraintContext;
   class ExpressionContext;
   class DatatypeContext;
   class GeometryContext;
@@ -323,6 +332,7 @@ public:
     NewTableEntriesContext *newTableEntries();
     antlr4::tree::TerminalNode *RPAREN();
     antlr4::tree::TerminalNode *SEMICOL();
+    BlockSizeContext *blockSize();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -441,7 +451,7 @@ public:
     NewTableEntryContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     NewTableColumnContext *newTableColumn();
-    NewTableIndexContext *newTableIndex();
+    NewTableConstraintContext *newTableConstraint();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -518,6 +528,8 @@ public:
     AlterColumnContext *alterColumn();
     RenameColumnContext *renameColumn();
     RenameTableContext *renameTable();
+    AddConstraintContext *addConstraint();
+    DropConstraintContext *dropConstraint();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -600,6 +612,39 @@ public:
 
   RenameTableContext* renameTable();
 
+  class  AddConstraintContext : public antlr4::ParserRuleContext {
+  public:
+    AddConstraintContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ADD();
+    ConstraintContext *constraint();
+    ConstraintNameContext *constraintName();
+    antlr4::tree::TerminalNode *LPAREN();
+    ConstraintColumnsContext *constraintColumns();
+    antlr4::tree::TerminalNode *RPAREN();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  AddConstraintContext* addConstraint();
+
+  class  DropConstraintContext : public antlr4::ParserRuleContext {
+  public:
+    DropConstraintContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *DROP();
+    ConstraintContext *constraint();
+    ConstraintNameContext *constraintName();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  DropConstraintContext* dropConstraint();
+
   class  RenameColumnFromContext : public antlr4::ParserRuleContext {
   public:
     RenameColumnFromContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -632,6 +677,7 @@ public:
     virtual size_t getRuleIndex() const override;
     ColumnContext *column();
     DatatypeContext *datatype();
+    ConstraintContext *constraint();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -640,14 +686,14 @@ public:
 
   NewTableColumnContext* newTableColumn();
 
-  class  NewTableIndexContext : public antlr4::ParserRuleContext {
+  class  NewTableConstraintContext : public antlr4::ParserRuleContext {
   public:
-    NewTableIndexContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    NewTableConstraintContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *INDEX();
-    IndexNameContext *indexName();
+    ConstraintContext *constraint();
+    ConstraintNameContext *constraintName();
     antlr4::tree::TerminalNode *LPAREN();
-    IndexColumnsContext *indexColumns();
+    ConstraintColumnsContext *constraintColumns();
     antlr4::tree::TerminalNode *RPAREN();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -655,7 +701,7 @@ public:
    
   };
 
-  NewTableIndexContext* newTableIndex();
+  NewTableConstraintContext* newTableConstraint();
 
   class  SelectColumnsContext : public antlr4::ParserRuleContext {
   public:
@@ -793,6 +839,22 @@ public:
   };
 
   IndexColumnsContext* indexColumns();
+
+  class  ConstraintColumnsContext : public antlr4::ParserRuleContext {
+  public:
+    ConstraintColumnsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<ColumnContext *> column();
+    ColumnContext* column(size_t i);
+    std::vector<antlr4::tree::TerminalNode *> COMMA();
+    antlr4::tree::TerminalNode* COMMA(size_t i);
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  ConstraintColumnsContext* constraintColumns();
 
   class  GroupByColumnsContext : public antlr4::ParserRuleContext {
   public:
@@ -1048,6 +1110,20 @@ public:
 
   IndexNameContext* indexName();
 
+  class  ConstraintNameContext : public antlr4::ParserRuleContext {
+  public:
+    ConstraintNameContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ID();
+    antlr4::tree::TerminalNode *DELIMID();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  ConstraintNameContext* constraintName();
+
   class  LimitContext : public antlr4::ParserRuleContext {
   public:
     LimitContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -1106,6 +1182,20 @@ public:
   };
 
   ColumnValueContext* columnValue();
+
+  class  ConstraintContext : public antlr4::ParserRuleContext {
+  public:
+    ConstraintContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *UNIQUE();
+    antlr4::tree::TerminalNode *INDEX();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  ConstraintContext* constraint();
 
   class  ExpressionContext : public antlr4::ParserRuleContext {
   public:

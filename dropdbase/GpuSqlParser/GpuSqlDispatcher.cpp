@@ -13,6 +13,7 @@
 #include "../StringFactory.h"
 #include "../Database.h"
 #include "../Table.h"
+#include "../ConstraintType.h"
 #include "LoadColHelper.h"
 #include "InsertIntoStruct.h"
 #include <any>
@@ -1330,19 +1331,25 @@ int32_t GpuSqlDispatcher::DropDatabase()
 int32_t GpuSqlDispatcher::CreateTable()
 {
     std::unordered_map<std::string, DataType> newColumns;
+    std::unordered_map<std::string, ConstraintType> newColumnsConstraints;
     std::unordered_map<std::string, std::vector<std::string>> newIndices;
+    std::unordered_map<std::string, std::vector<std::string>> newUniques;
 
     std::string newTableName = arguments_.Read<std::string>();
+    int32_t newTableBlockSize = arguments_.Read<int32_t>();
 
     int32_t newColumnsCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < newColumnsCount; i++)
     {
         std::string newColumnName = arguments_.Read<std::string>();
         int32_t newColumnDataType = arguments_.Read<int32_t>();
+        int32_t newColumnConstraintType = arguments_.Read<int32_t>();
         newColumns.insert({newColumnName, static_cast<DataType>(newColumnDataType)});
+        newColumnsConstraints.insert({newColumnName, static_cast<ConstraintType>(newColumnConstraintType)});
     }
 
     std::vector<std::string> allIndexColumns;
+    std::vector<std::string> allUniqueColumns;
 
     int32_t newIndexCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < newIndexCount; i++)
@@ -1362,6 +1369,26 @@ int32_t GpuSqlDispatcher::CreateTable()
             }
         }
         newIndices.insert({newIndexName, newIndexColumns});
+    }
+
+    int32_t newUniqueCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < newUniqueCount; i++)
+    {
+        std::string newUniqueName = arguments_.Read<std::string>();
+        int32_t newUniqueColumnCount = arguments_.Read<int32_t>();
+        std::vector<std::string> newUniqueColumns;
+
+        for (int32_t j = 0; j < newUniqueColumnCount; j++)
+        {
+            std::string newUniqueColumn = arguments_.Read<std::string>();
+            newUniqueColumns.push_back(newUniqueColumn);
+            if (std::find(allUniqueColumns.begin(), allUniqueColumns.end(), newUniqueColumn) ==
+                allUniqueColumns.end())
+            {
+                allUniqueColumns.push_back(newUniqueColumn);
+            }
+        }
+        newUniques.insert({newUniqueName, newUniqueColumns});
     }
 
     database_->CreateTable(newColumns, newTableName.c_str()).SetSortingColumns(allIndexColumns);

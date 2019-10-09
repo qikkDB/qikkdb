@@ -8,6 +8,7 @@
 #include "../PointFactory.h"
 #include "../ComplexPolygonFactory.h"
 #include "ParserExceptions.h"
+#include "../ConstraintType.h"
 #include "JoinType.h"
 #include "GroupByType.h"
 #include "GpuSqlDispatcher.h"
@@ -1159,13 +1160,18 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
     std::string newTableName = ctx->table()->getText();
     TrimDelimitedIdentifier(newTableName);
 
+    int32_t tableBlockSize =
+        ctx->blockSize() ? std::stol(ctx->blockSize()->getText()) : database_->GetBlockSize();
+
     if (database_->GetTables().find(newTableName) != database_->GetTables().end())
     {
         throw TableAlreadyExistsException(newTableName);
     }
 
     std::unordered_map<std::string, DataType> newColumns;
+    std::unordered_map<std::string, ConstraintType> newColumnsConstraints;
     std::unordered_map<std::string, std::vector<std::string>> newIndices;
+    std::unordered_map<std::string, std::vector<std::string>> newUniques;
 
     for (auto& entry : ctx->newTableEntries()->newTableEntry())
     {
@@ -1181,55 +1187,102 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
                 throw ColumnAlreadyExistsException(newColumnName);
             }
 
+            ConstraintType newColumnConstraintType = ConstraintType::CONSTRAINT_NONE;
+            if (newColumnContext->constraint())
+            {
+                if (newColumnContext->constraint()->INDEX())
+                {
+                    if (newColumnDataType == DataType::COLUMN_POINT || newColumnDataType == DataType::COLUMN_POLYGON)
+                    {
+                        throw IndexColumnDataTypeException(newColumnName, newColumnDataType);
+                    }
+                    newColumnConstraintType = ConstraintType::CONSTRAINT_INDEX;
+                }
+                else if (newColumnContext->constraint()->UNIQUE())
+                {
+                    newColumnConstraintType = ConstraintType::CONSTRAINT_UNIQUE;
+                }
+            }
+
             newColumns.insert({newColumnName, newColumnDataType});
+            newColumnsConstraints.insert({{newColumnName, newColumnConstraintType}});
         }
-        if (entry->newTableIndex())
+        if (entry->newTableConstraint())
         {
-            auto newColumnContext = entry->newTableIndex();
-            std::string indexName = newColumnContext->indexName()->getText();
-            TrimDelimitedIdentifier(indexName);
+            auto newConstraintContext = entry->newTableConstraint();
+            std::string constraintName = newConstraintContext->constraintName()->getText();
+            TrimDelimitedIdentifier(constraintName);
 
-            if (newIndices.find(indexName) != newIndices.end())
+            if (newIndices.find(constraintName) != newIndices.end())
             {
-                throw IndexAlreadyExistsException(indexName);
+                throw IndexAlreadyExistsException(constraintName);
             }
 
-            std::vector<std::string> indexColumns;
-            for (auto& column : newColumnContext->indexColumns()->column())
+            std::vector<std::string> constraintColumns;
+
+            if (newConstraintContext->constraint()->INDEX())
             {
-                std::string indexColumnName = column->getText();
-                TrimDelimitedIdentifier(indexColumnName);
-
-                if (newColumns.find(indexColumnName) == newColumns.end())
+                for (auto& column : newConstraintContext->constraintColumns()->column())
                 {
-                    throw ColumnNotFoundException(indexColumnName);
-                }
+                    std::string constraintColumnName = column->getText();
+                    TrimDelimitedIdentifier(constraintColumnName);
 
-                DataType indexColumnDataType = newColumns.at(indexColumnName);
-                if (indexColumnDataType == DataType::COLUMN_POINT || indexColumnDataType == DataType::COLUMN_POLYGON)
-                {
-                    throw IndexColumnDataTypeException(indexColumnName, indexColumnDataType);
-                }
+                    if (newColumns.find(constraintColumnName) == newColumns.end())
+                    {
+                        throw ColumnNotFoundException(constraintColumnName);
+                    }
 
-                if (std::find(indexColumns.begin(), indexColumns.end(), indexColumnName) !=
-                    indexColumns.end())
-                {
-                    throw ColumnAlreadyExistsInIndexException(indexColumnName);
+                    DataType indexColumnDataType = newColumns.at(constraintColumnName);
+
+                    if (indexColumnDataType == DataType::COLUMN_POINT || indexColumnDataType == DataType::COLUMN_POLYGON)
+                    {
+                        throw IndexColumnDataTypeException(constraintColumnName, indexColumnDataType);
+                    }
+
+                    if (std::find(constraintColumns.begin(), constraintColumns.end(),
+                                  constraintColumnName) != constraintColumns.end())
+                    {
+                        throw ColumnAlreadyExistsInIndexException(constraintColumnName);
+                    }
+                    constraintColumns.push_back(constraintColumnName);
                 }
-                indexColumns.push_back(indexColumnName);
+                newIndices.insert({constraintName, constraintColumns});
             }
-            newIndices.insert({indexName, indexColumns});
+            else if (newConstraintContext->constraint()->UNIQUE())
+            {
+                for (auto& column : newConstraintContext->constraintColumns()->column())
+                {
+                    std::string constraintColumnName = column->getText();
+                    TrimDelimitedIdentifier(constraintColumnName);
+
+                    if (newColumns.find(constraintColumnName) == newColumns.end())
+                    {
+                        throw ColumnNotFoundException(constraintColumnName);
+                    }
+
+                    if (std::find(constraintColumns.begin(), constraintColumns.end(),
+                                  constraintColumnName) != constraintColumns.end())
+                    {
+                        throw ColumnAlreadyExistsInIndexException(constraintColumnName);
+                    }
+                    constraintColumns.push_back(constraintColumnName);
+                }
+                newUniques.insert({constraintName, constraintColumns});
+            }
         }
     }
 
     dispatcher_.AddCreateTableFunction();
 
     dispatcher_.AddArgument<const std::string&>(newTableName);
+    dispatcher_.AddArgument<int32_t>(tableBlockSize);
+
     dispatcher_.AddArgument<int32_t>(newColumns.size());
     for (auto& newColumn : newColumns)
     {
         dispatcher_.AddArgument<const std::string&>(newColumn.first);
         dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(newColumn.second));
+        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(newColumnsConstraints.at(newColumn.first)));
     }
 
     dispatcher_.AddArgument<int32_t>(newIndices.size());
@@ -1240,6 +1293,17 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
         for (auto& indexColumn : newIndex.second)
         {
             dispatcher_.AddArgument<const std::string&>(indexColumn);
+        }
+    }
+
+    dispatcher_.AddArgument<int32_t>(newUniques.size());
+    for (auto& newUnique : newUniques)
+    {
+        dispatcher_.AddArgument<const std::string&>(newUnique.first);
+        dispatcher_.AddArgument<int32_t>(newUnique.second.size());
+        for (auto& uniqueColumn : newUnique.second)
+        {
+            dispatcher_.AddArgument<const std::string&>(uniqueColumn);
         }
     }
 }
@@ -1353,7 +1417,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
                 throw ColumnAlreadyExistsException(renameColumnNameTo);
             }
 
-			renameColumnToNames.insert(renameColumnNameTo);
+            renameColumnToNames.insert(renameColumnNameTo);
             renameColumns.insert({renameColumnNameFrom, renameColumnNameTo});
         }
         else if (entry->renameTable())
