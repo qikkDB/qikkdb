@@ -643,6 +643,9 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
             tableBlockSize = databaseBlockSize;
         }
 
+		BOOST_LOG_TRIVIAL(info) << "Block size for table: " + std::string(tableName.get()) +
+                   " has been loaded and it's value is: " + std::to_string(tableBlockSize) + ".";
+
         database->tables_.emplace(std::make_pair(std::string(tableName.get()),
                                                  Table(database, tableName.get(), tableBlockSize)));
 

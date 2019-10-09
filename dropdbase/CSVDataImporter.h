@@ -43,7 +43,16 @@ public:
     /// <param name="quotes">Character used for quoting. Default value is '.</param>
     /// <param name="decimal">Character used as decimal point. Default value is '.'.</param>
     CSVDataImporter(const char* fileName, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.');
-    void ImportTables(std::shared_ptr<Database>& database, std::vector<std::string> sortingColumns = {});
+    
+	/// <summary>
+    /// Parses CSV file, guess types, creates a single table (if not exists) and fills the table with parsed data.
+    /// </summary>
+    /// <param name="database">Database where data will be imported.</param>
+    /// <param name="sortingColumns">Sorting columns for indices.</param>
+    /// <param name="tableBlockSize">Block size used for this table.</param>
+    void ImportTables(std::shared_ptr<Database>& database,
+                      std::vector<std::string> sortingColumns = {},
+                      int32_t tableBlockSize = -1);
     void ExtractHeaders();
     void ExtractTypes();
     void SetTypes(const std::vector<DataType>& types);

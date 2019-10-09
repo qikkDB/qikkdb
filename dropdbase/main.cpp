@@ -140,15 +140,15 @@ int main(int argc, char** argv)
                 std::shared_ptr<Database> database4 = std::make_shared<Database>("stcs", 53305175);
                 Database::AddToInMemoryDatabaseList(database4);
                 BOOST_LOG_TRIVIAL(info) << "Loading Target.csv ...";
-                csvDataImporter5.ImportTables(database4);
+                csvDataImporter5.ImportTables(database4, std::vector<std::string>(), 10003748);
 
                 CSVDataImporter csvDataImporter6(R"(../../data/TargetTraffic.csv)");
                 BOOST_LOG_TRIVIAL(info) << "Loading TargetTraffic.csv ...";
-                csvDataImporter6.ImportTables(database4);
+                csvDataImporter6.ImportTables(database4, std::vector<std::string>(), 53305175);
 
                 CSVDataImporter csvDataImporter7(R"(../../data/D_Cell.csv)");
                 BOOST_LOG_TRIVIAL(info) << "Loading D_Cell.csv ...";
-                csvDataImporter7.ImportTables(database4);
+                csvDataImporter7.ImportTables(database4, std::vector<std::string>(), 30327);
             }
             else
             {
@@ -240,15 +240,15 @@ int main(int argc, char** argv)
                             std::shared_ptr<Database> database4 = std::make_shared<Database>("stcs", 26652588);
                             Database::AddToInMemoryDatabaseList(database4);
                             BOOST_LOG_TRIVIAL(info) << "Loading Target.csv ...";
-                            csvDataImporter5.ImportTables(database4);
+                            csvDataImporter5.ImportTables(database4, std::vector<std::string>(), 5001874);
 
                             CSVDataImporter csvDataImporter6(R"(../../data/TargetTraffic.csv)");
                             BOOST_LOG_TRIVIAL(info) << "Loading TargetTraffic.csv ...";
-                            csvDataImporter6.ImportTables(database4);
+                            csvDataImporter6.ImportTables(database4, std::vector<std::string>(), 26652588);
 
                             CSVDataImporter csvDataImporter7(R"(../../data/D_Cell.csv)");
                             BOOST_LOG_TRIVIAL(info) << "Loading D_Cell.csv ...";
-                            csvDataImporter7.ImportTables(database4);
+                            csvDataImporter7.ImportTables(database4, std::vector<std::string>(), 15164);
                         }
                         else
                         {
@@ -349,15 +349,18 @@ int main(int argc, char** argv)
                                             std::make_shared<Database>("stcs", 13326294);
                                         Database::AddToInMemoryDatabaseList(database4);
                                         BOOST_LOG_TRIVIAL(info) << "Loading Target.csv ...";
-                                        csvDataImporter5.ImportTables(database4);
+                                        csvDataImporter5.ImportTables(database4,
+                                                                      std::vector<std::string>(), 2500937);
 
                                         CSVDataImporter csvDataImporter6(R"(../../data/TargetTraffic.csv)");
                                         BOOST_LOG_TRIVIAL(info) << "Loading TargetTraffic.csv ...";
-                                        csvDataImporter6.ImportTables(database4);
+                                        csvDataImporter6.ImportTables(database4,
+                                                                      std::vector<std::string>(), 13326294);
 
                                         CSVDataImporter csvDataImporter7(R"(../../data/D_Cell.csv)");
                                         BOOST_LOG_TRIVIAL(info) << "Loading D_Cell.csv ...";
-                                        csvDataImporter7.ImportTables(database4);
+                                        csvDataImporter7.ImportTables(database4,
+                                                                      std::vector<std::string>(), 7582);
                                     }
                                     else
                                     {
@@ -470,17 +473,23 @@ int main(int argc, char** argv)
                                                     Database::AddToInMemoryDatabaseList(database4);
                                                     BOOST_LOG_TRIVIAL(info)
                                                         << "Loading Target.csv ...";
-                                                    csvDataImporter5.ImportTables(database4);
+                                                    csvDataImporter5.ImportTables(database4,
+                                                                                  std::vector<std::string>(),
+                                                                                  1250469);
 
                                                     CSVDataImporter csvDataImporter6(R"(../../data/TargetTraffic.csv)");
                                                     BOOST_LOG_TRIVIAL(info)
                                                         << "Loading TargetTraffic.csv ...";
-                                                    csvDataImporter6.ImportTables(database4);
+                                                    csvDataImporter6.ImportTables(database4,
+                                                                                  std::vector<std::string>(),
+                                                                                  6663147);
 
                                                     CSVDataImporter csvDataImporter7(R"(../../data/D_Cell.csv)");
                                                     BOOST_LOG_TRIVIAL(info)
                                                         << "Loading D_Cell.csv ...";
-                                                    csvDataImporter7.ImportTables(database4);
+                                                    csvDataImporter7.ImportTables(database4,
+                                                                                  std::vector<std::string>(),
+                                                                                  3791);
                                                 }
                                                 else
                                                 {
@@ -522,18 +531,23 @@ int main(int argc, char** argv)
                                                             Database::AddToInMemoryDatabaseList(database4);
                                                             BOOST_LOG_TRIVIAL(info)
                                                                 << "Loading Target.csv ...";
-                                                            csvDataImporter5.ImportTables(database4);
+                                                            csvDataImporter5.ImportTables(database4,
+                                                                                          std::vector<std::string>(),
+                                                                                          5001874);
 
                                                             CSVDataImporter csvDataImporter6(
                                                                 R"(../../data/TargetTraffic.csv)");
                                                             BOOST_LOG_TRIVIAL(info)
                                                                 << "Loading TargetTraffic.csv ...";
-                                                            csvDataImporter6.ImportTables(database4);
+                                                            csvDataImporter6.ImportTables(database4,
+                                                                                          std::vector<std::string>(),
+                                                                                          26652588);
 
                                                             CSVDataImporter csvDataImporter7(R"(../../data/D_Cell.csv)");
                                                             BOOST_LOG_TRIVIAL(info)
                                                                 << "Loading D_Cell.csv ...";
-                                                            csvDataImporter7.ImportTables(database4);
+                                                            csvDataImporter7.ImportTables(
+                                                                database4, std::vector<std::string>(), 15164);
                                                         }
                                                         else
                                                         {

@@ -35,10 +35,14 @@ CSVDataImporter::CSVDataImporter(const char* fileName, bool header, char delimit
 }
 
 /// <summary>
-/// Parses CSV file, guess types, create table (if not exists) and fills the table with parsed data.
+/// Parses CSV file, guess types, creates a single table (if not exists) and fills the table with parsed data.
 /// </summary>
 /// <param name="database">Database where data will be imported.</param>
-void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database, std::vector<std::string> sortingColumns)
+/// <param name="sortingColumns">Sorting columns for indices.</param>
+/// <param name="tableBlockSize">Block size used for this table.</param>
+void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database,
+                                   std::vector<std::string> sortingColumns,
+                                   int32_t tableBlockSize)
 {
     this->ExtractHeaders();
     if (dataTypes_.empty())
@@ -54,9 +58,13 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database, std::vec
     }
 
     // creates table
-    Table& table = database->CreateTable(columns, tableName_.c_str());
+    Table& table = database->CreateTable(columns, tableName_.c_str(),
+                                         std::unordered_map<std::string, bool>(), tableBlockSize);
 
-    table.SetSortingColumns(sortingColumns);
+    if (!sortingColumns.empty())
+    {
+        table.SetSortingColumns(sortingColumns);
+    }
 
     std::vector<std::thread> threads;
     for (int i = 0; i < numThreads_; i++)
@@ -183,7 +191,7 @@ void CSVDataImporter::ParseAndImport(int threadId,
                         else if (fieldCopy == "false")
                         {
                             value = static_cast<int8_t>(0);
-						} 
+                        }
                         break;
                     case COLUMN_INT:
                         value = static_cast<int32_t>(std::stoi(field));
@@ -421,10 +429,10 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 
     for (auto& s : columnValues)
     {
-		// COLUMN_INT8_T
-		std::string sCopy = s;
-		boost::algorithm::to_lower(sCopy);
-		
+        // COLUMN_INT8_T
+        std::string sCopy = s;
+        boost::algorithm::to_lower(sCopy);
+
         if (sCopy == "true")
         {
             dataTypes.push_back(COLUMN_INT8_T);
@@ -434,7 +442,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
         {
             dataTypes.push_back(COLUMN_INT8_T);
             continue;
-        } 
+        }
 
         // COLUMN_INT
         try
