@@ -78,7 +78,7 @@ public:
         }
         std::copy(data.begin(), data.end(), data_.get());
 
-		if (countBlockStatistics)
+        if (countBlockStatistics)
         {
             setBlockStatistics(data.size(), 0);
         }
@@ -94,6 +94,11 @@ public:
       isNullable_(isNullable), bitMask_(nullptr), wasRegistered_(false),
       isNullMaskRegistered_(false), saveNecessary_(true)
     {
+		if (dataSize != column_.GetBlockSize())
+        {
+            throw std::length_error("Size of loaded data must be equal to block size");
+        }
+
         capacity_ = (isCompressed) ? dataSize : column.GetBlockSize();
         data_ = std::move(data);
 
@@ -101,6 +106,8 @@ public:
         {
             throw std::length_error("Attempted to insert data larger than remaining block size");
         }
+		
+		
         GPUMemory::hostPin(data_.get(), capacity_);
         wasRegistered_ = true;
         if (isNullable_)
@@ -114,8 +121,8 @@ public:
 
         if (countBlockStatistics)
         {
-			setBlockStatistics(dataSize, 0);
-		}
+            setBlockStatistics(dataSize, 0);
+        }
     }
 
     /// <summary>

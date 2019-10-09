@@ -763,7 +763,7 @@ void Database::LoadColumn(const char* path,
                           Table& table,
                           const std::string& columnName)
 {
-    int32_t oneChunkSize = 8 * 1024 * 1024;
+    const int32_t oneChunkSize = 8 * 1024 * 1024;
     // read files .col:
     std::string pathStr = std::string(path);
 
@@ -1255,7 +1255,7 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                auto& block = columnInt.AddBlock(std::move(data), groupId, false,
+                auto& block = columnInt.AddBlock(std::move(data), dataLength, groupId, false,
                                                  static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
