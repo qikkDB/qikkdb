@@ -478,7 +478,7 @@ void Database::RenameTable(const std::string& oldTableName, const std::string& n
             // rename files which starts with prefix of db name and table name:
             if (!p.path().string().compare(path.size(), prefix.size(), prefix))
             {
-                
+
                 std::string columnName = p.path().string().substr(prefix2.size());
                 const boost::filesystem::path& newPath{path + name_ + SEPARATOR + newTableName +
                                                        SEPARATOR + columnName};
@@ -486,7 +486,7 @@ void Database::RenameTable(const std::string& oldTableName, const std::string& n
             }
         }
 
-		PersistOnlyDbFile(path.c_str());
+        PersistOnlyDbFile(path.c_str());
     }
     else
     {
@@ -690,7 +690,8 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
             tableBlockSize = databaseBlockSize;
         }
 
-		BOOST_LOG_TRIVIAL(info) << "Block size for table: " + std::string(tableName.get()) +
+        BOOST_LOG_TRIVIAL(info)
+            << "Block size for table: " + std::string(tableName.get()) +
                    " has been loaded and it's value is: " + std::to_string(tableBlockSize) + ".";
 
         database->tables_.emplace(std::make_pair(std::string(tableName.get()),
@@ -841,7 +842,7 @@ void Database::LoadColumn(const char* path,
                 int64_t byteIndex = 0;
                 int32_t dataCount = 0;
 
-                int32_t remainingDataLength = dataLength;
+                int64_t remainingDataLength = dataLength;
                 while (byteIndex < dataLength)
                 {
                     int32_t currentChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
@@ -980,7 +981,7 @@ void Database::LoadColumn(const char* path,
                 int64_t byteIndex = 0;
                 int32_t dataCount = 0;
 
-				int32_t remainingDataLength = dataLength;
+                int64_t remainingDataLength = dataLength;
                 while (byteIndex < dataLength)
                 {
                     int32_t currentChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
@@ -1110,13 +1111,13 @@ void Database::LoadColumn(const char* path,
                 int64_t byteIndex = 0;
                 int32_t dataCount = 0;
 
-                int32_t remainingDataLength = dataLength;
+                int64_t remainingDataLength = dataLength;
                 while (byteIndex < dataLength)
-				{
+                {
                     int32_t currentChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
 
-					std::vector<std::string> dataString;
-					std::unique_ptr<char[]> data(new char[currentChunkSize]);
+                    std::vector<std::string> dataString;
+                    std::unique_ptr<char[]> data(new char[currentChunkSize]);
 
                     colFile.read(data.get(), currentChunkSize);
 
@@ -1125,7 +1126,7 @@ void Database::LoadColumn(const char* path,
                     int32_t dataCountInOneChunk = 0;
                     while (byteIndexForChunks < currentChunkSize)
                     {
-                        int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndexForChunks]); 
+                        int32_t entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndexForChunks]);
                         std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
 
                         byteIndex += sizeof(int32_t);
@@ -1133,17 +1134,18 @@ void Database::LoadColumn(const char* path,
 
                         if ((currentChunkSize - byteIndexForChunks) < entryByteLength)
                         {
-                            std::unique_ptr<char[]> dataRest(new char[entryByteLength - (currentChunkSize - byteIndexForChunks)]);
+                            std::unique_ptr<char[]> dataRest(
+                                new char[entryByteLength - (currentChunkSize - byteIndexForChunks)]);
 
-                            colFile.read(dataRest.get(), entryByteLength - (currentChunkSize - byteIndexForChunks));
+                            colFile.read(dataRest.get(),
+                                         entryByteLength - (currentChunkSize - byteIndexForChunks));
 
                             memcpy(byteArray.get(), &data[byteIndexForChunks],
                                    (currentChunkSize - byteIndexForChunks));
-                            memcpy(byteArray.get() + (currentChunkSize - byteIndexForChunks),
-                                   &dataRest[0],
+                            memcpy(byteArray.get() + (currentChunkSize - byteIndexForChunks), &dataRest[0],
                                    entryByteLength - (currentChunkSize - byteIndexForChunks));
 
-							std::string entryDataString(byteArray.get());
+                            std::string entryDataString(byteArray.get());
                             dataString.push_back(entryDataString);
 
                             byteIndexForChunks += entryByteLength;
@@ -1158,9 +1160,9 @@ void Database::LoadColumn(const char* path,
                             dataString.push_back(entryDataString);
 
                             byteIndexForChunks += entryByteLength;
-						}
+                        }
 
-						dataCountInOneChunk++;
+                        dataCountInOneChunk++;
                         dataCount++;
                         byteIndex += entryByteLength;
 
@@ -1173,7 +1175,7 @@ void Database::LoadColumn(const char* path,
                     }
                     remainingDataLength -= currentChunkSize;
 
-					block.InsertData(dataString);
+                    block.InsertData(dataString);
                 }
 
                 block.SetNullBitmask(std::move(nullBitMask));
