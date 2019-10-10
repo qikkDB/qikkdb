@@ -272,12 +272,13 @@ public:
 
     BlockBase<T>& AddBlock(std::unique_ptr<T[]>&& data,
                            int32_t dataSize,
+                           int32_t allocationSize,
                            int groupId = -1,
                            bool compress = false,
                            bool isCompressed = false,
                            bool countBlockStatistics = true)
     {
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize, *this, isCompressed,
+        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize, allocationSize, *this, isCompressed,
                                                                   isNullable_, countBlockStatistics));
         auto& lastBlock = blocks_[groupId].back();
         if (lastBlock->IsFull() && !isCompressed && compress)

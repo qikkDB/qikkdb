@@ -1257,7 +1257,7 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                auto& block = columnInt.AddBlock(std::move(data), dataLength, groupId, false,
+                auto& block = columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(), groupId, false,
                                                  static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
@@ -1340,7 +1340,7 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                auto& block = columnInt.AddBlock(std::move(data), dataLength, groupId, false,
+                auto& block = columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(), groupId, false,
                                                  static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
@@ -1423,7 +1423,7 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                auto& block = columnLong.AddBlock(std::move(data), dataLength, groupId, false,
+                auto& block = columnLong.AddBlock(std::move(data), dataLength, columnLong.GetBlockSize(), groupId, false,
                                                   static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
@@ -1506,7 +1506,7 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                auto& block = columnFloat.AddBlock(std::move(data), dataLength, groupId, false,
+                auto& block = columnFloat.AddBlock(std::move(data), dataLength, columnFloat.GetBlockSize(), groupId, false,
                                                    static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);
@@ -1589,7 +1589,7 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                auto& block = columnDouble.AddBlock(std::move(data), dataLength, groupId, false,
+                auto& block = columnDouble.AddBlock(std::move(data), dataLength, columnDouble.GetBlockSize(), groupId, false,
                                                     static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
                 block.setBlockStatistics(min, max, avg, sum);

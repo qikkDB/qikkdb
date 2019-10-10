@@ -14,7 +14,7 @@ protected:
 	const std::string path = Configuration::GetInstance().GetDatabaseDir();
 	const std::string dbName = "TestDatabase";
 	const int32_t blockNum = 2; //number of blocks
-	const int32_t blockSize = 3; //length of a block
+	const int32_t blockSize = 4; //length of a block
 
 	std::shared_ptr<Database> database;
     std::shared_ptr<Database> renameDatabase;
@@ -183,6 +183,7 @@ TEST_F(DatabaseTests, IntegrationTest)
     for (auto& db : Database::GetDatabaseNames())
     {
         Database::RemoveFromInMemoryDatabaseList(db.c_str());
+        Database::GetDatabaseByName(db.c_str())->~Database();
     }
 
     // load different database_, but with the same data:
@@ -206,32 +207,32 @@ TEST_F(DatabaseTests, IntegrationTest)
                   ->GetBlocksList()
                   .at(0)
                   ->BlockCapacity(),
-              3);
+              4);
     ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns.at("colInteger").get())
                   ->GetBlocksList()
                   .at(1)
                   ->BlockCapacity(),
-              3);
+              4);
     ASSERT_EQ(dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
                   ->GetBlocksList()
                   .at(0)
                   ->BlockCapacity(),
-              3);
+              4);
     ASSERT_EQ(dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
                   ->GetBlocksList()
                   .at(1)
                   ->BlockCapacity(),
-              3);
+              4);
     ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(firstTableColumns.at("colString").get())
                   ->GetBlocksList()
                   .at(0)
                   ->BlockCapacity(),
-              3);
+              4);
     ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(firstTableColumns.at("colString").get())
                   ->GetBlocksList()
                   .at(1)
                   ->BlockCapacity(),
-              3);
+              4);
 
     // first table nulability of columns:
     ASSERT_TRUE((firstTableColumns.at("colInteger").get())->GetIsNullable());

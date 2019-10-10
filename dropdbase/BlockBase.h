@@ -86,6 +86,7 @@ public:
 
     BlockBase(std::unique_ptr<T[]>&& data,
               int32_t dataSize,
+              int32_t allocationSize,
               ColumnBase<T>& column,
               bool isCompressed = false,
               bool isNullable = false,
@@ -94,7 +95,7 @@ public:
       isNullable_(isNullable), bitMask_(nullptr), wasRegistered_(false),
       isNullMaskRegistered_(false), saveNecessary_(true)
     {
-		if (dataSize != column_.GetBlockSize())
+		if (allocationSize != column_.GetBlockSize())
         {
             throw std::length_error("Size of loaded data must be equal to block size");
         }
