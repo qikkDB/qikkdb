@@ -435,17 +435,17 @@ public:
 																						diagonalCountCapacityRounded);
                 CheckCudaError(cudaGetLastError());
 
-                // DEBUG
-                std::vector<int32_t> ia(joinMatchCount);
-                std::vector<int32_t> ib(joinMatchCount);
+				// Copy the partially joined tuple indices back to the cpu RAM
+                decltype(colAJoinIndices.size()) colAJoinIndicesSize = colAJoinIndices.size();
+                decltype(colBJoinIndices.size()) colBJoinIndicesSize = colBJoinIndices.size();
 
-                GPUMemory::copyDeviceToHost(ia.data(), colABlockJoinIndices.get(), joinMatchCount);
-                GPUMemory::copyDeviceToHost(ib.data(), colBBlockJoinIndices.get(), joinMatchCount);
+                colAJoinIndices.resize(colAJoinIndicesSize + joinMatchCount);
+                colBJoinIndices.resize(colBJoinIndicesSize + joinMatchCount);
 
-                for (int32_t x = 0; x < joinMatchCount; x++)
-                {
-                    printf("%3d : %3d %3d\n", x, ia[x], ib[x]);
-                }
+				GPUMemory::copyDeviceToHost(colAJoinIndices.data() + colAJoinIndicesSize,
+                                            colABlockJoinIndices.get(), joinMatchCount);
+                GPUMemory::copyDeviceToHost(colBJoinIndices.data() + colBJoinIndicesSize,
+                                            colBBlockJoinIndices.get(), joinMatchCount);
             }
         }
     }
