@@ -226,6 +226,16 @@ __global__ void kernel_eval_predicate_merge_path(int8_t* joinPredicateMask,
     }
 }
 
+__global__ void kernel_compress_join_indices(int32_t* colABlockJoinIndices,
+                                             int32_t* colBBlockJoinIndices,
+                                             int8_t* joinPredicateMask,
+                                             int32_t* joinPredicateMaskPSI,
+                                             int32_t* mergeAIndices,
+                                             int32_t* mergeBIndices,
+                                             int32_t* colABlockIndices,
+                                             int32_t* colBBlockIndices,
+                                             int32_t diagonalCount);
+
 class MergeJoin
 {
 public:
@@ -310,7 +320,17 @@ public:
         cuda_ptr<int8_t> joinPredicateMask(diagonalCountCapacityRounded);
 
 		// Alloc the join predicate mask prefix sum buffer and the temporary storage
+        cuda_ptr<int32_t> joinPredicateMaskPSI(diagonalCountCapacityRounded);
+        
+        size_t tempStorageSizePSI = 0;
+        cub::DeviceScan::InclusiveSum(nullptr, tempStorageSizePSI, joinPredicateMask.get(),
+                                      joinPredicateMaskPSI.get(), diagonalCountCapacityRounded);
+        
+        cuda_ptr<int8_t> tempStoragePSI(tempStorageSizePSI);
 
+		// Alloc the join indices buffer
+        cuda_ptr<int32_t> colABlockJoinIndices(diagonalCountCapacityRounded);
+        cuda_ptr<int32_t> colBBlockJoinIndices(diagonalCountCapacityRounded);
 
         // Perform the merge join
         for (int32_t a = 0; a < colABlockCount; a++)
@@ -377,19 +397,54 @@ public:
                     colABlockSize, colBBlockSize, diagonalCount);
                 CheckCudaError(cudaGetLastError());
 
+				// Zero the predicate mask
+                GPUMemory::memset(joinPredicateMask.get(), 0, diagonalCountCapacityRounded);
+
 				// Evaluate the join predicate on the merge path 
 				kernel_eval_predicate_merge_path<<<context.calcGridDim(diagonalCount), W>>>(
                     joinPredicateMask.get(),
                     mergeAIndices.get(), mergeBIndices.get(),
 					colABlockSorted.get(), colBBlockSorted.get(),
                     diagonalCount);
+                CheckCudaError(cudaGetLastError());
+
+				// Zero the prefix sum
+                GPUMemory::memset(joinPredicateMaskPSI.get(), 0, diagonalCountCapacityRounded);
+
+				// Run the prefix sum on the join predicate mask
+                cub::DeviceScan::InclusiveSum(tempStoragePSI.get(), tempStorageSizePSI,
+                                              joinPredicateMask.get(), joinPredicateMaskPSI.get(),
+                                              diagonalCountCapacityRounded);
+                CheckCudaError(cudaGetLastError());
+
+				// Fetch the final size of the matching join conditions
+                int32_t joinMatchCount;
+                GPUMemory::copyDeviceToHost(&joinMatchCount,
+                                            joinPredicateMaskPSI.get() + diagonalCountCapacityRounded - 1, 
+											1);
+
+				// Compress the join indices
+                kernel_compress_join_indices<<<context.calcGridDim(diagonalCount), W>>>(colABlockJoinIndices.get(), 
+																						colBBlockJoinIndices.get(), 
+																						joinPredicateMask.get(),
+																						joinPredicateMaskPSI.get(), 
+																						mergeAIndices.get(),
+																						mergeBIndices.get(),
+																						colABlockIndicesSorted.get(),
+																						colBBlockIndicesSorted.get(), 
+																						diagonalCountCapacityRounded);
+                CheckCudaError(cudaGetLastError());
 
                 // DEBUG
-                std::vector<int8_t> ia(diagonalCount);
-                GPUMemory::copyDeviceToHost(ia.data(), joinPredicateMask.get(), diagonalCount);
-                for (int32_t x = 0; x < diagonalCount; x++)
+                std::vector<int32_t> ia(joinMatchCount);
+                std::vector<int32_t> ib(joinMatchCount);
+
+                GPUMemory::copyDeviceToHost(ia.data(), colABlockJoinIndices.get(), joinMatchCount);
+                GPUMemory::copyDeviceToHost(ib.data(), colBBlockJoinIndices.get(), joinMatchCount);
+
+                for (int32_t x = 0; x < joinMatchCount; x++)
                 {
-                    printf("%3d : %3d\n", x, ia[x]);
+                    printf("%3d : %3d %3d\n", x, ia[x], ib[x]);
                 }
             }
         }
