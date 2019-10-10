@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ColmnarDB.NetworkClient;
-
+using ColmnarDB.Types;
 
 namespace ColmnarDB.ConsoleClient
 {
@@ -37,11 +37,17 @@ namespace ColmnarDB.ConsoleClient
         /// <summary>
         /// Method to import CSV file
         /// </summary>
-        /// <param name="path">path to csv file that should be imported</param>
-        /// <param name="database">database that is used</param>
-        public void Import(string path, string database, bool hasHeader = true, char columnSeparator = '\0', int batchSize = 100000, int threadsCount = 0, Encoding encoding = null)
+        /// <param name="path">Path to csv file that should be imported</param>
+        /// <param name="databaseName">Database that is used</param>
+        /// <param name="blockSize">Block size of table, if not specified default value of database server configuration will be used</param>
+        /// <param name="hasHeader">Specifies whether input csv has header, if not specified default value is true</param>
+        /// <param name="columnSeparator">Char representing column separator, if not specified default value will be guessed</param>
+        /// <param name="batchSize">Number of lines processed in one batch, if not specified default value is 100000</param>
+        /// <param name="threadsCount">Number of threads for processing csv, if not specified number of cores of the client CPU will be used</param>
+        /// <param name="encoding">Encoding of csv, if not specified it will be guessed</param>
+        public void Import(string path, string databaseName, int blockSize = 0, bool hasHeader = true, char columnSeparator = '\0', int batchSize = 100000, int threadsCount = 0, Encoding encoding = null)
         {
-            this.databaseName = database;            
+            this.databaseName = databaseName;            
 
             try
             {
@@ -57,6 +63,8 @@ namespace ColmnarDB.ConsoleClient
                 }                
                 var types = ParserCSV.GuessTypes(path, hasHeader, columnSeparator, encoding);
                 streamLength = ParserCSV.GetStreamLength(path);
+
+                CreateTable(databaseName, tableName, types, blockSize);
 
                 ParserCSV.Configuration configuration = new ParserCSV.Configuration(batchSize: batchSize, encoding: encoding, columnSeparator: columnSeparator);
 
@@ -226,6 +234,107 @@ namespace ColmnarDB.ConsoleClient
             {                
                 stream.Dispose();
             }
+        }
+
+
+        /// <summary>
+        /// Method to create table in database
+        /// </summary>
+        /// <param name="databaseName">Database in which table will be created</param>
+        /// <param name="tableName">Table name</param>
+        /// <param name="types">Dictionary describing imported table with tuples (column name, column type)</param>
+        /// <param name="blockSize">Block size of table, if not specified default value is used</param>
+        private void CreateTable(string databaseName, string tableName, Dictionary<string, Type> types, int blockSize = 0)
+        {
+            // build query for creating table
+            string query = "CREATE TABLE [" + tableName + "] (";
+            int i = 0;
+            foreach (var typePair in types)
+            {
+                query += typePair.Key + " " + GetDatabaseTypeName(typePair.Value);
+                if (++i < types.Count)
+                {
+                    query += ", ";
+                }
+            }
+            query += ")";
+            if (blockSize > 0)
+            {
+                query += " " + blockSize.ToString();
+            }
+            query += ";";
+
+            var client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
+            client.Connect();
+            client.UseDatabase(databaseName);
+
+            // check if database exists
+            try
+            {
+                try
+                {
+                    client.Query(query);
+                }
+                catch (QueryException e)
+                {          
+                    // this exception does not show message and it is necessary to get next result set
+                }
+                catch (Exception e)
+                {                    
+                }
+
+                // get next result to see if new error
+                client.GetNextQueryResult();
+            }
+            catch (QueryException e)
+            {
+                if (e.Message.Contains("exists"))
+                {
+                    Console.WriteLine("Table " + tableName + " already exits, records will be appended.");
+                }
+                else
+                {
+                    Console.WriteLine(UnknownException() + e.Message);
+                }
+                
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(UnknownException() + e.Message);
+            }
+
+            client.Dispose();
+        }
+
+        /// <summary>
+        /// Method to convert .Net type to name of database type
+        /// </summary>
+        /// <param name="type">Type of .NET</param>
+        /// <returns>Name of database type</returns>
+        private string GetDatabaseTypeName(Type type)
+        {
+            string result = "STRING";
+
+            if (type == typeof(Int32))
+                result = "INT";
+            else if (type == typeof(Int64))
+                result = "LONG";
+            else if (type == typeof(float))
+                result = "FLOAT";
+            else if (type == typeof(double))
+                result = "DOUBLE";
+            else if (type == typeof(DateTime))
+                result = "LONG";            
+            else if (type == typeof(bool))
+                result = "BOOL";
+            else if (type == typeof(Point))
+                result = "GEO_POINT";
+            else if (type == typeof(ComplexPolygon))
+                result = "GEO_POLYGON";
+            else if (type == typeof(string))
+                result = "STRING";
+
+            return result;
         }
     }
 }

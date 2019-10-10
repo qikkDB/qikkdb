@@ -10,7 +10,7 @@ namespace ColmnarDB.ConsoleClient
 {
     public class Program
     {
-        public static string ipAddress = "127.0.0.1";
+        public static string ipAddress = "18.184.205.156";
         public static short port = 12345;
         private static bool exit = false;
         private static ColumnarDBClient client;
@@ -152,20 +152,24 @@ namespace ColmnarDB.ConsoleClient
                         {
                             import.Import(filePath, database);
                         }
-                        else if (splitParameters.Length == 3) {
-                            import.Import(filePath, database, bool.Parse(splitParameters[2]));
-                        }
-                        else if (splitParameters.Length == 4)
+                        else if (splitParameters.Length == 3)
                         {
-                            import.Import(filePath, database, bool.Parse(splitParameters[2]), columnSeparator: splitParameters[3].ElementAt(0));
+                            import.Import(filePath, database, int.Parse(splitParameters[2]));
+                        }
+                        else if (splitParameters.Length == 4) {
+                            import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]));
                         }
                         else if (splitParameters.Length == 5)
                         {
-                            import.Import(filePath, database, bool.Parse(splitParameters[2]), columnSeparator: splitParameters[3].ElementAt(0), threadsCount: int.Parse(splitParameters[4]));
+                            import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0));
                         }
                         else if (splitParameters.Length == 6)
                         {
-                            import.Import(filePath, database, bool.Parse(splitParameters[2]), columnSeparator: splitParameters[3].ElementAt(0), threadsCount: int.Parse(splitParameters[4]), batchSize: int.Parse(splitParameters[5]));
+                            import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0), threadsCount: int.Parse(splitParameters[5]));
+                        }
+                        else if (splitParameters.Length == 7)
+                        {
+                            import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0), threadsCount: int.Parse(splitParameters[5]), batchSize: int.Parse(splitParameters[6]));
                         }
 
                         break; 
