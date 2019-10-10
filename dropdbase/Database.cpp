@@ -1260,7 +1260,7 @@ void Database::LoadColumn(const char* path,
                 auto& block = columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(), groupId, false,
                                                  static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
-                block.setBlockStatistics(min, max, avg, sum);
+                block.setBlockStatistics(min, max, avg, sum, dataLength);
 
                 BOOST_LOG_TRIVIAL(debug) << "Added Int8 block with data at index: " << index;
             }
@@ -1343,7 +1343,7 @@ void Database::LoadColumn(const char* path,
                 auto& block = columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(), groupId, false,
                                                  static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
-                block.setBlockStatistics(min, max, avg, sum);
+                block.setBlockStatistics(min, max, avg, sum, dataLength);
 
                 BOOST_LOG_TRIVIAL(debug) << "Added Int32 block with data at index: " << index;
             }
@@ -1426,7 +1426,7 @@ void Database::LoadColumn(const char* path,
                 auto& block = columnLong.AddBlock(std::move(data), dataLength, columnLong.GetBlockSize(), groupId, false,
                                                   static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
-                block.setBlockStatistics(min, max, avg, sum);
+                block.setBlockStatistics(min, max, avg, sum, dataLength);
 
                 BOOST_LOG_TRIVIAL(debug) << "Added Int64 block with data at index: " << index;
             }
@@ -1509,7 +1509,7 @@ void Database::LoadColumn(const char* path,
                 auto& block = columnFloat.AddBlock(std::move(data), dataLength, columnFloat.GetBlockSize(), groupId, false,
                                                    static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
-                block.setBlockStatistics(min, max, avg, sum);
+                block.setBlockStatistics(min, max, avg, sum, dataLength);
 
                 BOOST_LOG_TRIVIAL(debug) << "Added Float block with data at index: " << index;
             }
@@ -1592,7 +1592,7 @@ void Database::LoadColumn(const char* path,
                 auto& block = columnDouble.AddBlock(std::move(data), dataLength, columnDouble.GetBlockSize(), groupId, false,
                                                     static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
-                block.setBlockStatistics(min, max, avg, sum);
+                block.setBlockStatistics(min, max, avg, sum, dataLength);
 
                 BOOST_LOG_TRIVIAL(debug) << "Added Double block with data at index: " << index;
             }

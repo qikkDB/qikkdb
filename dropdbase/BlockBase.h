@@ -148,12 +148,14 @@ public:
         }
     }
 
-    void setBlockStatistics(T min, T max, float avg, T sum)
+    void setBlockStatistics(T min, T max, float avg, T sum, int32_t dataSize)
     {
         min_ = min;
         max_ = max;
         avg_ = avg;
         sum_ = sum;
+
+        size_ += dataSize;
     }
 
     T GetMax()
