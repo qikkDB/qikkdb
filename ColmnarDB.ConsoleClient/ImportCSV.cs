@@ -22,6 +22,8 @@ namespace ColmnarDB.ConsoleClient
         private long[] linesError;
         private long[] bytesImported;
         private long streamLength;
+        private Mutex mutex = new Mutex();
+        private ColumnarDBClient client;
 
         /// <summary>
         /// Creates new instance of the ImportCSV object
@@ -32,6 +34,7 @@ namespace ColmnarDB.ConsoleClient
         {
             this.ipAddress = ipAddress;
             this.port = port;
+            client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");            
         }
 
         /// <summary>
@@ -64,6 +67,8 @@ namespace ColmnarDB.ConsoleClient
                 var types = ParserCSV.GuessTypes(path, hasHeader, columnSeparator, encoding);
                 streamLength = ParserCSV.GetStreamLength(path);
 
+                client.Connect();
+                client.UseDatabase(databaseName);
                 CreateTable(databaseName, tableName, types, blockSize);
 
                 ParserCSV.Configuration configuration = new ParserCSV.Configuration(batchSize: batchSize, encoding: encoding, columnSeparator: columnSeparator);
@@ -73,7 +78,7 @@ namespace ColmnarDB.ConsoleClient
                     // Use more threads if file is bigger than 10MB
                     if (streamLength > 10000000)
                     {
-                        threadsCount = Environment.ProcessorCount;                        
+                        threadsCount = Environment.ProcessorCount;
                     }
                     else
                     {
@@ -91,6 +96,7 @@ namespace ColmnarDB.ConsoleClient
                 bytesImported = new long[threadsCount];
                 linesError = new long[threadsCount];
                 Thread[] threads = new Thread[threadsCount];
+
 
                 // Each thread has its own instance of the Parser (because of different position of read) and ColumnarDBClient (because of concurrent bulk import)
                 for (int i = 0; i < threadsCount; i++)
@@ -113,6 +119,8 @@ namespace ColmnarDB.ConsoleClient
                     lines += linesImported[i];
                     errors += linesError[i];
                 }
+
+                client.Dispose();
 
                 var endTime = DateTime.Now;
                 Console.WriteLine();
@@ -182,17 +190,13 @@ namespace ColmnarDB.ConsoleClient
             var streamReader = new StreamReader(stream, configuration.Encoding);
             ParserCSV parserCSV = new ParserCSV(streamReader: streamReader, tableName: tableName, configuration: configuration, types: types, startBytePosition: startBytePosition, endBytePosition: endBytePosition);
 
-            var client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
-            client.Connect();
-            client.UseDatabase(databaseName);
-
             long lines = 0;
             long errors = 0;
             while (true)
             {
                 long batchImportedLines;
                 long batchErrorLines;
-                
+
                 var outData = parserCSV.GetNextParsedDataBatch(out batchImportedLines, out batchErrorLines);
                 
                 if (outData == null)
@@ -203,7 +207,9 @@ namespace ColmnarDB.ConsoleClient
                 var colData = new NetworkClient.ColumnarDataTable(outData.GetColumnNames(), outData.GetColumnData(), outData.GetColumnTypes(), outData.GetColumnNames());
                 colData.TableName = tableName;
 
+                mutex.WaitOne();
                 client.BulkImport(colData);
+                mutex.ReleaseMutex();
                 
                 linesImported[threadId] = lines;
                 bytesImported[threadId] = parserCSV.GetStreamPosition();
@@ -229,7 +235,6 @@ namespace ColmnarDB.ConsoleClient
                 Console.Write("\rImported " + totalLinesImported + " records so far (" + Math.Min(Math.Round((float)totalBytesImported / streamLength * 100), 100)  + "%)...");
             }
 
-            client.Dispose();
             if (stream != null)
             {                
                 stream.Dispose();
@@ -251,7 +256,7 @@ namespace ColmnarDB.ConsoleClient
             int i = 0;
             foreach (var typePair in types)
             {
-                query += typePair.Key + " " + GetDatabaseTypeName(typePair.Value);
+                query += "[" + typePair.Key + "] " + GetDatabaseTypeName(typePair.Value);
                 if (++i < types.Count)
                 {
                     query += ", ";
@@ -264,10 +269,7 @@ namespace ColmnarDB.ConsoleClient
             }
             query += ";";
 
-            var client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
-            client.Connect();
-            client.UseDatabase(databaseName);
-
+            
             // check if database exists
             try
             {
@@ -303,7 +305,6 @@ namespace ColmnarDB.ConsoleClient
                 Console.WriteLine(UnknownException() + e.Message);
             }
 
-            client.Dispose();
         }
 
         /// <summary>
