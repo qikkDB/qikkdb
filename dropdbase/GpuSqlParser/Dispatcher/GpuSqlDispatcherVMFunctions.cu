@@ -930,6 +930,8 @@ int32_t GpuSqlDispatcher::GetLoadSize()
 
         int64_t offsetBlockIdx = 0;
         int64_t remainingOffset = offset;
+        loadOffset_ = 0;
+        loadSize_ = 0;
 
         while (offsetBlockIdx < GetBlockCount() && remainingOffset >= 0)
         {

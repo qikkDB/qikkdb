@@ -1020,6 +1020,7 @@ void GpuSqlListener::exitShowDatabases(GpuSqlParser::ShowDatabasesContext* ctx)
 {
     dispatcher_.AddShowDatabasesFunction();
     ColumnOrder.insert({0, "Databases"});
+    expandedColumnAliases_.insert({"Databases", "Databases"});
 }
 
 /// Method that executes on exit of SHOW TABLES command
@@ -1056,6 +1057,7 @@ void GpuSqlListener::exitShowTables(GpuSqlParser::ShowTablesContext* ctx)
 
     dispatcher_.AddArgument<const std::string&>(db);
     ColumnOrder.insert({0, db});
+    expandedColumnAliases_.insert({db, db});
 }
 
 /// Method that executes on exit of SHOW COLUMNS command
@@ -1107,6 +1109,9 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext* ctx)
 
     ColumnOrder.insert({0, table + "_columns"});
     ColumnOrder.insert({1, table + "_types"});
+
+    expandedColumnAliases_.insert({table + "_columns", table + "_columns"});
+    expandedColumnAliases_.insert({table + "_types", table + "_types"});
 }
 
 void GpuSqlListener::exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext* ctx)

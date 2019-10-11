@@ -7953,6 +7953,90 @@ TEST(DispatcherTests, LongModColumnConstLtConst)
     }
 }
 
+TEST(DispatcherTests, ShowDatabases)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(nullptr, "SHOW DATABASES;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    std::vector<std::string> expectedDatabaseNames;
+
+    for (auto& database : Database::GetDatabaseNames())
+    {
+        expectedDatabaseNames.push_back(database);
+    }
+
+    auto& payloadsDatabases = result->payloads().at("Databases");
+
+    ASSERT_EQ(expectedDatabaseNames.size(), payloadsDatabases.stringpayload().stringdata_size());
+
+    for (int i = 0; i < expectedDatabaseNames.size(); i++)
+    {
+        ASSERT_EQ(expectedDatabaseNames[i], payloadsDatabases.stringpayload().stringdata()[i]);
+    }
+}
+
+TEST(DispatcherTests, ShowTables)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SHOW TABLES;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    std::vector<std::string> expectedTableNames;
+
+    for (auto& table : DispatcherObjs::GetInstance().database->GetTables())
+    {
+        expectedTableNames.push_back(table.first);
+    }
+
+    auto& payloadsTables = result->payloads().at(DispatcherObjs::GetInstance().database->GetName());
+
+    ASSERT_EQ(expectedTableNames.size(), payloadsTables.stringpayload().stringdata_size());
+
+    for (int i = 0; i < expectedTableNames.size(); i++)
+    {
+        ASSERT_EQ(expectedTableNames[i], payloadsTables.stringpayload().stringdata()[i]);
+    }
+}
+
+TEST(DispatcherTests, ShowColumns)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SHOW COLUMNS FROM TableA;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    std::vector<std::string> expectedColumnNames;
+    std::vector<std::string> expectedColumnTypes;
+
+    for (auto& column : DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns())
+    {
+        expectedColumnNames.push_back(column.first);
+        expectedColumnTypes.push_back(::GetStringFromColumnDataType(column.second->GetColumnType()));
+    }
+
+    auto& payloadsColumnNames = result->payloads().at("TableA_columns");
+    auto& payloadsColumnTypes = result->payloads().at("TableA_types");
+
+    ASSERT_EQ(expectedColumnNames.size(), payloadsColumnNames.stringpayload().stringdata_size());
+    ASSERT_EQ(expectedColumnTypes.size(), payloadsColumnTypes.stringpayload().stringdata_size());
+
+    for (int i = 0; i < expectedColumnNames.size(); i++)
+    {
+        ASSERT_EQ(expectedColumnNames[i], payloadsColumnNames.stringpayload().stringdata()[i]);
+    }
+
+    for (int i = 0; i < expectedColumnTypes.size(); i++)
+    {
+        ASSERT_EQ(expectedColumnTypes[i], payloadsColumnTypes.stringpayload().stringdata()[i]);
+    }
+}
+
 TEST(DispatcherTests, DateTimeNow)
 {
     Context::getInstance();
