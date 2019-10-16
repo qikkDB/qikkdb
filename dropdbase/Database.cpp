@@ -981,11 +981,8 @@ void Database::LoadColumn(const char* path,
                 int64_t byteIndex = 0;
                 int32_t dataCount = 0;
 
-<<<<<<< HEAD
                 int64_t remainingDataLength = dataLength;
-=======
-                int32_t remainingDataLength = dataLength;
->>>>>>> implemented and added test for block size per table and column constraints unique and not null
+
                 while (byteIndex < dataLength)
                 {
                     int32_t currentChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
