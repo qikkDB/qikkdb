@@ -99,7 +99,7 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int8_t, float)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int8_t, double)
 DISPATCHER_UNARY_ERROR(int8_t, ColmnarDB::Types::Point)
 DISPATCHER_UNARY_ERROR(int8_t, ColmnarDB::Types::ComplexPolygon)
-DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastString, int8_t)
+DISPATCHER_UNARY_ERROR(int8_t, std::string)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int8_t, int8_t)
 END_DISPATCH_TABLE
 
