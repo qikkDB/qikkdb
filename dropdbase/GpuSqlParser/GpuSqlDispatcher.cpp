@@ -367,7 +367,7 @@ int32_t GpuSqlDispatcher::GetUnaryDispatchTableIndex(DataType type)
     {
         constOffset = 1;
     }
-    return 4 * lConst + constOffset;
+    return 2 * lConst + constOffset;
 }
 
 void GpuSqlDispatcher::AddGreaterFunction(DataType left, DataType right)
@@ -598,7 +598,7 @@ void GpuSqlDispatcher::AddMinusFunction(DataType type)
 
 void GpuSqlDispatcher::AddDateToStringFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(dateToStringFunctions_[type]);
+    dispatcherFunctions_.push_back(dateToStringFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddYearFunction(DataType type)
