@@ -922,3 +922,94 @@ TEST(TableTests, SavingNecessaryLowLevel)
     ASSERT_EQ(false, blockInt.GetSaveNecessary());
     ASSERT_EQ(true, blockInt2.GetSaveNecessary());
 }
+
+TEST(TableTests, InsertIntoIsUnique)
+{
+    auto database = std::make_shared<Database>("testDatabaseUnique", 10);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnIntA", COLUMN_INT);
+    table.CreateColumn("ColumnIntB", COLUMN_INT);
+    auto& columnIntA = table.GetColumns().at("ColumnIntA");
+    auto& columnIntB = table.GetColumns().at("ColumnIntB");
+    auto castedColumnA = dynamic_cast<ColumnBase<int32_t>*>(columnIntA.get());
+    auto castedColumnB = dynamic_cast<ColumnBase<int32_t>*>(columnIntB.get());
+
+    castedColumnA->SetIsUnique(true);
+
+    // Inserting unique values
+    std::unordered_map<std::string, std::any> data;
+    std::vector<int32_t> dataIntA({2, 4, 6});
+    std::vector<int32_t> dataIntB({1, 3, 5});
+    data.insert({"ColumnIntA", dataIntA});
+    data.insert({"ColumnIntB", dataIntB});
+
+    table.InsertData(data);
+
+    auto blockIntA =
+        dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
+    auto blockIntB =
+        dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockIntA[0]->GetSize(), 3);
+    ASSERT_EQ(blockIntA[0]->GetData()[0], 2);
+    ASSERT_EQ(blockIntA[0]->GetData()[1], 4);
+    ASSERT_EQ(blockIntA[0]->GetData()[2], 6);
+
+    ASSERT_EQ(blockIntB[0]->GetSize(), 3);
+    ASSERT_EQ(blockIntB[0]->GetData()[0], 1);
+    ASSERT_EQ(blockIntB[0]->GetData()[1], 3);
+    ASSERT_EQ(blockIntB[0]->GetData()[2], 5);
+
+    // Inserting non unique values into isUnique tagged column
+    std::unordered_map<std::string, std::any> data2;
+    std::vector<int32_t> dataInt2A({6, 8, 10});
+    std::vector<int32_t> dataInt2B({7, 9, 11});
+    data2.insert({"ColumnIntA", dataInt2A});
+    data2.insert({"ColumnIntB", dataInt2B});
+
+    ASSERT_THROW(table.InsertData(data2), std::length_error);
+
+    blockIntA = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
+    blockIntB = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntB").get())->GetBlocksList();
+
+	ASSERT_EQ(blockIntA[0]->GetSize(), 3);
+    ASSERT_EQ(blockIntA[0]->GetData()[0], 2);
+    ASSERT_EQ(blockIntA[0]->GetData()[1], 4);
+    ASSERT_EQ(blockIntA[0]->GetData()[2], 6);
+
+    ASSERT_EQ(blockIntB[0]->GetSize(), 3);
+    ASSERT_EQ(blockIntB[0]->GetData()[0], 1);
+    ASSERT_EQ(blockIntB[0]->GetData()[1], 3);
+    ASSERT_EQ(blockIntB[0]->GetData()[2], 5);
+
+	// Inserting non unique values into column which is not isUnique
+    std::unordered_map<std::string, std::any> data3;
+    std::vector<int32_t> dataInt3A({12, 8, 10});
+    std::vector<int32_t> dataInt3B({1, 3, 6});
+    data3.insert({"ColumnIntA", dataInt3A});
+    data3.insert({"ColumnIntB", dataInt3B});
+
+    table.InsertData(data3);
+
+    blockIntA = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
+    blockIntB = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockIntA[0]->GetSize(), 6);
+    ASSERT_EQ(blockIntA[0]->GetData()[0], 2);
+    ASSERT_EQ(blockIntA[0]->GetData()[1], 4);
+    ASSERT_EQ(blockIntA[0]->GetData()[2], 6);
+    ASSERT_EQ(blockIntA[0]->GetData()[3], 12);
+    ASSERT_EQ(blockIntA[0]->GetData()[4], 8);
+    ASSERT_EQ(blockIntA[0]->GetData()[5], 10);
+
+    ASSERT_EQ(blockIntB[0]->GetSize(), 6);
+    ASSERT_EQ(blockIntB[0]->GetData()[0], 1);
+    ASSERT_EQ(blockIntB[0]->GetData()[1], 3);
+    ASSERT_EQ(blockIntB[0]->GetData()[2], 5);
+    ASSERT_EQ(blockIntB[0]->GetData()[3], 1);
+    ASSERT_EQ(blockIntB[0]->GetData()[4], 3);
+    ASSERT_EQ(blockIntB[0]->GetData()[5], 6);
+
+    table.InsertData(data2);
+}

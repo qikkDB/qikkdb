@@ -47,6 +47,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                 auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentColumn);
                 castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
                                                            dataInt[iterator], -1, isNullValue);
+                castedColumn->InsertIntoHashmap(dataInt[iterator]);
             }
             else if (wrappedData.type() == typeid(std::vector<int64_t>))
             {
@@ -54,6 +55,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                 auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(currentColumn);
                 castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
                                                            dataLong[iterator], -1, isNullValue);
+                castedColumn->InsertIntoHashmap(dataLong[iterator]);
             }
             else if (wrappedData.type() == typeid(std::vector<double>))
             {
@@ -61,6 +63,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                 auto castedColumn = dynamic_cast<ColumnBase<double>*>(currentColumn);
                 castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
                                                            dataDouble[iterator], -1, isNullValue);
+                castedColumn->InsertIntoHashmap(dataDouble[iterator]);
             }
             else if (wrappedData.type() == typeid(std::vector<float>))
             {
@@ -68,6 +71,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                 auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentColumn);
                 castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
                                                            dataFloat[iterator], -1, isNullValue);
+                castedColumn->InsertIntoHashmap(dataFloat[iterator]);
             }
             else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
             {
@@ -76,6 +80,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                 auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(currentColumn);
                 castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
                                                            dataPoint[iterator], -1, isNullValue);
+                castedColumn->InsertIntoHashmap(dataPoint[iterator]);
             }
             else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
             {
@@ -84,6 +89,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                 auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(currentColumn);
                 castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
                                                            dataPolygon[iterator], -1, isNullValue);
+                castedColumn->InsertIntoHashmap(dataPolygon[iterator]);
             }
             else if (wrappedData.type() == typeid(std::vector<std::string>))
             {
@@ -91,6 +97,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                 auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentColumn);
                 castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
                                                            dataString[iterator], -1, isNullValue);
+                castedColumn->InsertIntoHashmap(dataString[iterator]);
             }
         }
     }
@@ -218,7 +225,7 @@ int32_t Table::getDataRangeInSortingColumn()
 /// <param name="data">name of column with inserted data</param>
 /// <param name="iterator">position of row to get</param>
 /// <param name="nullMask">name of column with bitmasks of these data</param>
-/// <returns>tuple of row and bitmask of this row from speciific position</returns>
+/// <returns>tuple of row and bitmask of this row from specific position</returns>
 std::tuple<std::vector<std::any>, std::vector<int8_t>>
 Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std::any>& data,
                                       int iterator,
@@ -227,21 +234,21 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
     std::vector<std::any> resultRow;
     std::vector<int8_t> maskOfRow;
 
-    for (auto sortingColumn : sortingColumns)
+    for (auto column : sortingColumns)
     {
         int8_t isNullValue = 0;
         int bitMaskIdx = (iterator / (sizeof(char) * 8));
         int shiftIdx = (iterator % (sizeof(char) * 8));
-        if (nullMasks.find(sortingColumn) != nullMasks.end())
+        if (nullMasks.find(column) != nullMasks.end())
         {
-            isNullValue = (nullMasks.at(sortingColumn)[bitMaskIdx] >> shiftIdx) & 1;
+            isNullValue = (nullMasks.at(column)[bitMaskIdx] >> shiftIdx) & 1;
         }
 
         maskOfRow.push_back(isNullValue);
 
-        if (data.find(sortingColumn) != data.end())
+        if (data.find(column) != data.end())
         {
-            const auto& wrappedCurrentSortingColumnData = data.at(sortingColumn);
+            const auto& wrappedCurrentSortingColumnData = data.at(column);
 
             if (wrappedCurrentSortingColumnData.type() == typeid(std::vector<int32_t>))
             {
@@ -280,7 +287,7 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
         }
         else
         {
-            switch (columns.at(sortingColumn)->GetColumnType())
+            switch (columns.at(column)->GetColumnType())
             {
             case COLUMN_INT:
                 resultRow.push_back(GetNullConstant<int32_t>());
@@ -1076,7 +1083,8 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
 
 #ifndef __CUDACC__
 /// <summary>
-/// Insert data into proper column of table considering empty space of last block and maximum size of blocks.
+/// Insert data into proper column of table considering empty space of last block and maximum size
+/// of blocks. Considering indices Considering isUnique constraint
 /// </summary>
 /// <param name="data">Name of column with inserting data.</param>
 /// <param name="compress">Whether data will be compressed.</param>
@@ -1084,131 +1092,222 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                        bool compress,
                        const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks)
 {
-    if (!sortingColumns.empty())
+    int oneColumnDataSize = getDataSizeOfInsertedColumns(data);
+    bool noDuplicates = true;
+    std::string nameOfUniqueColumn;
+
+    for (const auto& column : columns)
     {
-        int oneColumnDataSize = getDataSizeOfInsertedColumns(data);
-        int blockIndex;
-        int indexInBlock;
-
-        std::vector<std::any> rowToInsert;
-        std::vector<int8_t> maskOfRow;
-
-
-        for (int i = 0; i < oneColumnDataSize; i++)
+        if (column.second.get()->GetIsUnique() && noDuplicates)
         {
-            std::tie(rowToInsert, maskOfRow) = GetRowAndBitmaskOfInsertedData(data, i, nullMasks);
-            std::tie(blockIndex, indexInBlock) = GetIndex(rowToInsert, maskOfRow);
+            DataType columnType = column.second.get()->GetColumnType();
 
-            InsertValuesOnSpecificPosition(data, blockIndex, indexInBlock, i, nullMasks);
+            switch (columnType)
+            {
+
+            case COLUMN_INT:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(column.second.get());
+                std::unordered_set<int32_t> temp_hashmap = castedColumn->GetHashmap();
+
+                const auto& wrappedCurrentColumnData = data.at(column.first);
+                std::vector<int32_t> dataColumn = std::any_cast<std::vector<int32_t>>(wrappedCurrentColumnData);
+
+                for (int i = 0; i < oneColumnDataSize && noDuplicates; i++)
+                {
+                    bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+
+                    if (valueIsUnique)
+                    {
+                        noDuplicates = false;
+						nameOfUniqueColumn = column.first;
+                    }
+                    else
+                    {
+                        temp_hashmap.insert(dataColumn[i]);
+                    }
+                }
+            }
+            break;
+
+                // TODO other types
+
+            default:
+                break;
+            }
         }
+    }
+
+    if (!noDuplicates)
+    {
+        throw std::length_error("Could not execute statement due to a UNIQUE constraint failure on column: " + nameOfUniqueColumn);
     }
 
     else
     {
-        for (const auto& column : columns)
+        if (!sortingColumns.empty())
         {
-            std::string columnName = column.first;
-            if (data.find(columnName) != data.end())
+            std::vector<std::any> rowToInsert;
+            std::vector<int8_t> maskOfRow;
+            std::vector<std::string> columnToIterate;
+
+            int blockIndex;
+            int indexInBlock;
+
+            for (int i = 0; i < oneColumnDataSize; i++)
             {
-                const auto& wrappedData = data.at(columnName);
-                if (nullMasks.find(columnName) != nullMasks.end())
+                std::tie(rowToInsert, maskOfRow) = GetRowAndBitmaskOfInsertedData(data, i, nullMasks);
+                std::tie(blockIndex, indexInBlock) = GetIndex(rowToInsert, maskOfRow);
+
+                InsertValuesOnSpecificPosition(data, blockIndex, indexInBlock, i, nullMasks);
+            }
+        }
+
+        else
+        {
+            for (const auto& column : columns)
+            {
+                std::string columnName = column.first;
+                if (data.find(columnName) != data.end())
                 {
-                    if (wrappedData.type() == typeid(std::vector<int32_t>))
+                    const auto& wrappedData = data.at(columnName);
+                    if (nullMasks.find(columnName) != nullMasks.end())
                     {
-                        dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<int32_t>>(wrappedData),
-                                         nullMasks.at(columnName), -1, compress);
+                        if (wrappedData.type() == typeid(std::vector<int32_t>))
+                        {
+                            auto castedColumn =
+                                dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<int32_t>>(wrappedData),
+                                                     nullMasks.at(columnName), -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<int32_t>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<int64_t>))
+                        {
+                            auto castedColumn =
+                                dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get());
+
+                            castedColumn->InsertData(std::any_cast<std::vector<int64_t>>(wrappedData),
+                                                     nullMasks.at(columnName), -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<int64_t>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<double>))
+                        {
+                            auto castedColumn =
+                                dynamic_cast<ColumnBase<double>*>(columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<double>>(wrappedData),
+                                                     nullMasks.at(columnName), -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<double>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<float>))
+                        {
+                            auto castedColumn =
+                                dynamic_cast<ColumnBase<float>*>(columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<float>>(wrappedData),
+                                                     nullMasks.at(columnName), -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<float>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<std::string>))
+                        {
+                            auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(
+                                columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<std::string>>(wrappedData),
+                                                     nullMasks.at(columnName), -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<std::string>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
+                        {
+                            auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+                                columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData),
+                                                     nullMasks.at(columnName), -1, compress);
+                            castedColumn->InsertIntoHashmap(
+                                std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
+                        {
+                            auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(
+                                columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData),
+                                                     nullMasks.at(columnName), -1, compress);
+                            castedColumn->InsertIntoHashmap(
+                                std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<int8_t>))
+                        {
+                            auto castedColumn =
+                                dynamic_cast<ColumnBase<int8_t>*>(columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<int8_t>>(wrappedData),
+                                                     nullMasks.at(columnName), -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<int8_t>>(wrappedData));
+                        }
                     }
-                    else if (wrappedData.type() == typeid(std::vector<int64_t>))
+                    else
                     {
-                        dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<int64_t>>(wrappedData),
-                                         nullMasks.at(columnName), -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<double>))
-                    {
-                        dynamic_cast<ColumnBase<double>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<double>>(wrappedData),
-                                         nullMasks.at(columnName), -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<float>))
-                    {
-                        dynamic_cast<ColumnBase<float>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<float>>(wrappedData),
-                                         nullMasks.at(columnName), -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<std::string>))
-                    {
-                        dynamic_cast<ColumnBase<std::string>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<std::string>>(wrappedData),
-                                         nullMasks.at(columnName), -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
-                    {
-                        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
-                            columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData),
-                                         nullMasks.at(columnName), -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
-                    {
-                        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(
-                            columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData),
-                                         nullMasks.at(columnName), -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<int8_t>))
-                    {
-                        dynamic_cast<ColumnBase<int8_t>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<int8_t>>(wrappedData),
-                                         nullMasks.at(columnName), -1, compress);
-                    }
-                }
-                else
-                {
-                    if (wrappedData.type() == typeid(std::vector<int32_t>))
-                    {
-                        dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<int32_t>>(wrappedData), -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<int64_t>))
-                    {
-                        dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<int64_t>>(wrappedData), -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<double>))
-                    {
-                        dynamic_cast<ColumnBase<double>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<double>>(wrappedData), -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<float>))
-                    {
-                        dynamic_cast<ColumnBase<float>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<float>>(wrappedData), -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<std::string>))
-                    {
-                        dynamic_cast<ColumnBase<std::string>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<std::string>>(wrappedData), -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
-                    {
-                        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
-                            columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData),
-                                         -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
-                    {
-                        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(
-                            columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData),
-                                         -1, compress);
-                    }
-                    else if (wrappedData.type() == typeid(std::vector<int8_t>))
-                    {
-                        dynamic_cast<ColumnBase<int8_t>*>(columns.find(columnName)->second.get())
-                            ->InsertData(std::any_cast<std::vector<int8_t>>(wrappedData), -1, compress);
+                        if (wrappedData.type() == typeid(std::vector<int32_t>))
+                        {
+                            auto castedColumn =
+                                dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<int32_t>>(wrappedData),
+                                                     -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<int32_t>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<int64_t>))
+                        {
+                            auto castedColumn =
+                                dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<int64_t>>(wrappedData),
+                                                     -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<int64_t>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<double>))
+                        {
+                            auto castedColumn =
+                                dynamic_cast<ColumnBase<double>*>(columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<double>>(wrappedData),
+                                                     -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<double>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<float>))
+                        {
+                            auto castedColumn =
+                                dynamic_cast<ColumnBase<float>*>(columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<float>>(wrappedData), -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<float>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<std::string>))
+                        {
+                            auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(
+                                columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<std::string>>(wrappedData),
+                                                     -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<std::string>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
+                        {
+                            auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+                                columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData),
+                                                     -1, compress);
+                            castedColumn->InsertIntoHashmap(
+                                std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
+                        {
+                            auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(
+                                columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData),
+                                                     -1, compress);
+                            castedColumn->InsertIntoHashmap(
+                                std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData));
+                        }
+                        else if (wrappedData.type() == typeid(std::vector<int8_t>))
+                        {
+                            auto castedColumn =
+                                dynamic_cast<ColumnBase<int8_t>*>(columns.find(columnName)->second.get());
+                            castedColumn->InsertData(std::any_cast<std::vector<int8_t>>(wrappedData),
+                                                     -1, compress);
+                            castedColumn->InsertIntoHashmap(std::any_cast<std::vector<int8_t>>(wrappedData));
+                        }
                     }
                 }
             }

@@ -96,6 +96,7 @@ private:
     int64_t size_;
     int blockSize_;
     std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
+    std::unordered_set<T> hashmap_;
 
     void setColumnStatistics();
 
@@ -110,12 +111,50 @@ private:
     bool saveNecessary_;
 
 public:
-    ColumnBase(const std::string& name, int blockSize, bool isNullable = false, bool isUnique = false)
+    ColumnBase(const std::string& name,
+               int blockSize,
+               bool isNullable = false,
+               bool isUnique = false,
+               std::unordered_set<T> hashmap = {})
     : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable),
-      saveNecessary_(true), isUnique_(isUnique)
+      saveNecessary_(true), isUnique_(isUnique), hashmap_(hashmap)
     {
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
     }
+
+    /// <summary>
+    /// Try to insert new value into set, if it is possible (set does not contains this value)
+    /// function returns true if it is not possible, function returns false
+    /// </summary>
+    /// <param name="value"> Value to be inserted </param>
+    void InsertIntoHashmap(std::vector<T> values)
+    {
+		hashmap_.insert(values.begin(), values.end());
+    }
+
+	void InsertIntoHashmap(T value)
+    {
+        hashmap_.insert(value);
+    }
+
+	bool IsThereDuplicity(std::unordered_set<T> temp_hashmap, T value)
+    {
+        auto search = temp_hashmap.find(value);
+
+        if (search != temp_hashmap.end())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+	std::unordered_set<T> GetHashmap()
+    {
+        return hashmap_;
+	}
 
     inline int GetBlockSize() const
     {
