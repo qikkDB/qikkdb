@@ -2,6 +2,7 @@
 #include <array>
 #include "../../QueryEngine/GPUCore/GPUFilter.cuh"
 #include "../../QueryEngine/GPUCore/GPULogic.cuh"
+#include "DispatcherMacros.h"
 
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE* DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::greaterFunctions_ = {
     &GpuSqlDispatcher::FilterConstConst<FilterConditions::greater, int32_t, int32_t>,

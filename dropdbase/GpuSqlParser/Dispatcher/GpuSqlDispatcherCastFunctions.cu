@@ -2,143 +2,98 @@
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include <array>
 
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::castToIntFunctions_ = {
-    &GpuSqlDispatcher::CastNumericConst<int32_t, int32_t>,
-    &GpuSqlDispatcher::CastNumericConst<int32_t, int64_t>,
-    &GpuSqlDispatcher::CastNumericConst<int32_t, float>,
-    &GpuSqlDispatcher::CastNumericConst<int32_t, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<int32_t, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<int32_t, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::CastStringConst<int32_t>,
-    &GpuSqlDispatcher::CastNumericConst<int32_t, int8_t>,
-    &GpuSqlDispatcher::CastNumericCol<int32_t, int32_t>,
-    &GpuSqlDispatcher::CastNumericCol<int32_t, int64_t>,
-    &GpuSqlDispatcher::CastNumericCol<int32_t, float>,
-    &GpuSqlDispatcher::CastNumericCol<int32_t, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int32_t, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int32_t, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::CastStringCol<int32_t>,
-    &GpuSqlDispatcher::CastNumericCol<int32_t, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::castToLongFunctions_ = {
-    &GpuSqlDispatcher::CastNumericConst<int64_t, int32_t>,
-    &GpuSqlDispatcher::CastNumericConst<int64_t, int64_t>,
-    &GpuSqlDispatcher::CastNumericConst<int64_t, float>,
-    &GpuSqlDispatcher::CastNumericConst<int64_t, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<int64_t, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<int64_t, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::CastStringConst<int64_t>,
-    &GpuSqlDispatcher::CastNumericConst<int64_t, int8_t>,
-    &GpuSqlDispatcher::CastNumericCol<int64_t, int32_t>,
-    &GpuSqlDispatcher::CastNumericCol<int64_t, int64_t>,
-    &GpuSqlDispatcher::CastNumericCol<int64_t, float>,
-    &GpuSqlDispatcher::CastNumericCol<int64_t, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int64_t, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int64_t, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::CastStringCol<int64_t>,
-    &GpuSqlDispatcher::CastNumericCol<int64_t, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::castToFloatFunctions_ = {
-    &GpuSqlDispatcher::CastNumericConst<float, int32_t>,
-    &GpuSqlDispatcher::CastNumericConst<float, int64_t>,
-    &GpuSqlDispatcher::CastNumericConst<float, float>,
-    &GpuSqlDispatcher::CastNumericConst<float, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<float, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<float, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::CastStringConst<float>,
-    &GpuSqlDispatcher::CastNumericConst<float, int8_t>,
-    &GpuSqlDispatcher::CastNumericCol<float, int32_t>,
-    &GpuSqlDispatcher::CastNumericCol<float, int64_t>,
-    &GpuSqlDispatcher::CastNumericCol<float, float>,
-    &GpuSqlDispatcher::CastNumericCol<float, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<float, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<float, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::CastStringCol<float>,
-    &GpuSqlDispatcher::CastNumericCol<float, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::castToDoubleFunctions_ = {
-    &GpuSqlDispatcher::CastNumericConst<double, int32_t>,
-    &GpuSqlDispatcher::CastNumericConst<double, int64_t>,
-    &GpuSqlDispatcher::CastNumericConst<double, float>,
-    &GpuSqlDispatcher::CastNumericConst<double, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<double, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<double, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::CastStringConst<double>,
-    &GpuSqlDispatcher::CastNumericConst<double, int8_t>,
-    &GpuSqlDispatcher::CastNumericCol<double, int32_t>,
-    &GpuSqlDispatcher::CastNumericCol<double, int64_t>,
-    &GpuSqlDispatcher::CastNumericCol<double, float>,
-    &GpuSqlDispatcher::CastNumericCol<double, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<double, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<double, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::CastStringCol<double>,
-    &GpuSqlDispatcher::CastNumericCol<double, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::castToPointFunctions_ = {
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point, int32_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point, int64_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point, float>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::CastStringConst<NativeGeoPoint>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point, int8_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point, int32_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point, int64_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point, float>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::CastStringCol<NativeGeoPoint>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::castToPolygonFunctions_ = {
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon, int32_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon, int64_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon, float>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon, int8_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon, int32_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon, int64_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon, float>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::castToStringFunctions_ = {
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, int32_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, int64_t>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, float>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, double>,
-    &GpuSqlDispatcher::CastPointConst,
-    &GpuSqlDispatcher::CastPolygonConst,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string, int8_t>,
-    &GpuSqlDispatcher::CastNumericToStringCol<int32_t>,
-    &GpuSqlDispatcher::CastNumericToStringCol<int64_t>,
-    &GpuSqlDispatcher::CastNumericToStringCol<float>,
-    &GpuSqlDispatcher::CastNumericToStringCol<double>,
-    &GpuSqlDispatcher::CastPointCol,
-    &GpuSqlDispatcher::CastPolygonCol,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string, int8_t>};
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::castToInt8TFunctions_ = {
-    &GpuSqlDispatcher::CastNumericConst<int8_t, int32_t>,
-    &GpuSqlDispatcher::CastNumericConst<int8_t, int64_t>,
-    &GpuSqlDispatcher::CastNumericConst<int8_t, float>,
-    &GpuSqlDispatcher::CastNumericConst<int8_t, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<int8_t, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<int8_t, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<int8_t, std::string>,
-    &GpuSqlDispatcher::CastNumericConst<int8_t, int8_t>,
-    &GpuSqlDispatcher::CastNumericCol<int8_t, int32_t>,
-    &GpuSqlDispatcher::CastNumericCol<int8_t, int64_t>,
-    &GpuSqlDispatcher::CastNumericCol<int8_t, float>,
-    &GpuSqlDispatcher::CastNumericCol<int8_t, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int8_t, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int8_t, ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<int8_t, std::string>,
-    &GpuSqlDispatcher::CastNumericCol<int8_t, int8_t>};
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToIntFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int32_t, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int32_t, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int32_t, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int32_t, double)
+DISPATCHER_UNARY_ERROR(int32_t, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(int32_t, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastString, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int32_t, int8_t)
+END_DISPATCH_TABLE
 
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToLongFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int64_t, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int64_t, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int64_t, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int64_t, double)
+DISPATCHER_UNARY_ERROR(int64_t, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(int64_t, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastString, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int64_t, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToFloatFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, float, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, float, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, float, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, float, double)
+DISPATCHER_UNARY_ERROR(float, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(float, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastString, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, float, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToDoubleFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, double, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, double, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, double, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, double, double)
+DISPATCHER_UNARY_ERROR(double, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(double, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastString, double)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, double, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToDoubleFunctions_)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point, int32_t)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point, int64_t)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point, float)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point, double)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastString, NativeGeoPoint)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToDoubleFunctions_)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon, int32_t)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon, int64_t)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon, float)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon, double)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon, std::string)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon, int8_t)
+END_DISPATCH_TABLE
+
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToStringFunctions_)
+DISPATCHER_ERR(Const, std::string, int32_t)
+DISPATCHER_FUN(GpuSqlDispatcher::CastNumericToStringCol, int32_t)
+DISPATCHER_ERR(Const, std::string, int64_t)
+DISPATCHER_FUN(GpuSqlDispatcher::CastNumericToStringCol, int64_t)
+DISPATCHER_ERR(Const, std::string, float)
+DISPATCHER_FUN(GpuSqlDispatcher::CastNumericToStringCol, float)
+DISPATCHER_ERR(Const, std::string, double)
+DISPATCHER_FUN(GpuSqlDispatcher::CastNumericToStringCol, double)
+DISPATCHER_UNARY_FUNCTION_NO_TEMPLATE(GpuSqlDispatcher::CastPoint)
+DISPATCHER_UNARY_FUNCTION_NO_TEMPLATE(GpuSqlDispatcher::CastPolygon)
+DISPATCHER_UNARY_ERROR(std::string, std::string)
+DISPATCHER_UNARY_ERROR(std::string, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToInt8TFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int8_t, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int8_t, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int8_t, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int8_t, double)
+DISPATCHER_UNARY_ERROR(int8_t, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(int8_t, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastString, int8_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int8_t, int8_t)
+END_DISPATCH_TABLE
 
 int32_t GpuSqlDispatcher::CastPolygonCol()
 {

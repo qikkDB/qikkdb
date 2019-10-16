@@ -120,7 +120,7 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
 
         int32_t err = 0;
 
-        while (err == 0 && !aborted_)
+        while (err == 0 && !aborted_ && !thrownException_)
         {
 
             err = (this->*dispatcherFunctions_[instructionPointer_++])();

@@ -1,5 +1,6 @@
 #include "GpuSqlDispatcherDateFunctions.h"
 #include <array>
+#include "DispatcherMacros.h"
 
 std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::dateToStringFunctions_ = {
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::toString, int32_t>,
