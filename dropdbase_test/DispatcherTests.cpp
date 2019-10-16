@@ -15213,6 +15213,58 @@ TEST(DispatcherTests, InsertInto)
     resultPtr = parserDropDb.Parse();
 }
 
+TEST(DispatcherTests, InsertIntoMultipleRows)
+{
+    GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE InsertIntoMultiRowDb 30;");
+    auto resultPtr = createDatabase.Parse();
+    auto database = Database::GetDatabaseByName("InsertIntoMultiRowDb");
+
+    GpuSqlCustomParser parserCreate(database, "CREATE TABLE testTable (colA int, colB int);");
+    resultPtr = parserCreate.Parse();
+    auto& table = database->GetTables().at("testTable");
+
+    std::vector<int32_t> expectedResultsA;
+    std::vector<int32_t> expectedResultsB;
+
+    int32_t valuesCount = 10;
+    std::stringstream ss;
+
+    ss << "insert into testTable (colA, colB) values " << std::endl;
+
+    for (int32_t i = 0; i < valuesCount; i++)
+    {
+        ss << "(" << i << ", " << i + 1 << ")";
+        if (i < valuesCount - 1)
+        {
+            ss << ", ";
+        }
+        else
+        {
+            ss << ";";
+        }
+        expectedResultsA.push_back(i);
+        expectedResultsA.push_back(i + 1);
+    }
+
+    GpuSqlCustomParser parserInsert(database, ss.str());
+    resultPtr = parserInsert.Parse();
+
+    GpuSqlCustomParser parserSelect(database, "SELECT colA, colB from testTable;");
+    resultPtr = parserSelect.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto payloadsColA = result->payloads().at("testTable.colA");
+    auto payloadsColB = result->payloads().at("testTable.colB");
+
+    for (int32_t i = 0; i < valuesCount; i++)
+    {
+        ASSERT_EQ(payloadsColA.intpayload().intdata()[i], expectedResultsA[i]);
+        ASSERT_EQ(payloadsColB.intpayload().intdata()[i], expectedResultsB[i]);
+    }
+
+    GpuSqlCustomParser parserDropDb(database, "DROP DATABASE InsertIntoMultiRowDb;");
+    resultPtr = parserDropDb.Parse();
+}
+
 TEST(DispatcherTests, InsertIntoWithIndex)
 {
     GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE InsertIntoDb 4;");

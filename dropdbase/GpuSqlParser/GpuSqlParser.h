@@ -431,11 +431,9 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *INSERTINTO();
     TableContext *table();
-    std::vector<antlr4::tree::TerminalNode *> LPAREN();
-    antlr4::tree::TerminalNode* LPAREN(size_t i);
+    antlr4::tree::TerminalNode *LPAREN();
     InsertIntoColumnsContext *insertIntoColumns();
-    std::vector<antlr4::tree::TerminalNode *> RPAREN();
-    antlr4::tree::TerminalNode* RPAREN(size_t i);
+    antlr4::tree::TerminalNode *RPAREN();
     antlr4::tree::TerminalNode *VALUES();
     InsertIntoRowsContext *insertIntoRows();
     antlr4::tree::TerminalNode *SEMICOL();
@@ -829,6 +827,8 @@ public:
   public:
     InsertIntoValuesContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *LPAREN();
+    antlr4::tree::TerminalNode *RPAREN();
     std::vector<ColumnValueContext *> columnValue();
     ColumnValueContext* columnValue(size_t i);
     std::vector<antlr4::tree::TerminalNode *> COMMA();
