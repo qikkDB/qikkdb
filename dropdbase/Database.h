@@ -178,6 +178,7 @@ public:
     CreateTable(const std::unordered_map<std::string, DataType>& columns,
                 const char* tableName,
                 const std::unordered_map<std::string, bool>& areNullable = std::unordered_map<std::string, bool>(),
+                const std::unordered_map<std::string, bool>& areUnique = std::unordered_map<std::string, bool>(),
                 int32_t blockSize = -1);
 
     /// <summary>

@@ -1172,6 +1172,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
     std::unordered_map<std::string, ConstraintType> newColumnsConstraints;
     std::unordered_map<std::string, std::vector<std::string>> newIndices;
     std::unordered_map<std::string, std::vector<std::string>> newUniques;
+    std::unordered_map<std::string, std::vector<std::string>> newNotNulls;
 
     for (auto& entry : ctx->newTableEntries()->newTableEntry())
     {
@@ -1201,6 +1202,10 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
                 else if (newColumnContext->constraint()->UNIQUE())
                 {
                     newColumnConstraintType = ConstraintType::CONSTRAINT_UNIQUE;
+                }
+                else if (newColumnContext->constraint()->NOTNULL())
+                {
+                    newColumnConstraintType = ConstraintType::CONSTRAINT_NOT_NULL;
                 }
             }
 
@@ -1269,6 +1274,27 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
                 }
                 newUniques.insert({constraintName, constraintColumns});
             }
+            else if (newConstraintContext->constraint()->NOTNULL())
+            {
+                for (auto& column : newConstraintContext->constraintColumns()->column())
+                {
+                    std::string constraintColumnName = column->getText();
+                    TrimDelimitedIdentifier(constraintColumnName);
+
+                    if (newColumns.find(constraintColumnName) == newColumns.end())
+                    {
+                        throw ColumnNotFoundException(constraintColumnName);
+                    }
+
+                    if (std::find(constraintColumns.begin(), constraintColumns.end(),
+                                  constraintColumnName) != constraintColumns.end())
+                    {
+                        throw ColumnAlreadyExistsInIndexException(constraintColumnName);
+                    }
+                    constraintColumns.push_back(constraintColumnName);
+                }
+                newNotNulls.insert({constraintName, constraintColumns});
+            }
         }
     }
 
@@ -1304,6 +1330,17 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
         for (auto& uniqueColumn : newUnique.second)
         {
             dispatcher_.AddArgument<const std::string&>(uniqueColumn);
+        }
+    }
+
+	dispatcher_.AddArgument<int32_t>(newNotNulls.size());
+    for (auto& newNotNull : newNotNulls)
+    {
+        dispatcher_.AddArgument<const std::string&>(newNotNull.first);
+        dispatcher_.AddArgument<int32_t>(newNotNull.second.size());
+        for (auto& notNullColumn : newNotNull.second)
+        {
+            dispatcher_.AddArgument<const std::string&>(notNullColumn);
         }
     }
 }

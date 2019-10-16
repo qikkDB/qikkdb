@@ -119,6 +119,7 @@ columnValue: (
 constraint: (
         UNIQUE
         | INDEX
+        | NOTNULL
 );
 
 expression:

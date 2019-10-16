@@ -981,7 +981,11 @@ void Database::LoadColumn(const char* path,
                 int64_t byteIndex = 0;
                 int32_t dataCount = 0;
 
+<<<<<<< HEAD
                 int64_t remainingDataLength = dataLength;
+=======
+                int32_t remainingDataLength = dataLength;
+>>>>>>> implemented and added test for block size per table and column constraints unique and not null
                 while (byteIndex < dataLength)
                 {
                     int32_t currentChunkSize = oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
@@ -1621,6 +1625,7 @@ void Database::LoadColumn(const char* path,
 Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& columns,
                              const char* tableName,
                              const std::unordered_map<std::string, bool>& areNullable,
+                             const std::unordered_map<std::string, bool>& areUnique,
                              int32_t blockSize)
 {
     auto search = tables_.find(tableName);
@@ -1643,14 +1648,9 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
             }
             else
             {
-                if (areNullable.empty())
-                {
-                    table.CreateColumn(entry.first.c_str(), entry.second, true);
-                }
-                else
-                {
-                    table.CreateColumn(entry.first.c_str(), entry.second, areNullable.at(entry.first));
-                }
+                bool isNullable = areNullable.empty() ? true : areNullable.at(entry.first);
+                bool isUnique = areUnique.empty() ? false : areUnique.at(entry.first);
+                table.CreateColumn(entry.first.c_str(), entry.second, isNullable, isUnique);
             }
         }
 
@@ -1675,14 +1675,9 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 
         for (auto& entry : columns)
         {
-            if (areNullable.empty())
-            {
-                table.CreateColumn(entry.first.c_str(), entry.second, true);
-            }
-            else
-            {
-                table.CreateColumn(entry.first.c_str(), entry.second, areNullable.at(entry.first));
-            }
+            bool isNullable = areNullable.empty() ? true : areNullable.at(entry.first);
+            bool isUnique = areUnique.empty() ? false : areUnique.at(entry.first);
+            table.CreateColumn(entry.first.c_str(), entry.second, isNullable, isUnique);
         }
 
         return table;

@@ -1334,6 +1334,13 @@ int32_t GpuSqlDispatcher::CreateTable()
     std::unordered_map<std::string, ConstraintType> newColumnsConstraints;
     std::unordered_map<std::string, std::vector<std::string>> newIndices;
     std::unordered_map<std::string, std::vector<std::string>> newUniques;
+    std::unordered_map<std::string, std::vector<std::string>> newNotNulls;
+    std::unordered_map<std::string, bool> areNullable;
+    std::unordered_map<std::string, bool> areUnique;
+
+    std::vector<std::string> allIndexColumns;
+    std::vector<std::string> allUniqueColumns;
+    std::vector<std::string> allNotNullColumns;
 
     std::string newTableName = arguments_.Read<std::string>();
     int32_t newTableBlockSize = arguments_.Read<int32_t>();
@@ -1343,13 +1350,30 @@ int32_t GpuSqlDispatcher::CreateTable()
     {
         std::string newColumnName = arguments_.Read<std::string>();
         int32_t newColumnDataType = arguments_.Read<int32_t>();
-        int32_t newColumnConstraintType = arguments_.Read<int32_t>();
+        ConstraintType newColumnConstraintType = static_cast<ConstraintType>(arguments_.Read<int32_t>());
         newColumns.insert({newColumnName, static_cast<DataType>(newColumnDataType)});
+
+        areNullable.insert({newColumnName, true});
+        areUnique.insert({newColumnName, false});
+
+        switch (newColumnConstraintType)
+        {
+        case CONSTRAINT_INDEX:
+            allIndexColumns.push_back(newColumnName);
+            break;
+        case CONSTRAINT_UNIQUE:
+            allUniqueColumns.push_back(newColumnName);
+            areUnique[newColumnName] = true;
+            break;
+        case CONSTRAINT_NOT_NULL:
+            allNotNullColumns.push_back(newColumnName);
+            areNullable[newColumnName] = false;
+            break;
+        default:
+            break;
+        }
         newColumnsConstraints.insert({newColumnName, static_cast<ConstraintType>(newColumnConstraintType)});
     }
-
-    std::vector<std::string> allIndexColumns;
-    std::vector<std::string> allUniqueColumns;
 
     int32_t newIndexCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < newIndexCount; i++)
@@ -1386,12 +1410,37 @@ int32_t GpuSqlDispatcher::CreateTable()
                 allUniqueColumns.end())
             {
                 allUniqueColumns.push_back(newUniqueColumn);
+                areUnique[newUniqueColumn] = true;
             }
         }
         newUniques.insert({newUniqueName, newUniqueColumns});
     }
 
-    database_->CreateTable(newColumns, newTableName.c_str()).SetSortingColumns(allIndexColumns);
+    int32_t newNotNullCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < newNotNullCount; i++)
+    {
+        std::string newNotNullName = arguments_.Read<std::string>();
+        int32_t newNotNullColumnCount = arguments_.Read<int32_t>();
+        std::vector<std::string> newNotNullColumns;
+
+        for (int32_t j = 0; j < newNotNullColumnCount; j++)
+        {
+            std::string newNotNullColumn = arguments_.Read<std::string>();
+            newNotNullColumns.push_back(newNotNullColumn);
+            if (std::find(allNotNullColumns.begin(), allNotNullColumns.end(), newNotNullColumn) ==
+                allNotNullColumns.end())
+            {
+                allNotNullColumns.push_back(newNotNullColumn);
+                areNullable[newNotNullColumn] = false;
+            }
+        }
+        newNotNulls.insert({newNotNullName, newNotNullColumns});
+    }
+
+
+    database_
+        ->CreateTable(newColumns, newTableName.c_str(), areNullable, areUnique, newTableBlockSize)
+        .SetSortingColumns(allIndexColumns);
     return 8;
 }
 

@@ -58,8 +58,9 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database,
     }
 
     // creates table
-    Table& table = database->CreateTable(columns, tableName_.c_str(),
-                                         std::unordered_map<std::string, bool>(), tableBlockSize);
+    Table& table =
+        database->CreateTable(columns, tableName_.c_str(), std::unordered_map<std::string, bool>(),
+                              std::unordered_map<std::string, bool>(), tableBlockSize);
 
     if (!sortingColumns.empty())
     {
