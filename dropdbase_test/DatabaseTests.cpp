@@ -11,30 +11,30 @@
 class DatabaseTests : public ::testing::Test
 {
 protected:
-	const std::string path = Configuration::GetInstance().GetDatabaseDir();
-	const std::string dbName = "TestDatabase";
-	const int32_t blockNum = 2; //number of blocks
-	const int32_t blockSize = 4; //length of a block
+    const std::string path = Configuration::GetInstance().GetDatabaseDir();
+    const std::string dbName = "TestDatabase";
+    const int32_t blockNum = 2; // number of blocks
+    const int32_t blockSize = 4; // length of a block
 
-	std::shared_ptr<Database> database;
+    std::shared_ptr<Database> database;
     std::shared_ptr<Database> renameDatabase;
-	virtual void SetUp()
-	{
-		database = std::make_shared<Database>(dbName.c_str(), blockSize);
-	}
+    virtual void SetUp()
+    {
+        database = std::make_shared<Database>(dbName.c_str(), blockSize);
+    }
 
-	virtual void TearDown()
-	{
-		//clean up occurs when test completes or an exception is thrown
-		Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
+    virtual void TearDown()
+    {
+        // clean up occurs when test completes or an exception is thrown
+        Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
 
-		// clear directory to make sure, there are no old database files, but do not remove directory:
+        // clear directory to make sure, there are no old database files, but do not remove directory:
         boost::filesystem::path path_to_remove(path);
         for (boost::filesystem::directory_iterator end_dir_it, it(path_to_remove); it != end_dir_it; ++it)
         {
             boost::filesystem::remove_all(it->path());
         }
-	}
+    }
 };
 
 
@@ -183,7 +183,6 @@ TEST_F(DatabaseTests, IntegrationTest)
     for (auto& db : Database::GetDatabaseNames())
     {
         Database::RemoveFromInMemoryDatabaseList(db.c_str());
-        Database::GetDatabaseByName(db.c_str())->~Database();
     }
 
     // load different database_, but with the same data:
@@ -305,7 +304,7 @@ TEST_F(DatabaseTests, IntegrationTest)
         ASSERT_EQ(data[1], "FastestDBinTheWorld");
         ASSERT_EQ(data[2], "Speed is my second name");
 
-		ASSERT_TRUE(block->GetMin() == "DropDBase");
+        ASSERT_TRUE(block->GetMin() == "DropDBase");
         ASSERT_TRUE(block->GetMax() == "Speed is my second name");
         ASSERT_TRUE(block->GetSum() == "");
         ASSERT_FLOAT_EQ(block->GetAvg(), 0.0f);

@@ -230,17 +230,17 @@ const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GpuSqlDispatcher:
 
 void GpuSqlDispatcher::AddRetFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(retFunctions_[type]);
+    dispatcherFunctions_.push_back(retFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddOrderByFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(orderByFunctions_[type]);
+    dispatcherFunctions_.push_back(orderByFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddOrderByReconstructFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(orderByReconstructFunctions_[type]);
+    dispatcherFunctions_.push_back(orderByReconstructFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddFreeOrderByTableFunction()
@@ -331,7 +331,7 @@ void GpuSqlDispatcher::AddCreateIndexFunction()
 
 void GpuSqlDispatcher::AddInsertIntoFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(insertIntoFunctions_[type]);
+    dispatcherFunctions_.push_back(insertIntoFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddInsertIntoDoneFunction()
@@ -344,17 +344,17 @@ int32_t GpuSqlDispatcher::GetBinaryDispatchTableIndex(DataType left, DataType ri
     DataType lConst = GetConstDataType(left);
     DataType rConst = GetConstDataType(right);
     int32_t constOffset = 0;
-    if (left > numOfDataTypes && right > numOfDataTypes)
+    if (left >= numOfDataTypes && right >= numOfDataTypes)
     {
         constOffset = 3;
     }
-    else if (left > numOfDataTypes)
-    {
-        constOffset = 1;
-    }
-    else
+    else if (left >= numOfDataTypes)
     {
         constOffset = 2;
+    }
+    else if (right >= numOfDataTypes)
+    {
+        constOffset = 1;
     }
     return numOfDataTypes * 4 * lConst + 4 * rConst + constOffset;
 }
@@ -363,7 +363,7 @@ int32_t GpuSqlDispatcher::GetUnaryDispatchTableIndex(DataType type)
 {
     DataType lConst = GetConstDataType(type);
     int32_t constOffset = 0;
-    if (type > numOfDataTypes)
+    if (type >= numOfDataTypes)
     {
         constOffset = 1;
     }
