@@ -3,41 +3,48 @@
 #include "DispatcherMacros.h"
 
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::minAggregationFunctions_)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::min, int32_t, int32_t)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::min, int64_t, int64_t)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::min, float, float)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::min, double, double)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::min, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::min, ColmnarDB::Types::ComplexPolygon)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::min, std::string)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::min, int8_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::min, int32_t, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::min, int64_t, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::min, float, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::min, double, double)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::min, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::min, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::min, std::string)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::min, int8_t)
 END_DISPATCH_TABLE
 
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::maxAggregationFunctions_)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::max, int32_t, int32_t)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::max, int64_t, int64_t)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::max, float, float)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::max, double, double)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::max, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::max, ColmnarDB::Types::ComplexPolygon)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::max, std::string)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::max, int8_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::max, int32_t, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::max, int64_t, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::max, float, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::max, double, double)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::max, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::max, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::max, std::string)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::max, int8_t)
 END_DISPATCH_TABLE
 
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::sumAggregationFunctions_)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::sum, int32_t, int32_t)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::sum, int64_t, int64_t)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::sum, float, float)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::sum, double, double)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sum, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sum, ColmnarDB::Types::ComplexPolygon)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sum, std::string)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::sum, int8_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::sum, int32_t, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::sum, int64_t, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::sum, float, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::sum, double, double)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, std::string)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, int8_t)
 END_DISPATCH_TABLE
 
 BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::countAggregationFunctions_)
 DISPATCHER_INVALID_TYPE(AggregationFunctions::count, int32_t)
-DISPATCHER_TYPE(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, 1, 1, 1, 1, 1, 1, 0, 0)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, double)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::count, std::string)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::count, int8_t)
 DISPATCHER_INVALID_TYPE(AggregationFunctions::count, float)
 DISPATCHER_INVALID_TYPE(AggregationFunctions::count, double)
 DISPATCHER_INVALID_TYPE(AggregationFunctions::count, ColmnarDB::Types::Point)
@@ -47,14 +54,14 @@ DISPATCHER_INVALID_TYPE(AggregationFunctions::count, int8_t)
 END_DISPATCH_TABLE
 
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::avgAggregationFunctions_)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::avg, int32_t, int32_t)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::avg, int64_t, int64_t)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::avg, float, float)
-DISAPTCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::avg, double, double)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::avg, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::avg, ColmnarDB::Types::ComplexPolygon)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::avg, std::string)
-DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::avg, int8_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::avg, int32_t, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::avg, int64_t, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::avg, float, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::avg, double, double)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, std::string)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, int8_t)
 END_DISPATCH_TABLE
 
 BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::minGroupByFunctions_)
@@ -169,14 +176,22 @@ DISPATCHER_INVALID_TYPE(AggregationFunctions::avg, int8_t)
 END_DISPATCH_TABLE
 
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::minGroupByMultiKeyFunctions_)
-DISPATCHER_ERR(Const, AggregationFunctions::min, std::vector<void*>, int32_t)
+DISPATCHER_ERR(Const, AggregationFunctions::min, std::vector<void*>)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::min, int32_t, std::vector<void*>, int32_t)
-DISPATCHER_ERR(Const, AggregationFunctions::min, std::vector<void*>, int64_t)
+DISPATCH_ENTRY_SEPARATOR
+DISPATCHER_ERR(Const, AggregationFunctions::min, std::vector<void*>)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::min, int64_t, std::vector<void*>, int64_t)
-DISPATCHER_ERR(Const, AggregationFunctions::min, std::vector<void*>, float)
+DISPATCH_ENTRY_SEPARATOR
+DISPATCHER_ERR(Const, AggregationFunctions::min, std::vector<void*>)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::min, float, std::vector<void*>, float)
-DISPATCHER_ERR(Const, AggregationFunctions::min, std::vector<void*>, double)
+DISPATCH_ENTRY_SEPARATOR
+DISPATCHER_ERR(Const, AggregationFunctions::min, std::vector<void*>)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::min, double, std::vector<void*>, double)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_UNARY_ERROR(AggregationFunctions::min, ColmnarDB::Types::Point)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::min, ColmnarDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::min, std::string)
@@ -185,13 +200,21 @@ END_DISPATCH_TABLE
 
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::maxGroupByMultiKeyFunctions_)
 DISPATCHER_ERR(ColConst, AggregationFunctions::max, std::vector<void*>, int32_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::max, int32_t, std::vector<void*>, int32_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::max, std::vector<void*>, int64_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::max, int64_t, std::vector<void*>, int64_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::max, std::vector<void*>, float)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::max, float, std::vector<void*>, float)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::max, std::vector<void*>, double)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::max, double, std::vector<void*>, double)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_UNARY_ERROR(AggregationFunctions::max, ColmnarDB::Types::Point)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::max, ColmnarDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::max, std::string)
@@ -200,13 +223,21 @@ END_DISPATCH_TABLE
 
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::sumGroupByMultiKeyFunctions_)
 DISPATCHER_ERR(ColConst, AggregationFunctions::sum, std::vector<void*>, int32_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::sum, int32_t, std::vector<void*>, int32_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::sum, std::vector<void*>, int64_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::sum, int64_t, std::vector<void*>, int64_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::sum, std::vector<void*>, float)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::sum, float, std::vector<void*>, float)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::sum, std::vector<void*>, double)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::sum, double, std::vector<void*>, double)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, ColmnarDB::Types::Point)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, ColmnarDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, std::string)
@@ -216,13 +247,21 @@ END_DISPATCH_TABLE
 
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::countGroupByMultiKeyFunctions_)
 DISPATCHER_ERR(ColConst, AggregationFunctions::count, std::vector<void*>, int32_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::count, int64_t, std::vector<void*>, int32_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::count, std::vector<void*>, int64_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::count, int64_t, std::vector<void*>, int64_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::count, std::vector<void*>, float)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::count, int64_t, std::vector<void*>, float)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::count, std::vector<void*>, double)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::count, int64_t, std::vector<void*>, double)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_UNARY_ERROR(AggregationFunctions::count, ColmnarDB::Types::Point)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::count, ColmnarDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::count, std::string)
@@ -231,13 +270,21 @@ END_DISPATCH_TABLE
 
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::avgGroupByMultiKeyFunctions_)
 DISPATCHER_ERR(ColConst, AggregationFunctions::avg, std::vector<void*>, int32_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::avg, int32_t, std::vector<void*>, int32_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::avg, std::vector<void*>, int64_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::avg, int64_t, std::vector<void*>, int64_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::avg, std::vector<void*>, float)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::avg, float, std::vector<void*>, float)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(ColConst, AggregationFunctions::avg, std::vector<void*>, double)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::avg, double, std::vector<void*>, double)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, ColmnarDB::Types::Point)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, ColmnarDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, std::string)

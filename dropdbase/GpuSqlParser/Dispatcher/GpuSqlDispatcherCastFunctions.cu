@@ -1,7 +1,7 @@
 #include "GpuSqlDispatcherCastFunctions.h"
 #include "../../QueryEngine/GPUCore/GPUReconstruct.cuh"
 #include <array>
-
+#include "DispatcherMacros.h"
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToIntFunctions_)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int32_t, int32_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int32_t, int64_t)
@@ -46,7 +46,7 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastString, double)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, double, int8_t)
 END_DISPATCH_TABLE
 
-BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToDoubleFunctions_)
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToPointFunctions_)
 DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point, int32_t)
 DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point, int64_t)
 DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point, float)
@@ -57,7 +57,7 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastString, NativeGeoPoint)
 DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point, int8_t)
 END_DISPATCH_TABLE
 
-BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToDoubleFunctions_)
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToPolygonFunctions_)
 DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon, int32_t)
 DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon, int64_t)
 DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon, float)
@@ -71,13 +71,21 @@ END_DISPATCH_TABLE
 
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToStringFunctions_)
 DISPATCHER_ERR(Const, std::string, int32_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::CastNumericToStringCol, int32_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(Const, std::string, int64_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::CastNumericToStringCol, int64_t)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(Const, std::string, float)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::CastNumericToStringCol, float)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_ERR(Const, std::string, double)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::CastNumericToStringCol, double)
+DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_UNARY_FUNCTION_NO_TEMPLATE(GpuSqlDispatcher::CastPoint)
 DISPATCHER_UNARY_FUNCTION_NO_TEMPLATE(GpuSqlDispatcher::CastPolygon)
 DISPATCHER_UNARY_ERROR(std::string, std::string)

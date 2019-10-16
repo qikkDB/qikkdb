@@ -5,25 +5,17 @@
 #include "../../Database.h"
 #include "../../Table.h"
 #include "../../ColumnBase.h"
+#include "DispatcherMacros.h"
 
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::insertIntoFunctions_ = {
-    &GpuSqlDispatcher::InsertInto<int32_t>,
-    &GpuSqlDispatcher::InsertInto<int64_t>,
-    &GpuSqlDispatcher::InsertInto<float>,
-    &GpuSqlDispatcher::InsertInto<double>,
-    &GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InsertInto<std::string>,
-    &GpuSqlDispatcher::InsertInto<int8_t>,
-    &GpuSqlDispatcher::InsertInto<int32_t>,
-    &GpuSqlDispatcher::InsertInto<int64_t>,
-    &GpuSqlDispatcher::InsertInto<float>,
-    &GpuSqlDispatcher::InsertInto<double>,
-    &GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InsertInto<std::string>,
-    &GpuSqlDispatcher::InsertInto<int8_t>};
-
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::insertIntoFunctions_)
+DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, int32_t)
+DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, int64_t)
+DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, float)
+DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, double)
+DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, int8_t)
+END_DISPATCH_TABLE
 
 template <>
 int32_t GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>()
