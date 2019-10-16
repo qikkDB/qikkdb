@@ -101,9 +101,25 @@ namespace ColmnarDB.BenchmarkUtility
                             }                   
                         }
 
+                        double avgQueryExec = resultSum / numberOfQueryExec;
+
                         //save query result to a file:
-                        resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached N runs)");
-                        Console.Out.WriteLine((resultSum / numberOfQueryExec) + " (average cached N runs)");
+                        resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
+                        Console.Out.WriteLine(avgQueryExec + " (average cached N runs)");
+
+                        //check if query execution time is acceptable and save the result:
+                        int queryExpectedExecTime = System.Convert.ToInt32(queryFile.ReadLine());
+                        if (avgQueryExec < queryExpectedExecTime)
+                        {
+                            resultFile.WriteLine("The query '" + queryString + "' has passed the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
+                            Console.Out.WriteLine("The query '" + queryString + "' has passed the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
+                        }
+                        else
+                        {
+                            resultFile.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
+                            Console.Out.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
+                            Environment.Exit(1);
+                        }
                     }
                     queryFile.Close();
                 }
@@ -149,9 +165,25 @@ namespace ColmnarDB.BenchmarkUtility
                             }                   
                         }
 
+                        double avgQueryExec = resultSum / numberOfQueryExec;
+
                         //save query result to a file:
-                        resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached N runs)");
-                        Console.Out.WriteLine((resultSum / numberOfQueryExec) + " (average cached N runs)");
+                        resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
+                        Console.Out.WriteLine(avgQueryExec + " (average cached N runs)");
+
+                        //check if query execution time is acceptable and save the result:
+                        int queryExpectedExecTime = System.Convert.ToInt32(queryFile.ReadLine());
+                        if (avgQueryExec < queryExpectedExecTime)
+                        {
+                            resultFile.WriteLine("The query '" + queryString + "' has passed the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
+                            Console.Out.WriteLine("The query '" + queryString + "' has passed the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
+                        }
+                        else
+                        {
+                            resultFile.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
+                            Console.Out.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
+                            Environment.Exit(1);
+                        }
                     }
                     queryFile.Close();
                 }
@@ -197,9 +229,25 @@ namespace ColmnarDB.BenchmarkUtility
                             }                   
                         }
 
+                        double avgQueryExec = resultSum / numberOfQueryExec;
+
                         //save query result to a file:
-                        resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached N runs)");
-                        Console.Out.WriteLine((resultSum / numberOfQueryExec) + " (average cached N runs)");
+                        resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
+                        Console.Out.WriteLine(avgQueryExec + " (average cached N runs)");
+
+                        //check if query execution time is acceptable and save the result:
+                        int queryExpectedExecTime = System.Convert.ToInt32(queryFile.ReadLine());
+                        if (avgQueryExec < queryExpectedExecTime)
+                        {
+                            resultFile.WriteLine("The query '" + queryString + "' has passed the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
+                            Console.Out.WriteLine("The query '" + queryString + "' has passed the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
+                        }
+                        else
+                        {
+                            resultFile.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
+                            Console.Out.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
+                            Environment.Exit(1);
+                        }
                     }
                     queryFile.Close();
                 }
@@ -245,14 +293,29 @@ namespace ColmnarDB.BenchmarkUtility
                             }                   
                         }
 
+                        double avgQueryExec = resultSum / numberOfQueryExec;
+
                         //save query result to a file:
-                        resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached N runs)");
-                        Console.Out.WriteLine((resultSum / numberOfQueryExec) + " (average cached N runs)");
+                        resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
+                        Console.Out.WriteLine(avgQueryExec + " (average cached N runs)");
+
+                        //check if query execution time is acceptable and save the result:
+                        int queryExpectedExecTime = System.Convert.ToInt32(queryFile.ReadLine());
+                        if (avgQueryExec < queryExpectedExecTime)
+                        {
+                            resultFile.WriteLine("The query '" + queryString + "' has passed the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
+                            Console.Out.WriteLine("The query '" + queryString + "' has passed the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
+                        }
+                        else
+                        {
+                            resultFile.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
+                            Console.Out.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
+                            Environment.Exit(1);
+                        }
                     }
                     queryFile.Close();
                 }
             }
-
             resultFile.Close();
         }    
     }
