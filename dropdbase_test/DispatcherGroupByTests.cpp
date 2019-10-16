@@ -1456,3 +1456,50 @@ TEST_F(DispatcherGroupByTests, MultiKeyNoAgg)
                                       {1, 1, 1, 1, 1, 1, 2, 0},
                                       {"Apple", "Nut", "Nut", "Apple", "XYZ", "Apple", "Apple", "Nut"}});
 }
+
+
+// Test automatic increase of hash table size
+TEST_F(DispatcherGroupByTests, UnlimitedNumberOfKeysNoAgg)
+{
+    const int32_t buckets =
+        Configuration::GetInstance().GetGroupByBuckets() * Context::getInstance().getDeviceCount();
+    const int32_t uniqueKeys = buckets * 3 / 2;
+    const int32_t inputSize = uniqueKeys * 9 / 8;
+    const int32_t mBlockSize = Configuration::GetInstance().GetGroupByBuckets() / 2;
+    std::cout << "Test UnlimitedNumberOfKeys: overall_gpus_buckets=" << buckets << ", unique_keys=" << uniqueKeys
+              << ", input_size=" << inputSize << ", block_size=" << mBlockSize << std::endl;
+    std::vector<int32_t> inKeys(inputSize);
+    for (size_t i = 0; i < inputSize; i++)
+    {
+        inKeys[i] = i % uniqueKeys;
+    }
+
+    std::shared_ptr<Database> unlimitedDatabase = std::make_shared<Database>("UnlimitedDb", mBlockSize);
+
+    std::string tableName = "NoAggTable";
+    auto columns = std::unordered_map<std::string, DataType>();
+    columns.insert(std::make_pair<std::string, DataType>("colKeys", DataType::COLUMN_INT));
+    unlimitedDatabase->CreateTable(columns, tableName.c_str());
+
+    reinterpret_cast<ColumnBase<int32_t>*>(
+        unlimitedDatabase->GetTables().at(tableName).GetColumns().at("colKeys").get())
+        ->InsertData(inKeys);
+
+    // Execute the query_
+    GpuSqlCustomParser parser(unlimitedDatabase, "SELECT colKeys FROM " + tableName + " GROUP BY colKeys;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& payloadKeys = result->payloads().at(tableName + ".colKeys");
+    std::set<int32_t> expectedResult;
+    for (auto value : inKeys)
+    {
+        expectedResult.insert(value);
+    }
+    ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+        << " wrong number of keys";
+    for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+    {
+        int32_t key = payloadKeys.intpayload().intdata()[i];
+        ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+    }
+}

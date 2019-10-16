@@ -64,7 +64,8 @@ __device__ bool AreEqualMultiKeys(DataType* keyTypes,
                                   int32_t indexA,
                                   void** keysB,
                                   int8_t** keysBNullMask,
-                                  int32_t indexB);
+                                  int32_t indexB,
+                                  bool compressedBNullMask);
 
 /// Check if multi-key is new (not present in keys buffer nor in sourceIndices)
 /// Input multi-key is defined by inKeys and i
@@ -145,7 +146,7 @@ void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector,
 /// Alloc 2-dimensional buffer for multi-keys storage
 void AllocKeysBuffer(void*** keysBuffer,
                      int8_t*** keysNullBuffer,
-                     std::vector<DataType> keyTypes,
+                     std::vector<DataType>& keyTypes,
                      int32_t rowCount,
                      std::vector<void*>* pointers = nullptr,
                      std::vector<int8_t*>* pointersNullMask = nullptr);
@@ -322,7 +323,9 @@ private:
     int64_t* keyOccurrenceCount_ = nullptr;
 
     /// Size of the hash table (max. count of unique keys)
-    const int32_t maxHashCount_;
+    const int32_t keyBufferSize_;
+    /// Multiplier for value buffer size
+    const int32_t valueBufferMultiplier_;
     /// Error flag swapper for error checking after kernel runs
     ErrorFlagSwapper errorFlagSwapper_;
 
@@ -330,17 +333,20 @@ public:
     /// Create GPUGroupBy object and allocate a hash table (buffers for key, values and key occurrence counts)
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
     /// <param name="keyTypes">key column types (will be copied to a new buffer)</param>
-    GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes)
-    : maxHashCount_(maxHashCount), keysColCount_(keyTypes.size())
+    GPUGroupBy(const int32_t maxHashCount, const int32_t keySizeMultiplier, std::vector<DataType>& keyTypes)
+    : keyBufferSize_(maxHashCount * keySizeMultiplier),
+      valueBufferMultiplier_((keySizeMultiplier > GB_VALUE_BUFFER_DEFAULT_MULTIPLIER) ?
+                                 1 :
+                                 GB_VALUE_BUFFER_DEFAULT_MULTIPLIER / keySizeMultiplier),
+      keysColCount_(keyTypes.size())
     {
-        // TODO check if maxHashCount is integer pow of 2
-        const size_t multipliedCount = static_cast<size_t>(maxHashCount_) * GB_ARRAY_MULTIPLIER;
+        const size_t valueBufferSize = keyBufferSize_ * valueBufferMultiplier_;
         try
         {
             // Allocate buffers needed for key storing
-            GPUMemory::alloc(&sourceIndices_, maxHashCount_);
+            GPUMemory::alloc(&sourceIndices_, keyBufferSize_);
             GPUMemory::alloc(&keyTypes_, keysColCount_);
-            AllocKeysBuffer(&keysBuffer_, &keysNullBuffer_, keyTypes, maxHashCount_);
+            AllocKeysBuffer(&keysBuffer_, &keysNullBuffer_, keyTypes, keyBufferSize_);
             for (int32_t i = 0; i < keyTypes.size(); i++)
             {
                 if (keyTypes[i] == COLUMN_STRING)
@@ -352,12 +358,12 @@ public:
             // And for values and occurrences
             if (USE_VALUES)
             {
-                GPUMemory::alloc(&values_, multipliedCount);
-                GPUMemory::allocAndSet(&valuesNullMask_, 1, maxHashCount_);
+                GPUMemory::alloc(&values_, valueBufferSize);
+                GPUMemory::allocAndSet(&valuesNullMask_, 1, keyBufferSize_);
             }
             if (USE_KEY_OCCURRENCES)
             {
-                GPUMemory::allocAndSet(&keyOccurrenceCount_, 0, multipliedCount);
+                GPUMemory::allocAndSet(&keyOccurrenceCount_, 0, valueBufferSize);
             }
         }
         catch (...)
@@ -410,11 +416,11 @@ public:
             }
             throw;
         }
-        GPUMemory::fillArray(sourceIndices_, GBS_SOURCE_INDEX_EMPTY_KEY, maxHashCount_);
+        GPUMemory::fillArray(sourceIndices_, GBS_SOURCE_INDEX_EMPTY_KEY, keyBufferSize_);
         GPUMemory::copyHostToDevice(keyTypes_, keyTypes.data(), keysColCount_);
         if (USE_VALUES)
         {
-            GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), multipliedCount);
+            GPUMemory::fillArray(values_, AGG::template getInitValue<V>(), valueBufferSize);
         }
     }
 
@@ -424,10 +430,10 @@ public:
     /// <param name="sourceIndices">GPU buffer with existing sourceIndices (will be copied to a new buffer)</param>
     /// <param name="keysBuffer">GPU buffer with existing keys (will be copied to a new buffer)</param>
     GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes, int32_t* sourceIndices, void** keysBuffer, int8_t** keysNullBuffer)
-    : GPUGroupBy(maxHashCount, keyTypes)
+    : GPUGroupBy(maxHashCount, 1, keyTypes)
     {
         // Copy source indices
-        GPUMemory::copyDeviceToDevice(sourceIndices_, sourceIndices, maxHashCount_);
+        GPUMemory::copyDeviceToDevice(sourceIndices_, sourceIndices, keyBufferSize_);
 
         // Copy all keys (deep copy)
         for (int32_t i = 0; i < keyTypes.size(); i++)
@@ -442,25 +448,25 @@ public:
             case DataType::COLUMN_INT:
             {
                 GPUMemory::copyDeviceToDevice(reinterpret_cast<int32_t*>(myCol),
-                                              reinterpret_cast<int32_t*>(srcCol), maxHashCount_);
+                                              reinterpret_cast<int32_t*>(srcCol), keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_LONG:
             {
                 GPUMemory::copyDeviceToDevice(reinterpret_cast<int64_t*>(myCol),
-                                              reinterpret_cast<int64_t*>(srcCol), maxHashCount_);
+                                              reinterpret_cast<int64_t*>(srcCol), keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_FLOAT:
             {
                 GPUMemory::copyDeviceToDevice(reinterpret_cast<float*>(myCol),
-                                              reinterpret_cast<float*>(srcCol), maxHashCount_);
+                                              reinterpret_cast<float*>(srcCol), keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_DOUBLE:
             {
                 GPUMemory::copyDeviceToDevice(reinterpret_cast<double*>(myCol),
-                                              reinterpret_cast<double*>(srcCol), maxHashCount_);
+                                              reinterpret_cast<double*>(srcCol), keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_STRING:
@@ -471,15 +477,15 @@ public:
 
                 // Get total char count
                 int64_t totalCharCount;
-                GPUMemory::copyDeviceToHost(&totalCharCount, srcString.stringIndices + maxHashCount_ - 1, 1);
+                GPUMemory::copyDeviceToHost(&totalCharCount, srcString.stringIndices + keyBufferSize_ - 1, 1);
 
                 // Create my struct
                 GPUMemory::GPUString myString;
-                GPUMemory::alloc(&(myString.stringIndices), maxHashCount_);
+                GPUMemory::alloc(&(myString.stringIndices), keyBufferSize_);
                 GPUMemory::alloc(&(myString.allChars), totalCharCount);
 
                 // Copy indices and chars
-                GPUMemory::copyDeviceToDevice(myString.stringIndices, srcString.stringIndices, maxHashCount_);
+                GPUMemory::copyDeviceToDevice(myString.stringIndices, srcString.stringIndices, keyBufferSize_);
                 GPUMemory::copyDeviceToDevice(myString.allChars, srcString.allChars, totalCharCount);
 
                 // Copy struct
@@ -490,7 +496,7 @@ public:
             case DataType::COLUMN_INT8_T:
             {
                 GPUMemory::copyDeviceToDevice(reinterpret_cast<int8_t*>(myCol),
-                                              reinterpret_cast<int8_t*>(srcCol), maxHashCount_);
+                                              reinterpret_cast<int8_t*>(srcCol), keyBufferSize_);
                 break;
             }
             default:
@@ -501,7 +507,7 @@ public:
             GPUMemory::copyDeviceToHost(&myNullMask, keysNullBuffer_ + i, 1);
             int8_t* srcNullMask;
             GPUMemory::copyDeviceToHost(&srcNullMask, keysNullBuffer + i, 1);
-            GPUMemory::copyDeviceToDevice(myNullMask, srcNullMask, maxHashCount_);
+            GPUMemory::copyDeviceToDevice(myNullMask, srcNullMask, keyBufferSize_);
         }
     }
 
@@ -560,8 +566,8 @@ public:
             // Parameter hashCoef is comptued as n-th root of maxHashCount, where n is a number of key columns
             kernel_group_by_multi_key<AGG><<<context.calcGridDim(dataElementCount), 768>>>(
                 keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, keysNullBuffer_, values_,
-                valuesNullMask_, keyOccurrenceCount_, maxHashCount_, inKeys.get(), inValues,
-                dataElementCount, GB_ARRAY_MULTIPLIER, static_cast<int32_t>(log2f(maxHashCount_) + 0.5f),
+                valuesNullMask_, keyOccurrenceCount_, keyBufferSize_, inKeys.get(), inValues, dataElementCount,
+                valueBufferMultiplier_, static_cast<int32_t>(log2f(keyBufferSize_) + 0.5f),
                 errorFlagSwapper_.GetFlagPointer(), inKeysNullMasks.get(), inValuesNullMask);
             errorFlagSwapper_.Swap();
             cudaDeviceSynchronize();
@@ -574,18 +580,18 @@ public:
             for (int32_t t : stringKeyColIds_)
             {
                 int32_t* stringLengths;
-                GPUMemory::alloc(&stringLengths, maxHashCount_);
+                GPUMemory::alloc(&stringLengths, keyBufferSize_);
                 GPUMemory::copyHostToDevice(stringLengthsBuffers.get() + t, &stringLengths, 1); // copy pointer to stringLengths
-                kernel_collect_string_lengths<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
+                kernel_collect_string_lengths<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
                     stringLengths, sourceIndices_,
                     reinterpret_cast<GPUMemory::GPUString**>(inKeys.get() + t),
-                    reinterpret_cast<GPUMemory::GPUString**>(keysBuffer_ + t), maxHashCount_);
+                    reinterpret_cast<GPUMemory::GPUString**>(keysBuffer_ + t), keyBufferSize_);
 
                 GPUMemory::GPUString cpuStruct;
-                GPUMemory::alloc(&(cpuStruct.stringIndices), maxHashCount_);
-                GPUReconstruct::PrefixSum(cpuStruct.stringIndices, stringLengths, maxHashCount_);
+                GPUMemory::alloc(&(cpuStruct.stringIndices), keyBufferSize_);
+                GPUReconstruct::PrefixSum(cpuStruct.stringIndices, stringLengths, keyBufferSize_);
                 int64_t totalCharCount;
-                GPUMemory::copyDeviceToHost(&totalCharCount, cpuStruct.stringIndices + maxHashCount_ - 1, 1);
+                GPUMemory::copyDeviceToHost(&totalCharCount, cpuStruct.stringIndices + keyBufferSize_ - 1, 1);
                 GPUMemory::alloc(&(cpuStruct.allChars), totalCharCount);
                 GPUMemory::copyHostToDevice(reinterpret_cast<GPUMemory::GPUString*>(
                                                 stringSideBuffers.get() + t),
@@ -593,9 +599,9 @@ public:
             }
 
             // Collect multi-keys from inKeys according to sourceIndices
-            kernel_collect_multi_keys<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
+            kernel_collect_multi_keys<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
                 keyTypes_, keysColCount_, sourceIndices_, keysBuffer_, keysNullBuffer_,
-                stringSideBuffers.get(), stringLengthsBuffers.get(), maxHashCount_, inKeys.get(),
+                stringSideBuffers.get(), stringLengthsBuffers.get(), keyBufferSize_, inKeys.get(),
                 inKeysNullMasks.get());
             cudaDeviceSynchronize();
             CheckCudaError(cudaGetLastError());
@@ -630,7 +636,7 @@ public:
     /// <returns>size of the hash table</returns>
     int32_t GetMaxHashCount()
     {
-        return maxHashCount_;
+        return keyBufferSize_;
     }
 
     /// Reconstruct needed raw fields (do not calculate final results yet)
@@ -647,9 +653,9 @@ public:
                                int32_t* outDataElementCount)
     {
         Context& context = Context::getInstance();
-        cuda_ptr<int8_t> occupancyMask(maxHashCount_);
-        kernel_source_indices_to_mask<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
-            occupancyMask.get(), sourceIndices_, maxHashCount_);
+        cuda_ptr<int8_t> occupancyMask(keyBufferSize_);
+        kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
+            occupancyMask.get(), sourceIndices_, keyBufferSize_);
 
         // Copy data types back from GPU
         std::unique_ptr<DataType[]> keyTypesHost = std::make_unique<DataType[]>(keysColCount_);
@@ -662,38 +668,38 @@ public:
             {
             case DataType::COLUMN_INT:
             {
-                ReconstructSingleKeyCol<int32_t>(&multiKeys, outDataElementCount,
-                                                 occupancyMask.get(), keysBuffer_ + t, maxHashCount_);
+                ReconstructSingleKeyCol<int32_t>(&multiKeys, outDataElementCount, occupancyMask.get(),
+                                                 keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_LONG:
             {
-                ReconstructSingleKeyCol<int64_t>(&multiKeys, outDataElementCount,
-                                                 occupancyMask.get(), keysBuffer_ + t, maxHashCount_);
+                ReconstructSingleKeyCol<int64_t>(&multiKeys, outDataElementCount, occupancyMask.get(),
+                                                 keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_FLOAT:
             {
                 ReconstructSingleKeyCol<float>(&multiKeys, outDataElementCount, occupancyMask.get(),
-                                               keysBuffer_ + t, maxHashCount_);
+                                               keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_DOUBLE:
             {
-                ReconstructSingleKeyCol<double>(&multiKeys, outDataElementCount,
-                                                occupancyMask.get(), keysBuffer_ + t, maxHashCount_);
+                ReconstructSingleKeyCol<double>(&multiKeys, outDataElementCount, occupancyMask.get(),
+                                                keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_STRING:
             {
                 ReconstructSingleKeyCol<std::string>(&multiKeys, outDataElementCount,
-                                                     occupancyMask.get(), keysBuffer_ + t, maxHashCount_);
+                                                     occupancyMask.get(), keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_INT8_T:
             {
-                ReconstructSingleKeyCol<int8_t>(&multiKeys, outDataElementCount,
-                                                occupancyMask.get(), keysBuffer_ + t, maxHashCount_);
+                ReconstructSingleKeyCol<int8_t>(&multiKeys, outDataElementCount, occupancyMask.get(),
+                                                keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             default:
@@ -706,28 +712,28 @@ public:
                                         reinterpret_cast<int8_t**>(keysNullBuffer_ + t), 1);
 
             GPUReconstruct::reconstructCol(multiKeysNullMasks[t].get(), outDataElementCount,
-                                           keyNullSingleBuffer, occupancyMask.get(), maxHashCount_);
+                                           keyNullSingleBuffer, occupancyMask.get(), keyBufferSize_);
         }
 
         // Merge multipied arrays (values and occurrences)
         std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
             MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                           occupancyMask.get(), maxHashCount_,
-                                                                           GB_ARRAY_MULTIPLIER);
+                                                                           occupancyMask.get(), keyBufferSize_,
+                                                                           valueBufferMultiplier_);
         cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
         cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 
         if (USE_VALUES)
         {
             GPUReconstruct::reconstructCol(values, outDataElementCount, mergedValues.get(),
-                                           occupancyMask.get(), maxHashCount_);
+                                           occupancyMask.get(), keyBufferSize_);
             GPUReconstruct::reconstructCol(valuesNullMask, outDataElementCount, valuesNullMask_,
-                                           occupancyMask.get(), maxHashCount_);
+                                           occupancyMask.get(), keyBufferSize_);
         }
         if (USE_KEY_OCCURRENCES)
         {
             GPUReconstruct::reconstructCol(occurrences, outDataElementCount, mergedOccurrences.get(),
-                                           occupancyMask.get(), maxHashCount_);
+                                           occupancyMask.get(), keyBufferSize_);
         }
     }
 
@@ -750,9 +756,9 @@ public:
         Context& context = Context::getInstance();
 
         // Compute key occupancy mask
-        cuda_ptr<int8_t> occupancyMask(maxHashCount_);
-        kernel_source_indices_to_mask<<<context.calcGridDim(maxHashCount_), context.getBlockDim()>>>(
-            occupancyMask.get(), sourceIndices_, maxHashCount_);
+        cuda_ptr<int8_t> occupancyMask(keyBufferSize_);
+        kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
+            occupancyMask.get(), sourceIndices_, keyBufferSize_);
 
         // Copy data types back from GPU
         std::unique_ptr<DataType[]> keyTypesHost = std::make_unique<DataType[]>(keysColCount_);
@@ -766,37 +772,37 @@ public:
             case DataType::COLUMN_INT:
             {
                 ReconstructSingleKeyColKeep<int32_t>(outKeysVector, outDataElementCount,
-                                                     occupancyMask.get(), keysBuffer_ + t, maxHashCount_);
+                                                     occupancyMask.get(), keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_LONG:
             {
                 ReconstructSingleKeyColKeep<int64_t>(outKeysVector, outDataElementCount,
-                                                     occupancyMask.get(), keysBuffer_ + t, maxHashCount_);
+                                                     occupancyMask.get(), keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_FLOAT:
             {
                 ReconstructSingleKeyColKeep<float>(outKeysVector, outDataElementCount,
-                                                   occupancyMask.get(), keysBuffer_ + t, maxHashCount_);
+                                                   occupancyMask.get(), keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_DOUBLE:
             {
                 ReconstructSingleKeyColKeep<double>(outKeysVector, outDataElementCount,
-                                                    occupancyMask.get(), keysBuffer_ + t, maxHashCount_);
+                                                    occupancyMask.get(), keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_STRING:
             {
                 ReconstructSingleKeyColKeep<std::string>(outKeysVector, outDataElementCount,
-                                                         occupancyMask.get(), keysBuffer_ + t, maxHashCount_);
+                                                         occupancyMask.get(), keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             case DataType::COLUMN_INT8_T:
             {
                 ReconstructSingleKeyColKeep<int8_t>(outKeysVector, outDataElementCount,
-                                                    occupancyMask.get(), keysBuffer_ + t, maxHashCount_);
+                                                    occupancyMask.get(), keysBuffer_ + t, keyBufferSize_);
                 break;
             }
             default:
@@ -812,7 +818,7 @@ public:
                 // Reconstruct wide null mask
                 int8_t* reconstructedNullMask;
                 GPUReconstruct::reconstructColKeep(&reconstructedNullMask, outDataElementCount,
-                                                   keyNullSingleBuffer, occupancyMask.get(), maxHashCount_);
+                                                   keyNullSingleBuffer, occupancyMask.get(), keyBufferSize_);
 
                 // Compress null mask
                 int8_t* compressedNullMask;
@@ -831,19 +837,19 @@ public:
             // Merge multipied arrays (values and occurrences)
             std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> mergedArrays =
                 MergeMultipliedArrays<AGG, V, USE_VALUES, USE_KEY_OCCURRENCES>(values_, keyOccurrenceCount_,
-                                                                               occupancyMask.get(), maxHashCount_,
-                                                                               GB_ARRAY_MULTIPLIER);
+                                                                               occupancyMask.get(), keyBufferSize_,
+                                                                               valueBufferMultiplier_);
             cuda_ptr<V> mergedValues = std::move(std::get<0>(mergedArrays));
             cuda_ptr<int64_t> mergedOccurrences = std::move(std::get<1>(mergedArrays));
 
             if (USE_VALUES)
             {
-                cuda_ptr<int8_t> valuesNullMaskCompressed((maxHashCount_ + sizeof(int32_t) * 8 - 1) /
+                cuda_ptr<int8_t> valuesNullMaskCompressed((keyBufferSize_ + sizeof(int32_t) * 8 - 1) /
                                                               (sizeof(int8_t) * 8),
                                                           0);
-                kernel_compress_null_mask<<<Context::getInstance().calcGridDim(maxHashCount_),
+                kernel_compress_null_mask<<<Context::getInstance().calcGridDim(keyBufferSize_),
                                             Context::getInstance().getBlockDim()>>>(
-                    reinterpret_cast<int32_t*>(valuesNullMaskCompressed.get()), valuesNullMask_, maxHashCount_);
+                    reinterpret_cast<int32_t*>(valuesNullMaskCompressed.get()), valuesNullMask_, keyBufferSize_);
 
                 // Reconstruct aggregated values
                 if (DIRECT_VALUES) // for min, max and sum: mergedValues.get() are direct results, just reconstruct them
@@ -857,19 +863,19 @@ public:
                     // reinterpret_cast is needed to solve compilation error
                     GPUReconstruct::reconstructColKeep(outValues, outDataElementCount,
                                                        reinterpret_cast<O*>(mergedValues.get()),
-                                                       occupancyMask.get(), maxHashCount_, outValuesNullMask,
+                                                       occupancyMask.get(), keyBufferSize_, outValuesNullMask,
                                                        valuesNullMaskCompressed.get());
                 }
                 else if (std::is_same<AGG, AggregationFunctions::avg>::value) // for avg: mergedValues.get() need to be divided by keyOccurrences_ and reconstructed
                 {
-                    cuda_ptr<O> outValuesGPU(maxHashCount_);
+                    cuda_ptr<O> outValuesGPU(keyBufferSize_);
                     // Divide by counts to get averages for buckets
                     try
                     {
                         GPUArithmetic::Arithmetic<ArithmeticOperations::div>(outValuesGPU.get(),
                                                                              mergedValues.get(),
                                                                              mergedOccurrences.get(),
-                                                                             maxHashCount_);
+                                                                             keyBufferSize_);
                     }
                     catch (const query_engine_error& err)
                     {
@@ -883,7 +889,7 @@ public:
                     }
                     // Reonstruct result with original occupancyMask
                     GPUReconstruct::reconstructColKeep(outValues, outDataElementCount, outValuesGPU.get(),
-                                                       occupancyMask.get(), maxHashCount_, outValuesNullMask,
+                                                       occupancyMask.get(), keyBufferSize_, outValuesNullMask,
                                                        valuesNullMaskCompressed.get());
                 }
             }
@@ -898,7 +904,7 @@ public:
                 // not reinterpreting anything here actually, outValues is int64_t** always in this else-branch
                 GPUReconstruct::reconstructColKeep(reinterpret_cast<int64_t**>(outValues),
                                                    outDataElementCount, mergedOccurrences.get(),
-                                                   occupancyMask.get(), maxHashCount_);
+                                                   occupancyMask.get(), keyBufferSize_);
                 if (outValuesNullMask)
                 {
                     if (*outDataElementCount == 0)
@@ -958,7 +964,7 @@ public:
             GPUMemory::copyDeviceToHost(keyTypesHost.data(), keyTypes_, keysColCount_);
 
             // Pre-allocate pointer in multiKeysAllHost for max possible size
-            size_t hashTablesSizesSum = maxHashCount_ * tables.size();
+            size_t hashTablesSizesSum = keyBufferSize_ * tables.size();
             for (int32_t t = 0; t < keysColCount_; t++)
             {
                 switch (keyTypesHost[t])
@@ -1215,7 +1221,7 @@ public:
                 // Merge results
                 if (DIRECT_VALUES) // for min, max and sum
                 {
-                    GPUGroupBy<AGG, O, std::vector<void*>, V> finalGroupBy(sumElementCount, keyTypesHost);
+                    GPUGroupBy<AGG, O, std::vector<void*>, V> finalGroupBy(sumElementCount, 1, keyTypesHost);
                     finalGroupBy.ProcessBlock(hostPointersToKeysAll, compressedKeysNullMasksAllPtr,
                                               valuesAllGPU.get(), sumElementCount,
                                               GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount)
@@ -1232,7 +1238,8 @@ public:
                     // Calculate sum of values
                     // Initialize new empty sumGroupBy table
                     std::vector<void*> keysToDiscard;
-                    GPUGroupBy<AggregationFunctions::sum, V, std::vector<void*>, V> sumGroupBy(sumElementCount, keyTypesHost);
+                    GPUGroupBy<AggregationFunctions::sum, V, std::vector<void*>, V> sumGroupBy(sumElementCount,
+                                                                                               1, keyTypesHost);
                     sumGroupBy.ProcessBlock(hostPointersToKeysAll, compressedKeysNullMasksAllPtr,
                                             valuesAllGPU.get(), sumElementCount,
                                             GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount)
@@ -1282,7 +1289,7 @@ public:
                                               "be int64_t");
                     }
                     GPUGroupBy<AggregationFunctions::sum, int64_t, std::vector<void*>, int64_t> finalGroupBy(
-                        sumElementCount, keyTypesHost);
+                        sumElementCount, 1, keyTypesHost);
                     finalGroupBy.ProcessBlock(hostPointersToKeysAll, compressedKeysNullMasksAllPtr,
                                               occurrencesAllGPU.get(), sumElementCount, nullptr);
                     // reinterpret_cast is needed to solve compilation error
@@ -1292,7 +1299,7 @@ public:
 
                 else // for group by withou aggregation function
                 {
-                    GPUGroupBy<AGG, O, std::vector<void*>, V> finalGroupBy(sumElementCount, keyTypesHost);
+                    GPUGroupBy<AGG, O, std::vector<void*>, V> finalGroupBy(sumElementCount, 1, keyTypesHost);
                     finalGroupBy.ProcessBlock(hostPointersToKeysAll, compressedKeysNullMasksAllPtr,
                                               nullptr, sumElementCount, nullptr);
                     finalGroupBy.GetResults(outKeysVector, outValues, outDataElementCount,

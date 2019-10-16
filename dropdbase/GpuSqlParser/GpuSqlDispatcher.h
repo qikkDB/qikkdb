@@ -106,6 +106,8 @@ private:
     bool isOverallLastBlock_;
     bool noLoad_;
     bool aborted_;
+    bool groupByHashTableFull_;
+    int32_t hashTableMultiplier_;
     int64_t loadNecessary_;
     std::vector<std::pair<std::string, DataType>> groupByColumns_;
     std::unordered_set<std::string> aggregatedRegisters_;

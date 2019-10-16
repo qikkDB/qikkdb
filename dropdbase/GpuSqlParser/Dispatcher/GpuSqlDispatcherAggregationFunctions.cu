@@ -368,17 +368,46 @@ int32_t GpuSqlDispatcher::GroupByDone()
     if (!containsAggFunction)
     {
         CudaLogBoost::getInstance(CudaLogBoost::debug)
-            << "Group By without aggregation function: " << typeid(T).name() << '\n';
+            << "Group By without aggregation function: " << typeid(T).name()
+            << " for block: " << blockIndex_ << '\n';
 
         if (groupByTables_[dispatcherThreadId_] == nullptr)
         {
             groupByTables_[dispatcherThreadId_] =
                 GpuSqlDispatcher::GroupByHelper<AggregationFunctions::none, int32_t, T, int32_t>::CreateInstance(
-                    Configuration::GetInstance().GetGroupByBuckets(), groupByColumns_);
+                    Configuration::GetInstance().GetGroupByBuckets(), hashTableMultiplier_, groupByColumns_);
         }
 
-        GpuSqlDispatcher::GroupByHelper<AggregationFunctions::none, int32_t, T, int32_t>::ProcessBlock(
-            groupByColumns_, PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0}, *this);
+        try
+        {
+            GpuSqlDispatcher::GroupByHelper<AggregationFunctions::none, int32_t, T, int32_t>::ProcessBlock(
+                groupByColumns_, PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0}, *this);
+        }
+        catch (query_engine_error& err)
+        {
+            if (err.GetQueryEngineError() != QueryEngineErrorType::GPU_HASH_TABLE_FULL)
+            {
+                throw;
+            }
+            instructionPointer_ = jmpInstructionPosition_;
+            groupByHashTableFull_ = true;
+            groupByTables_[dispatcherThreadId_].release();
+            groupByTables_[dispatcherThreadId_] = nullptr;
+            // if multiplier is not too big
+            if (hashTableMultiplier_ <= (INT_MAX / Configuration::GetInstance().GetGroupByBuckets()) / GB_MULTIPLIER_STEP)
+            {
+                hashTableMultiplier_ *= GB_MULTIPLIER_STEP;
+                CudaLogBoost::getInstance(CudaLogBoost::debug)
+                    << "Increased hash table size to "
+                    << (Configuration::GetInstance().GetGroupByBuckets() * hashTableMultiplier_)
+                    << " and restart GROUP BY in thread " << dispatcherThreadId_ << '\n';
+            }
+            else
+            {
+                throw;
+            }
+            return 0;
+        }
 
         if (isLastBlockOfDevice_)
         {

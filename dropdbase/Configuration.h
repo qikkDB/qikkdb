@@ -33,7 +33,7 @@ private:
     std::string databaseDir_ = "../databases/";
     int blockSize_ = 1024;
     int blockCount_ = 1024;
-    int groupByBuckets_ = 65536;
+    int groupByBuckets_ = 262144;
     std::string listenIP_ = "127.0.0.1";
     short listenPort_ = 12345;
     int timeout_ = 5000;

@@ -202,7 +202,7 @@ void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector,
 
 void AllocKeysBuffer(void*** keysBuffer,
                      int8_t*** keysNullBuffer,
-                     std::vector<DataType> keyTypes,
+                     std::vector<DataType>& keyTypes,
                      int32_t rowCount,
                      std::vector<void*>* pointers,
                      std::vector<int8_t*>* pointersNullMask)

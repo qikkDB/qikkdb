@@ -98,10 +98,12 @@ template <typename OP, typename O, typename K, typename V>
 class GpuSqlDispatcher::GroupByHelper
 {
 public:
-    static std::unique_ptr<IGroupBy>
-    CreateInstance(int32_t groupByBuckets, const std::vector<std::pair<std::string, DataType>>& groupByColumns)
+    static std::unique_ptr<IGroupBy> CreateInstance(int32_t groupByBuckets,
+                                                    int32_t hashTableMultiplier,
+                                                    const std::vector<std::pair<std::string, DataType>>& groupByColumns)
     {
-        return std::make_unique<GPUGroupBy<OP, O, K, V>>(Configuration::GetInstance().GetGroupByBuckets());
+        return std::make_unique<GPUGroupBy<OP, O, K, V>>(Configuration::GetInstance().GetGroupByBuckets(),
+                                                         hashTableMultiplier);
     }
 
     static void ProcessBlock(const std::vector<std::pair<std::string, DataType>>& groupByColumns,
@@ -151,11 +153,12 @@ template <typename OP, typename O, typename V>
 class GpuSqlDispatcher::GroupByHelper<OP, O, std::string, V>
 {
 public:
-    static std::unique_ptr<IGroupBy>
-    CreateInstance(int32_t groupByBuckets, const std::vector<std::pair<std::string, DataType>>& groupByColumns)
+    static std::unique_ptr<IGroupBy> CreateInstance(int32_t groupByBuckets,
+                                                    int32_t hashTableMultiplier,
+                                                    const std::vector<std::pair<std::string, DataType>>& groupByColumns)
     {
-        return std::make_unique<GPUGroupBy<OP, O, std::string, V>>(
-            Configuration::GetInstance().GetGroupByBuckets());
+        return std::make_unique<GPUGroupBy<OP, O, std::string, V>>(Configuration::GetInstance().GetGroupByBuckets(),
+                                                                   hashTableMultiplier);
     }
 
     static void ProcessBlock(const std::vector<std::pair<std::string, DataType>>& groupByColumns,
@@ -202,8 +205,9 @@ template <typename OP, typename O, typename V>
 class GpuSqlDispatcher::GroupByHelper<OP, O, std::vector<void*>, V>
 {
 public:
-    static std::unique_ptr<IGroupBy>
-    CreateInstance(int32_t groupByBuckets, const std::vector<std::pair<std::string, DataType>>& groupByColumns)
+    static std::unique_ptr<IGroupBy> CreateInstance(int32_t groupByBuckets,
+                                                    int32_t hashTableMultiplier,
+                                                    const std::vector<std::pair<std::string, DataType>>& groupByColumns)
     {
         std::vector<DataType> keyDataTypes;
 
@@ -213,7 +217,7 @@ public:
         }
 
         return std::make_unique<GPUGroupBy<OP, O, std::vector<void*>, V>>(
-            Configuration::GetInstance().GetGroupByBuckets(), keyDataTypes);
+            Configuration::GetInstance().GetGroupByBuckets(), hashTableMultiplier, keyDataTypes);
     }
 
     static void ProcessBlock(const std::vector<std::pair<std::string, DataType>>& groupByColumns,
@@ -410,17 +414,44 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
                       reconstructOutNullMask);
     }
 
-    // TODO void param
     if (groupByTables_[dispatcherThreadId_] == nullptr)
     {
         groupByTables_[dispatcherThreadId_] = GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::CreateInstance(
-            Configuration::GetInstance().GetGroupByBuckets(), groupByColumns_);
+            Configuration::GetInstance().GetGroupByBuckets(), hashTableMultiplier_, groupByColumns_);
     }
 
     if (aggregatedRegisters_.find(reg) == aggregatedRegisters_.end())
     {
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "Processed block in AggGroupBy." << '\n';
-        GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::ProcessBlock(groupByColumns_, column, *this);
+        try
+        {
+            GpuSqlDispatcher::GroupByHelper<OP, O, K, V>::ProcessBlock(groupByColumns_, column, *this);
+        }
+        catch (query_engine_error& err)
+        {
+            if (err.GetQueryEngineError() != QueryEngineErrorType::GPU_HASH_TABLE_FULL)
+            {
+                throw;
+            }
+            instructionPointer_ = jmpInstructionPosition_;
+            groupByHashTableFull_ = true;
+            groupByTables_[dispatcherThreadId_].release();
+            groupByTables_[dispatcherThreadId_] = nullptr;
+			// if multiplier is not too big
+            if (hashTableMultiplier_ <= (INT_MAX / Configuration::GetInstance().GetGroupByBuckets()) / GB_MULTIPLIER_STEP)
+            {
+                hashTableMultiplier_ *= GB_MULTIPLIER_STEP;
+                CudaLogBoost::getInstance(CudaLogBoost::debug)
+                    << "Increased hash table size to "
+                    << (Configuration::GetInstance().GetGroupByBuckets() * hashTableMultiplier_)
+                    << " and restart GROUP BY in thread " << dispatcherThreadId_ << '\n';
+            }
+            else
+            {
+                throw;
+            }
+            return 0;
+        }
 
         // If last block was processed, reconstruct group by table
         if (isLastBlockOfDevice_)
@@ -431,7 +462,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
                 std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
                 GpuSqlDispatcher::groupByCV_.wait(lock,
                                                   [] { return GpuSqlDispatcher::IsGroupByDone(); });
-                if(GpuSqlDispatcher::thrownException_)
+                if (GpuSqlDispatcher::thrownException_)
                 {
                     CudaLogBoost::getInstance(CudaLogBoost::warning)
                         << "Skip reconstruction group by in thread: " << dispatcherThreadId_ << '\n';

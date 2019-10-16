@@ -18,7 +18,7 @@ void TestGroupByString(std::vector<std::vector<std::string>> keys,
                        std::unordered_map<std::string, int32_t> correctPairs)
 {
     constexpr int32_t hashTableSize = 8;
-    GPUGroupBy<AGG, int32_t, std::string, int32_t> groupBy(hashTableSize);
+    GPUGroupBy<AGG, int32_t, std::string, int32_t> groupBy(hashTableSize, 1);
     for (int32_t b = 0; b < keys.size(); b++) // per "block"
     {
         // std::cout << "BLOCK " << b << ":" << std::endl;
@@ -109,7 +109,7 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
                          std::vector<int32_t> correctValues)
 {
     constexpr int32_t hashTableSize = 8;
-    GPUGroupBy<AGG, int32_t, std::vector<void*>, int32_t> groupBy(hashTableSize, keyTypes);
+    GPUGroupBy<AGG, int32_t, std::vector<void*>, int32_t> groupBy(hashTableSize, 1, keyTypes);
     int32_t keysColCount = keyTypes.size();
     for (int32_t b = 0; b < keys.size(); b++) // per "block"
     {
@@ -341,7 +341,7 @@ void TestGroupByMultiKeyIntString(int32_t totalElementCount)
     // std::vector<void*> correctKeys, std::vector<int32_t> correctValues
     std::vector<DataType> keyTypes = {DataType::COLUMN_INT, DataType::COLUMN_STRING};
     constexpr int32_t hashTableSize = 65536;
-    GPUGroupBy<AGG, float, std::vector<void*>, float> groupBy(hashTableSize, keyTypes);
+    GPUGroupBy<AGG, float, std::vector<void*>, float> groupBy(hashTableSize, 1, keyTypes);
     int32_t keysColCount = keyTypes.size();
     for (int32_t b = 0; b < blocks; b++) // per "block"
     {
@@ -426,7 +426,7 @@ void TestGroupByMultiKeyIntString(int32_t totalElementCount)
 void TestGroupByNoAgg(std::vector<std::vector<int32_t>> inKeys)
 {
     // Create gb object
-    GPUGroupBy<AggregationFunctions::none, int32_t, int32_t, int32_t> groupByObject(256);
+    GPUGroupBy<AggregationFunctions::none, int32_t, int32_t, int32_t> groupByObject(256, 1);
     const size_t blockCount = inKeys.size();
     std::set<int32_t> correctOutKeys;
     // Process all blocks

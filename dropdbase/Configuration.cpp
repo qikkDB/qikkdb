@@ -48,4 +48,12 @@ void Configuration::LoadConfigurationFile()
     this->SetupConfigurationValue("Timeout", this->timeout_);
     this->SetupConfigurationValue("GPUCachePercent", this->GPUCachePercent_);
     this->SetupConfigurationValue("DBSaveInterval", this->DBSaveInterval_);
+
+    // Check group by buckets and warn user if not optimal
+    if ((groupByBuckets_ & (groupByBuckets_ - 1)) != 0)
+    {
+        CudaLogBoost::getInstance(CudaLogBoost::warning)
+            << "GroupByBuckets is " << groupByBuckets_
+            << ". For more speed change it to some power of 2 (e.g. 32768) in config." << '\n';
+    }
 }
