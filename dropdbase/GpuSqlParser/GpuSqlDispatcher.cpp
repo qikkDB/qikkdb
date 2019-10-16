@@ -372,49 +372,49 @@ int32_t GpuSqlDispatcher::GetUnaryDispatchTableIndex(DataType type)
 
 void GpuSqlDispatcher::AddGreaterFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(greaterFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(greaterFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 
 void GpuSqlDispatcher::AddLessFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(lessFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(lessFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 
 void GpuSqlDispatcher::AddGreaterEqualFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(greaterEqualFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(greaterEqualFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 
 void GpuSqlDispatcher::AddLessEqualFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(lessEqualFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(lessEqualFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 
 void GpuSqlDispatcher::AddEqualFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(equalFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(equalFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 
 void GpuSqlDispatcher::AddNotEqualFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(notEqualFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(notEqualFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 
 void GpuSqlDispatcher::AddLogicalAndFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(logicalAndFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(logicalAndFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 
 void GpuSqlDispatcher::AddLogicalOrFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(logicalOrFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(logicalOrFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 
@@ -473,7 +473,7 @@ void GpuSqlDispatcher::AddBitwiseRightShiftFunction(DataType left, DataType righ
 
 void GpuSqlDispatcher::AddPointFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(pointFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(pointFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 void GpuSqlDispatcher::AddLogarithmFunction(DataType number, DataType base)
@@ -493,17 +493,17 @@ void GpuSqlDispatcher::AddRoundDecimalFunction(DataType y, DataType x)
 
 void GpuSqlDispatcher::AddConcatFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(concatFunctions[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(concatFunctions[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 void GpuSqlDispatcher::AddLeftFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(leftFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(leftFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 void GpuSqlDispatcher::AddRightFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(rightFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(rightFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 void GpuSqlDispatcher::AddPowerFunction(DataType base, DataType exponent)
@@ -518,27 +518,27 @@ void GpuSqlDispatcher::AddRootFunction(DataType base, DataType exponent)
 
 void GpuSqlDispatcher::AddContainsFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(containsFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(containsFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 void GpuSqlDispatcher::AddIntersectFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(intersectFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(intersectFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 void GpuSqlDispatcher::AddUnionFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(unionFunctions_[DataType::DATA_TYPE_SIZE * left + right]);
+    dispatcherFunctions_.push_back(unionFunctions_[GetBinaryDispatchTableIndex(left, right)]);
 }
 
 void GpuSqlDispatcher::AddCastToIntFunction(DataType operand)
 {
-    dispatcherFunctions_.push_back(castToIntFunctions_[operand]);
+    dispatcherFunctions_.push_back(castToIntFunctions_[GetUnaryDispatchTableIndex(operand)]);
 }
 
 void GpuSqlDispatcher::AddCastToLongFunction(DataType operand)
 {
-    dispatcherFunctions_.push_back(castToLongFunctions_[operand]);
+    dispatcherFunctions_.push_back(castToLongFunctions_[GetUnaryDispatchTableIndex(operand)]);
 }
 
 void GpuSqlDispatcher::AddCastToDateFunction(DataType operand)
@@ -548,37 +548,37 @@ void GpuSqlDispatcher::AddCastToDateFunction(DataType operand)
 
 void GpuSqlDispatcher::AddCastToFloatFunction(DataType operand)
 {
-    dispatcherFunctions_.push_back(castToFloatFunctions_[operand]);
+    dispatcherFunctions_.push_back(castToFloatFunctions_[GetUnaryDispatchTableIndex(operand)]);
 }
 
 void GpuSqlDispatcher::AddCastToDoubleFunction(DataType operand)
 {
-    dispatcherFunctions_.push_back(castToDoubleFunctions_[operand]);
+    dispatcherFunctions_.push_back(castToDoubleFunctions_[GetUnaryDispatchTableIndex(operand)]);
 }
 
 void GpuSqlDispatcher::AddCastToStringFunction(DataType operand)
 {
-    dispatcherFunctions_.push_back(castToStringFunctions_[operand]);
+    dispatcherFunctions_.push_back(castToStringFunctions_[GetUnaryDispatchTableIndex(operand)]);
 }
 
 void GpuSqlDispatcher::AddCastToPointFunction(DataType operand)
 {
-    dispatcherFunctions_.push_back(castToPointFunctions_[operand]);
+    dispatcherFunctions_.push_back(castToPointFunctions_[GetUnaryDispatchTableIndex(operand)]);
 }
 
 void GpuSqlDispatcher::AddCastToPolygonFunction(DataType operand)
 {
-    dispatcherFunctions_.push_back(castToPolygonFunctions_[operand]);
+    dispatcherFunctions_.push_back(castToPolygonFunctions_[GetUnaryDispatchTableIndex(operand)]);
 }
 
 void GpuSqlDispatcher::AddCastToInt8TFunction(DataType operand)
 {
-    dispatcherFunctions_.push_back(castToInt8TFunctions_[operand]);
+    dispatcherFunctions_.push_back(castToInt8TFunctions_[GetUnaryDispatchTableIndex(operand)]);
 }
 
 void GpuSqlDispatcher::AddLogicalNotFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(logicalNotFunctions_[type]);
+    dispatcherFunctions_.push_back(logicalNotFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddIsNullFunction()
@@ -603,32 +603,32 @@ void GpuSqlDispatcher::AddDateToStringFunction(DataType type)
 
 void GpuSqlDispatcher::AddYearFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(yearFunctions_[type]);
+    dispatcherFunctions_.push_back(yearFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddMonthFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(monthFunctions_[type]);
+    dispatcherFunctions_.push_back(monthFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddDayFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(dayFunctions_[type]);
+    dispatcherFunctions_.push_back(dayFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddHourFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(hourFunctions_[type]);
+    dispatcherFunctions_.push_back(hourFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddMinuteFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(minuteFunctions_[type]);
+    dispatcherFunctions_.push_back(minuteFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddSecondFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(secondFunctions_[type]);
+    dispatcherFunctions_.push_back(secondFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddAbsoluteFunction(DataType type)
@@ -718,32 +718,32 @@ void GpuSqlDispatcher::AddCeilFunction(DataType type)
 
 void GpuSqlDispatcher::AddLtrimFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(ltrimFunctions_[type]);
+    dispatcherFunctions_.push_back(ltrimFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddRtrimFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(rtrimFunctions_[type]);
+    dispatcherFunctions_.push_back(rtrimFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddLowerFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(lowerFunctions_[type]);
+    dispatcherFunctions_.push_back(lowerFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddUpperFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(upperFunctions_[type]);
+    dispatcherFunctions_.push_back(upperFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddReverseFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(reverseFunctions_[type]);
+    dispatcherFunctions_.push_back(reverseFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddLenFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(lenFunctions_[type]);
+    dispatcherFunctions_.push_back(lenFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddMinFunction(DataType key, DataType value, GroupByType groupByType)
@@ -752,13 +752,13 @@ void GpuSqlDispatcher::AddMinFunction(DataType key, DataType value, GroupByType 
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = minAggregationFunctions_[DataType::DATA_TYPE_SIZE * key + value];
+        fun = minAggregationFunctions_[GetBinaryDispatchTableIndex(key, value)];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
-        fun = minGroupByFunctions_[DataType::DATA_TYPE_SIZE * key + value];
+        fun = minGroupByFunctions_[GetBinaryDispatchTableIndex(key, value)];
         break;
     case GroupByType::MULTI_KEY_GROUP_BY:
-        fun = minGroupByMultiKeyFunctions_[value];
+        fun = minGroupByMultiKeyFunctions_[GetUnaryDispatchTableIndex(value)];
         break;
     default:
         break;
@@ -772,13 +772,13 @@ void GpuSqlDispatcher::AddMaxFunction(DataType key, DataType value, GroupByType 
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = maxAggregationFunctions_[DataType::DATA_TYPE_SIZE * key + value];
+        fun = maxAggregationFunctions_[GetBinaryDispatchTableIndex(key, value)];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
-        fun = maxGroupByFunctions_[DataType::DATA_TYPE_SIZE * key + value];
+        fun = maxGroupByFunctions_[GetBinaryDispatchTableIndex(key, value)];
         break;
     case GroupByType::MULTI_KEY_GROUP_BY:
-        fun = maxGroupByMultiKeyFunctions_[value];
+        fun = maxGroupByMultiKeyFunctions_[GetUnaryDispatchTableIndex(value)];
         break;
     default:
         break;
@@ -792,13 +792,13 @@ void GpuSqlDispatcher::AddSumFunction(DataType key, DataType value, GroupByType 
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = sumAggregationFunctions_[DataType::DATA_TYPE_SIZE * key + value];
+        fun = sumAggregationFunctions_[GetBinaryDispatchTableIndex(key, value)];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
-        fun = sumGroupByFunctions_[DataType::DATA_TYPE_SIZE * key + value];
+        fun = sumGroupByFunctions_[GetBinaryDispatchTableIndex(key, value)];
         break;
     case GroupByType::MULTI_KEY_GROUP_BY:
-        fun = sumGroupByMultiKeyFunctions_[value];
+        fun = sumGroupByMultiKeyFunctions_[GetUnaryDispatchTableIndex(value)];
         break;
     default:
         break;
@@ -812,13 +812,13 @@ void GpuSqlDispatcher::AddCountFunction(DataType key, DataType value, GroupByTyp
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = countAggregationFunctions_[DataType::DATA_TYPE_SIZE * key + value];
+        fun = countAggregationFunctions_[GetBinaryDispatchTableIndex(key, value)];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
-        fun = countGroupByFunctions_[DataType::DATA_TYPE_SIZE * key + value];
+        fun = countGroupByFunctions_[GetBinaryDispatchTableIndex(key, value)];
         break;
     case GroupByType::MULTI_KEY_GROUP_BY:
-        fun = countGroupByMultiKeyFunctions_[value];
+        fun = countGroupByMultiKeyFunctions_[GetUnaryDispatchTableIndex(value)];
         break;
     default:
         break;
@@ -832,13 +832,13 @@ void GpuSqlDispatcher::AddAvgFunction(DataType key, DataType value, GroupByType 
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = avgAggregationFunctions_[DataType::DATA_TYPE_SIZE * key + value];
+        fun = avgAggregationFunctions_[GetBinaryDispatchTableIndex(key, value)];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
-        fun = avgGroupByFunctions_[DataType::DATA_TYPE_SIZE * key + value];
+        fun = avgGroupByFunctions_[GetBinaryDispatchTableIndex(key, value)];
         break;
     case GroupByType::MULTI_KEY_GROUP_BY:
-        fun = avgGroupByMultiKeyFunctions_[value];
+        fun = avgGroupByMultiKeyFunctions_[GetUnaryDispatchTableIndex(value)];
         break;
     default:
         break;
@@ -848,7 +848,7 @@ void GpuSqlDispatcher::AddAvgFunction(DataType key, DataType value, GroupByType 
 
 void GpuSqlDispatcher::AddGroupByFunction(DataType type)
 {
-    dispatcherFunctions_.push_back(groupByFunctions_[type]);
+    dispatcherFunctions_.push_back(groupByFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
 void GpuSqlDispatcher::AddGroupByBeginFunction()

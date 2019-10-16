@@ -6,42 +6,30 @@
 
 #include "../../DataType.h"
 #include "../../VariantArray.h"
+#include "DispatcherMacros.h"
 
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::orderByFunctions_ = {
-    &GpuSqlDispatcher::OrderByConst<int32_t>,
-    &GpuSqlDispatcher::OrderByConst<int64_t>,
-    &GpuSqlDispatcher::OrderByConst<float>,
-    &GpuSqlDispatcher::OrderByConst<double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<std::string>,
-    &GpuSqlDispatcher::OrderByConst<int8_t>,
-    &GpuSqlDispatcher::OrderByCol<int32_t>,
-    &GpuSqlDispatcher::OrderByCol<int64_t>,
-    &GpuSqlDispatcher::OrderByCol<float>,
-    &GpuSqlDispatcher::OrderByCol<double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<std::string>,
-    &GpuSqlDispatcher::OrderByCol<int8_t>};
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::orderByFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderBy, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderBy, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderBy, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderBy, double)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(std::string)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderBy, int8_t)
+END_DISPATCH_TABLE
 
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::orderByReconstructFunctions_ = {
-    &GpuSqlDispatcher::OrderByReconstructConst<int32_t>,
-    &GpuSqlDispatcher::OrderByReconstructConst<int64_t>,
-    &GpuSqlDispatcher::OrderByReconstructConst<float>,
-    &GpuSqlDispatcher::OrderByReconstructConst<double>,
-    &GpuSqlDispatcher::OrderByReconstructConst<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::OrderByReconstructConst<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::OrderByReconstructConst<std::string>,
-    &GpuSqlDispatcher::OrderByReconstructConst<int8_t>,
-    &GpuSqlDispatcher::OrderByReconstructCol<int32_t>,
-    &GpuSqlDispatcher::OrderByReconstructCol<int64_t>,
-    &GpuSqlDispatcher::OrderByReconstructCol<float>,
-    &GpuSqlDispatcher::OrderByReconstructCol<double>,
-    &GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::OrderByReconstructCol<std::string>,
-    &GpuSqlDispatcher::OrderByReconstructCol<int8_t>};
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::orderByReconstructFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, double)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, std::string)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, int8_t)
+END_DISPATCH_TABLE
 
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::freeOrderByTableFunction_ = &GpuSqlDispatcher::FreeOrderByTable;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::orderByReconstructRetAllBlocksFunction_ =

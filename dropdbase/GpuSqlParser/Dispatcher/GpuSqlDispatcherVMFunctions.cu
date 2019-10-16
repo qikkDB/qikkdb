@@ -3,24 +3,19 @@
 #include "../ParserExceptions.h"
 #include "../../PointFactory.h"
 #include "../../CudaLogBoost.h"
+#include "DispatcherMacros.h"
 
-std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::retFunctions_ = {
-    &GpuSqlDispatcher::RetConst<int32_t>,
-    &GpuSqlDispatcher::RetConst<int64_t>,
-    &GpuSqlDispatcher::RetConst<float>,
-    &GpuSqlDispatcher::RetConst<double>,
-    &GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::RetConst<std::string>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<int8_t>,
-    &GpuSqlDispatcher::RetCol<int32_t>,
-    &GpuSqlDispatcher::RetCol<int64_t>,
-    &GpuSqlDispatcher::RetCol<float>,
-    &GpuSqlDispatcher::RetCol<double>,
-    &GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>,
-    &GpuSqlDispatcher::RetCol<std::string>,
-    &GpuSqlDispatcher::RetCol<int8_t>};
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::retFunctions_)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, int32_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, int64_t)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, float)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, double)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, std::string)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, int8_t)
+END_DISPATCH_TABLE
+
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::lockRegisterFunction_ = &GpuSqlDispatcher::LockRegister;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::getLoadSizeFunction_ = &GpuSqlDispatcher::GetLoadSize;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::filFunction_ = &GpuSqlDispatcher::Fil;
@@ -980,7 +975,7 @@ int32_t GpuSqlDispatcher::GetLoadSize()
         if (blockIndex_ > offsetBlockIdx && blockIndex_ < offsetLimitBlockIdx)
         {
             loadSize_ = GetBlockSize();
-		}
+        }
 
         CudaLogBoost::getInstance(CudaLogBoost::info) << "OffsetBlockIdx: " << offsetBlockIdx << '\n';
         CudaLogBoost::getInstance(CudaLogBoost::info) << "OffsetLimitBlockIdx: " << offsetLimitBlockIdx << '\n';
