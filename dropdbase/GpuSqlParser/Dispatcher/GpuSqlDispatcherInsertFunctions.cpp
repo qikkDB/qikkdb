@@ -14,6 +14,7 @@ DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, float)
 DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, double)
 DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, ColmnarDB::Types::Point)
 DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, std::string)
 DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, int8_t)
 END_DISPATCH_TABLE
 

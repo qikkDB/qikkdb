@@ -35,8 +35,7 @@ DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, std::string)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, int8_t)
 END_DISPATCH_TABLE
 
-BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::countAggregationFunctions_)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::count, int32_t)
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::countAggregationFunctions_)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, int32_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, int64_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, float)
@@ -45,12 +44,6 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::c
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, ColmnarDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::count, std::string)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::count, int8_t)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::count, float)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::count, double)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::count, ColmnarDB::Types::Point)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::count, ColmnarDB::Types::ComplexPolygon)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::count, std::string)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::count, int8_t)
 END_DISPATCH_TABLE
 
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::avgAggregationFunctions_)

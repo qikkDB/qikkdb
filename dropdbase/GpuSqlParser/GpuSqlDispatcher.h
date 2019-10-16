@@ -203,7 +203,7 @@ private:
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> minAggregationFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> maxAggregationFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> sumAggregationFunctions_;
-    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> countAggregationFunctions_;
+    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> countAggregationFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> avgAggregationFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> minGroupByFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> maxGroupByFunctions_;
@@ -764,7 +764,7 @@ public:
 
     int32_t AlterTable();
 
-	int32_t AlterDatabase();
+    int32_t AlterDatabase();
 
     int32_t CreateIndex();
 

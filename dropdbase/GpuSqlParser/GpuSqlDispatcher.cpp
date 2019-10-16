@@ -812,7 +812,7 @@ void GpuSqlDispatcher::AddCountFunction(DataType key, DataType value, GroupByTyp
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = countAggregationFunctions_[GetBinaryDispatchTableIndex(key, value)];
+        fun = countAggregationFunctions_[GetUnaryDispatchTableIndex(value)];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
         fun = countGroupByFunctions_[GetBinaryDispatchTableIndex(key, value)];
