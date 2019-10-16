@@ -325,6 +325,11 @@ public:
         deviceCountLimit_ = 0;
     }
 
+    static void ResetErrorState()
+    {
+        thrownException_ = false;
+    }
+
     template <typename T>
     static std::pair<bool, T> AggregateOnCPU(std::string& operation, T number1, T number2)
     {

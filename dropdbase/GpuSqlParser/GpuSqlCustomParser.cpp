@@ -40,6 +40,9 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 {
     Context& context = Context::getInstance();
     dispatchers_.clear();
+    // JV: HACK HACK HACK
+    // Unified dispatcher would make this nicer
+    GpuSqlDispatcher::ResetErrorState();
     wasAborted_ = false;
     antlr4::ANTLRInputStream sqlInputStream(query_);
     GpuSqlLexer sqlLexer(&sqlInputStream);
