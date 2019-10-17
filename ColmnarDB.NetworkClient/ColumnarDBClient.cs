@@ -964,21 +964,18 @@ namespace ColmnarDB.NetworkClient
                                     byte* lenBytes = (byte*)&strSize;
                                     for (int k = 0; k < sizeof(int); k++)
                                     {
-                                        dataBuffer[i + fragmentSize - 4 + k] = *lenBytes;
+                                        *lenBytes = dataBuffer[i + fragmentSize - 4 + k];
                                         lenBytes++;
+                                    }
+                                    if (fragmentSize + strSize > BULK_IMPORT_FRAGMENT_SIZE)
+                                    {
+                                        fragmentSize -= 4;
+                                        break;
                                     }
 
                                 }
-                                if (fragmentSize + strSize > BULK_IMPORT_FRAGMENT_SIZE)
-                                {
-                                    fragmentSize -= 4;
-                                    break;
-                                }
-                                else
-                                {
-                                    elemCount++;
-                                    fragmentSize += strSize;
-                                }
+                                elemCount++;
+                                fragmentSize += strSize;
                             }
                         }
                         else
