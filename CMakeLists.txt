@@ -178,6 +178,11 @@ include_directories(GpuSqlParser)
 
 add_subdirectory(dropdbase)
 add_subdirectory(dropdbase_test)
+add_custom_target(make-databases-dir ALL COMMAND ${CMAKE_COMMAND} -E make_directory  "${CMAKE_CURRENT_BINARY_DIR}/databases")
+add_custom_target(copy-default-config ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_SOURCE_DIR}/configuration
+                ${CMAKE_CURRENT_BINARY_DIR}/configuration)
 
 enable_testing()
 add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
