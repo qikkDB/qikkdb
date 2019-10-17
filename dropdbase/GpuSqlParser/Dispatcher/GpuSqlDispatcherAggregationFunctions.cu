@@ -399,8 +399,7 @@ int32_t GpuSqlDispatcher::GroupByDone()
                 hashTableMultiplier_ *= GB_MULTIPLIER_STEP;
                 CudaLogBoost::getInstance(CudaLogBoost::debug)
                     << "Increased hash table size to "
-                    << (Configuration::GetInstance().GetGroupByBuckets() * hashTableMultiplier_)
-                    << " and restart GROUP BY in thread " << dispatcherThreadId_ << '\n';
+                    << (Configuration::GetInstance().GetGroupByBuckets() * hashTableMultiplier_) << '\n';
             }
             else
             {

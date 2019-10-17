@@ -1212,10 +1212,8 @@ int32_t GpuSqlDispatcher::Jmp()
     if (groupByHashTableFull_)
     {
         groupByHashTableFull_ = false;
-        blockIndex_ = dispatcherThreadId_;
+        ResetBlocksProcessing();
         context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex_);
-        instructionPointer_ = 0;
-        CleanUpGpuPointers();
         return 0;
     }
 

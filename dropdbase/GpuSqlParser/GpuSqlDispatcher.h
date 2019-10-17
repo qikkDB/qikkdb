@@ -287,6 +287,27 @@ private:
     int32_t GetBinaryDispatchTableIndex(DataType left, DataType right);
     int32_t GetUnaryDispatchTableIndex(DataType type);
 
+    /// If GROUP BY Hash table is filled, restart of the thread
+    /// blocks processing is needed - reset flags and start
+    /// from thread's first block again
+    void ResetBlocksProcessing()
+    {
+        CudaLogBoost::getInstance(CudaLogBoost::info)
+            << "Restart blocks processing in thread " << dispatcherThreadId_ << '\n';
+        CleanUpGpuPointers();
+        blockIndex_ = dispatcherThreadId_;
+        instructionPointer_ = 0;
+        insideAggregation_ = false;
+        insideGroupBy_ = false;
+        usingGroupBy_ = false;
+        usingOrderBy_ = false;
+        usingJoin_ = false;
+        isLastBlockOfDevice_ = false;
+        isOverallLastBlock_ = false;
+        noLoad_ = true;
+        aborted_ = false;
+    }
+
 public:
     static std::mutex groupByMutex_;
     static std::mutex orderByMutex_;
