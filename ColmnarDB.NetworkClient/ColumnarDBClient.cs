@@ -955,7 +955,7 @@ namespace ColmnarDB.NetworkClient
                         if (columnType == DataType.ColumnString || columnType == DataType.ColumnPolygon)
                         {
                             fragmentSize = 0;
-                            while (fragmentSize < BULK_IMPORT_FRAGMENT_SIZE)
+                            while (fragmentSize < BULK_IMPORT_FRAGMENT_SIZE && i + fragmentSize < size)
                             {
                                 fragmentSize += 4;
                                 int strSize = 0;
