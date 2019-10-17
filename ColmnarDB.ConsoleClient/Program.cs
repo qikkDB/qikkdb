@@ -70,6 +70,12 @@ namespace ColmnarDB.ConsoleClient
             while (!exit)
             {
                 string wholeCommand = ReadLine.Read("> ");
+
+                if (wholeCommand == "")
+                {
+                    continue;
+                }
+
                 string[] splitCommand = wholeCommand.Split(" ");
 
                 string command = splitCommand[0].ToLower();
