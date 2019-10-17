@@ -252,7 +252,12 @@ namespace ColmnarDB.ConsoleClient
         private void CreateTable(string databaseName, string tableName, Dictionary<string, Type> types, int blockSize = 0)
         {
             // build query for creating table
-            string query = "CREATE TABLE [" + tableName + "] (";
+            string query = "CREATE TABLE ";
+            if (blockSize > 0)
+            {
+                query += "" + blockSize.ToString() + " ";
+            }
+            query += "[" + tableName + "] (";
             int i = 0;
             foreach (var typePair in types)
             {
@@ -262,13 +267,7 @@ namespace ColmnarDB.ConsoleClient
                     query += ", ";
                 }
             }
-            query += ")";
-            if (blockSize > 0)
-            {
-                query += " " + blockSize.ToString();
-            }
-            query += ";";
-
+            query += ");";            
             
             // check if database exists
             try
