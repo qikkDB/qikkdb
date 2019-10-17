@@ -290,7 +290,15 @@ namespace ColmnarDB.ConsoleClient
 
                 try
                 {
-                    Point point = new Point(value);
+                    // Short string are definitely not points
+                    if (value.Length < 10 || !value.Contains("POINT"))
+                    {
+                        pointError = true;
+                    }
+                    else
+                    {
+                        Point point = new Point(value);
+                    }                    
                 }
                 catch
                 {
@@ -299,7 +307,15 @@ namespace ColmnarDB.ConsoleClient
 
                 try
                 {
-                    ComplexPolygon polygon = new ComplexPolygon(value);
+                    // Short string are definitely not polygons
+                    if (value.Length < 12 || !value.Contains("POLYGON"))
+                    {
+                        complexPolygonError = true;
+                    }
+                    else
+                    {
+                        ComplexPolygon polygon = new ComplexPolygon(value);
+                    }
                 }
                 catch
                 {
@@ -337,15 +353,11 @@ namespace ColmnarDB.ConsoleClient
 
             int errorCount = 0;
             string errorMsg = null;
-            //using (var parser = new CsvParser.CsvReader(rawData.Stream, encoding,
-            // Include quotes (if exists) in result
-            // default WithQuotes = false, i.e. column value "'test'" translated to 'test'
-            //new CsvParser.CsvReader.Config() { WithQuotes = false, ColumnSeparator = columnSeparator }))
-
-            while (((batchSize > 0 && readLinesCount < batchSize) || batchSize == 0) && ((this.startBytePosition + dataParser.Context.CharPosition) < this.endBytePosition))
+            
+            while (((batchSize > 0 && readLinesCount < batchSize) || batchSize == 0) && ((this.startBytePosition + dataParser.Context.CharPosition) <= this.endBytePosition))
             {
                 var row = dataParser.Read();
-                
+
                 if (row == null)
                     break;
 
