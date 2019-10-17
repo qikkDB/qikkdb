@@ -33,7 +33,7 @@ void CheckCudaError(cudaError_t cudaError)
             CudaLogBoost::getInstance(CudaLogBoost::debug) << i << ": " << symbols[i] << '\n';
         }
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "---- backtrace end --------" << '\n';
-#endif
+#endif // WIN32
         abort();
     }
 }
@@ -42,8 +42,9 @@ void CheckQueryEngineError(const QueryEngineErrorType errorType, const std::stri
 {
     if (errorType != QueryEngineErrorType::GPU_EXTENSION_SUCCESS)
     {
+#ifdef DEBUG
         CudaLogBoost::getInstance(CudaLogBoost::error)
-            << "QueryEngineError " << errorType << ": " << message << "Backtrace:" << '\n';
+            << "QueryEngineError " << errorType << ": " << message << '\n';
 #ifndef WIN32
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "Backtrace:" << '\n';
         void* backtraceArray[25];
@@ -54,7 +55,8 @@ void CheckQueryEngineError(const QueryEngineErrorType errorType, const std::stri
             CudaLogBoost::getInstance(CudaLogBoost::debug) << i << ": " << symbols[i] << '\n';
         }
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "---- backtrace end --------" << '\n';
-#endif
+#endif // WIN32
+#endif // DEBUG
         throw query_engine_error(errorType, message);
     }
 }
