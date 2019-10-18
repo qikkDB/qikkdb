@@ -415,13 +415,15 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     {
         std::vector<ColmnarDB::Types::ComplexPolygon> dataVector;
         int i = 0;
-        while (i < elementCount)
+        int elemsRead = 0;
+        while (elemsRead < elementCount)
         {
             ColmnarDB::Types::ComplexPolygon polygon;
             int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
             i += 4;
             polygon.ParseFromArray(dataBuffer + i, size);
             i += size;
+            elemsRead++;
             dataVector.push_back(polygon);
         }
         columnData.insert({columnName, dataVector});
@@ -430,13 +432,15 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     {
         std::vector<std::string> dataVector;
         int i = 0;
-        while (i < elementCount)
+        int elemsRead = 0;
+        while (elemsRead < elementCount)
         {
 
             int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
             i += 4;
             std::string str(dataBuffer + i, size);
             i += size;
+            elemsRead++;
             dataVector.push_back(str);
         }
         columnData.insert({columnName, dataVector});
