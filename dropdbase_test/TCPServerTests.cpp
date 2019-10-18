@@ -42,7 +42,9 @@ class DummyClientHandler : public IClientHandler
         }
     }
     virtual std::unique_ptr<google::protobuf::Message>
-    HandleQuery(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,std::function<void(std::unique_ptr<google::protobuf::Message>)> handler) override
+    HandleQuery(ITCPWorker& worker,
+                const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
+                std::function<void(std::unique_ptr<google::protobuf::Message>)> handler) override
     {
         std::unique_ptr<ColmnarDB::NetworkClient::Message::InfoMessage> ret =
             std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
@@ -127,22 +129,25 @@ void connect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& contex
         hello.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::CONN_ESTABLISH);
         hello.set_message("");
         std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
-        networkMessage.WriteToNetwork(hello, sock, [&sock, &promise, &networkMessage]() {
-            networkMessage.ReadFromNetwork(sock, [&promise](google::protobuf::Any ret) {
-                ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-                if (!ret.UnpackTo(&infoMessage))
-                {
-                    promise.set_exception(
-                        std::make_exception_ptr(std::domain_error("Invalid message received")));
-                }
-                else
-                {
-                    promise.set_value(infoMessage);
-                }
-                },
-                []() {});
-            },
-            []() {});
+        networkMessage.WriteToNetwork(hello, sock,
+                                      [&sock, &promise, &networkMessage]() {
+                                          networkMessage.ReadFromNetwork(
+                                              sock,
+                                              [&promise](google::protobuf::Any ret) {
+                                                  ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                                  if (!ret.UnpackTo(&infoMessage))
+                                                  {
+                                                      promise.set_exception(std::make_exception_ptr(std::domain_error(
+                                                          "Invalid message received")));
+                                                  }
+                                                  else
+                                                  {
+                                                      promise.set_value(infoMessage);
+                                                  }
+                                              },
+                                              []() {});
+                                      },
+                                      []() {});
         auto future = promise.get_future();
         while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
         {
@@ -165,8 +170,7 @@ void disconnect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& con
     ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
     infoMessage.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::CONN_END);
     infoMessage.set_message("");
-    networkMessage.WriteToNetwork(
-        infoMessage, sock, []() {}, []() {});
+    networkMessage.WriteToNetwork(infoMessage, sock, []() {}, []() {});
     context.poll();
     context.restart();
 }
@@ -177,22 +181,25 @@ void query(boost::asio::ip::tcp::socket& sock, const char* queryString, boost::a
     ColmnarDB::NetworkClient::Message::QueryMessage query;
     query.set_query(queryString);
     std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
-    networkMessage.WriteToNetwork(query, sock, [&sock, &promise, &networkMessage]() {
-        networkMessage.ReadFromNetwork(sock, [&promise](google::protobuf::Any ret) {
-            ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-            if (!ret.UnpackTo(&infoMessage))
-            {
-                promise.set_exception(
-                    std::make_exception_ptr(std::domain_error("Invalid message received")));
-            }
-            else
-            {
-                promise.set_value(infoMessage);
-            }
-            },
-            []() {});
-        },
-        []() {});
+    networkMessage.WriteToNetwork(query, sock,
+                                  [&sock, &promise, &networkMessage]() {
+                                      networkMessage.ReadFromNetwork(
+                                          sock,
+                                          [&promise](google::protobuf::Any ret) {
+                                              ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                              if (!ret.UnpackTo(&infoMessage))
+                                              {
+                                                  promise.set_exception(std::make_exception_ptr(std::domain_error(
+                                                      "Invalid message received")));
+                                              }
+                                              else
+                                              {
+                                                  promise.set_value(infoMessage);
+                                              }
+                                          },
+                                          []() {});
+                                  },
+                                  []() {});
     auto future = promise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
@@ -210,22 +217,25 @@ getNextQueryResult(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& 
     infoMessage.set_code(ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode_GET_NEXT_RESULT);
     infoMessage.set_message("");
     std::promise<ColmnarDB::NetworkClient::Message::QueryResponseMessage> retPromise;
-    networkMessage.WriteToNetwork(infoMessage, sock, [&sock, &retPromise, &networkMessage]() {
-        networkMessage.ReadFromNetwork(sock, [&retPromise](google::protobuf::Any response) {
-            ColmnarDB::NetworkClient::Message::QueryResponseMessage ret;
-            if (!response.UnpackTo(&ret))
-            {
-                retPromise.set_exception(
-                    std::make_exception_ptr(std::domain_error("Invalid message received")));
-            }
-            else
-            {
-                retPromise.set_value(ret);
-            }
-            },
-            []() {});
-        },
-        []() {});
+    networkMessage.WriteToNetwork(infoMessage, sock,
+                                  [&sock, &retPromise, &networkMessage]() {
+                                      networkMessage.ReadFromNetwork(
+                                          sock,
+                                          [&retPromise](google::protobuf::Any response) {
+                                              ColmnarDB::NetworkClient::Message::QueryResponseMessage ret;
+                                              if (!response.UnpackTo(&ret))
+                                              {
+                                                  retPromise.set_exception(std::make_exception_ptr(std::domain_error(
+                                                      "Invalid message received")));
+                                              }
+                                              else
+                                              {
+                                                  retPromise.set_value(ret);
+                                              }
+                                          },
+                                          []() {});
+                                  },
+                                  []() {});
     auto future = retPromise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
@@ -243,22 +253,25 @@ void importCSV(boost::asio::ip::tcp::socket& sock, const char* name, const char*
     csvImport.set_payload(data);
     csvImport.set_csvname(name);
     std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
-    networkMessage.WriteToNetwork(csvImport, sock, [&sock, &promise, &networkMessage]() {
-        networkMessage.ReadFromNetwork(sock, [&sock, &promise](google::protobuf::Any ret) {
-            ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-            if (!ret.UnpackTo(&infoMessage))
-            {
-                promise.set_exception(
-                    std::make_exception_ptr(std::domain_error("Invalid message received")));
-            }
-            else
-            {
-                promise.set_value(infoMessage);
-            }
-            },
-            []() {});
-        },
-        []() {});
+    networkMessage.WriteToNetwork(csvImport, sock,
+                                  [&sock, &promise, &networkMessage]() {
+                                      networkMessage.ReadFromNetwork(
+                                          sock,
+                                          [&sock, &promise](google::protobuf::Any ret) {
+                                              ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                              if (!ret.UnpackTo(&infoMessage))
+                                              {
+                                                  promise.set_exception(std::make_exception_ptr(std::domain_error(
+                                                      "Invalid message received")));
+                                              }
+                                              else
+                                              {
+                                                  promise.set_value(infoMessage);
+                                              }
+                                          },
+                                          []() {});
+                                  },
+                                  []() {});
     auto future = promise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
@@ -274,22 +287,25 @@ void setDatabase(boost::asio::ip::tcp::socket& sock, const char* name, boost::as
     ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDbMsg;
     setDbMsg.set_databasename(name);
     std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
-    networkMessage.WriteToNetwork(setDbMsg, sock, [&sock, &promise, &networkMessage]() {
-        networkMessage.ReadFromNetwork(sock, [&sock, &promise](google::protobuf::Any ret) {
-            ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-            if (!ret.UnpackTo(&infoMessage))
-            {
-                promise.set_exception(
-                    std::make_exception_ptr(std::domain_error("Invalid message received")));
-            }
-            else
-            {
-                promise.set_value(infoMessage);
-            }
-            },
-            []() {});
-        },
-        []() {});
+    networkMessage.WriteToNetwork(setDbMsg, sock,
+                                  [&sock, &promise, &networkMessage]() {
+                                      networkMessage.ReadFromNetwork(
+                                          sock,
+                                          [&sock, &promise](google::protobuf::Any ret) {
+                                              ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                              if (!ret.UnpackTo(&infoMessage))
+                                              {
+                                                  promise.set_exception(std::make_exception_ptr(std::domain_error(
+                                                      "Invalid message received")));
+                                              }
+                                              else
+                                              {
+                                                  promise.set_value(infoMessage);
+                                              }
+                                          },
+                                          []() {});
+                                  },
+                                  []() {});
     auto future = promise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
@@ -307,26 +323,31 @@ void bulkImport(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& con
     bulkImportMessage.set_columnname("test");
     bulkImportMessage.set_columntype(static_cast<ColmnarDB::NetworkClient::Message::DataType>(DataType::COLUMN_INT));
     bulkImportMessage.set_elemcount(5);
+    bulkImportMessage.set_datalength(5 * sizeof(int32_t));
     int32_t dataBuff[] = {1, 2, 3, 4, 5};
     std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
-    networkMessage.WriteToNetwork(bulkImportMessage, sock, [&sock, &promise, dataBuff, &networkMessage]() mutable {
-        networkMessage.WriteRaw(sock, reinterpret_cast<char*>(dataBuff), 5, DataType::COLUMN_INT,
-                                [&sock, &promise, &networkMessage]() {
-                                    networkMessage.ReadFromNetwork(sock, [&promise](google::protobuf::Any response) {
-                                        ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-                                        if (!response.UnpackTo(&infoMessage))
-                                        {
-                                            promise.set_exception(std::make_exception_ptr(
-                                                std::domain_error("Invalid message received")));
-                                        }
-                                        else
-                                        {
-                                            promise.set_value(infoMessage);
-                                        }
-                                        },
-                                        []() {});
-            },
-            []() {});
+    networkMessage.WriteToNetwork(
+        bulkImportMessage, sock,
+        [&sock, &promise, dataBuff, &networkMessage]() mutable {
+            networkMessage.WriteRaw(sock, reinterpret_cast<char*>(dataBuff), 5, DataType::COLUMN_INT,
+                                    [&sock, &promise, &networkMessage]() {
+                                        networkMessage.ReadFromNetwork(
+                                            sock,
+                                            [&promise](google::protobuf::Any response) {
+                                                ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                                if (!response.UnpackTo(&infoMessage))
+                                                {
+                                                    promise.set_exception(std::make_exception_ptr(std::domain_error(
+                                                        "Invalid message received")));
+                                                }
+                                                else
+                                                {
+                                                    promise.set_value(infoMessage);
+                                                }
+                                            },
+                                            []() {});
+                                    },
+                                    []() {});
         },
         []() {});
     auto future = promise.get_future();
@@ -345,22 +366,25 @@ void heartbeat(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& cont
     heartbeat.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::HEARTBEAT);
     heartbeat.set_message("");
     std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
-    networkMessage.WriteToNetwork(heartbeat, sock, [&sock, &promise, &networkMessage]() {
-        networkMessage.ReadFromNetwork(sock, [&promise](google::protobuf::Any ret) {
-            ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-            if (!ret.UnpackTo(&infoMessage))
-            {
-                promise.set_exception(
-                    std::make_exception_ptr(std::domain_error("Invalid message received")));
-            }
-            else
-            {
-                promise.set_value(infoMessage);
-            }
-            },
-            []() {});
-        },
-        []() {});
+    networkMessage.WriteToNetwork(heartbeat, sock,
+                                  [&sock, &promise, &networkMessage]() {
+                                      networkMessage.ReadFromNetwork(
+                                          sock,
+                                          [&promise](google::protobuf::Any ret) {
+                                              ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                              if (!ret.UnpackTo(&infoMessage))
+                                              {
+                                                  promise.set_exception(std::make_exception_ptr(std::domain_error(
+                                                      "Invalid message received")));
+                                              }
+                                              else
+                                              {
+                                                  promise.set_value(infoMessage);
+                                              }
+                                          },
+                                          []() {});
+                                  },
+                                  []() {});
     auto future = promise.get_future();
     while (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
     {
