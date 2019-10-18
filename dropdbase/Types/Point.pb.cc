@@ -5,7 +5,6 @@
 
 #include <algorithm>
 
-#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/wire_format_lite.h>
@@ -36,7 +35,7 @@ static void InitDefaultsscc_info_Point_Types_2fPoint_2eproto() {
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_Point_Types_2fPoint_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsscc_info_Point_Types_2fPoint_2eproto}, {
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_Point_Types_2fPoint_2eproto}, {
       &scc_info_GeoPoint_Types_2fComplexPolygon_2eproto.base,}};
 
 static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_Types_2fPoint_2eproto[1];
@@ -59,7 +58,7 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::Types::_Point_default_instance_),
 };
 
-const char descriptor_table_protodef_Types_2fPoint_2eproto[] =
+const char descriptor_table_protodef_Types_2fPoint_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\021Types/Point.proto\022\017ColmnarDB.Types\032\032Ty"
   "pes/ComplexPolygon.proto\"4\n\005Point\022+\n\010geo"
   "Point\030\001 \001(\0132\031.ColmnarDB.Types.GeoPointb\006"
@@ -91,13 +90,13 @@ void Point::InitAsDefaultInstance() {
   ::ColmnarDB::Types::_Point_default_instance_._instance.get_mutable()->geopoint_ = const_cast< ::ColmnarDB::Types::GeoPoint*>(
       ::ColmnarDB::Types::GeoPoint::internal_default_instance());
 }
-class Point::HasBitSetters {
+class Point::_Internal {
  public:
   static const ::ColmnarDB::Types::GeoPoint& geopoint(const Point* msg);
 };
 
 const ::ColmnarDB::Types::GeoPoint&
-Point::HasBitSetters::geopoint(const Point* msg) {
+Point::_Internal::geopoint(const Point* msg) {
   return *msg->geopoint_;
 }
 void Point::clear_geopoint() {
@@ -106,10 +105,6 @@ void Point::clear_geopoint() {
   }
   geopoint_ = nullptr;
 }
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int Point::kGeoPointFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-
 Point::Point()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
@@ -119,7 +114,7 @@ Point::Point(const Point& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  if (from.has_geopoint()) {
+  if (from._internal_has_geopoint()) {
     geopoint_ = new ::ColmnarDB::Types::GeoPoint(*from.geopoint_);
   } else {
     geopoint_ = nullptr;
@@ -163,7 +158,6 @@ void Point::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 const char* Point::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
@@ -174,7 +168,7 @@ const char* Point::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::inte
       // .ColmnarDB.Types.GeoPoint geoPoint = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr = ctx->ParseMessage(mutable_geopoint(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_geopoint(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -197,84 +191,24 @@ failure:
   goto success;
 #undef CHK_
 }
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-bool Point::MergePartialFromCodedStream(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-  // @@protoc_insertion_point(parse_start:ColmnarDB.Types.Point)
-  for (;;) {
-    ::std::pair<::PROTOBUF_NAMESPACE_ID::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // .ColmnarDB.Types.GeoPoint geoPoint = 1;
-      case 1: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (10 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessage(
-               input, mutable_geopoint()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:ColmnarDB.Types.Point)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:ColmnarDB.Types.Point)
-  return false;
-#undef DO_
-}
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-
-void Point::SerializeWithCachedSizes(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:ColmnarDB.Types.Point)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // .ColmnarDB.Types.GeoPoint geoPoint = 1;
-  if (this->has_geopoint()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(
-      1, HasBitSetters::geopoint(this), output);
-  }
-
-  if (_internal_metadata_.have_unknown_fields()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:ColmnarDB.Types.Point)
-}
 
 ::PROTOBUF_NAMESPACE_ID::uint8* Point::InternalSerializeWithCachedSizesToArray(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target) const {
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.Types.Point)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // .ColmnarDB.Types.GeoPoint geoPoint = 1;
   if (this->has_geopoint()) {
+    stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        1, HasBitSetters::geopoint(this), target);
+        1, _Internal::geopoint(this), target, stream);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.Types.Point)
   return target;
@@ -284,11 +218,6 @@ size_t Point::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:ColmnarDB.Types.Point)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -300,6 +229,10 @@ size_t Point::ByteSizeLong() const {
         *geopoint_);
   }
 
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -328,7 +261,7 @@ void Point::MergeFrom(const Point& from) {
   (void) cached_has_bits;
 
   if (from.has_geopoint()) {
-    mutable_geopoint()->::ColmnarDB::Types::GeoPoint::MergeFrom(from.geopoint());
+    _internal_mutable_geopoint()->::ColmnarDB::Types::GeoPoint::MergeFrom(from._internal_geopoint());
   }
 }
 
@@ -350,10 +283,6 @@ bool Point::IsInitialized() const {
   return true;
 }
 
-void Point::Swap(Point* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void Point::InternalSwap(Point* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);

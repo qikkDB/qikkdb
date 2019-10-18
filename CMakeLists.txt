@@ -51,7 +51,7 @@ endif()
 
 ###### Google Protocol Buffers external project ########
 
-set(PROTOBUF_TAR_GZ https://github.com/protocolbuffers/protobuf/archive/v3.8.0.tar.gz)
+set(PROTOBUF_TAR_GZ https://github.com/protocolbuffers/protobuf/archive/v3.10.0.tar.gz)
 
 ExternalProject_Add(
   protobuf-external

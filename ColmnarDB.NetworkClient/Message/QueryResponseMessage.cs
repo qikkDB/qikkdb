@@ -63,16 +63,16 @@ namespace ColmnarDB.NetworkClient.Message {
             "bnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAI6AjgBYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::ColmnarDB.Types.ComplexPolygonReflection.Descriptor, global::ColmnarDB.Types.PointReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload.Parser, new[]{ "IntData" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload), global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload.Parser, new[]{ "Int64Data" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload.Parser, new[]{ "FloatData" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload), global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload.Parser, new[]{ "DoubleData" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload.Parser, new[]{ "PolygonData" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload.Parser, new[]{ "PointData" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.Parser, new[]{ "StringData" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePayload.Parser, new[]{ "IntPayload", "FloatPayload", "Int64Payload", "DoublePayload", "PointPayload", "PolygonPayload", "StringPayload" }, new[]{ "Payload" }, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseMessage), global::ColmnarDB.NetworkClient.Message.QueryResponseMessage.Parser, new[]{ "Payloads", "NullBitMasks", "Timing", "ColumnOrder" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, null, })
+          new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload.Parser, new[]{ "IntData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload), global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload.Parser, new[]{ "Int64Data" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload.Parser, new[]{ "FloatData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload), global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload.Parser, new[]{ "DoubleData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload.Parser, new[]{ "PolygonData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload.Parser, new[]{ "PointData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.Parser, new[]{ "StringData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePayload.Parser, new[]{ "IntPayload", "FloatPayload", "Int64Payload", "DoublePayload", "PointPayload", "PolygonPayload", "StringPayload" }, new[]{ "Payload" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseMessage), global::ColmnarDB.NetworkClient.Message.QueryResponseMessage.Parser, new[]{ "Payloads", "NullBitMasks", "Timing", "ColumnOrder" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, null, })
           }));
     }
     #endregion
@@ -1369,7 +1369,7 @@ namespace ColmnarDB.NetworkClient.Message {
     /// <summary>Field number for the "payloads" field.</summary>
     public const int PayloadsFieldNumber = 1;
     private static readonly pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload>.Codec _map_payloads_codec
-        = new pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForMessage(18, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload.Parser), 10);
+        = new pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForMessage(18, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload.Parser), 10);
     private readonly pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload> payloads_ = new pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload> Payloads {
@@ -1379,7 +1379,7 @@ namespace ColmnarDB.NetworkClient.Message {
     /// <summary>Field number for the "nullBitMasks" field.</summary>
     public const int NullBitMasksFieldNumber = 3;
     private static readonly pbc::MapField<string, pb::ByteString>.Codec _map_nullBitMasks_codec
-        = new pbc::MapField<string, pb::ByteString>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForBytes(18), 26);
+        = new pbc::MapField<string, pb::ByteString>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForBytes(18, pb::ByteString.Empty), 26);
     private readonly pbc::MapField<string, pb::ByteString> nullBitMasks_ = new pbc::MapField<string, pb::ByteString>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::MapField<string, pb::ByteString> NullBitMasks {
@@ -1389,7 +1389,7 @@ namespace ColmnarDB.NetworkClient.Message {
     /// <summary>Field number for the "timing" field.</summary>
     public const int TimingFieldNumber = 2;
     private static readonly pbc::MapField<string, float>.Codec _map_timing_codec
-        = new pbc::MapField<string, float>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForFloat(21), 18);
+        = new pbc::MapField<string, float>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForFloat(21, 0F), 18);
     private readonly pbc::MapField<string, float> timing_ = new pbc::MapField<string, float>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::MapField<string, float> Timing {

@@ -1,6 +1,6 @@
 syntax = "proto3";
 package ColmnarDB.NetworkClient.Message;
-import "messages/CSVImportMessage.proto";
+import "Message/CSVImportMessage.proto";
 
 
 message BulkImportMessage {

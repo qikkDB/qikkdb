@@ -5,7 +5,6 @@
 
 #include <algorithm>
 
-#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/wire_format_lite.h>
@@ -37,7 +36,7 @@ static void InitDefaultsscc_info_CSVImportMessage_messages_2fCSVImportMessage_2e
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_CSVImportMessage_messages_2fCSVImportMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsscc_info_CSVImportMessage_messages_2fCSVImportMessage_2eproto}, {}};
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_CSVImportMessage_messages_2fCSVImportMessage_2eproto}, {}};
 
 static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_messages_2fCSVImportMessage_2eproto[1];
 static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_messages_2fCSVImportMessage_2eproto[1];
@@ -62,7 +61,7 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_CSVImportMessage_default_instance_),
 };
 
-const char descriptor_table_protodef_messages_2fCSVImportMessage_2eproto[] =
+const char descriptor_table_protodef_messages_2fCSVImportMessage_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\037messages/CSVImportMessage.proto\022\037Colmn"
   "arDB.NetworkClient.Message\"\212\001\n\020CSVImport"
   "Message\022\024\n\014DatabaseName\030\001 \001(\t\022\017\n\007CSVName"
@@ -132,16 +131,9 @@ bool DataType_IsValid(int value) {
 
 void CSVImportMessage::InitAsDefaultInstance() {
 }
-class CSVImportMessage::HasBitSetters {
+class CSVImportMessage::_Internal {
  public:
 };
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int CSVImportMessage::kDatabaseNameFieldNumber;
-const int CSVImportMessage::kCSVNameFieldNumber;
-const int CSVImportMessage::kPayloadFieldNumber;
-const int CSVImportMessage::kColumnTypesFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 CSVImportMessage::CSVImportMessage()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
@@ -154,15 +146,15 @@ CSVImportMessage::CSVImportMessage(const CSVImportMessage& from)
       columntypes_(from.columntypes_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   databasename_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (from.databasename().size() > 0) {
+  if (!from._internal_databasename().empty()) {
     databasename_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.databasename_);
   }
   csvname_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (from.csvname().size() > 0) {
+  if (!from._internal_csvname().empty()) {
     csvname_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.csvname_);
   }
   payload_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (from.payload().size() > 0) {
+  if (!from._internal_payload().empty()) {
     payload_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.payload_);
   }
   // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.CSVImportMessage)
@@ -208,7 +200,6 @@ void CSVImportMessage::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 const char* CSVImportMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
@@ -219,33 +210,33 @@ const char* CSVImportMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPA
       // string DatabaseName = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(mutable_databasename(), ptr, ctx, "ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName");
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_databasename(), ptr, ctx, "ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName");
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // string CSVName = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(mutable_csvname(), ptr, ctx, "ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName");
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_csvname(), ptr, ctx, "ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName");
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // string Payload = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(mutable_payload(), ptr, ctx, "ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload");
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_payload(), ptr, ctx, "ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload");
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 34)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedEnumParser(mutable_columntypes(), ptr, ctx);
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedEnumParser(_internal_mutable_columntypes(), ptr, ctx);
           CHK_(ptr);
         } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32) {
           ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
           CHK_(ptr);
-          add_columntypes(static_cast<::ColmnarDB::NetworkClient::Message::DataType>(val));
+          _internal_add_columntypes(static_cast<::ColmnarDB::NetworkClient::Message::DataType>(val));
         } else goto handle_unusual;
         continue;
       default: {
@@ -267,168 +258,9 @@ failure:
   goto success;
 #undef CHK_
 }
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-bool CSVImportMessage::MergePartialFromCodedStream(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-  // @@protoc_insertion_point(parse_start:ColmnarDB.NetworkClient.Message.CSVImportMessage)
-  for (;;) {
-    ::std::pair<::PROTOBUF_NAMESPACE_ID::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // string DatabaseName = 1;
-      case 1: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (10 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadString(
-                input, this->mutable_databasename()));
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-            this->databasename().data(), static_cast<int>(this->databasename().length()),
-            ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
-            "ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // string CSVName = 2;
-      case 2: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (18 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadString(
-                input, this->mutable_csvname()));
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-            this->csvname().data(), static_cast<int>(this->csvname().length()),
-            ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
-            "ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // string Payload = 3;
-      case 3: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (26 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadString(
-                input, this->mutable_payload()));
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-            this->payload().data(), static_cast<int>(this->payload().length()),
-            ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
-            "ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
-      case 4: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (34 & 0xFF)) {
-          ::PROTOBUF_NAMESPACE_ID::uint32 length;
-          DO_(input->ReadVarint32(&length));
-          ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream::Limit limit = input->PushLimit(static_cast<int>(length));
-          while (input->BytesUntilLimit() > 0) {
-            int value = 0;
-            DO_((::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadPrimitive<
-                   int, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_ENUM>(
-                 input, &value)));
-            add_columntypes(static_cast< ::ColmnarDB::NetworkClient::Message::DataType >(value));
-          }
-          input->PopLimit(limit);
-        } else if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (32 & 0xFF)) {
-          int value = 0;
-          DO_((::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadPrimitive<
-                   int, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_ENUM>(
-                 input, &value)));
-          add_columntypes(static_cast< ::ColmnarDB::NetworkClient::Message::DataType >(value));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:ColmnarDB.NetworkClient.Message.CSVImportMessage)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:ColmnarDB.NetworkClient.Message.CSVImportMessage)
-  return false;
-#undef DO_
-}
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-
-void CSVImportMessage::SerializeWithCachedSizes(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:ColmnarDB.NetworkClient.Message.CSVImportMessage)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // string DatabaseName = 1;
-  if (this->databasename().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->databasename().data(), static_cast<int>(this->databasename().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName");
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteStringMaybeAliased(
-      1, this->databasename(), output);
-  }
-
-  // string CSVName = 2;
-  if (this->csvname().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->csvname().data(), static_cast<int>(this->csvname().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName");
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteStringMaybeAliased(
-      2, this->csvname(), output);
-  }
-
-  // string Payload = 3;
-  if (this->payload().size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->payload().data(), static_cast<int>(this->payload().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload");
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteStringMaybeAliased(
-      3, this->payload(), output);
-  }
-
-  // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
-  if (this->columntypes_size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteTag(
-      4,
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
-      output);
-    output->WriteVarint32(_columntypes_cached_byte_size_.load(
-        std::memory_order_relaxed));
-  }
-  for (int i = 0, n = this->columntypes_size(); i < n; i++) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumNoTag(
-      this->columntypes(i), output);
-  }
-
-  if (_internal_metadata_.have_unknown_fields()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:ColmnarDB.NetworkClient.Message.CSVImportMessage)
-}
 
 ::PROTOBUF_NAMESPACE_ID::uint8* CSVImportMessage::InternalSerializeWithCachedSizesToArray(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target) const {
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.CSVImportMessage)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -436,51 +268,45 @@ void CSVImportMessage::SerializeWithCachedSizes(
   // string DatabaseName = 1;
   if (this->databasename().size() > 0) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->databasename().data(), static_cast<int>(this->databasename().length()),
+      this->_internal_databasename().data(), static_cast<int>(this->_internal_databasename().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
       "ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName");
-    target =
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteStringToArray(
-        1, this->databasename(), target);
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_databasename(), target);
   }
 
   // string CSVName = 2;
   if (this->csvname().size() > 0) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->csvname().data(), static_cast<int>(this->csvname().length()),
+      this->_internal_csvname().data(), static_cast<int>(this->_internal_csvname().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
       "ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName");
-    target =
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteStringToArray(
-        2, this->csvname(), target);
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_csvname(), target);
   }
 
   // string Payload = 3;
   if (this->payload().size() > 0) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->payload().data(), static_cast<int>(this->payload().length()),
+      this->_internal_payload().data(), static_cast<int>(this->_internal_payload().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
       "ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload");
-    target =
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteStringToArray(
-        3, this->payload(), target);
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_payload(), target);
   }
 
   // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
-  if (this->columntypes_size() > 0) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteTagToArray(
-      4,
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
-      target);
-    target = ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream::WriteVarint32ToArray(      _columntypes_cached_byte_size_.load(std::memory_order_relaxed),
-        target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumNoTagToArray(
-      this->columntypes_, target);
+  {
+    int byte_size = _columntypes_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteEnumPacked(
+          4, columntypes_, byte_size, target);
+    }
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.CSVImportMessage)
   return target;
@@ -490,11 +316,6 @@ size_t CSVImportMessage::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.CSVImportMessage)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -502,9 +323,9 @@ size_t CSVImportMessage::ByteSizeLong() const {
   // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
   {
     size_t data_size = 0;
-    unsigned int count = static_cast<unsigned int>(this->columntypes_size());for (unsigned int i = 0; i < count; i++) {
+    unsigned int count = static_cast<unsigned int>(this->_internal_columntypes_size());for (unsigned int i = 0; i < count; i++) {
       data_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(
-        this->columntypes(static_cast<int>(i)));
+        this->_internal_columntypes(static_cast<int>(i)));
     }
     if (data_size > 0) {
       total_size += 1 +
@@ -521,23 +342,27 @@ size_t CSVImportMessage::ByteSizeLong() const {
   if (this->databasename().size() > 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->databasename());
+        this->_internal_databasename());
   }
 
   // string CSVName = 2;
   if (this->csvname().size() > 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->csvname());
+        this->_internal_csvname());
   }
 
   // string Payload = 3;
   if (this->payload().size() > 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->payload());
+        this->_internal_payload());
   }
 
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -598,10 +423,6 @@ bool CSVImportMessage::IsInitialized() const {
   return true;
 }
 
-void CSVImportMessage::Swap(CSVImportMessage* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void CSVImportMessage::InternalSwap(CSVImportMessage* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);

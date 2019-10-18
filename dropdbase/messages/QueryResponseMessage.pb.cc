@@ -5,7 +5,6 @@
 
 #include <algorithm>
 
-#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/wire_format_lite.h>
@@ -101,7 +100,7 @@ static void InitDefaultsscc_info_QueryResponseDoublePayload_messages_2fQueryResp
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseDoublePayload_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsscc_info_QueryResponseDoublePayload_messages_2fQueryResponseMessage_2eproto}, {}};
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_QueryResponseDoublePayload_messages_2fQueryResponseMessage_2eproto}, {}};
 
 static void InitDefaultsscc_info_QueryResponseFloatPayload_messages_2fQueryResponseMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -115,7 +114,7 @@ static void InitDefaultsscc_info_QueryResponseFloatPayload_messages_2fQueryRespo
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseFloatPayload_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsscc_info_QueryResponseFloatPayload_messages_2fQueryResponseMessage_2eproto}, {}};
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_QueryResponseFloatPayload_messages_2fQueryResponseMessage_2eproto}, {}};
 
 static void InitDefaultsscc_info_QueryResponseInt64Payload_messages_2fQueryResponseMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -129,7 +128,7 @@ static void InitDefaultsscc_info_QueryResponseInt64Payload_messages_2fQueryRespo
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseInt64Payload_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsscc_info_QueryResponseInt64Payload_messages_2fQueryResponseMessage_2eproto}, {}};
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_QueryResponseInt64Payload_messages_2fQueryResponseMessage_2eproto}, {}};
 
 static void InitDefaultsscc_info_QueryResponseIntPayload_messages_2fQueryResponseMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -143,7 +142,7 @@ static void InitDefaultsscc_info_QueryResponseIntPayload_messages_2fQueryRespons
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseIntPayload_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsscc_info_QueryResponseIntPayload_messages_2fQueryResponseMessage_2eproto}, {}};
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_QueryResponseIntPayload_messages_2fQueryResponseMessage_2eproto}, {}};
 
 static void InitDefaultsscc_info_QueryResponseMessage_messages_2fQueryResponseMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -157,7 +156,7 @@ static void InitDefaultsscc_info_QueryResponseMessage_messages_2fQueryResponseMe
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<3> scc_info_QueryResponseMessage_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 3, InitDefaultsscc_info_QueryResponseMessage_messages_2fQueryResponseMessage_2eproto}, {
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 3, 0, InitDefaultsscc_info_QueryResponseMessage_messages_2fQueryResponseMessage_2eproto}, {
       &scc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,
       &scc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,
       &scc_info_QueryResponseMessage_TimingEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto.base,}};
@@ -173,7 +172,7 @@ static void InitDefaultsscc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsscc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto}, {}};
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto}, {}};
 
 static void InitDefaultsscc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -186,7 +185,7 @@ static void InitDefaultsscc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_mes
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsscc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto}, {
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto}, {
       &scc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto.base,}};
 
 static void InitDefaultsscc_info_QueryResponseMessage_TimingEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto() {
@@ -200,7 +199,7 @@ static void InitDefaultsscc_info_QueryResponseMessage_TimingEntry_DoNotUse_messa
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseMessage_TimingEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsscc_info_QueryResponseMessage_TimingEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto}, {}};
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_QueryResponseMessage_TimingEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto}, {}};
 
 static void InitDefaultsscc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -214,7 +213,7 @@ static void InitDefaultsscc_info_QueryResponsePayload_messages_2fQueryResponseMe
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<7> scc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 7, InitDefaultsscc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto}, {
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 7, 0, InitDefaultsscc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto}, {
       &scc_info_QueryResponseIntPayload_messages_2fQueryResponseMessage_2eproto.base,
       &scc_info_QueryResponseFloatPayload_messages_2fQueryResponseMessage_2eproto.base,
       &scc_info_QueryResponseInt64Payload_messages_2fQueryResponseMessage_2eproto.base,
@@ -235,7 +234,7 @@ static void InitDefaultsscc_info_QueryResponsePointPayload_messages_2fQueryRespo
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_QueryResponsePointPayload_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsscc_info_QueryResponsePointPayload_messages_2fQueryResponseMessage_2eproto}, {
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_QueryResponsePointPayload_messages_2fQueryResponseMessage_2eproto}, {
       &scc_info_Point_Types_2fPoint_2eproto.base,}};
 
 static void InitDefaultsscc_info_QueryResponsePolygonPayload_messages_2fQueryResponseMessage_2eproto() {
@@ -250,7 +249,7 @@ static void InitDefaultsscc_info_QueryResponsePolygonPayload_messages_2fQueryRes
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_QueryResponsePolygonPayload_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsscc_info_QueryResponsePolygonPayload_messages_2fQueryResponseMessage_2eproto}, {
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_QueryResponsePolygonPayload_messages_2fQueryResponseMessage_2eproto}, {
       &scc_info_ComplexPolygon_Types_2fComplexPolygon_2eproto.base,}};
 
 static void InitDefaultsscc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto() {
@@ -265,7 +264,7 @@ static void InitDefaultsscc_info_QueryResponseStringPayload_messages_2fQueryResp
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsscc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto}, {}};
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto}, {}};
 
 static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_messages_2fQueryResponseMessage_2eproto[12];
 static constexpr ::PROTOBUF_NAMESPACE_ID::EnumDescriptor const** file_level_enum_descriptors_messages_2fQueryResponseMessage_2eproto = nullptr;
@@ -394,7 +393,7 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_default_instance_),
 };
 
-const char descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto[] =
+const char descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n#messages/QueryResponseMessage.proto\022\037C"
   "olmnarDB.NetworkClient.Message\032\032Types/Co"
   "mplexPolygon.proto\032\021Types/Point.proto\"*\n"
@@ -475,13 +474,9 @@ namespace Message {
 
 void QueryResponseIntPayload::InitAsDefaultInstance() {
 }
-class QueryResponseIntPayload::HasBitSetters {
+class QueryResponseIntPayload::_Internal {
  public:
 };
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int QueryResponseIntPayload::kIntDataFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 QueryResponseIntPayload::QueryResponseIntPayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
@@ -526,7 +521,6 @@ void QueryResponseIntPayload::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 const char* QueryResponseIntPayload::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
@@ -537,10 +531,10 @@ const char* QueryResponseIntPayload::_InternalParse(const char* ptr, ::PROTOBUF_
       // repeated int32 intData = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(mutable_intdata(), ptr, ctx);
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_intdata(), ptr, ctx);
           CHK_(ptr);
         } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8) {
-          add_intdata(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
+          _internal_add_intdata(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -563,100 +557,25 @@ failure:
   goto success;
 #undef CHK_
 }
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-bool QueryResponseIntPayload::MergePartialFromCodedStream(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-  // @@protoc_insertion_point(parse_start:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
-  for (;;) {
-    ::std::pair<::PROTOBUF_NAMESPACE_ID::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated int32 intData = 1;
-      case 1: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (10 & 0xFF)) {
-          DO_((::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadPackedPrimitive<
-                   ::PROTOBUF_NAMESPACE_ID::int32, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_INT32>(
-                 input, this->mutable_intdata())));
-        } else if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (8 & 0xFF)) {
-          DO_((::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
-                   ::PROTOBUF_NAMESPACE_ID::int32, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_INT32>(
-                 1, 10u, input, this->mutable_intdata())));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
-  return false;
-#undef DO_
-}
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-
-void QueryResponseIntPayload::SerializeWithCachedSizes(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // repeated int32 intData = 1;
-  if (this->intdata_size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteTag(1, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
-    output->WriteVarint32(_intdata_cached_byte_size_.load(
-        std::memory_order_relaxed));
-  }
-  for (int i = 0, n = this->intdata_size(); i < n; i++) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32NoTag(
-      this->intdata(i), output);
-  }
-
-  if (_internal_metadata_.have_unknown_fields()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
-}
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseIntPayload::InternalSerializeWithCachedSizesToArray(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target) const {
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // repeated int32 intData = 1;
-  if (this->intdata_size() > 0) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteTagToArray(
-      1,
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
-      target);
-    target = ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream::WriteVarint32ToArray(
-        _intdata_cached_byte_size_.load(std::memory_order_relaxed),
-         target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      WriteInt32NoTagToArray(this->intdata_, target);
+  {
+    int byte_size = _intdata_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          1, _internal_intdata(), byte_size, target);
+    }
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
   return target;
@@ -666,11 +585,6 @@ size_t QueryResponseIntPayload::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -690,6 +604,10 @@ size_t QueryResponseIntPayload::ByteSizeLong() const {
     total_size += data_size;
   }
 
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -738,10 +656,6 @@ bool QueryResponseIntPayload::IsInitialized() const {
   return true;
 }
 
-void QueryResponseIntPayload::Swap(QueryResponseIntPayload* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void QueryResponseIntPayload::InternalSwap(QueryResponseIntPayload* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
@@ -757,13 +671,9 @@ void QueryResponseIntPayload::InternalSwap(QueryResponseIntPayload* other) {
 
 void QueryResponseInt64Payload::InitAsDefaultInstance() {
 }
-class QueryResponseInt64Payload::HasBitSetters {
+class QueryResponseInt64Payload::_Internal {
  public:
 };
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int QueryResponseInt64Payload::kInt64DataFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 QueryResponseInt64Payload::QueryResponseInt64Payload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
@@ -808,7 +718,6 @@ void QueryResponseInt64Payload::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 const char* QueryResponseInt64Payload::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
@@ -819,10 +728,10 @@ const char* QueryResponseInt64Payload::_InternalParse(const char* ptr, ::PROTOBU
       // repeated int64 int64Data = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt64Parser(mutable_int64data(), ptr, ctx);
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt64Parser(_internal_mutable_int64data(), ptr, ctx);
           CHK_(ptr);
         } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8) {
-          add_int64data(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
+          _internal_add_int64data(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -845,100 +754,25 @@ failure:
   goto success;
 #undef CHK_
 }
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-bool QueryResponseInt64Payload::MergePartialFromCodedStream(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-  // @@protoc_insertion_point(parse_start:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
-  for (;;) {
-    ::std::pair<::PROTOBUF_NAMESPACE_ID::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated int64 int64Data = 1;
-      case 1: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (10 & 0xFF)) {
-          DO_((::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadPackedPrimitive<
-                   ::PROTOBUF_NAMESPACE_ID::int64, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_INT64>(
-                 input, this->mutable_int64data())));
-        } else if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (8 & 0xFF)) {
-          DO_((::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
-                   ::PROTOBUF_NAMESPACE_ID::int64, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_INT64>(
-                 1, 10u, input, this->mutable_int64data())));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
-  return false;
-#undef DO_
-}
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-
-void QueryResponseInt64Payload::SerializeWithCachedSizes(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // repeated int64 int64Data = 1;
-  if (this->int64data_size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteTag(1, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
-    output->WriteVarint32(_int64data_cached_byte_size_.load(
-        std::memory_order_relaxed));
-  }
-  for (int i = 0, n = this->int64data_size(); i < n; i++) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt64NoTag(
-      this->int64data(i), output);
-  }
-
-  if (_internal_metadata_.have_unknown_fields()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
-}
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseInt64Payload::InternalSerializeWithCachedSizesToArray(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target) const {
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // repeated int64 int64Data = 1;
-  if (this->int64data_size() > 0) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteTagToArray(
-      1,
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
-      target);
-    target = ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream::WriteVarint32ToArray(
-        _int64data_cached_byte_size_.load(std::memory_order_relaxed),
-         target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      WriteInt64NoTagToArray(this->int64data_, target);
+  {
+    int byte_size = _int64data_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt64Packed(
+          1, _internal_int64data(), byte_size, target);
+    }
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
   return target;
@@ -948,11 +782,6 @@ size_t QueryResponseInt64Payload::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -972,6 +801,10 @@ size_t QueryResponseInt64Payload::ByteSizeLong() const {
     total_size += data_size;
   }
 
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -1020,10 +853,6 @@ bool QueryResponseInt64Payload::IsInitialized() const {
   return true;
 }
 
-void QueryResponseInt64Payload::Swap(QueryResponseInt64Payload* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void QueryResponseInt64Payload::InternalSwap(QueryResponseInt64Payload* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
@@ -1039,13 +868,9 @@ void QueryResponseInt64Payload::InternalSwap(QueryResponseInt64Payload* other) {
 
 void QueryResponseFloatPayload::InitAsDefaultInstance() {
 }
-class QueryResponseFloatPayload::HasBitSetters {
+class QueryResponseFloatPayload::_Internal {
  public:
 };
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int QueryResponseFloatPayload::kFloatDataFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 QueryResponseFloatPayload::QueryResponseFloatPayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
@@ -1090,7 +915,6 @@ void QueryResponseFloatPayload::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 const char* QueryResponseFloatPayload::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
@@ -1101,10 +925,10 @@ const char* QueryResponseFloatPayload::_InternalParse(const char* ptr, ::PROTOBU
       // repeated float floatData = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedFloatParser(mutable_floatdata(), ptr, ctx);
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedFloatParser(_internal_mutable_floatdata(), ptr, ctx);
           CHK_(ptr);
         } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13) {
-          add_floatdata(::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr));
+          _internal_add_floatdata(::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr));
           ptr += sizeof(float);
         } else goto handle_unusual;
         continue;
@@ -1127,98 +951,21 @@ failure:
   goto success;
 #undef CHK_
 }
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-bool QueryResponseFloatPayload::MergePartialFromCodedStream(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-  // @@protoc_insertion_point(parse_start:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
-  for (;;) {
-    ::std::pair<::PROTOBUF_NAMESPACE_ID::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated float floatData = 1;
-      case 1: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (10 & 0xFF)) {
-          DO_((::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadPackedPrimitive<
-                   float, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_FLOAT>(
-                 input, this->mutable_floatdata())));
-        } else if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (13 & 0xFF)) {
-          DO_((::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
-                   float, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_FLOAT>(
-                 1, 10u, input, this->mutable_floatdata())));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
-  return false;
-#undef DO_
-}
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-
-void QueryResponseFloatPayload::SerializeWithCachedSizes(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // repeated float floatData = 1;
-  if (this->floatdata_size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteTag(1, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
-    output->WriteVarint32(_floatdata_cached_byte_size_.load(
-        std::memory_order_relaxed));
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatArray(
-      this->floatdata().data(), this->floatdata_size(), output);
-  }
-
-  if (_internal_metadata_.have_unknown_fields()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
-}
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseFloatPayload::InternalSerializeWithCachedSizesToArray(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target) const {
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // repeated float floatData = 1;
-  if (this->floatdata_size() > 0) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteTagToArray(
-      1,
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
-      target);
-    target = ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream::WriteVarint32ToArray(
-        _floatdata_cached_byte_size_.load(std::memory_order_relaxed),
-         target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      WriteFloatNoTagToArray(this->floatdata_, target);
+  if (this->_internal_floatdata_size() > 0) {
+    target = stream->WriteFixedPacked(1, _internal_floatdata(), target);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
   return target;
@@ -1228,18 +975,13 @@ size_t QueryResponseFloatPayload::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // repeated float floatData = 1;
   {
-    unsigned int count = static_cast<unsigned int>(this->floatdata_size());
+    unsigned int count = static_cast<unsigned int>(this->_internal_floatdata_size());
     size_t data_size = 4UL * count;
     if (data_size > 0) {
       total_size += 1 +
@@ -1252,6 +994,10 @@ size_t QueryResponseFloatPayload::ByteSizeLong() const {
     total_size += data_size;
   }
 
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -1300,10 +1046,6 @@ bool QueryResponseFloatPayload::IsInitialized() const {
   return true;
 }
 
-void QueryResponseFloatPayload::Swap(QueryResponseFloatPayload* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void QueryResponseFloatPayload::InternalSwap(QueryResponseFloatPayload* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
@@ -1319,13 +1061,9 @@ void QueryResponseFloatPayload::InternalSwap(QueryResponseFloatPayload* other) {
 
 void QueryResponseDoublePayload::InitAsDefaultInstance() {
 }
-class QueryResponseDoublePayload::HasBitSetters {
+class QueryResponseDoublePayload::_Internal {
  public:
 };
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int QueryResponseDoublePayload::kDoubleDataFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 QueryResponseDoublePayload::QueryResponseDoublePayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
@@ -1370,7 +1108,6 @@ void QueryResponseDoublePayload::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 const char* QueryResponseDoublePayload::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
@@ -1381,10 +1118,10 @@ const char* QueryResponseDoublePayload::_InternalParse(const char* ptr, ::PROTOB
       // repeated double doubleData = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedDoubleParser(mutable_doubledata(), ptr, ctx);
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedDoubleParser(_internal_mutable_doubledata(), ptr, ctx);
           CHK_(ptr);
         } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 9) {
-          add_doubledata(::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr));
+          _internal_add_doubledata(::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr));
           ptr += sizeof(double);
         } else goto handle_unusual;
         continue;
@@ -1407,98 +1144,21 @@ failure:
   goto success;
 #undef CHK_
 }
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-bool QueryResponseDoublePayload::MergePartialFromCodedStream(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-  // @@protoc_insertion_point(parse_start:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
-  for (;;) {
-    ::std::pair<::PROTOBUF_NAMESPACE_ID::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated double doubleData = 1;
-      case 1: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (10 & 0xFF)) {
-          DO_((::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadPackedPrimitive<
-                   double, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_DOUBLE>(
-                 input, this->mutable_doubledata())));
-        } else if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (9 & 0xFF)) {
-          DO_((::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
-                   double, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_DOUBLE>(
-                 1, 10u, input, this->mutable_doubledata())));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
-  return false;
-#undef DO_
-}
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-
-void QueryResponseDoublePayload::SerializeWithCachedSizes(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // repeated double doubleData = 1;
-  if (this->doubledata_size() > 0) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteTag(1, ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
-    output->WriteVarint32(_doubledata_cached_byte_size_.load(
-        std::memory_order_relaxed));
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleArray(
-      this->doubledata().data(), this->doubledata_size(), output);
-  }
-
-  if (_internal_metadata_.have_unknown_fields()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
-}
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseDoublePayload::InternalSerializeWithCachedSizesToArray(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target) const {
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // repeated double doubleData = 1;
-  if (this->doubledata_size() > 0) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteTagToArray(
-      1,
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
-      target);
-    target = ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream::WriteVarint32ToArray(
-        _doubledata_cached_byte_size_.load(std::memory_order_relaxed),
-         target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      WriteDoubleNoTagToArray(this->doubledata_, target);
+  if (this->_internal_doubledata_size() > 0) {
+    target = stream->WriteFixedPacked(1, _internal_doubledata(), target);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
   return target;
@@ -1508,18 +1168,13 @@ size_t QueryResponseDoublePayload::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // repeated double doubleData = 1;
   {
-    unsigned int count = static_cast<unsigned int>(this->doubledata_size());
+    unsigned int count = static_cast<unsigned int>(this->_internal_doubledata_size());
     size_t data_size = 8UL * count;
     if (data_size > 0) {
       total_size += 1 +
@@ -1532,6 +1187,10 @@ size_t QueryResponseDoublePayload::ByteSizeLong() const {
     total_size += data_size;
   }
 
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -1580,10 +1239,6 @@ bool QueryResponseDoublePayload::IsInitialized() const {
   return true;
 }
 
-void QueryResponseDoublePayload::Swap(QueryResponseDoublePayload* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void QueryResponseDoublePayload::InternalSwap(QueryResponseDoublePayload* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
@@ -1599,17 +1254,13 @@ void QueryResponseDoublePayload::InternalSwap(QueryResponseDoublePayload* other)
 
 void QueryResponsePolygonPayload::InitAsDefaultInstance() {
 }
-class QueryResponsePolygonPayload::HasBitSetters {
+class QueryResponsePolygonPayload::_Internal {
  public:
 };
 
 void QueryResponsePolygonPayload::clear_polygondata() {
   polygondata_.Clear();
 }
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int QueryResponsePolygonPayload::kPolygonDataFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-
 QueryResponsePolygonPayload::QueryResponsePolygonPayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
@@ -1654,7 +1305,6 @@ void QueryResponsePolygonPayload::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 const char* QueryResponsePolygonPayload::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
@@ -1668,10 +1318,10 @@ const char* QueryResponsePolygonPayload::_InternalParse(const char* ptr, ::PROTO
           ptr -= 1;
           do {
             ptr += 1;
-            ptr = ctx->ParseMessage(add_polygondata(), ptr);
+            ptr = ctx->ParseMessage(_internal_add_polygondata(), ptr);
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint8>(ptr) == 10);
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
         } else goto handle_unusual;
         continue;
       default: {
@@ -1693,88 +1343,24 @@ failure:
   goto success;
 #undef CHK_
 }
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-bool QueryResponsePolygonPayload::MergePartialFromCodedStream(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-  // @@protoc_insertion_point(parse_start:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
-  for (;;) {
-    ::std::pair<::PROTOBUF_NAMESPACE_ID::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated .ColmnarDB.Types.ComplexPolygon polygonData = 1;
-      case 1: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (10 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessage(
-                input, add_polygondata()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
-  return false;
-#undef DO_
-}
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-
-void QueryResponsePolygonPayload::SerializeWithCachedSizes(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // repeated .ColmnarDB.Types.ComplexPolygon polygonData = 1;
-  for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->polygondata_size()); i < n; i++) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(
-      1,
-      this->polygondata(static_cast<int>(i)),
-      output);
-  }
-
-  if (_internal_metadata_.have_unknown_fields()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
-}
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponsePolygonPayload::InternalSerializeWithCachedSizesToArray(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target) const {
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // repeated .ColmnarDB.Types.ComplexPolygon polygonData = 1;
   for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->polygondata_size()); i < n; i++) {
+      n = static_cast<unsigned int>(this->_internal_polygondata_size()); i < n; i++) {
+    stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessageToArray(
-        1, this->polygondata(static_cast<int>(i)), target);
+      InternalWriteMessageToArray(1, this->_internal_polygondata(i), target, stream);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
   return target;
@@ -1784,26 +1370,21 @@ size_t QueryResponsePolygonPayload::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // repeated .ColmnarDB.Types.ComplexPolygon polygonData = 1;
-  {
-    unsigned int count = static_cast<unsigned int>(this->polygondata_size());
-    total_size += 1UL * count;
-    for (unsigned int i = 0; i < count; i++) {
-      total_size +=
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-          this->polygondata(static_cast<int>(i)));
-    }
+  total_size += 1UL * this->_internal_polygondata_size();
+  for (const auto& msg : this->polygondata_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
 
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -1852,14 +1433,10 @@ bool QueryResponsePolygonPayload::IsInitialized() const {
   return true;
 }
 
-void QueryResponsePolygonPayload::Swap(QueryResponsePolygonPayload* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void QueryResponsePolygonPayload::InternalSwap(QueryResponsePolygonPayload* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  CastToBase(&polygondata_)->InternalSwap(CastToBase(&other->polygondata_));
+  polygondata_.InternalSwap(&other->polygondata_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata QueryResponsePolygonPayload::GetMetadata() const {
@@ -1871,17 +1448,13 @@ void QueryResponsePolygonPayload::InternalSwap(QueryResponsePolygonPayload* othe
 
 void QueryResponsePointPayload::InitAsDefaultInstance() {
 }
-class QueryResponsePointPayload::HasBitSetters {
+class QueryResponsePointPayload::_Internal {
  public:
 };
 
 void QueryResponsePointPayload::clear_pointdata() {
   pointdata_.Clear();
 }
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int QueryResponsePointPayload::kPointDataFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-
 QueryResponsePointPayload::QueryResponsePointPayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
@@ -1926,7 +1499,6 @@ void QueryResponsePointPayload::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 const char* QueryResponsePointPayload::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
@@ -1940,10 +1512,10 @@ const char* QueryResponsePointPayload::_InternalParse(const char* ptr, ::PROTOBU
           ptr -= 1;
           do {
             ptr += 1;
-            ptr = ctx->ParseMessage(add_pointdata(), ptr);
+            ptr = ctx->ParseMessage(_internal_add_pointdata(), ptr);
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint8>(ptr) == 10);
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
         } else goto handle_unusual;
         continue;
       default: {
@@ -1965,88 +1537,24 @@ failure:
   goto success;
 #undef CHK_
 }
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-bool QueryResponsePointPayload::MergePartialFromCodedStream(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-  // @@protoc_insertion_point(parse_start:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
-  for (;;) {
-    ::std::pair<::PROTOBUF_NAMESPACE_ID::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated .ColmnarDB.Types.Point pointData = 1;
-      case 1: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (10 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessage(
-                input, add_pointdata()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
-  return false;
-#undef DO_
-}
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-
-void QueryResponsePointPayload::SerializeWithCachedSizes(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // repeated .ColmnarDB.Types.Point pointData = 1;
-  for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->pointdata_size()); i < n; i++) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(
-      1,
-      this->pointdata(static_cast<int>(i)),
-      output);
-  }
-
-  if (_internal_metadata_.have_unknown_fields()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
-}
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponsePointPayload::InternalSerializeWithCachedSizesToArray(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target) const {
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // repeated .ColmnarDB.Types.Point pointData = 1;
   for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->pointdata_size()); i < n; i++) {
+      n = static_cast<unsigned int>(this->_internal_pointdata_size()); i < n; i++) {
+    stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessageToArray(
-        1, this->pointdata(static_cast<int>(i)), target);
+      InternalWriteMessageToArray(1, this->_internal_pointdata(i), target, stream);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
   return target;
@@ -2056,26 +1564,21 @@ size_t QueryResponsePointPayload::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // repeated .ColmnarDB.Types.Point pointData = 1;
-  {
-    unsigned int count = static_cast<unsigned int>(this->pointdata_size());
-    total_size += 1UL * count;
-    for (unsigned int i = 0; i < count; i++) {
-      total_size +=
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-          this->pointdata(static_cast<int>(i)));
-    }
+  total_size += 1UL * this->_internal_pointdata_size();
+  for (const auto& msg : this->pointdata_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
 
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -2124,14 +1627,10 @@ bool QueryResponsePointPayload::IsInitialized() const {
   return true;
 }
 
-void QueryResponsePointPayload::Swap(QueryResponsePointPayload* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void QueryResponsePointPayload::InternalSwap(QueryResponsePointPayload* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  CastToBase(&pointdata_)->InternalSwap(CastToBase(&other->pointdata_));
+  pointdata_.InternalSwap(&other->pointdata_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata QueryResponsePointPayload::GetMetadata() const {
@@ -2143,13 +1642,9 @@ void QueryResponsePointPayload::InternalSwap(QueryResponsePointPayload* other) {
 
 void QueryResponseStringPayload::InitAsDefaultInstance() {
 }
-class QueryResponseStringPayload::HasBitSetters {
+class QueryResponseStringPayload::_Internal {
  public:
 };
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int QueryResponseStringPayload::kStringDataFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 QueryResponseStringPayload::QueryResponseStringPayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
@@ -2195,7 +1690,6 @@ void QueryResponseStringPayload::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 const char* QueryResponseStringPayload::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
@@ -2209,10 +1703,10 @@ const char* QueryResponseStringPayload::_InternalParse(const char* ptr, ::PROTOB
           ptr -= 1;
           do {
             ptr += 1;
-            ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(add_stringdata(), ptr, ctx, "ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.stringData");
+            ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_add_stringdata(), ptr, ctx, "ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.stringData");
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint8>(ptr) == 10);
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
         } else goto handle_unusual;
         continue;
       default: {
@@ -2234,96 +1728,26 @@ failure:
   goto success;
 #undef CHK_
 }
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-bool QueryResponseStringPayload::MergePartialFromCodedStream(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-  // @@protoc_insertion_point(parse_start:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
-  for (;;) {
-    ::std::pair<::PROTOBUF_NAMESPACE_ID::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated string stringData = 1;
-      case 1: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (10 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadString(
-                input, this->add_stringdata()));
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-            this->stringdata(this->stringdata_size() - 1).data(),
-            static_cast<int>(this->stringdata(this->stringdata_size() - 1).length()),
-            ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
-            "ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.stringData"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
-  return false;
-#undef DO_
-}
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-
-void QueryResponseStringPayload::SerializeWithCachedSizes(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // repeated string stringData = 1;
-  for (int i = 0, n = this->stringdata_size(); i < n; i++) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->stringdata(i).data(), static_cast<int>(this->stringdata(i).length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.stringData");
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteString(
-      1, this->stringdata(i), output);
-  }
-
-  if (_internal_metadata_.have_unknown_fields()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
-}
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseStringPayload::InternalSerializeWithCachedSizesToArray(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target) const {
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // repeated string stringData = 1;
-  for (int i = 0, n = this->stringdata_size(); i < n; i++) {
+  for (int i = 0, n = this->_internal_stringdata_size(); i < n; i++) {
+    const auto& s = this->_internal_stringdata(i);
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->stringdata(i).data(), static_cast<int>(this->stringdata(i).length()),
+      s.data(), static_cast<int>(s.length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
       "ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.stringData");
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      WriteStringToArray(1, this->stringdata(i), target);
+    target = stream->WriteString(1, s, target);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
   return target;
@@ -2333,23 +1757,22 @@ size_t QueryResponseStringPayload::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // repeated string stringData = 1;
   total_size += 1 *
-      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->stringdata_size());
-  for (int i = 0, n = this->stringdata_size(); i < n; i++) {
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(stringdata_.size());
+  for (int i = 0, n = stringdata_.size(); i < n; i++) {
     total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-      this->stringdata(i));
+      stringdata_.Get(i));
   }
 
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -2398,14 +1821,10 @@ bool QueryResponseStringPayload::IsInitialized() const {
   return true;
 }
 
-void QueryResponseStringPayload::Swap(QueryResponseStringPayload* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void QueryResponseStringPayload::InternalSwap(QueryResponseStringPayload* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
-  stringdata_.InternalSwap(CastToBase(&other->stringdata_));
+  stringdata_.InternalSwap(&other->stringdata_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata QueryResponseStringPayload::GetMetadata() const {
@@ -2431,7 +1850,7 @@ void QueryResponsePayload::InitAsDefaultInstance() {
   ::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.stringpayload_ = const_cast< ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload*>(
       ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::internal_default_instance());
 }
-class QueryResponsePayload::HasBitSetters {
+class QueryResponsePayload::_Internal {
  public:
   static const ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload& intpayload(const QueryResponsePayload* msg);
   static const ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload& floatpayload(const QueryResponsePayload* msg);
@@ -2443,31 +1862,31 @@ class QueryResponsePayload::HasBitSetters {
 };
 
 const ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload&
-QueryResponsePayload::HasBitSetters::intpayload(const QueryResponsePayload* msg) {
+QueryResponsePayload::_Internal::intpayload(const QueryResponsePayload* msg) {
   return *msg->payload_.intpayload_;
 }
 const ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload&
-QueryResponsePayload::HasBitSetters::floatpayload(const QueryResponsePayload* msg) {
+QueryResponsePayload::_Internal::floatpayload(const QueryResponsePayload* msg) {
   return *msg->payload_.floatpayload_;
 }
 const ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload&
-QueryResponsePayload::HasBitSetters::int64payload(const QueryResponsePayload* msg) {
+QueryResponsePayload::_Internal::int64payload(const QueryResponsePayload* msg) {
   return *msg->payload_.int64payload_;
 }
 const ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload&
-QueryResponsePayload::HasBitSetters::doublepayload(const QueryResponsePayload* msg) {
+QueryResponsePayload::_Internal::doublepayload(const QueryResponsePayload* msg) {
   return *msg->payload_.doublepayload_;
 }
 const ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload&
-QueryResponsePayload::HasBitSetters::pointpayload(const QueryResponsePayload* msg) {
+QueryResponsePayload::_Internal::pointpayload(const QueryResponsePayload* msg) {
   return *msg->payload_.pointpayload_;
 }
 const ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload&
-QueryResponsePayload::HasBitSetters::polygonpayload(const QueryResponsePayload* msg) {
+QueryResponsePayload::_Internal::polygonpayload(const QueryResponsePayload* msg) {
   return *msg->payload_.polygonpayload_;
 }
 const ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload&
-QueryResponsePayload::HasBitSetters::stringpayload(const QueryResponsePayload* msg) {
+QueryResponsePayload::_Internal::stringpayload(const QueryResponsePayload* msg) {
   return *msg->payload_.stringpayload_;
 }
 void QueryResponsePayload::set_allocated_intpayload(::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload* intpayload) {
@@ -2568,16 +1987,6 @@ void QueryResponsePayload::set_allocated_stringpayload(::ColmnarDB::NetworkClien
   }
   // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryResponsePayload.stringPayload)
 }
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int QueryResponsePayload::kIntPayloadFieldNumber;
-const int QueryResponsePayload::kFloatPayloadFieldNumber;
-const int QueryResponsePayload::kInt64PayloadFieldNumber;
-const int QueryResponsePayload::kDoublePayloadFieldNumber;
-const int QueryResponsePayload::kPointPayloadFieldNumber;
-const int QueryResponsePayload::kPolygonPayloadFieldNumber;
-const int QueryResponsePayload::kStringPayloadFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-
 QueryResponsePayload::QueryResponsePayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
@@ -2590,31 +1999,31 @@ QueryResponsePayload::QueryResponsePayload(const QueryResponsePayload& from)
   clear_has_payload();
   switch (from.payload_case()) {
     case kIntPayload: {
-      mutable_intpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload::MergeFrom(from.intpayload());
+      _internal_mutable_intpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload::MergeFrom(from._internal_intpayload());
       break;
     }
     case kFloatPayload: {
-      mutable_floatpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload::MergeFrom(from.floatpayload());
+      _internal_mutable_floatpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload::MergeFrom(from._internal_floatpayload());
       break;
     }
     case kInt64Payload: {
-      mutable_int64payload()->::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload::MergeFrom(from.int64payload());
+      _internal_mutable_int64payload()->::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload::MergeFrom(from._internal_int64payload());
       break;
     }
     case kDoublePayload: {
-      mutable_doublepayload()->::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload::MergeFrom(from.doublepayload());
+      _internal_mutable_doublepayload()->::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload::MergeFrom(from._internal_doublepayload());
       break;
     }
     case kPointPayload: {
-      mutable_pointpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload::MergeFrom(from.pointpayload());
+      _internal_mutable_pointpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload::MergeFrom(from._internal_pointpayload());
       break;
     }
     case kPolygonPayload: {
-      mutable_polygonpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload::MergeFrom(from.polygonpayload());
+      _internal_mutable_polygonpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload::MergeFrom(from._internal_polygonpayload());
       break;
     }
     case kStringPayload: {
-      mutable_stringpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::MergeFrom(from.stringpayload());
+      _internal_mutable_stringpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::MergeFrom(from._internal_stringpayload());
       break;
     }
     case PAYLOAD_NOT_SET: {
@@ -2698,7 +2107,6 @@ void QueryResponsePayload::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 const char* QueryResponsePayload::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
@@ -2709,49 +2117,49 @@ const char* QueryResponsePayload::_InternalParse(const char* ptr, ::PROTOBUF_NAM
       // .ColmnarDB.NetworkClient.Message.QueryResponseIntPayload intPayload = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
-          ptr = ctx->ParseMessage(mutable_intpayload(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_intpayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // .ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload floatPayload = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
-          ptr = ctx->ParseMessage(mutable_floatpayload(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_floatpayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // .ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload int64Payload = 4;
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 34)) {
-          ptr = ctx->ParseMessage(mutable_int64payload(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_int64payload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // .ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload doublePayload = 5;
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 42)) {
-          ptr = ctx->ParseMessage(mutable_doublepayload(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_doublepayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // .ColmnarDB.NetworkClient.Message.QueryResponsePointPayload pointPayload = 6;
       case 6:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 50)) {
-          ptr = ctx->ParseMessage(mutable_pointpayload(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_pointpayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // .ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload polygonPayload = 7;
       case 7:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 58)) {
-          ptr = ctx->ParseMessage(mutable_polygonpayload(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_polygonpayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // .ColmnarDB.NetworkClient.Message.QueryResponseStringPayload stringPayload = 8;
       case 8:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 66)) {
-          ptr = ctx->ParseMessage(mutable_stringpayload(), ptr);
+          ptr = ctx->ParseMessage(_internal_mutable_stringpayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -2774,228 +2182,72 @@ failure:
   goto success;
 #undef CHK_
 }
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-bool QueryResponsePayload::MergePartialFromCodedStream(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-  // @@protoc_insertion_point(parse_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
-  for (;;) {
-    ::std::pair<::PROTOBUF_NAMESPACE_ID::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // .ColmnarDB.NetworkClient.Message.QueryResponseIntPayload intPayload = 2;
-      case 2: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (18 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessage(
-               input, mutable_intpayload()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // .ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload floatPayload = 3;
-      case 3: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (26 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessage(
-               input, mutable_floatpayload()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // .ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload int64Payload = 4;
-      case 4: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (34 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessage(
-               input, mutable_int64payload()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // .ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload doublePayload = 5;
-      case 5: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (42 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessage(
-               input, mutable_doublepayload()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // .ColmnarDB.NetworkClient.Message.QueryResponsePointPayload pointPayload = 6;
-      case 6: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (50 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessage(
-               input, mutable_pointpayload()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // .ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload polygonPayload = 7;
-      case 7: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (58 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessage(
-               input, mutable_polygonpayload()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // .ColmnarDB.NetworkClient.Message.QueryResponseStringPayload stringPayload = 8;
-      case 8: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (66 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessage(
-               input, mutable_stringpayload()));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
-  return false;
-#undef DO_
-}
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-
-void QueryResponsePayload::SerializeWithCachedSizes(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // .ColmnarDB.NetworkClient.Message.QueryResponseIntPayload intPayload = 2;
-  if (has_intpayload()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(
-      2, HasBitSetters::intpayload(this), output);
-  }
-
-  // .ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload floatPayload = 3;
-  if (has_floatpayload()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(
-      3, HasBitSetters::floatpayload(this), output);
-  }
-
-  // .ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload int64Payload = 4;
-  if (has_int64payload()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(
-      4, HasBitSetters::int64payload(this), output);
-  }
-
-  // .ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload doublePayload = 5;
-  if (has_doublepayload()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(
-      5, HasBitSetters::doublepayload(this), output);
-  }
-
-  // .ColmnarDB.NetworkClient.Message.QueryResponsePointPayload pointPayload = 6;
-  if (has_pointpayload()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(
-      6, HasBitSetters::pointpayload(this), output);
-  }
-
-  // .ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload polygonPayload = 7;
-  if (has_polygonpayload()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(
-      7, HasBitSetters::polygonpayload(this), output);
-  }
-
-  // .ColmnarDB.NetworkClient.Message.QueryResponseStringPayload stringPayload = 8;
-  if (has_stringpayload()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(
-      8, HasBitSetters::stringpayload(this), output);
-  }
-
-  if (_internal_metadata_.have_unknown_fields()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
-}
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponsePayload::InternalSerializeWithCachedSizesToArray(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target) const {
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // .ColmnarDB.NetworkClient.Message.QueryResponseIntPayload intPayload = 2;
-  if (has_intpayload()) {
+  if (_internal_has_intpayload()) {
+    stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        2, HasBitSetters::intpayload(this), target);
+        2, _Internal::intpayload(this), target, stream);
   }
 
   // .ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload floatPayload = 3;
-  if (has_floatpayload()) {
+  if (_internal_has_floatpayload()) {
+    stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        3, HasBitSetters::floatpayload(this), target);
+        3, _Internal::floatpayload(this), target, stream);
   }
 
   // .ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload int64Payload = 4;
-  if (has_int64payload()) {
+  if (_internal_has_int64payload()) {
+    stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        4, HasBitSetters::int64payload(this), target);
+        4, _Internal::int64payload(this), target, stream);
   }
 
   // .ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload doublePayload = 5;
-  if (has_doublepayload()) {
+  if (_internal_has_doublepayload()) {
+    stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        5, HasBitSetters::doublepayload(this), target);
+        5, _Internal::doublepayload(this), target, stream);
   }
 
   // .ColmnarDB.NetworkClient.Message.QueryResponsePointPayload pointPayload = 6;
-  if (has_pointpayload()) {
+  if (_internal_has_pointpayload()) {
+    stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        6, HasBitSetters::pointpayload(this), target);
+        6, _Internal::pointpayload(this), target, stream);
   }
 
   // .ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload polygonPayload = 7;
-  if (has_polygonpayload()) {
+  if (_internal_has_polygonpayload()) {
+    stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        7, HasBitSetters::polygonpayload(this), target);
+        7, _Internal::polygonpayload(this), target, stream);
   }
 
   // .ColmnarDB.NetworkClient.Message.QueryResponseStringPayload stringPayload = 8;
-  if (has_stringpayload()) {
+  if (_internal_has_stringpayload()) {
+    stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        8, HasBitSetters::stringpayload(this), target);
+        8, _Internal::stringpayload(this), target, stream);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
   return target;
@@ -3005,11 +2257,6 @@ size_t QueryResponsePayload::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -3068,6 +2315,10 @@ size_t QueryResponsePayload::ByteSizeLong() const {
       break;
     }
   }
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -3097,31 +2348,31 @@ void QueryResponsePayload::MergeFrom(const QueryResponsePayload& from) {
 
   switch (from.payload_case()) {
     case kIntPayload: {
-      mutable_intpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload::MergeFrom(from.intpayload());
+      _internal_mutable_intpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload::MergeFrom(from._internal_intpayload());
       break;
     }
     case kFloatPayload: {
-      mutable_floatpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload::MergeFrom(from.floatpayload());
+      _internal_mutable_floatpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload::MergeFrom(from._internal_floatpayload());
       break;
     }
     case kInt64Payload: {
-      mutable_int64payload()->::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload::MergeFrom(from.int64payload());
+      _internal_mutable_int64payload()->::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload::MergeFrom(from._internal_int64payload());
       break;
     }
     case kDoublePayload: {
-      mutable_doublepayload()->::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload::MergeFrom(from.doublepayload());
+      _internal_mutable_doublepayload()->::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload::MergeFrom(from._internal_doublepayload());
       break;
     }
     case kPointPayload: {
-      mutable_pointpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload::MergeFrom(from.pointpayload());
+      _internal_mutable_pointpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload::MergeFrom(from._internal_pointpayload());
       break;
     }
     case kPolygonPayload: {
-      mutable_polygonpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload::MergeFrom(from.polygonpayload());
+      _internal_mutable_polygonpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload::MergeFrom(from._internal_polygonpayload());
       break;
     }
     case kStringPayload: {
-      mutable_stringpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::MergeFrom(from.stringpayload());
+      _internal_mutable_stringpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::MergeFrom(from._internal_stringpayload());
       break;
     }
     case PAYLOAD_NOT_SET: {
@@ -3148,10 +2399,6 @@ bool QueryResponsePayload::IsInitialized() const {
   return true;
 }
 
-void QueryResponsePayload::Swap(QueryResponsePayload* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void QueryResponsePayload::InternalSwap(QueryResponsePayload* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
@@ -3219,16 +2466,9 @@ void QueryResponseMessage_TimingEntry_DoNotUse::MergeFrom(
 
 void QueryResponseMessage::InitAsDefaultInstance() {
 }
-class QueryResponseMessage::HasBitSetters {
+class QueryResponseMessage::_Internal {
  public:
 };
-
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int QueryResponseMessage::kPayloadsFieldNumber;
-const int QueryResponseMessage::kNullBitMasksFieldNumber;
-const int QueryResponseMessage::kTimingFieldNumber;
-const int QueryResponseMessage::kColumnOrderFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 QueryResponseMessage::QueryResponseMessage()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
@@ -3280,7 +2520,6 @@ void QueryResponseMessage::Clear() {
   _internal_metadata_.Clear();
 }
 
-#if GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
 const char* QueryResponseMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
@@ -3297,7 +2536,7 @@ const char* QueryResponseMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAM
             ptr = ctx->ParseMessage(&payloads_, ptr);
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint8>(ptr) == 10);
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
         } else goto handle_unusual;
         continue;
       // map<string, float> timing = 2;
@@ -3309,7 +2548,7 @@ const char* QueryResponseMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAM
             ptr = ctx->ParseMessage(&timing_, ptr);
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint8>(ptr) == 18);
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
         } else goto handle_unusual;
         continue;
       // map<string, bytes> nullBitMasks = 3;
@@ -3321,7 +2560,7 @@ const char* QueryResponseMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAM
             ptr = ctx->ParseMessage(&nullbitmasks_, ptr);
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint8>(ptr) == 26);
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<26>(ptr));
         } else goto handle_unusual;
         continue;
       // repeated string columnOrder = 4;
@@ -3330,10 +2569,10 @@ const char* QueryResponseMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAM
           ptr -= 1;
           do {
             ptr += 1;
-            ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(add_columnorder(), ptr, ctx, "ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder");
+            ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_add_columnorder(), ptr, ctx, "ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder");
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
-          } while (::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<::PROTOBUF_NAMESPACE_ID::uint8>(ptr) == 34);
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<34>(ptr));
         } else goto handle_unusual;
         continue;
       default: {
@@ -3355,280 +2594,15 @@ failure:
   goto success;
 #undef CHK_
 }
-#else  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-bool QueryResponseMessage::MergePartialFromCodedStream(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!PROTOBUF_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-  // @@protoc_insertion_point(parse_start:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
-  for (;;) {
-    ::std::pair<::PROTOBUF_NAMESPACE_ID::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // map<string, .ColmnarDB.NetworkClient.Message.QueryResponsePayload> payloads = 1;
-      case 1: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (10 & 0xFF)) {
-          QueryResponseMessage_PayloadsEntry_DoNotUse::Parser< ::PROTOBUF_NAMESPACE_ID::internal::MapField<
-              QueryResponseMessage_PayloadsEntry_DoNotUse,
-              std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload,
-              ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-              ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_MESSAGE,
-              0 >,
-            ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload > > parser(&payloads_);
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessageNoVirtual(
-              input, &parser));
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-            parser.key().data(), static_cast<int>(parser.key().length()),
-            ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
-            "ColmnarDB.NetworkClient.Message.QueryResponseMessage.PayloadsEntry.key"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // map<string, float> timing = 2;
-      case 2: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (18 & 0xFF)) {
-          QueryResponseMessage_TimingEntry_DoNotUse::Parser< ::PROTOBUF_NAMESPACE_ID::internal::MapField<
-              QueryResponseMessage_TimingEntry_DoNotUse,
-              std::string, float,
-              ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-              ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_FLOAT,
-              0 >,
-            ::PROTOBUF_NAMESPACE_ID::Map< std::string, float > > parser(&timing_);
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessageNoVirtual(
-              input, &parser));
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-            parser.key().data(), static_cast<int>(parser.key().length()),
-            ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
-            "ColmnarDB.NetworkClient.Message.QueryResponseMessage.TimingEntry.key"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // map<string, bytes> nullBitMasks = 3;
-      case 3: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (26 & 0xFF)) {
-          QueryResponseMessage_NullBitMasksEntry_DoNotUse::Parser< ::PROTOBUF_NAMESPACE_ID::internal::MapField<
-              QueryResponseMessage_NullBitMasksEntry_DoNotUse,
-              std::string, std::string,
-              ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-              ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_BYTES,
-              0 >,
-            ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string > > parser(&nullbitmasks_);
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadMessageNoVirtual(
-              input, &parser));
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-            parser.key().data(), static_cast<int>(parser.key().length()),
-            ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
-            "ColmnarDB.NetworkClient.Message.QueryResponseMessage.NullBitMasksEntry.key"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // repeated string columnOrder = 4;
-      case 4: {
-        if (static_cast< ::PROTOBUF_NAMESPACE_ID::uint8>(tag) == (34 & 0xFF)) {
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::ReadString(
-                input, this->add_columnorder()));
-          DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-            this->columnorder(this->columnorder_size() - 1).data(),
-            static_cast<int>(this->columnorder(this->columnorder_size() - 1).length()),
-            ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE,
-            "ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
-  return false;
-#undef DO_
-}
-#endif  // GOOGLE_PROTOBUF_ENABLE_EXPERIMENTAL_PARSER
-
-void QueryResponseMessage::SerializeWithCachedSizes(
-    ::PROTOBUF_NAMESPACE_ID::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // map<string, .ColmnarDB.NetworkClient.Message.QueryResponsePayload> payloads = 1;
-  if (!this->payloads().empty()) {
-    typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::const_pointer
-        ConstPtr;
-    typedef ConstPtr SortItem;
-    typedef ::PROTOBUF_NAMESPACE_ID::internal::CompareByDerefFirst<SortItem> Less;
-    struct Utf8Check {
-      static void Check(ConstPtr p) {
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-          p->first.data(), static_cast<int>(p->first.length()),
-          ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-          "ColmnarDB.NetworkClient.Message.QueryResponseMessage.PayloadsEntry.key");
-      }
-    };
-
-    if (output->IsSerializationDeterministic() &&
-        this->payloads().size() > 1) {
-      ::std::unique_ptr<SortItem[]> items(
-          new SortItem[this->payloads().size()]);
-      typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::size_type size_type;
-      size_type n = 0;
-      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::const_iterator
-          it = this->payloads().begin();
-          it != this->payloads().end(); ++it, ++n) {
-        items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
-      }
-      ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
-      for (size_type i = 0; i < n; i++) {
-        QueryResponseMessage_PayloadsEntry_DoNotUse::MapEntryWrapper entry(nullptr, items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second);
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(1, entry, output);
-        Utf8Check::Check(&(*items[static_cast<ptrdiff_t>(i)]));
-      }
-    } else {
-      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::const_iterator
-          it = this->payloads().begin();
-          it != this->payloads().end(); ++it) {
-        QueryResponseMessage_PayloadsEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(1, entry, output);
-        Utf8Check::Check(&(*it));
-      }
-    }
-  }
-
-  // map<string, float> timing = 2;
-  if (!this->timing().empty()) {
-    typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, float >::const_pointer
-        ConstPtr;
-    typedef ConstPtr SortItem;
-    typedef ::PROTOBUF_NAMESPACE_ID::internal::CompareByDerefFirst<SortItem> Less;
-    struct Utf8Check {
-      static void Check(ConstPtr p) {
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-          p->first.data(), static_cast<int>(p->first.length()),
-          ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-          "ColmnarDB.NetworkClient.Message.QueryResponseMessage.TimingEntry.key");
-      }
-    };
-
-    if (output->IsSerializationDeterministic() &&
-        this->timing().size() > 1) {
-      ::std::unique_ptr<SortItem[]> items(
-          new SortItem[this->timing().size()]);
-      typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, float >::size_type size_type;
-      size_type n = 0;
-      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, float >::const_iterator
-          it = this->timing().begin();
-          it != this->timing().end(); ++it, ++n) {
-        items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
-      }
-      ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
-      for (size_type i = 0; i < n; i++) {
-        QueryResponseMessage_TimingEntry_DoNotUse::MapEntryWrapper entry(nullptr, items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second);
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(2, entry, output);
-        Utf8Check::Check(&(*items[static_cast<ptrdiff_t>(i)]));
-      }
-    } else {
-      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, float >::const_iterator
-          it = this->timing().begin();
-          it != this->timing().end(); ++it) {
-        QueryResponseMessage_TimingEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(2, entry, output);
-        Utf8Check::Check(&(*it));
-      }
-    }
-  }
-
-  // map<string, bytes> nullBitMasks = 3;
-  if (!this->nullbitmasks().empty()) {
-    typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_pointer
-        ConstPtr;
-    typedef ConstPtr SortItem;
-    typedef ::PROTOBUF_NAMESPACE_ID::internal::CompareByDerefFirst<SortItem> Less;
-    struct Utf8Check {
-      static void Check(ConstPtr p) {
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-          p->first.data(), static_cast<int>(p->first.length()),
-          ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-          "ColmnarDB.NetworkClient.Message.QueryResponseMessage.NullBitMasksEntry.key");
-      }
-    };
-
-    if (output->IsSerializationDeterministic() &&
-        this->nullbitmasks().size() > 1) {
-      ::std::unique_ptr<SortItem[]> items(
-          new SortItem[this->nullbitmasks().size()]);
-      typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::size_type size_type;
-      size_type n = 0;
-      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
-          it = this->nullbitmasks().begin();
-          it != this->nullbitmasks().end(); ++it, ++n) {
-        items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
-      }
-      ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
-      for (size_type i = 0; i < n; i++) {
-        QueryResponseMessage_NullBitMasksEntry_DoNotUse::MapEntryWrapper entry(nullptr, items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second);
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(3, entry, output);
-        Utf8Check::Check(&(*items[static_cast<ptrdiff_t>(i)]));
-      }
-    } else {
-      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
-          it = this->nullbitmasks().begin();
-          it != this->nullbitmasks().end(); ++it) {
-        QueryResponseMessage_NullBitMasksEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteMessageMaybeToArray(3, entry, output);
-        Utf8Check::Check(&(*it));
-      }
-    }
-  }
-
-  // repeated string columnOrder = 4;
-  for (int i = 0, n = this->columnorder_size(); i < n; i++) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->columnorder(i).data(), static_cast<int>(this->columnorder(i).length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder");
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteString(
-      4, this->columnorder(i), output);
-  }
-
-  if (_internal_metadata_.have_unknown_fields()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFields(
-        _internal_metadata_.unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
-}
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseMessage::InternalSerializeWithCachedSizesToArray(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target) const {
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // map<string, .ColmnarDB.NetworkClient.Message.QueryResponsePayload> payloads = 1;
-  if (!this->payloads().empty()) {
+  if (!this->_internal_payloads().empty()) {
     typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::const_pointer
         ConstPtr;
     typedef ConstPtr SortItem;
@@ -3642,36 +2616,34 @@ void QueryResponseMessage::SerializeWithCachedSizes(
       }
     };
 
-    if (false &&
-        this->payloads().size() > 1) {
+    if (stream->IsSerializationDeterministic() &&
+        this->_internal_payloads().size() > 1) {
       ::std::unique_ptr<SortItem[]> items(
-          new SortItem[this->payloads().size()]);
+          new SortItem[this->_internal_payloads().size()]);
       typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::size_type size_type;
       size_type n = 0;
       for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::const_iterator
-          it = this->payloads().begin();
-          it != this->payloads().end(); ++it, ++n) {
+          it = this->_internal_payloads().begin();
+          it != this->_internal_payloads().end(); ++it, ++n) {
         items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
       }
       ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
       for (size_type i = 0; i < n; i++) {
-        QueryResponseMessage_PayloadsEntry_DoNotUse::MapEntryWrapper entry(nullptr, items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second);
-        target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::InternalWriteMessageNoVirtualToArray(1, entry, target);
+        target = QueryResponseMessage_PayloadsEntry_DoNotUse::Funcs::InternalSerialize(1, items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second, target, stream);
         Utf8Check::Check(&(*items[static_cast<ptrdiff_t>(i)]));
       }
     } else {
       for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::const_iterator
-          it = this->payloads().begin();
-          it != this->payloads().end(); ++it) {
-        QueryResponseMessage_PayloadsEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
-        target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::InternalWriteMessageNoVirtualToArray(1, entry, target);
+          it = this->_internal_payloads().begin();
+          it != this->_internal_payloads().end(); ++it) {
+        target = QueryResponseMessage_PayloadsEntry_DoNotUse::Funcs::InternalSerialize(1, it->first, it->second, target, stream);
         Utf8Check::Check(&(*it));
       }
     }
   }
 
   // map<string, float> timing = 2;
-  if (!this->timing().empty()) {
+  if (!this->_internal_timing().empty()) {
     typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, float >::const_pointer
         ConstPtr;
     typedef ConstPtr SortItem;
@@ -3685,36 +2657,34 @@ void QueryResponseMessage::SerializeWithCachedSizes(
       }
     };
 
-    if (false &&
-        this->timing().size() > 1) {
+    if (stream->IsSerializationDeterministic() &&
+        this->_internal_timing().size() > 1) {
       ::std::unique_ptr<SortItem[]> items(
-          new SortItem[this->timing().size()]);
+          new SortItem[this->_internal_timing().size()]);
       typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, float >::size_type size_type;
       size_type n = 0;
       for (::PROTOBUF_NAMESPACE_ID::Map< std::string, float >::const_iterator
-          it = this->timing().begin();
-          it != this->timing().end(); ++it, ++n) {
+          it = this->_internal_timing().begin();
+          it != this->_internal_timing().end(); ++it, ++n) {
         items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
       }
       ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
       for (size_type i = 0; i < n; i++) {
-        QueryResponseMessage_TimingEntry_DoNotUse::MapEntryWrapper entry(nullptr, items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second);
-        target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::InternalWriteMessageNoVirtualToArray(2, entry, target);
+        target = QueryResponseMessage_TimingEntry_DoNotUse::Funcs::InternalSerialize(2, items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second, target, stream);
         Utf8Check::Check(&(*items[static_cast<ptrdiff_t>(i)]));
       }
     } else {
       for (::PROTOBUF_NAMESPACE_ID::Map< std::string, float >::const_iterator
-          it = this->timing().begin();
-          it != this->timing().end(); ++it) {
-        QueryResponseMessage_TimingEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
-        target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::InternalWriteMessageNoVirtualToArray(2, entry, target);
+          it = this->_internal_timing().begin();
+          it != this->_internal_timing().end(); ++it) {
+        target = QueryResponseMessage_TimingEntry_DoNotUse::Funcs::InternalSerialize(2, it->first, it->second, target, stream);
         Utf8Check::Check(&(*it));
       }
     }
   }
 
   // map<string, bytes> nullBitMasks = 3;
-  if (!this->nullbitmasks().empty()) {
+  if (!this->_internal_nullbitmasks().empty()) {
     typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_pointer
         ConstPtr;
     typedef ConstPtr SortItem;
@@ -3728,47 +2698,45 @@ void QueryResponseMessage::SerializeWithCachedSizes(
       }
     };
 
-    if (false &&
-        this->nullbitmasks().size() > 1) {
+    if (stream->IsSerializationDeterministic() &&
+        this->_internal_nullbitmasks().size() > 1) {
       ::std::unique_ptr<SortItem[]> items(
-          new SortItem[this->nullbitmasks().size()]);
+          new SortItem[this->_internal_nullbitmasks().size()]);
       typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::size_type size_type;
       size_type n = 0;
       for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
-          it = this->nullbitmasks().begin();
-          it != this->nullbitmasks().end(); ++it, ++n) {
+          it = this->_internal_nullbitmasks().begin();
+          it != this->_internal_nullbitmasks().end(); ++it, ++n) {
         items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
       }
       ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
       for (size_type i = 0; i < n; i++) {
-        QueryResponseMessage_NullBitMasksEntry_DoNotUse::MapEntryWrapper entry(nullptr, items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second);
-        target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::InternalWriteMessageNoVirtualToArray(3, entry, target);
+        target = QueryResponseMessage_NullBitMasksEntry_DoNotUse::Funcs::InternalSerialize(3, items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second, target, stream);
         Utf8Check::Check(&(*items[static_cast<ptrdiff_t>(i)]));
       }
     } else {
       for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
-          it = this->nullbitmasks().begin();
-          it != this->nullbitmasks().end(); ++it) {
-        QueryResponseMessage_NullBitMasksEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
-        target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::InternalWriteMessageNoVirtualToArray(3, entry, target);
+          it = this->_internal_nullbitmasks().begin();
+          it != this->_internal_nullbitmasks().end(); ++it) {
+        target = QueryResponseMessage_NullBitMasksEntry_DoNotUse::Funcs::InternalSerialize(3, it->first, it->second, target, stream);
         Utf8Check::Check(&(*it));
       }
     }
   }
 
   // repeated string columnOrder = 4;
-  for (int i = 0, n = this->columnorder_size(); i < n; i++) {
+  for (int i = 0, n = this->_internal_columnorder_size(); i < n; i++) {
+    const auto& s = this->_internal_columnorder(i);
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->columnorder(i).data(), static_cast<int>(this->columnorder(i).length()),
+      s.data(), static_cast<int>(s.length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
       "ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder");
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      WriteStringToArray(4, this->columnorder(i), target);
+    target = stream->WriteString(4, s, target);
   }
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
   return target;
@@ -3778,56 +2746,49 @@ size_t QueryResponseMessage::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
   size_t total_size = 0;
 
-  if (_internal_metadata_.have_unknown_fields()) {
-    total_size +=
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::ComputeUnknownFieldsSize(
-        _internal_metadata_.unknown_fields());
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   // map<string, .ColmnarDB.NetworkClient.Message.QueryResponsePayload> payloads = 1;
   total_size += 1 *
-      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->payloads_size());
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_payloads_size());
   for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::const_iterator
-      it = this->payloads().begin();
-      it != this->payloads().end(); ++it) {
-    QueryResponseMessage_PayloadsEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
-    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-        MessageSizeNoVirtual(entry);
+      it = this->_internal_payloads().begin();
+      it != this->_internal_payloads().end(); ++it) {
+    total_size += QueryResponseMessage_PayloadsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
   }
 
   // map<string, float> timing = 2;
   total_size += 1 *
-      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->timing_size());
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_timing_size());
   for (::PROTOBUF_NAMESPACE_ID::Map< std::string, float >::const_iterator
-      it = this->timing().begin();
-      it != this->timing().end(); ++it) {
-    QueryResponseMessage_TimingEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
-    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-        MessageSizeNoVirtual(entry);
+      it = this->_internal_timing().begin();
+      it != this->_internal_timing().end(); ++it) {
+    total_size += QueryResponseMessage_TimingEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
   }
 
   // map<string, bytes> nullBitMasks = 3;
   total_size += 1 *
-      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->nullbitmasks_size());
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_nullbitmasks_size());
   for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
-      it = this->nullbitmasks().begin();
-      it != this->nullbitmasks().end(); ++it) {
-    QueryResponseMessage_NullBitMasksEntry_DoNotUse::MapEntryWrapper entry(nullptr, it->first, it->second);
-    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-        MessageSizeNoVirtual(entry);
+      it = this->_internal_nullbitmasks().begin();
+      it != this->_internal_nullbitmasks().end(); ++it) {
+    total_size += QueryResponseMessage_NullBitMasksEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
   }
 
   // repeated string columnOrder = 4;
   total_size += 1 *
-      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->columnorder_size());
-  for (int i = 0, n = this->columnorder_size(); i < n; i++) {
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(columnorder_.size());
+  for (int i = 0, n = columnorder_.size(); i < n; i++) {
     total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-      this->columnorder(i));
+      columnorder_.Get(i));
   }
 
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
   int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -3879,17 +2840,13 @@ bool QueryResponseMessage::IsInitialized() const {
   return true;
 }
 
-void QueryResponseMessage::Swap(QueryResponseMessage* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void QueryResponseMessage::InternalSwap(QueryResponseMessage* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
   payloads_.Swap(&other->payloads_);
   timing_.Swap(&other->timing_);
   nullbitmasks_.Swap(&other->nullbitmasks_);
-  columnorder_.InternalSwap(CastToBase(&other->columnorder_));
+  columnorder_.InternalSwap(&other->columnorder_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata QueryResponseMessage::GetMetadata() const {

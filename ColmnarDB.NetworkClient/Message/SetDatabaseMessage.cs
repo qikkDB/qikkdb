@@ -29,8 +29,8 @@ namespace ColmnarDB.NetworkClient.Message {
             "FAoMRGF0YWJhc2VOYW1lGAEgASgJYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.SetDatabaseMessage), global::ColmnarDB.NetworkClient.Message.SetDatabaseMessage.Parser, new[]{ "DatabaseName" }, null, null, null)
+          new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.SetDatabaseMessage), global::ColmnarDB.NetworkClient.Message.SetDatabaseMessage.Parser, new[]{ "DatabaseName" }, null, null, null, null)
           }));
     }
     #endregion
