@@ -988,7 +988,7 @@ namespace ColmnarDB.NetworkClient
                         Buffer.BlockCopy(dataBuffer, i, smallBuffer, 0, fragmentSize);
                         int nullBuffSize = ((elemCount) + sizeof(byte) * 8 - 1) / (sizeof(byte) * 8);
                         BulkImportMessage bulkImportMessage = new BulkImportMessage()
-                        { TableName = tableName, ElemCount = elemCount, ColumnName = column, ColumnType = columnType, NullMaskLen = nullMask != null ? nullBuffSize : 0 };
+                        { TableName = tableName, ElemCount = elemCount, ColumnName = column, ColumnType = columnType, NullMaskLen = nullMask != null ? nullBuffSize : 0, DataLength = fragmentSize };
                         NetworkMessage.WriteToNetwork(bulkImportMessage, _client.GetStream());
                         NetworkMessage.WriteRaw(_client.GetStream(), smallBuffer, fragmentSize);
                         if (bulkImportMessage.NullMaskLen != 0)

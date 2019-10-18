@@ -11,7 +11,7 @@ private:
     std::array<char, 4> lengthBuffer_;
     std::unique_ptr<char[]> serializedMessage_;
     int size_;
-    
+
 public:
     /// <summary>
     /// Write protobuffer message to the network.
@@ -35,7 +35,7 @@ public:
     void ReadRaw(boost::asio::ip::tcp::socket& socket,
                  char* dataBuffer,
                  int32_t elementCount,
-                 DataType dataType,
+                 int32_t dataSize,
                  std::function<void(char*, int32_t)> handler,
                  std::function<void()> abortHandler);
     void WriteRaw(boost::asio::ip::tcp::socket& socket,

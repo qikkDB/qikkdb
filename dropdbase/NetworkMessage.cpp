@@ -128,12 +128,11 @@ void NetworkMessage::WriteRaw(boost::asio::ip::tcp::socket& socket,
 void NetworkMessage::ReadRaw(boost::asio::ip::tcp::socket& socket,
                              char* dataBuffer,
                              int32_t elementCount,
-                             DataType dataType,
+                             int32_t dataSize,
                              std::function<void(char*, int32_t)> handler,
                              std::function<void()> abortHandler)
 {
-    int32_t elementSize = GetDataTypeSize(dataType);
-    int32_t totalSize = elementCount * elementSize;
+    int32_t totalSize = dataSize;
     std::string client = socket.remote_endpoint().address().to_string();
     boost::asio::async_read(socket, boost::asio::buffer(dataBuffer, totalSize),
                             [handler, dataBuffer, elementCount, client,
