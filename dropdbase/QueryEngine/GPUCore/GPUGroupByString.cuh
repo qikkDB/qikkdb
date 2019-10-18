@@ -54,7 +54,9 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
-    for (int32_t i = idx; i < dataElementCount; i += stride)
+    for (int32_t i = idx; i < dataElementCount &&
+                          *errorFlag != static_cast<int32_t>(QueryEngineErrorType::GPU_HASH_TABLE_FULL);
+         i += stride)
     {
         const int32_t bitMaskIdx = (i / (sizeof(int8_t) * 8));
         const int32_t shiftIdx = (i % (sizeof(int8_t) * 8));
