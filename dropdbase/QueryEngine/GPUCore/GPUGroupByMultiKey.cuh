@@ -323,7 +323,7 @@ private:
     int64_t* keyOccurrenceCount_ = nullptr;
 
     /// Size of the hash table (max. count of unique keys)
-    const int32_t keyBufferSize_;
+    const size_t keyBufferSize_;
     /// Multiplier for value buffer size
     const int32_t valueBufferMultiplier_;
     /// Error flag swapper for error checking after kernel runs
@@ -334,12 +334,13 @@ public:
     /// <param name="maxHashCount">size of the hash table (max. count of unique keys)</param>
     /// <param name="keyTypes">key column types (will be copied to a new buffer)</param>
     GPUGroupBy(const int32_t maxHashCount, const int32_t keySizeMultiplier, std::vector<DataType>& keyTypes)
-    : keyBufferSize_(maxHashCount * keySizeMultiplier),
+    : keyBufferSize_(std::min(static_cast<size_t>(maxHashCount) * keySizeMultiplier, GB_BUFFER_SIZE_MAX)),
       valueBufferMultiplier_((keySizeMultiplier > GB_VALUE_BUFFER_DEFAULT_MULTIPLIER) ?
                                  1 :
                                  GB_VALUE_BUFFER_DEFAULT_MULTIPLIER / keySizeMultiplier),
       keysColCount_(keyTypes.size())
     {
+        // Compute size for value and occurrences buffer
         const size_t valueBufferSize = keyBufferSize_ * valueBufferMultiplier_;
         try
         {

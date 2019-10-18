@@ -429,27 +429,15 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
         }
         catch (query_engine_error& err)
         {
-            if (err.GetQueryEngineError() != QueryEngineErrorType::GPU_HASH_TABLE_FULL)
+            // If the error is not hash table full
+            // or (if it is) if the hash table buffers already had max size
+            if (err.GetQueryEngineError() != QueryEngineErrorType::GPU_HASH_TABLE_FULL ||
+                static_cast<size_t>(Configuration::GetInstance().GetGroupByBuckets()) * hashTableMultiplier_ >= GB_BUFFER_SIZE_MAX)
             {
                 throw;
             }
-            instructionPointer_ = jmpInstructionPosition_;
-            groupByHashTableFull_ = true;
-            groupByTables_[dispatcherThreadId_].release();
-            groupByTables_[dispatcherThreadId_] = nullptr;
-			// if multiplier is not too big
-            if (hashTableMultiplier_ <= (INT_MAX / Configuration::GetInstance().GetGroupByBuckets()) / GB_MULTIPLIER_STEP)
-            {
-                hashTableMultiplier_ *= GB_MULTIPLIER_STEP;
-                CudaLogBoost::getInstance(CudaLogBoost::debug)
-                    << "Increased hash table size to "
-                    << (Configuration::GetInstance().GetGroupByBuckets() * hashTableMultiplier_)
-                    << " and restart GROUP BY in thread " << dispatcherThreadId_ << '\n';
-            }
-            else
-            {
-                throw;
-            }
+            // if we still can increase the hash table size, do it and restart the thread
+            HandleHashTableFull();
             return 0;
         }
 

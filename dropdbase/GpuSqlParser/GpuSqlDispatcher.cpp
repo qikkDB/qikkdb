@@ -372,6 +372,44 @@ int32_t GpuSqlDispatcher::GetUnaryDispatchTableIndex(DataType type)
     return 2 * lConst + constOffset;
 }
 
+void GpuSqlDispatcher::ResetBlocksProcessing()
+{
+    CudaLogBoost::getInstance(CudaLogBoost::info)
+        << "Restart blocks processing in thread " << dispatcherThreadId_ << '\n';
+    CleanUpGpuPointers();
+    blockIndex_ = dispatcherThreadId_;
+    instructionPointer_ = 0;
+    insideAggregation_ = false;
+    insideGroupBy_ = false;
+    usingGroupBy_ = false;
+    usingOrderBy_ = false;
+    usingJoin_ = false;
+    isLastBlockOfDevice_ = false;
+    isOverallLastBlock_ = false;
+    noLoad_ = true;
+    aborted_ = false;
+}
+
+void GpuSqlDispatcher::HandleHashTableFull()
+{
+    // Set flags to restart a blocks processing by current thread
+    instructionPointer_ = jmpInstructionPosition_;
+    groupByHashTableFull_ = true;
+    groupByTables_[dispatcherThreadId_].release();
+    groupByTables_[dispatcherThreadId_] = nullptr;
+
+    // Heuristic for new needed hash table buffers size. Approximate
+    // based on progress of overall blocks processing (block count / block index)
+    const int32_t divider = blockIndex_ - dispatcherThreadId_ + Context::getInstance().getDeviceCount();
+    hashTableMultiplier_ *= (GetBlockCount() + divider / 2) / divider + 1;
+
+    CudaLogBoost::getInstance(CudaLogBoost::debug)
+        << "Increased hash table size to "
+        << std::min(static_cast<size_t>(Configuration::GetInstance().GetGroupByBuckets()) * hashTableMultiplier_,
+                    GB_BUFFER_SIZE_MAX)
+        << '\n';
+}
+
 void GpuSqlDispatcher::AddGreaterFunction(DataType left, DataType right)
 {
     dispatcherFunctions_.push_back(greaterFunctions_[GetBinaryDispatchTableIndex(left, right)]);
