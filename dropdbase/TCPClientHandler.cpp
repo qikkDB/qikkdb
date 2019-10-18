@@ -400,6 +400,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     {
         std::vector<ColmnarDB::Types::Point> dataVector;
         int i = 0;
+        int elemsRead = 0;
         while (i < elementCount)
         {
             ColmnarDB::Types::Point point;
@@ -407,6 +408,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
             i += 4;
             point.ParseFromArray(dataBuffer + i, size);
             i += size;
+            elemsRead++;
             dataVector.push_back(point);
         }
         columnData.insert({columnName, dataVector});
