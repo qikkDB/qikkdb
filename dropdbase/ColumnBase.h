@@ -278,7 +278,8 @@ public:
                            bool isCompressed = false,
                            bool countBlockStatistics = true)
     {
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize, allocationSize, *this, isCompressed,
+        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize,
+                                                                  allocationSize, *this, isCompressed,
                                                                   isNullable_, countBlockStatistics));
         auto& lastBlock = blocks_[groupId].back();
         if (lastBlock->IsFull() && !isCompressed && compress)
@@ -458,9 +459,9 @@ public:
             if (columnData.size() <= lastBlock->EmptyBlockSpace())
             {
                 size_ += columnData.size();
+                int bitMaskStartIdx = lastBlock->GetSize();
                 lastBlock->InsertData(columnData);
                 auto maskPtr = lastBlock->GetNullBitmask();
-                int bitMaskStartIdx = lastBlock->BlockCapacity() - lastBlock->EmptyBlockSpace() - 1;
                 for (int i = bitMaskStartIdx; i < bitMaskStartIdx + columnData.size(); i++)
                 {
                     int nullMaskOffset = maskIdx / (sizeof(char) * 8);
@@ -483,7 +484,7 @@ public:
             int emptySpace = lastBlock->EmptyBlockSpace();
             auto maskPtr = lastBlock->GetNullBitmask();
             size_ += emptySpace;
-            int bitMaskStartIdx = lastBlock->BlockCapacity() - lastBlock->EmptyBlockSpace() - 1;
+            int bitMaskStartIdx = lastBlock->GetSize();
             lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
             for (int i = bitMaskStartIdx; i < lastBlock->BlockCapacity(); i++)
             {
