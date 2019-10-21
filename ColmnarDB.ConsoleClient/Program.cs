@@ -10,7 +10,7 @@ namespace ColmnarDB.ConsoleClient
 {
     public class Program
     {
-        public static string ipAddress = "18.184.205.156";
+        public static string ipAddress = "127.0.0.1";
         public static short port = 12345;
         private static bool exit = false;
         private static ColumnarDBClient client;
@@ -81,7 +81,7 @@ namespace ColmnarDB.ConsoleClient
                 string command = splitCommand[0].ToLower();
                 string parameters = "";
 
-                if (command != "docs" && command != "man" && command != "t" && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u" && command != "use" && command != "h" && command != "help"  && command != "import" )
+                if (command != "docs" && command != "man" && command != "t" && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u" && command != "use" && command != "h" && command != "help" && command != "import")
                 {
                     parameters = wholeCommand;
                     parameters = parameters.Trim();
@@ -137,8 +137,8 @@ namespace ColmnarDB.ConsoleClient
 
                         break;
 
-                     case "import":
-                        
+                    case "import":
+
                         string[] splitParameters = Regex.Matches(parameters, @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value).ToArray();
 
                         if (parameters == "" || splitParameters.Length < 2)
@@ -162,7 +162,8 @@ namespace ColmnarDB.ConsoleClient
                         {
                             import.Import(filePath, database, int.Parse(splitParameters[2]));
                         }
-                        else if (splitParameters.Length == 4) {
+                        else if (splitParameters.Length == 4)
+                        {
                             import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]));
                         }
                         else if (splitParameters.Length == 5)
@@ -178,7 +179,7 @@ namespace ColmnarDB.ConsoleClient
                             import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0), threadsCount: int.Parse(splitParameters[5]), batchSize: int.Parse(splitParameters[6]));
                         }
 
-                        break; 
+                        break;
 
                     case "h":
                     case "help":
