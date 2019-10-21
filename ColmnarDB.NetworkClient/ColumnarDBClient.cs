@@ -805,7 +805,7 @@ namespace ColmnarDB.NetworkClient
                                 i = 0;
                                 for (int j = 0; j < pointList.Count; j++)
                                 {
-                                    var elem = pointList[i];
+                                    var elem = pointList[j];
                                     if (elem == null)
                                     {
                                         elem = defaultElement;
