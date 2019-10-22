@@ -190,9 +190,8 @@ TEST(GPUJoinTests, ReorderCPUTest)
 
 	for (int32_t i = 0; i < outBlockCount; i++)
 	{
-		CPUJoinReorderer::reorderByJIPushToGPU(d_outRBlock, outRBlockDataElementCount, ColumnR_, i, resultColumnQAJoinIdx, BLOCK_SIZE);
-        CPUJoinReorderer::reorderByJIPushToGPU(d_outSBlock, outSBlockDataElementCount, ColumnS_, i,
-                                               resultColumnQBJoinIdx, BLOCK_SIZE);
+		CPUJoinReorderer::reorderByJIPushToGPU(d_outRBlock, outRBlockDataElementCount, ColumnR_, i, resultColumnQAJoinIdx);
+        CPUJoinReorderer::reorderByJIPushToGPU(d_outSBlock, outSBlockDataElementCount, ColumnS_, i, resultColumnQBJoinIdx);
 	
 		// Test if the results are equal
 		GPUMemory::copyDeviceToHost(outRBlock.data(), d_outRBlock, outRBlockDataElementCount);
@@ -250,9 +249,9 @@ TEST(GPUJoinTests, ReorderEmptyCPUTest)
 	for (int32_t i = 0; i < outBlockCount; i++)
 	{
         CPUJoinReorderer::reorderByJIPushToGPU(d_outRBlock, outRBlockDataElementCount, ColumnR_, i,
-                                               resultColumnQAJoinIdx, BLOCK_SIZE);
+                                               resultColumnQAJoinIdx);
         CPUJoinReorderer::reorderByJIPushToGPU(d_outSBlock, outSBlockDataElementCount, ColumnS_, i,
-                                               resultColumnQBJoinIdx, BLOCK_SIZE);
+                                               resultColumnQBJoinIdx);
 
 		// Test if the results are equal
 		GPUMemory::copyDeviceToHost(outRBlock.data(), d_outRBlock, outRBlockDataElementCount);

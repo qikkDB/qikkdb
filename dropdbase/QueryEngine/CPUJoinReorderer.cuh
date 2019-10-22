@@ -13,14 +13,13 @@ class CPUJoinReorderer {
 public:
     template <typename T>
     static void reorderByJI(std::vector<T>& outBlock,
-                            int32_t& outDataSize,
-                            const ColumnBase<T>& inColumn,
-                            int32_t resultColumnQJoinIdxBlockIdx,
-                            const std::vector<std::vector<int32_t>>& resultColumnQJoinIdx,
-                            int32_t blockSize)
+                            int32_t& outBlockSize,
+                            const ColumnBase<T>& inCol,
+                            int32_t inBlockIdx,
+                            const std::vector<std::vector<int32_t>>& inColJoinIndices)
     {
         outBlock.clear();
-
+        /*
         for (int32_t i = 0; i < resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size(); i++)
         {
             int32_t columnBlockId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] / blockSize;
@@ -29,32 +28,23 @@ public:
             T val = inColumn.GetBlocksList()[columnBlockId]->GetData()[columnRowId];
             outBlock.push_back(val);
         }
-        outDataSize = outBlock.size();
+		*/
+        outBlockSize = outBlock.size();
     }
 
     
     template <typename T>
     static void reorderByJIPushToGPU(T* outBlock,
-									 int32_t& outDataSize,
-									 const ColumnBase<T>& inColumn,
-									 int32_t resultColumnQJoinIdxBlockIdx,
-									 const std::vector<std::vector<int32_t>>& resultColumnQJoinIdx,
-									 int32_t blockSize)
+                                     int32_t& outBlockSize,
+                                     const ColumnBase<T>& inCol,
+                                     int32_t inBlockIdx,
+                                     const std::vector<std::vector<int32_t>>& inColJoinIndices)
     {
-        std::vector<T> outBlockVector(resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size());
-
-        for (int32_t i = 0; i < resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size(); i++)
-        {
-            int32_t columnBlockId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] / blockSize;
-            int32_t columnRowId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] % blockSize;
-
-            T val = inColumn.GetBlocksList()[columnBlockId]->GetData()[columnRowId];
-            outBlockVector[i] = val;
-        }
-
-        outDataSize = outBlockVector.size();
+        /*
+        std::vector<T> outBlockHost(resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size());
 
         GPUMemory::copyHostToDevice(outBlock, outBlockVector.data(), outDataSize);
+		*/
     }
    
     template <typename T>
@@ -62,15 +52,9 @@ public:
 											 int32_t& outNullBlockSize,
 											 const ColumnBase<T>& inColumn,
 											 int32_t resultColumnQJoinIdxBlockIdx,
-											 const std::vector<std::vector<int32_t>>& resultColumnQJoinIdx,
-											 int32_t blockSize)
+											 const std::vector<std::vector<int32_t>>& resultColumnQJoinIdx)
     {
-        if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
-        {
-            CudaLogBoost::getInstance(CudaLogBoost::error)
-                << "[ERROR]  Column block index out of bounds" << '\n';
-        }
-
+        /*
         // Allocan output CPU vector
         std::vector<int8_t> outNullBlockVector(
             (resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size() + sizeof(int8_t) * 8 - 1) /
@@ -93,5 +77,6 @@ public:
         outNullBlockSize = outNullBlockVector.size();
 
         GPUMemory::copyHostToDevice(outNullBlock, outNullBlockVector.data(), outNullBlockSize);
+		*/
     }
 };

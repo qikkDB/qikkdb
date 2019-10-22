@@ -137,8 +137,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
             int32_t outDataSize;
             CPUJoinReorderer::reorderByJI<ColmnarDB::Types::ComplexPolygon>(joinedPolygons, outDataSize,
                                                                              *col, blockIndex_,
-                                                                             joinIndices_->at(table),
-                                                                             database_->GetBlockSize());
+                                                                             joinIndices_->at(table));
 
             if (col->GetIsNullable())
             {
@@ -154,7 +153,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
                         int32_t outMaskSize;
                         CPUJoinReorderer::reorderNullMaskByJIPushToGPU<ColmnarDB::Types::ComplexPolygon>(
                             std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
-                            joinIndices_->at(table), database_->GetBlockSize());
+                            joinIndices_->at(table));
                     }
                 }
                 else
@@ -287,8 +286,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
             int8_t* nullMaskPtr = nullptr;
             int32_t outDataSize;
             CPUJoinReorderer::reorderByJI<ColmnarDB::Types::Point>(joinedPoints, outDataSize, *col,
-                                                                    blockIndex_, joinIndices_->at(table),
-                                                                    database_->GetBlockSize());
+                                                                    blockIndex_, joinIndices_->at(table));
 
             std::vector<NativeGeoPoint> nativePoints;
             std::transform(joinedPoints.data(), joinedPoints.data() + loadSize, std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint {
@@ -318,7 +316,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
                         int32_t outMaskSize;
                         CPUJoinReorderer::reorderNullMaskByJIPushToGPU<ColmnarDB::Types::Point>(
                             std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
-                            joinIndices_->at(table), database_->GetBlockSize());
+                            joinIndices_->at(table));
                     }
                     AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheMaskEntry), bitMaskCapacity);
                 }
@@ -436,7 +434,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
             int32_t outDataSize;
             CPUJoinReorderer::reorderByJI<std::string>(joinedStrings, outDataSize, *col,
                                                                 blockIndex_,
-                                                        joinIndices_->at(table), database_->GetBlockSize());
+                                                        joinIndices_->at(table));
 
             if (col->GetIsNullable())
             {
@@ -450,11 +448,9 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
-                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<std::string>(
-                            std::get<0>(cacheMaskEntry),
-                                                                            outMaskSize, *col, blockIndex_,
-                                                                            joinIndices_->at(table),
-                                                                            database_->GetBlockSize());
+                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<std::string>(std::get<0>(cacheMaskEntry),
+																					outMaskSize, *col, blockIndex_,
+																					joinIndices_->at(table));
                     }
                 }
                 else
