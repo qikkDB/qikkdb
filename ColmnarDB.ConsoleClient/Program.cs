@@ -188,7 +188,7 @@ namespace ColmnarDB.ConsoleClient
 
                         Console.WriteLine();
                         Console.WriteLine(String.Format(format, "h, help", "Show information about commands"));
-                        Console.WriteLine(String.Format(format, "docs, man", "Prints 'Documentation is available at https://docs.tellstory.ai/'"));
+                        Console.WriteLine(String.Format(format, "docs, man", "Prints 'Documentation is available at https://docs.qikk.ly/'"));
                         Console.WriteLine(String.Format(format, "u [database], use [database]", "Set current working database"));
                         Console.WriteLine(String.Format(format, "[query]", "Run given query"));
                         Console.WriteLine(String.Format(format, "t [query], timing [query]", "Run a query " + Query.numberOfQueryExec + 1 + " times and print the first and average cached execution time."));
@@ -198,7 +198,7 @@ namespace ColmnarDB.ConsoleClient
                         break;
                     case "docs":
                     case "man":
-                        Console.WriteLine("Documentation is available at https://docs.tellstory.ai/");
+                        Console.WriteLine("Documentation is available at https://docs.qikk.ly/");
                         break;
                     default:
                         Console.WriteLine("Unknown command, for more information about commands type 'help'");

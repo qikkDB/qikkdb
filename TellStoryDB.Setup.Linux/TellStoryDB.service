@@ -1,5 +1,5 @@
 [Unit]
-Description=TellStoryDB
+Description=qikkDB
 After=network.target
 StartLimitIntervalSec=0
 
@@ -8,7 +8,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=###USER###
-ExecStart=###DEST_DIR###/bin/tellstorydb
+ExecStart=###DEST_DIR###/bin/qikkDB
 WorkingDirectory=###DEST_DIR###/bin
 [Install]
 WantedBy=multi-user.target

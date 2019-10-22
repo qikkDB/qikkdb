@@ -2255,7 +2255,7 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:TellStoryDB"
+        "ProductName" = "8:qikkDB"
         "ProductCode" = "8:{2986798B-9107-415B-9BFF-B2013132F02E}"
         "PackageCode" = "8:{6AC2BC04-1A4C-4178-A8AA-70A18717C4E0}"
         "UpgradeCode" = "8:{86B9665A-B9EC-4966-BECB-511E76EBB5F0}"
@@ -2267,7 +2267,7 @@
         "ProductVersion" = "8:1.0.0"
         "Manufacturer" = "8:Instarea"
         "ARPHELPTELEPHONE" = "8:"
-        "ARPHELPLINK" = "8:tellstory.ai"
+        "ARPHELPLINK" = "8:qikk.ly"
         "Title" = "8:TellStroryDB"
         "Subject" = "8:"
         "ARPCONTACT" = "8:Instarea"

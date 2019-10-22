@@ -217,9 +217,9 @@ public:
     {
         std::vector<BlockBase<T>*> ret;
 
-        for (auto& stuff : blocks_)
+        for (auto& block : blocks_)
         {
-            for (auto& ptr : stuff.second)
+            for (auto& ptr : block.second)
             {
                 ret.emplace_back(ptr.get());
             }
@@ -846,9 +846,9 @@ public:
         int32_t ret = 0;
 
         // TODO preiterovat celu mapu a zosumovat bloky
-        for (auto& stuff : blocks_)
+        for (auto& block : blocks_)
         {
-            ret += stuff.second.size();
+            ret += block.second.size();
         }
 
         return ret;

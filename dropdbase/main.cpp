@@ -73,7 +73,7 @@ int main(int argc, char** argv)
     // Database::SaveAllToDisk();
     // return 0;
 
-    BOOST_LOG_TRIVIAL(info) << "TellStoryDB " << CMAKE_BUILD_TYPE << " " << GIT_VERSION << GIT_BRANCH;
+    BOOST_LOG_TRIVIAL(info) << "qikkDB " << CMAKE_BUILD_TYPE << " " << GIT_VERSION << GIT_BRANCH;
     Context::getInstance(); // Initialize CUDA context
 
     if (argc > 1) // Importing CSV
@@ -704,14 +704,14 @@ int main(int argc, char** argv)
     }
 
     Database::SaveModifiedToDisk();
-    BOOST_LOG_TRIVIAL(info) << "TellStoryDB exiting cleanly...";
+    BOOST_LOG_TRIVIAL(info) << "qikkDB exiting cleanly...";
 
     for (auto& db : Database::GetDatabaseNames())
     {
         Database::RemoveFromInMemoryDatabaseList(db.c_str());
     }
 
-    BOOST_LOG_TRIVIAL(info) << "TellStoryDB exited.";
+    BOOST_LOG_TRIVIAL(info) << "qikkDB exited.";
     boost::log::core::get()->remove_all_sinks();
     return 0;
 }
