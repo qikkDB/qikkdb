@@ -1,6 +1,7 @@
 #include "../dropdbase/QueryEngine/GPUCore/GPUJoin.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/GPUFilterConditions.cuh"
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
+#include "../dropdbase/QueryEngine/CPUJoinReorderer.cuh"
 #include "gtest/gtest.h"
 
 #include <iostream>
@@ -189,8 +190,9 @@ TEST(GPUJoinTests, ReorderCPUTest)
 
 	for (int32_t i = 0; i < outBlockCount; i++)
 	{
-		GPUJoin::reorderByJoinTableCPU(d_outRBlock, outRBlockDataElementCount, ColumnR_, i, resultColumnQAJoinIdx, BLOCK_SIZE);
-		GPUJoin::reorderByJoinTableCPU(d_outSBlock, outSBlockDataElementCount, ColumnS_, i, resultColumnQBJoinIdx, BLOCK_SIZE);
+		CPUJoinReorderer::reorderByJIPushToGPU(d_outRBlock, outRBlockDataElementCount, ColumnR_, i, resultColumnQAJoinIdx, BLOCK_SIZE);
+        CPUJoinReorderer::reorderByJIPushToGPU(d_outSBlock, outSBlockDataElementCount, ColumnS_, i,
+                                               resultColumnQBJoinIdx, BLOCK_SIZE);
 	
 		// Test if the results are equal
 		GPUMemory::copyDeviceToHost(outRBlock.data(), d_outRBlock, outRBlockDataElementCount);
@@ -247,8 +249,10 @@ TEST(GPUJoinTests, ReorderEmptyCPUTest)
 
 	for (int32_t i = 0; i < outBlockCount; i++)
 	{
-		GPUJoin::reorderByJoinTableCPU(d_outRBlock, outRBlockDataElementCount, ColumnR_, i, resultColumnQAJoinIdx, BLOCK_SIZE);
-		GPUJoin::reorderByJoinTableCPU(d_outSBlock, outSBlockDataElementCount, ColumnS_, i, resultColumnQBJoinIdx, BLOCK_SIZE);
+        CPUJoinReorderer::reorderByJIPushToGPU(d_outRBlock, outRBlockDataElementCount, ColumnR_, i,
+                                               resultColumnQAJoinIdx, BLOCK_SIZE);
+        CPUJoinReorderer::reorderByJIPushToGPU(d_outSBlock, outSBlockDataElementCount, ColumnS_, i,
+                                               resultColumnQBJoinIdx, BLOCK_SIZE);
 
 		// Test if the results are equal
 		GPUMemory::copyDeviceToHost(outRBlock.data(), d_outRBlock, outRBlockDataElementCount);

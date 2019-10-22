@@ -62,8 +62,8 @@ TEST(GPUMergeJoinTests, MergeJoinTest)
 	*/
 
 	// Initialize th output buffers
-    std::vector<int32_t> colAJoinIndices;
-    std::vector<int32_t> colBJoinIndices;
+    std::vector<std::vector<int32_t>> colAJoinIndices;
+    std::vector<std::vector<int32_t>> colBJoinIndices;
 
 	// Perform the merge join
 	auto start = std::chrono::steady_clock::now();

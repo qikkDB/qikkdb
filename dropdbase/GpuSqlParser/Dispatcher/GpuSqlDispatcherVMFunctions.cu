@@ -135,7 +135,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
             int8_t* nullMaskPtr = nullptr;
 
             int32_t outDataSize;
-            GPUJoin::reorderByJoinTableCPU<ColmnarDB::Types::ComplexPolygon>(joinedPolygons, outDataSize,
+            CPUJoinReorderer::reorderByJI<ColmnarDB::Types::ComplexPolygon>(joinedPolygons, outDataSize,
                                                                              *col, blockIndex_,
                                                                              joinIndices_->at(table),
                                                                              database_->GetBlockSize());
@@ -152,7 +152,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
-                        GPUJoin::reorderNullMaskByJoinTableCPU<ColmnarDB::Types::ComplexPolygon>(
+                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<ColmnarDB::Types::ComplexPolygon>(
                             std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
                             joinIndices_->at(table), database_->GetBlockSize());
                     }
@@ -286,7 +286,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
             std::vector<ColmnarDB::Types::Point> joinedPoints;
             int8_t* nullMaskPtr = nullptr;
             int32_t outDataSize;
-            GPUJoin::reorderByJoinTableCPU<ColmnarDB::Types::Point>(joinedPoints, outDataSize, *col,
+            CPUJoinReorderer::reorderByJI<ColmnarDB::Types::Point>(joinedPoints, outDataSize, *col,
                                                                     blockIndex_, joinIndices_->at(table),
                                                                     database_->GetBlockSize());
 
@@ -316,7 +316,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
-                        GPUJoin::reorderNullMaskByJoinTableCPU<ColmnarDB::Types::Point>(
+                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<ColmnarDB::Types::Point>(
                             std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
                             joinIndices_->at(table), database_->GetBlockSize());
                     }
@@ -434,7 +434,8 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
             int8_t* nullMaskPtr = nullptr;
 
             int32_t outDataSize;
-            GPUJoin::reorderByJoinTableCPU<std::string>(joinedStrings, outDataSize, *col, blockIndex_,
+            CPUJoinReorderer::reorderByJI<std::string>(joinedStrings, outDataSize, *col,
+                                                                blockIndex_,
                                                         joinIndices_->at(table), database_->GetBlockSize());
 
             if (col->GetIsNullable())
@@ -449,7 +450,8 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
-                        GPUJoin::reorderNullMaskByJoinTableCPU<std::string>(std::get<0>(cacheMaskEntry),
+                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<std::string>(
+                            std::get<0>(cacheMaskEntry),
                                                                             outMaskSize, *col, blockIndex_,
                                                                             joinIndices_->at(table),
                                                                             database_->GetBlockSize());

@@ -4,6 +4,7 @@
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../../QueryEngine/GPUCore/GPUOrderBy.cuh"
 #include "../../QueryEngine/GPUCore/GPUJoin.cuh"
+#include "../../QueryEngine/CPUJoinReorderer.cuh"
 #include "../../IVariantArray.h"
 #include "../../VariantArray.h"
 #include "../../Database.h"
@@ -300,7 +301,8 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
             if (!std::get<2>(cacheEntry))
             {
                 int32_t outDataSize;
-                GPUJoin::reorderByJoinTableCPU<T>(std::get<0>(cacheEntry), outDataSize, *col, blockIndex_,
+                CPUJoinReorderer::reorderByJIPushToGPU<T>(std::get<0>(cacheEntry), outDataSize,
+                                                                  *col, blockIndex_,
                                                   joinIndices_->at(table), database_->GetBlockSize());
             }
 
@@ -317,7 +319,7 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
-                        GPUJoin::reorderNullMaskByJoinTableCPU<T>(std::get<0>(cacheMaskEntry), outMaskSize,
+                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<T>(std::get<0>(cacheMaskEntry), outMaskSize,
                                                                   *col, blockIndex_, joinIndices_->at(table),
                                                                   database_->GetBlockSize());
                     }

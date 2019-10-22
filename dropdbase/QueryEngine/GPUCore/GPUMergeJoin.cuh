@@ -241,8 +241,8 @@ class MergeJoin
 public:
     // Column B must be unique !!!
     template <typename T>
-    static void JoinUnique(std::vector<int32_t>& colAJoinIndices,
-                           std::vector<int32_t>& colBJoinIndices,
+    static void JoinUnique(std::vector<std::vector<int32_t>>& colAJoinIndices,
+                           std::vector<std::vector<int32_t>>& colBJoinIndices,
                            ColumnBase<T>& colA,
                            ColumnBase<T>& colB)
     {
@@ -436,16 +436,11 @@ public:
                 CheckCudaError(cudaGetLastError());
 
 				// Copy the partially joined tuple indices back to the cpu RAM
-                decltype(colAJoinIndices.size()) colAJoinIndicesSize = colAJoinIndices.size();
-                decltype(colBJoinIndices.size()) colBJoinIndicesSize = colBJoinIndices.size();
+                colAJoinIndices.push_back(std::vector<int32_t>(joinMatchCount));
+                colBJoinIndices.push_back(std::vector<int32_t>(joinMatchCount));
 
-                colAJoinIndices.resize(colAJoinIndicesSize + joinMatchCount);
-                colBJoinIndices.resize(colBJoinIndicesSize + joinMatchCount);
-
-				GPUMemory::copyDeviceToHost(colAJoinIndices.data() + colAJoinIndicesSize,
-                                            colABlockJoinIndices.get(), joinMatchCount);
-                GPUMemory::copyDeviceToHost(colBJoinIndices.data() + colBJoinIndicesSize,
-                                            colBBlockJoinIndices.get(), joinMatchCount);
+				GPUMemory::copyDeviceToHost(colAJoinIndices.back().data(), colABlockJoinIndices.get(), joinMatchCount);
+                GPUMemory::copyDeviceToHost(colBJoinIndices.back().data(), colBBlockJoinIndices.get(), joinMatchCount);
             }
         }
     }
