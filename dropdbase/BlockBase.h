@@ -95,7 +95,7 @@ public:
       isNullable_(isNullable), bitMask_(nullptr), wasRegistered_(false),
       isNullMaskRegistered_(false), saveNecessary_(true)
     {
-		if (allocationSize != column_.GetBlockSize())
+        if (allocationSize != column_.GetBlockSize())
         {
             throw std::length_error("Size of loaded data must be equal to block size");
         }
@@ -107,8 +107,8 @@ public:
         {
             throw std::length_error("Attempted to insert data larger than remaining block size");
         }
-		
-		
+
+
         GPUMemory::hostPin(data_.get(), capacity_);
         wasRegistered_ = true;
         if (isNullable_)
@@ -324,7 +324,7 @@ public:
 
             capacity_ = dataCompressed.size();
             size_ = dataCompressed.size();
-            data_.release();
+            data_.reset();
             data_ = std::unique_ptr<T[]>(new T[capacity_]);
 
             GPUMemory::hostPin(data_.get(), capacity_);
@@ -351,7 +351,7 @@ public:
 
             capacity_ = column_.GetBlockSize();
             size_ = column_.GetBlockSize();
-            data_.release();
+            data_.reset();
             data_ = std::unique_ptr<T[]>(new T[capacity_]);
 
             GPUMemory::hostPin(data_.get(), capacity_);
