@@ -49,7 +49,10 @@ private:
     CompareResult CompareRows(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow, int index);
     std::tuple<int, int> GetIndex(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow);
     int32_t getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data);
+    void checkUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data, int32_t dataSize);
 #endif
+    bool getHasUniqueConstraints();
+
 public:
     const std::shared_ptr<Database>& GetDatabase();
     const std::string& GetName() const;

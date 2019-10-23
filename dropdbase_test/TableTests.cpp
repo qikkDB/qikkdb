@@ -928,88 +928,234 @@ TEST(TableTests, InsertIntoIsUnique)
     auto database = std::make_shared<Database>("testDatabaseUnique", 10);
     Table table(database, "testTable");
 
-    table.CreateColumn("ColumnIntA", COLUMN_INT);
-    table.CreateColumn("ColumnIntB", COLUMN_INT);
-    auto& columnIntA = table.GetColumns().at("ColumnIntA");
-    auto& columnIntB = table.GetColumns().at("ColumnIntB");
-    auto castedColumnA = dynamic_cast<ColumnBase<int32_t>*>(columnIntA.get());
-    auto castedColumnB = dynamic_cast<ColumnBase<int32_t>*>(columnIntB.get());
+    table.CreateColumn("ColumnInt", COLUMN_INT);
+    table.CreateColumn("ColumnLong", COLUMN_LONG);
+    table.CreateColumn("ColumnFloat", COLUMN_FLOAT);
+    table.CreateColumn("ColumnDouble", COLUMN_DOUBLE);
+    table.CreateColumn("ColumnPoint", COLUMN_POINT);
+    table.CreateColumn("ColumnPolygon", COLUMN_POLYGON);
+    table.CreateColumn("ColumnString", COLUMN_STRING);
+    table.CreateColumn("ColumnBool", COLUMN_INT8_T);
 
-    castedColumnA->SetIsUnique(true);
+    auto& columnInt = table.GetColumns().at("ColumnInt");
+    auto& columnLong = table.GetColumns().at("ColumnLong");
+    auto& columnFloat = table.GetColumns().at("ColumnFloat");
+    auto& columnDouble = table.GetColumns().at("ColumnDouble");
+    auto& columnPoint = table.GetColumns().at("ColumnPoint");
+    auto& columnPolygon = table.GetColumns().at("ColumnPolygon");
+    auto& columnString = table.GetColumns().at("ColumnString");
+    auto& columnBool = table.GetColumns().at("ColumnBool");
+
+    auto castedColumnInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get());
+    auto castedColumnLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get());
+    auto castedColumnDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get());
+    auto castedColumnFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get());
+    auto castedColumnPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get());
+    auto castedColumnPolygon =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get());
+    auto castedColumnString = dynamic_cast<ColumnBase<std::string>*>(columnString.get());
+    auto castedColumnBool = dynamic_cast<ColumnBase<int8_t>*>(columnBool.get());
+
+    castedColumnInt->SetIsUnique(true);
+    castedColumnLong->SetIsUnique(true);
+    castedColumnDouble->SetIsUnique(true);
+    castedColumnFloat->SetIsUnique(true);
+    castedColumnPoint->SetIsUnique(true);
+    castedColumnPolygon->SetIsUnique(true);
+    castedColumnString->SetIsUnique(true);
+    castedColumnBool->SetIsUnique(true);
 
     // Inserting unique values
     std::unordered_map<std::string, std::any> data;
-    std::vector<int32_t> dataIntA({2, 4, 6});
-    std::vector<int32_t> dataIntB({1, 3, 5});
-    data.insert({"ColumnIntA", dataIntA});
-    data.insert({"ColumnIntB", dataIntB});
+
+    std::vector<int32_t> dataInt({2, 4, -6});
+    std::vector<int64_t> dataLong({489889498840, 489789498848, 282889448871});
+    std::vector<double> dataDouble({48.988949, 48.978949, 28.288944});
+    std::vector<float> dataFloat({4.8, 2.3, 2.8});
+
+    std::vector<ColmnarDB::Types::Point> dataPoint;
+    dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
+    dataPoint.push_back(PointFactory::FromWkt("POINT(12 11.15)"));
+    dataPoint.push_back(PointFactory::FromWkt("POINT(9 8)"));
+
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+    dataPolygon.push_back(ComplexPolygonFactory::FromWkt(
+        "POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11,90 "
+        "89.15,112.12 110, 61 80.11))"));
+    dataPolygon.push_back(ComplexPolygonFactory::FromWkt(
+        "POLYGON((15 11, 11.11 12.13, 15 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 87.11,90 "
+        "89.15,112.12 110, 61 87.11))"));
+    dataPolygon.push_back(ComplexPolygonFactory::FromWkt(
+        "POLYGON((15 18, 11.11 12.13, 15 18), (21 38,35.55 36, 30.11 "
+        "20.26,21 38), (64 80.11,90 89.15,112.12 110, 64 80.11))"));
+
+    std::vector<std::string> dataString;
+    dataString.push_back("Hello");
+    dataString.push_back("World");
+    dataString.push_back("TestString");
+
+    std::vector<int8_t> dataBool;
+    dataBool.push_back(-1);
+    dataBool.push_back(0);
+    dataBool.push_back(1);
+
+    data.insert({"ColumnInt", dataInt});
+    data.insert({"ColumnLong", dataLong});
+    data.insert({"ColumnFloat", dataFloat});
+    data.insert({"ColumnDouble", dataDouble});
+    data.insert({"ColumnPoint", dataPoint});
+    data.insert({"ColumnPolygon", dataPolygon});
+    data.insert({"ColumnString", dataString});
+    data.insert({"ColumnBool", dataBool});
 
     table.InsertData(data);
 
-    auto blockIntA =
-        dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
-    auto blockIntB =
-        dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntB").get())->GetBlocksList();
+    auto blockInt =
+        dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList();
+    auto blockLong =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnLong").get())->GetBlocksList();
+    auto blockDouble =
+        dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnDouble").get())->GetBlocksList();
+    auto blockFloat =
+        dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList();
+    auto blockPoint =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())
+            ->GetBlocksList();
+    auto blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+                            table.GetColumns().at("ColumnPolygon").get())
+                            ->GetBlocksList();
+    auto blockString =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnString").get())->GetBlocksList();
+    auto blockBool =
+        dynamic_cast<ColumnBase<int8_t>*>(table.GetColumns().at("ColumnBool").get())->GetBlocksList();
 
-    ASSERT_EQ(blockIntA[0]->GetSize(), 3);
-    ASSERT_EQ(blockIntA[0]->GetData()[0], 2);
-    ASSERT_EQ(blockIntA[0]->GetData()[1], 4);
-    ASSERT_EQ(blockIntA[0]->GetData()[2], 6);
+    ASSERT_EQ(blockInt[0]->GetSize(), 3);
+    ASSERT_EQ(blockInt[0]->GetData()[0], 2);
+    ASSERT_EQ(blockInt[0]->GetData()[1], 4);
+    ASSERT_EQ(blockInt[0]->GetData()[2], -6);
 
-    ASSERT_EQ(blockIntB[0]->GetSize(), 3);
-    ASSERT_EQ(blockIntB[0]->GetData()[0], 1);
-    ASSERT_EQ(blockIntB[0]->GetData()[1], 3);
-    ASSERT_EQ(blockIntB[0]->GetData()[2], 5);
+    ASSERT_EQ(blockLong[0]->GetSize(), 3);
+    ASSERT_EQ(blockLong[0]->GetData()[0], 489889498840);
+    ASSERT_EQ(blockLong[0]->GetData()[1], 489789498848);
+    ASSERT_EQ(blockLong[0]->GetData()[2], 282889448871);
+
+    ASSERT_EQ(blockDouble[0]->GetSize(), 3);
+    ASSERT_DOUBLE_EQ(blockDouble[0]->GetData()[0], 48.988949);
+    ASSERT_DOUBLE_EQ(blockDouble[0]->GetData()[1], 48.978949);
+    ASSERT_DOUBLE_EQ(blockDouble[0]->GetData()[2], 28.288944);
+
+    ASSERT_EQ(blockFloat[0]->GetSize(), 3);
+    ASSERT_FLOAT_EQ(blockFloat[0]->GetData()[0], 4.8);
+    ASSERT_FLOAT_EQ(blockFloat[0]->GetData()[1], 2.3);
+    ASSERT_FLOAT_EQ(blockFloat[0]->GetData()[2], 2.8);
+
+    ASSERT_EQ(blockPoint[0]->GetSize(), 3);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockPoint[0]->GetData()[0]), "POINT(10.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockPoint[0]->GetData()[1]), "POINT(12 11.15)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockPoint[0]->GetData()[2]), "POINT(9 8)");
+
+    ASSERT_EQ(blockPolygon[0]->GetSize(), 3);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon[0]->GetData()[0]),
+              "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
+              "80.11, 90 89.15, 112.12 110, 61 80.11))");
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon[0]->GetData()[1]),
+              "POLYGON((15 11, 11.11 12.13, 15 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
+              "87.11, 90 89.15, 112.12 110, 61 87.11))");
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon[0]->GetData()[2]),
+              "POLYGON((15 18, 11.11 12.13, 15 18), (21 38, 35.55 36, 30.11 20.26, 21 38), (64 "
+              "80.11, 90 89.15, 112.12 110, 64 80.11))");
+
+    ASSERT_EQ(blockString[0]->GetSize(), 3);
+    ASSERT_EQ(blockString[0]->GetData()[0], "Hello");
+    ASSERT_EQ(blockString[0]->GetData()[1], "World");
+    ASSERT_EQ(blockString[0]->GetData()[2], "TestString");
+
+    ASSERT_EQ(blockBool[0]->GetSize(), 3);
+    ASSERT_EQ(blockBool[0]->GetData()[0], -1);
+    ASSERT_EQ(blockBool[0]->GetData()[1], 0);
+    ASSERT_EQ(blockBool[0]->GetData()[2], 1);
 
     // Inserting non unique values into isUnique tagged column
     std::unordered_map<std::string, std::any> data2;
-    std::vector<int32_t> dataInt2A({6, 8, 10});
-    std::vector<int32_t> dataInt2B({7, 9, 11});
-    data2.insert({"ColumnIntA", dataInt2A});
-    data2.insert({"ColumnIntB", dataInt2B});
-
+    data2.insert({"ColumnInt", dataInt});
     ASSERT_THROW(table.InsertData(data2), std::length_error);
 
-    blockIntA = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
-    blockIntB = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntB").get())->GetBlocksList();
+	std::unordered_map<std::string, std::any> data3;
+    data3.insert({"ColumnLong", dataLong});
+    ASSERT_THROW(table.InsertData(data3), std::length_error);
 
-	ASSERT_EQ(blockIntA[0]->GetSize(), 3);
-    ASSERT_EQ(blockIntA[0]->GetData()[0], 2);
-    ASSERT_EQ(blockIntA[0]->GetData()[1], 4);
-    ASSERT_EQ(blockIntA[0]->GetData()[2], 6);
+	std::unordered_map<std::string, std::any> data4;
+    data4.insert({"ColumnFloat", dataFloat});
+    ASSERT_THROW(table.InsertData(data4), std::length_error);
 
-    ASSERT_EQ(blockIntB[0]->GetSize(), 3);
-    ASSERT_EQ(blockIntB[0]->GetData()[0], 1);
-    ASSERT_EQ(blockIntB[0]->GetData()[1], 3);
-    ASSERT_EQ(blockIntB[0]->GetData()[2], 5);
+	std::unordered_map<std::string, std::any> data5;
+    data5.insert({"ColumnDouble", dataDouble});
+    ASSERT_THROW(table.InsertData(data5), std::length_error);
 
-	// Inserting non unique values into column which is not isUnique
-    std::unordered_map<std::string, std::any> data3;
-    std::vector<int32_t> dataInt3A({12, 8, 10});
-    std::vector<int32_t> dataInt3B({1, 3, 6});
-    data3.insert({"ColumnIntA", dataInt3A});
-    data3.insert({"ColumnIntB", dataInt3B});
+	std::unordered_map<std::string, std::any> data6;
+    data6.insert({"ColumnPoint", dataPoint});
+    ASSERT_THROW(table.InsertData(data6), std::length_error);
 
-    table.InsertData(data3);
+	std::unordered_map<std::string, std::any> data7;
+    data7.insert({"ColumnPolygon", dataPolygon});
+    ASSERT_THROW(table.InsertData(data7), std::length_error);
 
-    blockIntA = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
-    blockIntB = dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntB").get())->GetBlocksList();
+	std::unordered_map<std::string, std::any> data8;
+    data8.insert({"ColumnString", dataString});
+    ASSERT_THROW(table.InsertData(data8), std::length_error);
 
-    ASSERT_EQ(blockIntA[0]->GetSize(), 6);
-    ASSERT_EQ(blockIntA[0]->GetData()[0], 2);
-    ASSERT_EQ(blockIntA[0]->GetData()[1], 4);
-    ASSERT_EQ(blockIntA[0]->GetData()[2], 6);
-    ASSERT_EQ(blockIntA[0]->GetData()[3], 12);
-    ASSERT_EQ(blockIntA[0]->GetData()[4], 8);
-    ASSERT_EQ(blockIntA[0]->GetData()[5], 10);
+	std::unordered_map<std::string, std::any> data9;
+    data9.insert({"ColumnBool", dataBool});
+    ASSERT_THROW(table.InsertData(data9), std::length_error);
 
-    ASSERT_EQ(blockIntB[0]->GetSize(), 6);
-    ASSERT_EQ(blockIntB[0]->GetData()[0], 1);
-    ASSERT_EQ(blockIntB[0]->GetData()[1], 3);
-    ASSERT_EQ(blockIntB[0]->GetData()[2], 5);
-    ASSERT_EQ(blockIntB[0]->GetData()[3], 1);
-    ASSERT_EQ(blockIntB[0]->GetData()[4], 3);
-    ASSERT_EQ(blockIntB[0]->GetData()[5], 6);
+    ASSERT_EQ(blockInt[0]->GetSize(), 3);
+    ASSERT_EQ(blockInt[0]->GetData()[0], 2);
+    ASSERT_EQ(blockInt[0]->GetData()[1], 4);
+    ASSERT_EQ(blockInt[0]->GetData()[2], -6);
 
-    table.InsertData(data2);
+    ASSERT_EQ(blockLong[0]->GetSize(), 3);
+    ASSERT_EQ(blockLong[0]->GetData()[0], 489889498840);
+    ASSERT_EQ(blockLong[0]->GetData()[1], 489789498848);
+    ASSERT_EQ(blockLong[0]->GetData()[2], 282889448871);
+
+    ASSERT_EQ(blockDouble[0]->GetSize(), 3);
+    ASSERT_DOUBLE_EQ(blockDouble[0]->GetData()[0], 48.988949);
+    ASSERT_DOUBLE_EQ(blockDouble[0]->GetData()[1], 48.978949);
+    ASSERT_DOUBLE_EQ(blockDouble[0]->GetData()[2], 28.288944);
+
+    ASSERT_EQ(blockFloat[0]->GetSize(), 3);
+    ASSERT_FLOAT_EQ(blockFloat[0]->GetData()[0], 4.8);
+    ASSERT_FLOAT_EQ(blockFloat[0]->GetData()[1], 2.3);
+    ASSERT_FLOAT_EQ(blockFloat[0]->GetData()[2], 2.8);
+
+    ASSERT_EQ(blockPoint[0]->GetSize(), 3);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockPoint[0]->GetData()[0]), "POINT(10.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockPoint[0]->GetData()[1]), "POINT(12 11.15)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockPoint[0]->GetData()[2]), "POINT(9 8)");
+
+    ASSERT_EQ(blockPolygon[0]->GetSize(), 3);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon[0]->GetData()[0]),
+              "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
+              "80.11, 90 89.15, 112.12 110, 61 80.11))");
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon[0]->GetData()[1]),
+              "POLYGON((15 11, 11.11 12.13, 15 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
+              "87.11, 90 89.15, 112.12 110, 61 87.11))");
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon[0]->GetData()[2]),
+              "POLYGON((15 18, 11.11 12.13, 15 18), (21 38, 35.55 36, 30.11 20.26, 21 38), (64 "
+              "80.11, 90 89.15, 112.12 110, 64 80.11))");
+
+    ASSERT_EQ(blockString[0]->GetSize(), 3);
+    ASSERT_EQ(blockString[0]->GetData()[0], "Hello");
+    ASSERT_EQ(blockString[0]->GetData()[1], "World");
+    ASSERT_EQ(blockString[0]->GetData()[2], "TestString");
+
+    ASSERT_EQ(blockBool[0]->GetSize(), 3);
+    ASSERT_EQ(blockBool[0]->GetData()[0], -1);
+    ASSERT_EQ(blockBool[0]->GetData()[1], 0);
+    ASSERT_EQ(blockBool[0]->GetData()[2], 1);
+
+	std::unordered_map<std::string, std::any> data10;
+    std::vector<int32_t> dataInt10({1, 3, 7});
+    data10.insert({"ColumnInt", dataInt10});
+    ASSERT_THROW(table.InsertData(data10), std::length_error);
 }
