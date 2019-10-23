@@ -42,9 +42,9 @@ void CheckQueryEngineError(const QueryEngineErrorType errorType, const std::stri
 {
     if (errorType != QueryEngineErrorType::GPU_EXTENSION_SUCCESS)
     {
-#ifdef DEBUG
-        CudaLogBoost::getInstance(CudaLogBoost::error)
+        CudaLogBoost::getInstance(CudaLogBoost::debug)
             << "QueryEngineError " << errorType << ": " << message << '\n';
+#ifdef DEBUG
 #ifndef WIN32
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "Backtrace:" << '\n';
         void* backtraceArray[25];
