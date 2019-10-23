@@ -395,8 +395,7 @@ void GpuSqlDispatcher::HandleHashTableFull()
     // Set flags to restart a blocks processing by current thread
     instructionPointer_ = jmpInstructionPosition_;
     groupByHashTableFull_ = true;
-    groupByTables_[dispatcherThreadId_].release();
-    groupByTables_[dispatcherThreadId_] = nullptr;
+    groupByTables_[dispatcherThreadId_].reset();
 
     // Heuristic for new needed hash table buffers size. Approximate
     // based on progress of overall blocks processing (block count / block index)
