@@ -9,35 +9,35 @@
     }                      \
     ;
 #define DISPATCH_ENTRY_SEPARATOR ,
-#define DISPATCHER_FUN(DOP, args...) &DOP<args>
-#define DISPATCHER_FUNCTION(DOP, args...)                                       \
-    DISPATCHER_FUN(DOP##ConstConst, args), DISPATCHER_FUN(DOP##ConstCol, args), \
-        DISPATCHER_FUN(DOP##ColConst, args), DISPATCHER_FUN(DOP##ColCol, args),
+#define DISPATCHER_FUN(DOP, ...) &DOP<__VA_ARGS__>
+#define DISPATCHER_FUNCTION(DOP, ...)                                       \
+    DISPATCHER_FUN(DOP##ConstConst, __VA_ARGS__), DISPATCHER_FUN(DOP##ConstCol, __VA_ARGS__), \
+        DISPATCHER_FUN(DOP##ColConst, __VA_ARGS__), DISPATCHER_FUN(DOP##ColCol, __VA_ARGS__),
 
-#define DISPATCHER_FUNCTION_NOCONST(DOP, args...)                          \
-    DISPATCHER_ERR(ConstConst, args), DISPATCHER_FUN(DOP##ConstCol, args), \
-        DISPATCHER_FUN(DOP##ColConst, args), DISPATCHER_FUN(DOP##ColCol, args),
+#define DISPATCHER_FUNCTION_NOCONST(DOP, ...)                          \
+    DISPATCHER_ERR(ConstConst, __VA_ARGS__), DISPATCHER_FUN(DOP##ConstCol, __VA_ARGS__), \
+        DISPATCHER_FUN(DOP##ColConst, __VA_ARGS__), DISPATCHER_FUN(DOP##ColCol, __VA_ARGS__),
 
-#define DISPATCHER_GROUPBY_FUNCTION(DOP, OP, RET_TYPE, args...)               \
-    DISPATCHER_ERR(ConstConst, OP, args), DISPATCHER_ERR(ConstCol, OP, args), \
-        DISPATCHER_ERR(ColConst, OP, args), DISPATCHER_FUN(DOP, OP, RET_TYPE, args),
+#define DISPATCHER_GROUPBY_FUNCTION(DOP, OP, RET_TYPE, ...)               \
+    DISPATCHER_ERR(ConstConst, OP, __VA_ARGS__), DISPATCHER_ERR(ConstCol, OP, __VA_ARGS__), \
+        DISPATCHER_ERR(ColConst, OP, __VA_ARGS__), DISPATCHER_FUN(DOP, OP, RET_TYPE, __VA_ARGS__),
 
-#define DISPATCHER_UNARY_FUNCTION(DOP, args...) \
-    DISPATCHER_FUN(DOP##Const, args), DISPATCHER_FUN(DOP##Col, args),
+#define DISPATCHER_UNARY_FUNCTION(DOP, ...) \
+    DISPATCHER_FUN(DOP##Const, __VA_ARGS__), DISPATCHER_FUN(DOP##Col, __VA_ARGS__),
 
-#define DISPATCHER_UNARY_FUNCTION_NO_COL(DOP, args...) \
-    DISPATCHER_FUN(DOP, args), DISPATCHER_FUN(DOP, args),
+#define DISPATCHER_UNARY_FUNCTION_NO_COL(DOP, ...) \
+    DISPATCHER_FUN(DOP, __VA_ARGS__), DISPATCHER_FUN(DOP, __VA_ARGS__),
 
 #define DISPATCHER_UNARY_FUNCTION_NO_TEMPLATE(DOP) &DOP##Const, &DOP##Col,
 
-#define DISPATCHER_ERR(SUFFIX, args...) \
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandler##SUFFIX<args>
+#define DISPATCHER_ERR(SUFFIX, ...) \
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandler##SUFFIX<__VA_ARGS__>
 
-#define DISPATCHER_ERROR(args...)                                     \
-    DISPATCHER_ERR(ConstConst, args), DISPATCHER_ERR(ConstCol, args), \
-        DISPATCHER_ERR(ColConst, args), DISPATCHER_ERR(ColCol, args),
+#define DISPATCHER_ERROR(...)                                     \
+    DISPATCHER_ERR(ConstConst, __VA_ARGS__), DISPATCHER_ERR(ConstCol, __VA_ARGS__), \
+        DISPATCHER_ERR(ColConst, __VA_ARGS__), DISPATCHER_ERR(ColCol, __VA_ARGS__),
 
-#define DISPATCHER_UNARY_ERROR(args...) DISPATCHER_ERR(Const, args), DISPATCHER_ERR(Col, args),
+#define DISPATCHER_UNARY_ERROR(...) DISPATCHER_ERR(Const, __VA_ARGS__), DISPATCHER_ERR(Col, __VA_ARGS__),
 
 #define DISPATCHER_INVALID_TYPE(OP, TYPE)                        \
     DISPATCHER_ERROR(OP, TYPE, int32_t)                          \
