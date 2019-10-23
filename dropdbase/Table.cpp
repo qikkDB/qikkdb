@@ -188,8 +188,7 @@ int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string
     }
     else if (dataOfFirstColumn.type() == typeid(std::vector<int8_t>))
     {
-        std::vector<int8_t> dataIndexedColumn =
-            std::any_cast<std::vector<int8_t>>(dataOfFirstColumn);
+        std::vector<int8_t> dataIndexedColumn = std::any_cast<std::vector<int8_t>>(dataOfFirstColumn);
         size = dataIndexedColumn.size();
     }
 
@@ -201,224 +200,261 @@ int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string
 /// </summary>
 /// <param name="data">unordered map of columnName and data that should be inserted in this
 /// <param name="dataSize">num of data in one column
-void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data, int32_t dataSize)
+void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data,
+                                        const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks,
+                                        int32_t dataSize)
 {
     bool noDuplicates = true;
     std::string nameOfUniqueColumn;
 
     for (const auto& column : columns)
     {
-        if (column.second.get()->GetIsUnique() && noDuplicates && data.find(column.first) != data.end())
+        if (data.find(column.first) != data.end())
         {
-            DataType columnType = column.second.get()->GetColumnType();
-
-            switch (columnType)
+            if (column.second.get()->GetIsUnique() && noDuplicates)
             {
+                DataType columnType = column.second.get()->GetColumnType();
 
-            case COLUMN_INT:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(column.second.get());
-                std::unordered_set<int32_t> temp_hashmap = castedColumn->GetHashmap();
-
-                const auto& wrappedCurrentColumnData = data.at(column.first);
-                std::vector<int32_t> dataColumn = std::any_cast<std::vector<int32_t>>(wrappedCurrentColumnData);
-
-                for (int i = 0; i < dataSize && noDuplicates; i++)
+                switch (columnType)
                 {
-                    bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
 
-                    if (valueIsUnique)
+                case COLUMN_INT:
+                {
+                    auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(column.second.get());
+                    std::unordered_set<int32_t> temp_hashmap = castedColumn->GetHashmap();
+
+                    const auto& wrappedCurrentColumnData = data.at(column.first);
+                    std::vector<int32_t> dataColumn =
+                        std::any_cast<std::vector<int32_t>>(wrappedCurrentColumnData);
+
+                    for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
-                        noDuplicates = false;
-                        nameOfUniqueColumn = column.first;
-                    }
-                    else
-                    {
-                        temp_hashmap.insert(dataColumn[i]);
+						//TODO zistit ci je null value aj pre ostatne datove typy a otestovat to
+                        int8_t isNullValue = false;
+                        int bitMaskIdx = (i / (sizeof(char) * 8));
+                        int shiftIdx = (i % (sizeof(char) * 8));
+                        if (nullMasks.find(column.first) != nullMasks.end())
+                        {
+                            isNullValue = (nullMasks.at(column.first)[bitMaskIdx] >> shiftIdx) & 1;
+                        }
+
+                        if (isNullValue)
+                        {
+                            throw std::length_error("Could not execute statement due to a UNIQUE "
+                                                    "constraint failure on column: " +
+                                                    column.first + "trying to insert NULL value");
+                        }
+						//
+
+                        bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+
+                        if (valueIsUnique)
+                        {
+                            noDuplicates = false;
+                            nameOfUniqueColumn = column.first;
+                        }
+                        else
+                        {
+                            temp_hashmap.insert(dataColumn[i]);
+                        }
                     }
                 }
-            }
-            break;
+                break;
 
-            case COLUMN_LONG:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(column.second.get());
-                std::unordered_set<int64_t> temp_hashmap = castedColumn->GetHashmap();
-
-                const auto& wrappedCurrentColumnData = data.at(column.first);
-                std::vector<int64_t> dataColumn = std::any_cast<std::vector<int64_t>>(wrappedCurrentColumnData);
-
-                for (int i = 0; i < dataSize && noDuplicates; i++)
+                case COLUMN_LONG:
                 {
-                    bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+                    auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(column.second.get());
+                    std::unordered_set<int64_t> temp_hashmap = castedColumn->GetHashmap();
 
-                    if (valueIsUnique)
+                    const auto& wrappedCurrentColumnData = data.at(column.first);
+                    std::vector<int64_t> dataColumn =
+                        std::any_cast<std::vector<int64_t>>(wrappedCurrentColumnData);
+
+                    for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
-                        noDuplicates = false;
-                        nameOfUniqueColumn = column.first;
-                    }
-                    else
-                    {
-                        temp_hashmap.insert(dataColumn[i]);
+                        bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+
+                        if (valueIsUnique)
+                        {
+                            noDuplicates = false;
+                            nameOfUniqueColumn = column.first;
+                        }
+                        else
+                        {
+                            temp_hashmap.insert(dataColumn[i]);
+                        }
                     }
                 }
-            }
-            break;
+                break;
 
-            case COLUMN_DOUBLE:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<double>*>(column.second.get());
-                std::unordered_set<double> temp_hashmap = castedColumn->GetHashmap();
-
-                const auto& wrappedCurrentColumnData = data.at(column.first);
-                std::vector<double> dataColumn = std::any_cast<std::vector<double>>(wrappedCurrentColumnData);
-
-                for (int i = 0; i < dataSize && noDuplicates; i++)
+                case COLUMN_DOUBLE:
                 {
-                    bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+                    auto castedColumn = dynamic_cast<ColumnBase<double>*>(column.second.get());
+                    std::unordered_set<double> temp_hashmap = castedColumn->GetHashmap();
 
-                    if (valueIsUnique)
+                    const auto& wrappedCurrentColumnData = data.at(column.first);
+                    std::vector<double> dataColumn =
+                        std::any_cast<std::vector<double>>(wrappedCurrentColumnData);
+
+                    for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
-                        noDuplicates = false;
-                        nameOfUniqueColumn = column.first;
-                    }
-                    else
-                    {
-                        temp_hashmap.insert(dataColumn[i]);
+                        bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+
+                        if (valueIsUnique)
+                        {
+                            noDuplicates = false;
+                            nameOfUniqueColumn = column.first;
+                        }
+                        else
+                        {
+                            temp_hashmap.insert(dataColumn[i]);
+                        }
                     }
                 }
-            }
-            break;
+                break;
 
-            case COLUMN_FLOAT:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<float>*>(column.second.get());
-                std::unordered_set<float> temp_hashmap = castedColumn->GetHashmap();
-
-                const auto& wrappedCurrentColumnData = data.at(column.first);
-                std::vector<float> dataColumn = std::any_cast<std::vector<float>>(wrappedCurrentColumnData);
-
-                for (int i = 0; i < dataSize && noDuplicates; i++)
+                case COLUMN_FLOAT:
                 {
-                    bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+                    auto castedColumn = dynamic_cast<ColumnBase<float>*>(column.second.get());
+                    std::unordered_set<float> temp_hashmap = castedColumn->GetHashmap();
 
-                    if (valueIsUnique)
+                    const auto& wrappedCurrentColumnData = data.at(column.first);
+                    std::vector<float> dataColumn = std::any_cast<std::vector<float>>(wrappedCurrentColumnData);
+
+                    for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
-                        noDuplicates = false;
-                        nameOfUniqueColumn = column.first;
-                    }
-                    else
-                    {
-                        temp_hashmap.insert(dataColumn[i]);
+                        bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+
+                        if (valueIsUnique)
+                        {
+                            noDuplicates = false;
+                            nameOfUniqueColumn = column.first;
+                        }
+                        else
+                        {
+                            temp_hashmap.insert(dataColumn[i]);
+                        }
                     }
                 }
-            }
-            break;
+                break;
 
-            case COLUMN_POINT:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.second.get());
-                std::unordered_set<ColmnarDB::Types::Point> temp_hashmap = castedColumn->GetHashmap();
-
-                const auto& wrappedCurrentColumnData = data.at(column.first);
-                std::vector<ColmnarDB::Types::Point> dataColumn =
-                    std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedCurrentColumnData);
-
-                for (int i = 0; i < dataSize && noDuplicates; i++)
+                case COLUMN_POINT:
                 {
-                    bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+                    auto castedColumn =
+                        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.second.get());
+                    std::unordered_set<ColmnarDB::Types::Point> temp_hashmap = castedColumn->GetHashmap();
 
-                    if (valueIsUnique)
+                    const auto& wrappedCurrentColumnData = data.at(column.first);
+                    std::vector<ColmnarDB::Types::Point> dataColumn =
+                        std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedCurrentColumnData);
+
+                    for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
-                        noDuplicates = false;
-                        nameOfUniqueColumn = column.first;
-                    }
-                    else
-                    {
-                        temp_hashmap.insert(dataColumn[i]);
+                        bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+
+                        if (valueIsUnique)
+                        {
+                            noDuplicates = false;
+                            nameOfUniqueColumn = column.first;
+                        }
+                        else
+                        {
+                            temp_hashmap.insert(dataColumn[i]);
+                        }
                     }
                 }
-            }
-            break;
+                break;
 
-            case COLUMN_POLYGON:
-            {
-                auto castedColumn =
-                    dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(column.second.get());
-                std::unordered_set<ColmnarDB::Types::ComplexPolygon> temp_hashmap =
-                    castedColumn->GetHashmap();
-
-                const auto& wrappedCurrentColumnData = data.at(column.first);
-                std::vector<ColmnarDB::Types::ComplexPolygon> dataColumn =
-                    std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedCurrentColumnData);
-
-                for (int i = 0; i < dataSize && noDuplicates; i++)
+                case COLUMN_POLYGON:
                 {
-                    bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+                    auto castedColumn =
+                        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(column.second.get());
+                    std::unordered_set<ColmnarDB::Types::ComplexPolygon> temp_hashmap =
+                        castedColumn->GetHashmap();
 
-                    if (valueIsUnique)
+                    const auto& wrappedCurrentColumnData = data.at(column.first);
+                    std::vector<ColmnarDB::Types::ComplexPolygon> dataColumn =
+                        std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedCurrentColumnData);
+
+                    for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
-                        noDuplicates = false;
-                        nameOfUniqueColumn = column.first;
-                    }
-                    else
-                    {
-                        temp_hashmap.insert(dataColumn[i]);
+                        bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+
+                        if (valueIsUnique)
+                        {
+                            noDuplicates = false;
+                            nameOfUniqueColumn = column.first;
+                        }
+                        else
+                        {
+                            temp_hashmap.insert(dataColumn[i]);
+                        }
                     }
                 }
-            }
-            break;
+                break;
 
-            case COLUMN_STRING:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(column.second.get());
-                std::unordered_set<std::string> temp_hashmap = castedColumn->GetHashmap();
-
-                const auto& wrappedCurrentColumnData = data.at(column.first);
-                std::vector<std::string> dataColumn =
-                    std::any_cast<std::vector<std::string>>(wrappedCurrentColumnData);
-
-                for (int i = 0; i < dataSize && noDuplicates; i++)
+                case COLUMN_STRING:
                 {
-                    bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+                    auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(column.second.get());
+                    std::unordered_set<std::string> temp_hashmap = castedColumn->GetHashmap();
 
-                    if (valueIsUnique)
+                    const auto& wrappedCurrentColumnData = data.at(column.first);
+                    std::vector<std::string> dataColumn =
+                        std::any_cast<std::vector<std::string>>(wrappedCurrentColumnData);
+
+                    for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
-                        noDuplicates = false;
-                        nameOfUniqueColumn = column.first;
-                    }
-                    else
-                    {
-                        temp_hashmap.insert(dataColumn[i]);
+                        bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+
+                        if (valueIsUnique)
+                        {
+                            noDuplicates = false;
+                            nameOfUniqueColumn = column.first;
+                        }
+                        else
+                        {
+                            temp_hashmap.insert(dataColumn[i]);
+                        }
                     }
                 }
-            }
-            break;
+                break;
 
-            case COLUMN_INT8_T:
-            {
-                auto castedColumn = dynamic_cast<ColumnBase<int8_t>*>(column.second.get());
-                std::unordered_set<int8_t> temp_hashmap = castedColumn->GetHashmap();
-
-                const auto& wrappedCurrentColumnData = data.at(column.first);
-                std::vector<int8_t> dataColumn = std::any_cast<std::vector<int8_t>>(wrappedCurrentColumnData);
-
-                for (int i = 0; i < dataSize && noDuplicates; i++)
+                case COLUMN_INT8_T:
                 {
-                    bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+                    auto castedColumn = dynamic_cast<ColumnBase<int8_t>*>(column.second.get());
+                    std::unordered_set<int8_t> temp_hashmap = castedColumn->GetHashmap();
 
-                    if (valueIsUnique)
+                    const auto& wrappedCurrentColumnData = data.at(column.first);
+                    std::vector<int8_t> dataColumn =
+                        std::any_cast<std::vector<int8_t>>(wrappedCurrentColumnData);
+
+                    for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
-                        noDuplicates = false;
-                        nameOfUniqueColumn = column.first;
-                    }
-                    else
-                    {
-                        temp_hashmap.insert(dataColumn[i]);
+                        bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
+
+                        if (valueIsUnique)
+                        {
+                            noDuplicates = false;
+                            nameOfUniqueColumn = column.first;
+                        }
+                        else
+                        {
+                            temp_hashmap.insert(dataColumn[i]);
+                        }
                     }
                 }
+                break;
+                }
             }
-            break;
+        }
+        else
+        {
+            // Case when column is not in inserted data so automaticaly there should be NULL inserted which is not suitable when column is Unique
+            if (column.second.get()->GetIsUnique())
+            {
+                throw std::length_error(
+                    "Could not execute statement due to a UNIQUE constraint failure on column: " +
+                    column.first + "trying to insert NULL value");
             }
         }
     }
@@ -1321,6 +1357,7 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name, const 
     else
     {
         // if table block size was specified, use it as table block size for this particular table
+        // if table block size was specified, use it as table block size for this particular table
         blockSize_ = blockSize;
     }
     saveNecesarry_ = true;
@@ -1391,7 +1428,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
     // This method check UNIQUE constraints and data which should be inserted if fit this requirement
     if (getHasUniqueConstraints())
     {
-        checkUniqueConstraintInData(data, oneColumnDataSize);
+        checkUniqueConstraintInData(data, nullMasks, oneColumnDataSize);
     }
 
     // This block of code insert data according to set indices
