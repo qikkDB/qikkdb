@@ -4,6 +4,7 @@ using ColmnarDB.NetworkClient;
 using ColmnarDB.ConsoleClient;
 using System.Linq;
 using System.IO;
+using System.Collections;
 
 namespace ColmnarDB.BenchmarkUtility
 {
@@ -30,8 +31,11 @@ namespace ColmnarDB.BenchmarkUtility
         /// <summary>
         /// Load benchmark queries from a file, execute them one by one and save results.
         /// </summary>
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
+            bool avgTimePassed = true;
+            bool correctResultsPassed = true;
+
             Array.Sort(args);
 
             ColumnarDBClient client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
@@ -133,7 +137,7 @@ namespace ColmnarDB.BenchmarkUtility
                         {
                             resultFile.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
                             Console.Out.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
-                            Environment.Exit(1);
+                            avgTimePassed = false;
                         }
                     }
                     queryFile.Close();
@@ -211,7 +215,7 @@ namespace ColmnarDB.BenchmarkUtility
                         {
                             resultFile.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
                             Console.Out.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
-                            Environment.Exit(1);
+                            avgTimePassed = false;
                         }
                     }
                     queryFile.Close();
@@ -259,26 +263,26 @@ namespace ColmnarDB.BenchmarkUtility
                         //read expected column data types
                         var expectedDataTypes= queryExpectedResultFile.ReadLine().Split('|');
 
-                        Dictionary<string, IList> exptectedColumns;
+                        Dictionary<string, IList> exptectedColumns = new Dictionary<string, IList>();
 
                         for (int i = 0; i < expectedColumnNames.Length; i++)
                         {
                             switch (expectedDataTypes[i])
                             {
                                 case "INT":
-                                    exptectedColumns.Add(expectedColumnNames[i], new ArrayList<Int32>());
+                                    exptectedColumns.Add(expectedColumnNames[i], new List<Int32>());
                                     break;
                                 case "LONG":
-                                    exptectedColumns.Add(expectedColumnNames[i], new ArrayList<Int64>());
+                                    exptectedColumns.Add(expectedColumnNames[i], new List<Int64>());
                                     break;
                                 case "FLOAT":
-                                    exptectedColumns.Add(expectedColumnNames[i], new ArrayList<Single>());
+                                    exptectedColumns.Add(expectedColumnNames[i], new List<Single>());
                                     break;
                                 case "DOUBLE":
-                                    exptectedColumns.Add(expectedColumnNames[i], new ArrayList<Double>());
+                                    exptectedColumns.Add(expectedColumnNames[i], new List<Double>());
                                     break;
                                 case "STRING":
-                                    exptectedColumns.Add(expectedColumnNames[i], new ArrayList<String>());
+                                    exptectedColumns.Add(expectedColumnNames[i], new List<String>());
                                     break;
                             }
                             
@@ -298,7 +302,16 @@ namespace ColmnarDB.BenchmarkUtility
                         //check if the expected result dictionary is the same as actual query result dictionary:
                         for (int i = 0; i < expectedColumnNames.Length; i++)
                         {
-                            exptectedColumns[expectedColumnNames[i]].SequenceEqual(result.GetGetColumnData()[expectedColumnNames[i]]);
+                            //check each element in result's lists
+                            for (int j = 0; j < exptectedColumns[expectedColumnNames[i]].Count; j++)
+                            {
+                                if (exptectedColumns[expectedColumnNames[i]][j] != result.GetColumnData()[expectedColumnNames[i]][j])
+                                {
+                                    resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j].ToString() + " / " + result.GetColumnData()[expectedColumnNames[i]][j].ToString());
+                                    Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j] + " / " + result.GetColumnData()[expectedColumnNames[i]][j]);
+                                    correctResultsPassed = false;
+                                }
+                            }
                         }
                 
                         //save query result to a file:
@@ -340,7 +353,7 @@ namespace ColmnarDB.BenchmarkUtility
                         {
                             resultFile.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
                             Console.Out.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
-                            Environment.Exit(1);
+                            avgTimePassed = false;
                         }
                     }
                     queryFile.Close();
@@ -418,13 +431,41 @@ namespace ColmnarDB.BenchmarkUtility
                         {
                             resultFile.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
                             Console.Out.WriteLine("The query '" + queryString + "' has FAILED the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
-                            Environment.Exit(1);
+                            avgTimePassed = false;
                         }
                     }
                     queryFile.Close();
                 }
             }
             resultFile.Close();
+
+            //return exit code:
+            if (correctResultsPassed && avgTimePassed)
+            {
+                //everything was successful
+                return 0;
+            }
+
+            if (!correctResultsPassed && avgTimePassed)
+            {
+                //query results were not correct, but query has finished in expected time
+                return 1;
+            }
+
+            if (correctResultsPassed && !avgTimePassed)
+            {
+                //query results were corrcet, but query has not finished in expected time
+                return 2;
+            }
+
+            if (!correctResultsPassed && !avgTimePassed)
+            {
+                //neither query results were correct, nor query has finished execution in expected time
+                return 3;
+            }
+
+            //something else has happend
+            return 4;
         }    
     }
 }
