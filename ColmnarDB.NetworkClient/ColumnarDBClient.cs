@@ -1070,7 +1070,7 @@ namespace ColmnarDB.NetworkClient
                 CloseWithoutNotify();
                 throw;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 CloseWithoutNotify();
                 throw;

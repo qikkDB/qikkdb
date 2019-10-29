@@ -255,7 +255,7 @@ namespace ColmnarDB.BenchmarkUtility
                         }
 
                         //read file where the results of a particular query are saved:
-                        var queryExpectedResultFile = new System.IO.StreamReader(queryString.Replace("*", "") + ".txt");
+                        var queryExpectedResultFile = new System.IO.StreamReader("../../../ColmnarDB.BenchmarkUtility/" + queryString.Replace("*", "") + ".txt");
 
                         //read the file header
                         var expectedColumnNames = queryExpectedResultFile.ReadLine().Split('|');

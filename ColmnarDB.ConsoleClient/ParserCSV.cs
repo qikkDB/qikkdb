@@ -65,7 +65,6 @@ namespace ColmnarDB.ConsoleClient
         private Configuration configuration;
         private string[] header;
         private Dictionary<string, Type> types;
-        private FileStream stream;
         private StreamReader streamReader;
         private NetworkClient.ColumnarDataTable tableData;
         private IParser dataParser;        

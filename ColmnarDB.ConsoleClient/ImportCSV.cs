@@ -276,11 +276,11 @@ namespace ColmnarDB.ConsoleClient
                 {
                     client.Query(query);
                 }
-                catch (QueryException e)
+                catch (QueryException)
                 {          
                     // this exception does not show message and it is necessary to get next result set
                 }
-                catch (Exception e)
+                catch (Exception)
                 {                    
                 }
 
