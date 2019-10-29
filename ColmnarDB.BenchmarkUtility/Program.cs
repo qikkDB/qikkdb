@@ -59,6 +59,7 @@ namespace ColmnarDB.BenchmarkUtility
             foreach (string arg in args)
             {
                 string queryString;
+                string queryExptectedString;
 
                 if (String.Equals(arg, "-a") || String.Equals(arg, "-b"))
                 {
@@ -77,7 +78,14 @@ namespace ColmnarDB.BenchmarkUtility
 
                         //execute query first time (no cache):
                         float resultSum = 0;
-                        client.Query(queryString);
+                        try
+                        {
+                            client.Query(queryString);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.Out.WriteLine(e);
+                        }
                         Dictionary<string, float> executionTimes = null;
                         ColumnarDataTable result = null;
 
@@ -85,7 +93,7 @@ namespace ColmnarDB.BenchmarkUtility
                         {
                             resultSum += executionTimes.Values.Sum();
                         }
-                
+
                         //save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
                         Console.Out.WriteLine((resultSum).ToString() + " (first run)"); 
@@ -93,7 +101,14 @@ namespace ColmnarDB.BenchmarkUtility
                         //execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
-                            client.Query(queryString);
+                            try
+                            {
+                                client.Query(queryString);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.Out.WriteLine(e);
+                            }
 
                             while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
                             {
@@ -141,7 +156,14 @@ namespace ColmnarDB.BenchmarkUtility
 
                         //execute query first time (no cache):
                         float resultSum = 0;
-                        client.Query(queryString);
+                        try
+                        {
+                            client.Query(queryString);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.Out.WriteLine(e);
+                        }
                         Dictionary<string, float> executionTimes = null;
                         ColumnarDataTable result = null;
 
@@ -157,7 +179,14 @@ namespace ColmnarDB.BenchmarkUtility
                         //execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
-                            client.Query(queryString);
+                            try
+                            {
+                                client.Query(queryString);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.Out.WriteLine(e);
+                            }
 
                             while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
                             {
@@ -205,13 +234,71 @@ namespace ColmnarDB.BenchmarkUtility
 
                         //execute query first time (no cache):
                         float resultSum = 0;
-                        client.Query(queryString);
+                        try
+                        {
+                            client.Query(queryString);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.Out.WriteLine(e);
+                        }
                         Dictionary<string, float> executionTimes = null;
                         ColumnarDataTable result = null;
 
                         while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
                         {
                             resultSum += executionTimes.Values.Sum();
+                        }
+
+                        //read file where the results of a particular query are saved:
+                        var queryExpectedResultFile = new System.IO.StreamReader(queryString.Replace("*", "") + ".txt");
+
+                        //read the file header
+                        var expectedColumnNames = queryExpectedResultFile.ReadLine().Split('|');
+
+                        //read expected column data types
+                        var expectedDataTypes= queryExpectedResultFile.ReadLine().Split('|');
+
+                        Dictionary<string, IList> exptectedColumns;
+
+                        for (int i = 0; i < expectedColumnNames.Length; i++)
+                        {
+                            switch (expectedDataTypes[i])
+                            {
+                                case "INT":
+                                    exptectedColumns.Add(expectedColumnNames[i], new ArrayList<Int32>());
+                                    break;
+                                case "LONG":
+                                    exptectedColumns.Add(expectedColumnNames[i], new ArrayList<Int64>());
+                                    break;
+                                case "FLOAT":
+                                    exptectedColumns.Add(expectedColumnNames[i], new ArrayList<Single>());
+                                    break;
+                                case "DOUBLE":
+                                    exptectedColumns.Add(expectedColumnNames[i], new ArrayList<Double>());
+                                    break;
+                                case "STRING":
+                                    exptectedColumns.Add(expectedColumnNames[i], new ArrayList<String>());
+                                    break;
+                            }
+                            
+                        }
+
+                        //read results from a file:
+                        while ((queryExptectedString = queryExpectedResultFile.ReadLine()) != null)
+                        {
+                            var results = queryExptectedString.Split('|');
+
+                            for (int i = 0; i < expectedColumnNames.Length; i++)
+                            {
+                                exptectedColumns[expectedColumnNames[i]].Add(results[i]);
+                            }
+                        }
+
+                        //check if the expected result dictionary is the same as actual query result dictionary:
+                        for (int i = 0; i < expectedColumnNames.Length; i++)
+                        {
+                            exptectedColumns[expectedColumnNames[i]].SequenceEqual(result.GetGetColumnData()[expectedColumnNames[i]]);
                         }
                 
                         //save query result to a file:
@@ -221,7 +308,14 @@ namespace ColmnarDB.BenchmarkUtility
                         //execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
-                            client.Query(queryString);
+                            try
+                            {
+                                client.Query(queryString);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.Out.WriteLine(e);
+                            }
 
                             while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
                             {
@@ -269,7 +363,14 @@ namespace ColmnarDB.BenchmarkUtility
 
                         //execute query first time (no cache):
                         float resultSum = 0;
-                        client.Query(queryString);
+                        try
+                        {
+                            client.Query(queryString);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.Out.WriteLine(e);
+                        }
                         Dictionary<string, float> executionTimes = null;
                         ColumnarDataTable result = null;
 
@@ -285,7 +386,14 @@ namespace ColmnarDB.BenchmarkUtility
                         //execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
-                            client.Query(queryString);
+                            try
+                            {
+                                client.Query(queryString);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.Out.WriteLine(e);
+                            }
 
                             while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
                             {
