@@ -6,6 +6,7 @@
 #include "../dropdbase/PointFactory.h"
 #include "../dropdbase/ComplexPolygonFactory.h"
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
+#include "QueryEngine/NullConstants.cuh"
 
 TEST(TableTests, CreateColumn)
 {
@@ -1243,7 +1244,7 @@ TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertDuplicateValuesIntoUniqueColu
 
     table.InsertData(data);
 
-	// trying to insert non unique value into unique column
+    // trying to insert non unique value into unique column
     castedColumnInt->SetIsUnique(true);
     castedColumnLong->SetIsUnique(false);
     castedColumnDouble->SetIsUnique(false);
@@ -1399,7 +1400,7 @@ TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertDuplicateValuesIntoUniqueColu
 
 TEST(TableTests, InsertIntoIsUnique_Int)
 {
-	//insert unique values into both columns - one isUnique and one is not
+    // insert unique values into both columns - one isUnique and one is not
     auto database = std::make_shared<Database>("testDatabaseUnique", 50);
     Table table(database, "testTable");
 
@@ -1438,7 +1439,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntB[0]->GetData()[1], 41);
     ASSERT_EQ(blockIntB[0]->GetData()[2], -61);
 
-	//trying to insert unique values into isUnique column and non unique values into non unique column
+    // trying to insert unique values into isUnique column and non unique values into non unique column
     std::unordered_map<std::string, std::any> data2;
     std::vector<int32_t> dataIntA2({3, 5, -7});
     std::vector<int32_t> dataIntB2({21, 21, -61});
@@ -1469,7 +1470,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntB2[0]->GetData()[4], 21);
     ASSERT_EQ(blockIntB2[0]->GetData()[5], -61);
 
-	// trying to insert non unique values into isUnique column and unique values into non unique column
+    // trying to insert non unique values into isUnique column and unique values into non unique column
     std::unordered_map<std::string, std::any> data3;
     std::vector<int32_t> dataIntA3({3, 5, -7});
     std::vector<int32_t> dataIntB3({1, 2, 3});
@@ -1477,7 +1478,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     data3.insert({"ColumnIntA", dataIntA3});
     data3.insert({"ColumnIntB", dataIntB3});
 
-	ASSERT_THROW(table.InsertData(data3), std::length_error);
+    ASSERT_THROW(table.InsertData(data3), std::length_error);
 
     auto blockIntA3 =
         dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
@@ -1491,7 +1492,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntA3[0]->GetData()[3], 3);
     ASSERT_EQ(blockIntA3[0]->GetData()[4], 5);
     ASSERT_EQ(blockIntA3[0]->GetData()[5], -7);
-					   
+
     ASSERT_EQ(blockIntB3[0]->GetSize(), 6);
     ASSERT_EQ(blockIntB3[0]->GetData()[0], 21);
     ASSERT_EQ(blockIntB3[0]->GetData()[1], 41);
@@ -1500,7 +1501,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntB3[0]->GetData()[4], 21);
     ASSERT_EQ(blockIntB3[0]->GetData()[5], -61);
 
-	// trying to insert non unique values into isUnique column and non unique values into non unique column
+    // trying to insert non unique values into isUnique column and non unique values into non unique column
     std::unordered_map<std::string, std::any> data4;
     std::vector<int32_t> dataIntA4({3});
     std::vector<int32_t> dataIntB4({21});
@@ -1522,7 +1523,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntA4[0]->GetData()[3], 3);
     ASSERT_EQ(blockIntA4[0]->GetData()[4], 5);
     ASSERT_EQ(blockIntA4[0]->GetData()[5], -7);
-					   
+
     ASSERT_EQ(blockIntB4[0]->GetSize(), 6);
     ASSERT_EQ(blockIntB4[0]->GetData()[0], 21);
     ASSERT_EQ(blockIntB4[0]->GetData()[1], 41);
@@ -1531,7 +1532,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntB4[0]->GetData()[4], 21);
     ASSERT_EQ(blockIntB4[0]->GetData()[5], -61);
 
-	//trynig to insert non unique values - these duplicity values is within one insert
+    // trynig to insert non unique values - these duplicity values is within one insert
     std::unordered_map<std::string, std::any> data5;
     std::vector<int32_t> dataIntA5({8, 1, 5, 7, 8});
     std::vector<int32_t> dataIntB5({100, 101, 102, 103, 104});
@@ -1553,7 +1554,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntA5[0]->GetData()[3], 3);
     ASSERT_EQ(blockIntA5[0]->GetData()[4], 5);
     ASSERT_EQ(blockIntA5[0]->GetData()[5], -7);
-					   
+
     ASSERT_EQ(blockIntB5[0]->GetSize(), 6);
     ASSERT_EQ(blockIntB5[0]->GetData()[0], 21);
     ASSERT_EQ(blockIntB5[0]->GetData()[1], 41);
@@ -1562,7 +1563,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntB5[0]->GetData()[4], 21);
     ASSERT_EQ(blockIntB5[0]->GetData()[5], -61);
 
-	//insert only to non unique column - null value should be inserted in isUnique column but this is forbidden
+    // insert only to non unique column - null value should be inserted in isUnique column but this is forbidden
     std::unordered_map<std::string, std::any> data6;
     std::vector<int32_t> dataIntA6({100, 101});
     std::vector<int32_t> dataIntB6({100, 101});
@@ -1592,7 +1593,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntA6[0]->GetData()[3], 3);
     ASSERT_EQ(blockIntA6[0]->GetData()[4], 5);
     ASSERT_EQ(blockIntA6[0]->GetData()[5], -7);
-					   
+
     ASSERT_EQ(blockIntB6[0]->GetSize(), 6);
     ASSERT_EQ(blockIntB6[0]->GetData()[0], 21);
     ASSERT_EQ(blockIntB6[0]->GetData()[1], 41);
@@ -1604,7 +1605,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntA6[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockIntB6[0]->GetNullBitmask()[0], 0);
 
-	// insert only to unique column - null value should be inserted in non unique column
+    // insert only to unique column - null value should be inserted in non unique column
     std::unordered_map<std::string, std::any> data7;
     std::vector<int32_t> dataIntA7({1, 8});
     std::vector<int32_t> dataIntB7({1, 8});
@@ -1636,7 +1637,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntA7[0]->GetData()[5], -7);
     ASSERT_EQ(blockIntA7[0]->GetData()[6], 1);
     ASSERT_EQ(blockIntA7[0]->GetData()[7], 8);
-					   
+
     ASSERT_EQ(blockIntB7[0]->GetSize(), 8);
     ASSERT_EQ(blockIntB7[0]->GetData()[0], 21);
     ASSERT_EQ(blockIntB7[0]->GetData()[1], 41);
@@ -1647,29 +1648,1395 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntB7[0]->GetData()[6], 1);
     ASSERT_EQ(blockIntB7[0]->GetData()[7], 8);
 
-	ASSERT_EQ(blockIntA7[0]->GetNullBitmask()[0], 0);
-    ASSERT_EQ(blockIntB7[0]->GetNullBitmask()[0], -128);
+    ASSERT_EQ(blockIntA7[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blockIntB7[0]->GetNullBitmask()[0], -64);
 }
 
 TEST(TableTests, InsertIntoIsUnique_Int_ThroughConsole)
 {
     GpuSqlCustomParser parserCreateDatabase(nullptr, "CREATE DATABASE UniqueDatabase 50;");
     auto resultPtr = parserCreateDatabase.Parse();
+    auto database = Database::GetDatabaseByName("UniqueDatabase");
 
-    GpuSqlCustomParser parserCreateTable(Database::GetDatabaseByName("UniqueDatabase"),
-                                         "CREATE TABLE Table (ColumnIntA INT UNIQUE, ColumnIntB INT);");
+    GpuSqlCustomParser parserCreateTable(database,
+                                         "CREATE TABLE TableA (ColumnIntA INT UNIQUE, ColumnIntB "
+                                         "INT);");
     resultPtr = parserCreateTable.Parse();
+    auto& table = database->GetTables().at("TableA");
 
-	GpuSqlCustomParser parser(Database::GetDatabaseByName("UniqueDatabase"),
-                              "INSERT INTO Table (ColumnIntA, ColumnIntB) VALUES (1, 2);");
+    ASSERT_TRUE(table.GetColumns().at("ColumnIntA")->GetIsUnique());
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntB")->GetIsUnique());
+
+    GpuSqlCustomParser parser(database,
+                              "INSERT INTO TableA (ColumnIntA, ColumnIntB) VALUES (1, 2);");
     resultPtr = parser.Parse();
+
+    GpuSqlCustomParser parser1(database,
+                               "INSERT INTO TableA (ColumnIntA, ColumnIntB) VALUES (2, 3);");
+    resultPtr = parser1.Parse();
+
+    GpuSqlCustomParser parserSelect(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    resultPtr = parserSelect.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	ASSERT_EQ(result->payloads().at("Table.ColumnIntA").intpayload().intdata_size(), 1);
-	ASSERT_EQ(result->payloads().at("Table.ColumnIntB").intpayload().intdata_size(), 1);
-    ASSERT_EQ(1, result->payloads().at("Table.ColumnIntA").intpayload().intdata()[0]);
-    ASSERT_EQ(2, result->payloads().at("Table.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 2);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 2);
+    ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
+    ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
 
-	GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE UniqueDatabase;");
+    // unique value in Unique column, non unique value into non unique column
+    GpuSqlCustomParser parser2(database,
+                               "INSERT INTO TableA (ColumnIntA, ColumnIntB) VALUES (3, 2);");
+    resultPtr = parser2.Parse();
+
+    GpuSqlCustomParser parserSelect2(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    resultPtr = parserSelect2.Parse();
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
+    ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
+    ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
+    ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[2]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[2]);
+
+    // non unique value in Unique column, non unique value into non unique column
+    GpuSqlCustomParser parser3(database,
+                               "INSERT INTO TableA (ColumnIntA, ColumnIntB) VALUES (3, 2);");
+    ASSERT_THROW(parser3.Parse(), std::length_error);
+
+    GpuSqlCustomParser parserSelect3(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    resultPtr = parserSelect3.Parse();
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
+    ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
+    ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
+    ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[2]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[2]);
+
+    // non unique value in Unique column, unique value into non unique column
+    GpuSqlCustomParser parser4(database,
+                               "INSERT INTO TableA (ColumnIntA, ColumnIntB) VALUES (3, 4);");
+    ASSERT_THROW(parser4.Parse(), std::length_error);
+
+    GpuSqlCustomParser parserSelect4(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    resultPtr = parserSelect4.Parse();
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
+    ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
+    ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
+    ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[2]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[2]);
+
+    // insert only into non unique column, so null value should be inserted into unique column but this is forbidden
+    GpuSqlCustomParser parser5(database, "INSERT INTO TableA (ColumnIntB) VALUES (3);");
+    ASSERT_THROW(parser5.Parse(), std::length_error);
+
+    GpuSqlCustomParser parserSelect5(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    resultPtr = parserSelect5.Parse();
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
+    ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
+    ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
+    ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[2]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[2]);
+
+    // insert only into unique column, so null value will be inserted into non unique column
+    GpuSqlCustomParser parser6(database, "INSERT INTO TableA (ColumnIntA) VALUES (4);");
+    parser6.Parse();
+
+    GpuSqlCustomParser parserSelect6(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    resultPtr = parserSelect6.Parse();
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 4);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 4);
+    ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
+    ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
+    ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[2]);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[2]);
+    ASSERT_EQ(4, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[3]);
+    ASSERT_EQ(GetNullConstant<int32_t>(),
+              result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[3]);
+
+    GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE UniqueDatabase;");
     resultPtr = parserDropDatabase.Parse();
 }
+
+TEST(TableTests, InsertIntoIsUnique_Long)
+{
+    // insert unique values into both columns - one isUnique and one is not
+    auto database = std::make_shared<Database>("testDatabaseUnique", 50);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnA", COLUMN_LONG);
+    table.CreateColumn("ColumnB", COLUMN_LONG);
+
+    auto& columnA = table.GetColumns().at("ColumnA");
+    auto& columnB = table.GetColumns().at("ColumnB");
+
+    auto castedColumnA = dynamic_cast<ColumnBase<int64_t>*>(columnA.get());
+    auto castedColumnB = dynamic_cast<ColumnBase<int64_t>*>(columnB.get());
+
+    castedColumnA->SetIsUnique(true);
+
+    std::unordered_map<std::string, std::any> data;
+    std::vector<int64_t> dataA({489889498840, 489889498841, 489889498842});
+    std::vector<int64_t> dataB({489889498843, 489889498844, 489889498845});
+
+    data.insert({"ColumnA", dataA});
+    data.insert({"ColumnB", dataB});
+
+    table.InsertData(data);
+
+    auto blockA = dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB = dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA[0]->GetSize(), 3);
+    ASSERT_EQ(blockA[0]->GetData()[0], 489889498840);
+    ASSERT_EQ(blockA[0]->GetData()[1], 489889498841);
+    ASSERT_EQ(blockA[0]->GetData()[2], 489889498842);
+
+    ASSERT_EQ(blockB[0]->GetSize(), 3);
+    ASSERT_EQ(blockB[0]->GetData()[0], 489889498843);
+    ASSERT_EQ(blockB[0]->GetData()[1], 489889498844);
+    ASSERT_EQ(blockB[0]->GetData()[2], 489889498845);
+
+    // trying to insert unique values into isUnique column and non unique values into non unique column
+    std::unordered_map<std::string, std::any> data2;
+    std::vector<int64_t> dataA2({489889498843, 489889498844, 489889498845});
+    std::vector<int64_t> dataB2({489889498843, 489889498843, 489889498845});
+
+    data2.insert({"ColumnA", dataA2});
+    data2.insert({"ColumnB", dataB2});
+
+    table.InsertData(data2);
+
+    auto blockA2 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB2 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA2[0]->GetSize(), 6);
+    ASSERT_EQ(blockA2[0]->GetData()[0], 489889498840);
+    ASSERT_EQ(blockA2[0]->GetData()[1], 489889498841);
+    ASSERT_EQ(blockA2[0]->GetData()[2], 489889498842);
+    ASSERT_EQ(blockA2[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockA2[0]->GetData()[4], 489889498844);
+    ASSERT_EQ(blockA2[0]->GetData()[5], 489889498845);
+
+    ASSERT_EQ(blockB2[0]->GetSize(), 6);
+    ASSERT_EQ(blockB2[0]->GetData()[0], 489889498843);
+    ASSERT_EQ(blockB2[0]->GetData()[1], 489889498844);
+    ASSERT_EQ(blockB2[0]->GetData()[2], 489889498845);
+    ASSERT_EQ(blockB2[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockB2[0]->GetData()[4], 489889498843);
+    ASSERT_EQ(blockB2[0]->GetData()[5], 489889498845);
+
+    // trying to insert non unique values into isUnique column and unique values into non unique column
+    std::unordered_map<std::string, std::any> data3;
+    std::vector<int64_t> dataA3({489889498846, 489889498841, 489889498842});
+    std::vector<int64_t> dataB3({489889498846, 489889498847, 489889498848});
+
+    data3.insert({"ColumnA", dataA3});
+    data3.insert({"ColumnB", dataB3});
+
+    ASSERT_THROW(table.InsertData(data3), std::length_error);
+
+    auto blockA3 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB3 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA3[0]->GetSize(), 6);
+    ASSERT_EQ(blockA3[0]->GetData()[0], 489889498840);
+    ASSERT_EQ(blockA3[0]->GetData()[1], 489889498841);
+    ASSERT_EQ(blockA3[0]->GetData()[2], 489889498842);
+    ASSERT_EQ(blockA3[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockA3[0]->GetData()[4], 489889498844);
+    ASSERT_EQ(blockA3[0]->GetData()[5], 489889498845);
+
+    ASSERT_EQ(blockB3[0]->GetSize(), 6);
+    ASSERT_EQ(blockB3[0]->GetData()[0], 489889498843);
+    ASSERT_EQ(blockB3[0]->GetData()[1], 489889498844);
+    ASSERT_EQ(blockB3[0]->GetData()[2], 489889498845);
+    ASSERT_EQ(blockB3[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockB3[0]->GetData()[4], 489889498843);
+    ASSERT_EQ(blockB3[0]->GetData()[5], 489889498845);
+
+    // trying to insert non unique values into isUnique column and non unique values into non unique column
+    std::unordered_map<std::string, std::any> data4;
+    std::vector<int64_t> dataA4({489889498840});
+    std::vector<int64_t> dataB4({489889498843});
+
+    data4.insert({"ColumnA", dataA4});
+    data4.insert({"ColumnB", dataB4});
+
+    ASSERT_THROW(table.InsertData(data4), std::length_error);
+
+    auto blockA4 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB4 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA4[0]->GetSize(), 6);
+    ASSERT_EQ(blockA4[0]->GetData()[0], 489889498840);
+    ASSERT_EQ(blockA4[0]->GetData()[1], 489889498841);
+    ASSERT_EQ(blockA4[0]->GetData()[2], 489889498842);
+    ASSERT_EQ(blockA4[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockA4[0]->GetData()[4], 489889498844);
+    ASSERT_EQ(blockA4[0]->GetData()[5], 489889498845);
+
+    ASSERT_EQ(blockB4[0]->GetSize(), 6);
+    ASSERT_EQ(blockB4[0]->GetData()[0], 489889498843);
+    ASSERT_EQ(blockB4[0]->GetData()[1], 489889498844);
+    ASSERT_EQ(blockB4[0]->GetData()[2], 489889498845);
+    ASSERT_EQ(blockB4[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockB4[0]->GetData()[4], 489889498843);
+    ASSERT_EQ(blockB4[0]->GetData()[5], 489889498845);
+
+    // trynig to insert non unique values - these duplicity values is within one insert
+    std::unordered_map<std::string, std::any> data5;
+    std::vector<int64_t> dataA5({489889498846, 1, 5, 7, 489889498846});
+    std::vector<int64_t> dataB5({100, 101, 102, 103, 104});
+
+    data5.insert({"ColumnA", dataA5});
+    data5.insert({"ColumnB", dataB5});
+
+    ASSERT_THROW(table.InsertData(data5), std::length_error);
+
+    auto blockA5 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB5 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA5[0]->GetSize(), 6);
+    ASSERT_EQ(blockA5[0]->GetData()[0], 489889498840);
+    ASSERT_EQ(blockA5[0]->GetData()[1], 489889498841);
+    ASSERT_EQ(blockA5[0]->GetData()[2], 489889498842);
+    ASSERT_EQ(blockA5[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockA5[0]->GetData()[4], 489889498844);
+    ASSERT_EQ(blockA5[0]->GetData()[5], 489889498845);
+
+    ASSERT_EQ(blockB5[0]->GetSize(), 6);
+    ASSERT_EQ(blockB5[0]->GetData()[0], 489889498843);
+    ASSERT_EQ(blockB5[0]->GetData()[1], 489889498844);
+    ASSERT_EQ(blockB5[0]->GetData()[2], 489889498845);
+    ASSERT_EQ(blockB5[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockB5[0]->GetData()[4], 489889498843);
+    ASSERT_EQ(blockB5[0]->GetData()[5], 489889498845);
+
+    // insert only to non unique column - null value should be inserted in isUnique column but this is forbidden
+    std::unordered_map<std::string, std::any> data6;
+    std::vector<int64_t> dataA6({100, 101});
+    std::vector<int64_t> dataB6({489889498846, 489889498846});
+    data6.insert({"ColumnA", dataA6});
+    data6.insert({"ColumnB", dataB6});
+
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
+    std::vector<int8_t> vectorMaskA;
+    std::vector<int8_t> vectorMaskB;
+    vectorMaskA.push_back(3);
+    vectorMaskB.push_back(0);
+
+    nullMask.insert({"ColumnA", vectorMaskA});
+    nullMask.insert({"ColumnB", vectorMaskB});
+
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::length_error);
+
+    auto blockA6 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB6 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA6[0]->GetSize(), 6);
+    ASSERT_EQ(blockA6[0]->GetData()[0], 489889498840);
+    ASSERT_EQ(blockA6[0]->GetData()[1], 489889498841);
+    ASSERT_EQ(blockA6[0]->GetData()[2], 489889498842);
+    ASSERT_EQ(blockA6[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockA6[0]->GetData()[4], 489889498844);
+    ASSERT_EQ(blockA6[0]->GetData()[5], 489889498845);
+
+    ASSERT_EQ(blockB6[0]->GetSize(), 6);
+    ASSERT_EQ(blockB6[0]->GetData()[0], 489889498843);
+    ASSERT_EQ(blockB6[0]->GetData()[1], 489889498844);
+    ASSERT_EQ(blockB6[0]->GetData()[2], 489889498845);
+    ASSERT_EQ(blockB6[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockB6[0]->GetData()[4], 489889498843);
+    ASSERT_EQ(blockB6[0]->GetData()[5], 489889498845);
+
+    ASSERT_EQ(blockA6[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blockB6[0]->GetNullBitmask()[0], 0);
+
+    // insert only to unique column - null value should be inserted in non unique column
+    std::unordered_map<std::string, std::any> data7;
+    std::vector<int64_t> dataA7({1, 8});
+    std::vector<int64_t> dataB7({1, 8});
+    data7.insert({"ColumnA", dataA7});
+    data7.insert({"ColumnB", dataB7});
+
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
+    std::vector<int8_t> vectorMaskA1;
+    std::vector<int8_t> vectorMaskB1;
+    vectorMaskA1.push_back(0);
+    vectorMaskB1.push_back(3);
+
+    nullMask1.insert({"ColumnA", vectorMaskA1});
+    nullMask1.insert({"ColumnB", vectorMaskB1});
+
+    table.InsertData(data7, false, nullMask1);
+
+    auto blockA7 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB7 =
+        dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA7[0]->GetSize(), 8);
+    ASSERT_EQ(blockA7[0]->GetData()[0], 489889498840);
+    ASSERT_EQ(blockA7[0]->GetData()[1], 489889498841);
+    ASSERT_EQ(blockA7[0]->GetData()[2], 489889498842);
+    ASSERT_EQ(blockA7[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockA7[0]->GetData()[4], 489889498844);
+    ASSERT_EQ(blockA7[0]->GetData()[5], 489889498845);
+    ASSERT_EQ(blockA7[0]->GetData()[6], 1);
+    ASSERT_EQ(blockA7[0]->GetData()[7], 8);
+
+    ASSERT_EQ(blockB7[0]->GetSize(), 8);
+    ASSERT_EQ(blockB7[0]->GetData()[0], 489889498843);
+    ASSERT_EQ(blockB7[0]->GetData()[1], 489889498844);
+    ASSERT_EQ(blockB7[0]->GetData()[2], 489889498845);
+    ASSERT_EQ(blockB7[0]->GetData()[3], 489889498843);
+    ASSERT_EQ(blockB7[0]->GetData()[4], 489889498843);
+    ASSERT_EQ(blockB7[0]->GetData()[5], 489889498845);
+    ASSERT_EQ(blockB7[0]->GetData()[6], 1);
+    ASSERT_EQ(blockB7[0]->GetData()[7], 8);
+
+    ASSERT_EQ(blockA7[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+}
+
+TEST(TableTests, InsertIntoIsUnique_Float)
+{
+    // insert unique values into both columns - one isUnique and one is not
+    auto database = std::make_shared<Database>("testDatabaseUnique", 50);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnA", COLUMN_FLOAT);
+    table.CreateColumn("ColumnB", COLUMN_FLOAT);
+
+    auto& columnA = table.GetColumns().at("ColumnA");
+    auto& columnB = table.GetColumns().at("ColumnB");
+
+    auto castedColumnA = dynamic_cast<ColumnBase<float>*>(columnA.get());
+    auto castedColumnB = dynamic_cast<ColumnBase<float>*>(columnB.get());
+
+    castedColumnA->SetIsUnique(true);
+
+    std::unordered_map<std::string, std::any> data;
+    std::vector<float> dataA({456.2, 56.2, 45.62});
+    std::vector<float> dataB({156.2, 56.2, 15.62});
+
+    data.insert({"ColumnA", dataA});
+    data.insert({"ColumnB", dataB});
+
+    table.InsertData(data);
+
+    auto blockA = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA[0]->GetSize(), 3);
+    ASSERT_FLOAT_EQ(blockA[0]->GetData()[0], 456.2f);
+    ASSERT_FLOAT_EQ(blockA[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockA[0]->GetData()[2], 45.62f);
+
+    ASSERT_EQ(blockB[0]->GetSize(), 3);
+    ASSERT_FLOAT_EQ(blockB[0]->GetData()[0], 156.2f);
+    ASSERT_FLOAT_EQ(blockB[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockB[0]->GetData()[2], 15.62f);
+
+    // trying to insert unique values into isUnique column and non unique values into non unique column
+    std::unordered_map<std::string, std::any> data2;
+    std::vector<float> dataA2({2.3, 3.7, 8.4});
+    std::vector<float> dataB2({56.2, 56.2, 15.62});
+
+    data2.insert({"ColumnA", dataA2});
+    data2.insert({"ColumnB", dataB2});
+
+    table.InsertData(data2);
+
+    auto blockA2 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB2 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA2[0]->GetSize(), 6);
+    ASSERT_FLOAT_EQ(blockA2[0]->GetData()[0], 456.2f);
+    ASSERT_FLOAT_EQ(blockA2[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockA2[0]->GetData()[2], 45.62f);
+    ASSERT_FLOAT_EQ(blockA2[0]->GetData()[3], 2.3f);
+    ASSERT_FLOAT_EQ(blockA2[0]->GetData()[4], 3.7f);
+    ASSERT_FLOAT_EQ(blockA2[0]->GetData()[5], 8.4f);
+
+    ASSERT_EQ(blockB2[0]->GetSize(), 6);
+    ASSERT_FLOAT_EQ(blockB2[0]->GetData()[0], 156.2f);
+    ASSERT_FLOAT_EQ(blockB2[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockB2[0]->GetData()[2], 15.62f);
+    ASSERT_FLOAT_EQ(blockB2[0]->GetData()[3], 56.2f);
+    ASSERT_FLOAT_EQ(blockB2[0]->GetData()[4], 56.2f);
+    ASSERT_FLOAT_EQ(blockB2[0]->GetData()[5], 15.62f);
+
+    // trying to insert non unique values into isUnique column and unique values into non unique column
+    std::unordered_map<std::string, std::any> data3;
+    std::vector<float> dataA3({2.3, 3.8, 8.5});
+    std::vector<float> dataB3({2.3, 3.8, 8.5});
+
+    data3.insert({"ColumnA", dataA3});
+    data3.insert({"ColumnB", dataB3});
+
+    ASSERT_THROW(table.InsertData(data3), std::length_error);
+
+    auto blockA3 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB3 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA3[0]->GetSize(), 6);
+    ASSERT_FLOAT_EQ(blockA3[0]->GetData()[0], 456.2f);
+    ASSERT_FLOAT_EQ(blockA3[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockA3[0]->GetData()[2], 45.62f);
+    ASSERT_FLOAT_EQ(blockA2[0]->GetData()[3], 2.3f);
+    ASSERT_FLOAT_EQ(blockA2[0]->GetData()[4], 3.7f);
+    ASSERT_FLOAT_EQ(blockA2[0]->GetData()[5], 8.4f);
+
+    ASSERT_EQ(blockB3[0]->GetSize(), 6);
+    ASSERT_FLOAT_EQ(blockB3[0]->GetData()[0], 156.2f);
+    ASSERT_FLOAT_EQ(blockB3[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockB3[0]->GetData()[2], 15.62f);
+    ASSERT_FLOAT_EQ(blockB3[0]->GetData()[3], 56.2f);
+    ASSERT_FLOAT_EQ(blockB3[0]->GetData()[4], 56.2f);
+    ASSERT_FLOAT_EQ(blockB3[0]->GetData()[5], 15.62f);
+
+    // trying to insert non unique values into isUnique column and non unique values into non unique column
+    std::unordered_map<std::string, std::any> data4;
+    std::vector<float> dataA4({8.4});
+    std::vector<float> dataB4({15.62});
+    data4.insert({"ColumnA", dataA4});
+    data4.insert({"ColumnB", dataB4});
+
+    ASSERT_THROW(table.InsertData(data4), std::length_error);
+
+    auto blockA4 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB4 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA4[0]->GetSize(), 6);
+    ASSERT_FLOAT_EQ(blockA4[0]->GetData()[0], 456.2f);
+    ASSERT_FLOAT_EQ(blockA4[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockA4[0]->GetData()[2], 45.62f);
+    ASSERT_FLOAT_EQ(blockA4[0]->GetData()[3], 2.3f);
+    ASSERT_FLOAT_EQ(blockA4[0]->GetData()[4], 3.7f);
+    ASSERT_FLOAT_EQ(blockA4[0]->GetData()[5], 8.4f);
+
+    ASSERT_EQ(blockB4[0]->GetSize(), 6);
+    ASSERT_FLOAT_EQ(blockB4[0]->GetData()[0], 156.2f);
+    ASSERT_FLOAT_EQ(blockB4[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockB4[0]->GetData()[2], 15.62f);
+    ASSERT_FLOAT_EQ(blockB4[0]->GetData()[3], 56.2f);
+    ASSERT_FLOAT_EQ(blockB4[0]->GetData()[4], 56.2f);
+    ASSERT_FLOAT_EQ(blockB4[0]->GetData()[5], 15.62f);
+
+    // trynig to insert non unique values - these duplicity values is within one insert
+    std::unordered_map<std::string, std::any> data5;
+    std::vector<float> dataA5({9.6, 1, 5, 7, 9.6});
+    std::vector<float> dataB5({100, 101, 102, 103, 100});
+
+    data5.insert({"ColumnA", dataA5});
+    data5.insert({"ColumnB", dataB5});
+
+    ASSERT_THROW(table.InsertData(data5), std::length_error);
+
+    auto blockA5 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB5 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA5[0]->GetSize(), 6);
+    ASSERT_FLOAT_EQ(blockA5[0]->GetData()[0], 456.2f);
+    ASSERT_FLOAT_EQ(blockA5[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockA5[0]->GetData()[2], 45.62f);
+    ASSERT_FLOAT_EQ(blockA5[0]->GetData()[3], 2.3f);
+    ASSERT_FLOAT_EQ(blockA5[0]->GetData()[4], 3.7f);
+    ASSERT_FLOAT_EQ(blockA5[0]->GetData()[5], 8.4f);
+
+    ASSERT_EQ(blockB5[0]->GetSize(), 6);
+    ASSERT_FLOAT_EQ(blockB5[0]->GetData()[0], 156.2f);
+    ASSERT_FLOAT_EQ(blockB5[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockB5[0]->GetData()[2], 15.62f);
+    ASSERT_FLOAT_EQ(blockB5[0]->GetData()[3], 56.2f);
+    ASSERT_FLOAT_EQ(blockB5[0]->GetData()[4], 56.2f);
+    ASSERT_FLOAT_EQ(blockB5[0]->GetData()[5], 15.62f);
+
+    // insert only to non unique column - null value should be inserted in isUnique column but this is forbidden
+    std::unordered_map<std::string, std::any> data6;
+    std::vector<float> dataA6({100, 101});
+    std::vector<float> dataB6({2.3, 2.3});
+    data6.insert({"ColumnA", dataA6});
+    data6.insert({"ColumnB", dataB6});
+
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
+    std::vector<int8_t> vectorMaskA;
+    std::vector<int8_t> vectorMaskB;
+    vectorMaskA.push_back(3);
+    vectorMaskB.push_back(0);
+
+    nullMask.insert({"ColumnA", vectorMaskA});
+    nullMask.insert({"ColumnB", vectorMaskB});
+
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::length_error);
+
+    auto blockA6 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB6 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA6[0]->GetSize(), 6);
+    ASSERT_FLOAT_EQ(blockA6[0]->GetData()[0], 456.2f);
+    ASSERT_FLOAT_EQ(blockA6[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockA6[0]->GetData()[2], 45.62f);
+    ASSERT_FLOAT_EQ(blockA6[0]->GetData()[3], 2.3f);
+    ASSERT_FLOAT_EQ(blockA6[0]->GetData()[4], 3.7f);
+    ASSERT_FLOAT_EQ(blockA6[0]->GetData()[5], 8.4f);
+
+    ASSERT_EQ(blockB6[0]->GetSize(), 6);
+    ASSERT_FLOAT_EQ(blockB6[0]->GetData()[0], 156.2f);
+    ASSERT_FLOAT_EQ(blockB6[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockB6[0]->GetData()[2], 15.62f);
+    ASSERT_FLOAT_EQ(blockB6[0]->GetData()[3], 56.2f);
+    ASSERT_FLOAT_EQ(blockB6[0]->GetData()[4], 56.2f);
+    ASSERT_FLOAT_EQ(blockB6[0]->GetData()[5], 15.62f);
+
+    ASSERT_EQ(blockA6[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blockB6[0]->GetNullBitmask()[0], 0);
+
+    // insert only to unique column - null value should be inserted in non unique column
+    std::unordered_map<std::string, std::any> data7;
+    std::vector<float> dataA7({1, 8});
+    std::vector<float> dataB7({1, 8});
+    data7.insert({"ColumnA", dataA7});
+    data7.insert({"ColumnB", dataB7});
+
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
+    std::vector<int8_t> vectorMaskA1;
+    std::vector<int8_t> vectorMaskB1;
+    vectorMaskA1.push_back(0);
+    vectorMaskB1.push_back(3);
+
+    nullMask1.insert({"ColumnA", vectorMaskA1});
+    nullMask1.insert({"ColumnB", vectorMaskB1});
+
+    table.InsertData(data7, false, nullMask1);
+
+    auto blockA7 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB7 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA7[0]->GetSize(), 8);
+    ASSERT_FLOAT_EQ(blockA7[0]->GetData()[0], 456.2f);
+    ASSERT_FLOAT_EQ(blockA7[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockA7[0]->GetData()[2], 45.62f);
+    ASSERT_FLOAT_EQ(blockA7[0]->GetData()[3], 2.3f);
+    ASSERT_FLOAT_EQ(blockA7[0]->GetData()[4], 3.7f);
+    ASSERT_FLOAT_EQ(blockA7[0]->GetData()[5], 8.4f);
+    ASSERT_FLOAT_EQ(blockA7[0]->GetData()[6], 1.0f);
+    ASSERT_FLOAT_EQ(blockA7[0]->GetData()[7], 8.0f);
+
+    ASSERT_EQ(blockB7[0]->GetSize(), 8);
+    ASSERT_FLOAT_EQ(blockB7[0]->GetData()[0], 156.2f);
+    ASSERT_FLOAT_EQ(blockB7[0]->GetData()[1], 56.2f);
+    ASSERT_FLOAT_EQ(blockB7[0]->GetData()[2], 15.62f);
+    ASSERT_FLOAT_EQ(blockB7[0]->GetData()[3], 56.2f);
+    ASSERT_FLOAT_EQ(blockB7[0]->GetData()[4], 56.2f);
+    ASSERT_FLOAT_EQ(blockB7[0]->GetData()[5], 15.62f);
+    ASSERT_FLOAT_EQ(blockB7[0]->GetData()[6], 1.0f);
+    ASSERT_FLOAT_EQ(blockB7[0]->GetData()[7], 8.0f);
+
+    ASSERT_EQ(blockA7[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+}
+
+TEST(TableTests, InsertIntoIsUnique_Double)
+{
+    // insert unique values into both columns - one isUnique and one is not
+    auto database = std::make_shared<Database>("testDatabaseUnique", 50);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnA", COLUMN_DOUBLE);
+    table.CreateColumn("ColumnB", COLUMN_DOUBLE);
+
+    auto& columnA = table.GetColumns().at("ColumnA");
+    auto& columnB = table.GetColumns().at("ColumnB");
+
+    auto castedColumnA = dynamic_cast<ColumnBase<double>*>(columnA.get());
+    auto castedColumnB = dynamic_cast<ColumnBase<double>*>(columnB.get());
+
+    castedColumnA->SetIsUnique(true);
+
+    std::unordered_map<std::string, std::any> data;
+    std::vector<double> dataA({456.211111, 56.211111, 45.6211111});
+    std::vector<double> dataB({156.211111, 56.211111, 15.6211111});
+
+    data.insert({"ColumnA", dataA});
+    data.insert({"ColumnB", dataB});
+
+    table.InsertData(data);
+
+    auto blockA = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA[0]->GetSize(), 3);
+    ASSERT_DOUBLE_EQ(blockA[0]->GetData()[0], 456.211111);
+    ASSERT_DOUBLE_EQ(blockA[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockA[0]->GetData()[2], 45.6211111);
+
+    ASSERT_EQ(blockB[0]->GetSize(), 3);
+    ASSERT_DOUBLE_EQ(blockB[0]->GetData()[0], 156.211111);
+    ASSERT_DOUBLE_EQ(blockB[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB[0]->GetData()[2], 15.6211111);
+
+    // trying to insert unique values into isUnique column and non unique values into non unique column
+    std::unordered_map<std::string, std::any> data2;
+    std::vector<double> dataA2({2.311111, 3.711111, 8.411111});
+    std::vector<double> dataB2({56.211111, 56.211111, 15.6211111});
+
+    data2.insert({"ColumnA", dataA2});
+    data2.insert({"ColumnB", dataB2});
+
+    table.InsertData(data2);
+
+    auto blockA2 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB2 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA2[0]->GetSize(), 6);
+    ASSERT_DOUBLE_EQ(blockA2[0]->GetData()[0], 456.211111);
+    ASSERT_DOUBLE_EQ(blockA2[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockA2[0]->GetData()[2], 45.6211111);
+    ASSERT_DOUBLE_EQ(blockA2[0]->GetData()[3], 2.311111);
+    ASSERT_DOUBLE_EQ(blockA2[0]->GetData()[4], 3.711111);
+    ASSERT_DOUBLE_EQ(blockA2[0]->GetData()[5], 8.411111);
+
+    ASSERT_EQ(blockB2[0]->GetSize(), 6);
+    ASSERT_DOUBLE_EQ(blockB2[0]->GetData()[0], 156.211111);
+    ASSERT_DOUBLE_EQ(blockB2[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB2[0]->GetData()[2], 15.6211111);
+    ASSERT_DOUBLE_EQ(blockB2[0]->GetData()[3], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB2[0]->GetData()[4], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB2[0]->GetData()[5], 15.6211111);
+
+    // trying to insert non unique values into isUnique column and unique values into non unique column
+    std::unordered_map<std::string, std::any> data3;
+    std::vector<double> dataA3({2.311111, 3.811111, 8.511111});
+    std::vector<double> dataB3({2.311111, 3.811111, 8.511111});
+
+    data3.insert({"ColumnA", dataA3});
+    data3.insert({"ColumnB", dataB3});
+
+    ASSERT_THROW(table.InsertData(data3), std::length_error);
+
+    auto blockA3 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB3 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA3[0]->GetSize(), 6);
+    ASSERT_DOUBLE_EQ(blockA3[0]->GetData()[0], 456.211111);
+    ASSERT_DOUBLE_EQ(blockA3[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockA3[0]->GetData()[2], 45.6211111);
+    ASSERT_DOUBLE_EQ(blockA2[0]->GetData()[3], 2.311111);
+    ASSERT_DOUBLE_EQ(blockA2[0]->GetData()[4], 3.711111);
+    ASSERT_DOUBLE_EQ(blockA2[0]->GetData()[5], 8.411111);
+
+    ASSERT_EQ(blockB3[0]->GetSize(), 6);
+    ASSERT_DOUBLE_EQ(blockB3[0]->GetData()[0], 156.211111);
+    ASSERT_DOUBLE_EQ(blockB3[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB3[0]->GetData()[2], 15.6211111);
+    ASSERT_DOUBLE_EQ(blockB3[0]->GetData()[3], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB3[0]->GetData()[4], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB3[0]->GetData()[5], 15.6211111);
+
+    // trying to insert non unique values into isUnique column and non unique values into non unique column
+    std::unordered_map<std::string, std::any> data4;
+    std::vector<double> dataA4({8.411111});
+    std::vector<double> dataB4({15.6211111});
+    data4.insert({"ColumnA", dataA4});
+    data4.insert({"ColumnB", dataB4});
+
+    ASSERT_THROW(table.InsertData(data4), std::length_error);
+
+    auto blockA4 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB4 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA4[0]->GetSize(), 6);
+    ASSERT_DOUBLE_EQ(blockA4[0]->GetData()[0], 456.211111);
+    ASSERT_DOUBLE_EQ(blockA4[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockA4[0]->GetData()[2], 45.6211111);
+    ASSERT_DOUBLE_EQ(blockA4[0]->GetData()[3], 2.311111);
+    ASSERT_DOUBLE_EQ(blockA4[0]->GetData()[4], 3.711111);
+    ASSERT_DOUBLE_EQ(blockA4[0]->GetData()[5], 8.411111);
+
+    ASSERT_EQ(blockB4[0]->GetSize(), 6);
+    ASSERT_DOUBLE_EQ(blockB4[0]->GetData()[0], 156.211111);
+    ASSERT_DOUBLE_EQ(blockB4[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB4[0]->GetData()[2], 15.6211111);
+    ASSERT_DOUBLE_EQ(blockB4[0]->GetData()[3], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB4[0]->GetData()[4], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB4[0]->GetData()[5], 15.6211111);
+
+    // trynig to insert non unique values - these duplicity values is within one insert
+    std::unordered_map<std::string, std::any> data5;
+    std::vector<double> dataA5({9.611111, 1, 5, 7, 9.611111});
+    std::vector<double> dataB5({100.11111, 101, 102, 103, 100});
+
+    data5.insert({"ColumnA", dataA5});
+    data5.insert({"ColumnB", dataB5});
+
+    ASSERT_THROW(table.InsertData(data5), std::length_error);
+
+    auto blockA5 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB5 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA5[0]->GetSize(), 6);
+    ASSERT_DOUBLE_EQ(blockA5[0]->GetData()[0], 456.211111);
+    ASSERT_DOUBLE_EQ(blockA5[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockA5[0]->GetData()[2], 45.6211111);
+    ASSERT_DOUBLE_EQ(blockA5[0]->GetData()[3], 2.311111);
+    ASSERT_DOUBLE_EQ(blockA5[0]->GetData()[4], 3.711111);
+    ASSERT_DOUBLE_EQ(blockA5[0]->GetData()[5], 8.411111);
+
+    ASSERT_EQ(blockB5[0]->GetSize(), 6);
+    ASSERT_DOUBLE_EQ(blockB5[0]->GetData()[0], 156.211111);
+    ASSERT_DOUBLE_EQ(blockB5[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB5[0]->GetData()[2], 15.6211111);
+    ASSERT_DOUBLE_EQ(blockB5[0]->GetData()[3], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB5[0]->GetData()[4], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB5[0]->GetData()[5], 15.6211111);
+
+    // insert only to non unique column - null value should be inserted in isUnique column but this is forbidden
+    std::unordered_map<std::string, std::any> data6;
+    std::vector<double> dataA6({100, 101});
+    std::vector<double> dataB6({2.311111, 2.311111});
+    data6.insert({"ColumnA", dataA6});
+    data6.insert({"ColumnB", dataB6});
+
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
+    std::vector<int8_t> vectorMaskA;
+    std::vector<int8_t> vectorMaskB;
+    vectorMaskA.push_back(3);
+    vectorMaskB.push_back(0);
+
+    nullMask.insert({"ColumnA", vectorMaskA});
+    nullMask.insert({"ColumnB", vectorMaskB});
+
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::length_error);
+
+    auto blockA6 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB6 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA6[0]->GetSize(), 6);
+    ASSERT_DOUBLE_EQ(blockA6[0]->GetData()[0], 456.211111);
+    ASSERT_DOUBLE_EQ(blockA6[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockA6[0]->GetData()[2], 45.6211111);
+    ASSERT_DOUBLE_EQ(blockA6[0]->GetData()[3], 2.311111);
+    ASSERT_DOUBLE_EQ(blockA6[0]->GetData()[4], 3.711111);
+    ASSERT_DOUBLE_EQ(blockA6[0]->GetData()[5], 8.411111);
+
+    ASSERT_EQ(blockB6[0]->GetSize(), 6);
+    ASSERT_DOUBLE_EQ(blockB6[0]->GetData()[0], 156.211111);
+    ASSERT_DOUBLE_EQ(blockB6[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB6[0]->GetData()[2], 15.6211111);
+    ASSERT_DOUBLE_EQ(blockB6[0]->GetData()[3], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB6[0]->GetData()[4], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB6[0]->GetData()[5], 15.6211111);
+
+    ASSERT_EQ(blockA6[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blockB6[0]->GetNullBitmask()[0], 0);
+
+    // insert only to unique column - null value should be inserted in non unique column
+    std::unordered_map<std::string, std::any> data7;
+    std::vector<double> dataA7({1, 8});
+    std::vector<double> dataB7({1, 8});
+    data7.insert({"ColumnA", dataA7});
+    data7.insert({"ColumnB", dataB7});
+
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
+    std::vector<int8_t> vectorMaskA1;
+    std::vector<int8_t> vectorMaskB1;
+    vectorMaskA1.push_back(0);
+    vectorMaskB1.push_back(3);
+
+    nullMask1.insert({"ColumnA", vectorMaskA1});
+    nullMask1.insert({"ColumnB", vectorMaskB1});
+
+    table.InsertData(data7, false, nullMask1);
+
+    auto blockA7 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB7 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA7[0]->GetSize(), 8);
+    ASSERT_DOUBLE_EQ(blockA7[0]->GetData()[0], 456.211111);
+    ASSERT_DOUBLE_EQ(blockA7[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockA7[0]->GetData()[2], 45.6211111);
+    ASSERT_DOUBLE_EQ(blockA7[0]->GetData()[3], 2.311111);
+    ASSERT_DOUBLE_EQ(blockA7[0]->GetData()[4], 3.711111);
+    ASSERT_DOUBLE_EQ(blockA7[0]->GetData()[5], 8.411111);
+    ASSERT_DOUBLE_EQ(blockA7[0]->GetData()[6], 1.0);
+    ASSERT_DOUBLE_EQ(blockA7[0]->GetData()[7], 8.0);
+
+    ASSERT_EQ(blockB7[0]->GetSize(), 8);
+    ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[0], 156.211111);
+    ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[1], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[2], 15.6211111);
+    ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[3], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[4], 56.211111);
+    ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[5], 15.6211111);
+    ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[6], 1.0);
+    ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[7], 8.0);
+
+    ASSERT_EQ(blockA7[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+}
+
+TEST(TableTests, InsertIntoIsUnique_String)
+{
+    // insert unique values into both columns - one isUnique and one is not
+    auto database = std::make_shared<Database>("testDatabaseUnique", 50);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnA", COLUMN_STRING);
+    table.CreateColumn("ColumnB", COLUMN_STRING);
+
+    auto& columnA = table.GetColumns().at("ColumnA");
+    auto& columnB = table.GetColumns().at("ColumnB");
+
+    auto castedColumnA = dynamic_cast<ColumnBase<std::string>*>(columnA.get());
+    auto castedColumnB = dynamic_cast<ColumnBase<std::string>*>(columnB.get());
+
+    castedColumnA->SetIsUnique(true);
+
+    std::unordered_map<std::string, std::any> data;
+    std::vector<std::string> dataA({"A", "B", "c"});
+    std::vector<std::string> dataB({"d", "E", "f"});
+
+    data.insert({"ColumnA", dataA});
+    data.insert({"ColumnB", dataB});
+
+    table.InsertData(data);
+
+    auto blockA =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA[0]->GetSize(), 3);
+    ASSERT_EQ(blockA[0]->GetData()[0], "A");
+    ASSERT_EQ(blockA[0]->GetData()[1], "B");
+    ASSERT_EQ(blockA[0]->GetData()[2], "c");
+
+    ASSERT_EQ(blockB[0]->GetSize(), 3);
+    ASSERT_EQ(blockB[0]->GetData()[0], "d");
+    ASSERT_EQ(blockB[0]->GetData()[1], "E");
+    ASSERT_EQ(blockB[0]->GetData()[2], "f");
+
+    // trying to insert unique values into isUnique column and non unique values into non unique column
+    std::unordered_map<std::string, std::any> data2;
+    std::vector<std::string> dataA2({"d", "e", "F"});
+    std::vector<std::string> dataB2({"d", "d", "D"});
+
+    data2.insert({"ColumnA", dataA2});
+    data2.insert({"ColumnB", dataB2});
+
+    table.InsertData(data2);
+
+    auto blockA2 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB2 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA2[0]->GetSize(), 6);
+    ASSERT_EQ(blockA2[0]->GetData()[0], "A");
+    ASSERT_EQ(blockA2[0]->GetData()[1], "B");
+    ASSERT_EQ(blockA2[0]->GetData()[2], "c");
+    ASSERT_EQ(blockA2[0]->GetData()[3], "d");
+    ASSERT_EQ(blockA2[0]->GetData()[4], "e");
+    ASSERT_EQ(blockA2[0]->GetData()[5], "F");
+
+    ASSERT_EQ(blockB2[0]->GetSize(), 6);
+    ASSERT_EQ(blockB2[0]->GetData()[0], "d");
+    ASSERT_EQ(blockB2[0]->GetData()[1], "E");
+    ASSERT_EQ(blockB2[0]->GetData()[2], "f");
+    ASSERT_EQ(blockB2[0]->GetData()[3], "d");
+    ASSERT_EQ(blockB2[0]->GetData()[4], "d");
+    ASSERT_EQ(blockB2[0]->GetData()[5], "D");
+
+    // trying to insert non unique values into isUnique column and unique values into non unique column
+    std::unordered_map<std::string, std::any> data3;
+    std::vector<std::string> dataA3({"d", "e", "A"});
+    std::vector<std::string> dataB3({"X", "z", "Z"});
+
+    data3.insert({"ColumnA", dataA3});
+    data3.insert({"ColumnB", dataB3});
+
+    ASSERT_THROW(table.InsertData(data3), std::length_error);
+
+    auto blockA3 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB3 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA3[0]->GetSize(), 6);
+    ASSERT_EQ(blockA3[0]->GetData()[0], "A");
+    ASSERT_EQ(blockA3[0]->GetData()[1], "B");
+    ASSERT_EQ(blockA3[0]->GetData()[2], "c");
+    ASSERT_EQ(blockA3[0]->GetData()[3], "d");
+    ASSERT_EQ(blockA3[0]->GetData()[4], "e");
+    ASSERT_EQ(blockA3[0]->GetData()[5], "F");
+
+    ASSERT_EQ(blockB3[0]->GetSize(), 6);
+    ASSERT_EQ(blockB3[0]->GetData()[0], "d");
+    ASSERT_EQ(blockB3[0]->GetData()[1], "E");
+    ASSERT_EQ(blockB3[0]->GetData()[2], "f");
+    ASSERT_EQ(blockB3[0]->GetData()[3], "d");
+    ASSERT_EQ(blockB3[0]->GetData()[4], "d");
+    ASSERT_EQ(blockB3[0]->GetData()[5], "D");
+
+    // trying to insert non unique values into isUnique column and non unique values into non unique column
+    std::unordered_map<std::string, std::any> data4;
+    std::vector<std::string> dataA4({"A"});
+    std::vector<std::string> dataB4({"d"});
+
+    data4.insert({"ColumnA", dataA4});
+    data4.insert({"ColumnB", dataB4});
+
+    ASSERT_THROW(table.InsertData(data4), std::length_error);
+
+    auto blockA4 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB4 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA4[0]->GetSize(), 6);
+    ASSERT_EQ(blockA4[0]->GetData()[0], "A");
+    ASSERT_EQ(blockA4[0]->GetData()[1], "B");
+    ASSERT_EQ(blockA4[0]->GetData()[2], "c");
+    ASSERT_EQ(blockA4[0]->GetData()[3], "d");
+    ASSERT_EQ(blockA4[0]->GetData()[4], "e");
+    ASSERT_EQ(blockA4[0]->GetData()[5], "F");
+
+    ASSERT_EQ(blockB4[0]->GetSize(), 6);
+    ASSERT_EQ(blockB4[0]->GetData()[0], "d");
+    ASSERT_EQ(blockB4[0]->GetData()[1], "E");
+    ASSERT_EQ(blockB4[0]->GetData()[2], "f");
+    ASSERT_EQ(blockB4[0]->GetData()[3], "d");
+    ASSERT_EQ(blockB4[0]->GetData()[4], "d");
+    ASSERT_EQ(blockB4[0]->GetData()[5], "D");
+
+    // trynig to insert non unique values - these duplicity values is within one insert
+    std::unordered_map<std::string, std::any> data5;
+    std::vector<std::string> dataA5({"x", "h", "j", "k", "x"});
+    std::vector<std::string> dataB5({"x", "h", "j", "k", "i"});
+
+    data5.insert({"ColumnA", dataA5});
+    data5.insert({"ColumnB", dataB5});
+
+    ASSERT_THROW(table.InsertData(data5), std::length_error);
+
+    auto blockA5 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB5 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA5[0]->GetSize(), 6);
+    ASSERT_EQ(blockA5[0]->GetData()[0], "A");
+    ASSERT_EQ(blockA5[0]->GetData()[1], "B");
+    ASSERT_EQ(blockA5[0]->GetData()[2], "c");
+    ASSERT_EQ(blockA5[0]->GetData()[3], "d");
+    ASSERT_EQ(blockA5[0]->GetData()[4], "e");
+    ASSERT_EQ(blockA5[0]->GetData()[5], "F");
+
+    ASSERT_EQ(blockB5[0]->GetSize(), 6);
+    ASSERT_EQ(blockB5[0]->GetData()[0], "d");
+    ASSERT_EQ(blockB5[0]->GetData()[1], "E");
+    ASSERT_EQ(blockB5[0]->GetData()[2], "f");
+    ASSERT_EQ(blockB5[0]->GetData()[3], "d");
+    ASSERT_EQ(blockB5[0]->GetData()[4], "d");
+    ASSERT_EQ(blockB5[0]->GetData()[5], "D");
+
+    // insert only to non unique column - null value should be inserted in isUnique column but this is forbidden
+    std::unordered_map<std::string, std::any> data6;
+    std::vector<std::string> dataA6({"r", "t"});
+    std::vector<std::string> dataB6({"w", "q"});
+    data6.insert({"ColumnA", dataA6});
+    data6.insert({"ColumnB", dataB6});
+
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
+    std::vector<int8_t> vectorMaskA;
+    std::vector<int8_t> vectorMaskB;
+    vectorMaskA.push_back(3);
+    vectorMaskB.push_back(0);
+
+    nullMask.insert({"ColumnA", vectorMaskA});
+    nullMask.insert({"ColumnB", vectorMaskB});
+
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::length_error);
+
+    auto blockA6 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB6 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA6[0]->GetSize(), 6);
+    ASSERT_EQ(blockA6[0]->GetData()[0], "A");
+    ASSERT_EQ(blockA6[0]->GetData()[1], "B");
+    ASSERT_EQ(blockA6[0]->GetData()[2], "c");
+    ASSERT_EQ(blockA6[0]->GetData()[3], "d");
+    ASSERT_EQ(blockA6[0]->GetData()[4], "e");
+    ASSERT_EQ(blockA6[0]->GetData()[5], "F");
+
+    ASSERT_EQ(blockB6[0]->GetSize(), 6);
+    ASSERT_EQ(blockB6[0]->GetData()[0], "d");
+    ASSERT_EQ(blockB6[0]->GetData()[1], "E");
+    ASSERT_EQ(blockB6[0]->GetData()[2], "f");
+    ASSERT_EQ(blockB6[0]->GetData()[3], "d");
+    ASSERT_EQ(blockB6[0]->GetData()[4], "d");
+    ASSERT_EQ(blockB6[0]->GetData()[5], "D");
+
+    ASSERT_EQ(blockA6[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blockB6[0]->GetNullBitmask()[0], 0);
+
+    // insert only to unique column - null value should be inserted in non unique column
+    std::unordered_map<std::string, std::any> data7;
+    std::vector<std::string> dataA7({"r", "t"});
+    std::vector<std::string> dataB7({"w", "q"});
+    data7.insert({"ColumnA", dataA7});
+    data7.insert({"ColumnB", dataB7});
+
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
+    std::vector<int8_t> vectorMaskA1;
+    std::vector<int8_t> vectorMaskB1;
+    vectorMaskA1.push_back(0);
+    vectorMaskB1.push_back(3);
+
+    nullMask1.insert({"ColumnA", vectorMaskA1});
+    nullMask1.insert({"ColumnB", vectorMaskB1});
+
+    table.InsertData(data7, false, nullMask1);
+
+    auto blockA7 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB7 =
+        dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA7[0]->GetSize(), 8);
+    ASSERT_EQ(blockA7[0]->GetData()[0], "A");
+    ASSERT_EQ(blockA7[0]->GetData()[1], "B");
+    ASSERT_EQ(blockA7[0]->GetData()[2], "c");
+    ASSERT_EQ(blockA7[0]->GetData()[3], "d");
+    ASSERT_EQ(blockA7[0]->GetData()[4], "e");
+    ASSERT_EQ(blockA7[0]->GetData()[5], "F");
+    ASSERT_EQ(blockA7[0]->GetData()[6], "r");
+    ASSERT_EQ(blockA7[0]->GetData()[7], "t");
+
+    ASSERT_EQ(blockB7[0]->GetSize(), 8);
+    ASSERT_EQ(blockB7[0]->GetData()[0], "d");
+    ASSERT_EQ(blockB7[0]->GetData()[1], "E");
+    ASSERT_EQ(blockB7[0]->GetData()[2], "f");
+    ASSERT_EQ(blockB7[0]->GetData()[3], "d");
+    ASSERT_EQ(blockB7[0]->GetData()[4], "d");
+    ASSERT_EQ(blockB7[0]->GetData()[5], "D");
+    ASSERT_EQ(blockB7[0]->GetData()[6], "w");
+    ASSERT_EQ(blockB7[0]->GetData()[7], "q");
+
+    ASSERT_EQ(blockA7[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+}
+
+TEST(TableTests, InsertIntoIsUnique_Point)
+{
+    // insert unique values into both columns - one isUnique and one is not
+    auto database = std::make_shared<Database>("testDatabaseUnique", 50);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnA", COLUMN_POINT);
+    table.CreateColumn("ColumnB", COLUMN_POINT);
+
+    auto& columnA = table.GetColumns().at("ColumnA");
+    auto& columnB = table.GetColumns().at("ColumnB");
+
+    auto castedColumnA = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnA.get());
+    auto castedColumnB = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnB.get());
+
+    castedColumnA->SetIsUnique(true);
+
+    std::unordered_map<std::string, std::any> data;
+    std::vector<ColmnarDB::Types::Point> dataA;
+    dataA.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
+    dataA.push_back(PointFactory::FromWkt("POINT(12.11 11.1)"));
+    dataA.push_back(PointFactory::FromWkt("POINT(13.11 11.1)"));
+    std::vector<ColmnarDB::Types::Point> dataB;
+    dataB.push_back(PointFactory::FromWkt("POINT(14.11 11.1)"));
+    dataB.push_back(PointFactory::FromWkt("POINT(15.11 12.1)"));
+    dataB.push_back(PointFactory::FromWkt("POINT(16.11 11.1)"));
+
+    data.insert({"ColumnA", dataA});
+    data.insert({"ColumnB", dataB});
+
+    table.InsertData(data);
+
+    auto blockA =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA[0]->GetSize(), 3);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA[0]->GetData()[0]), "POINT(10.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA[0]->GetData()[1]), "POINT(12.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA[0]->GetData()[2]), "POINT(13.11 11.1)");
+
+    ASSERT_EQ(blockB[0]->GetSize(), 3);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB[0]->GetData()[0]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB[0]->GetData()[1]), "POINT(15.11 12.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB[0]->GetData()[2]), "POINT(16.11 11.1)");
+
+    // trying to insert unique values into isUnique column and non unique values into non unique column
+    std::unordered_map<std::string, std::any> data2;
+    std::vector<ColmnarDB::Types::Point> dataA2;
+    dataA2.push_back(PointFactory::FromWkt("POINT(11.11 11.12)"));
+    dataA2.push_back(PointFactory::FromWkt("POINT(1.11 11.15)"));
+    dataA2.push_back(PointFactory::FromWkt("POINT(131.11 11.1)"));
+    std::vector<ColmnarDB::Types::Point> dataB2;
+    dataB2.push_back(PointFactory::FromWkt("POINT(14.11 11.1)"));
+    dataB2.push_back(PointFactory::FromWkt("POINT(14.11 11.1)"));
+    dataB2.push_back(PointFactory::FromWkt("POINT(13.11 11.1)"));
+
+    data2.insert({"ColumnA", dataA2});
+    data2.insert({"ColumnB", dataB2});
+
+    table.InsertData(data2);
+
+    auto blockA2 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB2 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA2[0]->GetSize(), 6);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA2[0]->GetData()[0]), "POINT(10.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA2[0]->GetData()[1]), "POINT(12.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA2[0]->GetData()[2]), "POINT(13.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA2[0]->GetData()[3]), "POINT(11.11 11.12)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA2[0]->GetData()[4]), "POINT(1.11 11.15)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA2[0]->GetData()[5]), "POINT(131.11 11.1)");
+
+    ASSERT_EQ(blockB2[0]->GetSize(), 6);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB2[0]->GetData()[0]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB2[0]->GetData()[1]), "POINT(15.11 12.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB2[0]->GetData()[2]), "POINT(16.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB2[0]->GetData()[3]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB2[0]->GetData()[4]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB2[0]->GetData()[5]), "POINT(13.11 11.1)");
+
+    // trying to insert non unique values into isUnique column and unique values into non unique column
+    std::unordered_map<std::string, std::any> data3;
+    std::vector<ColmnarDB::Types::Point> dataA3;
+    dataA3.push_back(PointFactory::FromWkt("POINT(11.11 11.12)"));
+    std::vector<ColmnarDB::Types::Point> dataB3;
+    dataB3.push_back(PointFactory::FromWkt("POINT(149.11 11.1)"));
+
+    data3.insert({"ColumnA", dataA3});
+    data3.insert({"ColumnB", dataB3});
+
+    ASSERT_THROW(table.InsertData(data3), std::length_error);
+
+    auto blockA3 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB3 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA3[0]->GetSize(), 6);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA3[0]->GetData()[0]), "POINT(10.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA3[0]->GetData()[1]), "POINT(12.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA3[0]->GetData()[2]), "POINT(13.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA3[0]->GetData()[3]), "POINT(11.11 11.12)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA3[0]->GetData()[4]), "POINT(1.11 11.15)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA3[0]->GetData()[5]), "POINT(131.11 11.1)");
+
+    ASSERT_EQ(blockB3[0]->GetSize(), 6);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB3[0]->GetData()[0]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB3[0]->GetData()[1]), "POINT(15.11 12.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB3[0]->GetData()[2]), "POINT(16.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB3[0]->GetData()[3]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB3[0]->GetData()[4]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB3[0]->GetData()[5]), "POINT(13.11 11.1)");
+
+    // trying to insert non unique values into isUnique column and non unique values into non unique column
+    std::unordered_map<std::string, std::any> data4;
+    std::vector<ColmnarDB::Types::Point> dataA4;
+    dataA4.push_back(PointFactory::FromWkt("POINT(11.11 11.12)"));
+    std::vector<ColmnarDB::Types::Point> dataB4;
+    dataB4.push_back(PointFactory::FromWkt("POINT(13.11 11.1)"));
+
+    data4.insert({"ColumnA", dataA4});
+    data4.insert({"ColumnB", dataB4});
+
+    ASSERT_THROW(table.InsertData(data4), std::length_error);
+
+    auto blockA4 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB4 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA4[0]->GetSize(), 6);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA4[0]->GetData()[0]), "POINT(10.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA4[0]->GetData()[1]), "POINT(12.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA4[0]->GetData()[2]), "POINT(13.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA4[0]->GetData()[3]), "POINT(11.11 11.12)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA4[0]->GetData()[4]), "POINT(1.11 11.15)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA4[0]->GetData()[5]), "POINT(131.11 11.1)");
+
+    ASSERT_EQ(blockB4[0]->GetSize(), 6);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB4[0]->GetData()[0]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB4[0]->GetData()[1]), "POINT(15.11 12.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB4[0]->GetData()[2]), "POINT(16.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB4[0]->GetData()[3]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB4[0]->GetData()[4]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB4[0]->GetData()[5]), "POINT(13.11 11.1)");
+
+    // trynig to insert non unique values - these duplicity values is within one insert
+    std::unordered_map<std::string, std::any> data5;
+    std::vector<ColmnarDB::Types::Point> dataA5;
+    dataA5.push_back(PointFactory::FromWkt("POINT(919.11 11.12)"));
+    dataA5.push_back(PointFactory::FromWkt("POINT(7.11 11.12)"));
+    dataA5.push_back(PointFactory::FromWkt("POINT(919.11 11.12)"));
+    std::vector<ColmnarDB::Types::Point> dataB5;
+    dataB5.push_back(PointFactory::FromWkt("POINT(719.11 11.12)"));
+    dataB5.push_back(PointFactory::FromWkt("POINT(6.11 11.12)"));
+    dataB5.push_back(PointFactory::FromWkt("POINT(719.11 11.12)"));
+
+    data5.insert({"ColumnA", dataA5});
+    data5.insert({"ColumnB", dataB5});
+
+    ASSERT_THROW(table.InsertData(data5), std::length_error);
+
+    auto blockA5 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB5 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA5[0]->GetSize(), 6);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA5[0]->GetData()[0]), "POINT(10.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA5[0]->GetData()[1]), "POINT(12.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA5[0]->GetData()[2]), "POINT(13.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA5[0]->GetData()[3]), "POINT(11.11 11.12)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA5[0]->GetData()[4]), "POINT(1.11 11.15)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA5[0]->GetData()[5]), "POINT(131.11 11.1)");
+
+    ASSERT_EQ(blockB5[0]->GetSize(), 6);
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB5[0]->GetData()[0]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB5[0]->GetData()[1]), "POINT(15.11 12.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB5[0]->GetData()[2]), "POINT(16.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB5[0]->GetData()[3]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB5[0]->GetData()[4]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB5[0]->GetData()[5]), "POINT(13.11 11.1)");
+    /*
+    // insert only to non unique column - null value should be inserted in isUnique column but this is forbidden
+    std::unordered_map<ColmnarDB::Types::Point, std::any> data6;
+    std::vector<ColmnarDB::Types::Point> dataA6({"r", "t"});
+    std::vector<ColmnarDB::Types::Point> dataB6({"w", "q"});
+    data6.insert({"ColumnA", dataA6});
+    data6.insert({"ColumnB", dataB6});
+
+    std::unordered_map<ColmnarDB::Types::Point, std::vector<int8_t>> nullMask;
+    std::vector<int8_t> vectorMaskA;
+    std::vector<int8_t> vectorMaskB;
+    vectorMaskA.push_back(3);
+    vectorMaskB.push_back(0);
+
+    nullMask.insert({"ColumnA", vectorMaskA});
+    nullMask.insert({"ColumnB", vectorMaskB});
+
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::length_error);
+
+    auto blockA6 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB6 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA6[0]->GetSize(), 6);
+    ASSERT_EQ(blockA6[0]->GetData()[0], "A");
+    ASSERT_EQ(blockA6[0]->GetData()[1], "B");
+    ASSERT_EQ(blockA6[0]->GetData()[2], "c");
+    ASSERT_EQ(blockA6[0]->GetData()[3], "d");
+    ASSERT_EQ(blockA6[0]->GetData()[4], "e");
+    ASSERT_EQ(blockA6[0]->GetData()[5], "F");
+
+    ASSERT_EQ(blockB6[0]->GetSize(), 6);
+    ASSERT_EQ(blockB6[0]->GetData()[0], "d");
+    ASSERT_EQ(blockB6[0]->GetData()[1], "E");
+    ASSERT_EQ(blockB6[0]->GetData()[2], "f");
+    ASSERT_EQ(blockB6[0]->GetData()[3], "d");
+    ASSERT_EQ(blockB6[0]->GetData()[4], "d");
+    ASSERT_EQ(blockB6[0]->GetData()[5], "D");
+
+    ASSERT_EQ(blockA6[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blockB6[0]->GetNullBitmask()[0], 0);
+
+    // insert only to unique column - null value should be inserted in non unique column
+    std::unordered_map<ColmnarDB::Types::Point, std::any> data7;
+    std::vector<ColmnarDB::Types::Point> dataA7({"r", "t"});
+    std::vector<ColmnarDB::Types::Point> dataB7({"w", "q"});
+    data7.insert({"ColumnA", dataA7});
+    data7.insert({"ColumnB", dataB7});
+
+    std::unordered_map<ColmnarDB::Types::Point, std::vector<int8_t>> nullMask1;
+    std::vector<int8_t> vectorMaskA1;
+    std::vector<int8_t> vectorMaskB1;
+    vectorMaskA1.push_back(0);
+    vectorMaskB1.push_back(3);
+
+    nullMask1.insert({"ColumnA", vectorMaskA1});
+    nullMask1.insert({"ColumnB", vectorMaskB1});
+
+    table.InsertData(data7, false, nullMask1);
+
+    auto blockA7 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+    auto blockB7 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockA7[0]->GetSize(), 8);
+    ASSERT_EQ(blockA7[0]->GetData()[0], "A");
+    ASSERT_EQ(blockA7[0]->GetData()[1], "B");
+    ASSERT_EQ(blockA7[0]->GetData()[2], "c");
+    ASSERT_EQ(blockA7[0]->GetData()[3], "d");
+    ASSERT_EQ(blockA7[0]->GetData()[4], "e");
+    ASSERT_EQ(blockA7[0]->GetData()[5], "F");
+    ASSERT_EQ(blockA7[0]->GetData()[6], "r");
+    ASSERT_EQ(blockA7[0]->GetData()[7], "t");
+
+    ASSERT_EQ(blockB7[0]->GetSize(), 8);
+    ASSERT_EQ(blockB7[0]->GetData()[0], "d");
+    ASSERT_EQ(blockB7[0]->GetData()[1], "E");
+    ASSERT_EQ(blockB7[0]->GetData()[2], "f");
+    ASSERT_EQ(blockB7[0]->GetData()[3], "d");
+    ASSERT_EQ(blockB7[0]->GetData()[4], "d");
+    ASSERT_EQ(blockB7[0]->GetData()[5], "D");
+    ASSERT_EQ(blockB7[0]->GetData()[6], "w");
+    ASSERT_EQ(blockB7[0]->GetData()[7], "q");
+
+    ASSERT_EQ(blockA7[0]->GetNullBitmask()[0], 0);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+*/}
