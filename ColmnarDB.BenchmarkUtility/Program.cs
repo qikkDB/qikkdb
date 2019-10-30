@@ -295,7 +295,24 @@ namespace ColmnarDB.BenchmarkUtility
 
                             for (int i = 0; i < expectedColumnNames.Length; i++)
                             {
-                                exptectedColumns[expectedColumnNames[i]].Add(results[i]);
+                                switch (expectedDataTypes[i])
+                                {
+                                    case "INT":
+                                        exptectedColumns[expectedColumnNames[i]].Add(Int32.Parse(results[i]));
+                                        break;
+                                    case "LONG":
+                                        exptectedColumns[expectedColumnNames[i]].Add(Int64.Parse(results[i]));
+                                        break;
+                                    case "FLOAT":
+                                        exptectedColumns[expectedColumnNames[i]].Add(Single.Parse(results[i]));
+                                        break;
+                                    case "DOUBLE":
+                                        exptectedColumns[expectedColumnNames[i]].Add(Double.Parse(results[i]));
+                                        break;
+                                    case "STRING":
+                                        exptectedColumns[expectedColumnNames[i]].Add(results[i]);
+                                        break;
+                                }
                             }
                         }
 
