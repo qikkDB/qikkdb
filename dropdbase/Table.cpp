@@ -199,6 +199,7 @@ int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string
 /// Checks UNIQUE constraints in table and data which should be inserted if fit this requirements
 /// </summary>
 /// <param name="data">unordered map of columnName and data that should be inserted in this
+/// <param name="mullMasks">unordered map of columnName and vector which represents null values
 /// <param name="dataSize">num of data in one column
 void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data,
                                         const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks,
@@ -229,7 +230,6 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
-						//TODO zistit ci je null value aj pre ostatne datove typy a otestovat to
                         int8_t isNullValue = false;
                         int bitMaskIdx = (i / (sizeof(char) * 8));
                         int shiftIdx = (i % (sizeof(char) * 8));
@@ -242,9 +242,8 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
                         {
                             throw std::length_error("Could not execute statement due to a UNIQUE "
                                                     "constraint failure on column: " +
-                                                    column.first + "trying to insert NULL value");
+                                                    column.first + " trying to insert NULL value");
                         }
-						//
 
                         bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
 
@@ -272,6 +271,21 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
+                        int8_t isNullValue = false;
+                        int bitMaskIdx = (i / (sizeof(char) * 8));
+                        int shiftIdx = (i % (sizeof(char) * 8));
+                        if (nullMasks.find(column.first) != nullMasks.end())
+                        {
+                            isNullValue = (nullMasks.at(column.first)[bitMaskIdx] >> shiftIdx) & 1;
+                        }
+
+                        if (isNullValue)
+                        {
+                            throw std::length_error("Could not execute statement due to a UNIQUE "
+                                                    "constraint failure on column: " +
+                                                    column.first + " trying to insert NULL value");
+                        }
+
                         bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
 
                         if (valueIsUnique)
@@ -298,6 +312,21 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
+                        int8_t isNullValue = false;
+                        int bitMaskIdx = (i / (sizeof(char) * 8));
+                        int shiftIdx = (i % (sizeof(char) * 8));
+                        if (nullMasks.find(column.first) != nullMasks.end())
+                        {
+                            isNullValue = (nullMasks.at(column.first)[bitMaskIdx] >> shiftIdx) & 1;
+                        }
+
+                        if (isNullValue)
+                        {
+                            throw std::length_error("Could not execute statement due to a UNIQUE "
+                                                    "constraint failure on column: " +
+                                                    column.first + " trying to insert NULL value");
+                        }
+
                         bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
 
                         if (valueIsUnique)
@@ -323,6 +352,21 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
+                        int8_t isNullValue = false;
+                        int bitMaskIdx = (i / (sizeof(char) * 8));
+                        int shiftIdx = (i % (sizeof(char) * 8));
+                        if (nullMasks.find(column.first) != nullMasks.end())
+                        {
+                            isNullValue = (nullMasks.at(column.first)[bitMaskIdx] >> shiftIdx) & 1;
+                        }
+
+                        if (isNullValue)
+                        {
+                            throw std::length_error("Could not execute statement due to a UNIQUE "
+                                                    "constraint failure on column: " +
+                                                    column.first + " trying to insert NULL value");
+                        }
+
                         bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
 
                         if (valueIsUnique)
@@ -350,6 +394,21 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
+                        int8_t isNullValue = false;
+                        int bitMaskIdx = (i / (sizeof(char) * 8));
+                        int shiftIdx = (i % (sizeof(char) * 8));
+                        if (nullMasks.find(column.first) != nullMasks.end())
+                        {
+                            isNullValue = (nullMasks.at(column.first)[bitMaskIdx] >> shiftIdx) & 1;
+                        }
+
+                        if (isNullValue)
+                        {
+                            throw std::length_error("Could not execute statement due to a UNIQUE "
+                                                    "constraint failure on column: " +
+                                                    column.first + " trying to insert NULL value");
+                        }
+
                         bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
 
                         if (valueIsUnique)
@@ -378,6 +437,21 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
+                        int8_t isNullValue = false;
+                        int bitMaskIdx = (i / (sizeof(char) * 8));
+                        int shiftIdx = (i % (sizeof(char) * 8));
+                        if (nullMasks.find(column.first) != nullMasks.end())
+                        {
+                            isNullValue = (nullMasks.at(column.first)[bitMaskIdx] >> shiftIdx) & 1;
+                        }
+
+                        if (isNullValue)
+                        {
+                            throw std::length_error("Could not execute statement due to a UNIQUE "
+                                                    "constraint failure on column: " +
+                                                    column.first + " trying to insert NULL value");
+                        }
+
                         bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
 
                         if (valueIsUnique)
@@ -404,6 +478,21 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
+                        int8_t isNullValue = false;
+                        int bitMaskIdx = (i / (sizeof(char) * 8));
+                        int shiftIdx = (i % (sizeof(char) * 8));
+                        if (nullMasks.find(column.first) != nullMasks.end())
+                        {
+                            isNullValue = (nullMasks.at(column.first)[bitMaskIdx] >> shiftIdx) & 1;
+                        }
+
+                        if (isNullValue)
+                        {
+                            throw std::length_error("Could not execute statement due to a UNIQUE "
+                                                    "constraint failure on column: " +
+                                                    column.first + " trying to insert NULL value");
+                        }
+
                         bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
 
                         if (valueIsUnique)
@@ -430,6 +519,21 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     for (int i = 0; i < dataSize && noDuplicates; i++)
                     {
+                        int8_t isNullValue = false;
+                        int bitMaskIdx = (i / (sizeof(char) * 8));
+                        int shiftIdx = (i % (sizeof(char) * 8));
+                        if (nullMasks.find(column.first) != nullMasks.end())
+                        {
+                            isNullValue = (nullMasks.at(column.first)[bitMaskIdx] >> shiftIdx) & 1;
+                        }
+
+                        if (isNullValue)
+                        {
+                            throw std::length_error("Could not execute statement due to a UNIQUE "
+                                                    "constraint failure on column: " +
+                                                    column.first + " trying to insert NULL value");
+                        }
+
                         bool valueIsUnique = castedColumn->IsThereDuplicity(temp_hashmap, dataColumn[i]);
 
                         if (valueIsUnique)
