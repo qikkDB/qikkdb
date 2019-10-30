@@ -302,8 +302,8 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
             {
                 int32_t outDataSize;
                 CPUJoinReorderer::reorderByJIPushToGPU<T>(std::get<0>(cacheEntry), outDataSize,
-                                                                  *col, blockIndex_,
-                                                  joinIndices_->at(table));
+                                                          *col, blockIndex_, joinIndices_->at(table),
+                                                          database_->GetBlockSize());
             }
 
             if (col->GetIsNullable())
@@ -319,8 +319,9 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
-                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<T>(std::get<0>(cacheMaskEntry), outMaskSize,
-                                                                  *col, blockIndex_, joinIndices_->at(table));
+                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<T>(std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
+                                                                          joinIndices_->at(table),
+                                                                          database_->GetBlockSize());
                     }
                     AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheMaskEntry), bitMaskCapacity);
                 }
