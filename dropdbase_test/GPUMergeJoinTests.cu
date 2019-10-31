@@ -1,4 +1,5 @@
 #include "../dropdbase/QueryEngine/GPUCore/GPUMergeJoin.cuh"
+#include "../dropdbase/QueryEngine/CPUJoinReorderer.cuh"
 
 #include "gtest/gtest.h"
 
@@ -54,4 +55,67 @@ TEST(GPUMergeJoinTests, MergeJoinTest)
     {
         ASSERT_EQ(colBJoinIndices[0][i], colBJoinIndicesCorrect[i]);
     }
+}
+
+TEST(GPUMergeJoinTests, MergeJoinReorderTest)
+{
+    // Initialize test buffers
+    const int32_t BLOCK_COUNT_A = 10;
+    const int32_t BLOCK_SIZE_A = 1 << 25;
+
+    const int32_t BLOCK_COUNT_B = 10;
+    const int32_t BLOCK_SIZE_B = 1 << 25;
+
+    ColumnBase<int32_t> colA("ColA", BLOCK_SIZE_A);
+    ColumnBase<int32_t> colB("ColB", BLOCK_SIZE_B);
+
+    for (int32_t i = 0; i < BLOCK_COUNT_A; i++)
+    {
+        auto& blockA = colA.AddBlock();
+
+        std::vector<int32_t> colAData;
+        for (int32_t j = 0; j < BLOCK_SIZE_A; j++)
+        {
+            colAData.push_back(i * BLOCK_SIZE_A + j);
+        }
+
+        blockA.InsertData(colAData);
+    }
+
+    for (int32_t i = 0; i < BLOCK_COUNT_B; i++)
+    {
+        auto& blockB = colB.AddBlock();
+
+        std::vector<int32_t> colBData;
+        for (int32_t j = 0; j < BLOCK_SIZE_B; j++)
+        {
+            colBData.push_back(i * BLOCK_SIZE_B + j);
+        }
+
+        blockB.InsertData(colBData);
+    }
+
+    // Initialize th output buffers
+    std::vector<std::vector<int32_t>> colAJoinIndices;
+    std::vector<std::vector<int32_t>> colBJoinIndices;
+
+    // Perform the merge join
+    MergeJoin::JoinUnique(colAJoinIndices, colBJoinIndices, colA, colB);
+
+	// Reordered data
+    std::vector<int32_t> colAReordererd;
+    int32_t colAReordererdSize;
+
+	// Reorder based on the join indices
+	auto start = std::chrono::steady_clock::now();
+
+	for (int32_t i = 0; i < colA.GetBlockCount(); i++)
+    {
+        CPUJoinReorderer::reorderByJI(colAReordererd, colAReordererdSize, colA, i, colAJoinIndices, BLOCK_SIZE_A);
+    }
+
+    auto end = std::chrono::steady_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+
+    FAIL();
 }

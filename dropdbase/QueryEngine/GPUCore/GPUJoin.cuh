@@ -31,17 +31,12 @@ template <typename T>
 __global__ void
 kernel_calc_hash_histo(int32_t* HashTableHisto, int32_t hashTableSize, T* ColumnRBlock, int8_t* nullBitMaskR, int32_t dataElementCount)
 {
-    __shared__ int32_t shared_memory[HASH_TABLE_SUB_SIZE];
-
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
     for (int32_t i = idx; i < hashTableSize; i += stride)
     {
         // Count the occurances of hashes and accumulate them to the local memory
-        shared_memory[threadIdx.x] = 0;
-        __syncthreads();
-
         if (i < dataElementCount)
         {
             if (nullBitMaskR)
@@ -54,18 +49,15 @@ kernel_calc_hash_histo(int32_t* HashTableHisto, int32_t hashTableSize, T* Column
                 else
                 {
                     int32_t hash_idx = hash(ColumnRBlock[i]);
-                    atomicAdd(&shared_memory[hash_idx], 1);
+                    atomicAdd(&HashTableHisto[i], 1);
                 }
             }
             else
             {
                 int32_t hash_idx = hash(ColumnRBlock[i]);
-                atomicAdd(&shared_memory[hash_idx], 1);
+                atomicAdd(&HashTableHisto[i], 1);
             }
         }
-
-        __syncthreads();
-        HashTableHisto[i] = shared_memory[threadIdx.x];
     }
 }
 
