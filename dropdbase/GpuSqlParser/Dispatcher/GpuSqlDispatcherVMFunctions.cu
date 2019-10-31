@@ -415,8 +415,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
                 }
             }
             InsertString(database_->GetName(), colName,
-                         std::vector<std::string>(block->GetData() + loadOffset_,
-                                                  block->GetData() + loadOffset_ + loadSize_),
+                         block->GetData() + loadOffset_,
                          loadSize_, false, nullMaskPtr);
             noLoad_ = false;
         }
@@ -462,7 +461,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
                 }
             }
 
-            InsertString(database_->GetName(), colName, joinedStrings, loadSize, nullMaskPtr);
+            InsertString(database_->GetName(), colName, joinedStrings.data(), loadSize, nullMaskPtr);
             noLoad_ = false;
         }
     }

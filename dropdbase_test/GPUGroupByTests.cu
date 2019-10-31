@@ -23,7 +23,7 @@ void TestGroupByString(std::vector<std::vector<std::string>> keys,
     {
         // std::cout << "BLOCK " << b << ":" << std::endl;
         int32_t dataElementCount = min(keys[b].size(), values[b].size());
-        GPUMemory::GPUString gpuInKeys = StringFactory::PrepareGPUString(keys[b]);
+        GPUMemory::GPUString gpuInKeys = StringFactory::PrepareGPUString(keys[b].data(), keys[b].size());
         cuda_ptr<int32_t> gpuInValues(dataElementCount);
         GPUMemory::copyHostToDevice(gpuInValues.get(), values[b].data(), dataElementCount);
 
@@ -158,8 +158,8 @@ void TestGroupByMultiKey(std::vector<DataType> keyTypes,
                 GPUMemory::GPUString* inKeysSingleCol;
                 GPUMemory::alloc(&inKeysSingleCol, 1);
                 std::string* cpuStrArray = reinterpret_cast<std::string*>(keys[b][t]);
-                std::vector<std::string> cpuString(cpuStrArray, cpuStrArray + dataElementCount);
-                GPUMemory::GPUString cpuStructInKeys = StringFactory::PrepareGPUString(cpuString);
+                GPUMemory::GPUString cpuStructInKeys =
+                    StringFactory::PrepareGPUString(cpuStrArray, dataElementCount);
                 GPUMemory::copyHostToDevice(inKeysSingleCol, &cpuStructInKeys, 1);
                 gpuInKeys.emplace_back(inKeysSingleCol);
                 break;
@@ -356,7 +356,7 @@ void TestGroupByMultiKeyIntString(int32_t totalElementCount)
         GPUMemory::GPUString* inStrKeySingleCol;
         GPUMemory::alloc(&inStrKeySingleCol, 1);
         std::vector<std::string> cpuString(dataElementCount, strKey);
-        GPUMemory::GPUString cpuStructInKeys = StringFactory::PrepareGPUString(cpuString);
+        GPUMemory::GPUString cpuStructInKeys = StringFactory::PrepareGPUString(cpuString.data(), cpuString.size());
         GPUMemory::copyHostToDevice(inStrKeySingleCol, &cpuStructInKeys, 1);
         gpuInKeys.emplace_back(inStrKeySingleCol);
 
@@ -451,14 +451,14 @@ void TestGroupByNoAgg(std::vector<std::vector<int32_t>> inKeys)
     GPUMemory::free(d_outKeys);
     // Print keys
     std::cout << "Correct: ";
-	for (int32_t value : correctOutKeys)
+    for (int32_t value : correctOutKeys)
     {
         std::cout << value << " ";
     }
     std::cout << std::endl << "Actual: ";
     for (int32_t value : outKeys)
     {
-        std::cout << value <<  " ";
+        std::cout << value << " ";
     }
     std::cout << std::endl;
     // Assert keys

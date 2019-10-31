@@ -1067,8 +1067,8 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
 
 GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseName,
                                                     const std::string& colName,
-                                                    const std::vector<std::string>& strings,
-                                                    int32_t size,
+                                                    const std::string* strings,
+													const size_t stringCount,
                                                     bool useCache,
                                                     int8_t* nullMaskPtr)
 {
@@ -1083,24 +1083,24 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
             GPUMemory::GPUString gpuString;
             gpuString.stringIndices =
                 std::get<0>(cache.getColumn<int64_t>(databaseName, colName + "_stringIndices",
-                                                     blockIndex_, size, loadSize_, loadOffset_));
+                                                     blockIndex_, stringCount, loadSize_, loadOffset_));
             gpuString.allChars = std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex_,
-                                                                   size, loadSize_, loadOffset_));
-            FillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
+                                                  stringCount, loadSize_, loadOffset_));
+            FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
             return gpuString;
         }
         else
         {
             GPUMemory::GPUString gpuString =
-                StringFactory::PrepareGPUString(strings, databaseName, colName, blockIndex_, loadSize_, loadOffset_);
-            FillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
+                StringFactory::PrepareGPUString(strings, stringCount, databaseName, colName, blockIndex_, loadSize_, loadOffset_);
+            FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
             return gpuString;
         }
     }
     else
     {
-        GPUMemory::GPUString gpuString = StringFactory::PrepareGPUString(strings);
-        FillStringRegister(gpuString, colName, size, useCache, nullMaskPtr);
+        GPUMemory::GPUString gpuString = StringFactory::PrepareGPUString(strings, stringCount);
+        FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
         return gpuString;
     }
 }
@@ -1182,12 +1182,12 @@ void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
     allChars.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(newNullMask);
 }
 
-GPUMemory::GPUString GpuSqlDispatcher::InsertConstStringGpu(const std::string& str, size_t size)
+GPUMemory::GPUString GpuSqlDispatcher::InsertConstStringGpu(const std::string& str, const size_t size)
 {
     std::vector<std::string> strings(size, str);
     std::string name = "constString" + std::to_string(constStringCounter_);
     constStringCounter_++;
-    return InsertString(database_->GetName(), name, strings, 1);
+    return InsertString(database_->GetName(), name, strings.data(), 1);
 }
 
 /// Clears all allocated buffers

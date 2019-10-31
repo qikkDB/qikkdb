@@ -5,8 +5,9 @@
 class StringFactory
 {
 public:
-    static GPUMemory::GPUString PrepareGPUString(const std::vector<std::string>& strings);
-    static GPUMemory::GPUString PrepareGPUString(const std::vector<std::string>& strings,
+    static GPUMemory::GPUString PrepareGPUString(const std::string* strings, size_t stringCount);
+    static GPUMemory::GPUString PrepareGPUString(const std::string* strings,
+                                                 size_t stringCount,
                                                  const std::string& databaseName,
                                                  const std::string& columnName,
                                                  size_t blockIndex,

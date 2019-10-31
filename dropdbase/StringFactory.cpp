@@ -1,17 +1,17 @@
 #include "StringFactory.h"
 
-GPUMemory::GPUString StringFactory::PrepareGPUString(const std::vector<std::string>& strings)
+GPUMemory::GPUString StringFactory::PrepareGPUString(const std::string* strings, const size_t stringCount)
 {
     std::vector<int64_t> stringIndices;
     std::string concat;
 
     int64_t prefixSum = 0;
 
-    for (auto& str : strings)
+    for (size_t i = 0; i < stringCount; i++)
     {
-        prefixSum += str.size();
+        prefixSum += strings[i].size();
         stringIndices.push_back(prefixSum);
-        concat += str;
+        concat += strings[i];
     }
 
     GPUMemory::GPUString gpuString;
@@ -24,7 +24,8 @@ GPUMemory::GPUString StringFactory::PrepareGPUString(const std::vector<std::stri
     return gpuString;
 }
 
-GPUMemory::GPUString StringFactory::PrepareGPUString(const std::vector<std::string>& strings,
+GPUMemory::GPUString StringFactory::PrepareGPUString(const std::string* strings,
+                                                     const size_t stringCount,
                                                      const std::string& databaseName,
                                                      const std::string& columnName,
                                                      size_t blockIndex,
@@ -36,11 +37,11 @@ GPUMemory::GPUString StringFactory::PrepareGPUString(const std::vector<std::stri
 
     int64_t prefixSum = 0;
 
-    for (auto& str : strings)
+    for (size_t i = 0; i < stringCount; i++)
     {
-        prefixSum += str.size();
+        prefixSum += strings[i].size();
         stringIndices.push_back(prefixSum);
-        concat += str;
+        concat += strings[i];
     }
 
     GPUMemory::GPUString gpuString;

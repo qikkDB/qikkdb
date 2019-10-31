@@ -703,8 +703,8 @@ public:
                                                int8_t* nullMaskPtr = nullptr);
     GPUMemory::GPUString InsertString(const std::string& databaseName,
                                       const std::string& colName,
-                                      const std::vector<std::string>& strings,
-                                      int32_t size,
+                                      const std::string* strings,
+                                      size_t size,
                                       bool useCache = false,
                                       int8_t* nullMaskPtr = nullptr);
     std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> FindComplexPolygon(std::string colName);
