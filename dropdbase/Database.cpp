@@ -861,6 +861,7 @@ void Database::LoadColumn(const char* path,
                         if (byteIndexForChunks + sizeof(int32_t) - 1 >= currentChunkSize)
                         {
                             int32_t restSize = (byteIndexForChunks + sizeof(int32_t) - currentChunkSize);
+                            currentChunkSize += restSize;
                             std::unique_ptr<char[]> dataRest(new char[restSize]);
                             colFile.read(dataRest.get(), restSize);
                             memcpy(&entryByteLength, &data[byteIndexForChunks], sizeof(int32_t) - restSize);
@@ -883,7 +884,7 @@ void Database::LoadColumn(const char* path,
                                                                  currentChunkSize - byteIndexForChunks :
                                                                  0;
                             std::unique_ptr<char[]> dataRest(new char[entryByteLength - dataLeftInCurrentChunk]);
-
+                            currentChunkSize += entryByteLength - dataLeftInCurrentChunk;
                             colFile.read(dataRest.get(), entryByteLength - dataLeftInCurrentChunk);
 
                             if (dataLeftInCurrentChunk > 0)
@@ -1019,6 +1020,7 @@ void Database::LoadColumn(const char* path,
                         if (byteIndexForChunks + sizeof(int32_t) - 1 >= currentChunkSize)
                         {
                             int32_t restSize = (byteIndexForChunks + sizeof(int32_t) - currentChunkSize);
+                            currentChunkSize += restSize;
                             std::unique_ptr<char[]> dataRest(new char[restSize]);
                             colFile.read(dataRest.get(), restSize);
                             memcpy(&entryByteLength, &data[byteIndexForChunks], sizeof(int32_t) - restSize);
@@ -1040,7 +1042,7 @@ void Database::LoadColumn(const char* path,
                                                                  currentChunkSize - byteIndexForChunks :
                                                                  0;
                             std::unique_ptr<char[]> dataRest(new char[entryByteLength - dataLeftInCurrentChunk]);
-
+                            currentChunkSize += entryByteLength - dataLeftInCurrentChunk;
                             colFile.read(dataRest.get(), entryByteLength - dataLeftInCurrentChunk);
 
                             colFile.read(dataRest.get(), entryByteLength - dataLeftInCurrentChunk);
@@ -1166,6 +1168,7 @@ void Database::LoadColumn(const char* path,
                         if (byteIndexForChunks + sizeof(int32_t) - 1 >= currentChunkSize)
                         {
                             int32_t restSize = (byteIndexForChunks + sizeof(int32_t) - currentChunkSize);
+                            currentChunkSize += restSize;
                             std::unique_ptr<char[]> dataRest(new char[restSize]);
                             colFile.read(dataRest.get(), restSize);
                             memcpy(&entryByteLength, &data[byteIndexForChunks], sizeof(int32_t) - restSize);
@@ -1189,7 +1192,7 @@ void Database::LoadColumn(const char* path,
                                                                  currentChunkSize - byteIndexForChunks :
                                                                  0;
                             std::unique_ptr<char[]> dataRest(new char[entryByteLength - dataLeftInCurrentChunk]);
-
+                            currentChunkSize += entryByteLength - dataLeftInCurrentChunk;
 
                             colFile.read(dataRest.get(), entryByteLength - dataLeftInCurrentChunk);
                             if (dataLeftInCurrentChunk > 0)
