@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ColmnarDB.BenchmarkUtility": {
+      "commandName": "Project",
+      "commandLineArgs": "-t"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-passenger_count|AVG(total_amount)
+trips.passenger_count|AVG(total_amount)
 INT|DOUBLE
 0|10.67491553413891
 1|13.71015552887048

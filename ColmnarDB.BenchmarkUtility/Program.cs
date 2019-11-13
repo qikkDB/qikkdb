@@ -248,9 +248,11 @@ namespace ColmnarDB.BenchmarkUtility
                         }
                         Dictionary<string, float> executionTimes = null;
                         ColumnarDataTable result = null;
+                        ColumnarDataTable oldResult = null;
 
                         while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
                         {
+                            oldResult = result;
                             resultSum += executionTimes.Values.Sum();
                         }
 
@@ -322,11 +324,44 @@ namespace ColmnarDB.BenchmarkUtility
                             //check each element in result's lists
                             for (int j = 0; j < exptectedColumns[expectedColumnNames[i]].Count; j++)
                             {
-                                if (exptectedColumns[expectedColumnNames[i]][j] != result.GetColumnData()[expectedColumnNames[i]][j])
+                                switch (expectedDataTypes[i])
                                 {
-                                    resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j].ToString() + " / " + result.GetColumnData()[expectedColumnNames[i]][j].ToString());
-                                    Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j] + " / " + result.GetColumnData()[expectedColumnNames[i]][j]);
-                                    correctResultsPassed = false;
+                                    case "INT":
+                                        if ((int) exptectedColumns[expectedColumnNames[i]][j] != (int) oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                        {
+                                            correctResultsPassed = false;
+                                        }
+                                        break;
+                                    case "LONG":
+                                        if ((long)exptectedColumns[expectedColumnNames[i]][j] != (long)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                        {
+                                            correctResultsPassed = false;
+                                        }
+                                        break;
+                                    case "FLOAT":
+                                        if ((float)exptectedColumns[expectedColumnNames[i]][j] != (float)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                        {
+                                            correctResultsPassed = false;
+                                        }
+                                        break;
+                                    case "DOUBLE":
+                                        if ((double)exptectedColumns[expectedColumnNames[i]][j] != (double)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                        {
+                                            correctResultsPassed = false;
+                                        }
+                                        break;
+                                    case "STRING":
+                                        if ((string)exptectedColumns[expectedColumnNames[i]][j] != (string)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                        {
+                                            correctResultsPassed = false;
+                                        }
+                                        break;
+                                }
+
+                                if (!correctResultsPassed)
+                                {
+                                    resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j].ToString() + " / " + oldResult.GetColumnData()[expectedColumnNames[i]][j].ToString());
+                                    Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j] + " / " + oldResult.GetColumnData()[expectedColumnNames[i]][j]);
                                 }
                             }
                         }

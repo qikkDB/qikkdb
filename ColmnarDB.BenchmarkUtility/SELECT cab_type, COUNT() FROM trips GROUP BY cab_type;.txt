@@ -1,4 +1,4 @@
-cab_type|COUNT(*)
+trips.cab_type|COUNT(*)
 INT|LONG
 1|862729996
 2|338294120
