@@ -232,6 +232,8 @@ namespace ColmnarDB.BenchmarkUtility
                     var queryFile = new System.IO.StreamReader(taxiQueriesPath);
                     Console.Out.WriteLine("Benchmark queries from file '" + taxiQueriesPath + "' were loaded.");
 
+                    int queryIndex = 1; //indexing from 1, not zero, because we use to call it taxi rides query number 1, not number 0, so it is not confusing
+
                     while ((queryString = queryFile.ReadLine()) != null)
                     {
                         Console.Out.WriteLine("Executing benchmark query: " + queryString);
@@ -258,7 +260,8 @@ namespace ColmnarDB.BenchmarkUtility
                         }
 
                         //read file where the results of a particular query are saved:
-                        var queryExpectedResultFile = new System.IO.StreamReader("../../../ColmnarDB.BenchmarkUtility/" + queryString.Replace("*", "") + ".txt");
+                        var queryExpectedResultFile = new System.IO.StreamReader("../../../ColmnarDB.BenchmarkUtility/" + taxiDbName + "_testQuery_" + queryIndex + ".txt");
+                        queryIndex++;
 
                         //read the file header
                         var expectedColumnNames = queryExpectedResultFile.ReadLine().Split('|');
@@ -324,60 +327,69 @@ namespace ColmnarDB.BenchmarkUtility
                         //check if the expected result dictionary is the same as actual query result dictionary:
                         for (int i = 0; i < expectedColumnNames.Length; i++)
                         {
-                            if (exptectedColumns[expectedColumnNames[i]].Count != oldResult.GetColumnData()[expectedColumnNames[i]].Count)
+                            try
                             {
-                                resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual count of result entries: " + exptectedColumns[expectedColumnNames[i]].Count.ToString() + " / " + oldResult.GetColumnData()[expectedColumnNames[i]].Count.ToString());
-                                Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual count of result entries: " + exptectedColumns[expectedColumnNames[i]].Count + " / " + oldResult.GetColumnData()[expectedColumnNames[i]].Count);
-                                correctResultsPassed = false;
-                            }
-                            else
-                            {
-                                bool tempCorrectResultsPassed = true;
-
-                                //check each element in result's lists
-                                for (int j = 0; j < exptectedColumns[expectedColumnNames[i]].Count; j++)
+                                if (exptectedColumns[expectedColumnNames[i]].Count != oldResult.GetColumnData()[expectedColumnNames[i]].Count)
                                 {
-                                    switch (expectedDataTypes[i])
-                                    {
-                                        case "INT":
-                                            if ((int)exptectedColumns[expectedColumnNames[i]][j] != (int)oldResult.GetColumnData()[expectedColumnNames[i]][j])
-                                            {
-                                                tempCorrectResultsPassed = false;
-                                            }
-                                            break;
-                                        case "LONG":
-                                            if ((long)exptectedColumns[expectedColumnNames[i]][j] != (long)oldResult.GetColumnData()[expectedColumnNames[i]][j])
-                                            {
-                                                tempCorrectResultsPassed = false;
-                                            }
-                                            break;
-                                        case "FLOAT":
-                                            if ((float)exptectedColumns[expectedColumnNames[i]][j] != (float)oldResult.GetColumnData()[expectedColumnNames[i]][j])
-                                            {
-                                                tempCorrectResultsPassed = false;
-                                            }
-                                            break;
-                                        case "DOUBLE":
-                                            if ((double)exptectedColumns[expectedColumnNames[i]][j] != (double)oldResult.GetColumnData()[expectedColumnNames[i]][j])
-                                            {
-                                                tempCorrectResultsPassed = false;
-                                            }
-                                            break;
-                                        case "STRING":
-                                            if ((string)exptectedColumns[expectedColumnNames[i]][j] != (string)oldResult.GetColumnData()[expectedColumnNames[i]][j])
-                                            {
-                                                tempCorrectResultsPassed = false;
-                                            }
-                                            break;
-                                    }
+                                    resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual count of result entries: " + exptectedColumns[expectedColumnNames[i]].Count.ToString() + " / " + oldResult.GetColumnData()[expectedColumnNames[i]].Count.ToString());
+                                    Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual count of result entries: " + exptectedColumns[expectedColumnNames[i]].Count + " / " + oldResult.GetColumnData()[expectedColumnNames[i]].Count);
+                                    correctResultsPassed = false;
+                                }
+                                else
+                                {
+                                    bool tempCorrectResultsPassed = true;
 
-                                    if (!tempCorrectResultsPassed)
+                                    //check each element in result's lists
+                                    for (int j = 0; j < exptectedColumns[expectedColumnNames[i]].Count; j++)
                                     {
-                                        resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j].ToString() + " / " + oldResult.GetColumnData()[expectedColumnNames[i]][j].ToString());
-                                        Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j] + " / " + oldResult.GetColumnData()[expectedColumnNames[i]][j]);
-                                        correctResultsPassed = false;
+                                        switch (expectedDataTypes[i])
+                                        {
+                                            case "INT":
+                                                if ((int)exptectedColumns[expectedColumnNames[i]][j] != (int)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                                {
+                                                    tempCorrectResultsPassed = false;
+                                                }
+                                                break;
+                                            case "LONG":
+                                                if ((long)exptectedColumns[expectedColumnNames[i]][j] != (long)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                                {
+                                                    tempCorrectResultsPassed = false;
+                                                }
+                                                break;
+                                            case "FLOAT":
+                                                if ((float)exptectedColumns[expectedColumnNames[i]][j] != (float)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                                {
+                                                    tempCorrectResultsPassed = false;
+                                                }
+                                                break;
+                                            case "DOUBLE":
+                                                if ((double)exptectedColumns[expectedColumnNames[i]][j] != (double)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                                {
+                                                    tempCorrectResultsPassed = false;
+                                                }
+                                                break;
+                                            case "STRING":
+                                                if ((string)exptectedColumns[expectedColumnNames[i]][j] != (string)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                                {
+                                                    tempCorrectResultsPassed = false;
+                                                }
+                                                break;
+                                        }
+
+                                        if (!tempCorrectResultsPassed)
+                                        {
+                                            resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j].ToString() + " / " + oldResult.GetColumnData()[expectedColumnNames[i]][j].ToString());
+                                            Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j] + " / " + oldResult.GetColumnData()[expectedColumnNames[i]][j]);
+                                            correctResultsPassed = false;
+                                        }
                                     }
                                 }
+                            }
+                            catch (System.Collections.Generic.KeyNotFoundException)
+                            {
+                                resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]].ToString() + " / System.Collections.Generic.KeyNotFoundException was thrown.");
+                                Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]] + " / System.Collections.Generic.KeyNotFoundException was thrown.");
+                                correctResultsPassed = false;
                             }
                         }
                 
