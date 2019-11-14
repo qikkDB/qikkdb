@@ -31,17 +31,12 @@ template <typename T>
 __global__ void
 kernel_calc_hash_histo(int32_t* HashTableHisto, int32_t hashTableSize, T* ColumnRBlock, int8_t* nullBitMaskR, int32_t dataElementCount)
 {
-    __shared__ int32_t shared_memory[HASH_TABLE_SUB_SIZE];
-
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
     for (int32_t i = idx; i < hashTableSize; i += stride)
     {
         // Count the occurances of hashes and accumulate them to the local memory
-        shared_memory[threadIdx.x] = 0;
-        __syncthreads();
-
         if (i < dataElementCount)
         {
             if (nullBitMaskR)
@@ -54,18 +49,15 @@ kernel_calc_hash_histo(int32_t* HashTableHisto, int32_t hashTableSize, T* Column
                 else
                 {
                     int32_t hash_idx = hash(ColumnRBlock[i]);
-                    atomicAdd(&shared_memory[hash_idx], 1);
+                    atomicAdd(&HashTableHisto[i], 1);
                 }
             }
             else
             {
                 int32_t hash_idx = hash(ColumnRBlock[i]);
-                atomicAdd(&shared_memory[hash_idx], 1);
+                atomicAdd(&HashTableHisto[i], 1);
             }
         }
-
-        __syncthreads();
-        HashTableHisto[i] = shared_memory[threadIdx.x];
     }
 }
 
@@ -653,104 +645,5 @@ public:
                 }
             }
         }
-    }
-
-    // Create a new outBlock based on a portion of join indexes and input column
-    template <typename T>
-    static void reorderByJoinTableCPU(T* outBlock,
-                                      int32_t& outDataSize,
-                                      const ColumnBase<T>& inColumn,
-                                      int32_t resultColumnQJoinIdxBlockIdx,
-                                      const std::vector<std::vector<int32_t>>& resultColumnQJoinIdx,
-                                      int32_t blockSize)
-    {
-        if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
-        {
-            CudaLogBoost::getInstance(CudaLogBoost::error)
-                << "[ERROR]  Column block index out of bounds" << '\n';
-        }
-
-        // Allocan output CPU vector
-        std::vector<T> outBlockVector(resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size());
-
-        for (int32_t i = 0; i < resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size(); i++)
-        {
-            int32_t columnBlockId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] / blockSize;
-            int32_t columnRowId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] % blockSize;
-
-            T val = inColumn.GetBlocksList()[columnBlockId]->GetData()[columnRowId];
-            outBlockVector[i] = val;
-        }
-
-        outDataSize = outBlockVector.size();
-
-        GPUMemory::copyHostToDevice(outBlock, outBlockVector.data(), outDataSize);
-    }
-
-    // Create a new outBlock based on a portion of join indexes and input column
-    template <typename T>
-    static void reorderByJoinTableCPU(std::vector<T>& outBlock,
-                                      int32_t& outDataSize,
-                                      const ColumnBase<T>& inColumn,
-                                      int32_t resultColumnQJoinIdxBlockIdx,
-                                      const std::vector<std::vector<int32_t>>& resultColumnQJoinIdx,
-                                      int32_t blockSize)
-    {
-        if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
-        {
-            CudaLogBoost::getInstance(CudaLogBoost::error)
-                << "[ERROR]  Column block index out of bounds" << '\n';
-        }
-
-        outBlock.clear();
-
-        for (int32_t i = 0; i < resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size(); i++)
-        {
-            int32_t columnBlockId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] / blockSize;
-            int32_t columnRowId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] % blockSize;
-
-            T val = inColumn.GetBlocksList()[columnBlockId]->GetData()[columnRowId];
-            outBlock.push_back(val);
-        }
-        outDataSize = outBlock.size();
-    }
-
-    // Reorder the null mask and put it in a GPU buffer
-    template <typename T>
-    static void reorderNullMaskByJoinTableCPU(int8_t* outNullBlock,
-                                              int32_t& outNullBlockSize,
-                                              const ColumnBase<T>& inColumn,
-                                              int32_t resultColumnQJoinIdxBlockIdx,
-                                              const std::vector<std::vector<int32_t>>& resultColumnQJoinIdx,
-                                              int32_t blockSize)
-    {
-        if (resultColumnQJoinIdxBlockIdx < 0 || resultColumnQJoinIdxBlockIdx > resultColumnQJoinIdx.size())
-        {
-            CudaLogBoost::getInstance(CudaLogBoost::error)
-                << "[ERROR]  Column block index out of bounds" << '\n';
-        }
-
-        // Allocan output CPU vector
-        std::vector<int8_t> outNullBlockVector(
-            (resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size() + sizeof(int8_t) * 8 - 1) /
-            (sizeof(int8_t) * 8));
-
-        for (int32_t i = 0; i < resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx].size(); i++)
-        {
-            int32_t columnBlockId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] / blockSize;
-            int32_t columnRowId = resultColumnQJoinIdx[resultColumnQJoinIdxBlockIdx][i] % blockSize;
-
-            int8_t nullBit =
-                (inColumn.GetBlocksList()[columnBlockId]->GetNullBitmask()[columnRowId / (sizeof(int8_t) * 8)] >>
-                 (columnRowId % (sizeof(int8_t) * 8))) &
-                1;
-
-            nullBit <<= (i % (sizeof(int8_t) * 8));
-            outNullBlockVector[i / 8] |= nullBit;
-        }
-
-        outNullBlockSize = outNullBlockVector.size();
-
-        GPUMemory::copyHostToDevice(outNullBlock, outNullBlockVector.data(), outNullBlockSize);
     }
 };

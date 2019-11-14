@@ -2,6 +2,7 @@
 
 #include "GpuSqlJoinDispatcher.h"
 #include "../QueryEngine/GPUCore/GPUJoin.cuh"
+#include "../QueryEngine/GPUCore/GPUMergeJoin.cuh"
 #include "../QueryEngine/GPUCore/GPUFilterConditions.cuh"
 
 template <typename OP, typename T>
@@ -34,14 +35,38 @@ int32_t GpuSqlJoinDispatcher::JoinCol()
     switch (joinType)
     {
     case JoinType::INNER_JOIN:
-        GPUJoin::JoinTableRonS<OP, T>(leftJoinIndices, rightJoinIndices, *colBaseLeft,
-                                      *colBaseRight, database_->GetBlockSize(), aborted_);
-        joinIndices_.emplace(leftTable, std::move(leftJoinIndices));
-        joinIndices_.emplace(rightTable, std::move(rightJoinIndices));
+		{
+			bool colLUnique = colBaseLeft->GetIsUnique();
+			bool colRUnique = colBaseRight->GetIsUnique();
+
+			if (colLUnique && colRUnique)
+			{
+				MergeJoin::JoinUnique(leftJoinIndices, rightJoinIndices, *colBaseLeft, *colBaseRight);
+			}
+			if (colLUnique && !colRUnique)
+			{
+				MergeJoin::JoinUnique(leftJoinIndices, rightJoinIndices, *colBaseRight, *colBaseLeft);
+			}
+			if (!colLUnique && colRUnique)
+			{
+				MergeJoin::JoinUnique(leftJoinIndices, rightJoinIndices, *colBaseLeft, *colBaseRight);
+			}
+			if (!colLUnique && !colRUnique)
+			{
+				GPUJoin::JoinTableRonS<OP, T>(leftJoinIndices, rightJoinIndices, *colBaseLeft,
+											  *colBaseRight, database_->GetBlockSize(), aborted_);
+			}
+
+			joinIndices_.emplace(leftTable, std::move(leftJoinIndices));
+			joinIndices_.emplace(rightTable, std::move(rightJoinIndices));
+		}
         break;
     case JoinType::LEFT_JOIN:
+        break;
     case JoinType::RIGHT_JOIN:
+        break;
     case JoinType::FULL_OUTER_JOIN:
+        break;
     default:
         break;
     }
