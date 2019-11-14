@@ -61,10 +61,10 @@ TEST(GPUMergeJoinTests, MergeJoinReorderTest)
 {
     // Initialize test buffers
     const int32_t BLOCK_COUNT_A = 10;
-    const int32_t BLOCK_SIZE_A = 1 << 25;
+    const int32_t BLOCK_SIZE_A = 1 << 10;
 
     const int32_t BLOCK_COUNT_B = 10;
-    const int32_t BLOCK_SIZE_B = 1 << 25;
+    const int32_t BLOCK_SIZE_B = 1 << 10;
 
     ColumnBase<int32_t> colA("ColA", BLOCK_SIZE_A);
     ColumnBase<int32_t> colB("ColB", BLOCK_SIZE_B);
@@ -106,16 +106,25 @@ TEST(GPUMergeJoinTests, MergeJoinReorderTest)
     std::vector<int32_t> colAReordererd;
     int32_t colAReordererdSize;
 
+	std::vector<int32_t> colBReordererd;
+    int32_t colBReordererdSize;
+
 	// Reorder based on the join indices
-	auto start = std::chrono::steady_clock::now();
+	//auto start = std::chrono::steady_clock::now();
 
 	for (int32_t i = 0; i < colA.GetBlockCount(); i++)
     {
         CPUJoinReorderer::reorderByJI(colAReordererd, colAReordererdSize, colA, i, colAJoinIndices, BLOCK_SIZE_A);
+        CPUJoinReorderer::reorderByJI(colBReordererd, colBReordererdSize, colB, i, colBJoinIndices, BLOCK_SIZE_B);
+
+		for (int32_t j = 0; j < colAReordererd.size(); j++)
+        {
+            ASSERT_EQ(colAReordererd[j], colBReordererd[j]);
+		}
     }
 
-    auto end = std::chrono::steady_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    //auto end = std::chrono::steady_clock::now();
+    //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
-    FAIL();
+    //FAIL();
 }
