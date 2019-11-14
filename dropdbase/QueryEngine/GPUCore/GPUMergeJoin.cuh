@@ -1,5 +1,11 @@
 #pragma once
 
+/*
+ * The merge join algorithm is based on the idea of the merge path with additional
+ * efficient load balancing.
+ * Used paper: GPU merge path: a GPU merging algorithm, O Green, R McColl, DA Bader 2012
+ */
+
 #include <cstdint>
 
 #include "../Context.h"
